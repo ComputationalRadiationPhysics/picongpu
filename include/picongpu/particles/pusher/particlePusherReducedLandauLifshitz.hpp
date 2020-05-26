@@ -168,12 +168,12 @@ struct Push
       const float3_X beta = velocity / c;
 
       const float_X prefactorRR = 2./3. * charge2 * charge2 / (4.*PI*EPS0 * mass*mass * c2*c2);
-      const float3_X lorentz = fieldE + conversionMomentum2Beta * c * math::cross(mom, fieldB);
-      const float_X fieldETimesBeta = math::dot(fieldE, mom) * conversionMomentum2Beta;
-      const float3_X radReactionVec = c * (math::cross(fieldE, fieldB) +
-                                           c * conversionMomentum2Beta * math::cross(fieldB, math::cross(fieldB, mom)))
-                                      + conversionMomentum2Beta * fieldE * math::dot(mom, fieldE)
-                                      - gamma * gamma * conversionMomentum2Beta * (mom * (math::dot(lorentz, lorentz) - fieldETimesBeta*fieldETimesBeta));
+      const float3_X lorentz = fieldE + conversionMomentum2Beta * c * pmacc::math::cross(mom, fieldB);
+      const float_X fieldETimesBeta = pmacc::math::dot(fieldE, mom) * conversionMomentum2Beta;
+      const float3_X radReactionVec = c * (pmacc::math::cross(fieldE, fieldB) +
+                                           c * conversionMomentum2Beta * pmacc::math::cross(fieldB, pmacc::math::cross(fieldB, mom)))
+                                      + conversionMomentum2Beta * fieldE * pmacc::math::dot(mom, fieldE)
+                                      - gamma * gamma * conversionMomentum2Beta * (mom * (pmacc::math::dot(lorentz, lorentz) - fieldETimesBeta*fieldETimesBeta));
 
       const float3_X diffMom = charge * lorentz + (prefactorRR / weighting) * radReactionVec;
       const float3_X diffPos = velocity;

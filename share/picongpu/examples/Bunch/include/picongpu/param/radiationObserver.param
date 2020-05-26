@@ -70,7 +70,7 @@ namespace radiation_observer
       /* compute observation unit vector */
       picongpu::float_32 sinTheta;
       picongpu::float_32 cosTheta;
-      math::sincos(precisionCast<picongpu::float_32>(theta), sinTheta, cosTheta);
+      pmacc::math::sincos(precisionCast<picongpu::float_32>(theta), sinTheta, cosTheta);
       return vector_64(sinTheta, cosTheta, 0.0);
 
     }

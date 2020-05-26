@@ -78,7 +78,7 @@ struct TSC : public shared_TSC::TSC
              *       |  0                          otherwise
              *       -
              */
-            float_X const abs_x = algorithms::math::abs( x );
+            float_X const abs_x = math::abs( x );
 
             bool const below_05 = abs_x < 0.5_X;
             bool const below_1_5 = abs_x < 1.5_X;
@@ -111,7 +111,7 @@ struct TSC : public shared_TSC::TSC
              *       |  1/2*(3/2 - |x|)^2          if 1/2<=|x|<3/2
              *       -
              */
-            float_X const abs_x = algorithms::math::abs( x );
+            float_X const abs_x = math::abs( x );
 
             bool const below_05 = abs_x < 0.5_X;
 

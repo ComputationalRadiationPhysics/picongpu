@@ -97,7 +97,7 @@ namespace picongpu
 
                 const MomType mom_old = mom;
 
-                const float_X B2 = math::abs2( bField );
+                const float_X B2 = pmacc::math::abs2( bField );
                 const float_X B = math::abs( bField );
 
                 if( B2 > epsilon )
@@ -105,7 +105,7 @@ namespace picongpu
                     trigo_X sinres;
                     trigo_X cosres;
                     trigo_X arg = B * charge * deltaT / gamma;
-                    math::sincos( arg, sinres, cosres );
+                    pmacc::math::sincos( arg, sinres, cosres );
 
                     mom.x() = bField.x() * bField.x() * ( eField.x() * charge * deltaT + mom_old.x() );
                     mom.y() = bField.y() * bField.y() * ( eField.y() * charge * deltaT + mom_old.y() );
@@ -160,7 +160,7 @@ namespace picongpu
                         trigo_X sinres;
                         trigo_X cosres;
                         trigo_X arg = B * QoM * deltaT / SPEED_OF_LIGHT;
-                        math::sincos( arg, sinres, cosres );
+                        pmacc::math::sincos( arg, sinres, cosres );
 
                         r.x() = bField.x() * bField.x() * bField.x() * bField.x() * QoM
                             * ( eField.x() * QoM * deltaT * deltaT + 2.0f * ( deltaT * vel_old.x() + pos.x() ) );

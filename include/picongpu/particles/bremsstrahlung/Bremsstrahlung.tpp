@@ -30,7 +30,6 @@
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/algorithms/math/defines/sqrt.hpp>
 #include <pmacc/algorithms/math/defines/dot.hpp>
 #include <pmacc/algorithms/math/defines/cross.hpp>
 #include <pmacc/algorithms/math/defines/pi.hpp>
@@ -150,14 +149,14 @@ float3_X Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::scatt
     using namespace pmacc::algorithms;
 
     float_X sinTheta, cosTheta;
-    math::sincos(theta, sinTheta, cosTheta);
+    pmacc::math::sincos(theta, sinTheta, cosTheta);
 
-    const float_X phi = -math::Pi<float_X>::value + math::Pi<float_X>::doubleValue * this->randomGen(acc);
+    const float_X phi = -pmacc::math::Pi<float_X>::value + pmacc::math::Pi<float_X>::doubleValue * this->randomGen(acc);
     float_X sinPhi, cosPhi;
-    math::sincos(phi, sinPhi, cosPhi);
+    pmacc::math::sincos(phi, sinPhi, cosPhi);
 
     const float3_X vecUp(0.0, 0.0, 1.0);
-    float3_X vecOrtho1 = math::cross(vecUp, vec);
+    float3_X vecOrtho1 = pmacc::math::cross(vecUp, vec);
     const float_X vecOrtho1Abs = math::abs(vecOrtho1);
 
     float3_X vecOrtho1_norm;
@@ -165,7 +164,7 @@ float3_X Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::scatt
         vecOrtho1_norm = float3_X(1.0, 0.0, 0.0);
     else
         vecOrtho1_norm = vecOrtho1 / vecOrtho1Abs;
-    const float3_X vecOrtho2 = math::cross(vecOrtho1_norm, vec);
+    const float3_X vecOrtho2 = pmacc::math::cross(vecOrtho1_norm, vec);
     vecOrtho1 = vecOrtho1_norm * math::abs(vec);
 
     return vec * cosTheta +
@@ -214,14 +213,14 @@ unsigned int Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::n
 
     /* electron deflection due to Rutherford scattering without modifying the electron
        energy based on radiation emission */
-    const float_X zMin = float_X(1.0) / (math::Pi<float_X>::value * math::Pi<float_X>::value);
+    const float_X zMin = float_X(1.0) / (pmacc::math::Pi<float_X>::value * pmacc::math::Pi<float_X>::value);
     const float_X zMax = float_X(1.0) / (electron::MIN_THETA*electron::MIN_THETA);
     const float_X z = zMin + this->randomGen(acc) * (zMax - zMin);
     const float_X theta = math::rsqrt(z);
     const float_X targetZ = GetAtomicNumbers<T_IonSpecies>::type::numberOfProtons;
     const float_X rutherfordCoeff = float_X(2.0) * ELECTRON_CHARGE*ELECTRON_CHARGE /
-        (float_X(4.0) * math::Pi<float_X>::value * EPS0) * targetZ / Ekin;
-    const float_X scaledDeflectionDCS = math::Pi<float_X>::value * (zMax - zMin) * rutherfordCoeff*rutherfordCoeff;
+        (float_X(4.0) * pmacc::math::Pi<float_X>::value * EPS0) * targetZ / Ekin;
+    const float_X scaledDeflectionDCS = pmacc::math::Pi<float_X>::value * (zMax - zMin) * rutherfordCoeff*rutherfordCoeff;
     const float_X deflectionProb = ionDensity * c * DELTA_T * scaledDeflectionDCS;
 
     if(this->randomGen(acc) < deflectionProb)

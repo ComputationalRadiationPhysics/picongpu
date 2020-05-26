@@ -24,39 +24,17 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
 
+    template<typename Type>
+    struct Log10;
 
-template<typename Type>
-struct Exp;
-
-template<typename Type>
-struct Log;
-
-template<typename Type>
-struct Log10;
-
-template<typename T1>
-HDINLINE typename Exp< T1 >::result exp(const T1& value)
-{
-    return Exp< T1 > ()(value);
-}
-
-template<typename T1>
-HDINLINE typename Log< T1 >::result log(const T1& value)
-{
-    return Log< T1 > ()(value);
-}
-
-template<typename T1>
-HDINLINE typename Log10< T1 >::result log10(const T1& value)
-{
-    return Log10< T1 > ()(value);
-}
+    template<typename T1>
+    HDINLINE typename Log10< T1 >::result log10(const T1& value)
+    {
+        return Log10< T1 > ()(value);
+    }
 
 } //namespace math
-} //namespace algorithms
 }//namespace pmacc

@@ -76,24 +76,24 @@ struct Push
         // first step in Vay paper:
         const float3_X velocity_atMinusHalf = velocity(mom, mass);
         //mom /(mass*mass + abs2(mom)/(SPEED_OF_LIGHT*SPEED_OF_LIGHT));
-        const MomType momentum_atZero = mom + factor * (eField + math::cross(velocity_atMinusHalf, bField));
+        const MomType momentum_atZero = mom + factor * (eField + pmacc::math::cross(velocity_atMinusHalf, bField));
 
         // second step in Vay paper:
         const MomType momentum_prime = momentum_atZero + factor * eField;
         const float_X gamma_prime = gamma(momentum_prime, mass);
-        //algorithms::math::sqrt(1.0 + abs2(momentum_prime*(1.0/(mass * SPEED_OF_LIGHT))));
+
         const sqrt_Vay::float3_X tau(factor / mass * bField);
-        const sqrt_Vay::float_X u_star = math::dot( precisionCast<sqrt_Vay::float_X>(momentum_prime), tau ) / precisionCast<sqrt_Vay::float_X>( SPEED_OF_LIGHT * mass );
-        const sqrt_Vay::float_X sigma = gamma_prime * gamma_prime - math::abs2( tau );
+        const sqrt_Vay::float_X u_star = pmacc::math::dot( precisionCast<sqrt_Vay::float_X>(momentum_prime), tau ) / precisionCast<sqrt_Vay::float_X>( SPEED_OF_LIGHT * mass );
+        const sqrt_Vay::float_X sigma = gamma_prime * gamma_prime - pmacc::math::abs2( tau );
         const sqrt_Vay::float_X gamma_atPlusHalf = math::sqrt( sqrt_Vay::float_X(0.5) *
             ( sigma +
               math::sqrt( sigma * sigma +
-                          sqrt_Vay::float_X(4.0) * ( math::abs2( tau ) + u_star * u_star ) )
+                          sqrt_Vay::float_X(4.0) * ( pmacc::math::abs2( tau ) + u_star * u_star ) )
             )
                                                     );
         const float3_X t(tau * (float_X(1.0) / gamma_atPlusHalf));
-        const float_X s = float_X(1.0) / (float_X(1.0) + math::abs2(t));
-        const MomType momentum_atPlusHalf = s * (momentum_prime + math::dot(momentum_prime, t) * t + math::cross(momentum_prime, t));
+        const float_X s = float_X(1.0) / (float_X(1.0) + pmacc::math::abs2(t));
+        const MomType momentum_atPlusHalf = s * (momentum_prime + pmacc::math::dot(momentum_prime, t) * t + pmacc::math::cross(momentum_prime, t));
 
         particle[ momentum_ ] = momentum_atPlusHalf;
 

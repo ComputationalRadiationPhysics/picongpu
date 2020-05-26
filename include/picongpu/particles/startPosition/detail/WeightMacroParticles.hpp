@@ -65,7 +65,7 @@ namespace detail
             );
             weighting = float_X( 0.0 );
             float_X const maxParPerCell = realParticlesPerCell / MIN_WEIGHTING;
-            numMacroParticles = math::float2int_rd(
+            numMacroParticles = pmacc::math::float2int_rd(
                 math::min(
                     float_X( numMacroParticles ),
                     maxParPerCell

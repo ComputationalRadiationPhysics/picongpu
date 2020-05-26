@@ -443,8 +443,8 @@ namespace transitionRadiation
                 ************************************************************/
                 for( unsigned int i = 0; i < elementsTransitionRadiation( ); ++i )
                 {
-                    const float_X ctrPara = math::abs2( ctrParaArray[ i ] );
-                    const float_X ctrPerp = math::abs2( ctrPerpArray[ i ] );
+                    const float_X ctrPara = pmacc::math::abs2( ctrParaArray[ i ] );
+                    const float_X ctrPerp = pmacc::math::abs2( ctrPerpArray[ i ] );
                     if (numArray[i] != 0.0)
                     {
                         targetArray[ i ] = (

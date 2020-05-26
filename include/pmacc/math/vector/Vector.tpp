@@ -33,6 +33,8 @@
 #include "pmacc/traits/GetNComponents.hpp"
 #include "pmacc/traits/GetInitializedInstance.hpp"
 
+#include <utility>
+
 namespace pmacc
 {
 namespace traits
@@ -68,177 +70,222 @@ struct GetInitializedInstance<math::Vector<T_Type, T_dim, T_Accessor, T_Navigato
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
 
-/*#### comparison ############################################################*/
-
-/*specialize max algorithm*/
-template<typename Type, int dim>
-struct Max< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
-{
-    using result = ::pmacc::math::Vector<Type, dim>;
-
-    HDINLINE result operator( )(const ::pmacc::math::Vector<Type, dim> &vector1, const ::pmacc::math::Vector<Type, dim> &vector2 )
+    /*specialize max algorithm*/
+    template<typename Type, int dim>
+    struct Max< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
     {
-        result tmp;
-        for ( int i = 0; i < dim; ++i )
-            tmp[i] = pmacc::algorithms::math::max( vector1[i], vector2[i] );
-        return tmp;
-    }
-};
+        using result = ::pmacc::math::Vector<Type, dim>;
 
-/*specialize max algorithm*/
-template<typename Type, int dim>
-struct Min< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
-{
-    using result = ::pmacc::math::Vector<Type, dim>;
+        HDINLINE result operator( )(const ::pmacc::math::Vector<Type, dim> &vector1, const ::pmacc::math::Vector<Type, dim> &vector2 )
+        {
+            result tmp;
+            for ( int i = 0; i < dim; ++i )
+                tmp[i] = pmacc::math::max( vector1[i], vector2[i] );
+            return tmp;
+        }
+    };
 
-    HDINLINE result operator( )(const ::pmacc::math::Vector<Type, dim> &vector1, const ::pmacc::math::Vector<Type, dim> &vector2 )
+    /*specialize min algorithm*/
+    template<typename Type, int dim>
+    struct Min< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
     {
-        result tmp;
-        for ( int i = 0; i < dim; ++i )
-            tmp[i] = pmacc::algorithms::math::min( vector1[i], vector2[i] );
-        return tmp;
-    }
-};
+        using result = ::pmacc::math::Vector<Type, dim>;
 
-/*#### abs ###################################################################*/
+        HDINLINE result operator( )(const ::pmacc::math::Vector<Type, dim> &vector1, const ::pmacc::math::Vector<Type, dim> &vector2 )
+        {
+            result tmp;
+            for ( int i = 0; i < dim; ++i )
+                tmp[i] = pmacc::math::min( vector1[i], vector2[i] );
+            return tmp;
+        }
+    };
 
-/*specialize abs2 algorithm*/
-template<typename Type, int dim>
-struct Abs2< ::pmacc::math::Vector<Type, dim> >
-{
-    using result = typename ::pmacc::math::Vector<Type, dim>::type;
-
-    HDINLINE result operator( )(const ::pmacc::math::Vector<Type, dim> &vector )
+    /*! Specialisation of cross where base is a vector with three components */
+    template<typename Type>
+    struct Cross< ::pmacc::math::Vector<Type, DIM3>, ::pmacc::math::Vector<Type, DIM3> >
     {
-        result tmp = pmacc::algorithms::math::abs2( vector.x( ) );
-        for ( int i = 1; i < dim; ++i )
-            tmp += pmacc::algorithms::math::abs2( vector[i] );
-        return tmp;
-    }
-};
+        using myType = ::pmacc::math::Vector<Type, DIM3>;
+        using result = myType;
 
-/*specialize abs algorithm*/
-template<typename Type, int dim>
-struct Abs< ::pmacc::math::Vector<Type, dim> >
-{
-    using result = typename ::pmacc::math::Vector<Type, dim>::type;
+        HDINLINE myType operator( )(const myType& lhs, const myType & rhs )
+        {
+            return myType( lhs.y( ) * rhs.z( ) - lhs.z( ) * rhs.y( ),
+                           lhs.z( ) * rhs.x( ) - lhs.x( ) * rhs.z( ),
+                           lhs.x( ) * rhs.y( ) - lhs.y( ) * rhs.x( ) );
+        }
+    };
 
-    HDINLINE result operator( )( ::pmacc::math::Vector<Type, dim> vector )
+    /*! Specialisation of Dot where base is a vector */
+    template<typename Type, int dim>
+    struct Dot< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
     {
-        const result tmp = pmacc::algorithms::math::abs2( vector );
-        return pmacc::algorithms::math::sqrt( tmp );
-    }
-};
+        using myType = ::pmacc::math::Vector<Type, dim>;
+        using result = Type;
 
-/*#### cross #################################################################*/
+        HDINLINE result operator( )(const myType& a, const myType & b )
+        {
+            PMACC_CASSERT( dim > 0 );
+            result tmp = a.x( ) * b.x( );
+            for ( int i = 1; i < dim; i++ )
+                tmp += a[i] * b[i];
+            return tmp;
+        }
+    };
 
-template<typename Type>
-struct Cross< ::pmacc::math::Vector<Type, DIM3>, ::pmacc::math::Vector<Type, DIM3> >
-{
-    using myType = ::pmacc::math::Vector<Type, DIM3>;
-    using result = myType;
-
-    HDINLINE myType operator( )(const myType& lhs, const myType & rhs )
+    /*specialize abs2 algorithm*/
+    template<typename Type, int dim>
+    struct Abs2< ::pmacc::math::Vector<Type, dim> >
     {
-        return myType( lhs.y( ) * rhs.z( ) - lhs.z( ) * rhs.y( ),
-                       lhs.z( ) * rhs.x( ) - lhs.x( ) * rhs.z( ),
-                       lhs.x( ) * rhs.y( ) - lhs.y( ) * rhs.x( ) );
-    }
-};
+        using result = typename ::pmacc::math::Vector<Type, dim>::type;
 
-/*#### dot ###################################################################*/
-
-template<typename Type, int dim>
-struct Dot< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
-{
-    using myType = ::pmacc::math::Vector<Type, dim>;
-    using result = Type;
-
-    HDINLINE result operator( )(const myType& a, const myType & b )
-    {
-        BOOST_STATIC_ASSERT( dim > 0 );
-        result tmp = a.x( ) * b.x( );
-        for ( int i = 1; i < dim; i++ )
-            tmp += a[i] * b[i];
-        return tmp;
-    }
-};
-
-/*#### exp ###################################################################*/
-
-/*! Specialization of exp where power is a vector
- *
- * Compute exp separately for every component of the vector.
- *
- * @param power vector with power values
- */
-template<typename T1, int dim>
-struct Exp< ::pmacc::math::Vector<T1, dim> >
-{
-    using Vector1 = ::pmacc::math::Vector<T1, dim>;
-    using result = Vector1;
-
-    HDINLINE result operator( )(const Vector1& power )
-    {
-        BOOST_STATIC_ASSERT( dim > 0 );
-        result tmp;
-        for ( int i = 0; i < dim; ++i )
-            tmp[i] = pmacc::algorithms::math::exp( power[i] );
-        return tmp;
-    }
-};
-
-/*#### pow ###################################################################*/
-
-/*! Specialisation of pow where base is a vector and exponent is a scalar
- *
- * Create pow separatley for every component of the vector.
- *
- * @prama base vector with base values
- * @param exponent scalar with exponent value
- */
-template<typename T1, typename T2, int dim>
-struct Pow< ::pmacc::math::Vector<T1, dim>, T2 >
-{
-    using Vector1 = ::pmacc::math::Vector<T1, dim>;
-    using result = Vector1;
-
-    HDINLINE result operator( )(const Vector1& base, const T2 & exponent )
-    {
-        BOOST_STATIC_ASSERT( dim > 0 );
-        result tmp;
-        for ( int i = 0; i < dim; ++i )
-            tmp[i] = pmacc::algorithms::math::pow( base[i], exponent );
-        return tmp;
-    }
-};
-
-/*#### floor #################################################################*/
-
-/*specialize floor algorithm*/
-template<typename Type, int dim>
-struct Floor< ::pmacc::math::Vector<Type, dim> >
-{
-    using result = ::pmacc::math::Vector<Type, dim>;
-
-    HDINLINE result operator( )( ::pmacc::math::Vector<Type, dim> &vector )
-    {
-        result tmp;
-        for ( int i = 0; i < dim; ++i )
-            tmp[i] = pmacc::algorithms::math::floor( vector[i] );
-        return tmp;
-    }
-};
-
-
+        HDINLINE result operator( )(const ::pmacc::math::Vector<Type, dim> &vector )
+        {
+            result tmp = pmacc::math::abs2( vector.x( ) );
+            for ( int i = 1; i < dim; ++i )
+                tmp += pmacc::math::abs2( vector[i] );
+            return tmp;
+        }
+    };
 } // namespace math
-} // namespace algorithms
 } // namespace pmacc
+
+
+/* Using the free alpaka functions `alpaka::math::*` will result into `__host__ __device__`
+ * errors, therefore the alpaka math trait must be used.
+ */
+#define PMACC_UNARY_APAKA_MATH_SPECIALIZATION(functionName, alpakaMathTrait)   \
+    template<                                                                  \
+        typename T_Ctx,                                                        \
+        typename T_ScalarType,                                                 \
+        int T_dim                                                              \
+    >                                                                          \
+    struct alpakaMathTrait<                                                    \
+        T_Ctx,                                                                 \
+        ::pmacc::math::Vector<                                                 \
+            T_ScalarType,                                                      \
+            T_dim                                                              \
+        >,                                                                     \
+        void                                                                   \
+    >                                                                          \
+    {                                                                          \
+        using ResultType = ::pmacc::math::Vector<                              \
+            T_ScalarType,                                                      \
+            T_dim                                                              \
+        >;                                                                     \
+                                                                               \
+        ALPAKA_FN_ACC static auto functionName(                                \
+            T_Ctx const & mathConcept,                                         \
+            ::pmacc::math::Vector<                                             \
+                T_ScalarType,                                                  \
+                T_dim                                                          \
+            > const & vector                                                   \
+        ) -> ResultType                                                        \
+        {                                                                      \
+            PMACC_CASSERT( T_dim > 0 );                                        \
+                                                                               \
+            ResultType tmp;                                                    \
+            for( int i = 0; i < T_dim; ++i )                                   \
+                tmp[i] = alpaka::math::functionName(                           \
+                    mathConcept,                                               \
+                    vector[i]                                                  \
+                );                                                             \
+            return tmp;                                                        \
+        }                                                                      \
+    }
+
+namespace alpaka
+{
+namespace math
+{
+namespace traits
+{
+    /*! Specialisation of pow where base is a vector and exponent is a scalar
+     *
+     * Create pow separatley for every component of the vector.
+     */
+    template<
+        typename T_Ctx,
+        typename T_ScalarType,
+        int T_dim
+    >
+    struct Pow<
+        T_Ctx,
+        ::pmacc::math::Vector<
+            T_ScalarType,
+            T_dim
+        >,
+        T_ScalarType,
+        void
+    >
+    {
+        using ResultType = typename ::pmacc::math::Vector<T_ScalarType, T_dim>::type;
+
+        ALPAKA_FN_HOST_ACC static auto pow(
+            T_Ctx const & mathConcept,
+            ::pmacc::math::Vector<
+                T_ScalarType,
+                T_dim
+            > const & vector,
+            T_ScalarType const & exponent
+        ) -> ResultType
+        {
+
+            PMACC_CASSERT( T_dim > 0 );
+            ResultType tmp;
+            for ( int i = 0; i < T_dim; ++i )
+                tmp[i] = cupla::pow( vector[i], exponent );
+            return tmp;
+        }
+    };
+
+    // Exp specialization
+    PMACC_UNARY_APAKA_MATH_SPECIALIZATION( exp,  Exp );
+
+    // Floor specialization
+    PMACC_UNARY_APAKA_MATH_SPECIALIZATION( floor,  Floor );
+
+    /* Abs specialization
+     *
+     * Returns the length of the vector to fit the old implementation.
+     * @todo implement a math function magnitude instead of using abs to get the length of the vector.
+     */
+    template<
+        typename T_Ctx,
+        typename T_ScalarType,
+        int T_dim
+    >
+    struct Abs<
+        T_Ctx,
+        ::pmacc::math::Vector<
+            T_ScalarType,
+            T_dim
+        >,
+        void
+    >
+    {
+        using ResultType = typename ::pmacc::math::Vector<T_ScalarType, T_dim>::type;
+
+        ALPAKA_FN_HOST_ACC static auto abs(
+            T_Ctx const & mathConcept,
+            ::pmacc::math::Vector<
+                T_ScalarType,
+                T_dim
+            > const & vector
+        ) -> ResultType
+        {
+            PMACC_CASSERT( T_dim > 0 );
+
+            ResultType const tmp = pmacc::math::abs2( vector );
+            return cupla::math::sqrt( tmp );
+        }
+    };
+
+} // namespace traits
+} // namespace alpaka
+} // namespace math
 
 namespace pmacc
 {

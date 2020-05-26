@@ -33,206 +33,271 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
+    /*  Set primary template and subsequent specialization for returning a complex number
+        by using Euler's formula. */
 
-namespace pmMath = pmacc::algorithms::math;
+    template<typename T_Type>
+    struct Euler;
 
-/*  Set primary template and subsequent specialization for returning a complex number
-    by using Euler's formula. */
-
-template<typename T_Type>
-struct Euler;
-
-template<typename T_Type>
-HDINLINE typename Euler< T_Type >::result euler(const T_Type& magnitude, const T_Type& phase)
-{
-    return Euler< T_Type > ()(magnitude, phase);
-}
-
-template<typename T_Type>
-HDINLINE typename Euler< T_Type >::result euler(const T_Type& magnitude, const T_Type& sinValue,
-                                                const T_Type& cosValue)
-{
-    return Euler< T_Type > ()(magnitude, sinValue, cosValue);
-}
-
-template<typename T_Type>
-struct Euler
-{
-    typedef typename ::pmacc::math::Complex<T_Type> result;
-
-    HDINLINE result operator( )(const T_Type &magnitude, const T_Type &phase)
+    template<typename T_Type>
+    HDINLINE typename Euler< T_Type >::result euler(const T_Type& magnitude, const T_Type& phase)
     {
-        return result(magnitude * pmMath::cos(phase),magnitude * pmMath::sin(phase));
+        return Euler< T_Type > ()(magnitude, phase);
     }
 
-    HDINLINE result operator( )(const T_Type &magnitude,
-                                const T_Type &sinValue, const T_Type &cosValue)
+    template<typename T_Type>
+    HDINLINE typename Euler< T_Type >::result euler(const T_Type& magnitude, const T_Type& sinValue,
+                                                    const T_Type& cosValue)
     {
-        return result(magnitude * cosValue, magnitude * sinValue);
+        return Euler< T_Type > ()(magnitude, sinValue, cosValue);
     }
-};
 
-/* Specialize sqrt() for complex numbers. */
-
-template<typename T_Type>
-struct Sqrt< ::pmacc::math::Complex<T_Type> >
-{
-    typedef typename ::pmacc::math::Complex<T_Type> result;
-    typedef T_Type type;
-
-    HDINLINE result operator( )(const ::pmacc::math::Complex<T_Type>& other)
+    template<typename T_Type>
+    struct Euler
     {
-        if (other.get_real()<=type(0.0) && other.get_imag()==type(0.0) ) {
-            return ::pmacc::math::Complex<T_Type>(type(0.0), pmMath::sqrt( -other.get_real() ) );
-        }
-        else {
-            return pmMath::sqrt( pmMath::abs(other) )*(other+pmMath::abs(other))
-                /pmMath::abs(other+pmMath::abs(other));
-        }
-    }
-};
+        typedef typename ::pmacc::math::Complex<T_Type> result;
 
-/* Specialize exp() for complex numbers. */
-
-template<typename T_Type>
-struct Exp< ::pmacc::math::Complex<T_Type> >
-{
-    typedef typename ::pmacc::math::Complex<T_Type> result;
-    typedef T_Type type;
-
-    HDINLINE result operator( )(const ::pmacc::math::Complex<T_Type>& other)
-    {
-        return pmMath::euler(type(1.0),other.get_imag())*pmMath::exp(other.get_real());
-    }
-};
-
-/*  Set primary template and subsequent specialization of arg() for retrieving
- *  the phase of a complex number (Note: Branchcut running from -infinity to 0).
- */
-template<typename T_Type>
-struct Arg;
-
-template<typename T_Type>
-HDINLINE typename Arg< T_Type >::result arg(const T_Type& val)
-{
-    return Arg< T_Type > ()(val);
-}
-
-template<typename T_Type>
-struct Arg< ::pmacc::math::Complex<T_Type> >
-{
-    typedef typename ::pmacc::math::Complex<T_Type>::type result;
-    typedef T_Type type;
-
-    HDINLINE result operator( )(const ::pmacc::math::Complex<T_Type>& other)
-    {
-        if ( other.get_real()==type(0.0) && other.get_imag()==type(0.0) )
-            return type(0.0);
-        else if ( other.get_real()==type(0.0) && other.get_imag()>type(0.0) )
-            return Pi< type >::halfValue;
-        else if ( other.get_real()==type(0.0) && other.get_imag()<type(0.0) )
-            return -Pi< type >::halfValue;
-        else if ( other.get_real()<type(0.0) && other.get_imag()==type(0.0) )
-            return Pi< type >::value;
-        else
-            return pmMath::atan2(other.get_imag(),other.get_real());
-    }
-};
-
-/*  Specialize pow() for complex numbers. */
-template<typename T_Type>
-struct Pow< ::pmacc::math::Complex<T_Type>, T_Type >
-{
-    typedef typename ::pmacc::math::Complex<T_Type> result;
-    typedef T_Type type;
-
-    HDINLINE result operator( )(const ::pmacc::math::Complex<T_Type>& other,
-                                const T_Type& exponent)
-    {
-        return pmMath::pow( pmMath::abs(other),exponent )
-                *pmMath::exp( ::pmacc::math::Complex<T_Type>(type(0.),type(1.) )
-                *pmMath::arg(other)*exponent );
-    }
-};
-
-/*  Specialize abs() for complex numbers. */
-template<typename T_Type>
-struct Abs< ::pmacc::math::Complex<T_Type> >
-{
-    typedef typename ::pmacc::math::Complex<T_Type>::type result;
-
-    HDINLINE result operator( )(const ::pmacc::math::Complex<T_Type>& other)
-    {
-        return pmMath::sqrt( pmMath::abs2(other.get_real()) + pmMath::abs2(other.get_imag()) );
-    }
-};
-
-/*  Specialize abs2() for complex numbers. */
-template<typename T_Type>
-struct Abs2< ::pmacc::math::Complex<T_Type> >
-{
-    typedef typename ::pmacc::math::Complex<T_Type>::type result;
-
-    HDINLINE result operator( )(const ::pmacc::math::Complex<T_Type>& other)
-    {
-        return pmMath::abs2(other.get_real()) + pmMath::abs2(other.get_imag());
-    }
-};
-
-    /*  Specialize log() for complex numbers. */
-    template< typename T_Type >
-    struct Log< ::pmacc::math::Complex< T_Type > >
-    {
-        using type = T_Type;
-        using result = typename ::pmacc::math::Complex< type >::type;
-
-        HDINLINE result operator( )( ::pmacc::math::Complex< T_Type > const & other )
+        HDINLINE result operator( )(const T_Type &magnitude, const T_Type &phase)
         {
-            return pmMath::log( pmMath::abs( other ) ) +
-                ::pmacc::math::Complex< T_Type >(
-                    type( 0. ),
-                    type( 1. )
-                ) * pmMath::arg( other );
+            return result(
+                magnitude * cupla::math::cos( phase ),
+                magnitude * cupla::math::sin( phase )
+            );
+        }
+
+        HDINLINE result operator( )(const T_Type &magnitude,
+                                    const T_Type &sinValue, const T_Type &cosValue)
+        {
+            return result(magnitude * cosValue, magnitude * sinValue);
         }
     };
 
-    /*  Specialize sin( ) for complex numbers. */
-    template< typename T_Type >
-    struct Sin< ::pmacc::math::Complex< T_Type > >
-    {
-        using result = typename ::pmacc::math::Complex< T_Type >;
-        using type = T_Type;
+    /*  Set primary template and subsequent specialization of arg() for retrieving
+     *  the phase of a complex number (Note: Branchcut running from -infinity to 0).
+     */
+    template<typename T_Type>
+    struct Arg;
 
-        HDINLINE result operator( )( const ::pmacc::math::Complex< T_Type > & other )
+    template<typename T_Type>
+    HDINLINE typename Arg< T_Type >::result arg(const T_Type& val)
+    {
+        return Arg< T_Type > ()(val);
+    }
+
+    template<typename T_Type>
+    struct Arg< ::pmacc::math::Complex<T_Type> >
+    {
+        typedef typename ::pmacc::math::Complex<T_Type>::type result;
+        typedef T_Type type;
+
+        HDINLINE result operator( )(const ::pmacc::math::Complex<T_Type>& other)
         {
-            return ( pmMath::exp( ::pmacc::math::Complex< T_Type >( type( 0. ), type( 1. ) ) * other ) -
-                   pmMath::exp( ::pmacc::math::Complex< T_Type >( type( 0. ), type( -1. ) ) * other ) ) /
-                   ::pmacc::math::Complex< T_Type >( type( 0. ), type( 2. ) );
+            if ( other.get_real()==type(0.0) && other.get_imag()==type(0.0) )
+                return type(0.0);
+            else if ( other.get_real()==type(0.0) && other.get_imag()>type(0.0) )
+                return Pi< type >::halfValue;
+            else if ( other.get_real()==type(0.0) && other.get_imag()<type(0.0) )
+                return -Pi< type >::halfValue;
+            else if ( other.get_real()<type(0.0) && other.get_imag()==type(0.0) )
+                return Pi< type >::value;
+            else
+                return cupla::math::atan2(other.get_imag(),other.get_real());
         }
     };
 
-    /*  Specialize cos( ) for complex numbers. */
-    template< typename T_Type >
-    struct Cos< ::pmacc::math::Complex< T_Type > >
+    /*  Specialize abs2() for complex numbers. */
+    template<typename T_Type>
+    struct Abs2< ::pmacc::math::Complex<T_Type> >
     {
-        using result = typename ::pmacc::math::Complex< T_Type >;
-        using type = T_Type;
+        typedef typename ::pmacc::math::Complex<T_Type>::type result;
 
-        HDINLINE result operator( )( const ::pmacc::math::Complex< T_Type >& other )
+        HDINLINE result operator( )(const ::pmacc::math::Complex<T_Type>& other)
         {
-            return ( pmMath::exp( ::pmacc::math::Complex< T_Type >( type( 0. ), type( 1. ) ) * other ) +
-                   pmMath::exp( ::pmacc::math::Complex< T_Type >( type( 0. ), type( -1. ) ) * other ) ) /
-                   type( 2.0 );
+            return pmacc::math::abs2(other.get_real()) + pmacc::math::abs2(other.get_imag());
         }
     };
 
 } //namespace math
-} //namespace algorithms
 } //namespace pmacc
+
+namespace alpaka
+{
+namespace math
+{
+namespace traits
+{
+
+    template<
+        typename T_Ctx,
+        typename T_Type
+    >
+    struct Pow<
+        T_Ctx,
+        ::pmacc::math::Complex< T_Type >,
+        T_Type,
+        void
+    >
+    {
+        ALPAKA_FN_HOST_ACC static auto pow(
+            T_Ctx const & mathConcept,
+            ::pmacc::math::Complex< T_Type > const & other,
+            T_Type const & exponent
+        ) -> ::pmacc::math::Complex< T_Type >
+        {
+            return cupla::pow( cupla::math::abs( other ), exponent ) *
+                cupla::math::exp(
+                    ::pmacc::math::Complex<T_Type>( T_Type(0.), T_Type(1.) ) *
+                    pmacc::math::arg(other) * exponent
+                );
+        }
+    };
+
+    template<
+        typename T_Ctx,
+        typename T_Type
+    >
+    struct Sqrt<
+        T_Ctx,
+        ::pmacc::math::Complex< T_Type >,
+        void
+    >
+    {
+        ALPAKA_FN_HOST_ACC static auto sqrt(
+            T_Ctx const & mathConcept,
+            ::pmacc::math::Complex< T_Type > const & other
+        ) -> ::pmacc::math::Complex< T_Type >
+        {
+            using type = T_Type;
+            if( other.get_real() <= type(0.0) && other.get_imag() == type(0.0) )
+            {
+                return ::pmacc::math::Complex<T_Type>(type(0.0), alpaka::math::sqrt( mathConcept, -other.get_real() ) );
+            }
+            else
+            {
+                return alpaka::math::sqrt( mathConcept, cupla::math::abs(other) ) * ( other + cupla::math::abs(other) ) /
+                    cupla::math::abs( other + cupla::math::abs(other) );
+            }
+        }
+    };
+
+    template<
+        typename T_Ctx,
+        typename T_Type
+    >
+    struct Exp<
+        T_Ctx,
+        ::pmacc::math::Complex< T_Type >,
+        void
+    >
+    {
+        ALPAKA_FN_HOST_ACC static auto exp(
+            T_Ctx const & mathConcept,
+            ::pmacc::math::Complex< T_Type > const & other
+        ) -> ::pmacc::math::Complex< T_Type >
+        {
+            using type = T_Type;
+            return pmacc::math::euler( type(1.0), other.get_imag() ) *
+                alpaka::math::exp( mathConcept, other.get_real() );
+        }
+    };
+
+    template<
+        typename T_Ctx,
+        typename T_Type
+    >
+    struct Abs<
+        T_Ctx,
+        ::pmacc::math::Complex< T_Type >,
+        void
+    >
+    {
+        ALPAKA_FN_HOST_ACC static auto abs(
+            T_Ctx const & mathConcept,
+            ::pmacc::math::Complex< T_Type > const & other
+        ) -> ::pmacc::math::Complex< T_Type >
+        {
+            using type = T_Type;
+            return alpaka::math::abs( mathConcept, other.get_real() )
+                + alpaka::math::abs( mathConcept, other.get_imag() );
+        }
+    };
+
+    template<
+        typename T_Ctx,
+        typename T_Type
+    >
+    struct Log<
+        T_Ctx,
+        ::pmacc::math::Complex< T_Type >,
+        void
+    >
+    {
+        ALPAKA_FN_HOST_ACC static auto log(
+            T_Ctx const & mathConcept,
+            ::pmacc::math::Complex< T_Type > const & other
+        ) -> ::pmacc::math::Complex< T_Type >
+        {
+            using type = T_Type;
+            return alpaka::math::log( mathConcept, cupla::math::abs( other ) ) +
+                ::pmacc::math::Complex< T_Type >(
+                    type( 0. ),
+                    type( 1. )
+                ) * pmacc::math::arg( other );
+        }
+    };
+
+    template<
+        typename T_Ctx,
+        typename T_Type
+    >
+    struct Cos<
+        T_Ctx,
+        ::pmacc::math::Complex< T_Type >,
+        void
+    >
+    {
+        ALPAKA_FN_HOST_ACC static auto cos(
+            T_Ctx const & mathConcept,
+            ::pmacc::math::Complex< T_Type > const & other
+        ) -> ::pmacc::math::Complex< T_Type >
+        {
+            using type = T_Type;
+            return (
+                alpaka::math::exp( mathConcept, ::pmacc::math::Complex< T_Type >( type( 0. ), type( 1. ) ) * other ) +
+                alpaka::math::exp( mathConcept, ::pmacc::math::Complex< T_Type >( type( 0. ), type( -1. ) ) * other )
+            ) / type( 2.0 );
+        }
+    };
+
+    template<
+        typename T_Ctx,
+        typename T_Type
+    >
+    struct Sin<
+        T_Ctx,
+        ::pmacc::math::Complex< T_Type >,
+        void
+    >
+    {
+        ALPAKA_FN_HOST_ACC static auto sin(
+            T_Ctx const & mathConcept,
+            ::pmacc::math::Complex< T_Type > const & other
+        ) -> ::pmacc::math::Complex< T_Type >
+        {
+            using type = T_Type;
+
+            return (
+                alpaka::math::exp( mathConcept, ::pmacc::math::Complex< T_Type >( type( 0. ), type( 1. ) ) * other ) -
+                alpaka::math::exp( mathConcept, ::pmacc::math::Complex< T_Type >( type( 0. ), type( -1. ) ) * other )
+            ) / ::pmacc::math::Complex< T_Type >( type( 0. ), type( 2. ) );
+        }
+    };
+} // namespace traits
+} // namespace alpaka
+} // namespace math
+
 
 namespace pmacc
 {

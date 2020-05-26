@@ -28,45 +28,20 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
 
-template<>
-struct Exp<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value )
+    template<>
+    struct Log10<double>
     {
-        return ::exp( value );
-    }
-};
+        typedef double result;
 
-template<>
-struct Log<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value )
-    {
-        return ::log( value );
-    }
-};
-
-template<>
-struct Log10<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value)
-    {
-        return ::log10( value );
-    }
-};
+        HDINLINE double operator( )(const double& value)
+        {
+            return ::log10( value );
+        }
+    };
 
 
 } //namespace math
-} //namespace algorithms
 } // namespace pmacc

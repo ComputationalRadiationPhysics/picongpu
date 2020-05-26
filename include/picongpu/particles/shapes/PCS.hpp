@@ -73,7 +73,7 @@ struct PCS : public shared_PCS::PCS
              *       |  0                           otherwise
              *       -
              */
-            float_X const abs_x = algorithms::math::abs( x );
+            float_X const abs_x = math::abs( x );
 
             bool const below_1 = abs_x < 1.0_X;
             bool const below_2 = abs_x < 2.0_X;
@@ -102,7 +102,7 @@ struct PCS : public shared_PCS::PCS
              *       |  1/6*(2 - |x|)^3             if 1<=|x|<2
              *       -
              */
-            float_X const abs_x = algorithms::math::abs( x );
+            float_X const abs_x = math::abs( x );
 
             bool const below_1 = abs_x < 1.0_X;
             float_X const rad1 = ff_1st_radius( abs_x );

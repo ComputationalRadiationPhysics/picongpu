@@ -70,10 +70,10 @@ namespace ionization
             /* verify that ion is not completely ionized */
             if ( chargeState < protonNumber )
             {
-                uint32_t const cs = math::float2int_rd(chargeState);
+                uint32_t const cs = pmacc::math::float2int_rd(chargeState);
                 const float_X iEnergy = typename GetIonizationEnergies<ParticleType>::type{ }[cs];
 
-                constexpr float_X pi = pmacc::algorithms::math::Pi< float_X >::value;
+                constexpr float_X pi = pmacc::math::Pi< float_X >::value;
                 /* electric field in atomic units - only absolute value */
                 float_X eInAU = math::abs(eField) / ATOMIC_UNIT_EFIELD;
 

@@ -926,7 +926,7 @@ namespace picongpu
                     /* the scaling with normalized weighting (weighting / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE)
                      * is compendated by the division by (normalized) number of particles
                      */
-                    float_64 emit_all = algorithms::math::sqrt(
+                    float_64 emit_all = math::sqrt(
                         static_cast< float_64 >( pos2_SI_all ) * static_cast< float_64 >( ux2_all ) -
                         static_cast< float_64 >( xux_all ) * static_cast< float_64 >( xux_all )
                     ) / static_cast< float_64 >( numElec_all );
@@ -952,7 +952,7 @@ namespace picongpu
                         }
                         float_64 ux2 = mom2_SI / ( UNIT_SPEED * UNIT_SPEED * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI );
                         float_64 xux = mompos_SI / ( UNIT_SPEED * SI::ELECTRON_MASS_SI );
-                        float_64 emit = algorithms::math::sqrt( ( pos2_SI * ux2 - xux * xux ) ) / numElec;
+                        float_64 emit = math::sqrt( ( pos2_SI * ux2 - xux * xux ) ) / numElec;
                         if( numElec < std::numeric_limits< float_64 >::epsilon( ) ){
                             outFile << "0.0 ";
                         }

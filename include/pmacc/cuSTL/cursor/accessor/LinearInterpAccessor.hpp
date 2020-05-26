@@ -60,7 +60,7 @@ struct LinearInterpAccessor<T_Cursor, DIM1>
         T_Position intPart;
         T_Position fracPart;
 
-        fracPart[0] = pmacc::algorithms::math::modf(pos[0], &(intPart[0]));
+        fracPart[0] = pmacc::math::modf(pos[0], &(intPart[0]));
 
         const math::Int<DIM1> idx1D(static_cast<int>(intPart[0]));
 
@@ -97,8 +97,8 @@ struct LinearInterpAccessor<T_Cursor, DIM2>
         T_Position intPart;
         T_Position fracPart;
 
-        fracPart[0] = pmacc::algorithms::math::modf(pos[0], &(intPart[0]));
-        fracPart[1] = pmacc::algorithms::math::modf(pos[1], &(intPart[1]));
+        fracPart[0] = pmacc::math::modf(pos[0], &(intPart[0]));
+        fracPart[1] = pmacc::math::modf(pos[1], &(intPart[1]));
 
         const math::Int<DIM2> idx2D(static_cast<int>(intPart[0]),
                                     static_cast<int>(intPart[1]));
@@ -140,9 +140,9 @@ struct LinearInterpAccessor<T_Cursor, DIM3>
         T_Position intPart;
         T_Position fracPart;
 
-        fracPart[0] = pmacc::algorithms::math::modf(pos[0], &(intPart[0]));
-        fracPart[1] = pmacc::algorithms::math::modf(pos[1], &(intPart[1]));
-        fracPart[2] = pmacc::algorithms::math::modf(pos[2], &(intPart[2]));
+        fracPart[0] = pmacc::math::modf(pos[0], &(intPart[0]));
+        fracPart[1] = pmacc::math::modf(pos[1], &(intPart[1]));
+        fracPart[2] = pmacc::math::modf(pos[2], &(intPart[2]));
 
         const math::Int<DIM3> idx3D(static_cast<int>(intPart[0]),
                                     static_cast<int>(intPart[1]),

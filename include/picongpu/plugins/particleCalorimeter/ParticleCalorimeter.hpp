@@ -262,7 +262,7 @@ private:
         this->allGPU_reduce = AllGPU_reduce(new pmacc::algorithm::mpi::Reduce<simDim>(zone_allGPUs));
 
         /* calculate rotated calorimeter frame from posYaw_deg and posPitch_deg */
-        constexpr float_64 radsInDegree = pmacc::algorithms::math::Pi<float_64>::value / float_64(180.0);
+        constexpr float_64 radsInDegree = pmacc::math::Pi<float_64>::value / float_64(180.0);
         const float_64 posYaw_rad = this->posYaw_deg * radsInDegree;
         const float_64 posPitch_rad = this->posPitch_deg * radsInDegree;
         this->calorimeterFrameVecY = float3_X(math::sin(posYaw_rad) * math::cos(posPitch_rad),
@@ -277,11 +277,11 @@ private:
         {
             /* choose `calorimeterFrameVecX` so that the roll is zero. */
             const float3_X vecUp(0.0, 0.0, -1.0);
-            this->calorimeterFrameVecX = math::cross(vecUp, this->calorimeterFrameVecY);
+            this->calorimeterFrameVecX = pmacc::math::cross(vecUp, this->calorimeterFrameVecY);
             /* normalize vector */
             this->calorimeterFrameVecX /= math::abs(this->calorimeterFrameVecX);
         }
-        this->calorimeterFrameVecZ = math::cross(this->calorimeterFrameVecX, this->calorimeterFrameVecY);
+        this->calorimeterFrameVecZ = pmacc::math::cross(this->calorimeterFrameVecX, this->calorimeterFrameVecY);
 
         /* create calorimeter functor instance */
         this->calorimeterFunctor = MyCalorimeterFunctorPtr(new MyCalorimeterFunctor(
@@ -290,8 +290,8 @@ private:
             this->numBinsYaw,
             this->numBinsPitch,
             this->numBinsEnergy,
-            this->logScale ? math::log10(this->minEnergy) : this->minEnergy,
-            this->logScale ? math::log10(this->maxEnergy) : this->maxEnergy,
+            this->logScale ? pmacc::math::log10(this->minEnergy) : this->minEnergy,
+            this->logScale ? pmacc::math::log10(this->maxEnergy) : this->maxEnergy,
             this->logScale,
             this->calorimeterFrameVecX,
             this->calorimeterFrameVecY,

@@ -69,7 +69,7 @@ namespace ionization
             /* verify that ion is not completely ionized */
             if (chargeState < protonNumber)
             {
-                uint32_t const cs = math::float2int_rd(chargeState);
+                uint32_t const cs = pmacc::math::float2int_rd(chargeState);
                 /* ionization potential in atomic units */
                 float_X const iEnergy = typename GetIonizationEnergies<ParticleType>::type{ }[cs];
                 /* the charge that attracts the electron that is to be ionized:

@@ -102,7 +102,7 @@ struct KernelIntensity
             for (int x = GuardSize::x::value * SuperCellSize::x::value + threadId.x(); x < cellsCount.x() - GuardSize::x::value * SuperCellSize::x::value; x += SuperCellSize::x::value)
             {
                 const float3_X field_at_point(field(DataSpace<DIM3 > (x, yGlobal, z)));
-                s_field(threadId) = math::abs2(field_at_point);
+                s_field(threadId) = pmacc::math::abs2(field_at_point);
                 cupla::__syncthreads( acc );
                 if (threadId.x() == 0)
                 {

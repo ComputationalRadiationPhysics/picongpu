@@ -121,17 +121,17 @@ namespace acc
 
             float_X const timeShift = m_phase / ( 2.0_X * float_X( PI ) * float_X( Unitless::f ) ) + focusPos / SPEED_OF_LIGHT;
             float_X const local_tilt_x = Unitless::TILT_X;
-            float_X const spaceShift_x = SPEED_OF_LIGHT * algorithms::math::tan( local_tilt_x ) * timeShift / cellSize.y();
+            float_X const spaceShift_x = SPEED_OF_LIGHT * math::tan( local_tilt_x ) * timeShift / cellSize.y();
 
             // transversal position only
             // floatD_X planeNoNormal = floatD_X::create( 1.0 );
             // planeNoNormal[ planeNormalDir ] = 0.0;
             // Gaussian Beam with zero tilt:
-            //            r2 = math::abs2( pos * planeNoNormal );
+            //            r2 = pmacc::math::abs2( pos * planeNoNormal );
             auto const spaceShift = float3_X( spaceShift_x, 0., 0. ).shrink< simDim >().remove< planeNormalDir >();
             auto const pos_trans( pos.remove< planeNormalDir >() );
 
-            float_X const r2 = math::abs2( pos_trans + spaceShift );
+            float_X const r2 = pmacc::math::abs2( pos_trans + spaceShift );
 
             // rayleigh length (in y-direction)
             float_X const y_R = float_X( PI ) * Unitless::W0 * Unitless::W0 / Unitless::WAVE_LENGTH;
@@ -140,9 +140,9 @@ namespace acc
             float_X const R_y_inv = -focusPos / ( y_R * y_R  + focusPos * focusPos);
 
             // beam waist in the near field: w_y(y=0) == W0
-            float_X const w_y = Unitless::W0 * algorithms::math::sqrt( 1.0_X + ( focusPos / y_R )*( focusPos / y_R ) );
+            float_X const w_y = Unitless::W0 * math::sqrt( 1.0_X + ( focusPos / y_R )*( focusPos / y_R ) );
             //! the Gouy phase shift
-            float_X const xi_y = algorithms::math::atan( -focusPos / y_R );
+            float_X const xi_y = math::atan( -focusPos / y_R );
 
             if( Unitless::Polarisation == Unitless::LINEAR_X || Unitless::Polarisation == Unitless::LINEAR_Z )
             {

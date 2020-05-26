@@ -23,9 +23,6 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
-
 namespace math
 {
 
@@ -70,5 +67,4 @@ HDINLINE typename Max< T1,T2 >::result max(const T1& value1,const T2& value2)
 }
 
 } //namespace math
-} //namespace algorithms
 }//namespace pmacc

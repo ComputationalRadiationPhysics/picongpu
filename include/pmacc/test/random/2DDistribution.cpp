@@ -138,7 +138,7 @@ struct GetRandomIdx
         Space2D size
     )
     {
-        using pmacc::algorithms::math::float2int_rd;
+        using pmacc::math::float2int_rd;
         return Space2D(
             float2int_rd( rand( acc ) * size.x() ),
             float2int_rd( rand( acc ) * size.y() )
@@ -301,7 +301,7 @@ void runTest(uint32_t numSamples)
     // Expected value: (n-1)/2
     double Ex = (size.productOfComponents() - 1) / 2.;
     // Variance: (n^2 - 1) / 12
-    double var = (pmacc::algorithms::math::pow<double>(size.productOfComponents(), 2) - 1.) / 12.;
+    double var = (cupla::pow(static_cast<double>(size.productOfComponents()), 2.0) - 1.) / 12.;
     // Mean value
     mean /= totalNumSamples;
     double errSq = 0;
@@ -312,7 +312,7 @@ void runTest(uint32_t numSamples)
         {
             Space2D idx(x, y);
             uint32_t val = box(idx);
-            errSq += val * pmacc::algorithms::math::pow<double>(pmacc::math::linearize(size.shrink<1>(1), idx) - mean, 2);
+            errSq += val * cupla::pow(static_cast<double>(pmacc::math::linearize(size.shrink<1>(1), idx) - mean), 2.0);
         }
     }
     double stdDev = sqrt(errSq/(totalNumSamples - 1));

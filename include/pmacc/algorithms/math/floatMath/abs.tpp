@@ -27,22 +27,8 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
-
-
-template<>
-struct Abs<float>
-{
-    typedef float result;
-
-    HDINLINE float operator( )(float value)
-    {
-        return ::fabsf( value );
-    }
-};
 
 template<>
 struct Abs2<float>
@@ -56,5 +42,4 @@ struct Abs2<float>
 };
 
 } //namespace math
-} //namespace algorithms
 } // namespace pmacc

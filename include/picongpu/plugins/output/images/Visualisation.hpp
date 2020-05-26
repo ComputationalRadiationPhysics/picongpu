@@ -126,7 +126,7 @@ struct typicalFields < 3 >
 #if !(EM_FIELD_SCALE_CHANNEL1 == 3 || EM_FIELD_SCALE_CHANNEL2 == 3 || EM_FIELD_SCALE_CHANNEL3 == 3)
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
 #else
-        const float_X lambda_pl = pmacc::algorithms::math::Pi< float_X >::doubleValue *
+        const float_X lambda_pl = pmacc::math::Pi< float_X >::doubleValue *
             SPEED_OF_LIGHT * sqrt(BASE_MASS * EPS0 / BASE_DENSITY / BASE_CHARGE / BASE_CHARGE);
         const float_X tyEField = lambda_pl * BASE_DENSITY / 3.0f / EPS0;
         const float_X tyBField = tyEField * MUE0_EPS0;

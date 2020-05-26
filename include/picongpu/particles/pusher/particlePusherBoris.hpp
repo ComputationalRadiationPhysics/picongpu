@@ -66,10 +66,10 @@ struct Push
         Gamma gamma;
         const float_X gamma_reci = float_X(1.0) / gamma(mom_minus, mass);
         const float3_X t = float_X(0.5) * QoM * bField * gamma_reci * deltaT;
-        auto s  = float_X(2.0) * t * (float_X(1.0) / (float_X(1.0) + math::abs2(t)));
+        auto s  = float_X(2.0) * t * (float_X(1.0) / (float_X(1.0) + pmacc::math::abs2(t)));
 
-        const MomType mom_prime = mom_minus + math::cross(mom_minus, t);
-        const MomType mom_plus = mom_minus + math::cross(mom_prime, s);
+        const MomType mom_prime = mom_minus + pmacc::math::cross(mom_minus, t);
+        const MomType mom_plus = mom_minus + pmacc::math::cross(mom_prime, s);
 
         const MomType new_mom = mom_plus + float_X(0.5) * charge * eField * deltaT;
 

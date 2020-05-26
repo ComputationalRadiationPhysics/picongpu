@@ -84,7 +84,7 @@ namespace radWindowFunctionHamming
       {
         const float_X x = position_x - L_x*float_X(0.5);
         const float_X a = 0.08; /* ideal parameter: -43dB reduction */
-        const float_X cosinusValue = math::cos(pmacc::algorithms::math::Pi<float_X>::value*x/L_x);
+        const float_X cosinusValue = math::cos(pmacc::math::Pi<float_X>::value*x/L_x);
         return float_X(math::abs(x) <= float_X(0.5)*L_x)
           * (a + (float_X(1.0)-a)*cosinusValue*cosinusValue);
       }
@@ -115,7 +115,7 @@ namespace radWindowFunctionTriplett
       {
         const float_X x = position_x - L_x*float_X(0.5);
         const float_X lambda = float_X(5.0)/L_x; /* larger is better, but too large means no data */
-        const float_X cosinusValue = math::cos(pmacc::algorithms::math::Pi<float_X>::value*x/L_x);
+        const float_X cosinusValue = math::cos(pmacc::math::Pi<float_X>::value*x/L_x);
         return float_X(math::abs(x) <= float_X(0.5)*L_x)
           * (math::exp(float_X(-1.0)*lambda*math::abs(x))*cosinusValue*cosinusValue);
       }

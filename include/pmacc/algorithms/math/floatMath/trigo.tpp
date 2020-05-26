@@ -29,84 +29,8 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
-
-template<>
-struct Sin<float>
-{
-    typedef float result;
-
-    HDINLINE float operator( )(const float& value )
-    {
-        return ::sinf( value );
-    }
-};
-
-template<>
-struct ASin<float>
-{
-    typedef float result;
-
-    HDINLINE float operator( )(const float& value)
-    {
-#if __CUDA_ARCH__
-        return ::asinf( value );
-#else
-        return ::asin( value );
-#endif
-    }
-};
-
-template<>
-struct Cos<float>
-{
-    typedef float result;
-
-    HDINLINE float operator( )(const float& value )
-    {
-        return ::cosf( value );
-    }
-};
-
-template<>
-struct ACos<float>
-{
-    typedef float result;
-
-    HDINLINE float operator( )(const float& value)
-    {
-#if __CUDA_ARCH__
-        return ::acosf( value );
-#else
-        return ::acos( value );
-#endif
-    }
-};
-
-template<>
-struct Tan<float>
-{
-    typedef float result;
-
-    HDINLINE float operator( )(const float& value )
-    {
-        return ::tanf( value );
-    }
-};
-
-template<>
-struct ATan<float>
-{
-    typedef float result;
-
-    HDINLINE float operator( )(const float& value)
-    {
-        return ::atanf( value );
-    }
-};
 
 template<>
 struct SinCos<float, float, float>
@@ -116,15 +40,13 @@ struct SinCos<float, float, float>
     HDINLINE void operator( )(float arg, float& sinValue, float& cosValue )
     {
 #if defined(_MSC_VER) && !defined(__CUDA_ARCH__)
-        sinValue = ::sinf(arg);
-        cosValue = ::cosf(arg);
+        sinValue = cupla::math::sin((arg);
+        cosValue = cupla::math::cos((arg);
 #else
         ::sincosf( arg, &sinValue, &cosValue );
 #endif
     }
 };
-
-
 
 template<>
 struct Sinc<float>
@@ -133,24 +55,12 @@ struct Sinc<float>
 
     HDINLINE float operator( )(const float& value )
     {
-        if(pmacc::algorithms::math::abs(value) < FLT_EPSILON)
+        if(cupla::math::abs(value) < FLT_EPSILON)
             return 1.0;
         else
-            return pmacc::algorithms::math::sin( value )/value;
-    }
-};
-
-template<>
-struct Atan2<float>
-{
-    typedef float result;
-
-    HDINLINE float operator( )(const float& val1, const float& val2 )
-    {
-        return ::atan2f( val1, val2 );
+            return cupla::math::sin( value )/value;
     }
 };
 
 } //namespace math
-} //namespace algorithms
 } // namespace pmacc

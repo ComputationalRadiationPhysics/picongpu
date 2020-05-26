@@ -23,24 +23,11 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
-
 namespace math
 {
 
 template<typename Type>
-struct Abs;
-
-template<typename Type>
 struct Abs2;
-
-
-template<typename T1>
-HDINLINE typename Abs< T1>::result abs(T1 value)
-{
-    return Abs< T1 > ()(value);
-}
 
 template<typename T1>
 HDINLINE typename Abs2< T1 >::result abs2(const T1& value)
@@ -49,5 +36,4 @@ HDINLINE typename Abs2< T1 >::result abs2(const T1& value)
 }
 
 } //namespace math
-} //namespace algorithms
 }//namespace pmacc

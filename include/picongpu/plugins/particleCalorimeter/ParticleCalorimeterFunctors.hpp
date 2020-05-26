@@ -86,15 +86,15 @@ struct CalorimeterFunctor
     DINLINE void operator()(const T_Acc& acc, ParticlesFrame& particlesFrame, const uint32_t linearThreadIdx)
     {
         const float3_X mom = particlesFrame[linearThreadIdx][momentum_];
-        const float_X mom2 = math::dot(mom, mom);
+        const float_X mom2 = pmacc::math::dot(mom, mom);
         float3_X dirVec = mom * math::rsqrt(mom2);
 
         /* rotate dirVec into the calorimeter frame. This coordinate transformation
          * is performed by a matrix vector multiplication. */
-        using namespace pmacc::algorithms::math;
-        dirVec = float3_X(dot(this->calorimeterFrameVecX, dirVec),
-                          dot(this->calorimeterFrameVecY, dirVec),
-                          dot(this->calorimeterFrameVecZ, dirVec));
+        using namespace pmacc::math;
+        dirVec = float3_X(pmacc::math::dot(this->calorimeterFrameVecX, dirVec),
+                          pmacc::math::dot(this->calorimeterFrameVecY, dirVec),
+                          pmacc::math::dot(this->calorimeterFrameVecZ, dirVec));
 
         /* convert dirVec to yaw and pitch */
         const float_X yaw = atan2(dirVec.x(), dirVec.y());
@@ -129,7 +129,7 @@ struct CalorimeterFunctor
             if(this->numBinsEnergy > 1)
             {
                 const int32_t numBinsOutOfRange = 2;
-                energyBin = math::float2int_rd(((logScale ? log10(energy) : energy) - minEnergy) /
+                energyBin = pmacc::math::float2int_rd(((logScale ? pmacc::math::log10(energy) : energy) - minEnergy) /
                     (maxEnergy - minEnergy) * static_cast<float_X>(this->numBinsEnergy - numBinsOutOfRange)) + 1;
 
                 // all entries larger than maxEnergy go into last bin

@@ -46,7 +46,7 @@ namespace lehe
         {
             mySin = float_X(
                 math::sin(
-                    pmacc::algorithms::math::Pi< float_64 >::halfValue *
+                    pmacc::math::Pi< float_64 >::halfValue *
                     float_64( SPEED_OF_LIGHT ) *
                     float_64( DELTA_T ) / float_64( CELL_WIDTH )
                 )
@@ -189,7 +189,7 @@ namespace lehe
         {
             mySin = float_X(
                 math::sin(
-                    pmacc::algorithms::math::Pi< float_64 >::halfValue *
+                    pmacc::math::Pi< float_64 >::halfValue *
                     float_64( SPEED_OF_LIGHT ) *
                     float_64( DELTA_T ) / float_64( CELL_HEIGHT )
                 )

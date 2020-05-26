@@ -26,8 +26,6 @@
 #include <pmacc/math/vector/Int.hpp>
 #include <pmacc/math/vector/Float.hpp>
 #include <pmacc/math/vector/Size_t.hpp>
-#include <pmacc/math/vector/math_functor/abs.hpp>
-#include <pmacc/math/vector/math_functor/max.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
@@ -267,7 +265,6 @@ void ChargeConservation::notify(uint32_t currentStep)
                       this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT());
 
     /* run calculation: fieldTmp = | div E * eps_0 - rho | */
-    using namespace pmacc::math::math_functor;
     typedef picongpu::detail::Div<simDim, typename FieldTmp::ValueType> myDiv;
     algorithm::kernel::Foreach<BlockDim>()(
         fieldTmp_coreBorder.zone(),
@@ -288,7 +285,7 @@ void ChargeConservation::notify(uint32_t currentStep)
     (*this->allGPU_reduce)(
         maxChargeDiff_cluster,
         maxChargeDiff_host,
-        ::pmacc::algorithms::math::Max<
+        ::pmacc::math::Max<
             typename FieldTmp::ValueType,
             typename FieldTmp::ValueType
         >()

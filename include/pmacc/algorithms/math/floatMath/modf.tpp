@@ -26,8 +26,6 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
 
@@ -47,5 +45,4 @@ struct Modf<float>
 };
 
 } //namespace math
-} //namespace algorithms
 } // namespace pmacc

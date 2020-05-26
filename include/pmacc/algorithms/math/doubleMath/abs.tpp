@@ -28,28 +28,8 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
-
-template<>
-struct Abs<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(double value)
-    {
-#ifdef __CUDA_ARCH__
-      return ::fabs( value );
-#else
-      /* \bug on cpu `::abs(double)` always return zero -> maybe this is the
-       * integer version of `abs()`
-       */
-      return std::abs( value );
-#endif
-    }
-};
 
 template<>
 struct Abs2<double>
@@ -63,5 +43,4 @@ struct Abs2<double>
 };
 
 } //namespace math
-} //namespace algorithms
 } // namespace pmacc

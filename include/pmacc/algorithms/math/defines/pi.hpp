@@ -24,8 +24,6 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
 
@@ -44,5 +42,4 @@ namespace math
     };
 
 } // namespace math
-} // namespace algorithms
 } // namespace pmacc

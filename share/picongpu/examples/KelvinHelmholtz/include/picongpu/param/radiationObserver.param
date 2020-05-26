@@ -72,8 +72,8 @@ namespace radiation_observer
       picongpu::float_32 cosPhi;
       picongpu::float_32 sinTheta;
       picongpu::float_32 cosTheta;
-      math::sincos(precisionCast<picongpu::float_32>(phi), sinPhi, cosPhi);
-      math::sincos(precisionCast<picongpu::float_32>(theta), sinTheta, cosTheta);
+      pmacc::math::sincos(precisionCast<picongpu::float_32>(phi), sinPhi, cosPhi);
+      pmacc::math::sincos(precisionCast<picongpu::float_32>(theta), sinTheta, cosTheta);
       return vector_64( sinTheta*cosPhi , sinTheta*sinPhi , cosTheta ) ;
 
 

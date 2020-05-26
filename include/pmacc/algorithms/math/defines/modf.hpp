@@ -23,9 +23,6 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
-
 namespace math
 {
 
@@ -39,5 +36,4 @@ HDINLINE typename Modf<T>::result modf(T value, T* intpart)
 }
 
 } //namespace math
-} //namespace algorithms
 }//namespace pmacc
