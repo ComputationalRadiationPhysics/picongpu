@@ -40,8 +40,8 @@ struct SinCos<float, float, float>
     HDINLINE void operator( )(float arg, float& sinValue, float& cosValue )
     {
 #if defined(_MSC_VER) && !defined(__CUDA_ARCH__)
-        sinValue = cupla::math::sin((arg);
-        cosValue = cupla::math::cos((arg);
+        sinValue = cupla::math::sin(arg);
+        cosValue = cupla::math::cos(arg);
 #else
         ::sincosf( arg, &sinValue, &cosValue );
 #endif
