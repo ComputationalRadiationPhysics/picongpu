@@ -38,7 +38,7 @@ namespace picongpu
 {
 namespace detail
 {
-    std::stringstream
+    std::string
     writeMapToPropertyTree(
         std::map< std::string, size_t > valueMap,
         std::string outputFormat
@@ -83,7 +83,7 @@ namespace detail
             );
         }
 
-        return ss;
+        return ss.str();
     }
 } // namespace detail
 } // namespace picongpu
