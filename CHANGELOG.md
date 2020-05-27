@@ -4,7 +4,7 @@ Changelog
 0.5.0
 -----
 
-**Date:** 2020-03-XX
+**Date:** 2020-06-03
 
 Perfectly Matched Layer (PML) and Bug Fixes
 
@@ -66,6 +66,7 @@ for contributions to this release!
    - Add reference to thesis for emittance plugin doc #3101
    - Plugins: ADIOS & PhaseSpace Wterminate #2817
    - Calorimeter Plugin: Document File Suffix #2800
+   - Fix returning a stringstream by value #3251
  - tools:
    - Support alpaka accelerator `threads` #2701
    - Add getter for omega and n to python module #2776
