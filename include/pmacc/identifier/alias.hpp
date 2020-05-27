@@ -32,8 +32,8 @@
 
 namespace pmacc
 {
-identifier(pmacc_void);
-identifier(pmacc_isAlias);
+identifier(pmacc_void,);
+identifier(pmacc_isAlias,);
 } //namespace pmacc
 
 

@@ -43,7 +43,7 @@ T
 reverseBits(T value)
 {
     PMACC_STATIC_ASSERT_MSG( boost::is_integral<T>::value && boost::is_unsigned<T>::value,
-                             Only_allowed_for_unsigned_integral_types );
+                             Only_allowed_for_unsigned_integral_types, );
     /* init with value (to get LSB) */
     T result = value;
     /* extra shift needed at end */
