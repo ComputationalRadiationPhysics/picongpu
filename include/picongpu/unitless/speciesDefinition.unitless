@@ -53,7 +53,7 @@ HDINLINE float_X getMass()
     >::type;
 
     return BASE_MASS * MassRatioValue::getValue();
-};
+}
 
 
 /** default `getCharge()` specialization
@@ -72,7 +72,7 @@ HDINLINE float_X getCharge()
     >::type;
 
     return BASE_CHARGE * ChargeRatioValue::getValue();
-};
+}
 
 } // namespace frame
 } // namespace traits

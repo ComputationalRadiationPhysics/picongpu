@@ -128,7 +128,7 @@ namespace traits
     getStringProperties( const T_Type& )
     {
         return GetStringProperties<T_Type>()();
-    };
+    }
 
 } // namespace traits
 } // namespace pmacc

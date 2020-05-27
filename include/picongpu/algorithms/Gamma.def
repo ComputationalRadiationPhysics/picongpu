@@ -79,6 +79,6 @@ namespace picongpu
             mom,
             mass
         );
-    };
+    }
 
 } // namespace picongpu
