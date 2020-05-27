@@ -54,7 +54,7 @@ namespace picongpu
 
 namespace detail
 {
-    std::stringstream
+    std::string
     writeMapToPropertyTree(
         std::map<std::string, size_t> valueMap,
         std::string outputFormat
@@ -119,23 +119,23 @@ namespace detail
             }
 
             //
-            // Write property tree to string stream
-            std::stringstream ss = ::picongpu::detail::writeMapToPropertyTree( valueMap, outputFormat );
+            // Write property tree to a string
+            std::string properties = ::picongpu::detail::writeMapToPropertyTree( valueMap, outputFormat );
 
             //
             // Write property tree to the output stream
             if(streamType == "stdout")
             {
-                std::cout << ss.str();
+                std::cout << properties;
             }
             else if (streamType == "stderr")
             {
-                std::cerr << ss.str();
+                std::cerr << properties;
             }
             else if (streamType == "file")
             {
                 std::ostream os(&fileBuf);
-                os << ss.str();
+                os << properties;
             }
             else
             {
