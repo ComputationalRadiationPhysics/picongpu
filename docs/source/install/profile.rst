@@ -59,37 +59,6 @@ Queue: k80 (8x NVIDIA K80 12GB)
 .. literalinclude:: profiles/hemera-hzdr/k80_picongpu.profile.example
    :language: bash
 
-Hypnos (HZDR)
--------------
-
-**System overview:** `link (internal) <https://www.hzdr.de/db/Cms?pOid=29813>`_
-
-**User guide:** `link (internal) <http://hypnos3/wiki>`_
-
-**Production directory:** ``/bigdata/hplsim/`` with ``external/``, ``scratch/``, ``development/`` and ``production/``
-
-For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
-
-Queue: laser (AMD Opteron 6276 CPUs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/hypnos-hzdr/laser_picongpu.profile.example
-   :language: bash
-
-Hydra (HZDR)
--------------
-
-**System overview:** `link (internal) <https://www.hzdr.de/db/Cms?pOid=29813>`_
-
-**User guide:** `link (internal) <http://hypnos3/wiki>`_
-
-**Production directory:** ``/bigdata/hplsim/`` with ``external/``, ``scratch/``, ``development/`` and ``production/``
-
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
-
-.. literalinclude:: profiles/hydra-hzdr/default_picongpu.profile.example
-   :language: bash
-
 Summit (ORNL)
 -------------
 

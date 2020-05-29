@@ -101,16 +101,16 @@ tbg
 The ``tbg`` tool is explained in detail :ref:`in its own section <usage-tbg>`.
 Its primary purpose is to abstract the options in runtime ``.cfg`` files from the technical details on how to run on various supercomputers.
 
-For example, if you want to run on the HPC System `"Hypnos" at HZDR <https://www.hzdr.de/db/Cms?pOid=12231>`_, your ``tbg`` submit command would just change to:
+For example, if you want to run on the HPC System `"Hemera" at HZDR <https://www.hzdr.de/db/Cms?pOid=12231>`_, your ``tbg`` submit command would just change to:
 
 .. code-block:: bash
    :emphasize-lines: 2
 
    # request 1 GPU from the PBS batch system and run on the queue "k20"
-   tbg -s qsub -c etc/picongpu/1.cfg -t etc/picongpu/hypnos-hzdr/k20.tpl $SCRATCH/runs/lwfa_002
+   tbg -s sbatch -c etc/picongpu/1.cfg -t etc/picongpu/hemera-hzdr/k20.tpl $SCRATCH/runs/lwfa_002
 
    # run again, this time on 16 GPUs
-   tbg -s qsub -c etc/picongpu/16.cfg -t etc/picongpu/hypnos-hzdr/k20.tpl $SCRATCH/runs/lwfa_003
+   tbg -s sbatch -c etc/picongpu/16.cfg -t etc/picongpu/hemera-hzdr/k20.tpl $SCRATCH/runs/lwfa_003
 
 Note that we can use the same ``1.cfg`` file, your input set is *portable*.
 
