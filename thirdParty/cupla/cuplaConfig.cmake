@@ -22,7 +22,18 @@
 # Required cmake version.
 ################################################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.7.0)
+cmake_minimum_required(VERSION 3.11.4)
+
+################################################################################
+# CMake policies
+#
+# Search in <PackageName>_ROOT:
+#   https://cmake.org/cmake/help/v3.12/policy/CMP0074.html
+################################################################################
+
+if(POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+endif()
 
 ################################################################################
 # cupla
@@ -96,31 +107,25 @@ OPTION(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE "Enable the OpenMP 2.0 CPU grid block 
 OPTION(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE "Enable the OpenMP 2.0 CPU block thread accelerator" OFF)
 OPTION(ALPAKA_ACC_CPU_BT_OMP4_ENABLE "Enable the OpenMP 4.0 CPU block and block thread accelerator" OFF)
 OPTION(ALPAKA_ACC_GPU_CUDA_ENABLE "Enable the CUDA GPU accelerator" OFF)
-
+OPTION(ALPAKA_ACC_GPU_HIP_ENABLE "Enable the HIP back-end (all other back-ends must be disabled)" OFF)
 
 set(cupla_ALPAKA_PROVIDER "intern" CACHE STRING "Select which alpaka is used")
 set_property(CACHE cupla_ALPAKA_PROVIDER PROPERTY STRINGS "intern;extern")
 mark_as_advanced(cupla_ALPAKA_PROVIDER)
 
 if(${cupla_ALPAKA_PROVIDER} STREQUAL "intern")
-    if(NOT EXISTS "${_cupla_ROOT_DIR}/alpaka/Findalpaka.cmake")
-        # Init the sub molules
-        execute_process (COMMAND git submodule init WORKING_DIRECTORY ${_cupla_ROOT_DIR})
-        # Update the sub modules
-        execute_process (COMMAND git submodule update WORKING_DIRECTORY ${_cupla_ROOT_DIR})
-    endif()
 
-    find_package(alpaka 
+    find_package(alpaka
         PATHS "${_cupla_ROOT_DIR}/alpaka"
-        NO_DEFAULT_PATH 
-        NO_CMAKE_ENVIRONMENT_PATH 
+        NO_DEFAULT_PATH
+        NO_CMAKE_ENVIRONMENT_PATH
         NO_CMAKE_PATH
         NO_SYSTEM_ENVIRONMENT_PATH
         NO_CMAKE_PACKAGE_REGISTRY
         NO_CMAKE_BUILDS_PATH
         NO_CMAKE_SYSTEM_PATH
         NO_CMAKE_SYSTEM_PACKAGE_REGISTRY
-        NO_CMAKE_FIND_ROOT_PATH   
+        NO_CMAKE_FIND_ROOT_PATH
     )
 else()
     find_package(alpaka HINTS $ENV{ALPAKA_ROOT})
@@ -128,8 +133,9 @@ endif()
 
 if(NOT alpaka_FOUND)
     message(WARNING "Required cupla dependency alpaka could not be found!")
-        set(_cupla_FOUND FALSE)
+    set(_cupla_FOUND FALSE)
 else()
+    # TODO: use imported targets instead of chain of variables
     list(APPEND _cupla_COMPILE_OPTIONS_PUBLIC ${alpaka_COMPILE_OPTIONS})
     list(APPEND _cupla_COMPILE_DEFINITIONS_PUBLIC ${alpaka_COMPILE_DEFINITIONS})
     list(APPEND _cupla_INCLUDE_DIRECTORIES_PUBLIC ${alpaka_INCLUDE_DIRS})
@@ -168,7 +174,7 @@ endif()
 # cupla.
 ################################################################################
 
-OPTION(CUPLA_STREAM_ASYNC_ENABLE "Enable asynchron streams" ON)
+option(CUPLA_STREAM_ASYNC_ENABLE "Enable asynchronous streams" ON)
 if(CUPLA_STREAM_ASYNC_ENABLE)
     list(APPEND _cupla_COMPILE_DEFINITIONS_PUBLIC "CUPLA_STREAM_ASYNC_ENABLED=1")
 else()
@@ -196,71 +202,78 @@ append_recursive_files_add_to_src_group("${_cupla_SUFFIXED_SOURCE_DIR}" "${_cupl
 
 
 ################################################################################
-# Target.
+# cupla Target.
 ################################################################################
-if(NOT TARGET cupla)
 
-    add_library(
+alpaka_add_library(
+    "cupla"
+    ${_cupla_FILES_HEADER} ${_cupla_FILES_OTHER} ${_cupla_FILES_SOURCE})
+
+# Even if there are no sources CMAKE has to know the language.
+set_target_properties("cupla" PROPERTIES LINKER_LANGUAGE CXX)
+
+# properties
+target_compile_features("cupla"
+    PUBLIC cxx_std_11
+    )
+set_target_properties("cupla" PROPERTIES
+    CXX_EXTENSIONS OFF
+    CXX_STANDARD_REQUIRED ON
+    )
+
+# Compile options.
+message(STATUS "_cupla_COMPILE_OPTIONS_PUBLIC: ${_cupla_COMPILE_OPTIONS_PUBLIC}")
+list(
+    LENGTH
+    _cupla_COMPILE_OPTIONS_PUBLIC
+    _cupla_COMPILE_OPTIONS_PUBLIC_LENGTH)
+if("${_cupla_COMPILE_OPTIONS_PUBLIC_LENGTH}")
+    TARGET_COMPILE_OPTIONS(
         "cupla"
-        ${_cupla_FILES_HEADER} ${_cupla_FILES_OTHER})
+        PUBLIC ${_cupla_COMPILE_OPTIONS_PUBLIC})
+endif()
 
-    # Even if there are no sources CMAKE has to know the language.
-    set_target_properties("cupla" PROPERTIES LINKER_LANGUAGE CXX)
+# Compile definitions.
+message(STATUS "_cupla_COMPILE_DEFINITIONS_PUBLIC: ${_cupla_COMPILE_DEFINITIONS_PUBLIC}")
+list(
+    LENGTH
+    _cupla_COMPILE_DEFINITIONS_PUBLIC
+    _cupla_COMPILE_DEFINITIONS_PUBLIC_LENGTH)
+if("${_cupla_COMPILE_DEFINITIONS_PUBLIC_LENGTH}")
+    TARGET_COMPILE_DEFINITIONS(
+        "cupla"
+        PUBLIC ${_cupla_COMPILE_DEFINITIONS_PUBLIC})
+endif()
 
-    # Compile options.
-    message(STATUS "_cupla_COMPILE_OPTIONS_PUBLIC: ${_cupla_COMPILE_OPTIONS_PUBLIC}")
-    list(
-        LENGTH
-        _cupla_COMPILE_optionS_PUBLIC
-        _cupla_COMPILE_optionS_PUBLIC_LENGTH)
-    if("${_cupla_COMPILE_optionS_PUBLIC_LENGTH}")
-        TARGET_COMPILE_optionS(
-            "cupla"
-            PUBLIC ${_cupla_COMPILE_optionS_PUBLIC})
-    endif()
+# Include directories.
+message(STATUS "_cupla_INCLUDE_DIRECTORIES_PUBLIC: ${_cupla_INCLUDE_DIRECTORIES_PUBLIC}")
+list(
+    LENGTH
+    _cupla_INCLUDE_DIRECTORIES_PUBLIC
+    _cupla_INCLUDE_DIRECTORIES_PUBLIC_LENGTH)
+if("${_cupla_INCLUDE_DIRECTORIES_PUBLIC_LENGTH}")
+    TARGET_INCLUDE_DIRECTORIES(
+        "cupla"
+        PUBLIC ${_cupla_INCLUDE_DIRECTORIES_PUBLIC})
+endif()
 
-    # Compile definitions.
-    message(STATUS "_cupla_COMPILE_DEFINITIONS_PUBLIC: ${_cupla_COMPILE_DEFINITIONS_PUBLIC}")
-    list(
-        LENGTH
-        _cupla_COMPILE_DEFINITIONS_PUBLIC
-        _cupla_COMPILE_DEFINITIONS_PUBLIC_LENGTH)
-    if("${_cupla_COMPILE_DEFINITIONS_PUBLIC_LENGTH}")
-        TARGET_COMPILE_DEFINITIONS(
-            "cupla"
-            PUBLIC ${_cupla_COMPILE_DEFINITIONS_PUBLIC})
-    endif()
-
-    # Include directories.
-    message(STATUS "_cupla_INCLUDE_DIRECTORIES_PUBLIC: ${_cupla_INCLUDE_DIRECTORIES_PUBLIC}")
-    list(
-        LENGTH
-        _cupla_INCLUDE_DIRECTORIES_PUBLIC
-        _cupla_INCLUDE_DIRECTORIES_PUBLIC_LENGTH)
-    if("${_cupla_INCLUDE_DIRECTORIES_PUBLIC_LENGTH}")
-        TARGET_INCLUDE_DIRECTORIES(
-            "cupla"
-            PUBLIC ${_cupla_INCLUDE_DIRECTORIES_PUBLIC})
-    endif()
-
-    # Link libraries.
-    message(STATUS "_cupla_LINK_LIBRARIES_PUBLIC: ${_cupla_LINK_LIBRARIES_PUBLIC}")
-    list(
-        LENGTH
-        _cupla_LINK_LIBRARIES_PUBLIC
-        _cupla_LINK_LIBRARIES_PUBLIC_LENGTH)
-    if("${_cupla_LINK_LIBRARIES_PUBLIC_LENGTH}")
-        target_link_libraries(
-            "cupla"
-            PUBLIC alpaka ${_cupla_LINK_LIBRARIES_PUBLIC})
-    endif()
+# Link libraries.
+message(STATUS "_cupla_LINK_LIBRARIES_PUBLIC: ${_cupla_LINK_LIBRARIES_PUBLIC}")
+list(
+    LENGTH
+    _cupla_LINK_LIBRARIES_PUBLIC
+    _cupla_LINK_LIBRARIES_PUBLIC_LENGTH)
+if("${_cupla_LINK_LIBRARIES_PUBLIC_LENGTH}")
+    target_link_libraries(
+        "cupla"
+        PUBLIC alpaka ${_cupla_LINK_LIBRARIES_PUBLIC})
 endif()
 
 ################################################################################
 # Find cupla version.
 ################################################################################
-# FIXME: Add a version.hpp
-set(_cupla_VERSION "0.1.0")
+# Please also update the version in `include/cupla/version.hpp`
+set(_cupla_VERSION "0.2.0")
 
 ################################################################################
 # Set return values.
@@ -334,8 +347,8 @@ endif()
 
 # Handles the REQUIRED, QUIET and version-related arguments for find_package.
 # NOTE: We do not check for cupla_LIBRARIES and cupla_DEFINITIONS because they can be empty.
-INCLUDE(FindPackageHandleStandardArgs)
-find_package_HANDLE_STANDARD_ARGS(
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(
     "cupla"
     FOUND_VAR cupla_FOUND
     REQUIRED_VARS cupla_INCLUDE_DIR

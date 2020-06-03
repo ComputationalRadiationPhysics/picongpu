@@ -1,4 +1,4 @@
-/* Copyright 2018 Rene Widera
+/* Copyright 2018-2020 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -45,7 +45,7 @@ namespace detail
      * @param str string to check
      * @return true if str contains only digits else false
      */
-    bool is_number( std::string const & str )
+    HINLINE bool is_number( std::string const & str )
     {
         return std::all_of(
             str.begin(),
@@ -62,7 +62,7 @@ namespace detail
      *   - `start:stop:period`
      *   - a number ``N is equal to `::N`
      */
-    std::vector< TimeSlice > toTimeSlice( std::string const & str )
+    HINLINE std::vector< TimeSlice > toTimeSlice( std::string const & str )
     {
         std::vector< TimeSlice > result;
         auto const seqOfSlices = misc::splitString(

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -27,7 +27,7 @@
 #include "picongpu/plugins/output/header/SimHeader.hpp"
 #include "picongpu/plugins/output/header/WindowHeader.hpp"
 
-#include "picongpu/simulationControl/Window.hpp"
+#include "picongpu/simulation/control/Window.hpp"
 
 #include <iostream>
 #include <cstdlib>

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -25,7 +25,6 @@
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/math/vector/Int.hpp"
 #include "detail/SphericMapper.hpp"
-#include "pmacc/forward.hpp"
 
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -51,7 +50,7 @@ namespace kernel
 namespace detail
 {
 
-#define SHIFTACCESS_CURSOR(Z, N, _) forward(c ## N [cellIndex])
+#define SHIFTACCESS_CURSOR(Z, N, _) c ## N [cellIndex]
 
 #define KERNEL_FOREACH(Z, N, _)                                                                             \
                         /* typename C0, typename C1, ... */                                                 \

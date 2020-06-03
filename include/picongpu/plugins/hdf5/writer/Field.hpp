@@ -1,4 +1,5 @@
-/* Copyright 2014-2018 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2014-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +22,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/traits/PICToSplash.hpp"
 #include <pmacc/traits/GetComponentsType.hpp>
 #include <pmacc/traits/GetNComponents.hpp>
@@ -44,16 +46,21 @@ struct Field
      *                       vector for each component and the inner vector for
      *                       the simDim position offset within the cell [0.0; 1.0)
      */
-    template<typename T_ValueType, typename T_DataBoxType>
-    static void writeField(ThreadParams *params,
-                           const std::string name,
-                           std::vector<float_64> unit,
-                           std::vector<float_64> unitDimension,
-                           std::vector<std::vector<float_X> > inCellPosition,
-                           float_X timeOffset,
-                           T_DataBoxType dataBox,
-                           const T_ValueType&
-                           )
+    template<
+        typename T_ValueType,
+        typename T_DataBoxType
+    >
+    static void writeField(
+        ThreadParams *params,
+        const std::string name,
+        std::vector<float_64> unit,
+        std::vector<float_64> unitDimension,
+        std::vector<std::vector<float_X> > inCellPosition,
+        float_X timeOffset,
+        T_DataBoxType dataBox,
+        const T_ValueType&,
+        const bool isDomainBound
+    )
     {
         typedef T_DataBoxType NativeDataBoxType;
         typedef T_ValueType ValueType;
@@ -80,12 +87,7 @@ struct Field
         /* component names */
         const std::string recordName = std::string("fields/") + name;
 
-        std::vector<std::string> name_lookup;
-        {
-            const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
-            for (uint32_t n = 0; n < nComponents; n++)
-                name_lookup.push_back(name_lookup_tpl[n]);
-        }
+        const auto componentNames = plugins::misc::getComponentNames( nComponents );
 
         /*data to describe source buffer*/
         GridLayout<simDim> field_layout = params->gridLayout;
@@ -114,6 +116,38 @@ struct Field
         splashGlobalOffsetFile[1] = std::max(0, localDomain.offset[1] -
                                              params->window.globalDimensions.offset[1]);
 
+        /* Patch for non-domain-bound fields
+         * This is an ugly fix to allow output of reduced 1d PML buffers,
+         * that are the same size on each domain.
+         * This code is to be replaced with the openPMD output plugin soon.
+         */
+        if( !isDomainBound )
+        {
+            field_no_guard = field_layout.getDataSpaceWithoutGuarding();
+            auto const localSize = field_no_guard.productOfComponents();
+            auto const & gridController = Environment<simDim>::get().GridController();
+            auto const numRanks = gridController.getGlobalSize();
+            auto const rank = gridController.getGlobalRank();
+            // Number of elements on all domains combined
+            splashGlobalDomainSize = Dimensions(
+                localSize * numRanks,
+                1,
+                1
+            );
+            // Offset for this rank
+            splashGlobalOffsetFile = Dimensions(
+                localSize * rank,
+                0,
+                0
+            );
+            // We are not affected by moving window, so all have offset to 0
+            splashGlobalDomainOffset = Dimensions(
+                0,
+                0,
+                0
+            );
+        }
+
         size_t tmpArraySize = field_no_guard.productOfComponents();
         ComponentType* tmpArray = new ComponentType[tmpArraySize];
 
@@ -133,7 +167,7 @@ struct Field
             std::stringstream datasetName;
             datasetName << recordName;
             if (nComponents > 1)
-                datasetName << "/" << name_lookup.at(n);
+                datasetName << "/" << componentNames.at(n);
 
             Dimensions sizeSrcData(1, 1, 1);
 

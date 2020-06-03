@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Rene Widera, Felix Schmitt, Axel Huebl,
+/* Copyright 2014-2020 Rene Widera, Felix Schmitt, Axel Huebl,
  *                     Alexander Grund
  *
  * This file is part of PIConGPU.
@@ -29,8 +29,8 @@
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 #include "picongpu/plugins/adios/writer/ParticleAttribute.hpp"
 
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
-#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/particles/ParticleDescription.hpp>
@@ -115,8 +115,8 @@ public:
 
         /* malloc host memory */
         log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) malloc host memory: %1%") % T_SpeciesFilter::getName();
-        ForEach<typename AdiosFrameType::ValueTypeSeq, MallocHostMemory<bmpl::_1> > mallocMem;
-        mallocMem(forward(hostFrame), totalNumParticles);
+        meta::ForEach<typename AdiosFrameType::ValueTypeSeq, MallocHostMemory<bmpl::_1> > mallocMem;
+        mallocMem(hostFrame, totalNumParticles);
         log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) malloc host memory: %1%") % T_SpeciesFilter::getName();
 
         if (totalNumParticles > 0)
@@ -126,7 +126,7 @@ public:
             typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
             MyParticleFilter filter;
             /* activate filter pipeline if moving window is activated */
-            filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
+            filter.setStatus(MovingWindow::getInstance().isEnabled());
             filter.setWindowPosition(params->localWindowToDomainOffset,
                                      params->window.localDimensions.size);
 
@@ -173,12 +173,12 @@ public:
             PMACC_ASSERT((uint64_cu) globalParticleOffset == totalNumParticles);
         }
         /* dump to adios file */
-        ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<bmpl::_1> > writeToAdios;
-        writeToAdios(params, forward(hostFrame), totalNumParticles);
+        meta::ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<bmpl::_1> > writeToAdios;
+        writeToAdios(params, hostFrame, totalNumParticles);
 
         /* free host memory */
-        ForEach<typename AdiosFrameType::ValueTypeSeq, FreeHostMemory<bmpl::_1> > freeMem;
-        freeMem(forward(hostFrame));
+        meta::ForEach<typename AdiosFrameType::ValueTypeSeq, FreeHostMemory<bmpl::_1> > freeMem;
+        freeMem(hostFrame);
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing species: %1%") % T_SpeciesFilter::getName();
 
         /* write species counter table to adios file */

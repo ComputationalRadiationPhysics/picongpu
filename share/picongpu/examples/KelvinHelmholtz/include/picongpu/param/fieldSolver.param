@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -65,6 +65,7 @@ namespace fields
      * Field Solver Selection:
      *  - Yee< CurrentInterpolation >: standard Yee solver
      *  - Lehe< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
+     *  - YeePML< CurrentInterpolation >: standard Yee solver with PML absorber
      *  - DirSplitting< CurrentInterpolation >: Sentoku's Directional Splitting Method
      *  - None< CurrentInterpolation >: disable the vacuum update of E and B
      */

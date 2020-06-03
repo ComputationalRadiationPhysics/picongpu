@@ -19,6 +19,7 @@
  */
 
 
+#include "cupla/namespace.hpp"
 #include "cupla_runtime.hpp"
 #include "cupla/manager/Memory.hpp"
 #include "cupla/manager/Device.hpp"
@@ -26,7 +27,10 @@
 #include "cupla/manager/Event.hpp"
 #include "cupla/api/memory.hpp"
 
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaMalloc(
     void **ptrptr,
@@ -49,6 +53,7 @@ cuplaMalloc(
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaMallocPitch(
     void ** devPtr,
@@ -74,6 +79,7 @@ cuplaMallocPitch(
     return cuplaSuccess;
 };
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaMalloc3D(
     cuplaPitchedPtr * const pitchedDevPtr,
@@ -97,6 +103,7 @@ cuplaMalloc3D(
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaExtent
 make_cuplaExtent(
     size_t const w,
@@ -107,6 +114,7 @@ make_cuplaExtent(
     return cuplaExtent( w, h, d );
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaPos
 make_cuplaPos(
     size_t const x,
@@ -117,6 +125,7 @@ make_cuplaPos(
     return cuplaPos( x, y, z );
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaPitchedPtr
 make_cuplaPitchedPtr(
     void * const d,
@@ -128,6 +137,7 @@ make_cuplaPitchedPtr(
     return cuplaPitchedPtr( d, p, xsz, ysz );
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaMallocHost(
     void **ptrptr,
@@ -144,16 +154,14 @@ cuplaMallocHost(
         cupla::AlpakaDim<1u>
     >::get().alloc( extent );
 
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-    // only implemented if nvcc is used
-    ::alpaka::mem::buf::pin( buf );
-#endif
+    prepareForAsyncCopy( buf );
 
     // @toto catch errors
     *ptrptr = ::alpaka::mem::view::getPtrNative(buf);
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t cuplaFree(void *ptr)
 {
 
@@ -183,6 +191,7 @@ cuplaError_t cuplaFree(void *ptr)
 
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t cuplaFreeHost(void *ptr)
 {
 
@@ -198,6 +207,7 @@ cuplaError_t cuplaFreeHost(void *ptr)
 
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t cuplaMemcpyAsync(
     void *dst,
     const void *src,
@@ -356,6 +366,7 @@ cuplaError_t cuplaMemcpyAsync(
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaMemcpy(
     void *dst,
@@ -385,6 +396,7 @@ cuplaMemcpy(
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaMemsetAsync(
     void * devPtr,
@@ -429,6 +441,7 @@ cuplaMemsetAsync(
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaMemset(
     void * devPtr,
@@ -456,6 +469,7 @@ cuplaMemset(
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaMemcpy2DAsync(
     void * dst,
@@ -636,6 +650,7 @@ cuplaMemcpy2DAsync(
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaMemcpy2D(
     void * dst,
@@ -671,6 +686,7 @@ cuplaMemcpy2D(
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaMemcpy3DAsync(
     const cuplaMemcpy3DParms * const p,
@@ -929,6 +945,7 @@ cuplaMemcpy3DAsync(
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaMemcpy3D(
     const cuplaMemcpy3DParms * const p
@@ -948,3 +965,5 @@ cuplaMemcpy3D(
 
     return cuplaSuccess;
 }
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE

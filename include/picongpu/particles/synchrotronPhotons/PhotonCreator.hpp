@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Heiko Burau
+/* Copyright 2015-2020 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -31,9 +31,9 @@
 #include <pmacc/particles/operations/Assign.hpp>
 #include <pmacc/particles/operations/Deselect.hpp>
 #include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
+#include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 
 #include <pmacc/random/methods/methods.hpp>
@@ -44,7 +44,7 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 
-#include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
+#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 
@@ -78,25 +78,25 @@ struct PhotonCreator
     using FrameType = typename ElectronSpecies::FrameType;
 
     /* specify field to particle interpolation scheme */
-    typedef typename pmacc::particles::traits::ResolveAliasFromSpecies<
+    using Field2ParticleInterpolation = typename pmacc::particles::traits::ResolveAliasFromSpecies<
         ElectronSpecies,
         interpolation<>
-    >::type Field2ParticleInterpolation;
+    >::type;
 
     /* margins around the supercell for the interpolation of the field on the cells */
-    typedef typename GetMargin<Field2ParticleInterpolation>::LowerMargin LowerMargin;
-    typedef typename GetMargin<Field2ParticleInterpolation>::UpperMargin UpperMargin;
+    using LowerMargin = typename GetMargin<Field2ParticleInterpolation>::LowerMargin;
+    using UpperMargin = typename GetMargin<Field2ParticleInterpolation>::UpperMargin;
 
     /* relevant area of a block */
-    typedef SuperCellDescription<
+    using BlockArea = SuperCellDescription<
         typename MappingDesc::SuperCellSize,
         LowerMargin,
         UpperMargin
-        > BlockArea;
+    >;
 
     BlockArea BlockDescription;
 
-    typedef MappingDesc::SuperCellSize TVec;
+    using TVec = MappingDesc::SuperCellSize;
 
     using ValueType_E = FieldE::ValueType;
     using ValueType_B = FieldB::ValueType;
@@ -115,9 +115,9 @@ private:
     PMACC_ALIGN(photon_mom, float3_X);
 
     /* random number generator */
-    typedef pmacc::random::RNGProvider<simDim, random::Generator> RNGFactory;
-    typedef pmacc::random::distributions::Uniform<float_X> Distribution;
-    typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
+    using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
+    using Distribution = pmacc::random::distributions::Uniform<float_X>;
+    using RandomGen = typename RNGFactory::GetRandomType<Distribution>::type;
     RandomGen randomGen;
 
 public:
@@ -301,11 +301,11 @@ public:
         /* multi-dim coordinate of the local cell inside the super cell */
         DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
         /* interpolation of E-field on the particle position */
-        const picongpu::traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldE> fieldPosE;
+        const picongpu::traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
         ValueType_E fieldE = Field2ParticleInterpolation()
             (cachedE.shift(localCell).toCursor(), pos, fieldPosE());
         /* interpolation of B-field on the particle position */
-        const picongpu::traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldB> fieldPosB;
+        const picongpu::traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
         ValueType_B fieldB = Field2ParticleInterpolation()
             (cachedB.shift(localCell).toCursor(), pos, fieldPosB());
 

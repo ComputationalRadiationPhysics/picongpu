@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,7 +24,7 @@
 #include "picongpu/fields/MaxwellSolver/DirSplitting/DirSplitting.kernel"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "picongpu/fields/cellType/Centered.hpp"
 #include "picongpu/fields/LaserPhysics.hpp"
 
 #include <pmacc/cuSTL/algorithm/kernel/ForeachBlock.hpp>
@@ -106,7 +106,7 @@ namespace dirSplitting
         }
     public:
 
-        using NummericalCellType = picongpu::numericalCellTypes::EMFCenteredCell;
+        using CellType = cellType::Centered;
         using CurrentInterpolation = T_CurrentInterpolation;
 
         DirSplitting(MappingDesc) {}

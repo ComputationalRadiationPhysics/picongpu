@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera, Axel Huebl
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Axel Huebl
  *
  * This file is part of PMacc.
  *
@@ -31,7 +31,7 @@ namespace math
 template<int dim>
 struct UInt64 : public Vector<uint64_t, dim>
 {
-    typedef Vector<uint64_t, dim> BaseType;
+    using BaseType = Vector<uint64_t, dim>;
 
     HDINLINE UInt64()
     {

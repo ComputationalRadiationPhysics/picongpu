@@ -16,7 +16,7 @@ Required libraries:
  - **boost** 1.47.0 or higher ("program options")
  - **PNGwriter** 0.7.0 or higher ([GitHub project](https://github.com/pngwriter/pngwriter))
  - **libSplash** (requires *hdf5*)
- - **hdf5** >= 1.8.6, standard shared version (no c++, enable parallel)
+ - **hdf5** >= 1.8.13, standard shared version (no c++, enable parallel)
 
 
 ### Usage

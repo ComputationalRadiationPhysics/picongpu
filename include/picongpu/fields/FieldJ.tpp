@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -31,10 +31,8 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/kernel/StrideMapping.hpp>
 #include <pmacc/fields/tasks/FieldFactory.hpp>
-
-#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
-
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/memory/MakeUnique.hpp>
 #include <pmacc/fields/operations/CopyGuardToExchange.hpp>
 #include <pmacc/fields/operations/AddExchangeToBorder.hpp>
 #include "picongpu/particles/traits/GetCurrentSolver.hpp"
@@ -54,43 +52,44 @@ namespace picongpu
 
 using namespace pmacc;
 
-FieldJ::FieldJ( MappingDesc cellDescription ) :
-SimulationFieldHelper<MappingDesc>( cellDescription ),
-fieldJ( cellDescription.getGridLayout( ) ), fieldJrecv( nullptr )
+FieldJ::FieldJ( MappingDesc const & cellDescription ) :
+    SimulationFieldHelper<MappingDesc>( cellDescription ),
+    buffer( cellDescription.getGridLayout( ) ),
+    fieldJrecv( nullptr )
 {
     const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
     /* cell margins the current might spread to due to particle shapes */
-    typedef typename pmacc::particles::traits::FilterByFlag<
+    using AllSpeciesWithCurrent = typename pmacc::particles::traits::FilterByFlag<
         VectorAllSpecies,
         current<>
-    >::type AllSpeciesWithCurrent;
+    >::type;
 
-    typedef bmpl::accumulate<
+    using LowerMarginShapes = bmpl::accumulate<
         AllSpeciesWithCurrent,
         typename pmacc::math::CT::make_Int<simDim, 0>::type,
         pmacc::math::CT::max<bmpl::_1, GetLowerMargin< GetCurrentSolver<bmpl::_2> > >
-        >::type LowerMarginShapes;
+        >::type;
 
-    typedef bmpl::accumulate<
+    using UpperMarginShapes = bmpl::accumulate<
         AllSpeciesWithCurrent,
         typename pmacc::math::CT::make_Int<simDim, 0>::type,
         pmacc::math::CT::max<bmpl::_1, GetUpperMargin< GetCurrentSolver<bmpl::_2> > >
-        >::type UpperMarginShapes;
+        >::type;
 
     /* margins are always positive, also for lower margins
      * additional current interpolations and current filters on FieldJ might
      * spread the dependencies on neighboring cells
      *   -> use max(shape,filter) */
-    typedef pmacc::math::CT::max<
+    using LowerMargin = pmacc::math::CT::max<
         LowerMarginShapes,
         GetMargin<typename fields::Solver::CurrentInterpolation>::LowerMargin
-        >::type LowerMargin;
+        >::type;
 
-    typedef pmacc::math::CT::max<
+    using UpperMargin = pmacc::math::CT::max<
         UpperMarginShapes,
         GetMargin<typename fields::Solver::CurrentInterpolation>::UpperMargin
-        >::type UpperMargin;
+        >::type;
 
     const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );
     const DataSpace<simDim> endGuard( UpperMargin( ).toRT( ) );
@@ -121,7 +120,7 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldJrecv( nullptr )
 
         }
         // std::cout << "ex " << i << " x=" << guardingCells[0] << " y=" << guardingCells[1] << " z=" << guardingCells[2] << std::endl;
-        fieldJ.addExchangeBuffer( i, guardingCells, FIELD_J );
+        buffer.addExchangeBuffer( i, guardingCells, FIELD_J );
     }
 
     /* Receive border values in own guard for "receive" communication pattern - necessary for current interpolation/filter */
@@ -130,7 +129,10 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldJrecv( nullptr )
     if( originRecvGuard != DataSpace<simDim>::create(0) ||
         endRecvGuard != DataSpace<simDim>::create(0) )
     {
-        fieldJrecv = new GridBuffer<ValueType, simDim > ( fieldJ.getDeviceBuffer(), cellDescription.getGridLayout( ) );
+        fieldJrecv = pmacc::memory::makeUnique< GridBuffer<ValueType, simDim > >(
+            buffer.getDeviceBuffer(),
+            cellDescription.getGridLayout( )
+        );
 
         /*go over all directions*/
         for ( uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i )
@@ -148,24 +150,14 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldJrecv( nullptr )
     }
 }
 
-FieldJ::~FieldJ( )
-{
-    __delete(fieldJrecv);
-}
-
-SimulationDataId FieldJ::getUniqueId( )
-{
-    return getName( );
-}
-
-void FieldJ::synchronize( )
-{
-    fieldJ.deviceToHost( );
-}
-
 GridBuffer<FieldJ::ValueType, simDim> &FieldJ::getGridBuffer( )
 {
-    return fieldJ;
+    return buffer;
+}
+
+GridLayout<simDim> FieldJ::getGridLayout( )
+{
+    return cellDescription.getGridLayout( );
 }
 
 EventTask FieldJ::asyncCommunication( EventTask serialEvent )
@@ -188,37 +180,18 @@ EventTask FieldJ::asyncCommunication( EventTask serialEvent )
         return ret;
 }
 
-void FieldJ::bashField( uint32_t exchangeType )
-{
-    pmacc::fields::operations::CopyGuardToExchange{ }(
-        fieldJ,
-        SuperCellSize{ },
-        exchangeType
-    );
-}
-
-void FieldJ::insertField( uint32_t exchangeType )
-{
-    pmacc::fields::operations::AddExchangeToBorder{ }(
-        fieldJ,
-        SuperCellSize{ },
-        exchangeType
-    );
-}
-
-GridLayout<simDim> FieldJ::getGridLayout( )
-{
-    return cellDescription.getGridLayout( );
-}
-
 void FieldJ::reset( uint32_t )
 {
 }
 
-void FieldJ::assign( ValueType value )
+void FieldJ::synchronize( )
 {
-    fieldJ.getDeviceBuffer( ).setValue( value );
-    //fieldJ.reset(false);
+    buffer.deviceToHost( );
+}
+
+SimulationDataId FieldJ::getUniqueId( )
+{
+    return getName( );
 }
 
 HDINLINE
@@ -234,10 +207,10 @@ std::vector<float_64>
 FieldJ::getUnitDimension( )
 {
     /* L, M, T, I, theta, N, J
-     *
-     * J is in A/m^2
-     *   -> L^-2 * I
-     */
+    *
+    * J is in A/m^2
+    *   -> L^-2 * I
+    */
     std::vector<float_64> unitDimension( 7, 0.0 );
     unitDimension.at(SIBaseUnits::length) = -2.0;
     unitDimension.at(SIBaseUnits::electricCurrent) =  1.0;
@@ -251,21 +224,21 @@ FieldJ::getName( )
     return "J";
 }
 
-uint32_t
-FieldJ::getCommTag( )
+void FieldJ::assign( ValueType value )
 {
-    return FIELD_J;
+    buffer.getDeviceBuffer( ).setValue( value );
+    //fieldJ.reset(false);
 }
 
-template<uint32_t AREA, class ParticlesClass>
-void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
+template<uint32_t T_area, class T_Species>
+void FieldJ::computeCurrent( T_Species & species, uint32_t )
 {
     /* tuning parameter to use more workers than cells in a supercell
-     * valid domain: 1 <= workerMultiplier
-     */
+    * valid domain: 1 <= workerMultiplier
+    */
     const int workerMultiplier = 2;
 
-    using FrameType = typename ParticlesClass::FrameType;
+    using FrameType = typename T_Species::FrameType;
     typedef typename pmacc::traits::Resolve<
         typename GetFlagType<FrameType, current<> >::type
     >::type ParticleCurrentSolver;
@@ -279,10 +252,10 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
     > BlockArea;
 
     /* The needed stride for the stride mapper depends on the stencil width.
-     * If the upper and lower margin of the stencil fits into one supercell
-     * a double checker board (stride 2) is needed.
-     * The round up sum of margins is the number of supercells to skip.
-     */
+    * If the upper and lower margin of the stencil fits into one supercell
+    * a double checker board (stride 2) is needed.
+    * The round up sum of margins is the number of supercells to skip.
+    */
     using MarginPerDim = typename pmacc::math::CT::add<
         typename GetMargin<ParticleCurrentSolver>::LowerMargin,
         typename GetMargin<ParticleCurrentSolver>::UpperMargin
@@ -291,17 +264,17 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
     using SuperCellMinSize = typename pmacc::math::CT::min< SuperCellSize >::type;
 
     /* number of supercells which must be skipped to avoid overlapping areas
-     * between different blocks in the kernel
-     */
+    * between different blocks in the kernel
+    */
     constexpr uint32_t skipSuperCells = ( MaxMargin::value + SuperCellMinSize::value - 1u ) / SuperCellMinSize::value;
     StrideMapping<
-        AREA,
+        T_area,
         skipSuperCells + 1u, // stride 1u means each supercell is used
         MappingDesc
     > mapper( cellDescription );
 
-    typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox( );
-    FieldJ::DataBoxType jBox = this->fieldJ.getDeviceBuffer( ).getDataBox( );
+    typename T_Species::ParticlesBoxType pBox = species.getDeviceParticlesBox( );
+    FieldJ::DataBoxType jBox = buffer.getDeviceBuffer( ).getDataBox( );
     FrameSolver solver( DELTA_T );
 
     constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
@@ -313,13 +286,13 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
         PMACC_KERNEL( KernelComputeCurrent< numWorkers, BlockArea >{} )
             ( mapper.getGridDim( ), numWorkers )
             ( jBox,
-              pBox, solver, mapper );
+                pBox, solver, mapper );
     }
     while ( mapper.next( ) );
 
 }
 
-template<uint32_t AREA, class T_CurrentInterpolation>
+template<uint32_t T_area, class T_CurrentInterpolation>
 void FieldJ::addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation )
 {
     DataConnector &dc = Environment<>::get().DataConnector();
@@ -327,7 +300,7 @@ void FieldJ::addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation )
     auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
 
     AreaMapping<
-        AREA,
+        T_area,
         MappingDesc
     > mapper(cellDescription);
 
@@ -338,15 +311,33 @@ void FieldJ::addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation )
     PMACC_KERNEL( KernelAddCurrentToEMF< numWorkers >{} )(
         mapper.getGridDim(),
         numWorkers
-    )(
-        fieldE->getDeviceDataBox( ),
-        fieldB->getDeviceDataBox( ),
-        this->fieldJ.getDeviceBuffer( ).getDataBox( ),
-        myCurrentInterpolation,
-        mapper
-    );
+        )(
+            fieldE->getDeviceDataBox( ),
+            fieldB->getDeviceDataBox( ),
+            buffer.getDeviceBuffer( ).getDataBox( ),
+            myCurrentInterpolation,
+            mapper
+            );
     dc.releaseData( FieldE::getName() );
     dc.releaseData( FieldB::getName() );
 }
 
+void FieldJ::bashField( uint32_t exchangeType )
+{
+    pmacc::fields::operations::CopyGuardToExchange{ }(
+        buffer,
+        SuperCellSize{ },
+        exchangeType
+    );
 }
+
+void FieldJ::insertField( uint32_t exchangeType )
+{
+    pmacc::fields::operations::AddExchangeToBorder{ }(
+        buffer,
+        SuperCellSize{ },
+        exchangeType
+    );
+}
+
+} // namespace picongpu

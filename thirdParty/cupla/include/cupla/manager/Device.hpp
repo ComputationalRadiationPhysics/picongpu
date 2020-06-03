@@ -21,14 +21,18 @@
 
 #pragma once
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla_driver_types.hpp"
+
 #include <map>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
 
 namespace cupla
+{
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
 namespace manager
 {
@@ -159,7 +163,7 @@ namespace manager
         -> int
         {
             using Pltf = ::alpaka::pltf::Pltf< DeviceType >;
-            return ::alpaka::pltf::getDevCount< Pltf >( );
+            return static_cast< int >( ::alpaka::pltf::getDevCount< Pltf >( ) );
         }
 
     protected:
@@ -171,4 +175,5 @@ namespace manager
     };
 
 } //namespace manager
+} //namespace CUPLA_ACCELERATOR_NAMESPACE
 } //namespace cupla

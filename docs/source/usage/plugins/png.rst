@@ -31,7 +31,7 @@ Command line option    Description
                        If flags are not set, no pngs are created.
 ``--e_png.axis``       Set 2D slice through 3D volume that will be drawn.
                        Combine two of the three dimensions ``x``, ``y``and ``z``, the define a slice.
-                       E.g. setting ``--e_png.axis yz`` draws both the y and z dimension and performes a slice in x-direction.
+                       E.g. setting ``--e_png.axis yz`` draws both the y and z dimension and performs a slice in x-direction.
 ``--e_png.slicePoint`` Specifies at what ratio of the total depth of the remaining dimension, the slice should be performed.
                        The value given should lie between ``0.0`` and ``1.0``.
 ``--e_png.folder``     Name of the folder, where all pngs for the above setup should be stored.
@@ -113,7 +113,7 @@ Since an adequate color scaling is essential, there several option the user can 
    #define EM_FIELD_SCALE_CHANNEL3 -1
 
 In the above example, all channels are set to **auto scale**.
-**Be careful**, when using other normalizations than auto scale, because depending on your set up, the normalization might fail due to parameters not set by PIConGPU.
+**Be careful**, when using a normalization other than auto-scale, depending on your setup, the normalization might fail due to parameters not set by PIConGPU.
 *Use the other normalization options only in case of the specified scenarios or if you know, how the scaling is computed.*
 
 
@@ -265,10 +265,14 @@ You can quickly load and interact with the data in Python with:
    # get the available iterations for which output exists
    iters = png_data.get_iterations(species="e", axis="yx")
 
-   # pngs as numpy arrays
+   # get the available simulation times for which output exists
+   times = png_data.get_times(species="e", axis="yx")
+
+   # pngs as numpy arrays for multiple iterations (times would also work)
    pngs = png_data.get(species="e", axis="yx", iteration=iters[:3])
 
-   pngs[iters[0]].shape
+   for png in pngs:
+       print(png.shape)
 
 Matplotlib Visualizer
 """""""""""""""""""""
@@ -311,3 +315,32 @@ Options                            Value
 -a (optional, defaults to 'yx')    Axis string (e.g. 'yx' or 'xy')
 -o (optional, defaults to 'None')  A float between 0 and 1 for slice offset along the third dimension
 =================================  ==================================================================
+
+Jupyter Widget
+""""""""""""""
+
+If you want more interactive visualization, then start a jupyter notebook and make
+sure that ``ipywidgets`` and ``ìpympl`` are installed.
+
+After starting the notebook server write the following
+
+.. code:: python
+
+   # this is required!
+   %matplotlib widget
+   import matplotlib.pyplot as plt
+   # deactivate interactive mode
+   plt.ioff()
+
+   from IPython.display import display
+   from picongpu.plugins.jupyter_widgets import PNGWidget
+
+   # provide the paths to the simulations you want to be able to choose from
+   # together with labels that will be used in the plot legends so you still know
+   # which data belongs to which simulation
+   w = PNGWidget(run_dir_options=[
+           ("scan1/sim4", scan1_sim4),
+           ("scan1/sim5", scan1_sim5)])
+   display(w)
+
+and then interact with the displayed widgets.

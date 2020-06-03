@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Marco Garten, Axel Huebl
+/* Copyright 2014-2020 Marco Garten, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -135,6 +135,24 @@ namespace AU
         442.006 * UNITCONV_eV_to_AU,
         2085.97 * UNITCONV_eV_to_AU,
         2304.14 * UNITCONV_eV_to_AU
+    );
+
+    /* ionization energy for silicon in atomic units */
+    PMACC_CONST_VECTOR(float_X, 14, Silicon,
+        8.151683 * UNITCONV_eV_to_AU,
+        16.345845 * UNITCONV_eV_to_AU,
+        33.493 * UNITCONV_eV_to_AU,
+        45.14179 * UNITCONV_eV_to_AU,
+        166.767 * UNITCONV_eV_to_AU,
+        205.267 * UNITCONV_eV_to_AU,
+        246.32 * UNITCONV_eV_to_AU,
+        303.66 * UNITCONV_eV_to_AU,
+        351.1 * UNITCONV_eV_to_AU,
+        401.38 * UNITCONV_eV_to_AU,
+        476.18 * UNITCONV_eV_to_AU,
+        523.415 * UNITCONV_eV_to_AU,
+        2437.65804 * UNITCONV_eV_to_AU,
+        2673.1774 * UNITCONV_eV_to_AU
     );
 
     /* ionization energy for copper in atomic units */

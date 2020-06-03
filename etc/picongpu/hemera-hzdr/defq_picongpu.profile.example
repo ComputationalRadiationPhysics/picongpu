@@ -1,7 +1,7 @@
 # Name and Path of this Script ############################### (DO NOT change!)
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
-# User Information ######################################### (edit those lines)
+# User Information ################################# (edit the following lines)
 #   - automatically add your name and contact to output file meta data
 #   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
 #     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
@@ -17,7 +17,7 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 #
 module purge
 module load gcc/7.3.0
-module load cmake/3.11.3
+module load cmake/3.15.2
 module load openmpi/2.1.2
 module load boost/1.68.0
 
@@ -54,7 +54,7 @@ export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/hemera-hzdr/defq.tpl"
 
 # allocate an interactive shell for one hour
-#   getNode 2  # allocates to interactive nodes (default: 1)
+#   getNode 2  # allocates two interactive nodes (default: 1)
 function getNode() {
     if [ -z "$1" ] ; then
         numNodes=1
@@ -65,7 +65,7 @@ function getNode() {
 }
 
 # allocate an interactive shell for one hour
-#   getDevice 2  # allocates to interactive devices (default: 1)
+#   getDevice 2  # allocates two interactive devices (default: 1)
 function getDevice() {
     if [ -z "$1" ] ; then
         numDevices=1
@@ -77,5 +77,13 @@ function getDevice() {
             numDevices=$1
         fi
     fi
-    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --cpus-per-task=$((20 * $numDevices)) --mem=$((1800000 * numDevices)) -p defq --pty bash
+    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --cpus-per-task=$((20 * $numDevices)) --mem=$((180000 * numDevices)) -p defq --pty bash
 }
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi

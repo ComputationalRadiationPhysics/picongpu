@@ -28,6 +28,7 @@
 #define cudaMalloc3D(...) cuplaMalloc3D(__VA_ARGS__)
 #define cudaMallocHost(...) cuplaMallocHost(__VA_ARGS__)
 
+#define cudaGetErrorName(...) cuplaGetErrorName(__VA_ARGS__)
 #define cudaGetErrorString(...) cuplaGetErrorString(__VA_ARGS__)
 
 #define cudaFree(...) cuplaFree(__VA_ARGS__)
@@ -44,6 +45,7 @@
 #define cudaStreamDestroy(...) cuplaStreamDestroy(__VA_ARGS__)
 #define cudaStreamSynchronize(...) cuplaStreamSynchronize(__VA_ARGS__)
 #define cudaStreamWaitEvent(...) cuplaStreamWaitEvent(__VA_ARGS__)
+#define cudaStreamQuery(...) cuplaStreamQuery(__VA_ARGS__)
 
 #define cudaEventRecord(...) cuplaEventRecord(__VA_ARGS__)
 

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Felix Schmitt, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,6 +24,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/adios/ADIOSWriter.def"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/traits/PICToOpenPMD.hpp"
 #include <pmacc/traits/GetComponentsType.hpp>
 #include <pmacc/traits/GetNComponents.hpp>
@@ -70,7 +71,7 @@ struct LoadParticleAttributesFromADIOS
 
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( begin ) load species attribute: %1%") % Identifier::getName();
 
-        const std::string name_lookup[] = {"x", "y", "z"};
+        const auto componentNames = plugins::misc::getComponentNames( components );
 
         ComponentType* tmpArray = nullptr;
         if( elements > 0 )
@@ -86,7 +87,7 @@ struct LoadParticleAttributesFromADIOS
             std::stringstream datasetName;
             datasetName << particlePath << openPMDName();
             if (components > 1)
-                datasetName << "/" << name_lookup[n];
+                datasetName << "/" << componentNames[n];
 
             ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
 

@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Alexander Debus
+/* Copyright 2014-2020 Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -59,7 +59,7 @@ namespace detail
          * that to the total cell indices. The physical field coordinate origin is transversally
          * centered with respect to the global simulation volume.
          * pmacc::math::Vector<floatD_X, numComponents> fieldPositions =
-         *                traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldE>(); */
+         *                traits::FieldPosition<fields::CellType, FieldE>(); */
         pmacc::math::Vector<floatD_X, numComponents> fieldPositions = fieldOnGridPositions;
 
         pmacc::math::Vector<floatD_64,numComponents> fieldPositions_SI;

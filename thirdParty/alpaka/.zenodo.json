@@ -1,0 +1,66 @@
+{
+  "title": "Alpaka: Abstraction Library for Parallel Kernel Acceleration",
+  "description": "The alpaka library is a header-only C++11 abstraction library for accelerator development. Its aim is to provide performance portability across accelerators through the abstraction (not hiding!) of the underlying levels of parallelism.",
+  "creators": [
+    {
+      "affiliation": "LogMeIn, Inc.",
+      "name": "Worpitz, Benjamin"
+    },
+    {
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf, TU Dresden",
+      "name": "Matthes, Alexander",
+      "orcid": "0000-0002-6702-2015"
+    },
+    {
+      "affiliation": "LogMeIn, Inc.",
+      "name": "Zenker, Erik",
+      "orcid": "0000-0001-9417-8712"
+    },
+    {
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf, TU Dresden",
+      "name": "Huebl, Axel",
+      "orcid": "0000-0003-1943-7141"
+    },
+    {
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "name": "Widera, René",
+      "orcid": "0000-0003-1642-0459"
+    }
+  ],
+  "access_right": "open",
+  "keywords": [
+    "HPC",
+    "CUDA",
+    "OpenMP",
+    "C++",
+    "GPU",
+    "HIP",
+    "heterogeneous computing",
+    "performance portability"
+  ],
+  "license": "MPL-2.0",
+  "upload_type": "software",
+  "grants": [
+    {
+      "id": "654220"
+    }
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "DOI:10.5281/zenodo.49768",
+      "relation": "isCitedBy"
+    },
+    {
+      "identifier": "DOI:10.1007/978-3-319-46079-6_21",
+      "relation": "cites"
+    },
+    {
+      "identifier": "DOI:10.1109/IPDPSW.2016.50",
+      "relation": "isCitedBy"
+    },
+    {
+      "identifier": "DOI:10.1007/978-3-319-67630-2_36",
+      "relation": "isCitedBy"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Marco Garten
+/* Copyright 2013-2020 Rene Widera, Marco Garten
  *
  * This file is part of PMacc.
  *
@@ -26,6 +26,7 @@
 #include <pmacc/nvidia/functors/Assign.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/memory/dataTypes/Mask.hpp>
+#include <pmacc/memory/MakeUnique.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/nvidia/rng/RNG.hpp>
 #include <pmacc/nvidia/rng/methods/Xor.hpp>
@@ -241,11 +242,9 @@ namespace kernel
             Space const & guardSize
         )
         {
-            mapping = std::unique_ptr< T_MappingDesc >(
-                new T_MappingDesc(
-                    layout,
-                    guardSize
-                )
+            mapping = memory::makeUnique< T_MappingDesc >(
+                layout,
+                guardSize
             );
         }
 

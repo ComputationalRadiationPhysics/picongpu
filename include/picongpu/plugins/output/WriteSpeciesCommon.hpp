@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Rene Widera, Felix Schmitt
+/* Copyright 2014-2020 Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -25,8 +25,8 @@
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
-#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
@@ -145,7 +145,7 @@ struct FreeMemory
         if (ptr != nullptr)
         {
 #if( PMACC_CUDA_ENABLED == 1 )
-/* cupla 0.1.0 does not support the function cudaHostAlloc to create mapped memory.
+/* cupla 0.2.0 does not support the function cudaHostAlloc to create mapped memory.
  * Therefore we need to call the native CUDA function cudaFreeHost to free memory.
  * Due to the renaming of cuda functions with cupla via macros we need to remove
  * the renaming to get access to the native cuda function.

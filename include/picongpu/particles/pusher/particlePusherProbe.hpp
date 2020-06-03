@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Axel Huebl
+/* Copyright 2017-2020 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -77,7 +77,7 @@ namespace particlePusherProbe
                 functorEField( pos )
             );
 
-            ActualPush actualPush();
+            ActualPush actualPush;
             actualPush(
                 functorBField,
                 functorEField,

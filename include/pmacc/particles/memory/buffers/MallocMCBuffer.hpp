@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Rene Widera
+/* Copyright 2015-2020 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -42,7 +42,7 @@ namespace pmacc
 
         virtual ~MallocMCBuffer();
 
-        SimulationDataId getUniqueId()
+        SimulationDataId getUniqueId() override
         {
             return getName();
         }
@@ -57,7 +57,7 @@ namespace pmacc
             return hostBufferOffset;
         }
 
-        void synchronize();
+        void synchronize() override;
 
     private:
 

@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Marco Garten, Axel Huebl
+/* Copyright 2014-2020 Marco Garten, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -22,8 +22,8 @@
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/traits/Resolve.hpp>
 #include <pmacc/traits/GetFlagType.hpp>
-#include <pmacc/compileTime/accessors/Type.hpp>
-#include <pmacc/compileTime/conversion/OperateOnSeq.hpp>
+#include <pmacc/meta/accessors/Type.hpp>
+#include <pmacc/meta/conversion/OperateOnSeq.hpp>
 
 #include <boost/mpl/apply.hpp>
 
@@ -63,7 +63,7 @@ namespace traits
                 bmpl::_1,
                 SpeciesType
             >,
-            pmacc::compileTime::accessors::Type<>
+            pmacc::meta::accessors::Type<>
         >::type;
     };
 

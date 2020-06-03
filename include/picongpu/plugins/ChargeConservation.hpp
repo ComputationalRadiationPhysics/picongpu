@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera, Axel Huebl
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -57,18 +57,18 @@ private:
     using AllGPU_reduce = boost::shared_ptr<pmacc::algorithm::mpi::Reduce<simDim> >;
     AllGPU_reduce allGPU_reduce;
 
-    void restart(uint32_t restartStep, const std::string restartDirectory);
-    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory);
+    HINLINE void restart(uint32_t restartStep, const std::string restartDirectory);
+    HINLINE void checkpoint(uint32_t currentStep, const std::string checkpointDirectory);
 
-    void pluginLoad();
+    HINLINE void pluginLoad();
 public:
-    ChargeConservation();
+    HINLINE ChargeConservation();
     virtual ~ChargeConservation() {}
 
-    void notify(uint32_t currentStep);
-    void setMappingDescription(MappingDesc*);
-    void pluginRegisterHelp(po::options_description& desc);
-    std::string pluginGetName() const;
+    HINLINE void notify(uint32_t currentStep);
+    HINLINE void setMappingDescription(MappingDesc*);
+    HINLINE void pluginRegisterHelp(po::options_description& desc);
+    HINLINE std::string pluginGetName() const;
 };
 
 namespace particles

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -72,19 +72,19 @@ struct make_Int;
 template<int val>
 struct make_Int<1, val>
 {
-    typedef Int<val> type;
+    using type = Int<val>;
 };
 
 template<int val>
 struct make_Int<2, val>
 {
-    typedef Int<val, val> type;
+    using type = Int<val, val>;
 };
 
 template<int val>
 struct make_Int<3, val>
 {
-    typedef Int<val, val, val> type;
+    using type = Int<val, val, val>;
 };
 
 } // CT

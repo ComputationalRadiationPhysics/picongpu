@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -36,7 +36,10 @@ template<typename T_Axes,
 typename T_Vector>
 struct TwistComponents
 {
-    typedef typename TwistComponents<T_Axes,typename T_Vector::This>::type type;
+    using type = typename TwistComponents<
+        T_Axes,
+        typename T_Vector::This
+    >::type;
 };
 
 template<typename T_Axes,
@@ -46,8 +49,16 @@ typename T_Navigator,
 template <typename, int> class T_Storage>
 struct TwistComponents<T_Axes,math::Vector<T_Type,T_Dim,T_Accessor,T_Navigator,T_Storage> >
 {
-    typedef math::Vector<T_Type, T_Dim, T_Accessor,
-            math::StackedNavigator<T_Navigator, math::PermutedNavigator<T_Axes> >,T_Storage >& type;
+    using type = math::Vector<
+        T_Type,
+        T_Dim,
+        T_Accessor,
+        math::StackedNavigator<
+            T_Navigator,
+            math::PermutedNavigator<T_Axes>
+        >,
+        T_Storage
+    >&;
 };
 
 } // result_of

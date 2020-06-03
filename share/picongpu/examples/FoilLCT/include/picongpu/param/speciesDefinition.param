@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Benjamin Worpitz, Heiko Burau, Axel Huebl
+/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz, Heiko Burau, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -36,10 +36,10 @@
 #include "picongpu/particles/Particles.hpp"
 
 #include <pmacc/particles/Identifier.hpp>
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
 #include <pmacc/identifier/value_identifier.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
-#include <pmacc/compileTime/String.hpp>
+#include <pmacc/meta/String.hpp>
 
 
 namespace picongpu

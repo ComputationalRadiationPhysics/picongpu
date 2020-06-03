@@ -18,6 +18,7 @@
  *
  */
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla_runtime.hpp"
 #include "cupla/manager/Driver.hpp"
@@ -28,10 +29,12 @@
 
 namespace cupla
 {
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 namespace manager
 {
 
-Driver::Driver()
+CUPLA_HEADER_ONLY_FUNC_SPEC Driver::Driver()
 {
     cupla::manager::Device< cupla::AccDev >::get( );
 
@@ -63,4 +66,5 @@ Driver::Driver()
 
 
 } //namespace manager
+} //namespace CUPLA_ACCELERATOR_NAMESPACE
 } //namespace cupla

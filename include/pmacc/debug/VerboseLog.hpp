@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Benjamin Worpitz, Alexander Grund
+/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -22,14 +22,13 @@
 #pragma once
 
 #include "pmacc/debug/VerboseLogMakros.hpp"
-#include "pmacc/types.hpp"
 
 #include <boost/format.hpp>
 
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <stdint.h>
+#include <cstdint>
 
 namespace pmacc
 {
@@ -104,7 +103,7 @@ public:
          * If you get an linker error in the next two lines you have not used
          * DEFINE_LOGLVL makro to define a named logLvl
          */
-        if (logLvl & LogParent::log_level) /*compiletime check*/
+        if (logLvl & LogParent::log_level) /*compile-time check*/
         {
             std::cout << LogParent::getName() << " " << getLogName(LogClass()) <<
             "(" << (logLvl & LogParent::log_level) << ")" << " | " << fmt << std::endl;
@@ -114,7 +113,7 @@ public:
     template <typename T>
     VerboseLog& operator %(T value)
     {
-        if (logLvl & LogParent::log_level) /*compiletime check*/
+        if (logLvl & LogParent::log_level) /*compile-time check*/
             fmt % value;
         return *this;
     }

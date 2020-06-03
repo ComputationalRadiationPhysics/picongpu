@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Richard Pausch
+/* Copyright 2013-2020 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -28,7 +28,7 @@
 
 #define PIC_VERBOSE_RADIATION 3
 
-#include "picongpu/plugins/radiation/parameters.hpp"
+#include "picongpu/plugins/radiation/VectorTypes.hpp"
 #include "picongpu/plugins/radiation/debug/PIConGPUVerboseLogRadiation.hpp"
 #include "picongpu/algorithms/Gamma.def"
 #include "picongpu/traits/attribute/GetMass.hpp"
@@ -36,7 +36,11 @@
 
 namespace picongpu
 {
-namespace rad_linear_frequencies
+namespace plugins
+{
+namespace radiation
+{
+namespace linear_frequencies
 {
 namespace SI
 {
@@ -47,7 +51,7 @@ constexpr float_64 omega_max = 1.06e16;
 constexpr unsigned int N_omega = 1024; // number of frequencies
 }
 
-namespace rad_log_frequencies
+namespace log_frequencies
 {
 namespace SI
 {
@@ -62,14 +66,15 @@ constexpr unsigned int N_omega = 1024; // number of frequencies
 }
 
 
-namespace rad_frequencies_from_list
+namespace frequencies_from_list
 {
-//const char listLocation[] = "/scratch/s5960712/list001.freq";
+/** path to text file with frequencies */
+constexpr const char * listLocation = "/path/to/frequency.list";
 constexpr unsigned int N_omega = 2048; // number of frequencies
 }
 
 
-namespace radiation_frequencies = rad_log_frequencies;
+namespace radiation_frequencies = log_frequencies;
 
 
 namespace radiationNyquist
@@ -80,7 +85,7 @@ namespace radiationNyquist
 ///////////////////////////////////////////////////
 
 
-  // corect treatment of coherent and incoherent  radiation from macroparticles
+  // correct treatment of coherent and incoherent  radiation from macroparticles
   /* Choose different form factors in order to consider different  particle shapes for radiation
    *  - radFormFactor_CIC_3D ... CIC charge distribution
    *  - radFormFactor_TSC_3D ... TSC charge distribution
@@ -114,41 +119,39 @@ constexpr unsigned int N_observer = 256; // number of looking directions
 
 } /* end namespace parameters */
 
-namespace radiation
-{
-    /** activate particles for radiation */
-    struct GammaFilterFunctor
-    {
-        static constexpr float_X radiationGamma = 5.0;
+  /** activate particles for radiation */
+  struct GammaFilterFunctor
+  {
+      static constexpr float_X radiationGamma = 5.0;
 
-        template< typename T_Particle >
-        HDINLINE void operator()( T_Particle& particle )
-        {
-            if(
-                picongpu::gamma<float_X>(
-                    particle[ picongpu::momentum_ ],
-                    picongpu::traits::attribute::getMass(
-                        particle[ picongpu::weighting_ ],
-                        particle
-                    )
-                ) >= radiationGamma
-            )
-                particle[ picongpu::radiationMask_ ] = true;
-        }
-    };
+      template< typename T_Particle >
+      HDINLINE void operator()( T_Particle& particle )
+      {
+          if(
+             picongpu::gamma<float_X>(
+                                      particle[ picongpu::momentum_ ],
+                                      picongpu::traits::attribute::getMass(
+                                                                           particle[ picongpu::weighting_ ],
+                                                                           particle
+                                                                           )
+                                      ) >= radiationGamma
+             )
+            particle[ picongpu::radiationMask_ ] = true;
+      }
+  };
 
 
-    /* filter to enable radiation for electrons
-     *
-     * to enable the filter:
-     *   - goto file `speciesDefinition.param`
-     *   - add the attribute `radiationMask` to the electron species
-     */
-    using RadiationParticleFilter = picongpu::particles::manipulators::generic::Free<
-        GammaFilterFunctor
-    >;
+  /* filter to enable radiation for electrons
+   *
+   * to enable the filter:
+   *   - goto file `speciesDefinition.param`
+   *   - add the attribute `radiationMask` to the electron species
+   */
+  using RadiationParticleFilter = picongpu::particles::manipulators::generic::Free<
+      GammaFilterFunctor
+      >;
 
-} // namespace radiation
+
 
 //////////////////////////////////////////////////
 
@@ -172,5 +175,6 @@ namespace radWindowFunctionNone { }
 
 namespace radWindowFunction = radWindowFunctionTriangle;
 
-
-}//namespace picongpu
+} // namespace radiation
+} // namespace plugins
+} // namespace picongpu

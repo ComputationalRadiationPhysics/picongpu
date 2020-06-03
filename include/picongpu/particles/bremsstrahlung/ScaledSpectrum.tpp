@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Heiko Burau
+/* Copyright 2016-2020 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -93,19 +93,20 @@ HDINLINE float_X LookupTableFunctor::operator()(const float_X Ekin, const float_
 float_64 ScaledSpectrum::dcs(const float_64 Ekin, const float_64 kappa, const float_64 targetZ) const
 {
     constexpr float_64 pi = pmacc::algorithms::math::Pi<float_64>::value;
-    const float_64 bohrRadius = float_64(4.0) * pi * EPS0 * HBAR*HBAR / (ELECTRON_MASS * ELECTRON_CHARGE*ELECTRON_CHARGE);
-    const float_64 classicalElRadius = ELECTRON_CHARGE*ELECTRON_CHARGE / (float_64(4.0) * pi * EPS0 * ELECTRON_MASS * SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-    const float_64 fineStructureConstant = ELECTRON_CHARGE*ELECTRON_CHARGE / (float_64(4.0) * pi * EPS0 * HBAR * SPEED_OF_LIGHT);
+    constexpr float_64 bohrRadius = pi * 4.0 * EPS0 * HBAR * HBAR /
+        (float_64(ELECTRON_MASS) * ELECTRON_CHARGE * ELECTRON_CHARGE);
+    constexpr float_64 classicalElRadius = float_64(ELECTRON_CHARGE*ELECTRON_CHARGE) / (pi * 4.0 * EPS0 * ELECTRON_MASS * SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+    constexpr float_64 fineStructureConstant = float_64(ELECTRON_CHARGE*ELECTRON_CHARGE) / (pi * 4.0 * EPS0 * HBAR * SPEED_OF_LIGHT);
 
-    const float_64 c = SPEED_OF_LIGHT;
-    const float_64 c2 = c*c;
-    const float_64 m_e = ELECTRON_MASS;
-    const float_64 r_e = classicalElRadius;
-    const float_64 alpha = fineStructureConstant;
+    constexpr float_64 c = SPEED_OF_LIGHT;
+    constexpr float_64 c2 = c*c;
+    constexpr float_64 m_e = ELECTRON_MASS;
+    constexpr float_64 r_e = classicalElRadius;
+    constexpr float_64 alpha = fineStructureConstant;
 
     const float_64 W = kappa * Ekin;
     const float_64 eps = W / (Ekin + m_e * c2);
-    const float_64 R = math::pow(targetZ, float_64(-1.0) / float_64(3.0)) * bohrRadius;
+    const float_64 R = math::pow(targetZ, float_64(-1.0/3.0)) * bohrRadius;
     const float_64 gamma = Ekin / (m_e * c2) + float_64(1.0);
     const float_64 b = R * m_e * c / HBAR / (float_64(2.0) * gamma) * eps / (float_64(1.0) - eps);
 
@@ -145,7 +146,7 @@ void ScaledSpectrum::init(const float_64 targetZ)
     const float_64 lnEMin = math::log(electron::MIN_ENERGY);
     const float_64 lnEMax = math::log(electron::MAX_ENERGY);
 
-    typedef boost::array<float_64, 1> state_type;
+    using state_type = boost::array<float_64, 1>;
 
     for(uint32_t EkinIdx = 0; EkinIdx < electron::NUM_SAMPLES_EKIN; EkinIdx++)
     {

@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Rene Widera
+/* Copyright 2014-2020 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +21,7 @@
 #pragma once
 
 
+#include "picongpu/fields/EMFieldBase.tpp"
 #include "picongpu/fields/FieldB.tpp"
 #include "picongpu/fields/FieldE.tpp"
 #include "picongpu/fields/FieldJ.tpp"

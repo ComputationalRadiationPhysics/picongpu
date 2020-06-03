@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -21,12 +21,17 @@
 
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/math/Complex.hpp>
-#include "parameters.hpp"
+#include "VectorTypes.hpp"
 #include <pmacc/mpi/GetMPI_StructAsArray.hpp>
 
 
 namespace picongpu
 {
+namespace plugins
+{
+namespace radiation
+{
+
 /** class to store 3 complex numbers for the radiated amplitude
  */
 class Amplitude
@@ -135,6 +140,8 @@ private:
   complex_64 amp_z; // complex amplitude z-component
 
 };
+} // namespace radiation
+} // namespace plugins
 } // namespace picongpu
 
 namespace pmacc
@@ -144,10 +151,10 @@ namespace mpi
 
   /** implementation of MPI transaction on Amplitude class */
   template<>
-  MPI_StructAsArray getMPI_StructAsArray< picongpu::Amplitude >()
+  HINLINE MPI_StructAsArray getMPI_StructAsArray< picongpu::plugins::radiation::Amplitude >()
   {
-      MPI_StructAsArray result = getMPI_StructAsArray< picongpu::Amplitude::complex_64::type > ();
-      result.sizeMultiplier *= picongpu::Amplitude::numComponents;
+      MPI_StructAsArray result = getMPI_StructAsArray< picongpu::plugins::radiation::Amplitude::complex_64::type > ();
+      result.sizeMultiplier *= picongpu::plugins::radiation::Amplitude::numComponents;
       return result;
   };
 

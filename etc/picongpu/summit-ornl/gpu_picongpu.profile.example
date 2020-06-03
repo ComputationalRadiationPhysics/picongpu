@@ -1,0 +1,74 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ################################# (edit the following lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on job (-B)egin, Fi(-N)ish
+export MY_MAILNOTIFY=""
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Project Information ######################################## (edit this line)
+#   - project account for computing time
+export proj=<yourProject>
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#module load nano
+#export EDITOR="nano"
+
+# basic environment ###########################################################
+module load gcc/6.4.0
+
+export CC=$(which gcc)
+export CXX=$(which g++)
+
+# required tools and libs
+module load git
+module load cmake/3.14.2
+module load cuda/10.1.168
+module load boost/1.66.0
+
+# plugins (optional) ##########################################################
+module load hdf5/1.10.3
+module load adios/1.13.1-py2 c-blosc zfp sz lz4
+
+# optionally download libSplash and compile it yourself from
+#   https://github.com/ComputationalRadiationPhysics/libSplash/
+# export Splash_ROOT=<your libSplash install directory>  # e.g., ${HOME}/sw/libSplash-1.7.0
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$Splash_ROOT/lib
+
+#export T3PIO_ROOT=$PROJWORK/$proj/lib/t3pio
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$T3PIO_ROOT/lib
+
+module load zlib/1.2.11
+module load libpng/1.6.34 freetype/2.9.1
+# optionally install pngwriter yourself:
+#   https://github.com/pngwriter/pngwriter#install
+# export PNGwriter_ROOT=<your pngwriter install directory>  # e.g., ${HOME}/sw/pngwriter
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGwriter_ROOT/lib
+
+# helper variables and tools ##################################################
+export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="cuda:70"
+
+export PATH=$PATH:$PICSRC
+export PATH=$PATH:$PICSRC/bin
+export PATH=$PATH:$PICSRC/src/tools/bin
+
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+alias getNode="bsub -P $proj -W 2:00 -nnodes 1 -Is /bin/bash"
+
+# "tbg" default options #######################################################
+export TBG_SUBMIT="bsub"
+export TBG_TPLFILE="etc/picongpu/summit-ornl/gpu_batch.tpl"
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi

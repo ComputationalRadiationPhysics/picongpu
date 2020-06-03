@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Rene Widera, Richard Pausch
+/* Copyright 2013-2020 Axel Huebl, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -22,6 +22,7 @@
 #include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/algorithms/Velocity.hpp"
 
+#include "picongpu/particles/pusher/particlePusherAcceleration.hpp"
 #include "picongpu/particles/pusher/particlePusherBoris.hpp"
 #include "picongpu/particles/pusher/particlePusherVay.hpp"
 #include "picongpu/particles/pusher/particlePusherFree.hpp"
@@ -43,6 +44,11 @@ namespace particles
 {
 namespace pusher
 {
+
+struct Acceleration :
+public particlePusherAcceleration::Push<Velocity, Gamma<> >
+{
+};
 
 #if(SIMDIM==DIM3)
 

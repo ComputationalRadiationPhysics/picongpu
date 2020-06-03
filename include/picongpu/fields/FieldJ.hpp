@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -21,148 +21,168 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-
-/*pic default*/
-#include <pmacc/types.hpp>
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/fields/Fields.def"
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/Particles.hpp"
+
+#include <pmacc/types.hpp>
 #include <pmacc/fields/SimulationFieldHelper.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>
-
-/*PMacc*/
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/boxes/PitchedBox.hpp>
-
 #include <pmacc/math/Vector.hpp>
-#include "picongpu/particles/Particles.hpp"
+
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <vector>
+
 
 namespace picongpu
 {
-using namespace pmacc;
 
-// The fieldJ saves the current density j
-//
-// j = current / area
-// To obtain the current which goes out of a cell in the 3 directions,
-// calculate J = float3_X( j.x() * cellSize.y() * cellSize.z(),
-//                            j.y() * cellSize.x() * cellSize.z(),
-//                            j.z() * cellSize.x() * cellSize.y())
-//
-
-class FieldJ : public SimulationFieldHelper<MappingDesc>, public ISimulationData
-{
-public:
-
-    typedef float3_X ValueType;
-    typedef promoteType<float_64, ValueType>::type UnitValueType;
-    static constexpr int numComponents = ValueType::dim;
-
-    typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
-
-    FieldJ(MappingDesc cellDescription);
-
-    virtual ~FieldJ();
-
-    virtual EventTask asyncCommunication(EventTask serialEvent);
-
-    GridLayout<simDim> getGridLayout();
-
-    void reset(uint32_t currentStep);
-
-    /** Assign a value to all cells
+    /** Representation of the current density field
      *
-     * Example usage:
-     * ```C++
-     *   FieldJ::ValueType zeroJ( FieldJ::ValueType::create(0.) );
-     *   fieldJ->assign( zeroJ );
-     * ```
+     * Stores field values on host and device and provides data synchronization
+     * between them.
      *
-     * \param value date to fill all cells with
+     * Implements interfaces defined by SimulationFieldHelper< MappingDesc > and
+     * ISimulationData.
      */
-    void assign(ValueType value);
-
-    HDINLINE static UnitValueType getUnit();
-
-    /** powers of the 7 base measures
-     *
-     * characterizing the record's unit in SI
-     * (length L, mass M, time T, electric current I,
-     *  thermodynamic temperature theta, amount of substance N,
-     *  luminous intensity J) */
-    HINLINE static std::vector<float_64> getUnitDimension();
-
-    static std::string getName();
-
-    static uint32_t getCommTag();
-
-    template<uint32_t AREA, class ParticlesClass>
-    void computeCurrent(ParticlesClass &parClass, uint32_t currentStep);
-
-    template<uint32_t AREA, class T_CurrentInterpolation>
-    void addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation );
-
-    SimulationDataId getUniqueId();
-
-    void synchronize();
-
-    void syncToDevice()
+    class FieldJ : public SimulationFieldHelper<MappingDesc>, public ISimulationData
     {
-        ValueType tmp = float3_X(0., 0., 0.);
-        fieldJ.getDeviceBuffer().setValue(tmp);
-    }
+    public:
 
-    DataBoxType getDeviceDataBox()
-    {
-        return fieldJ.getDeviceBuffer().getDataBox();
-    }
+        //! Type of each field value
+        using ValueType = float3_X;
 
-    DataBoxType getHostDataBox()
-    {
-        return fieldJ.getHostBuffer().getDataBox();
-    }
+        //! Number of components of ValueType, for serialization
+        static constexpr int numComponents = ValueType::dim;
 
-    GridBuffer<ValueType, simDim> &getGridBuffer();
+        //! Unit type of field components
+        using UnitValueType = promoteType<float_64, ValueType>::type;
 
-    /* Bash particles in a direction.
-     * Copy all particles from the guard of a direction to the device exchange buffer
-     */
-    void bashField(uint32_t exchangeType);
+        //! Type of data box for field values on host and device
+        using DataBoxType = DataBox<PitchedBox<ValueType, simDim> >;
 
-    /* Insert all particles which are in device exchange buffer
-     */
-    void insertField(uint32_t exchangeType);
+        /** Create a field
+         *
+         * @param cellDescription mapping for kernels
+         */
+        HINLINE FieldJ(MappingDesc const & cellDescription);
 
-private:
+        //! Destroy a field
+        HINLINE virtual ~FieldJ() = default;
 
-    GridBuffer<ValueType, simDim> fieldJ;
-    GridBuffer<ValueType, simDim>* fieldJrecv;
+        //! Get a reference to the host-device buffer for the field values
+        HINLINE GridBuffer<ValueType, simDim> &getGridBuffer();
 
-    FieldE *fieldE;
-    FieldB *fieldB;
-};
+        //! Get the grid layout
+        HINLINE GridLayout<simDim> getGridLayout();
 
-template<typename T_SpeciesType, typename T_Area>
-struct ComputeCurrent
-{
-    using SpeciesType = T_SpeciesType;
-    using FrameType = typename SpeciesType::FrameType;
+        //! Get the host data box for the field values
+        DataBoxType getHostDataBox()
+        {
+            return buffer.getHostBuffer().getDataBox();
+        }
 
-    HINLINE void operator()( const uint32_t currentStep ) const
-    {
-        DataConnector &dc = Environment<>::get().DataConnector();
-        auto species = dc.get< SpeciesType >( FrameType::getName(), true );
-        auto fieldJ = dc.get< FieldJ >( FieldJ::getName(), true );
+        //! Get the device data box for the field values
+        DataBoxType getDeviceDataBox()
+        {
+            return buffer.getDeviceBuffer().getDataBox();
+        }
 
-        fieldJ->computeCurrent< T_Area::value, SpeciesType >( *species, currentStep );
+        /** Start asynchronous communication of field values
+         *
+         * @param serialEvent event to depend on
+         */
+        HINLINE virtual EventTask asyncCommunication(EventTask serialEvent);
 
-        dc.releaseData( FrameType::getName() );
-        dc.releaseData( FieldJ::getName() );
-    }
-};
+        /** Reset the host-device buffer for field values
+         *
+         * @param currentStep index of time iteration
+         */
+        HINLINE void reset(uint32_t currentStep) override;
+
+        //! Synchronize device data with host data
+        void syncToDevice() override
+        {
+            ValueType tmp = float3_X(0., 0., 0.);
+            buffer.getDeviceBuffer().setValue(tmp);
+        }
+
+        //! Synchronize host data with device data
+        HINLINE void synchronize() override;
+
+        //! Get id
+        HINLINE SimulationDataId getUniqueId() override;
+
+        //! Get units of field components
+        HDINLINE static UnitValueType getUnit();
+
+        /** Get unit representation as powers of the 7 base measures
+         *
+         * Characterizing the record's unit in SI
+         * (length L, mass M, time T, electric current I,
+         *  thermodynamic temperature theta, amount of substance N,
+         *  luminous intensity J)
+         */
+        HINLINE static std::vector<float_64> getUnitDimension();
+
+        //! Get text name
+        HINLINE static std::string getName();
+
+        /** Assign the given value to elements
+         *
+         * @param value value to assign all elements to
+         */
+        HINLINE void assign(ValueType value);
+
+        /** Compute current density created by a species in an area
+         *
+         * @tparam T_area area to compute currents in
+         * @tparam T_Species particle species type
+         *
+         * @param species particle species
+         * @param currentStep index of time iteration
+         */
+        template<uint32_t T_area, class T_Species>
+        HINLINE void computeCurrent(T_Species & species, uint32_t currentStep);
+
+        /** Smooth current density and add it to the electric field
+         *
+         * @tparam T_area area to operate on
+         * @tparam T_CurrentInterpolation current interpolation type
+         *
+         * @param myCurrentInterpolation current interpolation
+         */
+        template<uint32_t T_area, class T_CurrentInterpolation>
+        HINLINE void addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation );
+
+        /** Bash field in a direction.
+         *
+         * Copy all particles from the guard of a direction to the device exchange buffer
+         *
+         * @param exchangeType exchange type
+         */
+        HINLINE void bashField(uint32_t exchangeType);
+
+        /** Insert all fields which are in device exchange buffer
+         *
+         * @param exchangeType exchange type
+         */
+        HINLINE void insertField(uint32_t exchangeType);
+
+    private:
+
+        //! Host-device buffer for current density values
+        GridBuffer<ValueType, simDim> buffer;
+
+        //! Buffer for receiving near-boundary values
+        std::unique_ptr< GridBuffer<ValueType, simDim> > fieldJrecv;
+
+    };
 
 } // namespace picongpu

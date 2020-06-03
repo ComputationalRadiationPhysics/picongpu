@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund, Axel Huebl
  *
  * This file is part of PMacc.
@@ -46,7 +46,7 @@ struct Vector_components
 {
     static constexpr bool isConst = false;
     static constexpr int dim = T_Dim;
-    typedef T_Type type;
+    using type = T_Type;
 
     /*align full vector*/
     PMACC_ALIGN(v[dim], type);
@@ -113,14 +113,14 @@ typename T_Navigator = StandardNavigator,
 template <typename, int> class T_Storage = detail::Vector_components>
 struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protected T_Navigator
 {
-    typedef T_Storage<T_Type, T_dim> Storage;
-    typedef typename Storage::type type;
+    using Storage = T_Storage<T_Type, T_dim>;
+    using type = typename Storage::type;
     static constexpr int dim = Storage::dim;
-    typedef tag::Vector tag;
-    typedef T_Accessor Accessor;
-    typedef T_Navigator Navigator;
-    typedef Vector<type, dim, Accessor, Navigator, T_Storage> This;
-    typedef typename boost::call_traits<type>::param_type ParamType;
+    using tag = tag::Vector;
+    using Accessor = T_Accessor;
+    using Navigator = T_Navigator;
+    using This = Vector<type, dim, Accessor, Navigator, T_Storage>;
+    using ParamType = typename boost::call_traits<type>::param_type;
 
     /*Vectors without elements are not allowed*/
     PMACC_CASSERT_MSG(math_Vector__with_DIM_0_is_not_allowed,dim > 0);
@@ -130,13 +130,13 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     template<class F, typename T>
     struct result < F(T)>
     {
-        typedef typename F::type& type;
+        using type = typename F::type&;
     };
 
     template<class F, typename T>
     struct result < const F(T)>
     {
-        typedef const typename F::type& type;
+        using type = const typename F::type&;
     };
 
     HDINLINE Vector()
@@ -538,7 +538,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
 template<typename Type>
 struct Vector<Type, 0 >
 {
-    typedef Type type;
+    using type = Type;
     static constexpr int dim = 0;
 
     template<typename OtherType >
@@ -852,13 +852,13 @@ namespace result_of
 template<typename TVector>
 struct Functor<math::Abs2, TVector>
 {
-    typedef typename TVector::type type;
+    using type = typename TVector::type;
 };
 
 template<typename TVector>
 struct Functor<math::Abs, TVector>
 {
-    typedef typename TVector::type type;
+    using type = typename TVector::type;
 };
 
 } //namespace result_of

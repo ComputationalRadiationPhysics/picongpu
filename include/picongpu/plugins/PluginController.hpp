@@ -1,6 +1,6 @@
-/* Copyright 2013-2018 Axel Huebl, Benjamin Schneider, Felix Schmitt,
+/* Copyright 2013-2020 Axel Huebl, Benjamin Schneider, Felix Schmitt,
  *                     Heiko Burau, Rene Widera, Richard Pausch,
- *                     Benjamin Worpitz, Erik Zenker
+ *                     Benjamin Worpitz, Erik Zenker, Finn-Ole Carstens
  *
  * This file is part of PIConGPU.
  *
@@ -30,6 +30,8 @@
 #include "picongpu/plugins/EnergyFields.hpp"
 #include "picongpu/plugins/SumCurrents.hpp"
 #include "picongpu/plugins/BinEnergyParticles.hpp"
+#include "picongpu/plugins/Emittance.hpp"
+#include "picongpu/plugins/transitionRadiation/TransitionRadiation.hpp"
 #include "picongpu/plugins/output/images/PngCreator.hpp"
 #include "picongpu/plugins/output/images/Visualisation.hpp"
 /* That's an abstract plugin for image output with the possibility
@@ -64,7 +66,7 @@
 #if (ENABLE_HDF5 == 1)
 #   include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 #   include "picongpu/plugins/particleCalorimeter/ParticleCalorimeter.hpp"
-#   include "picongpu/plugins/radiation/parameters.hpp"
+#   include "picongpu/plugins/radiation/VectorTypes.hpp"
 #   include "picongpu/plugins/radiation/Radiation.hpp"
 #   include "picongpu/plugins/hdf5/HDF5Writer.hpp"
 #endif
@@ -210,11 +212,13 @@ private:
     /* define species plugins */
     using UnspecializedSpeciesPlugins = bmpl::vector <
         plugins::multi::Master< EnergyParticles<bmpl::_1> >,
+        plugins::multi::Master< CalcEmittance<bmpl::_1> >,
         plugins::multi::Master< BinEnergyParticles<bmpl::_1> >,
         CountParticles<bmpl::_1>,
-        PngPlugin< Visualisation<bmpl::_1, PngCreator> >
+        PngPlugin< Visualisation<bmpl::_1, PngCreator> >,
+        plugins::transitionRadiation::TransitionRadiation<bmpl::_1>
 #if(ENABLE_HDF5 == 1)
-        , Radiation<bmpl::_1>
+        , plugins::radiation::Radiation<bmpl::_1>
         , plugins::multi::Master< ParticleCalorimeter<bmpl::_1> >
         , plugins::multi::Master< PhaseSpace<particles::shapes::Counter::ChargeAssignment, bmpl::_1> >
 #endif
@@ -256,8 +260,8 @@ private:
      */
     virtual void init()
     {
-        ForEach<AllPlugins, PushBack<bmpl::_1> > pushBack;
-        pushBack(forward(plugins));
+        meta::ForEach<AllPlugins, PushBack<bmpl::_1> > pushBack;
+        pushBack(plugins);
     }
 
 public:

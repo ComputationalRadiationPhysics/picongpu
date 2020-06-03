@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Rene Widera
+/* Copyright 2016-2020 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -77,7 +77,7 @@ namespace traits
 
     /** stream operator for a StringProperty
      */
-    std::ostream& operator<<( std::ostream& out, const StringProperty& property )
+    HINLINE std::ostream& operator<<( std::ostream& out, const StringProperty& property )
     {
         out << property.value;
         return out;
@@ -124,7 +124,7 @@ namespace traits
      * \return StringProperty of the given instance
      */
     template< typename T_Type >
-    StringProperty
+    HINLINE StringProperty
     getStringProperties( const T_Type& )
     {
         return GetStringProperties<T_Type>()();

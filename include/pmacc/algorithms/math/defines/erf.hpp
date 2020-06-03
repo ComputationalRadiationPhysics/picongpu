@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Axel Huebl
+/* Copyright 2014-2020 Axel Huebl
  *
  * This file is part of PMacc.
  *

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Felix Schmitt, Rene Widera,
+/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -130,7 +130,7 @@ namespace pmacc
              *
              * return local rank on host
              */
-            uint32_t getHostRank()
+            uint32_t getHostRank() const
             {
                 return comm.getHostRank();
             }
@@ -140,7 +140,7 @@ namespace pmacc
              *
              * @return global MPI rank
              */
-            uint32_t getGlobalRank()
+            uint32_t getGlobalRank() const
             {
                 return comm.getRank();
             }
@@ -150,7 +150,7 @@ namespace pmacc
              *
              * @return global number of MPI ranks
              */
-            uint32_t getGlobalSize()
+            uint32_t getGlobalSize() const
             {
                 return comm.getSize();
             }

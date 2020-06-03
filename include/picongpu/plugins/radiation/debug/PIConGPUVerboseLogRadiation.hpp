@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Richard Pausch
+/* Copyright 2013-2020 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -26,6 +26,10 @@
 
 namespace picongpu
 {
+namespace plugins
+{
+namespace radiation
+{
 
 /*create verbose class*/
 DEFINE_VERBOSE_CLASS(PIConGPUVerboseRadiation)
@@ -41,7 +45,7 @@ DEFINE_VERBOSE_CLASS(PIConGPUVerboseRadiation)
 /*set default verbose levels (integer number)*/
 (NOTHING::lvl|PIC_VERBOSE_RADIATION);
 
-}// namespace picongpu
-
-
+} // namespace radiation
+} // namespace plugins
+} // namespace picongpu
 

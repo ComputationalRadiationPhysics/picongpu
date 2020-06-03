@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -27,7 +27,6 @@
 #include "detail/SphericMapper.hpp"
 #include "detail/ForeachKernel.hpp"
 #include "pmacc/cuSTL/zone/SphericZone.hpp"
-#include "pmacc/forward.hpp"
 
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>

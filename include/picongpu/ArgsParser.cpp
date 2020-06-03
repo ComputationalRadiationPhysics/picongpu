@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Felix Schmitt, Rene Widera,
+/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Rene Widera,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -19,6 +19,7 @@
  */
 
 #include "picongpu/ArgsParser.hpp"
+#include "picongpu/debug/PIConGPUVerbose.hpp"
 #include "picongpu/versionFormat.hpp"
 
 #include <boost/program_options.hpp>
@@ -33,6 +34,45 @@
 
 namespace picongpu
 {
+
+namespace
+{
+
+    /** Report deprecated parameters
+     *
+     * This function is meant to handle cases when some parameters are changed
+     * but the old versions temporarily kept for backward compatibility and
+     * deprecated. Notably, this applies to compile-time parameters getting a
+     * run-time version. Hence it deliberately ignores incapsulation and code
+     * duplication and simply has a hardcoded set of cases.
+     */
+    void reportDeprecated( boost::program_options::variables_map const & vm )
+    {
+        using pmacc::log;
+        using Level = PIConGPUVerbose::PHYSICS;
+
+        /* Moving window: a new run-time parameter 'windowMovePoint' to replace
+         * compile-time 'movePoint' variable
+         */
+        bool isMovingWindowEnabled = !vm[ "moving" ].empty();
+        if( isMovingWindowEnabled )
+        {
+            bool isWindowMovePointSet = !vm[ "windowMovePoint" ].defaulted( );
+            if( !isWindowMovePointSet )
+                log< Level >(
+                    "Warning: Compile-time variable 'movePoint' in grid.param "
+                    "is deprecated. It is currently still required for "
+                    "building purposes. Please keep the variable in your "
+                    "grid.param, but for future compatibility set this value "
+                    "using the 'windowMovePoint' parameter in your .cfg file. "
+                    "The value of movePoint is the default for windowMovePoint, "
+                    "setting the latter explicitly will override this."
+                );
+        }
+    }
+
+} // anonymous namespace
+
     ArgsParser::ArgsParser( )
     {
 
@@ -61,7 +101,7 @@ namespace picongpu
         return instance;
     }
 
-    ArgsParser::ArgsErrorCode ArgsParser::parse( int argc, char** argv )
+    ArgsParser::Status ArgsParser::parse( int argc, char** argv )
     {
         namespace po = boost::program_options;
 
@@ -112,13 +152,13 @@ namespace picongpu
             if ( vm.count( "help" ) )
             {
                 std::cout << desc << "\n";
-                return SUCCESS_EXIT;
+                return Status::successExit;
             }
             // print versions of dependent software
             if ( vm.count( "version" ) )
             {
                 void( getSoftwareVersions( std::cout ) );
-                return SUCCESS_EXIT;
+                return Status::successExit;
             }
             // no parameters set: required parameters (e.g., -g) will be missing
             // -> obvious wrong usage
@@ -126,24 +166,26 @@ namespace picongpu
             if ( argc == 1 ) // argc[0] is always the program name
             {
                 std::cerr << desc << "\n";
-                return ERROR;
+                return Status::error;
             }
+
+            reportDeprecated( vm );
 
             if ( vm.count( "validate" ) )
             {
                 /* if we reach this part of code the parameters are valid
                  * and the option `validate` is set.
                  */
-                return SUCCESS_EXIT;
+                return Status::successExit;
             }
         }
         catch ( const po::error& e )
         {
             std::cerr << e.what() << std::endl;
-            return ERROR;
+            return Status::error;
         }
 
-        return SUCCESS;
+        return Status::success;
     }
 
 }

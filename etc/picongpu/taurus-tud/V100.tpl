@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2019 Axel Huebl, Richard Pausch, Alexander Debus
+# Copyright 2013-2020 Axel Huebl, Richard Pausch, Alexander Debus, Klaus Steiniger
 #
 # This file is part of PIConGPU.
 #
@@ -27,15 +27,19 @@
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --ntasks=!TBG_tasks
+#SBATCH --ntasks-per-node=!TBG_gpusPerNode
 #SBATCH --mincpus=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
-#SBATCH --mem-per-cpu=1511
+#SBATCH --mem=0
 #SBATCH --gres=gpu:!TBG_gpusPerNode
-# send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
-# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+#SBATCH --exclusive
+
+# disable hyperthreading (default on taurus)
+#SBATCH --hint=nomultithread
+
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
-#SBATCH --workdir=!TBG_dstPath
+#SBATCH --chdir=!TBG_dstPath
 
 #SBATCH -o stdout
 #SBATCH -e stderr
@@ -51,11 +55,15 @@
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 # 6 gpus per node
+# Taurus does not have enough node memory to hold data of all GPUs in node memory during ADIOS output.
+# If you experience crashes with memory allocation errors or get killed by the batch system's
+# resource watch dog, reduce the number of GPUs used per node to three here for debugging.
+# That is, replace in the following line the two appearances of 6 with 3.
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt 6 ] ; then echo 6; else echo $TBG_tasks; fi`
 
-# number of cores to block per GPU - we got 6 cpus per gpu
-#   and we will be accounted 6 CPUs per GPU anyway
-.TBG_coresPerGPU=28
+# number of CPU cores to block per GPU
+# we got 7 CPU cores per GPU (44cores/6gpus ~ 7cores)
+.TBG_coresPerGPU=7
 
 # We only start 1 MPI task per GPU
 .TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
@@ -80,35 +88,30 @@ unset MODULES_NO_OUTPUT
 # set user rights to u=rwx;g=r-x;o=---
 umask 0027
 
-# Due to missing SLURM integration of the current MPI libraries
-# we have to create a suitable machinefile.
-rm -f machinefile.txt
-for i in `seq !TBG_gpusPerNode`
-do
-    scontrol show hostnames $SLURM_JOB_NODELIST >> machinefile.txt
-done
-
 mkdir simOutput 2> /dev/null
 cd simOutput
+ln -s ../stdout output
 
 # we are not sure if the current bullxmpi/1.2.4.3 catches pinned memory correctly
 #   support ticket [Ticket:2014052241001186] srun: mpi mca flags
 #   see bug https://github.com/ComputationalRadiationPhysics/picongpu/pull/438
 export OMPI_MCA_mpi_leave_pinned=0
-# Use ROMIO for IO
-# according to ComputationalRadiationPhysics/picongpu#2857
+
+# The OMPIO backend in OpenMPI up to 3.1.3 and 4.0.0 is broken, use the
+# fallback ROMIO backend instead.
+#   see bug https://github.com/open-mpi/ompi/issues/6285
 export OMPI_MCA_io=^ompio
 
 # test if cuda_memtest binary is available
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
   # Run CUDA memtest to check GPU's health
-  mpiexec -hostfile ../machinefile.txt !TBG_dstPath/input/bin/cuda_memtest.sh
+  srun -K1 !TBG_dstPath/input/bin/cuda_memtest.sh
 else
   echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
 fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  mpiexec -hostfile ../machinefile.txt !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+  srun -K1 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 fi
 

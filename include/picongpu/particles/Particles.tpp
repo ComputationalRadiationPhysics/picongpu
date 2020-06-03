@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt,
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt,
  *                     Alexander Grund
  *
  * This file is part of PIConGPU.
@@ -36,9 +36,8 @@
 #include "picongpu/particles/ParticlesInit.kernel"
 #include <pmacc/mappings/simulation/GridController.hpp>
 
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 
-#include "picongpu/fields/numericalCellTypes/YeeCell.hpp"
 #include "picongpu/particles/traits/GetMarginPusher.hpp"
 
 #include <pmacc/traits/GetUniqueTypeId.hpp>
@@ -368,7 +367,7 @@ Particles<
 {
     log< picLog::SIMULATION_STATE > ( "clone species %1%" ) % FrameType::getName( );
 
-    AreaMapping<CORE + BORDER, MappingDesc> mapper(this->cellDescription);
+    AreaMapping<CORE + BORDER, picongpu::MappingDesc> mapper(this->cellDescription);
 
     constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
            pmacc::math::CT::volume< SuperCellSize >::type::value
@@ -385,41 +384,6 @@ Particles<
         mapper
     );
     this->fillAllGaps( );
-}
-
-template<
-    typename T_Name,
-    typename T_Flags,
-    typename T_Attributes
->
-template< typename T_Functor >
-void
-Particles<
-    T_Name,
-    T_Flags,
-    T_Attributes
->::manipulateAllParticles(
-    uint32_t currentStep,
-    T_Functor & functor
-)
-{
-    AreaMapping<
-        CORE + BORDER,
-        MappingDesc
-    > mapper( this->cellDescription );
-
-    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-        pmacc::math::CT::volume< SuperCellSize >::type::value
-    >::value;
-
-    PMACC_KERNEL( KernelManipulateAllParticles< numWorkers >{ } )(
-        mapper.getGridDim( ),
-        numWorkers
-    )(
-        this->particlesBuffer->getDeviceParticleBox( ),
-        functor,
-        mapper
-    );
 }
 
 } // namespace picongpu

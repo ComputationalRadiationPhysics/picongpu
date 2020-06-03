@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2014-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,7 +24,9 @@
 #include <pmacc/particles/frame_types.hpp>
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
+#include "picongpu/traits/IsFieldDomainBound.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
@@ -49,7 +51,13 @@ class RestartFieldLoader
 {
 public:
     template<class Data>
-    static void loadField(Data& field, const uint32_t numComponents, std::string objectName, ThreadParams *params)
+    static void loadField(
+        Data& field,
+        const uint32_t numComponents,
+        std::string objectName,
+        ThreadParams *params,
+        const bool isDomainBound
+    )
     {
         log<picLog::INPUT_OUTPUT > ("Begin loading field '%1%'") % objectName;
         const DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
@@ -57,9 +65,10 @@ public:
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
         const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
-        field.getHostBuffer().setValue(float3_X::create(0.0));
+        using ValueType = typename Data::ValueType;
+        field.getHostBuffer().setValue(ValueType::create(0.0));
 
-        const std::string name_lookup[] = {"x", "y", "z"};
+        const auto componentNames = plugins::misc::getComponentNames( numComponents );
 
         /* globalSlideOffset due to gpu slides between origin at time step 0
          * and origin at current time step
@@ -78,6 +87,34 @@ public:
         Dimensions local_domain_size;
         for (uint32_t d = 0; d < simDim; ++d)
             local_domain_size[d] = params->window.localDimensions.size[d];
+        int elementCount = params->window.localDimensions.size.productOfComponents();
+        bool useLinearIdxAsDestination = false;
+
+        /* Patch for non-domain-bound fields
+         * This is an ugly fix to allow output of reduced 1d PML buffers,
+         * that are the same size on each domain.
+         * This code is to be replaced with the openPMD output plugin soon.
+         */
+        if( !isDomainBound )
+        {
+            auto const field_layout = params->gridLayout;
+            auto const field_no_guard = field_layout.getDataSpaceWithoutGuarding();
+            elementCount = field_no_guard.productOfComponents();
+            // Number of elements on each local domain
+            local_domain_size = Dimensions(
+                elementCount,
+                1,
+                1
+            );
+            auto const & gridController = Environment<simDim>::get().GridController();
+            auto const rank = gridController.getGlobalRank();
+            domain_offset = Dimensions(
+                rank * elementCount,
+                0,
+                0
+            );
+            useLinearIdxAsDestination = true;
+        }
 
         // avoid deadlock between not finished pmacc tasks and mpi calls in splash/HDF5
         __getTransactionEvent().waitForFinished();
@@ -93,19 +130,24 @@ public:
             DataContainer *field_container =
                 params->dataCollector->readDomain(params->currentStep,
                                            (std::string("fields/") + objectName +
-                                            std::string("/") + name_lookup[i]).c_str(),
+                                            std::string("/") + componentNames[i]).c_str(),
                                            Domain(domain_offset, local_domain_size),
                                            &data_class);
 
-            int elementCount = params->window.localDimensions.size.productOfComponents();
-
             for (int linearId = 0; linearId < elementCount; ++linearId)
             {
-                /* calculate index inside the moving window domain which is located on the local grid*/
-                DataSpace<simDim> destIdx = DataSpaceOperations<simDim>::map(params->window.localDimensions.size, linearId);
-                /* jump over guard and local sliding window offset*/
-                destIdx += field_guard + params->localWindowToDomainOffset;
-
+                DataSpace<simDim> destIdx;
+                if( useLinearIdxAsDestination )
+                {
+                    destIdx[ 0 ] = linearId;
+                }
+                else
+                {
+                    /* calculate index inside the moving window domain which is located on the local grid*/
+                    destIdx = DataSpaceOperations<simDim>::map(params->window.localDimensions.size, linearId);
+                    /* jump over guard and local sliding window offset*/
+                    destIdx += field_guard + params->localWindowToDomainOffset;
+                }
                 destBox(destIdx)[i] = ((float_X*) (field_container->getIndex(0)->getData()))[linearId];
             }
 
@@ -147,9 +189,9 @@ public:
 /**
  * Hepler class for HDF5Writer (forEach operator) to load a field from HDF5
  *
- * @tparam FieldType field class to load
+ * @tparam T_Field field class to load
  */
-template< typename FieldType >
+template< typename T_Field >
 struct LoadFields
 {
 public:
@@ -161,16 +203,20 @@ public:
         ThreadParams *tp = params;
 
         /* load field without copying data to host */
-        std::shared_ptr< FieldType > field = dc.get< FieldType >( FieldType::getName(), true );
+        std::shared_ptr< T_Field > field = dc.get< T_Field >( T_Field::getName(), true );
+        tp->gridLayout = field->getGridLayout();
 
         /* load from HDF5 */
+        bool const isDomainBound = traits::IsFieldDomainBound< T_Field >::value;
         RestartFieldLoader::loadField(
-                field->getGridBuffer(),
-                (uint32_t)FieldType::numComponents,
-                FieldType::getName(),
-                tp);
+            field->getGridBuffer(),
+            static_cast< uint32_t >( T_Field::numComponents ),
+            T_Field::getName(),
+            tp,
+            isDomainBound
+        );
 
-        dc.releaseData( FieldType::getName() );
+        dc.releaseData( T_Field::getName() );
 #endif
     }
 

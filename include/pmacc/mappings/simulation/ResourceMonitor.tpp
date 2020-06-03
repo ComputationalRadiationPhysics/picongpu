@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Erik Zenker
+/* Copyright 2016-2020 Erik Zenker
  *
  * This file is part of PMacc.
  *
@@ -23,9 +23,8 @@
 #include "pmacc/Environment.hpp"
 #include "pmacc/particles/operations/CountParticles.hpp"
 #include "pmacc/types.hpp"
-#include "pmacc/forward.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/algorithms/ForEach.hpp"
+#include "pmacc/meta/ForEach.hpp"
 #include "pmacc/dataManagement/DataConnector.hpp"
 #include "pmacc/mappings/simulation/ResourceMonitor.hpp"
 
@@ -72,8 +71,8 @@ namespace pmacc
     {
         typedef bmpl::integral_c<unsigned, T_DIM> dim;
         std::vector<size_t> particleCounts;
-        algorithms::forEach::ForEach<T_Species, MyCountParticles<dim, bmpl::_1> > countParticles;
-        countParticles(forward(particleCounts), forward(cellDescription), forward(parFilter));
+        meta::ForEach<T_Species, MyCountParticles<dim, bmpl::_1> > countParticles;
+        countParticles(particleCounts, cellDescription, parFilter);
         return particleCounts;
     }
 

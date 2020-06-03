@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera
+/* Copyright 2013-2020 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -23,7 +23,7 @@
 #pragma once
 
 #include "pmacc/particles/boostExtension/InheritGenerators.hpp"
-#include "pmacc/compileTime/conversion/MakeSeq.hpp"
+#include "pmacc/meta/conversion/MakeSeq.hpp"
 #include "pmacc/particles/particleFilter/system/TrueFilter.hpp"
 #include "pmacc/particles/particleFilter/system/DefaultFilter.hpp"
 

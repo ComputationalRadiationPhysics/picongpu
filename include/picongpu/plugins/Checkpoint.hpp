@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Rene Widera
+/* Copyright 2017-2020 Rene Widera
  *
  * This file is part of PIConGPU.
  *

@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Rene Widera
+/* Copyright 2015-2020 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -238,13 +238,9 @@
 #define PMACC_PP_X_INIT_VALUE_VARIABLE_WITH_PAREN(elem)                        \
     PMACC_PP_SELECT_TYPEID( 5,PMACC_PP_X1_INIT_VALUE_VARIABLE,elem )
 
-#define PMACC_PP_X_CREATE_C_STRING_VARIABLE(data,type,name,...) static const char* name;
+#define PMACC_PP_X_CREATE_C_STRING_VARIABLE(data,type,name,...) static constexpr const char* name = __VA_ARGS__;
 #define PMACC_PP_CREATE_C_STRING_VARIABLE(elem)                                \
     PMACC_PP_SELECT_TYPEID( 3,PMACC_PP_X_CREATE_C_STRING_VARIABLE, elem )
-
-#define PMACC_PP_X_INIT_C_STRING_VARIABLE(data,type,name,...) const char* data::name = (char*)__VA_ARGS__;
-#define PMACC_PP_INIT_C_STRING_VARIABLE(elem)                                  \
-    PMACC_PP_SELECT_TYPEID( 3,PMACC_PP_X_INIT_C_STRING_VARIABLE,elem )
 
 #define PMACC_PP_X_CREATE_EXTENT(data,type,name,...) __VA_ARGS__
 #define PMACC_PP_CREATE_EXTENT(elem)                                           \
@@ -298,7 +294,6 @@ namespace namespace_name{                                                      \
         BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,PMACC_PP_CREATE_EXTENT,__VA_ARGS__)            \
         BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,PMACC_PP_CREATE_VALUE_VARIABLE_WITH_PAREN,__VA_ARGS__) \
         };                                                                     \
-    BOOST_PP_SEQ_FOR_EACH(PMACC_PP_SEQ_MACRO_WITH_ACCESSOR,PMACC_PP_INIT_C_STRING_VARIABLE,__VA_ARGS__);      \
 }  /*namespace*/                                                               \
 using namespace_name::name
 

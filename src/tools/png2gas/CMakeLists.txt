@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
+# Copyright 2014-2020 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -22,7 +22,7 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.11.4)
 
 
 ################################################################################
@@ -94,7 +94,7 @@ endif(NOT RELEASE)
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options)
+find_package(Boost 1.65.1 REQUIRED COMPONENTS program_options)
 if(TARGET Boost::program_options)
     set(LIBS ${LIBS} Boost::boost Boost::program_options)
 else()

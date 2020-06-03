@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PMacc.
  *
@@ -33,7 +33,7 @@ namespace math_functor
 
 struct Cosf
 {
-    typedef float result_type;
+    using result_type = float;
 
     DINLINE result_type operator()(const result_type& value) const
     {

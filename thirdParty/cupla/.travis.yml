@@ -1,5 +1,6 @@
 language: cpp
 sudo: false
+dist: xenial
 
 cache:
   apt: true
@@ -12,10 +13,9 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-precise-3.5
     packages:
       - g++-4.9
-      - clang-3.5
+      - clang-4.0
 
 env:
   global:
@@ -39,6 +39,8 @@ before_install:
   - mkdir -p $HOME/asyncAPI
   - mkdir -p $HOME/asyncAPI_tuned
   - mkdir -p $HOME/vectorAdd
+  - mkdir -p $HOME/blackScholes
+  - mkdir -p $HOME/test/config
   - export CMAKE_FLAGS="-DALPAKA_ACC_"$STRATEGY"_ENABLE=ON"
   - if [ "$COMPILER" == "gcc" ]; then
         echo "Using g++-4.9 and sequential OpenMP2 threads ...";
@@ -46,9 +48,9 @@ before_install:
         export CC=gcc-4.9;
         unset CUDA_ROOT;
     elif [ "$COMPILER" == "clang" ]; then
-        echo "Using clang++-3.5 & sequential threads ...";
-        export CXX=clang++-3.5;
-        export CC=clang-3.5;
+        echo "Using clang++-4.0 & sequential threads ...";
+        export CXX=clang++-4.0;
+        export CC=clang-4.0;
         unset CUDA_ROOT;
     elif [ "$COMPILER" == "nvcc" ]; then
         echo "Using CUDA 7.5 ...";
@@ -66,15 +68,15 @@ install:
   # CMAKE                                                                     #
   #############################################################################
   - export PATH=$CMAKE_ROOT/bin:$PATH
-  - CMAKE_39_FOUND=$(cmake --version | grep " 3\.9\." >/dev/null && { echo 0; } || { echo 1; })
-  - if [ $CMAKE_39_FOUND -ne 0 ]; then
+  - CMAKE_3_11_4_FOUND=$(cmake --version | grep " 3\.11\.4" >/dev/null && { echo 0; } || { echo 1; })
+  - if [ $CMAKE_3_11_4_FOUND -ne 0 ]; then
       mkdir -p $CMAKE_ROOT &&
       cd $CMAKE_ROOT &&
       rm -rf $CMAKE_ROOT/* &&
-      travis_retry wget --no-check-certificate http://cmake.org/files/v3.9/cmake-3.9.4-Linux-x86_64.tar.gz &&
-      tar -xzf cmake-3.9.4-Linux-x86_64.tar.gz &&
-      mv cmake-3.9.4-Linux-x86_64/* . &&
-      rm -rf cmake-3.9.4-Linux-x86_64.tar.gz cmake-3.9.4-Linux-x86_64 &&
+      travis_retry wget --no-check-certificate http://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.tar.gz &&
+      tar -xzf cmake-3.11.4-Linux-x86_64.tar.gz &&
+      mv cmake-3.11.4-Linux-x86_64/* . &&
+      rm -rf cmake-3.11.4-Linux-x86_64.tar.gz cmake-3.11.4-Linux-x86_64 &&
       cd -;
     fi
   - cmake --version
@@ -106,10 +108,10 @@ install:
   - if [ $NVCC_FOUND -ne 0 ] && [ $COMPILER == "nvcc" ]; then
       mkdir -p $CUDA_ROOT &&
       cd $CUDA_ROOT &&
-      travis_retry wget http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run &&
-      chmod u+x *.run &&
-      ./cuda_7.5.18_linux.run --silent --verbose --toolkit --toolkitpath=$CUDA_ROOT &&
-      rm -rf cuda_7.5.18_linux.run $CUDA_ROOT/{samples,jre,doc,share} &&
+      travis_retry wget https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run &&
+      chmod u+x ./cuda_8.0.44_linux-run &&
+      ./cuda_8.0.44_linux-run --override --silent --verbose --toolkit --toolkitpath=$CUDA_ROOT &&
+      rm -rf cuda_8.0.44_linux-run $CUDA_ROOT/{samples,jre,doc,share} &&
       cd -;
     fi
 
@@ -155,5 +157,19 @@ script:
       ./vectorAdd 100000;
     fi
   #############################################################################
-  # Test: (To do: add tests in $TRAVIS_BUILD_DIR/test/                        #
+  # Example: BlackScholes (adapted original)                                 #
   #############################################################################
+  - cd $HOME/blackScholes
+  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/blackScholes/ $CMAKE_FLAGS
+  - make
+  - if [ $STRATEGY == "CPU_B_OMP2_T_SEQ" ] ||
+       [ $STRATEGY == "CPU_B_SEQ_T_SEQ" ]; then
+      ./blackScholes;
+    fi
+  #############################################################################
+  # Test: additional tests                                                    #
+  #############################################################################
+  - cd $HOME/test/config
+  - if [[ $CXX =~ "^g\+\+" ]] || [[ "$COMPILER" == "nvcc" ]] ; then
+      $TRAVIS_BUILD_DIR/test/system/config/test.sh $CXX;
+    fi

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Felix Schmitt, Heiko Burau,
+/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau,
  *                     Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -370,11 +370,11 @@ private:
             std::string const & masterPrefix = std::string{ }
         )
         {
-            ForEach<
+            meta::ForEach<
                 EligibleFilters,
                 plugins::misc::AppendName< bmpl::_1 >
             > getEligibleFilterNames;
-            getEligibleFilterNames( forward( allowedFilters ) );
+            getEligibleFilterNames( allowedFilters );
 
             concatenatedFilterNames = plugins::misc::concatenateToString(
                 allowedFilters,
@@ -659,7 +659,7 @@ private:
             std::placeholders::_1
         );
 
-        ForEach<
+        meta::ForEach<
             typename Help::EligibleFilters,
             plugins::misc::ExecuteIfNameIsEqual< bmpl::_1 >
         >{ }(

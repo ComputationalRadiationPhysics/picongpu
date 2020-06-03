@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -20,11 +20,15 @@
 #pragma once
 
 #include "calc_amplitude.hpp"
-#include "parameters.hpp"
+#include "VectorTypes.hpp"
 #include "particle.hpp"
 
 
 namespace picongpu
+{
+namespace plugins
+{
+namespace radiation
 {
 
 class NyquistLowPass : public One_minus_beta_times_n
@@ -61,4 +65,6 @@ private:
     float_32 omegaNyquist; // Nyquist frequency for a particle (at a certain time step) for one direction
 };
 
+} // namespace radiation
+} // namespace plugins
 } // namespace picongpu

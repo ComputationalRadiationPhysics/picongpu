@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Felix Schmitt, Conrad Schumann,
+/* Copyright 2014-2020 Felix Schmitt, Conrad Schumann,
  *                     Alexander Grund, Axel Huebl
  *
  * This file is part of PMacc.
@@ -117,10 +117,10 @@ namespace detail
          *
          * After this call it is allowed to use MPI.
          */
-        void init();
+        HINLINE void init();
 
         /** cleanup the environment */
-        void finalize();
+        HINLINE void finalize();
 
         /** select a computing device
          *
@@ -128,7 +128,7 @@ namespace detail
          *
          * @param deviceNumber number of the device
          */
-        void setDevice(int deviceNumber);
+        HINLINE void setDevice(int deviceNumber);
 
     };
 
@@ -449,26 +449,39 @@ namespace detail
         {
             throw std::runtime_error("no CUDA capable devices detected");
         }
-        else if (deviceNumber >= num_gpus) //check if device can be selected by deviceNumber
-        {
-            std::cerr << "no CUDA device " << deviceNumber << ", only " << num_gpus << " devices found" << std::endl;
-            throw std::runtime_error("CUDA capable devices can't be selected");
-        }
 #endif
 
         int maxTries = num_gpus;
-#if (PMACC_CUDA_ENABLED == 1)
-        cudaDeviceProp devProp;
-        CUDA_CHECK((cuplaError_t)cudaGetDeviceProperties(&devProp, deviceNumber));
-        /* if the gpu compute mode is set to default we use the given `deviceNumber` */
-        if (devProp.computeMode == cudaComputeModeDefault)
-            maxTries = 1;
-#endif
+        bool deviceSelectionSuccessful = false;
+
         cudaError rc;
 
+        // search the first selectable device in the compute node
         for (int deviceOffset = 0; deviceOffset < maxTries; ++deviceOffset)
         {
+            /* Modulo 'num_gpus' avoids invalid device indices for systems where the environment variable
+             * `CUDA_VISIBLE_DEVICES` is used to pre-select a device.
+             */
             const int tryDeviceId = (deviceOffset + deviceNumber) % num_gpus;
+
+            log<ggLog::CUDA_RT>("Trying to allocate device %1%.") % tryDeviceId;
+#if (PMACC_CUDA_ENABLED == 1)
+            cudaDeviceProp devProp;
+            CUDA_CHECK((cuplaError_t)cudaGetDeviceProperties(&devProp, tryDeviceId));
+
+            /* If the cuda gpu compute mode is 'default'
+             * (https://docs.nvidia.com/cuda/cuda-c-programming-guide/#compute-modes)
+             * then we try to get a device only once.
+             * The index used to select a device is based on the local MPI rank so
+             * that each rank tries a different device.
+             */
+            if (devProp.computeMode == cudaComputeModeDefault)
+            {
+                maxTries = 1;
+                log<ggLog::CUDA_RT>("Device %1% is running in default mode.") % tryDeviceId;
+            }
+#endif
+
             rc = cudaSetDevice(tryDeviceId);
 
             if(rc == cudaSuccess)
@@ -481,7 +494,7 @@ namespace detail
                 * device if gpu compute mode is set "process exclusive"
                 * - create a dummy stream to check if the device is already used by
                 * an other process.
-                * - cudaStreamCreate fail if gpu is already in use
+                * - cudaStreamCreate fails if gpu is already in use
                 */
                rc = cudaStreamCreate(&stream);
             }
@@ -491,7 +504,7 @@ namespace detail
 #if (PMACC_CUDA_ENABLED == 1)
                 cudaDeviceProp dprop;
                 CUDA_CHECK((cuplaError_t)cudaGetDeviceProperties(&dprop, tryDeviceId));
-                log<ggLog::CUDA_RT > ("Set device to %1%: %2%") % tryDeviceId % dprop.name;
+                log<ggLog::CUDA_RT> ("Set device to %1%: %2%") % tryDeviceId % dprop.name;
                 if(cudaErrorSetOnActiveProcess == cudaSetDeviceFlags(cudaDeviceScheduleSpin))
                 {
                     cudaGetLastError(); //reset all errors
@@ -503,6 +516,7 @@ namespace detail
                 }
 #endif
                 CUDA_CHECK(cudaGetLastError());
+                deviceSelectionSuccessful = true;
                 break;
             }
             else if (rc == cudaErrorDeviceAlreadyInUse
@@ -519,6 +533,11 @@ namespace detail
             {
                 CUDA_CHECK(rc); /*error message*/
             }
+        }
+        if(!deviceSelectionSuccessful)
+        {
+            std::cerr << "Failed to select one of the " << num_gpus << " devices." << std::endl;
+            throw std::runtime_error("Compute device selection failed.");
         }
 
         m_isDeviceSelected = true;

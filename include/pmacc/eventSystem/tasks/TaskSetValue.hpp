@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -258,7 +258,7 @@ public:
                     xChunkSize
                 >
             )(
-                gridSize,
+                gridSize.toDim3(),
                 numWorkers,
                 0,
                 this->getCudaStream( )
@@ -343,7 +343,7 @@ public:
                     xChunkSize
                 >
             )(
-                gridSize,
+                gridSize.toDim3(),
                 numWorkers,
                 0,
                 this->getCudaStream()

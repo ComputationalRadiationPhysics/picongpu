@@ -13,7 +13,7 @@ PIConGPU features an adaptable ionization framework for arbitrary and combinable
 .. note::
 
     Most of the calculations and formulae in this section of the docs are done in the **Atomic Units (AU)** system.
-    
+
 .. math::
 
     \hbar = \mathrm{e} = m_\mathrm{e} = 1
@@ -47,7 +47,7 @@ Overview: Implemented Models
     |                     | * ``ADKCircPol``            | * [DeloneKrainov]_        |
     +---------------------+-----------------------------+---------------------------+
     | Barrier Suppression | * ``BSI``                   | * [MulserBauer2010]_      |
-    |                     | * ``BSIEffectiveZ``         | * [ClementiRaimondi1963]_ |
+    |                     | * ``BSIEffectiveZ`` (R&D)   | * [ClementiRaimondi1963]_ |
     |                     |                             |   [ClementiRaimondi1967]_ |
     |                     | * ``BSIStarkShifted`` (R&D) | * [BauerMulser1999]_      |
     +---------------------+-----------------------------+---------------------------+
@@ -73,7 +73,7 @@ Tunneling Ionization
 Tunneling ionization describes the process during which an initially bound electron quantum-mechanically tunnels through a potential barrier of finite height.
 
 Keldysh
-"""""""
+^^^^^^^
 
 .. math::
 
@@ -92,7 +92,7 @@ The Keldysh ionization rate has been implemented according to the equation (9) i
 
 
 Ammosov-Delone-Krainov (ADK)
-""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. math::
    :nowrap:
@@ -121,6 +121,48 @@ One would expect much earlier ionization of Hydrogen due to lower ionization ene
 
 .. plot:: models/field_ionization_effective_potentials.py
 
+Predicting Charge State Distributions
+-------------------------------------
+
+Especially for underdense targets, it is possible to already give an estimate for how the laser pulse ionizes a specific target.
+Starting from an initially unionized state, calculating ionization rates for each charge state for a given electric field via a Markovian_ approach of transition matrices yields the charge state population for each time.
+
+.. _Markovian: https://en.wikipedia.org/wiki/Markov_chain
+
+Here, we show an example of Neon gas ionized by a Gaussian laser pulse with maximum amplitude :math:`a_0 = 10` and pulse duration (FWHM intensity) of :math:`30\,\mathrm{fs}`.
+The figure shows the ionization rates and charge state population produced by the ``ADKLinPol`` model obtained from the pulse shape in the lower panel, as well as the step-like ionization produced by the ``BSI`` model.
+
+.. plot:: models/field_ionization_charge_state_prediction.py
+
+You can test the implemented ionization models yourself with the corresponding module shipped in ``picongpu/lib/python``.
+
+.. code:: python
+
+    import numpy as np
+    import scipy.constants as sc
+    from picongpu.utils import FieldIonization
+
+    # instantiate class object that contains functions for
+    #   - ionization rates
+    #   - critical field strengths (BSI models)
+    #   - laser intensity conversion
+    FI = FieldIonization()
+
+    # dictionary with atomic units
+    AU = FI.atomic_unit
+
+    # residual charge state AFTER ionization
+    Z_H = 1
+    # hydrogen ionization energy (13.6 eV) converted to atomic units
+    E_H_AU = 13.6 * sc.electron_volt / AU['energy']
+    # output: 0.50
+    print("%.2f" % (E_H_AU))
+    # barrier suppression threshold field strength
+    F_BSI_H = FI.F_crit_BSI(Z=Z_H, E_Ip=E_H_AU)
+    # output: 3.21e+10 V/m
+    print("%.2e V/m" % (F_BSI_H * AU['electric field']))
+
+
 References
 ----------
 .. [DeloneKrainov]
@@ -146,7 +188,7 @@ References
         *Ionization in the field of a strong electromagnetic wave*,
         Soviet Physics JETP 20, 1307-1314 (1965),
         http://jetp.ac.ru/cgi-bin/dn/e_020_05_1307.pdf
-        
+
 .. [ClementiRaimondi1963]
         E. Clementi and D. Raimondi.
         *Atomic Screening Constant from SCF Functions*,

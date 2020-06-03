@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Felix Schmitt, Axel Huebl
+/* Copyright 2013-2020 Rene Widera, Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -24,8 +24,8 @@
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
-#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/particles/ParticleDescription.hpp>
 #include <pmacc/particles/operations/splitIntoListOfFrames.kernel>
@@ -158,17 +158,17 @@ public:
         AdiosFrameType hostFrame;
         log<picLog::INPUT_OUTPUT > ("ADIOS: malloc mapped memory: %1%") % speciesName;
         /*malloc mapped memory*/
-        ForEach<typename AdiosFrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
-        mallocMem(forward(hostFrame), totalNumParticles);
+        meta::ForEach<typename AdiosFrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
+        mallocMem(hostFrame, totalNumParticles);
 
         log<picLog::INPUT_OUTPUT > ("ADIOS: get mapped memory device pointer: %1%") % speciesName;
         /*load device pointer of mapped memory*/
         AdiosFrameType deviceFrame;
-        ForEach<typename AdiosFrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
-        getDevicePtr(forward(deviceFrame), forward(hostFrame));
+        meta::ForEach<typename AdiosFrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
+        getDevicePtr(deviceFrame, hostFrame);
 
-        ForEach<typename AdiosFrameType::ValueTypeSeq, LoadParticleAttributesFromADIOS<bmpl::_1> > loadAttributes;
-        loadAttributes(forward(params), forward(hostFrame), particlePath, particleOffset, totalNumParticles);
+        meta::ForEach<typename AdiosFrameType::ValueTypeSeq, LoadParticleAttributesFromADIOS<bmpl::_1> > loadAttributes;
+        loadAttributes(params, hostFrame, particlePath, particleOffset, totalNumParticles);
 
         if (totalNumParticles != 0)
         {
@@ -184,8 +184,8 @@ public:
             );
 
             /*free host memory*/
-            ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
-            freeMem(forward(hostFrame));
+            meta::ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
+            freeMem(hostFrame);
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) load species: %1%") % speciesName;
     }

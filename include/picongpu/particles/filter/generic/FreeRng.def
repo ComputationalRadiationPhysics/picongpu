@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Rene Widera
+/* Copyright 2017-2020 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -57,6 +57,7 @@ namespace generic
      *               result = true;
      *           return result;
      *       }
+     *       static constexpr char const * name = "eachSecondParticle";
      *   };
      *
      *   using EachSecondParticle = generic::FreeRng<

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Richard Pausch
+/* Copyright 2013-2020 Heiko Burau, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -22,8 +22,12 @@
 
 namespace picongpu
 {
-  namespace radiation_observer
-  {
+namespace plugins
+{
+namespace radiation
+{
+namespace radiation_observer
+{
     /** Compute observation angles
      *
      * This function is used in the Radiation plug-in kernel to compute
@@ -71,5 +75,7 @@ namespace picongpu
 
     }
 
-  } // end namespace radiation_observer
-} // end namespace picongpu
+} // namespace radiation_observer
+} // namespace radiation
+} // namespace plugins
+} // namespace picongpu

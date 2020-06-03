@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Rene Widera
+/* Copyright 2017-2020 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -44,10 +44,11 @@ namespace generic
      *       HDINLINE bool operator()( T_Particle const & particle )
      *       {
      *           bool result = false;
-     *           if( particle[ position_ ] >= float_X( 0.5 ) )
+     *           if( particle[ position_ ].y() >= float_X( 0.5 ) )
      *               result = true;
      *           return result;
      *       }
+     *       static constexpr char const * name = "eachParticleAboveMiddleOfTheCell";
      *   };
      *
      *   using EachParticleAboveMiddleOfTheCell = generic::Free<

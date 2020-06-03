@@ -64,7 +64,7 @@ Coordinate System
 
 Yaw and pitch are `Euler angles <https://en.wikipedia.org/wiki/Euler_angles>`_ defining a point on a sphere's surface, where ``(0,0)`` points to the ``+y`` direction here. In the vicinity of ``(0,0)``, yaw points to ``+x`` and pitch to ``+z``.
 
-**Orientation detail:** Since the calorimeters's three-dimensional orientation is given by just two parameters (``posYaw`` and ``posPitch``) there is one degree of freedom left which has to be fixed.
+**Orientation detail:** Since the calorimeters' three-dimensional orientation is given by just two parameters (``posYaw`` and ``posPitch``) there is one degree of freedom left which has to be fixed.
 Here, this is achieved by eliminating the Euler angle roll.
 However, when ``posPitch`` is exactly ``+90`` or ``-90`` degrees, the choice of roll is ambiguous, depending on the yaw angle one approaches the singularity.
 Here we assume an approach from ``yaw = 0``.
@@ -100,10 +100,10 @@ Depending on whether energy binning is enabled the dataset is two or three dimen
 The dataset has the following attributes:
 
 
-================== ==================================================
+================== =============================================
 Attribute          Description
-================== ==================================================
-``unitSI``         conversion factor from calorimeter value to Joule.
+================== =============================================
+``unitSI``         scaling factor for energy in calorimeter bins
 ``maxYaw[deg]``    half of the opening angle yaw.
 ``maxPitch[deg]``  half of the opening angle pitch.
 ``posYaw[deg]``    yaw coordinate of the calorimeter.
@@ -112,7 +112,10 @@ Attribute          Description
 ``minEnergy[keV]`` minimal detectable energy.
 ``maxEnergy[keV]`` maximal detectable energy.
 ``logScale``       boolean indicating logarithmic scale.
-================== ==================================================
+================== =============================================
+
+The output in each bin is given in Joule.
+Divide by energy value of the bin for a unitless count per bin.
 
 .. note::
 

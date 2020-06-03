@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Marco Garten
  *
  * This file is part of PIConGPU.
@@ -37,7 +37,7 @@
 #include "picongpu/particles/traits/GetShape.hpp"
 #include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
 
-#include <pmacc/compileTime/conversion/ToSeq.hpp>
+#include <pmacc/meta/conversion/ToSeq.hpp>
 
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/placeholders.hpp>
@@ -61,8 +61,8 @@ namespace particleToGrid
 
         static constexpr int lowerMargin = supp / 2;
         static constexpr int upperMargin = (supp + 1) / 2;
-        typedef typename pmacc::math::CT::make_Int<simDim, lowerMargin>::type LowerMargin;
-        typedef typename pmacc::math::CT::make_Int<simDim, upperMargin>::type UpperMargin;
+        using LowerMargin = typename pmacc::math::CT::make_Int<simDim, lowerMargin>::type;
+        using UpperMargin = typename pmacc::math::CT::make_Int<simDim, upperMargin>::type;
 
         HDINLINE ComputeGridValuePerFrame()
         {

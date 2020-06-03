@@ -1,7 +1,7 @@
 # Name and Path of this Script ############################### (DO NOT change!)
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
-# User Information ######################################### (edit those lines)
+# User Information ################################# (edit the following lines)
 #   - automatically add your name and contact to output file meta data
 #   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
 #     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
@@ -23,8 +23,8 @@ then
         # Core Dependencies
         module load gcc
         module load cuda
-        echo "WARNING: Boost version is too old! (Need: 1.62.0+)" >&2
-        # module load boost/1.62.0-gcc
+        echo "WARNING: Boost version is too old! (Need: 1.65.1+)" >&2
+        # module load boost/1.65.1-gcc
         module load openmpi/1.6.5-gcc
 
         # Core tools
@@ -72,3 +72,11 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 #   - fermi queue (also available: 2 K20 via k20.tpl)
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/lawrencium-lbnl/fermi.tpl"
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi

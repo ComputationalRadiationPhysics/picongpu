@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018 Erik Zenker, Alexander Grund
+# Copyright 2015-2020 Erik Zenker, Alexander Grund
 #
 # This file is part of PMacc.
 #
@@ -24,7 +24,7 @@
 # PMacc tests
 ################################################################################
 
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.11.4)
 project(PMaccTest)
 
 # set helper pathes to find libraries and packages
@@ -72,7 +72,7 @@ add_definitions(${PMacc_DEFINITIONS})
 # Boost.Test
 ###############################################################################
 
-find_package(Boost 1.62.0 COMPONENTS unit_test_framework REQUIRED)
+find_package(Boost 1.65.1 COMPONENTS unit_test_framework REQUIRED)
 if(TARGET Boost::unit_test_framework)
     set(LIBS ${LIBS} Boost::boost Boost::unit_test_framework)
 else()

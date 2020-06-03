@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Alexander Matthes
+/* Copyright 2016-2020 Alexander Matthes
  *
  * This file is part of PIConGPU.
  *
@@ -44,6 +44,10 @@ namespace picongpu
 namespace isaacP
 {
 
+    /** Intermediate list of native particle species of PIConGPU which shall be
+     *  visualized. */
+    using Particle_Seq = VectorAllSpecies;
+
     /** Intermediate list of native fields of PIConGPU which shall be
      *  visualized. */
     using Native_Seq = MakeSeq_t<
@@ -55,7 +59,7 @@ namespace isaacP
     /** Intermediate list of particle species, from which density fields
      *  shall be created at runtime to visualize them. */
     using Density_Seq = deriveField::CreateEligible_t<
-        VectorAllSpecies,
+        Particle_Seq,
         deriveField::derivedAttributes::Density
     >;
 
@@ -65,6 +69,7 @@ namespace isaacP
         Native_Seq,
         Density_Seq
     >;
+
 
 } // namespace isaacP
 } // namespace picongpu

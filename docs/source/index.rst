@@ -9,16 +9,16 @@
 
 *Particle-in-Cell Simulations for the Exascale Era*
 
-PIConGPU is a fully relativistic, manycore, 3D3V particle-in-cell (PIC) code.
+PIConGPU is a fully relativistic, manycore, 3D3V and 2D3V particle-in-cell (PIC) code.
 The PIC algorithm is a central tool in plasma physics.
-It describes the dynamics of a plasma by computing the motion of electrons and ions in the plasma based on Maxwell's equations.
+It describes the dynamics of a plasma by computing the motion of electrons and ions in the plasma based on the Vlasov-Maxwell system of equations.
 
 How to Read This Document
 -------------------------
 
-Generally, **follow the manual pages in-order** to get started.
-Individual chapters are based on the information of the chapters before.
-In case you are already fluent in compiling C++ projects and HPC, running PIC simulations or scientific data analysis feel free to jump the respective sections.
+Generally, to get started **follow the manual pages in order**.
+Individual chapters are based on the information in the chapters before.
+In case you are already fluent in compiling C++ projects and HPC, running PIC simulations or scientific data analysis, feel free to jump the respective sections.
 
 .. only:: html
 
@@ -65,9 +65,9 @@ Usage
    usage/reference
    usage/basics
    usage/param
-   usage/particles
    usage/plugins
    usage/tbg
+   usage/python
    usage/examples
    usage/workflows
 
@@ -106,6 +106,7 @@ Development
    :hidden:
 
    dev/CONTRIBUTING.md
+   dev/docs/COMMIT.md
    dev/repostructure
    dev/styleguide
    dev/sphinx

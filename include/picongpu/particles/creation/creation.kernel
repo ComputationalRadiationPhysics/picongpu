@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Marco Garten, Axel Huebl, Heiko Burau, Rene Widera,
+/* Copyright 2015-2020 Marco Garten, Axel Huebl, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Felix Schmitt
  *
  * This file is part of PIConGPU.
@@ -25,7 +25,7 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include "picongpu/particles/ParticlesInit.kernel"
 #include <pmacc/mappings/simulation/GridController.hpp>
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 #include <pmacc/traits/Resolve.hpp>
 #include <pmacc/math/vector/Int.hpp>
 #include <pmacc/nvidia/atomic.hpp>

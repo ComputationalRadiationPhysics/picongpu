@@ -19,6 +19,7 @@
  */
 
 
+#include "cupla/namespace.hpp"
 #include "cupla_runtime.hpp"
 #include "cupla/manager/Memory.hpp"
 #include "cupla/manager/Device.hpp"
@@ -26,25 +27,48 @@
 #include "cupla/manager/Event.hpp"
 #include "cupla/api/common.hpp"
 
-
-const char *
-cuplaGetErrorString(cuplaError_t)
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
-    return "cuplaGetErrorString is currently not supported\n";
+
+CUPLA_HEADER_ONLY_FUNC_SPEC
+const char *
+cuplaGetErrorName(cuplaError_t e)
+{
+    return CuplaErrorCode::message_cstr(e);
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
+const char *
+cuplaGetErrorString(cuplaError_t e)
+{
+    return CuplaErrorCode::message_cstr(e);
+}
+
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaGetLastError()
 {
-#if (ALPAKA_ACC_GPU_CUDA_ENABLED == 1)
+#if( ALPAKA_ACC_GPU_CUDA_ENABLED == 1 )
     // reset the last cuda error
-    cudaGetLastError();
-#endif
+    return (cuplaError_t)cudaGetLastError();
+#elif( ALPAKA_ACC_GPU_HIP_ENABLED == 1 )
+    return (cuplaError_t)hipGetLastError();
+#else
     return cuplaSuccess;
+#endif
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaPeekAtLastError()
 {
+#if( ALPAKA_ACC_GPU_CUDA_ENABLED == 1 )
+    return (cuplaError_t)cudaPeekAtLastError();
+#elif( ALPAKA_ACC_GPU_HIP_ENABLED == 1 )
+    return (cuplaError_t)hipPeekAtLastError();
+#else
     return cuplaSuccess;
+#endif
 }
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE

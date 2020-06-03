@@ -51,6 +51,14 @@ laser.param
 
    laser/profiles.rst
 
+pml.param
+^^^^^^^^^
+
+.. doxygenfile:: pml.param
+   :project: PIConGPU
+   :path: include/picongpu/param/pml.param
+   :no-link:
+
 pusher.param
 ^^^^^^^^^^^^
 
@@ -75,7 +83,7 @@ speciesAttributes.param
    :path: include/picongpu/param/speciesAttributes.param
    :no-link:
 
-The following species attributes are defined by pmacc and always stored with a particle:
+The following species attributes are defined by PMacc and always stored with a particle:
 
 .. doxygenfile:: Identifier.hpp
    :project: PIConGPU
@@ -114,8 +122,12 @@ particle.param
    :path: include/picongpu/param/particle.param
    :no-link:
 
+More details on the order of initialization of particles inside a particle species :ref:`can be found here <usage-params-core-particles>`.
+
+:ref:`List of all pre-defined particle manipulators <usage-params-core-particles-manipulation>`.
+
 unit.param
-^^^^^^^^^^^^^^
+^^^^^^^^^^
 
 .. doxygenfile:: unit.param
    :project: PIConGPU
@@ -130,6 +142,8 @@ particleFilters.param
    :path: include/picongpu/simulation_defines/param/particleFilters.param
    :no-link:
 
+:ref:`List of all pre-defined particle filters <usage-params-core-particles-filters>`.
+
 speciesInitialization.param
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -137,3 +151,11 @@ speciesInitialization.param
    :project: PIConGPU
    :path: include/picongpu/param/speciesInitialization.param
    :no-link:
+
+:ref:`List of all initialization methods for particle species <usage-params-core-particles-init>`.
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   particles/init.rst

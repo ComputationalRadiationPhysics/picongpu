@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2018 Axel Huebl, Richard Pausch, Rene Widera
+# Copyright 2013-2020 Axel Huebl, Richard Pausch, Rene Widera, Marco Garten
 #
 # This file is part of PIConGPU.
 #
@@ -19,7 +19,7 @@
 #
 
 
-# PIConGPU batch script for hemera' SLURM batch system
+# PIConGPU batch script for hemera's SLURM batch system
 
 #SBATCH --partition=!TBG_queue
 #SBATCH --time=!TBG_wallTime
@@ -34,8 +34,7 @@
 #SBATCH --gres=gpu:!TBG_gpusPerNode
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
-#SBATCH --workdir=!TBG_dstPath
-#SBATCH --workdir=!TBG_dstPath
+#SBATCH --chdir=!TBG_dstPath
 
 #SBATCH -o stdout
 #SBATCH -e stderr
@@ -57,7 +56,7 @@
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi`
 
 # host memory per gpu
-.TBG_memPerGPU="$((360000 / $TBG_gpusPerNode))"
+.TBG_memPerGPU="$((378000 / $TBG_gpusPerNode))"
 # host memory per node
 .TBG_memPerNode="$((TBG_memPerGPU * TBG_gpusPerNode))"
 

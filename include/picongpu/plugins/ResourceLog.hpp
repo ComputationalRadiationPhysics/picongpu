@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Erik Zenker
+/* Copyright 2016-2020 Erik Zenker
  *
  * This file is part of PMacc.
  *
@@ -32,9 +32,6 @@
 #include "picongpu/particles/filter/filter.hpp"
 
 // Boost
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/xml_parser.hpp>
 #include <boost/filesystem.hpp>
 
 // STL
@@ -44,34 +41,25 @@
 #include <sstream>   /* std::stringstream */
 #include <fstream>   /* std::filebuf */
 #include <map>       /* std::map */
+#include <algorithm> /* std::accumulate */
 
 // C LIB
 #include <stdlib.h> /* itoa */
 #include <stdint.h> /* uint32_t */
 
-/* provide a specialization of swap for std::string
- *
- * workaround for: https://github.com/ComputationalRadiationPhysics/picongpu/issues/2714
- * Boost is shipping a swap implementation with support for device
- * if `BOOST_GPU_ENABLED` is `__host__ __device__` but is calling a pure host function `std::swap`
- * within the device code. Even if swap is not called on the device this implementation
- * can pull host only code inside the device compile path of CUDA.
- */
-namespace boost_swap_impl
-{
-    BOOST_GPU_ENABLED
-    void swap(std::string& s1, std::string& s2)
-    {
-#ifndef __CUDA_ARCH__
-        std::swap(s1, s2);
-#endif
-    }
-}
 
 namespace picongpu
 {
-    using namespace pmacc;
+    using namespace pmacc; /** @todo do not pull into global (header) scope */
 
+namespace detail
+{
+    std::string
+    writeMapToPropertyTree(
+        std::map<std::string, size_t> valueMap,
+        std::string outputFormat
+    );
+}
 
     class ResourceLog : public ILightweightPlugin
     {
@@ -103,82 +91,51 @@ namespace picongpu
 
         void notify(uint32_t currentStep)
         {
-            //
-            // Create property tree which contains the resource information
-            using boost::property_tree::ptree;
-            ptree pt;
+            std::map<std::string, size_t> valueMap;
 
             if(contains(propertyMap, "rank"))
-            {
-                size_t rank = static_cast<size_t>(Environment<simDim>::get().GridController().getGlobalRank());
-                pt.put("resourceLog.rank", rank);
-            }
+                valueMap["resourceLog.rank"] = static_cast<size_t>(Environment<simDim>::get().GridController().getGlobalRank());
 
             if(contains(propertyMap,"position"))
             {
-                DataSpace<simDim> currentPosition = Environment<simDim>::get().GridController().getPosition();
-                pt.put("resourceLog.position.x", currentPosition[0]);
-                pt.put("resourceLog.position.y", currentPosition[1]);
-                pt.put("resourceLog.position.z", currentPosition[2]);
+                auto const currentPosition = Environment<simDim>::get().GridController().getPosition();
+                char const axisName[] = {'x', 'y', 'z'};
+                for( size_t d = 0; d < simDim; ++d )
+                    valueMap[std::string("resourceLog.position.") + axisName[d]] = currentPosition[d];
             }
 
             if(contains(propertyMap, "currentStep"))
-            {
-                pt.put("resourceLog.currentStep", currentStep);
-            }
+                valueMap["resourceLog.currentStep"] = currentStep;
 
             if(contains(propertyMap, "cellCount"))
-            {
-                size_t cellCount = resourceMonitor.getCellCount();
-                pt.put("resourceLog.cellCount", cellCount);
-            }
+                valueMap["resourceLog.cellCount"] = resourceMonitor.getCellCount();
 
             if(contains(propertyMap,"particleCount"))
             {
                 // enforce that the filter interface is fulfilled
                 particles::filter::IUnary< particles::filter::All > parFilter{ currentStep };
                 std::vector<size_t> particleCounts = resourceMonitor.getParticleCounts<VectorAllSpecies>(*cellDescription, parFilter );
-                pt.put("resourceLog.particleCount", std::accumulate(particleCounts.begin(), particleCounts.end(), 0));
+                valueMap["resourceLog.particleCount"] = std::accumulate(particleCounts.begin(), particleCounts.end(), 0);
             }
 
             //
-            // Write property tree to string stream
-            std::stringstream ss;
-            if(outputFormat == "json")
-            {
-                write_json(ss, pt, false);
-            }
-            else if(outputFormat == "jsonpp")
-            {
-                write_json(ss, pt, true);
-            }
-            else if(outputFormat == "xml")
-            {
-                write_xml(ss, pt);
-            }
-            else if(outputFormat == "xmlpp")
-            {
-                write_xml(ss, pt, boost::property_tree::xml_writer_make_settings<std::string>('\t', 1));
-            }
-            else
-            {
-                throw std::runtime_error(std::string("resourcelog.format ") + outputFormat + std::string(" is not known, use json or xml."));
-            }
+            // Write property tree to a string
+            std::string properties = ::picongpu::detail::writeMapToPropertyTree( valueMap, outputFormat );
 
             //
             // Write property tree to the output stream
             if(streamType == "stdout")
             {
-                std::cout << ss.str();
+                std::cout << properties;
             }
             else if (streamType == "stderr")
             {
-                std::cerr << ss.str();
+                std::cerr << properties;
             }
             else if (streamType == "file")
             {
                 std::ostream os(&fileBuf);
-                os << ss.str();
+                os << properties;
             }
             else
             {
@@ -239,7 +196,8 @@ namespace picongpu
                     std::stringstream ss;
                     ss << outputFilePrefix << rank;
                     boost::filesystem::path resourceLogPath(ss.str());
-                    fileBuf.open(resourceLogPath.string().c_str(), std::ios::out);
+                    auto const rsp = resourceLogPath.string();
+                    fileBuf.open(rsp.c_str(), std::ios::out);
                 }
             }
         }

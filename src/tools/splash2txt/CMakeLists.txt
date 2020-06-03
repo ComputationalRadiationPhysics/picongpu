@@ -1,4 +1,4 @@
-# Copyright 2013-2018 Felix Schmitt, Axel Huebl, Rene Widera
+# Copyright 2013-2020 Felix Schmitt, Axel Huebl, Rene Widera
 #
 # This file is part of splash2txt.
 #
@@ -22,7 +22,7 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.11.4)
 
 
 ################################################################################
@@ -114,6 +114,15 @@ find_package(Splash 1.7.0 REQUIRED CONFIG COMPONENTS PARALLEL)
 
 add_definitions(-DENABLE_HDF5=1)
 message(STATUS "Found Splash: ${Splash_DIR}")
+set(LIBS ${LIBS} Splash::Splash)
+
+
+################################################################################
+# Find zlib
+################################################################################
+
+# not directly needed, yet weirdly injected without target by Splash 1.7.0
+find_package(ZLIB REQUIRED)
 
 
 ################################################################################
@@ -136,12 +145,23 @@ endif(ADIOS_FOUND)
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options regex)
+find_package(Boost 1.65.1 REQUIRED COMPONENTS program_options)
 if(TARGET Boost::program_options)
-    set(LIBS ${LIBS} Boost::boost Boost::program_options Boost::regex)
+    set(LIBS ${LIBS} Boost::boost Boost::program_options)
 else()
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
     set(LIBS ${LIBS} ${Boost_LIBRARIES})
+endif()
+
+
+################################################################################
+# Find math from stdlib
+################################################################################
+
+if(NOT WIN32 AND NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    # automatically added on windows
+    # should not be added for Intel compiler as it has an optimized lib included
+    set(LIBS ${LIBS} m)
 endif()
 
 
@@ -160,7 +180,7 @@ add_executable(splash2txt
      ${SRCFILES}
      )
 
-target_link_libraries(splash2txt m ${LIBS})
+target_link_libraries(splash2txt PRIVATE ${LIBS})
 
 
 ################################################################################

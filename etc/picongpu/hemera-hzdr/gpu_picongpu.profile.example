@@ -1,7 +1,7 @@
 # Name and Path of this Script ############################### (DO NOT change!)
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
-# User Information ######################################### (edit those lines)
+# User Information ################################# (edit the following lines)
 #   - automatically add your name and contact to output file meta data
 #   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
 #     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
@@ -17,9 +17,9 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 #
 module purge
 module load gcc/7.3.0
-module load cmake/3.11.3
-module load cuda/9.2
-module load openmpi/2.1.2-cuda92
+module load cmake/3.15.2
+module load cuda/10.0
+module load openmpi/2.1.2-cuda100
 module load boost/1.68.0
 
 # Other Software ##############################################################
@@ -27,9 +27,9 @@ module load boost/1.68.0
 module load zlib/1.2.11
 module load c-blosc/1.14.4
 
-module load adios/1.13.1-cuda92
-module load hdf5-parallel/1.8.20-cuda92
-module load libsplash/1.7.0-cuda92
+module load adios/1.13.1-cuda100
+module load hdf5-parallel/1.8.20-cuda100
+module load libsplash/1.7.0-cuda100
 
 module load libpng/1.6.35
 module load pngwriter/0.7.0
@@ -55,18 +55,18 @@ export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/hemera-hzdr/gpu.tpl"
 
 # allocate an interactive shell for one hour
-#   getNode 2  # allocates to interactive nodes (default: 1)
+#   getNode 2  # allocates two interactive nodes (default: 1)
 function getNode() {
     if [ -z "$1" ] ; then
         numNodes=1
     else
         numNodes=$1
     fi
-    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=6 --gres=gpu:4 --mem=360000 -p gpu --pty bash
+    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=6 --gres=gpu:4 --mem=378000 -p gpu --pty bash
 }
 
 # allocate an interactive shell for one hour
-#   getDevice 2  # allocates to interactive devices (default: 1)
+#   getDevice 2  # allocates two interactive devices (default: 1)
 function getDevice() {
     if [ -z "$1" ] ; then
         numGPUs=1
@@ -78,5 +78,13 @@ function getDevice() {
             numGPUs=$1
         fi
     fi
-    srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=$((6 * $numGPUs)) --gres=gpu:$numGPUs --mem=$((90000 * numGPUs)) -p gpu --pty bash
+    srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=6 --gres=gpu:$numGPUs --mem=$((94500 * numGPUs)) -p gpu --pty bash
 }
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi

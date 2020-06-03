@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Felix Schmitt, Axel Huebl
+/* Copyright 2014-2020 Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -33,8 +33,8 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
 #include "picongpu/plugins/adios/writer/ParticleAttributeSize.hpp"
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
-#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 
 #include <boost/mpl/vector.hpp>
@@ -134,7 +134,7 @@ public:
         }
 
         /* iterate over all attributes of this species */
-        ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttributeSize<bmpl::_1> > attributeSize;
+        meta::ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttributeSize<bmpl::_1> > attributeSize;
         attributeSize(params, speciesGroup, myNumParticles, globalNumParticles, myParticleOffset);
 
         /* TODO: constant particle records */

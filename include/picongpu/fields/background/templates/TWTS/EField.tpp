@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Alexander Debus, Axel Huebl
+/* Copyright 2014-2020 Alexander Debus, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -32,7 +32,7 @@
 #include "picongpu/fields/background/templates/TWTS/GetInitialTimeDelay_SI.tpp"
 #include "picongpu/fields/background/templates/TWTS/getFieldPositions_SI.tpp"
 #include "picongpu/fields/background/templates/TWTS/EField.hpp"
-#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#include "picongpu/fields/CellType.hpp"
 
 namespace picongpu
 {
@@ -176,7 +176,7 @@ namespace twts
                             const uint32_t currentStep ) const
     {
         const float_64 time_SI = float_64(currentStep) * dt - tdelay;
-        const traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldE> fieldPosE;
+        const traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
 
         const pmacc::math::Vector<floatD_64,detail::numComponents> eFieldPositions_SI =
               detail::getFieldPositions_SI(cellIdx, halfSimSize,

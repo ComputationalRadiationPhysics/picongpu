@@ -5,7 +5,7 @@ The Particle-in-Cell Algorithm
 
 .. sectionauthor:: Axel Huebl
 
-For now, please refer to the textbooks [BirdsallLangdon]_, [HockneyEastwood]_, our :ref:`latest paper on PIConGPU <usage-reference>` and [Huebl2014]_ (chapters 2.3, 3.1 and 3.4).
+Please also refer to the textbooks [BirdsallLangdon]_, [HockneyEastwood]_, our :ref:`latest paper on PIConGPU <usage-reference>` and the works in [Huebl2014]_ and [Huebl2019]_ .
 
 System of Equations
 -------------------
@@ -82,7 +82,7 @@ References
 ----------
 
 .. [EulerLagrangeFrameOfReference]
-        Eulerian and Lagrangian specification of the flow field.
+        *Eulerian and Lagrangian specification of the flow field.*
         https://en.wikipedia.org/wiki/Lagrangian_and_Eulerian_specification_of_the_flow_field
 
 .. [BirdsallLangdon]
@@ -101,4 +101,10 @@ References
         A. Huebl.
         *Injection Control for Electrons in Laser-Driven Plasma Wakes on the Femtosecond Time Scale*,
         Diploma Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Physiker" (2014),
-        https://doi.org/10.5281/zenodo.15924
+        `DOI:10.5281/zenodo.15924 <https://doi.org/10.5281/zenodo.15924>`_
+
+.. [Huebl2019]
+        A. Huebl.
+        *PIConGPU: Predictive Simulations of Laser-Particle Accelerators with Manycore Hardware*,
+        PhD Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2019),
+        `DOI:10.5281/zenodo.3266820 <https://doi.org/10.5281/zenodo.3266820>`_

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -20,6 +20,10 @@
 #pragma once
 
 namespace picongpu
+{
+namespace plugins
+{
+namespace radiation
 {
 
 namespace util
@@ -108,5 +112,9 @@ namespace details
   }
 
 } // namespace util
+
+} // namespace radiation
+
+} // namespace plugins
 
 } // namespace picongpu

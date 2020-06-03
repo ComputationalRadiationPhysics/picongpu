@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2020 Axel Huebl, Rene Widera, Benjamin Worpitz,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -23,7 +23,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
@@ -128,13 +128,14 @@ namespace picongpu
                                                            charToAxisNumber(getValue(axis, i)[1])
                                                            );
                                 /* if simulation run in 2D ignore all xz, yz slices (we had no z direction)*/
-                                const bool isAllowed2DSlice= (simDim==DIM3) || (transpose.x()!=2 && transpose.y()!=2);
-                                const bool isSlidingWindowActive=MovingWindow::getInstance().isSlidingWindowActive();
+                                const bool isAllowed2DSlice = (simDim == DIM3) || (transpose.x() != 2 && transpose.y() != 2);
+                                const bool isSlidingWindowEnabled = MovingWindow::getInstance().isEnabled();
                                 /* if sliding window is active we are not allowed to create pngs from xz slice
                                  * This means one dimension in transpose must contain 1 (y direction)
                                  */
-                                const bool isAllowedMovingWindowSlice=!isSlidingWindowActive ||
-                                                                      (transpose.x()==1 || transpose.y()==1);
+                                const bool isAllowedMovingWindowSlice =
+                                    !isSlidingWindowEnabled ||
+                                    (transpose.x() == 1 || transpose.y() == 1);
                                 if( isAllowed2DSlice && isAllowedMovingWindowSlice )
                                 {
                                     VisType* tmp = new VisType(pluginName, pngCreator, period, transpose, getValue(slicePoints, i));

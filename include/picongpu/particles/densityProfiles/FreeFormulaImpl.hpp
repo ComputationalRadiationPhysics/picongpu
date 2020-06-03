@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Rene Widera, Richard Pausch, Axel Huebl
+/* Copyright 2015-2020 Rene Widera, Richard Pausch, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -20,41 +20,44 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
+#include "picongpu/particles/functor/User.hpp"
 
 
 namespace picongpu
 {
 namespace densityProfiles
 {
-
-template<typename T_ParamClass>
-struct FreeFormulaImpl : public T_ParamClass
-{
-    using ParamClass = T_ParamClass;
-
-    template<typename T_SpeciesType>
-    struct apply
+    template< typename T_UserFunctor >
+    struct FreeFormulaImpl : public particles::functor::User< T_UserFunctor >
     {
-        using type = FreeFormulaImpl<ParamClass>;
+        using UserFunctor = particles::functor::User< T_UserFunctor >;
+
+        template< typename T_SpeciesType >
+        struct apply
+        {
+            using type = FreeFormulaImpl< UserFunctor >;
+        };
+
+        HINLINE FreeFormulaImpl( uint32_t currentStep ) : UserFunctor( currentStep )
+        {
+        }
+
+        /** Calculate the normalized density
+         *
+         * @param totalCellOffset total offset including all slides [in cells]
+         */
+        HDINLINE float_X operator()( DataSpace< simDim > const & totalCellOffset )
+        {
+            float_64 const unitLength( UNIT_LENGTH ); // workaround to use UNIT_LENGTH on device
+            float3_64 const cellSize_SI( precisionCast< float_64 >( cellSize ) * unitLength );
+            floatD_64 const position_SI( precisionCast< float_64 >( totalCellOffset ) * cellSize_SI.shrink<simDim>( ) );
+
+            return UserFunctor::operator()(
+                position_SI,
+                cellSize_SI
+            );
+        }
     };
-
-    HINLINE FreeFormulaImpl(uint32_t currentStep)
-    {
-    }
-
-    /** Calculate the normalized density
-     *
-     * @param totalCellOffset total offset including all slides [in cells]
-     */
-    HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
-    {
-        const float_64 unitLength(UNIT_LENGTH); // workaround to use UNIT_LENGTH on device
-        const float3_64 cellSize_SI( precisionCast<float_64>(cellSize) * unitLength );
-        const floatD_64 position_SI( precisionCast<float_64>(totalCellOffset) * cellSize_SI.shrink<simDim>( ) );
-
-        return ParamClass::operator()(position_SI, cellSize_SI);
-    }
-};
-}
-}
+} // namespace densityProfiles
+} // namespace picongpu

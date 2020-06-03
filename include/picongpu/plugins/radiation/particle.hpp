@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -27,6 +27,10 @@
 
 
 namespace picongpu
+{
+namespace plugins
+{
+namespace radiation
 {
 
 class When
@@ -169,4 +173,6 @@ HDINLINE vector_64 Particle::get_momentum<When::old>(void) const
     return momentum_old;
 } // get momentum at time when
 
+} // namespace radiation
+} // namespace plugins
 } // namespace picongpu

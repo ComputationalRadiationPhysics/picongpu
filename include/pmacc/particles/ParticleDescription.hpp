@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Rene Widera
+/* Copyright 2014-2020 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -25,7 +25,7 @@
 #include "pmacc/particles/policies/ExchangeParticles.hpp"
 #include "pmacc/particles/policies/DeleteParticles.hpp"
 #include <boost/mpl/vector.hpp>
-#include "pmacc/compileTime/conversion/ToSeq.hpp"
+#include "pmacc/meta/conversion/ToSeq.hpp"
 
 namespace pmacc
 {

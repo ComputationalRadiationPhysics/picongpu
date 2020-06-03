@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Marco Garten, Axel Huebl
+/* Copyright 2014-2020 Marco Garten, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -132,6 +132,13 @@ namespace atomicNumbers
         static constexpr float_X numberOfNeutrons = 14.0;
     };
 
+    /** Si-28 ~92.23% NA */
+    struct Silicon_t
+    {
+        static constexpr float_X numberOfProtons  = 14.0;
+        static constexpr float_X numberOfNeutrons = 14.0;
+    };
+
     /** Cu-63 69.15% NA */
     struct Copper_t
     {
@@ -253,6 +260,30 @@ namespace effectiveNuclearCharge
         12.591,
         12.591
     );
+
+    /* Example: silicon */
+    PMACC_CONST_VECTOR(float_X, 14, Silicon,
+        /* 3p^2 */
+        4.285,
+        4.285,
+        /* 3s^2 */
+        4.903,
+        4.903,
+        /* 2p^6 */
+        9.945,
+        9.945,
+        9.945,
+        9.945,
+        9.945,
+        9.945,
+        /* 2s^2 */
+        9.020,
+        9.020,
+        /* 1s^2 */
+        13.575,
+        13.575
+    );
+
 
     /* Example: copper
      * Note: Copper is one of the few exceptions to the Madelung energy ordering

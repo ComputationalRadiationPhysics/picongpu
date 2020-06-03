@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Klaus Steiniger, Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -32,7 +32,7 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 
-#include "picongpu/plugins/radiation/parameters.hpp"
+#include "picongpu/plugins/radiation/VectorTypes.hpp"
 #include "picongpu/plugins/radiation/check_consistency.hpp"
 #include "picongpu/plugins/radiation/particle.hpp"
 #include "picongpu/plugins/radiation/amplitude.hpp"
@@ -58,18 +58,19 @@
 
 namespace picongpu
 {
+namespace plugins
+{
+namespace radiation
+{
 
     /** calculate the radiation of a species
      *
      * If \p T_dependenciesFulfilled is false a dummy kernel without functionality is created
      *
      * @tparam T_numWorkers number of workers
-     * @tparam T_dependenciesFulfilled true if all dependencies (species attributes) are full filled
-     *                                  else false
      */
     template<
-        uint32_t T_numWorkers,
-        bool T_dependenciesFulfilled
+        uint32_t T_numWorkers
     >
     struct KernelRadiationParticles
     {
@@ -505,35 +506,8 @@ namespace picongpu
         } // end radiation kernel
     };
 
-    /** specialization if a dependency is missing
-     *
-     * this functor is empty.
-     */
-    template< uint32_t T_numWorkers >
-    struct KernelRadiationParticles<
-        T_numWorkers,
-        false
-    >
-    {
-        template<
-            typename ParBox,
-            typename DBox,
-            typename Mapping,
-            typename T_Acc
-        >
-        DINLINE
-        void operator()(
-            T_Acc const & acc,
-            ParBox,
-            DBox,
-            DataSpace< simDim >,
-            uint32_t,
-            Mapping,
-            radiation_frequencies::FreqFunctor,
-            DataSpace< simDim >
-        ) const
-        {
-        }
-    };
+} // namespace radiation
 
-}
+} // namespace plugins
+
+} // namespace picongpu

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PMacc.
  *
@@ -34,7 +34,7 @@ namespace math_functor
 template<typename T_Type>
 struct Sin
 {
-    typedef T_Type result_type;
+    using result_type = T_Type;
 
     DINLINE result_type operator()(const result_type& value) const
     {

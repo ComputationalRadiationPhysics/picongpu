@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2019 Axel Huebl, Richard Pausch, Alexander Debus
+# Copyright 2013-2020 Axel Huebl, Richard Pausch, Alexander Debus, Klaus Steiniger
 #
 # This file is part of PIConGPU.
 #
@@ -20,6 +20,13 @@
 
 
 # PIConGPU batch script for taurus' SLURM batch system
+# This tpl for automated restarts is older than the actual
+# V100.tpl.
+# It uses a machine file for parallel job execution,
+# which is not necessary anymore.
+# (See comment below, MPI has been fixed)
+# However, it still works and therefore is left unchanged.
+# Klaus, June 2019
 
 #SBATCH --partition=!TBG_queue
 #SBATCH --time=!TBG_wallTime
@@ -27,16 +34,22 @@
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --ntasks=!TBG_tasks
+#SBATCH --ntasks-per-node=!TBG_gpusPerNode
 #SBATCH --mincpus=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
 # Maximum memory setting the SLURM queue "ml" accepts.
-#SBATCH --mem-per-cpu=1511
+#SBATCH --mem=0
 #SBATCH --gres=gpu:!TBG_gpusPerNode
+#SBATCH --exclusive
+
+# disable hyperthreading (default on taurus)
+#SBATCH --hint=nomultithread
+
 # send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
 # TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
-#SBATCH --workdir=!TBG_dstPath
+#SBATCH --chdir=!TBG_dstPath
 
 #SBATCH -o stdout
 #SBATCH -e stderr
@@ -54,9 +67,9 @@
 # 6 gpus per node
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt 6 ] ; then echo 6; else echo $TBG_tasks; fi`
 
-# number of cores to block per GPU - we got 6 cpus per gpu
-#   and we will be accounted 6 CPUs per GPU anyway
-.TBG_coresPerGPU=28
+# number of CPU cores to block per GPU
+# we got 7 CPU cores per GPU (44cores/6gpus ~ 7cores)
+.TBG_coresPerGPU=7
 
 # We only start 1 MPI task per GPU
 .TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"

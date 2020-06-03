@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Marco Garten, Axel Huebl
+/* Copyright 2016-2020 Marco Garten, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -21,9 +21,10 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/traits/Resolve.hpp>
-#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include "picongpu/traits/UsesRNG.hpp"
 
+#include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"
@@ -33,7 +34,7 @@
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
+#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
@@ -72,11 +73,11 @@ namespace ionization
     struct ThomasFermi_Impl
     {
 
-        using DestSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        using DestSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_DestSpecies
         >;
-        using SrcSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        using SrcSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_SrcSpecies
         >;
@@ -136,28 +137,6 @@ namespace ionization
             PMACC_ALIGN(cachedRho, DataBox<SharedBox<ValueType_Rho, typename BlockArea::FullSuperCellSize,0> >);
             PMACC_ALIGN(cachedEne, DataBox<SharedBox<ValueType_Ene, typename BlockArea::FullSuperCellSize,1> >);
 
-            /** Solver for density of the ion species
-             *
-             *  @todo Include all ion species because the model requires the
-             *        density of ionic potential wells
-             */
-            using DensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<
-                SrcSpecies,
-                particleToGrid::derivedAttributes::Density
-            >::Solver;
-
-            /** Solver for energy density of the electron species with maximum energy cutoff
-             *
-             *  @todo Include all electron species with a ForEach<VectorallSpecies,...>
-             * instead of just the destination species
-             */
-            using EnergyDensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<
-                DestSpecies,
-                particleToGrid::derivedAttributes::EnergyDensityCutoff< CutoffMaxEnergy >
-            >::Solver;
-
-
-
         public:
             /* host constructor initializing member : random number generator */
             ThomasFermi_Impl(const uint32_t currentStep) : randomGen(RNGFactory::createRandom<Distribution>())
@@ -188,7 +167,15 @@ namespace ionization
                 /* load species without copying the particle data to the host */
                 auto srcSpecies = dc.get< SrcSpecies >( SrcSpecies::FrameType::getName(), true );
 
-                /* kernel call for weighted ion density calculation */
+                /** Calculate weighted ion density
+                 *
+                 * @todo Include all ion species because the model requires the
+                 *       density of ionic potential wells
+                 */
+                using DensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<
+                    SrcSpecies,
+                    particleToGrid::derivedAttributes::Density
+                >::Solver;
                 density->template computeValue< CORE + BORDER, DensitySolver >(*srcSpecies, currentStep);
                 dc.releaseData( SrcSpecies::FrameType::getName() );
                 EventTask densityEvent = density->asyncCommunication( __getTransactionEvent() );
@@ -197,7 +184,15 @@ namespace ionization
                 /* load species without copying the particle data to the host */
                 auto destSpecies = dc.get< DestSpecies >( DestSpecies::FrameType::getName(), true );
 
-                /* kernel call for weighted electron energy density calculation */
+                /** Calculate energy density of the electron species with maximum energy cutoff
+                 *
+                 *  @todo Include all electron species with a meta::ForEach<VectorallSpecies,...>
+                 * instead of just the destination species
+                 */
+                using EnergyDensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<
+                    DestSpecies,
+                    particleToGrid::derivedAttributes::EnergyDensityCutoff< CutoffMaxEnergy >
+                >::Solver;
                 eneKinDens->template computeValue< CORE + BORDER, EnergyDensitySolver >(*destSpecies, currentStep);
                 dc.releaseData( DestSpecies::FrameType::getName() );
                 EventTask eneKinEvent = eneKinDens->asyncCommunication( __getTransactionEvent() );
@@ -321,11 +316,11 @@ namespace ionization
                 /* multi-dim coordinate of the local cell inside the super cell */
                 DataSpace<SuperCellSize::dim> localCell(DataSpaceOperations<SuperCellSize::dim>::template map<SuperCellSize > (particleCellIdx));
                 /* interpolation of density */
-                const picongpu::traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldTmp> fieldPosRho;
+                const picongpu::traits::FieldPosition<fields::CellType, FieldTmp> fieldPosRho;
                 ValueType_Rho densityV = Field2ParticleInterpolation()
                     (cachedRho.shift(localCell).toCursor(), pos, fieldPosRho());
                 /*                          and energy density field on the particle position */
-                const picongpu::traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldTmp> fieldPosEne;
+                const picongpu::traits::FieldPosition<fields::CellType, FieldTmp> fieldPosEne;
                 ValueType_Ene kinEnergyV = Field2ParticleInterpolation()
                     (cachedEne.shift(localCell).toCursor(), pos, fieldPosEne());
 

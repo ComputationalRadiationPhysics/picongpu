@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl
+/* Copyright 2013-2020 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -27,7 +27,7 @@
 #include "picongpu/plugins/common/stringHelpers.hpp"
 #include <pmacc/Environment.hpp>
 
-#include "picongpu/fields/FieldManipulator.hpp"
+#include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 
 #include "picongpu/traits/SIBaseUnits.hpp"
@@ -224,7 +224,7 @@ namespace writeMeta
              *    3D: z-lower, z-upper, y-lower, y-upper, x-lower, x-upper
              *    2D: y-lower, y-upper, x-lower, x-upper
              */
-            GetStringProperties<FieldManipulator> fieldBoundaryProp;
+            GetStringProperties<fields::absorber::Absorber> fieldBoundaryProp;
             std::list<std::string> listFieldBoundary;
             std::list<std::string> listFieldBoundaryParam;
             for( uint32_t i = NumberOfExchanges<simDim>::value - 1; i > 0; --i )

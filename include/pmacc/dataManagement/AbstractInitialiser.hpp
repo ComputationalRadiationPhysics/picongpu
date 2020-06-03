@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Felix Schmitt, Benjamin Worpitz
+/* Copyright 2013-2020 Rene Widera, Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -22,7 +22,7 @@
 #pragma once
 
 #include "pmacc/dataManagement/ISimulationData.hpp"
-#include "pmacc/dataManagement/IDataSorter.hpp"
+
 
 namespace pmacc
 {

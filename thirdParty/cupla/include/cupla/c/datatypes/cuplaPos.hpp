@@ -21,7 +21,11 @@
 
 #pragma once
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
+
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
 struct cuplaPos{
     size_t x, y, z;
@@ -74,7 +78,7 @@ struct cuplaPos{
     }
 };
 
-
+} //namespace CUPLA_ACCELERATOR_NAMESPACE
 
 namespace alpaka
 {
@@ -213,19 +217,19 @@ namespace traits
 } // namespace traits
 } // namespace offset
 
-namespace size
+namespace idx
 {
 namespace traits
 {
 
     //! size type trait specialization.
     template<>
-    struct SizeType<
+    struct IdxType<
         cuplaPos
     >{
         using type = cupla::MemSizeType;
     };
 
 } // namespace traits
-} // namespace size
+} // namespace idx
 } // namespave alpaka

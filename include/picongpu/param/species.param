@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Rene Widera, Richard Pausch
+/* Copyright 2014-2020 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -43,7 +43,7 @@ namespace picongpu
  *  - particles::shapes::PCS : 3rd order
  *  - particles::shapes::P4S : 4th order
  *
- *  example:             using CICShape = particles::shapes::CIC;
+ *  example: using UsedParticleShape = particles::shapes::CIC;
  */
 using UsedParticleShape = particles::shapes::TSC;
 
@@ -62,13 +62,12 @@ using UsedField2Particle = FieldToParticleInterpolation<
  * For development purposes:
  * - currentSolver::currentSolver::EsirkepovNative< SHAPE > : generic version of currentSolverEsirkepov
  *   without optimization (~4x slower and needs more shared memory)
- * - currentSolver::ZigZag< SHAPE >    : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
  */
 using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
 
 /** particle pusher configuration
  *
- * Define a pusher is optional for particles
+ * Defining a pusher is optional for particles
  *
  * - particles::pusher::Vay : better suited relativistic boris pusher
  * - particles::pusher::Boris : standard boris pusher
@@ -76,6 +75,7 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
  *                                              with classical radiation reaction
  *
  * For diagnostics & modeling: ------------------------------------------------
+ * - particles::pusher::Acceleration : Accelerate particles by applying a constant electric field
  * - particles::pusher::Free : free propagation, ignore fields
  *                             (= free stream model)
  * - particles::pusher::Photon : propagate with c in direction of normalized mom.

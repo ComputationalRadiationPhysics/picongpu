@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Heiko Burau
+/* Copyright 2015-2020 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -45,9 +45,10 @@ namespace detail
  */
 struct MapToLookupTable
 {
-    typedef typename ::pmacc::result_of::Functor<
+    using LinInterpCursor = typename ::pmacc::result_of::Functor<
         ::pmacc::cursor::tools::LinearInterp<float_X>,
-        ::pmacc::cursor::BufferCursor<float_X, DIM1> >::type LinInterpCursor;
+        ::pmacc::cursor::BufferCursor<float_X, DIM1>
+    >::type;
 
     using type = float_X;
 
@@ -68,10 +69,11 @@ struct MapToLookupTable
     HDINLINE float_X operator()(const float_X x) const;
 };
 
-typedef ::pmacc::cursor::Cursor<
+using SyncFuncCursor = ::pmacc::cursor::Cursor<
     MapToLookupTable,
     ::pmacc::cursor::PlusNavigator,
-    float_X> SyncFuncCursor;
+    float_X
+>;
 
 } // namespace detail
 
@@ -86,7 +88,7 @@ public:
     using SyncFuncCursor = detail::SyncFuncCursor;
 private:
 
-    typedef boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM1> > MyBuf;
+    using MyBuf = boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM1> >;
     MyBuf dBuf_SyncFuncs[2]; // two synchrotron functions
 
     struct BesselK
@@ -100,10 +102,10 @@ private:
 
     /** First synchrotron function
      */
-    float_64 F_1(const float_64 x) const;
+    HINLINE float_64 F_1(const float_64 x) const;
     /** Second synchrotron function
      */
-    float_64 F_2(const float_64 x) const;
+    HINLINE float_64 F_2(const float_64 x) const;
 
 public:
     enum Select
@@ -111,13 +113,13 @@ public:
         first=0, second=1
     };
 
-    void init();
+    HINLINE void init();
     /** Return a cursor representing a synchrotron function
      *
      * @param syncFunction first or second synchrotron function
      * @see: SynchrotronFunctions::Select
      */
-    SyncFuncCursor getCursor(Select syncFunction) const;
+    HINLINE SyncFuncCursor getCursor(Select syncFunction) const;
 
 }; // class SynchrotronFunctions
 

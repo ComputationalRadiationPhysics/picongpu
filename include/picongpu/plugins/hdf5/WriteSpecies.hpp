@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Felix Schmitt, Axel Huebl
+/* Copyright 2013-2020 Rene Widera, Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -24,13 +24,14 @@
 #include "picongpu/traits/SIBaseUnits.hpp"
 #include "picongpu/traits/PICToOpenPMD.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 #include "picongpu/plugins/kernel/CopySpecies.kernel"
 #include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
 #include "picongpu/plugins/hdf5/writer/ParticleAttribute.hpp"
 
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
-#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/particles/ParticleDescription.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
@@ -191,8 +192,8 @@ public:
         Hdf5FrameType hostFrame;
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) malloc mapped memory: %1%") % T_SpeciesFilter::getName();
         /*malloc mapped memory*/
-        ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
-        mallocMem(forward(hostFrame), numParticles);
+        meta::ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
+        mallocMem(hostFrame, numParticles);
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) malloc mapped memory: %1%") % T_SpeciesFilter::getName();
 
         if (numParticles != 0)
@@ -201,8 +202,8 @@ public:
             log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) get mapped memory device pointer: %1%") % T_SpeciesFilter::getName();
             /*load device pointer of mapped memory*/
             Hdf5FrameType deviceFrame;
-            ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
-            getDevicePtr(forward(deviceFrame), forward(hostFrame));
+            meta::ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
+            getDevicePtr(deviceFrame, hostFrame);
             log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) get mapped memory device pointer: %1%") % T_SpeciesFilter::getName();
 
             log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) copy particle to host: %1%") % T_SpeciesFilter::getName();
@@ -210,7 +211,7 @@ public:
             typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
             MyParticleFilter filter;
             /* activate filter pipeline if moving window is activated */
-            filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
+            filter.setStatus(MovingWindow::getInstance().isEnabled());
             filter.setWindowPosition(params->localWindowToDomainOffset,
                                      params->window.localDimensions.size);
 
@@ -299,10 +300,10 @@ public:
 
         const std::string speciesPath( std::string("particles/") + T_SpeciesFilter::getName() );
 
-        ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<bmpl::_1> > writeToHdf5;
+        meta::ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<bmpl::_1> > writeToHdf5;
         writeToHdf5(
             params,
-            forward(hostFrame),
+            hostFrame,
             speciesPath,
             numParticles,
             numParticlesOffset,
@@ -435,7 +436,7 @@ public:
          * extent: size of this particle patch, upper bound is excluded
          */
         const pmacc::Selection<simDim>& globalDomain = Environment<simDim>::get().SubGrid().getGlobalDomain();
-        const std::string name_lookup[] = {"x", "y", "z"};
+        const auto componentNames = plugins::misc::getComponentNames( simDim );
         for (uint32_t d = 0; d < simDim; ++d)
         {
             const uint64_t patchOffset =
@@ -452,7 +453,7 @@ public:
                 ctUInt64, 1,
                 myPatchEntries,
                 (particlePatchesPath + std::string("/offset/") +
-                 name_lookup[d]).c_str(),
+                 componentNames[d]).c_str(),
                 &patchOffset);
             params->dataCollector->write(
                 params->currentStep,
@@ -461,7 +462,7 @@ public:
                 ctUInt64, 1,
                 myPatchEntries,
                 (particlePatchesPath + std::string("/extent/") +
-                 name_lookup[d]).c_str(),
+                 componentNames[d]).c_str(),
                 &patchExtent);
 
             /* offsets and extent of the patch are positions (lengths)
@@ -474,14 +475,14 @@ public:
                 params->currentStep,
                 ctDouble,
                 (particlePatchesPath + std::string("/offset/") +
-                 name_lookup[d]).c_str(),
+                 componentNames[d]).c_str(),
                 "unitSI",
                 &(unitCellIdx.at(d)));
             params->dataCollector->writeAttribute(
                 params->currentStep,
                 ctDouble,
                 (particlePatchesPath + std::string("/extent/") +
-                 name_lookup[d]).c_str(),
+                 componentNames[d]).c_str(),
                 "unitSI",
                 &(unitCellIdx.at(d)));
         }
@@ -508,8 +509,8 @@ public:
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) writing particlePatches for %1%") % T_SpeciesFilter::getName();
 
         /*free host memory*/
-        ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
-        freeMem(forward(hostFrame));
+        meta::ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
+        freeMem(hostFrame);
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing species: %1%") % T_SpeciesFilter::getName();
     }
 

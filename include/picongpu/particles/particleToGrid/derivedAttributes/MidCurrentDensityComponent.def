@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Axel Huebl
+/* Copyright 2016-2020 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 
 #include <pmacc/traits/HasIdentifiers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
@@ -83,9 +84,8 @@ namespace derivedAttributes
         std::string
         getName()
         {
-            const std::string name_lookup[] = {"x", "y", "z"};
-
-            return "midCurrentDensity/" + name_lookup[T_direction];
+            auto const componentNames = plugins::misc::getComponentNames( 3 );
+            return "midCurrentDensity/" + componentNames[T_direction];
         }
 
         /** Calculate a new attribute per particle

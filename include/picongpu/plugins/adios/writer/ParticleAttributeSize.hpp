@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Felix Schmitt, Axel Huebl
+/* Copyright 2014-2020 Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/adios/ADIOSWriter.def"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/traits/PICToAdios.hpp"
 #include "picongpu/traits/PICToOpenPMD.hpp"
 #include <pmacc/traits/GetComponentsType.hpp>
@@ -70,7 +71,7 @@ struct ParticleAttributeSize
         PICToAdios<float_64> adiosDoubleType;
         PICToAdios<uint32_t> adiosUInt32Type;
 
-        const std::string name_lookup[] = {"x", "y", "z"};
+        const auto componentNames = plugins::misc::getComponentNames( components );
 
         OpenPMDName<T_Identifier> openPMDName;
         const std::string recordPath( params->adiosBasePath +
@@ -93,7 +94,7 @@ struct ParticleAttributeSize
             std::stringstream datasetName;
             datasetName << recordPath;
             if (components > 1)
-                datasetName << "/" << name_lookup[d];
+                datasetName << "/" << componentNames[d];
 
             const char* path = nullptr;
             int64_t adiosParticleAttrId = defineAdiosVar<DIM1>(
@@ -136,7 +137,7 @@ struct ParticleAttributeSize
         const float_X timeOffset = 0.0;
         ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
             "timeOffset", recordPath.c_str(),
-            adiosFloatXType.type, 7, (void*)&timeOffset ));
+            adiosFloatXType.type, 1, (void*)&timeOffset ));
 
     }
 

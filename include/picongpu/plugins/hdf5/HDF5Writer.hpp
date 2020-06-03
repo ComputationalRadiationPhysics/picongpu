@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Alexander Grund
  *
  * This file is part of PIConGPU.
@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include <pthread.h>
 #include <sstream>
 #include <string>
 #include <list>
@@ -45,6 +44,7 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
+#include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
 #include <pmacc/particles/particleFilter/FilterFactory.hpp>
 #include <pmacc/particles/particleFilter/PositionFilter.hpp>
 #include <pmacc/particles/operations/CountParticles.hpp>
@@ -55,7 +55,7 @@
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/pluginSystem/PluginConnector.hpp>
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 #include <pmacc/math/Vector.hpp>
 
 #include "picongpu/plugins/output/IIOBackend.hpp"
@@ -189,17 +189,17 @@ public:
             std::string const & masterPrefix = std::string{ }
         )
         {
-            ForEach<
+            meta::ForEach<
                 AllEligibleSpeciesSources,
                 plugins::misc::AppendName< bmpl::_1 >
             > getEligibleDataSourceNames;
-            getEligibleDataSourceNames( forward( allowedDataSources ) );
+            getEligibleDataSourceNames( allowedDataSources );
 
-            ForEach<
+            meta::ForEach<
                 AllFieldSources,
                 plugins::misc::AppendName< bmpl::_1 >
             > appendFieldSourceNames;
-            appendFieldSourceNames( forward( allowedDataSources ) );
+            appendFieldSourceNames( allowedDataSources );
 
             // string list with all possible data sources
             std::string concatenatedSourceNames = plugins::misc::concatenateToString(
@@ -472,11 +472,11 @@ public:
         ThreadParams *params = &mThreadParams;
 
         /* load all fields */
-        ForEach<FileCheckpointFields, LoadFields<bmpl::_1> > forEachLoadFields;
+        meta::ForEach<FileCheckpointFields, LoadFields<bmpl::_1> > forEachLoadFields;
         forEachLoadFields(params);
 
         /* load all particles */
-        ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
+        meta::ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
         forEachLoadSpecies(params, restartChunkSize);
 
         IdProvider<simDim>::State idProvState;
@@ -668,7 +668,7 @@ private:
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing fields.");
         if (threadParams->isCheckpoint)
         {
-            ForEach<FileCheckpointFields, WriteFields<bmpl::_1> > forEachWriteFields;
+            meta::ForEach<FileCheckpointFields, WriteFields<bmpl::_1> > forEachWriteFields;
             forEachWriteFields(threadParams);
         }
         else
@@ -679,14 +679,14 @@ private:
             );
             if( dumpFields )
             {
-                ForEach<
+                meta::ForEach<
                     FileOutputFields,
                     WriteFields< bmpl::_1 >
                 > forEachWriteFields;
                 forEachWriteFields(threadParams);
             }
 
-            ForEach<
+            meta::ForEach<
                 typename Help::AllFieldSources,
                 CallWriteFields<
                     bmpl::_1
@@ -702,7 +702,7 @@ private:
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species.");
         if (threadParams->isCheckpoint)
         {
-            ForEach<
+            meta::ForEach<
                 FileCheckpointParticles,
                 WriteSpecies<
                     plugins::misc::UnfilteredSpecies< bmpl::_1 >
@@ -719,7 +719,7 @@ private:
 
             if( dumpAllParticles )
             {
-                ForEach<
+                meta::ForEach<
                     FileOutputParticles,
                     WriteSpecies<
                         plugins::misc::UnfilteredSpecies< bmpl::_1 >
@@ -728,7 +728,7 @@ private:
                 writeSpecies(threadParams, domainOffset);
             }
 
-            ForEach<
+            meta::ForEach<
                 typename Help::AllEligibleSpeciesSources,
                 CallWriteSpecies<
                     bmpl::_1

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Richard Pausch
+/* Copyright 2013-2020 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -36,7 +36,7 @@
  */
 #define PIC_VERBOSE_RADIATION 3
 
-#include "picongpu/plugins/radiation/parameters.hpp"
+#include "picongpu/plugins/radiation/VectorTypes.hpp"
 #include "picongpu/plugins/radiation/debug/PIConGPUVerboseLogRadiation.hpp"
 #include "picongpu/algorithms/Gamma.def"
 #include "picongpu/traits/attribute/GetMass.hpp"
@@ -44,60 +44,63 @@
 
 namespace picongpu
 {
-    namespace rad_linear_frequencies
-    {
-        namespace SI
-        {
-            /** mimimum frequency of the linear frequency scale in units of [1/s] */
-            constexpr float_64 omega_min = 0.0;
-            /** maximum frequency of the linear frequency scale in units of [1/s] */
-            constexpr float_64 omega_max = 1.06e16;
-        }
+namespace plugins
+{
+namespace radiation
+{
+namespace linear_frequencies
+{
+namespace SI
+{
+    /** mimimum frequency of the linear frequency scale in units of [1/s] */
+    constexpr float_64 omega_min = 0.0;
+    /** maximum frequency of the linear frequency scale in units of [1/s] */
+    constexpr float_64 omega_max = 1.06e16;
+} // namespace SI
 
-        /** number of frequency values to compute in the linear frequency [unitless] */
-        constexpr unsigned int N_omega = 2048;
-    }
+    /** number of frequency values to compute in the linear frequency [unitless] */
+    constexpr unsigned int N_omega = 2048;
+} // namespace linear_frequencies
 
-    namespace rad_log_frequencies
-    {
-        namespace SI
-        {
-            /** mimimum frequency of the logarithmic frequency scale in units of [1/s] */
-            constexpr float_64 omega_min = 1.0e14;
-            /** maximum frequency of the logarithmic frequency scale in units of [1/s] */
-            constexpr float_64 omega_max = 1.0e17;
-        }
+namespace log_frequencies
+{
+namespace SI
+{
+    /** mimimum frequency of the logarithmic frequency scale in units of [1/s] */
+    constexpr float_64 omega_min = 1.0e14;
+    /** maximum frequency of the logarithmic frequency scale in units of [1/s] */
+    constexpr float_64 omega_max = 1.0e17;
+} // namespace SI
 
-        /** number of frequency values to compute in the logarithmic frequency [unitless] */
-        constexpr unsigned int N_omega = 2048;
-    }
+    /** number of frequency values to compute in the logarithmic frequency [unitless] */
+    constexpr unsigned int N_omega = 2048;
+} // namespace log_frequencies
 
 
-    namespace rad_frequencies_from_list
-    {
-        /** path to text file with frequencies */
-        constexpr char listLocation[] = "/path/to/frequency_list";
-        /** number of frequency values to compute if frequencies are given in a file [unitless] */
-        constexpr unsigned int N_omega = 2048;
-    }
+namespace frequencies_from_list
+{
+    /** path to text file with frequencies */
+    constexpr const char * listLocation = "/path/to/frequency_list";
+    /** number of frequency values to compute if frequencies are given in a file [unitless] */
+    constexpr unsigned int N_omega = 2048;
+} // namespace frequencies_from_list
 
     /** selected mode of frequency scaling:
      *
      * options:
-     * - rad_linear_frequencies
-     * - rad_log_frequencies
-     * - rad_frequencies_from_list
+     * - linear_frequencies
+     * - log_frequencies
+     * - frequencies_from_list
      */
-    namespace radiation_frequencies = rad_linear_frequencies;
+    namespace radiation_frequencies = linear_frequencies;
 
-
-    namespace radiationNyquist
-    {
-        /** Nyquist factor: fraction of the local Nyquist frequency above which the spectra is set to zero
-         * should be in (0, 1).
-         */
-        constexpr float_32 NyquistFactor = 0.5;
-    }
+namespace radiationNyquist
+{
+    /** Nyquist factor: fraction of the local Nyquist frequency above which the spectra is set to zero
+     * should be in (0, 1).
+     */
+    constexpr float_32 NyquistFactor = 0.5;
+} // namespace radiationNyquist
 
 
     ///////////////////////////////////////////////////
@@ -130,54 +133,50 @@ namespace picongpu
     ///////////////////////////////////////////////////////////
 
 
-    namespace parameters
+namespace parameters
+{
+
+    /** number of observation directions */
+    constexpr unsigned int N_observer = 256;
+
+} // namespace parameters
+
+    /** select particles for radiation
+     * example of a filter for the relativistic Lorentz factor gamma
+     */
+    struct GammaFilterFunctor
     {
+        /** Gamma value above which the radiation is calculated */
+        static constexpr float_X radiationGamma = 5.0;
 
-        /** number of observation directions */
-        constexpr unsigned int N_observer = 256;
-
-
-
-    } /* end namespace parameters */
-
-    namespace radiation
-    {
-        /** select particles for radiation
-         * example of a filter for the relativistic Lorentz factor gamma
-         */
-        struct GammaFilterFunctor
+        template< typename T_Particle >
+        HDINLINE void operator()( T_Particle& particle )
         {
-            /** Gamma value above which the radiation is calculated */
-            static constexpr float_X radiationGamma = 5.0;
-
-            template< typename T_Particle >
-            HDINLINE void operator()( T_Particle& particle )
-            {
-                if(
-                    picongpu::gamma<float_X>(
-                        particle[ picongpu::momentum_ ],
-                        picongpu::traits::attribute::getMass(
-                            particle[ picongpu::weighting_ ],
-                            particle
-                        )
-                    ) >= radiationGamma
-                )
-                    particle[ picongpu::radiationMask_ ] = true;
-            }
-        };
+            if(
+               picongpu::gamma<float_X>(
+                                        particle[ picongpu::momentum_ ],
+                                        picongpu::traits::attribute::getMass(
+                                                                             particle[ picongpu::weighting_ ],
+                                                                             particle
+                                                                             )
+                                        ) >= radiationGamma
+               )
+              particle[ picongpu::radiationMask_ ] = true;
+        }
+    };
 
 
-        /** filter to (de)select particles for the radiation calculation
-         *
-         * to activate the filter:
-         *   - goto file `speciesDefinition.param`
-         *   - add the attribute `radiationMask` to the particle species
-         */
-        using RadiationParticleFilter = picongpu::particles::manipulators::generic::Free<
-            GammaFilterFunctor
-        >;
+    /** filter to (de)select particles for the radiation calculation
+     *
+     * to activate the filter:
+     *   - goto file `speciesDefinition.param`
+     *   - add the attribute `radiationMask` to the particle species
+     */
+    using RadiationParticleFilter = picongpu::particles::manipulators::generic::Free<
+        GammaFilterFunctor
+      >;
 
-    } // namespace radiation
+
 
     //////////////////////////////////////////////////
 
@@ -202,4 +201,6 @@ namespace picongpu
     namespace radWindowFunction = radWindowFunctionNone;
 
 
-}//namespace picongpu
+} // namespace radiation
+} // namespace plugins
+} // namespace picongpu

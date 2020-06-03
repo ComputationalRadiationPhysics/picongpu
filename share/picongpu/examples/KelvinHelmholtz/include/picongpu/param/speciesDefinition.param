@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Benjamin Worpitz, Heiko Burau
+/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -23,10 +23,10 @@
 #include "picongpu/particles/Particles.hpp"
 
 #include <pmacc/particles/Identifier.hpp>
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
 #include <pmacc/identifier/value_identifier.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
-#include <pmacc/compileTime/String.hpp>
+#include <pmacc/meta/String.hpp>
 
 
 #ifndef PARAM_RADIATION
@@ -83,7 +83,7 @@ value_identifier( float_X, MassRatioIons, 1836.152672 );
 value_identifier( float_X, ChargeRatioIons, -1.0 );
 
 /* ratio relative to BASE_DENSITY */
-value_identifier( float_X, DensityRatioIons, -1.0 );
+value_identifier( float_X, DensityRatioIons, 1.0 );
 
 using ParticleFlagsIons = MakeSeq_t<
     particlePusher< UsedParticlePusher >,

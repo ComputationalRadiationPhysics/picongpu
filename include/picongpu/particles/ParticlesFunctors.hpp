@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Rene Widera, Marco Garten, Alexander Grund,
+/* Copyright 2014-2020 Rene Widera, Marco Garten, Alexander Grund,
  *                     Heiko Burau, Axel Huebl
  *
  * This file is part of PIConGPU.
@@ -27,7 +27,8 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
-#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
+#include <pmacc/memory/MakeUnique.hpp>
 
 #include "picongpu/particles/traits/GetIonizerList.hpp"
 #if( PMACC_CUDA_ENABLED == 1 )
@@ -59,7 +60,7 @@ namespace particles
 template<typename T_SpeciesType>
 struct AssignNull
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -81,7 +82,7 @@ struct AssignNull
 template< typename T_SpeciesType >
 struct CreateSpecies
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -97,13 +98,11 @@ struct CreateSpecies
     ) const
     {
         DataConnector &dc = Environment<>::get().DataConnector();
-        dc.share(
-            std::shared_ptr< ISimulationData >(
-                new SpeciesType(
-                    deviceHeap,
-                    *cellDesc,
-                    FrameType::getName()
-                )
+        dc.consume(
+            pmacc::memory::makeUnique<SpeciesType>(
+                deviceHeap,
+                *cellDesc,
+                FrameType::getName()
             )
         );
     }
@@ -116,7 +115,7 @@ struct CreateSpecies
 template< typename T_SpeciesType >
 struct LogMemoryStatisticsForSpecies
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -143,7 +142,7 @@ struct LogMemoryStatisticsForSpecies
 template< typename T_SpeciesType >
 struct CallReset
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -167,7 +166,7 @@ struct CallReset
 template< typename T_SpeciesType >
 struct CallPopulationKineticsInit
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -196,7 +195,7 @@ struct CallPopulationKineticsInit
 template< typename T_SpeciesType >
 struct CallPopulationKinetics
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -229,7 +228,7 @@ struct CallPopulationKinetics
 template<typename T_SpeciesType>
 struct PushSpecies
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -262,7 +261,7 @@ struct PushSpecies
 template<typename T_SpeciesType>
 struct CommunicateSpecies
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -307,13 +306,13 @@ struct PushAllSpecies
         EventList commEventList;
 
         /* push all species */
-        typedef typename pmacc::particles::traits::FilterByFlag
+        using VectorSpeciesWithPusher = typename pmacc::particles::traits::FilterByFlag
         <
             VectorAllSpecies,
             particlePusher<>
-        >::type VectorSpeciesWithPusher;
-        ForEach< VectorSpeciesWithPusher, particles::PushSpecies< bmpl::_1 > > pushSpecies;
-        pushSpecies( currentStep, eventInt, forward(updateEventList) );
+        >::type;
+        meta::ForEach< VectorSpeciesWithPusher, particles::PushSpecies< bmpl::_1 > > pushSpecies;
+        pushSpecies( currentStep, eventInt, updateEventList );
 
         /* join all push events */
         for (typename EventList::iterator iter = updateEventList.begin();
@@ -324,8 +323,8 @@ struct PushAllSpecies
         }
 
         /* call communication for all species */
-        ForEach< VectorSpeciesWithPusher, particles::CommunicateSpecies< bmpl::_1> > communicateSpecies;
-        communicateSpecies( forward(updateEventList), forward(commEventList) );
+        meta::ForEach< VectorSpeciesWithPusher, particles::CommunicateSpecies< bmpl::_1> > communicateSpecies;
+        communicateSpecies( updateEventList, commEventList );
 
         /* join all communication events */
         for (typename EventList::iterator iter = commEventList.begin();
@@ -345,7 +344,7 @@ struct PushAllSpecies
 template< typename T_SpeciesType, typename T_SelectIonizer >
 struct CallIonizationScheme
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -362,12 +361,12 @@ struct CallIonizationScheme
      *
      * \tparam T_CellDescription contains the number of blocks and blocksize
      *                           that is later passed to the kernel
-     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param cellDesc logical block information like dimension and cell sizes
      * \param currentStep The current time step
      */
     template<typename T_CellDescription>
     HINLINE void operator()(
-        T_CellDescription* cellDesc,
+        T_CellDescription cellDesc,
         const uint32_t currentStep
     ) const
     {
@@ -403,7 +402,7 @@ struct CallIonizationScheme
 template< typename T_SpeciesType >
 struct CallIonization
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -416,12 +415,12 @@ struct CallIonization
      *
      * \tparam T_CellDescription contains the number of blocks and blocksize
      *                           that is later passed to the kernel
-     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param cellDesc logical block information like dimension and cell sizes
      * \param currentStep The current time step
      */
     template<typename T_CellDescription>
     HINLINE void operator()(
-        T_CellDescription* cellDesc,
+        T_CellDescription cellDesc,
         const uint32_t currentStep
     ) const
     {
@@ -431,7 +430,7 @@ struct CallIonization
         using hasIonizers = typename HasFlag< FrameType, ionizers<> >::type;
         if (hasIonizers::value)
         {
-            ForEach< SelectIonizerList, CallIonizationScheme< SpeciesType, bmpl::_1 > > particleIonization;
+            meta::ForEach< SelectIonizerList, CallIonizationScheme< SpeciesType, bmpl::_1 > > particleIonization;
             particleIonization( cellDesc, currentStep );
         }
     }
@@ -447,20 +446,20 @@ struct CallIonization
 template<typename T_ElectronSpecies>
 struct CallBremsstrahlung
 {
-    using ElectronSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+    using ElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_ElectronSpecies
     >;
     using ElectronFrameType = typename ElectronSpecies::FrameType;
 
-    using IonSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+    using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         typename pmacc::particles::traits::ResolveAliasFromSpecies<
             ElectronSpecies,
             bremsstrahlungIons<>
         >::type
     >;
-    using PhotonSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+    using PhotonSpecies = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         typename pmacc::particles::traits::ResolveAliasFromSpecies<
             ElectronSpecies,
@@ -478,12 +477,12 @@ struct CallBremsstrahlung
      *
      * \tparam T_CellDescription contains the number of blocks and blocksize
      *                           that is later passed to the kernel
-     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param cellDesc logical block information like dimension and cell sizes
      * \param currentStep the current time step
      */
     template<typename T_CellDescription, typename ScaledSpectrumMap>
     HINLINE void operator()(
-        T_CellDescription* cellDesc,
+        T_CellDescription cellDesc,
         const uint32_t currentStep,
         const ScaledSpectrumMap& scaledSpectrumMap,
         const bremsstrahlung::GetPhotonAngle& photonAngle
@@ -521,7 +520,7 @@ struct CallBremsstrahlung
 template<typename T_ElectronSpecies>
 struct CallSynchrotronPhotons
 {
-    using ElectronSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+    using ElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_ElectronSpecies
     >;
@@ -536,13 +535,13 @@ struct CallSynchrotronPhotons
      *
      * \tparam T_CellDescription contains the number of blocks and blocksize
      *                           that is later passed to the kernel
-     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param cellDesc logical block information like dimension and cell sizes
      * \param currentStep The current time step
      * \param synchrotronFunctions synchrotron functions wrapper object
      */
     template<typename T_CellDescription>
     HINLINE void operator()(
-        T_CellDescription* cellDesc,
+        T_CellDescription cellDesc,
         const uint32_t currentStep,
         const synchrotronPhotons::SynchrotronFunctions& synchrotronFunctions
     ) const

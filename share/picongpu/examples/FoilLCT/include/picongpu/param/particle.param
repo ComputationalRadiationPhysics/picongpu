@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2020 Axel Huebl, Rene Widera, Benjamin Worpitz,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -62,7 +62,7 @@ namespace manipulators
         )
         {
             constexpr float_X protonNumber = GetAtomicNumbers< T_Particle >::type::numberOfProtons;
-            particle[ boundElectrons_ ] = protonNumber - 1;
+            particle[ boundElectrons_ ] = protonNumber - 1.0_X;
         }
     };
     using OnceIonized = generic::Free< OnceIonizedImpl >;

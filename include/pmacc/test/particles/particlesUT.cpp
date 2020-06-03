@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Alexander Grund
+/* Copyright 2016-2020 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -33,3 +33,4 @@
 #endif
 
 #include "IdProvider.hpp"
+#include "memory/SuperCell.hpp"

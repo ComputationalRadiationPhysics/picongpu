@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Axel Huebl
+/* Copyright 2017-2020 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -27,8 +27,7 @@
 #include <pmacc/types.hpp>
 #include <pmacc/static_assert.hpp>
 #include <pmacc/Environment.hpp>
-#include <pmacc/algorithms/ForEach.hpp>
-#include <pmacc/forward.hpp>
+#include <pmacc/meta/ForEach.hpp>
 
 #include <string>
 #include <memory>
@@ -58,10 +57,6 @@ namespace detail
         using SpeciesType = T_SpeciesType;
         using FrameType = typename SpeciesType::FrameType;
         using ShapeType = typename GetShape< SpeciesType >::type;
-        using Density = particleToGrid::ComputeGridValuePerFrame<
-            ShapeType,
-            particleToGrid::derivedAttributes::Density
-        >;
 
         /** Functor
          *
@@ -78,6 +73,10 @@ namespace detail
             // load particle without copy particle data to host
             auto speciesTmp = dc.get< SpeciesType >( FrameType::getName(), true );
 
+            using Density = particleToGrid::ComputeGridValuePerFrame<
+                ShapeType,
+                particleToGrid::derivedAttributes::Density
+            >;
             fieldTmp->template computeValue< CORE + BORDER, Density >( *speciesTmp, currentStep );
 
             dc.releaseData( FrameType::getName() );
@@ -126,8 +125,8 @@ namespace detail
             fieldTmp->getGridBuffer().getDeviceBuffer().setValue( DensityValueType::create(0.0) );
 
             // add density of each species in list to FieldTmp
-            ForEach< SpeciesList, detail::AddSingleDensity< bmpl::_1 > > addSingleDensity;
-            addSingleDensity( currentStep, forward( fieldTmp ) );
+            meta::ForEach< SpeciesList, detail::AddSingleDensity< bmpl::_1 > > addSingleDensity;
+            addSingleDensity( currentStep, fieldTmp );
 
             /* create valid density in the BORDER region
              * note: for average != supercell multiples the GUARD of fieldTmp

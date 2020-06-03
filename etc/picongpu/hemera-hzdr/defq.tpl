@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2018 Axel Huebl, Richard Pausch, Rene Widera
+# Copyright 2013-2020 Axel Huebl, Richard Pausch, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -34,8 +34,7 @@
 #SBATCH --threads-per-core=1
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
-#SBATCH --workdir=!TBG_dstPath
-#SBATCH --workdir=!TBG_dstPath
+#SBATCH --chdir=!TBG_dstPath
 
 #SBATCH -o stdout
 #SBATCH -e stderr

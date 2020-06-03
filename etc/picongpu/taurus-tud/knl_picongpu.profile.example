@@ -1,7 +1,7 @@
 # Name and Path of this Script ############################### (DO NOT change!)
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
-# User Information ######################################### (edit those lines)
+# User Information ################################# (edit the following lines)
 #   - automatically add your name and contact to output file meta data
 #   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
 #     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
@@ -66,3 +66,11 @@ export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/taurus-tud/knl.tpl"
 
 alias getNode='srun -p knl -N 1 -c 64 --mem=90000 --constraint="Quadrant&Cache" --pty bash'
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi

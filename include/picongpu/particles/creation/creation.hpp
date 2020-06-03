@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Heiko Burau
+/* Copyright 2015-2020 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -49,11 +49,11 @@ template<typename T_SourceSpecies, typename T_TargetSpecies, typename T_Particle
 void createParticlesFromSpecies(T_SourceSpecies& sourceSpecies,
                                 T_TargetSpecies& targetSpecies,
                                 T_ParticleCreator particleCreator,
-                                T_CellDescription* cellDesc)
+                                T_CellDescription cellDesc)
 {
-    typedef typename MappingDesc::SuperCellSize SuperCellSize;
-    const pmacc::math::Int<simDim> coreBorderGuardSuperCells = cellDesc->getGridSuperCells();
-    const pmacc::math::Int<simDim> guardSuperCells = cellDesc->getGuardingSuperCells();
+    using SuperCellSize = typename MappingDesc::SuperCellSize;
+    const pmacc::math::Int<simDim> coreBorderGuardSuperCells = cellDesc.getGridSuperCells();
+    const pmacc::math::Int<simDim> guardSuperCells = cellDesc.getGuardingSuperCells();
     const pmacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2 * guardSuperCells;
 
     constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<

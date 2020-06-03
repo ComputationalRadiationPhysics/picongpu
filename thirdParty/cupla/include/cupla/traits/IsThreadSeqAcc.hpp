@@ -21,9 +21,12 @@
 
 #pragma once
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 
 namespace cupla
+{
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
 namespace traits
 {
@@ -72,5 +75,22 @@ namespace traits
     };
 #endif
 
-}  // namespace traits
+#ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
+    template<
+        typename T_KernelDim,
+        typename T_IndexType
+    >
+    struct IsThreadSeqAcc<
+        ::alpaka::acc::AccCpuTbbBlocks<
+            T_KernelDim,
+            T_IndexType
+        >
+    >
+    {
+        static constexpr bool value = true;
+    };
+#endif
+
+} // namespace traits
+} // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

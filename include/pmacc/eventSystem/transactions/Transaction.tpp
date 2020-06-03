@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -35,13 +35,13 @@ Transaction::Transaction( EventTask event ) : baseEvent( event )
 
 }
 
-inline EventTask Transaction::setTransactionEvent( const EventTask& event )
+EventTask Transaction::setTransactionEvent( const EventTask& event )
 {
     baseEvent += event;
     return baseEvent;
 }
 
-inline EventTask Transaction::getTransactionEvent( )
+EventTask Transaction::getTransactionEvent( )
 {
     return baseEvent;
 }

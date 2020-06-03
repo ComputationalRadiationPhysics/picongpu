@@ -21,12 +21,17 @@
 
 #pragma once
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla/c/datatypes/cuplaPitchedPtr.hpp"
 #include "cupla/c/datatypes/cuplaPos.hpp"
 #include "cupla/c/datatypes/cuplaExtent.hpp"
 
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
 struct cuplaArray
 {
 };
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE

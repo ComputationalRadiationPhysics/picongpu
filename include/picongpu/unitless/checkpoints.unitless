@@ -1,4 +1,5 @@
-/* Copyright 2013-2018 Axel Huebl, Rene Widera, Felix Schmitt, Benjamin Worpitz
+/* Copyright 2013-2020 Axel Huebl, Rene Widera, Felix Schmitt, Benjamin Worpitz,
+ *                     Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -19,7 +20,7 @@
 
 #pragma once
 
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
 
 /* some forward declarations we need */
 #include "picongpu/fields/Fields.def"
@@ -27,6 +28,33 @@
 
 namespace picongpu
 {
+namespace detail
+{
+
+        /** Additional fields for checkpointing
+         *
+         * @tparam T_FieldSolver field solver type
+         */
+        template< typename T_FieldSolver >
+        struct AdditionalCheckpointFields
+        {
+            using type = MakeSeq_t< >;
+        };
+
+        //! Only the YeePML solver needs additional fields for checkpointing
+        template< typename ... T_Args >
+        struct AdditionalCheckpointFields<
+            fields::maxwellSolver::YeePML< T_Args ... >
+        >
+        {
+            using type = MakeSeq_t<
+                fields::maxwellSolver::yeePML::FieldE,
+                fields::maxwellSolver::yeePML::FieldB
+            >;
+        };
+
+} // namespace detail
+
     /** Note: we need at least FieldE and FieldB for restart
      *        capabilities!
      */
@@ -35,11 +63,15 @@ namespace picongpu
         FieldB
     >;
 
+    using AdditionalFileCheckpointFields =
+        typename picongpu::detail::AdditionalCheckpointFields< fields::Solver >::type;
+
     /* List of particle species for checkpoint/restart */
     using FileCheckpointParticles = VectorAllSpecies;
 
     /**  List of fields for checkpoint/restart */
     using FileCheckpointFields = MakeSeq_t<
-        NativeFileCheckpointFields
+        NativeFileCheckpointFields,
+        AdditionalFileCheckpointFields
     >;
 }

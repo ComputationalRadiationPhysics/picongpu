@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -32,7 +32,6 @@ namespace picongpu
  * Simulation startup initialiser.
  *
  * Initialises a new simulation from default values.
- * DataConnector has to be used with a FIFO compliant IDataSorter.
  *
  */
 class SimStartInitialiser : public AbstractInitialiser

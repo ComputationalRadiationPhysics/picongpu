@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -50,9 +50,8 @@ namespace result_of
 template<typename Type>
 struct Functor<math::math_functor::Max, Type, Type>
 {
-    typedef Type type;
+    using type = Type;
 };
 
 } // result_of
-
 } // pmacc

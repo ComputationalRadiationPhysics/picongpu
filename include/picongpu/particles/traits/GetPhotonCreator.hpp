@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Heiko Burau
+/* Copyright 2015-2020 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -24,7 +24,7 @@
 #include <pmacc/particles/memory/frames/Frame.hpp>
 #include <pmacc/traits/GetFlagType.hpp>
 #include <pmacc/traits/Resolve.hpp>
-#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 #include "picongpu/particles/synchrotronPhotons/PhotonCreator.def"
 
@@ -43,7 +43,7 @@ namespace traits
     template< typename T_SpeciesType >
     struct GetPhotonCreator
     {
-        using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_SpeciesType
         >;
@@ -56,7 +56,7 @@ namespace traits
         >::type;
 
         // This now resolves the alias into the actual object type and select the species from the species list
-        using FoundPhotonSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        using FoundPhotonSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             typename pmacc::traits::Resolve< FoundSynchrotronPhotonsAlias >::type
         >;

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -23,7 +23,6 @@
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/math/Vector.hpp>
-#include <pmacc/traits/IsSameType.hpp>
 #include <pmacc/nvidia/atomic.hpp>
 
 #include "picongpu/particles/shapes/CIC.hpp"

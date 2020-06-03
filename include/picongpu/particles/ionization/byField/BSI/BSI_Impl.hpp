@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Marco Garten
+/* Copyright 2015-2020 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -21,9 +21,9 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/particles/ionization/byField/BSI/BSI.def"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSI.hpp"
@@ -32,12 +32,12 @@
 
 #include "picongpu/particles/ParticlesFunctors.hpp"
 
-#include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
+#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/traits/Resolve.hpp>
-#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
 
 
@@ -59,11 +59,11 @@ namespace ionization
     struct BSI_Impl
     {
 
-        using DestSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        using DestSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_DestSpecies
         >;
-        using SrcSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        using SrcSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_SrcSpecies
         >;
@@ -71,20 +71,20 @@ namespace ionization
         using FrameType = typename SrcSpecies::FrameType;
 
         /* specify field to particle interpolation scheme */
-        typedef typename pmacc::traits::Resolve<
+        using Field2ParticleInterpolation = typename pmacc::traits::Resolve<
             typename GetFlagType<FrameType,interpolation<> >::type
-        >::type Field2ParticleInterpolation;
+        >::type;
 
         /* margins around the supercell for the interpolation of the field on the cells */
-        typedef typename GetMargin<Field2ParticleInterpolation>::LowerMargin LowerMargin;
-        typedef typename GetMargin<Field2ParticleInterpolation>::UpperMargin UpperMargin;
+        using LowerMargin = typename GetMargin<Field2ParticleInterpolation>::LowerMargin;
+        using UpperMargin = typename GetMargin<Field2ParticleInterpolation>::UpperMargin;
 
         /* relevant area of a block */
-        typedef SuperCellDescription<
+        using BlockArea = SuperCellDescription<
             typename MappingDesc::SuperCellSize,
             LowerMargin,
             UpperMargin
-            > BlockArea;
+        >;
 
         BlockArea BlockDescription;
 
@@ -93,7 +93,7 @@ namespace ionization
             /* define ionization ALGORITHM (calculation) for ionization MODEL */
             using IonizationAlgorithm = T_IonizationAlgorithm;
 
-            typedef MappingDesc::SuperCellSize TVec;
+            using TVec = MappingDesc::SuperCellSize;
 
             using ValueType_E = FieldE::ValueType;
             /* global memory EM-field device databoxes */
@@ -206,7 +206,7 @@ namespace ionization
                 /* multi-dim coordinate of the local cell inside the super cell */
                 DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
                 /* interpolation of E */
-                const picongpu::traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldE> fieldPosE;
+                const picongpu::traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
                 ValueType_E eField = Field2ParticleInterpolation()
                     (cachedE.shift(localCell).toCursor(), pos, fieldPosE());
 

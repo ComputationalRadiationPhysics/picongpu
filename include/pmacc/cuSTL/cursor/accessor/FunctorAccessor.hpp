@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,7 +22,6 @@
 #pragma once
 
 #include <boost/type_traits/add_const.hpp>
-#include "pmacc/forward.hpp"
 #include "pmacc/types.hpp"
 
 namespace pmacc

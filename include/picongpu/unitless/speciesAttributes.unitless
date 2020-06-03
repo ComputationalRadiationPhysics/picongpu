@@ -1,5 +1,5 @@
-/* Copyright 2013-2018 Rene Widera, Felix Schmitt, Axel Huebl,
- *                     Alexander Grund
+/* Copyright 2013-2020 Rene Widera, Felix Schmitt, Axel Huebl,
+ *                     Alexander Grund, Finn-Ole Carstens
  *
  * This file is part of PIConGPU.
  *
@@ -138,6 +138,46 @@ struct MacroWeighted<radiationMask>
 };
 template<>
 struct WeightingPower<radiationMask>
+{
+    // flag * weighting^0 == flag: same for real and macro particle
+    static float_64 get()
+    {
+        return 0.0;
+    }
+};
+
+template<>
+struct Unit<transitionRadiationMask>
+{
+    // unitless and not scaled by a factor: by convention 1.0
+    static std::vector<double> get()
+    {
+        std::vector<double> unit( 1, 1.0 );
+        return unit;
+    }
+};
+template<>
+struct UnitDimension<transitionRadiationMask>
+{
+    static std::vector<float_64> get()
+    {
+        // transitionRadiationMask is unitless
+        std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
+
+        return unitDimension;
+    }
+};
+template<>
+struct MacroWeighted<transitionRadiationMask>
+{
+    // identical and can not be scaled by weightings
+    static bool get()
+    {
+        return false;
+    }
+};
+template<>
+struct WeightingPower<transitionRadiationMask>
 {
     // flag * weighting^0 == flag: same for real and macro particle
     static float_64 get()

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Felix Schmitt
+/* Copyright 2013-2020 Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -30,8 +30,8 @@
 #include "picongpu/plugins/common/particlePatches.hpp"
 #include "picongpu/plugins/hdf5/openPMD/patchReader.hpp"
 
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
-#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/particles/ParticleDescription.hpp>
 #include <pmacc/particles/operations/splitIntoListOfFrames.kernel>
@@ -177,17 +177,17 @@ public:
         Hdf5FrameType hostFrame;
         log<picLog::INPUT_OUTPUT > ("HDF5:  malloc mapped memory: %1%") % speciesName;
         /*malloc mapped memory*/
-        ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
-        mallocMem(forward(hostFrame), totalNumParticles);
+        meta::ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
+        mallocMem(hostFrame, totalNumParticles);
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  get mapped memory device pointer: %1%") % speciesName;
         /*load device pointer of mapped memory*/
         Hdf5FrameType deviceFrame;
-        ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
-        getDevicePtr(forward(deviceFrame), forward(hostFrame));
+        meta::ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
+        getDevicePtr(deviceFrame, hostFrame);
 
-        ForEach<typename Hdf5FrameType::ValueTypeSeq, LoadParticleAttributesFromHDF5<bmpl::_1> > loadAttributes;
-        loadAttributes(forward(params), forward(hostFrame), speciesSubGroup, particleOffset, totalNumParticles);
+        meta::ForEach<typename Hdf5FrameType::ValueTypeSeq, LoadParticleAttributesFromHDF5<bmpl::_1> > loadAttributes;
+        loadAttributes(params, hostFrame, speciesSubGroup, particleOffset, totalNumParticles);
 
         if (totalNumParticles != 0)
         {
@@ -203,8 +203,8 @@ public:
             );
 
             /*free host memory*/
-            ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
-            freeMem(forward(hostFrame));
+            meta::ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
+            freeMem(hostFrame);
             log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) load species: %1%") % speciesName;
         }
     }

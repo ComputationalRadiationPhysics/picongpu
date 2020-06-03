@@ -1,4 +1,4 @@
-/* Copyright 2014-2018  Rene Widera
+/* Copyright 2014-2020  Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,51 +21,38 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include "pmacc/traits/GetEmptyDefaultConstructibleType.hpp"
-#include "pmacc/expressions/DoNothing.hpp"
-#include "pmacc/expressions/SetToNull.hpp"
 
 
 namespace pmacc
 {
 
-/** wrapper for native C pointer
+/** Wrapper for a raw pointer
  *
  * @tparam T_Type type of the pointed object
  */
-template <typename T_Type, typename T_InitMethod = expressions::SetToNull>
+template< typename T_Type >
 class Pointer
 {
 public:
 
-    typedef T_Type type;
-    typedef type* PtrType;
-    typedef const type* ConstPtrType;
+    using type = T_Type;
+    using PtrType = type*;
+    using ConstPtrType = const type*;
 
-    /** default constructor
-     *
-     * the default pointer points to invalid memory
-     */
-    HDINLINE Pointer( )
+    HDINLINE Pointer( ):
+        ptr{ nullptr }
     {
-        T_InitMethod()( ptr );
     }
 
     HDINLINE Pointer( PtrType const ptrIn ) : ptr( ptrIn )
     {
     }
 
-    HDINLINE Pointer( const Pointer<type>& other ) : ptr( other.ptr )
+    HDINLINE Pointer( const Pointer& other ) : ptr( other.ptr )
     {
     }
 
-    template<typename T_OtherInitMethod>
-    HDINLINE Pointer( const Pointer<type, T_OtherInitMethod>& other ) : ptr( other.ptr )
-    {
-    }
-
-    template<typename T_OtherInitMethod>
-    HDINLINE Pointer& operator=(const Pointer<type, T_OtherInitMethod>& other)
+    HDINLINE Pointer& operator=(const Pointer& other)
     {
         ptr = other.ptr;
         return *this;
@@ -117,15 +104,5 @@ public:
 
     PMACC_ALIGN( ptr, PtrType );
 };
-
-namespace traits
-{
-
-template<typename T_Type, typename T_InitMethod>
-struct GetEmptyDefaultConstructibleType<Pointer<T_Type, T_InitMethod> >
-{
-    typedef Pointer<T_Type, expressions::DoNothing> type;
-};
-} //namespace traits
 
 } //namespace pmacc

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -31,7 +31,7 @@ namespace math
 template<int dim>
 struct Size_t : public Vector<size_t, dim>
 {
-    typedef Vector<size_t, dim> BaseType;
+    using BaseType = Vector<size_t, dim>;
 
     HDINLINE Size_t()
     {

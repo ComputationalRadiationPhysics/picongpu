@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -135,11 +135,11 @@ namespace picongpu
             )
             {
 
-                ForEach<
+                meta::ForEach<
                     EligibleFilters,
                     plugins::misc::AppendName< bmpl::_1 >
                 > getEligibleFilterNames;
-                getEligibleFilterNames( forward( allowedFilters ) );
+                getEligibleFilterNames( allowedFilters );
 
                 concatenatedFilterNames = plugins::misc::concatenateToString(
                     allowedFilters,

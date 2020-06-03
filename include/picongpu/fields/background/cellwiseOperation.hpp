@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Axel Huebl, Rene Widera
+/* Copyright 2014-2020 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>

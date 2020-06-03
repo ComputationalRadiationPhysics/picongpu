@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Felix Schmitt, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -23,6 +23,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/traits/PICToSplash.hpp"
 #include "picongpu/traits/PICToOpenPMD.hpp"
 #include <pmacc/traits/GetComponentsType.hpp>
@@ -73,7 +74,7 @@ struct LoadParticleAttributesFromHDF5
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( begin ) load species attribute: %1%") % Identifier::getName();
 
-        const std::string name_lookup[] = {"x", "y", "z"};
+        const auto componentNames = plugins::misc::getComponentNames( components );
 
         ComponentType* tmpArray = nullptr;
         if( elements > 0 )
@@ -90,7 +91,7 @@ struct LoadParticleAttributesFromHDF5
             std::stringstream datasetName;
             datasetName << subGroup << "/" << openPMDName();
             if (components > 1)
-                datasetName << "/" << name_lookup[d];
+                datasetName << "/" << componentNames[d];
 
             ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
             Dimensions sizeRead(0, 0, 0);

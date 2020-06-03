@@ -21,7 +21,7 @@ Overview
    :alt: overview of PIConGPU library dependencies
 
    Overview of inter-library dependencies for parallel execution of PIConGPU on a typical HPC system. Due to common binary incompatibilities between compilers, MPI and boost versions, we recommend to organize software with a version-aware package manager such as `spack <https://github.com/spack/spack>`_ and to deploy a hierarchical module system such as `lmod <https://github.com/TACC/Lmod>`_.
-   A Lmod example setup can be found `here <https://github.com/ComputationalRadiationPhysics/compileNode>`_.
+   An Lmod example setup can be found `here <https://github.com/ComputationalRadiationPhysics/compileNode>`_.
 
 Requirements
 ------------
@@ -33,26 +33,25 @@ gcc
 """
 - 4.9 - 7 (if you want to build for Nvidia GPUs, supported compilers depend on your current `CUDA version <https://gist.github.com/ax3l/9489132>`_)
 
-  - CUDA 8.0: Use gcc 4.9 - 5.3
-  - CUDA 9.0 - 9.1: Use gcc 4.9 - 5.5
   - CUDA 9.2 - 10.0: Use gcc 4.9 - 7
-- *note:* be sure to build all libraries/dependencies with the *same* gcc version
+  - CUDA 10.1/10.2: Use gcc 4.9 - 8
+- *note:* be sure to build all libraries/dependencies with the *same* gcc version; GCC 5 or newer is recommended
 - *Debian/Ubuntu:*
   
-  - ``sudo apt-get install gcc-4.9 g++-4.9 build-essential``
-  - ``sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9``
+  - ``sudo apt-get install gcc-5.3 g++-5.3 build-essential``
+  - ``sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5.3 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5.3``
 - *Arch Linux:*
   
   - ``sudo pacman --sync base-devel``
   - if the installed version of **gcc** is too new, `compile an older gcc <https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53>`_
 - *Spack:*
   
-  - ``spack install gcc@4.9.4``
-  - make it the default in your `packages.yaml <http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration>`_ or *suffix* `all following <http://spack.readthedocs.io/en/latest/features.html#simple-package-installation>`_ ``spack install`` commands with a *space* and ``%gcc@4.9.4``
+  - ``spack install gcc@5.3.0``
+  - make it the default in your `packages.yaml <http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration>`_ or *suffix* `all following <http://spack.readthedocs.io/en/latest/features.html#simple-package-installation>`_ ``spack install`` commands with a *space* and ``%gcc@5.3.0``
 
 CMake
 """""
-- 3.10.0 or higher
+- 3.11.4 or higher
 - *Debian/Ubuntu:* ``sudo apt-get install cmake file cmake-curses-gui``
 - *Arch Linux:* ``sudo pacman --sync cmake``
 - *Spack:* ``spack install cmake``
@@ -89,9 +88,8 @@ zlib
 
 boost
 """""
-- 1.62.0 - 1.68.0 (``program_options``, ``regex`` , ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
-- *note:* for CUDA 9+ support, use boost 1.65.1 or newer
-- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-chrono-dev libboost-atomic-dev libboost-date-time-dev libboost-math-dev libboost-serialization-dev libboost-fiber-dev libboost-context-dev``
+- 1.65.1 - 1.70.0 (``program_options``, ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
+- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-chrono-dev libboost-atomic-dev libboost-date-time-dev libboost-math-dev libboost-serialization-dev libboost-fiber-dev libboost-context-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
 - *Spack:* ``spack install boost``
 - *from source:*
@@ -99,7 +97,7 @@ boost
   - ``curl -Lo boost_1_65_1.tar.gz https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.gz``
   - ``tar -xzf boost_1_65_1.tar.gz``
   - ``cd boost_1_65_1``
-  - ``./bootstrap.sh --with-libraries=atomic,chrono,context,date_time,fiber,filesystem,math,program_options,regex,serialization,system,thread --prefix=$HOME/lib/boost``
+  - ``./bootstrap.sh --with-libraries=atomic,chrono,context,date_time,fiber,filesystem,math,program_options,serialization,system,thread --prefix=$HOME/lib/boost``
   - ``./b2 cxxflags="-std=c++11" -j4 && ./b2 install``
 - *environment:* (assumes install from source in ``$HOME/lib/boost``)
 
@@ -119,11 +117,11 @@ rsync
 - *Arch Linux:* ``sudo pacman --sync rsync``
 - *Spack:* ``spack install rsync``
 
-alpaka 0.3.5
+alpaka 0.4.0
 """"""""""""
 - `alpaka <https://github.com/ComputationalRadiationPhysics/alpaka>`_ is included in the PIConGPU source code
 
-cupla 0.1.0
+cupla 0.2.0
 """""""""""
 - `cupla <https://github.com/ComputationalRadiationPhysics/cupla>`_ is included in the PIConGPU source code
 
@@ -155,13 +153,13 @@ Optional Libraries
 
 CUDA
 """"
-- `8.0 - 10.0 <https://developer.nvidia.com/cuda-downloads>`_
+- `9.2 - 10.2 <https://developer.nvidia.com/cuda-downloads>`_
 - required if you want to run on Nvidia GPUs
 - *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
 - *Arch Linux:* ``sudo pacman --sync cuda``
 - *Spack:* ``spack install cuda``
 - at least one **CUDA** capable **GPU**
-- *compute capability*: ``sm_20`` or higher (for CUDA 9+: ``sm_30`` or higher)
+- *compute capability*: ``sm_30`` or higher
 - `full list <https://developer.nvidia.com/cuda-gpus>`_ of CUDA GPUs and their *compute capability*
 - `More <http://www.olcf.ornl.gov/summit/>`_ is always `better <http://www.cscs.ch/computers/piz_daint/index.html>`_. Especially, if we are talking GPUs :-)
 - *environment:*
@@ -231,8 +229,8 @@ libSplash
 
 HDF5
 """"
-- 1.8.6+
-- standard shared version (no c++, enable parallel)
+- 1.8.13+
+- standard shared version (no C++, enable parallel)
 - *Debian/Ubuntu:* ``sudo apt-get install libhdf5-openmpi-dev``
 - *Arch Linux:* ``sudo pacman --sync hdf5-openmpi``
 - *Spack:* ``spack install hdf5~fortran``
@@ -257,7 +255,7 @@ HDF5
 
 splash2txt
 """"""""""
-- requires *libSplash* and *boost* ``program_options``, ``regex``
+- requires *libSplash* and *boost* ``program_options``
 - converts slices in dumped hdf5 files to plain txt matrices
 - assume you [downloaded](#requirements) PIConGPU to `PICSRC=$HOME/src/picongpu`
 - ``mkdir -p ~/build && cd ~/build``
@@ -275,7 +273,7 @@ splash2txt
 png2gas
 """""""
 - requires *libSplash*, *pngwriter* and *boost* ``program_options``)
-- converts png files to hdf5 files that can be used as an input for a species initial density profiles
+- converts png files to hdf5 files that can be used as an input for species initial density profiles
 - compile and install exactly as *splash2txt* above
 
 c-blosc

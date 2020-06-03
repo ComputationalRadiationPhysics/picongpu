@@ -1,5 +1,5 @@
-/* Copyright 2014-2018 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Benjamin Worpitz, Alexander Grund
+/* Copyright 2014-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -28,15 +28,18 @@
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/misc/SpeciesFilter.hpp"
 #include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/traits/IsFieldDomainBound.hpp"
 
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/particles/IdProvider.def>
 #include <pmacc/assert.hpp>
 
+#include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
+#include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
 #include <pmacc/particles/operations/CountParticles.hpp>
 
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -44,7 +47,7 @@
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/pluginSystem/PluginConnector.hpp>
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 #include <pmacc/math/Vector.hpp>
 #if( PMACC_CUDA_ENABLED == 1 )
 #   include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
@@ -59,6 +62,7 @@
 #include "picongpu/plugins/adios/restart/LoadSpecies.hpp"
 #include "picongpu/plugins/adios/restart/RestartFieldLoader.hpp"
 #include "picongpu/plugins/adios/NDScalars.hpp"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/plugins/misc/SpeciesFilter.hpp"
 
 #include <adios.h>
@@ -79,11 +83,11 @@
 #include <unistd.h>
 #endif
 
-#include <pthread.h>
 #include <sstream>
 #include <string>
 #include <list>
 #include <vector>
+#include <cstdint>
 
 
 namespace picongpu
@@ -111,11 +115,17 @@ int64_t defineAdiosVar(int64_t group_id,
 {
     int64_t var_id = 0;
 
+    std::string const revertedDimensions =
+        dimensions.revert().toString(",", "");
+    std::string const revertedGlobalDimensions =
+        globalDimensions.revert().toString(",", "");
+    std::string const revertedOffset =
+        offset.revert().toString(",", "");
     var_id = adios_define_var(
         group_id, name, path, type,
-        dimensions.revert().toString(",", "").c_str(),
-        globalDimensions.revert().toString(",", "").c_str(),
-        offset.revert().toString(",", "").c_str()
+        revertedDimensions.c_str(),
+        revertedGlobalDimensions.c_str(),
+        revertedOffset.c_str()
     );
 
     if(compression)
@@ -258,17 +268,17 @@ public:
             std::string const & masterPrefix = std::string{ }
         )
         {
-            ForEach<
+            meta::ForEach<
                 AllEligibleSpeciesSources,
                 plugins::misc::AppendName< bmpl::_1 >
             > getEligibleDataSourceNames;
-            getEligibleDataSourceNames( forward( allowedDataSources ) );
+            getEligibleDataSourceNames( allowedDataSources );
 
-            ForEach<
+            meta::ForEach<
                 AllFieldSources,
                 plugins::misc::AppendName< bmpl::_1 >
             > appendFieldSourceNames;
-            appendFieldSourceNames( forward( allowedDataSources ) );
+            appendFieldSourceNames( allowedDataSources );
 
             // string list with all possible particle sources
             std::string concatenatedSourceNames = plugins::misc::concatenateToString(
@@ -403,12 +413,12 @@ private:
     /**
      * Write calculated fields to adios file.
      */
-    template< typename T >
+    template< typename T_Field >
     struct GetFields
     {
     private:
-        typedef typename T::ValueType ValueType;
-        typedef typename GetComponentsType<ValueType>::type ComponentType;
+        using ValueType = typename T_Field::ValueType;
+        using ComponentType = typename GetComponentsType<ValueType>::type;
 
     public:
 
@@ -417,18 +427,22 @@ private:
 #ifndef __CUDA_ARCH__
             DataConnector &dc = Environment<simDim>::get().DataConnector();
 
-            auto field = dc.get< T >( T::getName() );
+            auto field = dc.get< T_Field >( T_Field::getName() );
             params->gridLayout = field->getGridLayout();
+            const bool isDomainBound = traits::IsFieldDomainBound< T_Field >::value;
 
             PICToAdios<ComponentType> adiosType;
-            ADIOSWriter::template writeField<ComponentType>(params,
-                       sizeof(ComponentType),
-                       adiosType.type,
-                       GetNComponents<ValueType>::value,
-                       T::getName(),
-                       field->getHostDataBox().getPointer());
+            ADIOSWriter::template writeField<ComponentType>(
+                params,
+                sizeof(ComponentType),
+                adiosType.type,
+                GetNComponents<ValueType>::value,
+                T_Field::getName(),
+                field->getHostDataBox().getPointer(),
+                isDomainBound
+            );
 
-            dc.releaseData( T::getName() );
+            dc.releaseData( T_Field::getName() );
 #endif
         }
 
@@ -498,13 +512,17 @@ private:
             PICToAdios<ComponentType> adiosType;
 
             params->gridLayout = fieldTmp->getGridLayout();
+            const bool isDomainBound = traits::IsFieldDomainBound< FieldTmp >::value;
             /*write data to ADIOS file*/
-            ADIOSWriter::template writeField<ComponentType>(params,
-                       sizeof(ComponentType),
-                       adiosType.type,
-                       components,
-                       getName(),
-                       fieldTmp->getHostDataBox().getPointer());
+            ADIOSWriter::template writeField<ComponentType>(
+                params,
+                sizeof(ComponentType),
+                adiosType.type,
+                components,
+                getName(),
+                fieldTmp->getHostDataBox().getPointer(),
+                isDomainBound
+            );
 
             dc.releaseData( FieldTmp::getUniqueId( 0 ) );
 
@@ -512,6 +530,7 @@ private:
 
     };
 
+    template< typename T_Field >
     static void defineFieldVar(ThreadParams* params,
         uint32_t nComponents, ADIOS_DATATYPES adiosType, const std::string name,
         std::vector<float_64> unit, std::vector<float_64> unitDimension,
@@ -520,7 +539,7 @@ private:
         PICToAdios<float_64> adiosDoubleType;
         PICToAdios<float_X> adiosFloatXType;
 
-        const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
+        auto const componentNames = plugins::misc::getComponentNames( nComponents );
 
         /* parameter checking */
         PMACC_ASSERT( unit.size() == nComponents );
@@ -532,23 +551,46 @@ private:
         const std::string recordName( params->adiosBasePath +
             std::string(ADIOS_PATH_FIELDS) + name );
 
+        auto fieldsSizeDims = params->fieldsSizeDims;
+        auto fieldsGlobalSizeDims = params->fieldsGlobalSizeDims;
+        auto fieldsOffsetDims = params->fieldsOffsetDims;
+
+        /* Patch for non-domain-bound fields
+         * This is an ugly fix to allow output of reduced 1d PML buffers,
+         * that are the same size on each domain.
+         * This code is to be replaced with the openPMD output plugin soon.
+         */
+        if( !traits::IsFieldDomainBound< T_Field >::value )
+        {
+            DataConnector &dc = Environment<>::get().DataConnector();
+            auto field = dc.get< T_Field >( T_Field::getName() );
+            fieldsSizeDims = precisionCast< uint64_t >( field->getGridLayout().getDataSpaceWithoutGuarding() );
+            dc.releaseData( T_Field::getName() );
+            auto const & gridController = Environment<simDim>::get().GridController();
+            auto const numRanks = gridController.getGlobalSize();
+            auto const rank = gridController.getGlobalRank();
+            fieldsGlobalSizeDims = pmacc::math::UInt64<simDim>::create( 1 );
+            fieldsGlobalSizeDims[ 0 ] = numRanks * fieldsSizeDims[ 0 ];
+            fieldsOffsetDims = pmacc::math::UInt64<simDim>::create( 0 );
+            fieldsOffsetDims[ 0 ] = rank * fieldsSizeDims[ 0 ];
+        }
+
         for( uint32_t c = 0; c < nComponents; c++ )
         {
-            std::stringstream datasetName;
-            datasetName << recordName;
+            std::string datasetName = recordName;
             if (nComponents > 1)
-                datasetName << "/" << name_lookup_tpl[c];
+                datasetName +=  "/" + componentNames[c];
 
             /* define adios var for field, e.g. field_FieldE_y */
             const char* path = nullptr;
             int64_t adiosFieldVarId = defineAdiosVar<simDim>(
                     params->adiosGroupHandle,
-                    datasetName.str().c_str(),
+                    datasetName.c_str(),
                     path,
                     adiosType,
-                    params->fieldsSizeDims,
-                    params->fieldsGlobalSizeDims,
-                    params->fieldsOffsetDims,
+                    fieldsSizeDims,
+                    fieldsGlobalSizeDims,
+                    fieldsOffsetDims,
                     true,
                     params->adiosCompression);
 
@@ -557,11 +599,11 @@ private:
             /* already add the unitSI and further attribute so `adios_group_size`
              * calculates the reservation for the buffer correctly */
             ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
-                      "position", datasetName.str().c_str(),
+                      "position", datasetName.c_str(),
                       adiosFloatXType.type, simDim, &(*inCellPosition.at(c).begin()) ));
 
             ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
-                      "unitSI", datasetName.str().c_str(),
+                      "unitSI", datasetName.c_str(),
                       adiosDoubleType.type, 1, &unit.at(c) ));
         }
 
@@ -660,16 +702,30 @@ private:
 #ifndef __CUDA_ARCH__
             const uint32_t components = T::numComponents;
 
+            auto localSize = params->window.localDimensions.size;
+            /* Patch for non-domain-bound fields
+             * This is an ugly fix to allow output of reduced 1d PML buffers,
+             * that are the same size on each domain.
+             * This code is to be replaced with the openPMD output plugin soon.
+             */
+            if( !traits::IsFieldDomainBound< T >::value )
+            {
+                DataConnector &dc = Environment<>::get().DataConnector();
+                auto field = dc.get< T >( T::getName() );
+                localSize = field->getGridLayout().getDataSpaceWithoutGuarding();
+                dc.releaseData( T::getName() );
+            }
+
             // adios buffer size for this dataset (all components)
             uint64_t localGroupSize =
-                    params->window.localDimensions.size.productOfComponents() *
+                    localSize.productOfComponents() *
                     sizeof(ComponentType) *
                     components;
 
             params->adiosGroupSize += localGroupSize;
 
             // convert in a std::vector of std::vector format for writeField API
-            const traits::FieldPosition<typename fields::Solver::NummericalCellType, T> fieldPos;
+            const traits::FieldPosition<fields::CellType, T> fieldPos;
 
             std::vector<std::vector<float_X> > inCellPosition;
             for( uint32_t n = 0; n < T::numComponents; ++n )
@@ -684,9 +740,8 @@ private:
              *        implementation */
             const float_X timeOffset = 0.0;
 
-
             PICToAdios<ComponentType> adiosType;
-            defineFieldVar(params, components, adiosType.type, T::getName(), getUnit(),
+            defineFieldVar< T >(params, components, adiosType.type, T::getName(), getUnit(),
                 T::getUnitDimension(), inCellPosition, timeOffset);
 #endif
         }
@@ -731,16 +786,30 @@ private:
         {
             const uint32_t components = GetNComponents<ValueType>::value;
 
+            auto localSize = params->window.localDimensions.size;
+            /* Patch for non-domain-bound fields
+            * This is an ugly fix to allow output of reduced 1d PML buffers,
+            * that are the same size on each domain.
+            * This code is to be replaced with the openPMD output plugin soon.
+            */
+            if( !traits::IsFieldDomainBound< FieldTmp >::value )
+            {
+                DataConnector &dc = Environment<>::get().DataConnector();
+                auto field = dc.get< FieldTmp >( FieldTmp::getName() );
+                localSize = field->getGridLayout().getDataSpaceWithoutGuarding();
+                dc.releaseData( FieldTmp::getName() );
+            }
+
             // adios buffer size for this dataset (all components)
             uint64_t localGroupSize =
-                    params->window.localDimensions.size.productOfComponents() *
+                    localSize.productOfComponents() *
                     sizeof(ComponentType) *
                     components;
 
             params->adiosGroupSize += localGroupSize;
 
             /*wrap in a one-component vector for writeField API*/
-            const traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldTmp>
+            const traits::FieldPosition<fields::CellType, FieldTmp>
                 fieldPos;
 
             std::vector<std::vector<float_X> > inCellPosition;
@@ -754,7 +823,7 @@ private:
             const float_X timeOffset = 0.0;
 
             PICToAdios<ComponentType> adiosType;
-            defineFieldVar(params, components, adiosType.type, getName(), getUnit(),
+            defineFieldVar< FieldTmp >(params, components, adiosType.type, getName(), getUnit(),
                 FieldTmp::getUnitDimension<Solver>(), inCellPosition, timeOffset);
         }
 
@@ -945,8 +1014,10 @@ public:
         std::stringstream strFname;
         strFname << restartFilename << "_" << mThreadParams.currentStep << ".bp";
 
+        const std::string filename = strFname.str( );
+
         // adios_read_open( fname, method, comm, lock_mode, timeout_sec )
-        log<picLog::INPUT_OUTPUT > ("ADIOS: open file: %1%") % strFname.str();
+        log< picLog::INPUT_OUTPUT > ("ADIOS: open file: %1%") % filename;
 
         // when reading in BG_AGGREGATE mode, adios can not distinguish between
         // "file does not exist" and "stream is not (yet) available, so we
@@ -957,7 +1028,7 @@ public:
         /* <0 sec: wait forever
          * >=0 sec: return immediately if stream is not available */
         float_32 timeout = 0.0f;
-        mThreadParams.fp = adios_read_open(strFname.str().c_str(),
+        mThreadParams.fp = adios_read_open(filename.c_str(),
                         ADIOS_READ_METHOD_BP, mThreadParams.adiosComm,
                         ADIOS_LOCKMODE_CURRENT, timeout);
 
@@ -969,7 +1040,7 @@ public:
             /* give the file system 1s of peace and quiet */
             usleep(1e6);
 #endif
-            mThreadParams.fp = adios_read_open(strFname.str().c_str(),
+            mThreadParams.fp = adios_read_open(filename.c_str(),
                         ADIOS_READ_METHOD_BP, mThreadParams.adiosComm,
                         ADIOS_LOCKMODE_CURRENT, timeout);
         }
@@ -990,8 +1061,10 @@ public:
         void* slidesPtr = nullptr;
         int slideSize;
         enum ADIOS_DATATYPES slidesType;
+        const std::string simSlidesPath =
+            mThreadParams.adiosBasePath + std::string("sim_slides");
         ADIOS_CMD(adios_get_attr( mThreadParams.fp,
-                                  (mThreadParams.adiosBasePath + std::string("sim_slides")).c_str(),
+                                  simSlidesPath.c_str(),
                                   &slidesType,
                                   &slideSize,
                                   &slidesPtr ));
@@ -1006,8 +1079,10 @@ public:
         void* lastStepPtr = nullptr;
         int lastStepSize;
         enum ADIOS_DATATYPES lastStepType;
+        const std::string iterationPath =
+            mThreadParams.adiosBasePath + std::string("iteration");
         ADIOS_CMD(adios_get_attr( mThreadParams.fp,
-                                  (mThreadParams.adiosBasePath + std::string("iteration")).c_str(),
+                                  iterationPath.c_str(),
                                   &lastStepType,
                                   &lastStepSize,
                                   &lastStepPtr ));
@@ -1036,11 +1111,11 @@ public:
         mThreadParams.localWindowToDomainOffset = DataSpace<simDim>::create(0);
 
         /* load all fields */
-        ForEach<FileCheckpointFields, LoadFields<bmpl::_1> > forEachLoadFields;
+        meta::ForEach<FileCheckpointFields, LoadFields<bmpl::_1> > forEachLoadFields;
         forEachLoadFields(&mThreadParams);
 
         /* load all particles */
-        ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
+        meta::ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
         forEachLoadSpecies(&mThreadParams, restartChunkSize);
 
         IdProvider<simDim>::State idProvState;
@@ -1084,6 +1159,7 @@ private:
         mThreadParams.fullFilename = full_filename.str();
         mThreadParams.adiosFileHandle = ADIOS_INVALID_HANDLE;
 
+        // Note: here we always allocate for the domain-bound fields
         mThreadParams.fieldBfr = new float_X[mThreadParams.window.localDimensions.size.productOfComponents()];
 
         std::stringstream adiosPathBase;
@@ -1128,7 +1204,7 @@ private:
              * can not say at this point if this time step will need all of them
              * for sure (checkpoint) or just some user-defined species (dump)
              */
-            ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1> > copySpeciesToHost;
+            meta::ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1> > copySpeciesToHost;
             copySpeciesToHost();
             lastSpeciesSyncStep = currentStep;
 #if( PMACC_CUDA_ENABLED == 1 )
@@ -1147,7 +1223,8 @@ private:
     static void writeField(ThreadParams *params, const uint32_t sizePtrType,
                            ADIOS_DATATYPES adiosType,
                            const uint32_t nComponents, const std::string name,
-                           void *ptr)
+                           void *ptr,
+                           const bool isDomainBound)
     {
         log<picLog::INPUT_OUTPUT > ("ADIOS: write field: %1% %2% %3%") %
             name % nComponents % ptr;
@@ -1160,6 +1237,24 @@ private:
         DataSpace<simDim> field_full = field_layout.getDataSpace();
         DataSpace<simDim> field_no_guard = params->window.localDimensions.size;
         DataSpace<simDim> field_guard = field_layout.getGuard() + params->localWindowToDomainOffset;
+        float_X * dstBuffer = params->fieldBfr;
+
+        /* Patch for non-domain-bound fields
+         * This is an ugly fix to allow output of reduced 1d PML buffers,
+         * that are the same size on each domain.
+         * This code is to be replaced with the openPMD output plugin soon.
+         */
+        std::vector< float_X > nonDomainBoundStorage;
+        if( !isDomainBound )
+        {
+            field_no_guard = field_layout.getDataSpaceWithoutGuarding();
+            field_guard = field_layout.getGuard();
+            /* Since params->fieldBfr allocation was of different size,
+             * for this case allocate a new chunk for memory for dstBuffer
+             */
+            nonDomainBoundStorage.resize( field_no_guard.productOfComponents() );
+            dstBuffer = nonDomainBoundStorage.data();
+        }
 
         /* write the actual field data */
         for (uint32_t d = 0; d < nComponents; d++)
@@ -1190,7 +1285,7 @@ private:
                         size_t index_src = base_index_src + (x + field_guard[0]) * nComponents + d;
                         size_t index_dst = base_index_dst + x;
 
-                        params->fieldBfr[index_dst] = ((float_X*)ptr)[index_src];
+                        dstBuffer[index_dst] = ((float_X*)ptr)[index_src];
                     }
                 }
             }
@@ -1201,7 +1296,7 @@ private:
 
             int64_t adiosFieldVarId = *(params->adiosFieldVarIds.begin());
             params->adiosFieldVarIds.pop_front();
-            ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosFieldVarId, params->fieldBfr));
+            ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosFieldVarId, dstBuffer));
         }
     }
 
@@ -1323,9 +1418,11 @@ private:
         ADIOS_STATISTICS_FLAG noStatistics = adios_stat_no;
 
         /* create adios group for fields without statistics */
+        const std::string iterationPath =
+            threadParams->adiosBasePath + std::string("iteration");
         ADIOS_CMD(adios_declare_group(&(threadParams->adiosGroupHandle),
                 ADIOS_GROUP_NAME,
-                (threadParams->adiosBasePath + std::string("iteration")).c_str(),
+                iterationPath.c_str(),
                 noStatistics));
 
         /* select MPI method, #OSTs and #aggregators */
@@ -1371,7 +1468,7 @@ private:
         threadParams->adiosFieldVarIds.clear();
         if (threadParams->isCheckpoint)
         {
-            ForEach<
+            meta::ForEach<
                 FileCheckpointFields,
                 CollectFieldsSizes< bmpl::_1 >
             > forEachCollectFieldsSizes;
@@ -1381,7 +1478,7 @@ private:
         {
             if( dumpFields )
             {
-                ForEach<
+                meta::ForEach<
                     FileOutputFields,
                     CollectFieldsSizes< bmpl::_1 >
                 > forEachCollectFieldsSizes;
@@ -1389,12 +1486,12 @@ private:
             }
 
             // move over all field data sources
-            ForEach<
+            meta::ForEach<
                 typename Help::AllFieldSources,
                 CallCollectFieldsSizes<
                     bmpl::_1
                 >
-            >{}(vectorOfDataSourceNames, forward(threadParams));
+            >{}(vectorOfDataSourceNames, threadParams);
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) collecting fields.");
 
@@ -1412,13 +1509,13 @@ private:
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) counting particles.");
         if (threadParams->isCheckpoint)
         {
-            ForEach<
+            meta::ForEach<
                 FileCheckpointParticles,
                 ADIOSCountParticles<
                     plugins::misc::UnfilteredSpecies< bmpl::_1 >
                 >
             > adiosCountParticles;
-            adiosCountParticles( forward(threadParams) );
+            adiosCountParticles( threadParams );
         }
         else
         {
@@ -1426,7 +1523,7 @@ private:
             if( dumpAllParticles )
             {
                 // move over all species defined in FileOutputParticles
-                ForEach<
+                meta::ForEach<
                     FileOutputParticles,
                     ADIOSCountParticles<
                         plugins::misc::UnfilteredSpecies< bmpl::_1 >
@@ -1436,12 +1533,12 @@ private:
             }
 
             // move over all species data sources
-            ForEach<
+            meta::ForEach<
                 typename Help::AllEligibleSpeciesSources,
                 CallCountParticles<
                     bmpl::_1
                 >
-            >{}(vectorOfDataSourceNames, forward(threadParams));
+            >{}(vectorOfDataSourceNames, threadParams);
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) counting particles.");
 
@@ -1479,7 +1576,7 @@ private:
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing fields.");
         if (threadParams->isCheckpoint)
         {
-            ForEach<
+            meta::ForEach<
                 FileCheckpointFields,
                 GetFields< bmpl::_1 >
             > forEachGetFields;
@@ -1489,7 +1586,7 @@ private:
         {
             if( dumpFields )
             {
-                ForEach<
+                meta::ForEach<
                     FileOutputFields,
                     GetFields< bmpl::_1 >
                 > forEachGetFields;
@@ -1497,12 +1594,12 @@ private:
             }
 
             // move over all field data sources
-            ForEach<
+            meta::ForEach<
                 typename Help::AllFieldSources,
                 CallGetFields<
                     bmpl::_1
                 >
-            >{}(vectorOfDataSourceNames, forward(threadParams));
+            >{}(vectorOfDataSourceNames, threadParams);
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing fields.");
 
@@ -1510,7 +1607,7 @@ private:
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle species.");
         if (threadParams->isCheckpoint)
         {
-            ForEach<
+            meta::ForEach<
                 FileCheckpointParticles,
                 WriteSpecies<
                     plugins::misc::SpeciesFilter< bmpl::_1 >
@@ -1524,22 +1621,22 @@ private:
             if( dumpAllParticles )
             {
                 // move over all species defined in FileOutputParticles
-                ForEach<
+                meta::ForEach<
                     FileOutputParticles,
                     WriteSpecies<
                         plugins::misc::UnfilteredSpecies< bmpl::_1 >
                     >
                 > writeSpecies;
-                writeSpecies( forward(threadParams), particleOffset );
+                writeSpecies( threadParams, particleOffset );
             }
 
             // move over all species data sources
-            ForEach<
+            meta::ForEach<
                 typename Help::AllEligibleSpeciesSources,
                 CallWriteSpecies<
                     bmpl::_1
                 >
-            >{}(vectorOfDataSourceNames, forward(threadParams), particleOffset);
+            >{}(vectorOfDataSourceNames, threadParams, particleOffset);
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");
 

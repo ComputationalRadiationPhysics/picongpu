@@ -71,16 +71,33 @@ You can quickly load and interact with the data in Python with:
    import numpy as np
 
 
-   # load data
    ps_data = PhaseSpaceData('/home/axel/runs/lwfa_001')
-   ps, meta = ps_data.get(species='e', species_filter='all', ps='ypy', iteration=2000)
+   # show available iterations
+   ps_data.get_iterations(ps="xpx", species="e", species_filter='all')
+
+   # show available simulation times
+   ps_data.get_times(ps="xpx", species="e", species_filter='all')
+
+   # load data for a given iteration
+   ps, meta = ps_data.get(ps='ypy', species='e', species_filter='all', iteration=2000)
 
    # unit conversion from SI
    mu = 1.e6  # meters to microns
    e_mc_r = 1. / (9.109e-31 * 2.9979e8)  # electrons: kg * m / s to beta * gamma
 
-   Q_dr_dp = np.abs(e_ps) * e_ps_meta.dV  # C s kg^-1 m^-2
-   extent = e_ps_meta.extent * [mu, mu, e_mc_r, e_mc_r]  # spatial: microns, momentum: beta*gamma
+   Q_dr_dp = np.abs(ps) * meta.dV  # C s kg^-1 m^-2
+   extent = meta.extent * [mu, mu, e_mc_r, e_mc_r]  # spatial: microns, momentum: beta*gamma
+
+   # load data for a given time
+   ps, ps_meta = ps_data.get(ps="xpx", species="e", species_filter='all', time=1.3900e-14)
+
+   # load data for multiple iterations
+   ret = ps_data.get(ps="xpx", species="e", species_filter='all', iteration=[2000, 4000])
+
+   # data and metadata for iteration 2000
+   # (data is in same order as the value passed to the 'iteration' parameter)
+   ps, meta = ret[0]
+
 
 Note that the spatial extent of the output over time might change when running a moving window simulation.
 
@@ -102,11 +119,26 @@ You can quickly plot the data in Python with:
    ps_vis = PhaseSpaceMPL('path/to/run_dir', ax)
 
    # plot
-   ps_vis.visualize(iteration=200, species='e')
+   ps_vis.visualize(ps="xpx", iteration=200, species='e', species_filter='all')
 
    plt.show()
 
-The visualizer can also be used from the command line by writing
+   # specifying simulation time is also possible (granted there is a matching iteration for that time)
+   ps_vis.visualize(ps="xpx", time=2.6410e-13, species='e', species_filter='all')
+
+   plt.show()
+
+   # plotting data for multiple simulations simultaneously also works:
+   ps_vis = PhaseSpaceMPL([
+        ("sim1", "path/to/sim1"),
+        ("sim2", "path/to/sim2"),
+        ("sim3", "path/to/sim3")], ax)
+   ps_vis.visualize(ps="xpx", iteration=10000, species="e", species_filter='all')
+
+   plt.show()
+
+
+The visualizer can also be used from the command line (for a single simulation only) by writing
 
  .. code:: bash
 
@@ -124,6 +156,60 @@ Options                              Value
 -m (optional, defaults to 'ypy')     Momentum string to specify the phase space
 ================================     =======================================================
 
+Jupyter Widget
+""""""""""""""
+
+If you want more interactive visualization, then start a jupyter notebook and make
+sure that ``ipywidgets`` and ``ìpympl`` are installed.
+
+After starting the notebook server write the following
+
+.. code:: python
+
+   # this is required!
+   %matplotlib widget
+   import matplotlib.pyplot as plt
+   plt.ioff()
+
+   from IPython.display import display
+   from picongpu.plugins.jupyter_widgets import PhaseSpaceWidget
+
+   # provide the paths to the simulations you want to be able to choose from
+   # together with labels that will be used in the plot legends so you still know
+   # which data belongs to which simulation
+   w = PhaseSpaceWidget(run_dir_options=[
+           ("scan1/sim4", "/path/to/scan1/sim4"),
+           ("scan1/sim5", "/path/to/scan1/sim5")])
+   display(w)
+
+
+and then interact with the displayed widgets.
+
+Plase note that per default the widget allows selection only of the ``ypy`` phase space slice for particles labelled by ``e``.
+To visualize, for instance the ``ypy``, ``xpx`` and ``ypz`` slices for particles labelled by ``e`` (as a rule background electrons)
+and by ``b`` (here electrons of a particle bunch) the above has to be augmented by setting ``w.ps.options`` and ``w.species.options``.
+The final script snippet then reads:
+
+.. code:: python
+
+   # this is required!
+   %matplotlib widget
+   import matplotlib.pyplot as plt 
+   plt.ioff()
+
+   from IPython.display import display
+   from picongpu.plugins.jupyter_widgets import PhaseSpaceWidget
+
+   # provide the paths to the simulations you want to be able to choose from
+   # together with labels that will be used in the plot legends so you still know
+   # which data belongs to which simulation
+   w = PhaseSpaceWidget(run_dir_options=[
+           ("scan1/sim4", "/path/to/scan1/sim4"),
+           ("scan1/sim5", "/path/to/scan1/sim5")])
+   w.ps.set_trait('options', ('ypy', 'xpx', 'ypz'))
+   w.species.set_trait('options', ('e', 'b'))
+   display(w)
+
 Out-of-Range Behavior
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -134,7 +220,7 @@ Known Limitations
 ^^^^^^^^^^^^^^^^^
 
 - only one range per selected space-momentum-pair possible right now (naming collisions)
-- charge deposition uses the counter shape for now (would need one more write to neighbours to get it correct to the shape)
+- charge deposition uses the counter shape for now (would need one more write to neighbors to evaluate it correctly according to the shape)
 - the user has to define the momentum range in advance
 - the resolution is fixed to ``1024 bins`` in momentum and the number of cells in the selected spatial dimension
 - this plugin does not yet use :ref:`openPMD markup <pp-openPMD>`.

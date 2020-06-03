@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Felix Schmitt, Axel Huebl
+/* Copyright 2013-2020 Rene Widera, Felix Schmitt, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -31,6 +31,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <memory>
+#include <utility>
 
 
 namespace pmacc
@@ -94,9 +95,9 @@ namespace pmacc
             initialiser.teardown();
         }
 
-        /** Registers a new Dataset with data and identifier id.
+        /** Register a new Dataset and share its ownership.
          *
-         * If a Dataset with identifier id already exists, a runtime_error is thrown.
+         * If a Dataset with the same id already exists, a runtime_error is thrown.
          * (Check with DataConnector::hasId when necessary.)
          *
          * @param data simulation data to share ownership
@@ -121,12 +122,27 @@ namespace pmacc
             datasets.push_back( data );
         }
 
+        /** Register a new Dataset and transfer its ownership.
+         *
+         * If a Dataset with the same id already exists, a runtime_error is thrown.
+         * (Check with DataConnector::hasId when necessary.)
+         * The only difference from share() is transfer of ownership.
+         *
+         * @param data simulation data to transfer ownership
+         */
+        void
+        consume( std::unique_ptr< ISimulationData > data )
+        {
+            std::shared_ptr< ISimulationData > newOwner( std::move( data ) );
+            share( newOwner );
+        }
+
         /** End sharing a dataset with identifier id
          *
          * @param id id of the dataset to remove
          */
         void
-        unshare( SimulationDataId id )
+        deregister( SimulationDataId id )
         {
             const auto it = findId( id );
 

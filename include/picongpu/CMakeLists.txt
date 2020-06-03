@@ -1,4 +1,4 @@
-# Copyright 2013-2018 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau,
+# Copyright 2013-2020 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau,
 #                     Rene Widera, Alexander Grund, Alexander Matthes
 #
 # This file is part of PIConGPU.
@@ -22,7 +22,7 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.11.4)
 
 
 ################################################################################
@@ -165,10 +165,10 @@ endif()
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options regex filesystem
+find_package(Boost 1.65.1 REQUIRED COMPONENTS program_options filesystem
                                               system math_tr1 serialization)
 if(TARGET Boost::program_options)
-    set(LIBS ${LIBS} Boost::boost Boost::program_options Boost::regex
+    set(LIBS ${LIBS} Boost::boost Boost::program_options
                      Boost::filesystem Boost::system Boost::math_tr1
                      Boost::serialization)
 else()
@@ -282,6 +282,14 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 # PGI
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=inform")
+# MSVS
+elseif(MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+    # Required for MSVS 15.8+ due to alignment change
+    # https://devblogs.microsoft.com/cppblog/stl-features-and-fixes-in-vs-2017-15-8/
+    if(MSVC_VERSION GREATER_EQUAL 1916)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D _ENABLE_EXTENDED_ALIGNED_STORAGE")
+    endif()
 endif()
 
 
@@ -374,7 +382,7 @@ find_path(PIC_EXTENSION_PATH
     )
 
 set(PIC_COPY_ON_INSTALL "include/picongpu;etc/picongpu;lib"
-    CACHE LIST
+    CACHE STRING
     "Folders that are copied to installation path during install" )
 
 # enforce that all picongpu includes must be prefixed with `picongpu/`

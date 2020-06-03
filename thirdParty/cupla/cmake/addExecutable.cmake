@@ -18,18 +18,11 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-# same dependency as ALPAKA_ADD_EXECUTABLE
-cmake_minimum_required(VERSION 3.3.0)
-
-
-function(CUPLA_ADD_EXECUTABLE BinaryName)
-
-    include_directories(${cupla_INCLUDE_DIRS})
-    add_definitions(${cupla_DEFINITIONS})
+macro(CUPLA_ADD_EXECUTABLE BinaryName)
 
     alpaka_add_executable(
         ${BinaryName}
         ${ARGN}
-        ${cupla_SOURCE_FILES}
-    )
-endfunction()
+        )
+    target_link_libraries(${BinaryName} PUBLIC cupla)
+endmacro()

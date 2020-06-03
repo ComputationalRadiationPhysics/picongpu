@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Axel Huebl
+/* Copyright 2016-2020 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -43,6 +43,18 @@ namespace traits
         std::string operator()() const
         {
             return std::string("positionOffset");
+        }
+    };
+
+    /** Translate the particleId (unitless, global) into the openPMD
+     *  id (unitless, global)
+     */
+    template<>
+    struct OpenPMDName<particleId>
+    {
+        std::string operator()() const
+        {
+            return std::string("id");
         }
     };
 

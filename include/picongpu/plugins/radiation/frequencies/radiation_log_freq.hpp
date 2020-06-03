@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -24,8 +24,12 @@
 
 namespace picongpu
 {
-  namespace rad_log_frequencies
-  {
+namespace plugins
+{
+namespace radiation
+{
+namespace log_frequencies
+{
 
 
     class FreqFunctor
@@ -40,6 +44,11 @@ namespace picongpu
       HDINLINE float_X operator()(const int ID)
       {
           return  math::exp(omega_log_min + (float_X(ID)) * delta_omega_log) ;
+      }
+
+      HINLINE float_X get(const int ID)
+      {
+          return operator()(ID);
       }
 
     private:
@@ -65,6 +74,7 @@ namespace picongpu
     };
 
 
-  }
-
-}
+} // namespace log_frequencies
+} // namespace radiation
+} // namespace plugins
+} // namespace picongpu

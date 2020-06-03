@@ -1,4 +1,5 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz,
+ *                     Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -40,7 +41,7 @@ namespace traits
 template<typename T_DataType, int T_Dim>
 struct GetComponentsType<pmacc::math::Vector<T_DataType, T_Dim>, false >
 {
-    typedef typename pmacc::math::Vector<T_DataType, T_Dim>::type type;
+    using type = typename pmacc::math::Vector<T_DataType, T_Dim>::type;
 };
 
 template<typename T_DataType, int T_Dim>
@@ -52,8 +53,8 @@ struct GetNComponents<pmacc::math::Vector<T_DataType, T_Dim>,false >
 template<typename T_Type, int T_dim, typename T_Accessor, typename T_Navigator, template<typename, int> class T_Storage>
 struct GetInitializedInstance<math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage> >
 {
-    typedef math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage> Type;
-    typedef typename Type::type ValueType;
+    using Type = math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage>;
+    using ValueType = typename Type::type;
 
     HDINLINE Type operator()(const ValueType value) const
     {
@@ -61,8 +62,8 @@ struct GetInitializedInstance<math::Vector<T_Type, T_dim, T_Accessor, T_Navigato
     }
 };
 
-} //namespace traits
-} //namespace pmacc
+} // namespace traits
+} // namespace pmacc
 
 
 namespace pmacc
@@ -78,7 +79,7 @@ namespace math
 template<typename Type, int dim>
 struct Max< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
 {
-    typedef ::pmacc::math::Vector<Type, dim> result;
+    using result = ::pmacc::math::Vector<Type, dim>;
 
     HDINLINE result operator( )(const ::pmacc::math::Vector<Type, dim> &vector1, const ::pmacc::math::Vector<Type, dim> &vector2 )
     {
@@ -93,7 +94,7 @@ struct Max< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
 template<typename Type, int dim>
 struct Min< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
 {
-    typedef ::pmacc::math::Vector<Type, dim> result;
+    using result = ::pmacc::math::Vector<Type, dim>;
 
     HDINLINE result operator( )(const ::pmacc::math::Vector<Type, dim> &vector1, const ::pmacc::math::Vector<Type, dim> &vector2 )
     {
@@ -110,7 +111,7 @@ struct Min< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
 template<typename Type, int dim>
 struct Abs2< ::pmacc::math::Vector<Type, dim> >
 {
-    typedef typename ::pmacc::math::Vector<Type, dim>::type result;
+    using result = typename ::pmacc::math::Vector<Type, dim>::type;
 
     HDINLINE result operator( )(const ::pmacc::math::Vector<Type, dim> &vector )
     {
@@ -125,7 +126,7 @@ struct Abs2< ::pmacc::math::Vector<Type, dim> >
 template<typename Type, int dim>
 struct Abs< ::pmacc::math::Vector<Type, dim> >
 {
-    typedef typename ::pmacc::math::Vector<Type, dim>::type result;
+    using result = typename ::pmacc::math::Vector<Type, dim>::type;
 
     HDINLINE result operator( )( ::pmacc::math::Vector<Type, dim> vector )
     {
@@ -139,8 +140,8 @@ struct Abs< ::pmacc::math::Vector<Type, dim> >
 template<typename Type>
 struct Cross< ::pmacc::math::Vector<Type, DIM3>, ::pmacc::math::Vector<Type, DIM3> >
 {
-    typedef ::pmacc::math::Vector<Type, DIM3> myType;
-    typedef myType result;
+    using myType = ::pmacc::math::Vector<Type, DIM3>;
+    using result = myType;
 
     HDINLINE myType operator( )(const myType& lhs, const myType & rhs )
     {
@@ -155,8 +156,8 @@ struct Cross< ::pmacc::math::Vector<Type, DIM3>, ::pmacc::math::Vector<Type, DIM
 template<typename Type, int dim>
 struct Dot< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
 {
-    typedef ::pmacc::math::Vector<Type, dim> myType;
-    typedef Type result;
+    using myType = ::pmacc::math::Vector<Type, dim>;
+    using result = Type;
 
     HDINLINE result operator( )(const myType& a, const myType & b )
     {
@@ -164,6 +165,30 @@ struct Dot< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
         result tmp = a.x( ) * b.x( );
         for ( int i = 1; i < dim; i++ )
             tmp += a[i] * b[i];
+        return tmp;
+    }
+};
+
+/*#### exp ###################################################################*/
+
+/*! Specialization of exp where power is a vector
+ *
+ * Compute exp separately for every component of the vector.
+ *
+ * @param power vector with power values
+ */
+template<typename T1, int dim>
+struct Exp< ::pmacc::math::Vector<T1, dim> >
+{
+    using Vector1 = ::pmacc::math::Vector<T1, dim>;
+    using result = Vector1;
+
+    HDINLINE result operator( )(const Vector1& power )
+    {
+        BOOST_STATIC_ASSERT( dim > 0 );
+        result tmp;
+        for ( int i = 0; i < dim; ++i )
+            tmp[i] = pmacc::algorithms::math::exp( power[i] );
         return tmp;
     }
 };
@@ -180,8 +205,8 @@ struct Dot< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
 template<typename T1, typename T2, int dim>
 struct Pow< ::pmacc::math::Vector<T1, dim>, T2 >
 {
-    typedef ::pmacc::math::Vector<T1, dim> Vector1;
-    typedef Vector1 result;
+    using Vector1 = ::pmacc::math::Vector<T1, dim>;
+    using result = Vector1;
 
     HDINLINE result operator( )(const Vector1& base, const T2 & exponent )
     {
@@ -199,7 +224,7 @@ struct Pow< ::pmacc::math::Vector<T1, dim>, T2 >
 template<typename Type, int dim>
 struct Floor< ::pmacc::math::Vector<Type, dim> >
 {
-    typedef ::pmacc::math::Vector<Type, dim> result;
+    using result = ::pmacc::math::Vector<Type, dim>;
 
     HDINLINE result operator( )( ::pmacc::math::Vector<Type, dim> &vector )
     {
@@ -211,8 +236,8 @@ struct Floor< ::pmacc::math::Vector<Type, dim> >
 };
 
 
-} //namespace math
-} //namespace algorithms
+} // namespace math
+} // namespace algorithms
 } // namespace pmacc
 
 namespace pmacc
@@ -232,12 +257,12 @@ struct TypeCast<
     ::pmacc::math::Vector<CastToType, dim, T_Accessor, T_Navigator, T_Storage>
 >
 {
-    typedef const ::pmacc::math::Vector<
+    using result = const ::pmacc::math::Vector<
         CastToType,
         dim,
         T_Accessor,
         T_Navigator,
-        T_Storage>& result;
+        T_Storage>&;
 
     HDINLINE result operator( )( result vector ) const
     {
@@ -256,8 +281,8 @@ struct TypeCast<
     ::pmacc::math::Vector<OldType, dim, T_Accessor, T_Navigator, T_Storage>
 >
 {
-    typedef ::pmacc::math::Vector<CastToType, dim> result;
-    typedef ::pmacc::math::Vector<OldType, dim, T_Accessor, T_Navigator, T_Storage> ParamType;
+    using result = ::pmacc::math::Vector<CastToType, dim>;
+    using ParamType = ::pmacc::math::Vector<OldType, dim, T_Accessor, T_Navigator, T_Storage>;
 
     HDINLINE result operator( )(const ParamType& vector ) const
     {
@@ -265,9 +290,9 @@ struct TypeCast<
     }
 };
 
-} //namespace typecast
-} //namespace algorithms
-} //PMacc
+} // namespace typecast
+} // namespace algorithms
+} // namespace pmacc
 
 namespace pmacc
 {
@@ -279,13 +304,13 @@ namespace promoteType
 template<typename PromoteToType, typename OldType, int dim>
 struct promoteType<PromoteToType, ::pmacc::math::Vector<OldType, dim> >
 {
-    typedef typename promoteType<OldType, PromoteToType>::type PartType;
-    typedef ::pmacc::math::Vector<PartType, dim> type;
+    using PartType = typename promoteType<OldType, PromoteToType>::type;
+    using type = ::pmacc::math::Vector<PartType, dim>;
 };
 
-} //namespace promoteType
-} //namespace algorithms
-} //namespace pmacc
+} // namespace promoteType
+} // namespace algorithms
+} // namespace pmacc
 
 namespace pmacc
 {
@@ -334,8 +359,6 @@ struct GetMPI_StructAsArray< ::pmacc::math::Vector<double, T_dim>[T_N] >
     }
 };
 
-} //namespace def
-
-} //namespace mpi
-
-}//namespace pmacc
+} // namespace def
+} // namespace mpi
+} // namespace pmacc

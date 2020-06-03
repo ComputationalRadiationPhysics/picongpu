@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -26,7 +26,8 @@
 
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/vector.hpp>
-#include <pmacc/compileTime/AllCombinations.hpp>
+#include <pmacc/meta/AllCombinations.hpp>
+#include <pmacc/meta/ForEach.hpp>
 
 namespace picongpu
 {
@@ -97,11 +98,11 @@ struct ShiftCoordinateSystem
          *  and does not waste registers */
         const uint32_t dim = T_Vector::dim;
 
-        typedef boost::mpl::vector1 < boost::mpl::range_c<uint32_t, 0, dim > > Size;
-        typedef typename AllCombinations<Size>::type CombiTypes;
+        using Size = boost::mpl::vector1 < boost::mpl::range_c<uint32_t, 0, dim > >;
+        using CombiTypes = typename AllCombinations<Size>::type;
 
-        ForEach<CombiTypes, AssignToDim<bmpl::_1, T_supports> > shift;
-        shift(forward(cursor), forward(vector), fieldPos);
+        meta::ForEach<CombiTypes, AssignToDim<bmpl::_1, T_supports> > shift;
+        shift(cursor, vector, fieldPos);
 
     }
 };

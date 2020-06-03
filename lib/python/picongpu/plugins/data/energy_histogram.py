@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2017-2018 PIConGPU contributors
+Copyright 2017-2020 PIConGPU contributors
 Authors: Axel Huebl
 License: GPLv3+
 """
@@ -98,23 +98,22 @@ class EnergyHistogramData(DataReader):
                            delimiter=" ",
                            dtype=np.uint64).values[:, 0]
 
-    def get(self, species, species_filter="all", iteration=None,
-            include_overflow=False, **kwargs):
+    def _get_for_iteration(self, iteration, species, species_filter="all",
+                           include_overflow=False, **kwargs):
         """
-        Get a histogram.
+        Get a histogram for a given iteration.
 
         Parameters
         ----------
+        iteration : (unsigned) int [unitless] or list of int or None.
+            The iteration at which to read the data.
+            ``None`` refers to the list of all available iterations.
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
         species_filter: string
             name of the particle species filter, default is 'all'
             (defined in ``particleFilters.param``)
-        iteration : (unsigned) int [unitless]
-            The iteration at which to read the data.
-            A list of iterations is allowed as well.
-            ``None`` refers to the list of all available iterations.
         include_overflow : boolean, default: False
             Include overflow and underflow bins as the first/last bins.
 
@@ -122,10 +121,13 @@ class EnergyHistogramData(DataReader):
         -------
         counts : np.array of dtype float [unitless]
             count of particles in each bin
-            If iteration is a list, returns (ordered) dict with iterations as
-            its index.
+            If iteration is a list, returns a list of counts.
         bins : np.array of dtype float [keV]
             upper ranges of each energy bin
+        iteration: np.array of dtype int
+            the iteration numbers that data is retrieved for
+        dt: float
+            the timestep between consecutive iterations
         """
         if iteration is not None:
             if not isinstance(iteration, collections.Iterable):
@@ -175,11 +177,8 @@ class EnergyHistogramData(DataReader):
         if not include_overflow:
             del data['underflow']
             del data['overflow']
-
+        dt = self.get_dt()
         if len(iteration) > 1:
-            return collections.OrderedDict(zip(
-                    iteration,
-                    data.loc[iteration].values
-                )), bins
+            return data.loc[iteration].values, bins, iteration, dt
         else:
-            return data.loc[iteration].values[0, :], bins
+            return data.loc[iteration].values[0, :], bins, iteration, dt

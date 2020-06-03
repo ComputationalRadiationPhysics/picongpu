@@ -3,7 +3,7 @@
 ADIOS
 -----
 
-Stores simulation data such as fields and particles as `ADIOS <https://www.olcf.ornl.gov/center-projects/adios>`_ files or ADIOS staging methods.
+Stores simulation data such as fields and particles as `ADIOS <https://csmd.ornl.gov/adios/>`_ files or ADIOS staging methods [Huebl2017]_ .
 
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
@@ -137,3 +137,12 @@ Additional Tools
 ^^^^^^^^^^^^^^^^
 
 See our :ref:`openPMD <pp-openPMD>` chapter.
+
+References
+^^^^^^^^^^
+
+.. [Huebl2017]
+        A. Huebl, R. Widera, F. Schmitt, A. Matthes, N. Podhorszki, J.Y. Choi, S. Klasky, and M. Bussmann.
+        *On the Scalability of Data Reduction Techniques in Current and Upcoming HPC Systems from an Application Perspective.*
+        ISC High Performance Workshops 2017, LNCS 10524, pp. 15-29 (2017),
+        `arXiv:1706.00522 <https://arxiv.org/abs/1706.00522>`_, `DOI:10.1007/978-3-319-67630-2_2 <https://doi.org/10.1007/978-3-319-67630-2_2>`_

@@ -41,6 +41,24 @@ Queue: gpu (4x NVIDIA P100 16GB)
 .. literalinclude:: profiles/hemera-hzdr/gpu_picongpu.profile.example
    :language: bash
 
+Queue: fwkt_v100 (4x NVIDIA V100 32GB)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/hemera-hzdr/fwkt_v100_picongpu.profile.example
+   :language: bash
+
+Queue: k20 (4x Nvidia K20m GPUs 4.7GB)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/hemera-hzdr/k20_picongpu.profile.example
+   :language: bash
+
+Queue: k80 (8x NVIDIA K80 12GB)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/hemera-hzdr/k80_picongpu.profile.example
+   :language: bash
+
 Hypnos (HZDR)
 -------------
 
@@ -58,18 +76,6 @@ Queue: laser (AMD Opteron 6276 CPUs)
 .. literalinclude:: profiles/hypnos-hzdr/laser_picongpu.profile.example
    :language: bash
 
-Queue: k20 (Nvidia K20 GPUs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/hypnos-hzdr/k20_picongpu.profile.example
-   :language: bash
-
-Queue: k80 (Nvidia K80 GPUs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/hypnos-hzdr/k80_picongpu.profile.example
-   :language: bash
-
 Hydra (HZDR)
 -------------
 
@@ -84,28 +90,22 @@ For this profile to work, you need to download the :ref:`PIConGPU source code <i
 .. literalinclude:: profiles/hydra-hzdr/default_picongpu.profile.example
    :language: bash
 
-Titan (ORNL)
-------------
+Summit (ORNL)
+-------------
 
-**System overview:** `link <https://www.olcf.ornl.gov/olcf-resources/compute-systems/titan/>`_
+**System overview:** `link <https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/>`_
 
-**User guide:** `link <https://www.olcf.ornl.gov/for-users/system-user-guides/titan/>`_
+**User guide:** `link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/>`_
 
-**Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://www.olcf.ornl.gov/for-users/system-user-guides/titan/file-systems/>`_).
-Note that ``$HOME`` is not mounted on compute nodes, place your ``picongpu.profile`` and auxiliary software in your production directory.
+**Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#file-systems>`_).
+Note that ``$HOME`` is mounted on compute nodes as read-only.
 
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`libSplash, libpng and PNGwriter <install-dependencies>` manually.
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`libSplash and PNGwriter <install-dependencies>` manually.
 
-K20x GPUs (recommended)
+V100 GPUs (recommended)
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-.. literalinclude:: profiles/titan-ornl/gpu_picongpu.profile.example
-   :language: bash
-
-AMD Opteron 6274 (Interlagos) CPUs (for experiments)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/titan-ornl/cpu_picongpu.profile.example
+.. literalinclude:: profiles/summit-ornl/gpu_picongpu.profile.example
    :language: bash
 
 Piz Daint (CSCS)
@@ -154,8 +154,8 @@ Queue: gpu2 (Nvidia K80 GPUs)
 .. literalinclude:: profiles/taurus-tud/k80_picongpu.profile.example
    :language: bash
 
-Queue: knl (Intel  Intel Xeon Phi - Knights Landing)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Queue: knl (Intel Xeon Phi - Knights Landing)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For this profile, you additionally need to install your own :ref:`boost <install-dependencies>`.
 
@@ -167,20 +167,14 @@ Queue: ml (NVIDIA V100 GPUs on Power9 nodes)
 
 For this profile, you additionally need to compile and install everything for the power9-architecture including your own :ref:`boost <install-dependencies>`, :ref:`HDF5 <install-dependencies>`, c-blosc and :ref:`ADIOS <install-dependencies>`.
 
-Install script for `c-blosc`
+.. note::
 
-.. code-block:: bash
+   Please find a `Taurus ml quick start here <https://gist.github.com/steindev/cc02eae81f465833afa27fc8880f3473>`_.
 
-   cd $SOURCE_DIR
-   git clone -b v1.12.1 https://github.com/Blosc/c-blosc.git \
-       $SOURCE_DIR/c-blosc
-   mkdir c-blosc-build
-   cd c-blosc-build
-   cmake -DCMAKE_INSTALL_PREFIX=$BLOSC_ROOT \
-       -DPREFER_EXTERNAL_ZLIB=ON \
-       $SOURCE_DIR/c-blosc
-   make -j4
-   make install
+.. note::
+   
+   You need to compile the libraries and PIConGPU on an ``ml`` node since
+   only nodes in the ``ml`` queue are Power9 systems.
 
 .. literalinclude:: profiles/taurus-tud/V100_picongpu.profile.example
    :language: bash
@@ -198,6 +192,23 @@ For this profile to work, you need to download the :ref:`PIConGPU source code <i
 Additionally, you need to make the ``rsync`` command available as written below.
 
 .. literalinclude:: profiles/lawrencium-lbnl/picongpu.profile.example
+   :language: bash
+
+Cori (NERSC)
+------------
+
+**System overview:** `link <https://www.nersc.gov/users/computational-systems/cori/configuration/>`_
+
+**User guide:** `link <https://docs.nersc.gov/>`_
+
+**Production directory:** ``$SCRATCH`` (`link <https://www.nersc.gov/users/storage-and-file-systems/>`_).
+
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and libSplash <install-dependencies>` manually.
+
+Queue: regular (Intel Xeon Phi - Knights Landing)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/cori-nersc/knl_picongpu.profile.example
    :language: bash
 
 Draco (MPCDF)
@@ -281,4 +292,21 @@ Queue: gpus (4 x Nvidia V100 GPUs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. literalinclude:: profiles/juwels-jsc/gpus_picongpu.profile.example
+   :language: bash
+
+ARIS (GRNET)
+------------
+
+**System overview:** `link <http://doc.aris.grnet.gr/>`_
+
+**User guide:** `link <http://doc.aris.grnet.gr/environment/>`_
+
+**Production directory:** ``$WORKDIR`` (`link <http://doc.aris.grnet.gr/system/storage/>`_)
+
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>`.
+
+Queue: gpu (2 x NVIDIA Tesla k40m GPUs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/aris-grnet/gpu_picongpu.profile.example
    :language: bash

@@ -1,4 +1,4 @@
-# Copyright 2015-2018 Erik Zenker, Rene Widera, Axel Huebl
+# Copyright 2015-2020 Erik Zenker, Rene Widera, Axel Huebl
 #
 # This file is part of PMacc.
 #
@@ -29,7 +29,7 @@
 ###############################################################################
 # PMacc
 ###############################################################################
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.11.4)
 
 # set helper pathes to find libraries and packages
 # Add specific hints
@@ -281,9 +281,6 @@ if(VAMPIR_ENABLE)
 
     # for manual instrumentation and hints that vampir is enabled in our code
     set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DVTRACE)
-
-    # titan work around: currently (5.14.4) the -D defines are not provided by -vt:showme-compile
-    set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DMPICH_IGNORE_CXX_SEEK)
 endif(VAMPIR_ENABLE)
 
 
@@ -305,7 +302,7 @@ endif(MPI_CXX_FOUND)
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.62.0 REQUIRED COMPONENTS filesystem system math_tr1)
+find_package(Boost 1.65.1 REQUIRED COMPONENTS filesystem system math_tr1)
 if(TARGET Boost::filesystem)
     set(PMacc_LIBRARIES ${PMacc_LIBRARIES} Boost::boost Boost::filesystem
                                            Boost::system Boost::math_tr1)
@@ -320,21 +317,11 @@ endif()
 message(STATUS "Boost: result_of with TR1 style and decltype fallback")
 set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK)
 
-# Boost >= 1.60.0 and CUDA != 7.5 failed when used with C++11
-# seen with Boost 1.60.0 - 1.62.0 (maybe later) and CUDA 7.0 and 8.0
-# CUDA 7.5 works without a workaround
-# CUDA 8.0.44 bug reappeared, but work-around was mainlined in 1.63.0+
-# CUDA 9.0 unknown, likely fixed
-# CUDA 9.1.85-3 and above fixed
-if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
-    if( (Boost_VERSION GREATER 105999) AND
-        (NOT CUDA_VERSION VERSION_EQUAL 7.5) AND
-        (CUDA_VERSION VERSION_LESS 9.1) )
-        # Boost Bug https://svn.boost.org/trac/boost/ticket/11897
-        message(STATUS "Boost: Disable template aliases")
-        set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_NO_CXX11_TEMPLATE_ALIASES)
-    endif()
-endif()
+# We do not use std::auto_ptr and keeping this enabled in Boost causes a
+# warning with NVCC+GCC and is unnecessary time spend in compile time
+# (note that std::auto_ptr is deprecated in C++11 and removed in C++17)
+message(STATUS "Boost: deactivate std::auto_ptr")
+set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_NO_AUTO_PTR)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     message(STATUS "Boost: Disable variadic templates")
@@ -350,47 +337,22 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_SMART_PTR")
 endif()
 
-# Boost 1.64.0 is broken with CUDA 8.0 (nvcc) and C++11
-#   https://github.com/ComputationalRadiationPhysics/picongpu/issues/2048
-#   fixed in CUDA 9.0 (ticket 1928813)
-if( ("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc") AND
-    (Boost_VERSION EQUAL 106400) AND
-    (CUDA_VERSION VERSION_EQUAL 8.0) )
-    message(STATUS "Boost: Disable C++11 noexcept")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_NOEXCEPT")
-endif()
-
-# GCC's C++11 tuples are broken in "supported" NVCC versions
-if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
-    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        if(CUDA_VERSION VERSION_EQUAL 8.0)
-            if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 5.4)
-                message(FATAL_ERROR "NVCC 8.0 does not support the std::tuple "
-                        "implementation in GCC 5.4+. Please use GCC 4.9 - 5.3!")
-            endif()
-        elseif(CUDA_VERSION VERSION_EQUAL 9.0 OR
-               CUDA_VERSION VERSION_EQUAL 9.1)
-            if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 6.0)
-                message(FATAL_ERROR "NVCC 9.0 - 9.1 do not support the std::tuple "
-                        "implementation in GCC 6+. Please use GCC 4.9 - 5.5!")
-            endif()
-        elseif(CUDA_VERSION VERSION_EQUAL 9.2)
-            if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 8.0)
-                message(FATAL_ERROR "NVCC 9.2 does not support GCC 8+. "
-                        "Please use GCC 4.9 - 7.3!")
-            endif()
-        endif()
-    endif()
-endif()
-
 # Newer Boost releases: probably troublesome, warn at least
-if(Boost_VERSION GREATER 106800)
-    message(WARNING "Untested Boost release! Maybe use a newer PIConGPU?")
+if(Boost_VERSION GREATER 107000)
+    message(WARNING "Untested Boost release > 1.70.0 (Found ${Boost_VERSION})! "
+                    "Maybe use a newer PIConGPU?")
 endif()
 
-# Newer CUDA releases: probably troublesome, warn at least
-if(CUDA_VERSION VERSION_GREATER 10.0)
-    message(WARNING "Untested CUDA release! Maybe use a newer PIConGPU?")
+if(ALPAKA_ACC_GPU_CUDA_ENABLE)
+    if(CUDA_VERSION VERSION_LESS 9.2)
+        message(FATAL_ERROR "CUDA 9.2 or newer required! "
+                            "(Found ${CUDA_VERSION})")
+    endif()
+    # Newer CUDA releases: probably troublesome, warn at least
+    if(CUDA_VERSION VERSION_GREATER 10.2)
+        message(WARNING "Untested CUDA release >10.2 (Found ${CUDA_VERSION})! "
+                        "Maybe use a newer PIConGPU?")
+    endif()
 endif()
 
 

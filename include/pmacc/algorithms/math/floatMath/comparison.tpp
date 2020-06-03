@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Benjamin Worpitz, Richard Pausch
+/* Copyright 2015-2020 Benjamin Worpitz, Richard Pausch
  *
  * This file is part of PMacc.
  *

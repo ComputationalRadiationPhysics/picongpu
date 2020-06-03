@@ -1,7 +1,7 @@
 # Name and Path of this Script ############################### (DO NOT change!)
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
-# User Information ######################################### (edit those lines)
+# User Information ################################# (edit the following lines)
 #   - automatically add your name and contact to output file meta data
 #   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
 #     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
@@ -21,7 +21,7 @@ export proj=$(groups | awk '{print $2}')
 #
 module purge
 module load gnu/6.4.0
-module load cmake/3.11
+module load cmake/3.11.4
 module load cuda/9.2.88
 module load openmpi/3.1.0--gnu--6.4.0
 module load boost/1.68.0--openmpi--3.1.0--gnu--6.4.0
@@ -74,7 +74,7 @@ export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/davide-cineca/gpu.tpl"
 
 # allocate an interactive shell for one hour
-#   getNode 2  # allocates to interactive nodes (default: 1)
+#   getNode 2  # allocates two interactive nodes (default: 1)
 function getNode() {
     if [ -z "$1" ] ; then
         numNodes=1
@@ -85,7 +85,7 @@ function getNode() {
 }
 
 # allocate an interactive shell for one hour
-#   getDevice 2  # allocates to interactive devices (default: 1)
+#   getDevice 2  # allocates two interactive devices (default: 1)
 function getDevice() {
     if [ -z "$1" ] ; then
         numGPUs=1
@@ -99,3 +99,11 @@ function getDevice() {
     fi
     srun  --time=1:00:00 --ntasks-per-node=$numGPUs --cpus-per-task=$((4 * $numGPUs)) --gres=gpu:$numGPUs --mem=$((63000 * numGPUs)) -A $proj -p dvd_usr_prod --pty bash
 }
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi

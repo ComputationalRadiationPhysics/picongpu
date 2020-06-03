@@ -20,6 +20,10 @@ in kernels:
 Restrictions
 ============
 
+Cupla host-side API is not thread-safe.
+Thus, it is not allowed to use cupla API from multiple host-side threads simultaneously.
+In such scenarios, some synchronization between the host-side threads is required to ensure safe usage of cupla.
+
 Events with timing information synchronize the stream where they were recorded.
 Disable the timing information of the event by setting the flag
 `cudaEventDisableTiming` or `cuplaEventDisableTiming` during the event
@@ -41,7 +45,9 @@ Porting Step by Step
   **cupla include**
   ```C++
   /* Do NOT include other headers that use CUDA runtime functions or variables
-   * (see above) before this include.
+   * (see above) after this include.
+   * In particular, this applies to third-party library headers pulling CUDA -
+   * they also have to be included before cupla.
    * The reason for this is that cupla renames CUDA host functions and device build in
    * variables by using macros and macro functions.
    * Do NOT include other specific includes such as `<cuda.h>` (driver functions,

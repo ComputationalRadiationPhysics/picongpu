@@ -53,6 +53,12 @@ Host
 
 no extra allocations.
 
+Known Limitations
+^^^^^^^^^^^^^^^^^
+
+- this plugin is only available with the CUDA backend
+- this plugin might take a significant amount of time due to not being fully parallelized.
+
 Reference
 ^^^^^^^^^
 
@@ -61,3 +67,5 @@ The particle merger implements a macro particle merging algorithm based on:
 Luu, P. T., Tueckmantel, T., & Pukhov, A. (2016).
 Voronoi particle merging algorithm for PIC codes.
 Computer Physics Communications, 202, 165-174.
+
+There is a slight deviation from the paper in determining the next subdivision. The implementation always tries to subdivide a Voronoi cell by positions first; momentums are only checked in case the spreads in the positions satisfy the threshold.

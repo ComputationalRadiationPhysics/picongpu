@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu,
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu,
  *                     Marco Garten, Alexander Grund, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -25,6 +25,7 @@
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
 #include <pmacc/particles/memory/boxes/TileDataBox.hpp>
 
+#include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
 
@@ -216,157 +217,6 @@ struct KernelDeriveParticles
                     }
                 }
             );
-            __syncthreads( );
-        }
-    }
-};
-
-/** manipulate particles of a species
- *
- * This functor prepares a particle box to call
- * a user defined unary functor which allows to manipulate the particles.
- *
- * @tparam T_numWorkers number of workers
- */
-template< uint32_t T_numWorkers >
-struct KernelManipulateAllParticles
-{
-    /** frame-wise manipulate particles
-     *
-     * @tparam T_ParBox pmacc::ParticlesBox, type of the species box
-     * @tparam T_ManipulateFunctor type of the user functor to derive a particle
-     * @tparam T_Mapping mapping functor type
-     *
-     * @param pb particles to manipulate
-     * @param manipulateFunctor functor to manipulate a particle
-     *                          must fulfill the interface particles::manipulators::IUnary
-     * @param mapper functor to map a block to a supercell
-     */
-    template<
-        typename T_ManipulateFunctor,
-        typename T_ParBox,
-        typename T_Mapping,
-        typename T_Acc
-    >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        T_ParBox pb,
-        T_ManipulateFunctor manipulateFunctor,
-        T_Mapping const mapper
-    ) const
-    {
-        using namespace mappings::threads;
-
-        constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
-        constexpr uint32_t numWorkers = T_numWorkers;
-
-        uint32_t const workerIdx = threadIdx.x;
-
-        using FramePtr = typename T_ParBox::FramePtr;
-        PMACC_SMEM(
-            acc,
-            frame,
-            FramePtr
-        );
-
-        DataSpace< simDim > const superCellIdx(
-            mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
-        );
-
-        ForEachIdx<
-            IdxConfig<
-                1,
-                numWorkers
-            >
-        > onlyMaster{ workerIdx };
-
-        onlyMaster(
-            [&](
-                uint32_t const,
-                uint32_t const
-            )
-            {
-                frame = pb.getLastFrame( superCellIdx );
-            }
-        );
-
-        __syncthreads();
-
-        // end kernel if we have no frames
-        if( !frame.isValid( ) )
-            return;
-
-        using ParticleDomCfg = IdxConfig<
-            frameSize,
-            numWorkers
-        >;
-
-        // marker if a particle slot within a frame holds a valid particle
-        memory::CtxArray<
-            bool,
-            ParticleDomCfg
-        >
-        isParticleCtx(
-            workerIdx,
-            [&](
-                uint32_t const linearIdx,
-                uint32_t const
-            )
-            {
-                return frame[ linearIdx ][ multiMask_ ];
-            }
-        );
-
-        // offset of the superCell (in cells, without any guards) to the origin of the local domain
-        DataSpace< simDim > const localSuperCellOffset =
-            superCellIdx - mapper.getGuardingSuperCells( );
-
-        auto accManipulator = manipulateFunctor(
-            acc,
-            localSuperCellOffset,
-            WorkerCfg< T_numWorkers >{ workerIdx }
-        );
-
-        __syncthreads( );
-
-        while( frame.isValid( ) )
-        {
-            // loop over all particles in the frame
-            ForEachIdx< ParticleDomCfg >{ workerIdx }(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
-                {
-                    auto particle = frame[ linearIdx ];
-                    bool const isPar = isParticleCtx[ idx ];
-
-                    if( !isPar )
-                        particle.setHandleInvalid( );
-
-                    // call manipulator even if the particle is not valid
-                    accManipulator( acc, particle );
-
-                    /* only the last frame is allowed to be non-full: all following
-                     * frames' particles will be valid, since we iterate the list of
-                     * frames from back to front
-                     */
-                    isParticleCtx[ idx ] = true;
-                }
-            );
-
-            __syncthreads( );
-
-            onlyMaster(
-                [&](
-                    uint32_t const,
-                    uint32_t const
-                )
-                {
-                    frame = pb.getPreviousFrame( frame );
-                }
-            );
-
             __syncthreads( );
         }
     }
@@ -600,8 +450,8 @@ struct PushParticlePerFrame
 
         DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
 
-        const traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldE> fieldPosE;
-        const traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldB> fieldPosB;
+        const traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
+        const traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
 
         auto functorEfield = CreateInterpolationForPusher<Field2ParticleInterpolation>()( eBox.shift(localCell).toCursor(), fieldPosE() );
         auto functorBfield = CreateInterpolationForPusher<Field2ParticleInterpolation>()( bBox.shift(localCell).toCursor(), fieldPosB() );

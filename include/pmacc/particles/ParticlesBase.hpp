@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Felix Schmitt, Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of PMacc.
@@ -172,6 +172,11 @@ public:
     /** copy guard particles to intermediate exchange buffer
      *
      * Copy all particles from the guard of a direction to the device exchange buffer.
+     * @warning This method resets the number of particles in the processed supercells even
+     * if there are particles left in the supercell and does not guarantee that the last frame is
+     * contiguous filled.
+     * Call fillAllGaps afterwards if you need a valid number of particles
+     * and a contiguously filled last frame.
      */
     void copyGuardToExchange(uint32_t exchangeType);
 

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Axel Huebl
+/* Copyright 2013-2020 Heiko Burau, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/Environment.hpp>
 
-#include "picongpu/simulationControl/MySimulation.hpp"
+#include "picongpu/simulation/control/MySimulation.hpp"
 
 #include <pmacc/simulationControl/SimulationHelper.hpp>
 

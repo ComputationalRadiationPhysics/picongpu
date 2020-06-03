@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -28,6 +28,7 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/laserProfiles/profiles.hpp"
+#include "picongpu/particles/traits/GetDensityRatio.hpp"
 
 #include "picongpu/initialization/SimStartInitialiser.hpp"
 
@@ -98,9 +99,9 @@ public:
         log<picLog::SIMULATION_STATE > ("Loading from persistent data finished");
     }
 
-    /** log omega_p for each species
+    /** Log omega_p for each species
      *
-     * calculate omega_p for each given species and create a `picLog::PHYSICS`
+     * Calculate omega_p for each given species and create a `picLog::PHYSICS`
      * log message
      */
     template<typename T_Species = bmpl::_1>
@@ -108,11 +109,18 @@ public:
     {
         void operator()()
         {
+            /* The omega_p calculation is based on species' densityRatio
+             * relative to the BASE_DENSITY. Thus, it is only accurate
+             * for species with macroparticles sampled by density,
+             * but not necessarily for derived ones.
+             */
             using FrameType = typename T_Species::FrameType;
             const float_32 charge = frame::getCharge<FrameType>();
             const float_32 mass = frame::getMass<FrameType>();
+            const auto densityRatio = traits::GetDensityRatio< T_Species >::type::getValue( );
+            const auto density = BASE_DENSITY * densityRatio;
             log<picLog::PHYSICS >("species %2%: omega_p * dt <= 0.1 ? %1%") %
-                                 (sqrt(BASE_DENSITY *  charge / mass * charge / EPS0) * DELTA_T) %
+                                 (sqrt(density * charge / mass * charge / EPS0) * DELTA_T) %
                                   FrameType::getName();
         }
     };
@@ -136,7 +144,11 @@ public:
                 SpeciesWithMass,
                 chargeRatio<>
             >::type;
-            ForEach< SpeciesWithMassCharge, LogOmegaP<> > logOmegaP;
+            meta::ForEach< SpeciesWithMassCharge, LogOmegaP<> > logOmegaP;
+            log<picLog::PHYSICS >("Resolving plasma oscillations?\n"
+                "   Estimates are based on DensityRatio to BASE_DENSITY of each species\n"
+                "   (see: density.param, speciesDefinition.param).\n"
+                "   It and does not cover other forms of initialization");
             logOmegaP();
 
             if (fields::laserProfiles::Selected::INIT_TIME > float_X(0.0))

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Alexander Grund
  *
  * This file is part of PMacc.
@@ -129,8 +129,7 @@ public:
      *
      * @param frame frame to remove
      */
-    template<typename T_InitMethod>
-    DINLINE void removeFrame( FramePointer<FrameType, T_InitMethod>& frame )
+    DINLINE void removeFrame( FramePtr& frame )
     {
 #if( PMACC_CUDA_ENABLED == 1 )
         m_deviceHeapHandle.free( (void*) frame.ptr );
@@ -141,7 +140,7 @@ public:
     }
 
     HDINLINE
-    FramePtr mapPtr( const FramePtr& devPtr )
+    FramePtr mapPtr( const FramePtr& devPtr ) const
     {
 #ifndef __CUDA_ARCH__
         int64_t useOffset = hostMemoryOffset * static_cast<int64_t> (devPtr.ptr != 0);
@@ -160,7 +159,7 @@ public:
      * @param frame the active frame
      * @return the next frame in the list
      */
-    HDINLINE FramePtr getNextFrame( const FramePtr& frame )
+    HDINLINE FramePtr getNextFrame( const FramePtr& frame ) const
     {
         return mapPtr( frame->nextFrame.ptr );
     }
@@ -171,7 +170,7 @@ public:
      * @param frame the active frame
      * @return the previous frame in the list
      */
-    HDINLINE FramePtr getPreviousFrame( const FramePtr& frame )
+    HDINLINE FramePtr getPreviousFrame( const FramePtr& frame ) const
     {
         return mapPtr( frame->previousFrame.ptr );
     }
@@ -182,7 +181,7 @@ public:
      * @param idx position of supercell
      * @return the last frame of the linked list from supercell
      */
-    HDINLINE FramePtr getLastFrame( const DataSpace<DIM> &idx )
+    HDINLINE FramePtr getLastFrame( const DataSpace<DIM> &idx ) const
     {
         return mapPtr( getSuperCell( idx ).LastFramePtr( ) );
     }
@@ -193,7 +192,7 @@ public:
      * @param idx position of supercell
      * @return the first frame of the linked list from supercell
      */
-    HDINLINE FramePtr getFirstFrame( const DataSpace<DIM> &idx )
+    HDINLINE FramePtr getFirstFrame( const DataSpace<DIM> &idx ) const
     {
         return mapPtr( getSuperCell( idx ).FirstFramePtr( ) );
     }
@@ -205,15 +204,11 @@ public:
      * @param idx position of supercell
      */
     template<
-        typename T_InitMethod,
         typename T_Acc
     >
     DINLINE void setAsFirstFrame(
         T_Acc const & acc,
-        FramePointer<
-            FrameType,
-            T_InitMethod
-        >& frame,
+        FramePtr & frame,
         DataSpace< DIM > const &idx
     )
     {
@@ -255,14 +250,12 @@ public:
      * @param idx position of supercell
      */
     template<
-        typename T_InitMethod,
         typename T_Acc
     >
     DINLINE void setAsLastFrame(
         T_Acc const & acc,
         FramePointer<
-            FrameType,
-            T_InitMethod
+            FrameType
         >& frame,
         DataSpace< DIM > const &idx
     )
@@ -330,11 +323,10 @@ public:
         return false;
     }
 
-    HDINLINE SuperCellType& getSuperCell( DataSpace<DIM> idx )
+    HDINLINE SuperCellType& getSuperCell( DataSpace<DIM> idx ) const
     {
         return BaseType::operator()(idx);
     }
-
 };
 
 }

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -23,6 +23,7 @@
 
 #include "picongpu/fields/MaxwellSolver/None/None.def"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
+#include "picongpu/fields/MaxwellSolver/YeePML/YeePML.def"
 #if (SIMDIM==3)
 #include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
 #if( PMACC_CUDA_ENABLED == 1 )

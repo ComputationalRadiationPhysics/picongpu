@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -23,11 +23,11 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/FieldTmp.kernel"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
-#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
 
 #include <pmacc/memory/buffers/GridBuffer.hpp>
+#include <pmacc/memory/MakeUnique.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -51,25 +51,27 @@ namespace picongpu
     using namespace pmacc;
 
     FieldTmp::FieldTmp(
-        MappingDesc cellDescription,
+        MappingDesc const & cellDescription,
         uint32_t slotId
     ) :
         SimulationFieldHelper<MappingDesc>( cellDescription ),
         m_slotId( slotId )
     {
-        m_commTagScatter =
-            ++pmacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
-            SPECIES_FIRSTTAG;
-        m_commTagGather = ++pmacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
-            SPECIES_FIRSTTAG;
+        /* Since this class is instantiated for each temporary field slot,
+         * use getNextId( ) directly to get unique tags for each instance.
+         * Add SPECIES_FIRSTTAG to avoid collisions with the tags for
+         * other fields.
+         */
+        m_commTagScatter = pmacc::traits::getNextId( ) + SPECIES_FIRSTTAG;
+        m_commTagGather = pmacc::traits::getNextId( ) + SPECIES_FIRSTTAG;
 
-        fieldTmp.reset(
-            new GridBuffer <ValueType, simDim >( cellDescription.getGridLayout( ) )
-        );
+        using Buffer = GridBuffer< ValueType, simDim >;
+        fieldTmp = memory::makeUnique< Buffer >( cellDescription.getGridLayout( ) );
 
         if( fieldTmpSupportGatherCommunication )
-            fieldTmpRecv.reset(
-                new GridBuffer< ValueType, simDim >( fieldTmp->getDeviceBuffer(), cellDescription.getGridLayout( ) )
+            fieldTmpRecv = memory::makeUnique< Buffer >(
+                fieldTmp->getDeviceBuffer(),
+                cellDescription.getGridLayout( )
             );
 
         /** \todo The exchange has to be resetted and set again regarding the
@@ -183,10 +185,6 @@ namespace picongpu
             }
         }
 
-    }
-
-    FieldTmp::~FieldTmp( )
-    {
     }
 
     template<uint32_t AREA, class FrameSolver, class ParticlesClass>

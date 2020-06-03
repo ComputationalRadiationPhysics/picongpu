@@ -23,8 +23,12 @@
 
 #include <alpaka/alpaka.hpp>
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla_driver_types.hpp"
+
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
 cuplaError_t
 cuplaEventCreateWithFlags(
@@ -60,3 +64,5 @@ cuplaEventSynchronize(
 
 cuplaError_t
 cuplaEventQuery( cuplaEvent_t event );
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE

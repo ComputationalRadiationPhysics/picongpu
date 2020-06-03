@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Axel Huebl
+/* Copyright 2017-2020 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -21,7 +21,7 @@
 
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
-#include <pmacc/compileTime/conversion/ToSeq.hpp>
+#include <pmacc/meta/conversion/ToSeq.hpp>
 
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/copy_if.hpp>

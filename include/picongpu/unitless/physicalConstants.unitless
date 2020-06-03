@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Rene Widera, Marco Garten, Heiko Burau
+/* Copyright 2013-2020 Axel Huebl, Rene Widera, Marco Garten, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -38,6 +38,9 @@ namespace picongpu
 
     // = 1/c^2
     constexpr float_X MUE0_EPS0 = float_X(1. / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+
+    //! Impedance of free space
+    constexpr float_X Z0 = MUE0 * SPEED_OF_LIGHT;
 
     /* Atomic unit of electric field in PIC Efield units */
     constexpr float_X ATOMIC_UNIT_EFIELD = float_X(SI::ATOMIC_UNIT_EFIELD / UNIT_EFIELD);

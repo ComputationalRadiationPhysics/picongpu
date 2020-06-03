@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2020 Axel Huebl, Rene Widera, Felix Schmitt,
  *                     Benjamin Worpitz, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
 
 /* some forward declarations we need */
 #include "picongpu/fields/Fields.def"

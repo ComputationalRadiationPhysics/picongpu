@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Axel Huebl
+/* Copyright 2014-2020 Axel Huebl
  *
  * This file is part of PMacc.
  *
@@ -55,7 +55,7 @@ namespace pmacc
 namespace mpi
 {
     template<>
-    MPI_Op getMPI_Op<pmacc::nvidia::functors::Mul>()
+    HINLINE MPI_Op getMPI_Op<pmacc::nvidia::functors::Mul>()
     {
         return MPI_PROD;
     }

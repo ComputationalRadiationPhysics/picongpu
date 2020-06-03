@@ -22,6 +22,7 @@ After combining the *machine independent* (portable) ``.cfg`` file from user inp
 
 Last but not least, one usually wants to store the input of a simulation with its output.
 ``tbg`` conveniently automates this task before submission.
+The ``.tpl`` and the ``.cfg`` files that were used to start the simulation can be found in ``<tbg destination dir>/tbg/`` and can be used together with the ``.param`` files from ``<tbg destination dir>/input/.../param/`` to recreate the simulation setup.
 
 In summary, PIConGPU runtime options in ``.cfg`` files are portable to any machine.
 When accessing a machine for the first time, one needs to write template ``.tpl`` files, abstractly describing how to run PIConGPU on the specific queue(s) of the batch system.
@@ -52,7 +53,7 @@ Batch System Examples
 Slurm
 """""
 
-Slurm is a modern batch system, e.g. installed on the Taurus cluster at TU Dresden.
+Slurm is a modern batch system, e.g. installed on the Taurus cluster at TU Dresden, Hemera at HZDR, Cori at NERSC, among others.
 
 .. include:: ../install/profiles/taurus-tud/Slurm_Tutorial.rst
    :start-line: 3
@@ -64,4 +65,13 @@ PBS (for *Portable Batch System*) is a widely distributed batch system that come
 It is used, e.g. on Hypnos at HZDR.
 
 .. include:: ../install/profiles/hypnos-hzdr/PBS_Tutorial.rst
+   :start-line: 3
+
+LSF
+"""
+
+LSF (for *Load Sharing Facility*) is an IBM batch system (``bsub``/BSUB).
+It is used, e.g. on Summit at ORNL.
+
+.. include:: ../install/profiles/summit-ornl/LSF_Tutorial.rst
    :start-line: 3

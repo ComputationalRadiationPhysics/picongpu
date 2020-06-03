@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl,
+/* Copyright 2014-2020 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl,
  *                     Heiko Burau
  *
  * This file is part of PIConGPU.
@@ -37,7 +37,7 @@
 
 // pmacc
 #include <pmacc/particles/Identifier.hpp>
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/identifier/identifier.hpp>
 #include <pmacc/identifier/alias.hpp>
@@ -123,12 +123,25 @@ namespace picongpu
         false
     );
 
+    /** masking a particle for transition radiation
+     *
+     * The mask is used by the user defined filter
+     * `TransitionRadiationParticleFilter` in transitionRadiation.param to (de)select
+     * particles for the transition radiation calculation.
+     */
+    value_identifier(
+        bool,
+        transitionRadiationMask,
+        false
+    );
+
     /** number of electrons bound to the atom / ion
      *
      * value type is float_X to avoid casts during the runtime
      * - float_X instead of integer types are reasonable because effective charge
      *   numbers are possible
      * - required for ion species if ionization is enabled
+     * - setting it requires atomicNumbers to also be set
      *
      * @todo connect default to proton number
      */
@@ -191,6 +204,7 @@ namespace picongpu
 
     /** alias for particle flag: atomic numbers, see also ionizer.param
      * - only reasonable for atoms / ions / nuclei
+     * - is required when boundElectrons is set
      */
     alias( atomicNumbers );
 

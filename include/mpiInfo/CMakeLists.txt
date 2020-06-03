@@ -1,5 +1,5 @@
 #
-# Copyright 2013-2018 Axel Huebl, Rene Widera, Felix Schmitt
+# Copyright 2013-2020 Axel Huebl, Rene Widera, Felix Schmitt
 #
 # This file is part of mpiInfo.
 #
@@ -22,7 +22,7 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.11.4)
 
 
 ################################################################################
@@ -92,7 +92,7 @@ endif(MPI_CXX_FOUND)
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options)
+find_package(Boost 1.65.1 REQUIRED COMPONENTS program_options)
 if(TARGET Boost::program_options)
     set(LIBS ${LIBS} Boost::boost Boost::program_options)
 else()

@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Heiko Burau
+/* Copyright 2017-2020 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -134,7 +134,7 @@ namespace particleMerging
             const float_X weighting
         )
         {
-            nvidia::atomicAllInc( acc, &this->numMacroParticles, ::alpaka::hierarchy::Threads{} );
+            atomicAdd( &this->numMacroParticles, static_cast<uint32_t>(1), ::alpaka::hierarchy::Threads{} );
             atomicAdd( &this->numRealParticles, weighting, ::alpaka::hierarchy::Threads{} );
 
             if( this->splittingStage == VoronoiSplittingStage::position )

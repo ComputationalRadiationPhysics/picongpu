@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Heiko Burau
+/* Copyright 2017-2020 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -129,7 +129,7 @@ namespace particleMerging
             constexpr uint32_t numWorkers = pmacc::math::CT::volume< SuperCellSize >::type::value;
             const uint32_t workerIdx = DataSpaceOperations< simDim >::template map<
                 SuperCellSize
-            >( cellIdx );
+            >( cellIdx % SuperCellSize::toRT() );
             particleAccess::Cell2Particle< SuperCellSize, numWorkers > forEachFrame;
             forEachFrame(
                 acc,
@@ -192,7 +192,7 @@ namespace particleMerging
             constexpr uint32_t numWorkers = pmacc::math::CT::volume< SuperCellSize >::type::value;
             const uint32_t workerIdx = DataSpaceOperations< simDim >::template map<
                 SuperCellSize
-            >( cellIdx );
+            >( cellIdx % SuperCellSize::toRT() );
             particleAccess::Cell2Particle< SuperCellSize, numWorkers > forEachFrame;
             forEachFrame(
                 acc,
@@ -433,8 +433,12 @@ namespace particleMerging
             if( linearThreadIdx < numInitialVoronoiCells )
                 listVoronoiCells[linearThreadIdx] = VoronoiCell();
 
+            __syncthreads();
+
             /* init the voronoiCellId attribute for each particle */
             this->initVoronoiCellIdAttribute( acc, cellIndex );
+
+            __syncthreads();
 
             /* main loop of the merging algorithm */
             while( voronoiIndexPool.size() > 0 )

@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Heiko Burau
+/* Copyright 2016-2020 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -27,7 +27,7 @@
 #include <pmacc/cuSTL/cursor/tools/LinearInterp.hpp>
 #include <pmacc/cuSTL/cursor/BufferCursor.hpp>
 #include <pmacc/algorithms/math.hpp>
-#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 #include <boost/array.hpp>
 #if( BOOST_VERSION == 106400 )
@@ -58,9 +58,10 @@ namespace detail
  */
 struct LookupTableFunctor
 {
-    typedef typename ::pmacc::result_of::Functor<
+    using LinInterpCursor = typename ::pmacc::result_of::Functor<
         ::pmacc::cursor::tools::LinearInterp<float_X>,
-        ::pmacc::cursor::BufferCursor<float_X, DIM2> >::type LinInterpCursor;
+        ::pmacc::cursor::BufferCursor<float_X, DIM2>
+    >::type;
 
     using type = float_X;
 
@@ -101,7 +102,7 @@ public:
     using LookupTableFunctor = detail::LookupTableFunctor;
 private:
 
-    typedef boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM2> > MyBuf;
+    using MyBuf = boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM2> >;
     MyBuf dBufScaledSpectrum;
     MyBuf dBufStoppingPower;
 
@@ -115,7 +116,7 @@ private:
      * @param kappa energy loss normalized to Ekin
      * @param targetZ atomic number of the target material
      */
-    float_64 dcs(const float_64 Ekin, const float_64 kappa, const float_64 targetZ) const;
+    HINLINE float_64 dcs(const float_64 Ekin, const float_64 kappa, const float_64 targetZ) const;
 
     /** differential cross section times energy loss
      */
@@ -141,19 +142,19 @@ public:
      *
      * @param targetZ atomic number of the target material
      */
-    void init(const float_64 targetZ);
+    HINLINE void init(const float_64 targetZ);
 
     /** Return a functor representing the scaled differential cross section
      *
      * scaled differential cross section = electron energy loss times cross section per unit energy
      */
-    LookupTableFunctor getScaledSpectrumFunctor() const;
+    HINLINE LookupTableFunctor getScaledSpectrumFunctor() const;
 
     /** Return a functor representing the stopping power
      *
      * stopping power = energy loss per unit length
      */
-    LookupTableFunctor getStoppingPowerFunctor() const;
+    HINLINE LookupTableFunctor getStoppingPowerFunctor() const;
 };
 
 
@@ -167,12 +168,12 @@ public:
 template<typename T_ElectronSpecies>
 struct FillScaledSpectrumMap
 {
-    using ElectronSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+    using ElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_ElectronSpecies
     >;
 
-    using IonSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+    using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         typename pmacc::particles::traits::ResolveAliasFromSpecies<
             ElectronSpecies,

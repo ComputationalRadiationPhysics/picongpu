@@ -1,12 +1,12 @@
-FROM       nvidia/cuda:9.0-base
-MAINTAINER Axel Huebl <a.huebl@hzdr.de>
+FROM       nvidia/cuda:9.2-base
+LABEL      maintainer="Axel Huebl <a.huebl@hzdr.de>, Rene Widera <r.widera@hzdr.de>"
 
 # docker and image environment
 ENV        DEBIAN_FRONTEND=noninteractive \
            FORCE_UNSAFE_CONFIGURE=1 \
            SPACK_ROOT=/usr/local \
            SPACK_EXTRA_REPO=/usr/local/share/spack-repo \
-           PIC_PACKAGE='picongpu@0.4.3+isaac backend=cuda'
+           PIC_PACKAGE='picongpu@0.5.0+isaac backend=cuda'
 
 # install minimal spack dependencies
 #   - adds gfortran for spack's openmpi package
@@ -22,6 +22,7 @@ RUN        apt-get update && \
               build-essential \
               ca-certificates \
               coreutils \
+              cuda-cupti-$CUDA_PKG_VERSION \
               cuda-command-line-tools-$CUDA_PKG_VERSION \
               cuda-core-$CUDA_PKG_VERSION \
               cuda-cudart-dev-$CUDA_PKG_VERSION \
@@ -34,7 +35,7 @@ RUN        apt-get update && \
               gfortran \
               git \
               nano \
-              openssh-server \
+              openssh-client \
               pkg-config \
               python \
               rsync \
@@ -44,7 +45,7 @@ RUN        apt-get update && \
            rm -rf /var/lib/apt/lists/*
 
 # spack settings
-COPY       packages.yaml modules.yaml $SPACK_ROOT/etc/spack/
+COPY       compilers.yaml packages.yaml modules.yaml $SPACK_ROOT/etc/spack/
 
 # install spack && PIConGPU dependencies
 # TODO: fix to a specific spack SHA or tag
@@ -53,13 +54,13 @@ RUN        curl -s -L https://github.com/spack/spack/archive/develop.tar.gz \
            mkdir -p $SPACK_EXTRA_REPO && \
            curl -s -L https://api.github.com/repos/ComputationalRadiationPhysics/spack-repo/tarball \
                 | tar xzC $SPACK_EXTRA_REPO --strip 1 && \
-           spack repo add $SPACK_EXTRA_REPO
+           spack repo add --scope=system $SPACK_EXTRA_REPO
 RUN        spack install $PIC_PACKAGE && \
            spack clean -a
 
 # load spack & picongpu environment on login
 RUN        /bin/echo -e "source $SPACK_ROOT/share/spack/setup-env.sh\n" \
-                        "spack load $PIC_PACKAGE\n" \
+                        "spack load -r $PIC_PACKAGE\n" \
                         'if [ $(id -u) -eq 0 ]; then\n' \
                         '   function mpirun { $(which mpirun) --allow-run-as-root $@; }\n' \
                         '   export -f mpirun\n' \
@@ -73,32 +74,37 @@ RUN        /bin/echo -e "source $SPACK_ROOT/share/spack/setup-env.sh\n" \
 # force the use of a login shell
 RUN        /bin/echo -e '#!/bin/bash -l\n' \
                         'exec "$@"\n' \
-               > /etc/entrypoint.sh
-RUN        chmod a+x /etc/entrypoint.sh
+               > /etc/entrypoint.sh && \
+           chmod a+x /etc/entrypoint.sh
 
 # build example for out-of-the-box usage: LWFA
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/LaserWakefield /opt/picInputs/lwfa && \
                cd /opt/picInputs/lwfa && \
-               pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
-               rm -rf .build'
+               pic-build -b "cuda:30;35;37;50;60;70" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
+               rm -rf .build && \
+               chmod a+x /opt/picInputs/*/bin/* && \
+               chmod a+r -R /opt/picInputs/* && \
+               find /opt/picInputs -type d -exec chmod a+rx {} \;'
 # KHI (Benchmark)
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/KelvinHelmholtz /opt/picInputs/khi && \
                cd /opt/picInputs/khi && \
-               pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
-               rm -rf .build'
+               pic-build -b "cuda:30;35;37;50;60;70" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
+               rm -rf .build && \
+               chmod a+x /opt/picInputs/*/bin/* && \
+               chmod a+r -R /opt/picInputs/* && \
+               find /opt/picInputs -type d -exec chmod a+rx {} \;'
 # Laser-Ion Acceleration
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/FoilLCT /opt/picInputs/foil && \
                cd /opt/picInputs/foil && \
-               pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
-               rm -rf .build'
-
-# make input directories readable and files executable for all users
-RUN        chmod a+x /opt/picInputs/*/bin/* && \
-           chmod a+r -R /opt/picInputs/* && \
-           find /opt/picInputs -type d -exec chmod a+rx {} \;
+               pic-build -b "cuda:30;35;37;50;60;70" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
+               rm -rf .build && \
+               chmod a+x /opt/picInputs/*/bin/* && \
+               chmod a+r -R /opt/picInputs/* && \
+               find /opt/picInputs -type d -exec chmod a+rx {} \;'
+# ... also made input directories readable and files executable for all users
 
 COPY       start_lwfa.sh /usr/bin/lwfa
 COPY       start_lwfa_4.sh /usr/bin/lwfa4

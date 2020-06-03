@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -35,9 +35,10 @@ namespace maxwellSolver
 namespace yee
 {
 
-    template< typename  Difference >
+    template< typename T_Difference >
     struct Curl
     {
+        using Difference = T_Difference;
         using LowerMargin = typename Difference::OffsetOrigin;
         using UpperMargin = typename Difference::OffsetEnd;
 

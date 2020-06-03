@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Axel Huebl
+/* Copyright 2017-2020 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -104,13 +104,13 @@ namespace helperFields
 
         /* implement ISimulationData members */
         void
-        synchronize()
+        synchronize() override
         {
             m_energyHistogram->deviceToHost( );
         }
 
         SimulationDataId
-        getUniqueId()
+        getUniqueId() override
         {
             return getName();
         }

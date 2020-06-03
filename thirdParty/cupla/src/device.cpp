@@ -19,6 +19,7 @@
  */
 
 
+#include "cupla/namespace.hpp"
 #include "cupla_runtime.hpp"
 #include "cupla/manager/Memory.hpp"
 #include "cupla/manager/Device.hpp"
@@ -27,6 +28,10 @@
 #include "cupla/api/device.hpp"
 #include <stdexcept>
 
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
+
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaGetDeviceCount( int * count)
 {
@@ -34,6 +39,7 @@ cuplaGetDeviceCount( int * count)
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaSetDevice( int idx)
 {
@@ -48,6 +54,7 @@ cuplaSetDevice( int idx)
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaGetDevice( int * deviceId )
 {
@@ -55,6 +62,7 @@ cuplaGetDevice( int * deviceId )
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaDeviceReset( )
 {
@@ -93,6 +101,7 @@ cuplaDeviceReset( )
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaDeviceSynchronize( )
 {
@@ -102,6 +111,7 @@ cuplaDeviceSynchronize( )
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaMemGetInfo(
     size_t * free,
@@ -117,3 +127,5 @@ cuplaMemGetInfo(
     *free = ::alpaka::dev::getFreeMemBytes( device );
     return cuplaSuccess;
 }
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE

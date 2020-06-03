@@ -21,7 +21,6 @@
 
 #pragma once
 
-
 #include "cupla_runtime.hpp"
 
 #include "cupla/cudaToCupla/driverTypes.hpp"

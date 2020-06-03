@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Felix Schmitt, Heiko Burau,
+/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau,
  *                     Rene Widera, Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -41,7 +41,7 @@
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
-#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/meta/ForEach.hpp>
 
 #include <boost/mpl/and.hpp>
 
@@ -350,11 +350,11 @@ namespace picongpu
             )
             {
 
-                ForEach<
+                meta::ForEach<
                     EligibleFilters,
                     plugins::misc::AppendName< bmpl::_1 >
                 > getEligibleFilterNames;
-                getEligibleFilterNames( forward( allowedFilters ) );
+                getEligibleFilterNames( allowedFilters );
 
                 concatenatedFilterNames = plugins::misc::concatenateToString(
                     allowedFilters,
@@ -579,7 +579,7 @@ namespace picongpu
                 std::placeholders::_1
             );
 
-            ForEach<
+            meta::ForEach<
                 typename Help::EligibleFilters,
                 plugins::misc::ExecuteIfNameIsEqual< bmpl::_1 >
             >{ }(

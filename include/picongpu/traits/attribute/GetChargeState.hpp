@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Marco Garten, Rene Widera
+/* Copyright 2014-2020 Marco Garten, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,9 +20,12 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/traits/HasIdentifier.hpp>
-#include <pmacc/algorithms/TypeCast.hpp>
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
+#include <pmacc/algorithms/TypeCast.hpp>
+#include <pmacc/static_assert.hpp>
+#include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/HasIdentifier.hpp>
+
 
 namespace picongpu
 {
@@ -47,6 +50,15 @@ struct LoadChargeState
     template<typename T_Particle>
     HDINLINE float_X operator()(const T_Particle& particle)
     {
+        using HasAtomicNumbers = typename pmacc::traits::HasFlag<
+            T_Particle,
+            atomicNumbers<>
+        >::type;
+        PMACC_CASSERT_MSG_TYPE(
+            Having_boundElectrons_particle_attribute_requires_atomicNumbers_flag,
+            T_Particle,
+            HasAtomicNumbers::value
+        );
         const float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
         return protonNumber - particle[boundElectrons_];
     }

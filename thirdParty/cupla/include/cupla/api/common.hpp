@@ -23,25 +23,39 @@
 
 #include <alpaka/alpaka.hpp>
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla_driver_types.hpp"
 
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
+
+const char *
+cuplaGetErrorName(cuplaError_t);
 
 const char *
 cuplaGetErrorString(cuplaError_t);
 
 
-/** not supported
+/** returns the last error from a runtime call.
  *
- * @return always cuplaSuccess
+ * This call reset the error code to cuplaSuccess
+ * @warning If a non CUDA Alpaka backend is used this function will return always cuplaSuccess
+ *
+ * @return cuplaSuccess if there was no error else the corresponding error type
  */
 cuplaError_t
 cuplaGetLastError();
 
 
-/** not supported
+/** returns the last error from a runtime call.
  *
- * @return always cuplaSuccess
+ * This call does not reset the error code.
+ * @warning If a non CUDA Alpaka backend is used this function will return always cuplaSuccess
+ *
+ * @return cuplaSuccess if there was no error else the corresponding error type
  */
 cuplaError_t
 cuplaPeekAtLastError();
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE

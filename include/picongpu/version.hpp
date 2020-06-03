@@ -1,4 +1,4 @@
-/* Copyright 2015-2019 Axel Huebl
+/* Copyright 2015-2020 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -20,6 +20,6 @@
 #pragma once
 
 #define PICONGPU_VERSION_MAJOR 0
-#define PICONGPU_VERSION_MINOR 4
-#define PICONGPU_VERSION_PATCH 3
+#define PICONGPU_VERSION_MINOR 5
+#define PICONGPU_VERSION_PATCH 0
 #define PICONGPU_VERSION_LABEL ""
