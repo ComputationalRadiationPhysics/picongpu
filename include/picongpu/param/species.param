@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera, Richard Pausch
+/* Copyright 2014-2020 Rene Widera, Richard Pausch, Annegret Roessler
  *
  * This file is part of PIConGPU.
  *
@@ -74,6 +74,7 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
  *
  * Defining a pusher is optional for particles
  *
+ * - particles::pusher::HC : best of Vay and Boris pusher
  * - particles::pusher::Vay : better suited relativistic boris pusher
  * - particles::pusher::Boris : standard boris pusher
  * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher
