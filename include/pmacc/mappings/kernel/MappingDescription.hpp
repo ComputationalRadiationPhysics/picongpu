@@ -76,9 +76,12 @@ public:
             {
                 minBlock = std::min(minBlock, gridSuperCells[2]);
             }
-            PMACC_VERIFY(
+            PMACC_VERIFY_MSG((
                 ( guardingSuperCells[ d ] == 0 && gridSuperCells[ d ] >= 1) ||
-                gridSuperCells[ d ] >= 2 * guardingSuperCells[ d ] + 1
+                gridSuperCells[ d ] >= 2 * guardingSuperCells[ d ] + 1 ),
+                "d=" + std::to_string( d )  + "guardingSuperCells[ d ] = " +
+                std::to_string( guardingSuperCells[ d ] )  + "gridSuperCells[ d ] = " +
+                std::to_string( gridSuperCells[ d ] )
             );
         }
     }
