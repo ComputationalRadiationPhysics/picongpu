@@ -62,10 +62,10 @@ endif()
 # Language Flags
 ###############################################################################
 
-# enforce C++11
+# enforce C++14
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 
 ################################################################################
@@ -456,7 +456,7 @@ if(${CLANG_TIDY_RETURN} EQUAL 0)
             # -checks='-*,modernize-use-using'
             # -fix # -fix-errors
             --
-            -std=c++11
+            -std=c++14
             ${OpenMP_CXX_FLAGS}
             ${ALL_INCLUDES_STR}
             ${ALL_DEFINES_STR}
