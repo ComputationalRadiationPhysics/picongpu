@@ -50,3 +50,17 @@ Thank you and enjoy PIConGPU and our community!
 .. raw:: html
 
    <iframe src="https://computationalradiationphysics.github.io/picongpu-communitymap/" style="width:100%; height: 650px;" frameborder="0"></iframe>
+
+
+Publications
+------------
+
+In the following, a list of publications describing and/or using PIConGPU is given.
+The publications are sorted by topics.
+Papers covering multiple topics will be listed multiple times.
+In the end, a list of all publications in chronological order is given with more details.
+If you want to add your publication to the list as well please feel free to contact us or open a pull request directly. 
+
+Test
+^^^^^^^^^^^^^^^^^^^^^
+
