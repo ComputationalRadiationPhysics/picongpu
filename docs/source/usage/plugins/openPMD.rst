@@ -1,7 +1,7 @@
 .. _usage-plugins-openPMD:
 
 openPMD
-------
+-------
 
 Stores simulation data such as fields and particles according to the `openPMD standard <https://github.com/openPMD/openPMD-standard>`_ using the `openPMD API <https://openpmd-api.readthedocs.io>`_.
 
@@ -53,6 +53,7 @@ For example, ``--openPMD.period 128 --openPMD.file simData --openPMD.source 'spe
 Note that this plugin will only be available if the openPMD API is found during compile configuration.
 
 openPMD backend-specific settings may be controlled via two mechanisms:
+
 * Environment variables.
   Please refer to the backends' documentations for information on environment variables understood by the backends.
 * Backend-specific runtime parameters may be set via JSON in the openPMD API.
