@@ -1,5 +1,6 @@
 # Copyright 2013-2020 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau,
-#                     Rene Widera, Alexander Grund, Alexander Matthes
+#                     Rene Widera, Alexander Grund, Alexander Matthes,
+#                     Franz Poeschel
 #
 # This file is part of PIConGPU.
 #
@@ -42,6 +43,7 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{CUDA_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HDF5_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{ADIOS_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{OPENPMD_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 
@@ -234,21 +236,6 @@ add_definitions(-DPIC_VERBOSE_LVL=${PIC_VERBOSE})
 
 
 ################################################################################
-# ADIOS
-################################################################################
-
-# find adios installation
-#   set(ADIOS_USE_STATIC_LIBS ON) # force static linking
-find_package(ADIOS 1.13.1)
-
-if(ADIOS_FOUND)
-    add_definitions(-DENABLE_ADIOS=1)
-    include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})
-    set(LIBS ${LIBS} ${ADIOS_LIBRARIES})
-endif(ADIOS_FOUND)
-
-
-################################################################################
 # Additional defines for PIConGPU outputs
 ################################################################################
 
@@ -291,6 +278,34 @@ elseif(MSVC)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D _ENABLE_EXTENDED_ALIGNED_STORAGE")
     endif()
 endif()
+
+
+################################################################################
+# openPMD
+################################################################################
+
+# find openPMD installation
+find_package(openPMD 0.11.0 CONFIG COMPONENTS MPI)
+
+if(openPMD_FOUND)
+    add_definitions(-DENABLE_OPENPMD=1)
+    set(LIBS ${LIBS} openPMD::openPMD)
+endif(openPMD_FOUND)
+
+
+################################################################################
+# ADIOS
+################################################################################
+
+# find adios installation
+#   set(ADIOS_USE_STATIC_LIBS ON) # force static linking
+find_package(ADIOS 1.13.1)
+
+if(ADIOS_FOUND)
+    add_definitions(-DENABLE_ADIOS=1)
+    include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${ADIOS_LIBRARIES})
+endif(ADIOS_FOUND)
 
 
 ################################################################################

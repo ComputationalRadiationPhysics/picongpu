@@ -325,6 +325,24 @@ ADIOS
   - ``export ADIOS_ROOT=$HOME/lib/adios``
   - ``export LD_LIBRARY_PATH=$ADIOS_ROOT/lib:$LD_LIBRARY_PATH``
 
+openPMD API
+"""""""""""
+- 0.12.0+ (yet to be released, requires *MPI*)
+- *Spack*: ``spack install openpmd-api``
+- *from source:*
+
+  - ``mkdir -p ~/src ~/lib``
+  - ``cd ~/src``
+  - ``git clone https://github.com/openPMD/openPMD-api.git``
+  - ``cd openPMD-api``
+  - ``mkdir build && cd build``
+  - ``cmake .. -DopenPMD_USE_MPI=ON -DCMAKE_INSTALL_PREFIX=~/lib/openPMD-api``
+  - ``make -j $(nproc) install``
+- environment:* (assumes install from source in ``$HOME/lib/openPMD-api``)
+
+  - ``export CMAKE_PREFIX_PATH="$HOME/lib/openPMD-api:$CMAKE_PREFIX_PATH"``
+  - ``export LD_LIBRARY_PATH="$HOME/lib/openPMD-api/lib:$LD_LIBRARY_PATH"``
+
 ISAAC
 """""
 - 1.4.0+
