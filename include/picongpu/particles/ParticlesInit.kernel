@@ -268,7 +268,7 @@ namespace picongpu
                     uint32_t const
                 )
                 {
-                    frame = pb.getEmptyFrame();
+                    frame = pb.getEmptyFrame( acc );
                     pb.setAsLastFrame(
                         acc,
                         frame,
@@ -356,7 +356,7 @@ namespace picongpu
                     {
                         if( finished == 0 )
                         {
-                            frame = pb.getEmptyFrame();
+                            frame = pb.getEmptyFrame( acc );
                             pb.setAsLastFrame(
                                 acc,
                                 frame,

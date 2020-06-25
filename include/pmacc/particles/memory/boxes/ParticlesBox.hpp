@@ -90,14 +90,15 @@ public:
      *
      * @return an empty frame
      */
-    DINLINE FramePtr getEmptyFrame( )
+    template<typename T_Acc>
+    DINLINE FramePtr getEmptyFrame( const T_Acc & acc )
     {
         FrameType* tmp = nullptr;
         const int maxTries = 13; //magic number is not performance critical
         for ( int numTries = 0; numTries < maxTries; ++numTries )
         {
 #if( PMACC_CUDA_ENABLED == 1 )
-            tmp = (FrameType*) m_deviceHeapHandle.malloc( sizeof (FrameType) );
+            tmp = (FrameType*) m_deviceHeapHandle.malloc( acc, sizeof (FrameType) );
 #else
             tmp = new FrameType;
 #endif
@@ -129,10 +130,11 @@ public:
      *
      * @param frame frame to remove
      */
-    DINLINE void removeFrame( FramePtr& frame )
+    template<typename T_Acc>
+    DINLINE void removeFrame( const T_Acc & acc, FramePtr& frame )
     {
 #if( PMACC_CUDA_ENABLED == 1 )
-        m_deviceHeapHandle.free( (void*) frame.ptr );
+        m_deviceHeapHandle.free( acc, (void*) frame.ptr );
 #else
         delete(frame.ptr);
 #endif
@@ -299,7 +301,8 @@ public:
      * @param idx position of supercell
      * @return true if more frames in list, else false
      */
-    DINLINE bool removeLastFrame( const DataSpace<DIM> &idx )
+    template<typename T_Acc>
+    DINLINE bool removeLastFrame(const T_Acc & acc, const DataSpace<DIM> &idx )
     {
         //!\todo this is not thread save
         FrameType** lastFrameNativPtr = &(getSuperCell( idx ).lastFramePtr);
@@ -313,14 +316,14 @@ public:
             {
                 prev->nextFrame = FramePtr( ); //set to invalid frame
                 *lastFrameNativPtr = prev.ptr; //set new last frame
-                removeFrame( last );
+                removeFrame(acc, last );
                 return true;
             }
             //remove last frame of supercell
             getSuperCell( idx ).firstFramePtr = nullptr;
             getSuperCell( idx ).lastFramePtr = nullptr;
 
-            removeFrame( last );
+            removeFrame(acc, last );
         }
         return false;
     }

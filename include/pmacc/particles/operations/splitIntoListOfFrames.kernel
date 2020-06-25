@@ -295,7 +295,7 @@ namespace kernel
                                 &( counter[ 2 ] ),
                                 ::alpaka::hierarchy::Blocks{}
                             );
-                            DestFramePtr tmpFrame = destBox.getEmptyFrame( );
+                            DestFramePtr tmpFrame = destBox.getEmptyFrame( acc );
                             destFramePtr[ linearIdx ] = tmpFrame;
                             destBox.setAsFirstFrame(
                                 acc,

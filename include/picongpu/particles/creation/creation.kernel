@@ -345,7 +345,7 @@ namespace creation
                             uint32_t const numFramesNeeded = ( newFrameFillLvl + maxParticlesInFrame - 1u ) / maxParticlesInFrame;
                             if( linearIdx < numFramesNeeded && !targetFrames[ linearIdx ].isValid( ) )
                             {
-                                targetFrames[ linearIdx ] = targetBox.getEmptyFrame( );
+                                targetFrames[ linearIdx ] = targetBox.getEmptyFrame( acc );
                                 targetBox.setAsLastFrame(
                                     acc,
                                     targetFrames[ linearIdx ],
