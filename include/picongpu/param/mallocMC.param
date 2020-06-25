@@ -39,20 +39,20 @@ namespace picongpu
     struct DeviceHeapConfig
     {
         //! 2MiB page can hold around 256 particle frames
-        using pagesize = boost::mpl::int_< 2 * 1024 * 1024 >;
+        static constexpr uint32_t pagesize = 2u * 1024u * 1024u;
 
         /** accessblocks, regionsize and wastefactor are not conclusively
          * investigated and might be performance sensitive for multiple
          * particle species with heavily varying attributes (frame sizes)
          */
-        using accessblocks = boost::mpl::int_< 4 >;
-        using regionsize = boost::mpl::int_< 8 >;
-        using wastefactor = boost::mpl::int_< 2 >;
+        static constexpr uint32_t accessblocks = 4u;
+        static constexpr uint32_t regionsize = 8u;
+        static constexpr uint32_t wastefactor = 2u;
 
         /** resetfreedpages is used to minimize memory fragmentation with
          * varying frame sizes
          */
-        using resetfreedpages = boost::mpl::bool_< true >;
+        static constexpr bool resetfreedpages = true;
     };
 
     /** Define a new allocator
@@ -61,10 +61,11 @@ namespace picongpu
      * algorithm.
      */
     using DeviceHeap = mallocMC::Allocator<
+        cupla::Acc,
         mallocMC::CreationPolicies::Scatter< DeviceHeapConfig >,
         mallocMC::DistributionPolicies::Noop,
         mallocMC::OOMPolicies::ReturnNull,
-        mallocMC::ReservePoolPolicies::SimpleCudaMalloc,
+        mallocMC::ReservePoolPolicies::AlpakaBuf< cupla::Acc >,
         mallocMC::AlignmentPolicies::Shrink<>
     >;
 

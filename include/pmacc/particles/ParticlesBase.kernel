@@ -41,14 +41,14 @@
 namespace pmacc
 {
 
-template<typename T_ParticleBox, typename T_SuperCellIdxType>
+template<typename T_ParticleBox, typename T_SuperCellIdxType, typename T_Acc>
 DINLINE typename T_ParticleBox::FramePtr
-getPreviousFrameAndRemoveLastFrame( const typename T_ParticleBox::FramePtr& frame,
+getPreviousFrameAndRemoveLastFrame( const T_Acc& acc, const typename T_ParticleBox::FramePtr& frame,
                                     T_ParticleBox& pb,
                                     const T_SuperCellIdxType& superCellIdx )
 {
     typename T_ParticleBox::FramePtr result = pb.getPreviousFrame( frame );
-    pb.removeLastFrame( superCellIdx );
+    pb.removeLastFrame( acc, superCellIdx );
     return result;
 }
 
@@ -242,7 +242,7 @@ struct KernelFillGapsLastFrame
                     /* The last frame is empty therefore it must be removed.
                      * It is save to call this method even if there is no last frame.
                      */
-                    pb.removeLastFrame( superCellIdx );
+                    pb.removeLastFrame(acc, superCellIdx );
                 }
             }
         );
@@ -452,6 +452,7 @@ struct KernelFillGaps
                         {
                             // we need more particles
                             lastFrame = getPreviousFrameAndRemoveLastFrame(
+                                acc,
                                 lastFrame,
                                 pb,
                                 superCellIdx
@@ -461,6 +462,7 @@ struct KernelFillGaps
                         {
                             // update lastFrame and firstFrame
                             lastFrame = getPreviousFrameAndRemoveLastFrame(
+                                acc,
                                 lastFrame,
                                 pb,
                                 superCellIdx
@@ -729,7 +731,7 @@ struct KernelShiftParticles
                         /* if we had no `low frame` we load a new empty one */
                         if ( !destFrames[ linearIdx ].isValid( ) )
                         {
-                            FramePtr tmpFrame( pb.getEmptyFrame( ) );
+                            FramePtr tmpFrame( pb.getEmptyFrame( acc ) );
                             destFrames[ linearIdx ] = tmpFrame;
                             pb.setAsLastFrame(
                                 acc,
@@ -740,7 +742,7 @@ struct KernelShiftParticles
                         /* check if a `high frame` is needed */
                         if ( destFramesCounter[ linearIdx ] > frameSize )
                         {
-                            FramePtr tmpFrame( pb.getEmptyFrame( ) );
+                            FramePtr tmpFrame( pb.getEmptyFrame( acc ) );
                             destFrames[ linearIdx + numExchanges ] = tmpFrame;
                             pb.setAsLastFrame(
                                 acc,
@@ -943,6 +945,7 @@ struct KernelDeleteParticles
                 {
                     // always remove the last frame
                     frame = getPreviousFrameAndRemoveLastFrame(
+                        acc,
                         frame,
                         pb,
                         superCellIdx
@@ -1170,7 +1173,7 @@ struct KernelCopyGuardToExchange
                      * all particles from the current frame to the exchange buffer
                      */
                     if ( allParticlesCopied )
-                        frame = getPreviousFrameAndRemoveLastFrame( frame, pb, superCellIdx );
+                        frame = getPreviousFrameAndRemoveLastFrame( acc, frame, pb, superCellIdx );
                 }
             );
 
@@ -1283,7 +1286,7 @@ struct KernelInsertParticles
                 elementCount = exchangeChunk.getSize( );
                 if ( elementCount > 0 )
                 {
-                    frame = pb.getEmptyFrame( );
+                    frame = pb.getEmptyFrame( acc );
                 }
             }
         );

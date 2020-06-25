@@ -374,9 +374,21 @@ public:
             this->bremsstrahlungPhotonAngle.init();
         }
 
+        auto nativeCudaStream = cupla::manager::Stream<
+            cupla::AccDev,
+            cupla::AccStream
+        >::get().stream( 0 );
         /* Create an empty allocator. This one is resized after all exchanges
          * for particles are created */
-        deviceHeap.reset(new DeviceHeap(0));
+        deviceHeap.reset(
+
+            new DeviceHeap(
+                cupla::manager::Device< cupla::AccDev >::get().current(),
+                nativeCudaStream,
+                0u
+            )
+        );
+        cuplaStreamSynchronize( 0 );
 #endif
 
         /* Allocate helper fields for FLYlite population kinetics for atomic physics
@@ -425,7 +437,13 @@ public:
             log<picLog::MEMORY > ("RAM is NOT shared between GPU and host.");
 
         // initializing the heap for particles
-        deviceHeap->destructiveResize(heapSize);
+        deviceHeap->destructiveResize(
+            cupla::manager::Device< cupla::AccDev >::get().current(),
+            nativeCudaStream,
+            heapSize
+        );
+        cuplaStreamSynchronize( 0 );
+
         auto mallocMCBuffer = pmacc::memory::makeUnique< MallocMCBuffer<DeviceHeap> >( deviceHeap );
         dc.consume( std::move( mallocMCBuffer ) );
 #endif
