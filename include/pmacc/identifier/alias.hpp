@@ -36,44 +36,6 @@ identifier(pmacc_void);
 identifier(pmacc_isAlias);
 } //namespace pmacc
 
-#ifdef __CUDACC__
-#   define PMACC_alias_CUDA(name,id)                                          \
-        namespace PMACC_JOIN(device_placeholder,id){                          \
-            /* This variable exists only for template parameter deduction, its
-             * value is never used. So in this case it is fine to have a
-             * separate version in each translation unit due to static.
-             */                                                               \
-            static __constant__ PMACC_JOIN(placeholder_definition,id)::name<> \
-                PMACC_JOIN(name,_);                                           \
-        }
-#else
-#   define PMACC_alias_CUDA(name,id)
-#endif
-
-/*define special makros for creating classes which are only used as identifer*/
-#define PMACC_alias(name,id)                                                   \
-    namespace PMACC_JOIN(placeholder_definition,id) {                          \
-        template<typename T_Type=pmacc::pmacc_void,typename T_IsAlias=pmacc::pmacc_isAlias> \
-        struct name                                                            \
-        {                                                                      \
-            static std::string getName()                                       \
-            {                                                                  \
-                return std::string(#name);                                     \
-            }                                                                  \
-        };                                                                     \
-    }                                                                          \
-    using namespace PMACC_JOIN(placeholder_definition,id);                     \
-    namespace PMACC_JOIN(host_placeholder,id){                                 \
-        /* This variable exists only for template parameter deduction, its value
-         * is never used. So in this case it is fine to have a separate version
-         * in each translation unit due to static.
-         */                                                                    \
-        static PMACC_JOIN(placeholder_definition,id)::name<>                   \
-            PMACC_JOIN(name,_);                                                \
-    }                                                                          \
-    PMACC_alias_CUDA(name,id);                                                 \
-    PMACC_PLACEHOLDER(id);
-
 
 /** create an alias
  *
@@ -90,7 +52,19 @@ identifier(pmacc_isAlias);
  * get type which is represented by the alias
  *      typedef typename traits::Resolve<name>::type resolved_type;
  */
-#define alias(name) PMACC_alias(name,__COUNTER__)
+#define alias(name)                                                            \
+        template<                                                              \
+            typename T_Type = pmacc::pmacc_void,                               \
+            typename T_IsAlias = pmacc::pmacc_isAlias                          \
+        >                                                                      \
+        struct name                                                            \
+        {                                                                      \
+            static std::string getName()                                       \
+            {                                                                  \
+                return std::string(#name);                                     \
+            }                                                                  \
+        };                                                                     \
+        constexpr name<> PMACC_JOIN(name,_)
 
 namespace pmacc
 {

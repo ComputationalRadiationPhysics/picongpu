@@ -24,46 +24,6 @@
 #include "pmacc/types.hpp"
 #include "pmacc/ppFunctions.hpp"
 
-/* No namespace is needed because we only have defines*/
-
-#ifdef __CUDA_ARCH__ //we are on gpu
-#   define PMACC_PLACEHOLDER(id) using namespace PMACC_JOIN(device_placeholder,id)
-#else
-#   define PMACC_PLACEHOLDER(id) using namespace PMACC_JOIN(host_placeholder,id)
-#endif
-
-#ifdef __CUDACC__
-#   define PMACC_identifier_CUDA(name,id)                                         \
-        namespace PMACC_JOIN(device_placeholder,id){                               \
-            /* This variable exists only for template parameter deduction, its value
-             * is never used. So in this case it is fine to have a separate version
-             * in each translation unit due to static.
-             */                                                                    \
-            static __constant__ PMACC_JOIN(placeholder_definition,id)::name PMACC_JOIN(name,_); \
-        }
-#else
-#   define PMACC_identifier_CUDA(name,id)
-#endif
-
-/*define special macros for creating classes which are only used as identifier*/
-#define PMACC_identifier(name,id,...)                                          \
-    namespace PMACC_JOIN(placeholder_definition,id) {                          \
-        struct name{                                                           \
-            __VA_ARGS__                                                        \
-        };                                                                     \
-    }                                                                          \
-    using namespace PMACC_JOIN(placeholder_definition,id);                     \
-    namespace PMACC_JOIN(host_placeholder,id){                                 \
-        /* This variable exists only for template parameter deduction, its value
-         * is never used. So in this case it is fine to have a separate version
-         * in each translation unit due to static.
-         */                                                                    \
-        static PMACC_JOIN(placeholder_definition,id)::name PMACC_JOIN(name,_); \
-    }                                                                          \
-    PMACC_identifier_CUDA(name,id);                                            \
-    PMACC_PLACEHOLDER(id);
-
-
 /** create an identifier (identifier with arbitrary code as second parameter
  * !! second parameter is optional and can be any C++ code one can add inside a class
  *
@@ -74,4 +34,9 @@
  * to create an instance of this identifier you can use:
  *      varname();   or varname_
  */
-#define identifier(name,...) PMACC_identifier(name,__COUNTER__,__VA_ARGS__)
+#define identifier(name, ...)                                                  \
+    struct name                                                                \
+    {                                                                          \
+        __VA_ARGS__                                                            \
+    };                                                                         \
+    constexpr name PMACC_JOIN(name, _)
