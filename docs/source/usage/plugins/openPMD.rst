@@ -1,7 +1,7 @@
 .. _usage-plugins-openPMD:
 
 openPMD
-------
+-------
 
 Stores simulation data such as fields and particles according to the `openPMD standard <https://github.com/openPMD/openPMD-standard>`_ using the `openPMD API <https://openpmd-api.readthedocs.io>`_.
 
@@ -53,6 +53,7 @@ For example, ``--openPMD.period 128 --openPMD.file simData --openPMD.source 'spe
 Note that this plugin will only be available if the openPMD API is found during compile configuration.
 
 openPMD backend-specific settings may be controlled via two mechanisms:
+
 * Environment variables.
   Please refer to the backends' documentations for information on environment variables understood by the backends.
 * Backend-specific runtime parameters may be set via JSON in the openPMD API.
@@ -74,9 +75,9 @@ Two data preparation strategies are available for downloading particle data off 
   This strategy has a small host-side memory footprint (<< GPU main memory).
   The alias ``openPMD.dataPreparationStrategy hdf5`` may be used.
 
-============================ ==================================================================================================================================================================
-PIConGPU command line option description
-============================ ==================================================================================================================================================================
+===================================== ====================================================================================================================================================
+PIConGPU command line option          description
+===================================== ====================================================================================================================================================
 ``--openPMD.period``                  Period after which simulation data should be stored on disk.
 ``--openPMD.source``                  Select data sources to dump. Default is ``species_all,fields_all``, which dumps all fields and particle species.
 ``--openPMD.compression``             Legacy parameter to set data transform compression method to be used for ADIOS1 backend until it implements setting compression from JSON config.
@@ -85,7 +86,7 @@ PIConGPU command line option description
 ``--openPMD.infix``                   openPMD filename infix (use to pick file- or group-based layout in openPMD). Set to NULL to keep empty (e.g. to pick group-based iteration layout).
 ``--openPMD.json``                    Set backend-specific parameters for openPMD backends in JSON format.
 ``--openPMD.dataPreparationStrategy`` Strategy for preparation of particle data ('doubleBuffer' or 'mappedMemory'). Aliases 'adios' and 'hdf5' may be used respectively.
-============================ ==================================================================================================================================================================
+===================================== ====================================================================================================================================================
 
 .. note::
 
