@@ -57,7 +57,7 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
     namespace PMACC_JOIN(pmacc_static_const_vector_host,id)                    \
     {                                                                          \
         /* store all values in a const C array on host*/                       \
-        const Type PMACC_JOIN(Name,_data)[]={__VA_ARGS__};                     \
+        constexpr Type PMACC_JOIN(Name,_data)[]={__VA_ARGS__};                 \
     } /* namespace pmacc_static_const_vector_host + id  */                     \
     /* select host or device namespace depending on __CUDA_ARCH__ compiler flag*/ \
     PMACC_USING_STATIC_CONST_VECTOR_NAMESPACE(id);                             \
@@ -108,7 +108,7 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
     namespace PMACC_JOIN(pmacc_static_const_vector_host,id)                    \
     {                                                                          \
         /* create const instance on host*/                                     \
-        const PMACC_JOIN(Name,_t) Name;                                        \
+        constexpr PMACC_JOIN(Name,_t) Name;                                    \
     } /* namespace pmacc_static_const_vector_host + id  */                     \
 } /* namespace pmacc_static_const_storage + id */
 
