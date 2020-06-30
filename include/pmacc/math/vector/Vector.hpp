@@ -48,6 +48,10 @@ struct Vector_components
     static constexpr int dim = T_Dim;
     using type = T_Type;
 
+    HDINLINE
+    constexpr Vector_components()
+    {}
+
     /*align full vector*/
     PMACC_ALIGN(v[dim], type);
 
@@ -139,18 +143,19 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         using type = const typename F::type&;
     };
 
-    HDINLINE Vector()
+    HDINLINE
+    constexpr Vector()
     {}
 
     HDINLINE
-    Vector(const type x)
+    constexpr Vector(const type x)
     {
         PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM1,dim == 1);
         (*this)[0] = x;
     }
 
     HDINLINE
-    Vector(const type x, const type y)
+    constexpr Vector(const type x, const type y)
     {
         PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM2,dim == 2);
         (*this)[0] = x;
@@ -158,7 +163,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     }
 
     HDINLINE
-    Vector(const type x, const type y, const type z)
+    constexpr Vector(const type x, const type y, const type z)
     {
         PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM3,dim == 3);
         (*this)[0] = x;
@@ -166,7 +171,8 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         (*this)[2] = z;
     }
 
-    HDINLINE Vector(const This& other)
+    HDINLINE
+    constexpr Vector(const This& other)
     {
         detail::CopyElementWise<Storage::isConst>()(*this,other);
     }
@@ -176,7 +182,8 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     typename T_OtherAccessor,
     typename T_OtherNavigator,
     template <typename, int> class T_OtherStorage>
-    HDINLINE explicit Vector(const Vector<
+    HDINLINE
+    explicit Vector(const Vector<
                              T_OtherType,
                              dim,
                              T_OtherAccessor,
