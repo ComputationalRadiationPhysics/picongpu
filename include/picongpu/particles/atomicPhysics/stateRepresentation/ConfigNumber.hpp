@@ -80,7 +80,7 @@ namespace stateRepresentation
 template< typename T_DataType, uint8_t T_NumberLevels, uint8_t T_ChargeNumber>
 class ConfigNumber
 {
- /* this class implements the actual storage of the configuration
+ /** this class implements the actual storage of the configuration
  *
  * T_NumberLevels ... n_max
  * for convenience of usage and modularity, methods to convert the configNumber
@@ -152,12 +152,12 @@ private:
 public:
 
     // make T_DataType paramtere available for later use
-    using DataType = T_DataType;
+    static constexpr using DataType = T_DataType;
 
     // number of levels, n_max, used for configNumber
-    constexpr static uint8_t numberLevels = T_NumberLevels;
+    static constexpr uint8_t numberLevels = T_NumberLevels;
 
-    constexpr static T_DataType numberStates()
+    static constexpr T_DataType numberStates()
     {
     /** returns number of different states(Configs) that are represented
      */
