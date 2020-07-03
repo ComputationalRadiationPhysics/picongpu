@@ -37,8 +37,10 @@
 #include "picongpu/traits/IsFieldDomainBound.hpp"
 
 #include <pmacc/assert.hpp>
+#include <pmacc/communication/manager_common.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
+#include <pmacc/Environment.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/math/Vector.hpp>
@@ -1086,8 +1088,7 @@ namespace openPMD
             auto fieldsOffsetDims = params->fieldsOffsetDims;
 
             /* Patch for non-domain-bound fields
-             * Allow for the output of reduced 1d PML buffers,
-             * that are the same size on each domain.
+             * Allow for the output of reduced 1d PML buffer
              */
             if( !isDomainBound )
             {
@@ -1099,16 +1100,45 @@ namespace openPMD
                 fieldsSizeDims = precisionCast< uint64_t >(
                     params->gridLayout.getDataSpaceWithoutGuarding() );
                 dc.releaseData( name );
-                auto const & gridController =
-                    Environment< simDim >::get().GridController();
-                auto const numRanks = gridController.getGlobalSize();
-                auto const rank = gridController.getGlobalRank();
+
+                /* Scan the PML buffer local size along all local domains
+                 * This code is based on the same operation in hdf5::Field::writeField(),
+                 * the same comments apply here
+                 */
+                log< picLog::INPUT_OUTPUT > ("openPMD:  (begin) collect PML sizes for %1%") % name;
+                auto & gridController = Environment<simDim>::get().GridController();
+                auto const numRanks = uint64_t{ gridController.getGlobalSize() };
+                /* Use domain position-based rank, not MPI rank, to be independent
+                 * of the MPI rank assignment scheme
+                 */
+                auto const rank = uint64_t{ gridController.getScalarPosition() };
+                std::vector< uint64_t > localSizes( 2u * numRanks, 0u );
+                uint64_t localSizeInfo[ 2 ] = {
+                    fieldsSizeDims[ 0 ],
+                    rank
+                };
+                __getTransactionEvent().waitForFinished();
+                MPI_CHECK(MPI_Allgather(
+                    localSizeInfo, 2, MPI_UINT64_T,
+                    &( *localSizes.begin() ), 2, MPI_UINT64_T,
+                    gridController.getCommunicator().getMPIComm()
+                ));
+                uint64_t globalOffsetFile = 0;
+                uint64_t globalSize = 0;
+                for( uint64_t r = 0; r < numRanks; ++r )
+                {
+                    globalSize += localSizes.at( 2u * r );
+                    if( localSizes.at( 2u * r + 1u ) < rank )
+                        globalOffsetFile += localSizes.at( 2u * r );
+                }
+                log< picLog::INPUT_OUTPUT > ("openPMD:  (end) collect PML sizes for %1%") % name;
+
                 fieldsGlobalSizeDims =
                     pmacc::math::UInt64< simDim >::create( 1 );
-                fieldsGlobalSizeDims[ 0 ] = numRanks * fieldsSizeDims[ 0 ];
+                fieldsGlobalSizeDims[ 0 ] = globalSize;
                 fieldsOffsetDims =
                     pmacc::math::UInt64< simDim >::create( 0 );
-                fieldsOffsetDims[ 0 ] = rank * fieldsSizeDims[ 0 ];
+                fieldsOffsetDims[ 0 ] = globalOffsetFile;
             }
 
             /* write the actual field data */
