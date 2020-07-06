@@ -90,17 +90,28 @@ struct Push
 
         const sqrt_HC::float_X u_star = pmacc::math::dot( precisionCast<sqrt_HC::float_X>( mom_minus ), tau ) / precisionCast<sqrt_HC::float_X>( mass * SPEED_OF_LIGHT );
 
-        const float_X gamma_plus = math::sqrt( ( sigma + math::sqrt( pmacc::math::abs2( sigma ) + ( sqrt_HC::float_X(4.0) ) * ( pmacc::math::abs2( tau ) + pmacc::math::abs2( u_star ) ) ) ) * ( sqrt_HC::float_X(0.5) ) );
+        const sqrt_HC::float_X gamma_plus = math::sqrt( 
+                sqrt_HC::float_X(0.5) * ( sigma + math::sqrt( 
+                        pmacc::math::abs2( sigma ) + sqrt_HC::float_X(4.0) * ( pmacc::math::abs2( tau ) + pmacc::math::abs2( u_star ) )
+                    ) )
+            );
 
-        const float3_X t_vector =  precisionCast<float_X>( tau ) / gamma_plus;
+        const sqrt_HC::float3_X t_vector =  tau / gamma_plus;
 
-        const float_X s = float_X(1.0) / ( float_X(1.0) + pmacc::math::abs2( t_vector ) );
+        const sqrt_HC::float_X s = sqrt_HC::float_X(1.0) / ( sqrt_HC::float_X(1.0) + pmacc::math::abs2( t_vector ) );
 
         // Rotation step
-        const MomType mom_plus = s * ( mom_minus + pmacc::math::dot( mom_minus , t_vector ) * t_vector + pmacc::math::cross( mom_minus , t_vector) );
+        const MomType mom_plus = precisionCast<float_X>( s * (
+                precisionCast<sqrt_HC::float_X>( mom_minus )
+                + pmacc::math::dot( precisionCast<sqrt_HC::float_X>( mom_minus ) , t_vector ) * t_vector
+                + pmacc::math::cross( precisionCast<sqrt_HC::float_X>( mom_minus ) , t_vector) 
+            ) );
 
         // Second half electric field acceleration (Note correction mom_minus -> mom_plus compared to Ripperda)
-        const MomType new_mom = mom_plus + float_X(0.5) * eField * charge * deltaT + pmacc::math::cross( mom_plus , t_vector );
+        const  sqrt_HC::float3_X mom_diff = sqrt_HC::float_X(0.5) * precisionCast<sqrt_HC::float_X>( eField * charge * deltaT ) 
+            + pmacc::math::cross( precisionCast<sqrt_HC::float_X>( mom_plus ) , t_vector );
+        
+        const MomType new_mom = mom_plus + precisionCast<float_X>( mom_diff );
 
         particle[ momentum_ ] = new_mom;
 
