@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Heiko Burau, Xeinia Bastrakova
+/* Copyright 2017-2020 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -72,13 +72,9 @@ namespace randomizedParticleMerger
         MappingDesc* cellDescription;
 
         uint32_t minMacroParticlesToDivide;
-        float_X posSpreadThreshold;
-        float_X absMomSpreadThreshold_mc;
-        float_X absMomSpreadThreshold;
-        float_X relMomSpreadThreshold;
-        float_64 minMeanEnergy_keV;
-        float_X minMeanEnergy;
         float_X ratioDeletedParticles;
+        float_X posSpreadThreshold;
+        float_X momSpreadThreshold;
 
     public:
         using ParticlesType = T_ParticlesType;
@@ -91,13 +87,11 @@ namespace randomizedParticleMerger
             prefix( ParticlesType::FrameType::getName() + std::string("_randomizedMerger") ),
             cellDescription( nullptr )
         {
-            printf("  RandomizedParticleMergerWrapped ");
             Environment<>::get().PluginConnector().registerPlugin( this );
         }
 
         void notify(uint32_t currentStep)
         {
-            printf(" Randomized  notify(uint32_t currentStep) ");
             using SuperCellSize = MappingDesc::SuperCellSize;
 
             const pmacc::math::Int<simDim> coreBorderGuardSuperCells =
@@ -132,11 +126,9 @@ namespace randomizedParticleMerger
             randomizedParticleMergerKernel(
                 particles->getDeviceParticlesBox(),
                 this->minMacroParticlesToDivide,
-                this->posSpreadThreshold,
-                this->absMomSpreadThreshold,
-                this->relMomSpreadThreshold,
-                this->minMeanEnergy,
                 this->ratioDeletedParticles,
+                this->posSpreadThreshold,
+                this->momSpreadThreshold,
                 rngFactory,
                 guardSuperCells
             );
@@ -151,6 +143,7 @@ namespace randomizedParticleMerger
 
             /* close all gaps caused by removal of particles */
             particles->fillAllGaps();
+
         }
 
 
@@ -162,7 +155,7 @@ namespace randomizedParticleMerger
 
         void pluginRegisterHelp(po::options_description& desc)
         {
-            printf("  Randomized pluginRegisterHelp ");
+
             desc.add_options()
             (
                 ( this->prefix + ".period" ).c_str(),
@@ -178,20 +171,29 @@ namespace randomizedParticleMerger
                 )->default_value( 8 ),
                 "minimum number of macro particles at which we always divide the cell"
             )
+            (
+                ( this->prefix + ".posSpreadThreshold" ).c_str(),
+                po::value< float_X > (
+                    &this->posSpreadThreshold
+                )->default_value( 1e-5 ),
+                "Below this threshold of spread in position macroparticles"
+                " can be merged [unit: cell edge length]."
+             )
+            (
+                ( this->prefix + ".momSpreadThreshold" ).c_str(),
+                po::value< float_X > (
+                    &this->momSpreadThreshold
+                )->default_value( 1e-5 ),
+                "Below this absolute threshold of spread in momentum"
+                " macroparticles can be merged [unit: m_el * c]."
+                " Disabled for -1 (default)."
+            )
              (
                 ( this->prefix + ".ratioDeletedParticles" ).c_str(),
                 po::value< float_X > (
                     &this->ratioDeletedParticles
                 )->default_value( 0.1 ),
                 "Ratio of deleted particle"
-            )
-            (
-                ( this->prefix + ".minMeanEnergy" ).c_str(),
-                po::value< float_64 > (
-                    &this->minMeanEnergy_keV
-                )->default_value( 511.0 ),
-                "minimal mean kinetic energy needed to merge the macroparticle"
-                " collection into a single macroparticle [unit: keV]."
             );
         }
 
@@ -204,7 +206,6 @@ namespace randomizedParticleMerger
 
         void pluginLoad()
         {
-            printf("randomize pluginLoad");
             if( notifyPeriod.empty() )
                return;
 
@@ -213,26 +214,25 @@ namespace randomizedParticleMerger
                 notifyPeriod
             );
 
-            // clean user parameters
             PMACC_VERIFY_MSG(
                 this->minMacroParticlesToDivide > 1,
                 std::string("[Plugin: ") + this->prefix + "] minMacroParticlesToDivide"
                 " has to be greater than one."
             );
             PMACC_VERIFY_MSG(
-                this->minMeanEnergy >= float_X(0.0),
-                std::string("[Plugin: ") + this->prefix + "] minMeanEnergy"
-                " has to be non-negative."
-            );
-            PMACC_VERIFY_MSG(
                 this->ratioDeletedParticles >= float_X(0.0),
                 std::string("[Plugin: ") + this->prefix + "] ratioDeletedParticles"
                 " has to be non-negative."
             );
-            const float_64 minMeanEnergy_SI = this->minMeanEnergy_keV *
-                UNITCONV_keV_to_Joule;
-            this->minMeanEnergy = static_cast< float_X >(
-                minMeanEnergy_SI / UNIT_ENERGY
+            PMACC_VERIFY_MSG(
+                this->posSpreadThreshold >= float_X(0.0),
+                std::string("[Plugin: ") + this->prefix + "] posSpreadThreshold"
+                " has to be non-negative."
+            );
+            PMACC_VERIFY_MSG(
+                this->momSpreadThreshold >= float_X(0.0),
+                std::string("[Plugin: ") + this->prefix + "] momSpreadThreshold"
+                " has to be non-negative."
             );
         }
 
@@ -302,7 +302,7 @@ namespace randomizedParticleMerger
     struct RandomizedParticleMerger : RandomizedParticleMergerWrapped< T_ParticlesType >
     {};
 
-} // namespace particleMerging
+} // namespace randomizedParticleMerger
 } // namespace plugins
 } // namespace picongpu
 
