@@ -54,7 +54,7 @@
 #   include "picongpu/plugins/PositionsParticles.hpp"
 #   include "picongpu/plugins/ChargeConservation.hpp"
 #   include "picongpu/plugins/particleMerging/ParticleMerger.hpp"
-#   include "picongpu/plugins/RandomizedParticleMerger/RandomizedParticleMerger.hpp"
+#   include "picongpu/plugins/randomizedParticleMerger/RandomizedParticleMerger.hpp"
 #   if(ENABLE_HDF5 == 1)
 #       include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
 #   endif
