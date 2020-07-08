@@ -71,8 +71,9 @@ using UsedParticleCurrentSolver = currentSolver::PARAM_CURRENTSOLVER< UsedPartic
  *
  * Defining a pusher is optional for particles
  *
- * - particles::pusher::Vay : better suited relativistic boris pusher
- * - particles::pusher::Boris : standard boris pusher
+ * - particles::pusher::HC : Higuera & Cary's relativistic pusher preserving both volume and ExB velocity
+ * - particles::pusher::Vay : Vay's relativistic pusher preserving ExB velocity
+ * - particles::pusher::Boris : Boris' relativistic pusher preserving volume
  * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher
  *                                              with classical radiation reaction
  *

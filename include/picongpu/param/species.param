@@ -74,9 +74,9 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
  *
  * Defining a pusher is optional for particles
  *
- * - particles::pusher::HC : best of Vay and Boris pusher
- * - particles::pusher::Vay : better suited relativistic boris pusher
- * - particles::pusher::Boris : standard boris pusher
+ * - particles::pusher::HC : Higuera & Cary's relativistic pusher preserving both volume and ExB velocity
+ * - particles::pusher::Vay : Vay's relativistic pusher preserving ExB velocity
+ * - particles::pusher::Boris : Boris' relativistic pusher preserving volume
  * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher
  *                                              with classical radiation reaction
  *
@@ -89,6 +89,6 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
  * For development purposes: --------------------------------------------------
  * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
  */
-using UsedParticlePusher = particles::pusher::Boris;
+using UsedParticlePusher = particles::pusher::HC;
 
 } // namespace picongpu
