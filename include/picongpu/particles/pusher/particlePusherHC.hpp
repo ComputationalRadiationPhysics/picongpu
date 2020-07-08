@@ -32,10 +32,11 @@ namespace particlePusherHC
 /* Implementation of the Higuera-Cary pusher as presented in doi:10.1063/1.4979989.
  * A correction is applied to the given formulas as documented by the WarpX team:
  * (https://github.com/ECP-WarpX/WarpX/issues/320).
- * 
+ *
  * Note, while Higuera and Ripperda present the formulas for the quantity u = gamma * v,
  * PIConGPU uses the real momentum p = gamma * m * v = u * m for calculations.
- * 
+ * Here, all auxiliary quantities are equal to those used in Ripperda's article.
+ *
  * Further references:
  * [Higuera's article on arxiv](https://arxiv.org/abs/1701.05605)
  * [Riperda's comparison of relativistic particle integrators](https://doi.org/10.3847/1538-4365/aab114)
@@ -79,7 +80,7 @@ struct Push
          * Notation is according to Ripperda's paper
          */
         // First half electric field acceleration
-        const MomType mom_minus = mom + float_X(0.5) * charge * eField * deltaT;
+        const sqrt_HC::float3_X mom_minus = precisionCast<sqrt_HC::float_X>( mom + float_X(0.5) * charge * eField * deltaT );
 
         // Auxiliary quantitites
         const sqrt_HC::float_X gamma_minus = gamma( mom_minus , mass );
@@ -88,30 +89,30 @@ struct Push
 
         const sqrt_HC::float_X sigma = pmacc::math::abs2( gamma_minus ) - pmacc::math::abs2( tau );
 
-        const sqrt_HC::float_X u_star = pmacc::math::dot( precisionCast<sqrt_HC::float_X>( mom_minus ), tau ) / precisionCast<sqrt_HC::float_X>( mass * SPEED_OF_LIGHT );
+        const sqrt_HC::float_X u_star = pmacc::math::dot( mom_minus, tau ) / precisionCast<sqrt_HC::float_X>( mass * SPEED_OF_LIGHT );
 
-        const sqrt_HC::float_X gamma_plus = math::sqrt( 
-                sqrt_HC::float_X(0.5) * ( sigma + math::sqrt( 
+        const sqrt_HC::float_X gamma_plus = math::sqrt(
+                sqrt_HC::float_X(0.5) * ( sigma + math::sqrt(
                         pmacc::math::abs2( sigma ) + sqrt_HC::float_X(4.0) * ( pmacc::math::abs2( tau ) + pmacc::math::abs2( u_star ) )
                     ) )
             );
 
-        const sqrt_HC::float3_X t_vector =  tau / gamma_plus;
+        const sqrt_HC::float3_X t_vector = tau / gamma_plus;
 
         const sqrt_HC::float_X s = sqrt_HC::float_X(1.0) / ( sqrt_HC::float_X(1.0) + pmacc::math::abs2( t_vector ) );
 
         // Rotation step
-        const MomType mom_plus = precisionCast<float_X>( s * (
-                precisionCast<sqrt_HC::float_X>( mom_minus )
-                + pmacc::math::dot( precisionCast<sqrt_HC::float_X>( mom_minus ) , t_vector ) * t_vector
-                + pmacc::math::cross( precisionCast<sqrt_HC::float_X>( mom_minus ) , t_vector) 
-            ) );
+        const sqrt_HC::float3_X mom_plus = s * ( mom_minus
+                + pmacc::math::dot( mom_minus , t_vector ) * t_vector
+                + pmacc::math::cross( mom_minus , t_vector )
+            );
 
-        // Second half electric field acceleration (Note correction mom_minus -> mom_plus compared to Ripperda)
-        const  sqrt_HC::float3_X mom_diff = sqrt_HC::float_X(0.5) * precisionCast<sqrt_HC::float_X>( eField * charge * deltaT ) 
-            + pmacc::math::cross( precisionCast<sqrt_HC::float_X>( mom_plus ) , t_vector );
-        
-        const MomType new_mom = mom_plus + precisionCast<float_X>( mom_diff );
+        // Second half electric field acceleration (Note correction mom_minus -> mom_plus here compared to Ripperda)
+        const MomType mom_diff1 = float_X(0.5) * charge * eField * deltaT;
+        const MomType mom_diff2 = precisionCast<float_X>( pmacc::math::cross( mom_plus , t_vector ) );
+        const MomType mom_diff = mom_diff1 + mom_diff2;
+
+        const MomType new_mom = precisionCast<float_X>( mom_plus ) + mom_diff;
 
         particle[ momentum_ ] = new_mom;
 
