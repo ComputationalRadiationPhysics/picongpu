@@ -30,7 +30,7 @@ namespace particlePusherHigueraCary
 {
 
 /** Implementation of the Higuera-Cary pusher as presented in doi:10.1063/1.4979989.
- * 
+ *
  * A correction is applied to the given formulas as documented by the WarpX team:
  * (https://github.com/ECP-WarpX/WarpX/issues/320).
  *
@@ -41,7 +41,7 @@ namespace particlePusherHigueraCary
  * Further references:
  * [Higuera's article on arxiv](https://arxiv.org/abs/1701.05605)
  * [Riperda's comparison of relativistic particle integrators](https://doi.org/10.3847/1538-4365/aab114)
- * 
+ *
  * @tparam Velocity functor to compute the velocity of a particle with momentum p and mass m
  * @tparam Gamma functor to compute the Lorentz factor (= Energy/mc^2) of a particle with momentum p and mass m
  */
@@ -86,7 +86,7 @@ struct Push
          */
         // First half electric field acceleration
         namespace sqrt_HC = sqrt_HigueraCary;
-        
+
         sqrt_HC::float3_X const mom_minus = precisionCast<sqrt_HC::float_X>( mom + float_X(0.5) * charge * eField * deltaT );
 
         // Auxiliary quantitites
