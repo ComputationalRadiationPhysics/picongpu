@@ -89,6 +89,6 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
  * For development purposes: --------------------------------------------------
  * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
  */
-using UsedParticlePusher = particles::pusher::HigueraCary;
+using UsedParticlePusher = particles::pusher::Boris;
 
 } // namespace picongpu
