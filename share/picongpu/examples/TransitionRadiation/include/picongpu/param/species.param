@@ -65,7 +65,7 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
  *
  * Defining a pusher is optional for particles
  *
- * - particles::pusher::HC : Higuera & Cary's relativistic pusher preserving both volume and ExB velocity
+ * - particles::pusher::HigueraCary : Higuera & Cary's relativistic pusher preserving both volume and ExB velocity
  * - particles::pusher::Vay : Vay's relativistic pusher preserving ExB velocity
  * - particles::pusher::Boris : Boris' relativistic pusher preserving volume
  * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher

@@ -17,19 +17,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/traits/attribute/GetMass.hpp"
 #include "picongpu/traits/attribute/GetCharge.hpp"
 
+
 namespace picongpu
 {
-namespace particlePusherHC
+namespace particlePusherHigueraCary
 {
-/* Implementation of the Higuera-Cary pusher as presented in doi:10.1063/1.4979989.
+
+/** Implementation of the Higuera-Cary pusher as presented in doi:10.1063/1.4979989.
  * A correction is applied to the given formulas as documented by the WarpX team:
  * (https://github.com/ECP-WarpX/WarpX/issues/320).
  *
@@ -41,8 +41,7 @@ namespace particlePusherHC
  * [Higuera's article on arxiv](https://arxiv.org/abs/1701.05605)
  * [Riperda's comparison of relativistic particle integrators](https://doi.org/10.3847/1538-4365/aab114)
  */
-
-template<class Velocity, class Gamma>
+template<typename Velocity, typename Gamma>
 struct Push
 {
     /* this is an optional extension for sub-sampling pushes that enables grid to particle interpolation
@@ -75,11 +74,12 @@ struct Push
 
         Gamma gamma;
 
-        /*
-         * Momentum update
+        /* Momentum update
          * Notation is according to Ripperda's paper
          */
         // First half electric field acceleration
+        namespace sqrt_HC = sqrt_HigueraCary;
+        
         const sqrt_HC::float3_X mom_minus = precisionCast<sqrt_HC::float_X>( mom + float_X(0.5) * charge * eField * deltaT );
 
         // Auxiliary quantitites
@@ -116,9 +116,7 @@ struct Push
 
         particle[ momentum_ ] = new_mom;
 
-        /*
-         * Position update
-         */
+        // Position update
         Velocity velocity;
 
         const float3_X vel = velocity( new_mom , mass );
@@ -131,9 +129,10 @@ struct Push
 
     static pmacc::traits::StringProperty getStringProperties()
     {
-        pmacc::traits::StringProperty propList( "name", "HC" );
+        pmacc::traits::StringProperty propList( "name", "HigueraCary" );
         return propList;
     }
 };
-} // namespace particlePusherHC
+
+} // namespace particlePusherHigueraCary
 } // namespace picongpu

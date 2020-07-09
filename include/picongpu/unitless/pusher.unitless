@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera, Richard Pausch, Annegret Roessler
+/* Copyright 2013-2020 Axel Huebl, Rene Widera, Richard Pausch, Annegret Roeszler
  *
  * This file is part of PIConGPU.
  *
@@ -25,7 +25,7 @@
 #include "picongpu/particles/pusher/particlePusherAcceleration.hpp"
 #include "picongpu/particles/pusher/particlePusherBoris.hpp"
 #include "picongpu/particles/pusher/particlePusherVay.hpp"
-#include "picongpu/particles/pusher/particlePusherHC.hpp"
+#include "picongpu/particles/pusher/particlePusherHigueraCary.hpp"
 #include "picongpu/particles/pusher/particlePusherFree.hpp"
 #include "picongpu/particles/pusher/particlePusherPhoton.hpp"
 #include "picongpu/particles/pusher/particlePusherProbe.hpp"
@@ -69,8 +69,8 @@ public particlePusherVay::Push<Velocity, Gamma<> >
 {
 };
 
-struct HC :
-public particlePusherHC::Push<Velocity, Gamma<> >
+struct HigueraCary :
+public particlePusherHigueraCary::Push<Velocity, Gamma<> >
 {
 };
 

@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera, Richard Pausch, Annegret Roessler
+/* Copyright 2014-2020 Rene Widera, Richard Pausch, Annegret Roeszler
  *
  * This file is part of PIConGPU.
  *
@@ -74,7 +74,7 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
  *
  * Defining a pusher is optional for particles
  *
- * - particles::pusher::HC : Higuera & Cary's relativistic pusher preserving both volume and ExB velocity
+ * - particles::pusher::HigueraCary : Higuera & Cary's relativistic pusher preserving both volume and ExB velocity
  * - particles::pusher::Vay : Vay's relativistic pusher preserving ExB velocity
  * - particles::pusher::Boris : Boris' relativistic pusher preserving volume
  * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher
@@ -89,6 +89,6 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
  * For development purposes: --------------------------------------------------
  * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
  */
-using UsedParticlePusher = particles::pusher::HC;
+using UsedParticlePusher = particles::pusher::HigueraCary;
 
 } // namespace picongpu
