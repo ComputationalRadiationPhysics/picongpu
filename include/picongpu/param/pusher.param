@@ -62,6 +62,15 @@ namespace picongpu
         namespace sqrt_Vay = precision64Bit;
     }
 
+    namespace particlePusherHigueraCary
+    {
+        /** Precision of the square roots during the push step
+         *  - precision32Bit
+         *  - precision64Bit
+         */
+        namespace sqrt_HigueraCary = precision64Bit;
+    }
+
     namespace particlePusherAxel
     {
 
@@ -78,6 +87,7 @@ namespace picongpu
     {
     namespace pusher
     {
+        struct HigueraCary;
         struct Vay;
         struct Boris;
         struct Photon;
