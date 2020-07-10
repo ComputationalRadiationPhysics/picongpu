@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera, Sergei Bastrakov
+/* Copyright 2013-2020 Axel Huebl, Rene Widera, Sergei Bastrakov, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -107,7 +107,7 @@ namespace detail
         }
     };
 
-    namespace pml = maxwellSolver::yeePML;
+    namespace pml = maxwellSolver::Pml;
 
     /** Absorber wrapper
      *

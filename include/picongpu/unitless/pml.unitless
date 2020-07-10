@@ -1,4 +1,4 @@
-/* Copyright 2019-2020 Sergei Bastrakov
+/* Copyright 2019-2020 Sergei Bastrakov, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -28,7 +28,7 @@ namespace fields
 {
 namespace maxwellSolver
 {
-namespace yeePML
+namespace Pml
 {
 
     // Assert parameters are in the valid ranges
@@ -86,7 +86,7 @@ namespace yeePML
         NORMALIZED_ALPHA_MAX_SI[ 2 ] * UNIT_TIME
     };
 
-} // namespace yeePML
+} // namespace Pml
 } // namespace maxwellSolver
 } // namespace fields
 } // namespace picongpu

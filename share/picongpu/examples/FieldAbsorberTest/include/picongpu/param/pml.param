@@ -33,7 +33,7 @@ namespace fields
 {
 namespace maxwellSolver
 {
-namespace yeePML
+namespace Pml
 {
 
     /* The parameters in this file are only used if field solver is YeePML.

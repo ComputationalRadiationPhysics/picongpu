@@ -1,5 +1,5 @@
 /* Copyright 2019-2020 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz,
- *                Sergei Bastrakov
+ *                Sergei Bastrakov, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -200,14 +200,16 @@ namespace maxwellSolver
 
             void initParameters( )
             {
+                namespace pml = maxwellSolver::Pml;
+
                 globalSize = getGlobalThickness( );
-                parameters.sigmaKappaGradingOrder = SIGMA_KAPPA_GRADING_ORDER;
-                parameters.alphaGradingOrder = ALPHA_GRADING_ORDER;
+                parameters.sigmaKappaGradingOrder = pml::SIGMA_KAPPA_GRADING_ORDER;
+                parameters.alphaGradingOrder = pml::ALPHA_GRADING_ORDER;
                 for( uint32_t dim = 0u; dim < simDim; dim++ )
                 {
-                    parameters.normalizedSigmaMax[ dim ] = NORMALIZED_SIGMA_MAX[ dim ];
-                    parameters.kappaMax[ dim ] = KAPPA_MAX[ dim ];
-                    parameters.normalizedAlphaMax[ dim ] = NORMALIZED_ALPHA_MAX[ dim ];
+                    parameters.normalizedSigmaMax[ dim ] = pml::NORMALIZED_SIGMA_MAX[ dim ];
+                    parameters.kappaMax[ dim ] = pml::KAPPA_MAX[ dim ];
+                    parameters.normalizedAlphaMax[ dim ] = pml::NORMALIZED_ALPHA_MAX[ dim ];
                 }
             }
 
