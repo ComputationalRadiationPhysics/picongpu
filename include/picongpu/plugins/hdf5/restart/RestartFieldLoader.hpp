@@ -28,9 +28,11 @@
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
 
+#include <pmacc/communication/manager_common.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
+#include <pmacc/Environment.hpp>
 
 #include <splash/splash.h>
 
@@ -91,9 +93,7 @@ public:
         bool useLinearIdxAsDestination = false;
 
         /* Patch for non-domain-bound fields
-         * This is an ugly fix to allow output of reduced 1d PML buffers,
-         * that are the same size on each domain.
-         * This code is to be replaced with the openPMD output plugin soon.
+         * This is an ugly fix to allow output of reduced 1d PML buffers
          */
         if( !isDomainBound )
         {
@@ -106,10 +106,38 @@ public:
                 1,
                 1
             );
-            auto const & gridController = Environment<simDim>::get().GridController();
-            auto const rank = gridController.getGlobalRank();
+
+            /* Scan the PML buffer local size along all local domains
+             * This code is symmetric to one in Field::writeField()
+             */
+            log< picLog::INPUT_OUTPUT > ("HDF5:  (begin) collect PML sizes for %1%") % objectName;
+            auto & gridController = Environment<simDim>::get().GridController();
+            auto const numRanks = uint64_t{ gridController.getGlobalSize() };
+            /* Use domain position-based rank, not MPI rank, to be independent
+             * of the MPI rank assignment scheme
+             */
+            auto const rank = uint64_t{ gridController.getScalarPosition() };
+            std::vector< uint64_t > localSizes( 2 * numRanks, 0u );
+            uint64_t localSizeInfo[ 2 ] = {
+                static_cast<uint64_t>( elementCount ),
+                rank
+            };
+            __getTransactionEvent().waitForFinished();
+            MPI_CHECK(MPI_Allgather(
+                localSizeInfo, 2, MPI_UINT64_T,
+                &( *localSizes.begin() ), 2, MPI_UINT64_T,
+                gridController.getCommunicator().getMPIComm()
+            ));
+            uint64_t domainOffset = 0;
+            for( uint64_t r = 0; r < numRanks; ++r )
+            {
+                if( localSizes.at( 2u * r + 1u ) < rank )
+                    domainOffset += localSizes.at( 2u * r );
+            }
+            log< picLog::INPUT_OUTPUT > ("HDF5:  (end) collect PML sizes for %1%") % objectName;
+
             domain_offset = Dimensions(
-                rank * elementCount,
+                domainOffset,
                 0,
                 0
             );
