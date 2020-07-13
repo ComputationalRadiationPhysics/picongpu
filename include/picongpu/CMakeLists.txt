@@ -1,6 +1,6 @@
 # Copyright 2013-2020 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau,
 #                     Rene Widera, Alexander Grund, Alexander Matthes,
-#                     Franz Poeschel
+#                     Franz Poeschel, Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -288,8 +288,11 @@ endif()
 find_package(openPMD 0.11.0 CONFIG COMPONENTS MPI)
 
 if(openPMD_FOUND)
+    message(STATUS "Found openPMD: ${openPMD_DIR}")
     add_definitions(-DENABLE_OPENPMD=1)
     set(LIBS ${LIBS} openPMD::openPMD)
+else(openPMD_FOUND)
+    message(STATUS "Could NOT find openPMD - set openPMD_DIR or check your CMAKE_PREFIX_PATH")
 endif(openPMD_FOUND)
 
 
