@@ -236,10 +236,17 @@ namespace acc
         HINLINE float_X
         get_envelope( float_X runTime )
         {
-            float_X const AMP_PREPULSE = float_X( math::sqrt( Unitless::INT_RATIO_PREPULSE ) * Unitless::AMPLITUDE);
-            float_X const AMP_1 = float_X( math::sqrt( Unitless::INT_RATIO_POINT_1 ) * Unitless::AMPLITUDE );
-            float_X const AMP_2 = float_X( math::sqrt( Unitless::INT_RATIO_POINT_2 ) * Unitless::AMPLITUDE );
-            float_X const AMP_3 = float_X( math::sqrt( Unitless::INT_RATIO_POINT_3 ) * Unitless::AMPLITUDE );
+            /* workaround for clang 5 linker issues
+             * `undefined reference to `picongpu::fields::laserProfiles::ExpRampWithPrepulseParam::INT_RATIO_POINT_1'`
+             */
+            constexpr auto int_ratio_prepule =  Unitless::INT_RATIO_PREPULSE;
+            constexpr auto int_ratio_point_1 = Unitless::INT_RATIO_POINT_1;
+            constexpr auto int_ratio_point_2 = Unitless::INT_RATIO_POINT_2;
+            constexpr auto int_ratio_point_3 = Unitless::INT_RATIO_POINT_3;
+            float_X const AMP_PREPULSE = float_X( math::sqrt( int_ratio_prepule ) * Unitless::AMPLITUDE);
+            float_X const AMP_1 = float_X( math::sqrt( int_ratio_point_1 ) * Unitless::AMPLITUDE );
+            float_X const AMP_2 = float_X( math::sqrt( int_ratio_point_2 ) * Unitless::AMPLITUDE );
+            float_X const AMP_3 = float_X( math::sqrt( int_ratio_point_3 ) * Unitless::AMPLITUDE );
 
             float_X env = 0.0;
             bool const before_preupramp = runTime < Unitless::time_start_init;

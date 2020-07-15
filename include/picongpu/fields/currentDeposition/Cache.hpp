@@ -66,6 +66,7 @@ namespace detail
             T_FieldBox const & fieldBox,
             uint32_t const workerIdx
         )
+#if(!BOOST_COMP_CLANG)
         -> decltype(
             CachedBox::create<
                 0u,
@@ -75,6 +76,7 @@ namespace detail
                 std::declval< T_BlockDescription >()
             )
         )
+#endif
         {
             using ValueType = typename T_FieldBox::ValueType;
             /* this memory is used by all virtual blocks */
@@ -158,7 +160,9 @@ namespace detail
             T_FieldBox const & fieldBox,
             uint32_t const workerIdx
         )
+#if(!BOOST_COMP_CLANG)
         -> T_FieldBox
+#endif
         {
             alpaka::ignore_unused(
                 acc,
