@@ -149,12 +149,12 @@ namespace particlePusherComposite
 
         static pmacc::traits::StringProperty getStringProperties()
         {
-            auto const firstProperty = FirstPusher::getStringProperties();
-            auto const secondProperty = SecondPusher::getStringProperties();
+            auto firstProperty = FirstPusher::getStringProperties();
+            auto secondProperty = SecondPusher::getStringProperties();
             pmacc::traits::StringProperty propList(
                 "name",
-                std::string{"Composite of "} + firstProperty[ "name" ] + " and " +
-                    secondProperty[ "name" ]
+                std::string("Composite of ") + firstProperty[ "name" ].value +
+                    " and " + secondProperty[ "name" ].value
             );
             return propList;
         }

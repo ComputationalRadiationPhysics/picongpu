@@ -1,5 +1,5 @@
 /* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt,
- *                     Alexander Grund
+ *                     Alexander Grund, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -24,6 +24,7 @@
 #include "picongpu/particles/Particles.hpp"
 
 #include "picongpu/particles/Particles.kernel"
+#include "picongpu/particles/pusher/Traits.hpp"
 #include "picongpu/particles/traits/GetExchangeMemCfg.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -206,6 +207,82 @@ Particles<
 
 }
 
+/** Launcher of the particle push
+ *
+ * @tparam T_Pusher pusher type
+ * @tparam T_isComposite if the pusher is composite
+ */
+template<
+    typename T_Pusher,
+    bool T_isComposite = particles::pusher::IsComposite< T_Pusher >::value
+>
+struct PushLauncher;
+
+/** Launcher of the particle push for non-composite pushers
+ *
+ * @tparam T_Pusher pusher type
+ */
+template< typename T_Pusher >
+struct PushLauncher<
+    T_Pusher,
+    false
+>
+{
+    /** Launch the pusher for all particles of a species
+     *
+     * @tparam T_Particles particles type
+     * @param currentStep current time iteration
+     */
+    template< typename T_Particles >
+    void operator()(
+        T_Particles && particles,
+        uint32_t const currentStep
+    ) const
+    {
+        particles.template push< T_Pusher >( currentStep );
+    }
+};
+
+/** Launcher of the particle push for composite pushers
+ *
+ * @tparam T_Pusher pusher type
+ */
+template< typename T_CompositePusher >
+struct PushLauncher<
+    T_CompositePusher,
+    true
+>
+{
+    /** Launch the pusher for all particles of a species
+     *
+     * @tparam T_Particles particles type
+     * @param currentStep current time iteration
+     */
+    template< typename T_Particles >
+    void operator()(
+        T_Particles && particles,
+        uint32_t const currentStep
+    ) const
+    {
+        /* Here we check for the active pusher and only call PushLauncher for
+         * that one. Note that we still instantiate both templates, but this
+         * should be fine as both pushers are eventually getting used (otherwise
+         * using the composite does not make sense).
+         */
+        auto activePusherIdx = T_CompositePusher::activePusherIdx( currentStep );
+        if( activePusherIdx == 1 )
+            PushLauncher< typename T_CompositePusher::FirstPusher >{}(
+                particles,
+                currentStep
+            );
+        else if( activePusherIdx == 2 )
+            PushLauncher< typename T_CompositePusher::SecondPusher >{}(
+                particles,
+                currentStep
+            );
+    }
+};
+
 template<
     typename T_Name,
     typename T_Flags,
@@ -220,6 +297,35 @@ Particles<
 {
     using PusherAlias = typename GetFlagType<FrameType,particlePusher<> >::type;
     using ParticlePush = typename pmacc::traits::Resolve<PusherAlias>::type;
+    // Because of composite pushers, we have to defer using the launcher
+    PushLauncher< ParticlePush >{}(
+        *this,
+        currentStep
+    );
+}
+
+/** Do the particle push stage using the given pusher
+ *
+ * @tparam T_Pusher non-composite pusher type
+ * @param currentStep current time iteration
+ */
+template<
+    typename T_Name,
+    typename T_Flags,
+    typename T_Attributes
+>
+template< typename T_Pusher >
+void
+Particles<
+    T_Name,
+    T_Flags,
+    T_Attributes
+>::push( uint32_t const currentStep )
+{
+    PMACC_CASSERT_MSG(
+        _internal_error_particle_push_instantiated_for_composite_pusher,
+        particles::pusher::IsComposite< T_Pusher >::type::value == false
+    );
 
     using InterpolationScheme = typename pmacc::traits::Resolve<
         typename GetFlagType<
@@ -229,7 +335,7 @@ Particles<
     >::type;
 
     using FrameSolver = PushParticlePerFrame<
-        ParticlePush,
+        T_Pusher,
         MappingDesc::SuperCellSize,
         InterpolationScheme
     >;
@@ -244,9 +350,17 @@ Particles<
         true
     );
 
-    // adjust interpolation area in particle pusher to allow sub-sampling pushes
-    using LowerMargin = typename GetLowerMarginPusher< Particles >::type;
-    using UpperMargin = typename GetUpperMarginPusher< Particles >::type;
+    /* Adjust interpolation area in particle pusher to allow sub-stepping pushes.
+     * Here were provide an actual pusher and use its actual margins
+     */
+    using LowerMargin = typename GetLowerMarginForPusher<
+        Particles,
+        T_Pusher
+    >::type;
+    using UpperMargin = typename GetUpperMarginForPusher<
+        Particles,
+        T_Pusher
+    >::type;
 
     using BlockArea = SuperCellDescription<
         typename MappingDesc::SuperCellSize,
