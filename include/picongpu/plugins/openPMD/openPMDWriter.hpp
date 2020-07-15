@@ -132,7 +132,7 @@ namespace openPMD
     }
 
     ::openPMD::Series &
-    ThreadParams::openSeries( ::openPMD::AccessType at )
+    ThreadParams::openSeries( ::openPMD::Access at )
     {
         if( !openPMDSeries )
         {

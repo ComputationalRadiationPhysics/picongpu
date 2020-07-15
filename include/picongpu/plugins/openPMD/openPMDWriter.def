@@ -110,7 +110,7 @@ namespace openPMD
                                           window to local domain */
 
         ::openPMD::Series &
-        openSeries( ::openPMD::AccessType at );
+        openSeries( ::openPMD::Access at );
 
         void
         closeSeries();

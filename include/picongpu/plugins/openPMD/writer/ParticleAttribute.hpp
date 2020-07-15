@@ -101,8 +101,6 @@ namespace openPMD
                 ::openPMD::RecordComponent recordComponent = components > 1
                     ? record[ name_lookup[ d ] ]
                     : record[::openPMD::MeshRecordComponent::SCALAR ];
-                ::openPMD::Datatype openPMDType =
-                    ::openPMD::determineDatatype< ComponentType >();
 
                 ValueType * dataPtr = frame.getIdentifier( Identifier() )
                                           .getPointer(); // can be moved up?
