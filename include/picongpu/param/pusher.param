@@ -98,6 +98,14 @@ namespace picongpu
 #if(SIMDIM==DIM3)
         struct Axel;
 #endif
+        template<
+            typename T_FirstPusher,
+            typename T_SecondPusher,
+            typename T_ActivationFunctor
+        >
+        struct Composite;
+        template< uint32_t T_switchTimeStep >
+        struct CompositeBinarySwitchActivationFunctor;
     } // namespace pusher
     } // namespace particles
 
