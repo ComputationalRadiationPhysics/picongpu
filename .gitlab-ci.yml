@@ -1,0 +1,5 @@
+
+dummy_job:
+  script:
+    - echo "To be continued ..."
+
