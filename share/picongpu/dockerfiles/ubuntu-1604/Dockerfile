@@ -24,7 +24,7 @@ RUN        apt-get update && \
               coreutils \
               cuda-cupti-$CUDA_PKG_VERSION \
               cuda-command-line-tools-$CUDA_PKG_VERSION \
-              cuda-core-$CUDA_PKG_VERSION \
+              cuda-compiler-$CUDA_PKG_VERSION \
               cuda-cudart-dev-$CUDA_PKG_VERSION \
               cuda-curand-dev-$CUDA_PKG_VERSION \
               cuda-minimal-build-$CUDA_PKG_VERSION \
