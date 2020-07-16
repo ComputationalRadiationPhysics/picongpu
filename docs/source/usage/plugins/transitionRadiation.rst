@@ -1,7 +1,7 @@
 .. _usage-plugins-transitionRadiation:
 
 Transition Radiation
----------
+--------------------
 
 The spectrally resolved far field radiation created by electrons passing through a metal foil.
 
