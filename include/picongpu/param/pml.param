@@ -1,4 +1,4 @@
-/* Copyright 2019-2020 Sergei Bastrakov
+/* Copyright 2019-2020 Sergei Bastrakov, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -19,7 +19,7 @@
 
 /** @file
  *
- * Configure the perfectly matched layer (PML).
+ * Configure the Perfectly Matched Layer absorbing boundary conditions (PML).
  *
  * To enable PML use YeePML field solver.
  */
@@ -33,11 +33,11 @@ namespace fields
 {
 namespace maxwellSolver
 {
-namespace yeePML
+namespace Pml
 {
 
-    /* The parameters in this file are only used if the field solver selected is
-     * YeePML.
+    /* The parameters in this file are only used if the field solver selected
+     * uses Perfectly Matched Layer Absorbing Boundary Conditions (PML).
      * The original paper on this approach is J.A. Roden, S.D. Gedney.
      * Convolution PML (CPML): An efficient FDTD implementation of the CFS - PML
      * for arbitrary media. Microwave and optical technology letters. 27 (5),
@@ -155,7 +155,7 @@ namespace yeePML
         0.2
     };
 
-} // namespace yeePML
+} // namespace Pml
 } // namespace maxwellSolver
 } // namespace fields
 } // namespace picongpu
