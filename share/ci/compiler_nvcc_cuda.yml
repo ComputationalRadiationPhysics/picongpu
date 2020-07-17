@@ -1,0 +1,30 @@
+################################################################################
+#   [g++-X] : X = {5, 6, 7, 8, 9}
+
+.base_cuda:
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+  before_script:
+    - nvidia-smi
+    - nvcc --version
+  script:
+      - source share/ci/run_test.sh
+  tags:
+    - cuda
+    - x86_64 
+    
+.nvcc_cuda92:
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda9.2gcc
+  extends: .base_cuda
+
+.nvcc_cuda100:
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.0gcc
+  extends: .base_cuda
+  
+.nvcc_cuda101:
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.1gcc
+  extends: .base_cuda  
+
+.nvcc_cuda102:
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.2gcc
+  extends: .base_cuda
