@@ -1,7 +1,7 @@
 .. _usage-plugins-particleMergerProbalistic:
 
 Particle Merger Probalistic version
----------------
+-----------------------------------
 
 Merges macro particles that are close in phase space to reduce computational load.
 Voronoi-based probalistic variative algorithm. The difference between Base Voronoi algorothm
@@ -27,16 +27,11 @@ Compile-Time Option   Description
 ============================================ ================================================================================================================
 PIConGPU command line option                 Description
 ============================================ ================================================================================================================
-``--<species>_merger.period``                The ouput periodicity of the plugin.
-                                             A value of ``100`` would mean an output at simulation time step *0, 100, 200, ...*.
+``--<species>_merger.period``                The ouput periodicity of the plugin. A value of ``100`` would mean an output at simulation time step *0, 100, 200, ...*.
 											 
 ``--<species>_merger.ratioOfDeletedParticles``  The ratio of particles to delete. The parameter have to be in Range *[0:1]*
 
 ``--<species>_merger.minParticlesToMerge``   minimal number of macroparticles can be merged into a single macroparticle.
-                                             
-
-                                             Disabled for ``-1`` (default).
-``--<species>_merger.minMeanEnergy``         minimal mean kinetic energy needed to merge the macroparticle collection into a single macroparticle [unit: keV]
 ============================================ ================================================================================================================
 
 Memory Complexity

@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Heiko Burau
+/* Copyright 2017-2020 Heiko Burau, Xeinia Bastrakova, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -21,17 +21,19 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/randomizedParticleMerger/RandomizedParticleMerger.kernel"
 #include "picongpu/particles/functor/misc/Rng.hpp"
 
 #include <pmacc/traits/HasIdentifier.hpp>
 #include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 
+#include <cstdint>
+#include <cstdlib>
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <stdlib.h>
-#include "RandomizedParticleMerger.kernel"
+
 
 namespace picongpu
 {
@@ -43,14 +45,19 @@ namespace randomizedParticleMerger
     using namespace pmacc;
     namespace bmpl = boost::mpl;
 
-    /** Implements a particle merging algorithm based on
-    *
-    * Luu, P. T., Tueckmantel, T., & Pukhov, A. (2016).
-    * Voronoi particle merging algorithm for PIC codes.
-    * Computer Physics Communications, 202, 165-174.
-    *
-    * \tparam T_ParticlesType particle species
-    */
+    /** Implements a randomized modification of the particle merging algorithm.
+     *
+     * The original particle merging algorithms is
+     * Luu, P. T., Tueckmantel, T., & Pukhov, A. (2016).
+     * Voronoi particle merging algorithm for PIC codes.
+     * Computer Physics Communications, 202, 165-174.
+     *
+     * The randomized mofidication developed by S. Bastrakov and X. Bastrakova
+     *
+     * @tparam T_ParticlesType species type
+     * @tparam hasVoronoiCellId if the species type has the voronoiCellId attribute,
+     *                          the plugin will only be used for such types
+     */
     template<
         class T_ParticlesType,
         bool hasVoronoiCellId =
@@ -60,7 +67,6 @@ namespace randomizedParticleMerger
             >::type::value
     >
     struct RandomizedParticleMergerWrapped;
-
 
     template< class T_ParticlesType >
     struct RandomizedParticleMergerWrapped< T_ParticlesType, true > : ISimulationPlugin
@@ -81,7 +87,7 @@ namespace randomizedParticleMerger
 
         RandomizedParticleMergerWrapped() :
             name(
-                "ParticleMerger: merges several macroparticles with"
+                "RandomizedParticleMerger: merges several macroparticles with"
                 " similar position and momentum into a single one"
             ),
             prefix( ParticlesType::FrameType::getName() + std::string("_randomizedMerger") ),
@@ -90,7 +96,7 @@ namespace randomizedParticleMerger
             Environment<>::get().PluginConnector().registerPlugin( this );
         }
 
-        void notify(uint32_t currentStep)
+        void notify(uint32_t currentStep) override
         {
             using SuperCellSize = MappingDesc::SuperCellSize;
 
@@ -101,7 +107,7 @@ namespace randomizedParticleMerger
             const pmacc::math::Int<simDim> coreBorderSuperCells =
                 coreBorderGuardSuperCells - 2 * guardSuperCells;
 
-            /* this zone represents the core+border area with guard offset in unit of cells */
+            // this zone represents the core+border area with guard offset in unit of cells
             const zone::SphericZone< simDim > zone(
                 static_cast< pmacc::math::Size_t< simDim > >(
                     coreBorderSuperCells * SuperCellSize::toRT()
@@ -109,97 +115,95 @@ namespace randomizedParticleMerger
                 guardSuperCells * SuperCellSize::toRT()
             );
 
-            /* get particles instance */
             DataConnector &dc = Environment<>::get().DataConnector();
             auto particles = dc.get< ParticlesType >(
                 ParticlesType::FrameType::getName(),
                 true
             );
-            /* making fabric for random value*/
-            using namespace pmacc::random::distributions;
-            using Distribution = Uniform<float>;
-            using RngFactory = particles::functor::misc::Rng< Distribution >;
-            RngFactory rngFactory(currentStep);
+            using Kernel = RandomizedParticleMergerKernel<
+                typename ParticlesType::ParticlesBoxType
+            >;
 
-            /* create `RandomizeParticleMergerKernel` instance */
-            RandomizedParticleMergerKernel< typename ParticlesType::ParticlesBoxType >
-            randomizedParticleMergerKernel(
+            using namespace pmacc::random::distributions;
+            using Distribution = Uniform<float_X>;
+            using RngFactory = particles::functor::misc::Rng< Distribution >;
+
+            RngFactory rngFactory(currentStep);
+            auto kernel = Kernel{
                 particles->getDeviceParticlesBox(),
-                this->minMacroParticlesToDivide,
-                this->ratioDeletedParticles,
-                this->posSpreadThreshold,
-                this->momSpreadThreshold,
+                minMacroParticlesToDivide,
+                ratioDeletedParticles,
+                posSpreadThreshold,
+                momSpreadThreshold,
                 rngFactory,
                 guardSuperCells
-            );
+            };
 
-            /* execute particle merging alorithm */
             algorithm::kernel::Foreach< SuperCellSize > foreach;
             foreach(
                 zone,
                 cursor::make_MultiIndexCursor< simDim >(),
-                randomizedParticleMergerKernel
+                kernel
             );
 
-            /* close all gaps caused by removal of particles */
+            // close all gaps caused by removal of particles
             particles->fillAllGaps();
-
         }
 
 
-        void setMappingDescription(MappingDesc* cellDescription)
+        void setMappingDescription(MappingDesc* cellDescription) override
         {
             this->cellDescription = cellDescription;
         }
 
 
-        void pluginRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc) override
         {
 
             desc.add_options()
             (
-                ( this->prefix + ".period" ).c_str(),
+                ( prefix + ".period" ).c_str(),
                 po::value< std::string > (
-                    &this->notifyPeriod
+                    &notifyPeriod
                 ),
                 "enable plugin [for each n-th step]"
             )
             (
-                ( this->prefix + ".minMacroParticlesToDivide" ).c_str(),
+                ( prefix + ".minMacroParticlesToDivide" ).c_str(),
                 po::value< uint32_t > (
-                    &this->minMacroParticlesToDivide
+                    &minMacroParticlesToDivide
                 )->default_value( 8 ),
                 "minimum number of macro particles at which we always divide the cell"
             )
             (
-                ( this->prefix + ".posSpreadThreshold" ).c_str(),
+                ( prefix + ".posSpreadThreshold" ).c_str(),
                 po::value< float_X > (
-                    &this->posSpreadThreshold
+                    &posSpreadThreshold
                 )->default_value( 1e-5 ),
                 "Below this threshold of spread in position macroparticles"
-                " can be merged [unit: cell edge length]."
+                " can be merged [unit: cell edge length]"
              )
             (
-                ( this->prefix + ".momSpreadThreshold" ).c_str(),
+                ( prefix + ".momSpreadThreshold" ).c_str(),
                 po::value< float_X > (
-                    &this->momSpreadThreshold
+                    &momSpreadThreshold
                 )->default_value( 1e-5 ),
                 "Below this absolute threshold of spread in momentum"
                 " macroparticles can be merged [unit: m_el * c]."
-                " Disabled for -1 (default)."
+                " Disabled for -1 (default)"
             )
              (
-                ( this->prefix + ".ratioDeletedParticles" ).c_str(),
+                ( prefix + ".ratioDeletedParticles" ).c_str(),
                 po::value< float_X > (
-                    &this->ratioDeletedParticles
+                    &ratioDeletedParticles
                 )->default_value( 0.1 ),
-                "Ratio of deleted particle"
+                "Ratio of macroparticles to be deleted on average"
             );
         }
 
-        std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
-            return this->name;
+            return name;
         }
 
     protected:
@@ -215,23 +219,28 @@ namespace randomizedParticleMerger
             );
 
             PMACC_VERIFY_MSG(
-                this->minMacroParticlesToDivide > 1,
-                std::string("[Plugin: ") + this->prefix + "] minMacroParticlesToDivide"
+                minMacroParticlesToDivide > 1u,
+                std::string("[Plugin: ") + prefix + "] minMacroParticlesToDivide"
                 " has to be greater than one."
             );
             PMACC_VERIFY_MSG(
-                this->ratioDeletedParticles >= float_X(0.0),
-                std::string("[Plugin: ") + this->prefix + "] ratioDeletedParticles"
+                ratioDeletedParticles > 0.0_X,
+                std::string("[Plugin: ") + prefix + "] ratioDeletedParticles"
+                " has to be > 0."
+            );
+            PMACC_VERIFY_MSG(
+                ratioDeletedParticles < 1.0_X,
+                std::string("[Plugin: ") + prefix + "] ratioDeletedParticles"
+                " has to be < 1."
+            );
+            PMACC_VERIFY_MSG(
+                posSpreadThreshold >= 0.0_X,
+                std::string("[Plugin: ") + prefix + "] posSpreadThreshold"
                 " has to be non-negative."
             );
             PMACC_VERIFY_MSG(
-                this->posSpreadThreshold >= float_X(0.0),
-                std::string("[Plugin: ") + this->prefix + "] posSpreadThreshold"
-                " has to be non-negative."
-            );
-            PMACC_VERIFY_MSG(
-                this->momSpreadThreshold >= float_X(0.0),
-                std::string("[Plugin: ") + this->prefix + "] momSpreadThreshold"
+                momSpreadThreshold >= 0.0_X,
+                std::string("[Plugin: ") + prefix + "] momSpreadThreshold"
                 " has to be non-negative."
             );
         }
@@ -247,6 +256,10 @@ namespace randomizedParticleMerger
     };
 
 
+    /** Placeholder implementation for species without the required conditions
+     *
+     * @tparam T_ParticlesType species type
+     */
     template< class T_ParticlesType >
     struct RandomizedParticleMergerWrapped< T_ParticlesType, false > : ISimulationPlugin
     {
@@ -261,7 +274,7 @@ namespace randomizedParticleMerger
 
         RandomizedParticleMergerWrapped() :
             name(
-                "ParticleMerger: merges several macroparticles with"
+                "RandomizedParticleMerger: merges several macroparticles with"
                 " similar position and momentum into a single one.\n"
                 "plugin disabled. Enable plugin by adding the `voronoiCellId`"
                 " attribute to the particle attribute list."
@@ -297,7 +310,10 @@ namespace randomizedParticleMerger
         {}
     };
 
-
+    /** Randomized particle merger plugin
+     *
+     * @tparam T_ParticlesType species type
+     */
     template< typename T_ParticlesType >
     struct RandomizedParticleMerger : RandomizedParticleMergerWrapped< T_ParticlesType >
     {};
@@ -305,5 +321,3 @@ namespace randomizedParticleMerger
 } // namespace randomizedParticleMerger
 } // namespace plugins
 } // namespace picongpu
-
-
