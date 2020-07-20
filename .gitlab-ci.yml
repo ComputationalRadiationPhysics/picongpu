@@ -1,5 +1,100 @@
 
-dummy_job:
-  script:
-    - echo "To be continued ..."
+include:
+  - local: '/share/ci/compiler_clang.yml'
+  - local: '/share/ci/compiler_gcc.yml'
+  - local: '/share/ci/compiler_nvcc_cuda.yml'
+  - local: '/share/ci/compiler_clang_cuda.yml'
 
+# hidden base job to generate the test matrix
+# required variables (space separated lists):
+#   PIC_INPUTS - path to examples relative to share/picongpu
+#                e.g. 
+#                    "examples" starts one gitlab job per director in `examples/*`
+#                    "examples/" compile all directories in `examples/*` within one gitlab job
+#                    "examples/KelvinHelmholtz" compile all cases within one gitlab job
+#   GITLAB_BASES   - name of the hidden gitlab base job desctption `/share/ci/compiler_*`
+#   CXX_VERSIONS   - name of the compiler to use see `/share/ci/compiler_*` `e.g. "g++-8 g++-6"
+#   BOOST_VERSIONS - boost version to check e.g. "1.70.0"
+#                    supported version: {1.65.1, 1.66.0, 1.67.0, 1.68.0, 1.69.0, 1.70.0, 1.71.0, 1.72.0, 1.73.0}
+#   PIC_ACCS       - PIConGPU backend names see `pic-build --help`
+#                    e.g. "cuda cuda:35 serial"
+.base_generator:
+  stage: .pre
+  script: 
+    - $CI_PROJECT_DIR/share/ci/generate.sh > compile.yml
+    - cat compile.yml
+  artifacts:
+    paths:
+      - compile.yml
+
+# gcc matrix
+matrix-gcc:
+  variables:
+    PIC_INPUTS: "examples/Empty"
+    GITLAB_BASES: ".base_gcc"
+    CXX_VERSIONS: "g++-5 g++-8"
+    BOOST_VERSIONS: "1.65.1"
+    PIC_ACCS: "omp2b"
+  extends: ".base_generator"
+    
+compile-matrix-gcc:
+  stage: build
+  trigger:
+    include:
+      - artifact: compile.yml
+        job: matrix-gcc
+    strategy: depend
+
+# clang matrix
+matrix-clang:
+  variables:
+    PIC_INPUTS: "examples/Empty"
+    GITLAB_BASES: ".base_clang"
+    CXX_VERSIONS: "clang++-5.0"
+    BOOST_VERSIONS: "1.65.1"
+    PIC_ACCS: "omp2b"
+  extends: ".base_generator"
+    
+compile-matrix-clang:
+  stage: build
+  trigger:
+    include:
+      - artifact: compile.yml
+        job: matrix-clang
+    strategy: depend
+
+# clang-cuda101 matrix
+matrix-clang-cuda101:
+  variables:
+    PIC_INPUTS: "examples/Empty"
+    GITLAB_BASES: ".clang_cuda101"
+    CXX_VERSIONS: "clang++-10"
+    BOOST_VERSIONS: "1.65.1"
+    PIC_ACCS: "cuda"
+  extends: ".base_generator" 
+    
+compile-matrix-clang-cuda101:
+  stage: build
+  trigger:
+    include:
+      - artifact: compile.yml
+        job: matrix-clang-cuda101
+    strategy: depend
+    
+# nvcc-cuda101 matrix
+matrix-nvcc-cuda102:
+  variables:
+    PIC_INPUTS: "examples/Empty"
+    GITLAB_BASES: ".nvcc_cuda102"
+    CXX_VERSIONS: "g++"
+    BOOST_VERSIONS: "1.65.1"
+    PIC_ACCS: "cuda:35"
+  extends: ".base_generator" 
+    
+compile-matrix-nvcc-cuda102:
+  stage: build
+  trigger:
+    include:
+      - artifact: compile.yml
+        job: matrix-nvcc-cuda102
+    strategy: depend

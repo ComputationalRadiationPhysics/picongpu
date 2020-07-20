@@ -1,0 +1,12 @@
+################################################################################
+#   [g++-X] : X = {5, 6, 7, 8, 9}
+
+.base_gcc:
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:gcc
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+  script:
+    - source share/ci/run_test.sh
+  # x86_64 tag is used to get a multi-core CPU for the tests
+  tags:
+    - x86_64
