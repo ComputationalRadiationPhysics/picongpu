@@ -70,7 +70,7 @@ namespace randomizedParticleMerger
         ParticlesBox particlesBox;
         /** minimal number of macroparticles needed to divide
             the macroparticle collection  */
-        uint32_t minMacroParticlesToDivide;
+        uint32_t maxParticlesToMerge;
 
         pmacc::math::Int<simDim> guardSuperCells;
         /** estimated fraction of macroparticles
@@ -90,7 +90,7 @@ namespace randomizedParticleMerger
 
         RandomizedParticleMergerKernel(
             ParticlesBox particlesBox,
-            uint32_t minMacroParticlesToDivide,
+            uint32_t maxParticlesToMerge,
             float_X ratioDeletedParticles,
             float_X posSpreadThreshold,
             float_X momSpreadThreshold,
@@ -98,7 +98,7 @@ namespace randomizedParticleMerger
             const pmacc::math::Int<simDim> guardSuperCells
         ) :
             particlesBox( particlesBox ),
-            minMacroParticlesToDivide( minMacroParticlesToDivide ),
+            maxParticlesToMerge( maxParticlesToMerge ),
             ratioKeptParticles ( 1.0_X - ratioDeletedParticles ),
             posSpreadThreshold ( posSpreadThreshold ),
             momSpreadThreshold ( momSpreadThreshold ),
@@ -216,7 +216,7 @@ namespace randomizedParticleMerger
         ) const
         {
             // With large enough number of macroparticles we always subdivide
-            if ( voronoiCell.numMacroParticles > minMacroParticlesToDivide )
+            if ( voronoiCell.numMacroParticles > maxParticlesToMerge )
                 return true;
 
             // Otherwise we compute subdivision probability based on the parameters
@@ -447,7 +447,7 @@ namespace randomizedParticleMerger
                        break;
                     }
                     voronoiCell.finalizePrecalculationValues(
-                        minMacroParticlesToDivide,
+                        maxParticlesToMerge,
                         ratioKeptParticles
                     );
 

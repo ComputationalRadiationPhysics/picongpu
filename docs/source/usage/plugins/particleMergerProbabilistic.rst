@@ -1,11 +1,11 @@
-.. _usage-plugins-particleMergerProbalistic:
+.. _usage-plugins-particleMergerProbabilistic:
 
-Particle Merger Probalistic version
------------------------------------
+Particle Merger Probabilistic Version
+-------------------------------------
 
 Merges macro particles that are close in phase space to reduce computational load.
 Voronoi-based probalistic variative algorithm. The difference between Base Voronoi algorothm
-and probalistic Version in parameters: instead of threshold of spread in position and momentum
+and probabilistic version in parameters: instead of threshold of spread in position and momentum
 use ratio of deleted particles. 
 
 
@@ -29,9 +29,13 @@ PIConGPU command line option                 Description
 ============================================ ================================================================================================================
 ``--<species>_merger.period``                The ouput periodicity of the plugin. A value of ``100`` would mean an output at simulation time step *0, 100, 200, ...*.
 											 
-``--<species>_merger.ratioOfDeletedParticles``  The ratio of particles to delete. The parameter have to be in Range *[0:1]*
+``--<species>_merger.ratioOfDeletedParticles`` The ratio of particles to delete. The parameter have to be in Range *[0:1]*.
 
-``--<species>_merger.minParticlesToMerge``   minimal number of macroparticles can be merged into a single macroparticle.
+``--<species>_merger.maxParticlesToMerge``   Maximum number of macroparticles that can be merged into a single macroparticle.
+
+``--<species>_merger.posSpreadThreshold``    Below this threshold of spread in position macroparticles can be merged [unit: cell edge length].
+
+``--<species>_merger.momSpreadThreshold``    Below this absolute threshold of spread in momentum macroparticles can be merged [unit: :math:`m_{e-} \cdot c`].
 ============================================ ================================================================================================================
 
 Memory Complexity

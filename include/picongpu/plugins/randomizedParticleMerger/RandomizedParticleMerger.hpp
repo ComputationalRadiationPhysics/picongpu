@@ -77,7 +77,7 @@ namespace randomizedParticleMerger
         std::string notifyPeriod;
         MappingDesc* cellDescription;
 
-        uint32_t minMacroParticlesToDivide;
+        uint32_t maxParticlesToMerge;
         float_X ratioDeletedParticles;
         float_X posSpreadThreshold;
         float_X momSpreadThreshold;
@@ -131,7 +131,7 @@ namespace randomizedParticleMerger
             RngFactory rngFactory(currentStep);
             auto kernel = Kernel{
                 particles->getDeviceParticlesBox(),
-                minMacroParticlesToDivide,
+                maxParticlesToMerge,
                 ratioDeletedParticles,
                 posSpreadThreshold,
                 momSpreadThreshold,
@@ -169,11 +169,11 @@ namespace randomizedParticleMerger
                 "enable plugin [for each n-th step]"
             )
             (
-                ( prefix + ".minMacroParticlesToDivide" ).c_str(),
+                ( prefix + ".maxParticlesToMerge" ).c_str(),
                 po::value< uint32_t > (
-                    &minMacroParticlesToDivide
+                    &maxParticlesToMerge
                 )->default_value( 8 ),
-                "minimum number of macro particles at which we always divide the cell"
+                "minimum number of macroparticles at which we always divide the cell"
             )
             (
                 ( prefix + ".posSpreadThreshold" ).c_str(),
@@ -190,7 +190,6 @@ namespace randomizedParticleMerger
                 )->default_value( 1e-5 ),
                 "Below this absolute threshold of spread in momentum"
                 " macroparticles can be merged [unit: m_el * c]."
-                " Disabled for -1 (default)"
             )
              (
                 ( prefix + ".ratioDeletedParticles" ).c_str(),
@@ -219,8 +218,8 @@ namespace randomizedParticleMerger
             );
 
             PMACC_VERIFY_MSG(
-                minMacroParticlesToDivide > 1u,
-                std::string("[Plugin: ") + prefix + "] minMacroParticlesToDivide"
+                maxParticlesToMerge > 1u,
+                std::string("[Plugin: ") + prefix + "] maxParticlesToMerge"
                 " has to be greater than one."
             );
             PMACC_VERIFY_MSG(

@@ -259,7 +259,6 @@ namespace randomizedParticleMerger
             }
             else
             {
-                // TODO: this equation works, but there may be a better one (see the notebook)
                 float_X undividedCellCoeff = (
                     parentExpectedNumMacroParticles + parentNumMacroParticles ) / 2.0_X;
                 float_X currentExpectedNumMacroParticles =
@@ -293,6 +292,8 @@ namespace randomizedParticleMerger
          * @param minMacroParticlesToDivide min number of macroparticles in a cell
          *                                  such that the cell is always subdivided
          * @param ratioKeptParticles ratio of particles that are kept on average
+         * @return maximum spread value
+         * @return component of most spread in position (as function parameter)
          */
 
         /** auxillary function for getting the mean squared deviation in position or momentum */
