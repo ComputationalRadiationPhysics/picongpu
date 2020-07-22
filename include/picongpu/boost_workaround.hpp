@@ -35,3 +35,8 @@
 #   include <boost/config/detail/select_compiler_config.hpp>
 #   define __CUDACC__
 #endif
+/* workaround for compile error with clang-cuda
+ * boost/type_traits/is_base_and_derived.hpp:142:25: error: invalid application of 'sizeof' to an incomplete type 'boost::in_place_factory_base'
+ *   BOOST_STATIC_ASSERT(sizeof(B) != 0);
+ */
+#include <boost/optional/optional.hpp>
