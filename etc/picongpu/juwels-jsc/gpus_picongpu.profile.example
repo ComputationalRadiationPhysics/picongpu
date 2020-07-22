@@ -11,8 +11,7 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Project Information ######################################## (edit this line)
 #   - project account for computing time
-export proj=$(groups | awk '{print $4}')
-
+export proj=$(groups | awk '{print $NF}')
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="nano"
@@ -23,52 +22,45 @@ jutil env activate -p $proj
 # General modules #############################################################
 #
 module purge
-module load GCC/7.3.0
-module load CUDA/9.2.88
-module load CMake/3.13.0
-module load MVAPICH2/2.3-GDR
-module load Python/3.6.6
+module load GCC/8.3.0
+module load CUDA/10.1.105
+module load CMake/3.14.0
+module load MVAPICH2/2.3.3-GDR
+module load Python/3.6.8
+
+module load Boost/1.69.0-Python-3.6.8
+module load HDF5/1.10.5
+# necessary for evaluations (NumPy, SciPy, Matplotlib, SymPy, Pandas, IPython)
+module load SciPy-Stack/2019a-Python-3.6.8
 
 # Other Software ##############################################################
 #
-module load zlib/.1.2.11
-module load libpng/.1.6.35
-export CMAKE_PREFIX_PATH=$EBROOTZLIB:$EBROOTLIBPNG:$CMAKE_PREFIX_PATH
+# Manually installed libraries are stored in PARTITION_LIB
+PARTITION_LIB=$PROJECT/lib
 
-# This is required for Boost to have correct dynamic library dependencies
-module load ICU/61.1
-export LD_LIBRARY_PATH=$EBROOTICU/lib:$LD_LIBRARY_PATH
 
-PARTITION_LIB=$PROJECT/lib_gpus
-BOOST_ROOT=$PARTITION_LIB/boost
-export CMAKE_PREFIX_PATH=$BOOST_ROOT:$CMAKE_PREFIX_PATH
-export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
+LIBSPLASH_VER=1.7.0
+PNGWRITER_VER=0.7.0
+BLOSC_VER=1.19.0
+ADIOS_VER=1.13.1
 
-HDF5_ROOT=$PARTITION_LIB/hdf5
-export PATH=$HDF5_ROOT/bin:$PATH
-export CMAKE_PREFIX_PATH=$HDF5_ROOT:$CMAKE_PREFIX_PATH
-export LD_LIBRARY_PATH=$HDF5_ROOT/lib:$LD_LIBRARY_PATH
-
-LIBSPLASH_ROOT=$PARTITION_LIB/libSplash
-PNGWRITER_ROOT=$PARTITION_LIB/pngwriter
+LIBSPLASH_ROOT=$PARTITION_LIB/LIBSPLASH/$LIBSPLASH_VER
+PNGWRITER_ROOT=$PARTITION_LIB/PNGWRITER/$PNGWRITER_VER
 export CMAKE_PREFIX_PATH=$LIBSPLASH_ROOT:$PNGWRITER_ROOT:$CMAKE_PREFIX_PATH
 
-BLOSC_ROOT=$PARTITION_LIB/c-blosc
+BLOSC_ROOT=$PARTITION_LIB/BLOSC/$BLOSC_VER
 export CMAKE_PREFIX_PATH=$BLOSC_ROOT:$CMAKE_PREFIX_PATH
 export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
 
-ADIOS_ROOT=$PARTITION_LIB/adios
+ADIOS_ROOT=$PARTITION_LIB/ADIOS/$ADIOS_VER
 export PATH=$ADIOS_ROOT/bin:$PATH
 export CMAKE_PREFIX_PATH=$ADIOS_ROOT:$CMAKE_PREFIX_PATH
 
 
-export LD_LIBRARY_PATH=$EBROOTICU/lib:$LD_LIBRARY_PATH
-
 # Environment #################################################################
 #
-#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_LIB
 
-export PICSRC=$HOME/src/picongpu
+export PICSRC=$HOME/shared/src/picongpu #modified
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 export PIC_BACKEND="cuda:70" # Nvidia V100 architecture
 
@@ -116,3 +108,11 @@ function getDevice() {
     echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
     salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:4 --mem=180000 -A $proj -p gpus bash
 }
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi
