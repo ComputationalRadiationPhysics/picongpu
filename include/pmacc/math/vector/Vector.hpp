@@ -580,7 +580,7 @@ struct Vector<Type, 0 >
         /* this method should never be actually called,
          * it exists only for Visual Studio to handle pmacc::math::Size_t< 0 >
          */
-        PMACC_CASSERT_MSG(Vector_dim_0_create_cannot_be_called, false);
+        PMACC_CASSERT_MSG(Vector_dim_0_create_cannot_be_called, sizeof(Type) != 0 && false);
     }
 };
 
