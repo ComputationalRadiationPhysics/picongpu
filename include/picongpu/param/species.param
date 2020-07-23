@@ -79,6 +79,8 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
  * - particles::pusher::Boris : Boris' relativistic pusher preserving volume
  * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher
  *                                              with classical radiation reaction
+ * - particles::pusher::Composite : composite of two given pushers,
+ *                                  switches between using one (or none) of those
  *
  * For diagnostics & modeling: ------------------------------------------------
  * - particles::pusher::Acceleration : Accelerate particles by applying a constant electric field
