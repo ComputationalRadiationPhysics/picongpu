@@ -123,56 +123,70 @@ namespace lehe
                 - float_X( 2.0 ) * beta_zy * isDir_z
                 - float_X( 3.0 ) * delta_dir0 * isDir_z;
 
+            /* Note: the rest of this function is made by copying and
+             * adapting the implementation for Y, including the sign reversals in
+             * indices, and reversals of terms for finite-difference derivatives
+             */
 
+            // Typedef an accessor to access mem[z][y][x]
+            // in (x,y,z) order :)
+            typedef DataSpace<DIM3> Space;
+
+            // actually computes -curl_x(E) = (-dEz/dy) - (-dEy/dz)
             const float_X curl_x
                 = (
-                    alpha_y * ( mem[0][0][0].z( ) - mem[0][-1][0].z( ) )
-                    + beta_yx * ( mem[1][0][0].z( ) - mem[1][-1][0].z( ) )
-                    + beta_yx * ( mem[-1][0][0].z( ) - mem[-1][-1][0].z( ) )
-                    ) * reci_dy
+                    alpha_y * ( mem(Space(0,0,0)*(-1)).z( ) - mem(Space(0,-1,0)*(-1)).z( ) )
+                    + beta_yz * ( mem(Space(0,0,1)*(-1)).z( ) - mem(Space(0,-1,1)*(-1)).z( ) )
+                    + beta_yz * ( mem(Space(0,0,-1)*(-1)).z( ) - mem(Space(0,-1,-1)*(-1)).z( ) )
+                    + beta_yx * ( mem(Space(1,0,0)*(-1)).z( ) - mem(Space(1,-1,0)*(-1)).z( ) )
+                    + beta_yx * ( mem(Space(-1,0,0)*(-1)).z( ) - mem(Space(-1,-1,0)*(-1)).z( ) )
+                ) * reci_dy
                 - (
-                    alpha_z * ( mem[0][0][0].y( ) - mem[0][0][-1].y( ) )
-                    + beta_zx * ( mem[1][0][0].y( ) - mem[1][0][-1].y( ) )
-                    + beta_zx * ( mem[-1][0][0].y( ) - mem[-1][0][-1].y( ) )
+                    alpha_z * ( mem(Space(0,0,0)*(-1)).y( ) - mem(Space(0,0,-1)*(-1)).y( ) )
+                    + beta_zx * ( mem(Space(1,0,0)*(-1)).y( ) - mem(Space(1,0,-1)*(-1)).y( ) )
+                    + beta_zx * ( mem(Space(-1,0,0)*(-1)).y( ) - mem(Space(-1,0,-1)*(-1)).y( ) )
+                    + beta_zy * ( mem(Space(0,1,0)*(-1)).y( ) - mem(Space(0,1,-1)*(-1)).y( ) )
+                    + beta_zy * ( mem(Space(0,-1,0)*(-1)).y( ) - mem(Space(0,-1,-1)*(-1)).y( ) )
                     ) * reci_dz;
 
-
+            // actually computes -curl_y(E) = (-dEx/dz) - (-dEz/dx)
             const float_X curl_y
                 = (
-                    alpha_z * ( mem[0][0][0].x( ) - mem[0][0][-1].x( ) )
-                    + beta_zx * ( mem[1][0][0].x( ) - mem[1][0][-1].x( ) )
-                    + beta_zx * ( mem[-1][0][0].x( ) - mem[-1][0][-1].x( ) )
+                    alpha_z * ( mem(Space(0,0,0)*(-1)).x( ) - mem(Space(0,0,-1)*(-1)).x( ) )
+                    + beta_zx * ( mem(Space(1,0,0)*(-1)).x( ) - mem(Space(1,0,-1)*(-1)).x( ) )
+                    + beta_zx * ( mem(Space(-1,0,0)*(-1)).x( ) - mem(Space(-1,0,-1)*(-1)).x( ) )
+                    + beta_zy * ( mem(Space(0,1,0)*(-1)).x( ) - mem(Space(0,1,-1)*(-1)).x( ) )
+                    + beta_zy * ( mem(Space(0,-1,0)*(-1)).x( ) - mem(Space(0,-1,-1)*(-1)).x( ) )
                     ) * reci_dz
                 - (
-                    alpha_x * ( mem[0][0][0].z( ) - mem[-1][0][0].z( ) )
-                    + delta_dir0 * ( mem[1][0][0].z( ) - mem[-2][0][0].z( ) )
-                    + beta_xy * ( mem[0][1][0].z( ) - mem[-1][1][0].z( ) )
-                    + beta_xy * ( mem[0][-1][0].z( ) - mem[-1][-1][0].z( ) )
-                    + beta_xz * ( mem[0][0][1].z( ) - mem[-1][0][1].z( ) )
-                    + beta_xz * ( mem[0][0][-1].z( ) - mem[-1][0][-1].z( ) )
+                    alpha_x * ( mem(Space(0,0,0)*(-1)).z( ) - mem(Space(-1,0,0)*(-1)).z( ) )
+                    + beta_xy * ( mem(Space(0,1,0)*(-1)).z( ) - mem(Space(-1,1,0)*(-1)).z( ) )
+                    + beta_xy * ( mem(Space(0,-1,0)*(-1)).z( ) - mem(Space(-1,-1,0)*(-1)).z( ) )
+                    + beta_xz * ( mem(Space(0,0,1)*(-1)).z( ) - mem(Space(-1,0,1)*(-1)).z( ) )
+                    + beta_xz * ( mem(Space(0,0,-1)*(-1)).z( ) - mem(Space(-1,0,-1)*(-1)).z( ) )
+                    + delta_dir0 * ( mem(Space(1,0,0)*(-1)).z( ) - mem(Space(-2,0,0)*(-1)).z( ) )
                     ) * reci_dx;
 
-
+            // actually computes -curl_z(E) = (-dEy/dx) - (-dEx/dy)
             const float_X curl_z
                 = (
-                    alpha_x * ( mem[0][0][0].y( ) - mem[-1][0][0].y( ) )
-                    + delta_dir0 * ( mem[1][0][0].y( ) - mem[-2][0][0].y( ) )
-                    + beta_xy * ( mem[0][1][0].y( ) - mem[-1][1][0].y( ) )
-                    + beta_xy * ( mem[0][-1][0].y( ) - mem[-1][-1][0].y( ) )
-                    + beta_xz * ( mem[0][0][1].y( ) - mem[-1][0][1].y( ) )
-                    + beta_xz * ( mem[0][0][-1].y( ) - mem[-1][0][-1].y( ) )
-                    ) * reci_dx
+                    alpha_x * ( mem(Space(0,0,0)*(-1)).y( ) - mem(Space(-1,0,0)*(-1)).y( ) )
+                    + beta_xy * ( mem(Space(0,1,0)*(-1)).y( ) - mem(Space(-1,1,0)*(-1)).y( ) )
+                    + beta_xy * ( mem(Space(0,-1,0)*(-1)).y( ) - mem(Space(-1,-1,0)*(-1)).y( ) )
+                    + beta_xz * ( mem(Space(0,0,1)*(-1)).y( ) - mem(Space(-1,0,1)*(-1)).y( ) )
+                    + beta_xz * ( mem(Space(0,0,-1)*(-1)).y( ) - mem(Space(-1,0,-1)*(-1)).y( ) )
+                    + delta_dir0 * ( mem(Space(1,0,0)*(-1)).y( ) - mem(Space(-2,0,0)*(-1)).y( ) )
+                ) * reci_dx
                 - (
-                    alpha_y * ( mem[0][0][0].x( ) - mem[0][-1][0].x( ) )
-                    + beta_yx * ( mem[1][0][0].x( ) - mem[1][-1][0].x( ) )
-                    + beta_yx * ( mem[-1][0][0].x( ) - mem[-1][-1][0].x( ) )
+                    alpha_y * ( mem(Space(0,0,0)*(-1)).x( ) - mem(Space(0,-1,0)*(-1)).x( ) )
+                    + beta_yz * ( mem(Space(0,0,1)*(-1)).x( ) - mem(Space(0,-1,1)*(-1)).x( ) )
+                    + beta_yz * ( mem(Space(0,0,-1)*(-1)).x( ) - mem(Space(0,-1,-1)*(-1)).x( ) )
+                    + beta_yx * ( mem(Space(1,0,0)*(-1)).x( ) - mem(Space(1,-1,0)*(-1)).x( ) )
+                    + beta_yx * ( mem(Space(-1,0,0)*(-1)).x( ) - mem(Space(-1,-1,0)*(-1)).x( ) )
                     ) * reci_dy;
 
-            return float3_X( curl_x, curl_y, curl_z );
-
-            //return float3_X(diff(mem, 1).z() - diff(mem, 2).y(),
-            //                diff(mem, 2).x() - diff(mem, 0).z(),
-            //                diff(mem, 0).y() - diff(mem, 1).x());
+            // revert the signs to get the actual curl
+            return float3_X( -curl_x, -curl_y, -curl_z );
         }
     };
 
