@@ -65,7 +65,7 @@ install:
   - spack clean -a
   - source /etc/profile &&
     source $SPACK_ROOT/share/spack/setup-env.sh
-  - spack load cmake
+  - spack load cmake@3.15.0%gcc@7.5.0
   - spack load boost $COMPILERSPEC
 
 jobs:
