@@ -60,7 +60,7 @@ export CMAKE_PREFIX_PATH=$ADIOS_ROOT:$CMAKE_PREFIX_PATH
 # Environment #################################################################
 #
 
-export PICSRC=$HOME/shared/src/picongpu #modified
+export PICSRC=$HOME/shared/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 export PIC_BACKEND="cuda:70" # Nvidia V100 architecture
 
