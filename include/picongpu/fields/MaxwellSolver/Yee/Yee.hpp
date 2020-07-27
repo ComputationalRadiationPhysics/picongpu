@@ -21,13 +21,13 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
-#include "picongpu/fields/MaxwellSolver/Yee/Curl.hpp"
 #include "picongpu/fields/absorber/ExponentialDamping.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.kernel"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/fields/LaserPhysics.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/nvidia/functors/Assign.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
@@ -70,8 +70,8 @@ namespace maxwellSolver
 
             typedef SuperCellDescription<
                     SuperCellSize,
-                    typename CurlB::LowerMargin,
-                    typename CurlB::UpperMargin
+                    typename traits::GetLowerMargin<CurlB>::type,
+                    typename traits::GetUpperMargin<CurlB>::type
                     > BlockArea;
 
             AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);

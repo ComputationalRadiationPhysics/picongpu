@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "picongpu/fields/MaxwellSolver/Yee/Curl.def"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
+#include "picongpu/fields/differentiation/Curl.def"
 
 
 namespace picongpu
@@ -29,6 +29,13 @@ namespace fields
 {
 namespace maxwellSolver
 {
+namespace yee
+{
+
+    using CurlLeft = differentiation::Curl< differentiation::Backward >;
+    using CurlRight = differentiation::Curl< differentiation::Forward >;
+
+}
 
     template<
         typename T_CurrentInterpolation = currentInterpolation::None,

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Axel Huebl
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -19,19 +19,23 @@
 
 #pragma once
 
-#include <pmacc/math/Vector.hpp>
-
 
 namespace picongpu
 {
+namespace fields
+{
+namespace differentiation
+{
 
-    /** calculate difference to lower value
-     *
-     * @tparam T_Dim number of dimensions of the accessed memory
-     *
-     * Zero is returned if `GetDifference` is called for a direction greater or equal to T_Dim.
-     */
-    template< uint32_t T_Dim >
-    struct DifferenceToLower;
+    //! Forward (upper - current) difference derivative tag
+    struct Forward;
 
+    //! Backward (current - lower) difference derivative tag
+    struct Backward;
+
+    //! Zero derivative tag
+    struct Zero;
+
+} // namespace differentiation
+} // namespace fields
 } // namespace picongpu
