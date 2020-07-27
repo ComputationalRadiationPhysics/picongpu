@@ -233,7 +233,7 @@ namespace randomizedParticleMerger
             if ( voronoiCell.numMacroParticles == 2 )
                 subdivisionProbability = voronoiCell.expectedNumMacroParticles - 1.0_X;
             if ( voronoiCell.numMacroParticles == 3 )
-                subdivisionProbability = ( voronoiCell.expectedNumMacroParticles - 1 ) / 2.0_X;
+                subdivisionProbability = ( voronoiCell.expectedNumMacroParticles - 1.0_X ) / 2.0_X;
 
             return randomGen() < subdivisionProbability;
         }
