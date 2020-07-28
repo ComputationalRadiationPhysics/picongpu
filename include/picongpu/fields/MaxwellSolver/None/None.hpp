@@ -50,9 +50,13 @@ namespace none
         T_Dummy
     >
     {
-        /* Courant-Friedrichs-Levy-Condition for Yee Field Solver: */
+        /* Courant-Friedrichs-Levy-Condition for Yee Field Solver:
+         *
+         * A workaround is to add a template dependency to the expression.
+         * `sizeof(ANY_TYPE*) != 0` is always true and defers the evaluation.
+         */
         PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_grid_param_file,
-            (SPEED_OF_LIGHT*SPEED_OF_LIGHT*DELTA_T*DELTA_T*INV_CELL2_SUM)<=1.0);
+            (SPEED_OF_LIGHT*SPEED_OF_LIGHT*DELTA_T*DELTA_T*INV_CELL2_SUM)<=1.0 && sizeof(T_Dummy*) != 0);
     };
 } // namespace none
 
