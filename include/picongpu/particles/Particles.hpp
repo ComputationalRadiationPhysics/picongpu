@@ -218,7 +218,11 @@ public:
         return propList;
     }
 
+    template< typename T_Pusher >
+    void push( uint32_t const currentStep );
+
 private:
+
     SimulationDataId m_datasetID;
 
     FieldE *fieldE;
