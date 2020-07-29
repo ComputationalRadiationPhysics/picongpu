@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+set -o pipefail
+
 # the default build type is Release
 # if neccesary, you can rerun the pipeline with another build type-> https://docs.gitlab.com/ee/ci/pipelines.html#manually-executing-pipelines
 # to change the build type, you must set the environment variable PIC_BUILD_TYPE
@@ -28,9 +31,10 @@ export picongpu_DIR=$CI_PROJECT_DIR
 export PATH=$picongpu_DIR/bin:$PATH
 
 PIC_PARALLEL_BUILDS=$(nproc)
-# limit to 8 parallel builds to avoid out of memory errors
-if [ $PIC_PARALLEL_BUILDS -gt 8 ] ; then
-    PIC_PARALLEL_BUILDS=8
+# limit to $CI_MAX_PARALLELISM parallel builds to avoid out of memory errors
+# CI_MAX_PARALLELISM is a configured variable in the CI web interface
+if [ $PIC_PARALLEL_BUILDS -gt $CI_MAX_PARALLELISM ] ; then
+    PIC_PARALLEL_BUILDS=$CI_MAX_PARALLELISM
 fi
 echo -e "\033[0;32m///////////////////////////////////////////////////"
 echo "number of processor threads -> $(nproc)"

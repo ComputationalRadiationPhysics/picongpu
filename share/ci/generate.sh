@@ -1,7 +1,22 @@
 #!/bin/bash
 
+set -e
+set -o pipefail
+
 # generate a job matrix based on the environment variable lists (space separated)
-# variables: GITLAB_BASES CXX_VERSIONS BOOST_VERSIONS PIC_INPUTS PIC_ACCS
+# hidden base job to generate the test matrix
+# required variables (space separated lists):
+#   PIC_INPUTS - path to examples relative to share/picongpu
+#                e.g.
+#                    "examples" starts one gitlab job per directory in `examples/*`
+#                    "examples/" compile all directories in `examples/*` within one gitlab job
+#                    "examples/KelvinHelmholtz" compile all cases within one gitlab job
+#   GITLAB_BASES   - name of the hidden gitlab base job desctption `/share/ci/compiler_*`
+#   CXX_VERSIONS   - name of the compiler to use see `/share/ci/compiler_*` `e.g. "g++-8 g++-6"
+#   BOOST_VERSIONS - boost version to check e.g. "1.70.0"
+#                    supported version: {1.65.1, 1.66.0, 1.67.0, 1.68.0, 1.69.0, 1.70.0, 1.71.0, 1.72.0, 1.73.0}
+#   PIC_ACCS       - PIConGPU backend names see `pic-build --help`
+#                    e.g. "cuda cuda:35 serial"
 
 export picongpu_DIR=$CI_PROJECT_DIR
 cd $picongpu_DIR/share/picongpu/
