@@ -1,0 +1,18 @@
+# Default [] (epub, pdf, htmlzip)
+# Note: PDF/epub/htmlzip output is not supported when using MkDocs
+formats: []
+
+requirements_file: docs/requirements.txt
+
+build:
+  image: latest
+
+python:
+  version: 3.7
+
+sphinx:
+  builder: html
+  configuration: conf.py
+  fail_on_warning: true
+
+# see: https://docs.readthedocs.io/en/stable/config-file/v2.html#supported-settings

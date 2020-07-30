@@ -1,6 +1,6 @@
 /* Copyright 2019 Alexander Matthes, Benjamin Worpitz, Erik Zenker, Matthias Werner
  *
- * This file exemplifies usage of Alpaka.
+ * This file exemplifies usage of alpaka.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,6 +16,7 @@
  */
 
 #include <alpaka/alpaka.hpp>
+#include <alpaka/example/ExampleDefaultAcc.hpp>
 
 #include <iostream>
 #include <cstdint>
@@ -143,6 +144,7 @@ auto main()
     // It is possible to choose from a set of accelerators
     // that are defined in the alpaka::acc namespace e.g.:
     // - AccGpuCudaRt
+    // - AccGpuHipRt
     // - AccCpuThreads
     // - AccCpuFibers
     // - AccCpuOmp2Threads
@@ -150,14 +152,14 @@ auto main()
     // - AccCpuOmp4
     // - AccCpuTbbBlocks
     // - AccCpuSerial
-    using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
+    // using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
+    using Acc = alpaka::example::ExampleDefaultAcc<Dim, Idx>;
+    std::cout << "Using alpaka accelerator: " << alpaka::acc::getAccName<Acc>() << std::endl;
     // Defines the synchronization behavior of a queue
     //
     // choose between Blocking and NonBlocking
     using AccQueueProperty = alpaka::queue::Blocking;
     using DevQueue = alpaka::queue::Queue<Acc, AccQueueProperty>;
-    using DevAcc = alpaka::dev::Dev<Acc>;
-    using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
 
     // Define the device accelerator
     //
@@ -175,12 +177,10 @@ auto main()
     // choose between Blocking and NonBlocking
     using HostQueueProperty = alpaka::queue::Blocking;
     using HostQueue = alpaka::queue::Queue<Host, HostQueueProperty>;
-    using DevHost = alpaka::dev::Dev<Host>;
-    using PltfHost = alpaka::pltf::Pltf<DevHost>;
 
     // Select devices
-    DevAcc const devAcc(alpaka::pltf::getDevByIdx<PltfAcc>(0u));
-    DevHost const devHost(alpaka::pltf::getDevByIdx<PltfHost>(0u));
+    auto const devAcc = alpaka::pltf::getDevByIdx<Acc>(0u);
+    auto const devHost = alpaka::pltf::getDevByIdx<Host>(0u);
 
     // Create queues
     DevQueue devQueue(devAcc);
@@ -220,19 +220,19 @@ auto main()
     //
     // The `alloc` method returns a reference counted buffer handle.
     // When the last such handle is destroyed, the memory is freed automatically.
-    using BufHost = alpaka::mem::buf::Buf<DevHost, Data, Dim, Idx>;
+    using BufHost = alpaka::mem::buf::Buf<Host, Data, Dim, Idx>;
     BufHost hostBuffer(alpaka::mem::buf::alloc<Data, Idx>(devHost, extents));
     // You can also use already allocated memory and wrap it within a view (irrespective of the device type).
     // The view does not own the underlying memory. So you have to make sure that
     // the view does not outlive its underlying memory.
     std::array<Data, nElementsPerDim * nElementsPerDim * nElementsPerDim> plainBuffer;
-    using ViewHost = alpaka::mem::view::ViewPlainPtr<DevHost, Data, Dim, Idx>;
+    using ViewHost = alpaka::mem::view::ViewPlainPtr<Host, Data, Dim, Idx>;
     ViewHost hostViewPlainPtr(plainBuffer.data(), devHost, extents);
 
     // Allocate accelerator memory buffers
     //
     // The interface to allocate a buffer is the same on the host and on the device.
-    using BufAcc = alpaka::mem::buf::Buf<DevAcc, Data, Dim, Idx>;
+    using BufAcc = alpaka::mem::buf::Buf<Acc, Data, Dim, Idx>;
     BufAcc deviceBuffer1(alpaka::mem::buf::alloc<Data, Idx>(devAcc, extents));
     BufAcc deviceBuffer2(alpaka::mem::buf::alloc<Data, Idx>(devAcc, extents));
 

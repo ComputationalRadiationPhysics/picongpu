@@ -1,7 +1,7 @@
 #
 # Copyright 2014-2020 Benjamin Worpitz, Jan Stephan
 #
-# This file exemplifies usage of Alpaka.
+# This file exemplifies usage of alpaka.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -35,9 +35,15 @@ project(${_TARGET_NAME})
 # Find alpaka.
 
 if(NOT TARGET alpaka::alpaka)
-    set(ALPAKA_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../" CACHE STRING "The location of the alpaka library")
-    list(APPEND CMAKE_MODULE_PATH "${ALPAKA_ROOT}")
-    find_package(alpaka REQUIRED)
+    option(USE_ALPAKA_SOURCE_TREE "Use alpaka's source tree instead of an alpaka installation" OFF)
+
+    if(USE_ALPAKA_SOURCE_TREE)
+        # Don't build the examples recursively
+        set(alpaka_BUILD_EXAMPLES OFF)
+        add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../.." "${CMAKE_BINARY_DIR}/alpaka")
+    else()
+        find_package(alpaka REQUIRED)
+    endif()
 endif()
 
 #-------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 #
 # Copyright 2018-2019 Benjamin Worpitz
 #
-# This file is part of Alpaka.
+# This file is part of alpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,11 +15,11 @@ source ./script/set.sh
 ./script/print_env.sh
 source ./script/before_install.sh
 
-if [ "$TRAVIS_OS_NAME" = "linux" ]
+if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
   ./script/docker_install.sh
   ./script/docker_run.sh
-elif [ "$TRAVIS_OS_NAME" = "windows" ] || [ "$TRAVIS_OS_NAME" = "osx" ]
+elif [ "$ALPAKA_CI_OS_NAME" = "Windows" ] || [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
 then
   ./script/install.sh
   ./script/run.sh

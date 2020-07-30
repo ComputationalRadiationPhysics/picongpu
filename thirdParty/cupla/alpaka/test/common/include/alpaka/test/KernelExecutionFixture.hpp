@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,6 +31,7 @@ namespace alpaka
             using DevAcc = alpaka::dev::Dev<Acc>;
             using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
             using QueueAcc = alpaka::test::queue::DefaultQueue<DevAcc>;
+            using WorkDiv = alpaka::workdiv::WorkDivMembers<Dim, Idx>;
 
         public:
             //-----------------------------------------------------------------------------
@@ -48,6 +49,14 @@ namespace alpaka
                             alpaka::vec::Vec<Dim, Idx>::ones(),
                             false,
                             alpaka::workdiv::GridBlockExtentSubDivRestrictions::Unrestricted))
+            {}
+            //-----------------------------------------------------------------------------
+            KernelExecutionFixture(
+                WorkDiv const & workDiv) :
+                    m_devHost(alpaka::pltf::getDevByIdx<pltf::PltfCpu>(0u)),
+                    m_devAcc(alpaka::pltf::getDevByIdx<PltfAcc>(0u)),
+                    m_queue(m_devAcc),
+                    m_workDiv(workDiv)
             {}
             //-----------------------------------------------------------------------------
             template<
@@ -87,7 +96,7 @@ namespace alpaka
             alpaka::dev::DevCpu m_devHost;
             DevAcc m_devAcc;
             QueueAcc m_queue;
-            alpaka::workdiv::WorkDivMembers<Dim, Idx> m_workDiv;
+            WorkDiv m_workDiv;
         };
     }
 }

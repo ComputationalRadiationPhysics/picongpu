@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,8 +15,6 @@
 #include <alpaka/vec/Vec.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Common.hpp>
-
-#include <boost/config.hpp>
 
 #include <type_traits>
 #include <utility>

@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,8 +31,10 @@
 #include <alpaka/block/shared/dyn/BlockSharedMemDynUniformCudaHipBuiltIn.hpp>
 #include <alpaka/block/shared/st/BlockSharedMemStUniformCudaHipBuiltIn.hpp>
 #include <alpaka/block/sync/BlockSyncUniformCudaHipBuiltIn.hpp>
+#include <alpaka/intrinsic/IntrinsicUniformCudaHipBuiltIn.hpp>
 #include <alpaka/rand/RandUniformCudaHipRand.hpp>
 #include <alpaka/time/TimeUniformCudaHipBuiltIn.hpp>
+#include <alpaka/warp/WarpUniformCudaHipBuiltIn.hpp>
 
 // Specialized traits.
 #include <alpaka/acc/Traits.hpp>
@@ -82,8 +84,11 @@ namespace alpaka
             public block::shared::dyn::BlockSharedMemDynUniformCudaHipBuiltIn,
             public block::shared::st::BlockSharedMemStUniformCudaHipBuiltIn,
             public block::sync::BlockSyncUniformCudaHipBuiltIn,
+            public intrinsic::IntrinsicUniformCudaHipBuiltIn,
             public rand::RandUniformCudaHipRand,
-            public time::TimeUniformCudaHipBuiltIn
+            public time::TimeUniformCudaHipBuiltIn,
+            public warp::WarpUniformCudaHipBuiltIn,
+            public concepts::Implements<ConceptAcc, AccGpuUniformCudaHipRt<TDim, TIdx>>
         {
         public:
             //-----------------------------------------------------------------------------
@@ -192,6 +197,12 @@ namespace alpaka
                         cudaDevAttrMaxThreadsPerBlock,
                         dev.m_iDevice));
 
+                    int sharedMemSizeBytes = {};
+                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(cudaDeviceGetAttribute(
+                        &sharedMemSizeBytes,
+                        cudaDevAttrMaxSharedMemoryPerBlock,
+                        dev.m_iDevice));
+
                     return {
                         // m_multiProcessorCount
                         alpaka::core::clipCast<TIdx>(multiProcessorCount),
@@ -214,7 +225,9 @@ namespace alpaka
                         // m_threadElemExtentMax
                         vec::Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_threadElemCountMax
-                        std::numeric_limits<TIdx>::max()
+                        std::numeric_limits<TIdx>::max(),
+                        // m_sharedMemSizeBytes
+                        static_cast<size_t>(sharedMemSizeBytes)
                     };
 
 #else
@@ -245,7 +258,9 @@ namespace alpaka
                         // m_threadElemExtentMax
                         vec::Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_threadElemCountMax
-                        std::numeric_limits<TIdx>::max()
+                        std::numeric_limits<TIdx>::max(),
+                        // m_sharedMemSizeBytes
+                        static_cast<size_t>(hipDevProp.sharedMemPerBlock)
                     };
 #endif
                 }
@@ -307,7 +322,7 @@ namespace alpaka
             //! specialization of the TKernelFnObj return type evaluation
             //
             // It is not possible to determine the result type of a __device__ lambda for CUDA on the host side.
-            // https://github.com/ComputationalRadiationPhysics/alpaka/pull/695#issuecomment-446103194
+            // https://github.com/alpaka-group/alpaka/pull/695#issuecomment-446103194
             // The execution task TaskKernelGpuUniformCudaHipRt is therefore performing this check on device side.
             template<
                 typename TDim,

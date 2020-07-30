@@ -36,29 +36,29 @@ public:
         // Multiple runs to make sure it really works.
         for(std::size_t i=0u; i<10; ++i)
         {
-            auto && a = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
+            auto & a = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, static_cast<std::uint32_t *>(nullptr) != &a);
 
-            auto && b = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
+            auto & b = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, static_cast<std::uint32_t *>(nullptr) != &b);
 
-            auto && c = alpaka::block::shared::st::allocVar<float, __COUNTER__>(acc);
+            auto & c = alpaka::block::shared::st::allocVar<float, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, static_cast<float *>(nullptr) != &c);
 
-            auto && d = alpaka::block::shared::st::allocVar<double, __COUNTER__>(acc);
+            auto & d = alpaka::block::shared::st::allocVar<double, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, static_cast<double *>(nullptr) != &d);
 
-            auto && e = alpaka::block::shared::st::allocVar<std::uint64_t, __COUNTER__>(acc);
+            auto & e = alpaka::block::shared::st::allocVar<std::uint64_t, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, static_cast<std::uint64_t *>(nullptr) != &e);
 
 
-            auto && f = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
+            auto & f = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, static_cast<std::uint32_t *>(nullptr) != &f[0]);
 
-            auto && g = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
+            auto & g = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, static_cast<std::uint32_t *>(nullptr) != &g[0]);
 
-            auto && h = alpaka::block::shared::st::allocVar<alpaka::test::Array<double, 16>, __COUNTER__>(acc);
+            auto & h = alpaka::block::shared::st::allocVar<alpaka::test::Array<double, 16>, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, static_cast<double *>(nullptr) != &h[0]);
         }
 #if BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(6, 0, 0)
@@ -99,19 +99,19 @@ public:
         // Multiple runs to make sure it really works.
         for(std::size_t i=0u; i<10; ++i)
         {
-            auto && a = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
-            auto && b = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
+            auto & a = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
+            auto & b = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, &a != &b);
-            auto && c = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
+            auto & c = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, &b != &c);
             ALPAKA_CHECK(*success, &a != &c);
             ALPAKA_CHECK(*success, &b != &c);
 
-            auto && d = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
+            auto & d = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, &a != &d[0]);
             ALPAKA_CHECK(*success, &b != &d[0]);
             ALPAKA_CHECK(*success, &c != &d[0]);
-            auto && e = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
+            auto & e = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, &a != &e[0]);
             ALPAKA_CHECK(*success, &b != &e[0]);
             ALPAKA_CHECK(*success, &c != &e[0]);

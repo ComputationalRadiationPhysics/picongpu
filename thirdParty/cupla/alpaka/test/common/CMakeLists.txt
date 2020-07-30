@@ -1,7 +1,7 @@
 #
 # Copyright 2014-2020 Benjamin Worpitz, Jan Stephan
 #
-# This file is part of Alpaka.
+# This file is part of alpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -35,6 +35,7 @@ target_compile_options(${_COMMON_TARGET_NAME}
 
 if(MSVC)
     target_compile_options(${_COMMON_TARGET_NAME} PUBLIC "/wd4996") # This function or variable may be unsafe. Consider using <safe_version> instead.
+    target_compile_options(${_COMMON_TARGET_NAME} PUBLIC "/bigobj")
 endif()
 
 if(ALPAKA_ACC_GPU_CUDA_ENABLE OR (ALPAKA_ACC_GPU_HIP_ENABLE AND HIP_PLATFORM MATCHES "nvcc"))

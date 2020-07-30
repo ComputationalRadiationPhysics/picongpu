@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,8 +16,7 @@
 // Therefore, we can not even parse those parts when compiling device code.
 //-----------------------------------------------------------------------------
 #include <alpaka/core/Common.hpp>
-
-#include <boost/config.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #include <queue>
 #include <mutex>

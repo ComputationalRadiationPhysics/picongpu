@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,11 +23,13 @@
 #include <alpaka/atomic/AtomicOmpBuiltIn.hpp>
 #include <alpaka/atomic/AtomicHierarchy.hpp>
 #include <alpaka/math/MathStdLib.hpp>
-#include <alpaka/block/shared/dyn/BlockSharedMemDynBoostAlignedAlloc.hpp>
+#include <alpaka/block/shared/dyn/BlockSharedMemDynAlignedAlloc.hpp>
 #include <alpaka/block/shared/st/BlockSharedMemStMasterSync.hpp>
 #include <alpaka/block/sync/BlockSyncBarrierOmp.hpp>
+#include <alpaka/intrinsic/IntrinsicCpu.hpp>
 #include <alpaka/rand/RandStdLib.hpp>
 #include <alpaka/time/TimeOmp.hpp>
+#include <alpaka/warp/WarpSingleThread.hpp>
 
 // Specialized traits.
 #include <alpaka/acc/Traits.hpp>
@@ -78,11 +80,13 @@ namespace alpaka
                 atomic::AtomicOmpBuiltIn     // thread atomics
             >,
             public math::MathStdLib,
-            public block::shared::dyn::BlockSharedMemDynBoostAlignedAlloc,
+            public block::shared::dyn::BlockSharedMemDynAlignedAlloc,
             public block::shared::st::BlockSharedMemStMasterSync,
             public block::sync::BlockSyncBarrierOmp,
+            public intrinsic::IntrinsicCpu,
             public rand::RandStdLib,
             public time::TimeOmp,
+            public warp::WarpSingleThread,
             public concepts::Implements<ConceptAcc, AccCpuOmp4<TDim, TIdx>>
         {
         public:
@@ -110,7 +114,7 @@ namespace alpaka
                         atomic::AtomicOmpBuiltIn  // atomics between threads
                     >(),
                     math::MathStdLib(),
-                    block::shared::dyn::BlockSharedMemDynBoostAlignedAlloc(static_cast<std::size_t>(blockSharedMemDynSizeBytes)),
+                    block::shared::dyn::BlockSharedMemDynAlignedAlloc(static_cast<std::size_t>(blockSharedMemDynSizeBytes)),
                     block::shared::st::BlockSharedMemStMasterSync(
                         [this](){block::sync::syncBlockThreads(*this);},
                         [](){return (::omp_get_thread_num() == 0);}),
@@ -165,8 +169,6 @@ namespace alpaka
                     dev::DevCpu const & dev)
                 -> acc::AccDevProps<TDim, TIdx>
                 {
-                    alpaka::ignore_unused(dev);
-
 #ifdef ALPAKA_CI
                     auto const blockThreadCountMax(alpaka::core::clipCast<TIdx>(std::min(4, ::omp_get_max_threads())));
 #else
@@ -186,7 +188,9 @@ namespace alpaka
                         // m_threadElemExtentMax
                         vec::Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_threadElemCountMax
-                        std::numeric_limits<TIdx>::max()};
+                        std::numeric_limits<TIdx>::max(),
+                        // m_sharedMemSizeBytes
+                        dev::getMemBytes( dev )};
                 }
             };
             //#############################################################################

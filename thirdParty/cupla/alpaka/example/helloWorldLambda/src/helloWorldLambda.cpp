@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, Erik Zenker
  *
- * This file exemplifies usage of Alpaka.
+ * This file exemplifies usage of alpaka.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,6 +16,7 @@
  */
 
 #include <alpaka/alpaka.hpp>
+#include <alpaka/example/ExampleDefaultAcc.hpp>
 
 #include <functional>
 
@@ -73,6 +74,7 @@ auto main()
     // It is possible to choose from a set of accelerators
     // that are defined in the alpaka::acc namespace e.g.:
     // - AccGpuCudaRt
+    // - AccGpuHipRt
     // - AccCpuThreads
     // - AccCpuFibers
     // - AccCpuOmp2Threads
@@ -80,18 +82,18 @@ auto main()
     // - AccCpuOmp4
     // - AccCpuTbbBlocks
     // - AccCpuSerial
-    using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
+    // using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
+    using Acc = alpaka::example::ExampleDefaultAcc<Dim, Idx>;
+    std::cout << "Using alpaka accelerator: " << alpaka::acc::getAccName<Acc>() << std::endl;
 
     // Defines the synchronization behavior of a queue
     //
     // choose between Blocking and NonBlocking
     using QueueProperty = alpaka::queue::Blocking;
     using Queue = alpaka::queue::Queue<Acc, QueueProperty>;
-    using Dev = alpaka::dev::Dev<Acc>;
-    using Pltf = alpaka::pltf::Pltf<Dev>;
 
     // Select a device
-    Dev const devAcc(alpaka::pltf::getDevByIdx<Pltf>(0u));
+    auto const devAcc = alpaka::pltf::getDevByIdx<Acc>(0u);
 
     // Create a queue on the device
     Queue queue(devAcc);
@@ -115,8 +117,8 @@ auto main()
 
     // Run "Hello World" kernel with a lambda function
     //
-    // Alpaka is able to execute lambda functions (anonymous functions).
-    // Alpaka forces the lambda function to accept
+    // alpaka is able to execute lambda functions (anonymous functions).
+    // alpaka forces the lambda function to accept
     // the utilized accelerator as first argument.
     // All following arguments can be provided after
     // the lambda function declaration or be captured.

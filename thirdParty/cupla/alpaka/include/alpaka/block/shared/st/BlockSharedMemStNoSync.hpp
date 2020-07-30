@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,9 +12,8 @@
 #include <alpaka/core/Vectorize.hpp>
 #include <alpaka/block/shared/st/Traits.hpp>
 
+#include <alpaka/core/AlignedAlloc.hpp>
 #include <alpaka/core/Common.hpp>
-
-#include <boost/align.hpp>
 
 #include <vector>
 #include <memory>
@@ -51,7 +50,7 @@ namespace alpaka
                     std::vector<
                         std::unique_ptr<
                             uint8_t,
-                            boost::alignment::aligned_delete>> mutable
+                            core::AlignedDelete>> mutable
                         m_sharedAllocs;
                 };
 
@@ -79,7 +78,7 @@ namespace alpaka
 
                             blockSharedMemSt.m_sharedAllocs.emplace_back(
                                 reinterpret_cast<uint8_t *>(
-                                    boost::alignment::aligned_alloc(alignmentInBytes, sizeof(T))));
+                                    core::alignedAlloc(alignmentInBytes, sizeof(T))));
                             return
                                 std::ref(
                                     *reinterpret_cast<T*>(

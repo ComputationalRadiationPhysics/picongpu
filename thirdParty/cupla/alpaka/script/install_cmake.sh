@@ -3,7 +3,7 @@
 #
 # Copyright 2017-2019 Benjamin Worpitz
 #
-# This file is part of Alpaka.
+# This file is part of alpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,7 +17,7 @@ source ./script/set.sh
 : "${ALPAKA_CI_CMAKE_DIR?'ALPAKA_CI_CMAKE_DIR must be specified'}"
 : "${ALPAKA_CI_CMAKE_VER?'ALPAKA_CI_CMAKE_VER must be specified'}"
 
-if [ "$TRAVIS_OS_NAME" = "linux" ]
+if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
     # Download the selected version.
     if [ -z "$(ls -A ${ALPAKA_CI_CMAKE_DIR})" ]
@@ -34,7 +34,7 @@ then
         sudo cp -fR "${ALPAKA_CI_CMAKE_DIR}"/"${ALPAKA_CMAKE_PKG_FILE_NAME_BASE}"/* "${ALPAKA_CI_CMAKE_DIR}"
         sudo rm -rf "${ALPAKA_CMAKE_PKG_FILE_NAME}" "${ALPAKA_CI_CMAKE_DIR}"/"${ALPAKA_CMAKE_PKG_FILE_NAME_BASE}"
     fi
-elif [ "$TRAVIS_OS_NAME" = "windows" ]
+elif [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
     choco uninstall cmake.install
     choco install cmake.install --no-progress --version ${ALPAKA_CI_CMAKE_VER}

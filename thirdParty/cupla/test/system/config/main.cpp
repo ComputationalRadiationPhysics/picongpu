@@ -35,6 +35,8 @@
 #   include <cupla/config/GpuHipRt.hpp>
 #endif
 
+#include "cuda_to_cupla.hpp"
+
 extern void callIncrementKernel(int* pr_d);
 
 int main()

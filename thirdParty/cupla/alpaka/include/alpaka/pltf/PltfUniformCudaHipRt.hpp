@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -40,7 +40,7 @@ namespace alpaka
     namespace pltf
     {
         //#############################################################################
-        //! The CUDA RT device manager.
+        //! The CUDA/HIP RT platform.
         class PltfUniformCudaHipRt :
             public concepts::Implements<ConceptPltf, PltfUniformCudaHipRt>
         {
@@ -55,7 +55,7 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The CUDA RT device manager device type trait specialization.
+            //! The CUDA/HIP RT platform device type trait specialization.
             template<>
             struct DevType<
                 pltf::PltfUniformCudaHipRt>
@@ -69,7 +69,7 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The CPU platform device count get trait specialization.
+            //! The CUDA/HIP RT platform device count get trait specialization.
             template<>
             struct GetDevCount<
                 pltf::PltfUniformCudaHipRt>
@@ -90,7 +90,7 @@ namespace alpaka
             };
 
             //#############################################################################
-            //! The CPU platform device get trait specialization.
+            //! The CUDA/HIP RT platform device get trait specialization.
             template<>
             struct GetDevByIdx<
                 pltf::PltfUniformCudaHipRt>

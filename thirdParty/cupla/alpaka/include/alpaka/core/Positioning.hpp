@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,7 +12,7 @@
 namespace alpaka
 {
     //#############################################################################
-    //! Defines the parallelism hierarchy levels of Alpaka
+    //! Defines the parallelism hierarchy levels of alpaka
     namespace hierarchy
     {
         struct Grids{};
