@@ -26,6 +26,7 @@
 #include "picongpu/fields/MaxwellSolver/YeePML/Parameters.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/YeePML.kernel"
 #include "picongpu/fields/cellType/Yee.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/traits/GetStringProperties.hpp>
 
@@ -169,8 +170,8 @@ namespace maxwellSolver
             template< typename T_Curl >
             using BlockDescription = pmacc::SuperCellDescription<
                 SuperCellSize,
-                typename T_Curl::LowerMargin,
-                typename T_Curl::UpperMargin
+                typename traits::GetLowerMargin< T_Curl >::type,
+                typename traits::GetUpperMargin< T_Curl >::type
             >;
             template< uint32_t T_Area >
             using AreaMapper = pmacc::AreaMapping<

@@ -21,9 +21,9 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/currentInterpolation/None/None.def"
-#include "picongpu/algorithms/DifferenceToUpper.hpp"
+#include "picongpu/fields/differentiation/Curl.hpp"
 #include "picongpu/algorithms/LinearInterpolateWithUpper.hpp"
-#include "picongpu/fields/MaxwellSolver/Yee/Curl.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/traits/GetComponentsType.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
@@ -125,19 +125,15 @@ namespace detail
     };
 
     /* that is not a "real" yee curl, but it looks a bit like it */
-    template< typename Difference >
-    struct ShiftCurl
+    template< typename T_Curl >
+    struct ShiftCurl : T_Curl
     {
-        using LowerMargin = typename Difference::OffsetOrigin;
-        using UpperMargin = typename Difference::OffsetEnd;
+        using LowerMargin = typename traits::GetLowerMargin<T_Curl>::type;
+        using UpperMargin = typename traits::GetUpperMargin<T_Curl>::type;
 
         template<class DataBox >
         HDINLINE typename DataBox::ValueType operator()( DataBox const & mem ) const
         {
-            typename Difference::template GetDifference< 0 > const Dx;
-            typename Difference::template GetDifference< 1 > const Dy;
-            typename Difference::template GetDifference< 2 > const Dz;
-
             ShiftMeIfYouCan<
                 simDim,
                 0
@@ -151,10 +147,11 @@ namespace detail
                 2
             > const sz;
 
+            // this-> is needed to access methods of dependent base class T_Curl
             return float3_X(
-                Dy( sx( mem ) ).z( ) - Dz( sx( mem ) ).y( ),
-                Dz( sy( mem ) ).x( ) - Dx( sy( mem ) ).z( ),
-                Dx( sz( mem ) ).y( ) - Dy( sz( mem ) ).x( )
+                this->yDerivative( sx( mem ) ).z( ) - this->zDerivative( sx( mem ) ).y( ),
+                this->zDerivative( sy( mem ) ).x( ) - this->xDerivative( sy( mem ) ).z( ),
+                this->xDerivative( sz( mem ) ).y( ) - this->yDerivative( sz( mem ) ).x( )
             );
         }
     };
@@ -210,8 +207,8 @@ namespace detail
             );
             fieldE( self ) -= jAvgE * constE;
 
-            using CurlRight = fields::maxwellSolver::yee::Curl< DifferenceToUpper< dim > >;
-            using ShiftCurlRight = detail::ShiftCurl< DifferenceToUpper< dim > >;
+            using CurlRight = fields::maxwellSolver::yee::CurlRight;
+            using ShiftCurlRight = detail::ShiftCurl< CurlRight >;
             CurlRight curl;
             ShiftCurlRight shiftCurl;
 

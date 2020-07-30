@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Axel Huebl
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -19,19 +19,24 @@
 
 #pragma once
 
-#include <pmacc/math/Vector.hpp>
+#include "picongpu/fields/differentiation/Derivative.def"
 
 
 namespace picongpu
 {
+namespace fields
+{
+namespace differentiation
+{
 
-    /** calculate difference to upper value
+    /** Functor to compute field curl at the given point
      *
-     * @tparam T_Dim number of dimensions of the accessed memory
-     *
-     * Zero is returned if `GetDifference` is called for a direction greater or equal to T_Dim.
+     * @tparam T_Derivative derivative tag (not functor), defines the
+     *                      finite-difference scheme for partial derivatives
      */
-    template< uint32_t T_Dim >
-    struct DifferenceToUpper;
+    template< typename T_Derivative >
+    struct Curl;
 
+} // namespace differentiation
+} // namespace fields
 } // namespace picongpu
