@@ -1,4 +1,5 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe,
+ *                     Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -17,26 +18,28 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
-#include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
-#include "picongpu/fields/MaxwellSolver/Lehe/Curl.hpp"
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
+#include "picongpu/fields/MaxwellSolver/Lehe/Derivative.hpp"
+
+#include <cstdint>
+
 
 namespace pmacc
 {
 namespace traits
 {
+
     template<
         typename T_CurrentInterpolation,
-        typename T_CherenkovFreeDir
+        uint32_t T_cherenkovFreeDir
     >
     struct StringProperties<
         ::picongpu::fields::maxwellSolver::Lehe<
             T_CurrentInterpolation,
-            T_CherenkovFreeDir
+            T_cherenkovFreeDir
         >
     >
     {
@@ -45,12 +48,13 @@ namespace traits
             auto propList =
                 ::picongpu::fields::maxwellSolver::Lehe<
                     T_CurrentInterpolation,
-                    T_CherenkovFreeDir
+                    T_cherenkovFreeDir
                 >::getStringProperties();
-            // overwrite the name of the yee solver (inherit all other properties)
+            // overwrite the name of the Yee solver (inherit all other properties)
             propList["name"].value = "Lehe";
             return propList;
         }
     };
+
 } // namespace traits
 } // namespace pmacc
