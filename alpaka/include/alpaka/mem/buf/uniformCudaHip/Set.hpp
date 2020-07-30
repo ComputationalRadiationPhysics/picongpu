@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -56,15 +56,15 @@ namespace alpaka
                 namespace detail
                 {
                     //#############################################################################
-                    //! The CUDA memory set trait.
+                    //! The CUDA/HIP memory set task base.
                     template<
                         typename TDim,
                         typename TView,
                         typename TExtent>
-                    struct TaskSetUniformCudaHip
+                    struct TaskSetUniformCudaHipBase
                     {
                         //-----------------------------------------------------------------------------
-                        TaskSetUniformCudaHip(
+                        TaskSetUniformCudaHipBase(
                             TView & view,
                             std::uint8_t const & byte,
                             TExtent const & extent) :
@@ -82,10 +82,248 @@ namespace alpaka
                                 "The destination view and the extent are required to have the same dimensionality!");
                         }
 
+                    protected:
                         TView & m_view;
                         std::uint8_t const m_byte;
                         TExtent const m_extent;
                         std::int32_t const m_iDevice;
+                    };
+
+                    //#############################################################################
+                    //! The CUDA/HIP memory set task.
+                    template<
+                        typename TDim,
+                        typename TView,
+                        typename TExtent>
+                    struct TaskSetUniformCudaHip;
+
+                    //#############################################################################
+                    //! The 1D CUDA/HIP memory set task.
+                    template<
+                        typename TView,
+                        typename TExtent>
+                    struct TaskSetUniformCudaHip<
+                        dim::DimInt<1>,
+                        TView,
+                        TExtent>
+                     : public TaskSetUniformCudaHipBase<dim::DimInt<1>, TView, TExtent>
+                    {
+                        //-----------------------------------------------------------------------------
+                        TaskSetUniformCudaHip(
+                            TView & view,
+                            std::uint8_t const & byte,
+                            TExtent const & extent) :
+                                TaskSetUniformCudaHipBase<dim::DimInt<1>, TView, TExtent>(view, byte, extent)
+                        {
+                        }
+
+                        //-----------------------------------------------------------------------------
+                        template<
+                            typename TQueue
+                        >
+                        auto enqueue(TQueue & queue) const
+                        -> void
+                        {
+                            static_assert(
+                                dim::Dim<TView>::value == 1u,
+                                "The destination buffer is required to be 1-dimensional for this specialization!");
+                            static_assert(
+                                dim::Dim<TView>::value == dim::Dim<TExtent>::value,
+                                "The destination buffer and the extent are required to have the same dimensionality!");
+
+                            using Idx = idx::Idx<TExtent>;
+
+                            auto & view(this->m_view);
+                            auto const & extent(this->m_extent);
+
+                            auto const extentWidth(extent::getWidth(extent));
+
+                            if(extentWidth == 0)
+                            {
+                                return;
+                            }
+
+                            auto const extentWidthBytes(extentWidth * static_cast<Idx>(sizeof(elem::Elem<TView>)));
+#if !defined(NDEBUG)
+                            auto const dstWidth(extent::getWidth(view));
+#endif
+                            auto const dstNativePtr(reinterpret_cast<void *>(mem::view::getPtrNative(view)));
+                            ALPAKA_ASSERT(extentWidth <= dstWidth);
+
+                            // Set the current device.
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
+                                ALPAKA_API_PREFIX(SetDevice)(
+                                    this->m_iDevice));
+                            // Initiate the memory set.
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
+                                ALPAKA_API_PREFIX(MemsetAsync)(
+                                    dstNativePtr,
+                                    static_cast<int>(this->m_byte),
+                                    static_cast<size_t>(extentWidthBytes),
+                                    queue.m_spQueueImpl->m_UniformCudaHipQueue));
+                        }
+                    };
+                    //#############################################################################
+                    //! The 2D CUDA/HIP memory set task.
+                    template<
+                        typename TView,
+                        typename TExtent>
+                    struct TaskSetUniformCudaHip<
+                        dim::DimInt<2>,
+                        TView,
+                        TExtent>
+                     : public TaskSetUniformCudaHipBase<dim::DimInt<2>, TView, TExtent>
+                    {
+                        //-----------------------------------------------------------------------------
+                        TaskSetUniformCudaHip(
+                            TView & view,
+                            std::uint8_t const & byte,
+                            TExtent const & extent) :
+                                TaskSetUniformCudaHipBase<dim::DimInt<2>, TView, TExtent>(view, byte, extent)
+                        {
+                        }
+
+                        //-----------------------------------------------------------------------------
+                        template<
+                            typename TQueue
+                        >
+                        auto enqueue(TQueue & queue) const
+                        -> void
+                        {
+                            static_assert(
+                                dim::Dim<TView>::value == 2u,
+                                "The destination buffer is required to be 2-dimensional for this specialization!");
+                            static_assert(
+                                dim::Dim<TView>::value == dim::Dim<TExtent>::value,
+                                "The destination buffer and the extent are required to have the same dimensionality!");
+
+                            using Idx = idx::Idx<TExtent>;
+
+                            auto & view(this->m_view);
+                            auto const & extent(this->m_extent);
+
+                            auto const extentWidth(extent::getWidth(extent));
+                            auto const extentHeight(extent::getHeight(extent));
+
+                            if(extentWidth == 0 || extentHeight == 0)
+                            {
+                                return;
+                            }
+
+                            auto const extentWidthBytes(extentWidth * static_cast<Idx>(sizeof(elem::Elem<TView>)));
+
+#if !defined(NDEBUG)
+                            auto const dstWidth(extent::getWidth(view));
+                            auto const dstHeight(extent::getHeight(view));
+#endif
+                            auto const dstPitchBytesX(mem::view::getPitchBytes<dim::Dim<TView>::value - 1u>(view));
+                            auto const dstNativePtr(reinterpret_cast<void *>(mem::view::getPtrNative(view)));
+                            ALPAKA_ASSERT(extentWidth <= dstWidth);
+                            ALPAKA_ASSERT(extentHeight <= dstHeight);
+
+                            // Set the current device.
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
+                                ALPAKA_API_PREFIX(SetDevice)(
+                                    this->m_iDevice));
+                            // Initiate the memory set.
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
+                                ALPAKA_API_PREFIX(Memset2DAsync)(
+                                    dstNativePtr,
+                                    static_cast<size_t>(dstPitchBytesX),
+                                    static_cast<int>(this->m_byte),
+                                    static_cast<size_t>(extentWidthBytes),
+                                    static_cast<size_t>(extentHeight),
+                                    queue.m_spQueueImpl->m_UniformCudaHipQueue));
+                        }
+                    };
+                    //#############################################################################
+                    //! The 3D CUDA/HIP memory set task.
+                    template<
+                        typename TView,
+                        typename TExtent>
+                    struct TaskSetUniformCudaHip<
+                        dim::DimInt<3>,
+                        TView,
+                        TExtent>
+                     : public TaskSetUniformCudaHipBase<dim::DimInt<3>, TView, TExtent>
+                    {
+                        //-----------------------------------------------------------------------------
+                        TaskSetUniformCudaHip(
+                            TView & view,
+                            std::uint8_t const & byte,
+                            TExtent const & extent) :
+                                TaskSetUniformCudaHipBase<dim::DimInt<3>, TView, TExtent>(view, byte, extent)
+                        {
+                        }
+
+                        //-----------------------------------------------------------------------------
+                        template<
+                            typename TQueue
+                        >
+                        auto enqueue(TQueue & queue) const
+                        -> void
+                        {
+                            static_assert(
+                                dim::Dim<TView>::value == 3u,
+                                "The destination buffer is required to be 3-dimensional for this specialization!");
+                            static_assert(
+                                dim::Dim<TView>::value == dim::Dim<TExtent>::value,
+                                "The destination buffer and the extent are required to have the same dimensionality!");
+
+                            using Elem = alpaka::elem::Elem<TView>;
+                            using Idx = idx::Idx<TExtent>;
+
+                            auto & view(this->m_view);
+                            auto const & extent(this->m_extent);
+
+                            auto const extentWidth(extent::getWidth(extent));
+                            auto const extentHeight(extent::getHeight(extent));
+                            auto const extentDepth(extent::getDepth(extent));
+
+                            // This is not only an optimization but also prevents a division by zero.
+                            if(extentWidth == 0 || extentHeight == 0 || extentDepth == 0)
+                            {
+                                return;
+                            }
+
+                            auto const dstWidth(extent::getWidth(view));
+#if !defined(NDEBUG)
+                            auto const dstHeight(extent::getHeight(view));
+                            auto const dstDepth(extent::getDepth(view));
+#endif
+                            auto const dstPitchBytesX(mem::view::getPitchBytes<dim::Dim<TView>::value - 1u>(view));
+                            auto const dstPitchBytesY(mem::view::getPitchBytes<dim::Dim<TView>::value - (2u % dim::Dim<TView>::value)>(view));
+                            auto const dstNativePtr(reinterpret_cast<void *>(mem::view::getPtrNative(view)));
+                            ALPAKA_ASSERT(extentWidth <= dstWidth);
+                            ALPAKA_ASSERT(extentHeight <= dstHeight);
+                            ALPAKA_ASSERT(extentDepth <= dstDepth);
+
+                            // Fill CUDA parameter structures.
+                            ALPAKA_API_PREFIX(PitchedPtr) const pitchedPtrVal(
+                                ALPAKA_PP_CONCAT(make_,ALPAKA_API_PREFIX(PitchedPtr))(
+                                    dstNativePtr,
+                                    static_cast<size_t>(dstPitchBytesX),
+                                    static_cast<size_t>(dstWidth * static_cast<Idx>(sizeof(Elem))),
+                                    static_cast<size_t>(dstPitchBytesY / dstPitchBytesX)));
+
+                            ALPAKA_API_PREFIX(Extent) const extentVal(
+                                ALPAKA_PP_CONCAT(make_,ALPAKA_API_PREFIX(Extent))(
+                                    static_cast<size_t>(extentWidth * static_cast<Idx>(sizeof(Elem))),
+                                    static_cast<size_t>(extentHeight),
+                                    static_cast<size_t>(extentDepth)));
+
+                            // Set the current device.
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
+                                ALPAKA_API_PREFIX(SetDevice)(
+                                    this->m_iDevice));
+                            // Initiate the memory set.
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
+                                ALPAKA_API_PREFIX(Memset3DAsync)(
+                                    pitchedPtrVal,
+                                    static_cast<int>(this->m_byte),
+                                    extentVal,
+                                    queue.m_spQueueImpl->m_UniformCudaHipQueue));
+                        }
                     };
                 }
             }
@@ -146,45 +384,7 @@ namespace alpaka
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                    static_assert(
-                        dim::Dim<TView>::value == 1u,
-                        "The destination buffer is required to be 1-dimensional for this specialization!");
-                    static_assert(
-                        dim::Dim<TView>::value == dim::Dim<TExtent>::value,
-                        "The destination buffer and the extent are required to have the same dimensionality!");
-
-                    using Idx = idx::Idx<TExtent>;
-
-                    auto & view(task.m_view);
-                    auto const & byte(task.m_byte);
-                    auto const & extent(task.m_extent);
-                    auto const & iDevice(task.m_iDevice);
-
-                    auto const extentWidth(extent::getWidth(extent));
-
-                    if(extentWidth == 0)
-                    {
-                        return;
-                    }
-
-                    auto const extentWidthBytes(extentWidth * static_cast<Idx>(sizeof(elem::Elem<TView>)));
-#if !defined(NDEBUG)
-                    auto const dstWidth(extent::getWidth(view));
-#endif
-                    auto const dstNativePtr(reinterpret_cast<void *>(mem::view::getPtrNative(view)));
-                    ALPAKA_ASSERT(extentWidth <= dstWidth);
-
-                    // Set the current device.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                        ALPAKA_API_PREFIX(SetDevice)(
-                            iDevice));
-                    // Initiate the memory set.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                        ALPAKA_API_PREFIX(MemsetAsync)(
-                            dstNativePtr,
-                            static_cast<int>(byte),
-                            static_cast<size_t>(extentWidthBytes),
-                            queue.m_spQueueImpl->m_UniformCudaHipQueue));
+                    task.enqueue(queue);
                 }
             };
             //#############################################################################
@@ -204,45 +404,8 @@ namespace alpaka
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                    static_assert(
-                        dim::Dim<TView>::value == 1u,
-                        "The destination buffer is required to be 1-dimensional for this specialization!");
-                    static_assert(
-                        dim::Dim<TView>::value == dim::Dim<TExtent>::value,
-                        "The destination buffer and the extent are required to have the same dimensionality!");
+                    task.enqueue(queue);
 
-                    using Idx = idx::Idx<TExtent>;
-
-                    auto & view(task.m_view);
-                    auto const & byte(task.m_byte);
-                    auto const & extent(task.m_extent);
-                    auto const & iDevice(task.m_iDevice);
-
-                    auto const extentWidth(extent::getWidth(extent));
-
-                    if(extentWidth == 0)
-                    {
-                        return;
-                    }
-
-                    auto const extentWidthBytes(extentWidth * static_cast<Idx>(sizeof(elem::Elem<TView>)));
-#if !defined(NDEBUG)
-                    auto const dstWidth(extent::getWidth(view));
-#endif
-                    auto const dstNativePtr(reinterpret_cast<void *>(mem::view::getPtrNative(view)));
-                    ALPAKA_ASSERT(extentWidth <= dstWidth);
-
-                    // Set the current device.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                        ALPAKA_API_PREFIX(SetDevice)(
-                            iDevice));
-                    // Initiate the memory set.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                        ALPAKA_API_PREFIX(MemsetAsync)(
-                            dstNativePtr,
-                            static_cast<int>(byte),
-                            static_cast<size_t>(extentWidthBytes),
-                            queue.m_spQueueImpl->m_UniformCudaHipQueue));
                     wait::wait(queue);
                 }
             };
@@ -263,52 +426,7 @@ namespace alpaka
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                    static_assert(
-                        dim::Dim<TView>::value == 2u,
-                        "The destination buffer is required to be 2-dimensional for this specialization!");
-                    static_assert(
-                        dim::Dim<TView>::value == dim::Dim<TExtent>::value,
-                        "The destination buffer and the extent are required to have the same dimensionality!");
-
-                    using Idx = idx::Idx<TExtent>;
-
-                    auto & view(task.m_view);
-                    auto const & byte(task.m_byte);
-                    auto const & extent(task.m_extent);
-                    auto const & iDevice(task.m_iDevice);
-
-                    auto const extentWidth(extent::getWidth(extent));
-                    auto const extentHeight(extent::getHeight(extent));
-
-                    if(extentWidth == 0 || extentHeight == 0)
-                    {
-                        return;
-                    }
-
-                    auto const extentWidthBytes(extentWidth * static_cast<Idx>(sizeof(elem::Elem<TView>)));
-
-#if !defined(NDEBUG)
-                    auto const dstWidth(extent::getWidth(view));
-                    auto const dstHeight(extent::getHeight(view));
-#endif
-                    auto const dstPitchBytesX(mem::view::getPitchBytes<dim::Dim<TView>::value - 1u>(view));
-                    auto const dstNativePtr(reinterpret_cast<void *>(mem::view::getPtrNative(view)));
-                    ALPAKA_ASSERT(extentWidth <= dstWidth);
-                    ALPAKA_ASSERT(extentHeight <= dstHeight);
-
-                    // Set the current device.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                        ALPAKA_API_PREFIX(SetDevice)(
-                            iDevice));
-                    // Initiate the memory set.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                        ALPAKA_API_PREFIX(Memset2DAsync)(
-                            dstNativePtr,
-                            static_cast<size_t>(dstPitchBytesX),
-                            static_cast<int>(byte),
-                            static_cast<size_t>(extentWidthBytes),
-                            static_cast<size_t>(extentHeight),
-                            queue.m_spQueueImpl->m_UniformCudaHipQueue));
+                    task.enqueue(queue);
                 }
             };
             //#############################################################################
@@ -328,53 +446,7 @@ namespace alpaka
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                    static_assert(
-                        dim::Dim<TView>::value == 2u,
-                        "The destination buffer is required to be 2-dimensional for this specialization!");
-                    static_assert(
-                        dim::Dim<TView>::value == dim::Dim<TExtent>::value,
-                        "The destination buffer and the extent are required to have the same dimensionality!");
-
-                    using Idx = idx::Idx<TExtent>;
-
-                    auto & view(task.m_view);
-                    auto const & byte(task.m_byte);
-                    auto const & extent(task.m_extent);
-                    auto const & iDevice(task.m_iDevice);
-
-                    auto const extentWidth(extent::getWidth(extent));
-                    auto const extentHeight(extent::getHeight(extent));
-
-                    if(extentWidth == 0 || extentHeight == 0)
-                    {
-                        return;
-                    }
-
-                    auto const extentWidthBytes(extentWidth * static_cast<Idx>(sizeof(elem::Elem<TView>)));
-
-#if !defined(NDEBUG)
-                    auto const dstWidth(extent::getWidth(view));
-                    auto const dstHeight(extent::getHeight(view));
-#endif
-                    auto const dstPitchBytesX(mem::view::getPitchBytes<dim::Dim<TView>::value - 1u>(view));
-                    auto const dstNativePtr(reinterpret_cast<void *>(mem::view::getPtrNative(view)));
-                    ALPAKA_ASSERT(extentWidth <= dstWidth);
-                    ALPAKA_ASSERT(extentHeight <= dstHeight);
-
-                    // Set the current device.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                        ALPAKA_API_PREFIX(SetDevice)(
-                            iDevice));
-
-                    // Initiate the memory set.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                        ALPAKA_API_PREFIX(Memset2DAsync)(
-                            dstNativePtr,
-                            static_cast<size_t>(dstPitchBytesX),
-                            static_cast<int>(byte),
-                            static_cast<size_t>(extentWidthBytes),
-                            static_cast<size_t>(extentHeight),
-                            queue.m_spQueueImpl->m_UniformCudaHipQueue));
+                    task.enqueue(queue);
 
                     wait::wait(queue);
                 }
@@ -396,68 +468,7 @@ namespace alpaka
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                    static_assert(
-                        dim::Dim<TView>::value == 3u,
-                        "The destination buffer is required to be 3-dimensional for this specialization!");
-                    static_assert(
-                        dim::Dim<TView>::value == dim::Dim<TExtent>::value,
-                        "The destination buffer and the extent are required to have the same dimensionality!");
-
-                    using Elem = alpaka::elem::Elem<TView>;
-                    using Idx = idx::Idx<TExtent>;
-
-                    auto & view(task.m_view);
-                    auto const & byte(task.m_byte);
-                    auto const & extent(task.m_extent);
-                    auto const & iDevice(task.m_iDevice);
-
-                    auto const extentWidth(extent::getWidth(extent));
-                    auto const extentHeight(extent::getHeight(extent));
-                    auto const extentDepth(extent::getDepth(extent));
-
-                    // This is not only an optimization but also prevents a division by zero.
-                    if(extentWidth == 0 || extentHeight == 0 || extentDepth == 0)
-                    {
-                        return;
-                    }
-
-                    auto const dstWidth(extent::getWidth(view));
-#if !defined(NDEBUG)
-                    auto const dstHeight(extent::getHeight(view));
-                    auto const dstDepth(extent::getDepth(view));
-#endif
-                    auto const dstPitchBytesX(mem::view::getPitchBytes<dim::Dim<TView>::value - 1u>(view));
-                    auto const dstPitchBytesY(mem::view::getPitchBytes<dim::Dim<TView>::value - (2u % dim::Dim<TView>::value)>(view));
-                    auto const dstNativePtr(reinterpret_cast<void *>(mem::view::getPtrNative(view)));
-                    ALPAKA_ASSERT(extentWidth <= dstWidth);
-                    ALPAKA_ASSERT(extentHeight <= dstHeight);
-                    ALPAKA_ASSERT(extentDepth <= dstDepth);
-
-                    // Fill CUDA parameter structures.
-                    ALPAKA_API_PREFIX(PitchedPtr) const pitchedPtrVal(
-                        ALPAKA_PP_CONCAT(make_,ALPAKA_API_PREFIX(PitchedPtr))(
-                            dstNativePtr,
-                            static_cast<size_t>(dstPitchBytesX),
-                            static_cast<size_t>(dstWidth * static_cast<Idx>(sizeof(Elem))),
-                            static_cast<size_t>(dstPitchBytesY / dstPitchBytesX)));
-
-                    ALPAKA_API_PREFIX(Extent) const extentVal(
-                        ALPAKA_PP_CONCAT(make_,ALPAKA_API_PREFIX(Extent))(
-                            static_cast<size_t>(extentWidth * static_cast<Idx>(sizeof(Elem))),
-                            static_cast<size_t>(extentHeight),
-                            static_cast<size_t>(extentDepth)));
-
-                    // Set the current device.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                        ALPAKA_API_PREFIX(SetDevice)(
-                            iDevice));
-                    // Initiate the memory set.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                        ALPAKA_API_PREFIX(Memset3DAsync)(
-                            pitchedPtrVal,
-                            static_cast<int>(byte),
-                            extentVal,
-                            queue.m_spQueueImpl->m_UniformCudaHipQueue));
+                    task.enqueue(queue);
                 }
             };
             //#############################################################################
@@ -477,68 +488,7 @@ namespace alpaka
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                    static_assert(
-                        dim::Dim<TView>::value == 3u,
-                        "The destination buffer is required to be 3-dimensional for this specialization!");
-                    static_assert(
-                        dim::Dim<TView>::value == dim::Dim<TExtent>::value,
-                        "The destination buffer and the extent are required to have the same dimensionality!");
-
-                    using Elem = alpaka::elem::Elem<TView>;
-                    using Idx = idx::Idx<TExtent>;
-
-                    auto & view(task.m_view);
-                    auto const & byte(task.m_byte);
-                    auto const & extent(task.m_extent);
-                    auto const & iDevice(task.m_iDevice);
-
-                    auto const extentWidth(extent::getWidth(extent));
-                    auto const extentHeight(extent::getHeight(extent));
-                    auto const extentDepth(extent::getDepth(extent));
-
-                    // This is not only an optimization but also prevents a division by zero.
-                    if(extentWidth == 0 || extentHeight == 0 || extentDepth == 0)
-                    {
-                        return;
-                    }
-
-                    auto const dstWidth(extent::getWidth(view));
-#if !defined(NDEBUG)
-                    auto const dstHeight(extent::getHeight(view));
-                    auto const dstDepth(extent::getDepth(view));
-#endif
-                    auto const dstPitchBytesX(mem::view::getPitchBytes<dim::Dim<TView>::value - 1u>(view));
-                    auto const dstPitchBytesY(mem::view::getPitchBytes<dim::Dim<TView>::value - (2u % dim::Dim<TView>::value)>(view));
-                    auto const dstNativePtr(reinterpret_cast<void *>(mem::view::getPtrNative(view)));
-                    ALPAKA_ASSERT(extentWidth <= dstWidth);
-                    ALPAKA_ASSERT(extentHeight <= dstHeight);
-                    ALPAKA_ASSERT(extentDepth <= dstDepth);
-
-                    // Fill CUDA parameter structures.
-                    ALPAKA_API_PREFIX(PitchedPtr) const pitchedPtrVal(
-                        ALPAKA_PP_CONCAT(make_,ALPAKA_API_PREFIX(PitchedPtr))(
-                            dstNativePtr,
-                            static_cast<size_t>(dstPitchBytesX),
-                            static_cast<size_t>(dstWidth * static_cast<Idx>(sizeof(Elem))),
-                            static_cast<size_t>(dstPitchBytesY / dstPitchBytesX)));
-
-                    ALPAKA_API_PREFIX(Extent) const extentVal(
-                        ALPAKA_PP_CONCAT(make_,ALPAKA_API_PREFIX(Extent))(
-                            static_cast<size_t>(extentWidth * static_cast<Idx>(sizeof(Elem))),
-                            static_cast<size_t>(extentHeight),
-                            static_cast<size_t>(extentDepth)));
-
-                    // Set the current device.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                        ALPAKA_API_PREFIX(SetDevice)(
-                            iDevice));
-                    // Initiate the memory set.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                        ALPAKA_API_PREFIX(Memset3DAsync)(
-                            pitchedPtrVal,
-                            static_cast<int>(byte),
-                            extentVal,
-                            queue.m_spQueueImpl->m_UniformCudaHipQueue));
+                    task.enqueue(queue);
 
                     wait::wait(queue);
                 }

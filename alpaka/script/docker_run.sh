@@ -3,7 +3,7 @@
 #
 # Copyright 2017-2019 Benjamin Worpitz
 #
-# This file is part of Alpaka.
+# This file is part of alpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,7 +16,7 @@ source ./script/set.sh
 ALPAKA_DOCKER_ENV_LIST=()
 ALPAKA_DOCKER_ENV_LIST+=("--env" "CC=${CC}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "CXX=${CXX}")
-ALPAKA_DOCKER_ENV_LIST+=("--env" "TRAVIS_OS_NAME=${TRAVIS_OS_NAME}")
+ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_OS_NAME=${ALPAKA_CI_OS_NAME}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_ANALYSIS=${ALPAKA_CI_ANALYSIS}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_BOOST_BRANCH=${ALPAKA_CI_BOOST_BRANCH}")
@@ -146,13 +146,7 @@ then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CUDA_NVCC_SEPARABLE_COMPILATION=${ALPAKA_CUDA_NVCC_SEPARABLE_COMPILATION}")
 fi
 
-docker images
 docker images -q ${ALPAKA_CI_DOCKER_IMAGE_NAME}
-
-# If we have created the image in the current run, we do not have to load it again, because it is already available.
-if [[ "$(docker images -q ${ALPAKA_CI_DOCKER_IMAGE_NAME} 2> /dev/null)" == "" ]]; then
-    gzip -dc "${ALPAKA_CI_DOCKER_CACHE_IMAGE_FILE_PATH}" | docker load
-fi
 
 # --cap-add SYS_PTRACE is required for LSAN to work
 docker run --cap-add SYS_PTRACE -v "$(pwd)":"$(pwd)" -w "$(pwd)" "${ALPAKA_DOCKER_ENV_LIST[@]}" --rm "${ALPAKA_CI_DOCKER_IMAGE_NAME}" /bin/bash ./script/run.sh

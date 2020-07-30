@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,23 +15,6 @@
 // Boost.Uuid errors with VS2017 when intrin.h is not included
 #if defined(_MSC_VER) && _MSC_VER >= 1910
     #include <intrin.h>
-#endif
-
-//-----------------------------------------------------------------------------
-// Boost does not yet correctly identify clang when compiling CUDA code.
-// After explicitly including <boost/config.hpp> we can safely undefine some of the wrong settings.
-#if BOOST_COMP_CLANG_CUDA
-    #include <boost/config.hpp>
-    #undef BOOST_NO_CXX11_VARIADIC_TEMPLATES
-#endif
-
-//-----------------------------------------------------------------------------
-// Boost disables variadic templates for nvcc (in some cases because it was buggy).
-// However, we rely on it being enabled.
-// After explicitly including <boost/config.hpp> we can safely undefine the wrong setting.
-#if BOOST_COMP_NVCC
-    #include <boost/config.hpp>
-    #undef BOOST_NO_CXX11_VARIADIC_TEMPLATES
 #endif
 
 //-----------------------------------------------------------------------------
@@ -66,7 +49,7 @@
 //! WARNING: Only use this method if there is no other way.
 //! Most cases can be solved by #if BOOST_ARCH_PTX or #if BOOST_LANG_CUDA.
 #if (BOOST_LANG_CUDA && !BOOST_COMP_CLANG_CUDA) || BOOST_LANG_HIP
-    #if BOOST_COMP_MSVC
+    #if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
         #define ALPAKA_NO_HOST_ACC_WARNING __pragma(hd_warning_disable)
     #else
         #define ALPAKA_NO_HOST_ACC_WARNING _Pragma("hd_warning_disable")

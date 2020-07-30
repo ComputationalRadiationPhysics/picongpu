@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -64,7 +64,7 @@ TEMPLATE_LIST_TEST_CASE( "memBufBasicTest", "[memBuf]", alpaka::test::acc::TestA
     using Dim = alpaka::dim::Dim<Acc>;
     using Idx = alpaka::idx::Idx<Acc>;
 
-    auto const extent(alpaka::vec::createVecFromIndexedFnWorkaround<Dim, Idx, alpaka::test::CreateExtentBufVal>(Idx()));
+    auto const extent(alpaka::vec::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>());
 
     testBufferMutable<
         Acc>(
@@ -123,7 +123,7 @@ TEMPLATE_LIST_TEST_CASE( "memBufConstTest", "[memBuf]", alpaka::test::acc::TestA
     using Dim = alpaka::dim::Dim<Acc>;
     using Idx = alpaka::idx::Idx<Acc>;
 
-    auto const extent(alpaka::vec::createVecFromIndexedFnWorkaround<Dim, Idx, alpaka::test::CreateExtentBufVal>(Idx()));
+    auto const extent(alpaka::vec::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>());
 
     testBufferImmutable<
         Acc>(

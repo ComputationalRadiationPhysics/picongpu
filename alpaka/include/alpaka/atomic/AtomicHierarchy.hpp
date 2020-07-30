@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -27,7 +27,7 @@ namespace alpaka
         //  This implementation inherit from all three hierarchies.
         //  The multiple usage of the same type for different levels is allowed.
         //  The class provide the feature that each atomic operation can be focused
-        //  to a hierarchy level in Alpaka. A operation to a hierarchy is independent
+        //  to a hierarchy level in alpaka. A operation to a hierarchy is independent
         //  to the memory hierarchy.
         //
         //  \tparam TGridAtomic atomic implementation for atomic operations between grids within a device

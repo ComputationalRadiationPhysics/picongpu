@@ -1,7 +1,7 @@
 #
 # Copyright 2014-2019 Benjamin Worpitz
 #
-# This file is part of Alpaka.
+# This file is part of alpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,6 +17,10 @@ TARGET_INCLUDE_DIRECTORIES(
     "alpaka"
     SYSTEM
     INTERFACE ${Boost_INCLUDE_DIRS})
+
+IF(ALPAKA_ACC_GPU_CUDA_ENABLE AND (ALPAKA_CUDA_COMPILER MATCHES "nvcc") AND (ALPAKA_CUDA_VERSION VERSION_GREATER_EQUAL 11.0))
+    LIST(APPEND CUDA_NVCC_FLAGS -Wdefault-stream-launch -Werror=default-stream-launch)
+ENDIF()
 
 #MSVC
 IF(MSVC)

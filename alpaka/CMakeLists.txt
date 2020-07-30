@@ -31,7 +31,7 @@ set(PACKAGE_VERSION "${ALPAKA_VERSION_MAJOR}.${ALPAKA_VERSION_MINOR}.${ALPAKA_VE
 
 project(alpaka VERSION      ${ALPAKA_VERSION_MAJOR}.${ALPAKA_VERSION_MINOR}.${ALPAKA_VERSION_PATCH}
                DESCRIPTION  "The alpaka library is a header-only C++14 abstraction library for accelerator development."
-               HOMEPAGE_URL "https://github.com/ComputationalRadiationPhysics/alpaka"
+               HOMEPAGE_URL "https://github.com/alpaka-group/alpaka"
                LANGUAGES    CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -39,10 +39,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 ################################################################################
 # Options and Variants
 
-option(alpaka_BUILD_EXAMPLES "Build the examples" ON)
+option(alpaka_BUILD_EXAMPLES "Build the examples" OFF)
 
+option(BUILD_TESTING "Build the testing tree." OFF)
 include(CTest)
-# automatically defines: BUILD_TESTING, default is ON
 
 ################################################################################
 # Internal variables.
@@ -87,11 +87,11 @@ append_recursive_files_add_to_src_group("${_ALPAKA_ROOT_DIR}/cmake" "${_ALPAKA_R
 list(APPEND _ALPAKA_FILES_CMAKE "${_ALPAKA_ROOT_DIR}/cmake/alpakaConfig.cmake.in" "${_ALPAKA_ROOT_DIR}/CMakeLists.txt")
 set_source_files_properties(${_ALPAKA_FILES_CMAKE} PROPERTIES HEADER_FILE_ONLY TRUE)
 
-append_recursive_files_add_to_src_group("${_ALPAKA_ROOT_DIR}/doc/markdown" "${_ALPAKA_ROOT_DIR}" "md" _ALPAKA_FILES_DOC)
+append_recursive_files_add_to_src_group("${_ALPAKA_ROOT_DIR}/docs/markdown" "${_ALPAKA_ROOT_DIR}" "md" _ALPAKA_FILES_DOC)
 set_source_files_properties(${_ALPAKA_FILES_DOC} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 append_recursive_files_add_to_src_group("${_ALPAKA_ROOT_DIR}/.github" "${_ALPAKA_ROOT_DIR}" "yml" _ALPAKA_FILES_OTHER)
-list(APPEND _ALPAKA_FILES_OTHER "${_ALPAKA_ROOT_DIR}/.gitignore" "${_ALPAKA_ROOT_DIR}/.travis.yml" "${_ALPAKA_ROOT_DIR}/.zenodo.json" "${_ALPAKA_ROOT_DIR}/LICENSE" "${_ALPAKA_ROOT_DIR}/README.md")
+list(APPEND _ALPAKA_FILES_OTHER "${_ALPAKA_ROOT_DIR}/.gitignore" "${_ALPAKA_ROOT_DIR}/.zenodo.json" "${_ALPAKA_ROOT_DIR}/LICENSE" "${_ALPAKA_ROOT_DIR}/README.md")
 set_source_files_properties(${_ALPAKA_FILES_OTHER} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 if(TARGET alpaka)
@@ -141,38 +141,42 @@ endif()
 
 ################################################################################
 # Installation.
-include(CMakePackageConfigHelpers)
-include(GNUInstallDirs)
 
-set(_ALPAKA_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/alpaka")
+# Do not install if alpaka is used as a CMake subdirectory
+if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
+    include(CMakePackageConfigHelpers)
+    include(GNUInstallDirs)
 
-install(TARGETS alpaka
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-        
-write_basic_package_version_file(
-    "alpakaConfigVersion.cmake"
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion)
+    set(_ALPAKA_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/alpaka")
 
-configure_package_config_file(
-    "${_ALPAKA_ROOT_DIR}/cmake/alpakaConfig.cmake.in"
-    "${PROJECT_BINARY_DIR}/alpakaConfig.cmake" 
-    INSTALL_DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
+    install(TARGETS alpaka
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-install(FILES "${PROJECT_BINARY_DIR}/alpakaConfig.cmake"
-              "${PROJECT_BINARY_DIR}/alpakaConfigVersion.cmake"
-        DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
+    write_basic_package_version_file(
+        "alpakaConfigVersion.cmake"
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion)
 
-install(DIRECTORY "${_ALPAKA_SUFFIXED_INCLUDE_DIR}"
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    configure_package_config_file(
+        "${_ALPAKA_ROOT_DIR}/cmake/alpakaConfig.cmake.in"
+        "${PROJECT_BINARY_DIR}/alpakaConfig.cmake" 
+        INSTALL_DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
 
-install(FILES "${_ALPAKA_ROOT_DIR}/cmake/addExecutable.cmake"
-              "${_ALPAKA_ROOT_DIR}/cmake/addLibrary.cmake"
-              "${_ALPAKA_ROOT_DIR}/cmake/alpakaCommon.cmake"
-              "${_ALPAKA_ROOT_DIR}/cmake/common.cmake"
-        DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
+    install(FILES "${PROJECT_BINARY_DIR}/alpakaConfig.cmake"
+                  "${PROJECT_BINARY_DIR}/alpakaConfigVersion.cmake"
+            DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
 
-install(DIRECTORY "${_ALPAKA_ROOT_DIR}/cmake/modules"
-        DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
+    install(DIRECTORY "${_ALPAKA_SUFFIXED_INCLUDE_DIR}"
+            DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+
+    install(FILES "${_ALPAKA_ROOT_DIR}/cmake/addExecutable.cmake"
+                  "${_ALPAKA_ROOT_DIR}/cmake/addLibrary.cmake"
+                  "${_ALPAKA_ROOT_DIR}/cmake/alpakaCommon.cmake"
+                  "${_ALPAKA_ROOT_DIR}/cmake/common.cmake"
+            DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
+
+    install(DIRECTORY "${_ALPAKA_ROOT_DIR}/cmake/modules"
+            DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
+endif()

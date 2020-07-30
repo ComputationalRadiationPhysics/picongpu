@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz, Bert Wesarg
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -71,6 +71,7 @@ namespace alpaka
                     MaxUniformCudaHipBuiltIn const & max_ctx,
                     Tx const & x,
                     Ty const & y)
+                -> decltype(::max(x, y))
                 {
                     alpaka::ignore_unused(max_ctx);
                     return ::max(x, y);
@@ -95,6 +96,7 @@ namespace alpaka
                     MaxUniformCudaHipBuiltIn const & max_ctx,
                     Tx const & x,
                     Ty const & y)
+                -> decltype(::fmax(x, y))
                 {
                     alpaka::ignore_unused(max_ctx);
                     return ::fmax(x, y);

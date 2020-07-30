@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -38,6 +38,7 @@
 
 // Implementation details.
 #include <alpaka/acc/AccGpuUniformCudaHipRt.hpp>
+#include <alpaka/core/Decay.hpp>
 #include <alpaka/dev/DevUniformCudaHipRt.hpp>
 #include <alpaka/kernel/Traits.hpp>
 #include <alpaka/queue/QueueUniformCudaHipRtNonBlocking.hpp>
@@ -342,7 +343,7 @@ namespace alpaka
                     // Get the size of the block shared dynamic memory.
                     auto const blockSharedMemDynSizeBytes(
                         meta::apply(
-                            [&](std::decay_t<TArgs> const & ... args)
+                            [&](ALPAKA_DECAY_T(TArgs) const & ... args)
                             {
                                 return
                                     kernel::getBlockSharedMemDynSizeBytes<
@@ -388,7 +389,7 @@ namespace alpaka
                     // This forces the type of a float argument given with std::forward to this function to be of type float instead of e.g. "float const & __ptr64" (MSVC).
                     // If not given by value, the kernel launch code does not copy the value but the pointer to the value location.
                     meta::apply(
-                        [&](std::decay_t<TArgs> const & ... args)
+                        [&](ALPAKA_DECAY_T(TArgs) const & ... args)
                         {
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
                             kernelName<<<
@@ -487,7 +488,7 @@ namespace alpaka
                     // Get the size of the block shared dynamic memory.
                     auto const blockSharedMemDynSizeBytes(
                         meta::apply(
-                            [&](std::decay_t<TArgs> const & ... args)
+                            [&](ALPAKA_DECAY_T(TArgs) const & ... args)
                             {
                                 return
                                     kernel::getBlockSharedMemDynSizeBytes<
@@ -533,7 +534,7 @@ namespace alpaka
 
                     // Enqueue the kernel execution.
                     meta::apply(
-                        [&](std::decay_t<TArgs> const & ... args)
+                        [&](ALPAKA_DECAY_T(TArgs) const & ... args)
                         {
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
                             kernelName<<<

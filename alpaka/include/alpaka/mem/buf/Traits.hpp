@@ -1,6 +1,6 @@
 /* Copyright 2019 Alexander Matthes, Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,8 +12,6 @@
 #include <alpaka/mem/view/Traits.hpp>
 
 #include <alpaka/core/Common.hpp>
-
-#include <boost/config.hpp>
 
 namespace alpaka
 {
@@ -101,13 +99,15 @@ namespace alpaka
                 typename TElem,
                 typename TDim,
                 typename TIdx>
-            using Buf = typename traits::BufType<TDev, TElem, TDim, TIdx>::type;
+            using Buf = typename traits::BufType<
+                alpaka::dev::Dev<TDev>, TElem, TDim, TIdx>::type;
 
             //-----------------------------------------------------------------------------
             //! Allocates memory on the given device.
             //!
             //! \tparam TElem The element type of the returned buffer.
-            //! \tparam TExtent The extent of the buffer.
+            //! \tparam TIdx The linear index type of the buffer.
+            //! \tparam TExtent The extent type of the buffer.
             //! \tparam TDev The type of device the buffer is allocated on.
             //! \param dev The device to allocate the buffer on.
             //! \param extent The extent of the buffer.

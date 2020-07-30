@@ -242,7 +242,7 @@ target_link_libraries(
 # Find cupla version.
 ################################################################################
 # Please also update the version in `include/cupla/version.hpp`
-set(_cupla_VERSION "0.2.0")
+set(_cupla_VERSION "0.3.0")
 
 ################################################################################
 # Set return values.

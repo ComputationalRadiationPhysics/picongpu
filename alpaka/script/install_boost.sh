@@ -3,7 +3,7 @@
 #
 # Copyright 2017-2019 Benjamin Worpitz
 #
-# This file is part of Alpaka.
+# This file is part of alpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,7 +14,7 @@ source ./script/set.sh
 
 : "${BOOST_ROOT?'BOOST_ROOT must be specified'}"
 : "${ALPAKA_CI_BOOST_LIB_DIR?'ALPAKA_CI_BOOST_LIB_DIR must be specified'}"
-if [ "$TRAVIS_OS_NAME" = "linux" ]
+if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
     : "${ALPAKA_CI_STDLIB?'ALPAKA_CI_STDLIB must be specified'}"
 fi
@@ -23,7 +23,7 @@ fi
 : "${CC?'CC must be specified'}"
 : "${ALPAKA_CI_INSTALL_FIBERS?'ALPAKA_CI_INSTALL_FIBERS must be specified'}"
 : "${ALPAKA_CI_BOOST_LIB_DIR?'ALPAKA_CI_BOOST_LIB_DIR must be specified'}"
-if [ "$TRAVIS_OS_NAME" = "windows" ]
+if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
     : "${ALPAKA_CI_CL_VER?'ALPAKA_CI_CL_VER must be specified'}"
 fi
@@ -31,7 +31,7 @@ fi
 git clone -b "${ALPAKA_CI_BOOST_BRANCH}" --quiet --recursive --single-branch --depth 1 https://github.com/boostorg/boost.git "${BOOST_ROOT}"
 
 # Bootstrap boost.
-if [ "$TRAVIS_OS_NAME" = "windows" ]
+if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
     (cd "${BOOST_ROOT}"; ./bootstrap.bat)
 else
@@ -40,7 +40,7 @@ fi
 (cd "${BOOST_ROOT}"; cat ./bootstrap.log)
 
 # Create file links.
-if [ "$TRAVIS_OS_NAME" = "windows" ]
+if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
     (cd "${BOOST_ROOT}"; ./b2 headers)
 else
@@ -58,19 +58,19 @@ then
     ALPAKA_BOOST_B2_CFLAGS=""
     ALPAKA_BOOST_B2_CXXFLAGS=""
 
-    if [ "$TRAVIS_OS_NAME" = "linux" ] || [ "$TRAVIS_OS_NAME" = "osx" ]
+    if [ "$ALPAKA_CI_OS_NAME" = "Linux" ] || [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
     then
         ALPAKA_BOOST_B2+="sudo "
     fi
     ALPAKA_BOOST_B2+="./b2 -j1"
 
-    if [ "$TRAVIS_OS_NAME" = "linux" ] || [ "$TRAVIS_OS_NAME" = "osx" ]
+    if [ "$ALPAKA_CI_OS_NAME" = "Linux" ] || [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
     then
         ALPAKA_BOOST_B2_CFLAGS+="-fPIC"
         ALPAKA_BOOST_B2_CXXFLAGS+="-fPIC"
     fi
 
-    if [ "$TRAVIS_OS_NAME" = "windows" ]
+    if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
     then
         ALPAKA_BOOST_B2+=" --layout=versioned"
         if [ "$ALPAKA_CI_CL_VER" = "2017" ]
@@ -87,7 +87,7 @@ then
     # TODO: Win32: adress-model=32
     ALPAKA_BOOST_B2+=" architecture=x86 address-model=64 link=static threading=multi runtime-link=shared"
 
-    if [ "$TRAVIS_OS_NAME" = "windows" ]
+    if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
     then
         ALPAKA_BOOST_B2+=" define=_CRT_NONSTDC_NO_DEPRECATE define=_CRT_SECURE_NO_DEPRECATE define=_SCL_SECURE_NO_DEPRECAT define=BOOST_USE_WINFIBERS define=_ENABLE_EXTENDED_ALIGNED_STORAGE"
     fi
@@ -109,7 +109,7 @@ then
     # If the variable is not set, the backend will most probably be used by default so we install it.
     if [ "${ALPAKA_CI_INSTALL_FIBERS}" == "ON" ]
     then
-        if [ "$TRAVIS_OS_NAME" = "linux" ]
+        if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
         then
             ALPAKA_BOOST_B2_CXXFLAGS+=" -std=c++14"
         fi
@@ -125,7 +125,7 @@ then
     then
         ALPAKA_BOOST_B2+=' cxxflags="'
         ALPAKA_BOOST_B2+="${ALPAKA_BOOST_B2_CXXFLAGS}"
-        if [ "$TRAVIS_OS_NAME" = "linux" ]
+        if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
         then
             if [ "${ALPAKA_CI_STDLIB}" == "libc++" ]
             then
@@ -135,7 +135,7 @@ then
         ALPAKA_BOOST_B2+='"'
     fi
 
-    if [ "$TRAVIS_OS_NAME" = "linux" ]
+    if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
     then
         if [ "${ALPAKA_CI_STDLIB}" == "libc++" ]
         then
@@ -150,7 +150,7 @@ then
     (cd "${BOOST_ROOT}"; eval "${ALPAKA_BOOST_B2}")
 
     # Clean the intermediate build files.
-    if [ "$TRAVIS_OS_NAME" = "windows" ]
+    if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
     then
         rm -rf bin.v2
     else

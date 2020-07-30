@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Unused.hpp>
 
@@ -63,14 +62,8 @@ namespace alpaka
                     TArgs && ... args)
                 -> void
                 {
-                    // Call the function object template call operator.
-#if BOOST_COMP_MSVC && !BOOST_COMP_NVCC
-                    f.operator()<T>(
-                        std::forward<TArgs>(args)...);
-#else
                     f.template operator()<T>(
                         std::forward<TArgs>(args)...);
-#endif
                     ForEachTypeHelper<
                         TList<Ts...>>
                     ::forEachTypeHelper(
