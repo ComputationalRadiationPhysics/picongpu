@@ -83,7 +83,10 @@ namespace pmacc
             return true;
         }
         else if(rc == cuplaErrorNotReady)
+        {
+            cuplaGetLastError();
             return false;
+        }
         else
             PMACC_PRINT_CUPLA_ERROR_AND_THROW(rc, "Event query failed");
     }

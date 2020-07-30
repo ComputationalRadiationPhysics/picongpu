@@ -554,6 +554,16 @@ if(ALPAKA_ACC_GPU_CUDA_ENABLE)
                     endif()
                     set(ALPAKA_CUDA_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
                 endif()
+
+                #string(TOUPPER "${CMAKE_BUILD_TYPE}" build_config)
+                #if(build_config)
+                    # CMAKE_CXX_FLAGS_* are strings and not lists, to allow the usage 
+                    # together with foreach we need to transform the string to a list
+                #    string (REPLACE " " ";" CXX_FLAGS_AS_LIST ${CMAKE_CXX_FLAGS_${build_config}})
+                #    foreach( _flag ${CXX_FLAGS_AS_LIST})
+                #        list(APPEND CUDA_NVCC_FLAGS -Xcompiler=${_flag})
+                #    endforeach()
+                #endif()
             endif()
 
             if(OpenMP_CXX_FOUND)
@@ -573,10 +583,10 @@ endif()
 if(ALPAKA_ACC_GPU_HIP_ENABLE)
 
     if(NOT DEFINED ALPAKA_HIP_VERSION)
-        set(ALPAKA_HIP_VERSION 3.3)
+        set(ALPAKA_HIP_VERSION 3.2)
     endif()
 
-    if(ALPAKA_HIP_VERSION VERSION_LESS 3.3)
+    if(ALPAKA_HIP_VERSION VERSION_LESS 3.2)
         message(WARNING "HIP < 3.3 is not supported!")
         set(_ALPAKA_FOUND FALSE)
     else()

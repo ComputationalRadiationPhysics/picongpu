@@ -47,6 +47,12 @@ namespace methods
     template< typename T_Acc = cupla::Acc>
     class XorMin
     {
+#if (BOOST_LANG_HIP)
+            using NativeStateType = hiprandStateXORWOW_t;
+#elif (BOOST_LANG_CUDA)
+            using NativeStateType = curandStateXORWOW_t;
+#endif
+
     public:
         class StateType
         {
@@ -63,14 +69,23 @@ namespace methods
             HDINLINE StateType( )
             { }
 
-            DINLINE StateType( curandStateXORWOW_t const & other ): d( other.d )
+            DINLINE StateType( NativeStateType const & other ): d( other.d )
             {
+#if (BOOST_LANG_HIP)
+                auto const* nativeStateArray = other.x;
+                PMACC_STATIC_ASSERT_MSG(
+                    sizeof( v ) == sizeof( other.x ),
+                    Unexpected_sizes
+                );
+#elif (BOOST_LANG_CUDA)
+                auto const* nativeStateArray = other.v;
                 PMACC_STATIC_ASSERT_MSG(
                     sizeof( v ) == sizeof( other.v ),
                     Unexpected_sizes
                 );
+#endif
                 for( unsigned i = 0; i < sizeof( v ) / sizeof( v[ 0 ] ); i++ )
-                    v[ i ] = other.v[ i ];
+                    v[ i ] = nativeStateArray[ i ];
             }
         };
 
@@ -82,8 +97,12 @@ namespace methods
             uint32_t subsequence = 0
         ) const
         {
-            curandStateXORWOW_t tmpState;
+            NativeStateType tmpState;
+#if (BOOST_LANG_HIP)
+            hiprand_init(
+#elif (BOOST_LANG_CUDA)
             curand_init(
+#endif
                 seed,
                 subsequence,
                 0,

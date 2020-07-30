@@ -39,7 +39,7 @@ namespace bessel
 
         HDINLINE result operator( )( result const & x )
         {
-#if __CUDA_ARCH__
+#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
             return ::cyl_bessel_i0f( x );
 #else
             return boost::math::cyl_bessel_i(
@@ -57,7 +57,7 @@ namespace bessel
 
         HDINLINE result operator( )( result const & x )
         {
-#if __CUDA_ARCH__
+#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
             return ::cyl_bessel_i1f( x );
 #else
             return boost::math::cyl_bessel_i(

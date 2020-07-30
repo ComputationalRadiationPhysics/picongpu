@@ -70,10 +70,10 @@ namespace functors
             int T_dim,
             typename T_DstAccessor,
             typename T_DstNavigator,
-            template < typename, int > typename T_DstStorage,
+            template < typename, int > class T_DstStorage,
             typename T_SrcAccessor,
             typename T_SrcNavigator,
-            template < typename, int > typename T_SrcStorage
+            template < typename, int > class T_SrcStorage
         >
         HDINLINE void operator()(
             T_Acc const & acc,

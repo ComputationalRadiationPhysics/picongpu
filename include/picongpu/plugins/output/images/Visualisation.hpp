@@ -102,8 +102,9 @@ struct typicalFields < 1 >
 #if !(EM_FIELD_SCALE_CHANNEL1 == 1 || EM_FIELD_SCALE_CHANNEL2 == 1 || EM_FIELD_SCALE_CHANNEL3 == 1)
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
 #else
+        constexpr auto baseCharge = BASE_CHARGE;
         const float_X tyCurrent = particles::TYPICAL_PARTICLES_PER_CELL * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
-            * abs(BASE_CHARGE) / DELTA_T;
+            * math::abs(baseCharge) / DELTA_T;
         const float_X tyEField = fields::laserProfiles::Selected::Unitless::AMPLITUDE + FLT_MIN;
         const float_X tyBField = tyEField * MUE0_EPS0;
 
@@ -126,8 +127,9 @@ struct typicalFields < 3 >
 #if !(EM_FIELD_SCALE_CHANNEL1 == 3 || EM_FIELD_SCALE_CHANNEL2 == 3 || EM_FIELD_SCALE_CHANNEL3 == 3)
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
 #else
+        constexpr auto baseCharge = BASE_CHARGE;
         const float_X lambda_pl = pmacc::math::Pi< float_X >::doubleValue *
-            SPEED_OF_LIGHT * sqrt(BASE_MASS * EPS0 / BASE_DENSITY / BASE_CHARGE / BASE_CHARGE);
+            SPEED_OF_LIGHT * sqrt(BASE_MASS * EPS0 / BASE_DENSITY / baseCharge / baseCharge);
         const float_X tyEField = lambda_pl * BASE_DENSITY / 3.0f / EPS0;
         const float_X tyBField = tyEField * MUE0_EPS0;
         const float_X tyCurrent = tyBField / MUE0;
@@ -150,10 +152,11 @@ struct typicalFields < 5 >
 #if !(EM_FIELD_SCALE_CHANNEL1 == 5 || EM_FIELD_SCALE_CHANNEL2 == 5 || EM_FIELD_SCALE_CHANNEL3 == 5)
         return float3_X(float_X(1.0), float_X(1.0), float_X(1.0));
 #else
+        constexpr auto baseCharge = BASE_CHARGE;
         const float_X tyEField = fields::laserProfiles::Selected::Unitless::W0 * BASE_DENSITY / 3.0f / EPS0;
         const float_X tyBField = tyEField * MUE0_EPS0;
         const float_X tyCurrent = particles::TYPICAL_PARTICLES_PER_CELL * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
-            * abs(BASE_CHARGE) / DELTA_T;
+            * math::abs(baseCharge) / DELTA_T;
 
         return float3_X(tyBField, tyEField, tyCurrent);
 #endif

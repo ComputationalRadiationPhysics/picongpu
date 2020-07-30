@@ -26,13 +26,13 @@
 #include "pmacc/types.hpp"
 
 /* select namespace depending on __CUDA_ARCH__ compiler flag*/
-#ifdef __CUDA_ARCH__ //we are on gpu
+#if( defined(__CUDA_ARCH__) || __HIP_DEVICE_COMPILE__ == 1 )  //we are on gpu
 #   define PMACC_USING_STATIC_CONST_VECTOR_NAMESPACE(id) using namespace PMACC_JOIN(pmacc_static_const_vector_device,id)
 #else
 #   define PMACC_USING_STATIC_CONST_VECTOR_NAMESPACE(id) using namespace PMACC_JOIN(pmacc_static_const_vector_host,id)
 #endif
 
-#ifdef __CUDACC__
+#if defined(__CUDACC__) || BOOST_COMP_HIP
 #   define PMACC_STATIC_CONST_VECTOR_DIM_DEF_CUDA(id,Name,Type,...)                \
         namespace PMACC_JOIN(pmacc_static_const_vector_device,id)                  \
         {                                                                          \
@@ -87,7 +87,7 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
 } /* namespace pmacc_static_const_storage + id */                              \
 using namespace PMACC_JOIN(pmacc_static_const_storage,id)
 
-#ifdef __CUDACC__
+#if defined(__CUDACC__) || BOOST_COMP_HIP
 #   define PMACC_STATIC_CONST_VECTOR_DIM_INSTANCE_CUDA(Name,id)                \
         namespace PMACC_JOIN(pmacc_static_const_vector_device,id)              \
         {                                                                      \

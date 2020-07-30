@@ -83,6 +83,11 @@ get_backend_flags()
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
+    elif [ "${backend_cfg[0]}" == "hip" ] ; then
+        result+=" -DALPAKA_ACC_GPU_HIP_ENABLE=ON -DALPAKA_ACC_GPU_HIP_ONLY_MODE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DALPAKA_HIP_ARCH=\"${backend_cfg[1]}\""
+        fi
     else
         echo "unsupported backend given '$1'" >&2
         exit 1

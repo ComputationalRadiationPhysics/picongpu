@@ -77,7 +77,7 @@ public:
     /** Returns true if the memory pool is shared by host and device */
     bool isSharedMemoryPool()
     {
-#if( PMACC_CUDA_ENABLED != 1 )
+#if( PMACC_CUDA_ENABLED != 1 && !BOOST_COMP_HIP)
         return true;
 #else
         size_t freeInternal = 0;

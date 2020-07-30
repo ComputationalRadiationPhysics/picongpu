@@ -153,7 +153,7 @@ namespace mallocMC
          */
         template<typename AlpakaDevice, typename AlpakaQueue>
         ALPAKA_FN_HOST void
-        alloc(AlpakaDevice & dev, AlpakaQueue & queue, size_t size)
+        alloc(AlpakaDevice & dev, AlpakaQueue & queue, volatile size_t size)
         {
             void * pool = reservePolicy.setMemPool(dev, size);
             std::tie(pool, size) = AlignmentPolicy::alignPool(pool, size);

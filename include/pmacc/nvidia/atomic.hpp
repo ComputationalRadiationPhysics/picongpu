@@ -23,11 +23,17 @@
 
 
 #include "pmacc/types.hpp"
-#if( PMACC_CUDA_ENABLED == 1 )
+#include "pmacc/memory/Array.hpp"
+#if( BOOST_LANG_CUDA || BOOST_COMP_HIP)
 #   include "pmacc/nvidia/warp.hpp"
 #endif
 #include <boost/type_traits.hpp>
 #include <climits>
+
+#include <alpaka/intrinsic/Traits.hpp>
+#include <alpaka/warp/Traits.hpp>
+
+#include <type_traits>
 
 
 namespace pmacc
@@ -48,7 +54,7 @@ namespace nvidia
             }
         };
 
-#if PMACC_CUDA_ARCH >= 300
+#if CUPLA_DEVICE_COMPILE == 1
        /**
          * Trait that returns whether an optimized version of AtomicAllInc
          * exists for Kepler architectures (and up)
@@ -88,22 +94,18 @@ namespace nvidia
             HDINLINE T_Type
             operator()(const T_Acc& acc,T_Type* ptr, const T_Hierarchy& hierarchy)
             {
-                /* Get a bitmask with 1 for each thread in the warp, that executes this */
-#if(__CUDACC_VER_MAJOR__ >= 9)
-                const int mask = __activemask();
-#else
-                const int mask = __ballot(1);
-#endif
-                /* select the leader */
-                const int leader = __ffs(mask) - 1;
+                const auto mask = alpaka::warp::activemask(acc);
+                const auto leader = alpaka::intrinsic::ffs(acc, static_cast<std::make_signed_t<decltype(mask)>>(mask)) - 1;
+
                 T_Type result;
                 const int laneId = getLaneId();
                 /* Get the start value for this warp */
                 if (laneId == leader)
-                    result = ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Add>(acc,ptr, static_cast<T_Type>(__popc(mask)), hierarchy);
+                    result = ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Add>(acc,ptr, static_cast<T_Type>(alpaka::intrinsic::popcount(acc, mask)), hierarchy);
                 result = warpBroadcast(result, leader);
                 /* Add offset per thread */
-                return result + static_cast<T_Type>(__popc(mask & ((1 << laneId) - 1)));
+                return result + static_cast<T_Type>(alpaka::intrinsic::popcount(acc, mask & (( static_cast<decltype(mask)>(1u) << laneId) - 1u)));
+
             }
         };
 
@@ -150,19 +152,21 @@ template<typename T, typename T_Acc, typename T_Hierarchy>
 HDINLINE
 T atomicAllInc(const T_Acc& acc, T *ptr, const T_Hierarchy& hierarchy)
 {
-    return detail::AtomicAllInc<T, (PMACC_CUDA_ARCH >= 300) >()(acc, ptr, hierarchy);
+    return detail::AtomicAllInc<T, (PMACC_CUDA_ARCH >= 300 || BOOST_COMP_HIP) >()(acc, ptr, hierarchy);
 }
 
 template<typename T>
 HDINLINE
 T atomicAllInc(T *ptr)
 {
-#ifdef __CUDA_ARCH__
-    return atomicAllInc(alpaka::atomic::AtomicUniformCudaHipBuiltIn(), ptr, ::alpaka::hierarchy::Grids());
-#else
-    // assume that we can use the standard library atomics if we are not on gpu
-    return atomicAllInc(alpaka::atomic::AtomicStdLibLock<16>(), ptr, ::alpaka::hierarchy::Grids());
-#endif
+    /* Dirty hack to call a alpaka accelerator based function.
+     * Member of  the fakeAcc will be uninitialized and should be not accessed.
+     *
+     * The id provider for particles is the only code where atomicAllInc without an accelerator is used.
+     * @todo remove the unsive faked accelerator
+     */
+    pmacc::memory::Array<cupla::AccThreadSeq, 1> fakeAcc;
+    return atomicAllInc(fakeAcc[0], ptr, ::alpaka::hierarchy::Grids());
 }
 
 /** optimized atomic value exchange
@@ -183,20 +187,37 @@ template<typename T_Type, typename T_Acc, typename T_Hierarchy>
 DINLINE void
 atomicAllExch(const T_Acc& acc, T_Type* ptr, const T_Type value, const T_Hierarchy& hierarchy)
 {
-#if (__CUDA_ARCH__ >= 200)
-#   if(__CUDACC_VER_MAJOR__ >= 9)
-    const int mask = __activemask();
-#   else
-    const int mask = __ballot(1);
-#   endif
-    // select the leader
-    const int leader = __ffs(mask) - 1;
-    // leader does the update
+
+    const auto mask = alpaka::warp::activemask(acc);
+    const auto leader = alpaka::intrinsic::ffs(acc, static_cast<std::make_signed_t<decltype(mask)>>(mask)) - 1;
+
+#if CUPLA_DEVICE_COMPILE == 1
     if (getLaneId() == leader)
 #endif
         ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Exch>(acc, ptr, value, hierarchy);
 }
 
+#if 0
+template<typename T_Acc, typename T_Hierarchy>
+DINLINE float
+atomicAddEmulated(T_Acc const & acc, float* address, float const val, const T_Hierarchy&)
+{
+    unsigned  int * address_as_ull(reinterpret_cast<unsigned int *>(address));
+    unsigned  int old = __atomic_load_n(address_as_ull, __ATOMIC_RELAXED);
+    unsigned  int assumed;
+    do
+    {
+        assumed = old;
+        old = atomicCAS(
+            address_as_ull,
+            assumed,
+            static_cast<unsigned int>(__float_as_uint(val + __uint_as_float(static_cast<unsigned int>(assumed)))));
+        // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+    }
+    while(assumed != old);
+    return __uint_as_float(static_cast<unsigned int>(old));
+}
+#endif
 
 } //namespace nvidia
 } //namespace pmacc

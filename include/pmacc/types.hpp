@@ -33,13 +33,12 @@
 #   define PMACC_CUDA_ENABLED ALPAKA_ACC_GPU_CUDA_ENABLED
 #endif
 
-#if( PMACC_CUDA_ENABLED == 1 )
+#if( BOOST_LANG_CUDA || BOOST_COMP_HIP)
 /* include mallocMC before cupla renaming is activated, else we need the variable acc
  * to call atomic cuda functions
  */
 #   include <mallocMC/mallocMC.hpp>
 #endif
-
 
 #include <cupla.hpp>
 

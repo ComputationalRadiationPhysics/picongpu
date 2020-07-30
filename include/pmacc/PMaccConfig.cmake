@@ -368,7 +368,7 @@ endif()
 # Find mallocMC
 ################################################################################
 
-if(ALPAKA_ACC_GPU_CUDA_ENABLE)
+if(ALPAKA_ACC_GPU_CUDA_ENABLE OR ALPAKA_ACC_GPU_HIP_ENABLE)
     find_package(mallocMC 2.4.0 QUIET)
 
     if(NOT mallocMC_FOUND)

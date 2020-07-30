@@ -42,10 +42,15 @@ DINLINE uint32_t getLaneId()
     asm("mov.u32 %0, %%laneid;" : "=r" (id));
     return id;
 }
+#elif BOOST_COMP_HIP
+DINLINE uint32_t getLaneId()
+{
+    return __lane_id();
+}
 #endif
 
 
-#if (__CUDA_ARCH__ >= 300)
+#if (__CUDA_ARCH__ >= 300 || BOOST_COMP_HIP)
 /** broadcast data within a warp
  *
  * required PTX ISA >=3.0

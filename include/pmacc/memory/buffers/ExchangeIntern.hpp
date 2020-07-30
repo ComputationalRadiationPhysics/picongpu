@@ -222,24 +222,24 @@ namespace pmacc
 
         }
 
-        virtual HostBuffer<TYPE, DIM>& getHostBuffer()
+        virtual HostBuffer<TYPE, DIM>& getHostBuffer() override
         {
             PMACC_ASSERT(hostBuffer != nullptr);
             return *hostBuffer;
         }
 
-        virtual DeviceBuffer<TYPE, DIM>& getDeviceBuffer()
+        virtual DeviceBuffer<TYPE, DIM>& getDeviceBuffer() override
         {
             PMACC_ASSERT(deviceBuffer != nullptr);
             return *deviceBuffer;
         }
 
-        virtual bool hasDeviceDoubleBuffer()
+        virtual bool hasDeviceDoubleBuffer() override
         {
             return deviceDoubleBuffer != nullptr;
         }
 
-        virtual DeviceBuffer<TYPE, DIM>& getDeviceDoubleBuffer()
+        virtual DeviceBuffer<TYPE, DIM>& getDeviceDoubleBuffer() override
         {
             PMACC_ASSERT(deviceDoubleBuffer != nullptr);
             return *deviceDoubleBuffer;
