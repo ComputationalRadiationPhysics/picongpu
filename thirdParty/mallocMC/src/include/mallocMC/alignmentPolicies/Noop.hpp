@@ -27,16 +27,43 @@
 
 #pragma once
 
-namespace mallocMC{
-namespace AlignmentPolicies{
+#include "Noop.hpp"
 
-  /**
-   * @brief a policy that does nothing
-   *
-   * This AlignmentPolicy will not perform any distribution, but only return
-   * its input (identity function)
-   */
-  class Noop;
+#include <alpaka/core/Common.hpp>
+#include <cstdint>
+#include <string>
+#include <tuple>
 
-} //namespace AlignmentPolicies
-} //namespace mallocMC
+namespace mallocMC
+{
+    namespace AlignmentPolicies
+    {
+        /**
+         * @brief a policy that does nothing
+         *
+         * This AlignmentPolicy will not perform any distribution, but only
+         * return its input (identity function)
+         */
+        class Noop
+        {
+        public:
+            static auto alignPool(void * memory, size_t memsize)
+                -> std::tuple<void *, size_t>
+            {
+                return std::make_tuple(memory, memsize);
+            }
+
+            ALPAKA_FN_HOST_ACC
+            static auto applyPadding(size_t bytes) -> size_t
+            {
+                return bytes;
+            }
+
+            static auto classname() -> std::string
+            {
+                return "Noop";
+            }
+        };
+
+    } // namespace AlignmentPolicies
+} // namespace mallocMC

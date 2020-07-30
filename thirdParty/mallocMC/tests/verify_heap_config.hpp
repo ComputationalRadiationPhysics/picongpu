@@ -28,52 +28,51 @@
 
 #pragma once
 
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/bool.hpp>
+#include <alpaka/alpaka.hpp>
+#include <mallocMC/mallocMC.hpp>
 
-// basic files for mallocMC
-#include "src/include/mallocMC/mallocMC_hostclass.hpp"
-
-// Load all available policies for mallocMC
-#include "src/include/mallocMC/CreationPolicies.hpp"
-#include "src/include/mallocMC/DistributionPolicies.hpp"
-#include "src/include/mallocMC/OOMPolicies.hpp"
-#include "src/include/mallocMC/ReservePoolPolicies.hpp"
-#include "src/include/mallocMC/AlignmentPolicies.hpp"
-    
+using Dim = alpaka::dim::DimInt<1>;
+using Idx = std::size_t;
+//using Acc = alpaka::acc::AccCpuThreads<Dim, Idx>;
+//using Acc = alpaka::acc::AccCpuOmp2Threads<Dim, Idx>;
+using Acc = alpaka::acc::AccGpuCudaRt<Dim, Idx>;
 
 // configurate the CreationPolicy "Scatter"
-struct ScatterConfig{
-    typedef boost::mpl::int_<4096>  pagesize;
-    typedef boost::mpl::int_<8>     accessblocks;
-    typedef boost::mpl::int_<16>    regionsize;
-    typedef boost::mpl::int_<2>     wastefactor;
-    typedef boost::mpl::bool_<false> resetfreedpages;
+struct ScatterConfig
+{
+    static constexpr auto pagesize = 4096;
+    static constexpr auto accessblocks = 8;
+    static constexpr auto regionsize = 16;
+    static constexpr auto wastefactor = 2;
+    static constexpr auto resetfreedpages = false;
 };
 
-struct ScatterHashParams{
-    typedef boost::mpl::int_<38183> hashingK;
-    typedef boost::mpl::int_<17497> hashingDistMP;
-    typedef boost::mpl::int_<1>     hashingDistWP;
-    typedef boost::mpl::int_<1>     hashingDistWPRel;
+struct ScatterHashParams
+{
+    static constexpr auto hashingK = 38183;
+    static constexpr auto hashingDistMP = 17497;
+    static constexpr auto hashingDistWP = 1;
+    static constexpr auto hashingDistWPRel = 1;
 };
 
 // configure the DistributionPolicy "XMallocSIMD"
-struct DistributionConfig{
-  typedef ScatterConfig::pagesize pagesize;
+struct DistributionConfig
+{
+    static constexpr auto pagesize = ScatterConfig::pagesize;
 };
 
 // configure the AlignmentPolicy "Shrink"
-struct AlignmentConfig{
-  typedef boost::mpl::int_<16> dataAlignment;
+struct AlignmentConfig
+{
+    static constexpr auto dataAlignment = 16;
 };
 
 // Define a new allocator and call it ScatterAllocator
 // which resembles the behaviour of ScatterAlloc
-typedef mallocMC::Allocator< 
-  mallocMC::CreationPolicies::Scatter<ScatterConfig,ScatterHashParams>,
-  mallocMC::DistributionPolicies::XMallocSIMD<DistributionConfig>,
-  mallocMC::OOMPolicies::ReturnNull,
-  mallocMC::ReservePoolPolicies::SimpleCudaMalloc,
-  mallocMC::AlignmentPolicies::Shrink<AlignmentConfig>
-  > ScatterAllocator;
+using ScatterAllocator = mallocMC::Allocator<
+    Acc,
+    mallocMC::CreationPolicies::Scatter<ScatterConfig, ScatterHashParams>,
+    mallocMC::DistributionPolicies::XMallocSIMD<DistributionConfig>,
+    mallocMC::OOMPolicies::ReturnNull,
+    mallocMC::ReservePoolPolicies::AlpakaBuf<Acc>,
+    mallocMC::AlignmentPolicies::Shrink<AlignmentConfig>>;
