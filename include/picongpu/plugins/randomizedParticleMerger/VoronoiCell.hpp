@@ -163,7 +163,7 @@ namespace randomizedParticleMerger
         /** check if the current thread is associated to the first particle */
         template< typename T_Acc >
         DINLINE
-        bool isFirstParticle(T_Acc const & acc)
+        bool isFirstParticle(const T_Acc & acc)
         {
             return atomicExch( &this->firstParticleFlag, 1 ) == 0;
         }
@@ -173,7 +173,7 @@ namespace randomizedParticleMerger
         template< typename T_Acc >
         DINLINE
         void addParticle(
-            T_Acc const & acc,
+            const T_Acc & acc,
             const floatD_X position,
             const float3_X momentum,
             const float_X weighting
@@ -235,8 +235,8 @@ namespace randomizedParticleMerger
          */
         HDINLINE
         void finalizeExpectedNumberParticles(
-            uint32_t const minMacroParticlesToDivide,
-            float_X const ratioKeptParticles
+            const uint32_t minMacroParticlesToDivide,
+            const float_X ratioKeptParticles
         )
         {
             // Special case for the original voronoi cells

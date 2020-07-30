@@ -24,19 +24,19 @@ Compile-Time Option   Description
 .cfg file
 ^^^^^^^^^
 
-============================================ ================================================================================================================
-PIConGPU command line option                 Description
-============================================ ================================================================================================================
-``--<species>_merger.period``                The ouput periodicity of the plugin. A value of ``100`` would mean an output at simulation time step *0, 100, 200, ...*.
+====================================================== ========================================================================================================================
+PIConGPU command line option                           Description
+====================================================== ========================================================================================================================
+``--<species>_randomizedMerger.period``                The ouput periodicity of the plugin. A value of ``100`` would mean an output at simulation time step *0, 100, 200, ...*.
 											 
-``--<species>_merger.ratioDeletedParticles`` The ratio of particles to delete. The parameter have to be in Range *[0:1]*.
+``--<species>_randomizedMerger.ratioDeletedParticles`` The ratio of particles to delete. The parameter have to be in Range *[0:1]*.
 
-``--<species>_merger.maxParticlesToMerge``   Maximum number of macroparticles that can be merged into a single macroparticle.
+``--<species>_randomizedMerger.maxParticlesToMerge``   Maximum number of macroparticles that can be merged into a single macroparticle.
 
-``--<species>_merger.posSpreadThreshold``    Below this threshold of spread in position macroparticles can be merged [unit: cell edge length].
+``--<species>_randomizedMerger.posSpreadThreshold``    Below this threshold of spread in position macroparticles can be merged [unit: cell edge length].
 
-``--<species>_merger.momSpreadThreshold``    Below this absolute threshold of spread in momentum macroparticles can be merged [unit: :math:`m_{e-} \cdot c`].
-============================================ ================================================================================================================
+``--<species>_randomizedMerger.momSpreadThreshold``    Below this absolute threshold of spread in momentum macroparticles can be merged [unit: :math:`m_{e-} \cdot c`].
+====================================================== ========================================================================================================================
 
 Memory Complexity
 ^^^^^^^^^^^^^^^^^
