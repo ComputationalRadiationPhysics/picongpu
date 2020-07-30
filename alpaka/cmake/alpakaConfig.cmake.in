@@ -1,0 +1,70 @@
+#
+# Copyright 2014-2020 Benjamin Worpitz, Erik Zenker, Axel Huebl, Jan Stephan
+#
+# This file is part of alpaka.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+@PACKAGE_INIT@
+
+################################################################################
+# alpaka.
+
+set(ALPAKA_DEBUG "0" CACHE STRING "Debug level")
+set_property(CACHE ALPAKA_DEBUG PROPERTY STRINGS "0;1;2")
+
+#-------------------------------------------------------------------------------
+# Common.
+
+# This file's directory.
+set(_ALPAKA_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
+# Normalize the path (e.g. remove ../)
+get_filename_component(_ALPAKA_ROOT_DIR ${_ALPAKA_ROOT_DIR} ABSOLUTE)
+
+# Add common functions.
+set(_ALPAKA_COMMON_FILE "${_ALPAKA_ROOT_DIR}/common.cmake")
+include(${_ALPAKA_COMMON_FILE})
+
+# Add ALPAKA_ADD_EXECUTABLE function.
+set(_ALPAKA_ADD_EXECUTABLE_FILE "${_ALPAKA_ROOT_DIR}/addExecutable.cmake")
+include(${_ALPAKA_ADD_EXECUTABLE_FILE})
+
+# Add ALPAKA_ADD_LIBRARY function.
+set(_ALPAKA_ADD_LIBRARY_FILE "${_ALPAKA_ROOT_DIR}/addLibrary.cmake")
+include(${_ALPAKA_ADD_LIBRARY_FILE})
+
+# Set found to true initially and set it to false if a required dependency is missing.
+set(_ALPAKA_FOUND TRUE)
+
+# Add module search path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${_ALPAKA_ROOT_DIR}/modules/")
+
+set(_ALPAKA_INCLUDE_DIRECTORY "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@")
+
+include("${CMAKE_CURRENT_LIST_DIR}/alpakaCommon.cmake")
+
+check_required_components("alpaka")
+
+# Unset already set variables if not found.
+if(NOT _ALPAKA_FOUND)
+    unset(_ALPAKA_FOUND)
+    unset(_ALPAKA_COMPILE_OPTIONS_PUBLIC)
+    unset(_ALPAKA_COMPILE_DEFINITIONS_HIP)
+    unset(_ALPAKA_HIP_LIBRARIES)
+    unset(_ALPAKA_INCLUDE_DIRECTORY)
+    unset(_ALPAKA_ADD_EXECUTABLE_FILE)
+    unset(_ALPAKA_ADD_LIBRARY_FILE)
+    unset(_ALPAKA_BOOST_MIN_VER)
+else()
+    # Make internal variables advanced options in the GUI.
+    mark_as_advanced(
+        _ALPAKA_COMPILE_OPTIONS_PUBLIC
+        _ALPAKA_INCLUDE_DIRECTORY
+        _ALPAKA_COMMON_FILE
+        _ALPAKA_ADD_EXECUTABLE_FILE
+        _ALPAKA_ADD_LIBRARY_FILE
+        _ALPAKA_BOOST_MIN_VER)
+endif()
