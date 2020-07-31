@@ -1,4 +1,5 @@
-/* Copyright 2013-2020 Axel Huebl, Remi Lehe
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe,
+ *                     Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -19,9 +20,12 @@
 
 #pragma once
 
-#include "picongpu/fields/MaxwellSolver/Lehe/Curl.def"
-#include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
+#include "picongpu/fields/differentiation/Curl.def"
+#include "picongpu/fields/MaxwellSolver/Lehe/Derivative.def"
+#include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
+
+#include <cstdint>
 
 
 namespace picongpu
@@ -30,6 +34,33 @@ namespace fields
 {
 namespace maxwellSolver
 {
+namespace lehe
+{
+
+    /* Note: Directions are kept as global names for compatibility with the
+     * previously used solver interface
+     */
+
+    //! Remove numerical Cherenkov radiation along x
+    constexpr uint32_t CherenkovFreeDirection_X = 0;
+
+    //! Remove numerical Cherenkov radiation along y
+    constexpr uint32_t CherenkovFreeDirection_Y = 1;
+
+    //! Remove numerical Cherenkov radiation along z
+    constexpr uint32_t CherenkovFreeDirection_Z = 2;
+
+    /** Curl to be applied for the E field
+     *
+     * @tparam T_cherenkovFreeDirection direction to remove numerical Cherenkov
+     *                                  radiation in, 0 = x, 1 = y, 2 = z
+     */
+    template< uint32_t T_cherenkovFreeDirection >
+    using CurlE = differentiation::Curl<
+        Derivative< T_cherenkovFreeDirection >
+    >;
+
+} // namespace lehe
 
     /** modified Yee solver
      *
@@ -37,18 +68,18 @@ namespace maxwellSolver
      *            Phys. Rev. ST Accel. Beams 16, 021301 (2013)
      *
      * @tparam T_CherenkovFreeDir the direction (axis) which should be free of cherenkov radiation
-     *                            valid types: lehe::CherenkovFreeDirection_Y, lehe::CherenkovFreeDirection_Y
+     *                            0 = x, 1 = y, 2 = z
      */
     template<
         typename T_CurrentInterpolation = currentInterpolation::None,
-        typename T_CherenkovFreeDir = lehe::CherenkovFreeDirection_Y
+        uint32_t T_cherenkovFreeDir = lehe::CherenkovFreeDirection_Y
     >
     using Lehe = ::picongpu::fields::maxwellSolver::Yee<
         T_CurrentInterpolation,
-        lehe::CurlE< T_CherenkovFreeDir >
+        lehe::CurlE< T_cherenkovFreeDir >
     >;
 
-    /* we need no definition of margins, because the YeeSolver uses its curl
+    /* We need no definition of margins, because the Yee solver uses its curl
      * classes to define margins
      */
 
