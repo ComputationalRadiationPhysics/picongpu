@@ -197,26 +197,54 @@ atomicAllExch(const T_Acc& acc, T_Type* ptr, const T_Type value, const T_Hierarc
         ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Exch>(acc, ptr, value, hierarchy);
 }
 
-#if 0
-template<typename T_Acc, typename T_Hierarchy>
-DINLINE float
-atomicAddEmulated(T_Acc const & acc, float* address, float const val, const T_Hierarchy&)
-{
-    unsigned  int * address_as_ull(reinterpret_cast<unsigned int *>(address));
-    unsigned  int old = __atomic_load_n(address_as_ull, __ATOMIC_RELAXED);
-    unsigned  int assumed;
-    do
+#if BOOST_COMP_HIP && CUPLA_DEVICE_COMPILE && PIC_EMU_ATOMICADD
+
+    template<typename T_Acc, typename T_Hierarchy>
+    DINLINE float
+    atomicAddEmulated(T_Acc const & acc, float* address, float const val, const T_Hierarchy&)
     {
-        assumed = old;
-        old = atomicCAS(
-            address_as_ull,
-            assumed,
-            static_cast<unsigned int>(__float_as_uint(val + __uint_as_float(static_cast<unsigned int>(assumed)))));
-        // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+        unsigned int * address_as_u(reinterpret_cast<unsigned int *>(address));
+        unsigned int old = __atomic_load_n(address_as_u, __ATOMIC_RELAXED);
+        unsigned int assumed;
+        do
+        {
+            assumed = old;
+            old = atomicCAS(
+                address_as_u,
+                assumed,
+                static_cast<unsigned int>(__float_as_uint(val + __uint_as_float(static_cast<unsigned int>(assumed)))));
+            // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+        }
+        while(assumed != old);
+        return __uint_as_float(static_cast<unsigned int>(old));
     }
-    while(assumed != old);
-    return __uint_as_float(static_cast<unsigned int>(old));
-}
+
+    template<typename T_Acc, typename T_Hierarchy>
+    DINLINE double
+    atomicAddEmulated(T_Acc const & acc, double* address, double const val, const T_Hierarchy&)
+    {
+        unsigned long long int * address_as_ull(reinterpret_cast<unsigned long long int *>(address));
+        unsigned long long int old = __atomic_load_n(address_as_ull, __ATOMIC_RELAXED);
+        unsigned long long int assumed;
+        do
+        {
+            assumed = old;
+            old = atomicCAS(
+                address_as_ull,
+                assumed,
+                static_cast<unsigned long long int>(__double_as_longlong(val + __longlong_as_double(static_cast<unsigned long long int>(assumed)))));
+            // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+        }
+        while(assumed != old);
+        return __longlong_as_double(static_cast<unsigned long long int>(old));
+    }
+#else
+    template<typename T_Acc, typename T_Type, typename T_Hierarchy>
+    DINLINE float
+    atomicAddEmulated(T_Acc const & acc, T_Type* ptr, T_Type const value, const T_Hierarchy& hierarchy)
+    {
+        return ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Add>(acc, ptr, value, hierarchy);
+    }
 #endif
 
 } //namespace nvidia

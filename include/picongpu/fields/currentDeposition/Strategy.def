@@ -21,6 +21,7 @@
 
 #include <pmacc/nvidia/functors/Add.hpp>
 #include <pmacc/nvidia/functors/Atomic.hpp>
+#include <pmacc/nvidia/functors/EmulatedAtomicAdd.hpp>
 #include <pmacc/types.hpp>
 
 
@@ -46,10 +47,16 @@ namespace strategy
     {
         static constexpr bool useBlockCache = true;
         static constexpr bool stridedMapping = true;
+#if  BOOST_COMP_HIP && CUPLA_DEVICE_COMPILE && PIC_EMU_ATOMICADD
+        using BlockReductionOp = nvidia::functors::EmulatedAtomicAdd<
+            ::alpaka::hierarchy::Threads
+        >;
+#else
         using BlockReductionOp = nvidia::functors::Atomic<
             ::alpaka::atomic::op::Add,
             ::alpaka::hierarchy::Threads
         >;
+#endif
         using GridReductionOp = nvidia::functors::Add;
     };
 
@@ -64,10 +71,16 @@ namespace strategy
     {
         static constexpr bool useBlockCache = true;
         static constexpr bool stridedMapping = false;
+#if  BOOST_COMP_HIP && CUPLA_DEVICE_COMPILE && PIC_EMU_ATOMICADD
+        using BlockReductionOp = nvidia::functors::EmulatedAtomicAdd<
+            ::alpaka::hierarchy::Threads
+        >;
+#else
         using BlockReductionOp = nvidia::functors::Atomic<
             ::alpaka::atomic::op::Add,
             ::alpaka::hierarchy::Threads
         >;
+#endif
         using GridReductionOp = nvidia::functors::Atomic<
             ::alpaka::atomic::op::Add,
             ::alpaka::hierarchy::Blocks
@@ -141,6 +154,18 @@ namespace traits
     >
     struct GetDefaultStrategy<
         alpaka::acc::AccGpuCudaRt< T_Args... >
+    >
+    {
+        using type = strategy::CachedSupercells;
+    };
+#endif
+
+#if( ALPAKA_ACC_GPU_HIP_ENABLED == 1 )
+        template<
+        typename ... T_Args
+    >
+    struct GetDefaultStrategy<
+        alpaka::acc::AccGpuHipRt< T_Args... >
     >
     {
         using type = strategy::CachedSupercells;
