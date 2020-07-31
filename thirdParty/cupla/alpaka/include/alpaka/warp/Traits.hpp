@@ -71,7 +71,7 @@ namespace alpaka
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TWarp>
-        ALPAKA_FN_ACC auto getSize(
+        ALPAKA_FN_HOST_ACC auto getSize(
             TWarp const & warp)
         -> std::int32_t
         {
@@ -100,7 +100,7 @@ namespace alpaka
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TWarp>
-        ALPAKA_FN_ACC auto activemask(
+        ALPAKA_FN_HOST_ACC auto activemask(
             TWarp const & warp) -> decltype(traits::Activemask<
                 concepts::ImplementationBase<ConceptWarp, TWarp> >::activemask(warp))
         {
@@ -127,7 +127,7 @@ namespace alpaka
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TWarp>
-        ALPAKA_FN_ACC auto all(
+        ALPAKA_FN_HOST_ACC auto all(
             TWarp const & warp,
             std::int32_t predicate)
         -> std::int32_t
@@ -154,7 +154,7 @@ namespace alpaka
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TWarp>
-        ALPAKA_FN_ACC auto any(
+        ALPAKA_FN_HOST_ACC auto any(
             TWarp const & warp,
             std::int32_t predicate)
         -> std::int32_t
@@ -185,7 +185,7 @@ namespace alpaka
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TWarp>
-        ALPAKA_FN_ACC auto ballot(
+        ALPAKA_FN_HOST_ACC auto ballot(
             TWarp const & warp,
             std::int32_t predicate)
         {

@@ -168,12 +168,8 @@ namespace mallocMC
                         *(uint32 *)myalloc = threadcount;
                 }
 
-#if(MALLOCMC_DEVICE_COMPILE)
-                __threadfence_block();
-#else
-                std::atomic_thread_fence(
-                    std::memory_order::memory_order_seq_cst);
-#endif
+                threadfenceBlock(acc);
+
                 void * myres = myalloc;
                 if(can_use_coalescing)
                 {

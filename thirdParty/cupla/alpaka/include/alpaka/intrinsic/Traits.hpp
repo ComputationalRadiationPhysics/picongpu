@@ -51,7 +51,7 @@ namespace alpaka
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TIntrinsic>
-        ALPAKA_FN_ACC auto popcount(
+        ALPAKA_FN_HOST_ACC auto popcount(
             TIntrinsic const & intrinsic,
             std::uint32_t value)
         -> std::int32_t
@@ -73,7 +73,7 @@ namespace alpaka
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TIntrinsic>
-        ALPAKA_FN_ACC auto popcount(
+        ALPAKA_FN_HOST_ACC auto popcount(
             TIntrinsic const & intrinsic,
             std::uint64_t value)
         -> std::int32_t
@@ -96,7 +96,7 @@ namespace alpaka
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TIntrinsic>
-        ALPAKA_FN_ACC auto ffs(
+        ALPAKA_FN_HOST_ACC auto ffs(
             TIntrinsic const & intrinsic,
             std::int32_t value)
         -> std::int32_t
@@ -119,7 +119,7 @@ namespace alpaka
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TIntrinsic>
-        ALPAKA_FN_ACC auto ffs(
+        ALPAKA_FN_HOST_ACC auto ffs(
             TIntrinsic const & intrinsic,
             std::int64_t value)
         -> std::int32_t

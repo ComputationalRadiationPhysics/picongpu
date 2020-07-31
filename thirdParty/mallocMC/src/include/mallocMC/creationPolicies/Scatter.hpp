@@ -660,12 +660,8 @@ namespace mallocMC
                             // remove chunk information
                             _ptes[page].chunksize = 0;
 
-#if(MALLOCMC_DEVICE_COMPILE)
-                            __threadfence(); // TODO alpaka
-#else
-                            std::atomic_thread_fence(
-                                std::memory_order::memory_order_seq_cst);
-#endif
+                            threadfenceDevice(acc);
+
                             // unlock it
                             alpaka::atomic::atomicOp<alpaka::atomic::op::Sub>(
                                 acc, (uint32 *)&_ptes[page].count, +pagesize);
@@ -850,12 +846,8 @@ namespace mallocMC
                 const uint32 pages = divup(bytes, pagesize);
                 for(uint32 p = page; p < page + pages; ++p) _page[p].init();
 
-#if(MALLOCMC_DEVICE_COMPILE)
-                __threadfence(); // TODO alpaka
-#else
-                std::atomic_thread_fence(
-                    std::memory_order::memory_order_seq_cst);
-#endif
+                threadfenceDevice(acc);
+
                 for(uint32 p = page; p < page + pages; ++p)
                     alpaka::atomic::atomicOp<alpaka::atomic::op::Cas>(
                         acc, (uint32 *)&_ptes[p].chunksize, bytes, 0u);
@@ -1358,12 +1350,7 @@ namespace mallocMC
                         acc, &warpResults[wId], temp);
 
                 alpaka::block::sync::syncBlockThreads(acc);
-#if(!MALLOCMC_DEVICE_COMPILE)
-                // alpaka is not providing memory fence methods for CPU, for GPU the block sync will be a thread fence too
-                std::atomic_thread_fence(
-                    std::memory_order::memory_order_seq_cst);
-#endif
-
+                threadfenceBlock(acc);
 
                 return warpResults[wId];
             }
