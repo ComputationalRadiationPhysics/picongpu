@@ -11,23 +11,24 @@
     - apt update
     - apt install -y curl
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
+    - source share/ci/bash.profile
     - source share/ci/run_test.sh
   tags:
     - cuda
     - x86_64 
     
 .base_nvcc_cuda_9.2:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda9.2gcc
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda9.2gccPic
   extends: .base_nvcc
 
 .base_nvcc_cuda_10.0:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.0gcc
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.0gccPic
   extends: .base_nvcc
   
 .base_nvcc_cuda_10.1:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.1gcc
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.1gccPic
   extends: .base_nvcc
 
 .base_nvcc_cuda_10.2:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.2gcc
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.2gccPic
   extends: .base_nvcc
