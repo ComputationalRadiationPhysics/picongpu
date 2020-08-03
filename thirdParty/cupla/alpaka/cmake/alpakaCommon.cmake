@@ -846,6 +846,7 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
         target_link_options(alpaka INTERFACE "--amdgpu-target=gfx803")
         target_link_options(alpaka INTERFACE "--amdgpu-target=gfx900")
         target_link_options(alpaka INTERFACE "--amdgpu-target=gfx906")
+        target_link_options(alpaka INTERFACE "--amdgpu-target=gfx908")
     endif()
 endif()
 
