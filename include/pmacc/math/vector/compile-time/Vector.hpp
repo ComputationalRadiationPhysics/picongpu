@@ -489,6 +489,33 @@ struct make_Vector<3, T_Type>
     using type = pmacc::math::CT::Vector<T_Type, T_Type, T_Type>;
 };
 
+//________________________make_BasisVector___________________
+
+/** Create CT::Vector that is the unit basis vector along the given direction
+ *
+ * Defines a public type as result.
+ * In case 0 <= T_direction < T_dim, return the basis vector type with value
+ * 1 in component T_direction and 0 in other components, otherwise return the
+ * zero vector type.
+ *
+ * @tparam T_dim count of components
+ * @tparam T_direction index of the basis vector direction
+ * @tparam T_ValueType value type of the vector
+ */
+template<uint32_t T_dim, uint32_t T_direction, typename T_ValueType = int>
+struct make_BasisVector
+{
+    using Zeroes = typename make_Vector<
+        T_dim,
+        bmpl::integral_c<T_ValueType, 0>
+    >::type;
+    using type = typename AssignIfInRange<
+        Zeroes,
+        bmpl::integral_c<size_t, T_direction>,
+        bmpl::integral_c<T_ValueType, 1>
+    >::type;
+};
+
 } // CT
 } // math
 } // pmacc

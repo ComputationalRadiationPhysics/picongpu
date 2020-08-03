@@ -24,6 +24,7 @@
 #include "picongpu/fields/differentiation/Traits.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
+#include <pmacc/math/Vector.hpp>
 #include <pmacc/meta/accessors/Identity.hpp>
 
 #include <cstdint>
@@ -54,10 +55,12 @@ namespace differentiation
         HDINLINE typename T_DataBox::ValueType operator()(
             T_DataBox const & data ) const
         {
-            pmacc::DataSpace< simDim > const currentIndex;
-            pmacc::DataSpace< simDim > upperIndex;
-            upperIndex[ T_direction ] = 1;
-            return ( data( upperIndex ) - data( currentIndex ) ) /
+            using Index = pmacc::DataSpace< simDim >;
+            auto const upperIndex = pmacc::math::basisVector<
+                Index,
+                T_direction
+            >();
+            return ( data( upperIndex ) - data( Index{} ) ) /
                 cellSize[ T_direction ];
         }
     };

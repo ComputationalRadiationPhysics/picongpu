@@ -842,6 +842,21 @@ struct Abs
     }
 };
 
+/** Get the unit basis vector of the given type along the given direction
+ *
+ * In case 0 <= T_direction < T_Vector::dim, return the basis vector with value
+ * 1 in component T_direction and 0 in other components, otherwise return the
+ * zero vector.
+ *
+ * @tparam T_Vector result type
+ * @tparam T_direction index of the basis vector direction
+ */
+template<
+    typename T_Vector,
+    uint32_t T_direction
+>
+HDINLINE T_Vector basisVector();
+
 } //namespace math
 
 namespace result_of
