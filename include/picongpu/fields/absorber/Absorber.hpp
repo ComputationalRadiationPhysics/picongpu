@@ -111,7 +111,7 @@ namespace detail
 
     /** Absorber wrapper
      *
-     * Specialization for PML
+     * Specialization for PML, works for both YeePML and LehePML
      *
      * @tparam T_CurrentInterpolation current interpolation for YeePML
      * @tparam T_CurlE curl E for YeePML

@@ -21,7 +21,7 @@
  *
  * Configure the Perfectly Matched Layer absorbing boundary conditions (PML).
  *
- * To enable PML use YeePML field solver.
+ * To enable PML use YeePML or LehePML field solver.
  */
 
 #pragma once

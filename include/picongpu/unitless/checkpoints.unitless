@@ -41,7 +41,10 @@ namespace detail
             using type = MakeSeq_t< >;
         };
 
-        //! Only the YeePML solver needs additional fields for checkpointing
+        /** Only the YeePML solver needs additional fields for checkpointing
+         *
+         * Currently LehePML is YeePML so automatically works for it as well.
+         */
         template< typename ... T_Args >
         struct AdditionalCheckpointFields<
             fields::maxwellSolver::YeePML< T_Args ... >

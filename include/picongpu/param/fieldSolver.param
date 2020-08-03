@@ -63,6 +63,8 @@ namespace fields
      *  - Yee< CurrentInterpolation > : standard Yee solver
      *  - YeePML< CurrentInterpolation >: standard Yee solver using Perfectly Matched Layer Absorbing Boundary Conditions (PML)
      *  - Lehe< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
+     *  - LehePML< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
+     *                                     using Perfectly Matched Layer Absorbing Boundary Conditions (PML)
      *  - DirSplitting< CurrentInterpolation >: Sentoku's Directional Splitting Method
      *  - None< CurrentInterpolation >: disable the vacuum update of E and B
      */
