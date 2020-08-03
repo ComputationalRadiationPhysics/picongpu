@@ -124,12 +124,23 @@ namespace lehe
             constexpr float_X betaDir2 = 0.125_X * stepRatio2 * stepRatio2;
 
             // finite-difference expression from eq. (6), generic for any T_direction
-            pmacc::DataSpace< simDim > secondUpperIndexDir0, lowerIndexDir0;
-            secondUpperIndexDir0[ dir0 ] = 2;
-            lowerIndexDir0[ dir0 ] = -1;
-            pmacc::DataSpace< simDim > upperNeighborDir1, upperNeighborDir2;
-            upperNeighborDir1[ dir1 ] = 1;
-            upperNeighborDir2[ dir2 ] = 1;
+            using Index = pmacc::DataSpace< simDim >;
+            auto const secondUpperIndexDir0 = 2 * pmacc::math::basisVector<
+                Index,
+                dir0
+            >();
+            auto const lowerIndexDir0 = -pmacc::math::basisVector<
+                Index,
+                dir0
+            >();
+            auto const upperNeighborDir1 = pmacc::math::basisVector<
+                Index,
+                dir1
+            >();
+            auto const upperNeighborDir2 = pmacc::math::basisVector<
+                Index,
+                dir2
+            >();
             auto forwardDerivative = differentiation::makeDerivativeFunctor<
                 differentiation::Forward,
                 T_direction
@@ -198,8 +209,10 @@ namespace lehe
                 differentiation::Forward,
                 T_direction
             >();
-            pmacc::DataSpace< simDim > upperNeighbor;
-            upperNeighbor[ T_cherenkovFreeDirection ] = 1;
+            auto const upperNeighbor = pmacc::math::basisVector<
+                pmacc::DataSpace< simDim >,
+                T_cherenkovFreeDirection
+            >();
             return alpha * forwardDerivative( data ) +
                 beta * forwardDerivative( data.shift( upperNeighbor ) ) +
                 beta * forwardDerivative( data.shift( -upperNeighbor ) );
