@@ -25,6 +25,7 @@
 
 
 #include "pmacc/math/Vector.hpp"
+#include "pmacc/math/vector/compile-time/Vector.hpp"
 #include "pmacc/algorithms/math.hpp"
 #include "pmacc/algorithms/TypeCast.hpp"
 #include "pmacc/algorithms/PromoteType.hpp"
@@ -149,6 +150,21 @@ namespace math
             return tmp;
         }
     };
+
+    template<
+        typename T_Vector,
+        uint32_t T_direction
+    >
+    HDINLINE T_Vector basisVector()
+    {
+        using Result = typename CT::make_BasisVector<
+            T_Vector::dim,
+            T_direction,
+            typename T_Vector::type
+        >::type;
+        return Result::toRT();
+    }
+
 } // namespace math
 } // namespace pmacc
 
