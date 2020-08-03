@@ -74,6 +74,40 @@ namespace lehe
         T_direction
     >
     {
+    private:
+
+        //! Internally used derivative functor
+        using InternalDerivativeFunctor = differentiation::DerivativeFunctor<
+            differentiation::Forward,
+            T_direction
+        >;
+
+    public:
+
+        /** Lower margin: we move by 1 along each direction and
+         *  apply InternalDerivativeFunctor, add those up
+         */
+        using LowerMargin = typename pmacc::math::CT::add<
+            typename pmacc::math::CT::make_Int<
+                simDim,
+                1
+            >::type,
+            typename GetLowerMargin< InternalDerivativeFunctor >::type
+        >::type;
+
+        /** Upper margin: we move by 1 along each direction and
+         *  effectively apply InternalDerivativeFunctor (for T_direction not
+         *  literally, but structurally), add those up
+         */
+        using UpperMargin = typename pmacc::math::CT::add<
+            typename pmacc::math::CT::make_Int<
+                simDim,
+                1
+            >::type,
+            typename GetUpperMargin< InternalDerivativeFunctor >::type
+        >::type;
+
+        //! Create a functor
         HDINLINE DerivativeFunctor( )
         {
             // differentiate along dir0; dir1 and dir2 are the other two directions
@@ -141,10 +175,11 @@ namespace lehe
                 Index,
                 dir2
             >();
-            auto forwardDerivative = differentiation::makeDerivativeFunctor<
-                differentiation::Forward,
-                T_direction
-            >();
+            InternalDerivativeFunctor forwardDerivative =
+                differentiation::makeDerivativeFunctor<
+                    differentiation::Forward,
+                    T_direction
+                >();
             return
                 alpha * forwardDerivative( data ) +
                 betaDir1 * forwardDerivative( data.shift( upperNeighborDir1 ) ) +
@@ -187,6 +222,40 @@ namespace lehe
             T_cherenkovFreeDirection != T_direction
         );
 
+    private:
+
+        //! Internally used derivative functor
+        using InternalDerivativeFunctor = differentiation::DerivativeFunctor<
+            differentiation::Forward,
+            T_direction
+        >;
+
+    public:
+
+        /** Lower margin: we move by 1 along T_cherenkovFreeDirection and
+         *  apply InternalDerivativeFunctor, add those up
+         */
+        using LowerMargin = typename pmacc::math::CT::add<
+            typename pmacc::math::CT::make_BasisVector<
+                simDim,
+                T_cherenkovFreeDirection,
+                int
+            >::type,
+            typename GetLowerMargin< InternalDerivativeFunctor >::type
+        >::type;
+
+        /** Upper margin: we move by 1 along T_cherenkovFreeDirection and
+         *  apply InternalDerivativeFunctor, add those up
+         */
+        using UpperMargin = typename pmacc::math::CT::add<
+            typename pmacc::math::CT::make_BasisVector<
+                simDim,
+                T_cherenkovFreeDirection,
+                int
+            >::type,
+            typename GetUpperMargin< InternalDerivativeFunctor >::type
+        >::type;
+
         /** Return derivative value at the given point
          *
          * @tparam T_DataBox data box type with field data
@@ -205,10 +274,11 @@ namespace lehe
              */
             constexpr float_X beta = 0.125_X;
             constexpr float_X alpha = 1.0_X - 2.0_X * beta;
-            auto forwardDerivative = differentiation::makeDerivativeFunctor<
-                differentiation::Forward,
-                T_direction
-            >();
+            InternalDerivativeFunctor forwardDerivative =
+                differentiation::makeDerivativeFunctor<
+                    differentiation::Forward,
+                    T_direction
+                >();
             auto const upperNeighbor = pmacc::math::basisVector<
                 pmacc::DataSpace< simDim >,
                 T_cherenkovFreeDirection
@@ -252,29 +322,4 @@ namespace traits
 } // namespace traits
 } // namespace differentiation
 } // namespace fields
-
-namespace traits
-{
-
-    /** Get margin of the Lehe solver derivative
-     *
-     * @tparam T_cherenkovFreeDirection direction to remove numerical Cherenkov
-     *                                  radiation in, 0 = x, 1 = y, 2 = z
-     */
-    template< uint32_t T_cherenkovFreeDirection >
-    struct GetMargin<
-        fields::maxwellSolver::lehe::Derivative< T_cherenkovFreeDirection >
-    >
-    {
-        using LowerMargin = typename pmacc::math::CT::make_Int<
-            simDim,
-            1
-        >::type;
-        using UpperMargin = typename pmacc::math::CT::make_Int<
-            simDim,
-            2
-        >::type;
-    };
-
-} // namespace traits
 } // namespace picongpu
