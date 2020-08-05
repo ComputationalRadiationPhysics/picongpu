@@ -616,7 +616,11 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
                     message(WARNING "Could not find CUDA while HIP platform is set to nvcc. Compilation might fail.")
                 endif()
 
-                set(ALPAKA_CUDA_ARCH "30" CACHE STRING "GPU architecture")
+                if(CUDA_VERSION VERSION_LESS 10.3)
+                    set(ALPAKA_HIP_ARCH "30" CACHE STRING "GPU architecture")
+                else()
+                    set(ALPAKA_HIP_ARCH "35" CACHE STRING "GPU architecture")
+                endif()
 
                 if(CUDA_VERSION VERSION_LESS 9.0)
                     message(WARNING "CUDA Toolkit < 9.0 is not supported!")
@@ -631,7 +635,7 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
                 list(APPEND HIP_NVCC_FLAGS --expt-relaxed-constexpr)
                 list(APPEND _ALPAKA_HIP_LIBRARIES "cudart")
 
-                foreach(_HIP_ARCH_ELEM ${ALPAKA_CUDA_ARCH})
+                foreach(_HIP_ARCH_ELEM ${ALPAKA_HIP_ARCH})
                     # set flags to create device code for the given architecture
                     list(APPEND CUDA_NVCC_FLAGS
                         --generate-code=arch=compute_${_HIP_ARCH_ELEM},code=sm_${_HIP_ARCH_ELEM}
@@ -693,6 +697,17 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
                 target_include_directories(alpaka INTERFACE ${HIP_RAND_INC})
                 target_link_libraries(alpaka INTERFACE ${HIP_RAND_LIBRARY})
             elseif(ALPAKA_HIP_PLATFORM MATCHES "clang")
+
+                # possible architectures:
+                # gfx600, gfx601, gfx700, gfx701, gfx702, gfx703, gfx704, gfx801, gfx802, gfx803, gfx810, gfx900, gfx902,
+                # gfx906, gfx908
+                set(ALPAKA_HIP_ARCH "gfx906;gfx908" CACHE STRING "GPU architecture")
+
+                foreach(_HIP_ARCH_ELEM ${ALPAKA_HIP_ARCH})
+                    # set flags to create device code for the given architecture
+                    list(APPEND HIP_HIPCC_FLAGS --amdgpu-target=${_HIP_ARCH_ELEM})
+                    #target_link_options(alpaka INTERFACE "--amdgpu-target=${_HIP_ARCH_ELEM}")
+                endforeach()
                 # # hiprand requires ROCm implementation of random numbers by rocrand
                 FIND_PACKAGE(rocrand REQUIRED CONFIG                 
                     HINTS "${HIP_ROOT_DIR}/rocrand"
@@ -840,14 +855,6 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
         target_link_options(alpaka INTERFACE "-Xcompiler ${OpenMP_CXX_FLAGS}")
         set_property(TARGET alpaka
                      PROPERTY INTERFACE_LINK_LIBRARIES ${_ALPAKA_LINK_LIBRARIES_PUBLIC})
-    endif()
-    if(ALPAKA_HIP_PLATFORM MATCHES "clang")
-        # GFX600, GFX601, GFX700, GFX701, GFX702, GFX703, GFX704, GFX801, GFX802, GFX803, GFX810, GFX900, GFX902
-        #target_link_options(alpaka INTERFACE "--amdgpu-target=gfx906")
-        #target_link_options(alpaka INTERFACE "--amdgpu-target=gfx908")
-
-        list(APPEND HIP_HIPCC_FLAGS --amdgpu-target=gfx906)
-        list(APPEND HIP_HIPCC_FLAGS --amdgpu-target=gfx908)
     endif()
 endif()
 
