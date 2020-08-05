@@ -22,7 +22,6 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/differentiation/Derivative.def"
 #include "picongpu/fields/differentiation/Traits.hpp"
-#include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/meta/accessors/Identity.hpp>
@@ -46,6 +45,19 @@ namespace differentiation
     template< uint32_t T_direction >
     struct ForwardDerivativeFunctor
     {
+        //! Lower margin
+        using LowerMargin = typename pmacc::math::CT::make_Int<
+            simDim,
+            0
+        >::type;
+
+        //! Upper margin
+        using UpperMargin = typename pmacc::math::CT::make_BasisVector<
+            simDim,
+            T_direction,
+            int
+        >::type;
+
         /** Return derivative value at the given point
          *
          * @tparam T_DataBox data box type with field data
@@ -85,23 +97,4 @@ namespace traits
 } // namespace traits
 } // namespace differentiation
 } // namespace fields
-
-namespace traits
-{
-
-    //! Get margin of the forward derivative
-    template<>
-    struct GetMargin< fields::differentiation::Forward >
-    {
-        using LowerMargin = typename pmacc::math::CT::make_Int<
-            simDim,
-            0
-        >::type;
-        using UpperMargin = typename pmacc::math::CT::make_Int<
-            simDim,
-            1
-        >::type;
-    };
-
-} // namespace traits
 } // namespace picongpu

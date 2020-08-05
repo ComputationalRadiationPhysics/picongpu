@@ -23,6 +23,8 @@
 #include "picongpu/fields/differentiation/Derivative.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
+#include <pmacc/math/Vector.hpp>
+
 
 namespace picongpu
 {
@@ -42,11 +44,47 @@ namespace differentiation
         //! Derivative tag
         using Derivative = T_Derivative;
 
-        //! Lower margin
-        using LowerMargin = typename GetLowerMargin< Derivative >::type;
+        //! Derivative function along x type
+        using XDerivativeFunctor = decltype(
+            makeDerivativeFunctor<
+                Derivative,
+                0
+            >()
+        );
 
-        //! Upper margin
-        using UpperMargin = typename GetUpperMargin< Derivative >::type;
+        //! Derivative function along y type
+        using YDerivativeFunctor = decltype(
+            makeDerivativeFunctor<
+                Derivative,
+                1
+            >()
+        );
+
+        //! Derivative function along z type
+        using ZDerivativeFunctor = decltype(
+            makeDerivativeFunctor<
+                Derivative,
+                2
+            >()
+        );
+
+        //! Lower margin: max of the derivative lower margins
+        using LowerMargin = typename pmacc::math::CT::max<
+            typename pmacc::math::CT::max<
+                typename GetLowerMargin< XDerivativeFunctor >::type,
+                typename GetLowerMargin< YDerivativeFunctor >::type
+            >::type,
+            typename GetLowerMargin< ZDerivativeFunctor >::type
+        >::type;
+
+        //! Upper margin: max of the derivative upper margins
+        using UpperMargin =  typename pmacc::math::CT::max<
+            typename pmacc::math::CT::max<
+                typename GetUpperMargin< XDerivativeFunctor >::type,
+                typename GetUpperMargin< YDerivativeFunctor >::type
+            >::type,
+            typename GetUpperMargin< ZDerivativeFunctor >::type
+        >::type;
 
         //! Create curl functor
         HDINLINE Curl():
@@ -123,25 +161,6 @@ namespace differentiation
         }
 
     private:
-
-        using XDerivativeFunctor = decltype(
-            makeDerivativeFunctor<
-                Derivative,
-                0
-            >()
-        );
-        using YDerivativeFunctor = decltype(
-            makeDerivativeFunctor<
-                Derivative,
-                1
-            >()
-        );
-        using ZDerivativeFunctor = decltype(
-            makeDerivativeFunctor<
-                Derivative,
-                2
-            >()
-        );
 
         XDerivativeFunctor const xDerivativeFunctor;
         YDerivativeFunctor const yDerivativeFunctor;
