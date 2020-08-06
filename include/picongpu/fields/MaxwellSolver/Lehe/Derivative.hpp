@@ -120,13 +120,16 @@ namespace lehe
             float_64 const coeff = stepRatio * math::sin(
                 pmacc::math::Pi< float_64 >::halfValue *
                 float_64( SPEED_OF_LIGHT ) * float_64( DELTA_T ) /
-                float_64( cellSize[ T_direction ] )
+                float_64( cellSize[ dir0 ] )
             );
             delta = static_cast< float_X >(
                 0.25 * ( 1.0 - coeff * coeff )
             );
-            float_64 const stepRatio1 = cellSize[ dir0 ] / cellSize[ dir1 ];
-            float_64 const stepRatio2 = cellSize[ dir0 ] / cellSize[ dir2 ];
+            // for 2D the betas corresponding to z are 0
+            float_64 const stepRatio1 = dir1 < simDim ?
+                cellSize[ dir0 ] / cellSize[ dir1 ] : 0.0;
+            float_64 const stepRatio2 = dir2 < simDim ?
+                cellSize[ dir0 ] / cellSize[ dir2 ] : 0.0;
             float_64 const betaDir1 = 0.125 * stepRatio1 * stepRatio1;
             float_64 const betaDir2 = 0.125 * stepRatio2 * stepRatio2;
             alpha = static_cast< float_X >(
@@ -151,9 +154,13 @@ namespace lehe
             // cellSize is not constexpr currently, so make an own constexpr array
             constexpr float_X step[3] = { CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH };
 
-            // beta_xy and beta_xz from eq. (11), generic for any T_direction
-            constexpr float_X stepRatio1 = step[ dir0 ] / step[ dir1 ];
-            constexpr float_X stepRatio2 = step[ dir0 ] / step[ dir2 ];
+            /* beta_xy and beta_xz from eq. (11), generic for any T_direction;
+             * for 2D the betas corresponding to z are 0
+             */
+            constexpr float_X stepRatio1 = dir1 < simDim ?
+                step[ dir0 ] / step[ dir1 ] : 0.0_X;
+            constexpr float_X stepRatio2 = dir2 < simDim ?
+                step[ dir0 ] / step[ dir2 ] : 0.0_X;
             constexpr float_X betaDir1 = 0.125_X * stepRatio1 * stepRatio1;
             constexpr float_X betaDir2 = 0.125_X * stepRatio2 * stepRatio2;
 
@@ -217,6 +224,11 @@ namespace lehe
     >
     struct DerivativeFunctor
     {
+        PMACC_CASSERT_MSG(
+            _lehe_solver_cherenkov_free_direction_z_is_not_supported_for_2d,
+            T_cherenkovFreeDirection < simDim
+        );
+
         PMACC_CASSERT_MSG(
             _internal_error_wrong_lehe_derivative_functor_specialization,
             T_cherenkovFreeDirection != T_direction
