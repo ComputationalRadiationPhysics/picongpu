@@ -10,19 +10,20 @@
     - apt update
     - apt install -y curl
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
+    - source share/ci/bash.profile
     - source share/ci/run_test.sh
   tags:
     - cuda
     - x86_64 
 
 .base_clangCuda_cuda_9.2:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda9.2Clang
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda9.2ClangPic
   extends: .base_cuda_clang
   
 .base_clangCuda_cuda_10.0:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.0Clang
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.0ClangPic
   extends: .base_cuda_clang
 
 .base_clangCuda_cuda_10.1:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.1Clang
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.1ClangPic
   extends: .base_cuda_clang

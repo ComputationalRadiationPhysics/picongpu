@@ -2,7 +2,7 @@
 #   [clang++-X] : X = {4.0, 5.0, 6.0, 7, 8, 9, 10}
 
 .base_clang:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:clang
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:clangPic
   variables:
     GIT_SUBMODULE_STRATEGY: normal
     PIC_CMAKE_ARGS: "-DALPAKA_CUDA_COMPILER=clang"
@@ -10,6 +10,7 @@
       - apt update
       - apt install -y curl
       - $CI_PROJECT_DIR/share/ci/git_merge.sh
+      - source share/ci/bash.profile
       - source share/ci/run_test.sh
   # x86_64 tag is used to get a multi-core CPU for the tests
   tags:

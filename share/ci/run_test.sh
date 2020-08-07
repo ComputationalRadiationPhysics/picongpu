@@ -15,8 +15,18 @@ fi
 ###################################################
 
 PIC_CONST_ARGS=""
-PIC_CONST_ARGS="${PIC_CONST_ARGS} -DCMAKE_BUILD_TYPE=${PIC_BUILD_TYPE}"
+# to save compile time reduce the isaac functor chain length to one
+PIC_CONST_ARGS="${PIC_CONST_ARGS} -DISAAC_MAX_FUNCTORS=1 -DCMAKE_BUILD_TYPE=${PIC_BUILD_TYPE}"
 CMAKE_ARGS="${PIC_CONST_ARGS} ${PIC_CMAKE_ARGS} -DCMAKE_CXX_COMPILER=${CXX_VERSION} -DBOOST_ROOT=/opt/boost/${BOOST_VERSION}"
+
+# workaround for clang cuda
+# HDF5 from the apt sources is pulling -D_FORTIFY_SOURCE=2 into the compile flags
+# this workaround is creating a warning about the double definition of _FORTIFY_SOURCE
+#
+# Workaround will be removed after the test container are shipped with a self compiled HDF5
+if [[ $CXX_VERSION =~ ^clang && $PIC_BACKEND =~ ^cuda ]] ; then
+    CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_FLAGS=-D_FORTIFY_SOURCE=0"
+fi
 
 ###################################################
 # build an run tests
