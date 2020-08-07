@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Axel Huebl, Sergei Bastrakov
+/* Copyright 2020 Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -19,18 +19,29 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
-#include "picongpu/traits/GetCellType.hpp"
-
 
 namespace picongpu
 {
-namespace fields
+namespace traits
 {
 
-    //! Alias for a cell type used by the field solver
-    using CellType = traits::GetCellType< Solver >::type;
+    /** Trait for cell type of a field solver
+     *
+     * Defines the resulting type as ::type.
+     * By default falls back to T_FieldSolver::CellType.
+     *
+     * Note: it was originally indented to be put to a new namespace
+     * picongpu::fields::traits, but this was not possible due to conflicts
+     * with pmacc names lookup.
+     *
+     * @tparam T_FieldSolver field solver type
+     */
+    template< typename T_FieldSolver >
+    struct GetCellType
+    {
+        //! Cell type, one of fields::cellType:: types
+        using type = typename T_FieldSolver::CellType;
+    };
 
-} // namespace fields
+} // namespace traits
 } // namespace picongpu
