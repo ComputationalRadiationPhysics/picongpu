@@ -40,10 +40,7 @@ namespace picongpu
  *
  *  example: using UsedParticleShape = particles::shapes::CIC;
  */
-#ifndef PARAM_PARTICLESHAPE
-#define PARAM_PARTICLESHAPE TSC
-#endif
-using UsedParticleShape = particles::shapes::PARAM_PARTICLESHAPE;
+using UsedParticleShape = particles::shapes::TSC;
 
 /* define which interpolation method is used to interpolate fields to particle*/
 using UsedField2Particle = FieldToParticleInterpolation< UsedParticleShape, AssignedTrilinearInterpolation >;
@@ -62,10 +59,7 @@ using UsedField2Particle = FieldToParticleInterpolation< UsedParticleShape, Assi
  * - currentSolver::strategy::CachedSupercells
  * - currentSolver::strategy::NonCachedSupercells
  */
-#ifndef PARAM_CURRENTSOLVER
-#define PARAM_CURRENTSOLVER Esirkepov<UsedParticleShape>
-#endif
-using UsedParticleCurrentSolver = currentSolver::PARAM_CURRENTSOLVER;
+using UsedParticleCurrentSolver = currentSolver::Esirkepov<UsedParticleShape>;
 
 /*! particle pusher configuration ----------------------------------------------
  *

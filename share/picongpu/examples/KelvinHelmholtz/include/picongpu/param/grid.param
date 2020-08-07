@@ -34,53 +34,9 @@ namespace picongpu
         /** equals X
          *  unit: meter */
 
-#ifndef PARAM_FIELDSOLVER
-#   define PARAM_FIELDSOLVER Yee
-#endif
-
-#define DirSplitting 1
-
-#if( PMACC_CUDA_ENABLED != 1 )
-/* DirSplitting is only available for the CUDA accelerator.
- * Automatically switch back to Yee when we compile for non CUDA accelerator.
- */
-#   if (PARAM_FIELDSOLVER == 1)
-#       warning "DirSplitting is only for CUDA available, solver will be set to Yee."
-#       warning "CurrentInterpolation solver will be set to None."
-// rest current interpolation
-#       ifdef PARAM_CURRENTINTERPOLATION
-#           undef PARAM_CURRENTINTERPOLATION
-#       endif
-#       define PARAM_CURRENTINTERPOLATION None
-#       undef DirSplitting
-// switch to the field solver Yee
-#       undef PARAM_FIELDSOLVER
-#       define PARAM_FIELDSOLVER Yee
-// define DirSplitting to two to force cell size calculation based on Yee solver conditions
-#       define DirSplitting 2
-#   endif
-#endif
-// check if DirSplitting is activated
-#if (PARAM_FIELDSOLVER == 1)
-        /* THIS CODE PATH IS ONLY USED IF `PARAM_FIELDSOLVER` IS CHANGED IN
-         * `cmakeFlags` and the field solver there is set to fieldSolverDirSplitting
-         *
-         * Directional Splitting requires a fixed ratio between dt and dx
-         * and in addition cubic cells.
-         * conditions: dX == dt * c
-         *             dX == dY
-         *             dX == dZ
-         */
-        constexpr float_64 CELL_WIDTH_SI = DELTA_T_SI*SPEED_OF_LIGHT_SI;
-#else
-        /* cell size for Yee solver (must fulfill CFL)
-         * WARNING: if you change the field solver in `componentsConfig` you
-         * have to change the CELL_SIZE in this code path
-         */
+        /** equals X
+          *  unit: meter */
         constexpr float_64 CELL_WIDTH_SI = 9.34635e-8;
-#endif
-#undef DirSplitting
-
         /** equals Y
          *  unit: meter */
         constexpr float_64 CELL_HEIGHT_SI = CELL_WIDTH_SI;

@@ -55,10 +55,7 @@ namespace fields
      *     - experimental assignment for all-centered/directional splitting
      *     - updates E & B at the same time
      */
-#ifndef PARAM_CURRENTINTERPOLATION
-#   define PARAM_CURRENTINTERPOLATION None
-#endif
-    using CurrentInterpolation = currentInterpolation::PARAM_CURRENTINTERPOLATION;
+    using CurrentInterpolation = currentInterpolation::None;
 
     /** FieldSolver
      *
@@ -72,7 +69,7 @@ namespace fields
      *  - None< CurrentInterpolation >: disable the vacuum update of E and B
      */
 
-    using Solver = maxwellSolver::PARAM_FIELDSOLVER< CurrentInterpolation >;
+    using Solver = maxwellSolver::Yee< CurrentInterpolation >;
 
 } // namespace fields
 } // namespace picongpu
