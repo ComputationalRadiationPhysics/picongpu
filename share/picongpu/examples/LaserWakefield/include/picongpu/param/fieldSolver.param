@@ -55,10 +55,8 @@ namespace fields
      *     - experimental assignment for all-centered/directional splitting
      *     - updates E & B at the same time
      */
-#ifndef PARAM_CURRENTINTERPOLATION
-#   define PARAM_CURRENTINTERPOLATION None
-#endif
-    using CurrentInterpolation = currentInterpolation::PARAM_CURRENTINTERPOLATION;
+
+    using CurrentInterpolation = currentInterpolation::None;
 
     /** FieldSolver
      *
@@ -72,13 +70,7 @@ namespace fields
      *  - None< CurrentInterpolation >: disable the vacuum update of E and B
      */
 
-#ifndef PARAM_FIELDSOLVER
-    /* WARNING: if you change field solver by hand please update your CELL_WIDTH_SI
-     * in `grid.param` to fulfill the convergence condition (CFL)
-     */
-#   define PARAM_FIELDSOLVER Yee
-#endif
-    using Solver = maxwellSolver::PARAM_FIELDSOLVER< CurrentInterpolation >;
+    using Solver = maxwellSolver::Yee< CurrentInterpolation >;
 
 } // namespace fields
 } // namespace picongpu
