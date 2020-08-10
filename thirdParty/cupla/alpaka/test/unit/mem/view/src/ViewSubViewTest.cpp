@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz, Erik Zenker
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -142,7 +142,7 @@ namespace view
 
         Dev const dev(alpaka::pltf::getDevByIdx<Pltf>(0u));
 
-        auto const extentBuf(alpaka::vec::createVecFromIndexedFnWorkaround<Dim, Idx, alpaka::test::CreateExtentBufVal>(Idx()));
+        auto const extentBuf(alpaka::vec::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>());
         auto buf(alpaka::mem::buf::alloc<TElem, Idx>(dev, extentBuf));
 
         auto const extentView(extentBuf);
@@ -168,11 +168,11 @@ namespace view
 
         Dev const dev(alpaka::pltf::getDevByIdx<Pltf>(0u));
 
-        auto const extentBuf(alpaka::vec::createVecFromIndexedFnWorkaround<Dim, Idx, alpaka::test::CreateExtentBufVal>(Idx()));
+        auto const extentBuf(alpaka::vec::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>());
         auto buf(alpaka::mem::buf::alloc<TElem, Idx>(dev, extentBuf));
 
-        auto const extentView(alpaka::vec::createVecFromIndexedFnWorkaround<Dim, Idx, alpaka::test::CreateExtentViewVal>(Idx()));
-        auto const offsetView(alpaka::vec::Vec<Dim, Idx>::all(static_cast<Idx>(1)));
+        auto const extentView(alpaka::vec::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentSubView>());
+        auto const offsetView(alpaka::vec::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForOffset>());
         View view(buf, extentView, offsetView);
 
         alpaka::test::mem::view::testViewSubViewMutable<TAcc>(view, buf, dev, extentView, offsetView);
@@ -194,11 +194,11 @@ namespace view
 
         Dev const dev(alpaka::pltf::getDevByIdx<Pltf>(0u));
 
-        auto const extentBuf(alpaka::vec::createVecFromIndexedFnWorkaround<Dim, Idx, CreateExtentBufVal>(Idx()));
+        auto const extentBuf(alpaka::vec::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>());
         auto buf(alpaka::mem::buf::alloc<TElem, Idx>(dev, extentBuf));
 
-        auto const extentView(alpaka::vec::createVecFromIndexedFnWorkaround<Dim, Idx, CreateExtentViewVal>(Idx()));
-        auto const offsetView(alpaka::vec::Vec<Dim, Idx>::all(static_cast<Idx>(1)));
+        auto const extentView(alpaka::vec::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentSubView>());
+        auto const offsetView(alpaka::vec::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForOffset>());
         View const view(buf, extentView, offsetView);
 
         alpaka::test::mem::view::testViewSubViewImmutable<TAcc>(view, buf, dev, extentView, offsetView);

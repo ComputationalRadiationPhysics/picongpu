@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,12 +21,14 @@
 #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
 #endif
 
-#include <alpaka/dev/DevUniformCudaHipRt.hpp>
+#include <alpaka/queue/cuda_hip/QueueUniformCudaHipRtBase.hpp>
 
+#include <alpaka/core/Concepts.hpp>
+#include <alpaka/dev/DevUniformCudaHipRt.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/event/Traits.hpp>
 #include <alpaka/queue/Traits.hpp>
-#include <alpaka/wait/Traits.hpp>
+#include <alpaka/meta/DependentFalseType.hpp>
 
 // Backend specific includes.
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
@@ -54,88 +56,16 @@ namespace alpaka
 {
     namespace queue
     {
-        namespace uniform_cuda_hip
-        {
-            namespace detail
-            {
-                //#############################################################################
-                //! The CUDA/HIP RT blocking queue implementation.
-                class QueueUniformCudaHipRtBlockingImpl final
-                {
-                public:
-                    //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST QueueUniformCudaHipRtBlockingImpl(
-                        dev::DevUniformCudaHipRt const & dev) :
-                            m_dev(dev),
-                            m_UniformCudaHipQueue()
-                    {
-                        ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                        // Set the current device.
-                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                            ALPAKA_API_PREFIX(SetDevice)(
-                                m_dev.m_iDevice));
-
-                        // - [cuda/hip]StreamDefault: Default queue creation flag.
-                        // - [cuda/hip]StreamNonBlocking: Specifies that work running in the created queue may run concurrently with work in queue 0 (the NULL queue),
-                        //   and that the created queue should perform no implicit synchronization with queue 0.
-                        // Create the queue on the current device.
-                        // NOTE: [cuda/hip]StreamNonBlocking is required to match the semantic implemented in the alpaka CPU queue.
-                        // It would be too much work to implement implicit default queue synchronization on CPU.
-
-                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                            ALPAKA_API_PREFIX(StreamCreateWithFlags)(
-                                &m_UniformCudaHipQueue,
-                                ALPAKA_API_PREFIX(StreamNonBlocking)));
-
-                    }
-                    //-----------------------------------------------------------------------------
-                    QueueUniformCudaHipRtBlockingImpl(QueueUniformCudaHipRtBlockingImpl const &) = delete;
-                    //-----------------------------------------------------------------------------
-                    QueueUniformCudaHipRtBlockingImpl(QueueUniformCudaHipRtBlockingImpl &&) = default;
-                    //-----------------------------------------------------------------------------
-                    auto operator=(QueueUniformCudaHipRtBlockingImpl const &) -> QueueUniformCudaHipRtBlockingImpl & = delete;
-                    //-----------------------------------------------------------------------------
-                    auto operator=(QueueUniformCudaHipRtBlockingImpl &&) -> QueueUniformCudaHipRtBlockingImpl & = delete;
-                    //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST ~QueueUniformCudaHipRtBlockingImpl()
-                    {
-                        ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                        // Set the current device. \TODO: Is setting the current device before [cuda/hip]StreamDestroy required?
-
-                        // In case the device is still doing work in the queue when [cuda/hip]StreamDestroy() is called, the function will return immediately
-                        // and the resources associated with queue will be released automatically once the device has completed all work in queue.
-                        // -> No need to synchronize here.
-
-                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                            ALPAKA_API_PREFIX(SetDevice)(
-                                m_dev.m_iDevice));
-                        // In case the device is still doing work in the queue when cuda/hip-StreamDestroy() is called, the function will return immediately
-                        // and the resources associated with queue will be released automatically once the device has completed all work in queue.
-                        // -> No need to synchronize here.
-                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                            ALPAKA_API_PREFIX(StreamDestroy)(
-                                m_UniformCudaHipQueue));
-
-                    }
-
-                public:
-                    dev::DevUniformCudaHipRt const m_dev;   //!< The device this queue is bound to.
-                    ALPAKA_API_PREFIX(Stream_t) m_UniformCudaHipQueue;
-                };
-            }
-        }
 
         //#############################################################################
         //! The CUDA/HIP RT blocking queue.
-        class QueueUniformCudaHipRtBlocking final : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, QueueUniformCudaHipRtBlocking>
+        class QueueUniformCudaHipRtBlocking final : public uniform_cuda_hip::detail::QueueUniformCudaHipRtBase
         {
         public:
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST QueueUniformCudaHipRtBlocking(
                 dev::DevUniformCudaHipRt const & dev) :
-                m_spQueueImpl(std::make_shared<uniform_cuda_hip::detail::QueueUniformCudaHipRtBlockingImpl>(dev))
+                uniform_cuda_hip::detail::QueueUniformCudaHipRtBase(dev)
             {}
             //-----------------------------------------------------------------------------
             QueueUniformCudaHipRtBlocking(QueueUniformCudaHipRtBlocking const &) = default;
@@ -159,9 +89,6 @@ namespace alpaka
             }
             //-----------------------------------------------------------------------------
             ~QueueUniformCudaHipRtBlocking() = default;
-
-        public:
-            std::shared_ptr<uniform_cuda_hip::detail::QueueUniformCudaHipRtBlockingImpl> m_spQueueImpl;
         };
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
@@ -182,20 +109,6 @@ namespace alpaka
                 queue::QueueUniformCudaHipRtBlocking>
             {
                 using type = dev::DevUniformCudaHipRt;
-            };
-            //#############################################################################
-            //! The CUDA/HIP RT blocking queue device get trait specialization.
-            template<>
-            struct GetDev<
-                queue::QueueUniformCudaHipRtBlocking>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto getDev(
-                    queue::QueueUniformCudaHipRtBlocking const & queue)
-                -> dev::DevUniformCudaHipRt
-                {
-                    return queue.m_spQueueImpl->m_dev;
-                }
             };
         }
     }
@@ -316,53 +229,6 @@ namespace alpaka
                     );
 
                     t.join();
-                }
-            };
-            //#############################################################################
-            //! The CUDA/HIP RT blocking queue test trait specialization.
-            template<>
-            struct Empty<
-                queue::QueueUniformCudaHipRtBlocking>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto empty(
-                    queue::QueueUniformCudaHipRtBlocking const & queue)
-                -> bool
-                {
-                    ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                    // Query is allowed even for queues on non current device.
-                    ALPAKA_API_PREFIX(Error_t) ret = ALPAKA_API_PREFIX(Success);
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_IGNORE(
-                        ret = ALPAKA_API_PREFIX(StreamQuery)(queue.m_spQueueImpl->m_UniformCudaHipQueue),
-                        ALPAKA_API_PREFIX(ErrorNotReady));
-                    return (ret == ALPAKA_API_PREFIX(Success));
-                }
-            };
-        }
-    }
-    namespace wait
-    {
-        namespace traits
-        {
-            //#############################################################################
-            //! The CUDA/HIP RT blocking queue thread wait trait specialization.
-            //!
-            //! Blocks execution of the calling thread until the queue has finished processing all previously requested tasks (kernels, data copies, ...)
-            template<>
-            struct CurrentThreadWaitFor<
-                queue::QueueUniformCudaHipRtBlocking>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto currentThreadWaitFor(
-                    queue::QueueUniformCudaHipRtBlocking const & queue)
-                -> void
-                {
-                    ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                    // Sync is allowed even for queues on non current device.
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK( ALPAKA_API_PREFIX(StreamSynchronize)(
-                        queue.m_spQueueImpl->m_UniformCudaHipQueue));
                 }
             };
         }

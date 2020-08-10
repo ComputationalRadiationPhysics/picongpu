@@ -1,6 +1,6 @@
 /* Copyright 2019 Alexander Matthes, Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -42,7 +42,7 @@ namespace alpaka
             {
             public:
                 //-----------------------------------------------------------------------------
-                ScopeLogStdOut(
+                explicit ScopeLogStdOut(
                     std::string const & sScope) :
                         m_sScope(sScope)
                 {

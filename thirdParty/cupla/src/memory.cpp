@@ -77,7 +77,7 @@ cuplaMallocPitch(
     *pitch = ::alpaka::mem::view::getPitchBytes< 1u >( buf );
 
     return cuplaSuccess;
-};
+}
 
 CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t

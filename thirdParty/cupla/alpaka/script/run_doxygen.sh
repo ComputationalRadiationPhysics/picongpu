@@ -3,7 +3,7 @@
 #
 # Copyright 2020 Benjamin Worpitz
 #
-# This file is part of Alpaka.
+# This file is part of alpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,15 +24,14 @@ source ./script/set.sh
 #- Clean the branch: `git rm -rf .`
 #- Commit and push the branch: `git add --all`, `git commit -m"add gh-pages branch"`, `git push`
 
-# Clone the gh-pages branch into the doc/doxygen/html folder.
-git clone -b gh-pages https://x-access-token:${2}@github.com/${1}.git doc/doxygen/html
+# Clone the gh-pages branch into the docs/doxygen/html folder.
+git clone -b gh-pages https://x-access-token:${2}@github.com/${1}.git docs/doxygen/html
 
-cd doc/doxygen/html
+cd docs/
 
-rm -rf *
-
-cd ..
+rm -rf doxygen/html/*
+rm -rf doxygen/xml/*
 
 doxygen Doxyfile
 
-cd ../..
+cd ../

@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -59,7 +59,9 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA/HIP RT device handle.
-        class DevUniformCudaHipRt : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, DevUniformCudaHipRt>
+        class DevUniformCudaHipRt :
+            public concepts::Implements<wait::ConceptCurrentThreadWaitFor, DevUniformCudaHipRt>,
+            public concepts::Implements<ConceptDev, DevUniformCudaHipRt>
         {
             friend struct pltf::traits::GetDevByIdx<pltf::PltfUniformCudaHipRt>;
 
@@ -184,6 +186,31 @@ namespace alpaka
                             &totalInternal));
 
                     return freeInternal;
+                }
+            };
+
+            //#############################################################################
+            //! The CUDA/HIP RT device warp size get trait specialization.
+            template<>
+            struct GetWarpSize<
+                dev::DevUniformCudaHipRt>
+            {
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST static auto getWarpSize(
+                    dev::DevUniformCudaHipRt const & dev)
+                -> std::size_t
+                {
+#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+                    cudaDeviceProp devProp;
+#else
+                    hipDeviceProp_t devProp;
+#endif
+                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
+                        ALPAKA_API_PREFIX(GetDeviceProperties)(
+                            &devProp,
+                            dev.m_iDevice));
+
+                    return static_cast<std::size_t>(devProp.warpSize);
                 }
             };
 

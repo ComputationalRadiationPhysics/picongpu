@@ -1,7 +1,8 @@
 #
 # Copyright 2014-2020 Benjamin Worpitz, Erik Zenker, Axel Huebl, Jan Stephan
+#                     Rene Widera
 #
-# This file is part of Alpaka.
+# This file is part of alpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,80 +13,50 @@ include(CMakePrintHelpers) # for easier printing of variables and properties
 
 #-------------------------------------------------------------------------------
 # Options.
-set(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE_DEFAULT ON)
-set(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE_DEFAULT ON)
-set(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE_DEFAULT ON)
-set(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE_DEFAULT ON)
-set(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE_DEFAULT ON)
-set(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE_DEFAULT ON)
-set(ALPAKA_ACC_CPU_BT_OMP4_ENABLE_DEFAULT ON)
+set(ALPAKA_EMU_MEMCPY3D_DEFAULT OFF)
 
 # HIP and platform selection and warning about unsupported features
 option(ALPAKA_ACC_GPU_HIP_ENABLE "Enable the HIP back-end (all other back-ends must be disabled)" OFF)
 option(ALPAKA_ACC_GPU_HIP_ONLY_MODE "Only back-ends using HIP can be enabled in this mode." OFF) # HIP only runs without other back-ends
 
 # Drop-down combo box in cmake-gui for HIP platforms.
-set(ALPAKA_HIP_PLATFORM "nvcc" CACHE STRING "Specify HIP platform")
+set(ALPAKA_HIP_PLATFORM "clang" CACHE STRING "Specify HIP platform")
 set_property(CACHE ALPAKA_HIP_PLATFORM PROPERTY STRINGS "nvcc;clang")
 
 if(ALPAKA_ACC_GPU_HIP_ENABLE AND NOT ALPAKA_ACC_GPU_HIP_ONLY_MODE AND ALPAKA_HIP_PLATFORM MATCHES "nvcc")
-    message(WARNING "HIP back-end must be used together with ALPAKA_ACC_GPU_HIP_ONLY_MODE")
-    set(ALPAKA_ACC_GPU_HIP_ENABLE OFF CACHE BOOL "" FORCE)
+    message(FATAL_ERROR "HIP back-end must be used together with ALPAKA_ACC_GPU_HIP_ONLY_MODE")
 endif()
 
 if(ALPAKA_ACC_GPU_HIP_ENABLE AND ALPAKA_HIP_PLATFORM MATCHES "clang")
     message(WARNING
         "The HIP back-end is currently experimental."
-        "Alpaka HIP backend compiled with clang does not support callback functions."
+        "alpaka HIP backend compiled with clang does not support callback functions."
         )
 endif()
 
+option(ALPAKA_ACC_GPU_CUDA_ENABLE "Enable the CUDA GPU back-end" OFF)
 option(ALPAKA_ACC_GPU_CUDA_ONLY_MODE "Only back-ends using CUDA can be enabled in this mode (This allows to mix alpaka code with native CUDA code)." OFF)
-# If CUDA-only mode is enabled, we set the defaults for all CPU back-ends to OFF.
-# If they are explicitly set via the command line, the user will get an error later on.
-if(ALPAKA_ACC_GPU_CUDA_ONLY_MODE OR ALPAKA_ACC_GPU_HIP_ONLY_MODE) # CUDA-only or HIP-only
-    set(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE_DEFAULT OFF)
-    set(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE_DEFAULT OFF)
-    set(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE_DEFAULT OFF)
-    set(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE_DEFAULT OFF)
-    set(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE_DEFAULT OFF)
-    set(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE_DEFAULT OFF)
-    set(ALPAKA_ACC_CPU_BT_OMP4_ENABLE_DEFAULT OFF)
-endif()
-
-option(ALPAKA_ACC_GPU_CUDA_ENABLE "Enable the CUDA GPU back-end" ON)
-
-# If CUDA is enabled, we set the defaults for some unsupported back-ends to OFF.
-# If they are explicitly set via the command line, the user will get an error later on.
-if(ALPAKA_ACC_GPU_CUDA_ENABLE)
-    set(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE_DEFAULT OFF)
-    if(ALPAKA_CUDA_COMPILER MATCHES "clang")
-        set(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE_DEFAULT OFF)
-        set(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE_DEFAULT OFF)
-        set(ALPAKA_ACC_CPU_BT_OMP4_ENABLE_DEFAULT OFF)
-    endif()
-endif()
 
 if(ALPAKA_ACC_GPU_HIP_ENABLE)
-    set(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE_DEFAULT OFF)
+    set(ALPAKA_EMU_MEMCPY3D_DEFAULT ON)
 endif()
 
 if(ALPAKA_ACC_GPU_CUDA_ONLY_MODE AND NOT ALPAKA_ACC_GPU_CUDA_ENABLE)
-    message(WARNING "If ALPAKA_ACC_GPU_CUDA_ONLY_MODE is enabled, ALPAKA_ACC_GPU_CUDA_ENABLE has to be enabled as well.")
-    set(_ALPAKA_FOUND FALSE)
+    message(FATAL_ERROR "If ALPAKA_ACC_GPU_CUDA_ONLY_MODE is enabled, ALPAKA_ACC_GPU_CUDA_ENABLE has to be enabled as well.")
 endif()
 if(ALPAKA_ACC_GPU_HIP_ONLY_MODE AND NOT ALPAKA_ACC_GPU_HIP_ENABLE)
-    message(WARNING "If ALPAKA_ACC_GPU_HIP_ONLY_MODE is enabled, ALPAKA_ACC_GPU_HIP_ENABLE has to be enabled as well.")
-    set(_ALPAKA_FOUND FALSE)
+    message(FATAL_ERROR "If ALPAKA_ACC_GPU_HIP_ONLY_MODE is enabled, ALPAKA_ACC_GPU_HIP_ENABLE has to be enabled as well.")
 endif()
 
-option(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE "Enable the serial CPU back-end" ${ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE_DEFAULT})
-option(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE "Enable the threads CPU block thread back-end" ${ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE_DEFAULT})
-option(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE "Enable the fibers CPU block thread back-end" ${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE_DEFAULT})
-option(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE "Enable the TBB CPU grid block back-end" ${ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE_DEFAULT})
-option(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE "Enable the OpenMP 2.0 CPU grid block back-end" ${ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE_DEFAULT})
-option(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE "Enable the OpenMP 2.0 CPU block thread back-end" ${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE_DEFAULT})
-option(ALPAKA_ACC_CPU_BT_OMP4_ENABLE "Enable the OpenMP 4.0 CPU block and block thread back-end" ${ALPAKA_ACC_CPU_BT_OMP4_ENABLE_DEFAULT})
+option(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE "Enable the serial CPU back-end" OFF)
+option(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE "Enable the threads CPU block thread back-end" OFF)
+option(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE "Enable the fibers CPU block thread back-end" OFF)
+option(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE "Enable the TBB CPU grid block back-end" OFF)
+option(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE "Enable the OpenMP 2.0 CPU grid block back-end" OFF)
+option(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE "Enable the OpenMP 2.0 CPU block thread back-end" OFF)
+option(ALPAKA_ACC_CPU_BT_OMP4_ENABLE "Enable the OpenMP 4.0 CPU block and block thread back-end" OFF)
+
+option(ALPAKA_EMU_MEMCPY3D "Emulate internal used hip/cuda-Memcpy3D(async) with a kernel" ${ALPAKA_EMU_MEMCPY3D_DEFAULT})
 
 if((ALPAKA_ACC_GPU_CUDA_ONLY_MODE OR ALPAKA_ACC_GPU_HIP_ONLY_MODE)
    AND
@@ -97,12 +68,11 @@ if((ALPAKA_ACC_GPU_CUDA_ONLY_MODE OR ALPAKA_ACC_GPU_HIP_ONLY_MODE)
     ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE OR
     ALPAKA_ACC_CPU_BT_OMP4_ENABLE))
     if(ALPAKA_ACC_GPU_CUDA_ONLY_MODE)
-        message(WARNING "If ALPAKA_ACC_GPU_CUDA_ONLY_MODE is enabled, only back-ends using CUDA can be enabled! This allows to mix alpaka code with native CUDA code. However, this prevents any non-CUDA back-ends from being enabled.")
+        message(FATAL_ERROR "If ALPAKA_ACC_GPU_CUDA_ONLY_MODE is enabled, only back-ends using CUDA can be enabled! This allows to mix alpaka code with native CUDA code. However, this prevents any non-CUDA back-ends from being enabled.")
     endif()
     if(ALPAKA_ACC_GPU_HIP_ONLY_MODE)
-        message(WARNING "If ALPAKA_ACC_GPU_HIP_ONLY_MODE is enabled, only back-ends using HIP can be enabled!")
+        message(FATAL_ERROR "If ALPAKA_ACC_GPU_HIP_ONLY_MODE is enabled, only back-ends using HIP can be enabled!")
     endif()
-    set(_ALPAKA_FOUND FALSE)
 endif()
 
 # avoids CUDA+HIP conflict
@@ -112,8 +82,7 @@ endif()
 
 # HIP is only supported on Linux
 if(ALPAKA_ACC_GPU_HIP_ENABLE AND (MSVC OR WIN32))
-    message(WARNING "Optional alpaka dependency HIP can not be built on Windows! HIP back-end disabled!")
-    set(ALPAKA_ACC_GPU_HIP_ENABLE OFF CACHE BOOL "Enable the HIP GPU back-end" FORCE)
+    message(FATAL_ERROR "Optional alpaka dependency HIP can not be built on Windows!")
 endif()
 
 # Drop-down combo box in cmake-gui.
@@ -125,11 +94,14 @@ set_property(CACHE ALPAKA_CXX_STANDARD PROPERTY STRINGS "14;17;20")
 
 if(NOT TARGET alpaka)
     add_library(alpaka INTERFACE)
-    
+
     target_compile_features(alpaka INTERFACE cxx_std_${ALPAKA_CXX_STANDARD})
 
     add_library(alpaka::alpaka ALIAS alpaka)
 endif()
+
+option(ALPAKA_DEBUG_OFFLOAD_ASSUME_HOST "Allow host-only contructs like assert in offload code in debug mode." ON)
+set(ALPAKA_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB "30" CACHE STRING "Kibibytes (1024B) of memory to allocate for block shared memory for backends requiring static allocation (includes CPU_B_OMP2_T_SEQ, CPU_B_TBB_T_SEQ, CPU_B_SEQ_T_SEQ)")
 
 #-------------------------------------------------------------------------------
 # Debug output of common variables.
@@ -186,16 +158,10 @@ find_package(Boost ${_ALPAKA_BOOST_MIN_VER} REQUIRED
 
 target_link_libraries(alpaka INTERFACE Boost::headers)
 
-if(Boost_FIBER_FOUND)
-    if(MSVC AND (${CMAKE_SIZEOF_VOID_P} EQUAL 4))
-        # On Win32 boost context triggers:
-        # libboost_context-vc141-mt-gd-1_64.lib(jump_i386_ms_pe_masm.obj) : error LNK2026: module unsafe for SAFESEH image.
-        target_link_options(Boost::fiber INTERFACE "/SAFESEH:NO")
+if(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE)
+    if(NOT Boost_FIBER_FOUND)
+        message(FATAL_ERROR "Optional alpaka dependency Boost.Fiber could not be found!")
     endif()
-    target_link_libraries(alpaka INTERFACE Boost::fiber)
-else()
-    message(STATUS "Optional alpaka dependency Boost.Fiber could not be found! Fiber back-end disabled!")
-    set(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE OFF CACHE BOOL "Enable the Boost.Fiber CPU back-end" FORCE)
 endif()
 
 if(${ALPAKA_DEBUG} GREATER 1)
@@ -257,8 +223,7 @@ if(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE)
     if(TBB_FOUND)
         target_link_libraries(alpaka INTERFACE TBB::tbb)
     else()
-        message(STATUS "Optional alpaka dependency TBB could not be found! TBB grid block back-end disabled!")
-        set(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE OFF CACHE BOOL "Enable the TBB grid block back-end" FORCE)
+        message(FATAL_ERROR "Optional alpaka dependency TBB could not be found!")
     endif()
 endif()
 
@@ -268,21 +233,20 @@ if(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE OR A
     find_package(OpenMP)
 
     if(OpenMP_CXX_FOUND)
-        if(OpenMP_CXX_VERSION VERSION_LESS 4.0)
-            set(ALPAKA_ACC_CPU_BT_OMP4_ENABLE OFF CACHE BOOL "Enable the OpenMP 4.0 CPU block and thread back-end" FORCE)
+        if(ALPAKA_ACC_CPU_BT_OMP4_ENABLE)
+            if(OpenMP_CXX_VERSION VERSION_LESS 4.0)
+                message(FATAL_ERROR "OpenMP 4.0 is required but not supported!")
+            endif()
         endif()
 
         target_link_libraries(alpaka INTERFACE OpenMP::OpenMP_CXX)
 
         # Clang versions starting from 3.9 support OpenMP 4.0 only when given the corresponding flag
         if(ALPAKA_ACC_CPU_BT_OMP4_ENABLE)
-            target_link_options(alpaka INTERFACE $<$<CXX_COMPILER_ID:AppleClang,Clang>:"-fopenmp-version=40">)
+            target_link_options(alpaka INTERFACE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-fopenmp-version=40>)
         endif()
     else()
-        message(STATUS "Optional alpaka dependency OpenMP could not be found! OpenMP back-ends disabled!")
-        set(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE OFF CACHE BOOL "Enable the OpenMP 2.0 CPU grid block back-end" FORCE)
-        set(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE OFF CACHE BOOL "Enable the OpenMP 2.0 CPU block thread back-end" FORCE)
-        set(ALPAKA_ACC_CPU_BT_OMP4_ENABLE OFF CACHE BOOL "Enable the OpenMP 4.0 CPU block and thread back-end" FORCE)
+        message(FATAL_ERROR "Optional alpaka dependency OpenMP could not be found!")
     endif()
 endif()
 
@@ -295,14 +259,12 @@ if(ALPAKA_ACC_GPU_CUDA_ENABLE)
     endif()
 
     if(ALPAKA_CUDA_VERSION VERSION_LESS 9.0)
-        message(WARNING "CUDA Toolkit < 9.0 is not supported!")
-        set(_ALPAKA_FOUND FALSE)
+        message(FATAL_ERROR "CUDA Toolkit < 9.0 is not supported!")
 
     else()
         find_package(CUDA "${ALPAKA_CUDA_VERSION}")
         if(NOT CUDA_FOUND)
-            message(STATUS "Optional alpaka dependency CUDA could not be found! CUDA back-end disabled!")
-            set(ALPAKA_ACC_GPU_CUDA_ENABLE OFF CACHE BOOL "Enable the CUDA GPU back-end" FORCE)
+            message(FATAL_ERROR "Optional alpaka dependency CUDA could not be found!")
         else()
             set(ALPAKA_CUDA_VERSION "${CUDA_VERSION}")
             if(CUDA_VERSION VERSION_LESS 10.3)
@@ -488,8 +450,8 @@ if(ALPAKA_ACC_GPU_CUDA_ENABLE)
                 foreach(_CUDA_ARCH_ELEM ${ALPAKA_CUDA_ARCH})
                     # set flags to create device code for the given architecture
                     list(APPEND CUDA_NVCC_FLAGS
-                        --generate-code arch=compute_${_CUDA_ARCH_ELEM},code=sm_${_CUDA_ARCH_ELEM}
-                        --generate-code arch=compute_${_CUDA_ARCH_ELEM},code=compute_${_CUDA_ARCH_ELEM}
+                        --generate-code=arch=compute_${_CUDA_ARCH_ELEM},code=sm_${_CUDA_ARCH_ELEM}
+                        --generate-code=arch=compute_${_CUDA_ARCH_ELEM},code=compute_${_CUDA_ARCH_ELEM}
                     )
                 endforeach()
 
@@ -524,30 +486,31 @@ if(ALPAKA_ACC_GPU_CUDA_ENABLE)
                 endif()
 
                 # Always add warning/error numbers which can be used for suppressions
-                list(APPEND CUDA_NVCC_FLAGS -Xcudafe --display_error_number)
+                list(APPEND CUDA_NVCC_FLAGS -Xcudafe=--display_error_number)
 
                 # avoids warnings on host-device signatured, default constructors/destructors
-                list(APPEND CUDA_NVCC_FLAGS -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored)
+                list(APPEND CUDA_NVCC_FLAGS -Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored)
 
                 # avoids warnings on host-device signature of 'std::__shared_count<>'
                 if(CUDA_VERSION EQUAL 10.0)
-                    list(APPEND CUDA_NVCC_FLAGS -Xcudafe --diag_suppress=2905)
+                    list(APPEND CUDA_NVCC_FLAGS -Xcudafe=--diag_suppress=2905)
                 elseif(CUDA_VERSION EQUAL 10.1)
-                    list(APPEND CUDA_NVCC_FLAGS -Xcudafe --diag_suppress=2912)
+                    list(APPEND CUDA_NVCC_FLAGS -Xcudafe=--diag_suppress=2912)
                 elseif(CUDA_VERSION EQUAL 10.2)
-                    list(APPEND CUDA_NVCC_FLAGS -Xcudafe --diag_suppress=2976)
+                    list(APPEND CUDA_NVCC_FLAGS -Xcudafe=--diag_suppress=2976)
                 endif()
 
                 if(ALPAKA_CUDA_KEEP_FILES)
                     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/nvcc_tmp")
-                    list(APPEND CUDA_NVCC_FLAGS --keep --keep-dir ${PROJECT_BINARY_DIR}/nvcc_tmp)
+                    list(APPEND CUDA_NVCC_FLAGS --keep)
+                    list(APPEND CUDA_NVCC_FLAGS --keep-dir="${PROJECT_BINARY_DIR}/nvcc_tmp")
                 endif()
 
                 option(ALPAKA_CUDA_SHOW_CODELINES "Show kernel lines in cuda-gdb and cuda-memcheck" OFF)
                 if(ALPAKA_CUDA_SHOW_CODELINES)
                     list(APPEND CUDA_NVCC_FLAGS --source-in-ptx -lineinfo)
                     if(NOT MSVC)
-                        list(APPEND CUDA_NVCC_FLAGS -Xcompiler -rdynamic)
+                        list(APPEND CUDA_NVCC_FLAGS -Xcompiler=-rdynamic)
                     endif()
                     set(ALPAKA_CUDA_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
                 endif()
@@ -570,12 +533,11 @@ endif()
 if(ALPAKA_ACC_GPU_HIP_ENABLE)
 
     if(NOT DEFINED ALPAKA_HIP_VERSION)
-        set(ALPAKA_HIP_VERSION 3.1)
+        set(ALPAKA_HIP_VERSION 3.5)
     endif()
 
-    if(ALPAKA_HIP_VERSION VERSION_LESS 3.1)
-        message(WARNING "HIP < 3.1 is not supported!")
-        set(_ALPAKA_FOUND FALSE)
+    if(ALPAKA_HIP_VERSION VERSION_LESS 3.5)
+        message(FATAL_ERROR "HIP < 3.5 is not supported!")
     else()
         # must set this for HIP package (note that you also need certain env vars)
         set(HIP_PLATFORM "${ALPAKA_HIP_PLATFORM}" CACHE STRING "")
@@ -583,8 +545,7 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
 
         find_package(HIP "${ALPAKA_HIP_VERSION}")
         if(NOT HIP_FOUND)
-            message(WARNING "Optional alpaka dependency HIP could not be found! HIP back-end disabled!")
-            set(ALPAKA_ACC_GPU_HIP_ENABLE OFF CACHE BOOL "Enable the HIP GPU back-end" FORCE)
+            message(FATAL_ERROR "Optional alpaka dependency HIP could not be found!")
         else()
             set(ALPAKA_HIP_VERSION "${HIP_VERSION}")
             set(ALPAKA_HIP_COMPILER "hipcc" CACHE STRING "HIP compiler")
@@ -603,11 +564,14 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
                     message(WARNING "Could not find CUDA while HIP platform is set to nvcc. Compilation might fail.")
                 endif()
 
-                set(ALPAKA_CUDA_ARCH "30" CACHE STRING "GPU architecture")
+                if(CUDA_VERSION VERSION_LESS 10.3)
+                    set(ALPAKA_HIP_ARCH "30" CACHE STRING "GPU architecture")
+                else()
+                    set(ALPAKA_HIP_ARCH "35" CACHE STRING "GPU architecture")
+                endif()
 
                 if(CUDA_VERSION VERSION_LESS 9.0)
-                    message(WARNING "CUDA Toolkit < 9.0 is not supported!")
-                    set(_ALPAKA_FOUND FALSE)
+                    message(FATAL_ERROR "CUDA Toolkit < 9.0 is not supported!")
                 endif()
 
                 if(${ALPAKA_DEBUG} GREATER 1)
@@ -618,18 +582,18 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
                 list(APPEND HIP_NVCC_FLAGS --expt-relaxed-constexpr)
                 list(APPEND _ALPAKA_HIP_LIBRARIES "cudart")
 
-                foreach(_HIP_ARCH_ELEM ${ALPAKA_CUDA_ARCH})
+                foreach(_HIP_ARCH_ELEM ${ALPAKA_HIP_ARCH})
                     # set flags to create device code for the given architecture
                     list(APPEND CUDA_NVCC_FLAGS
-                        --generate-code arch=compute_${_HIP_ARCH_ELEM},code=sm_${_HIP_ARCH_ELEM}
-                        --generate-code arch=compute_${_HIP_ARCH_ELEM},code=compute_${_HIP_ARCH_ELEM}
+                        --generate-code=arch=compute_${_HIP_ARCH_ELEM},code=sm_${_HIP_ARCH_ELEM}
+                        --generate-code=arch=compute_${_HIP_ARCH_ELEM},code=compute_${_HIP_ARCH_ELEM}
                     )
                 endforeach()
                 # for CUDA cmake automatically adds compiler flags as nvcc does not do this,
                 # but for HIP we have to do this here
                 list(APPEND HIP_NVCC_FLAGS -D__CUDACC__)
                 list(APPEND HIP_NVCC_FLAGS -ccbin ${CMAKE_CXX_COMPILER})
-                list(APPEND HIP_NVCC_FLAGS -Xcompiler -g)
+                list(APPEND HIP_NVCC_FLAGS -Xcompiler=-g)
 
                 if((CMAKE_BUILD_TYPE STREQUAL "Debug") OR (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
                     list(APPEND HIP_NVCC_FLAGS -G)
@@ -638,7 +602,7 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
                 # SET(CUDA_PROPAGATE_HOST_FLAGS ON) # does not exist in HIP, so do it manually
                 string(TOUPPER "${CMAKE_BUILD_TYPE}" build_config)
                 foreach( _flag ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${build_config}})
-                    list(APPEND HIP_NVCC_FLAGS -Xcompiler ${_flag})
+                    list(APPEND HIP_NVCC_FLAGS -Xcompiler=${_flag})
                 endforeach()
 
                 if(ALPAKA_HIP_FAST_MATH)
@@ -656,7 +620,7 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
                 endif()
 
                 # avoids warnings on host-device signatured, default constructors/destructors
-                list(APPEND HIP_HIPCC_FLAGS -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored)
+                list(APPEND HIP_HIPCC_FLAGS -Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored)
 
                 # random numbers library ( HIP(NVCC) ) /hiprand
                 # HIP_ROOT_DIR is set by FindHIP.cmake
@@ -679,24 +643,59 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
                 endif()
                 target_include_directories(alpaka INTERFACE ${HIP_RAND_INC})
                 target_link_libraries(alpaka INTERFACE ${HIP_RAND_LIBRARY})
-            endif() # nvcc
+            elseif(ALPAKA_HIP_PLATFORM MATCHES "clang")
+                # # hiprand requires ROCm implementation of random numbers by rocrand
+                find_package(rocrand REQUIRED CONFIG
+                    HINTS "${HIP_ROOT_DIR}/rocrand"
+                    HINTS "/opt/rocm/rocrand")
+                if(rocrand_FOUND)
+                    target_include_directories(alpaka INTERFACE ${rocrand_INCLUDE_DIRS})
+                    # ATTENTION: rocRand libraries are not required by alpaka
+                else()
+                    MESSAGE(FATAL_ERROR "Could not find rocRAND (also searched in: HIP_ROOT_DIR=${HIP_ROOT_DIR}/rocrand).")
+                endif()
 
-            list(APPEND HIP_HIPCC_FLAGS "-D__HIPCC__")
-            list(APPEND HIP_HIPCC_FLAGS "-std=c++${ALPAKA_CXX_STANDARD}")
+                # possible architectures can be found https://github.com/llvm/llvm-project/blob/master/clang/lib/Basic/Cuda.cpp#L65
+                # 900 -> AMD Vega64
+                # 902 -> AMD Vega 10
+                # 906 -> AMD Radeon VII, MI50/MI60
+                # 908 -> AMD MI100
+                set(ALPAKA_HIP_ARCH "906;908" CACHE STRING "AMD GPU architecture e.g. 906 for MI50/Radeon VII")
+
+                foreach(_HIP_ARCH_ELEM ${ALPAKA_HIP_ARCH})
+                    # set flags to create device code for the given architecture
+                    list(APPEND HIP_HIPCC_FLAGS --amdgpu-target=gfx${_HIP_ARCH_ELEM})
+                endforeach()
+            endif()
+
+            # # HIP random numbers
+            FIND_PACKAGE(hiprand REQUIRED CONFIG
+                HINTS "${HIP_ROOT_DIR}/hiprand"
+                HINTS "/opt/rocm/hiprand")
+            if(hiprand_FOUND)
+                target_include_directories(alpaka INTERFACE ${hiprand_INCLUDE_DIRS})
+                # ATTENTION: hipRand libraries are not required by alpaka
+            else()
+                MESSAGE(FATAL_ERROR "Could not find hipRAND (also searched in: HIP_ROOT_DIR=${HIP_ROOT_DIR}/hiprand).")
+            endif()
+
+            list(APPEND HIP_HIPCC_FLAGS -D__HIPCC__)
+            list(APPEND HIP_HIPCC_FLAGS -std=c++${ALPAKA_CXX_STANDARD})
 
             if((CMAKE_BUILD_TYPE STREQUAL "Debug") OR (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
-                list(APPEND HIP_HIPCC_FLAGS "-g")
+                list(APPEND HIP_HIPCC_FLAGS -g)
             endif()
 
             if(ALPAKA_HIP_KEEP_FILES)
                 file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/hip_tmp")
-                list(APPEND HIP_HIPCC_FLAGS "--keep" "--keep-dir" "${PROJECT_BINARY_DIR}/hip_tmp")
+                list(APPEND HIP_HIPCC_FLAGS --keep)
+                list(APPEND HIP_HIPCC_FLAGS --keep-dir "${PROJECT_BINARY_DIR}/hip_tmp")
             endif()
 
             option(ALPAKA_HIP_SHOW_CODELINES "Show kernel lines in cuda-gdb and cuda-memcheck" OFF)
             if(ALPAKA_HIP_SHOW_CODELINES)
-                list(APPEND HIP_HIPCC_FLAGS "--source-in-ptx" "-lineinfo")
-                list(APPEND HIP_HIPCC_FLAGS "-Xcompiler" "-rdynamic")
+                list(APPEND HIP_HIPCC_FLAGS --source-in-ptx -lineinfo)
+                list(APPEND HIP_HIPCC_FLAGS -Xcompiler=rdynamic)
                 set(ALPAKA_HIP_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
             endif()
             if(_ALPAKA_HIP_LIBRARIES)
@@ -729,6 +728,14 @@ if(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE)
 endif()
 if(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED")
+
+    if(MSVC AND (${CMAKE_SIZEOF_VOID_P} EQUAL 4))
+        # On Win32 boost context triggers:
+        # libboost_context-vc141-mt-gd-1_64.lib(jump_i386_ms_pe_masm.obj) : error LNK2026: module unsafe for SAFESEH image.
+        target_link_options(Boost::fiber INTERFACE "/SAFESEH:NO")
+    endif()
+    target_link_libraries(alpaka INTERFACE Boost::fiber)
+
     message(STATUS ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED)
 endif()
 if(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE)
@@ -756,7 +763,15 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
     message(STATUS ALPAKA_ACC_GPU_HIP_ENABLED)
 endif()
 
+if(ALPAKA_EMU_MEMCPY3D)
+    target_compile_definitions(alpaka INTERFACE "ALPAKA_EMU_MEMCPY3D_ENABLED")
+endif()
+
 target_compile_definitions(alpaka INTERFACE "ALPAKA_DEBUG=${ALPAKA_DEBUG}")
+if(ALPAKA_DEBUG_OFFLOAD_ASSUME_HOST)
+   target_compile_definitions(alpaka INTERFACE "ALPAKA_DEBUG_OFFLOAD_ASSUME_HOST")
+endif()
+target_compile_definitions(alpaka INTERFACE "ALPAKA_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB=${ALPAKA_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB}")
 
 if(ALPAKA_CI)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_CI")
@@ -788,12 +803,6 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
         target_link_options(alpaka INTERFACE "-Xcompiler ${OpenMP_CXX_FLAGS}")
         set_property(TARGET alpaka
                      PROPERTY INTERFACE_LINK_LIBRARIES ${_ALPAKA_LINK_LIBRARIES_PUBLIC})
-    endif()
-    if(ALPAKA_HIP_PLATFORM MATCHES "clang")
-        # GFX600, GFX601, GFX700, GFX701, GFX702, GFX703, GFX704, GFX801, GFX802, GFX803, GFX810, GFX900, GFX902
-        target_link_options(alpaka INTERFACE "--amdgpu-target=gfx803")
-        target_link_options(alpaka INTERFACE "--amdgpu-target=gfx900")
-        target_link_options(alpaka INTERFACE "--amdgpu-target=gfx906")
     endif()
 endif()
 
@@ -847,5 +856,10 @@ if((ALPAKA_ACC_GPU_CUDA_ENABLE OR ALPAKA_ACC_GPU_HIP_ENABLE) AND ALPAKA_CUDA_COM
                  PROPERTY INTERFACE_COMPILE_OPTIONS)
     string(REPLACE ";" " " _ALPAKA_COMPILE_OPTIONS_STRING "${_ALPAKA_COMPILE_OPTIONS_PUBLIC}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_ALPAKA_COMPILE_OPTIONS_STRING}")
+
+    # Append CMAKE_CXX_FLAGS_[Release|Debug|RelWithDebInfo] to CMAKE_CXX_FLAGS
+    # because FindCUDA only propagates the latter to nvcc.
+    string(TOUPPER "${CMAKE_BUILD_TYPE}" build_config)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${build_config}}")
 endif()
 

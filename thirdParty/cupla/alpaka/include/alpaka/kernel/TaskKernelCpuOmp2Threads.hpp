@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz, Bert Wesarg, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,6 +24,7 @@
 
 // Implementation details.
 #include <alpaka/acc/AccCpuOmp2Threads.hpp>
+#include <alpaka/core/Decay.hpp>
 #include <alpaka/core/Unused.hpp>
 #include <alpaka/dev/DevCpu.hpp>
 #include <alpaka/kernel/Traits.hpp>
@@ -99,7 +100,7 @@ namespace alpaka
                 // Get the size of the block shared dynamic memory.
                 auto const blockSharedMemDynSizeBytes(
                     meta::apply(
-                        [&](std::decay_t<TArgs> const & ... args)
+                        [&](ALPAKA_DECAY_T(TArgs) const & ... args)
                         {
                             return
                                 kernel::getBlockSharedMemDynSizeBytes<
@@ -119,7 +120,7 @@ namespace alpaka
                 // TODO: With C++14 we could create a perfectly argument forwarding function object within the constructor.
                 auto const boundKernelFnObj(
                     meta::apply(
-                        [this](std::decay_t<TArgs> const & ... args)
+                        [this](ALPAKA_DECAY_T(TArgs) const & ... args)
                         {
                             return
                                 std::bind(
@@ -162,6 +163,8 @@ namespace alpaka
                         // Therefore we use 'omp parallel' with the specified number of threads in a block.
                         #pragma omp parallel num_threads(iBlockThreadCount)
                         {
+                            // The guard is for gcc internal compiler error, as discussed in #735
+#if (!BOOST_COMP_GNUC) || (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(8, 1, 0))
                             #pragma omp single nowait
                             {
                                 // The OpenMP runtime does not create a parallel region when only one thread is required in the num_threads clause.
@@ -171,21 +174,13 @@ namespace alpaka
                                     throw std::runtime_error("The OpenMP 2.0 runtime did not create a parallel region!");
                                 }
 
-                                // GCC fails with:
-                                // error: redeclaration of const int& iBlockThreadCount
-                                // if(numThreads != iBlockThreadCount)
-                                //                  ^
-                                // note: const int& iBlockThreadCount previously declared here
-                                // #pragma omp parallel num_threads(iBlockThreadCount)
-                                //         ^
-#if (!BOOST_COMP_GNUC) || (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(6, 0, 0))
                                 int const numThreads(::omp_get_num_threads());
                                 if(numThreads != iBlockThreadCount)
                                 {
                                     throw std::runtime_error("The OpenMP 2.0 runtime did not use the number of threads that had been required!");
                                 }
-#endif
                             }
+#endif
                             boundKernelFnObj(
                                 acc);
 

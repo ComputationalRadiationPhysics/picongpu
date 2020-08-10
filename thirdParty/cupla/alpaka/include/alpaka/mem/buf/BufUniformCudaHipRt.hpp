@@ -1,6 +1,6 @@
 /* Copyright 2019 Alexander Matthes, Benjamin Worpitz, Matthias Werner, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -401,7 +401,7 @@ namespace alpaka
 
 
                         void * memPtr = nullptr;
-                        std::size_t pitchBytes = widthBytes;
+                        std::size_t pitchBytes = 0u;
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
                         //FIXME: HIP cannot handle zero-size input (throws Unknown Error)
                         if(width!=0 && height!=0)
@@ -471,6 +471,7 @@ namespace alpaka
                         ALPAKA_API_PREFIX(PitchedPtr) pitchedPtrVal;
                         pitchedPtrVal.ptr = nullptr;
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
+                        pitchedPtrVal.pitch = 0u;
                         //FIXME: HIP cannot handle zero-size input
                         if(extentVal.width!=0
                            && extentVal.height!=0

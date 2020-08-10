@@ -22,6 +22,6 @@
 
 // Please also update the version in `cuplaConfig.cmake`
 #define CUPLA_VERSION_MAJOR 0
-#define CUPLA_VERSION_MINOR 2
+#define CUPLA_VERSION_MINOR 3
 #define CUPLA_VERSION_PATCH 0
-#define CUPLA_VERSION_LABEL ""
+#define CUPLA_VERSION_LABEL "dev"

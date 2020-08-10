@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -42,6 +42,9 @@ TEST_CASE("printDefines", "[core]")
 #endif
 #if BOOST_COMP_MSVC
     std::cout << "BOOST_COMP_MSVC:" << BOOST_COMP_MSVC << std::endl;
+#endif
+#if defined(BOOST_COMP_MSVC_EMULATED)
+    std::cout << "BOOST_COMP_MSVC_EMULATED:" << BOOST_COMP_MSVC_EMULATED << std::endl;
 #endif
 #if BOOST_COMP_CLANG_CUDA
     std::cout << "BOOST_COMP_CLANG_CUDA:" << BOOST_COMP_CLANG_CUDA << std::endl;

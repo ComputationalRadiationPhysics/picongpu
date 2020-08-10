@@ -8,6 +8,12 @@
 /*.cbp
 /*.layout
 
+# Visual Studio Code configuration files
+.vscode
+
+# JetBrains project files
+.idea/
+
 # python byte code
 *.pyc
 
