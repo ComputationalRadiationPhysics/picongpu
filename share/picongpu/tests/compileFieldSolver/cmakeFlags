@@ -29,9 +29,13 @@
 #   - start with zero index
 #   - increase by 1, no gaps
 
-flags[0]=""
-flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_DIMENSION=DIM2'"
-flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_IONS=1;-DPARAM_IONIZATION=1'"
+# Yee solver is tested in the example FieldAbsorberTest
+flags[0]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=LehePML;-DPARAM_PRECISION=precision64Bit'"
+flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=LehePML;-DPARAM_DIMENSION=DIM2'"
+flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=DirSplitting;-DPARAM_CURRENTINTERPOLATION=NoneDS'"
+flags[3]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Lehe;-DPARAM_CURRENTINTERPOLATION=Binomial'"
+flags[4]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Lehe;-DPARAM_DIMENSION=DIM2'"
+
 
 ################################################################################
 # execution

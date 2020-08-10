@@ -40,10 +40,7 @@ namespace picongpu
  *
  *  example: using UsedParticleShape = particles::shapes::CIC;
  */
-#ifndef PARAM_PARTICLESHAPE
-#define PARAM_PARTICLESHAPE TSC
-#endif
-using UsedParticleShape = particles::shapes::PARAM_PARTICLESHAPE;
+using UsedParticleShape = particles::shapes::TSC;
 
 /* define which interpolation method is used to interpolate fields to particle*/
 using UsedField2Particle = FieldToParticleInterpolation< UsedParticleShape, AssignedTrilinearInterpolation >;
@@ -62,10 +59,7 @@ using UsedField2Particle = FieldToParticleInterpolation< UsedParticleShape, Assi
  * - currentSolver::strategy::CachedSupercells
  * - currentSolver::strategy::NonCachedSupercells
  */
-#ifndef PARAM_CURRENTSOLVER
-#define PARAM_CURRENTSOLVER Esirkepov
-#endif
-using UsedParticleCurrentSolver = currentSolver::PARAM_CURRENTSOLVER< UsedParticleShape >;
+using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
 
 /*! particle pusher configuration ----------------------------------------------
  *
@@ -87,9 +81,6 @@ using UsedParticleCurrentSolver = currentSolver::PARAM_CURRENTSOLVER< UsedPartic
  * For development purposes: --------------------------------------------------
  * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
  */
-#ifndef PARAM_PARTICLEPUSHER
-#define PARAM_PARTICLEPUSHER Boris
-#endif
-using UsedParticlePusher = particles::pusher::PARAM_PARTICLEPUSHER;
+using UsedParticlePusher = particles::pusher::Boris;
 
 }//namespace picongpu

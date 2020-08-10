@@ -55,22 +55,24 @@ namespace fields
      *     - experimental assignment for all-centered/directional splitting
      *     - updates E & B at the same time
      */
-
-    using CurrentInterpolation = currentInterpolation::None;
+#ifndef PARAM_CURRENTINTERPOLATION
+#   define PARAM_CURRENTINTERPOLATION None
+#endif
+    using CurrentInterpolation = currentInterpolation::PARAM_CURRENTINTERPOLATION;
 
     /** FieldSolver
      *
      * Field Solver Selection:
      *  - Yee< CurrentInterpolation >: standard Yee solver
-     *  - YeePML< CurrentInterpolation >: standard Yee solver with PML absorber
      *  - Lehe< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
+     *  - YeePML< CurrentInterpolation >: standard Yee solver with PML absorber
      *  - LehePML< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
      *                                     with PML absorber
      *  - DirSplitting< CurrentInterpolation >: Sentoku's Directional Splitting Method
      *  - None< CurrentInterpolation >: disable the vacuum update of E and B
      */
 
-    using Solver = maxwellSolver::Yee< CurrentInterpolation >;
+    using Solver = maxwellSolver::PARAM_FIELDSOLVER< CurrentInterpolation >;
 
 } // namespace fields
 } // namespace picongpu

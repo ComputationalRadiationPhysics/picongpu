@@ -40,7 +40,10 @@ namespace picongpu
  *
  *  example: using UsedParticleShape = particles::shapes::CIC;
  */
-using UsedParticleShape = particles::shapes::TSC;
+#ifndef PARAM_PARTICLESHAPE
+#define PARAM_PARTICLESHAPE TSC
+#endif
+using UsedParticleShape = particles::shapes::PARAM_PARTICLESHAPE;
 
 /* define which interpolation method is used to interpolate fields to particle*/
 using UsedField2Particle = FieldToParticleInterpolation< UsedParticleShape, AssignedTrilinearInterpolation >;
