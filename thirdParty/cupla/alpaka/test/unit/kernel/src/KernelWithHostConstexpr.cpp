@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,7 +31,7 @@ public:
     {
         alpaka::ignore_unused(acc);
 
-#if BOOST_COMP_MSVC
+#if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
     #pragma warning(push)
     #pragma warning(disable: 4127)  // warning C4127: conditional expression is constant
 #endif
@@ -39,7 +39,7 @@ public:
         constexpr auto max = std::numeric_limits< std::uint32_t >::max();
 
         ALPAKA_CHECK(*success, 0 != max);
-#if BOOST_COMP_MSVC
+#if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
     #pragma warning(pop)
 #endif
     }

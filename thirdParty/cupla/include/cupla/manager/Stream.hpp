@@ -69,23 +69,7 @@ namespace manager
         create( )
         -> cuplaStream_t
         {
-
-            auto& device = Device< DeviceType >::get();
-
-            std::unique_ptr<
-                QueueType
-            > streamPtr(
-                new QueueType(
-                    device.current()
-                )
-            );
-            cuplaStream_t streamId = reinterpret_cast< cuplaStream_t >(
-                m_id++
-            );
-            m_mapVector[ device.id() ].insert(
-                std::make_pair( streamId, std::move( streamPtr ) )
-            );
-            return streamId;
+            return createNewStream(reinterpret_cast< cuplaStream_t >(m_id++));
         }
 
         auto
@@ -102,7 +86,7 @@ namespace manager
             {
                 if( streamId == 0 )
                 {
-                    this->create( );
+                    createNewStream( streamId );
                     return this->stream( streamId );
                 }
                 else
@@ -153,8 +137,6 @@ namespace manager
             const auto deviceId = device.id();
 
             m_mapVector[ deviceId ].clear( );
-            // reset id to allow that this instance can be reused
-            m_id = 0u;
 
             // @todo: check if clear creates errors
             return true;
@@ -165,8 +147,26 @@ namespace manager
         {
         }
 
-        //! unique if for the next stream
-        size_t m_id = 0u;
+        auto
+        createNewStream( cuplaStream_t streamId  )
+        -> cuplaStream_t
+        {
+
+            auto& device = Device< DeviceType >::get();
+
+            auto streamPtr = std::make_unique< QueueType >( device.current() );
+            m_mapVector[ device.id() ].insert(
+                std::make_pair( streamId, std::move( streamPtr ) )
+            );
+            return streamId;
+        }
+
+        /** unique id for the next stream
+         *
+         * The enumeration starts with id one. Id zero is reserved
+         * for the default stream.
+         */
+        size_t m_id = 1u;
 
     };
 

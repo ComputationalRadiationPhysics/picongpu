@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,8 +21,6 @@
 #include <alpaka/workdiv/Traits.hpp>
 
 #include <alpaka/core/Unused.hpp>
-
-#include <boost/config.hpp>
 
 #include <utility>
 

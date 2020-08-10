@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,13 +11,11 @@
 
 #include <alpaka/core/Common.hpp>
 
-#include <boost/config.hpp>
-
 namespace alpaka
 {
     ALPAKA_NO_HOST_ACC_WARNING
     template< typename... Ts >
-    BOOST_FORCEINLINE
+    ALPAKA_FN_INLINE
     constexpr
     ALPAKA_FN_HOST_ACC
     void
@@ -26,7 +24,7 @@ namespace alpaka
 
     ALPAKA_NO_HOST_ACC_WARNING
     template< typename... Ts >
-    BOOST_FORCEINLINE
+    ALPAKA_FN_INLINE
     constexpr
     ALPAKA_FN_HOST_ACC
     void

@@ -3,7 +3,7 @@
 #
 # Copyright 2017-2019 Benjamin Worpitz
 #
-# This file is part of Alpaka.
+# This file is part of alpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,6 +19,15 @@ then
     ALPAKA_CI_GCC_VER_SEMANTIC=( ${ALPAKA_CI_GCC_VER//./ } )
     export ALPAKA_CI_GCC_VER_MAJOR="${ALPAKA_CI_GCC_VER_SEMANTIC[0]}"
     echo ALPAKA_CI_GCC_VER_MAJOR: "${ALPAKA_CI_GCC_VER_MAJOR}"
+
+    if [[ "$(cat /etc/os-release)" == *"20.04"* ]]
+    then
+        if (( "${ALPAKA_CI_GCC_VER_MAJOR}" <= 6 ))
+        then
+            echo "Ubuntu 20.04 does not provide gcc-6 and older anymore."
+            exit 1
+        fi
+    fi
 fi
 
 #-------------------------------------------------------------------------------
@@ -108,7 +117,7 @@ then
 fi
 
 #-------------------------------------------------------------------------------
-if [ "$TRAVIS_OS_NAME" = "linux" ]
+if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
     if [ "${ALPAKA_CI_STDLIB}" == "libc++" ]
     then
@@ -125,14 +134,6 @@ then
         then
             if (( "${ALPAKA_CXX_STANDARD}" >= 17 ))
             then
-                if [ "${CXX}" == "clang++" ]
-                then
-                    if (( "${ALPAKA_CI_CLANG_LIBSTDCPP_VERSION}" < 7 ))
-                    then
-                        echo "Clang used in c++17 mode requires libstdc++-7 or newer."
-                        exit 1
-                    fi
-                fi
                 if [ "${ALPAKA_CI_INSTALL_FIBERS}" == "ON" ]
                 then
                     if (( ( ( "${ALPAKA_CI_BOOST_BRANCH_MAJOR}" == 1 ) && ( "${ALPAKA_CI_BOOST_BRANCH_MINOR}" < 67 ) ) || ( "${ALPAKA_CI_BOOST_BRANCH_MAJOR}" < 1 ) ))

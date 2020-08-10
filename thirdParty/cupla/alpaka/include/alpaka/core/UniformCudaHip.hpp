@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -90,6 +90,11 @@ namespace alpaka
                     {
                         rtCheck(error, ("'" + std::string(cmd) + "' returned error ").c_str(), file, line);
                     }
+                    else
+                    {
+                        // reset the last error to avoid propagation to the next CUDA/HIP API call
+                        ALPAKA_API_PREFIX(GetLastError)();
+                    }
                 }
             }
             //-----------------------------------------------------------------------------
@@ -107,7 +112,7 @@ namespace alpaka
     }
 }
 
-#if BOOST_COMP_MSVC
+#if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
     //-----------------------------------------------------------------------------
     //! CUDA runtime error checking with log and exception, ignoring specific error values
     #define ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_IGNORE(cmd, ...)\

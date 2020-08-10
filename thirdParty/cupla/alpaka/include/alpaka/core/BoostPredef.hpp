@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, Matthias Werner
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -118,4 +118,20 @@
     #define BOOST_COMP_CLANG_CUDA BOOST_COMP_CLANG
 #else
     #define BOOST_COMP_CLANG_CUDA BOOST_VERSION_NUMBER_NOT_AVAILABLE
+#endif
+
+//-----------------------------------------------------------------------------
+// Intel compiler detection
+// BOOST_COMP_INTEL_EMULATED is defined by boost instead of BOOST_COMP_INTEL
+#if defined(BOOST_COMP_INTEL) && defined(BOOST_COMP_INTEL_EMULATED)
+    #undef BOOST_COMP_INTEL
+    #define BOOST_COMP_INTEL BOOST_COMP_INTEL_EMULATED
+#endif
+
+//-----------------------------------------------------------------------------
+// PGI and NV HPC SDK compiler detection
+// BOOST_COMP_PGI_EMULATED is defined by boost instead of BOOST_COMP_PGI
+#if defined(BOOST_COMP_PGI) && defined(BOOST_COMP_PGI_EMULATED)
+    #undef BOOST_COMP_PGI
+    #define BOOST_COMP_PGI BOOST_COMP_PGI_EMULATED
 #endif

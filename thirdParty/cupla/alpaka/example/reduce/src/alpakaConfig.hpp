@@ -1,6 +1,6 @@
 /* Copyright 2019 Jonas Schenke
  *
- * This file exemplifies usage of Alpaka.
+ * This file exemplifies usage of alpaka.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -64,12 +64,6 @@ struct CpuOmp2Blocks
 {
     using Host = alpaka::acc::AccCpuOmp2Blocks<Dim, Extent>;
     using Acc = alpaka::acc::AccCpuOmp2Blocks<Dim, Extent>;
-    using DevHost = alpaka::dev::Dev<Host>;
-    using DevAcc = alpaka::dev::Dev<Acc>;
-    using PltfHost = alpaka::pltf::Pltf<DevHost>;
-    using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using Stream = alpaka::queue::QueueCpuBlocking;
-    using Event = alpaka::event::Event<Stream>;
     using SmCount = alpaka::dim::DimInt<1u>;
     using MaxBlockSize = alpaka::dim::DimInt<1u>;
 };
@@ -92,12 +86,6 @@ struct CpuOmp4
 {
     using Host = alpaka::acc::AccCpuSerial<Dim, Extent>;
     using Acc = alpaka::acc::AccCpuOmp4<Dim, Extent>;
-    using DevHost = alpaka::dev::Dev<Host>;
-    using DevAcc = alpaka::dev::Dev<Acc>;
-    using PltfHost = alpaka::pltf::Pltf<DevHost>;
-    using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using Stream = alpaka::queue::QueueCpuBlocking;
-    using Event = alpaka::event::Event<Stream>;
     using MaxBlockSize = alpaka::dim::DimInt<1u>;
 };
 
@@ -118,12 +106,6 @@ struct CpuSerial
 {
     using Host = alpaka::acc::AccCpuSerial<Dim, Extent>;
     using Acc = alpaka::acc::AccCpuSerial<Dim, Extent>;
-    using DevHost = alpaka::dev::Dev<Host>;
-    using DevAcc = alpaka::dev::Dev<Acc>;
-    using PltfHost = alpaka::pltf::Pltf<DevHost>;
-    using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using Stream = alpaka::queue::QueueCpuBlocking;
-    using Event = alpaka::event::Event<Stream>;
     using MaxBlockSize = alpaka::dim::DimInt<1u>;
 };
 
@@ -143,12 +125,6 @@ struct CpuThreads
 {
     using Host = alpaka::acc::AccCpuThreads<Dim, Extent>;
     using Acc = alpaka::acc::AccCpuThreads<Dim, Extent>;
-    using DevHost = alpaka::dev::Dev<Host>;
-    using DevAcc = alpaka::dev::Dev<Acc>;
-    using PltfHost = alpaka::pltf::Pltf<DevHost>;
-    using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using Stream = alpaka::queue::QueueCpuBlocking;
-    using Event = alpaka::event::Event<Stream>;
     using MaxBlockSize = alpaka::dim::DimInt<1u>;
 };
 
@@ -165,16 +141,10 @@ struct GetIterator<T, TBuf, alpaka::acc::AccCpuThreads<TArgs...>>
 //! CUDA defines
 //!
 //! Defines Host, Device, etc. for the CUDA/HIP accelerator.
-struct GpuUniformCudaHipRt
+struct GpuCudaRt
 {
     using Host = alpaka::acc::AccCpuSerial<Dim, Extent>;
-    using Acc = alpaka::acc::AccGpuUniformCudaHipRt<Dim, Extent>;
-    using DevHost = alpaka::dev::Dev<Host>;
-    using DevAcc = alpaka::dev::Dev<Acc>;
-    using PltfHost = alpaka::pltf::Pltf<DevHost>;
-    using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using Stream = alpaka::queue::QueueUniformCudaHipRtNonBlocking;
-    using Event = alpaka::event::Event<Stream>;
+    using Acc = alpaka::acc::AccGpuCudaRt<Dim, Extent>;
     using MaxBlockSize = alpaka::dim::DimInt<1024u>;
 };
 

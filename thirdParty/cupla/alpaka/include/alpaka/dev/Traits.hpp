@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,7 +11,7 @@
 
 #include <alpaka/core/Common.hpp>
 
-#include <boost/config.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 namespace alpaka
 {
@@ -59,6 +59,13 @@ namespace alpaka
             struct GetFreeMemBytes;
 
             //#############################################################################
+            //! The device warp size get trait.
+            template<
+                typename T,
+                typename TSfinae = void>
+            struct GetWarpSize;
+
+            //#############################################################################
             //! The device reset trait.
             template<
                 typename T,
@@ -72,6 +79,10 @@ namespace alpaka
             typename T>
         using Dev = typename traits::DevType<T>::type;
 
+        struct ConceptGetDev;
+
+        struct ConceptDev;
+
         //-----------------------------------------------------------------------------
         //! \return The device this object is bound to.
         template<
@@ -79,9 +90,10 @@ namespace alpaka
         ALPAKA_FN_HOST auto getDev(
             T const & t)
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptGetDev, T>;
             return
                 traits::GetDev<
-                    T>
+                    ImplementationBase>
                 ::getDev(
                     t);
         }
@@ -132,6 +144,21 @@ namespace alpaka
         }
 
         //-----------------------------------------------------------------------------
+        //! \return The warp size on the device in number of threads.
+        template<
+            typename TDev>
+        ALPAKA_FN_HOST auto getWarpSize(
+            TDev const & dev)
+        -> std::size_t
+        {
+            return
+                traits::GetWarpSize<
+                    TDev>
+                ::getWarpSize(
+                    dev);
+        }
+
+        //-----------------------------------------------------------------------------
         //! Resets the device.
         //! What this method does is dependent on the accelerator.
         template<
@@ -144,6 +171,21 @@ namespace alpaka
                 TDev>
             ::reset(
                 dev);
+        }
+
+        namespace traits
+        {
+            //#############################################################################
+            //! Get device type
+            template<
+                typename TDev>
+            struct DevType<
+                TDev,
+                typename std::enable_if<concepts::ImplementsConcept<dev::ConceptDev, TDev>::value>::type
+            >
+            {
+                using type = typename concepts::ImplementationBase<dev::ConceptDev, TDev>;
+            };
         }
     }
 }

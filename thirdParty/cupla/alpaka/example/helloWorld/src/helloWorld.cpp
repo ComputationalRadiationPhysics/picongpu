@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, Erik Zenker
  *
- * This file exemplifies usage of Alpaka.
+ * This file exemplifies usage of alpaka.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,6 +16,7 @@
  */
 
 #include <alpaka/alpaka.hpp>
+#include <alpaka/example/ExampleDefaultAcc.hpp>
 
 #include <iostream>
 
@@ -87,6 +88,7 @@ auto main()
     // It is possible to choose from a set of accelerators
     // that are defined in the alpaka::acc namespace e.g.:
     // - AccGpuCudaRt
+    // - AccGpuHipRt
     // - AccCpuThreads
     // - AccCpuFibers
     // - AccCpuOmp2Threads
@@ -102,16 +104,15 @@ auto main()
     // automatically.
 
     // By exchanging the Acc and Queue types you can select where to execute the kernel.
-    using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
+    // using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
+    using Acc = alpaka::example::ExampleDefaultAcc<Dim, Idx>;
+    std::cout << "Using alpaka accelerator: " << alpaka::acc::getAccName<Acc>() << std::endl;
 
     // Defines the synchronization behavior of a queue
     //
     // choose between Blocking and NonBlocking
     using QueueProperty = alpaka::queue::Blocking;
     using Queue = alpaka::queue::Queue<Acc, QueueProperty>;
-    using Dev = alpaka::dev::Dev<Acc>;
-    using Pltf = alpaka::pltf::Pltf<Dev>;
-
 
     // Select a device
     //
@@ -121,7 +122,7 @@ auto main()
     // by id (0 to the number of devices minus 1) or you
     // can also retrieve all devices in a vector (getDevs()).
     // In this example the first devices is choosen.
-    Dev const devAcc(alpaka::pltf::getDevByIdx<Pltf>(0u));
+    auto const devAcc = alpaka::pltf::getDevByIdx<Acc>(0u);
 
     // Create a queue on the device
     //
@@ -165,18 +166,14 @@ auto main()
     // vector processing unit.
     using Vec = alpaka::vec::Vec<Dim, Idx>;
     Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
-    Vec const threadsPerBlock(Vec::all(static_cast<Idx>(1)));
-    Vec const blocksPerGrid(
-        static_cast<Idx>(4),
-        static_cast<Idx>(8),
-        static_cast<Idx>(16));
-
+    Vec const threadsPerGrid(Vec::all(static_cast<Idx>(8)));
     using WorkDiv = alpaka::workdiv::WorkDivMembers<Dim, Idx>;
-    WorkDiv const workDiv(
-        blocksPerGrid,
-        threadsPerBlock,
-        elementsPerThread);
-
+    WorkDiv const workDiv = alpaka::workdiv::getValidWorkDiv<Acc>(
+        devAcc,
+        threadsPerGrid,
+        elementsPerThread,
+        false,
+        alpaka::workdiv::GridBlockExtentSubDivRestrictions::Unrestricted);
 
     // Instantiate the kernel function object
     //
