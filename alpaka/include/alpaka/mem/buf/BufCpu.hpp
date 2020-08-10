@@ -1,6 +1,6 @@
 /* Copyright 2019 Alexander Matthes, Axel Huebl, Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,7 +25,7 @@
     #include <alpaka/core/Hip.hpp>
 #endif
 
-#include <alpaka/mem/alloc/AllocCpuBoostAligned.hpp>
+#include <alpaka/mem/alloc/AllocCpuAligned.hpp>
 
 #include <alpaka/meta/DependentFalseType.hpp>
 
@@ -49,7 +49,7 @@ namespace alpaka
                         typename TDim,
                         typename TIdx>
                     class BufCpuImpl final :
-                        public mem::alloc::AllocCpuBoostAligned<std::integral_constant<std::size_t, core::vectorization::defaultAlignment>>
+                        public mem::alloc::AllocCpuAligned<std::integral_constant<std::size_t, core::vectorization::defaultAlignment>>
                     {
                         static_assert(
                             !std::is_const<TElem>::value,
@@ -64,7 +64,7 @@ namespace alpaka
                         ALPAKA_FN_HOST BufCpuImpl(
                             dev::DevCpu const & dev,
                             TExtent const & extent) :
-                                mem::alloc::AllocCpuBoostAligned<std::integral_constant<std::size_t, core::vectorization::defaultAlignment>>(),
+                                mem::alloc::AllocCpuAligned<std::integral_constant<std::size_t, core::vectorization::defaultAlignment>>(),
                                 m_dev(dev),
                                 m_extentElements(extent::getExtentVecEnd<TDim>(extent)),
                                 m_pMem(mem::alloc::alloc<TElem>(*this, static_cast<std::size_t>(computeElementCount(extent)))),

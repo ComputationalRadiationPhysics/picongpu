@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, Rene Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,29 +20,6 @@ namespace alpaka
     {
         namespace traits
         {
-            namespace detail
-            {
-                template<typename TDevice, typename TQueueVector>
-                ALPAKA_FN_HOST auto currentThreadWaitForDevice(
-                    TDevice const & dev, TQueueVector & vQueues
-                )
-                ->void
-                {
-                    // Furthermore there should not even be a chance to enqueue something between getting the queues and adding our wait events!
-                    std::vector<event::EventCpu> vEvents;
-                    for(auto && spQueue : vQueues)
-                    {
-                        vEvents.emplace_back(dev);
-                        spQueue->enqueue(vEvents.back());
-                    }
-
-                    // Now wait for all the events.
-                    for(auto && event : vEvents)
-                    {
-                        wait::wait(event);
-                    }
-                }
-            }
             //#############################################################################
             //! The CPU device thread wait specialization.
             //!
@@ -59,12 +36,7 @@ namespace alpaka
                 {
                     ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
-                    // Get all the queues on the device at the time of invocation.
-                    // All queues added afterwards are ignored.
-                    auto vspQueues(
-                        dev.m_spDevCpuImpl->GetAllQueues());
-
-                    detail::currentThreadWaitForDevice(dev, vspQueues);
+                    generic::currentThreadWaitForDevice(dev);
                 }
             };
         }

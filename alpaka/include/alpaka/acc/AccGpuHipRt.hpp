@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, Matthias Werner, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -54,8 +54,7 @@ namespace alpaka
             typename TIdx>
         class AccGpuHipRt final :
             public acc::AccGpuUniformCudaHipRt<TDim,TIdx>,
-            public concepts::Implements<ConceptUniformCudaHip, AccGpuUniformCudaHipRt<TDim, TIdx>>,
-            public concepts::Implements<ConceptAcc, AccGpuHipRt<TDim, TIdx>>
+            public concepts::Implements<ConceptUniformCudaHip, AccGpuUniformCudaHipRt<TDim, TIdx>>
         {
         public:
             //-----------------------------------------------------------------------------

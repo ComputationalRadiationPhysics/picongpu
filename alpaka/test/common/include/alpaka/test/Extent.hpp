@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, Matthias Werner
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,50 +15,57 @@ namespace alpaka
     //! The test specifics.
     namespace test
     {
-        //#############################################################################
-        //! 1D: (5)
-        //! 2D: (5, 4)
-        //! 3D: (5, 4, 3)
-        //! 4D: (5, 4, 3, 2)
-        // We have to be careful with the extents used.
-        // When TIdx is a 8 bit signed integer and Dim is 4, the extent is extremely limited.
         template<
-            std::size_t Tidx>
-        struct CreateExtentBufVal
+            typename TIdx>
+        struct CreateVecWithIdx
         {
-            //-----------------------------------------------------------------------------
-            ALPAKA_NO_HOST_ACC_WARNING
+            //#############################################################################
+            //! 1D: (11)
+            //! 2D: (11, 10)
+            //! 3D: (11, 10, 9)
+            //! 4D: (11, 10, 9, 8)
             template<
-                typename TIdx>
-            ALPAKA_FN_HOST_ACC
-            static auto create(
-                TIdx)
-            -> TIdx
+                std::size_t Tidx>
+            struct ForExtentBuf
             {
-                return static_cast<TIdx>(5u - Tidx);
-            }
-        };
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST_ACC static auto create()
+                {
+                    return static_cast<TIdx>(11u - Tidx);
+                }
+            };
 
-        //#############################################################################
-        //! 1D: (4)
-        //! 2D: (4, 3)
-        //! 3D: (4, 3, 2)
-        //! 4D: (4, 3, 2, 1)
-        template<
-            std::size_t Tidx>
-        struct CreateExtentViewVal
-        {
-            //-----------------------------------------------------------------------------
-            ALPAKA_NO_HOST_ACC_WARNING
+            //#############################################################################
+            //! 1D: (8)
+            //! 2D: (8, 6)
+            //! 3D: (8, 6, 4)
+            //! 4D: (8, 6, 4, 2)
             template<
-                typename TIdx>
-            ALPAKA_FN_HOST_ACC
-            static auto create(
-                TIdx)
-            -> TIdx
+                std::size_t Tidx>
+            struct ForExtentSubView
             {
-                return static_cast<TIdx>(4u - Tidx);
-            }
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST_ACC static auto create()
+                {
+                    return static_cast<TIdx>(8u - (Tidx * 2u));
+                }
+            };
+
+            //#############################################################################
+            //! 1D: (2)
+            //! 2D: (2, 3)
+            //! 3D: (2, 3, 4)
+            //! 4D: (2, 3, 4, 5)
+            template<
+                std::size_t Tidx>
+            struct ForOffset
+            {
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST_ACC static auto create()
+                {
+                    return static_cast<TIdx>(2u + Tidx);
+                }
+            };
         };
     }
 }

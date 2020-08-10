@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, Jonas Schenke, Matthias Werner
  *
- * This file exemplifies usage of Alpaka.
+ * This file exemplifies usage of alpaka.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -36,12 +36,10 @@
 //
 using Accelerator = CpuSerial;
 
-using DevAcc = Accelerator::DevAcc;
-using DevHost = Accelerator::DevHost;
-using QueueAcc = Accelerator::Stream;
 using Acc = Accelerator::Acc;
-using PltfAcc = Accelerator::PltfAcc;
-using PltfHost = Accelerator::PltfHost;
+using Host = Accelerator::Host;
+using QueueProperty = alpaka::queue::Blocking;
+using QueueAcc = alpaka::queue::Queue<Acc, QueueProperty>;
 using MaxBlockSize = Accelerator::MaxBlockSize;
 
 //-----------------------------------------------------------------------------
@@ -58,7 +56,7 @@ using MaxBlockSize = Accelerator::MaxBlockSize;
 //! \param func The reduction function.
 //!
 //! Returns true if the reduction was correct and false otherwise.
-template<typename T, typename TFunc>
+template<typename T, typename DevHost, typename DevAcc, typename TFunc>
 T reduce(DevHost devHost, DevAcc devAcc, QueueAcc queue, uint64_t n, alpaka::mem::buf::Buf<DevHost, T, Dim, Idx> hostMemory, TFunc func)
 {
     static constexpr uint64_t blockSize = getMaxBlockSize<Accelerator, 256>();
@@ -66,7 +64,7 @@ T reduce(DevHost devHost, DevAcc devAcc, QueueAcc queue, uint64_t n, alpaka::mem
     // calculate optimal block size (8 times the MP count proved to be
     // relatively near to peak performance in benchmarks)
     uint32_t blockCount = static_cast<uint32_t>(
-        alpaka::acc::getAccDevProps<Acc, DevAcc>(devAcc).m_multiProcessorCount *
+        alpaka::acc::getAccDevProps<Acc>(devAcc).m_multiProcessorCount *
         8);
     uint32_t maxBlockCount = static_cast<uint32_t>(
         (((n + 1) / 2) - 1) / blockSize + 1); // ceil(ceil(n/2.0)/blockSize)
@@ -135,14 +133,14 @@ int main()
     using T = uint32_t;
     static constexpr uint64_t blockSize = getMaxBlockSize<Accelerator, 256>();
 
-    DevAcc devAcc(alpaka::pltf::getDevByIdx<PltfAcc>(dev));
-    DevHost devHost(alpaka::pltf::getDevByIdx<PltfHost>(0u));
+    auto devAcc = alpaka::pltf::getDevByIdx<Acc>(dev);
+    auto devHost = alpaka::pltf::getDevByIdx<Host>(0u);
     QueueAcc queue(devAcc);
 
     // calculate optimal block size (8 times the MP count proved to be
     // relatively near to peak performance in benchmarks)
     uint32_t blockCount = static_cast<uint32_t>(
-        alpaka::acc::getAccDevProps<Acc, DevAcc>(devAcc).m_multiProcessorCount *
+        alpaka::acc::getAccDevProps<Acc>(devAcc).m_multiProcessorCount *
         8);
     uint32_t maxBlockCount = static_cast<uint32_t>(
         (((n + 1) / 2) - 1) / blockSize + 1); // ceil(ceil(n/2.0)/blockSize)

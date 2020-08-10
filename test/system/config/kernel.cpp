@@ -35,6 +35,8 @@
 #   include <cupla/config/GpuHipRt.hpp>
 #endif
 
+#include "cuda_to_cupla.hpp"
+
 struct IncrementKernel
 {
     template<typename T_Acc>

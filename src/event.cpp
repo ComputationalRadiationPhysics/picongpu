@@ -43,7 +43,7 @@ cuplaEventCreateWithFlags(
     >::get().create( flags );
 
     return cuplaSuccess;
-};
+}
 
 
 CUPLA_HEADER_ONLY_FUNC_SPEC
@@ -58,7 +58,7 @@ cuplaEventCreate(
     >::get().create( 0 );
 
     return cuplaSuccess;
-};
+}
 
 CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
@@ -73,7 +73,7 @@ cuplaEventDestroy( cuplaEvent_t event )
         return cuplaSuccess;
     else
         return cuplaErrorInitializationError;
-};
+}
 
 CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t

@@ -3,7 +3,7 @@
 #
 # Copyright 2017-2019 Benjamin Worpitz
 #
-# This file is part of Alpaka.
+# This file is part of alpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,14 +16,17 @@ source ./script/set.sh
 
 : "${ALPAKA_CUDA_VERSION?'ALPAKA_CUDA_VERSION must be specified'}"
 
-if [ "$TRAVIS_OS_NAME" = "linux" ]
+if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
-    : "${ALPAKA_CI_DOCKER_BASE_IMAGE_NAME?'ALPAKA_CI_DOCKER_BASE_IMAGE_NAME must be specified'}"
     : "${ALPAKA_CI_CUDA_DIR?'ALPAKA_CI_CUDA_DIR must be specified'}"
     : "${ALPAKA_CUDA_COMPILER?'ALPAKA_CUDA_COMPILER must be specified'}"
 
     # Ubuntu 18.04 requires some extra keys for verification
-    if [[ "${ALPAKA_CI_DOCKER_BASE_IMAGE_NAME}" == *"18.04"* ]]
+    if [[ "$(cat /etc/os-release)" == *"18.04"* ]]
+    then
+        travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install dirmngr gpg-agent
+        travis_retry sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F60F4B3D7FA2AF80
+    elif [[ "$(cat /etc/os-release)" == *"20.04"* ]]
     then
         travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install dirmngr gpg-agent
         travis_retry sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F60F4B3D7FA2AF80
@@ -60,8 +63,13 @@ then
         ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-ubuntu1804-10-2-local
         ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"-10.2.89-440.33.01_1.0-1_amd64.deb
         ALPAKA_CUDA_PKG_FILE_PATH=http://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
+    elif [ "${ALPAKA_CUDA_VERSION}" == "11.0" ]
+    then
+        ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-ubuntu1804-11-0-local
+        ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_11.0.2-450.51.05-1_amd64.deb
+        ALPAKA_CUDA_PKG_FILE_PATH=http://developer.download.nvidia.com/compute/cuda/11.0.2/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
     else
-        echo CUDA versions other than 9.0, 9.1, 9.2, 10.0, 10.1 and 10.2 are not currently supported on linux!
+        echo CUDA versions other than 9.0, 9.1, 9.2, 10.0, 10.1, 10.2 and 11.0 are not currently supported on linux!
     fi
     if [ -z "$(ls -A ${ALPAKA_CI_CUDA_DIR})" ]
     then
@@ -73,9 +81,14 @@ then
     travis_retry sudo apt-get -y --quiet update
 
     # Install CUDA
-    # Currently we do not install CUDA fully: sudo apt-get --quiet -y install cuda
-    # We only install the minimal packages. Because of our manual partial installation we have to create a symlink at /usr/local/cuda
-    sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install cuda-core-"${ALPAKA_CUDA_VERSION}" cuda-cudart-"${ALPAKA_CUDA_VERSION}" cuda-cudart-dev-"${ALPAKA_CUDA_VERSION}" cuda-curand-"${ALPAKA_CUDA_VERSION}" cuda-curand-dev-"${ALPAKA_CUDA_VERSION}"
+    if [ "${ALPAKA_CUDA_VERSION}" == "11.0" ]
+    then
+      sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install cuda-compiler-"${ALPAKA_CUDA_VERSION}" cuda-cudart-"${ALPAKA_CUDA_VERSION}" cuda-cudart-dev-"${ALPAKA_CUDA_VERSION}" libcurand-"${ALPAKA_CUDA_VERSION}" libcurand-dev-"${ALPAKA_CUDA_VERSION}"
+    else
+      # Currently we do not install CUDA fully: sudo apt-get --quiet -y install cuda
+      # We only install the minimal packages. Because of our manual partial installation we have to create a symlink at /usr/local/cuda
+      sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install cuda-core-"${ALPAKA_CUDA_VERSION}" cuda-cudart-"${ALPAKA_CUDA_VERSION}" cuda-cudart-dev-"${ALPAKA_CUDA_VERSION}" cuda-curand-"${ALPAKA_CUDA_VERSION}" cuda-curand-dev-"${ALPAKA_CUDA_VERSION}"
+    fi
     sudo ln -s /usr/local/cuda-"${ALPAKA_CUDA_VERSION}" /usr/local/cuda
 
     if [ "${ALPAKA_CUDA_COMPILER}" == "clang" ]
@@ -86,7 +99,7 @@ then
     # clean up
     sudo rm -rf "${ALPAKA_CI_CUDA_DIR}"/"${ALPAKA_CUDA_PKG_FILE_NAME}"
     sudo dpkg --purge "${ALPAKA_CUDA_PKG_DEB_NAME}"
-elif [ "$TRAVIS_OS_NAME" = "windows" ]
+elif [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
     if [ "${ALPAKA_CUDA_VERSION}" == "10.0" ]
     then

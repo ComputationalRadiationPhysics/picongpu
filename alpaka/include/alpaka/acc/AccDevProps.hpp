@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,7 +24,6 @@ namespace alpaka
         //
         // \TODO:
         //  TIdx m_maxClockFrequencyHz;            //!< Maximum clock frequency of the device in Hz.
-        //  TIdx m_sharedMemSizeBytes;             //!< Idx of the available block shared memory in bytes.
         template<
             typename TDim,
             typename TIdx>
@@ -38,14 +37,16 @@ namespace alpaka
                 vec::Vec<TDim, TIdx> const & blockThreadExtentMax,
                 TIdx const & blockThreadCountMax,
                 vec::Vec<TDim, TIdx> const & threadElemExtentMax,
-                TIdx const & threadElemCountMax) :
+                TIdx const & threadElemCountMax,
+                size_t const & sharedMemSizeBytes) :
                     m_gridBlockExtentMax(gridBlockExtentMax),
                     m_blockThreadExtentMax(blockThreadExtentMax),
                     m_threadElemExtentMax(threadElemExtentMax),
                     m_gridBlockCountMax(gridBlockCountMax),
                     m_blockThreadCountMax(blockThreadCountMax),
                     m_threadElemCountMax(threadElemCountMax),
-                    m_multiProcessorCount(multiProcessorCount)
+                    m_multiProcessorCount(multiProcessorCount),
+                    m_sharedMemSizeBytes(sharedMemSizeBytes)
             {}
 
             // NOTE: The members have been reordered from the order in the constructor because gcc is buggy for some TDim and TIdx and generates invalid assembly.
@@ -58,6 +59,7 @@ namespace alpaka
             TIdx m_threadElemCountMax;                 //!< The maximum number of elements in a threads.
 
             TIdx m_multiProcessorCount;                //!< The number of multiprocessors.
+            size_t m_sharedMemSizeBytes;               //!< The size of shared memory per block
         };
     }
 }

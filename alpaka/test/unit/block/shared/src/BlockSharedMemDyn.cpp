@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -29,15 +29,15 @@ public:
     -> void
     {
         // Assure that the pointer is non null.
-        auto && a = alpaka::block::shared::dyn::getMem<std::uint32_t>(acc);
+        auto a = alpaka::block::shared::dyn::getMem<std::uint32_t>(acc);
         ALPAKA_CHECK(*success, static_cast<std::uint32_t *>(nullptr) != a);
 
         // Each call should return the same pointer ...
-        auto && b = alpaka::block::shared::dyn::getMem<std::uint32_t>(acc);
+        auto b = alpaka::block::shared::dyn::getMem<std::uint32_t>(acc);
         ALPAKA_CHECK(*success, a == b);
 
         // ... even for different types.
-        auto && c = alpaka::block::shared::dyn::getMem<float>(acc);
+        auto c = alpaka::block::shared::dyn::getMem<float>(acc);
         ALPAKA_CHECK(*success, a == reinterpret_cast<std::uint32_t *>(c));
     }
 };

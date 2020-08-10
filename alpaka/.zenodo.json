@@ -1,6 +1,6 @@
 {
-  "title": "Alpaka: Abstraction Library for Parallel Kernel Acceleration",
-  "description": "The alpaka library is a header-only C++11 abstraction library for accelerator development. Its aim is to provide performance portability across accelerators through the abstraction (not hiding!) of the underlying levels of parallelism.",
+  "title": "alpaka: Abstraction Library for Parallel Kernel Acceleration",
+  "description": "The alpaka library is a header-only C++14 abstraction library for accelerator development. Its aim is to provide performance portability across accelerators through the abstraction (not hiding!) of the underlying levels of parallelism.",
   "creators": [
     {
       "affiliation": "LogMeIn, Inc.",

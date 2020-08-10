@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,12 +16,16 @@
 #include <type_traits>
 #include <utility>
 
+#include <alpaka/core/Concepts.hpp>
+
 namespace alpaka
 {
     //-----------------------------------------------------------------------------
     //! The queue specifics.
     namespace queue
     {
+        struct ConceptQueue;
+
         //-----------------------------------------------------------------------------
         //! The queue traits.
         namespace traits
@@ -80,19 +84,20 @@ namespace alpaka
             TQueue const & queue)
         -> bool
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptQueue, TQueue>;
             return
                 traits::Empty<
-                    TQueue>
+                    ImplementationBase>
                 ::empty(
                     queue);
         }
 
         //-----------------------------------------------------------------------------
         //! Queue based on the environment and a property
-        //
-        // \tparam TEnv Environment type, e.g.  accelerator, device or a platform.
-        //              queue::traits::QueueType must be specialized for TEnv
-        // \tparam TProperty Property to define the behavior of TEnv.
+        //!
+        //! \tparam TEnv Environment type, e.g.  accelerator, device or a platform.
+        //!              queue::traits::QueueType must be specialized for TEnv
+        //! \tparam TProperty Property to define the behavior of TEnv.
         template<
             typename TEnv,
             typename TProperty>

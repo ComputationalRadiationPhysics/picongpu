@@ -14,7 +14,7 @@ Requirements
   - `export CMAKE_PREFIX_PATH=$CUPLA_ROOT:$CMAKE_PREFIX_PATH`
   - example:
     - `mkdir -p $HOME/src`
-    - `git clone git://github.com/alpaka-group/cupla.git $HOME/src/cupla`
+    - `git clone https://github.com/alpaka-group/cupla.git $HOME/src/cupla`
     - `cd $HOME/src/cupla`
     - `export CUPLA_ROOT=$HOME/src/cupla`
   - use a different alpaka installation:

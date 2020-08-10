@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,11 +19,13 @@
 #include <alpaka/atomic/AtomicStdLibLock.hpp>
 #include <alpaka/atomic/AtomicHierarchy.hpp>
 #include <alpaka/math/MathStdLib.hpp>
-#include <alpaka/block/shared/dyn/BlockSharedMemDynBoostAlignedAlloc.hpp>
-#include <alpaka/block/shared/st/BlockSharedMemStNoSync.hpp>
+#include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
+#include <alpaka/block/shared/st/BlockSharedMemStMember.hpp>
 #include <alpaka/block/sync/BlockSyncNoOp.hpp>
+#include <alpaka/intrinsic/IntrinsicCpu.hpp>
 #include <alpaka/rand/RandStdLib.hpp>
 #include <alpaka/time/TimeStdLib.hpp>
+#include <alpaka/warp/WarpSingleThread.hpp>
 
 // Specialized traits.
 #include <alpaka/acc/Traits.hpp>
@@ -71,11 +73,13 @@ namespace alpaka
                 atomic::AtomicNoOp         // thread atomics
             >,
             public math::MathStdLib,
-            public block::shared::dyn::BlockSharedMemDynBoostAlignedAlloc,
-            public block::shared::st::BlockSharedMemStNoSync,
+            public block::shared::dyn::BlockSharedMemDynMember<>,
+            public block::shared::st::BlockSharedMemStMember<>,
             public block::sync::BlockSyncNoOp,
+            public intrinsic::IntrinsicCpu,
             public rand::RandStdLib,
             public time::TimeStdLib,
+            public warp::WarpSingleThread,
             public concepts::Implements<ConceptAcc, AccCpuSerial<TDim, TIdx>>
         {
         public:
@@ -103,8 +107,8 @@ namespace alpaka
                         atomic::AtomicNoOp         // atomics between threads
                     >(),
                     math::MathStdLib(),
-                    block::shared::dyn::BlockSharedMemDynBoostAlignedAlloc(static_cast<std::size_t>(blockSharedMemDynSizeBytes)),
-                    block::shared::st::BlockSharedMemStNoSync(),
+                    block::shared::dyn::BlockSharedMemDynMember<>(static_cast<unsigned int>(blockSharedMemDynSizeBytes)),
+                    block::shared::st::BlockSharedMemStMember<>(staticMemBegin(), staticMemCapacity()),
                     block::sync::BlockSyncNoOp(),
                     rand::RandStdLib(),
                     time::TimeStdLib(),
@@ -172,7 +176,9 @@ namespace alpaka
                         // m_threadElemExtentMax
                         vec::Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_threadElemCountMax
-                        std::numeric_limits<TIdx>::max()};
+                        std::numeric_limits<TIdx>::max(),
+                        // m_sharedMemSizeBytes
+                        static_cast< size_t >( acc::AccCpuSerial<TDim, TIdx>::staticAllocBytes )};
                 }
             };
             //#############################################################################

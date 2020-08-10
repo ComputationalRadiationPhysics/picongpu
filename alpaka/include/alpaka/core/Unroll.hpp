@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,7 +19,7 @@
 //!  for(...){...}`
 // \TODO: Implement for other compilers.
 #if BOOST_ARCH_PTX
-    #if BOOST_COMP_MSVC
+    #if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
         #define ALPAKA_UNROLL(...) __pragma(unroll __VA_ARGS__)
     #else
         #define ALPAKA_UNROLL_STRINGIFY(x) #x

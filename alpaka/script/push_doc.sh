@@ -3,7 +3,7 @@
 #
 # Copyright 2020 Benjamin Worpitz
 #
-# This file is part of Alpaka.
+# This file is part of alpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,7 +14,7 @@ source ./script/travis_retry.sh
 
 source ./script/set.sh
 
-cd doc/doxygen/html
+cd docs/doxygen/html
 
 git config --global user.email "action@github.com"
 git config --global user.name "GitHub Action"

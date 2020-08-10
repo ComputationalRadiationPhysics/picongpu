@@ -43,7 +43,7 @@ cuplaStreamCreate(
     >::get().create();
 
     return cuplaSuccess;
-};
+}
 
 CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
@@ -58,7 +58,7 @@ cuplaStreamDestroy( cuplaStream_t stream )
         return cuplaSuccess;
     else
         return cuplaErrorInitializationError;
-};
+}
 
 CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
@@ -109,6 +109,6 @@ cuplaStreamQuery( cuplaStream_t stream )
         return cuplaSuccess;
     else
         return cuplaErrorNotReady;
-};
+}
 
 } //namespace CUPLA_ACCELERATOR_NAMESPACE

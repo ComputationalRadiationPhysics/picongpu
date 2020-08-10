@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -156,8 +156,13 @@ namespace alpaka
                     TKernelFnObj const &,
                     TArgs const & ...)
                 {
+#if defined(__cpp_lib_is_invocable) && __cpp_lib_is_invocable >= 201703
+                    using Result = std::invoke_result_t<TKernelFnObj, TAcc const &, TArgs const & ...>;
+#else
+                    using Result = std::result_of_t<TKernelFnObj(TAcc const &, TArgs const & ...)>;
+#endif
                     static_assert(
-                        std::is_same<std::result_of_t<TKernelFnObj(TAcc const &, TArgs const & ...)>, void>::value,
+                        std::is_same<Result, void>::value,
                         "The TKernelFnObj is required to return void!");
                 }
             };
