@@ -1,114 +1,87 @@
-project(mallocMC)
-cmake_minimum_required(VERSION 2.8.12.2)
+project(mallocMC LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.8)
 
-# helper for libs and packages
-set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/"
-    "$ENV{CUDA_ROOT}" "$ENV{BOOST_ROOT}")
-
-
-################################################################################
-# CMake policies
-#
-# Search in <PackageName>_ROOT:
-#   https://cmake.org/cmake/help/v3.12/policy/CMP0074.html
-################################################################################
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(POLICY CMP0074)
-    cmake_policy(SET CMP0074 NEW)
+  cmake_policy(SET CMP0074 NEW)
 endif()
 
-
-###############################################################################
-# CUDA
-###############################################################################
-find_package(CUDA REQUIRED)
-set(CUDA_NVCC_FLAGS "-arch=sm_20;-use_fast_math;")
-set(CUDA_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CUDA_INCLUDE_DIRS})
-cuda_include_directories(${CUDA_INCLUDE_DIRS})
-
-OPTION(CUDA_OUTPUT_INTERMEDIATE_CODE "Output ptx code" OFF)
-if(CUDA_OUTPUT_INTERMEDIATE_CODE)
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-Xptxas;-v;--keep")
-endif(CUDA_OUTPUT_INTERMEDIATE_CODE)
-
-SET(CUDA_OPTIMIZATION_TYPE "unset" CACHE STRING "CUDA Optimization")
-set_property(CACHE CUDA_OPTIMIZATION_TYPE PROPERTY STRINGS "unset;-G0;-O0;-O1;-O2;-O3")
-if(NOT ${CUDA_OPTIMIZATION_TYPE} STREQUAL  "unset")
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_OPTIMIZATION_TYPE}")
+# find alpaka
+set(mallocMC_ALPAKA_PROVIDER "intern" CACHE STRING "Select which alpaka is used")
+set_property(CACHE mallocMC_ALPAKA_PROVIDER PROPERTY STRINGS "intern;extern")
+mark_as_advanced(mallocMC_ALPAKA_PROVIDER)
+if(${mallocMC_ALPAKA_PROVIDER} STREQUAL "intern")
+    set(alpaka_BUILD_EXAMPLES OFF)
+    set(BUILD_TESTING OFF)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/alpaka ${CMAKE_BINARY_DIR}/alpaka)
+else()
+    find_package(alpaka HINTS $ENV{ALPAKA_ROOT})
 endif()
 
+if(NOT TARGET alpaka::alpaka)
+    message(FATAL "Required mallocMC dependency alpaka could not be found!")
+endif()
 
-###############################################################################
-# Boost
-###############################################################################
-find_package(Boost 1.48.0 REQUIRED)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${Boost_LIBRARIES})
+# Catch2
+set(mallocMC_CATCH2_PROVIDER "intern" CACHE STRING "Select which Catch2 is used")
+set_property(CACHE mallocMC_CATCH2_PROVIDER PROPERTY STRINGS "intern;extern")
+mark_as_advanced(mallocMC_CATCH2_PROVIDER)
+if(${mallocMC_CATCH2_PROVIDER} STREQUAL "intern")
+    add_library(Catch2::Catch2 INTERFACE IMPORTED)
+    target_include_directories(Catch2::Catch2 INTERFACE ${CMAKE_CURRENT_LIST_DIR}/thirdParty/catch2/include)
+else()
+    find_package(Catch2 CONFIG REQUIRED)
+endif()
 
-# nvcc + boost 1.55 work around
-if(Boost_VERSION EQUAL 105500)
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} \"-DBOOST_NOINLINE=__attribute__((noinline))\" ")
-endif(Boost_VERSION EQUAL 105500)
+# for installation, just copy include folder to install folder
+install(
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/include/."
+    DESTINATION include
+)
 
-
-################################################################################
-# Warnings
-################################################################################
-# GNU
+# warnings
+add_library(warnings INTERFACE)
 if(CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
-  # new warning in gcc 4.8 (flag ignored in previous version)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
-# ICC
+    target_compile_options(warnings INTERFACE -Wall -Wshadow -Wno-unknown-pragmas -Wextra -Wno-unused-parameter -Wno-unused-local-typedefs)
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_VARIADIC_TEMPLATES")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_VARIADIC_TEMPLATES")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_FENV_H")
-# PGI
+    target_compile_options(warnings INTERFACE -Wall -Wshadow)
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=inform")
+    target_compile_options(warnings INTERFACE -Minform=inform)
 endif()
 
-
-###############################################################################
-# Installation
-###############################################################################
-
-# copy include folder to install folder
-INSTALL(
-  DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/include/."
-  DESTINATION include
-  PATTERN ".git" EXCLUDE
-  PATTERN "mallocMC_config.hpp" EXCLUDE
-  )
-
-
-###############################################################################
 # Executables
-###############################################################################
-add_custom_target(examples DEPENDS mallocMC_Example01 mallocMC_Example02 mallocMC_Example03 VerifyHeap)
+file(GLOB_RECURSE headers src/include/**)
+add_custom_target(mallocMCIde SOURCES ${headers}) # create a target with the header files for IDE projects
+source_group(TREE ${CMAKE_CURRENT_LIST_DIR}/src/include FILES ${headers})
 
-cuda_add_executable(mallocMC_Example01
-                    EXCLUDE_FROM_ALL
-                    examples/mallocMC_example01.cu )
-cuda_add_executable(mallocMC_Example02
-                    EXCLUDE_FROM_ALL
-                    examples/mallocMC_example02.cu )
-cuda_add_executable(mallocMC_Example03
-                    EXCLUDE_FROM_ALL
-                    examples/mallocMC_example03.cu )
-cuda_add_executable(VerifyHeap
-                    EXCLUDE_FROM_ALL
-                    tests/verify_heap.cu )
+alpaka_add_executable(mallocMC_Example01 EXCLUDE_FROM_ALL examples/mallocMC_example01.cpp)
+target_include_directories(mallocMC_Example01 PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/include)
+target_link_libraries(mallocMC_Example01 PUBLIC alpaka::alpaka warnings)
 
-target_link_libraries(mallocMC_Example01 ${LIBS})
-target_link_libraries(mallocMC_Example02 ${LIBS})
-target_link_libraries(mallocMC_Example03 ${LIBS})
-target_link_libraries(VerifyHeap ${LIBS})
+alpaka_add_executable(mallocMC_Example03 EXCLUDE_FROM_ALL examples/mallocMC_example03.cpp)
+target_include_directories(mallocMC_Example03 PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/include)
+target_link_libraries(mallocMC_Example03 PUBLIC alpaka::alpaka warnings)
+
+alpaka_add_executable(VerifyHeap EXCLUDE_FROM_ALL tests/verify_heap.cpp tests/verify_heap_config.hpp)
+target_include_directories(VerifyHeap PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/include)
+target_link_libraries(VerifyHeap PUBLIC alpaka::alpaka warnings)
+
+if (CUDA_VERSION VERSION_LESS 10.2) # TODO(bgruber): I do not know exactly where it breaks. 9.1 does not work, 10.2 works
+    # the catch2 main needs to be in a non-CUDA file before CUDA 10.2, because nvcc fails to compile the catch2 header
+    # TODO: merge the test_main back into the tests exe, once CUDA 10.2 is the minimum version
+    add_library(tests_main EXCLUDE_FROM_ALL tests/main.cpp)
+    target_include_directories(tests_main PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/include)
+    target_link_libraries(tests_main PUBLIC Catch2::Catch2 warnings)
+
+    alpaka_add_executable(tests EXCLUDE_FROM_ALL tests/dimensions.cpp tests/policies.cpp)
+    target_include_directories(tests PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/include)
+    target_link_libraries(tests PUBLIC tests_main alpaka::alpaka Catch2::Catch2 warnings)
+else()
+    alpaka_add_executable(tests EXCLUDE_FROM_ALL tests/main.cpp tests/dimensions.cpp tests/policies.cpp)
+    target_include_directories(tests PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/include)
+    target_link_libraries(tests PUBLIC alpaka::alpaka Catch2::Catch2 warnings)
+endif()
+
+add_custom_target(examples DEPENDS mallocMC_Example01 mallocMC_Example03 VerifyHeap)

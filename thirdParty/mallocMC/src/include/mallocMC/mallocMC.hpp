@@ -43,8 +43,13 @@
 #include "mallocMC_hostclass.hpp"
 
 // all the policies
-#include "CreationPolicies.hpp"
-#include "DistributionPolicies.hpp"
-#include "ReservePoolPolicies.hpp"
-#include "AlignmentPolicies.hpp"
-#include "OOMPolicies.hpp"
+#include "alignmentPolicies/Noop.hpp"
+#include "alignmentPolicies/Shrink.hpp"
+#include "creationPolicies/OldMalloc.hpp"
+#include "creationPolicies/Scatter.hpp"
+#include "distributionPolicies/Noop.hpp"
+#include "distributionPolicies/XMallocSIMD.hpp"
+#include "oOMPolicies/BadAllocException.hpp"
+#include "oOMPolicies/ReturnNull.hpp"
+#include "reservePoolPolicies/AlpakaBuf.hpp"
+#include "reservePoolPolicies/CudaSetLimits.hpp"

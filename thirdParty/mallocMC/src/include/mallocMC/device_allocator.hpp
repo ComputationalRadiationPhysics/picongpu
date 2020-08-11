@@ -28,74 +28,66 @@
 
 #pragma once
 
-#include "mallocMC_utils.hpp"
 #include "mallocMC_constraints.hpp"
-#include "mallocMC_prefixes.hpp"
 #include "mallocMC_traits.hpp"
+#include "mallocMC_utils.hpp"
 
-#include <boost/cstdint.hpp>
-#include <stdio.h>
+#include <alpaka/core/Common.hpp>
+#include <cstdint>
+#include <cstdio>
 
-namespace mallocMC{
-
-namespace detail{
-
-    /**
-     * @brief Template class to call getAvailableSlots[Host|Accelerator] if the CreationPolicy provides it.
-     *
-     * Returns 0 else.
-     *
-     * @tparam T_Allocator The type of the Allocator to be used
-     * @tparam T_isHost True for the host call, false for the accelerator call
-     * @tparam T_providesAvailableSlots If the CreationPolicy provides getAvailableSlots[Host|Accelerator] (auto filled, do not set)
-     */
-    template<
-        typename T_Allocator,
-        bool T_providesAvailableSlots
-    >
-    struct GetAvailableSlotsIfAvailAcc
+namespace mallocMC
+{
+    namespace detail
     {
-        MAMC_ACCELERATOR static
-        unsigned
-        getAvailableSlots(
-            size_t,
-            T_Allocator &
-        )
+        /**
+         * @brief Template class to call getAvailableSlots[Host|Accelerator] if
+         * the CreationPolicy provides it.
+         *
+         * Returns 0 else.
+         *
+         * @tparam T_Allocator The type of the Allocator to be used
+         * @tparam T_isHost True for the host call, false for the accelerator
+         * call
+         * @tparam T_providesAvailableSlots If the CreationPolicy provides
+         * getAvailableSlots[Host|Accelerator] (auto filled, do not set)
+         */
+        template<
+            typename AlpakaAcc,
+            typename T_Allocator,
+            bool T_providesAvailableSlots>
+        struct GetAvailableSlotsIfAvailAcc
         {
-            return 0;
-        }
+            ALPAKA_FN_ACC static auto
+            getAvailableSlots(const AlpakaAcc &, size_t, T_Allocator &)
+                -> unsigned
+            {
+                return 0;
+            }
+        };
 
-    };
-
-    template<
-        typename T_Allocator
-    >
-    struct GetAvailableSlotsIfAvailAcc<
-        T_Allocator,
-        true
-    >{
-        MAMC_ACCELERATOR static
-        unsigned
-        getAvailableSlots(
-            size_t slotSize,
-            T_Allocator& alloc
-        )
+        template<typename AlpakaAcc, typename T_Allocator>
+        struct GetAvailableSlotsIfAvailAcc<AlpakaAcc, T_Allocator, true>
         {
-            return alloc.T_Allocator::CreationPolicy
-                ::getAvailableSlotsAccelerator( slotSize );
-        }
+            ALPAKA_FN_ACC static auto getAvailableSlots(
+                const AlpakaAcc & acc,
+                size_t slotSize,
+                T_Allocator & alloc) -> unsigned
+            {
+                return alloc
+                    .T_Allocator::CreationPolicy ::getAvailableSlotsAccelerator(
+                        acc, slotSize);
+            }
+        };
 
-    };
-
-} // namespace detail
-
+    } // namespace detail
 
     /**
      * @brief "HostClass" that combines all policies to a useful allocator
      *
-     * This class implements the necessary glue-logic to form an actual allocator
-     * from the provided policies. It implements the public interface and
-     * executes some constraint checking based on an instance of the class
+     * This class implements the necessary glue-logic to form an actual
+     * allocator from the provided policies. It implements the public interface
+     * and executes some constraint checking based on an instance of the class
      * PolicyConstraints.
      *
      * @tparam T_CreationPolicy The desired type of a CreationPolicy
@@ -108,63 +100,51 @@ namespace detail{
         typename T_CreationPolicy,
         typename T_DistributionPolicy,
         typename T_OOMPolicy,
-        typename T_AlignmentPolicy
-    >
-    class DeviceAllocator :
-        public T_CreationPolicy
+        typename T_AlignmentPolicy>
+    class DeviceAllocator : public T_CreationPolicy
     {
-        typedef boost::uint32_t uint32;
+        using uint32 = std::uint32_t;
+
     public:
-        typedef T_CreationPolicy CreationPolicy;
-        typedef T_DistributionPolicy DistributionPolicy;
-        typedef T_OOMPolicy OOMPolicy;
-        typedef T_AlignmentPolicy AlignmentPolicy;
+        using CreationPolicy = T_CreationPolicy;
+        using DistributionPolicy = T_DistributionPolicy;
+        using OOMPolicy = T_OOMPolicy;
+        using AlignmentPolicy = T_AlignmentPolicy;
 
-        void* pool;
+        void * pool;
 
-        MAMC_ACCELERATOR
-        void*
-        malloc(
-            size_t bytes
-        )
+        template<typename AlpakaAcc>
+        ALPAKA_FN_ACC auto malloc(const AlpakaAcc & acc, size_t bytes) -> void *
         {
-            DistributionPolicy distributionPolicy;
-            bytes = AlignmentPolicy::applyPadding( bytes );
-            uint32 req_size = distributionPolicy.collect( bytes );
-            void* memBlock = CreationPolicy::create( req_size );
-            const bool oom = CreationPolicy::isOOM( memBlock, req_size );
-            if( oom )
-                memBlock = OOMPolicy::handleOOM( memBlock );
-            void* myPart = distributionPolicy.distribute( memBlock );
-            return myPart;
+            bytes = AlignmentPolicy::applyPadding(bytes);
+            DistributionPolicy distributionPolicy(acc);
+            const uint32 req_size = distributionPolicy.collect(acc, bytes);
+            void * memBlock = CreationPolicy::create(acc, req_size);
+            if(CreationPolicy::isOOM(memBlock, req_size))
+                memBlock = OOMPolicy::handleOOM(memBlock);
+            return distributionPolicy.distribute(acc, memBlock);
         }
 
-        MAMC_ACCELERATOR
-        void
-        free(
-            void* p
-        )
+        template<typename AlpakaAcc>
+        ALPAKA_FN_ACC void free(const AlpakaAcc & acc, void * p)
         {
-            CreationPolicy::destroy( p );
+            CreationPolicy::destroy(acc, p);
         }
-
 
         /* polymorphism over the availability of getAvailableSlots for calling
          * from the accelerator
          */
-        MAMC_ACCELERATOR
-        unsigned
-        getAvailableSlots(
-            size_t slotSize
-        )
+        template<typename AlpakaAcc>
+        ALPAKA_FN_ACC auto
+        getAvailableSlots(const AlpakaAcc & acc, size_t slotSize) -> unsigned
         {
-            slotSize = AlignmentPolicy::applyPadding( slotSize );
+            slotSize = AlignmentPolicy::applyPadding(slotSize);
             return detail::GetAvailableSlotsIfAvailAcc<
+                AlpakaAcc,
                 DeviceAllocator,
-                Traits< DeviceAllocator >::providesAvailableSlots
-            >::getAvailableSlots( slotSize, *this );
+                Traits<DeviceAllocator>::providesAvailableSlots>::
+                getAvailableSlots(acc, slotSize, *this);
         }
-
     };
 
 } // namespace mallocMC
