@@ -26,25 +26,27 @@
  *  T_Weight ... data type used for weight in storage
  *
  * Members(private):
- *  centralEnergy: ... central energy E_i of the energy interval this bin
- *                      describes,
- *                      (a_i,b_i] <-> E_i = a_i+(b_i-a_i)/2
- *  weight:        ... sum of weight values of all electrons inside this energy
+ *  centralEnergy  ... central energy E_i of the energy interval
+ *  deltaEnergy    ... width of energy interval
+ *
+ * actuall data stored in histogram:
+ *  weight         ... sum of weight values of all electrons inside this energy
  *                      bin, Kahan algorithm used to reduce floating point
  *                      summation error,
                    see https://en.wikipedia.org/wiki/Kahan_summation_algorithm
  *  compensation   ... compensation variable required for Kahan summation
  *
  * Member functions(public):
- *  void addWeight( T_Weight w )      add w to weight using Kahan summation
+ *  HistogramBinWeight(             constructor of HistogramBinWeight
+ *    T_Energy centralE, T_Energy deltaE )
+ *  void addWeight( T_Weight w )    add w to weight using Kahan summation
+ *  void reset()                    reset HistogramBinWeight to initial condition, 
+ *  void removeWeight( T_Weight w ) remove w from weight
+ *  bool checkEmpty()               returns true if bin is empty
  *
- *  void reset()                    reset HistogramBin to initial condition, 
- *
- *  void removeWeight( T_Weight w )   remove w from weight
- *
- *  # getWeight()                   return weight in bin, # depends on
+ *  Promoted getWeight()            return weight in bin, Promoted depends on
  *                                  specialisation,
- *                                  # \in {T_Weight, long T_Weight}
+ *                                  Promoted \in {T_Weight, 'long' T_Weight}
  */
 
 #pragma once
@@ -66,10 +68,10 @@ namespace histogram
 {
 
 // standard implementation:     reusing T_Weight for weight
-template < typename T_Energy, typename T_Weight >
-class HistogramBin
+template < typename T_Energy, typename T_Weight>
+class HistogramBinWeight
 {
-    /** general definition of HistogramBin
+    /** general definition of HistogramBinWeight
     *
     * This implementation uses T_Weight as data type of accumulated weights,
     *
@@ -94,16 +96,23 @@ class HistogramBin
 
     public:
 
-        HistogramBin( T_Energy E )
+        HistogramBinWeight( T_Energy centralE, T_Energy deltaE)
         {
-            /** constructor of HistogramBin
+            /** constructor of HistogramBinWeight
             *
             * initialise central enrgy with E, and both compensation and weight
             * with 0.
             */
-            this->centralEnergy = E;
+            this->centralEnergy = centralE;
+            this->deltaEnergy = deltaE;
             this-> weight = 0;
             this->compensation = 0;
+        }
+
+        bool checkEmpty()
+        {
+            if (this-> weight == 0) { return true; }
+            return false;
         }
 
         T_Weight getWeight()
@@ -133,8 +142,8 @@ class HistogramBin
             {
                 throw std::runtime_error
                 (
-                    "overflow in weight of histogramBin, see documentation of"
-                    "HistogramBin class of atomicPhysics for further"
+                    "overflow in weight of histogramBinWeight, see documentation"
+                    "of HistogramBinWeight class of atomicPhysics for further"
                     "information on what happened and how to avoid this"
                 );
             }
@@ -177,9 +186,9 @@ class HistogramBin
  * cumulated weight of bin
  */
 template < typename T_Energy >
-class HistogramBin< T_Energy, float_X >
+class HistogramBinWeight < T_Energy, float_X >
 {
-    /** HistogramBin specialization for T_Weight = float_X
+    /** HistogramBinWeight specialization for T_Weight = float_X
     */
 
     private:
@@ -194,13 +203,20 @@ class HistogramBin< T_Energy, float_X >
         float compensation;
 
     public:
-        HistogramBin( T_Energy E )
+        HistogramBinWeight( T_Energy centralE, T_Energy deltaE )
         {
-            /** constructor of HistogramBin
+            /** constructor of HistogramBinWeight
             */
-            this->centralEnergy = E;
+            this->centralEnergy = centralE;
+            this->deltaEnergy = deltaE;
             this->weight = 0.0;
             this->compensation = 0.0;
+        }
+
+        bool checkEmpty()
+        {
+            if (this-> weight == 0) { return true; }
+            return false;
         }
 
         float getWeight()
@@ -228,8 +244,8 @@ class HistogramBin< T_Energy, float_X >
             {
                 throw std::runtime_error
                 (
-                    "overflow in weight of histogramBin, see documentation of"
-                    "HistogramBin class of atomicPhysics for further"
+                    "overflow in weight of histogramBinWeight, see documentation"
+                    "of HistogramBin class of atomicPhysics for further"
                     "information on what happened and how to avoid this"
                 );
             }
