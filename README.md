@@ -22,6 +22,11 @@ mallocMC is header-only, but requires a few other C++ libraries to be
 available. Our installation notes can be found in [INSTALL.md](INSTALL.md).
 
 
+Contributing
+------------
+
+Rules for contributions are found in [CONTRIBUTING.md](CONTRIBUTING.md).
+
 On the ScatterAlloc Algorithm
 -----------------------------
 

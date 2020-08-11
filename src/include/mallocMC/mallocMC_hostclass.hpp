@@ -28,6 +28,6 @@
 
 #pragma once
 
-#include "mallocMC_traits.hpp"
-#include "device_allocator.hpp"
 #include "allocator.hpp"
+#include "device_allocator.hpp"
+#include "mallocMC_traits.hpp"
