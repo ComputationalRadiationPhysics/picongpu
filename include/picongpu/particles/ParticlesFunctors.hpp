@@ -128,7 +128,14 @@ struct LogMemoryStatisticsForSpecies
     {
 #if( PMACC_CUDA_ENABLED == 1 )
         log<picLog::MEMORY >("mallocMC: free slots for species %3%: %1% a %2%") %
-            deviceHeap->getAvailableSlots(sizeof (FrameType)) %
+            deviceHeap->getAvailableSlots(
+                cupla::manager::Device< cupla::AccDev >::get().current(),
+                cupla::manager::Stream<
+                    cupla::AccDev,
+                    cupla::AccStream
+                >::get().stream( 0 ),
+                sizeof (FrameType)
+            ) %
             sizeof (FrameType) %
             FrameType::getName();
 #endif

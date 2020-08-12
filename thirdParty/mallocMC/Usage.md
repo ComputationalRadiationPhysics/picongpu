@@ -19,15 +19,15 @@ Currently, there are the following policy classes available:
 
 |Policy                 | Policy Classes (implementations) | description |
 |-------                |----------------------------------| ----------- |
-|**CreationPolicy**     | Scatter`<conf1,conf2>`           | A scattered allocation to tradeoff fragmentation for allocation time, as proposed in [ScatterAlloc](http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=6339604). `conf1` configures the heap layout, `conf2` determines the hashing parameters|
+|**CreationPolicy**     | Scatter`<conf1,conf2>`         | A scattered allocation to tradeoff fragmentation for allocation time, as proposed in [ScatterAlloc](http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=6339604). `conf1` configures the heap layout, `conf2` determines the hashing parameters|
 |                       | OldMalloc                        | device-side malloc/new and free/delete syscalls as implemented on NVidia CUDA graphics cards with compute capability sm_20 and higher |
-|**DistributionPolicy** | XMallocSIMD`<conf>`              | SIMD optimization for warp-wide allocation on NVIDIA CUDA accelerators, as proposed by [XMalloc](http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=5577907). `conf` is used to determine the pagesize. If used in combination with *Scatter*, the pagesizes must match |
+|**DistributionPolicy** | XMallocSIMD`<conf>`             | SIMD optimization for warp-wide allocation on NVIDIA CUDA accelerators, as proposed by [XMalloc](http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=5577907). `conf` is used to determine the pagesize. If used in combination with *Scatter*, the pagesizes must match |
 |                       | Noop                             | no workload distribution at all |
-|**OOMPolicy**          | ReturnNull                       | pointers will be *NULL*, if the request could not be fulfilled |
+|**OOMPolicy**          | ReturnNull                       | pointers will be *nullptr*, if the request could not be fulfilled |
 |                       | ~~BadAllocException~~            | will throw a `std::bad_alloc` exception. The accelerator has to support exceptions |
 |**ReservePoolPolicy**  | SimpleCudaMalloc                 | allocate a fixed heap with `CudaMalloc` |
 |                       | CudaSetLimits                    | call to `CudaSetLimits` to increase the available Heap (e.g. when using *OldMalloc*) |
-|**AlignmentPolicy**    | Shrink`<conf>`                   | shrinks the pool so that the starting pointer is well aligned, applies padding to requested memory chunks. `conf` is used to determine the alignment|
+|**AlignmentPolicy**    | Shrink`<conf>`                  | shrinks the pool so that the starting pointer is well aligned, applies padding to requested memory chunks. `conf` is used to determine the alignment|
 |                       | Noop                             | no alignment at all |
 
 The user has to choose one of each policy that will form a useful allocator
@@ -45,7 +45,7 @@ to the policy class:
 ```c++
 // configure the AlignmentPolicy "Shrink"
 struct ShrinkConfig : mallocMC::AlignmentPolicies::Shrink<>::Properties {
-  typedef boost::mpl::int_<16> dataAlignment;
+  static constexpr auto dataAlignment = 16;
 };
 ```
 
@@ -57,29 +57,29 @@ parameters to create the desired allocator type:
 ```c++
 using namespace mallocMC;
 
-typedef mallocMC::Allocator<
+using Allocator1 = mallocMC::Allocator<
   CreationPolicy::OldMalloc,
   DistributionPolicy::Noop,
   OOMPolicy::ReturnNull,
   ReservePoolPolicy::CudaSetLimits,
   AlignmentPolicy::Noop
-> Allocator1;
+>;
 ```
 
 `Allocator1` will resemble the behaviour of classical device-side allocation known
 from NVIDIA CUDA since compute capability sm_20. To get a more novel allocator, one
-could create the following typedef instead:
+could create the following alias instead:
 
 ```c++
 using namespace mallocMC;
 
-typedef mallocMC::Allocator<
+using ScatterAllocator = mallocMC::Allocator<
   CreationPolicies::Scatter<>,
   DistributionPolicies::XMallocSIMD<>,
   OOMPolicies::ReturnNull,
   ReservePoolPolicies::SimpleCudaMalloc,
   AlignmentPolicies::Shrink<ShrinkConfig>
-> ScatterAllocator;
+>;
 ```
 
 Notice, how the policy classes `Scatter` and `XMallocSIMD` are instantiated without
@@ -122,13 +122,13 @@ A simplistic example would look like this:
 
 namespace mallocMC = MC;
 
-typedef MC::Allocator<
+using ScatterAllocator = MC::Allocator<
   MC::CreationPolicies::Scatter<>,
   MC::DistributionPolicies::XMallocSIMD<>,
   MC::OOMPolicies::ReturnNull,
   MC::ReservePoolPolicies::SimpleCudaMalloc,
   MC::AlignmentPolicies::Shrink<ShrinkConfig>
-  > ScatterAllocator;
+>;
 
 __global__ exampleKernel(ScatterAllocator::AllocatorHandle sah)
 {

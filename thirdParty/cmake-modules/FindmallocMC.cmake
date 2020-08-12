@@ -56,14 +56,16 @@
 
 # Required cmake version ######################################################
 #
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.15.0)
 
 
 # dependencies ################################################################
 #
-find_package(CUDA 5.0 REQUIRED)
-find_package(Boost 1.48.0 REQUIRED)
+set(mallocMC_ALPAKA_PROVIDER "intern" CACHE STRING "Select which alpaka is used for mallocMC")
+set_property(CACHE mallocMC_ALPAKA_PROVIDER PROPERTY STRINGS "intern;extern")
+mark_as_advanced(mallocMC_ALPAKA_PROVIDER)
 
+find_package(Boost 1.65.1 REQUIRED)
 
 # find mallocMC installation ##################################################
 #
@@ -84,6 +86,13 @@ set(mallocMC_REQUIRED_VARS_LIST mallocMC_ROOT_DIR mallocMC_INCLUDE_DIRS)
 mark_as_advanced(mallocMC_ROOT_DIR)
 
 if(mallocMC_ROOT_DIR)
+    if(${mallocMC_ALPAKA_PROVIDER} STREQUAL "intern")
+        set(alpaka_BUILD_EXAMPLES OFF)
+        set(BUILD_TESTING OFF)
+        add_subdirectory(${mallocMC_ROOT_DIR}/../alpaka ${CMAKE_BINARY_DIR}/alpaka)
+    else()
+        find_package(alpaka HINTS $ENV{ALPAKA_ROOT})
+    endif()
 
     # find version ##############################################################
     #
@@ -113,68 +122,6 @@ if(mallocMC_ROOT_DIR)
 
     set(mallocMC_INCLUDE_DIRS ${mallocMC_ROOT_DIR}/include)
 
-    # check additional components ###############################################
-    #
-    foreach(COMPONENT ${mallocMC_FIND_COMPONENTS})
-        set(mallocMC_${COMPONENT}_FOUND TRUE)
-
-        if(${COMPONENT} STREQUAL "halloc")
-
-            # halloc linked library #################################################
-            #
-            list(APPEND mallocMC_REQUIRED_VARS_LIST mallocMC_LIBRARIES)
-            find_library(mallocMC_${COMPONENT}_LIBRARY
-                NAMES libhalloc.a
-                PATHS ${HALLOC_ROOT} "${mallocMC_ROOT_DIR}/../halloc/" ENV HALLOC_ROOT
-                PATH_SUFFIXES "lib" "bin"
-                DOC "Libraries for the mallocMC component ${COMPONENT}."
-                NO_DEFAULT_PATH
-            )
-            find_library(mallocMC_${COMPONENT}_LIBRARY
-                NAMES libhalloc.a
-                PATH_SUFFIXES "lib" "bin"
-                DOC "Libraries for the mallocMC component ${COMPONENT}."
-            )
-            if(mallocMC_${COMPONENT}_LIBRARY)
-                list(APPEND mallocMC_LIBRARIES ${mallocMC_${COMPONENT}_LIBRARY})
-            else(mallocMC_${COMPONENT}_LIBRARY)
-                if(mallocMC_FIND_REQUIRED OR NOT mallocMC_FIND_QUIETLY)
-                    message(WARNING "libhalloc.a not found. Ensure it is compiled correctly and set HALLOC_ROOT")
-                endif()
-                unset(mallocMC_${COMPONENT}_FOUND)
-            endif(mallocMC_${COMPONENT}_LIBRARY)
-
-            # halloc headers ########################################################
-            #
-            find_path(mallocMC_${COMPONENT}_INCLUDE_DIR
-                NAMES halloc.h
-                PATHS ${HALLOC_ROOT} "${mallocMC_ROOT_DIR}/../halloc/" ENV HALLOC_ROOT
-                PATH_SUFFIXES "include" "src"
-                DOC "Includes for the mallocMC component ${COMPONENT}."
-                NO_DEFAULT_PATH
-            )
-            find_path(mallocMC_${COMPONENT}_INCLUDE_DIR
-                NAMES halloc.h
-                PATH_SUFFIXES "include" "src"
-                DOC "Includes for the mallocMC component ${COMPONENT}."
-            )
-            if(mallocMC_${COMPONENT}_INCLUDE_DIR)
-                list(APPEND mallocMC_INCLUDE_DIRS ${mallocMC_${COMPONENT}_INCLUDE_DIR})
-            else(mallocMC_${COMPONENT}_INCLUDE_DIR)
-                unset(mallocMC_${COMPONENT}_FOUND)
-            endif(mallocMC_${COMPONENT}_INCLUDE_DIR)
-
-            # set separable compilation #############################################
-            #
-            if(mallocMC_${COMPONENT}_FOUND)
-                set(CUDA_SEPARABLE_COMPILATION ON PARENT_SCOPE)
-            endif(mallocMC_${COMPONENT}_FOUND)
-
-            mark_as_advanced(mallocMC_${COMPONENT}_INCLUDE_DIR mallocMC_${COMPONENT}_LIBRARY)
-        endif(${COMPONENT} STREQUAL "halloc")
-
-    endforeach(COMPONENT ${mallocMC_FIND_COMPONENTS})
-
 endif(mallocMC_ROOT_DIR)
 
 
@@ -201,13 +148,8 @@ if(NOT mallocMC_FOUND)
         unset(${REQ_VAR} CACHE)
     endforeach()
 
-    # user-level component vars
-    foreach(COMPONENT ${mallocMC_FIND_COMPONENTS})
-        unset(mallocMC_${COMPONENT}_FOUND)
-        unset(mallocMC_${COMPONENT}_LIBRARY CACHE)
-        unset(mallocMC_${COMPONENT}_INCLUDE_DIR CACHE)
-    endforeach()
 endif()
 
 # always clean internal required vars list
 unset(mallocMC_REQUIRED_VARS_LIST)
+

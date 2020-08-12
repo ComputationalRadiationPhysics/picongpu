@@ -1,6 +1,27 @@
 Change Log / Release Log for mallocMC
 ================================================================
 
+2.4.0crp
+--------
+**Date:** 2020-05-28
+
+This release removes the Boost dependency and switched to C++11.
+
+### Changes to mallocMC 2.3.1crp
+
+**Features**
+  - Cleaning, remove Boost dependency & C++11 Migration #169
+
+**Bug fixes**
+  - Choose the value for the -arch nvcc flag depending on CUDA version #164 #165
+ 
+**Misc:**
+  - Travis CI: GCC 5.5.0 + CUDA 9.1.85 #170
+  - Adding headers to projects and applied clang-tidy #171
+  - clang-format #172
+
+Thanks to  Sergei Bastrakov, Bernhard Manfred Gruber and Axel Huebl for contributing to this release!
+
 2.3.1crp
 --------
 **Date:** 2019-02-14

@@ -108,7 +108,7 @@ set_property(CACHE PMACC_ALPAKA_PROVIDER PROPERTY STRINGS "intern;extern")
 mark_as_advanced(PMACC_ALPAKA_PROVIDER)
 
 if(${PMACC_ALPAKA_PROVIDER} STREQUAL "intern")
-    list(INSERT CMAKE_MODULE_PATH 0 "${PMacc_DIR}/../../thirdParty/alpaka")
+    list(INSERT CMAKE_MODULE_PATH 0 "${PMacc_DIR}/../../thirdParty/cupla/alpaka")
 endif()
 
 
@@ -369,12 +369,13 @@ endif()
 ################################################################################
 
 if(ALPAKA_ACC_GPU_CUDA_ENABLE)
-    find_package(mallocMC 2.3.0 QUIET)
+    set(mallocMC_ALPAKA_PROVIDER "extern" CACHE STRING "Select which alpaka is used for mallocMC")
+    find_package(mallocMC 2.5.0 QUIET)
 
     if(NOT mallocMC_FOUND)
         message(STATUS "Using mallocMC from thirdParty/ directory")
         set(MALLOCMC_ROOT "${PMacc_DIR}/../../thirdParty/mallocMC")
-        find_package(mallocMC 2.3.0 REQUIRED)
+        find_package(mallocMC 2.5.0 REQUIRED)
     endif(NOT mallocMC_FOUND)
 
     set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${mallocMC_INCLUDE_DIRS})

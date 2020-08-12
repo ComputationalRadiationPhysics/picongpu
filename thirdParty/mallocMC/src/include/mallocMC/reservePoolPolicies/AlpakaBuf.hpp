@@ -1,10 +1,10 @@
 /*
   mallocMC: Memory Allocator for Many Core Architectures.
 
-  Copyright 2014 Institute of Radiation Physics,
-                 Helmholtz-Zentrum Dresden - Rossendorf
+  Copyright 2020 Helmholtz-Zentrum Dresden - Rossendorf,
+                 CERN
 
-  Author(s):  Carlchristian Eckert - c.eckert ( at ) hzdr.de
+  Author(s):  Bernhard Manfred Gruber
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -27,51 +27,44 @@
 
 #pragma once
 
-#include "BadAllocException.hpp"
-
-#include <alpaka/core/Common.hpp>
-#include <cassert>
+#include <alpaka/alpaka.hpp>
+#include <memory>
 #include <string>
 
 namespace mallocMC
 {
-    namespace OOMPolicies
+    namespace ReservePoolPolicies
     {
-        /**
-         * @brief Throws a std::bad_alloc exception on OutOfMemory
-         *
-         * This OOMPolicy will throw a std::bad_alloc exception, if the
-         * accelerator supports it. Currently, Nvidia CUDA does not support any
-         * form of exception handling, therefore handleOOM() does not have any
-         * effect on these accelerators. Using this policy on other types of
-         * accelerators that do not support exceptions results in undefined
-         * behaviour.
-         */
-        struct BadAllocException
+        template<typename AlpakaAcc>
+        struct AlpakaBuf
         {
-            ALPAKA_FN_ACC
-            static auto handleOOM(void * mem) -> void *
+            template<typename AlpakaDev>
+            auto setMemPool(const AlpakaDev & dev, size_t memsize) -> void *
             {
-#if BOOST_LANG_CUDA || BOOST_COMP_HIP
-//#if __CUDA_ARCH__ < 350
-#define PM_EXCEPTIONS_NOT_SUPPORTED_HERE
-//#endif
-#endif
+                poolBuffer = std::make_unique<PoolBufferType>(
+                    alpaka::mem::buf::alloc<unsigned char, size_t>(
+                        dev, memsize));
+                return alpaka::mem::view::getPtrNative(*poolBuffer);
+            }
 
-#ifdef PM_EXCEPTIONS_NOT_SUPPORTED_HERE
-#undef PM_EXCEPTIONS_NOT_SUPPORTED_HERE
-                assert(false);
-#else
-                throw std::bad_alloc{};
-#endif
-                return mem;
+            void resetMemPool(void * p)
+            {
+                poolBuffer = {};
             }
 
             static auto classname() -> std::string
             {
-                return "BadAllocException";
+                return "AlpakaBuf";
             }
-        };
 
-    } // namespace OOMPolicies
+        private:
+            using PoolBufferType = alpaka::mem::buf::Buf<
+                alpaka::dev::Dev<AlpakaAcc>,
+                unsigned char,
+                alpaka::dim::DimInt<1>,
+                size_t>;
+            std::unique_ptr<PoolBufferType>
+                poolBuffer; // FIXME(bgruber): replace by std::optional<>
+        };
+    } // namespace ReservePoolPolicies
 } // namespace mallocMC

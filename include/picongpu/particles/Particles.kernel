@@ -141,7 +141,7 @@ struct KernelDeriveParticles
                 if( srcFrame.isValid( ) )
                 {
                     // we have something to clone
-                    destFrame = destBox.getEmptyFrame( );
+                    destFrame = destBox.getEmptyFrame( acc );
                 }
             }
         );
@@ -213,7 +213,7 @@ struct KernelDeriveParticles
                     srcFrame = srcBox.getNextFrame( srcFrame );
                     if( srcFrame.isValid( ) )
                     {
-                        destFrame = destBox.getEmptyFrame( );
+                        destFrame = destBox.getEmptyFrame( acc );
                     }
                 }
             );

@@ -129,23 +129,6 @@ else()
     endif()
 endif()
 
-################################################################################
-# Find mallocMC
-################################################################################
-if(ALPAKA_ACC_GPU_CUDA_ENABLE)
-    find_package(mallocMC 2.3.0 QUIET)
-
-    if(NOT mallocMC_FOUND)
-        message(STATUS "Using mallocMC from thirdParty/ directory")
-        set(MALLOCMC_ROOT "${PIConGPUapp_SOURCE_DIR}/../../thirdParty/mallocMC")
-        find_package(mallocMC 2.3.0 REQUIRED)
-    endif(NOT mallocMC_FOUND)
-
-    include_directories(SYSTEM ${mallocMC_INCLUDE_DIRS})
-    add_definitions(${mallocMC_DEFINITIONS})
-    set(LIBS ${LIBS} ${mallocMC_LIBRARIES})
-endif()
-
 
 ################################################################################
 # Find zlib

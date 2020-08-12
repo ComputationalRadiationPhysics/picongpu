@@ -27,15 +27,34 @@
 
 #pragma once
 
-namespace mallocMC{
-namespace OOMPolicies{
+#include "ReturnNull.hpp"
 
-  /**
-   * @brief Returns a NULL pointer on OutOfMemory conditions
-   *
-   * This OOMPolicy will return NULL, if handleOOM() is called.
-   */
-  class ReturnNull;
-    
-} //namespace OOMPolicies
-} //namespace mallocMC
+#include <alpaka/core/Common.hpp>
+#include <string>
+
+namespace mallocMC
+{
+    namespace OOMPolicies
+    {
+        /**
+         * @brief Returns a nullptr pointer on OutOfMemory conditions
+         *
+         * This OOMPolicy will return nullptr, if handleOOM() is called.
+         */
+        class ReturnNull
+        {
+        public:
+            ALPAKA_FN_ACC
+            static auto handleOOM(void * mem) -> void *
+            {
+                return nullptr;
+            }
+
+            static auto classname() -> std::string
+            {
+                return "ReturnNull";
+            }
+        };
+
+    } // namespace OOMPolicies
+} // namespace mallocMC
