@@ -75,16 +75,18 @@ Reduce<dim>::Reduce(const zone::SphericZone<dim>& p_zone, bool setThisAsRoot) : 
         if(i == myWorldId) this->m_participate = true;
     }
 
-    MPI_Group world_group = MPI_GROUP_NULL;
-    MPI_Group new_group = MPI_GROUP_NULL;
-
     // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
     __getTransactionEvent().waitForFinished();
-    MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &world_group));
-    MPI_CHECK(MPI_Group_incl(world_group, new_ranks.size(), &(new_ranks.front()), &new_group));
-    MPI_CHECK(MPI_Comm_create(MPI_COMM_WORLD, new_group, &this->comm));
-    MPI_CHECK(MPI_Group_free(&new_group));
-    MPI_CHECK(MPI_Group_free(&world_group));
+    if(new_ranks.size())
+    {
+        MPI_Group world_group = MPI_GROUP_NULL;
+        MPI_Group new_group = MPI_GROUP_NULL;
+        MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &world_group));
+        MPI_CHECK(MPI_Group_incl(world_group, new_ranks.size(), &(new_ranks.front()), &new_group));
+        MPI_CHECK(MPI_Comm_create(MPI_COMM_WORLD, new_group, &this->comm));
+        MPI_CHECK(MPI_Group_free(&new_group));
+        MPI_CHECK(MPI_Group_free(&world_group));
+    }
 }
 
 template<int dim>
