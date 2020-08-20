@@ -262,7 +262,12 @@ namespace picongpu
             bmpl::int_<0>,
             bmpl::max<bmpl::_1, bmpl::_2>
             >::type SuperCellsLongestEdge;
-        static constexpr uint32_t maxShared = 32*1024; /* 32 KB */
+        /* Note: the previously used 32 KB shared memory size is not correct
+         * for CPUs, as discovered in #3329. As a quick patch, slightly reduce
+         * it so that the buffer plus a few small shared memory variables
+         * together fit 30 KB as set by default on CPUs. So set to 30 000 bytes.
+         */
+        static constexpr uint32_t maxShared = 30000;
         static constexpr uint32_t num_pbins = maxShared/(sizeof(float_PS)*SuperCellsLongestEdge::value);
 
         container::DeviceBuffer<float_PS, 2>* dBuffer = nullptr;
