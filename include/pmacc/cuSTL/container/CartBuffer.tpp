@@ -168,8 +168,8 @@ void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::init()
     this->dataPointer = cursor.getMarker();
 #ifndef __CUDA_ARCH__
     this->refCount = new int;
-#endif
     *this->refCount = 1;
+#endif
     this->pitch = detail::PitchHelper<T_dim>()(cursor);
 }
 
