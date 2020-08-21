@@ -41,16 +41,17 @@ template<
     typename RandomIntGen,
     typename RandomFloatGen
     >
-struct AtomicRateSolver(Acc, ions, )
+struct AtomicRateSolver
 {
     template<
+        typename T_Acc,
         typename T_IonSpecies,
         typename ConfigNumberDataType,
         typename RandomIntGen,
         typename RandomFloatGen
         >
     void operator() (
-        /*?type?*/ Acc,
+        T_Acc acc,
         T_IonSpecies ions,
         RandomIntGen& randomIntGen,
         RandomFloatGen& randomFloatGen,

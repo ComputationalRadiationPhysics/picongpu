@@ -55,7 +55,8 @@ namespace stage
             VectorAllSpecies,
             typename pmacc::particles::traits::ResolveAliasFromSpecies<
                 IonSpecies,
-                atomicPhysicsElectrons< > /// here will be your flag from .param file
+                /// note: temporarily renamed name here as well
+                _atomicPhysics< > /// here will be your flag from .param file
             >::type
         >;
         using ElectronFrameType = typename ElectronSpecies::FrameType;

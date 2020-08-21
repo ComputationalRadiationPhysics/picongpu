@@ -119,15 +119,20 @@ using ParticleFlagsIons = MakeSeq_t<
     massRatio< MassRatioIons >,
     chargeRatio< ChargeRatioIons >,
     densityRatio< DensityRatioIons >,
-    atomicNumbers< ionization::atomicNumbers::Hydrogen_t >
-    atomicPhysics< PIC_Electron >
+    atomicNumbers< ionization::atomicNumbers::Hydrogen_t >,
+    _atomicPhysics< PIC_Electrons >
+>;
+
+using ParticleAttributesIons = MakeSeq_t<
+    DefaultParticleAttributes,
+    atomicConfigNumber< configNumber_Hydrogen >
 >;
 
 /* define species ions */
 using PIC_Ions = Particles<
     PMACC_CSTRING( "i" ),
     ParticleFlagsIons,
-    DefaultParticleAttributes
+    ParticleAttributesIons
 >;
 
 /*########################### end species ####################################*/

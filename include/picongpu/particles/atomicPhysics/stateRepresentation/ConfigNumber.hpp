@@ -68,6 +68,8 @@
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/algorithms/math/defines/comparison.hpp>
 
+#include <cstdint>
+
 namespace picongpu
 {
 namespace particles
@@ -77,12 +79,23 @@ namespace atomicPhysics
 namespace stateRepresentation
 {
 
-template< typename T_DataType, uint8_t T_NumberLevels, uint8_t T_ChargeNumber>
+
+/** This class implements the actual storage of the configuration
+ *
+ * @trapam T_DataType unsigned integer data type to represent the config number
+ * @tparam T_numberLevels max principle quantum number to be represented
+ * @trapam T_chargeNumber charge number, in units of e
+ */
+template<
+    typename T_DataType,
+    uint8_t T_numberLevels,
+    uint8_t T_chargeNumber
+>
 class ConfigNumber
 {
  /** this class implements the actual storage of the configuration
  *
- * T_NumberLevels ... n_max
+ * T_numberLevels ... n_max
  * for convenience of usage and modularity, methods to convert the configNumber
  * to a occupation vector and convert a occuptation vector to the corresponding
  * configuration number are implemented.
@@ -112,8 +125,8 @@ private:
             "n too large, must be < 255"
         );
         return pmacc::algorithms::math::min(
-                this->g( n ),
-                T_ChargeNumber
+                g( n ),
+                static_cast< uint16_t >( T_chargeNumber )
             ) + 1;
     }
 
@@ -129,8 +142,8 @@ private:
         for (uint8_t i = 1u; i < n; i++)
         {
             result *= static_cast<T_DataType>(
-                this->numberOfOccupationNumberValuesInShell(i)
-                );
+                numberOfOccupationNumberValuesInShell(i)
+            );
         }
         return result;
     }
@@ -152,21 +165,21 @@ private:
 public:
 
     // make T_DataType paramtere available for later use
-    static constexpr using DataType = T_DataType;
+    using DataType = T_DataType;
 
     // number of levels, n_max, used for configNumber
-    static constexpr uint8_t numberLevels = T_NumberLevels;
+    static constexpr uint8_t numberLevels = T_numberLevels;
 
     static constexpr T_DataType numberStates()
     {
     /** returns number of different states(Configs) that are represented
      */
         return static_cast< T_DataType >(
-            this->stepLength( numberLevels + 1 )
-            );
+            stepLength( numberLevels + 1 )
+        );
     }
 
-    ConfigNumber(
+    HDINLINE ConfigNumber(
         T_DataType N = static_cast<T_DataType>(0u)
         )
     {
@@ -175,7 +188,7 @@ public:
             "negative configurationNumbers are not defined"
         );
         PMACC_ASSERT_MSG(
-            N < this->numberStates - 1,
+            N < this->numberStates() - 1,
             "configurationNumber N larger than largest possible ConfigNumber"
             " for T_NumberLevels"
         );
@@ -183,8 +196,8 @@ public:
         this->configNumber = N;
     }
 
-    ConfigNumber(
-        pmacc::math::Vector< uint16_t, T_NumberLevels > levelVector
+    HDINLINE ConfigNumber(
+        pmacc::math::Vector< uint16_t, numberLevels > levelVector
         )
     {
     /** constructor using a given occupation number vector to initialise.
@@ -200,7 +213,7 @@ public:
 
         this->configNumber = 0;
 
-        for(uint8_t n=0u; n < T_NumberLevels; n++)
+        for(uint8_t n=0u; n < numberLevels; n++)
         {
             /* BEWARE: n here equals n-1 in formula in file documentation,
             *
@@ -218,7 +231,7 @@ public:
         }
     }
 
-    operator pmacc::math::Vector< uint16_t, T_NumberLevels >()
+    operator pmacc::math::Vector< uint16_t, numberLevels >()
     {
     /** B() operator converts configNumber B into an occupation number vector
     *
@@ -234,8 +247,8 @@ public:
     * This is used recursively to determine all occupation numbers.
     * further information: see master thesis of Brian Marre
     */
-        pmacc::math::Vector< uint16_t, T_NumberLevels > result =
-            pmacc::math::Vector<uint16_t, T_NumberLevels>::create( 0 );
+        pmacc::math::Vector< uint16_t, numberLevels > result =
+            pmacc::math::Vector<uint16_t, numberLevels>::create( 0 );
 
         T_DataType stepLength;
         T_DataType N;
@@ -243,7 +256,7 @@ public:
         N = this->configNumber;
 
         // BEWARE: for loop counts down, strating with n_max
-        for (uint8_t n = T_NumberLevels; n >= 1; n--)
+        for (uint8_t n = numberLevels; n >= 1; n--)
         {
             // calculate current stepLength
             stepLength = this->stepLength(n);
@@ -274,11 +287,16 @@ namespace traits
 {
 
 // defines what datatype is to be used to save the data in this object
-template< typename T_DataType, uint8_t T_NumberLevels >
+template<
+    typename T_DataType,
+    uint8_t T_numberLevels,
+    uint8_t T_chargeNumber
+>
 struct GetComponentsType<
     picongpu::particles::atomicPhysics::stateRepresentation::ConfigNumber<
         T_DataType,
-        T_NumberLevels
+        T_numberLevels,
+        T_chargeNumber
     >,
     false
 >
@@ -287,11 +305,16 @@ struct GetComponentsType<
 };
 
 // defines how many independent components are saved in the object
-template< typename T_DataType, uint8_t T_NumberLevels >
+template<
+    typename T_DataType,
+    uint8_t T_numberLevels,
+    uint8_t T_chargeNumber
+>
 struct GetNComponents<
     picongpu::particles::atomicPhysics::stateRepresentation::ConfigNumber<
         T_DataType,
-        T_NumberLevels
+        T_numberLevels,
+        T_chargeNumber
     >,
     false
 >

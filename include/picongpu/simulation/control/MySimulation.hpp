@@ -61,7 +61,7 @@
 #include "picongpu/particles/flylite/NonLTE.tpp"
 #include "picongpu/simulation/control/DomainAdjuster.hpp"
 #include "picongpu/simulation/stage/Bremsstrahlung.hpp"
-#include "picongpu/simulation/stage/CPUStage.hpp"
+///#include "picongpu/simulation/stage/CPUStage.hpp"
 #include "picongpu/simulation/stage/AtomicPhysics.hpp"
 #include "picongpu/simulation/stage/CurrentBackground.hpp"
 #include "picongpu/simulation/stage/CurrentDeposition.hpp"
@@ -555,7 +555,7 @@ public:
         CurrentReset{ }( currentStep );
         __setTransactionEvent( commEvent );
         //CPUStage{ *cellDescription }( currentStep );
-        AomicPhysic{ *cellDescription }( currentStep );
+        AtomicPhysics{ *cellDescription }( currentStep );
         CurrentBackground{ *cellDescription }( currentStep );
         CurrentDeposition{ }( currentStep );
         CurrentInterpolationAndAdditionToEMF{ }( currentStep );

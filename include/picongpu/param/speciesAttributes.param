@@ -156,7 +156,6 @@ namespace picongpu
      * the following definitions, until <end atomicPhysics> are different
      * Representations of the internal state of ions in plasmas.
      */
-     {
     //Example of number of modelled shells/levels
     constexpr uint8_t numberLevels_Hydrogen = 4u;   //model 4 shells/levels
     constexpr uint8_t chargeNumber_Hydrogen = 1u;   //hydrogen charge number=1
@@ -196,7 +195,11 @@ namespace picongpu
                                     //initialization with zero
     );
 
+
+    /// We need an alias as different ion species will have different
+    /// types of that. But the kernels need to be generic
     alias( atomicConfigNumber );
+
     /** atomicConfigNumber
      *
      * internal state of ions described by index number of superconfiguration.
@@ -229,9 +232,9 @@ namespace picongpu
         ConfigNumber_H( 1u )
     );
 
-    alias( atomicPhysics );
+    /// temporarily rename to avoid collision with namespace picongpu::atomicPhysics
+    alias( _atomicPhysics );
 
-    }
     /* <end atomicPhysics>
     */
 

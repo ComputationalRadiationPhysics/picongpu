@@ -46,17 +46,6 @@
 
 namespace picongpu
 {
-namespace traits
-{
-    /** specialization of the UsesRNG trait
-     * --> atomicPhysics module uses random number generation
-     */
-    template<>
-    struct UsesRNG<simulation::stage::CallAtomicPhysics> : public boost::true_type
-    {
-    };
-} // namespace traits
-
 namespace simulation
 {
 namespace stage
@@ -82,7 +71,8 @@ namespace stage
             VectorAllSpecies,
             typename pmacc::particles::traits::ResolveAliasFromSpecies<
                 IonSpecies,
-                atomicPhysics< > /// here will be your flag from .param file
+                // note: renamed to _atomicPhysics temporarily
+                _atomicPhysics< > /// here will be your flag from .param file
             >::type
         >;
 
@@ -90,18 +80,18 @@ namespace stage
 
 
         // get specialisation of ConfigNumber class used in this species
-        using IonSpeciesAtomicConfigNumber =
-            pmacc::particles::traits::ResolveAliasFromSpecies<
-                IonSpecies,
-                atomicConfigNumber< >
-                /* atomicConfigNumber is alias(interface name) for specific
-                specialisation of ConfigNumber of this specific species*/
-            >;
+        //using IonSpeciesAtomicConfigNumber =
+        //    typename pmacc::particles::traits::ResolveAliasFromSpecies<
+        //        IonSpecies,
+        //        atomicConfigNumber< >
+        //        /* atomicConfigNumber is alias(interface name) for specific
+        //        specialisation of ConfigNumber of this specific species*/
+        //    >::type;
 
         /* get T_DataType used as parameter in ConfigNumber.hpp via public
         typedef in class */
-        using ConfigNumberDataType =
-            typename IonSpeciesAtomicConfigNumber::DataType;
+        using ConfigNumberDataType = uint32_t;
+            ///typename IonSpeciesAtomicConfigNumber::DataType;
 
 
 
@@ -134,8 +124,9 @@ namespace stage
 
         // Attribute definitions:
 
-        // RateMatrix encapsulated call to flylite
-        RateMatrix rateMatrix;
+        // RateMatrix encapsulated call to flylite,
+        // not implemented yet
+        ////RateMatrix rateMatrix;
         // random number Generators
         std::uniform_int_distribution<ConfigNumberDataType> randomIntGen;
         std::uniform_real_distribution<float> randomFloatGen;
@@ -147,9 +138,9 @@ namespace stage
             this->randomIntGen = std::uniform_int_distribution<ConfigNumberDataType>
             (
                 0,
-                IonSpeciesAtomicConfigNumber.numberStates()
+                123 //IonSpeciesAtomicConfigNumber::numberStates()
             );
-            this->randomFloatGen = std::uniform_real_distribution<float>( 0, 1 )
+            this->randomFloatGen = std::uniform_real_distribution<float>( 0, 1 );
         }
 
 
@@ -246,7 +237,7 @@ namespace stage
 
             // initialise randomGen with index of SuperCell
             /// ask Sergei once more, wether possible
-            this->randomGen.init(idx);
+            ///this->randomGen.init(idx);
 
             auto electronFrame = electronBox.getLastFrame( idx );
             // Iterate over ions frames
@@ -268,6 +259,7 @@ namespace stage
                     float rate;
                     float probability;
 
+                    using ConfigNumberDataType = uint32_t;
                     ConfigNumberDataType newState;
                     ConfigNumberDataType randomNumber;
                     // ion[atomicConfigNumber_].configNumber;
@@ -278,20 +270,24 @@ namespace stage
 
                     while ( timeRemaining > 0)
                     {
-                        newState = this->randomIntGen();
+                        // note: removed as the use of standard rng was not correct
+                        ///this->randomIntGen();
+                        newState = 123; 
     
-                        rate = this->rateMatrix( newState, ion[atomicConfigNumber_].configNumber );
+                        // TODO: implement rate matrix calculation
+                        rate = 1.0_X;
+                            ////this->rateMatrix( newState, ion[atomicConfigNumber_].configNumber );
                         probability = rate * timeRemaining;
                         if ( probability >= 1 )
                         {
-                            currentState.configNumber = newState;
+                            ion[ atomicConfigNumber_ ].configNumber = newState;
                             timeRemaining -= 1/rate;
                         }
                         else
                         {
-                            if ( this->randomFloatGen() <= probability )
+                            if ( /*this->randomFloatGen()*/ 0.1_X <= probability )
                             {
-                                currentState.configNumber = newState;
+                                ion[ atomicConfigNumber_ ].configNumber = newState;
                             }
                         }
                     }
@@ -320,7 +316,8 @@ namespace stage
             using namespace pmacc;
             using SpeciesWithAtomicPhysics = typename pmacc::particles::traits::FilterByFlag<
                 VectorAllSpecies,
-                atomicPhysicsElectrons< > /// here will be your flag from .param file
+                // temporary name
+                _atomicPhysics< >
             >::type;
             // This will call the AtomicPhysics functor for the species from the list
             pmacc::meta::ForEach<
@@ -342,4 +339,20 @@ namespace stage
 
 } // namespace stage
 } // namespace simulation
+
+namespace traits
+{
+    /** specialization of the UsesRNG trait
+    * --> atomicPhysics module uses random number generation
+    */
+    template<
+        typename T_IonSpecies
+    >
+    struct UsesRNG<
+        simulation::stage::CallAtomicPhysics< T_IonSpecies >
+    > : public boost::true_type
+    {
+    };
+} // namespace traits
+
 } // namespace picongpu
