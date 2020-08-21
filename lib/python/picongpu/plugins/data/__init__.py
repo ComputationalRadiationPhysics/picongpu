@@ -5,6 +5,7 @@ from .radiation import RadiationData
 from .sliceFieldReader import FieldSliceData
 from .emittance import EmittanceData
 from .transitionradiation import TransitionRadiationData
+from .xray_diffraction import XrayDiffractionData
 
 __all__ = [
     "EnergyHistogramData",
@@ -14,4 +15,5 @@ __all__ = [
     "FieldSliceData",
     "EmittanceData",
     "TransitionRadiationData",
+    "XrayDiffractionData"
 ]
