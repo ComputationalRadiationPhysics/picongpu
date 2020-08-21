@@ -103,10 +103,11 @@ struct AtomicPhysicsKernel
 
 public:
     template<
+        typename T_Acc,
         typename T_histogram,
         typename T_IonSpecies
         >
-    void operator() (Acc )
+    void operator() ( T_Acc const & acc )
     {
         {
         // Define ion species and frame type datatype for later access

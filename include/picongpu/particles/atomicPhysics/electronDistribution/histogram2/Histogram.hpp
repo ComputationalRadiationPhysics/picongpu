@@ -123,9 +123,11 @@ public:
         return static_cast< uint32_t >( energy/binWidth );
     }
 
+    /// perhaps it's better if this function takes already
+    /// x (energy) and weight and the caller computes those
     template<
-        T_particle
-        >
+        typename T_particle
+    >
     DINLINE void binObject( T_particle particle)
     {
         float_X const m = particle[ massRatio_ ] * SI::BASE_MASS;     //Unit: kg
@@ -163,9 +165,10 @@ public:
         // the value, as another thread may contribute to the same bin
         if( index < maxNumBin )
         {
+            /// probably needs acc
             cupla::atomicAdd(
                 &(this->binValues[ index ]),
-                weight
+                particle[ weighting_ ]
             );
         }
         else
@@ -175,7 +178,7 @@ public:
             auto newBinIdx = cupla::atomicInc( numNewBins );
             if( newBinIdx < maxNumNewBins )
             {
-                newBinsWeights[ newBinIdx ] = weight;
+                newBinsWeights[ newBinIdx ] = particle[ weighting_ ];
                 newBinsIndices[ newBinIdx ] = binIndex;
             }
             else
