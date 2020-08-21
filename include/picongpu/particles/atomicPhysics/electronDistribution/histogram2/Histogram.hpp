@@ -42,14 +42,16 @@ namespace histogram2
 {
 
 template<
-    uint32_t maxNBins,
-    uint32_t numThreads,
-    typename T_Particle,
-    float_X binWidth
+    uint32_t T_maxNumBins,
+    uint32_t T_maxNumNewBins // this may be better names as smth bookkeeping or memory related
 >
 struct Histogram
 {
 private:
+
+    constexpr static uint32_t maxNumBins = T_maxNumBins;
+    constexpr static uint32_t maxNumNewBins = T_maxNumNewBins;
+
     //content of bins
     float_X binWeights[ maxNumBins ];
     float_X binDeltaEnergy[ maxNumBins ];
@@ -59,22 +61,32 @@ private:
     uint32_t numBins;
 
     //new Bins form current Iteration
-    float_X  newBinsWeights[ numThreads ];
-    uint32_t newBinsIndices[ numThreads ];
+    float_X  newBinsWeights[ maxNumNewBins ];
+    uint32_t newBinsIndices[ maxNumNewBins ];
+    uint32_t numNewBins;
+
+    //
+    float_X const binWidth;
 
 public:
-    AdaptiveHistogram()
+
+    DINLINE Histogram( float_X const binWidth ):
+        binWidth( binWidth )
     {
         this->numBins = 0u;
+        this->numNewBins = 0u;
 
-        for( uint32_t i = 0u, i < maxNumBins, i++ )
+        // For debug purposes this is okay
+        // Afterwards this code should be removed as we are
+        // filling memory we are never touching (if everything works)
+        for( uint32_t i = 0u; i < maxNumBins; i++ )
         {
             this->binWeights[i] = 0.;
             this->binDeltaEnergies = 0.;
             this->binIndices[i] = 0u;
         }
 
-        for( uint32_t i = 0u, i < numThreads, i++)
+        for( uint32_t i = 0u; i < numThreads; i++)
         {
             this->newBinsIndices[i] = 0;
             this->newBinsWeights[i] = 0;
@@ -82,9 +94,14 @@ public:
 
     }
 
-    uint32_t findBin( uint32_t binIndex )
+    // Return index in the binIndices array when present
+    // or maxNumBin when not present
+    DINLINE uint32_t findBin(
+        uint32_t binIndex,
+        uint32_t startIndex = 0u
+    ) const
     {
-        for(uint32_t i = 0, i < maxNumBins, i++)
+        for(uint32_t i = startIndex; i < numBins; i++)
         {
             if( this->binIndices[i] == binIndex )
             {
@@ -94,19 +111,13 @@ public:
         return maxNumBin;
     }
 
-    bool hasBin(uint32_t binIndex)
+    DINLINE bool hasBin( uint32_t binIndex ) const
     {
-        for(uint32_t i = 0, i < maxNumBins, i++)
-        {
-            if( this->binIndices[i] == binIndex )
-            {
-                return true;
-            }
-        }
-        return false;
+        auto const index = findBin( binIndex );
+        return index < maxNumBins;
     }
 
-    uint32_t getBinIndex( float_X energy )
+    DINLINE uint32_t getBinIndex( float_X energy ) const
     {
         //standard fixed bin width
         return static_cast< uint32_t >( energy/binWidth );
@@ -115,38 +126,32 @@ public:
     template<
         T_particle
         >
-    void binObject( T_particle particle, uint32_t threadIndex)
+    DINLINE void binObject( T_particle particle)
     {
-        uint32_t binIndex;
+        float_X const m = particle[ massRatio_ ] * SI::BASE_MASS;     //Unit: kg
+        constexpr auto c = SPEED_OF_LIGHT;                   //Unit: m/s
 
-        float_X m;
-        float_X c;
-        float_X pSquared;
-        float_X energy;
-        float3_X vectorP;
-
-        m = particle[ massRatio_ ] * SI::BASE_MASS;     //Unit: kg
-        constexpr c = SPEED_OF_LIGHT;                   //Unit: m/s
-
-        vectorP = this->getIndex( particle[ momentum_ ] );
-        pSquared = vectorP[0]*vectorP[0] +
+        float3_X vectorP = this->getIndex( particle[ momentum_ ] );
+        // we probably have a math function for ||p||^2
+        float_X pSquared = vectorP[0]*vectorP[0] +
             vectorP[1]*vectorP[1] +
             vectorP[2]*vectorP[2];                      //unit:kg*m/s
 
         //calculate Energy
-        energy = static_cast< float_X >(
+        float_X energy = static_cast< float_X >(
             std::sqrt(                                  //unit: kg*m^2/s^2 = Nm
                 m*m * c*c*c*c + pSquared * c*c
                 )
             );
 
-        //find Bin
-        binIndex = this->getBinIndex( Energy );
+        // compute bin index
+        uint32_t const binIndex = this->getBinIndex( energy );
 
         //search for bin in existing bins
-        index = findBin(binIndex);
+        auto const index = findBin(binIndex);
 
         // check for range of index
+        // TODO: this is not compatible to alpaka
         if( index < 0 or index > maxNumBins)
         {
             throw new std::range_error(
@@ -154,41 +159,66 @@ public:
                 );
         }
 
-        //case bin not found
-        if ( index == maxNumBin )
+        // If the bin was already there, we need to atomically increase
+        // the value, as another thread may contribute to the same bin
+        if( index < maxNumBin )
         {
-            if ( this->numBins == maxNumBins )
-            {
-                throw new std::overflow_error("maximum number of bins exceeded on"
-                "binning");
-            }
-
-            newBinsWeights[ threadIndex ] = weight;
-            newBinsIndices[ threadIndex ] = binIndex;
+            cupla::atomicAdd(
+                &(this->binValues[ index ]),
+                weight
+            );
         }
         else
         {
-            this->binValues[ index ] += weight;
-        }
-    }
-
-    void updateWithNewBins()
-    {
-        for (uint32_t i = 0, i < numThreads, i++ )
-        {
-            if( this->numBins < maxNumBins-1 and this->newBinsWeights[i] == 0 )
+            // Otherwise we add it to a collection of new bins
+            // Note: in current dev the namespace is different in cupla
+            auto newBinIdx = cupla::atomicInc( numNewBins );
+            if( newBinIdx < maxNumNewBins )
             {
-                this->binValues[ this->numBins ] = this->newBinsWeights[i];
-                this->binIndices[ this->numBins ] = this->newBinsIndices[i];
-                this->numBins++;
-                this->newBinsWeights[i] = 0;
-                this->newBinsIndices[i] = 0;
+                newBinsWeights[ newBinIdx ] = weight;
+                newBinsIndices[ newBinIdx ] = binIndex;
             }
             else
             {
-                throw new std:overflow_error("maxNumBins exeded on update with new");
+                /// If we are here, there were more new bins since the last update
+                // call than memory allocated for them
+                // Normally, this should not happen
             }
         }
+    }
+
+    // This is to move new bins to the main collection of bins
+    // Should be called periodically so that we don't run out of memory for
+    // new bins
+    // Must be called sequentially
+    DINLINE void updateWithNewBins()
+    {
+        uint32_t const numBinsBeforeUpdate = numBins;
+        for (uint32_t i = 0u; i < this->numNewBins; i++ )
+        {
+            // New bins were definitely not present before
+            // But several new bins can be the same actual bin
+            // So we search in the newly added part only
+            auto auto const index = findBin(
+                this->newBinsIndices[i],
+                numBinsBeforeUpdate
+            );
+
+            // If this bin was already added
+            if( index < maxNumBin )
+                this->binWeights[ index ] += this->newBinsWeights[ i ];
+            else
+            {
+                if( this->numBins < this->maxNumBins )
+                {
+                    this->binWeights[ this->numBins ] = this->newBinsWeights[i];
+                    this->binIndices[ this->numBins ] = this->newBinsIndices[i];
+                    this->numBins++;
+                }
+                // else we ran out of memory, do nothing
+            }
+        }
+        this->numNewBins = 0u;
     }
 }
 
