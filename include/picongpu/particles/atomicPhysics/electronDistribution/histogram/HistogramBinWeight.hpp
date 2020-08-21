@@ -1,4 +1,4 @@
-/* Copyright 2019-2020 Brian Marre
+/* Copyright 2020 Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -44,9 +44,9 @@
  *  void removeWeight( T_Weight w ) remove w from weight
  *  bool checkEmpty()               returns true if bin is empty
  *
- *  Promoted getWeight()            return weight in bin, Promoted depends on
- *                                  specialisation,
- *                                  Promoted \in {T_Weight, 'long' T_Weight}
+ *  <Promoted> getWeight()          return weight in bin, <Promoted> depends 
+ *                                  on specialisation, <Promoted> \in {
+ *                                  T_Weight, 'long' T_Weight}
  */
 
 #pragma once
@@ -79,7 +79,7 @@ class HistogramBinWeight
     * large number of particles are in this bin, instead a this class will
     * throw a runtime overflow exception to alert the user.
     * It is the user responsibility to choose a large enough data type T_Weight
-    * to hold the expected weight, OR use one of the predefined/(define a new)
+    * to hold the expected weight, OR (use one of the predefined)/(define a new)
     * specializations.
     */
 
@@ -111,7 +111,7 @@ class HistogramBinWeight
 
         bool checkEmpty()
         {
-            if (this-> weight == 0) { return true; }
+            if (this->weight == 0) { return true; }
             return false;
         }
 

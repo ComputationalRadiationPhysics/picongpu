@@ -9,7 +9,7 @@
  *
  * PIConGPU is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -17,8 +17,48 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file This file defines a histogram using an adaptive binning algorithm.
+/** @file This file defines an adaptive one-dimensional histogram with variable
+ *  bin widths, gaps in between stored bins and a variable number of bins.
  *
+ * This histogram tries to reduce memory required, compared to fixed bin width,
+ * by varying the bin width over the argument space X and allowing gaps where
+ * bins are empty.
+ * Basis of this histogram are argument points x_i, each of them the central point
+ * of an interval of length dx_i. Therefore:
+ *
+ * x_i - x_{i-1} = (dx_i + dx_{i-1})/2 \and x_{i+1} - x_i = (dx_{i+1} + dx_i)/2
+ *
+ * This grid is defined by an application specific Relative Error Function(REF),
+ * in the following manner
+ * Starting from an inital argument point x_0, dx_i is linearly increased until
+ * the REF first exceeds a given maximum acceptable error c. The dx_i value
+ * before the last is an approximation of the best value of dx_i. The value of
+ * dx_i is further refined by iteratively solving the equation:
+ *
+ * REF(dx_i, x_{i-1}+dx_{i-1} + dx_i/2)- c = 0
+ *
+ * for a given number number of
+ * iterations N_iterations
+ and a maximum acceptable relative
+ * error.
+ * Starting from the initial argument point x_0, the maximum bin size is
+ * iteratively
+ * Each 
+ * Initially the Histogram does not have a stored
+ * bin, as data points are binned their position 
+ * a relative error function.
+ * with application width varying width.
+ * The in central argument x_i of a bin and its width dx_i are given by 
+ This is done by  bin boundaries independent of the histogram entry f(x_i)
+ * , while keeping the histogram locally defined.
+ * The fixed width of a bin is replaced by a width  * This histogram bins positions and widths of this histogram are determined such that an
+ * application specific evaluation function g() is still below a user given
+ consists of a varible number of bins, central argument x_i,
+ * of differing width dx_i, potentially with gaps.
+ * The bin width and central argument is maximised under the constraint that an application specific
+ * evaluation function F() is still below a user given
+ * threshold. This 
+ * 
  * a double linked list of Energy bins of variable widths, with (maybe) gaps
  * - each bin has central Energy and width, width choosen to maximize width
  *    while staying below a given relative binning error
