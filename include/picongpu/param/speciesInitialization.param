@@ -39,7 +39,18 @@ namespace particles
      *
      * the functors are called in order (from first to last functor)
      */
-    using InitPipeline = bmpl::vector<>;
+    using InitPipeline = bmpl::vector<
+       CreateDensity<
+            densityProfiles::Gaussian,
+            startPosition::Random2ppc,
+            PIC_Electrons
+        >,
+        CreateDensity<
+            densityProfiles::Gaussian,
+            startPosition::Random2ppc,
+            PIC_Ions
+        > 
+    >;
 
 } // namespace particles
 } // namespace picongpu
