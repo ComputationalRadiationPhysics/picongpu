@@ -96,7 +96,6 @@
 #endif
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/FilterByIdentifier.hpp>
-#include "picongpu/particles/traits/HasIonizersWithRNG.hpp"
 #include <pmacc/particles/IdProvider.hpp>
 
 #include <boost/mpl/int.hpp>
