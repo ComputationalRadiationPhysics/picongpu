@@ -62,7 +62,10 @@ namespace atomicPhysics
         using ElectronFrameType = typename ElectronSpecies::FrameType;
 
         // Call functor, will be called in MySimulation once per time step
-        void operator()( MappingDesc const cellDescription ) const
+        void operator()(
+            uint32_t const step,
+            MappingDesc const cellDescription
+        ) const
         {
             using namespace pmacc;
 
@@ -91,7 +94,16 @@ namespace atomicPhysics
             // hardcoded for now
             constexpr uint32_t maxNumBins = 2000;
 
-            PMACC_KERNEL( AtomicPhysicsKernel< numWorkers, maxNumBins >{ } )(
+            using Kernel = AtomicPhysicsKernel<
+                numWorkers,
+                maxNumBins
+            >;
+            auto kernel = Kernel{
+                RngFactoryInt{ step },
+                RngFactoryFloat{ step }
+            };
+
+            PMACC_KERNEL( kernel )(
                 mapper.getGridDim(), // how many blocks = how many supercells in local domain
                 numWorkers           // how many threads per block
             )(

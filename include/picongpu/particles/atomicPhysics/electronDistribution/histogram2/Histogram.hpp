@@ -43,11 +43,11 @@ namespace histogram2
 
     template<
         uint32_t T_maxNumBins,
-        uint32_t T_maxNumNewBins // this may be better names as smth bookkeeping or memory related
+        uint32_t T_maxNumNewBins
     >
     struct Histogram
     {
-    private:
+    public: // TODO: public for intiai development
 
         constexpr static uint32_t maxNumBins = T_maxNumBins;
         constexpr static uint32_t maxNumNewBins = T_maxNumNewBins;
@@ -69,14 +69,11 @@ namespace histogram2
 
     public:
 
-        DINLINE void setWidth( float_X const width )
+        // Has to be called by one thread before any other method
+        // of this object
+        DINLINE void init( float_X const binWidth )
         {
-            binWidth = width;
-        }
-
-        DINLINE Histogram( ):
-            binWidth( binWidth )
-        {
+            this->binWidth = binWidth;
             this->numBins = 0u;
             this->numNewBins = 0u;
 
@@ -86,11 +83,11 @@ namespace histogram2
             for( uint32_t i = 0u; i < maxNumBins; i++ )
             {
                 this->binWeights[i] = 0.;
-                this->binDeltaEnergies = 0.;
+                this->binDeltaEnergy[i] = 0.;
                 this->binIndices[i] = 0u;
             }
 
-            for( uint32_t i = 0u; i < numThreads; i++)
+            for( uint32_t i = 0u; i < maxNumNewBins; i++)
             {
                 this->newBinsIndices[i] = 0;
                 this->newBinsWeights[i] = 0;
@@ -121,6 +118,8 @@ namespace histogram2
             return index < maxNumBins;
         }
 
+        // This result is in the global indexing system,
+        // unrelated to maxNumBins
         DINLINE uint32_t getBinIndex( float_X energy ) const
         {
             //standard fixed bin width

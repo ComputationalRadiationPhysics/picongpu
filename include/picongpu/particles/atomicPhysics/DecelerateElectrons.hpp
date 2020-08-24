@@ -24,10 +24,9 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-
+#include <pmacc/attribute/FunctionSpecifier.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
-#include <pmacc/type/Area.hpp>
+#include <pmacc/random/distributions/Uniform.hpp>
 
 #include <cstdint>
 
@@ -39,20 +38,45 @@ namespace particles
 namespace atomicPhysics
 {
 
+    template<
+        typename T_Acc,
+        typename T_Electron,
+        typename T_Histogram
+    >
+    DINLINE void processElectron(
+        T_Acc const & acc,
+        T_Electron electron,
+        T_Histogram const & histogram
+    )
+    {
+        float_X energy = 0.0_X; // todo: compute, probably via a generic algorithm
+        // look up in the histogram, which bin is this energy
+        uint32_t const binIndex = histogram.getBinIndex( energy );
+        auto const index = histogram.findBin( binIndex );
+        // this could happen only if histogram did not have enough memory
+        if( index >= histogram.maxNumBins )
+            return;
+
+        auto const weight = histogram.binWeights[ index ];
+        auto const deltaEnergy = histogram.binDeltaEnergy[ index ];
+        float_X scalingFactor = 1.0_X; // todo: compute
+        electron[ momentum_ ] *= scalingFactor;
+    }
+
     // Fill the histogram return via the last parameter
     // should be called inside the AtomicPhysicsKernel
     template<
         uint32_t T_numWorkers,
         typename T_Acc,
-        typename T_ElectronBox,
         typename T_Mapping,
+        typename T_ElectronBox,
         typename T_Histogram
     >
-    DINLINE void fillHistogram(
+    DINLINE void decelerateElectrons(
         T_Acc const & acc,
-        T_ElectronBox const electronBox,
         T_Mapping mapper,
-        T_Histogram * histogram
+        T_ElectronBox electronBox,
+        T_Histogram const & histogram
     )
     {
         using namespace mappings::threads;
@@ -95,47 +119,15 @@ namespace atomicPhysics
                     // todo: check whether this if is necessary
                     if( linearIdx < particlesInSuperCell )
                     {
-                        // NOTE: all particle[ ... ] returns in PIC units, not SI
-                        // note: there is UNIT_ENERGY that can help with conversion
-                        // note 3: maybe getEnergy could become a generic algorithm
-                        auto const particle = frame[ linearIdx ];
-                        float_X const m = attribute::getMass(1.0_X, particle); //particle[ massRatio_ ] * SI::BASE_MASS;     //Unit: kg
-                        constexpr auto c = SI::SPEED_OF_LIGHT_SI;                   //Unit: m/s
-
-                        float3_X vectorP = particle[ momentum_ ];
-                        // we probably have a math function for ||p||^2
-                        float_X pSquared = math::abs2( vectorP ); /* vectorP[0]*vectorP[0] +
-                            vectorP[1]*vectorP[1] +
-                            vectorP[2]*vectorP[2]; */                     //unit:kg*m/s
-
-                        // note about math functions:
-                        // in the dev branch need to add pmacc:: and acc as first parameter
-
-                        //unit: kg*m^2/s^2 = Nm
-                        auto const energy = math::sqrt(
-                                m*m * c*c*c*c + pSquared * c*c
-                        );
-                        histogram->binObject(
+                        auto particle = frame[ linearIdx ];
+                        processElectron(
                             acc,
-                            energy,
-                            particle[ weighting_ ]
+                            particle,
+                            histogram
                         );
                     }
                 }
             );
-
-            // A single thread does bookkeeping
-            cupla::__syncthreads( acc );
-            onlyMaster(
-                [&](
-                    uint32_t const,
-                    uint32_t const
-                )
-                {
-                    histogram->updateWithNewBins();
-                }
-            );
-            cupla::__syncthreads( acc );
 
             frame = electronBox.getPreviousFrame( frame );
             particlesInSuperCell = frameSize;

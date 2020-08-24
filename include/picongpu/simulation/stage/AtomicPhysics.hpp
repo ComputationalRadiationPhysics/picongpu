@@ -60,6 +60,7 @@ namespace stage
                 particles::atomicPhysics::CallAtomicPhysics< bmpl::_1 >
             > callAtomicPhysics;
             callAtomicPhysics(
+                step,
                 cellDescription
             );
 
