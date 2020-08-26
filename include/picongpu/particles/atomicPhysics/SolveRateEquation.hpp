@@ -79,7 +79,7 @@ namespace atomicPhysics
             // TODO: implement rate matrix calculation
             float_X rateSI = 1.0_X;
             float_X deltaEnergy = 0.0_X;
-            // TODO: compute rate matrix - now accessible as rateMatrix( ... )
+            // TODO: compute rate matrix - now accessible as rateMatrixBox( integer )
             // to get rateSI and deltaE
             float_X probability = rateSI * timeRemainingSI;
             if ( probability >= 1.0_X )

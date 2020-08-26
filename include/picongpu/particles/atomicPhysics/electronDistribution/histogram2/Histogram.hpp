@@ -154,7 +154,7 @@ namespace histogram2
             {
                 // Otherwise we add it to a collection of new bins
                 // Note: in current dev the namespace is different in cupla
-                auto newBinIdx = cupla::atomicInc< alpaka::hierarchy::Threads >(
+                auto newBinIdx = cupla::atomicAdd< alpaka::hierarchy::Threads >(
                     acc,
                     &numNewBins,
                     1u

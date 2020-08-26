@@ -326,6 +326,11 @@ public:
         // create field solver
         this->myFieldSolver = new fields::Solver(*cellDescription);
 
+        // create atomic physics
+        this->atomicPhysics = pmacc::memory::makeUnique< simulation::stage::AtomicPhysics >(
+            *cellDescription
+        );
+
         // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung Photons
         using AllSynchrotronPhotonsSpecies = typename pmacc::particles::traits::FilterByFlag<
             VectorAllSpecies,
@@ -553,7 +558,7 @@ public:
         myFieldSolver->update_beforeCurrent( currentStep );
         CurrentReset{ }( currentStep );
         __setTransactionEvent( commEvent );
-        AtomicPhysics{ *cellDescription }( currentStep );
+        atomicPhysics->operator()( currentStep );
         CurrentBackground{ *cellDescription }( currentStep );
         CurrentDeposition{ }( currentStep );
         CurrentInterpolationAndAdditionToEMF{ }( currentStep );
@@ -632,6 +637,8 @@ protected:
     std::shared_ptr<DeviceHeap> deviceHeap;
 
     fields::Solver* myFieldSolver;
+
+    std::unique_ptr< simulation::stage::AtomicPhysics > atomicPhysics;
 
 #if( PMACC_CUDA_ENABLED == 1 )
     // creates lookup tables for the bremsstrahlung effect
