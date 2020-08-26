@@ -49,24 +49,23 @@ namespace stage
 
         void operator( )( uint32_t const step ) const
         {
-            using namespace pmacc;
-            using SpeciesWithAtomicPhysics = typename pmacc::particles::traits::FilterByFlag<
-                VectorAllSpecies,
-                // temporary name
-                _atomicPhysics< >
-            >::type;
-            pmacc::meta::ForEach<
-                SpeciesWithAtomicPhysics,
-                particles::atomicPhysics::CallAtomicPhysics< bmpl::_1 >
-            > callAtomicPhysics;
             callAtomicPhysics(
                 step,
                 cellDescription
             );
-
         }
 
     private:
+
+        using SpeciesWithAtomicPhysics = typename pmacc::particles::traits::FilterByFlag<
+            VectorAllSpecies,
+            // temporary name
+            _atomicPhysics< >
+        >::type;
+        pmacc::meta::ForEach<
+            SpeciesWithAtomicPhysics,
+            particles::atomicPhysics::CallAtomicPhysics< bmpl::_1 >
+        > callAtomicPhysics;
 
         //! Mapping for kernels
         MappingDesc cellDescription;

@@ -69,13 +69,15 @@ namespace atomicPhysics
             typename T_Acc,
             typename T_ElectronBox,
             typename T_IonBox,
-            typename T_Mapping
+            typename T_Mapping,
+            typename T_RateMatrixBox
         >
         HDINLINE void operator()(
             T_Acc const & acc,
             T_ElectronBox electronBox,
             T_IonBox ionBox,
             T_Mapping mapper,
+            T_RateMatrixBox const rateMatrixBox,
             float_X binWidth
         ) const
         {
@@ -112,6 +114,7 @@ namespace atomicPhysics
                 rngFactoryInt,
                 rngFactoryFloat,
                 ionBox,
+                rateMatrixBox,
                 &histogram
             );
             cupla::__syncthreads( acc );

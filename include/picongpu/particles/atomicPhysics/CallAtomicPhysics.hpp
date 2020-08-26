@@ -24,12 +24,16 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/atomicPhysics/AtomicPhysics.kernel"
+#include "picongpu/particles/atomicPhysics/RateMatrix.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/type/Area.hpp>
 
 #include <cstdint>
+#include <fstream>
+#include <string>
+#include <utility>
 
 
 namespace picongpu
@@ -60,6 +64,59 @@ namespace atomicPhysics
             >::type
         >;
         using ElectronFrameType = typename ElectronSpecies::FrameType;
+
+        using Items = std::vector< std::pair< uint32_t, float_X > >;
+        Items readData( std::string fileName )
+        {
+            std::ifstream file( fileName );
+            if( !file )
+            {
+                std::cerr << "Atomic physics error: could not open file " << fileName << "\n";
+                return Items{};
+            }
+
+            Items result;
+            float_X stateIndex;
+            float_X energyOverGroundState;
+            while (file >> stateIndex >> energyOverGroundState)
+            {
+                uint32_t idx = static_cast< uint32_t >( stateIndex );
+                auto item = std::make_pair(
+                    idx,
+                    energyOverGroundState
+                );
+                result.push_back( item );
+            }
+            return result;
+        }
+
+        CallAtomicPhysics()
+        {
+            // hard-coded for now, will be parametrized
+            std::string fileName = "HydrogenLevels.txt";
+            //
+            auto items = readData( fileName );
+            if( items.empty() )
+            {
+                std::cout << "Could not read the atomic data\n";
+                return;
+            }
+            // remove the last line with 1
+            items.pop_back();
+
+            // init rate matrix on host and copy to device
+            uint32_t firstStateIndex = items[0].first;
+            rateMatrix = pmacc::memory::makeUnique< RateMatrix >(
+                firstStateIndex,
+                items.size()
+            );
+            auto rateMatrixHostBox = rateMatrix->getHostDataBox();
+            for (uint32_t i = 0; i < items.size(); i++ )
+            {
+                rateMatrixHostBox( items[i].first ) = items[i].second;
+            }
+            rateMatrix->syncToDevice();
+        }
 
         // Call functor, will be called in MySimulation once per time step
         void operator()(
@@ -110,12 +167,17 @@ namespace atomicPhysics
                 electrons.getDeviceParticlesBox( ),
                 ions.getDeviceParticlesBox( ),
                 mapper,
+                rateMatrix->getDeviceDataBox( ),
                 binWidth
             );
 
             dc.releaseData( ElectronFrameType::getName() );
             dc.releaseData( IonFrameType::getName() );
         }
+
+    private:
+
+        std::unique_ptr< RateMatrix > rateMatrix;
 
     };
 

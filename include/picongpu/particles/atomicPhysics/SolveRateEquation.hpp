@@ -50,6 +50,7 @@ namespace atomicPhysics
     template<
         typename T_Acc,
         typename T_Ion,
+        typename T_RateMatrixBox,
         typename T_Histogram
     >
     DINLINE void processIon(
@@ -57,6 +58,7 @@ namespace atomicPhysics
         RandomGenInt randomGenInt,
         RandomGenFloat randomGenFloat,
         T_Ion ion,
+        T_RateMatrixBox const rateMatrixBox,
         T_Histogram * histogram
     )
     {
@@ -77,7 +79,7 @@ namespace atomicPhysics
             // TODO: implement rate matrix calculation
             float_X rateSI = 1.0_X;
             float_X deltaEnergy = 0.0_X;
-            // TODO: compute rate matrix
+            // TODO: compute rate matrix - now accessible as rateMatrix( ... )
             // to get rateSI and deltaE
             float_X probability = rateSI * timeRemainingSI;
             if ( probability >= 1.0_X )
@@ -103,6 +105,7 @@ namespace atomicPhysics
         typename T_Acc,
         typename T_Mapping,
         typename T_IonBox,
+        typename T_RateMatrixBox,
         typename T_Histogram
     >
     DINLINE void solveRateEquation(
@@ -111,6 +114,7 @@ namespace atomicPhysics
         RngFactoryInt rngFactoryInt,
         RngFactoryFloat rngFactoryFloat,
         T_IonBox ionBox,
+        T_RateMatrixBox const rateMatrixBox,
         T_Histogram * histogram
     )
     {
@@ -164,6 +168,7 @@ namespace atomicPhysics
                             generatorInt,
                             generatorFloat,
                             particle,
+                            rateMatrixBox,
                             histogram
                         );
                     }
