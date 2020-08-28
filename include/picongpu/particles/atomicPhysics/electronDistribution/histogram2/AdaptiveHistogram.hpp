@@ -17,10 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file This file implements a fixed bin width histogram starting from Argument 0.
- * This is done as an unordered collection of bins indices and their corresponding
- * values, this implementations was done for testing purposes for the adaptive
- * histogram.
+/** @file This file implements a adaptive Histogram starting from argument 0
  */
 
 #pragma once
@@ -48,7 +45,7 @@ namespace histogram2
         uint32_t T_maxNumBins,
         uint32_t T_maxNumNewBins
     >
-    struct Histogram
+    struct AdaptiveHistogram
     {
     private: // TODO: chnage all calls to new getter methods
         constexpr static uint32_t maxNumBins = T_maxNumBins;
@@ -67,10 +64,8 @@ namespace histogram2
         uint32_t newBinsIndices[ maxNumNewBins ];
         uint32_t numNewBins;
 
-        float_X binWidth;
 
     public:
-
         DINLINE static constexpr uint32_t getMaxNumberBins(){
             return Histogram::maxNumBins;
         }
@@ -81,7 +76,7 @@ namespace histogram2
 
         // Has to be called by one thread before any other method
         // of this object to correctly initialise the histogram
-        DINLINE void init( float_X const binWidth )
+        DINLINE void init(  )
         {
             this->binWidth = binWidth;
             this->numBins = 0u;
@@ -134,10 +129,11 @@ namespace histogram2
         // Returns the bin index, number identifying every bin possible in the
         // histogram
         // unrelated to collection index, can be larger than maxNumBins
-        DINLINE uint32_t getBinIndex( float_X energy ) const
+        // actual adaptive part of histogram
+        DINLINE  uint32_t getBinIndex( float_X argument ) const
         {
-            //standard fixed bin width
-            return static_cast< uint32_t >( energy/binWidth );
+            
+            return 0;
         }
 
         // add for Argument x, weight to the bin

@@ -19,10 +19,15 @@
 
 /** @file
  *
- * This file defines the atomic state representation by numbering Hydrogen-like
- * superconfigurations.
+ * This file implements the actual storage of atomic configurations.
  *
- * The Hydrogen-like superconfiguration here is specified by the occupation
+ * This implementation uses config numbers for this. A configNumber is an index number
+ * of an hydrogenlike atomic state
+ , with several conversion methods and static methods.
+ * Instances of this class represent an atomic state of an ion by numbering
+ * Hydrogen-like superconfigurations.
+ *
+ * The Hydrogen-like superconfiguration is specified by the occupation
  * vector N-vector, a listing of every level n's occupation number N_n, with n:
  * 1 < n < n_max.
  *
@@ -53,7 +58,7 @@
  * https://en.wikipedia.org/wiki/Electron_shell#Number_of_electrons_in_each_shell
  *
  * Note: a superconfiguration only stores occupation numbers, NOT spin or
- *  angular momentumm, due to memory constrains.
+ *  angular momentumm. This was done due to memory constraints.
  *
  * further information see:
  *  https://en.wikipedia.org/wiki/Hydrogen-like_atom#Schr%C3%B6dinger_solution
@@ -79,35 +84,33 @@ namespace atomicPhysics
 namespace stateRepresentation
 {
 
-
-/** This class implements the actual storage of the configuration
+/** This class implements the actual storage of the superconfigurations by index
  *
- * @trapam T_DataType unsigned integer data type to represent the config number
- * @tparam T_numberLevels max principle quantum number to be represented
- * @trapam T_chargeNumber charge number, in units of e
+ * @tparam T_DataType ... unsigned integer data type to represent the config
+ *                              number
+ * @tparam T_numberLevels ... max principle quantum number, n_max, represented in
+ *                              this confignumber
+ * @tparam T_atomicNumber ... atomic number of the ion, in units of elementary charge
+ * 
  */
 template<
     typename T_DataType,
     uint8_t T_numberLevels,
-    uint8_t T_chargeNumber
+    uint8_t T_atomicNumber
 >
 class ConfigNumber
 {
- /** this class implements the actual storage of the configuration
- *
- * T_numberLevels ... n_max
- * for convenience of usage and modularity, methods to convert the configNumber
- * to a occupation vector and convert a occuptation vector to the corresponding
- * configuration number are implemented.
- *
- */
-public:
+private:
     T_DataType configNumber;    // storage of actual configNumber
 
-private:
-    HDINLINE static uint16_t g( uint8_t n )
+    HDINLINE static constexpr uint16_t g( uint8_t n )
     {
-    /** returns the maximum occupation number for the n-th level
+    /** returns the maximum possible occupation number for the n-th level,
+     *
+     * or in other words how many different electron states there are for a given
+     * principal quantum number n.
+     *
+     * @param n ... principal quantum number/level number
      */
         // cast necessary to prevent overflow in n^2 calculation
         return (static_cast<uint16_t>(n) * static_cast<uint16_t>(n) * 2);
@@ -115,10 +118,12 @@ private:
 
     HDINLINE static uint16_t numberOfOccupationNumberValuesInShell( uint8_t n )
     {
-    /** returns the number of different occupation number values for the nth
-     * shell.
+    /** returns the number of different occupation number values possible for the
+     * n-th shell of an ion with atomic number Z
      *
-     * Beware: n larger than 254 causes an overflow
+     * BEWARE: n larger than 254 causes an overflow.
+     *
+     *@param n ... principal quantum number/level number
      */
      PMACC_ASSERT_MSG(
             n < 255,
@@ -126,29 +131,31 @@ private:
         );
         return pmacc::algorithms::math::min(
                 g( n ),
-                static_cast< uint16_t >( T_chargeNumber )
+                static_cast< uint16_t >( T_atomicNumber )
             ) + 1;
     }
 
-    HDINLINE constexpr static T_DataType stepLength(uint8_t n)
+    HDINLINE static T_DataType stepLength(uint8_t n)
     {
     /** returns the step length of the n-th level
      *
      * stepLength ... number of table entries per occupation number VALUE of
      * the current principal quantum number n.
+     *
+     *@param n ... principal quantum number/level number
      */
         T_DataType result = 1;
 
         for (uint8_t i = 1u; i < n; i++)
         {
             result *= static_cast<T_DataType>(
-                numberOfOccupationNumberValuesInShell(i)
+                ConfigNumber::numberOfOccupationNumberValuesInShell(i)
             );
         }
         return result;
     }
 
-    static void nextStepLength( T_DataType* currentStepLength, uint8_t current_n )
+    HDINLINE static void nextStepLength( T_DataType* currentStepLength, uint8_t current_n )
     {
     /** returns the step length of the (current_n + 1)-th level, given the
      * current step length and current_n
@@ -158,18 +165,19 @@ private:
      */
 
         *currentStepLength = *currentStepLength * static_cast<T_DataType>(
-            this->numberOfOccupationNumberValuesInShell( current_n )
+            ConfigNumber::numberOfOccupationNumberValuesInShell( current_n )
             );
     }
 
 public:
-
     // make T_DataType paramtere available for later use
     using DataType = T_DataType;
 
-    // number of levels, n_max, used for configNumber
+    // number of levels, n_max, used for configNumber, made available for later use
     static constexpr uint8_t numberLevels = T_numberLevels;
 
+    // returns total number of states possible, for use in Markov chain solver as
+    // range of integer random number
     HDINLINE static constexpr T_DataType numberStates()
     {
     /** returns number of different states(Configs) that are represented
@@ -179,6 +187,7 @@ public:
         );
     }
 
+    // constructor using scalar config Number
     HDINLINE ConfigNumber(
         T_DataType N = static_cast<T_DataType>(0u)
         )
@@ -196,6 +205,7 @@ public:
         this->configNumber = N;
     }
 
+    // constructor using occupation numbers
     HDINLINE ConfigNumber(
         pmacc::math::Vector< uint16_t, numberLevels > levelVector
         )
@@ -231,7 +241,7 @@ public:
         }
     }
 
-    operator pmacc::math::Vector< uint16_t, numberLevels >()
+    pmacc::math::Vector< uint16_t, numberLevels > operator() ()
     {
     /** B() operator converts configNumber B into an occupation number vector
     *
@@ -270,6 +280,10 @@ public:
 
         return result;
     }
+
+    void operator= ( T_DataType newConfigNumber){
+        this->configNumber = newConfigNumber;
+    }
 };
 
 } // namespace stateRepresentation
@@ -290,13 +304,13 @@ namespace traits
 template<
     typename T_DataType,
     uint8_t T_numberLevels,
-    uint8_t T_chargeNumber
+    uint8_t T_atomicNumber
 >
 struct GetComponentsType<
     picongpu::particles::atomicPhysics::stateRepresentation::ConfigNumber<
         T_DataType,
         T_numberLevels,
-        T_chargeNumber
+        T_atomicNumber
     >,
     false
 >
@@ -308,13 +322,13 @@ struct GetComponentsType<
 template<
     typename T_DataType,
     uint8_t T_numberLevels,
-    uint8_t T_chargeNumber
+    uint8_t T_atomicNumber
 >
 struct GetNComponents<
     picongpu::particles::atomicPhysics::stateRepresentation::ConfigNumber<
         T_DataType,
         T_numberLevels,
-        T_chargeNumber
+        T_atomicNumber
     >,
     false
 >
