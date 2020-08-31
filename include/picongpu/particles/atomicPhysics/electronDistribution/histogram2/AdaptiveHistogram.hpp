@@ -155,12 +155,12 @@ namespace histogram2
 
         DINLINE static constexpr uint32_t getMaxNumberBins ()
         {
-            return Histogram::maxNumBins;
+            return AdaptiveHistogram::maxNumBins;
         }
 
         DINLINE static constexpr uint32_t getMaxNumberNewBins ()
         {
-            return Histogram::maxNumNewBins;
+            return AdaptiveHistogram::maxNumNewBins;
         }
 
         // return center of Bin
