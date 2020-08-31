@@ -41,6 +41,7 @@ namespace electronDistribution
 namespace histogram2
 {
 
+
     template<
         uint32_t T_maxNumBins,
         uint32_t T_maxNumNewBins
@@ -51,41 +52,65 @@ namespace histogram2
         constexpr static uint32_t maxNumBins = T_maxNumBins;
         constexpr static uint32_t maxNumNewBins = T_maxNumNewBins;
 
-        //content of bins
+        // content of bins
+        // two data fields
+        // weight of particles
         float_X binWeights[ maxNumBins ];
+        // chnage in particle Energy
         float_X binDeltaEnergy[ maxNumBins ];
-        //location of bins
+
+        //x of bins, by global histogram index
         uint32_t binIndices[ maxNumBins ];
         // number of bins occupied
         uint32_t numBins;
 
-        //new Bins form current Iteration
-        float_X  newBinsWeights[ maxNumNewBins ];
+        // new bins since last call to update method
         uint32_t newBinsIndices[ maxNumNewBins ];
+        float_X  newBinsWeights[ maxNumNewBins ];
+        // number of entries in new bins
         uint32_t numNewBins;
 
+        // boundary of some bin in the histogram
+        float_X lastBoundary;
+        // Index of the bin whose left boundary is lastBoundary
+        uint32_t lastBinIndex;
+
+        // target value of relative Error of histogram Bin,
+        // bin width choosen such that relativeError as close to target
+        // TODO: make template parameter
+        float_X relativeErrorTarget;
+
+        // defines initial global grid
+        float_X initialGridWidth;
 
     public:
-        DINLINE static constexpr uint32_t getMaxNumberBins(){
-            return Histogram::maxNumBins;
-        }
-
-        DINLINE static constexpr uint32_t getMaxNumberNewBins(){
-            return Histogram::maxNumNewBins;
-        }
-
         // Has to be called by one thread before any other method
         // of this object to correctly initialise the histogram
-        DINLINE void init(  )
+        // @param relativeErrorTarget ... should be >0,
+        //      maximum relative Error of Histogram Bin
+        DINLINE void init(
+            float_X relativeErrorTarget,
+            float_X initialGridWidth
+            )
         {
-            this->binWidth = binWidth;
+            // init histogram empty
             this->numBins = 0u;
             this->numNewBins = 0u;
+
+            // init with 0 as reference point
+            this->lastBoundary = 0_X;
+            this->lastBinIndex = 0u;
+
+            // init adaptive bin width algorithm parameters
+            this->relativeErrorTarget = relativeErrorTarget;
+            this->initialGridWidth = initalGridWidth;
 
             // TODO: make this debug mode only
             // For debug purposes this is okay
             // Afterwards this code should be removed as we are
             // filling memory we are never touching (if everything works)
+
+            // start of debug init
             for( uint32_t i = 0u; i < maxNumBins; i++ )
             {
                 this->binWeights[i] = 0.;
@@ -96,14 +121,16 @@ namespace histogram2
             for( uint32_t i = 0u; i < maxNumNewBins; i++)
             {
                 this->newBinsIndices[i] = 0;
-                this->newBinsWeights[i] = 0;
+                this->newBinsWeights[i] = 0_X;
             }
+            // end of debug init
         }
 
         // Tries to find binIndex in the collection and return the collection index.
-        // Returns index in the binIndices array when present or maxNumBin
-        // when not present, maxNumBin is never a valid index of the collection
-        // stupid linear search for now
+        // Returns index in the binIndices array when present
+        // or maxNumBin when not present,
+        // maxNumBin is never a valid index of the collection
+        // uses stupid linear search for now
         DINLINE uint32_t findBin(
             uint32_t binIndex,
             uint32_t startIndex = 0u
@@ -119,22 +146,199 @@ namespace histogram2
             return maxNumBins;
         }
 
-        // checks wether Bin exists, exists only for encapsulation
+        // checks whether Bin exists
         DINLINE bool hasBin( uint32_t binIndex ) const
         {
             auto const index = findBin( binIndex );
             return index < maxNumBins;
         }
 
+        DINLINE static constexpr uint32_t getMaxNumberBins ()
+        {
+            return Histogram::maxNumBins;
+        }
+
+        DINLINE static constexpr uint32_t getMaxNumberNewBins ()
+        {
+            return Histogram::maxNumNewBins;
+        }
+
+        // return center of Bin
+        DINLINE static float_X centerBin(
+            bool directionPositive,
+            float_X Boundary,
+            float_X binWidth
+            )
+        {
+            if ( directionPositive )
+                return Boundary + binWidth/2_X;
+            else
+                return Boundary - binWidth/2_X;
+        }
+
+        // is x in Bin 
+        //  - directionPositive == true:    [boundary,           boundary + binWidth)
+        //  - directionPositive == false:   [boundary - binWidth,boundary)
+        DINLINE static bool inBin(
+            bool directionPositive,
+            float_X boundary,
+            float_X binWidth,
+            float_X x
+            )
+        {
+            if ( directionPositive )
+                return ( x >= boundary ) && ( x < boundary + binWidth );
+            else
+                return ( x >= boundary - binWidth) && ( x < boundary );
+        }
+
+        // relative error function used
+        DINLINE static float_X relativeErrorFunction(){
+            return 0_X;
+        }
+
+        DINLINE float_X getBinWidth(
+            const bool directionPositive,
+            const float_X boundary,
+            float_X currentBinWidth
+            ) const
+        {
+            // is initial binWidth below the Target Value?
+            bool isBelowTarget = (
+                this->relativeErrorTarget >= relativeErrorFunction(
+                    currentBinWidth,
+                    AdaptiveHistogram::centerBin(
+                        directionPositive,
+                        boundary,
+                        currentBinWidth
+                        )
+                    )
+                );
+
+
+            if( isBelowTarget )
+            {
+                // increase until no longer below
+                while ( isBelowTarget )
+                {
+                    // try higher binWidth
+                    currentBinWidth *= 2_X;
+
+                    // until no longer below Target
+                    isBelowTarget = (
+                        this->relativeErrorTarget > relativeErrorFunction(
+                            currentBinWidth,
+                            centralValue(
+                                directionPositive,
+                                currentBinWidth,
+                                boundary
+                                )
+                            )
+                        );
+                }
+
+                // last i-th try was not below target,
+                // but (i-1)-th was still below
+                // -> reset to value i-1
+                currentBinWidth /= 2_X;
+            }
+            else
+            {
+                // decrease until below targetf or the first time
+                while ( !isBelowTarget )
+                {
+                    // try lower binWidth
+                    currentBinWidth /= 2_X;
+
+                    // until first time below Target
+                    isBelowTarget = (
+                        this->relativeErrorTarget > relativeErrorFunction(
+                            currentBinWidth,
+                            centralValue(
+                                directionPositive,
+                                currentBinWidth,
+                                boundary
+                                )
+                            )
+                        );
+                }
+                // no need to reset to value before
+                // since this was first value that was below target
+            }
+
+            return currentBinWidth;
+        }
+
         // Returns the bin index, number identifying every bin possible in the
         // histogram
         // unrelated to collection index, can be larger than maxNumBins
         // actual adaptive part of histogram
-        DINLINE  uint32_t getBinIndex( float_X argument ) const
+        // @param x ... where object is located that we want to bin
+        // does not change last binIndex
+        DINLINE  uint32_t getBinIndex( float_X x ) const
         {
-            
-            return 0;
+
+            // wether x is in positive direction with regards to last known
+            // Boundary
+            bool directionPositive = ( x >= this->lastBoundary );
+
+            // init currentBinWidth with initial grid
+            float_X curentBinWidth = this->initalGridWidth;
+
+            // start from prevoius point to reduce seek times
+            float_X boundary = this->lastBoundary;
+            uint32_t index = this->lastBinIndex;
+
+            bool inBin = false;
+
+            while ( inBin )
+            {
+
+                // get currentBinWidth
+                currentBinWidth = getBinWidth(
+                    directionPositive,
+                    boundary,
+                    currentBinWidth
+                    )
+
+                inBin = AdaptiveHistogram::inBin(
+                        directionPositive,
+                        boundary,
+                        currentBinWidth,
+                        x
+                        );
+
+                // check wether x is in Bin
+                if ( inBin )
+                    // yes case, => current index is correct index
+                    return index;
+                else
+                {
+                    if ( directionPositive )
+                    {
+                        binIndex += 1;
+                        boundary += currentBinWidth;
+                    }
+                    else
+                    {
+                        // check for underflow
+                        if ( binIndex > 0 )
+                        {
+                            binIndex -= 1;
+                            boundary -= currentBinWidth;
+                        }
+                        else
+                        // add to 0-th bin instead
+                        // TODO: allow negative indices as well
+                        // useful for phase space histograms where the argument
+                        // (position vector component or impulse component) can be <0
+                        // not necessary for energy histogram, since E>=0
+                            return 0u;
+                    }
+                }
+            }
         }
+
 
         // add for Argument x, weight to the bin
         template< typename T_Acc >
@@ -148,7 +352,7 @@ namespace histogram2
             uint32_t const binIndex = this->getBinIndex( x );
 
             //search for bin in collection of existing bins
-            auto const index = findBin(binIndex);
+            auto const index = findBin( binIndex );
 
             // If the bin was already there, we need to atomically increase
             // the value, as another thread may contribute to the same bin
