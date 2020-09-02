@@ -152,9 +152,6 @@ namespace atomicPhysics
 
     };
 
-
-    
-
 } // namespace atomicPhysics
 } // namespace particles
 } // namespace picongpu

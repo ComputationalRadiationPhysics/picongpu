@@ -23,17 +23,14 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/Histogram.hpp"
+#include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/AdaptiveHistogram.hpp"
+
 #include "picongpu/particles/atomicPhysics/DecelerateElectrons.hpp"
 #include "picongpu/particles/atomicPhysics/FillHistogram.hpp"
 #include "picongpu/particles/atomicPhysics/SolveRateEquation.hpp"
 
-
-
-// modules necessary for random number generators from pmacc
-// #include <pmacc/random/methods/methods.hpp>
-// #include <pmacc/random/distributions/Uniform.hpp>
-// #include <pmacc/random/RNGProvider.hpp>
 
 #include <cstdint>
 
@@ -78,7 +75,8 @@ namespace atomicPhysics
             T_IonBox ionBox,
             T_Mapping mapper,
             T_RateMatrixBox const rateMatrixBox,
-            float_X binWidth
+            float_X initialGridWidth,
+            float_X relativeErrorTarget
         ) const
         {
             // we assume 1d thread indices
@@ -87,7 +85,7 @@ namespace atomicPhysics
 
             // Create and initialize a histogram on shared memory
             constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
-            using Histogram = electronDistribution::histogram2::Histogram<
+            using Histogram = electronDistribution::histogram2::AdaptiveHistogram<
                 T_maxNumBins,
                 frameSize
             >;
@@ -97,7 +95,7 @@ namespace atomicPhysics
                 Histogram // variable type
             );
             if( workerIdx == 0 )
-                histogram.init( binWidth );
+                histogram.init( relativeErrorTarget, initialGridWidth );
             cupla::__syncthreads( acc );
 
             fillHistogram< T_numWorkers >(

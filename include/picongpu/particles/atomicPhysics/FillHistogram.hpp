@@ -104,9 +104,7 @@ namespace atomicPhysics
 
                         float3_X vectorP = particle[ momentum_ ];
                         // we probably have a math function for ||p||^2
-                        float_X pSquared = math::abs2( vectorP ); /* vectorP[0]*vectorP[0] +
-                            vectorP[1]*vectorP[1] +
-                            vectorP[2]*vectorP[2]; */                     //unit:kg*m/s
+                        float_X pSquared = math::abs2( vectorP );  //unit:? [should be kg*m/s]
 
                         // note about math functions:
                         // in the dev branch need to add pmacc:: and acc as first parameter

@@ -60,11 +60,12 @@ namespace atomicPhysics
             typename pmacc::particles::traits::ResolveAliasFromSpecies<
                 IonSpecies,
                 // note: renamed to _atomicPhysics temporarily
-                _atomicPhysics< > /// here will be your flag from .param file
+                _atomicPhysics< > /// atomic physics flag of species from .param file
             >::type
         >;
         using ElectronFrameType = typename ElectronSpecies::FrameType;
 
+        // define entry of atomic data table
         using Items = std::vector< std::pair< uint32_t, float_X > >;
         Items readData( std::string fileName )
         {
@@ -90,18 +91,21 @@ namespace atomicPhysics
             return result;
         }
 
+        // Constructor loads atomic data
         CallAtomicPhysics()
         {
             // hard-coded for now, will be parametrized
-            std::string fileName = "HydrogenLevels.txt";
-            //
+            // file name of file containing atomic data
+            std::string fileName = "~/HydrogenLevels.txt";
+
+            // read in atomic data
             auto items = readData( fileName );
             if( items.empty() )
             {
                 std::cout << "Could not read the atomic data\n";
                 return;
             }
-            // remove the last line with 1
+            // remove the last line with state 1
             items.pop_back();
 
             // init rate matrix on host and copy to device
@@ -146,9 +150,12 @@ namespace atomicPhysics
             >::value;
 
             // hardcoded for now
-            float_X binWidth = 0.2_X;
+            // TODO: remove
+            float_X initialGridWidth = 0.2_X;
+            float_X relativeErrorTarget = 0.5_X;
 
             // hardcoded for now
+            // TODO: from param file
             constexpr uint32_t maxNumBins = 2000;
 
             using Kernel = AtomicPhysicsKernel<
@@ -168,7 +175,8 @@ namespace atomicPhysics
                 ions.getDeviceParticlesBox( ),
                 mapper,
                 rateMatrix->getDeviceDataBox( ),
-                binWidth
+                relativeErrorTarget,
+                initialGridWidth
             );
 
             dc.releaseData( ElectronFrameType::getName() );
