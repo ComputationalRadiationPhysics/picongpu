@@ -26,7 +26,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/attribute/FunctionSpecifier.hpp>
 
-
+#include <utility>
 #include "picongpu/traits/attribute/GetMass.hpp"
 
 
@@ -40,7 +40,6 @@ namespace electronDistribution
 {
 namespace histogram2
 {
-
 
     template<
         uint32_t T_maxNumBins,
@@ -98,12 +97,12 @@ namespace histogram2
             this->numNewBins = 0u;
 
             // init with 0 as reference point
-            this->lastBoundary = 0_X;
+            this->lastBoundary = 0._X;
             this->lastBinIndex = 0u;
 
             // init adaptive bin width algorithm parameters
             this->relativeErrorTarget = relativeErrorTarget;
-            this->initialGridWidth = initalGridWidth;
+            this->initialGridWidth = initialGridWidth;
 
             // TODO: make this debug mode only
             // For debug purposes this is okay
@@ -114,14 +113,14 @@ namespace histogram2
             for( uint32_t i = 0u; i < maxNumBins; i++ )
             {
                 this->binWeights[i] = 0.;
-                this->binDeltaEnergy[i] = 0.;
+                this->binDeltaEnergy[i] = 0._X;
                 this->binIndices[i] = 0u;
             }
 
             for( uint32_t i = 0u; i < maxNumNewBins; i++)
             {
                 this->newBinsIndices[i] = 0;
-                this->newBinsWeights[i] = 0_X;
+                this->newBinsWeights[i] = 0._X;
             }
             // end of debug init
         }
@@ -171,9 +170,9 @@ namespace histogram2
             )
         {
             if ( directionPositive )
-                return Boundary + binWidth/2_X;
+                return Boundary + binWidth/2._X;
             else
-                return Boundary - binWidth/2_X;
+                return Boundary - binWidth/2._X;
         }
 
         // is x in Bin 
@@ -193,8 +192,12 @@ namespace histogram2
         }
 
         // relative error function used
-        DINLINE static float_X relativeErrorFunction(){
-            return 0_X;
+        DINLINE static float_X relativeErrorFunction(
+            float_X binWidth,
+            float_X centralValue
+            )
+        {
+            return 0._X;
         }
 
         DINLINE float_X getBinWidth(
@@ -222,13 +225,13 @@ namespace histogram2
                 while ( isBelowTarget )
                 {
                     // try higher binWidth
-                    currentBinWidth *= 2_X;
+                    currentBinWidth *= 2._X;
 
                     // until no longer below Target
                     isBelowTarget = (
                         this->relativeErrorTarget > relativeErrorFunction(
                             currentBinWidth,
-                            centralValue(
+                            AdaptiveHistogram::centralBin(
                                 directionPositive,
                                 currentBinWidth,
                                 boundary
@@ -240,7 +243,7 @@ namespace histogram2
                 // last i-th try was not below target,
                 // but (i-1)-th was still below
                 // -> reset to value i-1
-                currentBinWidth /= 2_X;
+                currentBinWidth /= 2._X;
             }
             else
             {
@@ -248,13 +251,13 @@ namespace histogram2
                 while ( !isBelowTarget )
                 {
                     // try lower binWidth
-                    currentBinWidth /= 2_X;
+                    currentBinWidth /= 2._X;
 
                     // until first time below Target
                     isBelowTarget = (
                         this->relativeErrorTarget > relativeErrorFunction(
                             currentBinWidth,
-                            centralValue(
+                            AdaptiveHistogram::centralBin(
                                 directionPositive,
                                 currentBinWidth,
                                 boundary
@@ -283,7 +286,7 @@ namespace histogram2
             bool directionPositive = ( x >= this->lastBoundary );
 
             // init currentBinWidth with initial grid
-            float_X curentBinWidth = this->initalGridWidth;
+            float_X currentBinWidth = this->initialGridWidth;
 
             // start from prevoius point to reduce seek times
             float_X boundary = this->lastBoundary;
@@ -291,7 +294,7 @@ namespace histogram2
 
             bool inBin = false;
 
-            while ( inBin )
+            while ( !inBin )
             {
 
                 // get currentBinWidth
@@ -299,7 +302,7 @@ namespace histogram2
                     directionPositive,
                     boundary,
                     currentBinWidth
-                    )
+                    );
 
                 inBin = AdaptiveHistogram::inBin(
                         directionPositive,
@@ -316,15 +319,15 @@ namespace histogram2
                 {
                     if ( directionPositive )
                     {
-                        binIndex += 1;
+                        index += 1;
                         boundary += currentBinWidth;
                     }
                     else
                     {
                         // check for underflow
-                        if ( binIndex > 0 )
+                        if ( index > 0 )
                         {
-                            binIndex -= 1;
+                            index -= 1;
                             boundary -= currentBinWidth;
                         }
                         else
