@@ -56,6 +56,24 @@ Overview: Implemented Models
 
     Models marked with "(R&D)" are under *research and development* and should be used with care.
 
+Ionization Current
+------------------
+
+In order to conserve energy, PIConGPU supports an ionization current to decrease the electric field according to the amount of energy lost to field ioniztion processes.
+The current for a single ion is
+
+.. math::
+
+    \mathbf{J}_\mathrm{ion} = E_\mathrm{ion} \frac{\mathbf{E}}{|\mathbf{E}|^2 \Delta t V_\mathrm{cell}}
+
+It is assigned to the grid according to the macroparticle shape.
+:math:`E_\mathrm{ion}` is the energy required to ionize the atom/ion, :math:`\mathbf{E}` is the electric field at the particle position and :math:`V_\mathrm{cell}` is the cell volume.
+This formula makes the assumption that the ejection energy of the electron is zero.
+See [Mulser]_.
+The ionization current is accessible in :ref:`speciesDefinition.param <usage-params-core>`. To activate ionization current, set the second template of the ionization model to particles::ionization::current::EnergyConservation.
+By default the ionization current is deactivated.
+
+
 Usage
 -----
 
@@ -200,3 +218,9 @@ References
         *Atomic Screening Constant from SCF Functions. II. Atoms with 37 to 86 Electrons*,
         The Journal of Chemical Physics 47, 1300-1307 (1967)
         https://dx.doi.org/10.1063/1.1712084
+
+.. [Mulser]
+        P. Mulser et al.
+        *Modeling field ionization in an energy conserving form and resulting nonstandard fluid dynamcis*,
+        Physics of Plasmas 5, 4466 (1998)
+        https://doi.org/10.1063/1.873184

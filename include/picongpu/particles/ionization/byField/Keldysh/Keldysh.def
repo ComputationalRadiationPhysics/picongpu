@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Marco Garten
+/* Copyright 2016-2020 Marco Garten, Jakob Trojok
  *
  * This file is part of PIConGPU.
  *
@@ -20,6 +20,7 @@
 #pragma once
 
 #include <pmacc/types.hpp>
+#include "picongpu/particles/ionization/byField/IonizationCurrent/IonizationCurrent.def"
 
 namespace picongpu
 {
@@ -31,12 +32,13 @@ namespace ionization
     /** Keldysh model
      *
      * \tparam T_DestSpecies electron species to be created
+     * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
      * \tparam T_SrcSpecies ion species to be ionized
      *         default is boost::mpl placeholder because specialization
      *         cannot be known in list of particle species' flags
      *         \see speciesDefinition.param
      */
-    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
+    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_IonizationCurrent, typename T_SrcSpecies = bmpl::_1>
     struct Keldysh_Impl;
 
     /** Keldysh ionization model
@@ -58,11 +60,11 @@ namespace ionization
      * first specialization of the ionization model in the particle definition
      * \see speciesDefinition.param
      */
-    template<typename T_DestSpecies>
+    template<typename T_DestSpecies, typename T_IonizationCurrent = current::None>
     struct Keldysh
     {
         using IonizationAlgorithm = particles::ionization::AlgorithmKeldysh;
-        using type = Keldysh_Impl< IonizationAlgorithm, T_DestSpecies >;
+        using type = Keldysh_Impl< IonizationAlgorithm, T_DestSpecies, T_IonizationCurrent >;
     };
 
 } // namespace ionization

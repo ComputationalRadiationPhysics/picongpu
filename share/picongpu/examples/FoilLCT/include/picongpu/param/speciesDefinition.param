@@ -95,6 +95,10 @@ value_identifier( float_X, ChargeRatioHydrogen, -1.0 );
 /* ratio relative to BASE_DENSITY (n_e) */
 value_identifier( float_X, DensityRatioHydrogen, 25. / 158. );
 
+
+#ifndef PARAM_IONIZATIONCURRENT
+#define PARAM_IONIZATIONCURRENT None
+#endif
 using ParticleFlagsHydrogen = MakeSeq_t<
     particlePusher< UsedParticlePusher >,
     shape< UsedParticleShape >,
@@ -108,8 +112,8 @@ using ParticleFlagsHydrogen = MakeSeq_t<
     effectiveNuclearCharge< ionization::effectiveNuclearCharge::Hydrogen_t >,
     ionizers<
         MakeSeq_t<
-            particles::ionization::BSIEffectiveZ< Electrons >,
-            particles::ionization::ADKLinPol< Electrons >,
+            particles::ionization::BSIEffectiveZ< Electrons, particles::ionization::current::PARAM_IONIZATIONCURRENT >,
+            particles::ionization::ADKLinPol< Electrons, particles::ionization::current::PARAM_IONIZATIONCURRENT >,
             particles::ionization::ThomasFermi< Electrons >
         >
     >
@@ -144,8 +148,8 @@ using ParticleFlagsCarbon = MakeSeq_t<
     effectiveNuclearCharge< ionization::effectiveNuclearCharge::Carbon_t >,
     ionizers<
         MakeSeq_t<
-            particles::ionization::BSIEffectiveZ< Electrons >,
-            particles::ionization::ADKLinPol< Electrons >,
+            particles::ionization::BSIEffectiveZ< Electrons, particles::ionization::current::PARAM_IONIZATIONCURRENT >,
+            particles::ionization::ADKLinPol< Electrons, particles::ionization::current::PARAM_IONIZATIONCURRENT >,
             particles::ionization::ThomasFermi< Electrons >
         >
     >
@@ -180,8 +184,8 @@ using ParticleFlagsNitrogen = MakeSeq_t<
     effectiveNuclearCharge< ionization::effectiveNuclearCharge::Nitrogen_t >,
     ionizers<
         MakeSeq_t<
-            particles::ionization::BSIEffectiveZ< Electrons >,
-            particles::ionization::ADKLinPol< Electrons >,
+            particles::ionization::BSIEffectiveZ< Electrons, particles::ionization::current::PARAM_IONIZATIONCURRENT >,
+            particles::ionization::ADKLinPol< Electrons, particles::ionization::current::PARAM_IONIZATIONCURRENT >,
             particles::ionization::ThomasFermi< Electrons >
         >
     >

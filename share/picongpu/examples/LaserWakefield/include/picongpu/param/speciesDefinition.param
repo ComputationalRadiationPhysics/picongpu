@@ -93,8 +93,8 @@ using ParticleFlagsIons = MakeSeq_t<
 #if( PARAM_IONIZATION == 1 )
     ionizers<
         MakeSeq_t<
-            particles::ionization::BSIEffectiveZ< PIC_Electrons >,
-            particles::ionization::ADKCircPol< PIC_Electrons >
+            particles::ionization::BSIEffectiveZ< PIC_Electrons, particles::ionization::current::None >,
+            particles::ionization::ADKCircPol< PIC_Electrons, particles::ionization::current::None >
         >
     >,
     ionizationEnergies< ionization::energies::AU::Hydrogen_t >,
