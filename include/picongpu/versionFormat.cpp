@@ -144,7 +144,17 @@ namespace picongpu
 
         std::stringstream openPMD;
 #if( ENABLE_OPENPMD == 1 )
-        openPMD << openPMD::getVersion( );
+        openPMD << OPENPMDAPI_VERSION_MAJOR
+                << "."
+                << OPENPMDAPI_VERSION_MINOR
+                << "."
+                << OPENPMDAPI_VERSION_PATCH;
+        if ( OPENPMDAPI_VERSION_LABEL )
+        {
+            openPMD
+                << "-"
+                << OPENPMDAPI_VERSION_LABEL;
+        }
 #else
         openPMD << versionNotFound;
 #endif
@@ -172,6 +182,7 @@ namespace picongpu
         cliText << "  libSplash:  " << splash.str()
                 << " (Format " << splashFormat.str() << ")" << std::endl;
         cliText << "  ADIOS:      " << adios.str() << std::endl;
+        cliText << "  openPMD:    " << openPMD.str() << std::endl;
 
         // Module-like formatting of software only
         std::list< std::string > software;

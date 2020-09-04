@@ -75,6 +75,11 @@ namespace picongpu
          * doi:10.1088/0026-1394/52/2/360
          */
         constexpr float_64 N_AVOGADRO = 6.02214076e23;
+
+        //! Classical electron radius in SI units
+        constexpr float_64 ELECTRON_RADIUS_SI = ELECTRON_CHARGE_SI *
+            ELECTRON_CHARGE_SI / ( 4.0 * PI * EPS0_SI * ELECTRON_MASS_SI *
+            SPEED_OF_LIGHT_SI * SPEED_OF_LIGHT_SI );
     }
 
     /** Unit of speed */
