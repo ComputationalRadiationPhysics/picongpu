@@ -22,9 +22,9 @@
 
 #pragma once
 
-
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/attribute/FunctionSpecifier.hpp>
+#include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/FornbergNumericalDerivation.hpp"
 
 #include <utility>
 #include "picongpu/traits/attribute/GetMass.hpp"
@@ -44,6 +44,7 @@ namespace histogram2
     template<
         uint32_t T_maxNumBins,
         uint32_t T_maxNumNewBins
+        typename T_RelativeErrorFunction
     >
     struct AdaptiveHistogram
     {
@@ -81,6 +82,9 @@ namespace histogram2
 
         // defines initial global grid
         float_X initialGridWidth;
+
+
+        T_WeightsDifferentiation weights = T_WeightsDifferentiation( samplePoints );
 
     public:
         // Has to be called by one thread before any other method
@@ -191,14 +195,6 @@ namespace histogram2
                 return ( x >= boundary - binWidth) && ( x < boundary );
         }
 
-        // relative error function used
-        DINLINE static float_X relativeErrorFunction(
-            float_X binWidth,
-            float_X centralValue
-            )
-        {
-            return 0._X;
-        }
 
         DINLINE float_X getBinWidth(
             const bool directionPositive,
@@ -208,7 +204,7 @@ namespace histogram2
         {
             // is initial binWidth below the Target Value?
             bool isBelowTarget = (
-                this->relativeErrorTarget >= relativeErrorFunction(
+                this->relativeErrorTarget >= T_RelativeErrorFunction(
                     currentBinWidth,
                     AdaptiveHistogram::centerBin(
                         directionPositive,
@@ -229,7 +225,7 @@ namespace histogram2
 
                     // until no longer below Target
                     isBelowTarget = (
-                        this->relativeErrorTarget > relativeErrorFunction(
+                        this->relativeErrorTarget > T_RelativeErrorFunction(
                             currentBinWidth,
                             AdaptiveHistogram::centralBin(
                                 directionPositive,
@@ -255,7 +251,7 @@ namespace histogram2
 
                     // until first time below Target
                     isBelowTarget = (
-                        this->relativeErrorTarget > relativeErrorFunction(
+                        this->relativeErrorTarget > T_RelativeErrorFunction(
                             currentBinWidth,
                             AdaptiveHistogram::centralBin(
                                 directionPositive,

@@ -94,30 +94,44 @@ namespace atomicPhysics
         // Constructor loads atomic data
         CallAtomicPhysics()
         {
+            // file names
             // hard-coded for now, will be parametrized
             // file name of file containing atomic data
-            std::string fileName = "~/HydrogenLevels.txt";
+            std::string levelDataFileName = "~/HydrogenLevels.txt";
+            std::string transitionDataFileName = "~/HydrogenTransitions.txt";
 
             // read in atomic data
-            auto items = readData( fileName );
-            if( items.empty() )
+            // levels
+            auto levelDataItems = readData( levelDataFileName );
+            // transitions
+            auto transitionDataItems = readData( transitionDataFileName );
+
+            // check whether read was sucessfull
+            if( levelDataItems.empty() )
             {
-                std::cout << "Could not read the atomic data\n";
+                std::cout << "Could not read the atomic level data. Check given filename.\n";
                 return;
             }
+            if ( transitionDataItems.empty() )
+            {
+                std::cout << "Could not read the atomic transition data. Check given filename.\n";
+                return;
+            }
+
             // remove the last line with state 1
-            items.pop_back();
+            levelDataItems.pop_back();
+            
 
             // init rate matrix on host and copy to device
-            uint32_t firstStateIndex = items[0].first;
+            uint32_t firstStateIndex = levelDataItems[0].first;
             rateMatrix = pmacc::memory::makeUnique< RateMatrix >(
                 firstStateIndex,
-                items.size()
+                levelDataItems.size()
             );
             auto rateMatrixHostBox = rateMatrix->getHostDataBox();
-            for (uint32_t i = 0; i < items.size(); i++ )
+            for (uint32_t i = 0; i < levelDataItems.size(); i++ )
             {
-                rateMatrixHostBox( items[i].first ) = items[i].second;
+                rateMatrixHostBox( levelDataItems[i].first ) = levelDataItems[i].second;
             }
             rateMatrix->syncToDevice();
         }

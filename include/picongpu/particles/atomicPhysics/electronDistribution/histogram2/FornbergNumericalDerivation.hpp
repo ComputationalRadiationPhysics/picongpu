@@ -61,7 +61,7 @@
  * The internal implementation does NOT follow this convention.
  * Instead it uses the derivation notation, sorry ;), conversion as follows:
  *
- *       m  ... orderDerivative
+ *       m  ... T_orderDerivative
  *       n  ... numSamplePoints - 1, highest index of a sample point
  *       nu ... index
  *
@@ -117,7 +117,7 @@
 
 namespace picongpu
 {
-namespace partciles
+namespace particles
 {
 namespace atomicPhysics
 {
@@ -149,14 +149,14 @@ namespace histogram2
     {
     private:
         // coefficent stored for later use
-        T_Value weightsDerivative[ numSamplePoints ];
+        T_Value weightsDerivative[ T_numSamplePoints ];
 
-        // Notes: conversion
+        // Notes on conversion:
         // m ... orderDerivative
-        // n+1 ... numSamplePoints
+        // n+1 ... T_numSamplePoints
         // nu ... index
-        void calculateWeight(
-            T_Argument & const relativeSamplePoints[ numSamplePoints ],
+        T_Value calculateWeight(
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const orderDerivative,
             uint32_t const numSamplePoints,
             uint32_t const index
@@ -169,14 +169,11 @@ namespace histogram2
             // check for bounds of input
             // 1.)+2.)+3.)
             if (
-                ( m < 0u ) ||
-                ( n < 0u ) ||
-                ( nu < 0u ) ||
                 ( m > n ) ||
                 ( nu > n )
                 )
-                    // not defined case
-                    return static_cast< T_Value >(0);
+                // not defined case
+                return static_cast< T_Value >(0);
 
             // statements concerning m,n,nu so far
             // n >= m, nu >= 0
@@ -239,7 +236,7 @@ namespace histogram2
                 // => (m,n,nu) = (nu+o, nu+o+k, nu)
 
                 k = n - m;
-                o =  = m - nu;
+                o = m - nu;
 
                 // 7.1.1.) k > nu
                 if ( k > nu )
@@ -350,17 +347,136 @@ namespace histogram2
                         );
                 }
             }
-            // should never reach this point
-            return static_cast< T_Value >(0);
         }
 
-        // m ... orderDerivative
-        // n+1 ... numSamplePoints
+        T_Value equation1( 
+            T_Value const I,
+            T_Value const II,
+            T_Argument const alpha[ T_numSamplePoints ],
+            uint32_t const n,
+            uint32_t const m,
+            uint32_t const nu
+            )
+        {
+            return static_cast< T_Value >(
+                1._X/static_cast< T_Value >( alpha[ nu ] - alpha[ n ] )
+                * ( I * alpha[ nu ] - m * II )
+                );
+        }
+
+        T_Value equation2( 
+            T_Value const I,
+            T_Argument const alpha[ T_numSamplePoints ],
+            uint32_t const n,
+            uint32_t const nu
+            )
+        {
+            return static_cast< T_Value >(
+                alpha[ n ]/
+                    ( alpha[ n ] - alpha[ nu ] )
+                    * I
+                );
+        }
+
+        T_Value equation3( 
+            T_Value const I,
+            T_Argument const alpha[ T_numSamplePoints ],
+            uint32_t const n,
+            uint32_t const nu
+            )
+        {
+            return static_cast< T_Value >(
+                (n + 1u) /
+                    ( alpha[ nu ] - alpha[ n + 1u ] )
+                * I
+                );
+        }
+
+        /** w_n(x) = prod_(i=0)^(n) (x - alpha_i)
+         */
+        T_Argument w(
+            T_Argument const x,
+            uint32_t const n,
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ]
+            )
+        {
+            T_Argument result = static_cast< T_Argument >( 1. );
+
+            if ( n > T_numSamplePoints )
+            {
+                return static_cast< T_Argument >( 0 );
+            }
+
+            for ( uint32_t i = 0u; i <= n; i++ )
+            {
+                result *= ( x - relativeSamplePoints[ i ] );
+            }
+
+            return result;
+        }
+
+        T_Value equation4( 
+            T_Value const I,
+            T_Argument const alpha[ T_numSamplePoints ],
+            uint32_t const n
+            )
+        {
+            return static_cast< T_Value >(
+                w(
+                    alpha[ n - 1u ],
+                    n - 2u,
+                    alpha
+                    )
+                / w(
+                    alpha[ n ],
+                    n - 1u,
+                    alpha
+                    )
+                * alpha[ n - 1u ] * I
+                );
+        }
+
+        T_Value equation5( 
+            T_Value const I,
+            T_Value const II,
+            T_Argument const alpha[ T_numSamplePoints ],
+            uint32_t const n,
+            uint32_t const m
+            )
+        {
+            return static_cast< T_Value >(
+                w(
+                    alpha[ n - 1u ],
+                    n - 2u,
+                    alpha
+                    )
+                /w(
+                    alpha[ n ],
+                    n - 1u,
+                    alpha
+                    )
+                * ( m * II - alpha[ n - 1u ] * I )
+                );
+        }
+
+        T_Value equation6( 
+            T_Value const I,
+            T_Argument const alpha[ T_numSamplePoints ],
+            uint32_t const m
+            )
+        {
+            return static_cast< T_Value >(
+                I * m
+                );
+        }
+
+        // m ... T_orderDerivative
+        // n+1 ... T_numSamplePoints
         // nu ... index
 
         //4.): case (m,m,nu)
         T_Value getWeightMMNu (
-            T_Argument & const relativeSamplePoints[ numSamplePoints ],
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
             uint32_t const nu
@@ -372,19 +488,28 @@ namespace histogram2
             for ( uint32_t i = 1u; i <= nu; i++ )
             {
                 // (i-1,i-1,i-1) -> (i,i,i)
-                weight = equation6( weight, relativeSamplePoints, i );
+                weight = equation6(
+                    weight,
+                    relativeSamplePoints,
+                    i
+                    );
             }
             for ( uint32_t i = nu + 1u; i <= m; i++)
                 {
                     // (i-1,i-1,nu) -> (i,i,nu)
-                    weight = equation3( weight, relativeSamplePoints, i, nu );
+                    weight = equation3(
+                        weight,
+                        relativeSamplePoints,
+                        i,
+                        nu
+                        );
                 }
                 return weight;
         }
 
         //5.): case (0,n,nu)
         T_Value getWeight0NNu (
-            T_Argument & const relativeSamplePoints[ numSamplePoints ],
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
             uint32_t const nu
@@ -396,20 +521,27 @@ namespace histogram2
             for ( uint32_t i = 1u; i <= nu; i++ )
             {
                 // (0,i-1,i-1) -> (0,i,i)
-                weight = equation4( weight, relativeSamplePoints, i);
+                weight = equation4(
+                    weight,
+                    relativeSamplePoints,
+                    i);
             }
-            for ( uint32_t j = nu + 1u; j <= n; n++ )
+            for ( uint32_t j = nu + 1u; j <= n; j++ )
             {
                 // (0, j-1, nu) -> (0, j, nu)
-                weight = equation2( weight, relativeSamplePoints, j, nu );
+                weight = equation2(
+                    weight,
+                    relativeSamplePoints,
+                    j,
+                    nu
+                    );
             }
             return weight;
         }
 
-
         // 6.1.): case (m,n,n) ;m > n-m
         T_Value getWeightMNN_1 (
-            T_Argument & const relativeSamplePoints[ numSamplePoints ],
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
             uint32_t const nu
@@ -426,21 +558,35 @@ namespace histogram2
             for ( uint32_t i = 1u; i <= k; i++ )
             {
                 // (0,i-1,i-1) => (0,i,i)
-                weights[ i ] = equation4( weights[ i - 1 ], relativeSamplePoints, i );
+                weights[ i ] = equation4(
+                    weights[ i - 1 ],
+                    relativeSamplePoints,
+                    i
+                    );
             }
 
             // advance collumn piecewise, in place
             for ( uint32_t j = 1; j <= m; j++ )
             {
                 // (j-1,j-1,j-1) -> (j,j,j)
-                weights[0] = equation6( weights[0], relativeSamplePoints, j );
+                weights[0] = equation6(
+                    weights[0],
+                    relativeSamplePoints,
+                    j
+                    );
 
                 for ( uint32_t i = 1u; i <= k; i++)
                 {
                     // weights_i     = ( j-1, i + (j-1), i + (j-1) )
                     // weights_(i-1) = ( j  , (i-1) + j, (i-1) + j )
                     // ->weights_i   = ( j, i + j, i + j )
-                    weights[ i ] = equation5( weights[ i - 1 ], weights[ i ], relativeSamplePoints, j, i );
+                    weights[ i ] = equation5(
+                        weights[ i - 1 ],
+                        weights[ i ],
+                        relativeSamplePoints,
+                        j,
+                        i
+                        );
                 }
             }
             return weights[k];
@@ -448,7 +594,7 @@ namespace histogram2
 
         // 6.2.): case (m,n,n) ;m < n-m
         T_Value getWeightMNN_2 (
-            T_Argument & const relativeSamplePoints[ numSamplePoints ],
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
             uint32_t const nu
@@ -465,21 +611,34 @@ namespace histogram2
             for ( uint32_t i = 1u; i <= m; i++ )
             {
                 // (i-1,i-1,i-1) => (i,i,i)
-                weights[ i ] = equation6( weights[ i - 1 ], relativeSamplePoints, i);
+                weights[ i ] = equation6(
+                    weights[ i - 1 ],
+                    relativeSamplePoints,
+                    i);
             }
 
             // advance collumn piecewise, in place
             for ( uint32_t j = 1; j <= k; j++ )
             {
                 // (0,j-1,j-1) -> (0,j,j)
-                weights[0] = equation4( weights[0], relativeSamplePoints, j);
+                weights[0] = equation4(
+                    weights[0],
+                    relativeSamplePoints,
+                    j
+                    );
 
                 for ( uint32_t i = 1u; i <= m; i++)
                 {
                     // weights_i     = ( i  , i + (j-1), i + (j-1) )
                     // weights_(i-1) = ( i-1, (i-1) + j, (i-1) + j )
                     // ->weights_i   = ( i  , i + j, i + j )
-                    weights[ i ] = equation5( weights[ i ], weights[ i - 1 ], relativeSamplePoints, j, i);
+                    weights[ i ] = equation5(
+                        weights[ i ],
+                        weights[ i - 1 ],
+                        relativeSamplePoints,
+                        j,
+                        i
+                        );
                 }
             }
             return weights[m];
@@ -487,7 +646,7 @@ namespace histogram2
 
         // 7.1.1.1): case (m,n,nu) ;m > nu; k > nu; k > o+nu+1
         T_Value getWeightMNNu_o_ko_0_gt_1 (
-            T_Argument & const relativeSamplePoints[ numSamplePoints ],
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
             uint32_t const nu
@@ -505,13 +664,22 @@ namespace histogram2
             for ( uint32_t i = 1u; i <= nu ; i++ )
             {
                 // (i-1,i-1,i-1) => (i,i,i)
-                weights[ i ] = equation6( weights[ i - 1 ], relativeSamplePoints, i );
+                weights[ i ] = equation6(
+                    weights[ i - 1 ],
+                    relativeSamplePoints,
+                    i
+                    );
             }
             // init base collumn with (i,i,nu) until (m,m,nu)
             for ( uint32_t i = nu + 1; i <= o + nu; i++ )
             {
                 // ( i-1, i-1, nu ) => ( i, i, nu )
-                weights[ i ] = equation3( weights[ i - 1 ], relativeSamplePoints, i, nu );
+                weights[ i ] = equation3(
+                    weights[ i - 1 ],
+                    relativeSamplePoints,
+                    i,
+                    nu
+                    );
             }
 
             // advance collumn piecewise, in place
@@ -529,14 +697,27 @@ namespace histogram2
                         // weights_i      = ( i  , i + (j-1), i + (j-1) )
                         // weights_(i-1)  = ( i-1, (i-1) + j, (i-1) + j )
                         // ->weights_i    = ( i  , i + j, i + j )
-                        weights[ i ] = equation5( weights[ i ], weights[ i - 1u ], relativeSamplePoints, i, i + j );
+                        weights[ i ] = equation5(
+                            weights[ i ],
+                            weights[ i - 1u ],
+                            relativeSamplePoints,
+                            i,
+                            i + j
+                            );
                     }
                     else
                     {
                         // weights_i     = ( i  , i + (j-1), nu )
                         // weights_(i-1) = ( i-1, (i-1) + j, nu )
                         // -> weights_i  = ( i  , i + j, nu )
-                        weights[ i ] = equation1( weights[ i ], weights[ i - 1u ], relativeSamplePoints, i, i + j, nu );
+                        weights[ i ] = equation1(
+                            weights[ i ],
+                            weights[ i - 1u ],
+                            relativeSamplePoints,
+                            i,
+                            i + j,
+                            nu
+                            );
                     }
                 }
                 // l+1 rest lines
@@ -545,7 +726,14 @@ namespace histogram2
                     // weights_i      = ( i  , i + (j-1), nu )
                     // weights_(i-1)  = ( i-1, (i-1) + j, nu )
                     // ->weights_i    = ( i  , i + j, nu )
-                    weights[ i ] = equation1( weights [ i ], weights [ i - 1u ], relativeSamplePoints, i, i + j, nu );
+                    weights[ i ] = equation1(
+                        weights [ i ],
+                        weights [ i - 1u ],
+                        relativeSamplePoints,
+                        i,
+                        i + j,
+                        nu
+                        );
                 }
             }
 
@@ -559,7 +747,14 @@ namespace histogram2
                     // weights_i      = ( i  , i + (j-1), nu )
                     // weights_(i-1)  = ( i-1, (i-1) + j, nu )
                     // ->weights_i    = ( i  , i + j, nu )
-                    weights[ i ] = equation1( weights[ i ], weights[ i - 1u ], i, i + j, nu );
+                    weights[ i ] = equation1(
+                        weights[ i ],
+                        weights[ i - 1u ],
+                        relativeSamplePoints,
+                        i,
+                        i + j,
+                        nu
+                        );
                 }
             }
             return weights[o + nu];
@@ -567,7 +762,7 @@ namespace histogram2
 
         // 7.1.1.2): case (m,n,nu) ;m > nu; k > nu; k < o+nu+1
         T_Value getWeightMNNu_o_ko_0_gt_2 (
-            T_Argument & const relativeSamplePoints[ numSamplePoints ],
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
             uint32_t const nu
@@ -585,13 +780,22 @@ namespace histogram2
             for ( uint32_t i = 1u; i <= nu ; i++ )
             {
                 // (0,i-1,i-1) => (0,i,i)
-                weights[ i ] = equation4( weights[ i - 1u ], relativeSamplePoints, i );
+                weights[ i ] = equation4(
+                    weights[ i - 1u ],
+                    relativeSamplePoints,
+                    i
+                    );
             }
             // init base collumn with (0,i,nu) until (0,m,nu)
             for ( uint32_t i = nu + 1u; i <= o; i++ )
             {
                 // ( 0, i-1, nu ) => ( 0, i, nu )
-                weights[ i ] = equation2( weights[ i - 1u ], relativeSamplePoints, i, nu );
+                weights[ i ] = equation2(
+                    weights[ i - 1u ],
+                    relativeSamplePoints,
+                    i,
+                    nu
+                    );
             }
 
             // advance collumn piecewise, in place
@@ -606,14 +810,27 @@ namespace histogram2
                     // weights_i      = ( j-1, i + (j-1), i + (j-1) )
                     // weights_(i-1)  = ( j  , (i-1) + j, (i-1) + j )
                     // ->weights_i    = ( j  , i + j, i + j )
-                    weights[ i ] = equation5( weights[ i - 1 ], weights[ i ], relativeSamplePoints, j, i + j );
+                    weights[ i ] = equation5(
+                        weights[ i - 1 ],
+                        weights[ i ],
+                        relativeSamplePoints,
+                        j,
+                        i + j
+                        );
                 }
                 for ( uint32_t i = nu - j + 1u; i <= k; i++ )
                 {
                     // weights_i     = ( j-1, i + (j-1), nu )
                     // weights_(i-1) = ( j  , (i-1) + j, nu )
                     // -> weights_i  = ( j  , i + j, nu )
-                        weights[ i ] = equation1( weights[ i - 1 ], weights[ i ], relativeSamplePoints, j, i + j, nu );
+                        weights[ i ] = equation1(
+                            weights[ i - 1 ],
+                            weights[ i ],
+                            relativeSamplePoints,
+                            j,
+                            i + j,
+                            nu
+                            );
                 }
             }
             for ( uint32_t j = nu + 1u ; j <= o + nu; j++)
@@ -627,7 +844,14 @@ namespace histogram2
                     // weights_i     = ( j-1, i + (j-1), nu )
                     // weights_(i-1) = ( j  , (i-1) + j, nu )
                     // -> weights_i  = ( j  , i + j, nu )
-                    weights[ i ] = equation1( weights[ i - 1 ], weights[ i ], relativeSamplePoints, j, i + j, nu );
+                    weights[ i ] = equation1(
+                        weights[ i - 1 ],
+                        weights[ i ],
+                        relativeSamplePoints,
+                        j,
+                        i + j,
+                        nu
+                        );
                 }
             }
             return weights[k];
@@ -635,7 +859,7 @@ namespace histogram2
 
         // 7.1.2.1): case (m,n,nu) ;m > nu; k <= nu; k > o + nu + 1
         T_Value getWeightMNNu_o_ko_0_le_1 (
-            T_Argument & const relativeSamplePoints[ numSamplePoints ],
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
             uint32_t const nu
@@ -653,13 +877,22 @@ namespace histogram2
             for ( uint32_t i = 1u; i <= nu ; i++ )
             {
                 // (i-1,i-1,i-1) => (i,i,i)
-                weights[ i ] = equation6( weights[ i - 1 ], relativeSamplePoints, i );
+                weights[ i ] = equation6(
+                    weights[ i - 1 ],
+                    relativeSamplePoints,
+                    i
+                    );
             }
             // init base collumn with (i,i,nu) until (m,m,nu)
             for ( uint32_t i = nu + 1; i <= o + nu; i++ )
             {
                 // ( i-1, i-1, nu ) => ( i, i, nu )
-                weights[ i ] = equation3( weights[ i - 1 ], relativeSamplePoints, i, nu );
+                weights[ i ] = equation3(
+                    weights[ i - 1 ],
+                    relativeSamplePoints,
+                    i,
+                    nu
+                    );
             }
 
             // advance collumn piecewise, in place
@@ -667,14 +900,24 @@ namespace histogram2
             {
                 // starting line
                 // (0,j-1,j-1) -> (0,j,j)
-                weights[ 0 ] = equation4( weights[0], relativeSamplePoints, j );
+                weights[ 0 ] = equation4(
+                    weights[0],
+                    relativeSamplePoints,
+                    j
+                    );
 
                 for ( uint32_t i = 1u; i <= (nu - k); i++ )
                 {
                     // weights_i      = ( i  , i + (j-1), i + (j-1) )
                     // weights_(i-1)  = ( i-1, (i-1) + j, (i-1) + j )
                     // ->weights_i    = ( i  , i + j, i + j )
-                    weights[ i ] = equation5( weights[ i ], weights[ i - 1u ], relativeSamplePoints, i, i + j );
+                    weights[ i ] = equation5(
+                        weights[ i ],
+                        weights[ i - 1u ],
+                        relativeSamplePoints,
+                        i,
+                        i + j
+                        );
                 }
                 for ( uint32_t i = (nu - k) + 1u; i <= nu; i++ )
                 {
@@ -683,14 +926,27 @@ namespace histogram2
                         // weights_i      = ( i  , i + (j-1), i + (j-1) )
                         // weights_(i-1)  = ( i-1, (i-1) + j, (i-1) + j )
                         // ->weights_i    = ( i  , i + j, i + j )
-                        weights[ i ] = equation5( weights[ i ], weights[ i - 1u ], relativeSamplePoints, i, i + j );
+                        weights[ i ] = equation5(
+                            weights[ i ],
+                            weights[ i - 1u ],
+                            relativeSamplePoints,
+                            i,
+                            i + j
+                            );
                     }
                     else
                     {
                         // weights_i     = ( i  , i + (j-1), nu )
                         // weights_(i-1) = ( i-1, (i-1) + j, nu )
                         // -> weights_i  = ( i  , i + j, nu )
-                        weights[ i ] = equation1( weights[ i ], weights[ i - 1u ], relativeSamplePoints, i, i + j, nu );
+                        weights[ i ] = equation1(
+                            weights[ i ],
+                            weights[ i - 1u ],
+                            relativeSamplePoints,
+                            i,
+                            i + j,
+                            nu
+                            );
                     }
                 }
                 for ( uint32_t i = nu + 1u; i <= nu + o; i++ )
@@ -698,7 +954,14 @@ namespace histogram2
                     // weights_i      = ( i  , i + (j-1), nu )
                     // weights_(i-1)  = ( i-1, (i-1) + j, nu )
                     // ->weights_i    = ( i  , i + j, nu )
-                    weights[ i ] = equation1( weights [ i ], weights [ i - 1u ], relativeSamplePoints, i, i + j, nu );
+                    weights[ i ] = equation1(
+                        weights [ i ],
+                        weights [ i - 1u ],
+                        relativeSamplePoints,
+                        i,
+                        i + j,
+                        nu
+                        );
                 }
             }
             return weights[ o + nu ];
@@ -706,7 +969,7 @@ namespace histogram2
 
         // 7.1.2.2): case (m,n,nu) ;m > nu; k <= nu; k < o+nu+1
         T_Value getWeightMNNu_o_ko_0_le_2 (
-            T_Argument & const relativeSamplePoints[ numSamplePoints ],
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
             uint32_t const nu
@@ -724,7 +987,11 @@ namespace histogram2
             for ( uint32_t i = 1u; i <= k ; i++ )
             {
                 // (0,i-1,i-1) => (0,i,i)
-                weights[ i ] = equation4( weights[ i - 1u ], relativeSamplePoints, i );
+                weights[ i ] = equation4(
+                    weights[ i - 1u ],
+                    relativeSamplePoints,
+                    i
+                    );
             }
 
             // advance collumn piecewise, in place
@@ -739,28 +1006,51 @@ namespace histogram2
                     // weights_i      = ( j-1, i + (j-1), i + (j-1) )
                     // weights_(i-1)  = ( j  , (i-1) + j, (i-1) + j )
                     // ->weights_i    = ( j  , i + j, i + j )
-                    weights[ i ] = equation5( weights[ i - 1u ], weights[ i ], relativeSamplePoints, j, i + j );
+                    weights[ i ] = equation5(
+                        weights[ i - 1u ],
+                        weights[ i ],
+                        relativeSamplePoints,
+                        j,
+                        i + j
+                        );
                 }
             }
             for ( uint32_t j = nu - k + 1u; j <= nu; j++ )
             {
                 // starting line
                 // (j-i,j-1,j-1) -> (j,j,j)
-                weights[ 0 ] = equation6( weights[ 0 ], relativeSamplePoints, j );
+                weights[ 0 ] = equation6(
+                    weights[ 0 ],
+                    relativeSamplePoints,
+                    j
+                    );
 
                 for ( uint32_t i = 1u; i <= nu - j; i++ )
                 {
                     // weights_i      = ( j-1, i + (j-1), i + (j-1) )
                     // weights_(i-1)  = ( j  , (i-1) + j, (i-1) + j )
                     // ->weights_i    = ( j  , i + j, i + j )
-                    weights[ i ] = equation5( weights[ i - 1u ], weights[ i ], relativeSamplePoints, j, i + j );
+                    weights[ i ] = equation5(
+                        weights[ i - 1u ],
+                        weights[ i ],
+                        relativeSamplePoints,
+                        j,
+                        i + j
+                        );
                 }
                 for ( uint32_t i = nu - j + 1u; i <= k; i++ )
                 {
                     // weights_i     = ( j-1, i + (j-1), nu )
                     // weights_(i-1) = ( j  , (i-1) + j, nu )
                     // -> weights_i  = ( j  , i + j, nu )
-                    weights[ i ] = equation1( weights[ i - 1u ], weights[ i ], relativeSamplePoints, j, i+j, nu );
+                    weights[ i ] = equation1(
+                        weights[ i - 1u ],
+                        weights[ i ],
+                        relativeSamplePoints,
+                        j,
+                        i+j,
+                        nu
+                        );
                 }
             }
 
@@ -771,7 +1061,14 @@ namespace histogram2
                     // weights_i     = ( j-1, i + (j-1), nu )
                     // weights_(i-1) = ( j  , (i-1) + j, nu )
                     // -> weights_i  = ( j  , i+j, nu )
-                    weights[ i ] = equation1( weights[ i - 1u ], weights[ i ], relativeSamplePoints, j, i+j, nu );
+                    weights[ i ] = equation1(
+                        weights[ i - 1u ],
+                        weights[ i ],
+                        relativeSamplePoints,
+                        j,
+                        i+j,
+                        nu
+                        );
                 }
             }
             return weights[k];
@@ -779,7 +1076,7 @@ namespace histogram2
 
         // 8.1.1.1.): case (m,n,nu) ;m < nu; k <= m; k+o < m
         T_Value getWeightMNNu_0_ko_o_le_1 (
-            T_Argument & const relativeSamplePoints[ numSamplePoints ],
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
             uint32_t const nu
@@ -797,7 +1094,11 @@ namespace histogram2
             for ( uint32_t i = 1u; i <= k + o; i++ )
             {
                 // (0,i-1,i-1) => (0,i,i)
-                weights[ i ] = equation4( weights[ i - 1u ], relativeSamplePoints, i);
+                weights[ i ] = equation4(
+                    weights[ i - 1u ],
+                    relativeSamplePoints,
+                    i
+                    );
             }
 
             // advance collumn piecewise, in place
@@ -805,14 +1106,24 @@ namespace histogram2
             {
                 // starting line
                 // (j-1, j-1, j-1) -> (j,j,j)
-                weights[ 0 ] = equation6( weights[ 0 ], relativeSamplePoints, j );
+                weights[ 0 ] = equation6(
+                    weights[ 0 ],
+                    relativeSamplePoints,
+                    j
+                    );
 
                 for ( uint32_t i = 1u; i <= k + o; i++ )
                 {
                     // weights_i     = ( j-1, i + (j-1), i + (j-1) )
                     // weights_(i-1) = ( j  , (i-1) + j, (i-1) + j )
                     // -> weights_i  = ( j  , i+j, i+j )
-                    weights[ i ] = equation5( weights[ i - 1u ], weights[ i ], relativeSamplePoints, j, i + j );
+                    weights[ i ] = equation5(
+                        weights[ i - 1u ],
+                        weights[ i ],
+                        relativeSamplePoints,
+                        j,
+                        i + j
+                        );
                 }
             }
 
@@ -820,21 +1131,38 @@ namespace histogram2
             {
                 // starting line 
                 // (j-1,j-1,j-1) -> (j,j,j)
-                weights[ 0 ] = equation6( weights[ 0 ], relativeSamplePoints, j);
+                weights[ 0 ] = equation6(
+                    weights[ 0 ],
+                    relativeSamplePoints,
+                    j
+                    );
 
                 for ( uint32_t i = 1u; i <= ( m - j + o ); i++ )
                 {
                     // weights_i     = ( j-1, i + (j-1), i + (j-1) )
                     // weights_(i-1) = ( j  , (i-1) + j, (i-1) + j )
                     // -> weights_i  = ( j  , i+j, i+j )
-                    weights[ i ] = equation5( weights[ i - 1u ], weights[ i ], relativeSamplePoints, j, i + j );
+                    weights[ i ] = equation5(
+                        weights[ i - 1u ],
+                        weights[ i ],
+                        relativeSamplePoints,
+                        j,
+                        i + j
+                        );
                 }
                 for ( uint32_t i = m - j + o + 1u; i <= k + o; j++ )
                 {
                     // weights_i     = ( j-1, i + (j-1), nu )
                     // weights_(i-1) = ( j  , (i-1) + j, nu )
                     // -> weights_i  = ( j  , i+j, nu )
-                    weights[ i ] = equation1( weights[ i - 1u ], weights[ i ], relativeSamplePoints, j, i + j, nu );
+                    weights[ i ] = equation1(
+                        weights[ i - 1u ],
+                        weights[ i ],
+                        relativeSamplePoints,
+                        j,
+                        i + j,
+                        nu
+                        );
                 }
             }
             return weights[ o + k ];
@@ -842,7 +1170,7 @@ namespace histogram2
 
         // 8.1.1.2.): case (m,n,nu) ;m < nu; k <= m; k+o >= m
         T_Value getWeightMNNu_0_ko_o_le_2 (
-            T_Argument & const relativeSamplePoints[ numSamplePoints ],
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
             uint32_t const nu
@@ -860,7 +1188,11 @@ namespace histogram2
             for ( uint32_t i = 1u; i <= m; i++ )
             {
                 // (i-1,i-1,i-1) => (i,i,i)
-                weights[ i ] = equation6( weights[ i -1 ], relativeSamplePoints, i );
+                weights[ i ] = equation6(
+                    weights[ i -1 ],
+                    relativeSamplePoints,
+                    i
+                    );
             }
 
             // advance collumn piecewise, in place
@@ -868,14 +1200,24 @@ namespace histogram2
             {
                 // starting line
                 // (0, j-1, j-1) -> (0,j,j)
-                weights[ 0 ] = equation4( weights [ 0 ], relativeSamplePoints, j );
+                weights[ 0 ] = equation4(
+                    weights [ 0 ],
+                    relativeSamplePoints,
+                    j
+                    );
 
                 for ( uint32_t i = 1u; i <= m; i++ )
                 {
                     // weights_i     = ( i  , i + (j-1), i + (j-1) )
                     // weights_(i-1) = ( i-1, (i-1) + j, (i-1) + j )
                     // -> weights_i  = ( i  , i+j, i+j )
-                    weights[ i ] = equation5( weights[ i ], weights[ i - 1u ], relativeSamplePoints, i, i+j );
+                    weights[ i ] = equation5(
+                        weights[ i ],
+                        weights[ i - 1u ],
+                        relativeSamplePoints,
+                        i,
+                        i+j
+                        );
                 }
             }
 
@@ -883,21 +1225,38 @@ namespace histogram2
             {
                 // starting line
                 // (0, j-1, j-1) -> (0,j,j)
-                weights[ 0 ] = equation4( weights[ 0 ], relativeSamplePoints, j );
+                weights[ 0 ] = equation4(
+                    weights[ 0 ],
+                    relativeSamplePoints,
+                    j
+                    );
 
                 for ( uint32_t i = 1u; i <= m - j + o; j++ )
                 {
                     // weights_i     = ( i  , i + (j-1), i + (j-1) )
                     // weights_(i-1) = ( i-1, (i-1) + j, (i-1) + j )
                     // -> weights_i  = ( i  , i+j, i+j )
-                    weights[ i ] = equation5( weights[ i ], weights[ i - 1 ], relativeSamplePoints, i, i + j );
+                    weights[ i ] = equation5(
+                        weights[ i ],
+                        weights[ i - 1 ],
+                        relativeSamplePoints,
+                        i,
+                        i + j
+                        );
                 }
                 for ( uint32_t i = m - j + o + 1u; i <= m; i++ )
                 {
                     // weights_i     = ( i  , i + (j-1), nu )
                     // weights_(i-1) = ( i-1, (i-1) + j, nu )
                     // -> weights_i  = ( i  , i+j, nu )
-                    weights[ i ] = equation1( weights [ i ], weights[ i - 1], relativeSamplePoints, i, i + j, nu );
+                    weights[ i ] = equation1(
+                        weights [ i ],
+                        weights[ i - 1],
+                        relativeSamplePoints,
+                        i,
+                        i + j,
+                        nu
+                        );
                 }
             }
             return weights[ m ];
@@ -905,7 +1264,7 @@ namespace histogram2
 
         // 8.1.2.1.): case (m,n,nu) ;m < nu; k > m; k+o < m
         T_Value getWeightMNNu_0_ko_o_gt_1 (
-            T_Argument & const relativeSamplePoints[ numSamplePoints ],
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
             uint32_t const nu
@@ -923,12 +1282,21 @@ namespace histogram2
             for ( uint32_t i = 1u; i <= m + o; i++ )
             {
                 // (0,i-1,i-1) => (0,i,i)
-                weights[ i ] = equation4( weights[ i - 1u ], relativeSamplePoints, i);
+                weights[ i ] = equation4(
+                    weights[ i - 1u ],
+                    relativeSamplePoints,
+                    i
+                    );
             }
             for ( uint32_t i = m + o + 1u; i <= k + o; i++ )
             {
                 // (0,i-1,nu) => (0,i,nu)
-                weights[ i ] = equation2( weights[ i - 1u ], relativeSamplePoints, i, nu);
+                weights[ i ] = equation2(
+                    weights[ i - 1u ],
+                    relativeSamplePoints,
+                    i,
+                    nu
+                    );
             }
 
             // advance collumn piecewise, in place
@@ -943,14 +1311,27 @@ namespace histogram2
                     // weights_i     = ( j-1, i + (j-1), i + (j-1) )
                     // weights_(i-1) = ( j  , (i-1) + j, (i-1) + j )
                     // -> weights_i  = ( j  , i+j, i+j )
-                    weights[ i ] = equation5( weights[ i - 1u ], weights[ i ], relativeSamplePoints, j, i + j );
+                    weights[ i ] = equation5(
+                        weights[ i - 1u ],
+                        weights[ i ],
+                        relativeSamplePoints,
+                        j,
+                        i + j
+                        );
                 }
                 for ( uint32_t i = m - j + o + 1u; i <= k + o; j++ )
                 {
                     // weights_i     = ( j-1, i + (j-1), nu )
                     // weights_(i-1) = ( j  , (i-1) + j, nu )
                     // -> weights_i  = ( j  , i+j, nu )
-                    weights[ i ] = equation1( weights[ i - 1u ], weights[ i ], relativeSamplePoints, j, i + j, nu );
+                    weights[ i ] = equation1(
+                        weights[ i - 1u ],
+                        weights[ i ],
+                        relativeSamplePoints,
+                        j,
+                        i + j,
+                        nu
+                        );
                 }
             }
             return weights[ k + o ];
@@ -958,7 +1339,7 @@ namespace histogram2
 
         // 8.1.2.2.): case (m,n,nu) ;m < nu; k > m; k+o > m
         T_Value getWeightMNNu_0_ko_o_gt_2 (
-            T_Argument & const relativeSamplePoints[ numSamplePoints ],
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
             uint32_t const nu
@@ -976,7 +1357,11 @@ namespace histogram2
             for ( uint32_t i = 1u; i <= m; i++ )
             {
                 // (i-1,i-1,i-1) => (i,i,i)
-                weights[ i ] = equation6( weights[ i -1 ], relativeSamplePoints, i );
+                weights[ i ] = equation6(
+                    weights[ i -1 ],
+                    relativeSamplePoints,
+                    i
+                    );
             }
 
             // advance collumn piecewise, in place
@@ -984,14 +1369,24 @@ namespace histogram2
             {
                 // starting line
                 // (0, j-1, j-1) -> (0,j,j)
-                weights[ 0 ] = equation4( weights [ 0 ], relativeSamplePoints, j );
+                weights[ 0 ] = equation4(
+                    weights [ 0 ],
+                    relativeSamplePoints,
+                    j
+                    );
 
                 for ( uint32_t i = 1u; i <= m; i++ )
                 {
                     // weights_i     = ( i  , i + (j-1), i + (j-1) )
                     // weights_(i-1) = ( i-1, (i-1) + j, (i-1) + j )
                     // -> weights_i  = ( i  , i+j, i+j )
-                    weights[ i ] = equation5( weights[ i ], weights[ i - 1u ], relativeSamplePoints, i, i+j );
+                    weights[ i ] = equation5(
+                        weights[ i ],
+                        weights[ i - 1u ],
+                        relativeSamplePoints,
+                        i,
+                        i+j
+                        );
                 }
             }
 
@@ -999,14 +1394,24 @@ namespace histogram2
             {
                 // starting line
                 // (0, j-1, j-1) -> (0,j,j)
-                weights[ 0 ] = equation4( weights[ 0 ], relativeSamplePoints, j );
+                weights[ 0 ] = equation4(
+                    weights[ 0 ],
+                    relativeSamplePoints,
+                    j
+                    );
 
                 for ( uint32_t i = 1u; i <= m - j + o; j++ )
                 {
                     // weights_i     = ( i  , i + (j-1), i + (j-1) )
                     // weights_(i-1) = ( i-1, (i-1) + j, (i-1) + j )
                     // -> weights_i  = ( i  , i+j, i+j )
-                    weights[ i ] = equation5( weights[ i ], weights[ i - 1 ], relativeSamplePoints, i, i + j );
+                    weights[ i ] = equation5(
+                        weights[ i ],
+                        weights[ i - 1 ],
+                        relativeSamplePoints,
+                        i,
+                        i + j
+                        );
                 }
 
                 for ( uint32_t i = m - j + o + 1u; i <= m; i++ )
@@ -1014,7 +1419,14 @@ namespace histogram2
                     // weights_i     = ( i  , i + (j-1), nu )
                     // weights_(i-1) = ( i-1, (i-1) + j, nu )
                     // -> weights_i  = ( i  , i+j, nu )
-                    weights[ i ] = equation1( weights [ i ], weights[ i - 1], relativeSamplePoints, i, i + j, nu );
+                    weights[ i ] = equation1(
+                        weights [ i ],
+                        weights[ i - 1],
+                        relativeSamplePoints,
+                        i,
+                        i + j,
+                        nu
+                        );
                 }
             }
 
@@ -1029,29 +1441,50 @@ namespace histogram2
                     // weights_i     = ( i  , i + (j-1), nu )
                     // weights_(i-1) = ( i-1, (i-1) + j, nu )
                     // -> weights_i  = ( i  , i+j, nu )
-                    weights[ i ] = equation1( weights[ i ], weights[ i - 1u ], relativeSamplePoints, i, i + j, nu );
+                    weights[ i ] = equation1(
+                        weights[ i ],
+                        weights[ i - 1u ],
+                        relativeSamplePoints,
+                        i,
+                        i + j,
+                        nu
+                        );
                 }
             }
-
             return weights[ m ];
         }
 
+
     public:
-        // make template parameters available for further use
-        constexpr static uint32_t numSamplePoints = T_numSamplepoints;
-        constexpr static uint32_t orderDerivative = T_orderDerivative;
 
         // sample points are defined as (x_i - x_0)/d or directly as x_i - x_0
 
-        T_Argument getWeightDerivative ( uint32_t index )
+        T_Value getWeighting( uint32_t const index )
         {
             // check bounds of index
-            if ( index < 0 )
-                return this->weightsDerivative[ 0 ];
-            if ( index >= numSamplePoints )
-                return this->weightsDerivative[ numSamplePoints-1 ];
+            // < 0 no possible since uint32_t
+            if ( index >= T_numSamplePoints )
+                return this->weightsDerivative[ T_numSamplePoints - 1u ];
 
             return this->coefficentsDerivation[ index ];
         }
 
-    }
+        FornbergNumericalDifferentation( T_Argument const relativeSamplePoints[ T_numSamplePoints ] )
+        {
+            for (uint32_t i=0u; i < T_numSamplePoints; i++)
+            {
+                this->weightsDerivative[ i ] = calculateWeight(
+                    relativeSamplePoints,
+                    T_orderDerivative,
+                    T_numSamplePoints,
+                    i
+                    );
+            }
+        }
+    };
+
+} // namespace histogram2
+} // namespace electronDistribution
+} // namespace atomicPhysics
+} // namespace particles
+} // namespace picongpu
