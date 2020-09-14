@@ -167,6 +167,10 @@ namespace detail
 
     /** Number of absorber cells along each boundary
      *
+     * Stores the global absorber thickness in case the absorbing boundary
+     * conditions are used along each boundary. Note that in case of periodic
+     * boundaries the corresponding values will be ignored.
+     *
      * Is uniform for both PML and exponential damping absorbers.
      * First index: 0 = x, 1 = y, 2 = z.
      * Second index: 0 = negative (min coordinate), 1 = positive (max coordinate).
@@ -177,6 +181,121 @@ namespace detail
         { Absorber::yNegativeNumCells, Absorber::yPositiveNumCells },
         { Absorber::zNegativeNumCells, Absorber::zPositiveNumCells }
     };
+
+    //! Thickness of the absorbing layer
+    class Thickness
+    {
+    public:
+
+        //! Create a zero thickness
+        Thickness()
+        {
+            for( uint32_t axis = 0u; axis < 3u; axis++ )
+                for( uint32_t direction = 0u; direction < 2u; direction++ )
+                    (*this)( axis, direction ) = 0u;
+        }
+
+        /** Get thickness for the given boundary
+         *
+         * @param axis axis, 0 = x, 1 = y, 2 = z
+         * @param direction direction, 0 = negative (min coordinate),
+         *                  1 = positive (max coordinate)
+         */
+        uint32_t operator()(
+            uint32_t const axis,
+            uint32_t const direction
+        ) const
+        {
+            return numCells[ axis ][ direction ];
+        }
+
+        /** Get reference to thickness for the given boundary
+         *
+         * @param axis axis, 0 = x, 1 = y, 2 = z
+         * @param direction direction, 0 = negative (min coordinate),
+         *                  1 = positive (max coordinate)
+         */
+        uint32_t & operator()(
+            uint32_t const axis,
+            uint32_t const direction
+        )
+        {
+            return numCells[ axis ][ direction ];
+        }
+
+    private:
+
+        /** Number of absorber cells along each boundary
+         *
+         * First index: 0 = x, 1 = y, 2 = z.
+         * Second index: 0 = negative (min coordinate), 1 = positive (max coordinate).
+         */
+        uint32_t numCells[ 3 ][ 2 ];
+
+    };
+
+    /** Get absorber thickness in number of cells for the global domain
+     *
+     * This function takes into account which boundaries are periodic and
+     * absorbing.
+     */
+    inline Thickness getGlobalThickness()
+    {
+        Thickness thickness;
+        for( uint32_t axis = 0u; axis < 3u; axis++ )
+            for( uint32_t direction = 0u; direction < 2u; direction++ )
+                thickness( axis, direction ) = numCells[ axis ][ direction ];
+        const DataSpace< DIM3 > isPeriodicBoundary =
+            Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
+        for( uint32_t axis = 0u; axis < 3u; axis++ )
+            if( isPeriodicBoundary[ axis ] )
+            {
+                thickness( axis, 0 ) = 0u;
+                thickness( axis, 1 ) = 0u;
+            }
+        return thickness;
+    }
+
+    /** Get absorber thickness in number of cells for the current local domain
+     *
+     * This function takes into account the current domain decomposition and
+     * which boundaries are periodic and absorbing.
+     *
+     * Note that unlike getGlobalThickness() result which does not change
+     * throughout the simulation, the local thickness can change. Thus,
+     * the result of this function should not be reused on another time step,
+     * but rather the function called again.
+     */
+    inline Thickness getLocalThickness()
+    {
+        Thickness thickness = getGlobalThickness();
+        auto const numExchanges = NumberOfExchanges< simDim >::value;
+        auto const communicationMask = Environment< simDim >::get( ).GridController( ).getCommunicationMask( );
+        for( uint32_t exchange = 1u; exchange < numExchanges; exchange++ )
+        {
+            /* Here we are only interested in the positive and negative
+             * directions for x, y, z axes and not the "diagonal" ones.
+             * So skip other directions except left, right, top, bottom,
+             * back, front
+             */
+            if( FRONT % exchange != 0 )
+                continue;
+
+            // Transform exchange into a pair of axis and direction
+            uint32_t axis = 0;
+            if( exchange >= BOTTOM && exchange <= TOP )
+                axis = 1;
+            if( exchange >= BACK )
+                axis = 2;
+            uint32_t direction = exchange % 2;
+
+            // No absorber at the borders between two local domains
+            bool hasNeighbour = communicationMask.isSet( exchange );
+            if( hasNeighbour )
+                thickness( axis, direction ) = 0u;
+        }
+        return thickness;
+    }
 
 namespace detail
 {
