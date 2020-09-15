@@ -1,0 +1,180 @@
+/* Copyright 2020 Xeinia Bastrakova, Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+
+// #include ...
+ // Temporary, simplest possible trait implementation
+
+namespace reduction_library{
+namespace particle{
+
+/*    // this is too simplistic
+    // partially specialize
+    template<
+        typename T_particle,
+        typename T_ValueType
+    >
+    struct Setting_value<
+        component::Name::SCALAR,
+        record::Name::Weighting,
+        T_particle,
+        T_ValueType
+    >
+    {
+        HDINLINE void operator()(
+            T_ValueType value,
+            T_particle & const particle
+        )
+        {
+            particle[ weighting_ ] = value;
+        }
+    };*/
+
+} // namespace particle
+} // namespace reduction_library
+
+namespace picongpu
+{
+namespace plugins
+{
+namespace particleThinning
+{
+
+
+    template< uint32_t T_numWorkers >
+    struct ParticleThinningKernel
+    {
+
+        template<
+            typename T_Acc,
+            typename T_ParticleBox,
+            typename T_Mapping
+        >
+        HDINLINE void operator()(
+            T_Acc const & acc,
+            T_ParticleBox particleBox,
+            T_Mapping mapper,
+            float_X ratioDeletedParticles
+        ) const
+        {
+            using namespace mappings::threads;
+
+            //// todo: express framesize better, not via supercell size
+            constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
+            constexpr uint32_t numWorkers = T_numWorkers;
+            using ParticleDomCfg = IdxConfig<
+                frameSize,
+                numWorkers
+            >;
+
+            // thread index inside alpaka block
+            uint32_t const workerIdx = cupla::threadIdx( acc ).x;
+
+            pmacc::DataSpace< simDim > const supercellIdx(
+                mapper.getSuperCellIndex( DataSpace< simDim >( cupla::blockIdx( acc ) ) )
+            );
+
+            // this is to execute once per block
+            ForEachIdx<
+                IdxConfig<
+                    1,
+                    numWorkers
+                >
+            > onlyMaster{ workerIdx };
+
+            // TODO: instantiate an in-kernel algorithm in shared memory
+            // using onlyMaster, then syncthreads
+
+            auto frame = particleBox.getLastFrame( supercellIdx );
+            auto particlesInFrame = particleBox.getSuperCell( supercellIdx ).getSizeLastFrame( );
+
+            // collect all particles
+            while( frame.isValid( ) )
+            {
+                // parallel loop over all particles in the frame
+                ForEachIdx< ParticleDomCfg >{ workerIdx }
+                (
+                    [&](
+                        uint32_t const linearIdx,
+                        uint32_t const
+                    )
+                    {
+                        // todo: check whether this if is necessary
+                        if( linearIdx < particlesInFrame )
+                        {
+                            auto const particle = frame[ linearIdx ];
+                            // ...collect( acc, particle );
+                        }
+                    }
+                );
+
+                frame = particleBox.getPreviousFrame( frame );
+                particlesInFrame = frameSize;
+            }
+
+            // syncthreads
+            // only master calls .process( acc )
+            // synchtreads
+
+            while( frame.isValid( ) )
+            {
+                // parallel loop over all particles in the frame
+                ForEachIdx< ParticleDomCfg >{ workerIdx }
+                (
+                    [&](
+                        uint32_t const linearIdx,
+                        uint32_t const
+                    )
+                    {
+                        // todo: check whether this if is necessary
+                        if( linearIdx < particlesInFrame )
+                        {
+                            auto particle = frame[ linearIdx ];
+                            auto const oldWeighting = particle[ weighting_ ];
+                            // ...reduce( acc, particle );
+                            if( particle[ weighting_ ])
+                            {
+                                // particle is kept, but maybe with a 
+                                // different weight
+                                // need to rescale momentum according to weight change
+                            }
+                            else
+                            {
+                                // particle needs to be removed
+                                particle[ multiMask_ ] = 0;
+                            }
+                        }
+                    }
+                );
+
+                frame = particleBox.getPreviousFrame( frame );
+                particlesInFrame = frameSize;
+            }
+
+        }
+
+    };
+
+} // namespace particleThinning
+} // namespace plugins
+} // namespace picongpu
