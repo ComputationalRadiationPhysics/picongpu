@@ -28,9 +28,9 @@
 #include <pmacc/memory/dataTypes/Mask.hpp>
 #include <pmacc/memory/MakeUnique.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
-#include <pmacc/nvidia/rng/RNG.hpp>
-#include <pmacc/nvidia/rng/methods/Xor.hpp>
-#include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
+#include <pmacc/random/distributions/distributions.hpp>
+#include <pmacc/random/methods/methods.hpp>
+#include <pmacc/random/Random.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
@@ -199,11 +199,15 @@ namespace kernel
                 blockCell + DataSpaceOperations< DIM2 >::template map< SuperCellSize >( workerIdx )
             );
 
-            // get uniform random number from seed
-            auto rng = nvidia::rng::create(
-                nvidia::rng::methods::Xor< T_Acc >( acc, seed, globalUniqueId ),
-                nvidia::rng::distributions::Uniform_float::get( acc )
-            );
+            // create a random number state and generator
+            using RngMethod = random::methods::XorMin< T_Acc >;
+            using State = typename RngMethod::StateType;
+            State state;
+            RngMethod method;
+            method.init( acc, state, seed, globalUniqueId );
+            using Distribution = random::distributions::Uniform< float, RngMethod >;
+            using Random = random::Random< Distribution, RngMethod, State* >;
+            Random rng( &state );
 
             ForEachIdx<
                 IdxConfig<
@@ -219,7 +223,7 @@ namespace kernel
                     // cell index within the superCell
                     DataSpace< DIM2 > const cellIdx = DataSpaceOperations< DIM2 >::template map< SuperCellSize >( linearIdx );
                     // write 1(white) if uniform random number 0<rng<1 is smaller than 'threshold'
-                    buffWrite( blockCell + cellIdx ) = static_cast< bool >( rng() <= threshold );
+                    buffWrite( blockCell + cellIdx ) = static_cast< bool >( rng( acc ) <= threshold );
                 }
             );
         }
