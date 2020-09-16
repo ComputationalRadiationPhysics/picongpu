@@ -41,7 +41,7 @@ int main( int argc, char **argv )
 {
     typedef ::gol::Space Space;
 
-    std::vector<uint32_t> devices;  /* will be set by boost program argument option "-d 3 3 3" */
+    std::vector<uint32_t> devices;  /* will be set by boost program argument option "-d 3 3" */
     std::vector<uint32_t> gridSize; /* same but with -g */
     std::vector<uint32_t> periodic;
     uint32_t steps;
@@ -50,8 +50,8 @@ int main( int argc, char **argv )
     po::options_description desc( "Allowed options" );
     desc.add_options( )
             ( "help,h", "produce help message" )
-            ( "steps,s", po::value<uint32_t > ( &steps ), "simulation steps" )
-            ( "rule,r", po::value<std::string > ( &rule ), "simulation rule etc. 23/3" )
+            ( "steps,s", po::value<uint32_t > ( &steps )->default_value( 100 ), "simulation steps" )
+            ( "rule,r", po::value<std::string > ( &rule )->default_value( "23/3" ), "simulation rule" )
             ( "devices,d", po::value<std::vector<uint32_t> > ( &devices )->multitoken( ),
               "number of devices in each dimension (only 1D or 2D). If you use more than "
               "one device in total, you will need to run mpirun with \"mpirun -n "
