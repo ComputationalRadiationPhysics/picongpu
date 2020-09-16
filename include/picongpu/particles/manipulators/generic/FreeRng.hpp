@@ -81,8 +81,6 @@ namespace acc
             T_Args && ... args
         )
         {
-            namespace nvrng = nvidia::rng;
-
             Functor::operator()(
                 m_rng,
                 particle,

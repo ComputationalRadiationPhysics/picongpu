@@ -22,8 +22,6 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/functor/misc/RngWrapper.hpp"
 
-#include <pmacc/nvidia/rng/RNG.hpp>
-#include <pmacc/nvidia/rng/methods/Xor.hpp>
 #include <pmacc/mpi/SeedPerRank.hpp>
 #include <pmacc/traits/GetUniqueTypeId.hpp>
 #include <pmacc/random/methods/methods.hpp>
@@ -93,8 +91,6 @@ namespace misc
             T_WorkerCfg const & workerCfg
         ) const
         {
-            namespace nvrng = nvidia::rng;
-
             RngHandle tmp( rngHandle );
             tmp.init(
                 localSupercellOffset * SuperCellSize::toRT() +
