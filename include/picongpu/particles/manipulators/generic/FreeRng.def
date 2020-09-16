@@ -42,7 +42,7 @@ namespace generic
      *
      * example for `particle.param`: add
      *   @code{.cpp}
-     *   #include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
+     *   #include <pmacc/random/distributions/Uniform.hpp>
      *
      *   struct FunctorRandomX
      *   {

@@ -34,7 +34,6 @@
 
 #include <pmacc/nvidia/functors/Add.hpp>
 #include <pmacc/nvidia/functors/Assign.hpp>
-#include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
 
 
 namespace picongpu

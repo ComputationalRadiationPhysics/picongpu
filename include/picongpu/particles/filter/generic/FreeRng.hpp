@@ -78,8 +78,6 @@ namespace acc
             T_Particle const & particle
         )
         {
-            namespace nvrng = nvidia::rng;
-
             bool const isValid = particle.isHandleValid( );
 
             return isValid && Functor::operator()(
