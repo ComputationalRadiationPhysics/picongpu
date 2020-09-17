@@ -77,7 +77,6 @@ namespace idLabels
 }// end namespace idLabels
 
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////  Radiation Plugin Class  ////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,8 +96,10 @@ private:
      * frequency. Layout of the radiation array is:
      * [omega_1(theta_1),omega_2(theta_1),...,omega_N-omega(theta_1),
      *   omega_1(theta_2),omega_2(theta_2),...,omega_N-omega(theta_N-theta)]
+     * The second dimension is used to store intermediate results if command
+     * line option numJobs is > 1.
      */
-    GridBuffer<Amplitude, DIM1> *radiation;
+    GridBuffer<Amplitude, 2> *radiation;
     radiation_frequencies::InitFreqFunctor freqInit;
     radiation_frequencies::FreqFunctor freqFkt;
 
@@ -119,6 +120,7 @@ private:
     bool radPerGPU;
     std::string folderRadPerGPU;
     DataSpace<simDim> lastGPUpos;
+    int numJobs;
 
     /**
      * Data structure for storage and summation of the intermediate values of
@@ -214,7 +216,8 @@ public:
             ((pluginPrefix + ".end").c_str(), po::value<uint32_t > (&radEnd)->default_value(0), "time index when radiation should end with calculation")
             ((pluginPrefix + ".radPerGPU").c_str(), po::bool_switch(&radPerGPU), "enable radiation output from each GPU individually")
             ((pluginPrefix + ".folderRadPerGPU").c_str(), po::value<std::string > (&folderRadPerGPU)->default_value("radPerGPU"), "folder in which the radiation of each GPU is written")
-            ((pluginPrefix + ".compression").c_str(), po::bool_switch(&compressionOn), "enable compression of hdf5 output");
+            ((pluginPrefix + ".compression").c_str(), po::bool_switch(&compressionOn), "enable compression of hdf5 output")
+            ((pluginPrefix + ".numJobs").c_str(), po::value<int > (&numJobs)->default_value(2), "Number of independent jobs used for the radiation calculation.");
     }
 
 
@@ -282,13 +285,22 @@ private:
     {
         if(!notifyPeriod.empty())
         {
+            if(numJobs <= 0)
+            {
+                std::cerr << "'numJobs' must be '>=1' value is adjusted from" << numJobs << " to '1'." << std::endl;
+                numJobs = 1;
+            }
             // allocate memory for all amplitudes for temporal data collection
             tmp_result = new Amplitude[elements_amplitude()];
 
             /*only rank 0 create a file*/
             isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
 
-            radiation = new GridBuffer<Amplitude, DIM1 > (DataSpace<DIM1 > (elements_amplitude())); //create one int on GPU and host
+            /* Buffer for GPU results.
+             * The second dimension is used to store intermediate results if command
+             * line option numJobs is > 1.
+             */
+            radiation = new GridBuffer<Amplitude, 2> (DataSpace<2>(elements_amplitude(), numJobs));
 
             freqInit.Init(frequencies_from_list::listLocation);
             freqFkt = freqInit.getFunctor();
@@ -387,6 +399,15 @@ private:
   {
     radiation->deviceToHost();
     __getTransactionEvent().waitForFinished();
+
+    auto dbox = radiation->getHostBuffer().getDataBox();
+    int numAmp = elements_amplitude();
+    // update the main result matrix (y index zero)
+    for( int resultIdx = 1; resultIdx < numJobs; ++resultIdx )
+        for( int ampIdx = 0; ampIdx < numAmp; ++ampIdx )
+        {
+            dbox(DataSpace< 2 >( ampIdx, 0 ) ) += dbox(DataSpace< 2 >( ampIdx, resultIdx ) );
+        }
   }
 
 
@@ -1188,8 +1209,8 @@ private:
       PMACC_KERNEL( KernelRadiationParticles<
           numWorkers
       >{} )(
-          gridDim_rad,
-          numWorkers
+          DataSpace< 2 >(gridDim_rad, numJobs),
+          DataSpace< 2 >(numWorkers,1)
       )(
          /*Pointer to particles memory on the device*/
          particles->getDeviceParticlesBox(),

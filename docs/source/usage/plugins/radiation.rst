@@ -287,6 +287,11 @@ Command line option                       Description
 ``--<species>_radiation.folderRadPerGPU`` Name of the folder, where the GPU specific spectra are stored.
                                           Default: ``radPerGPU``
 ``--<species>_radiation.compression``     If set, the hdf5 output is compressed.
+``--<species>_radiation.numJobs``         Number of independent jobs used for the radiation calculation.
+                                          This option is used to increase the utilization of the device by producing more independent work.
+                                          This option enables accumulation of data in parallel into multiple temporary arrays, thereby increasing the utilization of
+                                          the device by increasing the memory footprint
+                                          Default: ``2``
 ========================================= ==============================================================================================================================
 
 Memory Complexity
@@ -295,7 +300,8 @@ Memory Complexity
 Accelerator
 """""""""""
 
-each energy bin times each coordinate bin allocates one counter (``float_X``) permanently and on each accelerator.
+locally, ``numJobs`` times number of frequencies ``N_omega`` times number of directions ``N_theta`` is permanently allocated.
+Each result element (amplitude) is a double precision complex number.
 
 Host
 """"
