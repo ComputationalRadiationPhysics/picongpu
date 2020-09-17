@@ -28,7 +28,6 @@
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
-#include <pmacc/memory/MakeUnique.hpp>
 
 #include "picongpu/particles/traits/GetIonizerList.hpp"
 #if( PMACC_CUDA_ENABLED == 1 )
@@ -99,7 +98,7 @@ struct CreateSpecies
     {
         DataConnector &dc = Environment<>::get().DataConnector();
         dc.consume(
-            pmacc::memory::makeUnique<SpeciesType>(
+            std::make_unique<SpeciesType>(
                 deviceHeap,
                 *cellDesc,
                 FrameType::getName()

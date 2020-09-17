@@ -27,11 +27,9 @@
 #include "picongpu/particles/particleToGrid/derivedAttributes/Density.def"
 #include "picongpu/particles/traits/GetShape.hpp"
 
-/* pmacc */
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
-#include <pmacc/memory/MakeUnique.hpp>
 
 #include <memory>
 
@@ -64,11 +62,10 @@ namespace flylite
 
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        using pmacc::memory::makeUnique;
         // once allocated for all ion species to share
         if( ! dc.hasId( helperFields::LocalEnergyHistogram::getName( "electrons" ) ) )
             dc.consume(
-                makeUnique< helperFields::LocalEnergyHistogram >(
+                std::make_unique< helperFields::LocalEnergyHistogram >(
                     "electrons",
                     m_avgGridSizeLocal
                 )
@@ -76,7 +73,7 @@ namespace flylite
 
         if( ! dc.hasId( helperFields::LocalEnergyHistogram::getName( "photons" ) ) )
             dc.consume(
-                makeUnique< helperFields::LocalEnergyHistogram >(
+                std::make_unique< helperFields::LocalEnergyHistogram >(
                     "photons",
                     m_avgGridSizeLocal
                 )
@@ -84,7 +81,7 @@ namespace flylite
 
         if( ! dc.hasId( helperFields::LocalDensity::getName( "electrons" ) ) )
             dc.consume(
-                makeUnique< helperFields::LocalDensity >(
+                std::make_unique< helperFields::LocalDensity >(
                     "electrons",
                     m_avgGridSizeLocal
                 )
@@ -93,7 +90,7 @@ namespace flylite
         // for each ion species
         if( ! dc.hasId( helperFields::LocalRateMatrix::getName( ionSpeciesName ) ) )
             dc.consume(
-                makeUnique< helperFields::LocalRateMatrix >(
+                std::make_unique< helperFields::LocalRateMatrix >(
                     ionSpeciesName,
                     m_avgGridSizeLocal
                 )
@@ -101,7 +98,7 @@ namespace flylite
 
         if( ! dc.hasId( helperFields::LocalDensity::getName( ionSpeciesName ) ) )
             dc.consume(
-                makeUnique< helperFields::LocalDensity >(
+                std::make_unique< helperFields::LocalDensity >(
                     ionSpeciesName,
                     m_avgGridSizeLocal
                 )

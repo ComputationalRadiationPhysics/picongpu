@@ -35,7 +35,6 @@
 #include <pmacc/mappings/kernel/ExchangeMapping.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
-#include <pmacc/memory/MakeUnique.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 
 #include <boost/mpl/accumulate.hpp>
@@ -58,7 +57,7 @@ namespace fields
         SimulationFieldHelper< MappingDesc >( cellDescription ),
         id( id )
     {
-        buffer = pmacc::memory::makeUnique< Buffer >(
+        buffer = std::make_unique< Buffer >(
             cellDescription.getGridLayout( )
         );
 

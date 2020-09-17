@@ -38,7 +38,6 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/memory/MakeUnique.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/nvidia/functors/Add.hpp>
@@ -290,7 +289,7 @@ namespace xrayScattering
                  *   CoordinateTransform.hpp is still set to (0,0,0) when the
                  *   XrayScattering object is initialized.
                  */
-                probingBeam = pmacc::memory::makeUnique<
+                probingBeam = std::make_unique<
                     beam::XrayScatteringBeam >( );
                 // Set the steps at which the xrayScattering amplitude is
                 // calculated.
@@ -337,7 +336,7 @@ namespace xrayScattering
                     );
                 }
                 // Allocate amplitude buffer.
-                amplitude = pmacc::memory::makeUnique< ComplexBuffer >(
+                amplitude = std::make_unique< ComplexBuffer >(
                     DataSpace< DIM1 >( bufferSize ) );
                 // Initialize, on device, its fields with zero.
                 amplitude->getDeviceBuffer( ).setValue( 0.0 );
@@ -376,7 +375,7 @@ namespace xrayScattering
                     ).getGlobalDomain( ).size.productOfComponents( );
 
                 // Initialize an object responsible for output writing.
-                dataWriter = pmacc::memory::makeUnique< XrayScatteringWriter<
+                dataWriter = std::make_unique< XrayScatteringWriter<
                     float_X > >(
                         pluginPrefix + "Output",
                         fileExtension,

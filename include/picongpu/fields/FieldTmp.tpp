@@ -27,7 +27,6 @@
 #include "picongpu/particles/traits/GetInterpolation.hpp"
 
 #include <pmacc/memory/buffers/GridBuffer.hpp>
-#include <pmacc/memory/MakeUnique.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -66,10 +65,10 @@ namespace picongpu
         m_commTagGather = pmacc::traits::getNextId( ) + SPECIES_FIRSTTAG;
 
         using Buffer = GridBuffer< ValueType, simDim >;
-        fieldTmp = memory::makeUnique< Buffer >( cellDescription.getGridLayout( ) );
+        fieldTmp = std::make_unique< Buffer >( cellDescription.getGridLayout( ) );
 
         if( fieldTmpSupportGatherCommunication )
-            fieldTmpRecv = memory::makeUnique< Buffer >(
+            fieldTmpRecv = std::make_unique< Buffer >(
                 fieldTmp->getDeviceBuffer(),
                 cellDescription.getGridLayout( )
             );
