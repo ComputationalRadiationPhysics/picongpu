@@ -106,7 +106,7 @@ if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
   # Run CUDA memtest to check GPU's health
   mpirun !TBG_dstPath/input/bin/cuda_memtest.sh
 else
-  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+  echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available. This does not affect PIConGPU, starting it now" >&2
 fi
 
 if [ $? -eq 0 ] ; then
