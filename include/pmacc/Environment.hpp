@@ -490,9 +490,15 @@ namespace detail
             const int tryDeviceId = (deviceOffset + deviceNumber) % num_gpus;
 
             log<ggLog::CUDA_RT>("Trying to allocate device %1%.") % tryDeviceId;
-#if (PMACC_CUDA_ENABLED == 1)
+
+#if(BOOST_LANG_CUDA || BOOST_LANG_HIP)
+#   if(BOOST_LANG_CUDA)
             cudaDeviceProp devProp;
-            CUDA_CHECK((cuplaError_t)cudaGetDeviceProperties(&devProp, tryDeviceId));
+#   elif(BOOST_LANG_HIP)
+            hipDeviceProp_t devProp;
+#   endif
+
+            CUDA_CHECK((cuplaError_t)ALPAKA_API_PREFIX(GetDeviceProperties)(&devProp, tryDeviceId));
 
             /* If the cuda gpu compute mode is 'default'
              * (https://docs.nvidia.com/cuda/cuda-c-programming-guide/#compute-modes)

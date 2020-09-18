@@ -24,10 +24,12 @@
 #include "pmacc/types.hpp"
 #include "pmacc/static_assert.hpp"
 
-#if( PMACC_CUDA_ENABLED != 1 )
-#   include "pmacc/random/methods/AlpakaRand.hpp"
-#else
+#if( BOOST_LANG_CUDA )
 #   include <curand_kernel.h>
+#elif( BOOST_LANG_HIP )
+#   include <hiprand_kernel.h>
+#else
+#   include "pmacc/random/methods/AlpakaRand.hpp"
 #endif
 
 
@@ -38,15 +40,17 @@ namespace random
 namespace methods
 {
 
-#if( PMACC_CUDA_ENABLED != 1 )
-    //! fallback to alpaka RNG if a cpu accelerator is used
-    template< typename T_Acc = cupla::Acc>
-    using XorMin = AlpakaRand< T_Acc >;
-#else
+#if( BOOST_LANG_CUDA || BOOST_LANG_HIP )
     //! Uses the CUDA XORWOW RNG but does not store state members required for normal distribution
     template< typename T_Acc = cupla::Acc>
     class XorMin
     {
+#if (BOOST_LANG_HIP)
+        using NativeStateType = hiprandStateXORWOW_t;
+#elif (BOOST_LANG_CUDA)
+        using NativeStateType = curandStateXORWOW_t;
+#endif
+
     public:
         class StateType
         {
@@ -63,14 +67,23 @@ namespace methods
             HDINLINE StateType( )
             { }
 
-            DINLINE StateType( curandStateXORWOW_t const & other ): d( other.d )
+            DINLINE StateType( NativeStateType const & other ): d( other.d )
             {
+#if (BOOST_LANG_HIP)
+                auto const* nativeStateArray = other.x;
+                PMACC_STATIC_ASSERT_MSG(
+                    sizeof( v ) == sizeof( other.x ),
+                    Unexpected_sizes
+                );
+#elif (BOOST_LANG_CUDA)
+                auto const* nativeStateArray = other.v;
                 PMACC_STATIC_ASSERT_MSG(
                     sizeof( v ) == sizeof( other.v ),
                     Unexpected_sizes
                 );
+#endif
                 for( unsigned i = 0; i < sizeof( v ) / sizeof( v[ 0 ] ); i++ )
-                    v[ i ] = other.v[ i ];
+                    v[ i ] = nativeStateArray[ i ];
             }
         };
 
@@ -82,13 +95,23 @@ namespace methods
             uint32_t subsequence = 0
         ) const
         {
-            curandStateXORWOW_t tmpState;
-            curand_init(
+            NativeStateType tmpState;
+
+#if (BOOST_LANG_HIP)
+#   define define PMACC_RNG_INIT_FN hiprand_init
+#elif (BOOST_LANG_CUDA)
+#   define define PMACC_RNG_INIT_FN curand_init
+#endif
+
+            PMACC_RNG_INIT_FN(
                 seed,
                 subsequence,
                 0,
                 &tmpState
             );
+
+#undef PMACC_RNG_INIT_FN
+
             state = tmpState;
         }
 
@@ -132,6 +155,10 @@ namespace methods
             return "XorMin";
         }
     };
+#else
+    //! fallback to alpaka RNG if a cpu accelerator is used
+    template< typename T_Acc = cupla::Acc>
+    using XorMin = AlpakaRand< T_Acc >;
 #endif
 }  // namespace methods
 }  // namespace random
