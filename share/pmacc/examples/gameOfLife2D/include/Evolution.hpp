@@ -26,7 +26,6 @@
 #include <pmacc/nvidia/functors/Assign.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/memory/dataTypes/Mask.hpp>
-#include <pmacc/memory/MakeUnique.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/random/distributions/distributions.hpp>
 #include <pmacc/random/methods/methods.hpp>
@@ -246,7 +245,7 @@ namespace kernel
             Space const & guardSize
         )
         {
-            mapping = memory::makeUnique< T_MappingDesc >(
+            mapping = std::make_unique< T_MappingDesc >(
                 layout,
                 guardSize
             );
