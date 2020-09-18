@@ -40,14 +40,14 @@ namespace random
 namespace methods
 {
 
-#if( BOOST_LANG_CUDA || BOOST_LANG_HIP )
+#if( ALPAKA_ACC_GPU_CUDA_ENABLED || ALPAKA_ACC_GPU_HIP_ENABLED )
     //! Uses the CUDA XORWOW RNG but does not store state members required for normal distribution
     template< typename T_Acc = cupla::Acc>
     class XorMin
     {
-#if (BOOST_LANG_HIP)
+#if( BOOST_LANG_HIP )
         using NativeStateType = hiprandStateXORWOW_t;
-#elif (BOOST_LANG_CUDA)
+#elif( BOOST_LANG_CUDA )
         using NativeStateType = curandStateXORWOW_t;
 #endif
 
@@ -69,13 +69,13 @@ namespace methods
 
             DINLINE StateType( NativeStateType const & other ): d( other.d )
             {
-#if (BOOST_LANG_HIP)
+#if( BOOST_LANG_HIP )
                 auto const* nativeStateArray = other.x;
                 PMACC_STATIC_ASSERT_MSG(
                     sizeof( v ) == sizeof( other.x ),
                     Unexpected_sizes
                 );
-#elif (BOOST_LANG_CUDA)
+#elif( BOOST_LANG_CUDA )
                 auto const* nativeStateArray = other.v;
                 PMACC_STATIC_ASSERT_MSG(
                     sizeof( v ) == sizeof( other.v ),
@@ -97,10 +97,10 @@ namespace methods
         {
             NativeStateType tmpState;
 
-#if (BOOST_LANG_HIP)
-#   define define PMACC_RNG_INIT_FN hiprand_init
-#elif (BOOST_LANG_CUDA)
-#   define define PMACC_RNG_INIT_FN curand_init
+#if( ALPAKA_ACC_GPU_HIP_ENABLED == 1 )
+#   define PMACC_RNG_INIT_FN hiprand_init
+#elif( ALPAKA_ACC_GPU_CUDA_ENABLED == 1 )
+#   define PMACC_RNG_INIT_FN curand_init
 #endif
 
             PMACC_RNG_INIT_FN(

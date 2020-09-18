@@ -468,7 +468,7 @@ namespace detail
     {
         int num_gpus = 0; //number of gpus
         cuplaGetDeviceCount(&num_gpus);
-#if (PMACC_CUDA_ENABLED == 1)
+#if(BOOST_LANG_CUDA|| BOOST_COMP_HIP)
         //##ERROR handling
         if (num_gpus < 1) //check if cupla device is found
         {
@@ -506,7 +506,7 @@ namespace detail
              * The index used to select a device is based on the local MPI rank so
              * that each rank tries a different device.
              */
-            if (devProp.computeMode == cudaComputeModeDefault)
+            if (devProp.computeMode == ALPAKA_API_PREFIX(ComputeModeDefault))
             {
                 maxTries = 1;
                 log<ggLog::CUDA_RT>("Device %1% is running in default mode.") % tryDeviceId;
@@ -532,18 +532,17 @@ namespace detail
 
             if (rc == cuplaSuccess)
             {
-#if (PMACC_CUDA_ENABLED == 1)
-                cudaDeviceProp dprop;
-                CUDA_CHECK((cuplaError_t)cudaGetDeviceProperties(&dprop, tryDeviceId));
-                log<ggLog::CUDA_RT> ("Set device to %1%: %2%") % tryDeviceId % dprop.name;
-                if(cudaErrorSetOnActiveProcess == cudaSetDeviceFlags(cudaDeviceScheduleSpin))
+#if(BOOST_LANG_CUDA || BOOST_LANG_HIP)
+                CUDA_CHECK((cuplaError_t)ALPAKA_API_PREFIX(GetDeviceProperties)(&devProp, tryDeviceId));
+                log<ggLog::CUDA_RT> ("Set device to %1%: %2%") % tryDeviceId % devProp.name;
+                if(ALPAKA_API_PREFIX(ErrorSetOnActiveProcess) == ALPAKA_API_PREFIX(SetDeviceFlags)(ALPAKA_API_PREFIX(DeviceScheduleSpin)))
                 {
                     cuplaGetLastError(); //reset all errors
                     /* - because of cuplaStreamCreate was called cuplaSetDeviceFlags crashed
                      * - to set the flags reset the device and set flags again
                      */
                     CUDA_CHECK(cuplaDeviceReset());
-                    CUDA_CHECK((cuplaError_t)cudaSetDeviceFlags(cudaDeviceScheduleSpin));
+                    CUDA_CHECK((cuplaError_t)ALPAKA_API_PREFIX(SetDeviceFlags)(ALPAKA_API_PREFIX(DeviceScheduleSpin)));
                 }
 #endif
                 CUDA_CHECK(cuplaGetLastError());

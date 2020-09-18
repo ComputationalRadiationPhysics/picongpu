@@ -368,7 +368,7 @@ endif()
 # Find mallocMC
 ################################################################################
 
-if(ALPAKA_ACC_GPU_CUDA_ENABLE)
+if(ALPAKA_ACC_GPU_CUDA_ENABLE OR ALPAKA_ACC_GPU_HIP_ENABLE)
     set(mallocMC_ALPAKA_PROVIDER "extern" CACHE STRING "Select which alpaka is used for mallocMC")
     find_package(mallocMC 2.5.0 QUIET)
 

@@ -36,7 +36,7 @@ struct Modf<float>
 
     HDINLINE float operator()(float value, float* intpart)
     {
-#if __CUDA_ARCH__
+#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
         return ::modff(value, intpart);
 #else
         return std::modf(value, intpart);
