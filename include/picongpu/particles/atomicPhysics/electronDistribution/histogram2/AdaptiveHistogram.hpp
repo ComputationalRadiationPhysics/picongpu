@@ -24,7 +24,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/attribute/FunctionSpecifier.hpp>
-#include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/FornbergNumericalDerivation.hpp"
 
 #include <utility>
 #include "picongpu/traits/attribute/GetMass.hpp"
@@ -43,8 +42,9 @@ namespace histogram2
 
     template<
         uint32_t T_maxNumBins,
-        uint32_t T_maxNumNewBins
-        typename T_RelativeErrorFunction
+        uint32_t T_maxNumNewBins,
+        typename T_RelativeError,
+        typename T_RateMatrixBox
     >
     struct AdaptiveHistogram
     {
@@ -73,18 +73,17 @@ namespace histogram2
         // boundary of some bin in the histogram
         float_X lastBoundary;
         // Index of the bin whose left boundary is lastBoundary
-        uint32_t lastBinIndex;
+        int lastBinIndex;
 
         // target value of relative Error of histogram Bin,
         // bin width choosen such that relativeError as close to target
         // TODO: make template parameter
         float_X relativeErrorTarget;
+        T_RelativeErrorFunction relativeError;
+        T_RateMatrixBox rateMatrixBox;
 
         // defines initial global grid
         float_X initialGridWidth;
-
-
-        T_WeightsDifferentiation weights = T_WeightsDifferentiation( samplePoints );
 
     public:
         // Has to be called by one thread before any other method
@@ -93,7 +92,9 @@ namespace histogram2
         //      maximum relative Error of Histogram Bin
         DINLINE void init(
             float_X relativeErrorTarget,
-            float_X initialGridWidth
+            float_X initialGridWidth,
+            T_RateMatrixBox rateMatrixBox,
+            T_RelativeError & relativeError
             )
         {
             // init histogram empty
@@ -102,11 +103,16 @@ namespace histogram2
 
             // init with 0 as reference point
             this->lastBoundary = 0._X;
-            this->lastBinIndex = 0u;
+            this->lastBinIndex = 0;
 
             // init adaptive bin width algorithm parameters
             this->relativeErrorTarget = relativeErrorTarget;
             this->initialGridWidth = initialGridWidth;
+
+            // allows acess to crosssections
+            this->rateMatrixBox = rateMatrixBox;
+            // way to calculate relative error from rate Matrix
+            this->relativeError = relativeError;
 
             // TODO: make this debug mode only
             // For debug purposes this is okay
@@ -192,7 +198,7 @@ namespace histogram2
             if ( directionPositive )
                 return ( x >= boundary ) && ( x < boundary + binWidth );
             else
-                return ( x >= boundary - binWidth) && ( x < boundary );
+                return ( x >= boundary - binWidth ) && ( x < boundary );
         }
 
 
@@ -204,7 +210,7 @@ namespace histogram2
         {
             // is initial binWidth below the Target Value?
             bool isBelowTarget = (
-                this->relativeErrorTarget >= T_RelativeErrorFunction(
+                this->relativeErrorTarget >= this->relativeError(
                     currentBinWidth,
                     AdaptiveHistogram::centerBin(
                         directionPositive,
@@ -225,7 +231,7 @@ namespace histogram2
 
                     // until no longer below Target
                     isBelowTarget = (
-                        this->relativeErrorTarget > T_RelativeErrorFunction(
+                        this->relativeErrorTarget > this->relativeError(
                             currentBinWidth,
                             AdaptiveHistogram::centralBin(
                                 directionPositive,
@@ -251,7 +257,7 @@ namespace histogram2
 
                     // until first time below Target
                     isBelowTarget = (
-                        this->relativeErrorTarget > T_RelativeErrorFunction(
+                        this->relativeErrorTarget > this->relativeError(
                             currentBinWidth,
                             AdaptiveHistogram::centralBin(
                                 directionPositive,

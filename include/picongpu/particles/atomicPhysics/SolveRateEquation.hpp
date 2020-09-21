@@ -50,15 +50,16 @@ namespace atomicPhysics
     template<
         typename T_Acc,
         typename T_Ion,
-        typename T_RateMatrixBox,
-        typename T_Histogram
+        typename T_AtomicDataBox,
+        typename T_Histogram,
+        typename T_AtomicRate
     >
     DINLINE void processIon(
         T_Acc const & acc,
         RandomGenInt randomGenInt,
         RandomGenFloat randomGenFloat,
         T_Ion ion,
-        T_RateMatrixBox const rateMatrixBox,
+        T_AtomicDataBox const atomicDataBox,
         T_Histogram * histogram
     )
     {
@@ -68,8 +69,12 @@ namespace atomicPhysics
         using ConfigNumberDataType = decltype( ion[ atomicConfigNumber_ ].configNumber );
 
         float_X timeRemainingSI = picongpu::SI::DELTA_T_SI;
+
+        using Rate = T_AtomicRate;
+
         while ( timeRemainingSI > 0.0_X )
         {
+            // get a random new state
             ConfigNumberDataType newState = randomGenInt() %
                 ConfigNumber::numberStates();
             // take a random bin existing in the histogram
@@ -77,18 +82,22 @@ namespace atomicPhysics
                 histogram->numBins;
 
             // TODO: implement rate matrix calculation
+            ConfigNumberDataType oldState = ion[ atomicConfigNumber_ ];
+
+            float_X rate = Rate( oldState, newState, energy, atomicDataBox );
+
             float_X rateSI = 1.0_X;
             float_X deltaEnergy = 0.0_X;
             // TODO: compute rate matrix - now accessible as rateMatrixBox( integer )
             // to get rateSI and deltaE
-            float_X probability = rateSI * timeRemainingSI;
-            if ( probability >= 1.0_X )
+            float_X quasiProbability = rateSI * timeRemainingSI;
+            if ( quasiPprobability >= 1.0_X )
             {
                 ion[ atomicConfigNumber_ ].configNumber = newState;
                 timeRemainingSI -= 1.0_X / rateSI;
             }
             else
-                if ( randomGenFloat() <= probability )
+                if ( randomGenFloat() <= quasiProbability )
                 {
                     // note: perhaps there is a mix between
                     // ConfigNumber.configNumber and just ConfigNumber

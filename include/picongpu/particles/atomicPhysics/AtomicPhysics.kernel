@@ -24,13 +24,16 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/Histogram.hpp"
+// TODO: remove histogram include
+// include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/Histogram.hpp"
 #include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/AdaptiveHistogram.hpp"
 
 #include "picongpu/particles/atomicPhysics/DecelerateElectrons.hpp"
 #include "picongpu/particles/atomicPhysics/FillHistogram.hpp"
 #include "picongpu/particles/atomicPhysics/SolveRateEquation.hpp"
 
+#include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/RateRelativeError.hpp"
+#include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/FornbergNumericalDifferentiation.hpp"
 
 #include <cstdint>
 
@@ -67,16 +70,16 @@ namespace atomicPhysics
             typename T_ElectronBox,
             typename T_IonBox,
             typename T_Mapping,
-            typename T_RateMatrixBox
+            typename T_AtomicDataBox
         >
         HDINLINE void operator()(
             T_Acc const & acc,
             T_ElectronBox electronBox,
             T_IonBox ionBox,
             T_Mapping mapper,
-            T_RateMatrixBox const rateMatrixBox,
-            float_X initialGridWidth,
-            float_X relativeErrorTarget
+            T_AtomicDataBox const atomicDataBox,
+            float_X const initialGridWidth,
+            float_X const relativeErrorTarget
         ) const
         {
             // we assume 1d thread indices
@@ -85,17 +88,54 @@ namespace atomicPhysics
 
             // Create and initialize a histogram on shared memory
             constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
+
+            // get species particle mass
+            using IonFrameType = typename ionBox::FrameType;
+            const float_X mass = frame::getMass<FrameType>();
+
+            using RelativeError = electronDistribution::histogram2::RateRelativeError<
+                1u,     // orderApprox
+                2u,     // T_numSamplePoints
+                electronDistribution::histogram2::FornbergNumericalDifferentiation<
+                    float_X,
+                    float_X
+                > // T_WeightingGen
+            >
+
             using Histogram = electronDistribution::histogram2::AdaptiveHistogram<
                 T_maxNumBins,
-                frameSize
+                frameSize,
+                RelativeError
+                >,
+                T_AtomicDataBox
             >;
+            // get new histogram
             PMACC_SMEM(
                 acc, // mandatory first parameter
                 histogram, // variable name
                 Histogram // variable type
             );
+
+            PMACC_SMEM(
+                acc, // mandatory first parameter
+                relativeError, // variable name
+                RelativeError // variable type
+            );
+
+            using ElectronFrameType = typename electronBox::FrameType;
+            constexpr float_X mass_e = frame::getMass< ElectronFrameType >();
+
+            // init realtive Error
+            relativeError.init( mass_e );
+
+            // init histogram
             if( workerIdx == 0 )
-                histogram.init( relativeErrorTarget, initialGridWidth );
+                histogram.init(
+                    relativeErrorTarget,
+                    initialGridWidth,
+                    atomicDataBox,
+                    relativeError
+                    );
             cupla::__syncthreads( acc );
 
             fillHistogram< T_numWorkers >(
@@ -112,7 +152,7 @@ namespace atomicPhysics
                 rngFactoryInt,
                 rngFactoryFloat,
                 ionBox,
-                rateMatrixBox,
+                atomicDataBox,
                 &histogram
             );
             cupla::__syncthreads( acc );

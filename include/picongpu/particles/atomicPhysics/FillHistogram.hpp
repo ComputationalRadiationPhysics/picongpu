@@ -45,12 +45,14 @@ namespace atomicPhysics
         uint32_t T_numWorkers,
         typename T_Acc,
         typename T_ElectronBox,
+        typename T_RateMatrixBox,
         typename T_Mapping,
         typename T_Histogram
     >
     DINLINE void fillHistogram(
         T_Acc const & acc,
         T_ElectronBox const electronBox,
+        T_RateMatrixBox const rateMatrixBox,
         T_Mapping mapper,
         T_Histogram * histogram
     )
@@ -99,19 +101,25 @@ namespace atomicPhysics
                         // note: there is UNIT_ENERGY that can help with conversion
                         // note 3: maybe getEnergy could become a generic algorithm
                         auto const particle = frame[ linearIdx ];
-                        float_X const m = attribute::getMass(1.0_X, particle); //particle[ massRatio_ ] * SI::BASE_MASS;     //Unit: kg
-                        constexpr auto c = SI::SPEED_OF_LIGHT_SI;                   //Unit: m/s
+
+                        using FrameType = typename electronBox::T_ElectronBox;
+                        float_X const mass = = FrameType::getMass<FrameType>();
+
+                        // attribute::getMass(1.0_X, particle); //particle[ massRatio_ ] * SI::BASE_MASS;     //Unit: kg
+                        constexpr auto c = SI::SPEED_OF_LIGHT_SI;   //internal units
 
                         float3_X vectorP = particle[ momentum_ ];
-                        // we probably have a math function for ||p||^2
-                        float_X pSquared = math::abs2( vectorP );  //unit:? [should be kg*m/s]
+                        // internal units
+                        float_X pSquared = math::abs2( vectorP )/particle[ weighting_ ];
 
                         // note about math functions:
                         // in the dev branch need to add pmacc:: and acc as first parameter
 
+                        using pow = pmacc::algorithms::math::pow;
+
                         //unit: kg*m^2/s^2 = Nm
                         auto const energy = math::sqrt(
-                                m*m * c*c*c*c + pSquared * c*c
+                                 pow( m, 2 ) * pow( c, 4 ) + pSquared * pow( c, 2 )
                         );
                         histogram->binObject(
                             acc,

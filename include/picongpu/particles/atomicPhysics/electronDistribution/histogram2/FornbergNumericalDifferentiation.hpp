@@ -140,31 +140,29 @@ namespace histogram2
      * @tparam T_Argument ... datatype of argument space of x, should e float-like
      */
     template<
-        uint32_t T_numSamplePoints,
-        uint32_t T_orderDerivative,
         typename T_Value,
         typename T_Argument
         >
-    struct FornbergNumericalDifferentation
+    struct FornbergNumericalDifferentiation
     {
-    private:
-        // coefficent stored for later use
-        T_Value weightsDerivative[ T_numSamplePoints ];
 
+    public:
         // Notes on conversion:
         // m ... orderDerivative
         // n+1 ... T_numSamplePoints
         // nu ... index
-        T_Value calculateWeight(
-            T_Argument const relativeSamplePoints[ T_numSamplePoints ],
-            uint32_t const orderDerivative,
-            uint32_t const numSamplePoints,
-            uint32_t const index
+        template<
+            uint32_t T_numSamplePoints,
+            uint32_t T_orderDerivative,
+        >
+        static constexpr T_Value weighting(
+            uint32_t const index,
+            T_Argument const relativeSamplePoints[ T_numSamplePoints ]
             )
         {
-            uint32_t m = orderDerivative;
-            uint32_t n = numSamplePoints - 1u;
-            uint32_t nu = index;
+            constexpr uint32_t m = T_orderDerivative;
+            constexpr uint32_t n = T_numSamplePoints - 1u;
+            uint32_t const nu = index;
 
             // check for bounds of input
             // 1.)+2.)+3.)
@@ -226,23 +224,18 @@ namespace histogram2
             // n > m > 0 and n > nu >= 0
             // unknown wether m > nu
 
-            uint32_t k;
-            uint32_t o;
-
             // 7.): case (m,n,nu)
             if ( m >= nu )
             {
                 // 7.1.) case (m,n,nu): n > m >= nu >= 0
                 // => (m,n,nu) = (nu+o, nu+o+k, nu)
 
-                k = n - m;
-                o = m - nu;
 
                 // 7.1.1.) k > nu
-                if ( k > nu )
+                if ( n - m > nu )
                 {
                     // choose construction method with lowest memory
-                    if ( k > (o + nu) )
+                    if ( n - m > m )
                     {
                         // 7.1.1.1.)
                         return getWeightMNNu_o_ko_0_gt_1(
@@ -266,7 +259,7 @@ namespace histogram2
                 else
                 {
                     // 7.1.2.) k <= nu; m >= nu
-                    if ( k > o + nu )
+                    if ( n - m > m )
                     {
                         // 7.1.2.1.)
                         return getWeightMNNu_o_ko_0_le_1(
@@ -293,15 +286,12 @@ namespace histogram2
             // 8.): case (m,n,nu) ;n > nu > m > 0
             // => (m,n,nu) = (m, m+o+k, m+o)
 
-            k = n - nu;
-            o = nu - m;
-
             // 8.1.)
-            if ( k <= m )
+            if ( n - nu <= m )
             {
                 // 8.1.1)
                 // choose construction method with lowest memory required
-                if ( ( k + o ) < m )
+                if ( ( n - m ) < m )
                 {
                     // 8.1.1.1.)
                     return getWeightMNNu_0_ok_o_le_1(
@@ -327,7 +317,7 @@ namespace histogram2
             else
             {
                 // choose construction method with lowest memory required
-                if ( k + o < m )
+                if ( n - m < m )
                 {
                     // 8.1.2.1.)
                     return getWeightMNNu_0_ko_o_gt_1(
@@ -349,7 +339,9 @@ namespace histogram2
             }
         }
 
-        T_Value equation1( 
+    private:
+
+        static constexpr T_Value equation1( 
             T_Value const I,
             T_Value const II,
             T_Argument const alpha[ T_numSamplePoints ],
@@ -364,7 +356,7 @@ namespace histogram2
                 );
         }
 
-        T_Value equation2( 
+        static constexpr T_Value equation2( 
             T_Value const I,
             T_Argument const alpha[ T_numSamplePoints ],
             uint32_t const n,
@@ -378,7 +370,7 @@ namespace histogram2
                 );
         }
 
-        T_Value equation3( 
+        static constexpr T_Value equation3( 
             T_Value const I,
             T_Argument const alpha[ T_numSamplePoints ],
             uint32_t const n,
@@ -394,7 +386,7 @@ namespace histogram2
 
         /** w_n(x) = prod_(i=0)^(n) (x - alpha_i)
          */
-        T_Argument w(
+        static constexpr T_Argument w(
             T_Argument const x,
             uint32_t const n,
             T_Argument const relativeSamplePoints[ T_numSamplePoints ]
@@ -415,7 +407,7 @@ namespace histogram2
             return result;
         }
 
-        T_Value equation4( 
+        static constexpr T_Value equation4( 
             T_Value const I,
             T_Argument const alpha[ T_numSamplePoints ],
             uint32_t const n
@@ -436,7 +428,7 @@ namespace histogram2
                 );
         }
 
-        T_Value equation5( 
+        static constexpr T_Value equation5( 
             T_Value const I,
             T_Value const II,
             T_Argument const alpha[ T_numSamplePoints ],
@@ -459,7 +451,7 @@ namespace histogram2
                 );
         }
 
-        T_Value equation6( 
+        static constexpr T_Value equation6( 
             T_Value const I,
             T_Argument const alpha[ T_numSamplePoints ],
             uint32_t const m
@@ -475,7 +467,7 @@ namespace histogram2
         // nu ... index
 
         //4.): case (m,m,nu)
-        T_Value getWeightMMNu (
+        static constexpr T_Value getWeightMMNu (
             T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
@@ -508,7 +500,7 @@ namespace histogram2
         }
 
         //5.): case (0,n,nu)
-        T_Value getWeight0NNu (
+        static constexpr T_Value getWeight0NNu (
             T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
@@ -540,7 +532,7 @@ namespace histogram2
         }
 
         // 6.1.): case (m,n,n) ;m > n-m
-        T_Value getWeightMNN_1 (
+        static constexpr T_Value getWeightMNN_1 (
             T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
@@ -549,7 +541,7 @@ namespace histogram2
         {
             uint32_t const k = n - m;
 
-            T_Value weights[ k + 1u ];
+            T_Value weights[ k + 1u ] = {};
 
             // init root with (0,0,0)
             weights[0] = static_cast< T_Value >(1);
@@ -593,7 +585,7 @@ namespace histogram2
         }
 
         // 6.2.): case (m,n,n) ;m < n-m
-        T_Value getWeightMNN_2 (
+        static constexpr T_Value getWeightMNN_2 (
             T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
@@ -602,7 +594,7 @@ namespace histogram2
         {
             uint32_t const k = n - m;
 
-            T_Value weights[ m + 1u ];
+            T_Value weights[ m + 1u ] = {};
 
             // init root with (0,0,0)
             weights[0] = static_cast< T_Value >(1);
@@ -645,7 +637,7 @@ namespace histogram2
         }
 
         // 7.1.1.1): case (m,n,nu) ;m > nu; k > nu; k > o+nu+1
-        T_Value getWeightMNNu_o_ko_0_gt_1 (
+        static constexpr T_Value getWeightMNNu_o_ko_0_gt_1 (
             T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
@@ -655,7 +647,7 @@ namespace histogram2
             uint32_t const k = n - m;
             uint32_t const o = m - nu;
 
-            T_Value weights[ o + nu + 1u ];
+            T_Value weights[ o + nu + 1u ]  = {};
 
             // init root with (0,0,0)
             weights[0] = static_cast< T_Value >(1);
@@ -761,7 +753,7 @@ namespace histogram2
         }
 
         // 7.1.1.2): case (m,n,nu) ;m > nu; k > nu; k < o+nu+1
-        T_Value getWeightMNNu_o_ko_0_gt_2 (
+        static constexpr T_Value getWeightMNNu_o_ko_0_gt_2 (
             T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
@@ -771,7 +763,7 @@ namespace histogram2
             uint32_t const k = n - m;
             uint32_t const o = m - nu;
 
-            T_Value weights[ k + 1u ];
+            T_Value weights[ k + 1u ]  = {};
 
             // init root with (0,0,0)
             weights[0] = static_cast< T_Value >(1);
@@ -858,7 +850,7 @@ namespace histogram2
         }
 
         // 7.1.2.1): case (m,n,nu) ;m > nu; k <= nu; k > o + nu + 1
-        T_Value getWeightMNNu_o_ko_0_le_1 (
+        static constexpr T_Value getWeightMNNu_o_ko_0_le_1 (
             T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
@@ -868,7 +860,7 @@ namespace histogram2
             uint32_t const k = n - m;
             uint32_t const o = m - nu;
 
-            T_Value weights[ o + nu + 1u ];
+            T_Value weights[ o + nu + 1u ]  = {};
 
             // init root with (0,0,0)
             weights[0] = static_cast< T_Value >(1);
@@ -968,7 +960,7 @@ namespace histogram2
         }
 
         // 7.1.2.2): case (m,n,nu) ;m > nu; k <= nu; k < o+nu+1
-        T_Value getWeightMNNu_o_ko_0_le_2 (
+        static constexpr T_Value getWeightMNNu_o_ko_0_le_2 (
             T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
@@ -978,7 +970,7 @@ namespace histogram2
             uint32_t const k = n - m;
             uint32_t const o = m - nu;
 
-            T_Value weights[ k + 1u ];
+            T_Value weights[ k + 1u ] = {};
 
             // init root with (0,0,0)
             weights[0] = static_cast< T_Value >(1);
@@ -1075,7 +1067,7 @@ namespace histogram2
         }
 
         // 8.1.1.1.): case (m,n,nu) ;m < nu; k <= m; k+o < m
-        T_Value getWeightMNNu_0_ko_o_le_1 (
+        static constexpr T_Value getWeightMNNu_0_ko_o_le_1 (
             T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
@@ -1085,7 +1077,7 @@ namespace histogram2
             uint32_t const k = n - nu;
             uint32_t const o = nu - m;
 
-            T_Value weights[ o + k + 1u ];
+            T_Value weights[ o + k + 1u ]  = {};
 
             // init root with (0,0,0)
             weights[ 0 ] = static_cast< T_Value >( 1u );
@@ -1169,7 +1161,7 @@ namespace histogram2
         }
 
         // 8.1.1.2.): case (m,n,nu) ;m < nu; k <= m; k+o >= m
-        T_Value getWeightMNNu_0_ko_o_le_2 (
+        static constexpr T_Value getWeightMNNu_0_ko_o_le_2 (
             T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
@@ -1179,7 +1171,7 @@ namespace histogram2
             uint32_t const k = n - nu;
             uint32_t const o = nu - m;
 
-            T_Value weights[ m + 1u ];
+            T_Value weights[ m + 1u ] = {};
 
             // init root with (0,0,0)
             weights[ 0 ] = static_cast< T_Value >( 1u );
@@ -1263,7 +1255,7 @@ namespace histogram2
         }
 
         // 8.1.2.1.): case (m,n,nu) ;m < nu; k > m; k+o < m
-        T_Value getWeightMNNu_0_ko_o_gt_1 (
+        static constexpr T_Value getWeightMNNu_0_ko_o_gt_1 (
             T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
@@ -1273,7 +1265,7 @@ namespace histogram2
             uint32_t const k = n - nu;
             uint32_t const o = nu - m;
 
-            T_Value weights[ o + k + 1u ];
+            T_Value weights[ o + k + 1u   = {}];
 
             // init root with (0,0,0)
             weights[ 0 ] = static_cast< T_Value >( 1u );
@@ -1338,7 +1330,7 @@ namespace histogram2
         }
 
         // 8.1.2.2.): case (m,n,nu) ;m < nu; k > m; k+o > m
-        T_Value getWeightMNNu_0_ko_o_gt_2 (
+        static constexpr T_Value getWeightMNNu_0_ko_o_gt_2 (
             T_Argument const relativeSamplePoints[ T_numSamplePoints ],
             uint32_t const m,
             uint32_t const n,
@@ -1348,7 +1340,7 @@ namespace histogram2
             uint32_t const k = n - nu;
             uint32_t const o = nu - m;
 
-            T_Value weights[ m + 1u ];
+            T_Value weights[ m + 1u ] = {};
 
             // init root with (0,0,0)
             weights[ 0 ] = static_cast< T_Value >( 1u );
@@ -1452,34 +1444,6 @@ namespace histogram2
                 }
             }
             return weights[ m ];
-        }
-
-
-    public:
-
-        // sample points are defined as (x_i - x_0)/d or directly as x_i - x_0
-
-        T_Value getWeighting( uint32_t const index )
-        {
-            // check bounds of index
-            // < 0 no possible since uint32_t
-            if ( index >= T_numSamplePoints )
-                return this->weightsDerivative[ T_numSamplePoints - 1u ];
-
-            return this->coefficentsDerivation[ index ];
-        }
-
-        FornbergNumericalDifferentation( T_Argument const relativeSamplePoints[ T_numSamplePoints ] )
-        {
-            for (uint32_t i=0u; i < T_numSamplePoints; i++)
-            {
-                this->weightsDerivative[ i ] = calculateWeight(
-                    relativeSamplePoints,
-                    T_orderDerivative,
-                    T_numSamplePoints,
-                    i
-                    );
-            }
         }
     };
 

@@ -157,7 +157,7 @@ namespace picongpu
      * Representations of the internal state of ions in plasmas.
      */
     //Example of number of modelled shells/levels
-    constexpr uint8_t numberLevels_Hydrogen = 4u;   //model 4 shells/levels
+    constexpr uint8_t numberLevels_Hydrogen = 10u;   //model 4 shells/levels
     constexpr uint8_t chargeNumber_Hydrogen = 1u;   //hydrogen charge number=1
 
     /** [depreceated]flylite atomic superconfiguration from
@@ -221,7 +221,7 @@ namespace picongpu
     */
     using ConfigNumber_H =
         particles::atomicPhysics::stateRepresentation::ConfigNumber<
-            uint32_t,
+            uint64_t,
             numberLevels_Hydrogen,
             chargeNumber_Hydrogen
         >;

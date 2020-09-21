@@ -24,7 +24,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/atomicPhysics/AtomicPhysics.kernel"
-#include "picongpu/particles/atomicPhysics/RateMatrix.hpp"
+#include "picongpu/particles/atomicPhysics/AtomicData.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
@@ -66,8 +66,11 @@ namespace atomicPhysics
         using ElectronFrameType = typename ElectronSpecies::FrameType;
 
         // define entry of atomic data table
-        using Items = std::vector< std::pair< uint32_t, float_X > >;
-        Items readData( std::string fileName )
+        using States = std::vector< std::pair< uint64_t, float_X > >;
+        using Transitions = std::vector< std::tuple< uint64_t, uint64_t, float_X > >;
+
+        // read Data method: atomic states
+        Items readStateData( std::string fileName )
         {
             std::ifstream file( fileName );
             if( !file )
@@ -76,12 +79,13 @@ namespace atomicPhysics
                 return Items{};
             }
 
-            Items result;
-            float_X stateIndex;
+            States result;
+            double stateIndex;      // TODO: catch overflow if full uint64 is used
             float_X energyOverGroundState;
-            while (file >> stateIndex >> energyOverGroundState)
+
+            while ( file >> stateIndex >> energyOverGroundState )
             {
-                uint32_t idx = static_cast< uint32_t >( stateIndex );
+                uint64_t idx = static_cast< uint64_t >( stateIndex )
                 auto item = std::make_pair(
                     idx,
                     energyOverGroundState
@@ -91,20 +95,59 @@ namespace atomicPhysics
             return result;
         }
 
+        // read Data method: atomic states
+        Items readTransitionData( std::string fileName )
+        {
+            std::ifstream file( fileName );
+            if( !file )
+            {
+                std::cerr << "Atomic physics error: could not open file " << fileName << "\n";
+                return Items{};
+            }
+
+            double idxLower;
+            double idxUpper;
+            float_X oscillatorStrength;
+
+            // gauntCoeficients
+            float_X cinx[5];
+
+            Transitions result;
+
+            while ( file >> idxlower >> idxUpper
+                >> collisinalOscillatorStrength
+                >> cinx[0] >> cinx[1] >> cinx[2] >> cinx[3] >> cinx[4]
+                )
+            {
+                uint64_t stateIndexLower = static_cast< uint64_t >( idxLower );
+                uint64_t stateIndexUpper = static_cast< uint64_t >( idxUpper );
+
+                auto item = std::make_tuple(
+                    stateIndexLower,
+                    stateIndexUpper,
+                    collisionalOscillatorStrength,
+                    cinx
+                );
+                result.push_back( item );
+            }
+            return result;
+        }
+
         // Constructor loads atomic data
         CallAtomicPhysics()
         {
-            // file names
-            // hard-coded for now, will be parametrized
-            // file name of file containing atomic data
-            std::string levelDataFileName = "~/HydrogenLevels.txt";
-            std::string transitionDataFileName = "~/HydrogenTransitions.txt";
+            /* file names of file containing atomic data
+             *
+             * hard-coded for now, get out of param files later
+             */
+            std::string levelDataFileName = "$ATOMIC_DATA/HydrogenLevels.txt";
+            std::string transitionDataFileName = "$ATOMIC_DATA/HydrogenTransitions.txt";
 
             // read in atomic data
             // levels
-            auto levelDataItems = readData( levelDataFileName );
+            auto levelDataItems = readStateData( levelDataFileName );
             // transitions
-            auto transitionDataItems = readData( transitionDataFileName );
+            auto transitionDataItems = readTransitionData( transitionDataFileName );
 
             // check whether read was sucessfull
             if( levelDataItems.empty() )
@@ -118,22 +161,43 @@ namespace atomicPhysics
                 return;
             }
 
-            // remove the last line with state 1
-            levelDataItems.pop_back();
-            
+            // remove the first line with state 0 from atomic levels
+            // completly ionized ground state energy always zero
+            levelDataItems.pop_front();
 
             // init rate matrix on host and copy to device
-            uint32_t firstStateIndex = levelDataItems[0].first;
-            rateMatrix = pmacc::memory::makeUnique< RateMatrix >(
-                firstStateIndex,
-                levelDataItems.size()
+
+            // create rate Matrix
+            atomicData = pmacc::memory::makeUnique< AtomicData >(
+                levelDataItems.size(),
+                transitionDataItems.size()
             );
-            auto rateMatrixHostBox = rateMatrix->getHostDataBox();
-            for (uint32_t i = 0; i < levelDataItems.size(); i++ )
+
+            // get acess to data box on host side
+            auto atomicDataHostBox = atomicData->getHostDataBox();
+
+            // fill atomic data into dataBox
+            for ( uint32_t i = 0; i < levelDataItems.size(); i++ )
             {
-                rateMatrixHostBox( levelDataItems[i].first ) = levelDataItems[i].second;
+                atomicDataHostBox.addLevel(
+                    levelDataItems[i].first,
+                    levelDataItems[i].second
+                    );
             }
-            rateMatrix->syncToDevice();
+
+            // fill atomic transition data into dataBox
+            for ( uint32_t i = 0; i < transitionDataItems.size(); i++ )
+            {
+                atomicDataHostBox.addTransition(
+                    std::get< 0 >( transitionDataItems[i] ),
+                    std::get< 1 >( transitionDataItems[i] ),
+                    std::get< 2 >( transitionDataItems[i] ),
+                    std::get< 3 >( transitionDataItems[i] )
+                    );
+            }
+
+            // copy data to device buffer of rate Matrix
+            atomicData->syncToDevice();
         }
 
         // Call functor, will be called in MySimulation once per time step
@@ -188,7 +252,7 @@ namespace atomicPhysics
                 electrons.getDeviceParticlesBox( ),
                 ions.getDeviceParticlesBox( ),
                 mapper,
-                rateMatrix->getDeviceDataBox( ),
+                atomicData->getDeviceDataBox( ),
                 relativeErrorTarget,
                 initialGridWidth
             );
@@ -199,7 +263,7 @@ namespace atomicPhysics
 
     private:
 
-        std::unique_ptr< RateMatrix > rateMatrix;
+        std::unique_ptr< AtomicData > atomicData;
 
     };
 
