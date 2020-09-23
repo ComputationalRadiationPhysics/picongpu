@@ -39,7 +39,7 @@ namespace bessel
 
         HDINLINE result operator( )( result const & x )
         {
-#if __CUDA_ARCH__
+#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
             return ::cyl_bessel_i0f( x );
 #else
             return boost::math::cyl_bessel_i(
@@ -57,7 +57,7 @@ namespace bessel
 
         HDINLINE result operator( )( result const & x )
         {
-#if __CUDA_ARCH__
+#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
             return ::cyl_bessel_i1f( x );
 #else
             return boost::math::cyl_bessel_i(
@@ -75,7 +75,7 @@ namespace bessel
 
         HDINLINE result operator( )( result const & x )
         {
-#if __CUDA_ARCH__
+#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu_
             return ::j0f( x );
 #else
             return boost::math::cyl_bessel_j(
@@ -93,7 +93,7 @@ namespace bessel
 
         HDINLINE result operator( )( result const & x )
         {
-#if __CUDA_ARCH__
+#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
             return ::j1f( x );
 #else
             return boost::math::cyl_bessel_j(
@@ -117,7 +117,7 @@ namespace bessel
             result const & x
         )
         {
-#if __CUDA_ARCH__
+#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
             return ::jnf(
                 n,
                 x
@@ -138,7 +138,7 @@ namespace bessel
 
         HDINLINE result operator( )( result const & x )
         {
-#if __CUDA_ARCH__
+#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
             return ::y0f( x );
 #else
             return boost::math::cyl_neumann(
@@ -156,7 +156,7 @@ namespace bessel
 
         HDINLINE result operator( )( result const & x )
         {
-#if __CUDA_ARCH__
+#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
             return ::y1f( x );
 #else
             return boost::math::cyl_neumann(
@@ -180,7 +180,7 @@ namespace bessel
             result const & x
         )
         {
-#if __CUDA_ARCH__
+#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
             return ::ynf(
                 n,
                 x

@@ -143,6 +143,20 @@ namespace traits
         alpaka::acc::AccGpuCudaRt< T_Args... >
     >
     {
+        // GPU Utilization is higher compared to `StridedCachedSupercells`
+        using type = strategy::CachedSupercells;
+    };
+#endif
+
+#if( ALPAKA_ACC_GPU_HIP_ENABLED == 1 )
+    template<
+        typename ... T_Args
+    >
+    struct GetDefaultStrategy<
+        alpaka::acc::AccGpuHipRt< T_Args... >
+    >
+    {
+        // GPU Utilization is higher compared to `StridedCachedSupercells`
         using type = strategy::CachedSupercells;
     };
 #endif
