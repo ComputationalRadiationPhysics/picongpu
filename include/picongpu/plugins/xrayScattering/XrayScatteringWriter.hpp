@@ -213,7 +213,7 @@ private:
                 if ( outputMemoryLayout == OutputMemoryLayout::Distribute )
                 {
                     // Open a series for a parallel write.
-                    openPMDSeries = pmacc::memory::makeUnique< ::openPMD::Series >(
+                    openPMDSeries = std::make_unique< ::openPMD::Series >(
                         fullName,
                         at,
                         mpiCommunicator
@@ -222,7 +222,7 @@ private:
                 else
                 {
                     // Open a series for a serial write.
-                    openPMDSeries = pmacc::memory::makeUnique< ::openPMD::Series >(
+                    openPMDSeries = std::make_unique< ::openPMD::Series >(
                         fullName,
                         at
                     );

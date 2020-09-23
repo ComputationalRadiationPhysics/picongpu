@@ -33,7 +33,6 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/fields/tasks/FieldFactory.hpp>
 #include <pmacc/math/Vector.hpp>
-#include <pmacc/memory/MakeUnique.hpp>
 #include <pmacc/fields/operations/CopyGuardToExchange.hpp>
 #include <pmacc/fields/operations/AddExchangeToBorder.hpp>
 #include <pmacc/traits/Resolve.hpp>
@@ -127,7 +126,7 @@ FieldJ::FieldJ( MappingDesc const & cellDescription ) :
     if( originRecvGuard != DataSpace<simDim>::create(0) ||
         endRecvGuard != DataSpace<simDim>::create(0) )
     {
-        fieldJrecv = pmacc::memory::makeUnique< GridBuffer<ValueType, simDim > >(
+        fieldJrecv = std::make_unique< GridBuffer<ValueType, simDim > >(
             buffer.getDeviceBuffer(),
             cellDescription.getGridLayout( )
         );

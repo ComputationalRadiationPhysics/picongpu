@@ -28,7 +28,6 @@
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
-#include <pmacc/memory/MakeUnique.hpp>
 
 #include "picongpu/particles/traits/GetIonizerList.hpp"
 #if( PMACC_CUDA_ENABLED == 1 )
@@ -99,7 +98,7 @@ struct CreateSpecies
     {
         DataConnector &dc = Environment<>::get().DataConnector();
         dc.consume(
-            pmacc::memory::makeUnique<SpeciesType>(
+            std::make_unique<SpeciesType>(
                 deviceHeap,
                 *cellDesc,
                 FrameType::getName()
@@ -126,7 +125,7 @@ struct LogMemoryStatisticsForSpecies
         const std::shared_ptr<T_DeviceHeap>& deviceHeap
     ) const
     {
-#if( PMACC_CUDA_ENABLED == 1 )
+#if( BOOST_LANG_CUDA || BOOST_COMP_HIP)
         log<picLog::MEMORY >("mallocMC: free slots for species %3%: %1% a %2%") %
             deviceHeap->getAvailableSlots(
                 cupla::manager::Device< cupla::AccDev >::get().current(),

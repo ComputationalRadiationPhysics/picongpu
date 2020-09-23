@@ -48,7 +48,7 @@ namespace acc
     {
         /** manipulate the speed of the particle
          *
-         * @tparam T_Rng pmacc::nvidia::rng::RNG, type of the random number generator
+         * @tparam T_Rng functor::misc::RngWrapper, type of the random number generator
          * @tparam T_Particle pmacc::Particle, particle type
          * @tparam T_Args pmacc::Particle, arbitrary number of particles types
          *

@@ -223,7 +223,8 @@ namespace maxwellSolver
                 Thickness globalThickness;
                 for( uint32_t axis = 0u; axis < simDim; axis++ )
                     for( auto direction = 0; direction < 2; direction++ )
-                        globalThickness( axis, direction ) = absorber::numCells[ axis ][ direction ];
+                        globalThickness( axis, direction ) =
+                            absorber::getGlobalThickness()( axis, direction );
                 return globalThickness;
             }
 

@@ -27,7 +27,6 @@
 #include "pmacc/memory/dataTypes/Mask.hpp"
 #include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
 #include "pmacc/memory/buffers/HostBufferIntern.hpp"
-#include "pmacc/memory/MakeUnique.hpp"
 
 #include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/eventSystem/tasks/TaskReceive.hpp"
@@ -72,7 +71,7 @@ namespace pmacc
             /*This is only a pointer to other device data
              */
             using DeviceBuffer = DeviceBufferIntern<TYPE, DIM>;
-            deviceBuffer = memory::makeUnique<DeviceBuffer>(
+            deviceBuffer = std::make_unique<DeviceBuffer>(
                 source,
                 tmp_size,
                 exchangeTypeToOffset(
@@ -86,7 +85,7 @@ namespace pmacc
             if (DIM > DIM1)
             {
                 /*create double buffer on gpu for faster memory transfers*/
-                deviceDoubleBuffer = memory::makeUnique<DeviceBuffer>(
+                deviceDoubleBuffer = std::make_unique<DeviceBuffer>(
                     tmp_size,
                     false,
                     true
@@ -96,7 +95,7 @@ namespace pmacc
             if(!Environment<>::get().isMpiDirectEnabled())
             {
                 using HostBuffer = HostBufferIntern<TYPE, DIM>;
-                hostBuffer = memory::makeUnique<HostBuffer>(tmp_size);
+                hostBuffer = std::make_unique<HostBuffer>(tmp_size);
             }
         }
 
@@ -105,7 +104,7 @@ namespace pmacc
         Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(nullptr), hostBuffer(nullptr)
         {
             using DeviceBuffer = DeviceBufferIntern<TYPE, DIM >;
-            deviceBuffer = memory::makeUnique<DeviceBuffer>(
+            deviceBuffer = std::make_unique<DeviceBuffer>(
                 exchangeDataSpace,
                 sizeOnDevice
             );
@@ -113,7 +112,7 @@ namespace pmacc
             if (DIM > DIM1)
             {
                 /*create double buffer on gpu for faster memory transfers*/
-                deviceDoubleBuffer = memory::makeUnique<DeviceBuffer>(
+                deviceDoubleBuffer = std::make_unique<DeviceBuffer>(
                     exchangeDataSpace,
                     false,
                     true
@@ -123,7 +122,7 @@ namespace pmacc
             if(!Environment<>::get().isMpiDirectEnabled())
             {
                 using HostBuffer = HostBufferIntern<TYPE, DIM>;
-                hostBuffer = memory::makeUnique<HostBuffer>(exchangeDataSpace);
+                hostBuffer = std::make_unique<HostBuffer>(exchangeDataSpace);
             }
         }
 

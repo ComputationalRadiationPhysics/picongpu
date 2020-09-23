@@ -341,7 +341,7 @@ public:
         );
 
         using RNGFactory = pmacc::random::RNGProvider< simDim, random::Generator >;
-        auto rngFactory = pmacc::memory::makeUnique< RNGFactory >(
+        auto rngFactory = std::make_unique< RNGFactory >(
             Environment<simDim>::get().SubGrid().getLocalDomain().size
         );
         if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
@@ -373,7 +373,9 @@ public:
 
             this->bremsstrahlungPhotonAngle.init();
         }
+#endif
 
+#if( BOOST_LANG_CUDA || BOOST_COMP_HIP)
         auto nativeCudaStream = cupla::manager::Stream<
             cupla::AccDev,
             cupla::AccStream
@@ -425,7 +427,7 @@ public:
             throw std::runtime_error(msg.str());
         }
 
-#if( PMACC_CUDA_ENABLED == 1 )
+#if( BOOST_LANG_CUDA || BOOST_COMP_HIP)
         size_t heapSize = freeGpuMem - reservedGpuMemorySize;
 
         if( Environment<>::get().MemoryInfo().isSharedMemoryPool() )
@@ -443,10 +445,12 @@ public:
             heapSize
         );
         cuplaStreamSynchronize( 0 );
-
-        auto mallocMCBuffer = pmacc::memory::makeUnique< MallocMCBuffer<DeviceHeap> >( deviceHeap );
+#   if( PMACC_CUDA_ENABLED == 1 )
+        auto mallocMCBuffer = std::make_unique< MallocMCBuffer< DeviceHeap > >( deviceHeap );
         dc.consume( std::move( mallocMCBuffer ) );
+#   endif
 #endif
+
         meta::ForEach< VectorAllSpecies, particles::LogMemoryStatisticsForSpecies<bmpl::_1> > logMemoryStatisticsForSpecies;
         logMemoryStatisticsForSpecies( deviceHeap );
 
@@ -455,7 +459,7 @@ public:
 
         IdProvider<simDim>::init();
 
-#if( PMACC_CUDA_ENABLED == 1 )
+#if( BOOST_LANG_CUDA || BOOST_COMP_HIP)
         /* add CUDA streams to the StreamController for concurrent execution */
         Environment<>::get().StreamController().addStreams(6);
 #endif
@@ -683,16 +687,15 @@ private:
 
     void initFields( DataConnector& dataConnector )
     {
-        using pmacc::memory::makeUnique;
-        auto fieldB = makeUnique< FieldB >( *cellDescription );
+        auto fieldB = std::make_unique< FieldB >( *cellDescription );
         dataConnector.consume( std::move( fieldB ) );
-        auto fieldE = makeUnique< FieldE >( *cellDescription );
+        auto fieldE = std::make_unique< FieldE >( *cellDescription );
         dataConnector.consume( std::move( fieldE ) );
-        auto fieldJ = makeUnique< FieldJ >( *cellDescription );
+        auto fieldJ = std::make_unique< FieldJ >( *cellDescription );
         dataConnector.consume( std::move( fieldJ ) );
         for( uint32_t slot = 0; slot < fieldTmpNumSlots; ++slot)
         {
-            auto fieldTmp = makeUnique< FieldTmp >( *cellDescription, slot );
+            auto fieldTmp = std::make_unique< FieldTmp >( *cellDescription, slot );
             dataConnector.consume( std::move( fieldTmp ) );
         }
     }

@@ -24,8 +24,6 @@
 #include "picongpu/particles/startPosition/generic/FreeRng.def"
 #include "picongpu/particles/startPosition/detail/WeightMacroParticles.hpp"
 
-#include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
-
 #include <boost/mpl/integral_c.hpp>
 
 
@@ -43,7 +41,7 @@ namespace acc
     {
         /** set in-cell position and weighting
          *
-         * @tparam T_Rng pmacc::nvidia::rng::RNG, type of the random number generator
+         * @tparam T_Rng functor::misc::RngWrapper, type of the random number generator
          * @tparam T_Particle pmacc::Particle, particle type
          * @tparam T_Args pmacc::Particle, arbitrary number of particles types
          *
