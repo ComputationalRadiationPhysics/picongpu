@@ -20,17 +20,18 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
 #include "picongpu/simulation_defines.hpp"
 
 #include <pmacc/attribute/FunctionSpecifier.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
+#include "picongpu/param/physicalConstants"
 
 #include <cstdint>
 #include <memory>
 #include <utility>
+
+#pragma once
 
 
 namespace picongpu
@@ -39,8 +40,8 @@ namespace particles
 {
 namespace atomicPhysics
 {
-    /** too different classes conatining the same data:
-     * 1. base class ... implements actual functionality
+    /** too different classes giving acess to atomic data:
+     * - base class ... implements actual functionality
      * dataBox class ... provides acess implementation for actual storage in box
      *      encapsulates index shift currently
      */
@@ -84,7 +85,7 @@ namespace atomicPhysics
             uint32_t numStates,
 
             DataBoxValue boxCollisionalOscillatorStrength,
-            DataBoxValue boxcinx1,
+            DataBoxValue boxCinx1,
             DataBoxValue boxCinx2,
             DataBoxValue boxCinx3,
             DataBoxValue boxCinx4,
@@ -99,17 +100,19 @@ namespace atomicPhysics
 
             boxLowerIdx( boxLowerIdx ),
             boxUpperIdx( boxUpperIdx ),
-            boxCollisionalOscillatorStrength( boxCollisionalOscillatorStrength );
-            boxCinx1( bocCinx1 ),
-            boxCinx1( bocCinx2 ),
-            boxCinx1( bocCinx3 ),
-            boxCinx1( bocCinx4 ),
-            boxCinx1( bocCinx5 ),
+            boxCollisionalOscillatorStrength( boxCollisionalOscillatorStrength ),
+            boxCinx1( boxCinx1 ),
+            boxCinx2( boxCinx2 ),
+            boxCinx3( boxCinx3 ),
+            boxCinx4( boxCinx4 ),
+            boxCinx5( boxCinx5 ),
             numTransitions ( numTransitions )
         {
         }
 
-        // get value for state idx in databox
+        // get energy, respective to ground state, of atomic state
+        // @param idx ... configNumber of atomic state
+        // return unit: SI_uints
         HDINLINE ValueType operator( )( Idx const idx )
         {
             // one is a special case
@@ -119,7 +122,8 @@ namespace atomicPhysics
             // search for state in list
             for ( uint32_t i = 0u; i < this->numStates; i++ )
                 if ( boxIdx( i ) == idx )
-                    return boxStateEnergy( i );
+                    return float_X(boxStateEnergy( i ) * picongpu::UNITCONV_eV_to_Joule) /
+                        picongpu::ATOMIC_UNIT_ENERGY);
 
             // atomic state not found return that it is unbound
             return static_cast< ValueType >(-1);
@@ -133,6 +137,18 @@ namespace atomicPhysics
                 if ( boxLowerIdx( i ) == lowerIdx && boxUpperIdx( i ) = upperIdx )
                     return i;
             return numTransitions;
+        }
+
+        // number of Transitions stored in this box
+        HDINLINE uint32_t getNumTransitions( )
+        {
+            return this->numTransition;
+        }
+
+        // number of atomic states stored in this box
+        HDINLINE uint32_t getNumStates( )
+        {
+            return this->numStates;
         }
 
         HDINLINE ValueType getCollisionalOscillatorStrength( uint32_t const index )
@@ -323,7 +339,7 @@ namespace atomicPhysics
         }
 
         //! Get the host data box for the rate matrix values
-        HINLINE DataBoxTypeStates getHostDataBox( )
+        HINLINE DataBoxType getHostDataBox( )
         {
             return DataBoxTypeStates(
                 dataStateEnergy->getHostBuffer( ).getDataBox( ),
@@ -343,7 +359,7 @@ namespace atomicPhysics
         }
 
         //! Get the device data box for the rate matrix values
-        HINLINE DataBoxTypeStates getDeviceDataBox( )
+        HINLINE DataBoxType getDeviceDataBox( )
         {
             return DataBoxTypeStates(
                 dataStateEnergy->getDeviceBuffer( ).getDataBox( ),

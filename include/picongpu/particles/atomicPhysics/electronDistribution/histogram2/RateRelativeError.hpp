@@ -65,7 +65,7 @@ namespace histogram2
         */
         template< uint32_t T_numNodes
         >
-        DINLINE static constexpr float_X chebyshevNodes(
+        DINLINE static float_X chebyshevNodes(
             uint32_t const k
         )
         {
@@ -78,8 +78,8 @@ namespace histogram2
 
             return static_cast< float_X >(
                 pmacc::algorithms::math::cos< float_X >(
-                    (2u*k - 1u)_X/( 2 * T_numNodes )_X
-                    * pmacc::algorithms::math::Pi::value
+                    (2u*k - 1u)_X/( 2 * T_numNodes )_X *
+                    pmacc::algorithms::math::Pi::value
                     )
                 );
         }
@@ -126,15 +126,15 @@ namespace histogram2
             {
                 for ( uint32_t o = 0u; o <= 2* T_orderApprox + 1u; o ++ )
                     {
-                        result += 1._X/( fak( o ) * fak( 2u*a+1u - o ) )
-                            * sigmaDerivative( E, dE, o, // sigma )
-                            * velocityDerivative( E, 2u*a+1u - o, this->mass )
-                            * 1._X/( 2u*a + 2u)
-                            * pmacc::algorithms::math::pow(
+                        result += 1._X/( fak( o ) * fak( 2u*a+1u - o ) ) *
+                            sigmaDerivative( E, dE, o, 0._X ) * // sigma
+                            velocityDerivative( E, 2u*a+1u - o, this->mass ) *
+                            1._X/( 2u*a + 2u) *
+                            pmacc::algorithms::math::pow(
                                 dE/2._X,
                                 static_cast< int >( 2u*a + 2u)
-                                )
-                            * 2._X;
+                                ) *
+                            2._X;
                     }
             }
         }
@@ -174,21 +174,19 @@ namespace histogram2
         }
 
         // TODO: add access to sigma
-        DINLINE static float_X sigmaDerivative( float_X E, float_X dE, uint32_t n )
+        DINLINE float_X sigmaDerivative( float_X E, float_X dE, uint32_t n )
         {
             float_X result = 0._X;
 
             for( uint32_t j = 0u; j < T_numSamplePoints; j++ )
             {
-                result += this->weights[ n  * T_numSamplePoints + i ]
-                    * // sigma( chebyshevNodes(  ) )
-                    /dE;
-            }
+                result += this->weights[ n  * T_numSamplePoints + j ]
+                    * 1._X / // sigma( chebyshevNodes(  ) )
+                    dE;
             }
 
             return result;
         }
-
     };
 
 } // namespace histogram2

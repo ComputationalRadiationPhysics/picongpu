@@ -44,7 +44,7 @@ namespace histogram2
         uint32_t T_maxNumBins,
         uint32_t T_maxNumNewBins,
         typename T_RelativeError,
-        typename T_RateMatrixBox
+        typename T_AtomicDataBox
     >
     struct AdaptiveHistogram
     {
@@ -79,7 +79,7 @@ namespace histogram2
         // bin width choosen such that relativeError as close to target
         // TODO: make template parameter
         float_X relativeErrorTarget;
-        T_RelativeErrorFunction relativeError;
+        T_RelativeError relativeError;
         T_RateMatrixBox rateMatrixBox;
 
         // defines initial global grid

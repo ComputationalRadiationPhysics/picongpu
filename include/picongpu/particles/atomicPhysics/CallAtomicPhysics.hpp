@@ -70,13 +70,13 @@ namespace atomicPhysics
         using Transitions = std::vector< std::tuple< uint64_t, uint64_t, float_X > >;
 
         // read Data method: atomic states
-        Items readStateData( std::string fileName )
+        States readStateData( std::string fileName )
         {
             std::ifstream file( fileName );
             if( !file )
             {
                 std::cerr << "Atomic physics error: could not open file " << fileName << "\n";
-                return Items{};
+                return States{};
             }
 
             States result;
@@ -96,7 +96,7 @@ namespace atomicPhysics
         }
 
         // read Data method: atomic states
-        Items readTransitionData( std::string fileName )
+        Transitions readTransitionData( std::string fileName )
         {
             std::ifstream file( fileName );
             if( !file )
@@ -263,7 +263,7 @@ namespace atomicPhysics
 
     private:
 
-        std::unique_ptr< AtomicData > atomicData;
+        std::unique_ptr< AtomicData< uint64_t > > atomicData;
 
     };
 

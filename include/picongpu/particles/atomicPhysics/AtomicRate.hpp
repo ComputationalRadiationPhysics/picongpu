@@ -17,13 +17,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#inlcude <pmacc/algorithms/math.hpp
+#inlcude "picongpu/param/physicalConstants.param"
+#include <pmacc/algorithms/math.hpp>
+
 
 #pragma once
 
-/** rate calculation from given atomic data, extracted from flylite based on FLYchk
+/** rate calculation from given atomic data, extracted from flylite, based on FLYchk
+ *
  *
  * References:
+ * - Axel Huebl
+ *  flylite, not yet published
+ *
  *  - R. Mewe.
  *  "Interpolation formulae for the electron impact excitation of ions in
  *  the H-, He-, Li-, and Ne-sequences."
@@ -35,59 +41,106 @@
  *  High Energy Dennsity Physics 3, 342-352 (2007)
  */
 
+#include <pmaccc/algrotihms/math.hpp>
+#include "picongpu/param/physicalConstants"
+
+
+#pragma once
+
 namespace picongpu
 {
 namespace particles
 {
 namespace atomicPhysics
 {
-    /*
-    def __init__(self, atomic_levels, b_transitions):
-        """
-        Parameters
-        ----------
-        atomic_levels: flylite.utils.data.AtomicLevels
-            atomic structure of element
-        b_transitions: flylite.utils.data.AtomicTransitions
-            bound-bound transition data
-        """
-        self.atomic_levels = atomic_levels
-        self.b_transitions = b_transitions
-    */
-
     template<
         typename T_TypeIndex
         typename T_AtomicDataBox
     >
     class AtomicRate
     {
+     public:
         using constexpr Idx = T_TypeIndex;
         using constexpr AtomicDataBox = T_AtomicDataBox;
 
+    private:
+        /** gaunt factor like suppression of crosssection
+         *
+         * @param energyDifference ... difference of energy between atomic states
+         *      unit: 2*Ry ... double the Rydberg energy == picongpu::ATOMIC_UNIT_ENERGY
+         * @param energy Electron ... energy of electron
+         *      unit: 2*Ry ... see energyDifference
+         * @param indexTransition ... internal index of transition in atomicDataBox
+         *      use findIndexTransition method of atomicDataBox and screen for not found value
+         *      BEWARE: method assumes that indexTransition is valid, undefined behaviour otherwise
+         *
+         * return uint: unitless
+         */
         float_X gauntFactor(
-            Idx const idxLower,
-            Idx const idxUpper,
-            float_X energyElectron, // energy in eV
+            float_X energyDifference,
+            float_X energyElectron,
+            uint32_t indexTransition,
             AtomicDataBox atomicDataBox
             )
         {
-            // energy difference of atomic states
-            float_X energyDifference = atomicDataBox( idxUpper ) - atomicDataBox( idxLower );
-
             // get gaunt coeficients
-            uint32_t const i = atomicDataBox.findTransition( idxLower, idxUpper );
-            float_X const A = atomicDataBox.getCxin1( i );
-            float_x const B = atomicDataBox.getCxin2( i );
-            float_X const C = atomicDataBox.getCxin3( i );
-            float_X const D = atomicDataBox.getCxin4( i );
-            float_X const a = atomicDataBox.getCxin5( i );
+            float_X const A = atomicDataBox.getCxin1( indexTransition );
+            float_x const B = atomicDataBox.getCxin2( indexTransition );
+            float_X const C = atomicDataBox.getCxin3( indexTransition );
+            float_X const D = atomicDataBox.getCxin4( indexTransition );
+            float_X const a = atomicDataBox.getCxin5( indexTransition );
 
-            // calculate Gaunt Factor
+            // calculate gaunt Factor
             float_X const U = energyElectron / energyDifference;
-            float_X const  g = A * math::log(U) + B + C / ( U + a ) + D / ( U + a )**2;
+            float_X const g = A * math::log(U) + B + C / ( U + a ) + D / pmacc::algorithms::math::pow( U + a, 2 );
 
             // make sure 
             return g * (U > 1.0);
+        }
+
+        // @param energyElectron ... uint: picongpu::ATOMIC_UNIT_ENERGY
+        // returns unit: m^2
+        float_X collisionalExcitationCrosssection(
+            Idx const lowerIdx,
+            Idx const upperIdx,
+            float_X const energyElectron,
+            AtomicDataBox atomicDataBox
+            )
+        {
+            // energy difference between atomic states
+            float_X const energyDifference = atomicDataBox( upperIdx ) - atomicDataBox( lowerIdx );
+
+            //collisional absorption obscillator strength of transition [unitless]
+            uint32_t const indexTransition = atomicDataBox.findTransition( idxLower, idxUpper );
+
+            // check whether Transition exists
+            if ( indexTransition == atomicDataBox.getNumTransitions() )
+                return 0._X; // 0 crossection for non existing transition,
+            // BEWARE: input data may be incomplete
+            // TODO: implement fallback
+
+            float_X const collisionalOscillatorStrength = atomicDataBox.getCollisionalOscillatorStrength( indexTransition );
+
+            // physical constants, ask Axel Huebl if you want to know more
+            float_X c0_SI = float_X( 8._X *
+                pmacc::algorithms::math::pow( picongpu::pi * picongpu::BOHR_RADIUS, 2 ) /
+                pmacc::algorithms::math::sqrt( 3._X) ); // uint: m^2
+            float_X c0 = c0_SI /
+
+            // uint: m^2
+            return c0_SI *
+                pmacc::algorithms::math::pow(
+                    ( picongpu::ATOMIC_UNIT_ENERGY / 2._X )
+                    / energyDifference, 2
+                    )
+                * collisionalOscillatorStrength
+                * ( energyDifference / energyElectron )
+                * gauntFactor( lowerIdx, upperIdx, energyElectron );
+        }
+
+        float_x collisionalDeExcitationCrosssection()
+        {
+            
         }
 
         DINLINE float_X operator()(
@@ -99,61 +152,9 @@ namespace atomicPhysics
         {
             
         }
-
-        float_X collosionalExcitationCrosssection( Idx const lowerIdx, Idx const upper Idx)
-        {
-            return 0._X;
-        }
     }
 
 /*
-*/
-
-    def ex_times_Ene(self, iz, i, j):
-        """
-        same as `ex` but times energy and without gaunt factor
-
-        this function does not depend on the energy of the incoming particle
-
-        Returns
-        -------
-        cross-section [cm^2] * incoming e- energy [eV] / Gaunt factor
-        """
-        # atomic data
-        #   energy difference (transition energy) between level
-        #   j (upper) and i (lower) level
-        dEne = self._get_state_dEne(iz, i, j)
-        #   absorption obscillator strength from i to j [unitless]
-        f = self._get_state_f(iz, i, j)
-        
-        # constants
-        a0 = 5.292e-9 # Bohr radius [cm]
-        c0 = 8.0 * ( np.pi * a0 )**2 / 3.**0.5 # [cm^2]
-        EneH = 13.605693 # Rydberg unit of energy: Hydrogen ioniz. energy [eV]
-
-        return c0 * ( EneH / dEne )**2 * f * dEne
-
-    def ex(self, iz, i, j, Ene):
-        """
-        Collisional Excitation Cross-Section
-
-        Parameters
-        ----------
-        iz: (unsigned) int
-            charge state [unitless]
-        i: (unsigned) int
-            lower level [unitless]
-        j: (unsigned) int
-            upper level [unitless]
-        E: float
-            energy of incoming electron [eV]
-
-        Returns
-        -------
-        cross-section [cm^2]
-        """
-        return self.ex_times_Ene(iz, i, j) * self.gaunt(iz, i, j, Ene) / Ene
-
     def dx_times_Ene(self, iz, i, j):
         """
         see `ex_times_Ene`
@@ -204,7 +205,7 @@ namespace atomicPhysics
         ))]
         
         return trans_ij['faax']
-
+*/
 } // namespace atomicPhysics
 } // namespace particles
 } // namespace picongpu

@@ -103,10 +103,10 @@ namespace atomicPhysics
                         auto const particle = frame[ linearIdx ];
 
                         using FrameType = typename electronBox::T_ElectronBox;
-                        float_X const mass = = FrameType::getMass<FrameType>();
+                        float_X const mass = FrameType::getMass<FrameType>();
 
                         // attribute::getMass(1.0_X, particle); //particle[ massRatio_ ] * SI::BASE_MASS;     //Unit: kg
-                        constexpr auto c = SI::SPEED_OF_LIGHT_SI;   //internal units
+                        constexpr auto c = SI::SPEED_OF_LIGHT_SI;   //si units
 
                         float3_X vectorP = particle[ momentum_ ];
                         // internal units
@@ -115,11 +115,12 @@ namespace atomicPhysics
                         // note about math functions:
                         // in the dev branch need to add pmacc:: and acc as first parameter
 
-                        using pow = pmacc::algorithms::math::pow;
-
                         //unit: kg*m^2/s^2 = Nm
                         auto const energy = math::sqrt(
-                                 pow( m, 2 ) * pow( c, 4 ) + pSquared * pow( c, 2 )
+                                 pmacc::algorithms::math::pow( mass, 2 )
+                                 * pmacc::algorithms::math::pow( c, 4 )
+                                 + pSquared
+                                 * pmacc::algorithms::math::pow( c, 2 )
                         );
                         histogram->binObject(
                             acc,

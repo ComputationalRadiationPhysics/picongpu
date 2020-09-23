@@ -105,8 +105,7 @@ namespace atomicPhysics
             using Histogram = electronDistribution::histogram2::AdaptiveHistogram<
                 T_maxNumBins,
                 frameSize,
-                RelativeError
-                >,
+                RelativeError,
                 T_AtomicDataBox
             >;
             // get new histogram

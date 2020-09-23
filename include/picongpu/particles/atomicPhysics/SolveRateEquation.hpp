@@ -84,14 +84,14 @@ namespace atomicPhysics
             // TODO: implement rate matrix calculation
             ConfigNumberDataType oldState = ion[ atomicConfigNumber_ ];
 
-            float_X rate = Rate( oldState, newState, energy, atomicDataBox );
+            float_X rate = Rate( oldState, newState, Energy, atomicDataBox ); // get Energy form histogram Bin
 
             float_X rateSI = 1.0_X;
             float_X deltaEnergy = 0.0_X;
             // TODO: compute rate matrix - now accessible as rateMatrixBox( integer )
             // to get rateSI and deltaE
             float_X quasiProbability = rateSI * timeRemainingSI;
-            if ( quasiPprobability >= 1.0_X )
+            if ( quasiProbability >= 1.0_X )
             {
                 ion[ atomicConfigNumber_ ].configNumber = newState;
                 timeRemainingSI -= 1.0_X / rateSI;
