@@ -163,7 +163,7 @@ public:
 
             datatype = ::openPMD::determineDatatype< T_ValueType >( );
             // Create the output file.
-            openSeries( ::openPMD::AccessType::CREATE );
+            openSeries( ::openPMD::Access::CREATE );
             openPMDSeries->setMeshesPath( "scatteringData" );
             openPMDSeries->setAttribute("totalSimulationCells",
                 totalSimulationCells);
@@ -200,7 +200,7 @@ private:
          *
          * @param at OpenPMD API access type.
          */
-        HINLINE void openSeries( ::openPMD::AccessType at )
+        HINLINE void openSeries( ::openPMD::Access at )
         {
             if( !openPMDSeries )
             {
@@ -334,7 +334,7 @@ public:
             std::vector< T_ValueType > & imagVec
         )
         {
-            openSeries( ::openPMD::AccessType::READ_WRITE );
+            openSeries( ::openPMD::Access::READ_WRITE );
 
             ::openPMD::Mesh mesh = prepareMesh( currentStep );
             ::openPMD::MeshRecordComponent mrc_real = prepareMRC(
@@ -385,7 +385,7 @@ public:
             std::vector< T_ValueType > & imagVec
         )
         {
-            openSeries( ::openPMD::AccessType::READ_WRITE );
+            openSeries( ::openPMD::Access::READ_WRITE );
 
             // Get openPMD mesh record components for the real and imaginary
             // parts.
