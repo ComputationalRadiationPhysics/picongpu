@@ -10,7 +10,6 @@ The maximum deviation value multiplied by the cell's volume is printed.
 .. attention::
 
    This plugin assumes a Yee-like divergence E stencil!
-   Do not use it together with other field solvers like *directional splitting* (for the *Lehe* solver it is still correct).
 
 .cfg file
 ^^^^^^^^^
