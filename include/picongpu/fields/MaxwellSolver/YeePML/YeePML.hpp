@@ -444,7 +444,7 @@ namespace maxwellSolver
 
         static pmacc::traits::StringProperty getStringProperties( )
         {
-            pmacc::traits::StringProperty propList( "name", "YeePML" );
+            pmacc::traits::StringProperty propList( "name", "Yee" );
             return propList;
         }
 
