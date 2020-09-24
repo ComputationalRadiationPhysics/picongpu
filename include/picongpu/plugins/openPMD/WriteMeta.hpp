@@ -163,6 +163,12 @@ namespace openPMD
             const std::string fieldSolver( fieldSolverProps[ "name" ].value );
             meshes.setAttribute( "fieldSolver", fieldSolver );
 
+            if( fieldSolverProps.find( "param" ) != fieldSolverProps.end() )
+            {
+                const std::string fieldSolverParam( fieldSolverProps[ "param" ].value );
+                meshes.setAttribute( "fieldSolverParameters", fieldSolverParam );
+            }
+
             /* order as in axisLabels:
              *    3D: z-lower, z-upper, y-lower, y-upper, x-lower, x-upper
              *    2D: y-lower, y-upper, x-lower, x-upper
