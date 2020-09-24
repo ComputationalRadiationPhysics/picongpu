@@ -35,7 +35,8 @@ project(PIConGPUapp)
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-
+set(ReductionProject_DIR /bigdata/hplsim/scratch/bastra78/Reduction_library_test/)
+#set(ReductionLibrary_DIR /bigdata/hplsim/scratch/bastra78/Reduction_library_test)
 # set helper pathes to find libraries and packages
 # Add specific hints
 list(APPEND CMAKE_PREFIX_PATH "$ENV{MPI_ROOT}")
@@ -44,6 +45,7 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HDF5_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{ADIOS_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{OPENPMD_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{ReductionLibrary_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 
@@ -371,6 +373,26 @@ else(ISAAC_FOUND)
         message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH")
     endif()
 endif(ISAAC_FOUND)
+
+######################################
+# Particle reduction
+######################################
+
+
+find_package(ReductionProject)
+
+if(ReductionProject_FOUND)
+    message(STATUS "Found ReductionLibrary: ${ReductionLibrary_DIR}")
+    find_package(ReductionLibrary)
+    set(ReductionLibrary_INCLUDE_DIRS "/bigdata/hplsim/scratch/bastra78/Reduction_library_test/include")
+    include_directories(SYSTEM ${ReductionLibrary_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ReductionProject)
+
+    
+    message("libs == " ${LIBS})
+else(ReductionProject_FOUND)
+    message(STATUS "Could NOT find ReductionLibrary - set ReductionLibrary_DIR or check your CMAKE_PREFIX_PATH")
+endif(ReductionProject_FOUND)
 
 ################################################################################
 # Check if PIC_EXTENSION_PATH is relative or absolute

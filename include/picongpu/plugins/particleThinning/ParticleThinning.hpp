@@ -22,6 +22,8 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
+//#include "/bigdata/hplsim/scratch/bastra78/Reduction_library_test/include/reduction_library/thinning/Thinning.hpp"
+#include "reduction_library/thinning/Thinning.hpp"
 #include "picongpu/plugins/particleThinning/ParticleThinning.kernel"
 
 

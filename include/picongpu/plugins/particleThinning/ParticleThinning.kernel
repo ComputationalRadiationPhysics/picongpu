@@ -20,6 +20,8 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "reduction_library/Particle.hpp"
+#include "reduction_library/thinning/KernelThinning.hpp"
 
 
 // #include ...
@@ -28,8 +30,6 @@
 namespace reduction_library{
 namespace particle{
 
-/*    // this is too simplistic
-    // partially specialize
     template<
         typename T_particle,
         typename T_ValueType
@@ -48,7 +48,7 @@ namespace particle{
         {
             particle[ weighting_ ] = value;
         }
-    };*/
+    };
 
 } // namespace particle
 } // namespace reduction_library
@@ -74,10 +74,11 @@ namespace particleThinning
             T_Acc const & acc,
             T_ParticleBox particleBox,
             T_Mapping mapper,
-            float_X ratioDeletedParticles
+            reduction_library::thinning::KernelThinning algorithm
         ) const
         {
             using namespace mappings::threads;
+           
 
             //// todo: express framesize better, not via supercell size
             constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
@@ -123,7 +124,7 @@ namespace particleThinning
                         if( linearIdx < particlesInFrame )
                         {
                             auto const particle = frame[ linearIdx ];
-                            // ...collect( acc, particle );
+                            algorithm.collect( acc, particle );
                         }
                     }
                 );
@@ -132,9 +133,12 @@ namespace particleThinning
                 particlesInFrame = frameSize;
             }
 
-            // syncthreads
-            // only master calls .process( acc )
-            // synchtreads
+			cupla::__syncthreads( acc );
+			
+            if ( linearIdx == 0 ) {
+            	algorithm.process( acc );    
+            }
+            cupla::__syncthreads( acc );
 
             while( frame.isValid( ) )
             {
@@ -151,9 +155,10 @@ namespace particleThinning
                         {
                             auto particle = frame[ linearIdx ];
                             auto const oldWeighting = particle[ weighting_ ];
-                            // ...reduce( acc, particle );
-                            if( particle[ weighting_ ])
+                            algorithm.reduce( acc, particle );
+                            if( particle[ weighting_ ]
                             {
+                            	cupla::atomicAdd(acc,  particle[momentum_], particle[ weighting_ ]/oldWeighting * momentum[i], ::alpaka::hierarchy::Threads{} );
                                 // particle is kept, but maybe with a 
                                 // different weight
                                 // need to rescale momentum according to weight change
