@@ -75,7 +75,6 @@
 #   include "picongpu/plugins/particleCalorimeter/ParticleCalorimeter.hpp"
 #   include "picongpu/plugins/radiation/VectorTypes.hpp"
 #   include "picongpu/plugins/radiation/Radiation.hpp"
-#   include "picongpu/plugins/hdf5/HDF5Writer.hpp"
 #endif
 
 #include "picongpu/plugins/Checkpoint.hpp"
@@ -189,10 +188,6 @@ private:
 
 #if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
         , isaacP::IsaacPlugin
-#endif
-
-#if (ENABLE_HDF5 == 1)
-        , plugins::multi::Master< hdf5::HDF5Writer >
 #endif
         , ResourceLog
     >;

@@ -27,9 +27,6 @@
 #if(ENABLE_ADIOS == 1)
 #   include "picongpu/plugins/adios/ADIOSWriter.hpp"
 #endif
-#if(ENABLE_HDF5 == 1)
-#   include "picongpu/plugins/hdf5/HDF5Writer.hpp"
-#endif
 #if (ENABLE_OPENPMD == 1)
 #   include "picongpu/plugins/openPMD/openPMDWriter.hpp"
 #endif
@@ -60,9 +57,6 @@ namespace picongpu
 #endif
 #if(ENABLE_ADIOS == 1)
             ioBackendsHelp[ "adios" ] = std::shared_ptr< plugins::multi::IHelp >( adios::ADIOSWriter::getHelp() );
-#endif
-#if(ENABLE_HDF5 == 1)
-            ioBackendsHelp[ "hdf5" ] = std::shared_ptr< plugins::multi::IHelp >( hdf5::HDF5Writer::getHelp() );
 #endif
             // if adios is enabled the default is adios
             if( !ioBackendsHelp.empty( ) )
