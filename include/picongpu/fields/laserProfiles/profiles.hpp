@@ -21,9 +21,10 @@
 #pragma once
 
 #include "picongpu/fields/laserProfiles/ExpRampWithPrepulse.hpp"
-#include "picongpu/fields/laserProfiles/GaussianBeam.hpp"
 #include "picongpu/fields/laserProfiles/PlaneWave.hpp"
 #include "picongpu/fields/laserProfiles/Polynom.hpp"
 #include "picongpu/fields/laserProfiles/PulseFrontTilt.hpp"
 #include "picongpu/fields/laserProfiles/Wavepacket.hpp"
 #include "picongpu/fields/laserProfiles/None.hpp"
+#include "picongpu/fields/laserProfiles/GaussianBeam.hpp"
+#include "picongpu/fields/laserProfiles/GeneralisedLaguerreBeam.hpp"//needs to be hidden for gaussianbeam
