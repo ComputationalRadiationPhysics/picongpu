@@ -10,14 +10,16 @@ export MY_MAIL="someone@example.com"
 export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Project Information ######################################## (edit this line)
-#   - project account for computing time
-export proj=$(jutil user projects -n | awk '{print $NF}')
+#   - project and account for allocation
+export proj=$(groups | awk '{print $4}')
+export account=$(jutil user projects -n | awk '{print $NF}')
+
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="nano"
 
 # Set up environment, including $SCRATCH and $PROJECT
-jutil env activate -p $proj
+jutil env activate -p $proj -A $account
 
 # General modules #############################################################
 #
@@ -84,7 +86,7 @@ function getNode() {
         return 1
     fi
     echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
-    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --gres=gpu:4 --mem=180000 -A $proj -p gpus bash
+    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --gres=gpu:4 --mem=180000 -A $account -p gpus bash
 }
 
 # allocate an interactive shell for one hour
@@ -101,7 +103,7 @@ function getDevice() {
         fi
     fi
     echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
-    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:4 --mem=180000 -A $proj -p gpus bash
+    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:4 --mem=180000 -A $account -p gpus bash
 }
 
 # Load autocompletion for PIConGPU commands
