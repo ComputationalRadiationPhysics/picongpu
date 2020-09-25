@@ -50,8 +50,8 @@ namespace traits
                     T_CurrentInterpolation,
                     T_cherenkovFreeDir
                 >::getStringProperties();
-            // overwrite the name of the YeePML solver (inherit all other properties)
-            propList["name"].value = "LehePML";
+            // overwrite the name of the solver (inherit all other properties)
+            propList[ "name" ].value = "Lehe";
             return propList;
         }
     };
