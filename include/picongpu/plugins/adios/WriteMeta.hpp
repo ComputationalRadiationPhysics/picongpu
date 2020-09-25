@@ -184,6 +184,13 @@ namespace writeMeta
             const std::string fieldSolver( fieldSolverProps["name"].value );
             ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
                 "fieldSolver", fullMeshesPath.c_str(), adios_string, 1, (void*)fieldSolver.c_str()));
+            if( fieldSolverProps.find( "param" ) != fieldSolverProps.end() )
+            {
+                const std::string fieldSolverParam( fieldSolverProps[ "param" ].value );
+                ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                    "fieldSolverParameters", fullMeshesPath.c_str(), adios_string,
+                    1, (void*)fieldSolverParam.c_str()));
+            }
 
             /* order as in axisLabels:
              *    3D: z-lower, z-upper, y-lower, y-upper, x-lower, x-upper

@@ -35,6 +35,11 @@ namespace traits
      * This class inherit from `std::map`.
      * If the `operator[]` is used to access a not existing key an empty StringProperty
      * with the given key is inserted (default behavior of `std::map`)
+     *
+     * Key naming convention:
+     *     "name" for name, openPMD-compatible when possible
+     *     "param" for additional parameters, corresdponding to openPMD
+     *             ...Parameters attribute
      */
     struct StringProperty : public std::map< std::string, StringProperty >
     {
