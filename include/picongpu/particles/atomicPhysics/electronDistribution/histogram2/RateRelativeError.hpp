@@ -24,7 +24,7 @@
 
 #include <pmacc/algorithms/math.hpp>
 #include <utility>
-
+#include "picongpu/param/physicalConstants.param"
 
 namespace picongpu
 {
@@ -37,19 +37,25 @@ namespace electronDistribution
 namespace histogram2
 {
 
+
     template<
-        uint32_t T_orderApprox,     // error approximation of order 2 * T_orderApprox +1
-                                    // in crosssection + velocity and 0th order in electron density
+        uint32_t T_maxOrderApprox,  // half of maximum order of error approximation,
+                                    // in crosssection + velocity and 0th order in
+                                    // electron density
+        uint32_t T_minOrderapprox   // half of starting order of error approximation,
+                                    // T_minOrderapprox <= a <= T_maxOrderApprox,
+                                    // approx order of rate used
         uint32_t T_numSamplePoints, // number of sample points used for numerical sigma differentiation
         typename T_WeightingGen     // type of numerical differentiation method used
+        typename T_AtomicRate       // atomic rate functor
     >
     class RateRelativeError
     {
         // necessary for velocity derivation
-        float_X mass;
+        float_64 constexpr mass = picongpu::SI::ELECTRON_MASS_SI;
 
         //storage of weights for later use
-        float_X weights[ T_numSamplePoints * ( 2u + T_orderApprox + 2u ) ];
+        float_X weights[ T_numSamplePoints * (2u * T_maxOrderApprox + 1u) ];
 
         /** returns the k-th of T_numNodes chebyshev nodes x_k, interval [-1, 1]
         *
@@ -63,11 +69,8 @@ namespace histogram2
         *
         * see https://en.wikipedia.org/wiki/Chebyshev_nodes for more information
         */
-        template< uint32_t T_numNodes
-        >
-        DINLINE static float_X chebyshevNodes(
-            uint32_t const k
-        )
+        template< uint32_t T_numNodes >
+        DINLINE static float_X chebyshevNodes( uint32_t const k )
         {
             // check for bounds on k
             // return boundaries if outside of boundary
@@ -86,9 +89,8 @@ namespace histogram2
 
     public:
 
-        DINLINE void init( float_X mass )
+        DINLINE void init( )
         {
-            this->mass = mass;
 
             float_X samplePoints[ T_numSamplePoints ];
 
@@ -97,37 +99,43 @@ namespace histogram2
 
             for ( uint32_t i = 1u; i < T_numSamplePoints; i++ )
             {
-                samplePoints[ i ] = chebyshevNodes< ( T_numSamplePoints - 1u ) >( i + 1u );
+                samplePoints[ i ] = chebyshevNodes< ( T_numSamplePoints - 1u ) >( i );
             }
 
             // calculate weightings for each order derivative until maximum
-            for ( uint32_t i = 0u; i <= (2u * T_orderApprox + 1u); i++ )    // i order of derivation
+            for ( uint32_t i = 0u; i <= ( 2u * T_orderApprox ); i++ )    // i ... order of derivation
             {
-                for (uint32_t j = 0u; j < T_numSamplePoints; j++ )  // j sample point
+                for ( uint32_t j = 0u; j < T_numSamplePoints; j++ )  // j ... sample point
                 {
                     this->weights[ j + i * T_numSamplePoints ] = T_WeightingGen::weighting<
-                    T_numSamplePoints,
-                    j
-                >(
-                    i,
-                    samplePoints
-                    );
+                        T_numSamplePoints,
+                        i
+                    >(
+                        j,
+                        samplePoints
+                        );
                 }
             }
         }
 
 
         // TODO:
-        DINLINE float_X operator() ( float_X dE, float_X E, float_X mass ) // TODO: get acess to sigma values
+        template< typename T_AtomicRate >
+        DINLINE float_X operator() (
+            float_X dE,
+            float_X E
+            ) const // TODO: get acess to sigma values
         {
             float_X result = 0;
 
-            for ( uint32_t a = 0u; a <= T_orderApprox; a++)
+            // a ... order of rate approximation
+            for ( uint32_t a = T_minOrderapprox; a <= T_orderApprox; a++ )
             {
-                for ( uint32_t o = 0u; o <= 2* T_orderApprox + 1u; o ++ )
+                // o ... derivative order
+                for ( uint32_t o = 0u; o <= 2 * T_orderApprox; o++ )
                     {
-                        result += 1._X/( fak( o ) * fak( 2u*a+1u - o ) ) *
-                            sigmaDerivative( E, dE, o, 0._X ) * // sigma
+                        result += 1.0/( fak( o ) * fak( 2u*a - o ) ) *
+                            sigmaDerivative< T_AtomicRate >( E, dE, o ) *
                             velocityDerivative( E, 2u*a+1u - o, this->mass ) *
                             1._X/( 2u*a + 2u) *
                             pmacc::algorithms::math::pow(
@@ -140,13 +148,13 @@ namespace histogram2
         }
 
     private:
-        DINLINE static uint32_t fak ( const uint32_t n )
+        DINLINE static float_64 fak ( const uint32_t n )
         {
-            uint32_t result = 1u;
+            float_64 result = 1u;
 
             for ( uint32_t i = 1u; i <= n; i++ )
             {
-                result *= i;
+                result *= static_cast< float_64 >( i );
             }
 
             return result;
@@ -174,14 +182,23 @@ namespace histogram2
         }
 
         // TODO: add access to sigma
-        DINLINE float_X sigmaDerivative( float_X E, float_X dE, uint32_t n )
+        template<
+            typename T_AtomicRate,
+            typename T_AtomicDataBox,
+            typename Idx
+            >
+        DINLINE float_X sigmaDerivative(
+            float_X E,
+            float_X dE,
+            uint32_t n,
+            T_AtomicDataBox atomicDataBox )
         {
             float_X result = 0._X;
 
             for( uint32_t j = 0u; j < T_numSamplePoints; j++ )
             {
                 result += this->weights[ n  * T_numSamplePoints + j ]
-                    * 1._X / // sigma( chebyshevNodes(  ) )
+                    * 1._X / T_AtomicRate::totalCrossection< Idx >( E,  ) // sigma( chebyshevNodes(  ) )
                     dE;
             }
 

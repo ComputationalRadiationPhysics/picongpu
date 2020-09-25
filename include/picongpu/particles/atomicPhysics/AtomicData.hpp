@@ -25,7 +25,7 @@
 #include <pmacc/attribute/FunctionSpecifier.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
-#include "picongpu/param/physicalConstants"
+#include "picongpu/param/physicalConstants.param"
 
 #include <cstdint>
 #include <memory>
@@ -107,8 +107,7 @@ namespace atomicPhysics
             boxCinx4( boxCinx4 ),
             boxCinx5( boxCinx5 ),
             numTransitions ( numTransitions )
-        {
-        }
+        {}
 
         // get energy, respective to ground state, of atomic state
         // @param idx ... configNumber of atomic state
@@ -121,10 +120,13 @@ namespace atomicPhysics
 
             // search for state in list
             for ( uint32_t i = 0u; i < this->numStates; i++ )
+            {
                 if ( boxIdx( i ) == idx )
+                {
                     return float_X(boxStateEnergy( i ) * picongpu::UNITCONV_eV_to_Joule) /
                         picongpu::ATOMIC_UNIT_ENERGY);
-
+                }
+            }
             // atomic state not found return that it is unbound
             return static_cast< ValueType >(-1);
         }
@@ -137,6 +139,16 @@ namespace atomicPhysics
                 if ( boxLowerIdx( i ) == lowerIdx && boxUpperIdx( i ) = upperIdx )
                     return i;
             return numTransitions;
+        }
+
+        HDINLINE Idx getUpperIdx( uint32_t transitionIndex ) const
+        {
+            return boxUpperIdx( transitionIndex );
+        }
+
+        HDINLINE Idx getUpperIdx( uint32_t transitionIndex ) const
+        {
+            return boxLowerIdx( transitionIndex );
         }
 
         // number of Transitions stored in this box
@@ -218,6 +230,7 @@ namespace atomicPhysics
             this->boxCinx5 = gauntCoefficents[4];
             this->numTransitions += 1u;
         }
+
     };
 
 

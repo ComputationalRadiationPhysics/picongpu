@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Axel Huebl, Brian Marre
+/* Copyright 2017-2020 Axel Huebl, Brian Marre, Sudhir Sharma
  *
  * This file is part of PIConGPU.
  *
@@ -43,7 +43,7 @@
 
 #include <pmaccc/algrotihms/math.hpp>
 #include "picongpu/param/physicalConstants"
-
+#inlcude "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber"
 
 #pragma once
 
@@ -53,17 +53,96 @@ namespace particles
 {
 namespace atomicPhysics
 {
+    /** functor class containing calculation formulas of rates and crossections
+     *
+     * @tparam T_TypeIndex ... data type of atomic state index used in configNumber
+     * @tparam T_numLevels ... number of atomic levels modelled in configNumber
+     * @tparam T_AtomicDataBox ... type of atomic data box used, stores actual basic
+     *      atomic input data
+     */
     template<
-        typename T_TypeIndex
         typename T_AtomicDataBox
+        typename T_TypeIndex,
+        uint8_t T_numLevels,
     >
     class AtomicRate
     {
      public:
-        using constexpr Idx = T_TypeIndex;
-        using constexpr AtomicDataBox = T_AtomicDataBox;
+        // shorthands
+        static constexpr using Idx = T_TypeIndex;
+        static constexpr using AtomicDataBox = T_AtomicDataBox;
+
+        // datatype of occupation number vector
+        static constexpr using LevelVector = pmacc::math::Vector<
+            uint8_t,
+            T_numLevels
+        >;
+
+        // type of storage object of atomic state, access to conversion methods
+        static constexpr using ConfigNumber =
+            picongpu::particles::atomicPhysics::stateRepresentation::ConfigNumber<
+                Idx,
+                T_numlevels
+            >;
 
     private:
+
+        /** binomial coefficient calculated using partial pascal triangle
+         *
+         * BEWARE: return type not large enough for complete range of values
+         *      should be no problem in flychk data since largest value ~10^10
+         *      will become problem if all possible states are used
+         *
+         * TODO: add description of iteration,
+         * - algorithm tested against scipy.specia.binomial
+         *
+         * Source: https://www.tutorialspoint.com/binomial-coefficient-in-cplusplus;
+         *  22.11.2019
+         */
+        DINLINE static uint64_t binomialCoefficients(
+            uint8_t const n,
+            uint8_t const k
+            ) const
+        {
+            uint64_t result[ k + 1u ];
+
+            // init with zero, BEWARE: algorithm depends on zero init
+            for ( uint8_t i = 1; i <= k; i++ )
+            {
+                result[ i ] = 0;
+            }
+
+            // init with ( binomial(0,0) )
+            result[ 0u ] = 1u;
+
+            for ( uint8_t i = 1u; i <= n; i++ )
+            {
+                for ( uint8_t j = pmacc::algorithms::math::min(i, k); j > 0u; j-- )
+                    result[ j ] = result[ j ] + result[ j - 1 ];
+            }
+
+            return result[ k ];
+        }
+
+        // number of different atomic configurations in an atomic state
+        // @param idx ... index of atomic state
+        DINLINE static uint64_t Multiplicity( Idx idx ) const
+        {
+            LevelVector levelVector = ConfigNumber::LevelVector( idx );
+
+            uint64_t result = 1u;
+
+            for ( uint8_t i = 0u; i < T_numLevels; i++ )
+            {
+                result *= binomialCoefficients(
+                    static_cast< uint8_t >( 2u * pmacc::math::algorithms::pow( i ,2 ) ),
+                    *levelVector[ i ]
+                    );
+            }
+
+            return result;
+        }
+
         /** gaunt factor like suppression of crosssection
          *
          * @param energyDifference ... difference of energy between atomic states
@@ -76,12 +155,12 @@ namespace atomicPhysics
          *
          * return uint: unitless
          */
-        float_X gauntFactor(
+        DINLINE static float_X gauntFactor(
             float_X energyDifference,
             float_X energyElectron,
             uint32_t indexTransition,
             AtomicDataBox atomicDataBox
-            )
+            ) const
         {
             // get gaunt coeficients
             float_X const A = atomicDataBox.getCxin1( indexTransition );
@@ -92,120 +171,171 @@ namespace atomicPhysics
 
             // calculate gaunt Factor
             float_X const U = energyElectron / energyDifference;
-            float_X const g = A * math::log(U) + B + C / ( U + a ) + D / pmacc::algorithms::math::pow( U + a, 2 );
+            float_X const g = A * math::log(U) + B + C / ( U + a ) + D /
+                pmacc::algorithms::math::pow( U + a, 2 );
 
-            // make sure 
-            return g * (U > 1.0);
+            return g;
         }
 
-        // @param energyElectron ... uint: picongpu::ATOMIC_UNIT_ENERGY
-        // returns unit: m^2
-        float_X collisionalExcitationCrosssection(
-            Idx const lowerIdx,
-            Idx const upperIdx,
-            float_X const energyElectron,
+    public:
+        /** @param energyElectron ... unit: picongpu::ATOMIC_UNIT_ENERGY
+         * return unit: m^2
+         */ 
+        DINLINE static float_X collisionalExcitationCrosssection(
+            Idx const oldIdx,
+            Idx const newIdx,
+            float_X energyElectron,
             AtomicDataBox atomicDataBox
-            )
+            ) const
         {
             // energy difference between atomic states
-            float_X const energyDifference = atomicDataBox( upperIdx ) - atomicDataBox( lowerIdx );
+            float_X energyDifference = atomicDataBox( newIdx ) - atomicDataBox( oldIdx );
 
-            //collisional absorption obscillator strength of transition [unitless]
-            uint32_t const indexTransition = atomicDataBox.findTransition( idxLower, idxUpper );
+            uint32_t indexTransition;
+            float_X statisticalRatio;
 
-            // check whether Transition exists
-            if ( indexTransition == atomicDataBox.getNumTransitions() )
-                return 0._X; // 0 crossection for non existing transition,
+            if ( energyDifference < 0._X )
+            {
+                // deexcitation
+                energyDifference = - energyDifference;
+
+                //collisional absorption obscillator strength of transition [unitless]
+                indexTransition = atomicDataBox.findTransition(
+                    newIdx, // lower atomic state Idx
+                    oldIdx  // upper atomic state Idx
+                    );
+
+                Ratio = static_cast< float_X >(
+                    static_cast< float_64 >( Multiplicity( newIdx ) ) /
+                    static_cast< float_64 >( Multiplicity( oldIdx ) )
+                    ) * (energyElectron + energyDifference) / energyElectron;
+                energyElectron = energyElectron + energyDifference;
+            }
+            else
+            {
+                // excitation
+                //collisional absorption obscillator strength of transition [unitless]
+                indexTransition = atomicDataBox.findTransition(
+                    oldIdx, // lower atomic state Idx
+                    newIdx  // upper atomic state Idx
+                    );
+
+                Ratio = 1._X;
+            }
+
             // BEWARE: input data may be incomplete
-            // TODO: implement fallback
+            // TODO: implement better fallback calculation
 
-            float_X const collisionalOscillatorStrength = atomicDataBox.getCollisionalOscillatorStrength( indexTransition );
+            // check whether transition index exists
+            if ( indexTransition == atomicDataBox.getNumTransitions() )
+                // fallback
+                return 0._X; // 0 crossection for non existing transition
 
-            // physical constants, ask Axel Huebl if you want to know more
+            float_X const collisionalOscillatorStrength = Ratio *
+                atomicDataBox.getCollisionalOscillatorStrength( indexTransition );
+
+            // physical constants
             float_X c0_SI = float_X( 8._X *
                 pmacc::algorithms::math::pow( picongpu::pi * picongpu::BOHR_RADIUS, 2 ) /
                 pmacc::algorithms::math::sqrt( 3._X) ); // uint: m^2
-            float_X c0 = c0_SI /
 
             // uint: m^2
             return c0_SI *
                 pmacc::algorithms::math::pow(
                     ( picongpu::ATOMIC_UNIT_ENERGY / 2._X )
-                    / energyDifference, 2
-                    )
-                * collisionalOscillatorStrength
-                * ( energyDifference / energyElectron )
-                * gauntFactor( lowerIdx, upperIdx, energyElectron );
+                    / energyDifference,
+                    2
+                    ) *
+                collisionalOscillatorStrength *
+                ( energyDifference / energyElectron ) *
+                gauntFactor(
+                    energyDifference,
+                    energyElectron,
+                    indexTransition,
+                    atomicDataBox
+                    );
         }
 
-        float_x collisionalDeExcitationCrosssection()
+        template< typename Idx >
+        DINLINE static float_X totalCrossection(
+            float_X energyElectron,
+            AtomicDataBox atomicDataBox
+            ) const
         {
-            
+            float_X result = 0._X;
+
+            Idx lowerIdx;
+            Idx upperIdx;
+
+            for ( uint32_t i = 0u; i < atomicDataBox.getNumTransitions(); i++ )
+            {
+                upperIdx = atomicDataBox.getUpperIdx( i );
+                lowerIdx = atomicDataBox.getLowerIdx( i );
+
+                // excitation crossection
+                result += collisionalExcitationCrosssection(
+                    lowerIdx,
+                    upperIdx,
+                    energyElectron,
+                    atomicDataBox
+                    );
+
+                // deexcitation crosssection
+                result += collisionalExcitationCrosssection(
+                    upperIdx,
+                    lowerIdx,
+                    energyElectron,
+                    atomicDataBox
+                    );
+            }
+
+            return result;
         }
 
-        DINLINE float_X operator()(
-            Idx oldState,
-            Idx newState,
-            float_X energy,
-            AtomicData atomicDataBox
-            )
+        /** rate function member
+         * TODO: implement relativistic energy
+         * TODO: implement higher order integration
+         * TODO: change density to internal units
+         *
+         * @param energyElectron ... unit: ATOMIC_UNIT_ENERGY
+         * @param energyElectronBinWidth ... unit: ATOMIC_UNIT_ENERGY
+         * @param densityElectron ... unit: 1/(m^3 * J)
+         * @param atomicDataBox ... acess to input atomic data
+         *
+         * return unit: 1/s ... SI
+         */
+        DINLINE static float_X Rate()(
+            Idx const oldIdx,   // old atomic state
+            Idx const newIdx,   // new atomic state
+            float_X const energyElectron,
+            float_X const energyElectronBinWidth,
+            float_X const densityElectrons,
+            AtomicData const atomicDataBox
+            ) const
         {
-            
+            using mathFunc = pmacc::algorithms::math;
+
+            constexpr float_64 c = picongpu::SI::SPEED_OF_LIGHT_SI; // unit: m/s, SI
+            constexpr float_64 m_e = picongpu::SI::ELECTRON_MASS_SI; // unit: kg, SI
+
+            const float_64 E_e = energyElectron * picongpu::UNITCONV_AU_eV * UNITCONV_eV_Joule;
+                // unit: J, SI
+            const float_64 dE = energyElectronBinWidth * picongpu::UNITCONV_AU_eV * UNITCONV_eV_Joule;
+                // unit: J, SI
+
+            float64 sigma = collisionalExcitationCrosssection(
+                    oldState,
+                    newState,
+                    energyElectron,
+                    atomicDataBox
+                ); // unit: 1/(m^3 * Joule) , SI
+
+            return dE * sigma * densityElectron * c *
+                mathFunc::sqrt(1 - mathFunc::pow( m * mathFunc::pow( c, 2 ) / E_e, 2 ));
+                // unit: 1/s; SI
         }
     }
 
-/*
-    def dx_times_Ene(self, iz, i, j):
-        """
-        see `ex_times_Ene`
-        """
-        # detailed balance: "gaa = glev" ratio
-        statistical_ratio = self._get_state_ratio_weight(iz, i, j)
-        
-        return statistical_ratio * self.ex_times_Ene(iz, i, j)
-
-    def dx(self, iz, i, j, Ene):
-        """
-        Collisional De-Excitation Cross-Section
-
-        see `ex`
-        """
-        # ATTENTION: should gaunt be: 0.15 + 0.28 * log( e/eji + 1.0 ) ? TODO
-        #                                                      ^^^^^
-        return self.dx_times_Ene(iz, i, j) * self.gaunt(iz, i, j, Ene) / Ene
-
-    def _get_state_dEne(self, iz, i, j):
-        """
-        """
-        lvl_iz = self.atomic_levels[np.where( self.atomic_levels['charge_state'] == iz )]
-        lvl_i = lvl_iz[np.where( lvl_iz['state_idx'] == i )]
-        lvl_j = lvl_iz[np.where( lvl_iz['state_idx'] == j )]
-        
-        # TODO: each MINUS 'ionization_potential' of level? (scdrv.f)
-        return lvl_j['energy'] - lvl_i['energy']
-
-    def _get_state_ratio_weight(self, iz, i, j):
-        """
-        """
-        lvl_iz = self.atomic_levels[np.where( self.atomic_levels['charge_state'] == iz )]
-        gaa_i = lvl_iz[np.where( lvl_iz['state_idx'] == i )]
-        gaa_j = lvl_iz[np.where( lvl_iz['state_idx'] == j )]
-        
-        return gaa_i['statistical_weight'] / gaa_j['statistical_weight']
-
-    def _get_state_f(self, iz, i, j):
-        """
-        Get absorption oscillator strength f [unitless]
-        """
-        #print("get faax for {} {}".format(i, j))
-        trans_iz = self.b_transitions[np.where( self.b_transitions['charge_state_lower'] == iz )]
-        trans_ij = trans_iz[np.where(np.logical_and(
-            trans_iz['state_idx_lower'] == i,
-            trans_iz['state_idx_upper'] == j
-        ))]
-        
-        return trans_ij['faax']
-*/
 } // namespace atomicPhysics
 } // namespace particles
 } // namespace picongpu

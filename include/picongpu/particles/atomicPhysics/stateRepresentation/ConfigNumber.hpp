@@ -207,7 +207,7 @@ public:
 
     // constructor using occupation numbers
     HDINLINE ConfigNumber(
-        pmacc::math::Vector< uint16_t, numberLevels > levelVector
+        pmacc::math::Vector< uint8_t, numberLevels > levelVector
         )
     {
     /** constructor using a given occupation number vector to initialise.
@@ -241,7 +241,7 @@ public:
         }
     }
 
-    pmacc::math::Vector< uint16_t, numberLevels > operator() ()
+    HDINLINE static pmacc::math::Vector< uint8_t, numberLevels > LevelVector( T_DataType N )
     {
     /** B() operator converts configNumber B into an occupation number vector
     *
@@ -261,15 +261,13 @@ public:
             pmacc::math::Vector<uint16_t, numberLevels>::create( 0 );
 
         T_DataType stepLength;
-        T_DataType N;
 
-        N = this->configNumber;
 
         // BEWARE: for loop counts down, strating with n_max
         for (uint8_t n = numberLevels; n >= 1; n--)
         {
             // calculate current stepLength
-            stepLength = this->stepLength(n);
+            stepLength = stepLength(n);
 
             // get occupation number N_n by getting largest whole number factor
             *result[n-1] = static_cast<uint16_t>( N / stepLength );
