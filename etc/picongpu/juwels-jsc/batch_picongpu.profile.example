@@ -19,7 +19,7 @@ export account=$(jutil user projects -n | awk '{print $NF}')
 #export EDITOR="nano"
 
 # Set up environment, including $SCRATCH and $PROJECT
-jutil env activate -p $proj A $account
+jutil env activate -p $proj -A $account
 
 # General modules #############################################################
 #
