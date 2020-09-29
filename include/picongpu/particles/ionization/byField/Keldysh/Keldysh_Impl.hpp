@@ -20,7 +20,6 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/traits/UsesRNG.hpp"
 
 #include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
@@ -46,18 +45,6 @@
 
 namespace picongpu
 {
-namespace traits
-{
-    /** specialization of the UsesRNG trait
-     * --> ionization module uses random number generation
-     */
-    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies>
-    struct UsesRNG<particles::ionization::Keldysh_Impl<T_IonizationAlgorithm, T_DestSpecies, T_SrcSpecies> > :
-    public boost::true_type
-    {
-    };
-} // namespace traits
-
 namespace particles
 {
 namespace ionization
