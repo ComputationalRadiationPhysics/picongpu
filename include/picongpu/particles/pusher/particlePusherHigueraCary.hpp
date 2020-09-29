@@ -136,7 +136,7 @@ struct Push
 
     static pmacc::traits::StringProperty getStringProperties()
     {
-        pmacc::traits::StringProperty propList( "name", "HigueraCary" );
+        pmacc::traits::StringProperty propList( "name", "other:Higuera-Cary" );
         return propList;
     }
 };
