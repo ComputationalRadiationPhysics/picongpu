@@ -24,6 +24,3 @@
 #include "picongpu/fields/MaxwellSolver/YeePML/YeePML.hpp"
 #include "picongpu/fields/MaxwellSolver/Lehe/Lehe.hpp"
 #include "picongpu/fields/MaxwellSolver/LehePML/LehePML.hpp"
-#if( SIMDIM == 3 && PMACC_CUDA_ENABLED == 1 )
-#   include "picongpu/fields/MaxwellSolver/DirSplitting/DirSplitting.hpp"
-#endif

@@ -20,4 +20,3 @@
 
 #include "picongpu/fields/currentInterpolation/None/None.def"
 #include "picongpu/fields/currentInterpolation/Binomial/Binomial.def"
-#include "picongpu/fields/currentInterpolation/NoneDS/NoneDS.def"

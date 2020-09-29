@@ -27,6 +27,7 @@
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.kernel"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/fields/LaserPhysics.hpp"
+#include "picongpu/fields/differentiation/Curl.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/nvidia/functors/Assign.hpp>
@@ -172,4 +173,44 @@ namespace maxwellSolver
 
 } // namespace maxwellSolver
 } // namespace fields
+
+namespace traits
+{
+
+    template<
+        typename T_CurrentInterpolation,
+        class CurlE,
+        class CurlB
+    >
+    struct GetMargin<
+        picongpu::fields::maxwellSolver::Yee<
+            T_CurrentInterpolation,
+            CurlE,
+            CurlB
+        >, FIELD_B
+    >
+    {
+        using LowerMargin = typename CurlB::LowerMargin;
+        using UpperMargin = typename CurlB::UpperMargin;
+    };
+
+    template<
+        typename T_CurrentInterpolation,
+        class CurlE,
+        class CurlB
+    >
+    struct GetMargin<
+        picongpu::fields::maxwellSolver::Yee<
+            T_CurrentInterpolation,
+            CurlE,
+            CurlB
+        >,
+        FIELD_E
+    >
+    {
+        using LowerMargin = typename CurlE::LowerMargin;
+        using UpperMargin = typename CurlE::UpperMargin;
+    };
+
+} //namespace traits
 } // picongpu

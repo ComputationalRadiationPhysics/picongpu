@@ -51,9 +51,6 @@ namespace fields
      *   - Binomial: 2nd order Binomial filter
      *     - smooths the current before assignment in staggered grid
      *     - updates E & breaks local charge conservation slightly
-     *   - NoneDS:
-     *     - experimental assignment for all-centered/directional splitting
-     *     - updates E & B at the same time
      */
 
     using CurrentInterpolation = currentInterpolation::None;
@@ -66,7 +63,6 @@ namespace fields
      *  - Lehe< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
      *  - LehePML< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
      *                                     with PML absorber
-     *  - DirSplitting< CurrentInterpolation >: Sentoku's Directional Splitting Method
      *  - None< CurrentInterpolation >: disable the vacuum update of E and B
      */
 

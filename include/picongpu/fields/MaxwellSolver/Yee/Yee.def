@@ -21,6 +21,7 @@
 
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
 #include "picongpu/fields/differentiation/Curl.def"
+#include "picongpu/fields/differentiation/Derivative.def"
 
 
 namespace picongpu
@@ -46,44 +47,4 @@ namespace yee
 
 } // namespace maxwellSolver
 } // namespace fields
-
-namespace traits
-{
-
-    template<
-        typename T_CurrentInterpolation,
-        class CurlE,
-        class CurlB
-    >
-    struct GetMargin<
-        picongpu::fields::maxwellSolver::Yee<
-            T_CurrentInterpolation,
-            CurlE,
-            CurlB
-        >, FIELD_B
-    >
-    {
-        using LowerMargin = typename CurlB::LowerMargin;
-        using UpperMargin = typename CurlB::UpperMargin;
-    };
-
-    template<
-        typename T_CurrentInterpolation,
-        class CurlE,
-        class CurlB
-    >
-    struct GetMargin<
-        picongpu::fields::maxwellSolver::Yee<
-            T_CurrentInterpolation,
-            CurlE,
-            CurlB
-        >,
-        FIELD_E
-    >
-    {
-        using LowerMargin = typename CurlE::LowerMargin;
-        using UpperMargin = typename CurlE::UpperMargin;
-    };
-
-} //namespace traits
 } // namespace picongpu
