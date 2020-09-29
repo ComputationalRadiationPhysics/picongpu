@@ -24,16 +24,24 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-// TODO: remove histogram include
+
+// TODO: get histogram type from param files
 // include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/Histogram.hpp"
+// histogram of electron distribution
 #include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/AdaptiveHistogram.hpp"
 
+// sub steps of atomic physics
 #include "picongpu/particles/atomicPhysics/DecelerateElectrons.hpp"
 #include "picongpu/particles/atomicPhysics/FillHistogram.hpp"
 #include "picongpu/particles/atomicPhysics/SolveRateEquation.hpp"
 
+// relativeError calculation
 #include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/RateRelativeError.hpp"
+// numerical differentiation
 #include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/FornbergNumericalDifferentiation.hpp"
+// atomic rate calculation functor
+#include "picongpu/particel/atomicPhysics/AtomicRate.hpp"
+
 
 #include <cstdint>
 
@@ -44,10 +52,9 @@ namespace particles
 namespace atomicPhysics
 {
 
-
     template<
         uint32_t T_numWorkers,
-        uint32_t T_maxNumBins
+        uint16_t T_maxNumBins,
     >
     struct AtomicPhysicsKernel
     {
@@ -65,6 +72,7 @@ namespace atomicPhysics
         {
         }
 
+        // template parameters are automatically deduced from input
         template<
             typename T_Acc,
             typename T_ElectronBox,
@@ -78,8 +86,8 @@ namespace atomicPhysics
             T_IonBox ionBox,
             T_Mapping mapper,
             T_AtomicDataBox const atomicDataBox,
-            float_X const initialGridWidth,
-            float_X const relativeErrorTarget
+            float_X const initialGridWidth, // unit: ATOMIC_ENERGY_UNIT
+            float_X const relativeErrorTarget // unit: 1/s /( 1/( m^3 * ATOMIC_ENERGY_UNIT ) )
         ) const
         {
             // we assume 1d thread indices
@@ -93,20 +101,42 @@ namespace atomicPhysics
             using IonFrameType = typename ionBox::FrameType;
             const float_X mass = frame::getMass<FrameType>();
 
-            using RelativeError = electronDistribution::histogram2::RateRelativeError<
-                1u,     // orderApprox
-                2u,     // T_numSamplePoints
+            // TODO: get this from ion species
+            // hard coded for now
+            constexpr using T_ConfigNumberDataType = uint64_t;
+            constexpr uint8_t T_numLevels = 10u;
+
+            // hard coded for now
+            // TODO: get from param file
+            constexpr using RelativeError = electronDistribution::histogram2::RateRelativeError<
+                1u,     // T_minOrderApprox
+                1u,     // T_maxOrderApprox
+                3u,     // T_numSamplePoints
                 electronDistribution::histogram2::FornbergNumericalDifferentiation<
-                    float_X,
-                    float_X
-                > // T_WeightingGen
-            >
+                    float_X,    // T_Value
+                    float_X     // T_Argument
+                >, // T_WeightingGen
+                picongpu::particles::atomicPhysics::AtomicRate<
+                    T_AtomicDataBox,
+                    T_ConfigNumberDataType,
+                    T_numLevels
+                    >
+                T_AtomicDataBox,
+                T_ConfigNumberDataType
+            >;
 
             using Histogram = electronDistribution::histogram2::AdaptiveHistogram<
                 T_maxNumBins,
                 frameSize,
                 RelativeError
             >;
+
+            constexpr using AtomicRate = picongpu::particles::atomicPhysics::AtomicRate<
+                T_AtomicDataBox,
+                T_ConfigNumberDataTypember,
+                T_numLevels
+                >
+
             // get new histogram
             PMACC_SMEM(
                 acc, // mandatory first parameter
@@ -120,21 +150,21 @@ namespace atomicPhysics
                 RelativeError // variable type
             );
 
-            using ElectronFrameType = typename electronBox::FrameType;
-            constexpr float_X mass_e = frame::getMass< ElectronFrameType >();
-
-            // init realtive Error
-            relativeError.init( mass_e );
-
             // init histogram
             if( workerIdx == 0 )
+            {
+                // pass through parameters of histogram
                 histogram.init(
                     relativeErrorTarget,
                     initialGridWidth,
                     atomicDataBox,
                     relativeError
                     );
+                // calculate weightings once
+                relativeError.init( );
+            }
             cupla::__syncthreads( acc );
+            // necessary since all access relativeError and histogram, but both are only valid after init
 
             fillHistogram< T_numWorkers >(
                 acc,
@@ -144,7 +174,7 @@ namespace atomicPhysics
             );
             cupla::__syncthreads( acc );
 
-            solveRateEquation< T_numWorkers >(
+            solveRateEquation< T_numWorkers, T_AtomicRate >(
                 acc,
                 mapper,
                 rngFactoryInt,

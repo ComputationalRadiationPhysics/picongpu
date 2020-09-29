@@ -23,7 +23,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/particle/atomicPhysics/GetRealKineticEnergy.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
@@ -45,21 +45,19 @@ namespace atomicPhysics
         uint32_t T_numWorkers,
         typename T_Acc,
         typename T_ElectronBox,
-        typename T_RateMatrixBox,
         typename T_Mapping,
         typename T_Histogram
     >
     DINLINE void fillHistogram(
         T_Acc const & acc,
         T_ElectronBox const electronBox,
-        T_RateMatrixBox const rateMatrixBox,
         T_Mapping mapper,
         T_Histogram * histogram
     )
     {
         using namespace mappings::threads;
 
-        //// todo: express framesize better, not via supercell size
+        // TODO: express framesize better, not via supercell size
         constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
         constexpr uint32_t numWorkers = T_numWorkers;
         using ParticleDomCfg = IdxConfig<
@@ -94,37 +92,21 @@ namespace atomicPhysics
                     uint32_t const
                 )
                 {
-                    // todo: check whether this if is necessary
+                    // TODO: check whether this if is necessary
                     if( linearIdx < particlesInSuperCell )
                     {
                         // NOTE: all particle[ ... ] returns in PIC units, not SI
                         // note: there is UNIT_ENERGY that can help with conversion
-                        // note 3: maybe getEnergy could become a generic algorithm
+                        // note3: maybe getEnergy could become a generic algorithm
                         auto const particle = frame[ linearIdx ];
 
-                        using FrameType = typename electronBox::T_ElectronBox;
-                        float_X const mass = FrameType::getMass<FrameType>();
 
-                        // attribute::getMass(1.0_X, particle); //particle[ massRatio_ ] * SI::BASE_MASS;     //Unit: kg
-                        constexpr auto c = SI::SPEED_OF_LIGHT_SI;   //si units
+                        auto const energy_SI = picongpu::particle::atomicPhysics::GetRealKineticEnergy( particle );
+                        // unit: J, SI
 
-                        float3_X vectorP = particle[ momentum_ ];
-                        // internal units
-                        float_X pSquared = math::abs2( vectorP )/particle[ weighting_ ];
-
-                        // note about math functions:
-                        // in the dev branch need to add pmacc:: and acc as first parameter
-
-                        //unit: kg*m^2/s^2 = Nm
-                        auto const energy = math::sqrt(
-                                 pmacc::algorithms::math::pow( mass, 2 )
-                                 * pmacc::algorithms::math::pow( c, 4 )
-                                 + pSquared
-                                 * pmacc::algorithms::math::pow( c, 2 )
-                        );
                         histogram->binObject(
                             acc,
-                            energy,
+                            energy_SI / picongpu::SI::ATOMIC_ENERGY_UNIT, // unit: ATOMIC_ENERGY_UNIT
                             particle[ weighting_ ]
                         );
                     }

@@ -44,7 +44,11 @@ namespace atomicPhysics
 {
 
     // Functor to apply the operation for a given ion species
-    template< typename T_IonSpecies >
+    // @tparam T_ConfigNumberDataType ... data type used for index storage by ConfigNumber object of ion species
+    template<
+        typename T_IonSpecies,
+        typename T_ConfigNumberDataType
+        >
     struct CallAtomicPhysics
     {
         // Define ion species and frame type datatype for later access
@@ -66,10 +70,19 @@ namespace atomicPhysics
         using ElectronFrameType = typename ElectronSpecies::FrameType;
 
         // define entry of atomic data table
-        using States = std::vector< std::pair< uint64_t, float_X > >;
-        using Transitions = std::vector< std::tuple< uint64_t, uint64_t, float_X > >;
+        using States = typename std::vector< std::pair< uint64_t, float_X > >;
+        using Transitions = typename std::vector< std::tuple<
+            uint64_t,
+            uint64_t,
+            float_X,
+            float_X[5]
+            > >;
 
-        // read Data method: atomic states
+    private:
+        std::unique_ptr< AtomicData< T_ConfigNumberDataType > > atomicData;
+
+    public:
+        // read Data method: atomic states, BEWARE: does not convert to internal units
         States readStateData( std::string fileName )
         {
             std::ifstream file( fileName );
@@ -95,7 +108,7 @@ namespace atomicPhysics
             return result;
         }
 
-        // read Data method: atomic states
+        // read Data method: atomic transitions, BEWARE: does not convert to internal units
         Transitions readTransitionData( std::string fileName )
         {
             std::ifstream file( fileName );
@@ -167,8 +180,8 @@ namespace atomicPhysics
 
             // init rate matrix on host and copy to device
 
-            // create rate Matrix
-            atomicData = pmacc::memory::makeUnique< AtomicData >(
+            // create atomic Data storage class on host
+            atomicData = pmacc::memory::makeUnique< AtomicData< T_ConfigNumberDataType > >(
                 levelDataItems.size(),
                 transitionDataItems.size()
             );
@@ -196,8 +209,11 @@ namespace atomicPhysics
                     );
             }
 
-            // copy data to device buffer of rate Matrix
+            // copy data to device buffer of atomicData
             atomicData->syncToDevice();
+
+
+            
         }
 
         // Call functor, will be called in MySimulation once per time step
@@ -228,13 +244,10 @@ namespace atomicPhysics
             >::value;
 
             // hardcoded for now
-            // TODO: remove
-            float_X initialGridWidth = 0.2_X;
-            float_X relativeErrorTarget = 0.5_X;
-
-            // hardcoded for now
-            // TODO: from param file
-            constexpr uint32_t maxNumBins = 2000;
+            // TODO: make available as options from param file
+            constexpr float_X initialGridWidth = 0.2_X; // unit: ATOMIC_ENERGY_UNIT
+            constexpr float_X relativeErrorTarget = 0.5_X; // unit: 1/s /( 1/( m^3 * ATOMIC_ENERGY_UNIT ) )
+            constexpr uint16_t maxNumBins = 2000;
 
             using Kernel = AtomicPhysicsKernel<
                 numWorkers,
@@ -253,17 +266,13 @@ namespace atomicPhysics
                 ions.getDeviceParticlesBox( ),
                 mapper,
                 atomicData->getDeviceDataBox( ),
-                relativeErrorTarget,
-                initialGridWidth
+                initialGridWidth, // unit: J, SI
+                relativeErrorTarget // unit: 1/s /( 1/( m^3 * J ) ), SI
             );
 
             dc.releaseData( ElectronFrameType::getName() );
             dc.releaseData( IonFrameType::getName() );
         }
-
-    private:
-
-        std::unique_ptr< AtomicData< uint64_t > > atomicData;
 
     };
 

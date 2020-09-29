@@ -55,10 +55,11 @@ namespace atomicPhysics
 {
     /** functor class containing calculation formulas of rates and crossections
      *
-     * @tparam T_TypeIndex ... data type of atomic state index used in configNumber
-     * @tparam T_numLevels ... number of atomic levels modelled in configNumber
+     * @tparam T_TypeIndex ... data type of atomic state index used in configNumber, unitless
+     * @tparam T_numLevels ... number of atomic levels modelled in configNumber, unitless
      * @tparam T_AtomicDataBox ... type of atomic data box used, stores actual basic
      *      atomic input data
+     * BEWARE: atomic data box input data is assumed to be in eV
      */
     template<
         typename T_AtomicDataBox
@@ -76,7 +77,7 @@ namespace atomicPhysics
         static constexpr using LevelVector = pmacc::math::Vector<
             uint8_t,
             T_numLevels
-        >;
+        >; // unitless
 
         // type of storage object of atomic state, access to conversion methods
         static constexpr using ConfigNumber =
@@ -125,10 +126,11 @@ namespace atomicPhysics
         }
 
         // number of different atomic configurations in an atomic state
-        // @param idx ... index of atomic state
+        // @param idx ... index of atomic state, unitless
+        // return unit: unitless
         DINLINE static uint64_t Multiplicity( Idx idx ) const
         {
-            LevelVector levelVector = ConfigNumber::LevelVector( idx );
+            LevelVector levelVector = ConfigNumber::LevelVector( idx ); // unitless
 
             uint64_t result = 1u;
 
@@ -137,32 +139,30 @@ namespace atomicPhysics
                 result *= binomialCoefficients(
                     static_cast< uint8_t >( 2u * pmacc::math::algorithms::pow( i ,2 ) ),
                     *levelVector[ i ]
-                    );
+                    ); // unitless
             }
 
-            return result;
+            return result; // unitless
         }
 
         /** gaunt factor like suppression of crosssection
          *
-         * @param energyDifference ... difference of energy between atomic states
-         *      unit: 2*Ry ... double the Rydberg energy == picongpu::ATOMIC_UNIT_ENERGY
-         * @param energy Electron ... energy of electron
-         *      unit: 2*Ry ... see energyDifference
+         * @param energyDifference ... difference of energy between atomic states, unit: ATOMIC_UNIT_ENERGY
+         * @param energyElectron ... energy of electron, unit ATOMIC_UNIT_ENERGY
          * @param indexTransition ... internal index of transition in atomicDataBox
          *      use findIndexTransition method of atomicDataBox and screen for not found value
          *      BEWARE: method assumes that indexTransition is valid, undefined behaviour otherwise
          *
-         * return uint: unitless
+         * return unit: unitless
          */
         DINLINE static float_X gauntFactor(
-            float_X energyDifference,
-            float_X energyElectron,
-            uint32_t indexTransition,
+            float_X energyDifference,   // unit: E
+            float_X energyElectron,     // unit: E
+            uint32_t indexTransition,   // unitless
             AtomicDataBox atomicDataBox
             ) const
         {
-            // get gaunt coeficients
+            // get gaunt coeficients, unit: unitless
             float_X const A = atomicDataBox.getCxin1( indexTransition );
             float_x const B = atomicDataBox.getCxin2( indexTransition );
             float_X const C = atomicDataBox.getCxin3( indexTransition );
@@ -170,34 +170,55 @@ namespace atomicPhysics
             float_X const a = atomicDataBox.getCxin5( indexTransition );
 
             // calculate gaunt Factor
-            float_X const U = energyElectron / energyDifference;
+            float_X const U = energyElectron / energyDifference; // unit: unitless
             float_X const g = A * math::log(U) + B + C / ( U + a ) + D /
-                pmacc::algorithms::math::pow( U + a, 2 );
+                pmacc::algorithms::math::pow( U + a, 2 ); // unitless
 
-            return g;
+            return g * ( U > 1.0 ); // unitless
         }
 
     public:
-        /** @param energyElectron ... unit: picongpu::ATOMIC_UNIT_ENERGY
+
+        // return unit: J, SI
+        DINLINE static float_X energyDifference(
+            Idx const oldIdx,   // unitless
+            Idx const newIdx,   // unitless
+            AtomicDataBox atomicDataBox
+            )
+        {
+            return ( atomicDataBox( newIdx ) - atomicDataBox( oldIdx )
+                ) * picongpu::UNITCONV_eV_to_Joule;
+        }
+
+        /** @param energyElectron ... kinetic energy only, unit: ATOMIC_UNIT_ENERGY
          * return unit: m^2
          */ 
         DINLINE static float_X collisionalExcitationCrosssection(
-            Idx const oldIdx,
-            Idx const newIdx,
-            float_X energyElectron,
+            Idx const oldIdx,   // unitless
+            Idx const newIdx,   // unitless
+            float_X energyElectron,     // unit: ATOMIC_UNIT_ENERGY
             AtomicDataBox atomicDataBox
             ) const
         {
+            // unit conversion to SI
+            float_X energyElectron_SI = energyElectron * picongpu::SI::ATOMIC_UNIT_ENERGY;
+            // unit: J, SI
+
             // energy difference between atomic states
-            float_X energyDifference = atomicDataBox( newIdx ) - atomicDataBox( oldIdx );
+            // J <- (eV - eV) * eV_to_J
+            float_X energyDifference_SI = energyDifference(
+                oldIdx,
+                newIdx,
+                atomicDataBox
+                ); // unit: J, SI
 
-            uint32_t indexTransition;
-            float_X statisticalRatio;
+            uint32_t indexTransition; // unitless
+            float_X statisticalRatio; // unitless
 
-            if ( energyDifference < 0._X )
+            if ( energyDifference_SI < 0._X )
             {
                 // deexcitation
-                energyDifference = - energyDifference;
+                energyDifference_SI = - energyDifference_SI; // unit: J, SI
 
                 //collisional absorption obscillator strength of transition [unitless]
                 indexTransition = atomicDataBox.findTransition(
@@ -205,22 +226,24 @@ namespace atomicPhysics
                     oldIdx  // upper atomic state Idx
                     );
 
+                // unitless/unitless * (J + J) / J = unitless
                 Ratio = static_cast< float_X >(
                     static_cast< float_64 >( Multiplicity( newIdx ) ) /
                     static_cast< float_64 >( Multiplicity( oldIdx ) )
-                    ) * (energyElectron + energyDifference) / energyElectron;
-                energyElectron = energyElectron + energyDifference;
+                    ) * ( energyElectron_SI + energyDifference_SI ) / energyElectron_SI; // unitless
+
+                energyElectron_SI = energyElectron_SI + energyDifference_SI; // unit; J, SI
             }
             else
             {
                 // excitation
                 //collisional absorption obscillator strength of transition [unitless]
                 indexTransition = atomicDataBox.findTransition(
-                    oldIdx, // lower atomic state Idx
-                    newIdx  // upper atomic state Idx
+                    oldIdx, // lower atomic state Idx, unitless
+                    newIdx  // upper atomic state Idx, unitless
                     );
 
-                Ratio = 1._X;
+                Ratio = 1._X; // unitless
             }
 
             // BEWARE: input data may be incomplete
@@ -229,40 +252,44 @@ namespace atomicPhysics
             // check whether transition index exists
             if ( indexTransition == atomicDataBox.getNumTransitions() )
                 // fallback
-                return 0._X; // 0 crossection for non existing transition
+                return 0._X; // 0 crossection for non existing transition, unit: m^2, SI
 
+            // unitless * unitless = unitless
             float_X const collisionalOscillatorStrength = Ratio *
-                atomicDataBox.getCollisionalOscillatorStrength( indexTransition );
+                atomicDataBox.getCollisionalOscillatorStrength( indexTransition ); // unitless
 
             // physical constants
+            // (unitless * m)^2 / unitless = m^2
             float_X c0_SI = float_X( 8._X *
                 pmacc::algorithms::math::pow( picongpu::pi * picongpu::BOHR_RADIUS, 2 ) /
-                pmacc::algorithms::math::sqrt( 3._X) ); // uint: m^2
+                pmacc::algorithms::math::sqrt( 3._X) ); // uint: m^2, SI
 
-            // uint: m^2
+            // m^2 * (J/J)^2 * unitless * J/J * unitless<-[ J, J, unitless, unitless ] = m^2
             return c0_SI *
                 pmacc::algorithms::math::pow(
-                    ( picongpu::ATOMIC_UNIT_ENERGY / 2._X )
-                    / energyDifference,
+                    ( picongpu::SI::ATOMIC_UNIT_ENERGY / 2._X )
+                    / energyDifference_SI,
                     2
                     ) *
                 collisionalOscillatorStrength *
-                ( energyDifference / energyElectron ) *
+                ( energyDifference_SI / energyElectron_SI ) *
                 gauntFactor(
-                    energyDifference,
-                    energyElectron,
+                    energyDifference_SI,
+                    energyElectron_SI,
                     indexTransition,
                     atomicDataBox
-                    );
+                    ); // unit: m^2, SI
         }
 
+        // @param energyElectron ... kinetic energy only, unit: ATOMIC_UNIT_ENERGY
+        //return unit: m^2, SI
         template< typename Idx >
         DINLINE static float_X totalCrossection(
-            float_X energyElectron,
+            float_X energyElectron,     // unit: ATOMIC_UNIT_ENERGY
             AtomicDataBox atomicDataBox
             ) const
         {
-            float_X result = 0._X;
+            float_X result = 0._X; // unit: m^2, SI
 
             Idx lowerIdx;
             Idx upperIdx;
@@ -274,11 +301,11 @@ namespace atomicPhysics
 
                 // excitation crossection
                 result += collisionalExcitationCrosssection(
-                    lowerIdx,
-                    upperIdx,
-                    energyElectron,
+                    lowerIdx,   // unitless
+                    upperIdx,   // unitless
+                    energyElectron, // unit: ATOMIC_UNIT_ENERGY
                     atomicDataBox
-                    );
+                    ); // unit: m^2, SI
 
                 // deexcitation crosssection
                 result += collisionalExcitationCrosssection(
@@ -286,52 +313,59 @@ namespace atomicPhysics
                     lowerIdx,
                     energyElectron,
                     atomicDataBox
-                    );
+                    ); // unit: m^2, SI
             }
 
-            return result;
+            return result; // unit: m^2, SI
         }
 
-        /** rate function member
-         * TODO: implement relativistic energy
+        /** rate function
+         * uses 1th order integration <-> a = 0, => T_minOrderApprox = 1
          * TODO: implement higher order integration
          * TODO: change density to internal units
+         * TODO: change return unit to internal units
          *
-         * @param energyElectron ... unit: ATOMIC_UNIT_ENERGY
+         * @param energyElectron ... kinetic energy only, unit: ATOMIC_UNIT_ENERGY
          * @param energyElectronBinWidth ... unit: ATOMIC_UNIT_ENERGY
          * @param densityElectron ... unit: 1/(m^3 * J)
          * @param atomicDataBox ... acess to input atomic data
          *
          * return unit: 1/s ... SI
          */
-        DINLINE static float_X Rate()(
+        DINLINE static float_X Rate( )(
             Idx const oldIdx,   // old atomic state
             Idx const newIdx,   // new atomic state
-            float_X const energyElectron,
-            float_X const energyElectronBinWidth,
-            float_X const densityElectrons,
+            float_X const energyElectron,   // unit: ATOMIC_UNIT_ENERGY
+            float_X const energyElectronBinWidth, // unit: ATOMIC_UNIT_ENERGY
+            float_X const densityElectrons, // unit: 1/(m^3*J), SI
             AtomicData const atomicDataBox
-            ) const
+            ) const // return unit: 1/s, SI
         {
             using mathFunc = pmacc::algorithms::math;
 
-            constexpr float_64 c = picongpu::SI::SPEED_OF_LIGHT_SI; // unit: m/s, SI
-            constexpr float_64 m_e = picongpu::SI::ELECTRON_MASS_SI; // unit: kg, SI
+            //constants in SI
+            constexpr float_64 c_SI = picongpu::SI::SPEED_OF_LIGHT_SI; // unit: m/s, SI
+            constexpr float_64 m_e_SI = picongpu::SI::ELECTRON_MASS_SI; // unit: kg, SI
 
-            const float_64 E_e = energyElectron * picongpu::UNITCONV_AU_eV * UNITCONV_eV_Joule;
+            const float_64 E_e_SI = energyElectron * picongpu::UNITCONV_AU_eV * UNITCONV_eV_Joule;
                 // unit: J, SI
-            const float_64 dE = energyElectronBinWidth * picongpu::UNITCONV_AU_eV * UNITCONV_eV_Joule;
+            const float_64 dE_SI = energyElectronBinWidth * picongpu::UNITCONV_AU_eV * UNITCONV_eV_Joule;
                 // unit: J, SI
 
-            float64 sigma = collisionalExcitationCrosssection(
-                    oldState,
-                    newState,
-                    energyElectron,
+            float_X sigma_SI = collisionalExcitationCrosssection(
+                    oldState,   // unitless
+                    newState,   // unitless
+                    energyElectron, // unit: ATOMIC_UNIT_ENERGY
                     atomicDataBox
-                ); // unit: 1/(m^3 * Joule) , SI
+                ); // unit: (m^2), SI
 
-            return dE * sigma * densityElectron * c *
-                mathFunc::sqrt(1 - mathFunc::pow( m * mathFunc::pow( c, 2 ) / E_e, 2 ));
+            // J * m^2 * 1/(m^3*J) * m/s * sqrt( unitless - [ ( (kg*m^2/s^2)/J )^2 = Nm/J = J/J = unitless ] ) = J/J m^3/m^3 * 1/s
+            return dE_SI * sigma_SI * densityElectron * c_SI *
+                mathFunc::sqrt( 1 - mathFunc::pow(
+                    1._X / (1._X + E_e_SI / ( m_e_SI * mathFunc::pow( c_SI, 2 ) ) ),
+                    2
+                    )
+                    );
                 // unit: 1/s; SI
         }
     }

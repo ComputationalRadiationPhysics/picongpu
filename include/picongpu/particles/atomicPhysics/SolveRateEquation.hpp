@@ -28,6 +28,9 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 
+
+#include "picongpu/particles/particleToGrid/derivedAttributes/Density.hpp"
+
 #include <cstdint>
 
 
@@ -49,10 +52,10 @@ namespace atomicPhysics
 
     template<
         typename T_Acc,
+        typename T_AtomicRate,
         typename T_Ion,
         typename T_AtomicDataBox,
-        typename T_Histogram,
-        typename T_AtomicRate
+        typename T_Histogram
     >
     DINLINE void processIon(
         T_Acc const & acc,
@@ -68,33 +71,63 @@ namespace atomicPhysics
         using ConfigNumber = decltype( configNumber );
         using ConfigNumberDataType = decltype( ion[ atomicConfigNumber_ ].configNumber );
 
-        float_X timeRemainingSI = picongpu::SI::DELTA_T_SI;
+        float_X timeRemaining_SI = picongpu::SI::DELTA_T_SI;
 
-        using Rate = T_AtomicRate;
+        using AtomicRate = T_AtomicRate;
 
-        while ( timeRemainingSI > 0.0_X )
+        while ( timeRemaining_SI > 0.0_X )
         {
             // get a random new state
             ConfigNumberDataType newState = randomGenInt() %
                 ConfigNumber::numberStates();
             // take a random bin existing in the histogram
-            uint32_t histogramIndex = randomGenInt() %
-                histogram->numBins;
+            uint16_t histogramIndex = static_cast< uint16_t >( randomGenInt( ) ) %
+                histogram->getNumBins();
 
             // TODO: implement rate matrix calculation
             ConfigNumberDataType oldState = ion[ atomicConfigNumber_ ];
+            float_X energyElectron = histogram->getEnergyBin( histogramIndex ); // unit: ATOMIC_ENERGY_UNIT
+            float_X energyElectronBinWidth = histogram->getBinWidth(
+                true,
+                histogram->getLeftBoundaryBin( histogramIndex ), // unit: ATOMIC_ENERGY_UNIT
+                histogram->getInitialGridWidth( ) // unit: ATOMIC_ENERGY_UNIT
+                );
+            // (weighting * #/weighting) /
+            //      ( numCellsPerSuperCell * Volume * m^3/Volume * AU * J/AU )
+            // = # / (m^3 * J)
+            float_X densityElectrons = ( histogram->getWeights( histogramIndex ) *
+                picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE ) /
+                ( picongpu::numCellsPerSuperCell * picongpu::CELL_VOLUME * UNIT_VOLUME *
+                    energyElectronBinWidth * picongpu::SI::ATOMIC_ENERGY_UNIT );
+                // unit: 1/(m^3 * J), SI
 
-            float_X rate = Rate( oldState, newState, Energy, atomicDataBox ); // get Energy form histogram Bin
+            float_X rate_SI = AtomicRate::Rate(
+                oldState,   // unitless
+                newState,   // unitless
+                energyElectron,     // unit: ATOMIC_ENERGY_UNIT
+                energyElectronBinWidth, // unit: ATOMIC_ENERGY_UNIT
+                densityElectrons,   // unit: 1/(m^3*J), SI
+                atomicDataBox
+                ); // unit: 1/s, SI
 
-            float_X rateSI = 1.0_X;
-            float_X deltaEnergy = 0.0_X;
-            // TODO: compute rate matrix - now accessible as rateMatrixBox( integer )
-            // to get rateSI and deltaE
-            float_X quasiProbability = rateSI * timeRemainingSI;
+            // J / J/AU
+            float_X deltaEnergy = energyDifference(
+                oldState,
+                newState,
+                atomicDataBox
+                ) * ion[ weighting_ ] *
+                picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE /
+                picongpu::SI::ATOMIC_ENERGY_UNIT; // unit: ATOMIC_ENERGY_UNIT
+
+            float_X quasiProbability = rate_SI * timeRemaining_SI;
             if ( quasiProbability >= 1.0_X )
             {
                 ion[ atomicConfigNumber_ ].configNumber = newState;
                 timeRemainingSI -= 1.0_X / rateSI;
+                histogram->removeEnergyFromBin(
+                    histogramIndex, // unitless
+                    deltaEnergy // unit: ATOMIC_ENERGY_UNIT
+                    );
             }
             else
                 if ( randomGenFloat() <= quasiProbability )
@@ -102,7 +135,11 @@ namespace atomicPhysics
                     // note: perhaps there is a mix between
                     // ConfigNumber.configNumber and just ConfigNumber
                     ion[ atomicConfigNumber_ ].configNumber = newState;
-                    timeRemainingSI = 0.0_X;
+                    timeRemaining_SI = 0.0_X;
+                    histogram->removeEnergyFromBin(
+                        histogramIndex, // unitless
+                        deltaEnergy // unit: ATOMIC_ENERGY_UNIT
+                    );
                 }
         }
     }
@@ -111,10 +148,11 @@ namespace atomicPhysics
     // should be called inside the AtomicPhysicsKernel
     template<
         uint32_t T_numWorkers,
+        typename T_AtomicRate,
         typename T_Acc,
         typename T_Mapping,
         typename T_IonBox,
-        typename T_RateMatrixBox,
+        typename T_AtomicDataBox,
         typename T_Histogram
     >
     DINLINE void solveRateEquation(
@@ -123,7 +161,7 @@ namespace atomicPhysics
         RngFactoryInt rngFactoryInt,
         RngFactoryFloat rngFactoryFloat,
         T_IonBox ionBox,
-        T_RateMatrixBox const rateMatrixBox,
+        T_AtomicDataBox const atomicDataBox,
         T_Histogram * histogram
     )
     {
@@ -172,12 +210,12 @@ namespace atomicPhysics
                     if( linearIdx < particlesInSuperCell )
                     {
                         auto particle = frame[ linearIdx ];
-                        processIon(
+                        processIon< T_AtomicRate >(
                             acc,
                             generatorInt,
                             generatorFloat,
                             particle,
-                            rateMatrixBox,
+                            atomicDataBox,
                             histogram
                         );
                     }

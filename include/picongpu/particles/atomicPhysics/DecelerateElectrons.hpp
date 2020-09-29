@@ -28,6 +28,8 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 
+#include "picongpu/particle/atomicPhysics/GetRealKineticEnergy.hpp"
+
 #include <cstdint>
 
 
@@ -49,17 +51,24 @@ namespace atomicPhysics
         T_Histogram const & histogram
     )
     {
-        float_X energy = 0.0_X; // todo: compute, probably via a generic algorithm
+        // todo: compute, probably via a generic algorithm
+        float_X const energy = picongpu::particles::atomicPhysics::GetRealKineticEnergy( electron ) /
+            picongpu::SI::ATOMIC_ENERGY_UNIT; // unit: ATOMIC_ENERGY_UNIT
+        float_X const weight = electron[ weight_ ]; // unitless
+
         // look up in the histogram, which bin is this energy
-        uint32_t const binIndex = histogram.getBinIndex( energy );
-        auto const index = histogram.findBin( binIndex );
+        uint16_t const binIndex = histogram.getBinIndex( energy );
+
         // this could happen only if histogram did not have enough memory
-        if( index >= histogram.maxNumBins )
+        if( binIndex == histogram.getMaxNumberBins( ) )
             return;
 
-        auto const weight = histogram.binWeights[ index ];
-        auto const deltaEnergy = histogram.binDeltaEnergy[ index ];
-        float_X scalingFactor = 1.0_X; // todo: compute
+        float_X const weightBin = histogram.getWeightBin( index );  // unitless
+        float_X const deltaEnergyBin = histogram.getDeltaEnergyBin( index ); // unit: ATOMIC_ENERGY_UNIT
+
+        float_X const deltaEnergy = deltaEnergyBin * weight / weightBin; // unit:: ATOMIC_ENERGY_UNIT
+
+        float_X const scalingFactor = 1._X - deltaEnergy / energy ; // unitless
         electron[ momentum_ ] *= scalingFactor;
     }
 

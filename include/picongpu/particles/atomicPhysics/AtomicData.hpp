@@ -146,7 +146,7 @@ namespace atomicPhysics
             return boxUpperIdx( transitionIndex );
         }
 
-        HDINLINE Idx getUpperIdx( uint32_t transitionIndex ) const
+        HDINLINE Idx getLowerIdx( uint32_t transitionIndex ) const
         {
             return boxLowerIdx( transitionIndex );
         }
@@ -230,7 +230,6 @@ namespace atomicPhysics
             this->boxCinx5 = gauntCoefficents[4];
             this->numTransitions += 1u;
         }
-
     };
 
 
@@ -270,6 +269,7 @@ namespace atomicPhysics
             >
         >;
 
+        // acess datatype used on device
         using DataBoxType = AtomicDataBox<
             InternalDataBoxTypeValue,
             InternalDataBoxTypeIdx,
@@ -278,17 +278,17 @@ namespace atomicPhysics
 
         private:
         //pointers to storage
-        std::unique_ptr< BufferValue > dataStateEnergy;
-        std::unique_ptr< BufferIdx > dataIdx;
+        std::unique_ptr< BufferValue > dataStateEnergy; // unit: eV
+        std::unique_ptr< BufferIdx > dataIdx;   // unit: unitless
 
-        std::unique_ptr< BufferValue > dataOscillatorStrength;
-        std::unique_ptr< BufferValue > dataCinx1;
-        std::unique_ptr< BufferValue > dataCinx2;
-        std::unique_ptr< BufferValue > dataCinx3;
-        std::unique_ptr< BufferValue > dataCinx4;
-        std::unique_ptr< BufferValue > dataCinx5;
-        std::unique_ptr< BufferIdx > dataLowerIdx;
-        std::unique_ptr< BufferIdx > dataUpperIdx;
+        std::unique_ptr< BufferValue > dataOscillatorStrength; // unit: unitless
+        std::unique_ptr< BufferValue > dataCinx1; // unit: unitless
+        std::unique_ptr< BufferValue > dataCinx2; // unit: unitless
+        std::unique_ptr< BufferValue > dataCinx3; // unit: unitless
+        std::unique_ptr< BufferValue > dataCinx4; // unit: unitless
+        std::unique_ptr< BufferValue > dataCinx5; // unit: unitless
+        std::unique_ptr< BufferIdx > dataLowerIdx; // unit: unitless
+        std::unique_ptr< BufferIdx > dataUpperIdx; // unit: unitless
 
         // number of states included in atomic data
         uint32_t numStates;
