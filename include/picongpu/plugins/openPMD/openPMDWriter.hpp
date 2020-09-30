@@ -140,7 +140,7 @@ namespace openPMD
             log< picLog::INPUT_OUTPUT >( "openPMD: open file: %1%" ) % fullName;
             openPMDSeries = std::unique_ptr<::openPMD::Series >(
                 new ::openPMD::Series( fullName, at, communicator, jsonConfig ) );
-            if( at == ::openPMD::AccessType::CREATE )
+            if( at == ::openPMD::Access::CREATE )
             {
                 openPMDSeries->setMeshesPath( MESHES_PATH );
             }
@@ -796,7 +796,7 @@ namespace openPMD
             mThreadParams.currentStep = restartStep;
             mThreadParams.cellDescription = m_cellDescription;
 
-            mThreadParams.openSeries( ::openPMD::AccessType::READ_ONLY );
+            mThreadParams.openSeries( ::openPMD::Access::READ_ONLY );
 
             ::openPMD::Iteration iteration =
                 mThreadParams.openPMDSeries
@@ -1300,7 +1300,7 @@ namespace openPMD
             {
                 log< picLog::INPUT_OUTPUT >( "openPMD: opening Series %1%" ) %
                     threadParams->fileName;
-                threadParams->openSeries( ::openPMD::AccessType::CREATE );
+                threadParams->openSeries( ::openPMD::Access::CREATE );
             }
 
             bool dumpAllParticles = plugins::misc::containsObject(
