@@ -127,8 +127,8 @@ namespace atomicPhysics
                         picongpu::ATOMIC_UNIT_ENERGY);
                 }
             }
-            // atomic state not found return that it is unbound
-            return static_cast< ValueType >(-1);
+            // atomic state not found return zero
+            return static_cast< ValueType >( 0 );
         }
 
         // returns index of transition in databox, numTransition qual to not found

@@ -75,61 +75,107 @@ namespace atomicPhysics
 
         using AtomicRate = T_AtomicRate;
 
+        ConfigNumberDataType oldState;
+        ConfigNumberDataType newState;
+
+        uint16_t histogramIndex;
+        float_X energyElectron;
+        float_X energyElectronBinWidth;
+
+        float_X densityElectrons;
+
+        float_X rate_SI;
+        float_X deltaEnergy;
+        float_X quasiProbability;
+
         while ( timeRemaining_SI > 0.0_X )
         {
-            // get a random new state
-            ConfigNumberDataType newState = randomGenInt() %
-                ConfigNumber::numberStates();
-            // take a random bin existing in the histogram
-            uint16_t histogramIndex = static_cast< uint16_t >( randomGenInt( ) ) %
-                histogram->getNumBins();
+            // read out old state index
+            oldState = configNumber.configNumber;
+            // get a random new state index
+            newState = randomGenInt() % ConfigNumber::numberStates();
 
-            // TODO: implement rate matrix calculation
-            ConfigNumberDataType oldState = ion[ atomicConfigNumber_ ];
-            float_X energyElectron = histogram->getEnergyBin( histogramIndex ); // unit: ATOMIC_ENERGY_UNIT
-            float_X energyElectronBinWidth = histogram->getBinWidth(
-                true,
+            // take a random bin existing in the histogram
+            histogramIndex = static_cast< uint16_t >( randomGenInt( ) ) %
+                histogram->getNumBins();
+            energyElectron = histogram->getEnergyBin( histogramIndex ); // unit: ATOMIC_ENERGY_UNIT
+            energyElectronBinWidth = histogram->getBinWidth(
+                true,   // directionPositive
                 histogram->getLeftBoundaryBin( histogramIndex ), // unit: ATOMIC_ENERGY_UNIT
                 histogram->getInitialGridWidth( ) // unit: ATOMIC_ENERGY_UNIT
                 );
+
             // (weighting * #/weighting) /
             //      ( numCellsPerSuperCell * Volume * m^3/Volume * AU * J/AU )
             // = # / (m^3 * J)
-            float_X densityElectrons =  histogram->getWeights( histogramIndex ) /
-            // * picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE, not necessary since weighting does not use unit currently
+            densityElectrons =  histogram->getWeights( histogramIndex ) /
+            // * picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE,
+            // not necessary since weighting does not use unit currently
                 ( picongpu::numCellsPerSuperCell * picongpu::CELL_VOLUME * UNIT_VOLUME *
                     energyElectronBinWidth * picongpu::SI::ATOMIC_ENERGY_UNIT );
                 // unit: 1/(m^3 * J), SI
 
-            float_X rate_SI = AtomicRate::Rate(
-                oldState,   // unitless
-                newState,   // unitless
-                energyElectron,     // unit: ATOMIC_ENERGY_UNIT
-                energyElectronBinWidth, // unit: ATOMIC_ENERGY_UNIT
-                densityElectrons,   // unit: 1/(m^3*J), SI
-                atomicDataBox
-                ); // unit: 1/s, SI
+            // calculating quasi propability
+            if ( oldState == newState )
+            {
+                // special case of not changing state
 
-            // J / J/AU
-            float_X deltaEnergy = energyDifference(
-                oldState,
-                newState,
-                atomicDataBox
-                ) * ion[ weighting_ ] *
-                picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE /
-                picongpu::SI::ATOMIC_ENERGY_UNIT; // unit: ATOMIC_ENERGY_UNIT
+                // R_(i->i) = - sum_f( R_(i->f), rate_SI = - R_(i->i)
+                rate_SI = AtomicRate::totalRate(
+                    oldState,   // unitless
+                    energyElectron,     // unit: ATOMIC_ENERGY_UNIT
+                    energyElectronBinWidth, // unit: ATOMIC_ENERGY_UNIT
+                    densityElectrons,   // unit: 1/(m^3*J), SI
+                    atomicDataBox
+                    ); // unit: 1/s, SI
+                quasiPropability = 1._X - rate_SI * timeRemaining_SI;
 
-            float_X quasiProbability = rate_SI * timeRemaining_SI;
+                if ( quasiProbability <= 0._X )
+                {
+                    // changes statisticly more than once into any new state in timeRemaining
+                    // -> must change state
+                    continue; // generate new newState
+                }
+
+            }
+            else
+            {
+                // standard case of different newState
+                rate_SI = AtomicRate::Rate(
+                    oldState,   // unitless
+                    newState,   // unitless
+                    energyElectron,     // unit: ATOMIC_ENERGY_UNIT
+                    energyElectronBinWidth, // unit: ATOMIC_ENERGY_UNIT
+                    densityElectrons,   // unit: 1/(m^3*J), SI
+                    atomicDataBox
+                    ); // unit: 1/s, SI
+
+                // J / (J/AU)
+                deltaEnergy = energyDifference(
+                    oldState,
+                    newState,
+                    atomicDataBox
+                    ) * ion[ weighting_ ] *
+                    picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE /
+                    picongpu::SI::ATOMIC_ENERGY_UNIT; // unit: ATOMIC_ENERGY_UNIT
+
+                quasiProbability = rate_SI * timeRemaining_SI;
+            }
+
+            // change of state
             if ( quasiProbability >= 1.0_X )
             {
+                // only can happen in the case of different newState
                 ion[ atomicConfigNumber_ ].configNumber = newState;
-                timeRemainingSI -= 1.0_X / rateSI;
+                timeRemaining_SI -= 1.0_X / rateSI;
                 histogram->removeEnergyFromBin(
                     histogramIndex, // unitless
-                    deltaEnergy // unit: ATOMIC_ENERGY_UNIT
+                    deltaEnergy // unit: ATOMIC_ENERGY_UNIT 
                     );
             }
             else
+            {
+                // 0 <= quasiPropability < 1
                 if ( randomGenFloat() <= quasiProbability )
                 {
                     // note: perhaps there is a mix between
@@ -141,6 +187,7 @@ namespace atomicPhysics
                         deltaEnergy // unit: ATOMIC_ENERGY_UNIT
                     );
                 }
+            }
         }
     }
 

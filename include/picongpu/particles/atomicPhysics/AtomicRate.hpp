@@ -244,6 +244,8 @@ namespace atomicPhysics
             // BEWARE: input data may be incomplete
             // TODO: implement better fallback calculation
 
+            // TODO: Implement crosssection of not changing state
+
             // check whether transition index exists
             if ( indexTransition == atomicDataBox.getNumTransitions() )
                 // fallback
