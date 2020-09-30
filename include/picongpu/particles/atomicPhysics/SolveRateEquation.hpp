@@ -95,8 +95,8 @@ namespace atomicPhysics
             // (weighting * #/weighting) /
             //      ( numCellsPerSuperCell * Volume * m^3/Volume * AU * J/AU )
             // = # / (m^3 * J)
-            float_X densityElectrons = ( histogram->getWeights( histogramIndex ) *
-                picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE ) /
+            float_X densityElectrons =  histogram->getWeights( histogramIndex ) /
+            // * picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE, not necessary since weighting does not use unit currently
                 ( picongpu::numCellsPerSuperCell * picongpu::CELL_VOLUME * UNIT_VOLUME *
                     energyElectronBinWidth * picongpu::SI::ATOMIC_ENERGY_UNIT );
                 // unit: 1/(m^3 * J), SI

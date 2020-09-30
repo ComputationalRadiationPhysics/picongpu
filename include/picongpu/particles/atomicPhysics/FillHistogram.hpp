@@ -23,7 +23,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particle/atomicPhysics/GetRealKineticEnergy.hpp"
+#include "picongpu/particles/atomicPhysics/GetRealKineticEnergy.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>

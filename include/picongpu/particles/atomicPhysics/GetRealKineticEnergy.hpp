@@ -31,11 +31,14 @@ namespace atomicPhysics
 
     struct GetRealKineticEnergy
     {
-        constexpr using mathFunc = pmacc::algorithms::math;
+        uint8_t a = 0u;
+        namespace mathFunc = pmacc::algorithms::math;
 
         // returns the kinetic energy of a represented physical particle
         //return unit: J, SI
-        template< T_Particle >
+        template<
+            T_Particle
+            >
         float_X operator() ( T_Particle & particle)
         {
             constexpr auto c_SI = picongpu::SI::SPEED_OF_LIGHT_SI;   // unit: m/s, SI

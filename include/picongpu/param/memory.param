@@ -50,7 +50,7 @@ namespace picongpu
     // TODO: check dimension naming
     constexpr uint8_t xSizeSuperCell = 8;
     constexpr uint8_t ySizeSuperCell = 8;
-    constexpr unit8_T zSizeSuperCell = 4;
+    constexpr uint8_t zSizeSuperCell = 4;
 
     using SuperCellSize = typename mCT::shrinkTo<
         mCT::Int< xSizeSuperCell, ySizeSuperCell, zSizeSuperCell >,

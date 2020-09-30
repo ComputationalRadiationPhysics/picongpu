@@ -17,9 +17,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#inlcude "picongpu/param/physicalConstants.param"
-#include <pmacc/algorithms/math.hpp>
+#include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
+
+#include <pmacc/algorithms/math.hpp>
 
 #pragma once
 
@@ -40,13 +42,6 @@
  *  highly charged ions in a hot dense matter"
  *  High Energy Dennsity Physics 3, 342-352 (2007)
  */
-
-#include <pmaccc/algrotihms/math.hpp>
-#include "picongpu/param/physicalConstants"
-#inlcude "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber"
-
-#pragma once
-
 namespace picongpu
 {
 namespace particles
@@ -341,7 +336,7 @@ namespace atomicPhysics
             AtomicData const atomicDataBox
             ) const // return unit: 1/s, SI
         {
-            using mathFunc = pmacc::algorithms::math;
+            namespace mathFunc = pmacc::algorithms::math;
 
             //constants in SI
             constexpr float_64 c_SI = picongpu::SI::SPEED_OF_LIGHT_SI; // unit: m/s, SI
@@ -361,10 +356,14 @@ namespace atomicPhysics
 
             // J * m^2 * 1/(m^3*J) * m/s * sqrt( unitless - [ ( (kg*m^2/s^2)/J )^2 = Nm/J = J/J = unitless ] ) = J/J m^3/m^3 * 1/s
             return dE_SI * sigma_SI * densityElectron * c_SI *
-                mathFunc::sqrt( 1 - mathFunc::pow(
-                    1._X / (1._X + E_e_SI / ( m_e_SI * mathFunc::pow( c_SI, 2 ) ) ),
-                    2
-                    )
+                mathFunc::sqrt(
+                    1 - mathFunc::pow(
+                        1._X / (1._X + E_e_SI / (
+                            m_e_SI * mathFunc::pow( c_SI, 2 )
+                            )
+                        ),
+                        2
+                        )
                     );
                 // unit: 1/s; SI
         }

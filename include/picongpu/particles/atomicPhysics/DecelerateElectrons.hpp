@@ -28,7 +28,7 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 
-#include "picongpu/particle/atomicPhysics/GetRealKineticEnergy.hpp"
+#include "picongpu/particles/atomicPhysics/GetRealKineticEnergy.hpp"
 
 #include <cstdint>
 

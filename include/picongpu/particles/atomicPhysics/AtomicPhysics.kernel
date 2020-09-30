@@ -40,7 +40,7 @@
 // numerical differentiation
 #include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/FornbergNumericalDifferentiation.hpp"
 // atomic rate calculation functor
-#include "picongpu/particel/atomicPhysics/AtomicRate.hpp"
+#include "picongpu/particles/atomicPhysics/AtomicRate.hpp"
 
 
 #include <cstdint>
