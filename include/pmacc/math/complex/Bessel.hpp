@@ -81,7 +81,7 @@ namespace bessel
     struct Cbesselj0Base;
 
     template< typename T_Type >
-    HDINLINE typename J0< pmacc::math::Complex< T_Type > >::result
+    HDINLINE typename J0< pmacc::math::Complex< T_Type > >::Result
     j0( pmacc::math::Complex< T_Type > const & z )
     {
         return J0< pmacc::math::Complex< T_Type > >( )( z );
@@ -97,7 +97,7 @@ namespace bessel
     struct Cbesselj1Base;
 
     template< typename T_Type >
-    HDINLINE typename J1< pmacc::math::Complex< T_Type > >::result
+    HDINLINE typename J1< pmacc::math::Complex< T_Type > >::Result
     j1( pmacc::math::Complex< T_Type > const & z)
     {
         return J1< pmacc::math::Complex< T_Type > >( )( z );
