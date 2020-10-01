@@ -128,7 +128,7 @@ namespace defaults
     /** GeneralisedLaguerre Beam laser profile with finite pulse length
      *
      * @tparam T_Params class parameter to configure the GeneralisedLaguerre Beam profile,
-     *                  see members of generalisedlaguerreBeam:::defaults::GeneralisedLaguerreBeamParam 
+     *                  see members of generalisedlaguerreBeam:::defaults::GeneralisedLaguerreBeamParam
      *                  for required members
      */
     template< typename T_Params = generalisedlaguerreBeam::defaults::GeneralisedLaguerreBeamParam >

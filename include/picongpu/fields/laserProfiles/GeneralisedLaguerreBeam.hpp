@@ -36,19 +36,19 @@ namespace generalisedlaguerreBeam
 } // namespace generalisedlaguerreBeam
 
 //---------Temporal---------------
-//Until we find the best way to store the informations for defining the generalised Laguerre mode.We will use this publib struct 
+//Until we find the best way to store the informations for defining the generalised Laguerre mode.We will use this publib struct
 /*struct struct Temp_generalisedlaguerre{
-	std::vector<int>    all_rad_modes;
-	std::vector<int>    all_azi_modes;
-	std::vector<double> all_amp_modes;
-	int 					num_modes;
+    std::vector<int>    all_rad_modes;
+    std::vector<int>    all_azi_modes;
+    std::vector<double> all_amp_modes;
+    int                     num_modes;
 };
- it will be defined in LWFAk80..../laser.param*/ 
+ it will be defined in LWFAk80..../laser.param*/
 
 
 namespace acc
 {
-    
+
 
     template< typename T_Unitless >
     struct GeneralisedLaguerreBeam : public T_Unitless
@@ -69,10 +69,10 @@ namespace acc
          */
         HDINLINE float_X generalisedLaguerre( const uint32_t n,const uint32_t a, const float_X x )
         {
-            
+
             uint32_t currentN = 0;
             float_X laguerreN = 0;
-            
+
             while (currentN <= n )
             {
                 //Core statement of the algorithm
@@ -81,7 +81,7 @@ namespace acc
             }
             return laguerreN;
         }
-        
+
         HDINLINE uint32_t nChoosek( const uint32_t n,  uint32_t k )//calculates nchoosek
         {
             if (k > n) return 0;
@@ -89,20 +89,20 @@ namespace acc
             if (k == 0) return 1;
 
             uint32_t result = n;
-            for( uint32_t i = 2; i <= k; ++i ) 
+            for( uint32_t i = 2; i <= k; ++i )
             {
                 result *= (n-i+1);
                 result /= i;
             }
             return result;
         }
-        
-        HDINLINE float_X coefficient(const uint32_t n,const uint32_t m, const uint32_t a)//finds mth coeficiend for the n,a laguerre mode 
+
+        HDINLINE float_X coefficient(const uint32_t n,const uint32_t m, const uint32_t a)//finds mth coeficiend for the n,a laguerre mode
         {
             uint32_t fac = 1.0;
             for (uint32_t i=2;i<=m;++i) fac*= i;
             return pow(-1.0,m)*nChoosek(n+a,n-m)/float_X(fac);
-        }      
+        }
         /** Device-Side Constructor
          *
          * @param superCellToLocalOriginCellOffset local offset in cells to current supercell
@@ -152,9 +152,9 @@ namespace acc
             // transversal position only
             floatD_X planeNoNormal = floatD_X::create( 1.0_X );
             planeNoNormal[ planeNormalDir ] = 0.0_X;
-            
-			float_X const r2 = pmacc::math::abs2( pos * planeNoNormal );
-			float_X const phi = picongpu::math::atan2(pos.x(),pos.z());
+
+            float_X const r2 = pmacc::math::abs2( pos * planeNoNormal );
+            float_X const phi = picongpu::math::atan2(pos.x(),pos.z());
             // calculate focus position relative to the laser initialization plane
             float_X const focusPos = Unitless::FOCUS_POS - pos.y();
 
@@ -167,14 +167,14 @@ namespace acc
             // initialize temporary variables
             float_X etrans( 0.0_X );
             float_X etrans_norm( 0.0_X );
-            
+
             // We need to check at some point that Temp_generalisedlaguerre
-            // has no problems : eg l,p,Amplitudes has same length (*) 
-            
+            // has no problems : eg l,p,Amplitudes has same length (*)
+
             for( uint32_t num_mod = 0 ; num_mod < Unitless::num_modes ; ++num_mod )
                 etrans_norm += typename Unitless::all_amp_modes_t{}[num_mod];
 
-            
+
 
             // beam waist in the near field: w_y(y=0) == W0
             float_X const w_y = Unitless::W0 * math::sqrt( 1.0_X + ( focusPos / y_R )*( focusPos / y_R ) );
@@ -183,60 +183,60 @@ namespace acc
 
             if( Unitless::Polarisation == Unitless::LINEAR_X || Unitless::Polarisation == Unitless::LINEAR_Z )
             {
-                
+
                 for( uint32_t num_mod = 0 ; num_mod < Unitless::num_modes ; ++num_mod )
                 {
-                    
+
                     int32_t radial_mod = typename Unitless::all_rad_modes_t{}[num_mod];
                     int32_t azimut_mod = typename Unitless::all_azi_modes_t{}[num_mod];
 
-                    etrans += typename Unitless::all_amp_modes_t{}[num_mod] 
-					* generalisedLaguerre(radial_mod,float_X(azimut_mod), 2.0_X * r2 / w_y / w_y )
-					* pow(math::sqrt(2*r2)/w_y,azimut_mod)
-                    * math::exp( -r2 / w_y / w_y ) 
-					* math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + float_X(azimut_mod) * phi +  ( 2._X * float_X( radial_mod ) +float_X(azimut_mod) + 1._X ) * xi_y + m_phase )
+                    etrans += typename Unitless::all_amp_modes_t{}[num_mod]
+                    * generalisedLaguerre(radial_mod,float_X(azimut_mod), 2.0_X * r2 / w_y / w_y )
+                    * pow(math::sqrt(2*r2)/w_y,azimut_mod)
+                    * math::exp( -r2 / w_y / w_y )
+                    * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + float_X(azimut_mod) * phi +  ( 2._X * float_X( radial_mod ) +float_X(azimut_mod) + 1._X ) * xi_y + m_phase )
                     * math::exp( -( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
                                  *( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
                                    / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
                 }
 
                 m_elong *= etrans / etrans_norm;
-                //printf("m_elong : %f \n",m_elong);//Debug 
+                //printf("m_elong : %f \n",m_elong);//Debug
             }
             else if( Unitless::Polarisation == Unitless::CIRCULAR )
             {
                 for( uint32_t num_mod = 0 ; num_mod < Unitless::num_modes ; ++num_mod )
                 {
-                    
+
                     int32_t radial_mod = typename Unitless::all_rad_modes_t{}[num_mod];
                     int32_t azimut_mod = typename Unitless::all_azi_modes_t{}[num_mod];
-       
 
-                    etrans += typename Unitless::all_amp_modes_t{}[num_mod] 
-					* generalisedLaguerre(radial_mod,float_X(azimut_mod), 2.0_X * r2 / w_y / w_y )
-					* pow(math::sqrt(2*r2)/w_y,float_X(azimut_mod))
-                    * math::exp( -r2 / w_y / w_y ) 
-					* math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + float_X(azimut_mod) * phi +  ( 2._X * float_X( radial_mod ) +float_X(azimut_mod) + 1._X ) * xi_y + m_phase )
+
+                    etrans += typename Unitless::all_amp_modes_t{}[num_mod]
+                    * generalisedLaguerre(radial_mod,float_X(azimut_mod), 2.0_X * r2 / w_y / w_y )
+                    * pow(math::sqrt(2*r2)/w_y,float_X(azimut_mod))
+                    * math::exp( -r2 / w_y / w_y )
+                    * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + float_X(azimut_mod) * phi +  ( 2._X * float_X( radial_mod ) +float_X(azimut_mod) + 1._X ) * xi_y + m_phase )
                     * math::exp( -( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
                                  *( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
                                    / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
                 }
-                
+
                 m_elong.x() *= etrans / etrans_norm;
                 m_phase += float_X( PI / 2.0 );
                 etrans = 0.0_X;
-                
+
                 for( uint32_t num_mod = 0 ; num_mod < Unitless::num_modes ; ++num_mod )
                 {
-                    
+
                     int32_t radial_mod = typename Unitless::all_rad_modes_t{}[num_mod];
                     int32_t azimut_mod = typename Unitless::all_azi_modes_t{}[num_mod];
 
-                    etrans += typename Unitless::all_amp_modes_t{}[num_mod] 
-					* generalisedLaguerre(radial_mod,float_X(azimut_mod), 2.0_X * r2 / w_y / w_y )
-					* pow(math::sqrt(2*r2)/w_y,float_X(azimut_mod))
-                    * math::exp( -r2 / w_y / w_y ) 
-					* math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + float_X(azimut_mod) * phi +  ( 2._X * float_X( radial_mod ) +float_X(azimut_mod) + 1._X ) * xi_y + m_phase )
+                    etrans += typename Unitless::all_amp_modes_t{}[num_mod]
+                    * generalisedLaguerre(radial_mod,float_X(azimut_mod), 2.0_X * r2 / w_y / w_y )
+                    * pow(math::sqrt(2*r2)/w_y,float_X(azimut_mod))
+                    * math::exp( -r2 / w_y / w_y )
+                    * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + float_X(azimut_mod) * phi +  ( 2._X * float_X( radial_mod ) +float_X(azimut_mod) + 1._X ) * xi_y + m_phase )
                     * math::exp( -( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
                                  *( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
                                    / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
@@ -315,10 +315,10 @@ namespace acc
             // This check is done here on HOST, since std::numeric_limits<float_X>::epsilon() does not compile on laserTransversal(), which is on DEVICE.
             float_X etrans_norm( 0.0_X );
 
-           //(*) we should add a message here 
+           //(*) we should add a message here
             for( uint32_t num_mod = 0 ; num_mod < Unitless::num_modes ; ++num_mod )
                 etrans_norm += typename  Unitless::all_amp_modes_t{}[num_mod];
-            
+
 
 
             // a symmetric pulse will be initialized at position z=0 for
