@@ -1,3 +1,23 @@
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
+ *                     Richard Pausch, Alexander Debus
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
@@ -35,21 +55,8 @@ namespace generalisedlaguerreBeam
     };
 } // namespace generalisedlaguerreBeam
 
-//---------Temporal---------------
-//Until we find the best way to store the informations for defining the generalised Laguerre mode.We will use this publib struct
-/*struct struct Temp_generalisedlaguerre{
-    std::vector<int>    all_rad_modes;
-    std::vector<int>    all_azi_modes;
-    std::vector<double> all_amp_modes;
-    int                     num_modes;
-};
- it will be defined in LWFAk80..../laser.param*/
-
-
 namespace acc
 {
-
-
     template< typename T_Unitless >
     struct GeneralisedLaguerreBeam : public T_Unitless
     {
@@ -61,9 +68,9 @@ namespace acc
         DataSpace< simDim > m_offsetToTotalDomain;
         DataSpace< simDim > m_superCellToLocalOriginCellOffset;
 
-        /** Simple iteration algorithm to implement Laguerre polynomials for GPUs.
-         *
+        /** Simple iteration algorithm to implement generalized Laguerre polynomials (for a>-1) for GPUs. 
          *  @param n order of the Laguerre polynomial
+         *  @param a parameter of the Laguerre polynomial
          *  @param x coordinate at which the polynomial is evaluated
          *  @return ...
          */
@@ -168,13 +175,11 @@ namespace acc
             float_X etrans( 0.0_X );
             float_X etrans_norm( 0.0_X );
 
-            // We need to check at some point that Temp_generalisedlaguerre
-            // has no problems : eg l,p,Amplitudes has same length (*)
-
+            //-------MESSAGES FOR WRONG SELECTION OF MODES SHOULD BE ADDED HERE----------
+            
+            //---------------------------------------------------------------------------
             for( uint32_t num_mod = 0 ; num_mod < Unitless::num_modes ; ++num_mod )
                 etrans_norm += typename Unitless::all_amp_modes_t{}[num_mod];
-
-
 
             // beam waist in the near field: w_y(y=0) == W0
             float_X const w_y = Unitless::W0 * math::sqrt( 1.0_X + ( focusPos / y_R )*( focusPos / y_R ) );
@@ -201,7 +206,6 @@ namespace acc
                 }
 
                 m_elong *= etrans / etrans_norm;
-                //printf("m_elong : %f \n",m_elong);//Debug
             }
             else if( Unitless::Polarisation == Unitless::CIRCULAR )
             {
@@ -315,9 +319,11 @@ namespace acc
             // This check is done here on HOST, since std::numeric_limits<float_X>::epsilon() does not compile on laserTransversal(), which is on DEVICE.
             float_X etrans_norm( 0.0_X );
 
-           //(*) we should add a message here
-            for( uint32_t num_mod = 0 ; num_mod < Unitless::num_modes ; ++num_mod )
-                etrans_norm += typename  Unitless::all_amp_modes_t{}[num_mod];
+           //-------MESSAGES FOR WRONG SELECTION OF MODES SHOULD BE ADDED HERE----------
+           //for( uint32_t num_mod = 0 ; num_mod < Unitless::num_modes ; ++num_mod )
+           //     etrans_norm += typename  Unitless::all_amp_modes_t{}[num_mod];
+           //---------------------------------------------------------------------------
+            
 
 
 

@@ -33,10 +33,10 @@ namespace generalisedlaguerreBeam
 {
 namespace defaults
 {
-     const int num_modes = 2;
-     PMACC_CONST_VECTOR(int,    num_modes, all_rad_modes, 0  ,1);
-     PMACC_CONST_VECTOR(int,    num_modes, all_azi_modes, 0  ,0);
-     PMACC_CONST_VECTOR(double, num_modes, all_amp_modes, 0.8,1.2);
+     const int num_modes = 1;
+     PMACC_CONST_VECTOR(int,    num_modes, all_rad_modes, 0  );
+     PMACC_CONST_VECTOR(int,    num_modes, all_azi_modes, 0  );
+     PMACC_CONST_VECTOR(double, num_modes, all_amp_modes, 1.0);
 
     struct GeneralisedLaguerreBeamParam
     {
