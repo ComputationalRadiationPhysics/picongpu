@@ -170,8 +170,8 @@ namespace atomicPhysics
              *
              * hard-coded for now, get out of param files later
              */
-            std::string levelDataFileName = "~/CarbonLevels.txt";
-            std::string transitionDataFileName = "~/CarbonTransitions.txt";
+            std::string levelDataFileName = "/home/marre55/CarbonLevels.txt";
+            std::string transitionDataFileName = "/home/marre55/CarbonTransitions.txt";
 
             // read in atomic data
             // levels
@@ -191,6 +191,8 @@ namespace atomicPhysics
                 return;
             }
 
+            uint32_t const maxNumberStates = levelDataItems.size();
+            uint32_t const maxNumberTransitions = transitionDataItems.size();
 
             // init rate matrix on host and copy to device
 
@@ -206,7 +208,11 @@ namespace atomicPhysics
             );
 
             // get acess to data box on host side
-            auto atomicDataHostBox = atomicData->getHostDataBox();
+            // init is empty
+            auto atomicDataHostBox = atomicData->getHostDataBox<
+                maxNumberStates,
+                maxNumberTransitions
+            >( 0u, 0u );
 
             // fill atomic data into dataBox
             for ( uint32_t i = 0; i < levelDataItems.size(); i++ )

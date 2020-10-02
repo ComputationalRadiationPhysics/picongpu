@@ -23,7 +23,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/atomicPhysics/AtomicRate.hpp"
 
-#include <utility>exit
+#include <utility>
 #include <pmacc/algorithms/math.hpp>
 
 
@@ -129,7 +129,7 @@ namespace mathFunc = pmacc::algorithms::math;
             {
                 for ( uint32_t j = 0u; j < T_numSamplePoints; j++ )  // j ... sample point
                 {
-                    this->weights[ j + i * T_numSamplePoints ] = T_WeightingGen::weighting<
+                    this->weights[ j + i * T_numSamplePoints ] = T_WeightingGen::template weighting<
                         T_numSamplePoints,
                         T_numSamplePoints/2u + 2u >( i, j, samplePoints );
                 }
