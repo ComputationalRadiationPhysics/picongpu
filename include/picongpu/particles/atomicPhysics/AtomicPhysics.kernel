@@ -41,7 +41,8 @@
 #include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/FornbergNumericalDifferentiation.hpp"
 // atomic rate calculation functor
 #include "picongpu/particles/atomicPhysics/AtomicRate.hpp"
-
+// conversion to/from atomic state index
+#include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
 
 #include <cstdint>
 
@@ -54,7 +55,7 @@ namespace atomicPhysics
 
     template<
         uint32_t T_numWorkers,
-        uint16_t T_maxNumBins,
+        uint16_t T_maxNumBins
     >
     struct AtomicPhysicsKernel
     {
@@ -86,8 +87,8 @@ namespace atomicPhysics
             T_IonBox ionBox,
             T_Mapping mapper,
             T_AtomicDataBox const atomicDataBox,
-            float_X const initialGridWidth, // unit: ATOMIC_ENERGY_UNIT
-            float_X const relativeErrorTarget // unit: 1/s /( 1/( m^3 * ATOMIC_ENERGY_UNIT ) )
+            float_X const initialGridWidth, // unit: ATOMIC_UNIT_ENERGY
+            float_X const relativeErrorTarget // unit: 1/s /( 1/( m^3 * ATOMIC_UNIT_ENERGY ) )
         ) const
         {
             // we assume 1d thread indices
@@ -97,45 +98,50 @@ namespace atomicPhysics
             // Create and initialize a histogram on shared memory
             constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
 
-            // get species particle mass
-            using IonFrameType = typename ionBox::FrameType;
-            const float_X mass = frame::getMass<FrameType>();
-
             // TODO: get this from ion species
             // hard coded for now
-            constexpr using T_ConfigNumberDataType = uint64_t;
-            constexpr uint8_t T_numLevels = 10u;
+            using ConfigNumberDataType = uint64_t;
+            constexpr uint8_t numLevels = 10u;
+
+            // conversion to/from atomic state index
+            using ConfigNumber = picongpu::particles::atomicPhysics::stateRepresentation::ConfigNumber<
+                ConfigNumberDataType,
+                numLevels,
+                atomicDataBox.getAtomicNumber()
+            >;
+
+            // atomic rate calculation
+            using AtomicRate = picongpu::particles::atomicPhysics::AtomicRate<
+                T_AtomicDataBox,
+                ConfigNumberDataType,
+                ConfigNumber,
+                numLevels
+                >;
+
+            // numerical derivative werightings
+            using WeightingGen = electronDistribution::histogram2::FornbergNumericalDifferentiation<
+                float_X,    // T_Value
+                float_X     // T_Argument
+            >;
 
             // hard coded for now
             // TODO: get from param file
-            constexpr using RelativeError = electronDistribution::histogram2::RateRelativeError<
+            using RelativeError = electronDistribution::histogram2::RateRelativeError<
                 1u,     // T_minOrderApprox
                 1u,     // T_maxOrderApprox
                 3u,     // T_numSamplePoints
-                electronDistribution::histogram2::FornbergNumericalDifferentiation<
-                    float_X,    // T_Value
-                    float_X     // T_Argument
-                >, // T_WeightingGen
-                picongpu::particles::atomicPhysics::AtomicRate<
-                    T_AtomicDataBox,
-                    T_ConfigNumberDataType,
-                    T_numLevels
-                    >
+                WeightingGen,
+                AtomicRate,
                 T_AtomicDataBox,
-                T_ConfigNumberDataType
+                ConfigNumberDataType
             >;
 
             using Histogram = electronDistribution::histogram2::AdaptiveHistogram<
                 T_maxNumBins,
                 frameSize,
-                RelativeError
+                RelativeError,
+                T_AtomicDataBox
             >;
-
-            constexpr using AtomicRate = picongpu::particles::atomicPhysics::AtomicRate<
-                T_AtomicDataBox,
-                T_ConfigNumberDataTypember,
-                T_numLevels
-                >
 
             // get new histogram
             PMACC_SMEM(
@@ -144,6 +150,7 @@ namespace atomicPhysics
                 Histogram // variable type
             );
 
+            // get new weightings
             PMACC_SMEM(
                 acc, // mandatory first parameter
                 relativeError, // variable name
@@ -157,7 +164,6 @@ namespace atomicPhysics
                 histogram.init(
                     relativeErrorTarget,
                     initialGridWidth,
-                    atomicDataBox,
                     relativeError
                     );
                 // calculate weightings once
@@ -170,11 +176,12 @@ namespace atomicPhysics
                 acc,
                 electronBox,
                 mapper,
-                &histogram
+                &histogram,
+                atomicDataBox
             );
             cupla::__syncthreads( acc );
 
-            solveRateEquation< T_numWorkers, T_AtomicRate >(
+            solveRateEquation< T_numWorkers, AtomicRate >(
                 acc,
                 mapper,
                 rngFactoryInt,
@@ -189,7 +196,8 @@ namespace atomicPhysics
                 acc,
                 mapper,
                 electronBox,
-                histogram
+                histogram,
+                atomicDataBox
             );
 
         }

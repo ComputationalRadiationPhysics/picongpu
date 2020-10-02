@@ -72,6 +72,7 @@ namespace manipulators
             float_X const protonNumber = traits::GetAtomicNumbers< T_Particle >::type::numberOfProtons;
 
             particle[ boundElectrons_ ] = protonNumber;
+            particle[ atomicConfigNumber_ ] = ?;//TODO: get correct initialisation
         }
     };
     using SetBoundElectrons = generic::Free< SetIonToNeutral >;

@@ -48,6 +48,7 @@ namespace atomicPhysics
 
     // Data box type for rate matrix on host and device
     template<
+        uint8_t T_atomicNumber,
         typename T_DataBoxValue,
         typename T_DataBoxStateIdx,
         typename T_ConfigNumberDataType
@@ -81,7 +82,7 @@ namespace atomicPhysics
         // Constructor
         AtomicDataBox(
             DataBoxValue boxStateEnergy,
-            DataBoxStateIdx boxIdx,
+            DataBoxStateIdx boxIdxStates,
             uint32_t numStates,
 
             DataBoxValue boxCollisionalOscillatorStrength,
@@ -95,7 +96,7 @@ namespace atomicPhysics
             uint32_t numTransitions
         ):
             boxStateEnergy( boxStateEnergy ),
-            boxIdx( boxIdx ),
+            boxIdxState( boxIdxState ),
             numStates( numStates ),
 
             boxLowerIdx( boxLowerIdx ),
@@ -121,14 +122,19 @@ namespace atomicPhysics
             // search for state in list
             for ( uint32_t i = 0u; i < this->numStates; i++ )
             {
-                if ( boxIdx( i ) == idx )
+                if ( boxIdxState( i ) == idx )
                 {
-                    return float_X(boxStateEnergy( i ) * picongpu::UNITCONV_eV_to_Joule) /
-                        picongpu::ATOMIC_UNIT_ENERGY);
+                    return static_cast< float_X >( (boxStateEnergy( i ) * picongpu::UNITCONV_eV_to_Joule) /
+                        picongpu::SI::ATOMIC_UNIT_ENERGY );
                 }
             }
             // atomic state not found return zero
             return static_cast< ValueType >( 0 );
+        }
+
+        HDINLINE Idx getAtomicStateConfigNumberIndex( uint32_t indexState )
+        {
+            return this->boxIdxState( indexState );
         }
 
         // returns index of transition in databox, numTransition qual to not found
@@ -136,17 +142,17 @@ namespace atomicPhysics
         {
             // search for transition in list
             for ( uint32_t i = 0u; i < this->numTransitions; i++ )
-                if ( boxLowerIdx( i ) == lowerIdx && boxUpperIdx( i ) = upperIdx )
+                if ( boxLowerIdx( i ) == lowerIdx && boxUpperIdx( i ) == upperIdx )
                     return i;
             return numTransitions;
         }
 
-        HDINLINE Idx getUpperIdx( uint32_t transitionIndex ) const
+        HDINLINE Idx getUpperIdxTransition( uint32_t transitionIndex ) const
         {
             return boxUpperIdx( transitionIndex );
         }
 
-        HDINLINE Idx getLowerIdx( uint32_t transitionIndex ) const
+        HDINLINE Idx getLowerIdxTransition( uint32_t transitionIndex ) const
         {
             return boxLowerIdx( transitionIndex );
         }
@@ -154,7 +160,7 @@ namespace atomicPhysics
         // number of Transitions stored in this box
         HDINLINE uint32_t getNumTransitions( )
         {
-            return this->numTransition;
+            return this->numTransitions;
         }
 
         // number of atomic states stored in this box
@@ -163,71 +169,85 @@ namespace atomicPhysics
             return this->numStates;
         }
 
-        HDINLINE ValueType getCollisionalOscillatorStrength( uint32_t const index )
+        HDINLINE ValueType getCollisionalOscillatorStrength( uint32_t const indexTransition )
         {
-            if ( index < numTransitions )
-                return boxOscillatorStrength( i );
+            if ( indexTransition < numTransitions )
+                return boxCollisionalOscillatorStrength( indexTransition );
 
             return static_cast< ValueType >(0);
         }
 
-        HDINLINE ValueType getCinx1( uint32_t const index )
+        HDINLINE ValueType getCinx1( uint32_t const indexTransition )
         {
-            if (index < numTransitions )
-            return boxCinx1( index );
+            if ( indexTransition < numTransitions )
+                return boxCinx1( indexTransition );
+            return static_cast< ValueType >(0);
         }
 
-        HDINLINE ValueType getCinx2( uint32_t const index )
+        HDINLINE ValueType getCinx2( uint32_t const indexTransition )
         {
-            if (index < numTransitions )
-            return boxCinx2( index );
+            if ( indexTransition < numTransitions )
+                return boxCinx2( indexTransition );
+            return static_cast< ValueType >(0);
         }
 
-        HDINLINE ValueType getCinx3( uint32_t const index )
+        HDINLINE ValueType getCinx3( uint32_t const indexTransition )
         {
-            if (index < numTransitions )
-            return boxCinx3( index );
+            if ( indexTransition < numTransitions )
+                return boxCinx3( indexTransition );
+            return static_cast< ValueType >(0);
         }
 
-        HDINLINE ValueType getCinx4( uint32_t const index )
+        HDINLINE ValueType getCinx4( uint32_t const indexTransition )
         {
-            if (index < numTransitions )
-            return boxCinx4( index );
+            if (indexTransition < numTransitions )
+                return boxCinx4( indexTransition );
+            return static_cast< ValueType >(0);
         }
 
-        HDINLINE ValueType getCinx5( uint32_t const index )
+        HDINLINE ValueType getCinx5( uint32_t const indexTransition )
         {
-            if (index < numTransitions )
-            return boxCinx5( index );
+            if ( indexTransition < numTransitions )
+                return boxCinx5( indexTransition );
+            return static_cast< ValueType >(0);
+        }
+
+        HDINLINE constexpr static uint8_t getAtomicNumber()
+        {
+            return T_atomicNumber;
         }
 
         // must be called sequentially!
         HDINLINE void addLevel(
-            Idx const idx,
-            ValueType const energy
+            Idx const idx, // must be index as defined in ConfigNumber
+            ValueType const energy // unit: eV
             )
         {
-            this->boxIdx[ numStates ] = idx;
+            this->boxIdxState[ numStates ] = idx;
             this->boxStateEnergy [ numStates ] = energy;
             this->numStates += 1u;
         }
 
         // must be called sequentially!
         HDINLINE void addTransition(
-            Idx const lowerIdx,
-            Idx const upperIdx,
+            Idx const lowerIdx, // must be index as defined in ConfigNumber
+            Idx const upperIdx, // must be index as defined in ConfigNumber
             ValueType const collisionalOscillatorStrength,
-            ValueType const gauntCoefficents[5]
+            ValueType const gauntCoefficent1,
+            ValueType const gauntCoefficent2,
+            ValueType const gauntCoefficent3,
+            ValueType const gauntCoefficent4,
+            ValueType const gauntCoefficent5
             )
         {
             this->boxLowerIdx[ numTransitions ] = lowerIdx;
             this->boxUpperIdx[ numTransitions ] = upperIdx;
             this->boxCollisionalOscillatorStrength[numTransitions ] = collisionalOscillatorStrength;
-            this->boxCinx1 = gauntCoefficents[0];
-            this->boxCinx2 = gauntCoefficents[1];
-            this->boxCinx3 = gauntCoefficents[2];
-            this->boxCinx4 = gauntCoefficents[3];
-            this->boxCinx5 = gauntCoefficents[4];
+            this->boxCinx1[ numTransitions ] = gauntCoefficent1;
+            this->boxCinx2[ numTransitions ] = gauntCoefficent2;
+            this->boxCinx3[ numTransitions ] = gauntCoefficent3;
+            this->boxCinx4[ numTransitions ] = gauntCoefficent4;
+            this->boxCinx5[ numTransitions ] = gauntCoefficent5;
             this->numTransitions += 1u;
         }
     };
@@ -235,7 +255,10 @@ namespace atomicPhysics
 
     // Rate matrix host-device storage,
     // to be used from the host side only
-    template< typename T_ConfigNumberDataType = uint64_t >
+    template<
+        uint8_t T_atomicNumber,
+        typename T_ConfigNumberDataType = uint64_t
+        >
     class AtomicData
     {
 
@@ -271,17 +294,18 @@ namespace atomicPhysics
 
         // acess datatype used on device
         using DataBoxType = AtomicDataBox<
+            T_atomicNumber,
             InternalDataBoxTypeValue,
             InternalDataBoxTypeIdx,
             T_ConfigNumberDataType
         >;
 
-        private:
+    private:
         //pointers to storage
         std::unique_ptr< BufferValue > dataStateEnergy; // unit: eV
         std::unique_ptr< BufferIdx > dataIdx;   // unit: unitless
 
-        std::unique_ptr< BufferValue > dataOscillatorStrength; // unit: unitless
+        std::unique_ptr< BufferValue > dataCollisionalOscillatorStrength; // unit: unitless
         std::unique_ptr< BufferValue > dataCinx1; // unit: unitless
         std::unique_ptr< BufferValue > dataCinx2; // unit: unitless
         std::unique_ptr< BufferValue > dataCinx3; // unit: unitless
@@ -325,7 +349,7 @@ namespace atomicPhysics
                 new BufferIdx( layoutStates )
             );
 
-            dataOscillatorStrength.reset(
+            dataCollisionalOscillatorStrength.reset(
                 new BufferValue( layoutTransitions )
             );
             dataCinx1.reset(
@@ -354,17 +378,17 @@ namespace atomicPhysics
         //! Get the host data box for the rate matrix values
         HINLINE DataBoxType getHostDataBox( )
         {
-            return DataBoxTypeStates(
+            return DataBoxType(
                 dataStateEnergy->getHostBuffer( ).getDataBox( ),
                 dataIdx->getHostBuffer( ).getDataBox( ),
                 this->numStates,
 
-                dataCollisionalOscillatorStrength->getHostDataBox( ).getDataBox( ),
-                dataCinx1->getHostDataBox( ).getDataBox( ),
-                dataCinx2->getHostDataBox( ).getDataBox( ),
-                dataCinx3->getHostDataBox( ).getDataBox( ),
-                dataCinx4->getHostDataBox( ).getDataBox( ),
-                dataCinx5->getHostDataBox( ).getDataBox( ),
+                dataCollisionalOscillatorStrength->getHostBuffer( ).getDataBox( ),
+                dataCinx1->getHostBuffer( ).getDataBox( ),
+                dataCinx2->getHostBuffer( ).getDataBox( ),
+                dataCinx3->getHostBuffer( ).getDataBox( ),
+                dataCinx4->getHostBuffer( ).getDataBox( ),
+                dataCinx5->getHostBuffer( ).getDataBox( ),
                 dataLowerIdx->getHostBuffer( ).getDataBox( ),
                 dataUpperIdx->getHostBuffer( ).getDataBox( ),
                 this->numTransitions
@@ -374,17 +398,17 @@ namespace atomicPhysics
         //! Get the device data box for the rate matrix values
         HINLINE DataBoxType getDeviceDataBox( )
         {
-            return DataBoxTypeStates(
+            return DataBoxType(
                 dataStateEnergy->getDeviceBuffer( ).getDataBox( ),
                 dataIdx->getDeviceBuffer( ).getDataBox( ),
                 this->numStates,
 
-                dataCollisionalOscillatorStrength->getHostDataBox( ).getDataBox( ),
-                dataCinx1->getDeviceDataBox( ).getDataBox( ),
-                dataCinx2->getDeviceDataBox( ).getDataBox( ),
-                dataCinx3->getDeviceDataBox( ).getDataBox( ),
-                dataCinx4->getDeviceDataBox( ).getDataBox( ),
-                dataCinx5->getDeviceDataBox( ).getDataBox( ),
+                dataCollisionalOscillatorStrength->getHostBuffer( ).getDataBox( ),
+                dataCinx1->getDeviceBuffer( ).getDataBox( ),
+                dataCinx2->getDeviceBuffer( ).getDataBox( ),
+                dataCinx3->getDeviceBuffer( ).getDataBox( ),
+                dataCinx4->getDeviceBuffer( ).getDataBox( ),
+                dataCinx5->getDeviceBuffer( ).getDataBox( ),
                 dataLowerIdx->getDeviceBuffer( ).getDataBox( ),
                 dataUpperIdx->getDeviceBuffer( ).getDataBox( ),
                 this->numTransitions
@@ -396,7 +420,7 @@ namespace atomicPhysics
             dataStateEnergy->hostToDevice( );
             dataIdx->hostToDevice( );
 
-            dataOscillatorStrength->hostToDevice( );
+            dataCollisionalOscillatorStrength->hostToDevice( );
             dataCinx1->hostToDevice( );
             dataCinx2->hostToDevice( );
             dataCinx3->hostToDevice( );

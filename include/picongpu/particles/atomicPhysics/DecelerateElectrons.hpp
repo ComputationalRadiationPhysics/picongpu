@@ -43,30 +43,36 @@ namespace atomicPhysics
     template<
         typename T_Acc,
         typename T_Electron,
-        typename T_Histogram
+        typename T_Histogram,
+        typename T_AtomicDataBox
     >
     DINLINE void processElectron(
         T_Acc const & acc,
         T_Electron electron,
-        T_Histogram const & histogram
+        T_Histogram const & histogram,
+        T_AtomicDataBox atomicDataBox
     )
     {
         // todo: compute, probably via a generic algorithm
-        float_X const energy = picongpu::particles::atomicPhysics::GetRealKineticEnergy( electron ) /
-            picongpu::SI::ATOMIC_ENERGY_UNIT; // unit: ATOMIC_ENERGY_UNIT
-        float_X const weight = electron[ weight_ ]; // unitless
+        float_X const energy = picongpu::particles::atomicPhysics::GetRealKineticEnergy::KineticEnergy( electron ) /
+            picongpu::SI::ATOMIC_UNIT_ENERGY; // unit: ATOMIC_UNIT_ENERGY
+        float_X const weight = electron[ weighting_ ]; // unitless
 
         // look up in the histogram, which bin is this energy
-        uint16_t const binIndex = histogram.getBinIndex( energy );
+        uint16_t binIndex = histogram.getBinIndex(
+            acc,
+            energy,
+            atomicDataBox
+            );
 
         // this could happen only if histogram did not have enough memory
         if( binIndex == histogram.getMaxNumberBins( ) )
             return;
 
-        float_X const weightBin = histogram.getWeightBin( index );  // unitless
-        float_X const deltaEnergyBin = histogram.getDeltaEnergyBin( index ); // unit: ATOMIC_ENERGY_UNIT
+        float_X const weightBin = histogram.getWeightBin( binIndex );  // unitless
+        float_X const deltaEnergyBin = histogram.getDeltaEnergyBin( binIndex ); // unit: ATOMIC_UNIT_ENERGY
 
-        float_X const deltaEnergy = deltaEnergyBin * weight / weightBin; // unit:: ATOMIC_ENERGY_UNIT
+        float_X const deltaEnergy = deltaEnergyBin * weight / weightBin; // unit:: ATOMIC_UNIT_ENERGY
 
         float_X const scalingFactor = 1._X - deltaEnergy / energy ; // unitless
         electron[ momentum_ ] *= scalingFactor;
@@ -79,13 +85,15 @@ namespace atomicPhysics
         typename T_Acc,
         typename T_Mapping,
         typename T_ElectronBox,
-        typename T_Histogram
+        typename T_Histogram,
+        typename T_AtomicDataBox
     >
     DINLINE void decelerateElectrons(
         T_Acc const & acc,
         T_Mapping mapper,
         T_ElectronBox electronBox,
-        T_Histogram const & histogram
+        T_Histogram const & histogram,
+        T_AtomicDataBox atomicDataBox
     )
     {
         using namespace mappings::threads;
@@ -132,7 +140,8 @@ namespace atomicPhysics
                         processElectron(
                             acc,
                             particle,
-                            histogram
+                            histogram,
+                            atomicDataBox
                         );
                     }
                 }

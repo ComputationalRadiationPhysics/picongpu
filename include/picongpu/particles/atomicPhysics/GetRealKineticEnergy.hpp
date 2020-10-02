@@ -29,17 +29,17 @@ namespace particles
 namespace atomicPhysics
 {
 
+namespace mathFunc = pmacc::algorithms::math;
+
     struct GetRealKineticEnergy
     {
-        uint8_t a = 0u;
-        namespace mathFunc = pmacc::algorithms::math;
 
         // returns the kinetic energy of a represented physical particle
         //return unit: J, SI
         template<
-            T_Particle
+            typename T_Particle
             >
-        float_X operator() ( T_Particle & particle)
+        HDINLINE static float_X KineticEnergy( T_Particle & particle)
         {
             constexpr auto c_SI = picongpu::SI::SPEED_OF_LIGHT_SI;   // unit: m/s, SI
 
@@ -49,7 +49,8 @@ namespace atomicPhysics
 
             float3_X vectorMomentum_Scaled = particle[ momentum_ ]; // internal units and scaled with weighting
 
-            float_X momentum = math::abs2( vectorP ) / particle[ weighting_ ] * ; // internal units
+            float_X momentum = math::abs2( vectorMomentum_Scaled ) /
+                particle[ weighting_ ]; // internal units
 
             // TODO: check wheter conversion is correct
             // unit: kg * m/s, SI

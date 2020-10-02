@@ -50,9 +50,31 @@ namespace atomicPhysics
     using RandomGenInt = RngFactoryInt::RandomGen;
     using RandomGenFloat = RngFactoryFloat::RandomGen;
 
+    /** actual rate equation solver
+     *
+     * basic steps:
+     * so long as time is remaining
+     *  1.) choose a new state by choosing a random integer in the atomic state index
+     *      range.
+     *  2.) choose a random bin of energy histogram of electrons to do change with
+     *  3.) calculate rate of change into this new state, with choosen electron energy
+     *  3.) calculate the quasiProbability = rate * dt
+     *  4.) if (quasiProbability > 1):
+     *      - change ion atomic state to new state
+     *      - reduce time by 1/rate, mean time between such changes
+     *      - start again at 1.)
+     *     else:
+     *      if ( quasiProbability < 0 ):
+     *          - start again at 1.)
+     *      else:
+     *          - decide randomly with quasiProbability if change to new state
+     *          if we change state:
+     *              - change ion state
+     *  5.) finish
+     */
     template<
-        typename T_Acc,
         typename T_AtomicRate,
+        typename T_Acc,
         typename T_Ion,
         typename T_AtomicDataBox,
         typename T_Histogram
@@ -67,11 +89,10 @@ namespace atomicPhysics
     )
     {
         // workaround: the types may be obtained in a better fashion
+        // TODO: relace with better version
         auto configNumber = ion[ atomicConfigNumber_ ];
         using ConfigNumber = decltype( configNumber );
-        using ConfigNumberDataType = decltype( ion[ atomicConfigNumber_ ].configNumber );
-
-        float_X timeRemaining_SI = picongpu::SI::DELTA_T_SI;
+        using ConfigNumberDataType = decltype( ion[ atomicConfigNumber_ ].getStateIndex( ) );
 
         using AtomicRate = T_AtomicRate;
 
@@ -88,104 +109,142 @@ namespace atomicPhysics
         float_X deltaEnergy;
         float_X quasiProbability;
 
+
+        // set remaining time to pic time step at the beginning
+        float_X timeRemaining_SI = picongpu::SI::DELTA_T_SI;
+
         while ( timeRemaining_SI > 0.0_X )
         {
             // read out old state index
-            oldState = configNumber.configNumber;
-            // get a random new state index
-            newState = randomGenInt() % ConfigNumber::numberStates();
+            oldState = configNumber.getStateIndex( );
 
-            // take a random bin existing in the histogram
+            // get a random new state index
+            newState = randomGenInt( ) % ConfigNumber::numberStates( );
+
+            // choose random histogram collection index
             histogramIndex = static_cast< uint16_t >( randomGenInt( ) ) %
-                histogram->getNumBins();
-            energyElectron = histogram->getEnergyBin( histogramIndex ); // unit: ATOMIC_ENERGY_UNIT
+                histogram->getNumBins( );
+
+            // get energy of histogram bin with this collection index
+            energyElectron = histogram->getEnergyBin(
+                acc,
+                histogramIndex,
+                atomicDataBox
+                ); // unit: ATOMIC_UNIT_ENERGY
+
+            // get width of histogram bin with this collection index
             energyElectronBinWidth = histogram->getBinWidth(
-                true,   // directionPositive
-                histogram->getLeftBoundaryBin( histogramIndex ), // unit: ATOMIC_ENERGY_UNIT
-                histogram->getInitialGridWidth( ) // unit: ATOMIC_ENERGY_UNIT
+                acc,
+                true,   // directionPositive?
+                histogram->getLeftBoundaryBin( histogramIndex ), // unit: ATOMIC_UNIT_ENERGY
+                histogram->getInitialGridWidth( ), // unit: ATOMIC_UNIT_ENERGY
+                atomicDataBox
                 );
 
+            constexpr float_64 UNIT_VOLUME = UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH;
+            // calculate density of electrons based on weight of electrons in this bin
+            densityElectrons =  histogram->getWeightBin( histogramIndex ) /
+                ( picongpu::numCellsPerSuperCell * picongpu::CELL_VOLUME * UNIT_VOLUME *
+                    energyElectronBinWidth * picongpu::SI::ATOMIC_UNIT_ENERGY
+                    );
             // (weighting * #/weighting) /
             //      ( numCellsPerSuperCell * Volume * m^3/Volume * AU * J/AU )
-            // = # / (m^3 * J)
-            densityElectrons =  histogram->getWeights( histogramIndex ) /
-            // * picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE,
-            // not necessary since weighting does not use unit currently
-                ( picongpu::numCellsPerSuperCell * picongpu::CELL_VOLUME * UNIT_VOLUME *
-                    energyElectronBinWidth * picongpu::SI::ATOMIC_ENERGY_UNIT );
-                // unit: 1/(m^3 * J), SI
+            // = # / (m^3 * J) => unit: 1/(m^3 * J), SI
 
-            // calculating quasi propability
             if ( oldState == newState )
             {
-                // special case of not changing state
+            // calculating quasiProbability for special case of keeping in current state
 
-                // R_(i->i) = - sum_f( R_(i->f), rate_SI = - R_(i->i)
+                // R_(i->i) = - sum_f( R_(i->f), rate_SI = - R_(i->i),
+                // R ... rate, i ... initial state, f ... final state
                 rate_SI = AtomicRate::totalRate(
+                    acc,
                     oldState,   // unitless
-                    energyElectron,     // unit: ATOMIC_ENERGY_UNIT
-                    energyElectronBinWidth, // unit: ATOMIC_ENERGY_UNIT
+                    energyElectron,     // unit: ATOMIC_UNIT_ENERGY
+                    energyElectronBinWidth, // unit: ATOMIC_UNIT_ENERGY
                     densityElectrons,   // unit: 1/(m^3*J), SI
                     atomicDataBox
                     ); // unit: 1/s, SI
-                quasiPropability = 1._X - rate_SI * timeRemaining_SI;
 
-                if ( quasiProbability <= 0._X )
-                {
-                    // changes statisticly more than once into any new state in timeRemaining
-                    // -> must change state
-                    continue; // generate new newState
-                }
-
+                quasiProbability = 1._X - rate_SI * timeRemaining_SI;
+                deltaEnergy = 0._X;
             }
             else
             {
-                // standard case of different newState
+                // calculating quasiProbability for standard case of different newState
+
                 rate_SI = AtomicRate::Rate(
+                    acc,
                     oldState,   // unitless
                     newState,   // unitless
-                    energyElectron,     // unit: ATOMIC_ENERGY_UNIT
-                    energyElectronBinWidth, // unit: ATOMIC_ENERGY_UNIT
+                    energyElectron,     // unit: ATOMIC_UNIT_ENERGY
+                    energyElectronBinWidth, // unit: ATOMIC_UNIT_ENERGY
                     densityElectrons,   // unit: 1/(m^3*J), SI
                     atomicDataBox
                     ); // unit: 1/s, SI
 
-                // J / (J/AU)
-                deltaEnergy = energyDifference(
+                // get the change of electron energy
+                deltaEnergy = AtomicRate::energyDifference(
+                    acc,
                     oldState,
                     newState,
                     atomicDataBox
                     ) * ion[ weighting_ ] *
-                    picongpu::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE /
-                    picongpu::SI::ATOMIC_ENERGY_UNIT; // unit: ATOMIC_ENERGY_UNIT
+                    picongpu::particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE /
+                    picongpu::SI::ATOMIC_UNIT_ENERGY;
+                // J / (J/AU) => unit: ATOMIC_UNIT_ENERGY
 
                 quasiProbability = rate_SI * timeRemaining_SI;
             }
 
-            // change of state
+
             if ( quasiProbability >= 1.0_X )
             {
-                // only can happen in the case of different newState
-                ion[ atomicConfigNumber_ ].configNumber = newState;
-                timeRemaining_SI -= 1.0_X / rateSI;
+                // case: more than one change per time remaining
+                // -> change once and reduce time remaining by mean time between such transitions
+                //  can only happen in the case of newState != olstate, since otherwise 1 - ( >0 ) < 1
+
+                // change atomic state of ion
+                ion[ atomicConfigNumber_ ] = newState;
+
+                // reduce time remaining
+                timeRemaining_SI -= 1.0_X / rate_SI;
+
+                // record energy removed or added to electrons
                 histogram->removeEnergyFromBin(
+                    acc,
                     histogramIndex, // unitless
-                    deltaEnergy // unit: ATOMIC_ENERGY_UNIT 
+                    deltaEnergy // unit: ATOMIC_UNIT_ENERGY 
                     );
             }
             else
             {
-                // 0 <= quasiPropability < 1
-                if ( randomGenFloat() <= quasiProbability )
+                if ( quasiProbability < 0._X )
                 {
-                    // note: perhaps there is a mix between
-                    // ConfigNumber.configNumber and just ConfigNumber
-                    ion[ atomicConfigNumber_ ].configNumber = newState;
+                    // quasiProbability can only be < 0 in the case of
+                    // newState != oldState since AtomicRate::Rate( ), timeRemaining > 0
+
+                    // case: newState == oldState and on average change from original
+                    // state into new more than once in timeRemaining
+                    // => can not remain in current state -> choose new state
+                }
+                else if ( randomGenFloat() <= quasiProbability )
+                {
+                    // case change only possible once
+                    // => randomly change to newState in time remaining
+
+                    // change ion state
+                    ion[ atomicConfigNumber_ ] = newState;
+
+                    // complete timeRemaining used
                     timeRemaining_SI = 0.0_X;
+
+                    // record energy removed or added to electrons
                     histogram->removeEnergyFromBin(
+                        acc,
                         histogramIndex, // unitless
-                        deltaEnergy // unit: ATOMIC_ENERGY_UNIT
-                    );
+                        deltaEnergy // unit: ATOMIC_UNIT_ENERGY
+                        );
                 }
             }
         }

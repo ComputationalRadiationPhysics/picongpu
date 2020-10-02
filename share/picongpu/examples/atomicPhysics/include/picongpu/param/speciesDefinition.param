@@ -54,21 +54,21 @@ using DefaultParticleAttributes = MakeSeq_t<
     particleId
 >;
 
-/** describe default attributes of ions*/
-using DefaultIonAttributes = MakeSeq_t<
-    DefaultParticleAttributes,
-    boundElectrons
->;
-
 /*############################ end default attributes ########################*/
 
 /*########################### define species #################################*/
 
 /*--------------------------- electrons --------------------------------------*/
+/* thermal bulk electrons: 10, 100, 1000 eV */
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
 value_identifier( float_X, MassRatioElectrons, 1.0 );
 value_identifier( float_X, ChargeRatioElectrons, 1.0 );
+
+/* ratio relative to BASE_DENSITY
+ * thermal "bulk": 1x ionized n_Cu
+ */
+value_identifier( float_X, DensityRatioBulkElectrons, 1 );
 
 using ParticleFlagsElectrons = MakeSeq_t<
     particlePusher< UsedParticlePusher >,
@@ -79,45 +79,57 @@ using ParticleFlagsElectrons = MakeSeq_t<
     chargeRatio< ChargeRatioElectrons >
 >;
 
-/* define species electrons */
-using PIC_Electrons = Particles<
-    PMACC_CSTRING( "e" ),
-    ParticleFlagsElectrons,
+/* thermal bulk electrons */
+using BulkElectrons = Particles<
+    PMACC_CSTRING( "eth" ),
+    MakeSeq_t<
+        ParticleFlagsElectrons,
+        densityRatio< DensityRatioBulkElectrons >
+    >,
     DefaultParticleAttributes
 >;
 
-/*--------------------------- ions H -----------------------------------------*/
+/*--------------------------- ions Carbon ------------------------------------*/
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioIons, 1836.152672 );
-value_identifier( float_X, ChargeRatioIons, -1.0 );
+value_identifier( float_X, MassRatioCarbon, 12*1836.152672 );
+value_identifier( float_X, ChargeRatioCarbon, -12.0 );
 
 /* ratio relative to BASE_DENSITY */
-value_identifier( float_X, DensityRatioIons, 1.0 );
+value_identifier( float_X, DensityRatioCarbon, 1.0 );
 
 using ParticleFlagsIons = MakeSeq_t<
     particlePusher< UsedParticlePusher >,
     shape< UsedParticleShape >,
     interpolation< UsedField2Particle >,
     current< UsedParticleCurrentSolver >,
-    massRatio< MassRatioIons >,
-    chargeRatio< ChargeRatioIons >,
-    densityRatio< DensityRatioIons >,
-    atomicNumbers< ionization::atomicNumbers::Hydrogen_t >,
-    effectiveNuclearCharge< ionization::effectiveNuclearCharge::Hydrogen_t >
+    massRatio< MassRatioCarbon >,
+    chargeRatio< ChargeRatioCarbon >,
+    densityRatio< DensityRatioCarbon >,
+    atomicNumbers< ionization::atomicNumbers::Carbon_t >,
+    ionizationEnergies< ionization::energies::AU::Carbon_t >,
+    _atomicPhysics< BulkElectrons >,
+    effectiveNuclearCharge< ionization::effectiveNuclearCharge::Carbon_t >,
+    ionizers<
+        MakeSeq_t<
+            particles::ionization::BSIEffectiveZ< BulkElectrons >,
+            particles::ionization::ADKLinPol< BulkElectrons >,
+            particles::ionization::ThomasFermi< BulkElectrons >
+        >
+    >
 >;
 
-using HydrogenAttributes = MakeSeq_t<
-    DefaultIonAttributes,
-    atomicLevels< levelVector_Hydrogen >,
-    atomicConfigNumber< configNumber_Hydrogen >
+using CarbonAttributes = MakeSeq_t<
+    DefaultParticleAttributes,
+    atomicConfigNumber< configNumber_Carbon >,
+    boundElectrons
 >;
 
 /* define species ions */
-using PIC_Hydrogen = Particles<
-    PMACC_CSTRING( "H" ),
+using CarbonIons = Particles<
+    PMACC_CSTRING( "C" ),
     ParticleFlagsIons,
-    HydrogenAttributes
+    CarbonAttributes
 >;
 
 /*########################### end species ####################################*/
@@ -128,8 +140,8 @@ using PIC_Hydrogen = Particles<
  * to make them available to the PIC algorithm.
  */
 using VectorAllSpecies = MakeSeq_t<
-    PIC_Electrons,
-    PIC_Hydrogen
+    BulkElectrons,
+    CarbonIons
 >;
 
 } // namespace picongpu

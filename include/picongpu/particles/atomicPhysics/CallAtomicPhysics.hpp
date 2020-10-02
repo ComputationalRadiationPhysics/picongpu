@@ -46,8 +46,7 @@ namespace atomicPhysics
     // Functor to apply the operation for a given ion species
     // @tparam T_ConfigNumberDataType ... data type used for index storage by ConfigNumber object of ion species
     template<
-        typename T_IonSpecies,
-        typename T_ConfigNumberDataType
+        typename T_IonSpecies
         >
     struct CallAtomicPhysics
     {
@@ -57,6 +56,9 @@ namespace atomicPhysics
             T_IonSpecies
         >;
         using IonFrameType = typename IonSpecies::FrameType;
+        // TODO: get this from species
+        using T_ConfigNumberDataType = uint64_t;
+        static constexpr uint8_t T_atomicNumber = 6u;
 
         // Define electron species and frame type datatype for later access
         using ElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<
@@ -75,11 +77,18 @@ namespace atomicPhysics
             uint64_t,
             uint64_t,
             float_X,
-            float_X[5]
+            float_X,
+            float_X,
+            float_X,
+            float_X,
+            float_X
             > >;
 
     private:
-        std::unique_ptr< AtomicData< T_ConfigNumberDataType > > atomicData;
+        std::unique_ptr< AtomicData<
+            T_atomicNumber,
+            T_ConfigNumberDataType
+        > > atomicData;
 
     public:
         // read Data method: atomic states, BEWARE: does not convert to internal units
@@ -98,7 +107,7 @@ namespace atomicPhysics
 
             while ( file >> stateIndex >> energyOverGroundState )
             {
-                uint64_t idx = static_cast< uint64_t >( stateIndex )
+                uint64_t idx = static_cast< uint64_t >( stateIndex );
                 auto item = std::make_pair(
                     idx,
                     energyOverGroundState
@@ -115,21 +124,25 @@ namespace atomicPhysics
             if( !file )
             {
                 std::cerr << "Atomic physics error: could not open file " << fileName << "\n";
-                return Items{};
+                return Transitions{};
             }
 
             double idxLower;
             double idxUpper;
-            float_X oscillatorStrength;
+            float_X collisionalOscillatorStrength;
 
             // gauntCoeficients
-            float_X cinx[5];
+            float_X cinx1;
+            float_X cinx2;
+            float_X cinx3; 
+            float_X cinx4;
+            float_X cinx5;
 
             Transitions result;
 
-            while ( file >> idxlower >> idxUpper
-                >> collisinalOscillatorStrength
-                >> cinx[0] >> cinx[1] >> cinx[2] >> cinx[3] >> cinx[4]
+            while ( file >> idxLower >> idxUpper
+                >> collisionalOscillatorStrength
+                >> cinx1 >> cinx2 >> cinx3 >> cinx4 >> cinx5
                 )
             {
                 uint64_t stateIndexLower = static_cast< uint64_t >( idxLower );
@@ -139,7 +152,11 @@ namespace atomicPhysics
                     stateIndexLower,
                     stateIndexUpper,
                     collisionalOscillatorStrength,
-                    cinx
+                    cinx1,
+                    cinx2,
+                    cinx3,
+                    cinx4,
+                    cinx5
                 );
                 result.push_back( item );
             }
@@ -153,8 +170,8 @@ namespace atomicPhysics
              *
              * hard-coded for now, get out of param files later
              */
-            std::string levelDataFileName = "$ATOMIC_DATA/HydrogenLevels.txt";
-            std::string transitionDataFileName = "$ATOMIC_DATA/HydrogenTransitions.txt";
+            std::string levelDataFileName = "~/CarbonLevels.txt";
+            std::string transitionDataFileName = "~/CarbonTransitions.txt";
 
             // read in atomic data
             // levels
@@ -174,14 +191,16 @@ namespace atomicPhysics
                 return;
             }
 
-            // remove the first line with state 0 from atomic levels
-            // completly ionized ground state energy always zero
-            levelDataItems.pop_front();
 
             // init rate matrix on host and copy to device
 
             // create atomic Data storage class on host
-            atomicData = pmacc::memory::makeUnique< AtomicData< T_ConfigNumberDataType > >(
+            atomicData = pmacc::memory::makeUnique<
+                AtomicData<
+                    T_atomicNumber,
+                    T_ConfigNumberDataType
+                >
+            >(
                 levelDataItems.size(),
                 transitionDataItems.size()
             );
@@ -205,15 +224,16 @@ namespace atomicPhysics
                     std::get< 0 >( transitionDataItems[i] ),
                     std::get< 1 >( transitionDataItems[i] ),
                     std::get< 2 >( transitionDataItems[i] ),
-                    std::get< 3 >( transitionDataItems[i] )
+                    std::get< 3 >( transitionDataItems[i] ),
+                    std::get< 4 >( transitionDataItems[i] ),
+                    std::get< 5 >( transitionDataItems[i] ),
+                    std::get< 6 >( transitionDataItems[i] ),
+                    std::get< 7 >( transitionDataItems[i] )
                     );
             }
 
             // copy data to device buffer of atomicData
             atomicData->syncToDevice();
-
-
-            
         }
 
         // Call functor, will be called in MySimulation once per time step
@@ -245,8 +265,8 @@ namespace atomicPhysics
 
             // hardcoded for now
             // TODO: make available as options from param file
-            constexpr float_X initialGridWidth = 0.2_X; // unit: ATOMIC_ENERGY_UNIT
-            constexpr float_X relativeErrorTarget = 0.5_X; // unit: 1/s /( 1/( m^3 * ATOMIC_ENERGY_UNIT ) )
+            constexpr float_X initialGridWidth = 0.2_X; // unit: ATOMIC_UNIT_ENERGY
+            constexpr float_X relativeErrorTarget = 0.5_X; // unit: 1/s /( 1/( m^3 * ATOMIC_UNIT_ENERGY ) )
             constexpr uint16_t maxNumBins = 2000;
 
             using Kernel = AtomicPhysicsKernel<

@@ -46,13 +46,15 @@ namespace atomicPhysics
         typename T_Acc,
         typename T_ElectronBox,
         typename T_Mapping,
-        typename T_Histogram
+        typename T_Histogram,
+        typename T_AtomicDataBox
     >
     DINLINE void fillHistogram(
         T_Acc const & acc,
         T_ElectronBox const electronBox,
         T_Mapping mapper,
-        T_Histogram * histogram
+        T_Histogram * histogram,
+        T_AtomicDataBox atomicDataBox
     )
     {
         using namespace mappings::threads;
@@ -101,13 +103,14 @@ namespace atomicPhysics
                         auto const particle = frame[ linearIdx ];
 
 
-                        auto const energy_SI = picongpu::particle::atomicPhysics::GetRealKineticEnergy( particle );
+                        float_X const energy_SI = picongpu::particles::atomicPhysics::GetRealKineticEnergy::KineticEnergy( particle );
                         // unit: J, SI
 
                         histogram->binObject(
                             acc,
-                            energy_SI / picongpu::SI::ATOMIC_ENERGY_UNIT, // unit: ATOMIC_ENERGY_UNIT
-                            particle[ weighting_ ]
+                            energy_SI / picongpu::SI::ATOMIC_UNIT_ENERGY, // unit: ATOMIC_UNIT_ENERGY
+                            particle[ weighting_ ],
+                            atomicDataBox
                         );
                     }
                 }

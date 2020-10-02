@@ -39,7 +39,7 @@ namespace SI
 #ifndef PARAM_BASE_DENSITY_SI
 #   define PARAM_BASE_DENSITY_SI 1.e25
 #endif
-     constexpr float_64 BASE_DENSITY_SI = PARAM_BASE_DENSITY_SI;
+     constexpr float_64 BASE_DENSITY_SI = 1.117e29;
 }
 
 namespace densityProfiles
@@ -80,5 +80,6 @@ namespace densityProfiles
 
     /* definition of density with Gaussian profile */
     using Gaussian = GaussianImpl< GaussianParameter >;
+    using Homogenous = HomogenousImpl;
 }
 }

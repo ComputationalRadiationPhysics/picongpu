@@ -84,205 +84,225 @@ namespace atomicPhysics
 namespace stateRepresentation
 {
 
-/** This class implements the actual storage of the superconfigurations by index
- *
- * @tparam T_DataType ... unsigned integer data type to represent the config
- *                              number
- * @tparam T_numberLevels ... max principle quantum number, n_max, represented in
- *                              this confignumber
- * @tparam T_atomicNumber ... atomic number of the ion, in units of elementary charge
- * 
- */
-template<
-    typename T_DataType,
-    uint8_t T_numberLevels,
-    uint8_t T_atomicNumber
->
-class ConfigNumber
-{
-private:
-    T_DataType configNumber;    // storage of actual configNumber
-
-    HDINLINE static constexpr uint16_t g( uint8_t n )
-    {
-    /** returns the maximum possible occupation number for the n-th level,
-     *
-     * or in other words how many different electron states there are for a given
-     * principal quantum number n.
-     *
-     * @param n ... principal quantum number/level number
-     */
-        // cast necessary to prevent overflow in n^2 calculation
-        return (static_cast<uint16_t>(n) * static_cast<uint16_t>(n) * 2);
-    }
-
-    HDINLINE static uint16_t numberOfOccupationNumberValuesInShell( uint8_t n )
-    {
-    /** returns the number of different occupation number values possible for the
-     * n-th shell of an ion with atomic number Z
-     *
-     * BEWARE: n larger than 254 causes an overflow.
-     *
-     *@param n ... principal quantum number/level number
-     */
-     PMACC_ASSERT_MSG(
-            n < 255,
-            "n too large, must be < 255"
-        );
-        return pmacc::algorithms::math::min(
-                g( n ),
-                static_cast< uint16_t >( T_atomicNumber )
-            ) + 1;
-    }
-
-    HDINLINE static T_DataType stepLength(uint8_t n)
-    {
-    /** returns the step length of the n-th level
-     *
-     * stepLength ... number of table entries per occupation number VALUE of
-     * the current principal quantum number n.
-     *
-     *@param n ... principal quantum number/level number
-     */
-        T_DataType result = 1;
-
-        for (uint8_t i = 1u; i < n; i++)
-        {
-            result *= static_cast<T_DataType>(
-                ConfigNumber::numberOfOccupationNumberValuesInShell(i)
-            );
-        }
-        return result;
-    }
-
-    HDINLINE static void nextStepLength( T_DataType* currentStepLength, uint8_t current_n )
-    {
-    /** returns the step length of the (current_n + 1)-th level, given the
-     * current step length and current_n
-     *
-     * stepLength ... number of table entries per occupation number VALUE of
-     * the current principal quantum number n.
-     */
-
-        *currentStepLength = *currentStepLength * static_cast<T_DataType>(
-            ConfigNumber::numberOfOccupationNumberValuesInShell( current_n )
-            );
-    }
-
-public:
-    // make T_DataType paramtere available for later use
-    using DataType = T_DataType;
-
-    // number of levels, n_max, used for configNumber, made available for later use
-    static constexpr uint8_t numberLevels = T_numberLevels;
-
-    // returns total number of states possible, for use in Markov chain solver as
-    // range of integer random number
-    HDINLINE static constexpr T_DataType numberStates()
-    {
-    /** returns number of different states(Configs) that are represented
-     */
-        return static_cast< T_DataType >(
-            stepLength( numberLevels + 1 )
-        );
-    }
-
-    // constructor using scalar config Number
-    HDINLINE ConfigNumber(
-        T_DataType N = static_cast<T_DataType>(0u)
-        )
-    {
-        PMACC_ASSERT_MSG(
-            N >= 0,
-            "negative configurationNumbers are not defined"
-        );
-        PMACC_ASSERT_MSG(
-            N < this->numberStates() - 1,
-            "configurationNumber N larger than largest possible ConfigNumber"
-            " for T_NumberLevels"
-        );
-
-        this->configNumber = N;
-    }
-
-    // constructor using occupation numbers
-    HDINLINE ConfigNumber(
-        pmacc::math::Vector< uint8_t, numberLevels > levelVector
-        )
-    {
-    /** constructor using a given occupation number vector to initialise.
+    /** This class implements the actual storage of the superconfigurations by index
     *
-    * Uses the formula in file descripton. Assumes index of vector corresponds
-    * to n-1, n ... principal quantum number.
+    * @tparam T_DataType ... unsigned integer data type to represent the config
+    *                              number
+    * @tparam T_numberLevels ... max principle quantum number, n_max, represented in
+    *                              this confignumber
+    * @tparam T_atomicNumber ... atomic number of the ion, in units of elementary charge
+    *
     */
+    template<
+        typename T_DataType,
+        uint8_t T_numberLevels,
+        uint8_t T_atomicNumber
+    >
+    class ConfigNumber
+    {
+    private:
+        T_DataType configNumber;    // storage of actual configNumber
 
-        /* stepLength ... number of table entries per occupation number VALUE of
+        HDINLINE static constexpr uint16_t g( uint8_t n )
+        {
+        /** returns the maximum possible occupation number for the n-th level,
+        *
+        * or in other words how many different electron states there are for a given
+        * principal quantum number n.
+        *
+        * @param n ... principal quantum number/level number
+        */
+            // cast necessary to prevent overflow in n^2 calculation
+            return (static_cast<uint16_t>(n) * static_cast<uint16_t>(n) * 2);
+        }
+
+        HDINLINE static uint16_t numberOfOccupationNumberValuesInShell( uint8_t n )
+        {
+        /** returns the number of different occupation number values possible for the
+        * n-th shell of an ion with atomic number Z
+        *
+        * BEWARE: n larger than 254 causes an overflow.
+        *
+        *@param n ... principal quantum number/level number
+        */
+        PMACC_ASSERT_MSG(
+                n < 255,
+                "n too large, must be < 255"
+            );
+            return pmacc::algorithms::math::min(
+                    g( n ),
+                    static_cast< uint16_t >( T_atomicNumber )
+                ) + 1;
+        }
+
+        HDINLINE static T_DataType stepLength(uint8_t n)
+        {
+        /** returns the step length of the n-th level
+        *
+        * stepLength ... number of table entries per occupation number VALUE of
+        * the current principal quantum number n.
+        *
+        *@param n ... principal quantum number/level number
+        */
+            T_DataType result = 1;
+
+            for (uint8_t i = 1u; i < n; i++)
+            {
+                result *= static_cast<T_DataType>(
+                    ConfigNumber::numberOfOccupationNumberValuesInShell(i)
+                );
+            }
+            return result;
+        }
+
+        HDINLINE static void nextStepLength( T_DataType* currentStepLength, uint8_t current_n )
+        {
+        /** returns the step length of the (current_n + 1)-th level, given the
+        * current step length and current_n
+        *
+        * stepLength ... number of table entries per occupation number VALUE of
         * the current principal quantum number n.
         */
-        T_DataType stepLength = 1;
 
-        this->configNumber = 0;
+            *currentStepLength = *currentStepLength * static_cast<T_DataType>(
+                ConfigNumber::numberOfOccupationNumberValuesInShell( current_n )
+                );
+        }
 
-        for(uint8_t n=0u; n < numberLevels; n++)
+    public:
+        // make T_DataType paramtere available for later use
+        using DataType = T_DataType;
+
+        // number of levels, n_max, used for configNumber, made available for later use
+        static constexpr uint8_t numberLevels = T_numberLevels;
+
+        // returns total number of states possible, for use in Markov chain solver as
+        // range of integer random number
+        HDINLINE static constexpr T_DataType numberStates()
         {
-            /* BEWARE: n here equals n-1 in formula in file documentation,
-            *
-            * since for loop starts with n=0 instead of n=1,
-            */
+        /** returns number of different states(Configs) that are represented
+        */
+            return static_cast< T_DataType >(
+                stepLength( numberLevels + 1 )
+            );
+        }
 
-            // must not test for < 0 since levelvector is vector of unsigned int
+        // constructor using scalar config Number
+        HDINLINE ConfigNumber(
+            T_DataType N = static_cast<T_DataType>(0u)
+            )
+        {
             PMACC_ASSERT_MSG(
-                this->g(n+1) >= *levelVector[n],
-                "occuation numbers too large, must be <=2*n^2"
+                N >= 0,
+                "negative configurationNumbers are not defined"
+            );
+            PMACC_ASSERT_MSG(
+                N < this->numberStates() - 1,
+                "configurationNumber N larger than largest possible ConfigNumber"
+                " for T_NumberLevels"
             );
 
-            this->nextStepLength( &stepLength, n );
-            this->configNumber += *levelVector[n] * stepLength;
+            this->configNumber = N;
         }
-    }
 
-    HDINLINE static pmacc::math::Vector< uint8_t, numberLevels > LevelVector( T_DataType N )
-    {
-    /** B() operator converts configNumber B into an occupation number vector
-    *
-    * Index of result vector corresponds to principal quantum number n -1.
-    *
-    * exploits that for largest whole number k for a given configNumber N,
-    * such that k * stepLength <= N, k is equal to the occupation number of
-    * n_max.
-    *
-    * stepLength ... number of table entries per occupation number VALUE of
-    * the current principal quantum number n.
-    *
-    * This is used recursively to determine all occupation numbers.
-    * further information: see master thesis of Brian Marre
-    */
-        pmacc::math::Vector< uint16_t, numberLevels > result =
-            pmacc::math::Vector<uint16_t, numberLevels>::create( 0 );
-
-        T_DataType stepLength;
-
-
-        // BEWARE: for loop counts down, strating with n_max
-        for (uint8_t n = numberLevels; n >= 1; n--)
+        // constructor using occupation numbers
+        HDINLINE ConfigNumber(
+            pmacc::math::Vector< uint8_t, numberLevels > levelVector
+            )
         {
-            // calculate current stepLength
-            stepLength = stepLength(n);
-
-            // get occupation number N_n by getting largest whole number factor
-            *result[n-1] = static_cast<uint16_t>( N / stepLength );
-
-            // remove contribution of current N_n
-            N -= stepLength * (*result[n-1]);
+        /** constructor using a given occupation number vector to initialise.
+        */
+                this->configNumber += getAtomicStateIndex( levelVector );
         }
 
-        return result;
-    }
 
-    void operator= ( T_DataType newConfigNumber){
-        this->configNumber = newConfigNumber;
-    }
-};
+        HDINLINE static T_DataType getAtomicStateIndex(
+            pmacc::math::Vector< uint8_t, numberLevels > levelVector
+            )
+        {
+        /**
+        * Uses the formula in file descripton. Assumes index of vector corresponds
+        * to n-1, n ... principal quantum number.
+        */
+
+            /* stepLength ... number of table entries per occupation number VALUE of
+            * the current principal quantum number n.
+            */
+            T_DataType stepLength = 1;
+
+            T_DataType atomicStateIndex = 0;
+
+            for(uint8_t n=0u; n < numberLevels; n++)
+            {
+                /* BEWARE: n here equals n-1 in formula in file documentation,
+                *
+                * since for loop starts with n=0 instead of n=1,
+                */
+
+                // must not test for < 0 since levelvector is vector of unsigned int
+                PMACC_ASSERT_MSG(
+                    g(n+1) >= *levelVector[n],
+                    "occuation numbers too large, must be <=2*n^2"
+                );
+
+                nextStepLength( &stepLength, n );
+                atomicStateIndex += *levelVector[n] * stepLength;
+            }
+
+            return atomicStateIndex;
+        }
+
+
+        HDINLINE static pmacc::math::Vector< uint8_t, numberLevels > getLevelVector( T_DataType N )
+        {
+        /** B() operator converts configNumber B into an occupation number vector
+        *
+        * Index of result vector corresponds to principal quantum number n -1.
+        *
+        * exploits that for largest whole number k for a given configNumber N,
+        * such that k * stepLength <= N, k is equal to the occupation number of
+        * n_max.
+        *
+        * stepLength ... number of table entries per occupation number VALUE of
+        * the current principal quantum number n.
+        *
+        * This is used recursively to determine all occupation numbers.
+        * further information: see master thesis of Brian Marre
+        */
+            pmacc::math::Vector< uint8_t, numberLevels > result =
+                pmacc::math::Vector<uint8_t, numberLevels>::create( 0 );
+
+            T_DataType stepLength;
+
+
+            // BEWARE: for loop counts down, strating with n_max
+            for ( uint8_t n = numberLevels; n >= 1; n-- )
+            {
+                // calculate current stepLength
+                stepLength = ConfigNumber::stepLength(n);
+
+                // get occupation number N_n by getting largest whole number factor
+                result[n-1] = static_cast<uint16_t>( N / stepLength );
+
+                // remove contribution of current N_n
+                N -= stepLength * (result[n-1]);
+            }
+
+            return result;
+        }
+
+        HDINLINE void operator= ( T_DataType newConfigNumber)
+        {
+            this->configNumber = newConfigNumber;
+        }
+
+
+        HDINLINE T_DataType getStateIndex( )
+        {
+            return this->configNumber;
+        }
+
+    };
 
 } // namespace stateRepresentation
 } // namespace atomicPhysics

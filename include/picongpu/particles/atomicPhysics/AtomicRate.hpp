@@ -19,8 +19,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
-
 #include <pmacc/algorithms/math.hpp>
 
 #pragma once
@@ -50,43 +48,39 @@ namespace atomicPhysics
 {
     /** functor class containing calculation formulas of rates and crossections
      *
-     * @tparam T_TypeIndex ... data type of atomic state index used in configNumber, unitless
-     * @tparam T_numLevels ... number of atomic levels modelled in configNumber, unitless
      * @tparam T_AtomicDataBox ... type of atomic data box used, stores actual basic
      *      atomic input data
+     * TODO: T_TypeIndex accessible from T_ConfigNumber remove direct mention
+     * @tparam T_TypeIndex ... data type of atomic state index used in configNumber, unitless
+     * @tparam T_ConfigNumber ... type of storage object of atomic state
+     * @tparam T_numLevels ... number of atomic levels modelled in configNumber, unitless
      * BEWARE: atomic data box input data is assumed to be in eV
      */
     template<
-        typename T_AtomicDataBox
+        typename T_AtomicDataBox,
         typename T_TypeIndex,
-        uint8_t T_numLevels,
+        typename T_ConfigNumber,
+        uint8_t T_numLevels
     >
     class AtomicRate
     {
      public:
         // shorthands
-        static constexpr using Idx = T_TypeIndex;
-        static constexpr using AtomicDataBox = T_AtomicDataBox;
+        using Idx = T_TypeIndex;
+        using AtomicDataBox = T_AtomicDataBox;
+        using ConfigNumber = T_ConfigNumber;
 
         // datatype of occupation number vector
-        static constexpr using LevelVector = pmacc::math::Vector<
+        using LevelVector = pmacc::math::Vector<
             uint8_t,
             T_numLevels
         >; // unitless
-
-        // type of storage object of atomic state, access to conversion methods
-        static constexpr using ConfigNumber =
-            picongpu::particles::atomicPhysics::stateRepresentation::ConfigNumber<
-                Idx,
-                T_numlevels
-            >;
 
     private:
 
         /** binomial coefficient calculated using partial pascal triangle
          *
-         * BEWARE: return type not large enough for complete range of values
-         *      should be no problem in flychk data since largest value ~10^10
+t         *      should be no problem in flychk data since largest value ~10^10
          *      will become problem if all possible states are used
          *
          * TODO: add description of iteration,
@@ -96,44 +90,38 @@ namespace atomicPhysics
          *  22.11.2019
          */
         DINLINE static uint64_t binomialCoefficients(
-            uint8_t const n,
-            uint8_t const k
-            ) const
+            uint8_t n,
+            uint8_t k
+            )
         {
-            uint64_t result[ k + 1u ];
-
-            // init with zero, BEWARE: algorithm depends on zero init
-            for ( uint8_t i = 1; i <= k; i++ )
-            {
-                result[ i ] = 0;
-            }
-
-            // init with ( binomial(0,0) )
-            result[ 0u ] = 1u;
+            float_64 result = 1.;
 
             for ( uint8_t i = 1u; i <= n; i++ )
             {
-                for ( uint8_t j = pmacc::algorithms::math::min(i, k); j > 0u; j-- )
-                    result[ j ] = result[ j ] + result[ j - 1 ];
+                result *= ( 1 +  static_cast< float_64 >( n - k )/ static_cast< float_64 >( i ) );
             }
 
-            return result[ k ];
+            return result;
         }
 
         // number of different atomic configurations in an atomic state
         // @param idx ... index of atomic state, unitless
         // return unit: unitless
-        DINLINE static uint64_t Multiplicity( Idx idx ) const
+        template< typename T_Acc >
+        DINLINE static uint64_t Multiplicity(
+            T_Acc & acc,
+            Idx idx
+            )
         {
-            LevelVector levelVector = ConfigNumber::LevelVector( idx ); // unitless
+            LevelVector const levelVector = ConfigNumber::getLevelVector( idx ); // unitless
 
             uint64_t result = 1u;
 
             for ( uint8_t i = 0u; i < T_numLevels; i++ )
             {
                 result *= binomialCoefficients(
-                    static_cast< uint8_t >( 2u * pmacc::math::algorithms::pow( i ,2 ) ),
-                    *levelVector[ i ]
+                    static_cast< uint8_t >( 2u * pmacc::algorithms::math::pow( float(i), 2 ) ),
+                    levelVector[ i ]
                     ); // unitless
             }
 
@@ -155,14 +143,14 @@ namespace atomicPhysics
             float_X energyElectron,     // unit: E
             uint32_t indexTransition,   // unitless
             AtomicDataBox atomicDataBox
-            ) const
+            )
         {
             // get gaunt coeficients, unit: unitless
-            float_X const A = atomicDataBox.getCxin1( indexTransition );
-            float_x const B = atomicDataBox.getCxin2( indexTransition );
-            float_X const C = atomicDataBox.getCxin3( indexTransition );
-            float_X const D = atomicDataBox.getCxin4( indexTransition );
-            float_X const a = atomicDataBox.getCxin5( indexTransition );
+            float_X const A = atomicDataBox.getCinx1( indexTransition );
+            float_X const B = atomicDataBox.getCinx2( indexTransition );
+            float_X const C = atomicDataBox.getCinx3( indexTransition );
+            float_X const D = atomicDataBox.getCinx4( indexTransition );
+            float_X const a = atomicDataBox.getCinx5( indexTransition );
 
             // calculate gaunt Factor
             float_X const U = energyElectron / energyDifference; // unit: unitless
@@ -175,7 +163,9 @@ namespace atomicPhysics
     public:
 
         // return unit: J, SI
+        template< typename T_Acc >
         DINLINE static float_X energyDifference(
+            T_Acc & acc,
             Idx const oldIdx,   // unitless
             Idx const newIdx,   // unitless
             AtomicDataBox atomicDataBox
@@ -187,13 +177,15 @@ namespace atomicPhysics
 
         /** @param energyElectron ... kinetic energy only, unit: ATOMIC_UNIT_ENERGY
          * return unit: m^2
-         */ 
+         */
+        template< typename T_Acc >
         DINLINE static float_X collisionalExcitationCrosssection(
+            T_Acc & acc,
             Idx const oldIdx,   // unitless
             Idx const newIdx,   // unitless
             float_X energyElectron,     // unit: ATOMIC_UNIT_ENERGY
             AtomicDataBox atomicDataBox
-            ) const
+            )
         {
             // unit conversion to SI
             float_X energyElectron_SI = energyElectron * picongpu::SI::ATOMIC_UNIT_ENERGY;
@@ -202,13 +194,14 @@ namespace atomicPhysics
             // energy difference between atomic states
             // J <- (eV - eV) * eV_to_J
             float_X energyDifference_SI = energyDifference(
+                acc,
                 oldIdx,
                 newIdx,
                 atomicDataBox
                 ); // unit: J, SI
 
             uint32_t indexTransition; // unitless
-            float_X statisticalRatio; // unitless
+            float_X Ratio; // unitless
 
             if ( energyDifference_SI < 0._X )
             {
@@ -223,8 +216,8 @@ namespace atomicPhysics
 
                 // unitless/unitless * (J + J) / J = unitless
                 Ratio = static_cast< float_X >(
-                    static_cast< float_64 >( Multiplicity( newIdx ) ) /
-                    static_cast< float_64 >( Multiplicity( oldIdx ) )
+                    static_cast< float_64 >( Multiplicity( acc, newIdx ) ) /
+                    static_cast< float_64 >( Multiplicity( acc, oldIdx ) )
                     ) * ( energyElectron_SI + energyDifference_SI ) / energyElectron_SI; // unitless
 
                 energyElectron_SI = energyElectron_SI + energyDifference_SI; // unit; J, SI
@@ -258,7 +251,7 @@ namespace atomicPhysics
             // physical constants
             // (unitless * m)^2 / unitless = m^2
             float_X c0_SI = float_X( 8._X *
-                pmacc::algorithms::math::pow( picongpu::pi * picongpu::BOHR_RADIUS, 2 ) /
+                pmacc::algorithms::math::pow( picongpu::PI * picongpu::SI::BOHR_RADIUS, 2 ) /
                 pmacc::algorithms::math::sqrt( 3._X) ); // uint: m^2, SI
 
             // m^2 * (J/J)^2 * unitless * J/J * unitless<-[ J, J, unitless, unitless ] = m^2
@@ -280,11 +273,12 @@ namespace atomicPhysics
 
         // @param energyElectron ... kinetic energy only, unit: ATOMIC_UNIT_ENERGY
         //return unit: m^2, SI
-        template< typename Idx >
-        DINLINE static float_X totalCrossection(
+        template< typename T_Acc >
+        DINLINE static float_X totalCrossSection(
+            T_Acc & acc,
             float_X energyElectron,     // unit: ATOMIC_UNIT_ENERGY
             AtomicDataBox atomicDataBox
-            ) const
+            )
         {
             float_X result = 0._X; // unit: m^2, SI
 
@@ -293,11 +287,12 @@ namespace atomicPhysics
 
             for ( uint32_t i = 0u; i < atomicDataBox.getNumTransitions(); i++ )
             {
-                upperIdx = atomicDataBox.getUpperIdx( i );
-                lowerIdx = atomicDataBox.getLowerIdx( i );
+                upperIdx = atomicDataBox.getUpperIdxTransition( i );
+                lowerIdx = atomicDataBox.getLowerIdxTransition( i );
 
                 // excitation crossection
                 result += collisionalExcitationCrosssection(
+                    acc,
                     lowerIdx,   // unitless
                     upperIdx,   // unitless
                     energyElectron, // unit: ATOMIC_UNIT_ENERGY
@@ -306,6 +301,7 @@ namespace atomicPhysics
 
                 // deexcitation crosssection
                 result += collisionalExcitationCrosssection(
+                    acc,
                     upperIdx,
                     lowerIdx,
                     energyElectron,
@@ -316,6 +312,8 @@ namespace atomicPhysics
             return result; // unit: m^2, SI
         }
 
+
+         // return unit: 1/s, SI
         /** rate function
          * uses 1th order integration <-> a = 0, => T_minOrderApprox = 1
          * TODO: implement higher order integration
@@ -324,19 +322,21 @@ namespace atomicPhysics
          *
          * @param energyElectron ... kinetic energy only, unit: ATOMIC_UNIT_ENERGY
          * @param energyElectronBinWidth ... unit: ATOMIC_UNIT_ENERGY
-         * @param densityElectron ... unit: 1/(m^3 * J)
+         * @param densityElectrons ... unit: 1/(m^3 * J)
          * @param atomicDataBox ... acess to input atomic data
          *
          * return unit: 1/s ... SI
          */
-        DINLINE static float_X Rate( )(
+        template< typename T_Acc >
+        DINLINE static float_X Rate(
+            T_Acc & acc,
             Idx const oldIdx,   // old atomic state
             Idx const newIdx,   // new atomic state
             float_X const energyElectron,   // unit: ATOMIC_UNIT_ENERGY
             float_X const energyElectronBinWidth, // unit: ATOMIC_UNIT_ENERGY
             float_X const densityElectrons, // unit: 1/(m^3*J), SI
-            AtomicData const atomicDataBox
-            ) const // return unit: 1/s, SI
+            AtomicDataBox const atomicDataBox
+            )
         {
             namespace mathFunc = pmacc::algorithms::math;
 
@@ -344,20 +344,21 @@ namespace atomicPhysics
             constexpr float_64 c_SI = picongpu::SI::SPEED_OF_LIGHT_SI; // unit: m/s, SI
             constexpr float_64 m_e_SI = picongpu::SI::ELECTRON_MASS_SI; // unit: kg, SI
 
-            const float_64 E_e_SI = energyElectron * picongpu::UNITCONV_AU_eV * UNITCONV_eV_Joule;
+            const float_64 E_e_SI = energyElectron * picongpu::UNITCONV_AU_to_eV * UNITCONV_eV_to_Joule;
                 // unit: J, SI
-            const float_64 dE_SI = energyElectronBinWidth * picongpu::UNITCONV_AU_eV * UNITCONV_eV_Joule;
+            const float_64 dE_SI = energyElectronBinWidth * picongpu::UNITCONV_AU_to_eV * UNITCONV_eV_to_Joule;
                 // unit: J, SI
 
             float_X sigma_SI = collisionalExcitationCrosssection(
-                    oldState,   // unitless
-                    newState,   // unitless
+                    acc,
+                    oldIdx,   // unitless
+                    newIdx,   // unitless
                     energyElectron, // unit: ATOMIC_UNIT_ENERGY
                     atomicDataBox
                 ); // unit: (m^2), SI
 
             // J * m^2 * 1/(m^3*J) * m/s * sqrt( unitless - [ ( (kg*m^2/s^2)/J )^2 = Nm/J = J/J = unitless ] ) = J/J m^3/m^3 * 1/s
-            return dE_SI * sigma_SI * densityElectron * c_SI *
+            return dE_SI * sigma_SI * densityElectrons * c_SI *
                 mathFunc::sqrt(
                     1 - mathFunc::pow(
                         1._X / (1._X + E_e_SI / (
@@ -369,7 +370,52 @@ namespace atomicPhysics
                     );
                 // unit: 1/s; SI
         }
-    }
+
+    /** returns \sum_{f} ( Rate_(i->f) )
+     *
+     * i ... initial state = oldState
+     * f ... final state != oldState
+     * {f} ... set of f
+     *
+     * return unit: 1/s, SI
+     */
+        template< typename T_Acc >
+        DINLINE static float_X totalRate(
+            T_Acc & acc,
+            Idx oldState,   // unitless
+            float_X energyElectron,     // unit: ATOMIC_UNIT_ENERGY
+            float_X energyElectronBinWidth, // unit: ATOMIC_UNIT_ENERGY
+            float_X densityElectrons,   // unit: 1/(m^3*J), SI
+            AtomicDataBox atomicDataBox
+            ) // unit: 1/s, SI
+        {
+
+            float_X totalRate = 0._X; // unit: 1/s, SI
+
+            Idx newState;
+
+            for ( uint32_t i = 0u; i < atomicDataBox.getNumStates(); i++ )
+            {
+                newState = atomicDataBox.getAtomicStateConfigNumberIndex( i );
+
+                if ( newState != oldState )
+                {
+                    totalRate += Rate(
+                        acc,
+                        oldState,   // unitless
+                        newState, // newState, unitless
+                        energyElectron, // unit: ATOMIC_UNIT_ENERGY
+                        energyElectronBinWidth, // unit: ATOMIC_UNIT_ENERGY
+                        densityElectrons,
+                        atomicDataBox
+                        ); // unit: 1/s, SI
+                }
+            }
+
+            return totalRate; // unit: 1/s, SI
+        }
+
+    };
 
 } // namespace atomicPhysics
 } // namespace particles

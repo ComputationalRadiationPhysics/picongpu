@@ -25,6 +25,7 @@
 
 #include <pmacc/nvidia/functors/Assign.hpp>
 
+#include <pmacc/math/Vector.hpp>
 
 namespace picongpu
 {
@@ -40,14 +41,14 @@ namespace particles
 namespace startPosition
 {
 
-    struct RandomParameter2ppc
+    struct RandomParameter20ppc
     {
         /** Count of particles per cell at initial state
          *  unit: none
          */
-        static constexpr uint32_t numParticlesPerCell = 2u;
+        static constexpr uint32_t numParticlesPerCell = 20u;
     };
-    using Random2ppc = RandomImpl< RandomParameter2ppc >;
+    using Random20ppc = RandomImpl< RandomParameter20ppc >;
 
 } // namespace startPosition
 
@@ -56,13 +57,14 @@ namespace startPosition
      *  particle attributes.
      */
     constexpr uint32_t TYPICAL_PARTICLES_PER_CELL =
-        startPosition::RandomParameter2ppc::numParticlesPerCell;
+        startPosition::RandomParameter20ppc::numParticlesPerCell;
 
 namespace manipulators
 {
 
-    struct SetIonToNeutral
+    struct SetIonToOnceIonized
     {
+        // set ions to once ionized
         template< typename T_Particle >
         DINLINE void operator()( T_Particle & particle )
         {
@@ -71,10 +73,64 @@ namespace manipulators
             // number of bound electrons at initialization state of the neutral atom
             float_X const protonNumber = traits::GetAtomicNumbers< T_Particle >::type::numberOfProtons;
 
-            particle[ boundElectrons_ ] = protonNumber;
+            // init normal ionization
+            particle[ boundElectrons_ ] = protonNumber - 1;
+
+            /*
+            // get current Configutation number object
+            auto configNumber = particle[ atomicConfigNumber_ ];
+
+            // occupation number vector
+            auto occupationNumbers = pmacc::math::Vector<
+                uint8_t,
+                configNumber.numberLevels
+                >::create( 0u );
+
+            uint8_t numberElectronsRemaining = protonNumber - 1;
+
+            // fill from bottom up until no electrons remaining
+            for ( uint8_t level = 1u; level <= configNumber.numberlevels; i++ )
+            {
+                if ( numberElectronsRemaining >= 2u * i * i)
+                {
+                    *occupationNumbers[ i - 1u ] = 2u * i * i;
+                    numberElectronsRemaining -= 2u * i * i;
+                }
+                else
+                {
+                    *occupationNumbers[ i - 1u ] = numberElectronsRemaining;
+                    numberElectronsRemaining = 0;
+                    break;
+                }
+            }
+            */
+            // change atomic state index
+            particle[ atomicConfigNumber_ ] = 0u;// configNumber::getAtomicStateIndex( occupationNumbers );
         }
     };
-    using SetBoundElectrons = generic::Free< SetIonToNeutral >;
+
+    // define a drift in X equal to 200 keV for electrons
+    CONST_VECTOR(float_X, 3, DriftParam_direction, 1.0, 0.0, 0.0);
+    struct Drift200keVParam
+    {
+        static constexpr float_64 gamma = 1.39139;
+        const DriftParam_direction_t direction;
+    };
+    using Assign200keVDrift = unary::Drift< Drift200keVParam, nvidia::functors::Assign >;
+
+    struct TemperatureParam
+    {
+        /** Initial temperature
+         *  unit: keV
+         */
+        static constexpr float_64 temperature = 10.;
+    };
+    using AddTemperature = unary::Temperature< TemperatureParam >;
+
+
+    // definition of SetDrift start
+    using OnceIonized = generic::Free< SetIonToOnceIonized >;
+
 } // namespace manipulators
 } // namespace particles
 } // namespace picongpu

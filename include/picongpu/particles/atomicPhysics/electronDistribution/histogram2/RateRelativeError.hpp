@@ -20,11 +20,14 @@
 /** @file 
  */
 
-#pragma once
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/atomicPhysics/AtomicRate.hpp"
 
+#include <utility>exit
 #include <pmacc/algorithms/math.hpp>
-#include <utility>
-#include "picongpu/param/physicalConstants.param"
+
+
+#pragma once
 
 namespace picongpu
 {
@@ -37,12 +40,13 @@ namespace electronDistribution
 namespace histogram2
 {
 
+namespace mathFunc = pmacc::algorithms::math;
 
     template<
         uint32_t T_minOrderApprox,  // half of starting order of error approximation,
                                     // in crosssection + velocity and 0th order in
                                     // electron density
-        uint32_t T_maxOrderapprox,  // half of maximum order of error approximation,
+        uint32_t T_maxOrderApprox,  // half of maximum order of error approximation,
                                     // T_minOrderapprox <= a <= T_maxOrderApprox,
                                     //  2*a ... order of a term of the rate approximation
         uint32_t T_numSamplePoints, // number of sample points used for numerical differentiation
@@ -54,12 +58,9 @@ namespace histogram2
     >
     class RateRelativeError
     {
+        // TODO: add pmacc assert to check T_numSamplePoints >= 2*T_maxOrderApprox + 1
+        using AtomicRate = T_AtomicRate;
         // necessary for velocity derivation
-        const static float_64 restEnergy_SI = picongpu::SI::ELECTRON_MASS_SI * 
-            pmacc::algorithms::math::pow( picongpu::SI::SPEED_OF_LIGHT_SI, 2 );
-
-        constexpr typename mathFunc = pmacc::algorithms::math;
-
 
         // storage of weights for later use
         float_X weights[ T_numSamplePoints * (2u * T_maxOrderApprox + 1u) ];
@@ -87,11 +88,10 @@ namespace histogram2
             if ( k > T_numNodes )
                 return 1._X;
 
-            return static_cast< float_X >(
-                mahtFunc::cos< float_X >(
-                    (2u*k - 1u)_X/( 2 * T_numNodes )_X *
-                    pmacc::algorithms::math::Pi::value
-                    )
+            return pmacc::algorithms::math::cos< float_X >(
+                static_cast< float_X >(2u*k - 1u) /
+                static_cast< float_X >( 2 * T_numNodes ) *
+                picongpu::PI
                 );
         }
 
@@ -125,32 +125,31 @@ namespace histogram2
             }
 
             // calculate weightings for each order derivative until maximum
-            for ( uint32_t i = 0u; i <= ( 2u * T_orderApprox ); i++ )    // i ... order of derivation
+            for ( uint32_t i = 0u; i <= ( 2u * T_maxOrderApprox ); i++ )    // i ... order of derivation
             {
                 for ( uint32_t j = 0u; j < T_numSamplePoints; j++ )  // j ... sample point
                 {
                     this->weights[ j + i * T_numSamplePoints ] = T_WeightingGen::weighting<
                         T_numSamplePoints,
-                        i
-                    >(
-                        j,
-                        samplePoints
-                        );
+                        T_numSamplePoints/2u + 2u >( i, j, samplePoints );
                 }
             }
         }
 
 
         // return unit: [1/s]/[ 1/(m^3 * J) ], error per electron density
+        template< typename T_Acc >
         DINLINE float_X operator() (
-            float_X dE,     // unit: ATOMIC_ENERGY_UNIT
-            float_X E       // unit: ATOMIC_ENERGY_UNIT
+            T_Acc & acc,
+            float_X dE,     // unit: ATOMIC_UNIT_ENERGY
+            float_X E,       // unit: ATOMIC_UNIT_ENERGY
+            T_AtomicDataBox atomicDataBox
             ) const
         {
             float_X result = 0; // unit: (1/s) / (m^3/J)
 
             // a ... order of rate approximation
-            for ( uint32_t a = T_minOrderapprox; a <= T_maxOrderApprox; a++ )
+            for ( uint32_t a = T_minOrderApprox; a <= T_maxOrderApprox; a++ )
             {
                 // o ... derivative order of crossection sigma
                 for ( uint32_t o = 0u; o <= 2 * a; o++ )
@@ -160,15 +159,16 @@ namespace histogram2
                         // 1/unitless * m^2/J^o * m/s * 1/J^(2*a-o) * unitless * J^(2*a+1) * unitless
                         // = m^3/J^(2a) * 1/s * J^(2a+1) = J * m^3 * 1/s
                         result += 1.0/( fak( o ) * fak( 2u*a - o ) ) *
-                            sigmaDerivative( E, dE, o ) *
+                            sigmaDerivative(acc, E, dE, o, atomicDataBox) *
                             velocityDerivative( E, dE, 2u*a - o ) *
                             1._X/( 2u*a + 1u) *
                             mathFunc::pow(
-                                dE * picongpu::SI::ATOMIC_ENERGY_UNIT / 2._X,
+                                dE * picongpu::SI::ATOMIC_UNIT_ENERGY / 2._X,
                                 static_cast< int >( 2u*a + 1u)
                                 ) * 2._X; // unit: J * m^3 * 1/s
                     }
             }
+            return result;
         }
 
     private:
@@ -179,10 +179,15 @@ namespace histogram2
             float_X energy  // unit: atomic energy unit
             )
         {
+            constexpr float_X mass_e_SI = picongpu::SI::ELECTRON_MASS_SI;
+            constexpr float_X c_SI = picongpu::SI::SPEED_OF_LIGHT_SI;
+
+            float_X restEnergy_SI = mass_e_SI * pmacc::algorithms::math::pow( c_SI, 2 );
+
             // v = sqrt( 1 - (m^2*c^4)/(E^2) )
             return picongpu::SI::SPEED_OF_LIGHT_SI *
                 mathFunc::sqrt( 1._X - mathFunc::pow(
-                    1._X / ( 1._X + (energy * picongpu::SI::ATOMIC_ENERGY_UNIT) /
+                    1._X / ( 1._X + (energy * picongpu::SI::ATOMIC_UNIT_ENERGY) /
                     restEnergy_SI ),
                     2
                     )
@@ -190,75 +195,79 @@ namespace histogram2
         }
 
         //return unit: m/s * 1/J^m), SI
-        DINLINE static float_X velocityDerivative(
-            float_X E,      // unit: ATOMIC_ENERGY_UNIT
-            float_X dE,     // unit: ATOMIC_ENERGY_UNIT
+        DINLINE float_X velocityDerivative(
+            float_X E,      // unit: ATOMIC_UNIT_ENERGY
+            float_X dE,     // unit: ATOMIC_UNIT_ENERGY
             uint32_t m     // order of derivative
-            )
+            ) const
         {
             // samplePoint[ 0 ], is by definition always = 0:
             float_X weight = this->weights[ m * T_numSamplePoints ]; // unit: unitless
 
-            float_x velocityValue = velocity( E ); // unit: m/s, SI
+            float_X velocityValue = velocity( E ); // unit: m/s, SI
 
             float_X result = weight * velocityValue; // unit: m/s, SI
 
             // all further sample points
             for( uint32_t j = 1u; j < T_numSamplePoints; j++ )  // j index of sample point
             {
-                weight = this->weights[ n * T_numSamplePoints + j ]; // unit: unitless
+                weight = this->weights[ m * T_numSamplePoints + j ]; // unit: unitless
 
-                // velocity( [ ATOMIC_ENERGY_UNIT ] ) -> m/s, SI
-                float_x velocityValue = velocity(
+                // velocity( [ ATOMIC_UNIT_ENERGY ] ) -> m/s, SI
+                float_X velocityValue = velocity(
                     E + chebyshevNodes< T_numSamplePoints - 1u >( j + 1u ) * dE / 2._X
                     ); // unit: m/s, SI
 
                 result += weight * velocityValue;   // unit: m/s, SI
             }
 
-            // pow( 1/[ ATOMIC_ENERGY_UNIT * AU_To_J ] = 1/J, m )-> 1/(J^m)
+            // pow( 1/[ ATOMIC_UNIT_ENERGY * AU_To_J ] = 1/J, m )-> 1/(J^m)
             result /= mathFunc::pow(
-                dE / 2._X * picongpu::SI::ATOMIC_ENERGY_UNIT,
-                m ); // unit: m/s * 1/J^m, SI
+                dE / 2._X * picongpu::SI::ATOMIC_UNIT_ENERGY,
+                int( m ) ); // unit: m/s * 1/J^m, SI
 
             return result;
         }
 
 
         // return unit: m^2/J^m, SI
+        template< typename T_Acc >
         DINLINE float_X sigmaDerivative(
-            float_X E,      // central energy of bin, unit: ATOMIC_ENERGY_UNIT
-            float_X dE,     // delta energy, unit: ATOMIC_ENERGY_UNIT
+            T_Acc & acc,
+            float_X E,      // central energy of bin, unit: ATOMIC_UNIT_ENERGY
+            float_X dE,     // delta energy, unit: ATOMIC_UNIT_ENERGY
             uint32_t o,     // order of derivative, unitless
-            T_AtomicDataBox atomicDataBox //in file atomicData.hpp
-           )
+            T_AtomicDataBox const atomicDataBox //in file atomicData.hpp
+           ) const
         {
 
-            // samplePoint[ 0 ], is by definition always = 0:
+            // samplePoint[ 0 ], is by definition always = 0
             float_X weight = this->weights[ o * T_numSamplePoints ]; // unit: unitless
 
-            // 
-            float_x sigmaValue = T_AtomicRate::totalCrossection< T_ConfigNumberDataType >(
-                E,  // unit: ATOMIC_ENERGY_UNIT
+            //float_X sigmaValue = AtomicRate::totalCrossSection(0u);
+            float_X sigmaValue = AtomicRate::totalCrossSection(
+                acc,
+                E,  // unit: ATOMIC_UNIT_ENERGY
                 atomicDataBox
                 ); // unit: m^2, SI
 
             float_X result = weight * sigmaValue; // unit: m^2, SI
+            const auto numSamplePoints = T_numSamplePoints;
 
             // all further sample points
             for( uint32_t j = 1u; j < T_numSamplePoints; j++ )  // j index of sample point
             {
-                weight = this->weights[ o * T_numSamplePoints + j ]; // unitless
+                weight = this->weights[ o * numSamplePoints + j ]; // unitless
 
-                sigmaValue = T_AtomicRate::totalCrossection< T_ConfigNumberDataType >(
-                        E + chebyshevNodes< T_numSamplePoints - 1u >( j + 1u ) * dE / 2._X,
-                        atomicDataBox
-                        ); // unit: m^2, SI
+                //sigmaValue = AtomicRate::totalCrossSection< T_ConfigNumberDataType >();
+               //         E + chebyshevNodes< T_numSamplePoints - 1u >( j + 1u ) * dE / 2._X,
+                //        atomicDataBox
+               //         ); // unit: m^2, SI
 
                 result += weight * sigmaValue; // unit: m^2, SI
             }
             // m^2 / (J)^m
-            result /= mathFunc::pow( dE * picongpu::SI::ATOMIC_ENERGY_UNIT / 2._X, o );
+            result /= mathFunc::pow( dE * picongpu::SI::ATOMIC_UNIT_ENERGY / 2._X, int(o) );
 
             return result; // unit: m^2/J^m, SI
         }

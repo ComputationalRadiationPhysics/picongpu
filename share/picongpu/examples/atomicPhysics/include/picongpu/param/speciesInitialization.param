@@ -40,31 +40,27 @@ namespace particles
      * the functors are called in order (from first to last functor)
      */
     using InitPipeline = bmpl::vector<
-#if( PARAM_IONIZATION == 0 )
-        CreateDensity<
-            densityProfiles::Gaussian,
-            startPosition::Random2ppc,
-            PIC_Electrons
-        >
-#   if( PARAM_IONS == 1 )
-        ,
-        Derive<
-            PIC_Electrons,
-            PIC_Ions
-        >
-#   endif
-#else
 
         CreateDensity<
-            densityProfiles::Gaussian,
-            startPosition::Random2ppc,
-            PIC_Ions
+            densityProfiles::Homogenous,
+            startPosition::Random20ppc,
+            CarbonIons
         >,
+        ManipulateDerive<
+            manipulators::binary::DensityWeighting,
+            CarbonIons,
+            BulkElectrons
+        >,
+        // pre ionize carbon ions to 1+
         Manipulate<
-            manipulators::SetBoundElectrons,
-            PIC_Ions
+            manipulators::OnceIonized,
+            CarbonIons
+        >,
+        // Set initial temperature of bulk electrons
+        Manipulate<
+            manipulators::AddTemperature,
+            BulkElectrons
         >
-#endif
     >;
 
 } // namespace particles

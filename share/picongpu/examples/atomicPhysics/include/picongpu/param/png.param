@@ -45,7 +45,7 @@ namespace visPreview
 // 5: BlowOut: typical fields, assuming that a LWFA in the blowout
 //             regime causes a bubble with radius of approx. the laser's
 //             beam waist (use for bubble fields)
-#define EM_FIELD_SCALE_CHANNEL1 1
+#define EM_FIELD_SCALE_CHANNEL1 -1
 #define EM_FIELD_SCALE_CHANNEL2 -1
 #define EM_FIELD_SCALE_CHANNEL3 -1
 

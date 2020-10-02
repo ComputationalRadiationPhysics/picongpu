@@ -50,7 +50,8 @@ namespace histogram2
     template<
         uint32_t T_maxNumBins,
         uint32_t T_maxNumNewBins,
-        typename T_RelativeError
+        typename T_RelativeError,
+        typename T_AtomicDataBox
     >
     struct AdaptiveHistogram
     {
@@ -75,7 +76,7 @@ namespace histogram2
         float_X newBinsLeftBoundary[ maxNumNewBins ];
         float_X newBinsWeights[ maxNumNewBins ];
         // number of entries in new bins
-        uint16_t numNewBins;
+        uint32_t numNewBins;
 
         // reference point of histogram, always boundary of a bin in the histogram
         float_X lastLeftBoundary;   // unit: Argument
@@ -198,7 +199,7 @@ namespace histogram2
         }
 
 
-        DINLINE static constexpr uint16_t getMaxNumberBins( )
+        DINLINE static uint16_t getMaxNumberBins( )
         {
             return AdaptiveHistogram::maxNumBins;
         }
@@ -224,13 +225,24 @@ namespace histogram2
          *
          * 0 is never a valid central energy since 0 is always a left boundary of a bin
          */
-        float_X getEnergyBin( uint16_t index ) const
+        template< typename T_Acc >
+        DINLINE float_X getEnergyBin(
+            T_Acc & acc,
+            uint16_t index,
+            T_AtomicDataBox atomicDataBox
+            ) const
         {
             // no need to check for < 0, since uint
             if ( index < this->numBins )
             {
-                float_X leftBoundary = this->binsLeftBoundary[ index ];
-                float_X binWidth = this->getBinWidth( true, leftBoundary, this->initialGridWidth );
+                float_X leftBoundary = this->binLeftBoundary[ index ];
+                float_X binWidth = this->getBinWidth(
+                    acc,
+                    true,
+                    leftBoundary,
+                    this->initialGridWidth,
+                    atomicDataBox
+                    );
 
                 return leftBoundary + binWidth / 2._X;
             }
@@ -238,34 +250,37 @@ namespace histogram2
             return 0._X;
         }
 
-        float_X getLeftBoundaryBin( uint16_t index ) const
+        DINLINE float_X getLeftBoundaryBin( uint16_t index ) const
         {
             // no need to check for < 0, since uint
             if ( index < this->numBins )
             {
-                return this->binsLeftBoundary[ index ];
+                return this->binLeftBoundary[ index ];
             }
             // index outside range
             return -1._X;
         }
 
 
-        DINLINE float_X getWeightBin( uint16_t index )
+        DINLINE float_X getWeightBin( uint16_t index ) const
         {
             return this->binWeights[ index ];
         }
 
 
-        DINLINE float_X getDeltaEnergyBin( uint16_t index )
+        DINLINE float_X getDeltaEnergyBin( uint16_t index ) const
         {
             return this->binDeltaEnergy[ index ];
         }
 
         // returns collection index of existing bin containing this energy
         // or maxNumBins otherwise
+        template< typename T_Acc >
         DINLINE uint16_t getBinIndex(
-            float_X energy // unit: argument
-            )
+            T_Acc & acc,
+            float_X energy, // unit: argument
+            T_AtomicDataBox atomicDataBox
+            ) const
         {
             float_X leftBoundary;
             float_X binWidth;
@@ -274,15 +289,18 @@ namespace histogram2
             {
                  leftBoundary = this->binLeftBoundary[ i ];
                  binWidth = this->getBinWidth(
+                    acc,
                     true,
                     leftBoundary,
-                    this->initialGridWidth
+                    this->initialGridWidth,
+                    atomicDataBox
                     );
                  if (
                     this->inBin(
                         true,
                         leftBoundary,
-                        binWidth
+                        binWidth,
+                        energy
                         )
                     )
                  {
@@ -302,21 +320,26 @@ namespace histogram2
          * @param currentBinwidth ... starting binWidth, the result may be both larger and
          *      smaller than initial value
          */
+        template< typename T_Acc >
         DINLINE float_X getBinWidth(
+            T_Acc & acc,
             const bool directionPositive,
             const float_X boundary, // unit: value
-            float_X currentBinWidth
+            float_X currentBinWidth,
+            T_AtomicDataBox atomicDataBox
             ) const
         {
             // is initial binWidth realtiveError below the Target?
             bool isBelowTarget = ( this->relativeErrorTarget >=
                 this->relativeError(
+                    acc,
                     currentBinWidth,
                     AdaptiveHistogram::centerBin(
                         directionPositive,
                         boundary,
                         currentBinWidth
-                        )
+                        ),
+                    atomicDataBox
                     )
                 );
 
@@ -331,12 +354,14 @@ namespace histogram2
                     // until no longer below Target
                     isBelowTarget = (
                         this->relativeErrorTarget > this->relativeError(
+                            acc,
                             currentBinWidth,
-                            AdaptiveHistogram::centralBin(
+                            AdaptiveHistogram::centerBin(
                                 directionPositive,
                                 currentBinWidth,
                                 boundary
-                                )
+                                ),
+                            atomicDataBox
                             )
                         );
                 }
@@ -357,12 +382,14 @@ namespace histogram2
                     // until first time below Target
                     isBelowTarget = (
                         this->relativeErrorTarget > this->relativeError(
+                            acc,
                             currentBinWidth,
-                            AdaptiveHistogram::centralBin(
+                            AdaptiveHistogram::centerBin(
                                 directionPositive,
                                 currentBinWidth,
                                 boundary
-                                )
+                                ),
+                            atomicDataBox
                             )
                         );
                 }
@@ -381,7 +408,12 @@ namespace histogram2
          * @param x ... where object is located that we want to bin
          * does not change lastBinLeftBoundary
          */
-        DINLINE  float_X getBinLeftBoundary( float_X const x ) const
+        template< typename T_Acc >
+        DINLINE  float_X getBinLeftBoundary(
+            T_Acc & acc,
+            float_X const x,
+            T_AtomicDataBox atomicDataBox
+            ) const
         {
 
             // wether x is in positive direction with regards to last known
@@ -404,9 +436,11 @@ namespace histogram2
 
                 // get currentBinWidth
                 currentBinWidth = getBinWidth(
+                    acc,
                     directionPositive,
                     boundary,
-                    currentBinWidth
+                    currentBinWidth,
+                    atomicDataBox
                     );
 
                 inBin = AdaptiveHistogram::inBin(
@@ -438,10 +472,13 @@ namespace histogram2
                     }
                 }
             }
+            return boundary;
         }
 
 
+        template< typename T_Acc >
         DINLINE void removeEnergyFromBin(
+            T_Acc & acc,
             uint16_t index,
             float_X deltaEnergy // unit: argument
             )
@@ -462,11 +499,16 @@ namespace histogram2
         DINLINE void binObject(
             T_Acc const & acc,
             float_X const x,
-            float_X const weight
+            float_X const weight,
+            T_AtomicDataBox atomicDataBox
         )
         {
             // compute global bin index
-            float_X const binLeftBoundary = this->getBinLeftBoundary( x );
+            float_X const binLeftBoundary = this->getBinLeftBoundary(
+                acc,
+                x,
+                atomicDataBox
+                );
 
             //search for bin in collection of existing bins
             auto const index = findBin( binLeftBoundary );
@@ -490,7 +532,7 @@ namespace histogram2
                 auto newBinIdx = cupla::atomicAdd< alpaka::hierarchy::Threads >(
                     acc,
                     &numNewBins,
-                    1u
+                    uint32_t(1u)
                 );
                 if( newBinIdx < maxNumNewBins )
                 {
