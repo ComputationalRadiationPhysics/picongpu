@@ -51,9 +51,7 @@ namespace atomicPhysics
         uint8_t T_atomicNumber,
         typename T_DataBoxValue,
         typename T_DataBoxStateIdx,
-        typename T_ConfigNumberDataType,
-        uint32_t T_maxNumberStates,
-        uint32_t T_maxNumberTransitions
+        typename T_ConfigNumberDataType
         >
     class AtomicDataBox
     {
@@ -68,8 +66,10 @@ namespace atomicPhysics
         DataBoxValue m_boxStateEnergy;
         DataBoxStateIdx m_boxStateIdx;
         uint32_t m_numStates;
+        uint32_t m_maxNumberStates;
 
         uint32_t m_numTransitions;
+        uint32_t m_maxNumberTransitions;
         DataBoxValue m_boxCollisionalOscillatorStrength;
         DataBoxValue m_boxCinx1;
         DataBoxValue m_boxCinx2;
@@ -83,9 +83,10 @@ namespace atomicPhysics
     public:
         // Constructor
         AtomicDataBox(
-            uint32_t numStates,
             DataBoxValue boxStateEnergy,
             DataBoxStateIdx boxStateIdx,
+            uint32_t numStates,
+            uint32_t maxNumberStates,
 
             DataBoxStateIdx boxLowerIdx,
             DataBoxStateIdx boxUpperIdx,
@@ -95,7 +96,8 @@ namespace atomicPhysics
             DataBoxValue boxCinx3,
             DataBoxValue boxCinx4,
             DataBoxValue boxCinx5,
-            uint32_t numTransition
+            uint32_t numTransitions,
+            uint32_t maxNumberTransitions
         ):
             m_boxStateEnergy( boxStateEnergy ),
             m_boxStateIdx( boxStateIdx ),
@@ -108,7 +110,9 @@ namespace atomicPhysics
             m_boxCinx4( boxCinx4 ),
             m_boxCinx5( boxCinx5 ),
             m_numStates( numStates ),
-            m_numTransitions( numTransitions )
+            m_maxNumberStates( maxNumberStates ),
+            m_numTransitions( numTransitions ),
+            m_maxNumberTransitions( maxNumberTransitions )
         {
 
         }
@@ -140,7 +144,7 @@ namespace atomicPhysics
             return this->m_boxStateIdx( indexState );
         }
 
-        // returns index of transition in databox, numTransition qual to not found
+        // returns index of transition in databox, numTransitions qual to not found
         HDINLINE uint32_t findTransition( Idx const lowerIdx, Idx const upperIdx )
         {
             // search for transition in list
@@ -227,7 +231,7 @@ namespace atomicPhysics
             ValueType const energy // unit: eV
             )
         {
-            if ( this->m_numStates < T_maxNumberStates )
+            if ( this->m_numStates < m_maxNumberStates )
             {
                 this->m_boxStateIdx[ this->m_numStates ] = idx;
                 this->m_boxStateEnergy [ this->m_numStates ] = energy;
@@ -247,7 +251,7 @@ namespace atomicPhysics
             ValueType const gauntCoefficent5
             )
         {
-            if( this->m_numTransitions <= T_maxNumberTransitions )
+            if( this->m_numTransitions <= m_maxNumberTransitions )
             {
                 this->m_boxLowerIdx[ m_numTransitions ] = lowerIdx;
                 this->m_boxUpperIdx[ m_numTransitions ] = upperIdx;
@@ -299,17 +303,11 @@ namespace atomicPhysics
         >;
 
         // acess datatype used on device
-        template<
-            uint32_t T_maxNumberStates,
-            uint32_t T_maxNumberTransitions
-        >
         using DataBoxType = AtomicDataBox<
             T_atomicNumber,
             InternalDataBoxTypeValue,
             InternalDataBoxTypeIdx,
-            T_ConfigNumberDataType,
-            T_maxNumberStates,
-            T_maxNumberTransitions
+            T_ConfigNumberDataType
         >;
 
     private:
@@ -390,19 +388,16 @@ namespace atomicPhysics
         }
 
         //! Get the host data box for the rate matrix values
-        template<
-            uint32_t T_maxNumberStates,
-            uint32_t T_maxNumberTransitions
-        >
-        HINLINE DataBoxType< T_maxNumberStates, T_maxNumberTransitions > getHostDataBox( )
+        HINLINE DataBoxType getHostDataBox(
+            uint32_t numStates,
+            uint32_t numTransitions
+            )
         {
-            return DataBoxType<
-                T_maxNumberStates,
-                T_maxNumberTransitions
-            >(
+            return DataBoxType(
                 dataStateEnergy->getHostBuffer( ).getDataBox( ),
                 dataIdx->getHostBuffer( ).getDataBox( ),
-                0, // numStates, always fill on hostside
+                numStates,
+                this->m_maxNumberStates,
 
                 dataLowerIdx->getHostBuffer( ).getDataBox( ),
                 dataUpperIdx->getHostBuffer( ).getDataBox( ),
@@ -412,24 +407,22 @@ namespace atomicPhysics
                 dataCinx3->getHostBuffer( ).getDataBox( ),
                 dataCinx4->getHostBuffer( ).getDataBox( ),
                 dataCinx5->getHostBuffer( ).getDataBox( ),
-                0   // numTransitions, always fill on hostside
+                numTransitions,
+                this->m_maxNumberTransitions
                 );
         }
 
         //! Get the device data box for the rate matrix values
-        template<
-            uint32_t T_maxNumberStates,
-            uint32_t T_maxNumberTransitions
-        >
-        HINLINE DataBoxType< T_maxNumberStates, T_maxNumberTransitions > getDeviceDataBox( )
+        HINLINE DataBoxType getDeviceDataBox(
+            uint32_t numStates,
+            uint32_t numTransitions
+        )
         {
-            return DataBoxType<
-                T_maxNumberStates,
-                T_maxNumberTransitions
-            >(
+            return DataBoxType(
                 dataStateEnergy->getDeviceBuffer( ).getDataBox( ),
                 dataIdx->getDeviceBuffer( ).getDataBox( ),
-                T_maxNumberStates,
+                numStates,
+                this->m_maxNumberStates,
 
                 dataLowerIdx->getDeviceBuffer( ).getDataBox( ),
                 dataUpperIdx->getDeviceBuffer( ).getDataBox( ),
@@ -439,7 +432,8 @@ namespace atomicPhysics
                 dataCinx3->getDeviceBuffer( ).getDataBox( ),
                 dataCinx4->getDeviceBuffer( ).getDataBox( ),
                 dataCinx5->getDeviceBuffer( ).getDataBox( ),
-                T_maxNumberTransitions
+                numTransitions,
+                this->m_maxNumberTransitions
                 );
         }
 

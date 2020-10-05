@@ -50,6 +50,12 @@ namespace atomicPhysics
         >
     struct CallAtomicPhysics
     {
+    private:
+
+        uint32_t numberStates;
+        uint32_t numberTransitions;
+
+    public:
         // Define ion species and frame type datatype for later access
         using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
@@ -191,8 +197,8 @@ namespace atomicPhysics
                 return;
             }
 
-            uint32_t const maxNumberStates = levelDataItems.size();
-            uint32_t const maxNumberTransitions = transitionDataItems.size();
+            this->numberStates = levelDataItems.size();
+            this->numberTransitions = transitionDataItems.size();
 
             // init rate matrix on host and copy to device
 
@@ -209,10 +215,10 @@ namespace atomicPhysics
 
             // get acess to data box on host side
             // init is empty
-            auto atomicDataHostBox = atomicData->getHostDataBox<
-                maxNumberStates,
-                maxNumberTransitions
-            >( 0u, 0u );
+            auto atomicDataHostBox = atomicData->getHostDataBox(
+                0u, // numberStates
+                0u // numberTransitions
+            );
 
             // fill atomic data into dataBox
             for ( uint32_t i = 0; i < levelDataItems.size(); i++ )
@@ -291,7 +297,10 @@ namespace atomicPhysics
                 electrons.getDeviceParticlesBox( ),
                 ions.getDeviceParticlesBox( ),
                 mapper,
-                atomicData->getDeviceDataBox( ),
+                atomicData->getDeviceDataBox(
+                    this->numberStates,
+                    this->numberTransitions
+                ),
                 initialGridWidth, // unit: J, SI
                 relativeErrorTarget // unit: 1/s /( 1/( m^3 * J ) ), SI
             );
