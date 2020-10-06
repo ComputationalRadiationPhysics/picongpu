@@ -25,6 +25,11 @@
  *
  * Also allows to configure ad hoc mitigations for high frequency
  * noise in some setups via current smoothing.
+ *
+ * \attention
+ * Currently, the laser initialization in PIConGPU is implemented to work with the standard Yee solver.
+ * Using a solver of higher order will result in a slightly increased laser amplitude and energy than expected.
+ *
  */
 
 #pragma once
@@ -57,11 +62,17 @@ namespace fields
     /** FieldSolver
      *
      * Field Solver Selection:
-     *  - Yee< CurrentInterpolation > : standard Yee solver
-     *  - YeePML< CurrentInterpolation >: standard Yee solver using Perfectly Matched Layer Absorbing Boundary Conditions (PML)
+     *  - Yee< CurrentInterpolation > : Standard Yee solver approximating derivatives with respect to time and space
+     *                                  by second order finite differences.
+     *  - YeePML< CurrentInterpolation >: Standard Yee solver using Perfectly Matched Layer Absorbing Boundary Conditions (PML)
      *  - Lehe< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
      *  - LehePML< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
      *                                     using Perfectly Matched Layer Absorbing Boundary Conditions (PML)
+     *  - ArbitraryOrderFDTD< 4, CurrentInterpolation >: Solver using 4 neighbors to each direction to approximate *spatial*
+     *                                                   derivatives by finite differences.
+     *                                                   The number of neighbors can be changed from 4 to any positive, integer number.
+     *                                                   The order of the solver will be twice the number of neighbors in each direction.
+     *                                                   Yee's method is a special case of this using one neighbor to each direction.
      *  - None< CurrentInterpolation >: disable the vacuum update of E and B
      */
     using Solver = maxwellSolver::Yee< CurrentInterpolation >;
