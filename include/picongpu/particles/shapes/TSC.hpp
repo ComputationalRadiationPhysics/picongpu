@@ -65,7 +65,6 @@ struct TSC
 
 struct TSC : public shared_TSC::TSC
 {
-    using CloudShape = picongpu::particles::shapes::CIC;
 
     struct ChargeAssignment : public shared_TSC::TSC
     {

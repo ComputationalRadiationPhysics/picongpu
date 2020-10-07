@@ -43,7 +43,6 @@ struct CIC
 
 struct CIC : public shared_CIC::CIC
 {
-    using CloudShape = picongpu::particles::shapes::NGP;
 
     struct ChargeAssignment : public shared_CIC::CIC
     {
