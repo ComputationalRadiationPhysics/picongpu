@@ -63,6 +63,11 @@ namespace detail
 
 } // namespace detail
 
+    /** Triagle-shaped cloud particle shape
+     *
+     * Cloud density form: piecewise linear
+     * Assignment function: second order B-spline
+     */
     struct TSC : public detail::TSC
     {
 

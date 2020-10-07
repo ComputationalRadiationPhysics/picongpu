@@ -57,6 +57,16 @@ namespace detail
 
 } // namespace detail
 
+    /** Piecewise quadratic cloud particle shape
+     *
+     * Note that this shape name does not follow the NGP / CIC / TSC notation
+     * which names the cloud density. Rather, PCS is the name of the
+     * corresponding assignment function. While the cloud-shape-based name
+     * would be PQS.
+     *
+     * Cloud density form: piecewise quadratic
+     * Assignment function: third order B-spline
+     */
     struct PCS : public detail::PCS
     {
 

@@ -79,7 +79,14 @@ namespace detail
 
 } // namespace detail
 
-    /** particle assignment shape `piecewise biquadratic spline`
+    /** Piecewise cubic cloud particle shape
+     *
+     * Note that this shape name does not follow the NGP / CIC / TSC notation
+     * which names the cloud density. Rather, P4S is the name of the
+     * corresponding assignment function, same as for the PCS shape.
+     *
+     * Cloud density form: piecewise cubic
+     * Assignment function: fourth order B-spline
      */
     struct P4S : public detail::P4S
     {

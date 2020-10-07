@@ -42,6 +42,11 @@ namespace detail
 
 } // namespace detail
 
+    /** Nearest grid point particle shape
+     *
+     * Cloud density form: delta function
+     * Assignment function: zero order B-spline
+     */
     struct NGP : public detail::NGP
     {
 

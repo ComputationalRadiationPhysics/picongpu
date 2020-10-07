@@ -42,6 +42,13 @@ namespace detail
 
 } // namespace detail
 
+    /** Version of nearest grid point particle shape used for counting particles
+     *
+     * Not to be used as a general particle shape in a simulation
+     *
+     * Cloud density form: delta function, shifted by half cell
+     * Assignment function: zero order B-spline, shifted by half cell
+     */
     struct Counter : public detail::Counter
     {
 

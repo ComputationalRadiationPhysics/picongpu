@@ -41,6 +41,11 @@ namespace detail
 
 } // namespace detail
 
+    /** Cloud-in-cell particle shape
+     *
+     * Cloud density form: piecewise constant
+     * Assignment function: first order B-spline
+     */
     struct CIC : public detail::CIC
     {
 
