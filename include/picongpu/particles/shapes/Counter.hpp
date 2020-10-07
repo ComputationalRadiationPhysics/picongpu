@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include <cstdint>
+
 
 namespace picongpu
 {
@@ -36,6 +38,10 @@ namespace detail
         /**
          * width of the support of this form_factor. This is the area where the function
          * is non-zero.
+         *
+         * Note that the support is actually 1, but this shape is used only for
+         * certain operations and not as the main simulation shape, and so for
+         * enabling more generic implementations is set to one.
          */
         static constexpr int support = 0;
     };
@@ -49,8 +55,11 @@ namespace detail
      * Cloud density form: delta function, shifted by half cell
      * Assignment function: zero order B-spline, shifted by half cell
      */
-    struct Counter : public detail::Counter
+    struct Counter
     {
+
+        //! Order of the assignment function spline
+        static constexpr uint32_t assignmentFunctionOrder = 0u;
 
         struct ChargeAssignment : public detail::Counter
         {

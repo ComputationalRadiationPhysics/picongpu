@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -20,6 +20,8 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
+#include <cstdint>
 
 
 namespace picongpu
@@ -47,8 +49,11 @@ namespace detail
      * Cloud density form: delta function
      * Assignment function: zero order B-spline
      */
-    struct NGP : public detail::NGP
+    struct NGP
     {
+
+        //! Order of the assignment function spline
+        static constexpr uint32_t assignmentFunctionOrder = 0u;
 
         struct ChargeAssignment : public detail::NGP
         {

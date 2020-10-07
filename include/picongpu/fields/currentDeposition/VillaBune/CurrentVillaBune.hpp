@@ -47,7 +47,7 @@ namespace currentSolver
             /* VillaBune: field to particle interpolation _requires_ the CIC shape */
             PMACC_CASSERT_MSG_TYPE(currentSolverVillaBune_requires_shapeCIC_in_particleConfig,
                         T_ParticleShape,
-                        T_ParticleShape::support == 2);
+                        T_ParticleShape::assignmentFunctionOrder == 1);
 
             // normalize deltaPos to innerCell units [0.; 1.)
             //   that means: dx_real   = v.x() * dt

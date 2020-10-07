@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Axel Huebl
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -20,6 +20,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
+#include <cstdint>
+
 
 namespace picongpu
 {
@@ -67,8 +70,11 @@ namespace detail
      * Cloud density form: piecewise quadratic
      * Assignment function: third order B-spline
      */
-    struct PCS : public detail::PCS
+    struct PCS
     {
+
+        //! Order of the assignment function spline
+        static constexpr uint32_t assignmentFunctionOrder = 3u;
 
         struct ChargeAssignment : public detail::PCS
         {

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Axel Huebl
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +21,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
+#include <cstdint>
+
 
 namespace picongpu
 {
@@ -68,8 +71,11 @@ namespace detail
      * Cloud density form: piecewise linear
      * Assignment function: second order B-spline
      */
-    struct TSC : public detail::TSC
+    struct TSC
     {
+
+        //! Order of the assignment function spline
+        static constexpr uint32_t assignmentFunctionOrder = 2u;
 
         struct ChargeAssignment : public detail::TSC
         {

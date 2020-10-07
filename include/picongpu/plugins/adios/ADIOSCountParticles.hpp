@@ -141,7 +141,7 @@ public:
 
         /* openPMD ED-PIC: additional attributes */
         traits::PICToAdios<float_64> adiosDoubleType;
-        const float_64 particleShape( GetShape<ThisSpecies>::type::support - 1 );
+        const float_64 particleShape( GetShape<ThisSpecies>::type::assignmentFunctionOrder );
         ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
             "particleShape", speciesPath.c_str(),
             adiosDoubleType.type, 1, (void*)&particleShape ));

@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera, Axel Huebl
+/* Copyright 2015-2020 Rene Widera, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -20,6 +20,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
+#include <cstdint>
+
 
 namespace picongpu
 {
@@ -88,8 +91,11 @@ namespace detail
      * Cloud density form: piecewise cubic
      * Assignment function: fourth order B-spline
      */
-    struct P4S : public detail::P4S
+    struct P4S
     {
+
+        //! Order of the assignment function spline
+        static constexpr uint32_t assignmentFunctionOrder = 4u;
 
         struct ChargeAssignmentOnSupport : public detail::P4S
         {
