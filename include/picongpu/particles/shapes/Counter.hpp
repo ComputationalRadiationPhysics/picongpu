@@ -17,10 +17,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 
 namespace picongpu
 {
@@ -28,25 +28,24 @@ namespace particles
 {
 namespace shapes
 {
+namespace detail
+{
 
-    namespace shared_Counter
+    struct Counter
+    {
+        /**
+         * width of the support of this form_factor. This is the area where the function
+         * is non-zero.
+         */
+        static constexpr int support = 0;
+    };
+
+} // namespace detail
+
+    struct Counter : public detail::Counter
     {
 
-        struct Counter
-        {
-            /**
-             * width of the support of this form_factor. This is the area where the function
-             * is non-zero.
-             */
-            static constexpr int support = 0;
-        };
-
-    } // namespace shared_Counter
-
-    struct Counter : public shared_Counter::Counter
-    {
-
-        struct ChargeAssignment : public shared_Counter::Counter
+        struct ChargeAssignment : public detail::Counter
         {
 
             HDINLINE float_X operator()( float_X const x )
@@ -64,7 +63,7 @@ namespace shapes
             }
         };
 
-        struct ChargeAssignmentOnSupport : public shared_Counter::Counter
+        struct ChargeAssignmentOnSupport : public detail::Counter
         {
 
             /** form factor of this particle shape.

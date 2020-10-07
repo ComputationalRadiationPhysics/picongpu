@@ -17,10 +17,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 
 namespace picongpu
 {
@@ -28,25 +28,24 @@ namespace particles
 {
 namespace shapes
 {
+namespace detail
+{
 
-    namespace shared_NGP
+    struct NGP
+    {
+        /**
+         * width of the support of this form_factor. This is the area where the function
+         * is non-zero.
+         */
+        static constexpr int support = 1;
+    };
+
+} // namespace detail
+
+    struct NGP : public detail::NGP
     {
 
-        struct NGP
-        {
-            /**
-             * width of the support of this form_factor. This is the area where the function
-             * is non-zero.
-             */
-            static constexpr int support = 1;
-        };
-
-    } // namespace shared_NGP
-
-    struct NGP : public shared_NGP::NGP
-    {
-
-        struct ChargeAssignment : public shared_NGP::NGP
+        struct ChargeAssignment : public detail::NGP
         {
 
             HDINLINE float_X operator()( float_X const x )
@@ -64,7 +63,7 @@ namespace shapes
             }
         };
 
-        struct ChargeAssignmentOnSupport : public shared_NGP::NGP
+        struct ChargeAssignmentOnSupport : public detail::NGP
         {
 
             /** form factor of this particle shape.
