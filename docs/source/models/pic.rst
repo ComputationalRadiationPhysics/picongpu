@@ -21,7 +21,7 @@ System of Equations
    \nabla \times \mathbf{B} &= \mu_0\left(\sum_s \mathbf{J}_s + \varepsilon_0 \frac{\partial \mathbf{E}} {\partial t} \right)
    
 for multiple particle species :math:`s`.
-:math:`\mathbf{E}(t)` represents the electic, :math:`\mathbf{B}(t)` the magnetic, :math:`\rho_s` the charge density and :math:`\mathbf{J}_s(t)` the current density field.
+:math:`\mathbf{E}(t)` represents the electric, :math:`\mathbf{B}(t)` the magnetic, :math:`\rho_s` the charge density and :math:`\mathbf{J}_s(t)` the current density field.
 
 Except for normalization of constants, PIConGPU implements the governing equations in SI units.
 
@@ -61,6 +61,7 @@ Electro-Magnetic PIC Method
 ---------------------------
 
 **Fields** such as :math:`\mathbf{E}(t), \mathbf{B}(t)` and :math:`\mathbf{J}(t)` are discretized on a regular mesh in Eulerian frame of reference (see [EulerLagrangeFrameOfReference]_).
+See :ref:`section Finite-Difference Time-Domain Method <model-AOFDTD>` describing how Maxwell's equations are discretized on a mesh in PIConGPU.
 
 The distribution of **Particles** is described by the distribution function :math:`f_s(\mathbf{x},\mathbf{v},t)`.
 This distribution function is sampled by *markers* (commonly referred to as *macro-particles*).

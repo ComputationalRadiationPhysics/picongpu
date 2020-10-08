@@ -1,0 +1,93 @@
+/* Copyright 2020 Klaus Steiniger, Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
+#include "picongpu/fields/differentiation/Curl.def"
+#include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Derivative.def"
+#include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
+
+#include <cstdint>
+
+
+namespace picongpu
+{
+namespace fields
+{
+namespace maxwellSolver
+{
+namespace aoFDTD
+{
+
+    /** Curl to be applied for the E-field
+     *
+     * @tparam T_neighbors Number of neighbors used to calculate the derivative from finite differences.
+     *                     Same number of neighbors is used along all directions.
+     *                     Order of derivative approximation is 2 * T_neighbors.
+     */
+    template< uint32_t T_neighbors >
+    using CurlE = differentiation::Curl<
+        Forward< T_neighbors >
+    >;
+
+    /** Curl to be applied for the B-field
+     *
+     * @tparam T_neighbors Number of neighbors used to calculate the derivative from finite differences.
+     *                     Same number of neighbors is used along all directions.
+     *                     Order of derivative approximation is 2 * T_neighbors.
+     */
+    template< uint32_t T_neighbors >
+    using CurlB = differentiation::Curl<
+        Backward< T_neighbors >
+    >;
+
+} // namespace aoFDTD
+
+    /** Finite difference field solver of chosen order.
+     *
+     * References: M Ghrist
+     *             High-Order Finite Difference Methods for Wave Equations
+     *             PhD thesis (2000)
+     *             Department of Applied Mathematics, University of Colarado
+     *
+     *             H Vincenti et al
+     *             doi:10.1016/j.cpc.2015.11.009
+     *
+     * @tparam T_neighbors Number of neighbors used to calculate the derivative from finite differences.
+     *                     Same number of neighbors is used along all directions.
+     *                     Order of derivative approximation is 2 * T_neighbors.
+     */
+    template<
+        uint32_t T_neighbors,
+        typename T_CurrentInterpolation = currentInterpolation::None
+    >
+    using ArbitraryOrderFDTD = ::picongpu::fields::maxwellSolver::Yee<
+        T_CurrentInterpolation,
+        aoFDTD::CurlE< T_neighbors >,
+        aoFDTD::CurlB< T_neighbors >
+    >;
+
+    /* We need no definition of margins, because the Yee solver uses its curl
+     * classes to define margins
+     */
+
+} // namespace maxwellSolver
+} // namespace fields
+} // namespace picongpu

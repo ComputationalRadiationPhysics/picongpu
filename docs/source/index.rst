@@ -80,6 +80,7 @@ Models
    :hidden:
 
    models/pic
+   models/AOFDTD
    models/LL_RR
    models/field_ionization
    models/collisional_ionization
