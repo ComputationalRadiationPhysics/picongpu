@@ -20,15 +20,15 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "reduction_library/Particle.hpp"
-#include "reduction_library/thinning/KernelThinning.hpp"
+//#include "reduction_library/Particle.hpp"
+//#include "reduction_library/thinning/KernelThinning.hpp"
 
 
 // #include ...
  // Temporary, simplest possible trait implementation
-
+/*
 namespace reduction_library{
-namespace particle{
+namespace particle_access{
 
     template<
         typename T_particle,
@@ -43,15 +43,16 @@ namespace particle{
     {
         HDINLINE void operator()(
             T_ValueType value,
-            T_particle & const particle
+            T_particle const & particle
         )
         {
-            particle[ weighting_ ] = value;
+            particle[ picongpu::weighting_ ] = value;
         }
     };
 
 } // namespace particle
 } // namespace reduction_library
+
 
 namespace picongpu
 {
@@ -64,7 +65,19 @@ namespace particleThinning
     template< uint32_t T_numWorkers >
     struct ParticleThinningKernel
     {
-
+    
+        //! Random factory type
+        using RngFactory = particles::functor::misc::Rng<
+            pmacc::random::distributions::Uniform<float>
+        >;
+        
+		RngFactory rngFactory;
+        using RandomGen = RngFactory::RandomGen;
+        
+        ParticleThinningKernel( RngFactory rngFactory ): 
+        				rngFactory ( rngFactory )
+        {}
+        
         template<
             typename T_Acc,
             typename T_ParticleBox,
@@ -74,7 +87,7 @@ namespace particleThinning
             T_Acc const & acc,
             T_ParticleBox particleBox,
             T_Mapping mapper,
-            reduction_library::thinning::KernelThinning algorithm
+            float_X ratioDeletedParticles         
         ) const
         {
             using namespace mappings::threads;
@@ -108,6 +121,8 @@ namespace particleThinning
 
             auto frame = particleBox.getLastFrame( supercellIdx );
             auto particlesInFrame = particleBox.getSuperCell( supercellIdx ).getSizeLastFrame( );
+            
+            reduction_library::thinning::KernelThinning<T_ParticlesType> algorithm( ratioDeletedParticles );
 
             // collect all particles
             while( frame.isValid( ) )
@@ -124,7 +139,7 @@ namespace particleThinning
                         if( linearIdx < particlesInFrame )
                         {
                             auto const particle = frame[ linearIdx ];
-                            algorithm.collect( acc, particle );
+                       //     algorithm.collect( acc, particle );
                         }
                     }
                 );
@@ -135,7 +150,7 @@ namespace particleThinning
 
 			cupla::__syncthreads( acc );
 			
-            if ( linearIdx == 0 ) {
+            if ( workerIdx == 0 ) {
             	algorithm.process( acc );    
             }
             cupla::__syncthreads( acc );
@@ -155,10 +170,10 @@ namespace particleThinning
                         {
                             auto particle = frame[ linearIdx ];
                             auto const oldWeighting = particle[ weighting_ ];
-                            algorithm.reduce( acc, particle );
-                            if( particle[ weighting_ ]
+                       //     algorithm.reduce( acc, particle );
+                            if( particle[ weighting_ ] )
                             {
-                            	cupla::atomicAdd(acc,  particle[momentum_], particle[ weighting_ ]/oldWeighting * momentum[i], ::alpaka::hierarchy::Threads{} );
+                            	//cupla::atomicAdd(acc,  particle[momentum_], particle[ weighting_ ]/oldWeighting * momentum[i], ::alpaka::hierarchy::Threads{} );
                                 // particle is kept, but maybe with a 
                                 // different weight
                                 // need to rescale momentum according to weight change
@@ -183,3 +198,5 @@ namespace particleThinning
 } // namespace particleThinning
 } // namespace plugins
 } // namespace picongpu
+
+*/
