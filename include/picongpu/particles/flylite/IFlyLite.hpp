@@ -77,7 +77,7 @@ namespace flylite
              */
             PMACC_STATIC_ASSERT_MSG(
                 false && sizeof(T_IonSpecies) != 0,
-                FLYlite_the_update_method_for_ion_population_kinetics_is_not_implemented
+                FLYlite_the_update_method_for_ion_population_kinetics_is_not_implemented,
             );
         }
 

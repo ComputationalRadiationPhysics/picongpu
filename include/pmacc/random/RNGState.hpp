@@ -51,7 +51,7 @@ namespace random
             return state;
         }
     private:
-        PMACC_ALIGN8(StateType) state;
+        PMACC_ALIGN8(StateType,) state;
     };
 
 }  // namespace random

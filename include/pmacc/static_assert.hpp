@@ -69,7 +69,7 @@ namespace pmacc
  * @param pmacc_cond A condition which return true or false.
  */
 #define PMACC_STATIC_ASSERT(pmacc_cond)                                        \
-    PMACC_STATIC_ASSERT_MSG(pmacc_cond,STATIC_ASSERTION_FAILURE)
+    PMACC_STATIC_ASSERT_MSG(pmacc_cond,STATIC_ASSERTION_FAILURE,)
 
 /*! static assert wrapper which is easier to use than \see PMACC_STATIC_ASSERT_MSG
  * @param pmacc_msg A message which is shown if the condition is false. Msg must a valid c++ variable name (etc. _only_human_make_mistakes)
@@ -84,7 +84,7 @@ namespace pmacc
  * @param ... A condition which return true or false.
  */
 #define PMACC_CASSERT_MSG(pmacc_msg,...)                                       \
-    PMACC_STATIC_ASSERT_MSG((__VA_ARGS__),pmacc_msg)
+    PMACC_STATIC_ASSERT_MSG((__VA_ARGS__),pmacc_msg,)
 
 /*! static assert
  * @param ... A condition which return true or false.
