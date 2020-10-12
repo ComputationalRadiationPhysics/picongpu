@@ -35,11 +35,12 @@ namespace detail
 
     struct CIC
     {
-        /**
-         * width of the support of this form_factor. This is the area where the function
-         * is non-zero.
+        /** Support of the assignment function in cells
+         *
+         * Specifies width of the area where the function can be non-zero.
+         * Is the same for all directions
          */
-        static constexpr int support = 2;
+        static constexpr uint32_t support = 2;
     };
 
 } // namespace detail
@@ -53,7 +54,7 @@ namespace detail
     {
 
         //! Order of the assignment function spline
-        static constexpr uint32_t assignmentFunctionOrder = 1u;
+        static constexpr uint32_t assignmentFunctionOrder = detail::CIC::support - 1u;
 
         struct ChargeAssignment : public detail::CIC
         {

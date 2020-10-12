@@ -37,12 +37,12 @@ namespace detail
 
     struct TSC
     {
-        /**
-         * width of the support of this form_factor. This is the area where the function
-         * is non-zero.
+        /** Support of the assignment function in cells
+         *
+         * Specifies width of the area where the function can be non-zero.
+         * Is the same for all directions
          */
-        static constexpr int support = 3;
-
+        static constexpr uint32_t support = 3;
 
         HDINLINE static float_X ff_1st_radius( float_X const x )
         {
@@ -75,7 +75,7 @@ namespace detail
     {
 
         //! Order of the assignment function spline
-        static constexpr uint32_t assignmentFunctionOrder = 2u;
+        static constexpr uint32_t assignmentFunctionOrder = detail::TSC::support - 1u;
 
         struct ChargeAssignment : public detail::TSC
         {

@@ -35,7 +35,12 @@ namespace detail
 
     struct P4S
     {
-        static constexpr int support = 5;
+        /** Support of the assignment function in cells
+         *
+         * Specifies width of the area where the function can be non-zero.
+         * Is the same for all directions
+         */
+        static constexpr uint32_t support = 5;
 
         HDINLINE static float_X ff_1st_radius( float_X const x )
         {
@@ -95,7 +100,7 @@ namespace detail
     {
 
         //! Order of the assignment function spline
-        static constexpr uint32_t assignmentFunctionOrder = 4u;
+        static constexpr uint32_t assignmentFunctionOrder = detail::P4S::support - 1u;
 
         struct ChargeAssignmentOnSupport : public detail::P4S
         {

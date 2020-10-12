@@ -35,11 +35,12 @@ namespace detail
 
     struct NGP
     {
-        /**
-         * width of the support of this form_factor. This is the area where the function
-         * is non-zero.
+        /** Support of the assignment function in cells
+         *
+         * Specifies width of the area where the function can be non-zero.
+         * Is the same for all directions
          */
-        static constexpr int support = 1;
+        static constexpr uint32_t support = 1;
     };
 
 } // namespace detail
@@ -53,7 +54,7 @@ namespace detail
     {
 
         //! Order of the assignment function spline
-        static constexpr uint32_t assignmentFunctionOrder = 0u;
+        static constexpr uint32_t assignmentFunctionOrder = detail::NGP::support - 1u;
 
         struct ChargeAssignment : public detail::NGP
         {

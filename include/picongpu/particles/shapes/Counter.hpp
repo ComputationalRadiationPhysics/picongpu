@@ -35,15 +35,15 @@ namespace detail
 
     struct Counter
     {
-        /**
-         * width of the support of this form_factor. This is the area where the function
-         * is non-zero.
+        /** Support of the assignment function in cells
          *
+         * Specifies width of the area where the function can be non-zero.
+         * Is the same for all directions.
          * Note that the support is actually 1, but this shape is used only for
          * certain operations and not as the main simulation shape, and so for
          * enabling more generic implementations is set to one.
          */
-        static constexpr int support = 0;
+        static constexpr uint32_t support = 0;
     };
 
 } // namespace detail
@@ -58,7 +58,11 @@ namespace detail
     struct Counter
     {
 
-        //! Order of the assignment function spline
+        /** Order of the assignment function spline
+         *
+         * Note that here the detail::Counter::support - 1u expression would
+         * not work, as the support of that shape is artificially set to 0
+         */
         static constexpr uint32_t assignmentFunctionOrder = 0u;
 
         struct ChargeAssignment : public detail::Counter
@@ -83,7 +87,7 @@ namespace detail
         {
 
             /** form factor of this particle shape.
-             * \param x has to be within [-support/2, support/2)
+             * \param x has to be within [0, 1)
              */
             HDINLINE float_X operator()( float_X const x )
             {

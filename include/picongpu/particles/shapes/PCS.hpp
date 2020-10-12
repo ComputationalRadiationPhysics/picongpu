@@ -35,7 +35,12 @@ namespace detail
 
     struct PCS
     {
-        static constexpr int support = 4;
+        /** Support of the assignment function in cells
+         *
+         * Specifies width of the area where the function can be non-zero.
+         * Is the same for all directions
+         */
+        static constexpr uint32_t support = 4;
 
         HDINLINE static float_X ff_1st_radius( float_X const x )
         {
@@ -74,7 +79,7 @@ namespace detail
     {
 
         //! Order of the assignment function spline
-        static constexpr uint32_t assignmentFunctionOrder = 3u;
+        static constexpr uint32_t assignmentFunctionOrder = detail::PCS::support - 1u;
 
         struct ChargeAssignment : public detail::PCS
         {

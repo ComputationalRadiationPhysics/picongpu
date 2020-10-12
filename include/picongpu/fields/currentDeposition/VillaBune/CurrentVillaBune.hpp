@@ -22,8 +22,11 @@
 #include <pmacc/types.hpp>
 #include "picongpu/fields/currentDeposition/VillaBune/CurrentVillaBune.def"
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/shapes/CIC.hpp"
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/math/Vector.hpp>
+
+#include <type_traits>
 
 
 namespace picongpu
@@ -47,7 +50,7 @@ namespace currentSolver
             /* VillaBune: field to particle interpolation _requires_ the CIC shape */
             PMACC_CASSERT_MSG_TYPE(currentSolverVillaBune_requires_shapeCIC_in_particleConfig,
                         T_ParticleShape,
-                        T_ParticleShape::assignmentFunctionOrder == 1);
+                        std::is_same<T_ParticleShape, particles::shapes::CIC>::value);
 
             // normalize deltaPos to innerCell units [0.; 1.)
             //   that means: dx_real   = v.x() * dt
