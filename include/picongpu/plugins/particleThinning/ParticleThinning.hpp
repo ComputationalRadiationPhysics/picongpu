@@ -22,10 +22,8 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
-//#include "/bigdata/hplsim/scratch/bastra78/Reduction_library_test/include/reduction_library/thinning/Thinning.hpp"
-//#include "SI/catalytic_activity.h"
-//#include "reduction_library/thinning/Thinning.hpp"
-//#include "picongpu/plugins/particleThinning/ParticleThinning.kernel"
+#include "reduction_library/thinning/Thinning.hpp"
+#include "picongpu/plugins/particleThinning/ParticleThinning.kernel"
 
 
 namespace picongpu
@@ -70,6 +68,10 @@ namespace particleThinning
                 true
             );
 
+            const pmacc::math::Int<simDim> guardSuperCells =
+                this->cellDescription->getGuardingSuperCells();
+
+
             AreaMapping<
                 CORE + BORDER, // full local domain, no guards
                 MappingDesc
@@ -78,28 +80,27 @@ namespace particleThinning
                 pmacc::math::CT::volume< MappingDesc::SuperCellSize >::type::value
             >::value;
 
-            //random value
-/*
-            using namespace pmacc::random::distributions;
-            using Distribution = Uniform<float_X>;
-            using RngFactory = particles::functor::misc::Rng< Distribution >;
-
-
             // call a kernel
-            RngFactory rngFactory(currentStep);
             auto kernel = ParticleThinningKernel<
                 numWorkers
-            >{ rngFactory  };
-//
+            >{ };
+
+            using namespace pmacc::random::distributions;
+			using Distribution = Uniform<float_X>;
+			using RngFactory = particles::functor::misc::Rng< Distribution >;
+			RngFactory rngFactory( currentStep );
+
             PMACC_KERNEL( kernel )(
                 mapper.getGridDim(), // how many blocks = how many supercells in local domain
                 numWorkers           // how many threads per block
             )(
                 particles->getDeviceParticlesBox( ),
                 mapper,
-                ratioDeletedParticles
+                ratioDeletedParticles,
+                rngFactory,
+                guardSuperCells
             );
-*/
+
             // close all gaps caused by removal of particles
             particles->fillAllGaps();
         }

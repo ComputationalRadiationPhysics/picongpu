@@ -381,20 +381,20 @@ endif(ISAAC_FOUND)
 ######################################
 
 
-#find_package(ReductionLibrary CONFIG REQUIRED)
+find_package(ReductionLibrary CONFIG REQUIRED)
 
-#if(ReductionLibrary_FOUND)
- #   message(STATUS "Found ReductionLibrary: ${ReductionLibrary_DIR}")
+if(ReductionLibrary_FOUND)
+    message(STATUS "Found ReductionLibrary: ${ReductionLibrary_DIR}")
     
-  #  message(STATUS ${ReductionLibrary_INCLUDE_DIR})
-  #  message(STATUS "Found ReductionLibrary: include dirs ${ReductionLibrary_CONSIDERED_VERSIONS}")
+    message(STATUS ${ReductionLibrary_INCLUDE_DIR})
+    message(STATUS "Found ReductionLibrary: include dirs ${ReductionLibrary_CONSIDERED_VERSIONS}")
 
-   # set(LIBS ${LIBS} ReductionLibrary::ReductionLibrary)
+    set(LIBS ${LIBS} ReductionLibrary::ReductionLibrary)
 
     
-#else(ReductionLibrary_FOUND)
- #   message(STATUS "Could NOT find ReductionLibrary - set ReductionLibrary_DIR or check your CMAKE_PREFIX_PATH")
-#endif(ReductionLibrary_FOUND)
+else(ReductionLibrary_FOUND)
+    message(STATUS "Could NOT find ReductionLibrary - set ReductionLibrary_DIR or check your CMAKE_PREFIX_PATH")
+endif(ReductionLibrary_FOUND)
 
 ################################################################################
 # Check if PIC_EXTENSION_PATH is relative or absolute
