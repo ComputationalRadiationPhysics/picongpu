@@ -86,9 +86,9 @@ namespace particleThinning
             >{ };
 
             using namespace pmacc::random::distributions;
-			using Distribution = Uniform<float_X>;
-			using RngFactory = particles::functor::misc::Rng< Distribution >;
-			RngFactory rngFactory( currentStep );
+            using Distribution = Uniform<float_X>;
+            using RngFactory = particles::functor::misc::Rng< Distribution >;
+            RngFactory rngFactory( currentStep );
 
             PMACC_KERNEL( kernel )(
                 mapper.getGridDim(), // how many blocks = how many supercells in local domain

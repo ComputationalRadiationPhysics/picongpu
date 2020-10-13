@@ -70,9 +70,6 @@ namespace particleThinning
         using RngFactory = particles::functor::misc::Rng<
             pmacc::random::distributions::Uniform<float>
         >;
-		 
-        ParticleThinningKernel()
-							{}
         
         template<
             typename T_Acc,
@@ -127,8 +124,19 @@ namespace particleThinning
             pmacc::math::Int<simDim> localOffset = supercellIdx / SuperCellSize::toRT() - guardSuperCells;
             pmacc::mappings::threads::WorkerCfg<numWorkers> workerCfg( linearThreadIdx );
             auto generator = rngFactory( acc, localOffset, workerCfg );
- 
-            reduction_library::thinning::KernelThinning<Particle> algorithm( ratioDeletedParticles );
+
+            cupla::__syncthreads( acc );
+            PMACC_SMEM( acc, algorithm, reduction_library::thinning::KernelThinning<Particle> );
+            onlyMaster(
+	            [&](
+	               int32_t const,
+                   uint32_t const
+	            )
+	            {
+	                reduction_library::thinning::KernelThinning<Particle> algorithm( ratioDeletedParticles );
+	            }
+           );
+           cupla::__syncthreads( acc );
 
             // collect all particles
             while( frame.isValid( ) )
@@ -154,7 +162,7 @@ namespace particleThinning
                 particlesInFrame = frameSize;
             }
 
-			cupla::__syncthreads( acc );
+            cupla::__syncthreads( acc );
 			
             if ( workerIdx == 0 ) {
             	algorithm.process( acc );    
@@ -181,7 +189,7 @@ namespace particleThinning
                             algorithm.reduce( acc, particle, randomValue );
                             if( particle[ weighting_ ] )
                             {
-                                cupla::atomicAdd(acc,  particle[momentum_], particle[ weighting_ ] / oldWeighting, ::alpaka::hierarchy::Threads{} );
+                                particle[momentum_] = particle[momentum_] * particle[weighting_] / oldWeighting;
                                 // particle is kept, but maybe with a 
                                 // different weight
                                 // need to rescale momentum according to weight change
