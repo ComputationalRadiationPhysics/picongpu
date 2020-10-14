@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Marco Garten
+/* Copyright 2015-2020 Marco Garten, Jakob Trojok
  *
  * This file is part of PIConGPU.
  *
@@ -27,6 +27,7 @@
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
 #include "picongpu/particles/ionization/utilities.hpp"
+#include "picongpu/particles/ionization/byField/IonizationCurrent/IonizerReturn.hpp"
 
 /** \file AlgorithmADK.hpp
  *
@@ -65,10 +66,10 @@ namespace ionization
          * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
          * \param randNr random number, equally distributed in range [0.:1.0]
          *
-         * \return number of new macro electrons to be created
+         * \return ionization energy and number of new macro electrons to be created
          */
         template<typename EType, typename BType, typename ParticleType >
-        HDINLINE uint32_t
+        HDINLINE IonizerReturn
         operator()( const BType bField, const EType eField, ParticleType& parentIon, float_X randNr )
         {
 
@@ -131,12 +132,12 @@ namespace ionization
                 /* ionization condition */
                 if( randNr < probADK )
                 {
-                    /* return number of macro electrons to produce */
-                    return 1u;
+                    /* return ionization energy and number of macro electrons to produce */
+                    return IonizerReturn{ iEnergy, 1u };
                 }
             }
             /* no ionization */
-            return 0u;
+            return IonizerReturn{ 0.0, 0u };
         }
     };
 

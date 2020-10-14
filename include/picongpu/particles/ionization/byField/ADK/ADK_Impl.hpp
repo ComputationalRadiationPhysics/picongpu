@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Marco Garten
+/* Copyright 2015-2020 Marco Garten, Jakob Trojok
  *
  * This file is part of PIConGPU.
  *
@@ -29,6 +29,8 @@
 #include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/particles/ionization/byField/ADK/ADK.def"
 #include "picongpu/particles/ionization/byField/ADK/AlgorithmADK.hpp"
+#include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationCalc.hpp"
+#include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationAssignment.hpp"
 
 #include <pmacc/random/methods/methods.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
@@ -55,9 +57,10 @@ namespace ionization
      *        Tunneling ionization for hydrogenlike atoms
      *
      * \tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
+     * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
      * \tparam T_SrcSpecies type or name as boost::mpl::string of the particle species that is ionized
      */
-    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies>
+    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_IonizationCurrent, typename T_SrcSpecies>
     struct ADK_Impl
     {
 
@@ -105,9 +108,10 @@ namespace ionization
 
             using ValueType_E = FieldE::ValueType;
             using ValueType_B = FieldB::ValueType;
-            /* global memory EM-field device databoxes */
+            /* global memory EM-field and current density device databoxes */
             PMACC_ALIGN(eBox, FieldE::DataBoxType);
             PMACC_ALIGN(bBox, FieldB::DataBoxType);
+            PMACC_ALIGN(jBox, FieldJ::DataBoxType);
             /* shared memory EM-field device databoxes */
             PMACC_ALIGN(cachedE, DataBox<SharedBox<ValueType_E, typename BlockArea::FullSuperCellSize,1> >);
             PMACC_ALIGN(cachedB, DataBox<SharedBox<ValueType_B, typename BlockArea::FullSuperCellSize,0> >);
@@ -117,13 +121,14 @@ namespace ionization
             ADK_Impl(const uint32_t currentStep) : randomGen(RNGFactory::createRandom<Distribution>())
             {
                 DataConnector &dc = Environment<>::get().DataConnector();
-                /* initialize pointers on host-side E-(B-)field databoxes */
+                /* initialize pointers on host-side E-(B-)field and current density databoxes */
                 auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
                 auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
-                /* initialize device-side E-(B-)field databoxes */
+                auto fieldJ = dc.get< FieldJ >( FieldJ::getName(), true );
+                /* initialize device-side E-(B-)field and current density databoxes */
                 eBox = fieldE->getDeviceDataBox();
                 bBox = fieldB->getDeviceDataBox();
-
+                jBox = fieldJ->getDeviceDataBox();
             }
 
             /** cache fields used by this functor
@@ -147,6 +152,9 @@ namespace ionization
                 const T_WorkerCfg & workerCfg
             )
             {
+                /* shift origin of jbox to supercell of particle */
+                jBox = jBox.shift(blockCell);
+
                 /* caching of E and B fields */
                 cachedB = CachedBox::create<
                     0,
@@ -242,13 +250,21 @@ namespace ionization
                 float_X prevBoundElectrons = particle[boundElectrons_];
 
                 IonizationAlgorithm ionizeAlgo;
-                /* determine number of new macro electrons to be created */
-                uint32_t newMacroElectrons = ionizeAlgo(
+                /* determine number of new macro electrons to be created and energy used for ionization */
+                auto retValue = ionizeAlgo(
                                                 bField, eField,
                                                 particle, this->randomGen(acc)
                                                 );
+                IonizationCurrent<T_Acc, T_DestSpecies, simDim, T_IonizationCurrent>{}(
+                    retValue,
+                    particle[ weighting_ ],
+                    jBox.shift(localCell),
+                    eField,
+                    acc,
+                    pos
+                );
 
-                return newMacroElectrons;
+                return retValue.newMacroElectrons;
 
             }
 

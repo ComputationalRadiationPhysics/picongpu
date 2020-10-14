@@ -23,7 +23,6 @@
  * of the periodic table. The elements here should have a matching list of
  * ionization energies in @see ionizationEnergies.param. Moreover this file
  * contains a description of how to configure an ionization model for a species.
- * Currently each species can only be assigned exactly one ionization model.
  *
  * Furthermore there are parameters for specific ionization models to be found
  * here. That includes lists of screened nuclear charges as seen by bound

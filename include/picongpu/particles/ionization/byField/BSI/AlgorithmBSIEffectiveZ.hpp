@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Marco Garten
+/* Copyright 2014-2020 Marco Garten, Jakob Trojok
  *
  * This file is part of PIConGPU.
  *
@@ -24,6 +24,7 @@
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 #include "picongpu/particles/traits/GetEffectiveNuclearCharge.hpp"
 #include "picongpu/traits/attribute/GetChargeState.hpp"
+#include "picongpu/particles/ionization/byField/IonizationCurrent/IonizerReturn.hpp"
 
 /** @file AlgorithmBSIEffectiveZ.hpp
  *
@@ -56,11 +57,11 @@ namespace ionization
          *
          * and "t" being with respect to the current time step (on step/half a step backward/-""-forward)
          *
-         * \return the number of electrons to produce
+         * \return ionization energy and number of new macro electrons to be created
          * (current implementation supports only 0 or 1 per execution)
          */
         template<typename EType, typename ParticleType >
-        HDINLINE uint32_t
+        HDINLINE IonizerReturn
         operator()( const EType eField, ParticleType& parentIon )
         {
 
@@ -80,12 +81,12 @@ namespace ionization
                 /* ionization condition */
                 if (math::abs(eField) / ATOMIC_UNIT_EFIELD >= critField)
                 {
-                    /* return number of macro electrons to produce */
-                    return 1u;
+                    /* return ionization energy and number of macro electrons to produce */
+                    return IonizerReturn{iEnergy, 1u};
                 }
             }
             /* no ionization */
-            return 0u;
+            return IonizerReturn{0.0, 0u};
         }
     };
 

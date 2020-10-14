@@ -1,0 +1,61 @@
+/* Copyright 2020 Jakob Trojok
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+namespace picongpu
+{
+namespace particles
+{
+namespace ionization
+{
+namespace current
+{
+    /** possible inputs for T_IonizationCurrent
+     * EnergyConservation -> with ionization current
+     * None -> without
+     */
+    struct EnergyConservation;
+    struct None;
+} // namespace current
+    /** Implementation of Ionization Current
+     *
+     * In order to conserve energy, PIConGPU supports an ionization current
+     * to decrease the electric field according to the amount of energy lost to field ioniztion processes.
+     *
+     * Reference: P. Mulser et al.
+     *            Modeling field ionization in an energy conserving form and resulting nonstandard fluid dynamcis,
+     *            Physics of Plasmas 5, 4466 (1998)
+     *            https://doi.org/10.1063/1.873184
+     *
+     * \tparam T_Acc alpaka accelerator type
+     * \tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
+     * \tparam T_Dim dimension of simulation
+     * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
+     */
+    template<
+        typename T_Acc,
+        typename T_DestSpecies,
+        unsigned T_Dim,
+        typename T_IonizationCurrent
+    >
+    struct IonizationCurrent;
+} // namespace ionization
+} // namespace particles
+} // namespacepicongpu

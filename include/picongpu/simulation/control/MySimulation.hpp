@@ -553,6 +553,7 @@ public:
     {
         using namespace simulation::stage;
         MomentumBackup{ }( currentStep );
+        CurrentReset{ }( currentStep );
         ParticleIonization{ *cellDescription }( currentStep );
         PopulationKinetics{ }( currentStep );
         SynchrotronRadiation{
@@ -570,7 +571,6 @@ public:
         ParticlePush{ }( currentStep, commEvent );
         FieldBackground{ *cellDescription }( currentStep, nvidia::functors::Sub( ) );
         myFieldSolver->update_beforeCurrent( currentStep );
-        CurrentReset{ }( currentStep );
         __setTransactionEvent( commEvent );
         CurrentBackground{ *cellDescription }( currentStep );
         CurrentDeposition{ }( currentStep );

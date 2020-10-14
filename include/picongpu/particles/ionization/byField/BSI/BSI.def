@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Marco Garten
+/* Copyright 2015-2020 Marco Garten, Jakob Trojok
  *
  * This file is part of PIConGPU.
  *
@@ -20,6 +20,7 @@
 #pragma once
 
 #include <pmacc/types.hpp>
+#include "picongpu/particles/ionization/byField/IonizationCurrent/IonizationCurrent.def"
 
 namespace picongpu
 {
@@ -30,12 +31,13 @@ namespace ionization
     /** Barrier Suppression Ionization - Implementation
      *
      * \tparam T_DestSpecies electron species to be created
+     * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
      * \tparam T_SrcSpecies particle species that is ionized
      *         default is boost::mpl placeholder because specialization
      *         cannot be known in list of particle species' flags
      *         \see speciesDefinition.param
      */
-    template< typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1 >
+    template< typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_IonizationCurrent, typename T_SrcSpecies = bmpl::_1 >
     struct BSI_Impl;
 
     /** Barrier Suppression Ionization - Hydrogen-Like
@@ -54,17 +56,18 @@ namespace ionization
      * - This model neglects the Stark upshift of ionization energies.
      *
      * \tparam T_DestSpecies electron species to be created
+     * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
      *
      * wrapper class,
      * needed because the SrcSpecies cannot be known during the
      * first specialization of the ionization model in the particle definition
      * \see speciesDefinition.param
      */
-    template< typename T_DestSpecies >
+    template< typename T_DestSpecies, typename T_IonizationCurrent = current::None >
     struct BSI
     {
         using IonizationAlgorithm = particles::ionization::AlgorithmBSI;
-        using type = BSI_Impl< IonizationAlgorithm, T_DestSpecies >;
+        using type = BSI_Impl< IonizationAlgorithm, T_DestSpecies, T_IonizationCurrent >;
     };
 
     /** Barrier Suppression Ionization - Effective Atomic Numbers
@@ -76,12 +79,13 @@ namespace ionization
      * - unvalidated and still in development
      *
      * \tparam T_DestSpecies electron species to be created
+     * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
      */
-    template< typename T_DestSpecies >
+    template< typename T_DestSpecies, typename T_IonizationCurrent = current::None >
     struct BSIEffectiveZ
     {
         using IonizationAlgorithm = particles::ionization::AlgorithmBSIEffectiveZ;
-        using type = BSI_Impl< IonizationAlgorithm, T_DestSpecies >;
+        using type = BSI_Impl< IonizationAlgorithm, T_DestSpecies, T_IonizationCurrent >;
     };
 
     /** Barrier Suppression Ionization - Ion. energies Stark-upshifted
@@ -94,12 +98,13 @@ namespace ionization
      * - \todo needs to be extrapolated to arbitrary ions
      *
      * \tparam T_DestSpecies electron species to be created
+     * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
      */
-    template< typename T_DestSpecies >
+    template< typename T_DestSpecies, typename T_IonizationCurrent = current::None >
     struct BSIStarkShifted
     {
         using IonizationAlgorithm = particles::ionization::AlgorithmBSIStarkShifted;
-        using type = BSI_Impl< IonizationAlgorithm, T_DestSpecies >;
+        using type = BSI_Impl< IonizationAlgorithm, T_DestSpecies, T_IonizationCurrent >;
     };
 
 } // namespace ionization

@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Marco Garten
+/* Copyright 2015-2020 Marco Garten, Jakob Trojok
  *
  * This file is part of PIConGPU.
  *
@@ -24,11 +24,13 @@
 #include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
+#include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/particles/ionization/byField/BSI/BSI.def"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSI.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
+#include "picongpu/particles/ionization/byField/IonizationCurrent/IonizationCurrent.hpp"
 
 #include "picongpu/particles/ParticlesFunctors.hpp"
 
@@ -53,9 +55,10 @@ namespace ionization
      * \brief Barrier Suppression Ionization - Implementation
      *
      * \tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
+     * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
      * \tparam T_SrcSpecies type or name as boost::mpl::string of the particle species that is ionized
      */
-    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies>
+    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_IonizationCurrent, typename T_SrcSpecies>
     struct BSI_Impl
     {
 
@@ -96,8 +99,9 @@ namespace ionization
             using TVec = MappingDesc::SuperCellSize;
 
             using ValueType_E = FieldE::ValueType;
-            /* global memory EM-field device databoxes */
+            /* global memory E-field and current density device databoxes */
             FieldE::DataBoxType eBox;
+            FieldJ::DataBoxType jBox;
             /* shared memory EM-field device databoxes */
             PMACC_ALIGN(cachedE, DataBox<SharedBox<ValueType_E, typename BlockArea::FullSuperCellSize,1> >);
 
@@ -106,10 +110,12 @@ namespace ionization
             BSI_Impl(const uint32_t currentStep)
             {
                 DataConnector &dc = Environment<>::get().DataConnector();
-                /* initialize pointers on host-side E-(B-)field databoxes */
+                /* initialize pointers on host-side E-field and current density databoxes */
                 auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
-                /* initialize device-side E-(B-)field databoxes */
+                auto fieldJ = dc.get< FieldJ >( FieldJ::getName(), true );
+                /* initialize device-side E-(J-)field databoxes */
                 eBox = fieldE->getDeviceDataBox();
+                jBox = fieldJ->getDeviceDataBox();
 
             }
 
@@ -134,6 +140,8 @@ namespace ionization
                 const T_WorkerCfg & workerCfg
             )
             {
+                /* shift origin of jbox to supercell of particle */
+                jBox = jBox.shift(blockCell);
 
                 /* caching of E field */
                 cachedE = CachedBox::create<
@@ -214,14 +222,19 @@ namespace ionization
                 float_X prevBoundElectrons = particle[boundElectrons_];
 
                 /* this is the point where actual ionization takes place */
-                IonizationAlgorithm ionizeAlgo;
-                /* determine number of new macro electrons to be created */
-                uint32_t newMacroElectrons = ionizeAlgo(
-                                                eField,
-                                                particle
-                                              );
+                IonizationAlgorithm ionizeAlgo{};
+                auto retValue = ionizeAlgo(eField, particle);
+                /* determine number of new macro electrons to be created and calculate ionization current */
+                IonizationCurrent<T_Acc, T_DestSpecies, simDim, T_IonizationCurrent>{}(
+                    retValue,
+                    particle[ weighting_ ],
+                    jBox.shift(localCell),
+                    eField,
+                    acc,
+                    pos
+                );
 
-                return newMacroElectrons;
+                return retValue.newMacroElectrons;
 
             }
 
