@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -17,10 +17,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
+#include <cstdint>
+
 
 namespace picongpu
 {
@@ -28,25 +30,33 @@ namespace particles
 {
 namespace shapes
 {
+namespace detail
+{
 
-    namespace shared_NGP
+    struct NGP
+    {
+        /** Support of the assignment function in cells
+         *
+         * Specifies width of the area where the function can be non-zero.
+         * Is the same for all directions
+         */
+        static constexpr uint32_t support = 1;
+    };
+
+} // namespace detail
+
+    /** Nearest grid point particle shape
+     *
+     * Cloud density form: delta function
+     * Assignment function: zero order B-spline
+     */
+    struct NGP
     {
 
-        struct NGP
-        {
-            /**
-             * width of the support of this form_factor. This is the area where the function
-             * is non-zero.
-             */
-            static constexpr int support = 1;
-        };
+        //! Order of the assignment function spline
+        static constexpr uint32_t assignmentFunctionOrder = detail::NGP::support - 1u;
 
-    } // namespace shared_NGP
-
-    struct NGP : public shared_NGP::NGP
-    {
-
-        struct ChargeAssignment : public shared_NGP::NGP
+        struct ChargeAssignment : public detail::NGP
         {
 
             HDINLINE float_X operator()( float_X const x )
@@ -64,7 +74,7 @@ namespace shapes
             }
         };
 
-        struct ChargeAssignmentOnSupport : public shared_NGP::NGP
+        struct ChargeAssignmentOnSupport : public detail::NGP
         {
 
             /** form factor of this particle shape.

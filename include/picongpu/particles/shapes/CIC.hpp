@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Axel Huebl
+/* Copyright 2013-2020 Heiko Burau, Rene Widera, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -21,71 +21,82 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include <cstdint>
+
+
 namespace picongpu
 {
 namespace particles
 {
 namespace shapes
 {
-namespace shared_CIC
+namespace detail
 {
 
-struct CIC
-{
-    /**
-     * width of the support of this form_factor. This is the area where the function
-     * is non-zero.
-     */
-    static constexpr int support = 2;
-};
-
-}//namespace shared_CIC
-
-struct CIC : public shared_CIC::CIC
-{
-    using CloudShape = picongpu::particles::shapes::NGP;
-
-    struct ChargeAssignment : public shared_CIC::CIC
+    struct CIC
     {
-
-        HDINLINE float_X operator()( float_X const x )
-        {
-            /*       -
-             *       |  1-|x|           if |x|<1
-             * W(x)=<|
-             *       |  0               otherwise
-             *       -
-             */
-            float_X const abs_x = math::abs( x );
-
-            bool const below_1 = abs_x < 1.0_X;
-            float_X const onSupport = 1.0_X - abs_x;
-
-            float_X result( 0.0 );
-            if( below_1 )
-                result = onSupport;
-
-            return result;
-        }
-    };
-
-    struct ChargeAssignmentOnSupport : public shared_CIC::CIC
-    {
-
-        /** form factor of this particle shape.
-         * \param x has to be within [-support/2, support/2]
+        /** Support of the assignment function in cells
+         *
+         * Specifies width of the area where the function can be non-zero.
+         * Is the same for all directions
          */
-        HDINLINE float_X operator()( float_X const x )
-        {
-            /*
-             * W(x)=1-|x|
-             */
-            return 1.0_X - math::abs( x );
-        }
-
+        static constexpr uint32_t support = 2;
     };
 
-};
+} // namespace detail
+
+    /** Cloud-in-cell particle shape
+     *
+     * Cloud density form: piecewise constant
+     * Assignment function: first order B-spline
+     */
+    struct CIC
+    {
+
+        //! Order of the assignment function spline
+        static constexpr uint32_t assignmentFunctionOrder = detail::CIC::support - 1u;
+
+        struct ChargeAssignment : public detail::CIC
+        {
+
+            HDINLINE float_X operator()( float_X const x )
+            {
+                /*       -
+                 *       |  1-|x|           if |x|<1
+                 * W(x)=<|
+                 *       |  0               otherwise
+                 *       -
+                 */
+                float_X const abs_x = math::abs( x );
+
+                bool const below_1 = abs_x < 1.0_X;
+                float_X const onSupport = 1.0_X - abs_x;
+
+                float_X result( 0.0 );
+                if( below_1 )
+                    result = onSupport;
+
+                return result;
+            }
+        };
+
+        struct ChargeAssignmentOnSupport : public detail::CIC
+        {
+
+            /** form factor of this particle shape.
+             * \param x has to be within [-support/2, support/2]
+             */
+            HDINLINE float_X operator()( float_X const x )
+            {
+                /*
+                 * W(x)=1-|x|
+                 */
+                return 1.0_X - math::abs( x );
+            }
+
+        };
+
+    };
 
 } // namespace shapes
 } // namespace particles

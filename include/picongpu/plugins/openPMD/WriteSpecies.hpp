@@ -337,7 +337,7 @@ namespace openPMD
         setParticleAttributes( ::openPMD::Iteration & iteration )
         {
             const float_64 particleShape(
-                GetShape< ThisSpecies >::type::support - 1 );
+                GetShape< ThisSpecies >::type::assignmentFunctionOrder );
             iteration.setAttribute( "particleShape", particleShape );
 
             traits::GetSpeciesFlagName< ThisSpecies, current<> >
