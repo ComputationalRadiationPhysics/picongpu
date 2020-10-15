@@ -107,7 +107,10 @@ namespace math
         }
     };
 
-    /*  Specialize abs2() for complex numbers. */
+    /** Specialize abs2() for complex numbers.
+     *
+     * Note: Abs is specialized in alpaka::math below
+     */
     template<typename T_Type>
     struct Abs2< ::pmacc::math::Complex<T_Type> >
     {
@@ -216,11 +219,12 @@ namespace traits
         ALPAKA_FN_HOST_ACC static auto abs(
             T_Ctx const & mathConcept,
             ::pmacc::math::Complex< T_Type > const & other
-        ) -> ::pmacc::math::Complex< T_Type >
+        ) -> T_Type
         {
-            using type = T_Type;
-            return alpaka::math::abs( mathConcept, other.get_real() )
-                + alpaka::math::abs( mathConcept, other.get_imag() );
+            /* It is not possible to use alpaka::math::sqrt( mathConcept, ... )
+             * here, as the mathConcept would not match, so go around via cupla
+             */
+            return cupla::math::sqrt( pmacc::math::abs2( other ) );
         }
     };
 

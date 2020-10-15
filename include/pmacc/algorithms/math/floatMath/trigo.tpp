@@ -56,7 +56,7 @@ struct Sinc<float>
     HDINLINE float operator( )(const float& value )
     {
         if(cupla::math::abs(value) < FLT_EPSILON)
-            return 1.0;
+            return 1.0f;
         else
             return cupla::math::sin( value )/value;
     }
