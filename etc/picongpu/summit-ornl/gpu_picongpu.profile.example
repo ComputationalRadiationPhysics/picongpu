@@ -32,6 +32,9 @@ module load boost/1.66.0
 # plugins (optional) ##########################################################
 module load hdf5/1.10.3
 module load adios/1.13.1-py2 c-blosc zfp sz lz4
+module load ums
+module load ums-aph114
+module load openpmd-api/0.12.0
 
 # optionally download libSplash and compile it yourself from
 #   https://github.com/ComputationalRadiationPhysics/libSplash/
