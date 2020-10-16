@@ -27,11 +27,11 @@ module load boost/1.68.0
 module load zlib/1.2.11
 module load c-blosc/1.14.4
 
-module load adios/1.13.1-cuda102
 module load hdf5-parallel/1.8.20-cuda102
 module load libsplash/1.7.0-cuda102
 module load python/3.6.5
-module load openpmd/0.11.1-cuda102
+module load adios/2.6.0-cuda102
+module load openpmd/0.12.0-cuda102
 
 module load libpng/1.6.35
 module load pngwriter/0.7.0
