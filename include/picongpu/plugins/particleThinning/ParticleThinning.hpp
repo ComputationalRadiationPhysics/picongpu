@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include "reduction_library/thinning/Thinning.hpp"
+#include "reduction_library/thinning/InKernelThinning.hpp"
 #include "picongpu/plugins/particleThinning/ParticleThinning.kernel"
 
 

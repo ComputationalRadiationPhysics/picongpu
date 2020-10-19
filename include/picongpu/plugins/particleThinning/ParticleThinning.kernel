@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 //#include "reduction_library/Particle.hpp"
-#include "reduction_library/thinning/KernelThinning.hpp"
+#include "reduction_library/thinning/InKernelThinning.hpp"
 
 
 // #include ...
@@ -126,17 +126,18 @@ namespace particleThinning
             auto generator = rngFactory( acc, localOffset, workerCfg );
 
             cupla::__syncthreads( acc );
-            PMACC_SMEM( acc, algorithm, reduction_library::thinning::KernelThinning<Particle> );
+            PMACC_SMEM( acc, algorithm, reduction_library::thinning::In_KernelThinning<Particle> );
             onlyMaster(
 	            [&](
 	               int32_t const,
                    uint32_t const
 	            )
 	            {
-	                reduction_library::thinning::KernelThinning<Particle> algorithm( ratioDeletedParticles );
+	                algorithm.init( ratioDeletedParticles );
 	            }
            );
            cupla::__syncthreads( acc );
+
 
             // collect all particles
             while( frame.isValid( ) )
@@ -165,12 +166,15 @@ namespace particleThinning
             cupla::__syncthreads( acc );
 			
             if ( workerIdx == 0 ) {
-            	algorithm.process( acc );    
-            }
+               algorithm.process( acc );
+           }
             cupla::__syncthreads( acc );
+
+            frame = particleBox.getLastFrame( supercellIdx );
 
             while( frame.isValid( ) )
             {
+
                 // parallel loop over all particles in the frame
                 ForEachIdx< ParticleDomCfg >{ workerIdx }
                 (
@@ -182,6 +186,7 @@ namespace particleThinning
                         // todo: check whether this if is necessary
                         if( linearIdx < particlesInFrame )
                         {
+
                             auto particle = frame[ linearIdx ];
                             auto const oldWeighting = particle[ weighting_ ];
                             auto randomValue = generator();
@@ -206,8 +211,8 @@ namespace particleThinning
                 frame = particleBox.getPreviousFrame( frame );
                 particlesInFrame = frameSize;
             }
-
         }
+
 
     };
 
