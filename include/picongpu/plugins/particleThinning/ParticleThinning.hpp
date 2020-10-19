@@ -71,7 +71,6 @@ namespace particleThinning
             const pmacc::math::Int<simDim> guardSuperCells =
                 this->cellDescription->getGuardingSuperCells();
 
-
             AreaMapping<
                 CORE + BORDER, // full local domain, no guards
                 MappingDesc

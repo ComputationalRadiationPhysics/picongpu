@@ -122,20 +122,22 @@ namespace particleThinning
             const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize> (threadIndex);
 
             pmacc::math::Int<simDim> localOffset = supercellIdx / SuperCellSize::toRT() - guardSuperCells;
-            pmacc::mappings::threads::WorkerCfg<numWorkers> workerCfg( linearThreadIdx );
+            pmacc::mappings::threads::WorkerCfg<numWorkers> workerCfg( workerIdx );
             auto generator = rngFactory( acc, localOffset, workerCfg );
 
             cupla::__syncthreads( acc );
             PMACC_SMEM( acc, algorithm, reduction_library::thinning::In_KernelThinning<Particle> );
-            onlyMaster(
-	            [&](
-	               int32_t const,
-                   uint32_t const
-	            )
-	            {
-	                algorithm.init( ratioDeletedParticles );
-	            }
-           );
+           
+			onlyMaster(
+			    [&](
+			        uint32_t const,
+			        uint32_t const
+			    )
+			    {
+			        algorithm.init( ratioDeletedParticles );
+			    }
+			);
+			
            cupla::__syncthreads( acc );
 
 
@@ -165,9 +167,15 @@ namespace particleThinning
 
             cupla::__syncthreads( acc );
 			
-            if ( workerIdx == 0 ) {
-               algorithm.process( acc );
-           }
+			onlyMaster(
+			    [&](
+			        uint32_t const,
+			        uint32_t const
+			    )
+			    {
+			        algorithm.process( acc );
+			    }
+			);
             cupla::__syncthreads( acc );
 
             frame = particleBox.getLastFrame( supercellIdx );
@@ -191,7 +199,7 @@ namespace particleThinning
                             auto const oldWeighting = particle[ weighting_ ];
                             auto randomValue = generator();
 
-                            algorithm.reduce( acc, particle, randomValue );
+                            algorithm.reduce( acc, particle, generator );
                             if( particle[ weighting_ ] )
                             {
                                 particle[momentum_] = particle[momentum_] * particle[weighting_] / oldWeighting;
