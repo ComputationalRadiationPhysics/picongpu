@@ -117,11 +117,8 @@ namespace particleThinning
             auto frame = particleBox.getLastFrame( supercellIdx );
             auto particlesInFrame = particleBox.getSuperCell( supercellIdx ).getSizeLastFrame( );
             using Particle = typename T_ParticleBox::FrameType::ParticleType;
-            
-            const DataSpace<simDim > threadIndex(cupla::threadIdx(acc));
-            const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize> (threadIndex);
 
-            pmacc::math::Int<simDim> localOffset = supercellIdx / SuperCellSize::toRT() - guardSuperCells;
+            pmacc::math::Int<simDim> localOffset = supercellIdx;  // SuperCellSize::toRT() - guardSuperCells;
             pmacc::mappings::threads::WorkerCfg<numWorkers> workerCfg( workerIdx );
             auto generator = rngFactory( acc, localOffset, workerCfg );
 
@@ -179,6 +176,7 @@ namespace particleThinning
             cupla::__syncthreads( acc );
 
             frame = particleBox.getLastFrame( supercellIdx );
+            particlesInFrame = particleBox.getSuperCell( supercellIdx ).getSizeLastFrame( );
 
             while( frame.isValid( ) )
             {
@@ -197,7 +195,6 @@ namespace particleThinning
 
                             auto particle = frame[ linearIdx ];
                             auto const oldWeighting = particle[ weighting_ ];
-                            auto randomValue = generator();
 
                             algorithm.reduce( acc, particle, generator );
                             if( particle[ weighting_ ] )
