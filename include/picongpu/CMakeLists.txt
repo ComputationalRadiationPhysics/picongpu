@@ -44,6 +44,7 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HDF5_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{ADIOS_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{OPENPMD_ROOT}")
+#list(APPEND CMAKE_PREFIX_PATH "$ENV{ReductionLibrary_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 
@@ -371,6 +372,20 @@ else(ISAAC_FOUND)
         message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH")
     endif()
 endif(ISAAC_FOUND)
+
+######################################
+# Particle reduction
+######################################
+
+
+find_package(ReductionLibrary CONFIG REQUIRED)
+
+if(ReductionLibrary_FOUND)
+    message(STATUS "Found ReductionLibrary: ${ReductionLibrary_DIR}")
+    set(LIBS ${LIBS} ReductionLibrary::ReductionLibrary)
+else(ReductionLibrary_FOUND)
+    message(STATUS "Could NOT find ReductionLibrary - set ReductionLibrary_DIR or check your CMAKE_PREFIX_PATH")
+endif(ReductionLibrary_FOUND)
 
 ################################################################################
 # Check if PIC_EXTENSION_PATH is relative or absolute
