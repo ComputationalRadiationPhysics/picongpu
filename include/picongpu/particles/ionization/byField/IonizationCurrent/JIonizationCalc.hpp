@@ -31,7 +31,9 @@ namespace ionization
      */
     struct JIonizationCalc
     {
-        /** functor calculating ionization current
+        /** Functor calculating ionization current.
+         * Is only called if ionization energy is not zero,
+         * thus we ensure the field is different from zero.
          */
         HDINLINE float3_X
         operator()( float_X const ionizationEnergy, float3_X const eField )

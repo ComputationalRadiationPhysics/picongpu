@@ -58,11 +58,15 @@ namespace ionization
         HDINLINE void
         operator()(IonizerReturn retValue, float_X const weighting, T_JBox jBoxPar, ValueType_E eField, T_Acc const & acc, floatD_X const pos)
         {
-            auto ionizationEnergy = weighting * retValue.ionizationEnergy * SI::ATOMIC_UNIT_ENERGY / UNIT_ENERGY; // convert to PIConGPU units
-            /* calculate ionization current at particle position */
-            float3_X jIonizationPar = JIonizationCalc{}(ionizationEnergy, eField);
-            /* assign ionization current to grid points */
-            JIonizationAssignment<T_Acc, T_DestSpecies, simDim>{}(acc, jIonizationPar, pos, jBoxPar);
+            /* If there is no ionization, the ionization energy is zero. In that case, there is no need for an ionization current. */
+            if(retValue.ionizationEnergy != 0.0_X)
+            {
+                auto ionizationEnergy = weighting * retValue.ionizationEnergy * SI::ATOMIC_UNIT_ENERGY / UNIT_ENERGY; // convert to PIConGPU units
+                /* calculate ionization current at particle position */
+                float3_X jIonizationPar = JIonizationCalc{}(ionizationEnergy, eField);
+                /* assign ionization current to grid points */
+                JIonizationAssignment<T_Acc, T_DestSpecies, simDim>{}(acc, jIonizationPar, pos, jBoxPar);
+            }
         }
     };
 
