@@ -20,12 +20,8 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-//#include "reduction_library/Particle.hpp"
 #include "reduction_library/thinning/InKernelThinning.hpp"
 
-
-// #include ...
- // Temporary, simplest possible trait implementation
 
 namespace reduction_library{
 namespace particle_access{
@@ -70,7 +66,7 @@ namespace particleThinning
         using RngFactory = particles::functor::misc::Rng<
             pmacc::random::distributions::Uniform<float>
         >;
-        
+
         template<
             typename T_Acc,
             typename T_ParticleBox,
@@ -82,11 +78,11 @@ namespace particleThinning
             T_Mapping mapper,
             float_X ratioDeletedParticles,
             RngFactory rngFactory,
-            pmacc::math::Int<simDim> guardSuperCells     
+            pmacc::math::Int<simDim> guardSuperCells
         ) const
         {
             using namespace mappings::threads;
-           
+
 
             //// todo: express framesize better, not via supercell size
             constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
@@ -111,20 +107,17 @@ namespace particleThinning
                 >
             > onlyMaster{ workerIdx };
 
-            // TODO: instantiate an in-kernel algorithm in shared memory
-            // using onlyMaster, then syncthreads
-
             auto frame = particleBox.getLastFrame( supercellIdx );
             auto particlesInFrame = particleBox.getSuperCell( supercellIdx ).getSizeLastFrame( );
             using Particle = typename T_ParticleBox::FrameType::ParticleType;
 
-            pmacc::math::Int<simDim> localOffset = supercellIdx;  // SuperCellSize::toRT() - guardSuperCells;
+            pmacc::math::Int<simDim> localOffset = supercellIdx - guardSuperCells;
             pmacc::mappings::threads::WorkerCfg<numWorkers> workerCfg( workerIdx );
             auto generator = rngFactory( acc, localOffset, workerCfg );
 
             cupla::__syncthreads( acc );
             PMACC_SMEM( acc, algorithm, reduction_library::thinning::In_KernelThinning<Particle> );
-           
+
 			onlyMaster(
 			    [&](
 			        uint32_t const,
@@ -134,7 +127,7 @@ namespace particleThinning
 			        algorithm.init( ratioDeletedParticles );
 			    }
 			);
-			
+
            cupla::__syncthreads( acc );
 
 
@@ -163,7 +156,7 @@ namespace particleThinning
             }
 
             cupla::__syncthreads( acc );
-			
+
 			onlyMaster(
 			    [&](
 			        uint32_t const,
@@ -195,14 +188,11 @@ namespace particleThinning
 
                             auto particle = frame[ linearIdx ];
                             auto const oldWeighting = particle[ weighting_ ];
-
                             algorithm.reduce( acc, particle, generator );
+
                             if( particle[ weighting_ ] )
                             {
                                 particle[momentum_] = particle[momentum_] * particle[weighting_] / oldWeighting;
-                                // particle is kept, but maybe with a 
-                                // different weight
-                                // need to rescale momentum according to weight change
                             }
                             else
                             {
@@ -224,5 +214,3 @@ namespace particleThinning
 } // namespace particleThinning
 } // namespace plugins
 } // namespace picongpu
-
-
