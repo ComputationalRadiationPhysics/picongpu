@@ -149,6 +149,7 @@ Please pick either of the following:
 * Use the openPMD plugin with another backend, such as ADIOS2.
   If the openPMD API has been compiled with support for ADIOS2, the openPMD API
   will automatically prefer using ADIOS2 over ADIOS1.
+  Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 )END");
             }
             if( at == ::openPMD::Access::CREATE )
