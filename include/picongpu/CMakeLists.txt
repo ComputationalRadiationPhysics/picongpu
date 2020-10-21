@@ -274,9 +274,15 @@ endif()
 find_package(openPMD 0.11.0 CONFIG COMPONENTS MPI)
 
 if(openPMD_FOUND)
-    message(STATUS "Found openPMD: ${openPMD_DIR}")
-    add_definitions(-DENABLE_OPENPMD=1)
-    set(LIBS ${LIBS} openPMD::openPMD)
+    if(openPMD_HAVE_ADIOS2 OR openPMD_HAVE_HDF5)
+        message(STATUS "Found openPMD: ${openPMD_DIR}")
+        add_definitions(-DENABLE_OPENPMD=1)
+        set(LIBS ${LIBS} openPMD::openPMD)
+    else()
+        message(STATUS "Found openPMD at ${openPMD_DIR}, but PIConGPU requires"
+                       " availability of either its ADIOS2 or HDF5 backend - "
+                       "NOT BUILDING the openPMD plugin")
+    endif()
 else(openPMD_FOUND)
     message(STATUS "Could NOT find openPMD - set openPMD_DIR or check your CMAKE_PREFIX_PATH")
 endif(openPMD_FOUND)
