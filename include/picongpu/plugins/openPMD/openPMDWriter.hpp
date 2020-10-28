@@ -1405,28 +1405,9 @@ Please pick either of the following:
             // avoid deadlock between not finished pmacc tasks and mpi calls in
             // openPMD
             __getTransactionEvent().waitForFinished();
-            if( threadParams->fileInfix.empty() )
-            {
-                // using group-based iteration layout (non-default)
-                // keep series open, just flush
-                log< picLog::INPUT_OUTPUT >(
-                    "openPMD: final flush of series: %1% in iteration %2%" ) %
-                    mThreadParams.fileName % mThreadParams.currentStep;
-                mThreadParams.openPMDSeries->flush();
-            }
-            else
-            {
-                /* using file-based iteration layout (default)
-                 * for now, close series between data dumps
-                 * Currently, this is the only way in the openPMD API
-                 * to guarantee that files are closed
-                 * @todo Change this as soon as this is properly implemented
-                 *       in the openPMD API
-                 */
-                log< picLog::INPUT_OUTPUT >( "openPMD: closing series: %1%" ) %
-                    threadParams->fileName;
-                mThreadParams.closeSeries();
-            }
+            mThreadParams.openPMDSeries
+                ->iterations[ mThreadParams.currentStep ]
+                .close();
 
             return;
         }
