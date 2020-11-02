@@ -38,16 +38,19 @@
 namespace picongpu
 {
 
-    /** returns the particle density.
+    /** Return physical particle density value for the given cell
      *
-     *  That means:
-     *     The REAL number of particles density in units of volume**-3,
-     *       normed to UNIT_LENGTH**3
-     *     That is NOT the species' macro particle density.
+     * That is, the number of real (physical, not macro-) particles,
+     * in PIC units of volume**-3.
+     * Takes into account base density and density ratio of the species.
+     * The resulting density is assumed constant inside a cell.
      *
-     * @param offset The gpu offset (left top front cell in 3D)
-     * @param cellIdx the current cell on this gpu
-     * @return a float_X which stands for the real number of particles per volume
+     * @tparam T_Species particle species type
+     * @tparam T_DensityProfile density functor type,
+     *                          follows densityProfiles::IProfile concept
+     *
+     * @param totalCellOffset total offset from the start of the global
+     *                        simulation area, including all slides [in cells]
      */
     template<
         typename T_Species,
@@ -55,7 +58,7 @@ namespace picongpu
     >
     DINLINE float_X calcRealDensity(
         T_DensityProfile & densityFunctor,
-        DataSpace< simDim > const & totalGpuCellIdx
+        DataSpace< simDim > const & totalCellOffset
     )
     {
         PMACC_CASSERT_MSG(
@@ -64,8 +67,7 @@ namespace picongpu
         );
 
         float_X const densityRatioOfSpecies = traits::GetDensityRatio< T_Species >::type::getValue( );
-
-        float_X const value = densityFunctor( totalGpuCellIdx ) * BASE_DENSITY * densityRatioOfSpecies;
+        float_X const value = densityFunctor( totalCellOffset ) * BASE_DENSITY * densityRatioOfSpecies;
         return value;
     }
 
