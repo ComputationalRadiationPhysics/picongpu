@@ -51,7 +51,10 @@ namespace densityProfiles
         {
             float_64 const unitLength( UNIT_LENGTH ); // workaround to use UNIT_LENGTH on device
             float3_64 const cellSize_SI( precisionCast< float_64 >( cellSize ) * unitLength );
-            floatD_64 const position_SI( precisionCast< float_64 >( totalCellOffset ) * cellSize_SI.shrink<simDim>( ) );
+            // evaluate at cell center for a more accurate estimate for the cell
+            floatD_64 const totalCenterCellOffset = precisionCast< float_64 >( totalCellOffset ) +
+                floatD_64::create( 0.5 );
+            floatD_64 const position_SI( totalCenterCellOffset * cellSize_SI.shrink<simDim>( ) );
 
             return UserFunctor::operator()(
                 position_SI,
