@@ -24,8 +24,6 @@
 #include <pmacc/random/distributions/Normal.hpp>
 #include <pmacc/nvidia/functors/Add.hpp>
 
-#include <boost/mpl/integral_c.hpp>
-
 
 namespace picongpu
 {
@@ -56,13 +54,11 @@ namespace param
     };
 } // namespace param
 
-    /** change particle's momentum based on a temperature
-     *
-     * allow to change the temperature (randomly normal distributed)
-     * of a particle.
+    /** Modify particle momentum based on temperature
      *
      * @tparam T_ParamClass param::TemperatureCfg, configuration parameter
-     * @tparam T_ValueFunctor pmacc::nvidia::functors::*,  binary functor type to manipulate the momentum attribute
+     * @tparam T_ValueFunctor pmacc::nvidia::functors::*, binary functor type to
+     *                        add a new momentum to an old one
      */
     template<
         typename T_ParamClass = param::TemperatureCfg,
