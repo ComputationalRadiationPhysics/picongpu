@@ -24,33 +24,29 @@
 #    error The activated radiation plugin (radiation.param) requires HDF5
 #endif
 
-#include "picongpu/simulation_defines.hpp"
-
-#include "picongpu/traits/SplashToPIC.hpp"
-#include "picongpu/traits/PICToSplash.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-
-#include "picongpu/plugins/radiation/Radiation.kernel"
-#include "picongpu/plugins/radiation/ExecuteParticleFilter.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/common/stringHelpers.hpp"
+#include "picongpu/plugins/radiation/ExecuteParticleFilter.hpp"
+#include "picongpu/plugins/radiation/Radiation.kernel"
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/traits/PICToSplash.hpp"
+#include "picongpu/traits/SplashToPIC.hpp"
 
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/traits/HasIdentifier.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
-
-#include <splash/splash.h>
 #include <boost/filesystem.hpp>
-
-#include <string>
-#include <iostream>
-#include <fstream>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/traits/HasIdentifier.hpp>
+#include <splash/splash.h>
+#include <string>
 
 
 namespace picongpu
@@ -96,7 +92,7 @@ namespace picongpu
                  * The second dimension is used to store intermediate results if command
                  * line option numJobs is > 1.
                  */
-                GridBuffer<Amplitude, 2>* radiation;
+                GridBuffer<Amplitude<>, 2>* radiation;
                 radiation_frequencies::InitFreqFunctor freqInit;
                 radiation_frequencies::FreqFunctor freqFkt;
 
@@ -124,8 +120,8 @@ namespace picongpu
                  * the calculated Amplitude from every host for every direction and
                  * frequency.
                  */
-                Amplitude* timeSumArray;
-                Amplitude* tmp_result;
+                Amplitude<>* timeSumArray;
+                Amplitude<>* tmp_result;
                 vector_64* detectorPositions;
                 float_64* detectorFrequencies;
 
@@ -317,7 +313,9 @@ namespace picongpu
                             numJobs = 1;
                         }
                         // allocate memory for all amplitudes for temporal data collection
-                        tmp_result = new Amplitude[elements_amplitude()];
+
+                        // ACCUMULATOR! Should be in double precision
+                        tmp_result = new Amplitude<>[elements_amplitude()];
 
                         /*only rank 0 create a file*/
                         isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
@@ -326,7 +324,7 @@ namespace picongpu
                          * The second dimension is used to store intermediate results if command
                          * line option numJobs is > 1.
                          */
-                        radiation = new GridBuffer<Amplitude, 2>(DataSpace<2>(elements_amplitude(), numJobs));
+                        radiation = new GridBuffer<Amplitude<>, 2>(DataSpace<2>(elements_amplitude(), numJobs));
 
                         freqInit.Init(frequencies_from_list::listLocation);
                         freqFkt = freqInit.getFunctor();
@@ -336,9 +334,9 @@ namespace picongpu
 
                         if(isMaster)
                         {
-                            timeSumArray = new Amplitude[elements_amplitude()];
+                            timeSumArray = new Amplitude<>[elements_amplitude()];
                             for(unsigned int i = 0; i < elements_amplitude(); ++i)
-                                timeSumArray[i] = Amplitude::zero();
+                                timeSumArray[i] = Amplitude<>::zero();
 
                             /* save detector position / observation direction */
                             detectorPositions = new vector_64[parameters::N_observer];
@@ -489,7 +487,7 @@ namespace picongpu
 
                 /** add collected radiation data to previously stored data
                  *  should be called after collectRadiationOnMaster() */
-                void sumAmplitudesOverTime(Amplitude* targetArray, Amplitude* summandArray)
+                void sumAmplitudesOverTime(Amplitude<>* targetArray, Amplitude<>* summandArray)
                 {
                     if(isMaster)
                     {
@@ -679,7 +677,7 @@ namespace picongpu
                  * Amplitude* values - array of complex amplitude values
                  * std::string name - path and beginning of file name to store data to
                  */
-                void writeHDF5file(Amplitude* values, std::string name)
+                void writeHDF5file(Amplitude<>* values, std::string name)
                 {
                     splash::SerialDataCollector hdf5DataFile(1);
                     splash::DataCollector::FileCreationAttr fAttr;
@@ -696,22 +694,22 @@ namespace picongpu
 
 
                     splash::Dimensions bufferSize(
-                        Amplitude::numComponents,
+                        Amplitude<>::numComponents,
                         radiation_frequencies::N_omega,
                         parameters::N_observer);
 
                     splash::Dimensions componentSize(1, radiation_frequencies::N_omega, parameters::N_observer);
 
-                    splash::Dimensions stride(Amplitude::numComponents, 1, 1);
+                    splash::Dimensions stride(Amplitude<>::numComponents, 1, 1);
 
                     /* get the radiation amplitude unit */
-                    Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
+                    Amplitude<> UnityAmplitude(1., 0., 0., 0., 0., 0.);
                     const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME;
 
                     typedef PICToSplash<float_X>::type SplashFloatXType;
                     SplashFloatXType splashFloatXType;
 
-                    for(uint32_t ampIndex = 0; ampIndex < Amplitude::numComponents; ++ampIndex)
+                    for(uint32_t ampIndex = 0; ampIndex < Amplitude<>::numComponents; ++ampIndex)
                     {
                         splash::Dimensions offset(ampIndex, 0, 0);
                         splash::Selection dataSelection(bufferSize, componentSize, offset, stride);
@@ -1051,7 +1049,7 @@ namespace picongpu
                  * std::string name - path and beginning of file name with data stored in
                  * const int timeStep - time step to read
                  */
-                void readHDF5file(Amplitude* values, std::string name, const int timeStep)
+                void readHDF5file(Amplitude<>* values, std::string name, const int timeStep)
                 {
                     splash::SerialDataCollector hdf5DataFile(1);
                     splash::DataCollector::FileCreationAttr fAttr;
@@ -1082,7 +1080,7 @@ namespace picongpu
                         const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
                         picongpu::float_64* tmpBuffer = new picongpu::float_64[N_tmpBuffer];
 
-                        for(uint32_t ampIndex = 0; ampIndex < Amplitude::numComponents; ++ampIndex)
+                        for(uint32_t ampIndex = 0; ampIndex < Amplitude<>::numComponents; ++ampIndex)
                         {
                             hdf5DataFile.read(
                                 timeStep,
@@ -1092,8 +1090,8 @@ namespace picongpu
 
                             for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
                             {
-                                /* convert data directly because Amplitude is just 6 float_64 */
-                                ((picongpu::float_64*) values)[ampIndex + Amplitude::numComponents * copyIndex]
+                                /* convert data directly because Amplitude is just 6 float_32 */
+                                ((picongpu::float_64*) values)[ampIndex + Amplitude<>::numComponents * copyIndex]
                                     = tmpBuffer[copyIndex];
                             }
                         }
@@ -1113,7 +1111,7 @@ namespace picongpu
                  * @param values
                  * @param name
                  */
-                void writeFile(Amplitude* values, std::string name)
+                void writeFile(Amplitude<>* values, std::string name)
                 {
                     std::ofstream outFile;
                     outFile.open(name.c_str(), std::ofstream::out | std::ostream::trunc);

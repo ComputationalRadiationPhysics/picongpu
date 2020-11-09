@@ -21,39 +21,32 @@
 
 #pragma once
 
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
-
-#include "picongpu/simulation_defines.hpp"
-
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-
-
+#include "picongpu/plugins/radiation/GetRadiationMask.hpp"
 #include "picongpu/plugins/radiation/VectorTypes.hpp"
-#include "picongpu/plugins/radiation/check_consistency.hpp"
-#include "picongpu/plugins/radiation/particle.hpp"
 #include "picongpu/plugins/radiation/amplitude.hpp"
 #include "picongpu/plugins/radiation/calc_amplitude.hpp"
+#include "picongpu/plugins/radiation/check_consistency.hpp"
+#include "picongpu/plugins/radiation/nyquist_low_pass.hpp"
+#include "picongpu/plugins/radiation/particle.hpp"
+#include "picongpu/plugins/radiation/radFormFactor.hpp"
 #include "picongpu/plugins/radiation/windowFunctions.hpp"
-#include "picongpu/plugins/radiation/GetRadiationMask.hpp"
+#include "picongpu/simulation_defines.hpp"
+#include "sys/stat.h"
 
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/atomic.hpp>
-#include <pmacc/memory/shared/Allocate.hpp>
-#include <pmacc/memory/Array.hpp>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
-
-
-#include "picongpu/plugins/radiation/nyquist_low_pass.hpp"
-
-#include "picongpu/plugins/radiation/radFormFactor.hpp"
-#include "sys/stat.h"
+#include <pmacc/memory/Array.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/nvidia/functors/Add.hpp>
+#include <string>
 
 
 namespace picongpu
@@ -363,7 +356,8 @@ namespace picongpu
                                 /* storage for amplitude (complex 3D vector)
                                  * it  is initialized with zeros (  0 +  i 0 )
                                  */
-                                Amplitude amplitude = Amplitude::zero();
+                                // ACCUMULATOR! Ensure double precision
+                                Amplitude<> amplitude = Amplitude<>::zero();
 
                                 // compute frequency "omega" using for-loop-index "o"
                                 picongpu::float_64 const omega = freqFkt(o);
@@ -391,7 +385,8 @@ namespace picongpu
                                             * precisionCast<float_64>(myRadFormFactor(radWeighting_s[j], omega, look));
 
                                         // complex amplitude for j-th particle
-                                        Amplitude amplitude_add(weighted_real_amp, t_ret_s[j] * omega);
+                                        // LOCAL can be single precision
+                                        Amplitude<> amplitude_add(weighted_real_amp, t_ret_s[j] * omega);
 
                                         // add this single amplitude those previously considered
                                         amplitude += amplitude_add;
