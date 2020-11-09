@@ -99,7 +99,7 @@ private:
      * The second dimension is used to store intermediate results if command
      * line option numJobs is > 1.
      */
-    GridBuffer<Amplitude, 2> *radiation;
+    GridBuffer<Amplitude<>, 2> *radiation;
     radiation_frequencies::InitFreqFunctor freqInit;
     radiation_frequencies::FreqFunctor freqFkt;
 
@@ -127,10 +127,10 @@ private:
      * the calculated Amplitude from every host for every direction and
      * frequency.
      */
-    Amplitude* timeSumArray;
-    Amplitude *tmp_result;
-    vector_64* detectorPositions;
-    float_64* detectorFrequencies;
+    Amplitude<> *timeSumArray;
+    Amplitude<> *tmp_result;
+    vector_32* detectorPositions;
+    float_32* detectorFrequencies;
 
     bool isMaster;
 
@@ -291,7 +291,9 @@ private:
                 numJobs = 1;
             }
             // allocate memory for all amplitudes for temporal data collection
-            tmp_result = new Amplitude[elements_amplitude()];
+
+            // ACCUMULATOR! Should be in double precision
+            tmp_result = new Amplitude<>[elements_amplitude()];
 
             /*only rank 0 create a file*/
             isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
@@ -300,7 +302,7 @@ private:
              * The second dimension is used to store intermediate results if command
              * line option numJobs is > 1.
              */
-            radiation = new GridBuffer<Amplitude, 2> (DataSpace<2>(elements_amplitude(), numJobs));
+            radiation = new GridBuffer<Amplitude<>, 2> (DataSpace<2>(elements_amplitude(), numJobs));
 
             freqInit.Init(frequencies_from_list::listLocation);
             freqFkt = freqInit.getFunctor();
@@ -310,19 +312,19 @@ private:
 
             if (isMaster)
             {
-                timeSumArray = new Amplitude[elements_amplitude()];
+                timeSumArray = new Amplitude<>[elements_amplitude()];
                 for (unsigned int i = 0; i < elements_amplitude(); ++i)
-                    timeSumArray[i] = Amplitude::zero();
+                    timeSumArray[i] = Amplitude<>::zero();
 
                 /* save detector position / observation direction */
-                detectorPositions = new vector_64[parameters::N_observer];
+                detectorPositions = new vector_32[parameters::N_observer];
                 for(uint32_t detectorIndex=0; detectorIndex < parameters::N_observer; ++detectorIndex)
                 {
                     detectorPositions[detectorIndex] = radiation_observer::observation_direction(detectorIndex);
                 }
 
                 /* save detector frequencies */
-                detectorFrequencies = new float_64[radiation_frequencies::N_omega];
+                detectorFrequencies = new float_32[radiation_frequencies::N_omega];
                 for(uint32_t detectorIndex=0; detectorIndex < radiation_frequencies::N_omega; ++detectorIndex)
                 {
                     detectorFrequencies[detectorIndex] = freqFkt.get(detectorIndex);
@@ -463,7 +465,7 @@ private:
 
   /** add collected radiation data to previously stored data
    *  should be called after collectRadiationOnMaster() */
-  void sumAmplitudesOverTime(Amplitude* targetArray, Amplitude* summandArray)
+  void sumAmplitudesOverTime(Amplitude<>* targetArray, Amplitude<>* summandArray)
   {
     if (isMaster)
       {
@@ -660,7 +662,7 @@ private:
    * Amplitude* values - array of complex amplitude values
    * std::string name - path and beginning of file name to store data to
    */
-  void writeHDF5file(Amplitude* values, std::string name)
+  void writeHDF5file(Amplitude<>* values, std::string name)
   {
       splash::SerialDataCollector hdf5DataFile(1);
       splash::DataCollector::FileCreationAttr fAttr;
@@ -676,7 +678,7 @@ private:
       typename PICToSplash<float_64>::type radSplashType;
 
 
-      splash::Dimensions bufferSize(Amplitude::numComponents,
+      splash::Dimensions bufferSize(Amplitude<>::numComponents,
                                     radiation_frequencies::N_omega,
                                     parameters::N_observer);
 
@@ -684,16 +686,16 @@ private:
                                        radiation_frequencies::N_omega,
                                        parameters::N_observer);
 
-      splash::Dimensions stride(Amplitude::numComponents,1,1);
+      splash::Dimensions stride(Amplitude<>::numComponents,1,1);
 
       /* get the radiation amplitude unit */
-      Amplitude UnityAmplitude(1., 0., 0., 0., 0., 0.);
-      const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
+      Amplitude<> UnityAmplitude(1., 0., 0., 0., 0., 0.);
+      const picongpu::float_32 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
 
       typedef PICToSplash<float_X>::type SplashFloatXType;
       SplashFloatXType splashFloatXType;
 
-      for(uint32_t ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
+      for(uint32_t ampIndex=0; ampIndex < Amplitude<>::numComponents; ++ampIndex)
       {
           splash::Dimensions offset(ampIndex,0,0);
           splash::Selection dataSelection(bufferSize,
@@ -1046,7 +1048,7 @@ private:
    * std::string name - path and beginning of file name with data stored in
    * const int timeStep - time step to read
    */
-  void readHDF5file(Amplitude* values, std::string name, const int timeStep)
+  void readHDF5file(Amplitude<>* values, std::string name, const int timeStep)
   {
       splash::SerialDataCollector hdf5DataFile(1);
       splash::DataCollector::FileCreationAttr fAttr;
@@ -1078,7 +1080,7 @@ private:
           const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
           picongpu::float_64* tmpBuffer = new picongpu::float_64[N_tmpBuffer];
 
-          for(uint32_t ampIndex=0; ampIndex < Amplitude::numComponents; ++ampIndex)
+          for(uint32_t ampIndex=0; ampIndex < Amplitude<>::numComponents; ++ampIndex)
           {
               hdf5DataFile.read(timeStep,
                                 (meshesPathName + dataLabels(ampIndex)).c_str(),
@@ -1087,8 +1089,8 @@ private:
 
               for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
               {
-                  /* convert data directly because Amplitude is just 6 float_64 */
-                  ((picongpu::float_64*)values)[ampIndex + Amplitude::numComponents*copyIndex] = tmpBuffer[copyIndex];
+                  /* convert data directly because Amplitude is just 6 float_32 */
+                  ((picongpu::float_32*)values)[ampIndex + Amplitude<>::numComponents*copyIndex] = tmpBuffer[copyIndex];
               }
 
           }
@@ -1108,7 +1110,7 @@ private:
    * @param values
    * @param name
    */
-  void writeFile(Amplitude* values, std::string name)
+  void writeFile(Amplitude<>* values, std::string name)
   {
       std::ofstream outFile;
       outFile.open(name.c_str(), std::ofstream::out | std::ostream::trunc);
