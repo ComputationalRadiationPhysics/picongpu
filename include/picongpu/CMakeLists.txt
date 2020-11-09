@@ -379,6 +379,21 @@ else(ISAAC_FOUND)
 endif(ISAAC_FOUND)
 
 ################################################################################
+# PIConGPU Workarounds
+################################################################################
+
+set(PIC_COMPUTE_CURRENT_THREAD_LIMITER_DEFAULT OFF)
+if(ALPAKA_ACC_GPU_HIP_ENABLE)
+    set(PIC_COMPUTE_CURRENT_THREAD_LIMITER_DEFAULT ON)
+endif()
+option(PIC_COMPUTE_CURRENT_THREAD_LIMITER "Compute current results with HIP alpaka backend are wrong when more threads than particles in a frame will be used (possible compiler BUG).\
+ ON means the number of threads will be limited to number of particles in a frame." ${PIC_COMPUTE_CURRENT_THREAD_LIMITER_DEFAULT})
+
+if(PIC_COMPUTE_CURRENT_THREAD_LIMITER)
+    add_definitions(-DPIC_COMPUTE_CURRENT_THREAD_LIMITER=1)
+endif()
+
+################################################################################
 # Check if PIC_EXTENSION_PATH is relative or absolute
 ################################################################################
 
