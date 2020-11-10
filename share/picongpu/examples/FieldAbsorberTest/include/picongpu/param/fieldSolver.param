@@ -37,6 +37,8 @@
 #include "picongpu/fields/MaxwellSolver/Solvers.def"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
 
+#include <boost/preprocessor/punctuation/comma.hpp>
+
 
 namespace picongpu
 {
@@ -73,6 +75,8 @@ namespace fields
      *                                                   The number of neighbors can be changed from 4 to any positive, integer number.
      *                                                   The order of the solver will be twice the number of neighbors in each direction.
      *                                                   Yee's method is a special case of this using one neighbor to each direction.
+     *  - ArbitraryOrderFDTDPML< 4, CurrentInterpolation >: ArbitraryOrderFDTD solver using Perfectly Matched Layer
+     *                                                      Absorbing Boundary Conditions (PML)
      *  - None< CurrentInterpolation >: disable the vacuum update of E and B
      */
 
@@ -82,7 +86,6 @@ namespace fields
      */
 #   define PARAM_FIELDSOLVER Yee< CurrentInterpolation >
 #endif
-# define MY_AOFDTD_COMMA ,
     using Solver = maxwellSolver::PARAM_FIELDSOLVER;
 
 } // namespace fields

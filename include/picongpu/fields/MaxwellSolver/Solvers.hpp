@@ -25,4 +25,4 @@
 #include "picongpu/fields/MaxwellSolver/Lehe/Lehe.hpp"
 #include "picongpu/fields/MaxwellSolver/LehePML/LehePML.hpp"
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/ArbitraryOrderFDTD.hpp"
-
+#include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTDPML/ArbitraryOrderFDTDPML.hpp"
