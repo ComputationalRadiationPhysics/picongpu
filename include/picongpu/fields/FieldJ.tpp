@@ -230,10 +230,15 @@ void FieldJ::assign( ValueType value )
 template<uint32_t T_area, class T_Species>
 void FieldJ::computeCurrent( T_Species & species, uint32_t )
 {
+#if BOOST_COMP_HIP && PIC_COMPUTE_CURRENT_THREAD_LIMITER
+    // HIP-clang creates wrong results if more threads than particles in a frame will be used
+    constexpr int workerMultiplier = 1;
+#else
     /* tuning parameter to use more workers than cells in a supercell
     * valid domain: 1 <= workerMultiplier
     */
-    const int workerMultiplier = 2;
+    constexpr int workerMultiplier = 2;
+#endif
 
     using FrameType = typename T_Species::FrameType;
     typedef typename pmacc::traits::Resolve<
