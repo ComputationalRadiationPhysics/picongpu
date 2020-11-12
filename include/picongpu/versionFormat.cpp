@@ -192,8 +192,8 @@ namespace picongpu
             software.push_back( std::string( "libSplash/" ) + splash.str() );
         if( adios.str().compare( versionNotFound ) != 0 )
             software.push_back( std::string( "ADIOS/" ) + adios.str() );
-        if( openPMD.str().compare( versionNotFound ) != 0 )
-            software.push_back( std::string( "openPMD/" ) + openPMD.str() );
+        if( openPMD.compare( versionNotFound ) != 0 )
+            software.push_back( std::string( "openPMD/" ) + openPMD );
 
         return software;
     }
