@@ -57,7 +57,10 @@ namespace fields
      *     - smooths the current before assignment in staggered grid
      *     - updates E & breaks local charge conservation slightly
      */
-    using CurrentInterpolation = currentInterpolation::None;
+#ifndef PARAM_CURRENTINTERPOLATION
+#   define PARAM_CURRENTINTERPOLATION None
+#endif
+    using CurrentInterpolation = currentInterpolation::PARAM_CURRENTINTERPOLATION;
 
     /** FieldSolver
      *
@@ -77,7 +80,7 @@ namespace fields
      *                                                      Absorbing Boundary Conditions (PML)
      *  - None< CurrentInterpolation >: disable the vacuum update of E and B
      */
-    using Solver = maxwellSolver::PARAM_FIELDSOLVER< CurrentInterpolation >;
+    using Solver = maxwellSolver::Yee< CurrentInterpolation >;
 
 } // namespace fields
 } // namespace picongpu
