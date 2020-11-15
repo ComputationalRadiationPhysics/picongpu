@@ -114,6 +114,18 @@ struct cuda_vec : public V
         return this->x() * other.x() + this->y() * other.y() + this->z() * other.z();
     }
 
+    HDINLINE picongpu::float_64 dot(const cuda_vec<V, T>& other) const
+    {
+        return this->x() * other.x() + this->y() * other.y() + this->z() * other.z();
+    }
+    HDINLINE picongpu::float_64 dotAcc(const cuda_vec<V, T>& other) const
+    {
+        picongpu::float_64 result(0.0); //doesn't make a difference
+        result += this->x() * other.x();
+        result += this->y() * other.y();
+        result += this->z() * other.z();
+        return result;;
+    }
     // scalar multiplication
 
     HDINLINE cuda_vec<V, T> operator*(const T scalar) const

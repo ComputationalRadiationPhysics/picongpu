@@ -75,11 +75,11 @@ public:
     // getters:
 
     template<unsigned int when>
-    HDINLINE vector_64 get_location(void) const;
+    HDINLINE vector_X get_location(void) const;
     // get location at time when
 
     template<unsigned int when>
-    HDINLINE vector_64 get_momentum(void) const;
+    HDINLINE vector_X get_momentum(void) const;
     // get momentum at time when
 
     template<unsigned int when>
@@ -156,19 +156,19 @@ private:
 
 
 template<>
-HDINLINE vector_64 Particle::get_location<When::now>(void) const
+HDINLINE vector_X Particle::get_location<When::now>(void) const
 {
     return location_now;
 } // get location at time when
 
 template<>
-HDINLINE vector_64 Particle::get_momentum<When::now>(void) const
+HDINLINE vector_X Particle::get_momentum<When::now>(void) const
 {
     return momentum_now;
 } // get momentum at time when
 
 template<>
-HDINLINE vector_64 Particle::get_momentum<When::old>(void) const
+HDINLINE vector_X Particle::get_momentum<When::old>(void) const
 {
     return momentum_old;
 } // get momentum at time when

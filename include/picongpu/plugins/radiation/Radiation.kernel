@@ -148,7 +148,7 @@ namespace radiation
             PMACC_SMEM( acc, real_amplitude_s, memory::Array< vector_64, blockSize > );
 
             // retarded time
-            PMACC_SMEM( acc, t_ret_s, memory::Array< picongpu::float_32, blockSize > );
+            PMACC_SMEM( acc, t_ret_s, memory::Array< picongpu::float_64, blockSize > );
 
             // storage for macro particle weighting needed if
             // the coherent and incoherent radiation of a single
@@ -165,10 +165,10 @@ namespace radiation
             int const theta_idx = cupla::blockIdx(acc).x; //cupla::blockIdx(acc).x is used to determine theta
 
             // simulation time (needed for retarded time)
-            picongpu::float_32 const t(
-                picongpu::float_32( currentStep ) * picongpu::float_32( DELTA_T)
-            );
-
+            //picongpu::float_64 const t(
+            //    picongpu::float_64( currentStep ) * picongpu::float_64( DELTA_T)
+            //);
+            picongpu::float_32 const t(currentStep * DELTA_T);
             // looking direction (needed for observer) used in the thread
             vector_32 const look = radiation_observer::observation_direction( theta_idx );
 
@@ -475,6 +475,7 @@ namespace radiation
 
                                 // add this single amplitude those previously considered
                                 amplitude += precisionCast<picongpu::float_64>(amplitude_add);
+                                //amplitude += amplitude_add;
 
                             }// END: check Nyquist-limit for each particle "j" and each frequency "omega"
 

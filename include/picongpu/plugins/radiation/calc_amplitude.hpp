@@ -70,7 +70,7 @@ struct One_minus_beta_times_n
         {
             const picongpu::float_64 cos_theta(particle.get_cos_theta<When::now > (n)); // cosine between looking vector and momentum of particle
             const picongpu::float_64 taylor_approx(cos_theta * Taylor()(gamma_inv_square) + (1.0 - cos_theta));
-            return  (taylor_approx);
+            return  taylor_approx;
         }
         else
         {
@@ -87,11 +87,13 @@ struct Retarded_time_1
     // contains more parameters than needed to have the
     // same interface as 'Retarded_time_2'
 
-    HDINLINE picongpu::float_64 operator()(const picongpu::float_64 t,
-                                const vector_64& n, const Particle & particle) const
+    HDINLINE picongpu::float_64 operator()(const picongpu::float_32 t,
+                                const vector_32& n, const Particle & particle) const
     {
         const vector_64 r(particle.get_location<When::now > ()); // location
-        return (picongpu::float_64) (t - (n * r) / (picongpu::SPEED_OF_LIGHT));
+        //return (picongpu::float_64) (t - (n * r) / (picongpu::SPEED_OF_LIGHT));
+        return (picongpu::float_64) (t - r.dot(n) / (picongpu::SPEED_OF_LIGHT));
+
     }
 
 };
@@ -117,7 +119,6 @@ struct Old_Method
 };
 
 // typedef of all possible forms of Old_Method
-//typedef Old_Method<util::Cube<picongpu::float_64> > Old_FFT;
 typedef Old_Method<util::Square<picongpu::float_64> > Old_DFT;
 
 
@@ -140,15 +141,15 @@ public:
     // of base classes
 
     HDINLINE Calc_Amplitude(const Particle& particle,
-                           const picongpu::float_64 delta_t,
-                           const picongpu::float_64 t_sim)
+                           const picongpu::float_32 delta_t,
+                           const picongpu::float_32 t_sim)
     : m_particle(particle), m_delta_t(delta_t), m_t_sim(t_sim)
     {
     }
 
     // get real vector part of amplitude
 
-    HDINLINE vector_64 get_vector(const vector_64& n) const
+    HDINLINE vector_64 get_vector(const vector_32& n) const
     {
         const vector_64 look_direction(n.unit_vec()); // make sure look_direction is a unit vector
         VecCalc vecC;
@@ -157,20 +158,17 @@ public:
 
     // get retarded time
 
-    HDINLINE picongpu::float_32 get_t_ret(const vector_32 look_direction) const
+    HDINLINE picongpu::float_64 get_t_ret(const vector_32 look_direction) const
     {
         TimeCalc timeC;
         return timeC(m_t_sim, look_direction, m_particle);
-
-        //  const vector_64 r = particle.get_location<When::now > (); // location
-        //  return (picongpu::float_64) (t - (n * r) / (picongpu::SPEED_OF_LIGHT));
     }
 
 private:
     // data:
     const Particle& m_particle; // one particle
-    const picongpu::float_64 m_delta_t; // length of one time step in simulation
-    const picongpu::float_64 m_t_sim; // simulation time (for methods not using index*delta_t )
+    const picongpu::float_32 m_delta_t; // length of one time step in simulation
+    const picongpu::float_32 m_t_sim; // simulation time (for methods not using index*delta_t )
 
 
 };
