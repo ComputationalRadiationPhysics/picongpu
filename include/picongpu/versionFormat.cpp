@@ -142,21 +142,10 @@ namespace picongpu
         adios << versionNotFound;
 #endif
 
-        std::stringstream openPMD;
 #if( ENABLE_OPENPMD == 1 )
-        openPMD << OPENPMDAPI_VERSION_MAJOR
-                << "."
-                << OPENPMDAPI_VERSION_MINOR
-                << "."
-                << OPENPMDAPI_VERSION_PATCH;
-        if ( OPENPMDAPI_VERSION_LABEL )
-        {
-            openPMD
-                << "-"
-                << OPENPMDAPI_VERSION_LABEL;
-        }
+        std::string openPMD = openPMD::getVersion();
 #else
-        openPMD << versionNotFound;
+        std::string openPMD = versionNotFound;
 #endif
 
         // CLI Formatting
@@ -182,7 +171,7 @@ namespace picongpu
         cliText << "  libSplash:  " << splash.str()
                 << " (Format " << splashFormat.str() << ")" << std::endl;
         cliText << "  ADIOS:      " << adios.str() << std::endl;
-        cliText << "  openPMD:    " << openPMD.str() << std::endl;
+        cliText << "  openPMD:    " << openPMD << std::endl;
 
         // Module-like formatting of software only
         std::list< std::string > software;
@@ -203,8 +192,8 @@ namespace picongpu
             software.push_back( std::string( "libSplash/" ) + splash.str() );
         if( adios.str().compare( versionNotFound ) != 0 )
             software.push_back( std::string( "ADIOS/" ) + adios.str() );
-        if( openPMD.str().compare( versionNotFound ) != 0 )
-            software.push_back( std::string( "openPMD/" ) + openPMD.str() );
+        if( openPMD.compare( versionNotFound ) != 0 )
+            software.push_back( std::string( "openPMD/" ) + openPMD );
 
         return software;
     }
