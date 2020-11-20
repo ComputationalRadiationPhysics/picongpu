@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera, Richard Pausch
+/* Copyright 2014-2020 Rene Widera, Richard Pausch, Annegret Roeszler, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -17,41 +17,61 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Particle shape, field to particle interpolation, current solver, and particle pusher
+ * can be declared here for usage in `speciesDefinition.param`.
+ *
+ * @see
+ *   **MODELS / Hierarchy of Charge Assignment Schemes**
+ *   in the online documentation for information on particle shapes.
+ *
+ *
+ * \attention
+ * The higher order shape names are redefined with release 0.6.0 in order to provide a consistent naming:
+ *     * PQS is the name of the 3rd order assignment function (instead of PCS)
+ *     * PCS is the name of the 4th order assignment function (instead of P4S)
+ *     * P4S does not exist anymore
+ */
+
 #pragma once
 
 #include "picongpu/particles/shapes.hpp"
 #include "picongpu/algorithms/FieldToParticleInterpolationNative.hpp"
 #include "picongpu/algorithms/FieldToParticleInterpolation.hpp"
 #include "picongpu/algorithms/AssignedTrilinearInterpolation.hpp"
-
 #include "picongpu/particles/flylite/NonLTE.def"
 #include "picongpu/fields/currentDeposition/Solver.def"
 
 
 namespace picongpu
 {
-/*---------------------------- generic solver---------------------------------*/
 
-/*! Particle Shape definitions -------------------------------------------------
- *  - particles::shapes::CIC : 1st order
- *  - particles::shapes::TSC : 2nd order
- *  - particles::shapes::PCS : 3rd order
- *  - particles::shapes::P4S : 4th order
+/** select macroparticle shape
  *
- *  example: using UsedParticleShape = particles::shapes::CIC;
+ * **WARNING** the shape names are redefined and diverge from PIConGPU versions before 0.6.0.
+ *
+ *  - particles::shapes::CIC : Assignment function is a piecewise linear spline
+ *  - particles::shapes::TSC : Assignment function is a piecewise quadratic spline
+ *  - particles::shapes::PQS : Assignment function is a piecewise cubic spline
+ *  - particles::shapes::PCS : Assignment function is a piecewise quartic spline
  */
 using UsedParticleShape = particles::shapes::CIC;
 
-/* define which interpolation method is used to interpolate fields to particle*/
-using UsedField2Particle = FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpolation>;
+/** select interpolation method to be used for interpolation of grid-based field values to particle positions
+ */
+using UsedField2Particle = FieldToParticleInterpolation<
+    UsedParticleShape,
+    AssignedTrilinearInterpolation
+>;
 
 /*! select current solver method
- * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
+ * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
  * - currentSolver::VillaBune< SHAPE, STRATEGY > : particle shapes - CIC (1st order) only
- * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
+ * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
  *
  * For development purposes:
- * - currentSolver::currentSolver::EsirkepovNative< SHAPE, STRATEGY > : generic version of currentSolverEsirkepov
+ * - currentSolver::EsirkepovNative< SHAPE, STRATEGY > : generic version of currentSolverEsirkepov
  *   without optimization (~4x slower and needs more shared memory)
  *
  * STRATEGY (optional):
@@ -59,9 +79,9 @@ using UsedField2Particle = FieldToParticleInterpolation<UsedParticleShape, Assig
  * - currentSolver::strategy::CachedSupercells
  * - currentSolver::strategy::NonCachedSupercells
  */
-using UsedParticleCurrentSolver = currentSolver::Esirkepov<UsedParticleShape>;
+using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
 
-/*! particle pusher configuration ----------------------------------------------
+/** particle pusher configuration
  *
  * Defining a pusher is optional for particles
  *
@@ -74,6 +94,7 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov<UsedParticleShape>;
  *                                  switches between using one (or none) of those
  *
  * For diagnostics & modeling: ------------------------------------------------
+ * - particles::pusher::Acceleration : Accelerate particles by applying a constant electric field
  * - particles::pusher::Free : free propagation, ignore fields
  *                             (= free stream model)
  * - particles::pusher::Photon : propagate with c in direction of normalized mom.
