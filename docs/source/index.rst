@@ -81,6 +81,7 @@ Models
 
    models/pic
    models/AOFDTD
+   models/shapes
    models/LL_RR
    models/field_ionization
    models/collisional_ionization
