@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -78,6 +78,12 @@ struct FieldToParticleInterpolationNative
         float_X result_z = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin > (field_z, pos_tmp);
 
         return float3_X(result_x, result_y, result_z);
+    }
+
+    static pmacc::traits::StringProperty getStringProperties()
+    {
+        GetStringProperties<InterpolationMethod> propList;
+        return propList;
     }
 
 };
