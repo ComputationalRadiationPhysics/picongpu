@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Axel Huebl, Alexander Debus
+/* Copyright 2014-2020 Alexander Debus, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -20,6 +20,17 @@
 
 #pragma once
 
-/** Load pre-defined templates (implementation) */
-#include "picongpu/fields/background/templates/TWTS/TWTS.tpp"
-#include "picongpu/fields/background/templates/gaussian/Gaussian.tpp"
+namespace picongpu
+{
+namespace templates
+{
+namespace gaussian
+{
+namespace detail
+{
+    /* Number of field components used in the simulation. [Default: 3 for both 2D and 3D] */
+    const uint32_t numComponents = 3;
+} /* namespace detail */
+} /* namespace gaussian */
+} /* namespace templates */
+} /* namespace picongpu */
