@@ -27,5 +27,5 @@
 #include "picongpu/particles/shapes/NGP.hpp"
 #include "picongpu/particles/shapes/CIC.hpp"
 #include "picongpu/particles/shapes/TSC.hpp"
+#include "picongpu/particles/shapes/PQS.hpp"
 #include "picongpu/particles/shapes/PCS.hpp"
-#include "picongpu/particles/shapes/P4S.hpp"

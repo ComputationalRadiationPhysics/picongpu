@@ -38,7 +38,7 @@ Its features for the electro-magnetic PIC algorithm include:
   [*Esirkepov*](http://dx.doi.org/10.1016/S0010-4655%2800%2900228-9)
   and *ZigZag*
 - macro-particle form factors ranging from NGP (0th order), CIC (1st),
-  TSC (2nd), PSQ (3rd) to P4S (4th)
+  TSC (2nd), PQS (3rd) to PCS (4th)
 
 and the electro-magnetic PIC algorithm is further self-consistently coupled to:
 - classical radiation reaction
