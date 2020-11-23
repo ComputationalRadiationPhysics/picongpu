@@ -27,109 +27,96 @@
 
 namespace pmacc
 {
+    /**
+     * Singleton class providing common filesystem operations.
+     *
+     * @tparam DIM number of dimensions of the simulation
+     */
+    template<unsigned DIM>
+    class Filesystem
+    {
+    public:
+        /**
+         * Create directory with default permissions
+         *
+         * @param dir name of directory
+         */
+        void createDirectory(const std::string dir) const
+        {
+            /* does not throw if the directory exists or has been created */
+            bfs::create_directories(dir);
+        }
 
         /**
-         * Singleton class providing common filesystem operations.
+         * Set 755 permissions for a directory
          *
-         * @tparam DIM number of dimensions of the simulation
+         * @param dir name of directory
          */
-        template<unsigned DIM>
-        class Filesystem
+        void setDirectoryPermissions(const std::string dir) const
         {
-        public:
+            /* set permissions */
+            bfs::permissions(
+                dir,
+                bfs::owner_all | bfs::group_read | bfs::group_exe | bfs::others_read | bfs::others_exe);
+        }
 
-            /**
-             * Create directory with default permissions
-             *
-             * @param dir name of directory
-             */
-            void
-            createDirectory( const std::string dir ) const
+        /**
+         * Create directory and set 755 permissions by root rank.
+         *
+         * @param dir name of directory
+         */
+        void createDirectoryWithPermissions(const std::string dir) const
+        {
+            GridController<DIM>& gc = Environment<DIM>::get().GridController();
+
+            createDirectory(dir);
+
+            if(gc.getGlobalRank() == 0)
             {
-                /* does not throw if the directory exists or has been created */
-                bfs::create_directories(dir);
+                /* must be set by only one process to avoid races */
+                setDirectoryPermissions(dir);
             }
+        }
 
-            /**
-             * Set 755 permissions for a directory
-             *
-             * @param dir name of directory
-             */
-            void
-            setDirectoryPermissions( const std::string dir )  const
-            {
-                /* set permissions */
-                bfs::permissions(dir,
-                                 bfs::owner_all |
-                                 bfs::group_read |
-                                 bfs::group_exe |
-                                 bfs::others_read |
-                                 bfs::others_exe);
-            }
+        /**
+         * Strip path from absolute or relative paths to filenames
+         *
+         * @param path and filename
+         */
+        std::string basename(const std::string pathFilename) const
+        {
+            return bfs::path(pathFilename).filename().string();
+        }
 
-            /**
-             * Create directory and set 755 permissions by root rank.
-             *
-             * @param dir name of directory
-             */
-            void
-            createDirectoryWithPermissions( const std::string dir ) const
-            {
-                GridController<DIM>& gc = Environment<DIM>::get().GridController();
+    private:
+        friend class Environment<DIM>;
 
-                createDirectory(dir);
+        /**
+         * Constructor
+         */
+        Filesystem()
+        {
+        }
 
-                if (gc.getGlobalRank() == 0)
-                {
-                    /* must be set by only one process to avoid races */
-                    setDirectoryPermissions(dir);
-                }
-            }
+        /**
+         * Constructor
+         */
+        Filesystem(const Filesystem& fs)
+        {
+        }
 
-            /**
-             * Strip path from absolute or relative paths to filenames
-             *
-             * @param path and filename
-             */
-            std::string
-            basename( const std::string pathFilename ) const
-            {
-                return bfs::path( pathFilename ).filename().string();
-            }
+        /**
+         * Returns the instance of the filesystem class.
+         *
+         * This class is a singleton class.
+         *
+         * @return a filesystem instance
+         */
+        static Filesystem<DIM>& getInstance()
+        {
+            static Filesystem<DIM> instance;
+            return instance;
+        }
+    };
 
-        private:
-
-            friend class Environment<DIM>;
-
-            /**
-             * Constructor
-             */
-            Filesystem()
-            {
-
-            }
-
-            /**
-             * Constructor
-             */
-            Filesystem(const Filesystem& fs)
-            {
-
-            }
-
-            /**
-             * Returns the instance of the filesystem class.
-             *
-             * This class is a singleton class.
-             *
-             * @return a filesystem instance
-             */
-            static Filesystem<DIM>& getInstance()
-            {
-                static Filesystem<DIM> instance;
-                return instance;
-            }
-        };
-
-} //namespace pmacc
-
+} // namespace pmacc

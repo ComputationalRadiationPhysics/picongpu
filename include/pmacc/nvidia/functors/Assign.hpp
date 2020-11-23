@@ -25,24 +25,24 @@
 
 namespace pmacc
 {
-namespace nvidia
-{
-namespace functors
-{
-    struct Assign
+    namespace nvidia
     {
-        template<typename Dst, typename Src >
-        HDINLINE void operator()(Dst & dst, const Src & src) const
+        namespace functors
         {
-            dst = src;
-        }
+            struct Assign
+            {
+                template<typename Dst, typename Src>
+                HDINLINE void operator()(Dst& dst, const Src& src) const
+                {
+                    dst = src;
+                }
 
-        template<typename Dst, typename Src, typename T_Acc >
-        HDINLINE void operator()(const T_Acc &, Dst & dst, const Src & src) const
-        {
-            dst = src;
-        }
-    };
-} // namespace functors
-} // namespace nvidia
+                template<typename Dst, typename Src, typename T_Acc>
+                HDINLINE void operator()(const T_Acc&, Dst& dst, const Src& src) const
+                {
+                    dst = src;
+                }
+            };
+        } // namespace functors
+    } // namespace nvidia
 } // namespace pmacc

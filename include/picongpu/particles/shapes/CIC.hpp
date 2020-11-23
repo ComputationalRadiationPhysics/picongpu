@@ -26,78 +26,72 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace shapes
-{
-namespace detail
-{
-
-    struct CIC
+    namespace particles
     {
-        /** Support of the assignment function in cells
-         *
-         * Specifies width of the area where the function can be non-zero.
-         * Is the same for all directions
-         */
-        static constexpr uint32_t support = 2;
-    };
-
-} // namespace detail
-
-    /** Cloud-in-cell particle shape
-     *
-     * Cloud density form: piecewise constant
-     * Assignment function: first order B-spline
-     */
-    struct CIC
-    {
-
-        //! Order of the assignment function spline
-        static constexpr uint32_t assignmentFunctionOrder = detail::CIC::support - 1u;
-
-        struct ChargeAssignment : public detail::CIC
+        namespace shapes
         {
-
-            HDINLINE float_X operator()( float_X const x )
+            namespace detail
             {
-                /*       -
-                 *       |  1-|x|           if |x|<1
-                 * W(x)=<|
-                 *       |  0               otherwise
-                 *       -
-                 */
-                float_X const abs_x = math::abs( x );
+                struct CIC
+                {
+                    /** Support of the assignment function in cells
+                     *
+                     * Specifies width of the area where the function can be non-zero.
+                     * Is the same for all directions
+                     */
+                    static constexpr uint32_t support = 2;
+                };
 
-                bool const below_1 = abs_x < 1.0_X;
-                float_X const onSupport = 1.0_X - abs_x;
+            } // namespace detail
 
-                float_X result( 0.0 );
-                if( below_1 )
-                    result = onSupport;
-
-                return result;
-            }
-        };
-
-        struct ChargeAssignmentOnSupport : public detail::CIC
-        {
-
-            /** form factor of this particle shape.
-             * \param x has to be within [-support/2, support/2]
+            /** Cloud-in-cell particle shape
+             *
+             * Cloud density form: piecewise constant
+             * Assignment function: first order B-spline
              */
-            HDINLINE float_X operator()( float_X const x )
+            struct CIC
             {
-                /*
-                 * W(x)=1-|x|
-                 */
-                return 1.0_X - math::abs( x );
-            }
+                //! Order of the assignment function spline
+                static constexpr uint32_t assignmentFunctionOrder = detail::CIC::support - 1u;
 
-        };
+                struct ChargeAssignment : public detail::CIC
+                {
+                    HDINLINE float_X operator()(float_X const x)
+                    {
+                        /*       -
+                         *       |  1-|x|           if |x|<1
+                         * W(x)=<|
+                         *       |  0               otherwise
+                         *       -
+                         */
+                        float_X const abs_x = math::abs(x);
 
-    };
+                        bool const below_1 = abs_x < 1.0_X;
+                        float_X const onSupport = 1.0_X - abs_x;
 
-} // namespace shapes
-} // namespace particles
+                        float_X result(0.0);
+                        if(below_1)
+                            result = onSupport;
+
+                        return result;
+                    }
+                };
+
+                struct ChargeAssignmentOnSupport : public detail::CIC
+                {
+                    /** form factor of this particle shape.
+                     * \param x has to be within [-support/2, support/2]
+                     */
+                    HDINLINE float_X operator()(float_X const x)
+                    {
+                        /*
+                         * W(x)=1-|x|
+                         */
+                        return 1.0_X - math::abs(x);
+                    }
+                };
+            };
+
+        } // namespace shapes
+    } // namespace particles
 } // namespace picongpu

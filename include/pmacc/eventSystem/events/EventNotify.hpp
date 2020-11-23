@@ -28,7 +28,6 @@
 
 namespace pmacc
 {
-
     class IEventData;
     class IEvent;
 
@@ -38,7 +37,6 @@ namespace pmacc
     class EventNotify
     {
     public:
-
         virtual ~EventNotify()
         {
         }
@@ -67,12 +65,10 @@ namespace pmacc
          * @param type the type of this notification
          * @param data data passed to observers
          */
-        void notify(id_t eventId, EventType type, IEventData *data);
+        void notify(id_t eventId, EventType type, IEventData* data);
 
     private:
         std::set<IEvent*> observers;
-
     };
 
-} //namespace pmacc
-
+} // namespace pmacc

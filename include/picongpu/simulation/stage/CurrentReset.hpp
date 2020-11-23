@@ -31,29 +31,28 @@
 
 namespace picongpu
 {
-namespace simulation
-{
-namespace stage
-{
-
-    //! Functor for the stage of the PIC loop setting the current values to zero
-    struct CurrentReset
+    namespace simulation
     {
-        /** Set all current density values to zero
-         *
-         * @param step index of time iteration
-         */
-        void operator( )( uint32_t const ) const
+        namespace stage
         {
-            using namespace pmacc;
-            DataConnector & dc = Environment< >::get( ).DataConnector( );
-            auto & fieldJ = *dc.get< FieldJ >( FieldJ::getName( ), true );
-            FieldJ::ValueType zeroJ( FieldJ::ValueType::create( 0._X ) );
-            fieldJ.assign( zeroJ );
-            dc.releaseData( FieldJ::getName( ) );
-        }
-    };
+            //! Functor for the stage of the PIC loop setting the current values to zero
+            struct CurrentReset
+            {
+                /** Set all current density values to zero
+                 *
+                 * @param step index of time iteration
+                 */
+                void operator()(uint32_t const) const
+                {
+                    using namespace pmacc;
+                    DataConnector& dc = Environment<>::get().DataConnector();
+                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                    FieldJ::ValueType zeroJ(FieldJ::ValueType::create(0._X));
+                    fieldJ.assign(zeroJ);
+                    dc.releaseData(FieldJ::getName());
+                }
+            };
 
-} // namespace stage
-} // namespace simulation
+        } // namespace stage
+    } // namespace simulation
 } // namespace picongpu

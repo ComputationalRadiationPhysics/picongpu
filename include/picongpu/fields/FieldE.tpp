@@ -32,35 +32,30 @@
 
 namespace picongpu
 {
-
-    FieldE::FieldE( MappingDesc const & cellDescription ) :
-        fields::EMFieldBase(
-            cellDescription,
-            getName( ),
-            std::integral_constant< CommunicationTag, FIELD_E >{ }
-        )
+    FieldE::FieldE(MappingDesc const& cellDescription)
+        : fields::EMFieldBase(cellDescription, getName(), std::integral_constant<CommunicationTag, FIELD_E>{})
     {
     }
 
-    HDINLINE FieldE::UnitValueType FieldE::getUnit( )
+    HDINLINE FieldE::UnitValueType FieldE::getUnit()
     {
-        return UnitValueType{ UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD };
+        return UnitValueType{UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD};
     }
 
-    std::vector< float_64 > FieldE::getUnitDimension( )
+    std::vector<float_64> FieldE::getUnitDimension()
     {
         /* E is in volts per meters: V / m = kg * m / (A * s^3)
          *   -> L * M * T^-3 * I^-1
          */
-        std::vector< float_64 > unitDimension( 7, 0.0 );
-        unitDimension.at( SIBaseUnits::length ) =  1.0;
-        unitDimension.at( SIBaseUnits::mass )   =  1.0;
-        unitDimension.at( SIBaseUnits::time )   = -3.0;
-        unitDimension.at( SIBaseUnits::electricCurrent ) = -1.0;
+        std::vector<float_64> unitDimension(7, 0.0);
+        unitDimension.at(SIBaseUnits::length) = 1.0;
+        unitDimension.at(SIBaseUnits::mass) = 1.0;
+        unitDimension.at(SIBaseUnits::time) = -3.0;
+        unitDimension.at(SIBaseUnits::electricCurrent) = -1.0;
         return unitDimension;
     }
 
-    std::string FieldE::getName( )
+    std::string FieldE::getName()
     {
         return "E";
     }

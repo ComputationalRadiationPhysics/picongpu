@@ -45,135 +45,117 @@
 
 namespace picongpu
 {
-namespace fields
-{
-
-    template< CommunicationTag T_tag >
-    EMFieldBase::EMFieldBase(
-        MappingDesc const & cellDescription,
-        pmacc::SimulationDataId const & id,
-        std::integral_constant< CommunicationTag, T_tag >
-    ) :
-        SimulationFieldHelper< MappingDesc >( cellDescription ),
-        id( id )
+    namespace fields
     {
-        buffer = std::make_unique< Buffer >(
-            cellDescription.getGridLayout( )
-        );
-
-        using VectorSpeciesWithInterpolation = typename pmacc::particles::traits::FilterByFlag
-        <
-            VectorAllSpecies,
-            interpolation<>
-        >::type;
-        using LowerMarginInterpolation = bmpl::accumulate<
-            VectorSpeciesWithInterpolation,
-            typename pmacc::math::CT::make_Int<simDim, 0>::type,
-            pmacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
-        >::type;
-        using UpperMarginInterpolation = bmpl::accumulate<
-            VectorSpeciesWithInterpolation,
-            typename pmacc::math::CT::make_Int<simDim, 0>::type,
-            pmacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
-        >::type;
-
-        /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
-        using LowerMarginSolver = typename GetMargin<fields::Solver, T_tag >::LowerMargin;
-        using LowerMarginInterpolationAndSolver = typename pmacc::math::CT::max<
-            LowerMarginInterpolation,
-            LowerMarginSolver
-        >::type;
-        using UpperMarginSolver = typename GetMargin<fields::Solver, T_tag >::UpperMargin;
-        using UpperMarginInterpolationAndSolver = typename pmacc::math::CT::max<
-            UpperMarginInterpolation,
-            UpperMarginSolver
-        >::type;
-
-        /* Calculate upper and lower margin for pusher
-           (currently all pusher use the interpolation of the species)
-           and find maximum margin
-        */
-        using VectorSpeciesWithPusherAndInterpolation = typename pmacc::particles::traits::FilterByFlag
-        <
-            VectorSpeciesWithInterpolation,
-            particlePusher<>
-        >::type;
-        using LowerMargin = typename bmpl::accumulate<
-            VectorSpeciesWithPusherAndInterpolation,
-            LowerMarginInterpolationAndSolver,
-            pmacc::math::CT::max<bmpl::_1, GetLowerMarginPusher<bmpl::_2> >
-        >::type;
-
-        using UpperMargin = typename bmpl::accumulate<
-            VectorSpeciesWithPusherAndInterpolation,
-            UpperMarginInterpolationAndSolver,
-            pmacc::math::CT::max<bmpl::_1, GetUpperMarginPusher<bmpl::_2> >
-        >::type;
-
-        const DataSpace< simDim > originGuard( LowerMargin( ).toRT( ) );
-        const DataSpace< simDim > endGuard( UpperMargin( ).toRT( ) );
-
-        /*go over all directions*/
-        for ( uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i )
+        template<CommunicationTag T_tag>
+        EMFieldBase::EMFieldBase(
+            MappingDesc const& cellDescription,
+            pmacc::SimulationDataId const& id,
+            std::integral_constant<CommunicationTag, T_tag>)
+            : SimulationFieldHelper<MappingDesc>(cellDescription)
+            , id(id)
         {
-            DataSpace<simDim> relativeMask = Mask::getRelativeDirections<simDim > ( i );
-            /* guarding cells depend on direction
-             * for negative direction use originGuard else endGuard (relative direction ZERO is ignored)
-             * don't switch end and origin because this is a read buffer and no send buffer
-             */
-            DataSpace<simDim> guardingCells;
-            for ( uint32_t d = 0; d < simDim; ++d )
-                guardingCells[d] = ( relativeMask[d] == -1 ? originGuard[d] : endGuard[d] );
-            buffer->addExchange( GUARD, i, guardingCells, T_tag );
+            buffer = std::make_unique<Buffer>(cellDescription.getGridLayout());
+
+            using VectorSpeciesWithInterpolation =
+                typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, interpolation<>>::type;
+            using LowerMarginInterpolation = bmpl::accumulate<
+                VectorSpeciesWithInterpolation,
+                typename pmacc::math::CT::make_Int<simDim, 0>::type,
+                pmacc::math::CT::max<bmpl::_1, GetLowerMargin<GetInterpolation<bmpl::_2>>>>::type;
+            using UpperMarginInterpolation = bmpl::accumulate<
+                VectorSpeciesWithInterpolation,
+                typename pmacc::math::CT::make_Int<simDim, 0>::type,
+                pmacc::math::CT::max<bmpl::_1, GetUpperMargin<GetInterpolation<bmpl::_2>>>>::type;
+
+            /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
+            using LowerMarginSolver = typename GetMargin<fields::Solver, T_tag>::LowerMargin;
+            using LowerMarginInterpolationAndSolver =
+                typename pmacc::math::CT::max<LowerMarginInterpolation, LowerMarginSolver>::type;
+            using UpperMarginSolver = typename GetMargin<fields::Solver, T_tag>::UpperMargin;
+            using UpperMarginInterpolationAndSolver =
+                typename pmacc::math::CT::max<UpperMarginInterpolation, UpperMarginSolver>::type;
+
+            /* Calculate upper and lower margin for pusher
+               (currently all pusher use the interpolation of the species)
+               and find maximum margin
+            */
+            using VectorSpeciesWithPusherAndInterpolation = typename pmacc::particles::traits::
+                FilterByFlag<VectorSpeciesWithInterpolation, particlePusher<>>::type;
+            using LowerMargin = typename bmpl::accumulate<
+                VectorSpeciesWithPusherAndInterpolation,
+                LowerMarginInterpolationAndSolver,
+                pmacc::math::CT::max<bmpl::_1, GetLowerMarginPusher<bmpl::_2>>>::type;
+
+            using UpperMargin = typename bmpl::accumulate<
+                VectorSpeciesWithPusherAndInterpolation,
+                UpperMarginInterpolationAndSolver,
+                pmacc::math::CT::max<bmpl::_1, GetUpperMarginPusher<bmpl::_2>>>::type;
+
+            const DataSpace<simDim> originGuard(LowerMargin().toRT());
+            const DataSpace<simDim> endGuard(UpperMargin().toRT());
+
+            /*go over all directions*/
+            for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
+            {
+                DataSpace<simDim> relativeMask = Mask::getRelativeDirections<simDim>(i);
+                /* guarding cells depend on direction
+                 * for negative direction use originGuard else endGuard (relative direction ZERO is ignored)
+                 * don't switch end and origin because this is a read buffer and no send buffer
+                 */
+                DataSpace<simDim> guardingCells;
+                for(uint32_t d = 0; d < simDim; ++d)
+                    guardingCells[d] = (relativeMask[d] == -1 ? originGuard[d] : endGuard[d]);
+                buffer->addExchange(GUARD, i, guardingCells, T_tag);
+            }
         }
-    }
 
-    EMFieldBase::Buffer & EMFieldBase::getGridBuffer( )
-    {
-        return *buffer;
-    }
+        EMFieldBase::Buffer& EMFieldBase::getGridBuffer()
+        {
+            return *buffer;
+        }
 
-    GridLayout< simDim > EMFieldBase::getGridLayout( )
-    {
-        return cellDescription.getGridLayout( );
-    }
+        GridLayout<simDim> EMFieldBase::getGridLayout()
+        {
+            return cellDescription.getGridLayout();
+        }
 
-    EMFieldBase::DataBoxType EMFieldBase::getHostDataBox( )
-    {
-        return buffer->getHostBuffer( ).getDataBox( );
-    }
+        EMFieldBase::DataBoxType EMFieldBase::getHostDataBox()
+        {
+            return buffer->getHostBuffer().getDataBox();
+        }
 
-    EMFieldBase::DataBoxType EMFieldBase::getDeviceDataBox( )
-    {
-        return buffer->getDeviceBuffer( ).getDataBox( );
-    }
+        EMFieldBase::DataBoxType EMFieldBase::getDeviceDataBox()
+        {
+            return buffer->getDeviceBuffer().getDataBox();
+        }
 
-    EventTask EMFieldBase::asyncCommunication( EventTask serialEvent )
-    {
-        EventTask eB = buffer->asyncCommunication( serialEvent );
-        return eB;
-    }
+        EventTask EMFieldBase::asyncCommunication(EventTask serialEvent)
+        {
+            EventTask eB = buffer->asyncCommunication(serialEvent);
+            return eB;
+        }
 
-    void EMFieldBase::reset( uint32_t )
-    {
-        buffer->getHostBuffer( ).reset( true );
-        buffer->getDeviceBuffer( ).reset( false );
-    }
+        void EMFieldBase::reset(uint32_t)
+        {
+            buffer->getHostBuffer().reset(true);
+            buffer->getDeviceBuffer().reset(false);
+        }
 
-    void EMFieldBase::syncToDevice( )
-    {
-        buffer->hostToDevice( );
-    }
+        void EMFieldBase::syncToDevice()
+        {
+            buffer->hostToDevice();
+        }
 
-    void EMFieldBase::synchronize( )
-    {
-        buffer->deviceToHost( );
-    }
+        void EMFieldBase::synchronize()
+        {
+            buffer->deviceToHost();
+        }
 
-    pmacc::SimulationDataId EMFieldBase::getUniqueId( )
-    {
-        return id;
-    }
+        pmacc::SimulationDataId EMFieldBase::getUniqueId()
+        {
+            return id;
+        }
 
-} // namespace fields
+    } // namespace fields
 } // namespace picongpu

@@ -41,18 +41,17 @@
 
 namespace picongpu
 {
-namespace isaacP
-{
-
-    /** Intermediate list of native particle species of PIConGPU which shall be
-     *  visualized. */
-    using Particle_Seq = MakeSeq_t<>;
-
-
-    /** Compile time sequence of all fields which shall be visualized. Basically
-     *  the join of Native_Seq and Density_Seq. */
-    using Fields_Seq = MakeSeq_t<>;
+    namespace isaacP
+    {
+        /** Intermediate list of native particle species of PIConGPU which shall be
+         *  visualized. */
+        using Particle_Seq = MakeSeq_t<>;
 
 
-} // namespace isaacP
+        /** Compile time sequence of all fields which shall be visualized. Basically
+         *  the join of Native_Seq and Density_Seq. */
+        using Fields_Seq = MakeSeq_t<>;
+
+
+    } // namespace isaacP
 } // namespace picongpu

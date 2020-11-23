@@ -28,23 +28,22 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-    template<>
-    struct Log10<float>
+    namespace math
     {
-        typedef float result;
-
-        HDINLINE float operator( )(const float& value)
+        template<>
+        struct Log10<float>
         {
-#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
-            return ::log10f( value );
-#else
-            return ::log10( value );
-#endif
-        }
-    };
+            typedef float result;
 
-} //namespace math
+            HDINLINE float operator()(const float& value)
+            {
+#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+                return ::log10f(value);
+#else
+                return ::log10(value);
+#endif
+            }
+        };
+
+    } // namespace math
 } // namespace pmacc

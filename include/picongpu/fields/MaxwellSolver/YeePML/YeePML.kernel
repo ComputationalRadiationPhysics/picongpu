@@ -33,531 +33,424 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace maxwellSolver
-{
-namespace yeePML
-{
-
-    //! Parameters of PML for the local domain
-    struct LocalParameters : public Parameters
+    namespace fields
     {
-        /** PML size in cells, stored as floats to avoid type casts later,
-         *  negative and positive borders defined the same way as for Thickness
-         */
-        floatD_X const negativeBorderSize;
-        floatD_X const positiveBorderSize;
-
-        //! Local domain characteristics, including guard cells
-        DataSpace< simDim > const numLocalDomainCells;
-        DataSpace< simDim > const numGuardCells;
-
-        LocalParameters(
-            Parameters const parameters,
-            Thickness const localThickness,
-            DataSpace< simDim > const numLocalDomainCells,
-            DataSpace< simDim > const numGuardCells
-        ):
-            Parameters( parameters ),
-            negativeBorderSize( precisionCast< float_X >( localThickness.negativeBorder ) ),
-            positiveBorderSize( precisionCast< float_X >( localThickness.positiveBorder ) ),
-            numLocalDomainCells( numLocalDomainCells ),
-            numGuardCells( numGuardCells )
+        namespace maxwellSolver
         {
-        }
-    };
-
-    namespace detail
-    {
-
-        /** Get relative depth of a given cell for 1D.
-         *
-         * This function operates with a 1D slice of domain and PML.
-         * index == numGuardCells corresponds to the external negative PML
-         * border, and index == numLocalDomainCells - numGuardCells - 1
-         * corresponds to the external positive PML border.
-         * For the internal area result is 0, for points in PML the depth
-         * scales from 0 at the internal border to 1 at the external border.
-         * Index and local domain size include the guard.
-         *
-         * @param cellIdx cell index including the guard, can be fractional,
-         * e.g. for halves of cells
-         * @param numPMLCellsNegative number of PML cells at the negative border
-         * @param numPMLCellsPositive number of PML cells at the positive border
-         * @param numLocalDomainCells number of cells of the local domain
-         * including the guard
-         * @param numGuardCells number of guard cells at each side
-         * @return relative depth, value between 0 and 1
-         */
-        DINLINE float_X getRelativeDepth(
-            float_X const cellIdx,
-            float_X const numPMLCellsNegative,
-            float_X const numPMLCellsPositive,
-            uint32_t const numLocalDomainCells,
-            uint32_t const numGuardCells
-        )
-        {
-            auto zeroBasedIdx = cellIdx - numGuardCells;
-            auto const isInLeftPML = ( zeroBasedIdx < numPMLCellsNegative );
-            if( isInLeftPML )
-                return ( numPMLCellsNegative - zeroBasedIdx ) / numPMLCellsNegative;
-            else
+            namespace yeePML
             {
-                auto zeroBasedRightPMLStart = numLocalDomainCells -
-                    2 * numGuardCells - numPMLCellsPositive;
-                auto const isInRightPML = ( zeroBasedIdx > zeroBasedRightPMLStart );
-                if( isInRightPML )
-                    return ( zeroBasedIdx - zeroBasedRightPMLStart ) / numPMLCellsPositive;
-            }
-            return 0._X;
-        }
-
-        /** Get absorption parameters: sigma, kappa and alpha at a given cell
-         *
-         * Apply polynomial grading, as described in pml.param.
-         *
-         * @param cellIdx cell index including the guard, can be fractional,
-         * e.g. for halves of cells
-         * @param parameters parameters of PML in the local domain
-         * @param[out] normalizedSigma value of normalized sigma at the cell
-         * @param[out] kappa value of normalized kappa at the cell
-         * @param[out] normalizedAlpha value of normalized alpha at the cell
-         */
-        DINLINE void getAbsorptionParameters(
-            floatD_X const cellIdx,
-            LocalParameters const parameters,
-            float3_X & normalizedSigma,
-            float3_X & kappa,
-            float3_X & normalizedAlpha
-        )
-        {
-            // initialize with values for non-PML area
-            normalizedSigma = float3_X::create( 0._X );
-            kappa = float3_X::create( 1._X );
-            normalizedAlpha = float3_X::create( 0._X );
-            for( uint32_t dim = 0u; dim < simDim; dim++ )
-            {
-                auto const relativeDepth = getRelativeDepth(
-                    cellIdx[ dim ],
-                    parameters.negativeBorderSize[ dim ],
-                    parameters.positiveBorderSize[ dim ],
-                    parameters.numLocalDomainCells[ dim ],
-                    parameters.numGuardCells[ dim ]
-                );
-                // Since normally most points are not in PML, avoid costly
-                // computing in this case
-                if( relativeDepth != 0._X )
+                //! Parameters of PML for the local domain
+                struct LocalParameters : public Parameters
                 {
-                    /* Grading done according to [Taflove, Hagness], eq. (7.60a, b).
-                     * Note: here we use a general expression, it is possible
-                     * to specialize for sigmaKappaGradingOrder = 2, 3, or 4,
-                     * but currently seems not worth it.
+                    /** PML size in cells, stored as floats to avoid type casts later,
+                     *  negative and positive borders defined the same way as for Thickness
                      */
-                    auto const sigmaKappaGradingCoeff = math::pow(
-                        relativeDepth,
-                        parameters.sigmaKappaGradingOrder
-                    );
-                    normalizedSigma[ dim ] = parameters.normalizedSigmaMax[ dim ] *
-                        sigmaKappaGradingCoeff;
-                    kappa[ dim ] = 1._X + ( parameters.kappaMax[ dim ] - 1._X ) *
-                        sigmaKappaGradingCoeff;
-                    /* Grading done according to [Taflove, Hagness], eq. (7.79),
-                     * note that this code is only correct when relativeDepth != 0
+                    floatD_X const negativeBorderSize;
+                    floatD_X const positiveBorderSize;
+
+                    //! Local domain characteristics, including guard cells
+                    DataSpace<simDim> const numLocalDomainCells;
+                    DataSpace<simDim> const numGuardCells;
+
+                    LocalParameters(
+                        Parameters const parameters,
+                        Thickness const localThickness,
+                        DataSpace<simDim> const numLocalDomainCells,
+                        DataSpace<simDim> const numGuardCells)
+                        : Parameters(parameters)
+                        , negativeBorderSize(precisionCast<float_X>(localThickness.negativeBorder))
+                        , positiveBorderSize(precisionCast<float_X>(localThickness.positiveBorder))
+                        , numLocalDomainCells(numLocalDomainCells)
+                        , numGuardCells(numGuardCells)
+                    {
+                    }
+                };
+
+                namespace detail
+                {
+                    /** Get relative depth of a given cell for 1D.
+                     *
+                     * This function operates with a 1D slice of domain and PML.
+                     * index == numGuardCells corresponds to the external negative PML
+                     * border, and index == numLocalDomainCells - numGuardCells - 1
+                     * corresponds to the external positive PML border.
+                     * For the internal area result is 0, for points in PML the depth
+                     * scales from 0 at the internal border to 1 at the external border.
+                     * Index and local domain size include the guard.
+                     *
+                     * @param cellIdx cell index including the guard, can be fractional,
+                     * e.g. for halves of cells
+                     * @param numPMLCellsNegative number of PML cells at the negative border
+                     * @param numPMLCellsPositive number of PML cells at the positive border
+                     * @param numLocalDomainCells number of cells of the local domain
+                     * including the guard
+                     * @param numGuardCells number of guard cells at each side
+                     * @return relative depth, value between 0 and 1
                      */
-                    auto const alphaGradingCoeff = math::pow(
-                        1._X - relativeDepth,
-                        parameters.alphaGradingOrder
-                    );
-                    normalizedAlpha[ dim ] = parameters.normalizedAlphaMax[ dim ] *
-                        alphaGradingCoeff;
-                }
-            }
-        }
-
-        //! Coefficients for E or B updates at a particular point
-        struct Coefficients
-        {
-            //! Coordinate stretching coefficient
-            float3_X kappa;
-
-            //! Damping coefficient, [Taflove, Hagness], eq. (7.102)
-            float3_X b;
-
-            //! Spatial difference coefficient, [Taflove, Hagness], eq. (7.99)
-            float3_X c;
-        };
-
-        /** Get coefficients for E or B updates at a given cell
-         *
-         * Apply polynomial grading, as described in pml.param.
-         * Due to normalizations, the same way of computing coefficients applies
-         * to E and B updates.
-         *
-         * @param cellIdx cell index including the guard, can be fractional,
-         * e.g. for halves of cells
-         * @param parameters parameters of PML in the local domain
-         * @param dt value of time step to propagate by
-         * @result an instance of Coefficients with computed values
-         */
-        DINLINE Coefficients getCoefficients(
-            floatD_X const cellIdx,
-            LocalParameters const parameters,
-            float_X const dt
-        )
-        {
-            Coefficients coeffs;
-            float3_X normalizedSigma, normalizedAlpha;
-            getAbsorptionParameters(
-                cellIdx,
-                parameters,
-                normalizedSigma,
-                coeffs.kappa,
-                normalizedAlpha
-            );
-
-            /* [Taflove, Hagness], eq. (7.102), normalizedSigma and
-             * normalizedAlpha are already divided by eps0
-             */
-            coeffs.b = math::exp(
-                -( normalizedSigma / coeffs.kappa + normalizedAlpha ) * dt
-            );
-            /* [Taflove, Hagness], eq. (7.99), in our case both the numerator
-             * and the denominator are equally normalized
-             */
-            coeffs.c = float3_X::create( 0._X );
-            for ( uint32_t dim = 0u; dim < 3; dim++ )
-            {
-                auto const denominator = coeffs.kappa[ dim ] *
-                    ( normalizedSigma[ dim ] + normalizedAlpha[ dim ] *
-                    coeffs.kappa[ dim ] );
-                // Avoid the 0 / 0 uncertainty, in that case keep the value 0
-                if( denominator )
-                    coeffs.c[ dim ] = normalizedSigma[ dim ] *
-                        ( coeffs.b[ dim ] - 1.0_X ) / denominator;
-            }
-            return coeffs;
-        }
-
-        /** Return if a point with given coefficients belongs to PML
-         *
-         * @param coeffs values of coefficients
-         * @result boolean value if a point with given coefficients belongs
-         * to PML
-         */
-        DINLINE bool isInPML( Coefficients const coeffs )
-        {
-            /* Each damping component is < 1 when absorption is enabled
-             * along this direction and == 1 otherwise.
-             * So a product is 1 in the internal area and < 1 in PML
-             */
-            return coeffs.b.productOfComponents( ) != 1.0_X;
-        }
-
-    } // namespace detail
-
-    /** Functor to update the electric field by a time step
-     *
-     * @tparam T_numWorkers number of workers
-     * @tparam T_BlockDescription field (electric and magnetic) domain description
-     */
-    template<
-        uint32_t T_numWorkers,
-        typename T_BlockDescription
-    >
-    struct KernelUpdateE
-    {
-        /** Update the electric field by a time step
-         *
-         * @tparam T_Acc alpaka accelerator type
-         * @tparam T_Mapping mapper functor type
-         * @tparam T_Curl curl functor type
-         * @tparam T_BBox pmacc::DataBox, magnetic field box type
-         * @tparam T_EBox pmacc::DataBox, electric field box type
-         *
-         * @param acc alpaka accelerator
-         * @param mapper functor to map a block to a supercell
-         * @param parameters PML parameters for a local domain
-         * @param curl functor to calculate the electric field, interface must be
-         *             `operator( )( T_EBox )`
-         * @param fieldB magnetic field iterator
-         * @param fieldE electric field iterator
-         * @param fieldPsiE PML convolutional electric field iterator
-         */
-        template<
-            typename T_Acc,
-            typename T_Mapping,
-            typename T_Curl,
-            typename T_BBox,
-            typename T_EBox
-        >
-        DINLINE void operator( )(
-            T_Acc const & acc,
-            T_Mapping const mapper,
-            LocalParameters const parameters,
-            T_Curl const curl,
-            T_BBox const fieldB,
-            T_EBox fieldE,
-            FieldBox fieldPsiE
-        ) const
-        {
-            /* Each block processes grid values in a supercell,
-             * the index includes guards, same as all indices in this kernel
-             */
-            auto const blockBeginIdx = mapper.getSuperCellIndex(
-                DataSpace< simDim >( cupla::blockIdx(acc) )
-            ) * MappingDesc::SuperCellSize::toRT( );
-
-            // Cache B values for the block
-            using namespace mappings::threads;
-            constexpr auto numWorkers = T_numWorkers;
-            auto const workerIdx = cupla::threadIdx(acc).x;
-            nvidia::functors::Assign assign;
-            auto fieldBBlock = fieldB.shift( blockBeginIdx );
-            ThreadCollective<
-                T_BlockDescription,
-                numWorkers
-            > collectiveCacheB( workerIdx );
-            auto cachedB = CachedBox::create<
-                0u,
-                typename T_BBox::ValueType
-            >(
-                acc,
-                T_BlockDescription( )
-            );
-            collectiveCacheB(
-                acc,
-                assign,
-                cachedB,
-                fieldBBlock
-            );
-            cupla::__syncthreads( acc );
-
-            // Threads process values of the supercell in parallel
-            constexpr auto numCellsPerSuperCell =
-                pmacc::math::CT::volume< SuperCellSize >::type::value;
-            ForEachIdx<
-                IdxConfig<
-                    numCellsPerSuperCell,
-                    numWorkers
-                >
-            >{ workerIdx }(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const
-                )
-                {
-                    constexpr auto c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
-                    constexpr auto dt = DELTA_T;
-
-                    auto const idxInSuperCell =
-                        DataSpaceOperations< simDim >::template map< SuperCellSize >( linearIdx );
-                    // grid index to process with the current thread
-                    auto const idx = blockBeginIdx + idxInSuperCell;
-                    // with the current Yee grid, no shift needed here
-                    auto const pmlIdx = precisionCast< float_X >( idx );
-                    auto const coeffs = detail::getCoefficients(
-                        pmlIdx,
-                        parameters,
-                        dt
-                    );
-
-                    if( detail::isInPML( coeffs ) )
+                    DINLINE float_X getRelativeDepth(
+                        float_X const cellIdx,
+                        float_X const numPMLCellsNegative,
+                        float_X const numPMLCellsPositive,
+                        uint32_t const numLocalDomainCells,
+                        uint32_t const numGuardCells)
                     {
-                        /* Update convolutional fields using [Taflove, Hagness],
-                         * eq. (7.105a,b) and similar for other components.
-                         * For PIC the right-hand side uses B, not H.
-                         *
-                         * Notation: dBdx = dB / dx, dBdx.y() = dBy / dx, etc.
-                         */
-                        auto const localB = cachedB.shift( idxInSuperCell );
-                        auto const dBdx = curl.xDerivative( localB );
-                        auto const dBdy = curl.yDerivative( localB );
-                        auto const dBdz = curl.zDerivative( localB );
-                        auto & psiE = fieldPsiE( idx );
-                        psiE.yx = coeffs.b.x( ) * psiE.yx + coeffs.c.x( ) * dBdx.z( );
-                        psiE.zx = coeffs.b.x( ) * psiE.zx + coeffs.c.x( ) * dBdx.y( );
-                        psiE.xy = coeffs.b.y( ) * psiE.xy + coeffs.c.y( ) * dBdy.z( );
-                        psiE.zy = coeffs.b.y( ) * psiE.zy + coeffs.c.y( ) * dBdy.x( );
-                        psiE.xz = coeffs.b.z( ) * psiE.xz + coeffs.c.z( ) * dBdz.y( );
-                        psiE.yz = coeffs.b.z( ) * psiE.yz + coeffs.c.z( ) * dBdz.x( );
-
-                        /* [Taflove, Hagness], eq. (7.106) and similar for other
-                         * components. Coefficients Ca, Cb as given in (7.107a,b)
-                         * are general to account for materials, in addition to
-                         * artificial PML absorbing medium. We do not have any
-                         * real material, so in (7.107a,b) we have to use
-                         * sigma(i + 1/2, j, k) = 0 (it is another sigma,
-                         * unrelated to PML), eps(i + 1/2, j, k) = EPS0. Also,
-                         * same as the Yee scheme in PIC, adjusted to use B,
-                         * not H, on the right-hand side.
-                         */
-                        fieldE( idx ).x( ) += c2 * dt * ( dBdy.z( ) / coeffs.kappa.y( ) -
-                            dBdz.y( ) / coeffs.kappa.z( ) + psiE.xy - psiE.xz );
-                        fieldE( idx ).y( ) += c2 * dt * ( dBdz.x( ) / coeffs.kappa.z( ) -
-                            dBdx.z( ) / coeffs.kappa.x( ) + psiE.yz - psiE.yx );
-                        fieldE( idx ).z( ) += c2 * dt * ( dBdx.y( ) / coeffs.kappa.x( ) -
-                            dBdy.x( ) / coeffs.kappa.y( ) + psiE.zx - psiE.zy );
+                        auto zeroBasedIdx = cellIdx - numGuardCells;
+                        auto const isInLeftPML = (zeroBasedIdx < numPMLCellsNegative);
+                        if(isInLeftPML)
+                            return (numPMLCellsNegative - zeroBasedIdx) / numPMLCellsNegative;
+                        else
+                        {
+                            auto zeroBasedRightPMLStart
+                                = numLocalDomainCells - 2 * numGuardCells - numPMLCellsPositive;
+                            auto const isInRightPML = (zeroBasedIdx > zeroBasedRightPMLStart);
+                            if(isInRightPML)
+                                return (zeroBasedIdx - zeroBasedRightPMLStart) / numPMLCellsPositive;
+                        }
+                        return 0._X;
                     }
-                    else
-                        // Normal Yee scheme update
-                        fieldE( idx ) += curl( cachedB.shift( idxInSuperCell ) ) * c2 * dt;
-                }
-            );
-        }
-    };
 
-    /** Functor to update the magnetic field by half a time step
-     *
-     * @tparam T_numWorkers number of workers
-     * @tparam T_BlockDescription field (electric and magnetic) domain description
-     */
-    template<
-        uint32_t T_numWorkers,
-        typename T_BlockDescription
-    >
-    struct KernelUpdateBHalf
-    {
-        /** Update the magnetic field by half a time step
-         *
-         * @tparam T_Acc alpaka accelerator type
-         * @tparam T_Mapping mapper functor type
-         * @tparam T_Curl curl functor type
-         * @tparam T_EBox pmacc::DataBox electric field box type
-         * @tparam T_BBox pmacc::DataBox magnetic field box type
-         *
-         * @param acc alpaka accelerator
-         * @param mapper functor to map a block to a supercell
-         * @param parameters PML parameters for a local domain
-         * @param curl functor to calculate the electric field, interface must be
-         *             `operator( )( T_EBox )`
-         * @param fieldE electric field iterator
-         * @param fieldB magnetic field iterator
-         * @param fieldPsiB PML convolutional magnetic field iterator
-         */
-        template<
-            typename T_Acc,
-            typename T_Mapping,
-            typename T_Curl,
-            typename T_EBox,
-            typename T_BBox
-        >
-        DINLINE void operator( )(
-            T_Acc const & acc,
-            T_Mapping const mapper,
-            LocalParameters const parameters,
-            T_Curl const curl,
-            T_EBox const fieldE,
-            T_BBox fieldB,
-            FieldBox fieldPsiB
-        ) const
-        {
-            /* Each block processes grid values in a supercell,
-             * the index includes guards, same as all indices in this kernel
-             */
-            auto const blockBeginIdx = mapper.getSuperCellIndex(
-                DataSpace< simDim >( cupla::blockIdx(acc) )
-            ) * MappingDesc::SuperCellSize::toRT( );
-
-            // Cache E values for the block
-            using namespace mappings::threads;
-            constexpr auto numWorkers = T_numWorkers;
-            auto const workerIdx = cupla::threadIdx(acc).x;
-            nvidia::functors::Assign assign;
-            auto fieldEBlock = fieldE.shift( blockBeginIdx );
-            ThreadCollective<
-                T_BlockDescription,
-                numWorkers
-            > collectiveCacheE( workerIdx );
-            auto cachedE = CachedBox::create<
-                0u,
-                typename T_EBox::ValueType
-            >(
-                acc,
-                T_BlockDescription( )
-            );
-            collectiveCacheE(
-                acc,
-                assign,
-                cachedE,
-                fieldEBlock
-            );
-            cupla::__syncthreads( acc );
-
-            // Threads process values of the supercell in parallel
-            constexpr auto numCellsPerSuperCell =
-                pmacc::math::CT::volume< SuperCellSize >::type::value;
-            ForEachIdx<
-                IdxConfig<
-                    numCellsPerSuperCell,
-                    numWorkers
-                >
-            >{ workerIdx }(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const
-                )
-                {
-                    constexpr auto halfDt = 0.5_X * DELTA_T;
-                    auto const idxInSuperCell =
-                        DataSpaceOperations< simDim >::template map< SuperCellSize >( linearIdx );
-                    // grid index to process with the current thread
-                    auto const idx = blockBeginIdx + idxInSuperCell;
-                    // with the current Yee grid, a half cell shift is needed here
-                    auto const pmlIdx = floatD_X::create( 0.5_X ) +
-                        precisionCast< float_X >( idx );
-                    auto const coeffs = detail::getCoefficients(
-                        pmlIdx,
-                        parameters,
-                        halfDt
-                    );
-
-                    if( detail::isInPML( coeffs ) )
+                    /** Get absorption parameters: sigma, kappa and alpha at a given cell
+                     *
+                     * Apply polynomial grading, as described in pml.param.
+                     *
+                     * @param cellIdx cell index including the guard, can be fractional,
+                     * e.g. for halves of cells
+                     * @param parameters parameters of PML in the local domain
+                     * @param[out] normalizedSigma value of normalized sigma at the cell
+                     * @param[out] kappa value of normalized kappa at the cell
+                     * @param[out] normalizedAlpha value of normalized alpha at the cell
+                     */
+                    DINLINE void getAbsorptionParameters(
+                        floatD_X const cellIdx,
+                        LocalParameters const parameters,
+                        float3_X& normalizedSigma,
+                        float3_X& kappa,
+                        float3_X& normalizedAlpha)
                     {
-                        /* Update convolutional fields using [Taflove, Hagness],
-                         * eq. (7.110a,b) and similar for other components.
-                         * For PIC the left-hand side uses B, not H.
-                         *
-                         * Notation: dEdx = dE / dx, dEdx.y() = dEy / dx, etc.
-                         */
-                        auto const localE = cachedE.shift( idxInSuperCell );
-                        auto const dEdx = curl.xDerivative( localE );
-                        auto const dEdy = curl.yDerivative( localE );
-                        auto const dEdz = curl.zDerivative( localE );
-                        auto & psiB = fieldPsiB( idx );
-                        psiB.yx = coeffs.b.x( ) * psiB.yx + coeffs.c.x( ) * dEdx.z( );
-                        psiB.zx = coeffs.b.x( ) * psiB.zx + coeffs.c.x( ) * dEdx.y( );
-                        psiB.xy = coeffs.b.y( ) * psiB.xy + coeffs.c.y( ) * dEdy.z( );
-                        psiB.zy = coeffs.b.y( ) * psiB.zy + coeffs.c.y( ) * dEdy.x( );
-                        psiB.xz = coeffs.b.z( ) * psiB.xz + coeffs.c.z( ) * dEdz.y( );
-                        psiB.yz = coeffs.b.z( ) * psiB.yz + coeffs.c.z( ) * dEdz.x( );
-
-                        /* [Taflove, Hagness], eq. (7.108) and similar for other
-                         * components. Coefficients Da, Db as given in (7.109a,b)
-                         * are general to account for materials, in addition to
-                         * artificial PML absorbing medium. We do not have any
-                         * real material, so in (7.109a,b) we have to use
-                         * sigma*(i + 1/2, j, k) = 0 (it is another sigma*,
-                         * unrelated to PML), mue(i + 1/2, j, k) = MUE0. Also,
-                         * same as the Yee scheme in PIC, adjusted to use B,
-                         * not H, on the left-hand side.
-                        */
-                        fieldB( idx ).x( ) += halfDt * ( dEdz.y( ) / coeffs.kappa.z( ) -
-                            dEdy.z( ) / coeffs.kappa.y( ) + psiB.xz - psiB.xy );
-                        fieldB( idx ).y( ) += halfDt * ( dEdx.z( ) / coeffs.kappa.x( ) -
-                            dEdz.x( ) / coeffs.kappa.z( ) + psiB.yx - psiB.yz );
-                        fieldB( idx ).z( ) += halfDt * ( dEdy.x( ) / coeffs.kappa.y( ) -
-                            dEdx.y( ) / coeffs.kappa.x( ) + psiB.zy - psiB.zx );
+                        // initialize with values for non-PML area
+                        normalizedSigma = float3_X::create(0._X);
+                        kappa = float3_X::create(1._X);
+                        normalizedAlpha = float3_X::create(0._X);
+                        for(uint32_t dim = 0u; dim < simDim; dim++)
+                        {
+                            auto const relativeDepth = getRelativeDepth(
+                                cellIdx[dim],
+                                parameters.negativeBorderSize[dim],
+                                parameters.positiveBorderSize[dim],
+                                parameters.numLocalDomainCells[dim],
+                                parameters.numGuardCells[dim]);
+                            // Since normally most points are not in PML, avoid costly
+                            // computing in this case
+                            if(relativeDepth != 0._X)
+                            {
+                                /* Grading done according to [Taflove, Hagness], eq. (7.60a, b).
+                                 * Note: here we use a general expression, it is possible
+                                 * to specialize for sigmaKappaGradingOrder = 2, 3, or 4,
+                                 * but currently seems not worth it.
+                                 */
+                                auto const sigmaKappaGradingCoeff
+                                    = math::pow(relativeDepth, parameters.sigmaKappaGradingOrder);
+                                normalizedSigma[dim] = parameters.normalizedSigmaMax[dim] * sigmaKappaGradingCoeff;
+                                kappa[dim] = 1._X + (parameters.kappaMax[dim] - 1._X) * sigmaKappaGradingCoeff;
+                                /* Grading done according to [Taflove, Hagness], eq. (7.79),
+                                 * note that this code is only correct when relativeDepth != 0
+                                 */
+                                auto const alphaGradingCoeff
+                                    = math::pow(1._X - relativeDepth, parameters.alphaGradingOrder);
+                                normalizedAlpha[dim] = parameters.normalizedAlphaMax[dim] * alphaGradingCoeff;
+                            }
+                        }
                     }
-                    else
-                        // Normal Yee scheme update
-                        fieldB( idx ) -= curl( cachedE.shift( idxInSuperCell ) ) * halfDt;
-                }
-            );
-        }
-    };
 
-} // namespace yeePML
-} // namespace maxwellSolver
-} // namespace fields
+                    //! Coefficients for E or B updates at a particular point
+                    struct Coefficients
+                    {
+                        //! Coordinate stretching coefficient
+                        float3_X kappa;
+
+                        //! Damping coefficient, [Taflove, Hagness], eq. (7.102)
+                        float3_X b;
+
+                        //! Spatial difference coefficient, [Taflove, Hagness], eq. (7.99)
+                        float3_X c;
+                    };
+
+                    /** Get coefficients for E or B updates at a given cell
+                     *
+                     * Apply polynomial grading, as described in pml.param.
+                     * Due to normalizations, the same way of computing coefficients applies
+                     * to E and B updates.
+                     *
+                     * @param cellIdx cell index including the guard, can be fractional,
+                     * e.g. for halves of cells
+                     * @param parameters parameters of PML in the local domain
+                     * @param dt value of time step to propagate by
+                     * @result an instance of Coefficients with computed values
+                     */
+                    DINLINE Coefficients
+                    getCoefficients(floatD_X const cellIdx, LocalParameters const parameters, float_X const dt)
+                    {
+                        Coefficients coeffs;
+                        float3_X normalizedSigma, normalizedAlpha;
+                        getAbsorptionParameters(cellIdx, parameters, normalizedSigma, coeffs.kappa, normalizedAlpha);
+
+                        /* [Taflove, Hagness], eq. (7.102), normalizedSigma and
+                         * normalizedAlpha are already divided by eps0
+                         */
+                        coeffs.b = math::exp(-(normalizedSigma / coeffs.kappa + normalizedAlpha) * dt);
+                        /* [Taflove, Hagness], eq. (7.99), in our case both the numerator
+                         * and the denominator are equally normalized
+                         */
+                        coeffs.c = float3_X::create(0._X);
+                        for(uint32_t dim = 0u; dim < 3; dim++)
+                        {
+                            auto const denominator = coeffs.kappa[dim]
+                                * (normalizedSigma[dim] + normalizedAlpha[dim] * coeffs.kappa[dim]);
+                            // Avoid the 0 / 0 uncertainty, in that case keep the value 0
+                            if(denominator)
+                                coeffs.c[dim] = normalizedSigma[dim] * (coeffs.b[dim] - 1.0_X) / denominator;
+                        }
+                        return coeffs;
+                    }
+
+                    /** Return if a point with given coefficients belongs to PML
+                     *
+                     * @param coeffs values of coefficients
+                     * @result boolean value if a point with given coefficients belongs
+                     * to PML
+                     */
+                    DINLINE bool isInPML(Coefficients const coeffs)
+                    {
+                        /* Each damping component is < 1 when absorption is enabled
+                         * along this direction and == 1 otherwise.
+                         * So a product is 1 in the internal area and < 1 in PML
+                         */
+                        return coeffs.b.productOfComponents() != 1.0_X;
+                    }
+
+                } // namespace detail
+
+                /** Functor to update the electric field by a time step
+                 *
+                 * @tparam T_numWorkers number of workers
+                 * @tparam T_BlockDescription field (electric and magnetic) domain description
+                 */
+                template<uint32_t T_numWorkers, typename T_BlockDescription>
+                struct KernelUpdateE
+                {
+                    /** Update the electric field by a time step
+                     *
+                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Mapping mapper functor type
+                     * @tparam T_Curl curl functor type
+                     * @tparam T_BBox pmacc::DataBox, magnetic field box type
+                     * @tparam T_EBox pmacc::DataBox, electric field box type
+                     *
+                     * @param acc alpaka accelerator
+                     * @param mapper functor to map a block to a supercell
+                     * @param parameters PML parameters for a local domain
+                     * @param curl functor to calculate the electric field, interface must be
+                     *             `operator( )( T_EBox )`
+                     * @param fieldB magnetic field iterator
+                     * @param fieldE electric field iterator
+                     * @param fieldPsiE PML convolutional electric field iterator
+                     */
+                    template<typename T_Acc, typename T_Mapping, typename T_Curl, typename T_BBox, typename T_EBox>
+                    DINLINE void operator()(
+                        T_Acc const& acc,
+                        T_Mapping const mapper,
+                        LocalParameters const parameters,
+                        T_Curl const curl,
+                        T_BBox const fieldB,
+                        T_EBox fieldE,
+                        FieldBox fieldPsiE) const
+                    {
+                        /* Each block processes grid values in a supercell,
+                         * the index includes guards, same as all indices in this kernel
+                         */
+                        auto const blockBeginIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)))
+                            * MappingDesc::SuperCellSize::toRT();
+
+                        // Cache B values for the block
+                        using namespace mappings::threads;
+                        constexpr auto numWorkers = T_numWorkers;
+                        auto const workerIdx = cupla::threadIdx(acc).x;
+                        nvidia::functors::Assign assign;
+                        auto fieldBBlock = fieldB.shift(blockBeginIdx);
+                        ThreadCollective<T_BlockDescription, numWorkers> collectiveCacheB(workerIdx);
+                        auto cachedB = CachedBox::create<0u, typename T_BBox::ValueType>(acc, T_BlockDescription());
+                        collectiveCacheB(acc, assign, cachedB, fieldBBlock);
+                        cupla::__syncthreads(acc);
+
+                        // Threads process values of the supercell in parallel
+                        constexpr auto numCellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                        ForEachIdx<IdxConfig<numCellsPerSuperCell, numWorkers>>{
+                            workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
+                            constexpr auto c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                            constexpr auto dt = DELTA_T;
+
+                            auto const idxInSuperCell
+                                = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                            // grid index to process with the current thread
+                            auto const idx = blockBeginIdx + idxInSuperCell;
+                            // with the current Yee grid, no shift needed here
+                            auto const pmlIdx = precisionCast<float_X>(idx);
+                            auto const coeffs = detail::getCoefficients(pmlIdx, parameters, dt);
+
+                            if(detail::isInPML(coeffs))
+                            {
+                                /* Update convolutional fields using [Taflove, Hagness],
+                                 * eq. (7.105a,b) and similar for other components.
+                                 * For PIC the right-hand side uses B, not H.
+                                 *
+                                 * Notation: dBdx = dB / dx, dBdx.y() = dBy / dx, etc.
+                                 */
+                                auto const localB = cachedB.shift(idxInSuperCell);
+                                auto const dBdx = curl.xDerivative(localB);
+                                auto const dBdy = curl.yDerivative(localB);
+                                auto const dBdz = curl.zDerivative(localB);
+                                auto& psiE = fieldPsiE(idx);
+                                psiE.yx = coeffs.b.x() * psiE.yx + coeffs.c.x() * dBdx.z();
+                                psiE.zx = coeffs.b.x() * psiE.zx + coeffs.c.x() * dBdx.y();
+                                psiE.xy = coeffs.b.y() * psiE.xy + coeffs.c.y() * dBdy.z();
+                                psiE.zy = coeffs.b.y() * psiE.zy + coeffs.c.y() * dBdy.x();
+                                psiE.xz = coeffs.b.z() * psiE.xz + coeffs.c.z() * dBdz.y();
+                                psiE.yz = coeffs.b.z() * psiE.yz + coeffs.c.z() * dBdz.x();
+
+                                /* [Taflove, Hagness], eq. (7.106) and similar for other
+                                 * components. Coefficients Ca, Cb as given in (7.107a,b)
+                                 * are general to account for materials, in addition to
+                                 * artificial PML absorbing medium. We do not have any
+                                 * real material, so in (7.107a,b) we have to use
+                                 * sigma(i + 1/2, j, k) = 0 (it is another sigma,
+                                 * unrelated to PML), eps(i + 1/2, j, k) = EPS0. Also,
+                                 * same as the Yee scheme in PIC, adjusted to use B,
+                                 * not H, on the right-hand side.
+                                 */
+                                fieldE(idx).x() += c2 * dt
+                                    * (dBdy.z() / coeffs.kappa.y() - dBdz.y() / coeffs.kappa.z() + psiE.xy - psiE.xz);
+                                fieldE(idx).y() += c2 * dt
+                                    * (dBdz.x() / coeffs.kappa.z() - dBdx.z() / coeffs.kappa.x() + psiE.yz - psiE.yx);
+                                fieldE(idx).z() += c2 * dt
+                                    * (dBdx.y() / coeffs.kappa.x() - dBdy.x() / coeffs.kappa.y() + psiE.zx - psiE.zy);
+                            }
+                            else
+                                // Normal Yee scheme update
+                                fieldE(idx) += curl(cachedB.shift(idxInSuperCell)) * c2 * dt;
+                        });
+                    }
+                };
+
+                /** Functor to update the magnetic field by half a time step
+                 *
+                 * @tparam T_numWorkers number of workers
+                 * @tparam T_BlockDescription field (electric and magnetic) domain description
+                 */
+                template<uint32_t T_numWorkers, typename T_BlockDescription>
+                struct KernelUpdateBHalf
+                {
+                    /** Update the magnetic field by half a time step
+                     *
+                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_Mapping mapper functor type
+                     * @tparam T_Curl curl functor type
+                     * @tparam T_EBox pmacc::DataBox electric field box type
+                     * @tparam T_BBox pmacc::DataBox magnetic field box type
+                     *
+                     * @param acc alpaka accelerator
+                     * @param mapper functor to map a block to a supercell
+                     * @param parameters PML parameters for a local domain
+                     * @param curl functor to calculate the electric field, interface must be
+                     *             `operator( )( T_EBox )`
+                     * @param fieldE electric field iterator
+                     * @param fieldB magnetic field iterator
+                     * @param fieldPsiB PML convolutional magnetic field iterator
+                     */
+                    template<typename T_Acc, typename T_Mapping, typename T_Curl, typename T_EBox, typename T_BBox>
+                    DINLINE void operator()(
+                        T_Acc const& acc,
+                        T_Mapping const mapper,
+                        LocalParameters const parameters,
+                        T_Curl const curl,
+                        T_EBox const fieldE,
+                        T_BBox fieldB,
+                        FieldBox fieldPsiB) const
+                    {
+                        /* Each block processes grid values in a supercell,
+                         * the index includes guards, same as all indices in this kernel
+                         */
+                        auto const blockBeginIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)))
+                            * MappingDesc::SuperCellSize::toRT();
+
+                        // Cache E values for the block
+                        using namespace mappings::threads;
+                        constexpr auto numWorkers = T_numWorkers;
+                        auto const workerIdx = cupla::threadIdx(acc).x;
+                        nvidia::functors::Assign assign;
+                        auto fieldEBlock = fieldE.shift(blockBeginIdx);
+                        ThreadCollective<T_BlockDescription, numWorkers> collectiveCacheE(workerIdx);
+                        auto cachedE = CachedBox::create<0u, typename T_EBox::ValueType>(acc, T_BlockDescription());
+                        collectiveCacheE(acc, assign, cachedE, fieldEBlock);
+                        cupla::__syncthreads(acc);
+
+                        // Threads process values of the supercell in parallel
+                        constexpr auto numCellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                        ForEachIdx<IdxConfig<numCellsPerSuperCell, numWorkers>>{
+                            workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
+                            constexpr auto halfDt = 0.5_X * DELTA_T;
+                            auto const idxInSuperCell
+                                = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                            // grid index to process with the current thread
+                            auto const idx = blockBeginIdx + idxInSuperCell;
+                            // with the current Yee grid, a half cell shift is needed here
+                            auto const pmlIdx = floatD_X::create(0.5_X) + precisionCast<float_X>(idx);
+                            auto const coeffs = detail::getCoefficients(pmlIdx, parameters, halfDt);
+
+                            if(detail::isInPML(coeffs))
+                            {
+                                /* Update convolutional fields using [Taflove, Hagness],
+                                 * eq. (7.110a,b) and similar for other components.
+                                 * For PIC the left-hand side uses B, not H.
+                                 *
+                                 * Notation: dEdx = dE / dx, dEdx.y() = dEy / dx, etc.
+                                 */
+                                auto const localE = cachedE.shift(idxInSuperCell);
+                                auto const dEdx = curl.xDerivative(localE);
+                                auto const dEdy = curl.yDerivative(localE);
+                                auto const dEdz = curl.zDerivative(localE);
+                                auto& psiB = fieldPsiB(idx);
+                                psiB.yx = coeffs.b.x() * psiB.yx + coeffs.c.x() * dEdx.z();
+                                psiB.zx = coeffs.b.x() * psiB.zx + coeffs.c.x() * dEdx.y();
+                                psiB.xy = coeffs.b.y() * psiB.xy + coeffs.c.y() * dEdy.z();
+                                psiB.zy = coeffs.b.y() * psiB.zy + coeffs.c.y() * dEdy.x();
+                                psiB.xz = coeffs.b.z() * psiB.xz + coeffs.c.z() * dEdz.y();
+                                psiB.yz = coeffs.b.z() * psiB.yz + coeffs.c.z() * dEdz.x();
+
+                                /* [Taflove, Hagness], eq. (7.108) and similar for other
+                                 * components. Coefficients Da, Db as given in (7.109a,b)
+                                 * are general to account for materials, in addition to
+                                 * artificial PML absorbing medium. We do not have any
+                                 * real material, so in (7.109a,b) we have to use
+                                 * sigma*(i + 1/2, j, k) = 0 (it is another sigma*,
+                                 * unrelated to PML), mue(i + 1/2, j, k) = MUE0. Also,
+                                 * same as the Yee scheme in PIC, adjusted to use B,
+                                 * not H, on the left-hand side.
+                                 */
+                                fieldB(idx).x() += halfDt
+                                    * (dEdz.y() / coeffs.kappa.z() - dEdy.z() / coeffs.kappa.y() + psiB.xz - psiB.xy);
+                                fieldB(idx).y() += halfDt
+                                    * (dEdx.z() / coeffs.kappa.x() - dEdz.x() / coeffs.kappa.z() + psiB.yx - psiB.yz);
+                                fieldB(idx).z() += halfDt
+                                    * (dEdy.x() / coeffs.kappa.y() - dEdx.y() / coeffs.kappa.x() + psiB.zy - psiB.zx);
+                            }
+                            else
+                                // Normal Yee scheme update
+                                fieldB(idx) -= curl(cachedE.shift(idxInSuperCell)) * halfDt;
+                        });
+                    }
+                };
+
+            } // namespace yeePML
+        } // namespace maxwellSolver
+    } // namespace fields
 } // namespace picongpu

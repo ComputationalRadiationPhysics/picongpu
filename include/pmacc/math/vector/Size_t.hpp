@@ -25,46 +25,46 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<int dim>
-struct Size_t : public Vector<size_t, dim>
-{
-    using BaseType = Vector<size_t, dim>;
-
-    HDINLINE Size_t()
+    namespace math
     {
-    }
+        template<int dim>
+        struct Size_t : public Vector<size_t, dim>
+        {
+            using BaseType = Vector<size_t, dim>;
 
-    HDINLINE Size_t(size_t x) : BaseType(x)
-    {
-    }
+            HDINLINE Size_t()
+            {
+            }
 
-    HDINLINE Size_t(size_t x, size_t y) : BaseType(x, y)
-    {
-    }
+            HDINLINE Size_t(size_t x) : BaseType(x)
+            {
+            }
 
-    HDINLINE Size_t(size_t x, size_t y, size_t z) : BaseType(x, y, z)
-    {
-    }
+            HDINLINE Size_t(size_t x, size_t y) : BaseType(x, y)
+            {
+            }
 
-    /*! only allow explicit cast*/
-    template<
-    typename T_OtherType,
-    typename T_OtherAccessor,
-    typename T_OtherNavigator,
-    template <typename, int> class T_OtherStorage>
-    HDINLINE explicit Size_t(const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec) :
-    BaseType(vec)
-    {
-    }
+            HDINLINE Size_t(size_t x, size_t y, size_t z) : BaseType(x, y, z)
+            {
+            }
 
-    HDINLINE Size_t(const BaseType& vec) :
-    BaseType(vec)
-    {
-    }
-};
+            /*! only allow explicit cast*/
+            template<
+                typename T_OtherType,
+                typename T_OtherAccessor,
+                typename T_OtherNavigator,
+                template<typename, int>
+                class T_OtherStorage>
+            HDINLINE explicit Size_t(
+                const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec)
+                : BaseType(vec)
+            {
+            }
 
-} // math
-} // PMacc
+            HDINLINE Size_t(const BaseType& vec) : BaseType(vec)
+            {
+            }
+        };
+
+    } // namespace math
+} // namespace pmacc

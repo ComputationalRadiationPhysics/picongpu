@@ -27,7 +27,6 @@
 
 namespace pmacc
 {
-
     /**
      * Helper class for StrideMapping.
      * Provides methods called by StrideMapping using template specialization.
@@ -38,67 +37,63 @@ namespace pmacc
     template<uint32_t areaType, unsigned DIM>
     class StrideMappingMethods;
 
-    //CORE + BORDER + GUARD
+    // CORE + BORDER + GUARD
 
     template<unsigned DIM>
     class StrideMappingMethods<CORE + BORDER + GUARD, DIM>
     {
     public:
-
         template<class Base>
-        HINLINE static DataSpace<DIM> getGridDim(const Base &base)
+        HINLINE static DataSpace<DIM> getGridDim(const Base& base)
         {
             return base.getGridSuperCells();
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM> shift(const Base &base, const DataSpace<DIM>& value)
+        HDINLINE static DataSpace<DIM> shift(const Base& base, const DataSpace<DIM>& value)
         {
             return value;
         }
     };
 
-    //CORE
+    // CORE
 
     template<unsigned DIM>
     class StrideMappingMethods<CORE, DIM>
     {
     public:
-
         template<class Base>
-        HINLINE static DataSpace<DIM> getGridDim(const Base &base)
+        HINLINE static DataSpace<DIM> getGridDim(const Base& base)
         {
             // skip 2 x (border + guard) == 4 x guard
             return base.getGridSuperCells() - 4 * base.getGuardingSuperCells();
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM> shift(const Base &base, const DataSpace<DIM>& value)
+        HDINLINE static DataSpace<DIM> shift(const Base& base, const DataSpace<DIM>& value)
         {
             // skip guard + border == 2 x guard
             return value + 2 * base.getGuardingSuperCells();
         }
-
     };
 
-    //CORE+BORDER
+    // CORE+BORDER
 
     template<unsigned DIM>
     class StrideMappingMethods<CORE + BORDER, DIM>
     {
     public:
-
         template<class Base>
-        HINLINE static DataSpace<DIM> getGridDim(const Base &base)
+        HINLINE static DataSpace<DIM> getGridDim(const Base& base)
         {
             return base.getGridSuperCells() - 2 * base.getGuardingSuperCells();
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM> shift(const Base &base, const DataSpace<DIM>& value)
+        HDINLINE static DataSpace<DIM> shift(const Base& base, const DataSpace<DIM>& value)
         {
             return value + base.getGuardingSuperCells();
         }
     };
 
-} //namespace pmacc
+} // namespace pmacc

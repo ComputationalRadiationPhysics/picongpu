@@ -31,8 +31,8 @@
 #include "picongpu/particles/pusher/particlePusherPhoton.hpp"
 #include "picongpu/particles/pusher/particlePusherProbe.hpp"
 #include "picongpu/particles/pusher/particlePusherReducedLandauLifshitz.hpp"
-#if(SIMDIM==DIM3)
-#include "picongpu/particles/pusher/particlePusherAxel.hpp"
+#if(SIMDIM == DIM3)
+#    include "picongpu/particles/pusher/particlePusherAxel.hpp"
 #endif
 
 #include <pmacc/nvidia/functors/Assign.hpp>
@@ -41,82 +41,61 @@
 
 namespace picongpu
 {
+    namespace particles
+    {
+        namespace pusher
+        {
+            struct Acceleration : public particlePusherAcceleration::Push<Velocity, Gamma<>>
+            {
+            };
 
-namespace particles
-{
-namespace pusher
-{
+#if(SIMDIM == DIM3)
 
-struct Acceleration :
-public particlePusherAcceleration::Push<Velocity, Gamma<> >
-{
-};
-
-#if(SIMDIM==DIM3)
-
-struct Axel :
-public particlePusherAxel::Push<Velocity, Gamma<> >
-{
-};
+            struct Axel : public particlePusherAxel::Push<Velocity, Gamma<>>
+            {
+            };
 #endif
 
-struct Boris :
-public particlePusherBoris::Push<Velocity, Gamma<> >
-{
-};
+            struct Boris : public particlePusherBoris::Push<Velocity, Gamma<>>
+            {
+            };
 
-struct Vay :
-public particlePusherVay::Push<Velocity, Gamma<> >
-{
-};
+            struct Vay : public particlePusherVay::Push<Velocity, Gamma<>>
+            {
+            };
 
-struct HigueraCary :
-public particlePusherHigueraCary::Push<Velocity, Gamma<> >
-{
-};
+            struct HigueraCary : public particlePusherHigueraCary::Push<Velocity, Gamma<>>
+            {
+            };
 
-struct Free :
-public particlePusherFree::Push<Velocity, Gamma<> >
-{
-};
+            struct Free : public particlePusherFree::Push<Velocity, Gamma<>>
+            {
+            };
 
-struct Photon :
-public particlePusherPhoton::Push<Velocity, Gamma<> >
-{
-};
+            struct Photon : public particlePusherPhoton::Push<Velocity, Gamma<>>
+            {
+            };
 
-struct ReducedLandauLifshitz :
-public particlePusherReducedLandauLifshitz::Push<Velocity, Gamma<> >
-{
-};
+            struct ReducedLandauLifshitz : public particlePusherReducedLandauLifshitz::Push<Velocity, Gamma<>>
+            {
+            };
 
-struct Probe :
-public particlePusherProbe::Push<
-    pmacc::nvidia::functors::Assign,
-    particlePusherProbe::ActualPusher
->
-{
-};
+            struct Probe
+                : public particlePusherProbe::Push<pmacc::nvidia::functors::Assign, particlePusherProbe::ActualPusher>
+            {
+            };
 
-template<
-    typename T_FirstPusher,
-    typename T_SecondPusher,
-    typename T_ActivationFunctor
->
-struct Composite : public particlePusherComposite::Push<
-    T_FirstPusher,
-    T_SecondPusher,
-    T_ActivationFunctor
->
-{
-};
+            template<typename T_FirstPusher, typename T_SecondPusher, typename T_ActivationFunctor>
+            struct Composite : public particlePusherComposite::Push<T_FirstPusher, T_SecondPusher, T_ActivationFunctor>
+            {
+            };
 
-template< uint32_t T_switchTimeStep >
-struct CompositeBinarySwitchActivationFunctor :
-    public particlePusherComposite::BinarySwitchActivationFunctor< T_switchTimeStep >
-{
-};
+            template<uint32_t T_switchTimeStep>
+            struct CompositeBinarySwitchActivationFunctor
+                : public particlePusherComposite::BinarySwitchActivationFunctor<T_switchTimeStep>
+            {
+            };
 
-} //namespace pusher
-} //namespace particles
-} //namespace picongpu
+        } // namespace pusher
+    } // namespace particles
+} // namespace picongpu

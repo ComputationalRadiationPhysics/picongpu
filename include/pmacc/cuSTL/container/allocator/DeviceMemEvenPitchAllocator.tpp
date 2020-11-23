@@ -23,57 +23,54 @@
 
 namespace pmacc
 {
-namespace allocator
-{
-
-template<typename Type, int T_dim>
-cursor::BufferCursor<Type, T_dim>
-DeviceMemEvenPitch<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
-{
-    Type* dataPointer = nullptr;
-    math::Size_t<T_dim-1> pitch;
-
-    if(size.productOfComponents())
-        CUDA_CHECK(cuplaMalloc((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
-
-    if (dim == 2u)
+    namespace allocator
     {
-        pitch[0] = sizeof(Type) * size[0];
-    }
-    else if (dim == 3u)
-    {
-        pitch[0] = sizeof(Type) * size[0];
-        pitch[1] = pitch[0] * size[1];
-    }
+        template<typename Type, int T_dim>
+        cursor::BufferCursor<Type, T_dim> DeviceMemEvenPitch<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
+        {
+            Type* dataPointer = nullptr;
+            math::Size_t<T_dim - 1> pitch;
 
-    return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
-}
+            if(size.productOfComponents())
+                CUDA_CHECK(cuplaMalloc((void**) &dataPointer, sizeof(Type) * size.productOfComponents()));
 
-template<typename Type>
-cursor::BufferCursor<Type, 1>
-DeviceMemEvenPitch<Type, 1>::allocate(const math::Size_t<1>& size)
-{
-    Type* dataPointer = nullptr;
+            if(dim == 2u)
+            {
+                pitch[0] = sizeof(Type) * size[0];
+            }
+            else if(dim == 3u)
+            {
+                pitch[0] = sizeof(Type) * size[0];
+                pitch[1] = pitch[0] * size[1];
+            }
 
-    if(size.productOfComponents())
-        CUDA_CHECK(cuplaMalloc((void**)&dataPointer, size[0] * sizeof(Type)));
+            return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
+        }
 
-    return cursor::BufferCursor<Type, 1>(dataPointer, math::Size_t<0>());
-}
+        template<typename Type>
+        cursor::BufferCursor<Type, 1> DeviceMemEvenPitch<Type, 1>::allocate(const math::Size_t<1>& size)
+        {
+            Type* dataPointer = nullptr;
 
-template<typename Type, int T_dim>
-template<typename TCursor>
-void DeviceMemEvenPitch<Type, T_dim>::deallocate(const TCursor& cursor)
-{
-    CUDA_CHECK(cuplaFree(cursor.getMarker()));
-}
+            if(size.productOfComponents())
+                CUDA_CHECK(cuplaMalloc((void**) &dataPointer, size[0] * sizeof(Type)));
 
-template<typename Type>
-template<typename TCursor>
-void DeviceMemEvenPitch<Type, 1>::deallocate(const TCursor& cursor)
-{
-    CUDA_CHECK(cuplaFree(cursor.getMarker()));
-}
+            return cursor::BufferCursor<Type, 1>(dataPointer, math::Size_t<0>());
+        }
 
-} // allocator
-} // pmacc
+        template<typename Type, int T_dim>
+        template<typename TCursor>
+        void DeviceMemEvenPitch<Type, T_dim>::deallocate(const TCursor& cursor)
+        {
+            CUDA_CHECK(cuplaFree(cursor.getMarker()));
+        }
+
+        template<typename Type>
+        template<typename TCursor>
+        void DeviceMemEvenPitch<Type, 1>::deallocate(const TCursor& cursor)
+        {
+            CUDA_CHECK(cuplaFree(cursor.getMarker()));
+        }
+
+    } // namespace allocator
+} // namespace pmacc

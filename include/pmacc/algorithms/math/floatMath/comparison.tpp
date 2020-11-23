@@ -27,30 +27,29 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<>
-struct Min<float, float>
-{
-    typedef float result;
-
-    HDINLINE float operator()(float value1, float value2)
+    namespace math
     {
-        return ::fminf(value1, value2);
-    }
-};
+        template<>
+        struct Min<float, float>
+        {
+            typedef float result;
 
-template<>
-struct Max<float, float>
-{
-    typedef float result;
+            HDINLINE float operator()(float value1, float value2)
+            {
+                return ::fminf(value1, value2);
+            }
+        };
 
-    HDINLINE float operator()(float value1, float value2)
-    {
-        return ::fmaxf(value1, value2);
-    }
-};
+        template<>
+        struct Max<float, float>
+        {
+            typedef float result;
 
-} //namespace math
-} //namespace pmacc
+            HDINLINE float operator()(float value1, float value2)
+            {
+                return ::fmaxf(value1, value2);
+            }
+        };
+
+    } // namespace math
+} // namespace pmacc

@@ -30,98 +30,92 @@
 
 namespace pmacc
 {
-namespace traits
-{
-
-/** Get next available type id
- *
- * Warning: is not thread-safe.
- */
-inline uint64_t getNextId( );
-
-namespace detail
-{
-
-/** Global counter for type ids
- */
-inline uint64_t & counter()
-{
-    static uint64_t value = 0;
-    return value;
-}
-
-/** Unique id for a given type
- *
- * @tparam T_Type type
- */
-template<typename T_Type>
-struct TypeId
-{
-    static const uint64_t id;
-};
-
-/** These id values are generated during the startup for all types that cause
- *  instantiation of GetUniqueTypeId<T_Type>::uid().
- *
- * The order of calls to GetUniqueTypeId<T_Type>::uid() does not affect the id
- * generation, which guarantees the ids are matching for all processes even when
- * the run-time access is not.
- */
-template<typename T_Type>
-const uint64_t TypeId<T_Type>::id = getNextId( );
-
-} //namespace detail
-
-/** Get next available type id
- *
- * Warning: is not thread-safe.
- */
-uint64_t getNextId( )
-{
-    return ++detail::counter( );
-}
-
-/** Get a unique id of a type
- *
- * - get a unique id of a type at runtime
- * - the id of a type is equal on each instance of a process
- *
- * @tparam T_Type any object (class or typename)
- * @tparam T_ResultType result type
- */
-template<typename T_Type, typename T_ResultType = uint64_t>
-struct GetUniqueTypeId
-{
-    typedef T_ResultType ResultType;
-    typedef T_Type Type;
-
-    /** create unique id
-     *
-     * @param maxValue largest allowed id
-     */
-    static const ResultType uid(uint64_t maxValue = boost::numeric::bounds<ResultType>::highest())
+    namespace traits
     {
+        /** Get next available type id
+         *
+         * Warning: is not thread-safe.
+         */
+        inline uint64_t getNextId();
 
-        const uint64_t id = detail::TypeId<Type>::id;
-
-        /* if `id` is out of range than throw an error */
-        if (id > maxValue)
+        namespace detail
         {
-            std::stringstream sId;
-            sId << id;
-            std::stringstream sMax;
-            sMax << maxValue;
-            throw std::runtime_error("generated id is out of range [ id = " +
-                                     sId.str() +
-                                     std::string(", largest allowed  id = ") +
-                                     sMax.str() +
-                                     std::string(" ]"));
+            /** Global counter for type ids
+             */
+            inline uint64_t& counter()
+            {
+                static uint64_t value = 0;
+                return value;
+            }
+
+            /** Unique id for a given type
+             *
+             * @tparam T_Type type
+             */
+            template<typename T_Type>
+            struct TypeId
+            {
+                static const uint64_t id;
+            };
+
+            /** These id values are generated during the startup for all types that cause
+             *  instantiation of GetUniqueTypeId<T_Type>::uid().
+             *
+             * The order of calls to GetUniqueTypeId<T_Type>::uid() does not affect the id
+             * generation, which guarantees the ids are matching for all processes even when
+             * the run-time access is not.
+             */
+            template<typename T_Type>
+            const uint64_t TypeId<T_Type>::id = getNextId();
+
+        } // namespace detail
+
+        /** Get next available type id
+         *
+         * Warning: is not thread-safe.
+         */
+        uint64_t getNextId()
+        {
+            return ++detail::counter();
         }
-        return static_cast<ResultType> (id);
-    }
 
-};
+        /** Get a unique id of a type
+         *
+         * - get a unique id of a type at runtime
+         * - the id of a type is equal on each instance of a process
+         *
+         * @tparam T_Type any object (class or typename)
+         * @tparam T_ResultType result type
+         */
+        template<typename T_Type, typename T_ResultType = uint64_t>
+        struct GetUniqueTypeId
+        {
+            typedef T_ResultType ResultType;
+            typedef T_Type Type;
 
-}//namespace traits
+            /** create unique id
+             *
+             * @param maxValue largest allowed id
+             */
+            static const ResultType uid(uint64_t maxValue = boost::numeric::bounds<ResultType>::highest())
+            {
+                const uint64_t id = detail::TypeId<Type>::id;
 
-}//namespace pmacc
+                /* if `id` is out of range than throw an error */
+                if(id > maxValue)
+                {
+                    std::stringstream sId;
+                    sId << id;
+                    std::stringstream sMax;
+                    sMax << maxValue;
+                    throw std::runtime_error(
+                        "generated id is out of range [ id = " + sId.str() + std::string(", largest allowed  id = ")
+                        + sMax.str() + std::string(" ]"));
+                }
+                return static_cast<ResultType>(id);
+            }
+        };
+
+    } // namespace traits
+
+} // namespace pmacc

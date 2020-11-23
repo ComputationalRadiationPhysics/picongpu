@@ -18,7 +18,6 @@
  */
 
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
@@ -35,11 +34,10 @@ namespace picongpu
     class ISimulationPlugin : public IPlugin
     {
     public:
-        virtual void setMappingDescription(MappingDesc *cellDescription) = 0;
+        virtual void setMappingDescription(MappingDesc* cellDescription) = 0;
 
         virtual ~ISimulationPlugin()
         {
         }
     };
-}
-
+} // namespace picongpu

@@ -39,7 +39,7 @@
 #include "picongpu/unitless/speciesInitialization.unitless"
 #include "picongpu/unitless/fieldBackground.unitless"
 #include "picongpu/unitless/synchrotronPhotons.unitless"
-#if( PMACC_CUDA_ENABLED == 1 )
+#if(PMACC_CUDA_ENABLED == 1)
 #    include "picongpu/unitless/bremsstrahlung.unitless"
 #endif
 

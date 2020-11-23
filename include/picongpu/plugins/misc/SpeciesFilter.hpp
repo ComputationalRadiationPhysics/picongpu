@@ -26,73 +26,68 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace misc
-{
-
-    /** combines a particle species with a filter
-     *
-     * @tparam T_Species picongpu::Particle, type of the species
-     * @tparam T_Filter pmacc::filter::Interface, type of the filter
-     */
-    template<
-        typename T_Species,
-        typename T_Filter = particles::filter::All
-    >
-    struct SpeciesFilter
+    namespace plugins
     {
-        using Filter = T_Filter;
-        using Species = T_Species;
-
-        /** name of the filtered species
-         *
-         * @return <speciesName>_<filterName>`
-         */
-        static std::string getName()
+        namespace misc
         {
-            return Species::FrameType::getName() + "_" + Filter::getName();
-        }
-    };
+            /** combines a particle species with a filter
+             *
+             * @tparam T_Species picongpu::Particle, type of the species
+             * @tparam T_Filter pmacc::filter::Interface, type of the filter
+             */
+            template<typename T_Species, typename T_Filter = particles::filter::All>
+            struct SpeciesFilter
+            {
+                using Filter = T_Filter;
+                using Species = T_Species;
 
-    /** species without a filter
-     *
-     * This class fulfills the interface of SpeciesFilter for a species
-     * but keeps the species name without adding the filter suffix.
-     */
-    template< typename T_Species >
-    struct UnfilteredSpecies
-    {
-        using Filter = particles::filter::All;
-        using Species = T_Species;
+                /** name of the filtered species
+                 *
+                 * @return <speciesName>_<filterName>`
+                 */
+                static std::string getName()
+                {
+                    return Species::FrameType::getName() + "_" + Filter::getName();
+                }
+            };
 
-        /** get name of the filtered species
-         *
-         * @return <speciesName>
-         */
-        static std::string getName()
-        {
-            return Species::FrameType::getName();
-        }
-    };
+            /** species without a filter
+             *
+             * This class fulfills the interface of SpeciesFilter for a species
+             * but keeps the species name without adding the filter suffix.
+             */
+            template<typename T_Species>
+            struct UnfilteredSpecies
+            {
+                using Filter = particles::filter::All;
+                using Species = T_Species;
 
-namespace speciesFilter
-{
-    /** evaluate if the filter and species combination is valid
-     *
-     * @tparam T_SpeciesFilter SpeciesFilter, type of the filter and species
-     * @return ::type boost::mpl::bool_<>, if the species is eligible for the filter
-     */
-    template< typename T_SpeciesFilter >
-    struct IsEligible
-    {
-        using type = typename particles::traits::SpeciesEligibleForSolver<
-            typename T_SpeciesFilter::Species,
-            typename T_SpeciesFilter::Filter
-        >::type;
-    };
-} // namespace speciesFilter
+                /** get name of the filtered species
+                 *
+                 * @return <speciesName>
+                 */
+                static std::string getName()
+                {
+                    return Species::FrameType::getName();
+                }
+            };
 
-} //namespace misc
-} //namespace plugins
-} //namespace picongpu
+            namespace speciesFilter
+            {
+                /** evaluate if the filter and species combination is valid
+                 *
+                 * @tparam T_SpeciesFilter SpeciesFilter, type of the filter and species
+                 * @return ::type boost::mpl::bool_<>, if the species is eligible for the filter
+                 */
+                template<typename T_SpeciesFilter>
+                struct IsEligible
+                {
+                    using type = typename particles::traits::SpeciesEligibleForSolver<
+                        typename T_SpeciesFilter::Species,
+                        typename T_SpeciesFilter::Filter>::type;
+                };
+            } // namespace speciesFilter
+
+        } // namespace misc
+    } // namespace plugins
+} // namespace picongpu

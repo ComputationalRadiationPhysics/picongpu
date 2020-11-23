@@ -26,61 +26,55 @@
 
 namespace picongpu
 {
-namespace SI
-{
-    /** The maximum density in particles per m^3 in the gas distribution
-     *  unit: ELEMENTS/m^3
-     *
-     * He (2e- / Atom ) with 1.e15 He / m^3
-     *                      = 2.e15 e- / m^3 */
-
-    constexpr float_64 BASE_DENSITY_SI = 5.9e28; // solid gold
-
-}
-
-namespace densityProfiles
-{
-
-struct FoilFunctor
-{
-
-    /**
-     * This formula uses SI quantities only
-     * The profile will be multiplied by BASE_DENSITY_SI.
-     *
-     * @param position_SI total offset including all slides [in meter]
-     * @param cellSize_SI cell sizes [in meter]
-     *
-     * @return float_X density [normalized to 1.0]
-     */
-    HDINLINE float_X operator()(
-        float2_64 pos,
-        const float3_64& cellSize_SI
-    )
+    namespace SI
     {
-        /* center point of foil */
-        constexpr float_64 plateauPos = 4e-6;
-        /* thickness of foil */
-        constexpr float_64 plateauLength = 2e-6;
-        /* gaussian ramp length of density above the surface */
-        constexpr float_64 rampLength = 0.1e-6;
+        /** The maximum density in particles per m^3 in the gas distribution
+         *  unit: ELEMENTS/m^3
+         *
+         * He (2e- / Atom ) with 1.e15 He / m^3
+         *                      = 2.e15 e- / m^3 */
 
-        using namespace pmacc::math;
+        constexpr float_64 BASE_DENSITY_SI = 5.9e28; // solid gold
 
-        if( abs( pos.y() - plateauPos) < plateauLength / 2.0 )
+    } // namespace SI
+
+    namespace densityProfiles
+    {
+        struct FoilFunctor
         {
-            return 1.0_X;
-        }
-        const float_64 d = math::min(
-            abs( pos.y() - plateauPos + plateauLength / 2.0 ),
-            abs( pos.y() - plateauPos - plateauLength / 2.0 )
-        );
-        return float_X( exp( -d * d / ( 2.0_X * rampLength * rampLength ) ) );
-    }
-};
+            /**
+             * This formula uses SI quantities only
+             * The profile will be multiplied by BASE_DENSITY_SI.
+             *
+             * @param position_SI total offset including all slides [in meter]
+             * @param cellSize_SI cell sizes [in meter]
+             *
+             * @return float_X density [normalized to 1.0]
+             */
+            HDINLINE float_X operator()(float2_64 pos, const float3_64& cellSize_SI)
+            {
+                /* center point of foil */
+                constexpr float_64 plateauPos = 4e-6;
+                /* thickness of foil */
+                constexpr float_64 plateauLength = 2e-6;
+                /* gaussian ramp length of density above the surface */
+                constexpr float_64 rampLength = 0.1e-6;
 
-//! definition of free formula profile
-using Foil = FreeFormulaImpl< FoilFunctor >;
+                using namespace pmacc::math;
 
-} // namespace densityProfiles
-} // namepsace picongpu
+                if(abs(pos.y() - plateauPos) < plateauLength / 2.0)
+                {
+                    return 1.0_X;
+                }
+                const float_64 d = math::min(
+                    abs(pos.y() - plateauPos + plateauLength / 2.0),
+                    abs(pos.y() - plateauPos - plateauLength / 2.0));
+                return float_X(exp(-d * d / (2.0_X * rampLength * rampLength)));
+            }
+        };
+
+        //! definition of free formula profile
+        using Foil = FreeFormulaImpl<FoilFunctor>;
+
+    } // namespace densityProfiles
+} // namespace picongpu

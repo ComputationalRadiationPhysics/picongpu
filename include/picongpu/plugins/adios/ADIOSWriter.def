@@ -26,7 +26,7 @@
 #include <limits>
 #include <sstream>
 #include <string>
-#include <iostream>  // std::cerr
+#include <iostream> // std::cerr
 #include <stdexcept> // throw std::runtime_error
 
 #include <pmacc/types.hpp>
@@ -38,133 +38,133 @@
 
 namespace picongpu
 {
+    namespace adios
+    {
+        using namespace pmacc;
 
-namespace adios
-{
-using namespace pmacc;
 
-
-namespace po = boost::program_options;
+        namespace po = boost::program_options;
 
 #define ADIOS_INVALID_HANDLE -1
-#define ADIOS_SUCCESS       err_no_error
-#define ADIOS_GROUP_NAME     "data"
+#define ADIOS_SUCCESS err_no_error
+#define ADIOS_GROUP_NAME "data"
 
-#define ADIOS_PATH_ROOT      "/data/"
-#define ADIOS_PATH_FIELDS    "fields/"
+#define ADIOS_PATH_ROOT "/data/"
+#define ADIOS_PATH_FIELDS "fields/"
 #define ADIOS_PATH_PARTICLES "particles/"
 
-#define ADIOS_SIZE_LOCAL     "size_"
-#define ADIOS_SIZE_GLOBAL    "totalSize_"
-#define ADIOS_OFFSET_GLOBAL  "offset_"
+#define ADIOS_SIZE_LOCAL "size_"
+#define ADIOS_SIZE_GLOBAL "totalSize_"
+#define ADIOS_OFFSET_GLOBAL "offset_"
 
-#define ADIOS_CMD(_cmd)                                                       \
-{                                                                             \
-    int _err_code = _cmd;                                                     \
-    if (_err_code != ADIOS_SUCCESS)                                           \
-    {                                                                         \
-        std::string errMsg( adios_errmsg() );                                 \
-        if( errMsg.empty() ) errMsg = '\n';                                   \
-        std::stringstream s;                                                  \
-        s << "ADIOS: error at cmd '" << #_cmd                                 \
-          << "' (" << _err_code << ", " << adios_errno << ") in "             \
-          << __FILE__ << ":" << __LINE__ << " " << errMsg;                    \
-        throw std::runtime_error(s.str());                                    \
-    }                                                                         \
-}
+#define ADIOS_CMD(_cmd)                                                                                               \
+    {                                                                                                                 \
+        int _err_code = _cmd;                                                                                         \
+        if(_err_code != ADIOS_SUCCESS)                                                                                \
+        {                                                                                                             \
+            std::string errMsg(adios_errmsg());                                                                       \
+            if(errMsg.empty())                                                                                        \
+                errMsg = '\n';                                                                                        \
+            std::stringstream s;                                                                                      \
+            s << "ADIOS: error at cmd '" << #_cmd << "' (" << _err_code << ", " << adios_errno << ") in " << __FILE__ \
+              << ":" << __LINE__ << " " << errMsg;                                                                    \
+            throw std::runtime_error(s.str());                                                                        \
+        }                                                                                                             \
+    }
 
-#define ADIOS_CMD_EXPECT_NONNULL(_cmd)                                        \
-{                                                                             \
-    if (!(_cmd))                                                              \
-    {                                                                         \
-        std::string errMsg( adios_errmsg() );                                 \
-        if( errMsg.empty() ) errMsg = '\n';                                   \
-        std::stringstream s;                                                  \
-        s << "ADIOS: error at cmd '" << #_cmd                                 \
-          << "' (" << adios_errno << ") in "                                  \
-          << __FILE__ << ":" << __LINE__ << " " << errMsg;                    \
-        throw std::runtime_error(s.str());                                    \
-    }                                                                         \
-}
+#define ADIOS_CMD_EXPECT_NONNULL(_cmd)                                                                                \
+    {                                                                                                                 \
+        if(!(_cmd))                                                                                                   \
+        {                                                                                                             \
+            std::string errMsg(adios_errmsg());                                                                       \
+            if(errMsg.empty())                                                                                        \
+                errMsg = '\n';                                                                                        \
+            std::stringstream s;                                                                                      \
+            s << "ADIOS: error at cmd '" << #_cmd << "' (" << adios_errno << ") in " << __FILE__ << ":" << __LINE__   \
+              << " " << errMsg;                                                                                       \
+            throw std::runtime_error(s.str());                                                                        \
+        }                                                                                                             \
+    }
 
-struct ThreadParams
-{
-    uint32_t currentStep;                   /** current simulation step */
-    std::string adiosFilename;              /* e.g., simData */
-    std::string fullFilename;               /* e.g., simData_1000.bp */
+        struct ThreadParams
+        {
+            uint32_t currentStep; /** current simulation step */
+            std::string adiosFilename; /* e.g., simData */
+            std::string fullFilename; /* e.g., simData_1000.bp */
 
-    /** current dump is a checkpoint */
-    bool isCheckpoint;
-    ADIOS_FILE* fp;                          /* file pointer for checkpoint file */
+            /** current dump is a checkpoint */
+            bool isCheckpoint;
+            ADIOS_FILE* fp; /* file pointer for checkpoint file */
 
-    MPI_Comm adiosComm;                     /* MPI communicator for adios lib */
-    bool adiosBufferInitialized;            /* set if ADIOS buffer has been allocated */
-    int64_t adiosFileHandle;                /* ADIOS file handle */
-    int64_t adiosGroupHandle;               /* ADIOS group handle */
-    uint64_t adiosGroupSize;                /* size of ADIOS group in bytes */
-    uint32_t adiosAggregators;              /* number of ADIOS aggregators for MPI_AGGREGATE */
-    uint32_t adiosOST;                      /* number of ADIOS OST for MPI_AGGREGATE */
-    bool adiosDisableMeta;                  /* disable online gather and write of a meta file */
-    std::string adiosTransportParams;       /* additional transport params */
-    std::string adiosBasePath;              /* base path for the current step */
-    std::string adiosCompression;           /* ADIOS data transform compression method */
+            MPI_Comm adiosComm; /* MPI communicator for adios lib */
+            bool adiosBufferInitialized; /* set if ADIOS buffer has been allocated */
+            int64_t adiosFileHandle; /* ADIOS file handle */
+            int64_t adiosGroupHandle; /* ADIOS group handle */
+            uint64_t adiosGroupSize; /* size of ADIOS group in bytes */
+            uint32_t adiosAggregators; /* number of ADIOS aggregators for MPI_AGGREGATE */
+            uint32_t adiosOST; /* number of ADIOS OST for MPI_AGGREGATE */
+            bool adiosDisableMeta; /* disable online gather and write of a meta file */
+            std::string adiosTransportParams; /* additional transport params */
+            std::string adiosBasePath; /* base path for the current step */
+            std::string adiosCompression; /* ADIOS data transform compression method */
 
-    pmacc::math::UInt64<simDim> fieldsSizeDims;
-    pmacc::math::UInt64<simDim> fieldsGlobalSizeDims;
-    pmacc::math::UInt64<simDim> fieldsOffsetDims;
+            pmacc::math::UInt64<simDim> fieldsSizeDims;
+            pmacc::math::UInt64<simDim> fieldsGlobalSizeDims;
+            pmacc::math::UInt64<simDim> fieldsOffsetDims;
 
-    std::list<int64_t> adiosFieldVarIds;        /* var IDs for fields in order of appearance */
-    std::list<int64_t> adiosParticleAttrVarIds; /* var IDs for particle attributes in order of appearance */
-    std::list<int64_t> adiosSpeciesIndexVarIds; /* var IDs for species index tables in order of appearance */
+            std::list<int64_t> adiosFieldVarIds; /* var IDs for fields in order of appearance */
+            std::list<int64_t> adiosParticleAttrVarIds; /* var IDs for particle attributes in order of appearance */
+            std::list<int64_t> adiosSpeciesIndexVarIds; /* var IDs for species index tables in order of appearance */
 
-    GridLayout<simDim> gridLayout;
-    MappingDesc *cellDescription;
+            GridLayout<simDim> gridLayout;
+            MappingDesc* cellDescription;
 
-    float_X *fieldBfr;                              /* temp. buffer for fields */
+            float_X* fieldBfr; /* temp. buffer for fields */
 
-    Window window;                                  /* window describing the volume to be dumped */
+            Window window; /* window describing the volume to be dumped */
 
-    DataSpace<simDim> localWindowToDomainOffset;    /** offset from local moving window to local domain */
-};
+            DataSpace<simDim> localWindowToDomainOffset; /** offset from local moving window to local domain */
+        };
 
-/**
- * Writes simulation data to adios files.
- * Implements the ILightweightPlugin interface.
- */
+        /**
+         * Writes simulation data to adios files.
+         * Implements the ILightweightPlugin interface.
+         */
 
-class ADIOSWriter;
+        class ADIOSWriter;
 
-/** Default ADIOS types we will use */
-typedef PICToAdios<uint32_t> AdiosUInt32Type;
-typedef PICToAdios<float_X> AdiosFloatXType;
-typedef PICToAdios<double> AdiosDoubleType;
+        /** Default ADIOS types we will use */
+        typedef PICToAdios<uint32_t> AdiosUInt32Type;
+        typedef PICToAdios<float_X> AdiosFloatXType;
+        typedef PICToAdios<double> AdiosDoubleType;
 
-/**
- * Wrapper for adios_define_var that sets data transform method
- *
- * @tparam DIM number of variable dimensions
- *
- * @param group_id pointer to the internal group structure
- * @param name string containing the name part of a variable
- * @param path string containing the path of an variable
- * @param type variable type
- * @param dimensions variable local dimension
- * @param globalDimensions variable global dimension
- * @param offset variable local offset
- * @param compression enable compression data transform
- * @param compressionMethod string denoting the data transform to use
- * @return ADIOS variable ID
- */
-template <unsigned DIM>
-int64_t defineAdiosVar(int64_t group_id,
-                       const char * name,
-                       const char * path,
-                       enum ADIOS_DATATYPES type,
-                       pmacc::math::UInt64<DIM> dimensions,
-                       pmacc::math::UInt64<DIM> globalDimensions,
-                       pmacc::math::UInt64<DIM> offset,
-                       bool compression,
-                       std::string compressionMethod);
+        /**
+         * Wrapper for adios_define_var that sets data transform method
+         *
+         * @tparam DIM number of variable dimensions
+         *
+         * @param group_id pointer to the internal group structure
+         * @param name string containing the name part of a variable
+         * @param path string containing the path of an variable
+         * @param type variable type
+         * @param dimensions variable local dimension
+         * @param globalDimensions variable global dimension
+         * @param offset variable local offset
+         * @param compression enable compression data transform
+         * @param compressionMethod string denoting the data transform to use
+         * @return ADIOS variable ID
+         */
+        template<unsigned DIM>
+        int64_t defineAdiosVar(
+            int64_t group_id,
+            const char* name,
+            const char* path,
+            enum ADIOS_DATATYPES type,
+            pmacc::math::UInt64<DIM> dimensions,
+            pmacc::math::UInt64<DIM> globalDimensions,
+            pmacc::math::UInt64<DIM> offset,
+            bool compression,
+            std::string compressionMethod);
 
-} //namespace adios
-} //namespace picongpu
+    } // namespace adios
+} // namespace picongpu

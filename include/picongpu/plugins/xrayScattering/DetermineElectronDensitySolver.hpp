@@ -24,51 +24,42 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace xrayScattering
-{
-    using namespace particles::particleToGrid;
-
-    template< typename T_ParticleType >
-    struct IsIon
+    namespace plugins
     {
-        using FrameType = typename T_ParticleType::FrameType;
-        using type = typename pmacc::traits::HasFlag<
-            FrameType,
-            boundElectrons
-        >::type;
-    };
+        namespace xrayScattering
+        {
+            using namespace particles::particleToGrid;
+
+            template<typename T_ParticleType>
+            struct IsIon
+            {
+                using FrameType = typename T_ParticleType::FrameType;
+                using type = typename pmacc::traits::HasFlag<FrameType, boundElectrons>::type;
+            };
 
 
-    /** Chose an electron density solver for a given particle type.
-    *
-    * Switches between a bound electron number density solver for particles
-    * with the boundElectrons attribute (ions) and a particle number density
-    * solver for other particle types (electrons).
-    *
-    * @tparam T_ParticleType Scattering particles
-    * @return ::type TmpField solver to be used
-    */
-    template< typename T_ParticlesType >
-    struct DetermineElectronDensitySolver
-    {
-        using IonSolver = typename CreateFieldTmpOperation_t<
-            T_ParticlesType,
-            derivedAttributes::BoundElectronDensity
-        >::Solver;
+            /** Chose an electron density solver for a given particle type.
+             *
+             * Switches between a bound electron number density solver for particles
+             * with the boundElectrons attribute (ions) and a particle number density
+             * solver for other particle types (electrons).
+             *
+             * @tparam T_ParticleType Scattering particles
+             * @return ::type TmpField solver to be used
+             */
+            template<typename T_ParticlesType>
+            struct DetermineElectronDensitySolver
+            {
+                using IonSolver =
+                    typename CreateFieldTmpOperation_t<T_ParticlesType, derivedAttributes::BoundElectronDensity>::
+                        Solver;
 
-        using ElectronSolver = typename CreateFieldTmpOperation_t<
-            T_ParticlesType,
-            derivedAttributes::Density
-        >::Solver;
+                using ElectronSolver =
+                    typename CreateFieldTmpOperation_t<T_ParticlesType, derivedAttributes::Density>::Solver;
 
-        using type = typename boost::mpl::if_<
-            typename IsIon< T_ParticlesType >::type,
-            IonSolver,
-            ElectronSolver
-        >::type;
-    };
-} // namespace xrayScattering
-} // namespace plugins
+                using type =
+                    typename boost::mpl::if_<typename IsIon<T_ParticlesType>::type, IonSolver, ElectronSolver>::type;
+            };
+        } // namespace xrayScattering
+    } // namespace plugins
 } // namespace picongpu

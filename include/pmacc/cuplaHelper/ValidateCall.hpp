@@ -32,14 +32,14 @@
 /**
  * Print a cupla error message including file/line info to stderr
  */
-#define PMACC_PRINT_CUPLA_ERROR(msg) \
+#define PMACC_PRINT_CUPLA_ERROR(msg)                                                                                  \
     std::cerr << "[cupla] Error: <" << __FILE__ << ">:" << __LINE__ << " " << msg << std::endl
 
 /**
  * Print a cupla error message including file/line info to stderr and raises an exception
  */
-#define PMACC_PRINT_CUPLA_ERROR_AND_THROW(cuplaError, msg) \
-    PMACC_PRINT_CUPLA_ERROR(msg);                         \
+#define PMACC_PRINT_CUPLA_ERROR_AND_THROW(cuplaError, msg)                                                            \
+    PMACC_PRINT_CUPLA_ERROR(msg);                                                                                     \
     throw std::runtime_error(std::string("[cupla] Error: ") + std::string(cuplaGetErrorString(cuplaError)))
 
 /**
@@ -47,7 +47,14 @@
  *
  * @param cmd command with cuplaError_t return value to check
  */
-#define CUDA_CHECK(cmd) {cuplaError_t error = cmd; if(error!=cuplaSuccess){ PMACC_PRINT_CUPLA_ERROR_AND_THROW(error, ""); }}
+#define CUDA_CHECK(cmd)                                                                                               \
+    {                                                                                                                 \
+        cuplaError_t error = cmd;                                                                                     \
+        if(error != cuplaSuccess)                                                                                     \
+        {                                                                                                             \
+            PMACC_PRINT_CUPLA_ERROR_AND_THROW(error, "");                                                             \
+        }                                                                                                             \
+    }
 
 /** Capture error, report and throw
  *
@@ -58,21 +65,28 @@
  * This macro will always throw in case of an error, either by
  * producing a new exception or propagating an existing one
  */
-#define CUDA_CHECK_MSG(cmd,msg)                                \
-{                                                              \
-    try                                                        \
-    {                                                          \
-        cuplaError_t error = cmd;                              \
-        if(error!=cuplaSuccess)                                \
-        {                                                      \
-            PMACC_PRINT_CUPLA_ERROR_AND_THROW(error, msg);     \
-        }                                                      \
-    }                                                          \
-    catch( ... )                                               \
-    {                                                          \
-        PMACC_PRINT_CUPLA_ERROR(msg);                          \
-        throw;                                                 \
-    }                                                          \
-}
+#define CUDA_CHECK_MSG(cmd, msg)                                                                                      \
+    {                                                                                                                 \
+        try                                                                                                           \
+        {                                                                                                             \
+            cuplaError_t error = cmd;                                                                                 \
+            if(error != cuplaSuccess)                                                                                 \
+            {                                                                                                         \
+                PMACC_PRINT_CUPLA_ERROR_AND_THROW(error, msg);                                                        \
+            }                                                                                                         \
+        }                                                                                                             \
+        catch(...)                                                                                                    \
+        {                                                                                                             \
+            PMACC_PRINT_CUPLA_ERROR(msg);                                                                             \
+            throw;                                                                                                    \
+        }                                                                                                             \
+    }
 
-#define CUDA_CHECK_NO_EXCEPT(cmd) {cuplaError_t error = cmd; if(error!=cuplaSuccess){ PMACC_PRINT_CUPLA_ERROR(""); }}
+#define CUDA_CHECK_NO_EXCEPT(cmd)                                                                                     \
+    {                                                                                                                 \
+        cuplaError_t error = cmd;                                                                                     \
+        if(error != cuplaSuccess)                                                                                     \
+        {                                                                                                             \
+            PMACC_PRINT_CUPLA_ERROR("");                                                                              \
+        }                                                                                                             \
+    }

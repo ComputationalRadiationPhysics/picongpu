@@ -29,36 +29,36 @@
 
 namespace pmacc
 {
-namespace nvidia
-{
-namespace functors
-{
-    struct Min
+    namespace nvidia
     {
-        template<typename Dst, typename Src >
-        DINLINE void operator()(Dst & dst, const Src & src) const
+        namespace functors
         {
-            dst = math::min(dst, src);
-        }
+            struct Min
+            {
+                template<typename Dst, typename Src>
+                DINLINE void operator()(Dst& dst, const Src& src) const
+                {
+                    dst = math::min(dst, src);
+                }
 
-        template<typename Dst, typename Src, typename T_Acc >
-        DINLINE void operator()(const T_Acc &, Dst & dst, const Src & src) const
-        {
-            dst = math::min(dst, src);
-        }
-    };
-} // namespace functors
-} // namespace nvidia
+                template<typename Dst, typename Src, typename T_Acc>
+                DINLINE void operator()(const T_Acc&, Dst& dst, const Src& src) const
+                {
+                    dst = math::min(dst, src);
+                }
+            };
+        } // namespace functors
+    } // namespace nvidia
 } // namespace pmacc
 
 namespace pmacc
 {
-namespace mpi
-{
-    template<>
-    HINLINE MPI_Op getMPI_Op<pmacc::nvidia::functors::Min>()
+    namespace mpi
     {
-        return MPI_MIN;
-    }
-} // namespace mpi
+        template<>
+        HINLINE MPI_Op getMPI_Op<pmacc::nvidia::functors::Min>()
+        {
+            return MPI_MIN;
+        }
+    } // namespace mpi
 } // namespace pmacc

@@ -32,176 +32,132 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace xrayScattering
-{
-    /** Kernel for xrayScattering calculation.
-     *
-     * @tparam T_numWorkers Number of virtual workers on block.
-     */
-    template < uint32_t T_numWorkers >
-    struct KernelXrayScattering
+    namespace plugins
     {
-        /** Kernel function.
-         *
-         * @param acc alpaka accelerator
-         * @param cellsGrid Dimensions of BORDER + CORE in cells, not super
-         *      cells.
-         * @param densityBoxGPU Data box of the density device storage, shifted
-         *      to exclude 1st GUARD.
-         * @param globalOffset Offset from the global to the local domain.
-         * @param fieldPos TmpField in cell position.
-         * @param amplitudeBox Device side data box of the output Buffer.
-         * @param totalNumVectors Number of scattering vectors to process.
-         * @param scatteringVectors Scattering vectors to process.
-         * @param probingBeam Probing beam characterization.
-         * @param currentStep Current simulation step.
-         */
-        template<
-            typename T_Acc,
-            typename T_DensityBoxGPU,
-            typename T_FieldPos,
-            typename T_DBox,
-            typename T_TotalNumVectors,
-            typename T_ScatteringVectors,
-            typename T_ProbingBeam
-        >
-        DINLINE void operator( )(
-            T_Acc const & acc,
-            DataSpace< simDim > cellsGrid,
-            T_DensityBoxGPU densityBoxGPU,
-            DataSpace< simDim > globalOffset,
-            T_FieldPos fieldPos,
-            T_DBox amplitudeBox,
-            T_TotalNumVectors const totalNumVectors,
-            T_ScatteringVectors scatteringVectors,
-            T_ProbingBeam probingBeam,
-            uint32_t currentStep,
-            uint32_t totalSimulationCells
-
-        ) const
+        namespace xrayScattering
         {
-            constexpr uint32_t blockSize = pmacc::traits::GetNumWorkers<
-                pmacc::math::CT::volume< SuperCellSize >::type::value >::value;
-            constexpr uint32_t numWorkers = T_numWorkers;
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-            uint32_t const blockIdxLin = cupla::blockIdx(acc).x;
+            /** Kernel for xrayScattering calculation.
+             *
+             * @tparam T_numWorkers Number of virtual workers on block.
+             */
+            template<uint32_t T_numWorkers>
+            struct KernelXrayScattering
+            {
+                /** Kernel function.
+                 *
+                 * @param acc alpaka accelerator
+                 * @param cellsGrid Dimensions of BORDER + CORE in cells, not super
+                 *      cells.
+                 * @param densityBoxGPU Data box of the density device storage, shifted
+                 *      to exclude 1st GUARD.
+                 * @param globalOffset Offset from the global to the local domain.
+                 * @param fieldPos TmpField in cell position.
+                 * @param amplitudeBox Device side data box of the output Buffer.
+                 * @param totalNumVectors Number of scattering vectors to process.
+                 * @param scatteringVectors Scattering vectors to process.
+                 * @param probingBeam Probing beam characterization.
+                 * @param currentStep Current simulation step.
+                 */
+                template<
+                    typename T_Acc,
+                    typename T_DensityBoxGPU,
+                    typename T_FieldPos,
+                    typename T_DBox,
+                    typename T_TotalNumVectors,
+                    typename T_ScatteringVectors,
+                    typename T_ProbingBeam>
+                DINLINE void operator()(
+                    T_Acc const& acc,
+                    DataSpace<simDim> cellsGrid,
+                    T_DensityBoxGPU densityBoxGPU,
+                    DataSpace<simDim> globalOffset,
+                    T_FieldPos fieldPos,
+                    T_DBox amplitudeBox,
+                    T_TotalNumVectors const totalNumVectors,
+                    T_ScatteringVectors scatteringVectors,
+                    T_ProbingBeam probingBeam,
+                    uint32_t currentStep,
+                    uint32_t totalSimulationCells
 
-            using complex_X = pmacc::math::Complex< float_X >;
-            using namespace pmacc::mappings::threads;
-            using namespace pmacc;
-            // Storage for positions in the beam coordinate system.
-            PMACC_SMEM(
-                acc,
-                positions,
-                memory::Array< float2_X, blockSize >
-            );
-            // Storage for (form factor density * beam intensity factor).
-            PMACC_SMEM(
-                acc,
-                densities,
-                memory::Array< float_X, blockSize >
-            );
-
-            uint32_t const linAccessBlockBegin = blockIdxLin * blockSize;
-
-            ForEachIdx<
-                IdxConfig<
-                    blockSize,
-                    numWorkers
-                >
-            >{ workerIdx }(
-                [ & ](
-                    uint32_t const linearIdx,
-                    uint32_t const
-                )
+                ) const
                 {
-                    // Each thread reads one field value and saves it together
-                    // with its position, in UNIT_LENGTH, in the global domain.
-                    DataSpace< simDim > const cellPosition(
-                        DataSpaceOperations< simDim >::map(
-                            cellsGrid,
-                            linearIdx + linAccessBlockBegin
-                        )
+                    constexpr uint32_t blockSize
+                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+                    constexpr uint32_t numWorkers = T_numWorkers;
+                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+                    uint32_t const blockIdxLin = cupla::blockIdx(acc).x;
+
+                    using complex_X = pmacc::math::Complex<float_X>;
+                    using namespace pmacc::mappings::threads;
+                    using namespace pmacc;
+                    // Storage for positions in the beam coordinate system.
+                    PMACC_SMEM(acc, positions, memory::Array<float2_X, blockSize>);
+                    // Storage for (form factor density * beam intensity factor).
+                    PMACC_SMEM(acc, densities, memory::Array<float_X, blockSize>);
+
+                    uint32_t const linAccessBlockBegin = blockIdxLin * blockSize;
+
+                    ForEachIdx<IdxConfig<blockSize, numWorkers>>{workerIdx}(
+                        [&](uint32_t const linearIdx, uint32_t const) {
+                            // Each thread reads one field value and saves it together
+                            // with its position, in UNIT_LENGTH, in the global domain.
+                            DataSpace<simDim> const cellPosition(
+                                DataSpaceOperations<simDim>::map(cellsGrid, linearIdx + linAccessBlockBegin));
+
+                            DataSpace<simDim> const cellGlobalPosition(cellPosition + globalOffset);
+                            floatD_X fieldGlobalPosition = precisionCast<float_X>(cellGlobalPosition) + fieldPos()[0];
+                            fieldGlobalPosition *= cellSize.shrink<simDim>();
+
+                            float_X density = densityBoxGPU(cellPosition)[0];
+                            // Save the cell position in the beam coordinate system.
+                            float3_X position_b = probingBeam.coordinateTransform(currentStep, fieldGlobalPosition);
+                            float_X beamFactor = probingBeam(position_b);
+                            // Store the cell value of the function that has to be
+                            // Fourier transformed.
+                            densities[linearIdx] = density * beamFactor / totalSimulationCells;
+                            // Store position in the beam comoving system
+                            // 3rd component is not needed anymore since q_z = 0.
+                            positions[linearIdx] = position_b.shrink<DIM2>();
+
+                            // Wait for all threads on the block to finish.
+                            cupla::__syncthreads(acc);
+
+                            // Calculate the density fourier transform:
+                            // Loop over q-vectors in frequency space:
+                            // Each worker process every numWorkers vector.
+                            for(uint32_t qLoopIdx = workerIdx; qLoopIdx < totalNumVectors; qLoopIdx += numWorkers)
+                            {
+                                float2_X q = scatteringVectors[qLoopIdx];
+                                complex_X amplitude(0.0);
+                                // Loop over all previously loaded cells:
+                                // This is a volume integral over the local domain
+                                // in the beam coordinate system.
+                                for(uint32_t rLoopIdx = 0; rLoopIdx < blockSize; rLoopIdx++)
+                                {
+                                    float_X dotqr;
+                                    density = densities[rLoopIdx];
+                                    float2_X position = positions[rLoopIdx];
+                                    dotqr = pmacc::math::dot(position, q);
+                                    dotqr *= -1.0;
+                                    amplitude += pmacc::math::euler(density, dotqr);
+                                } // end loop over positions
+                                // Add the super cell contribution to the output.
+                                // Avoid racing conditions between blocks.
+                                cupla::atomicAdd(
+                                    acc,
+                                    &(amplitudeBox[qLoopIdx].get_real()),
+                                    amplitude.get_real(),
+                                    ::alpaka::hierarchy::Blocks{});
+                                cupla::atomicAdd(
+                                    acc,
+                                    &(amplitudeBox[qLoopIdx].get_imag()),
+                                    amplitude.get_imag(),
+                                    ::alpaka::hierarchy::Blocks{});
+                            } // end loop over scattering directions
+                        } // end lambda function body
                     );
-
-                    DataSpace< simDim > const
-                        cellGlobalPosition( cellPosition + globalOffset );
-                    floatD_X fieldGlobalPosition = precisionCast< float_X >
-                        ( cellGlobalPosition ) + fieldPos( )[ 0 ];
-                    fieldGlobalPosition *= cellSize.shrink< simDim >( );
-
-                    float_X density = densityBoxGPU( cellPosition )[ 0 ];
-                    // Save the cell position in the beam coordinate system.
-                    float3_X  position_b = probingBeam.coordinateTransform(
-                        currentStep,
-                        fieldGlobalPosition
-                    );
-                    float_X beamFactor = probingBeam( position_b );
-                    // Store the cell value of the function that has to be
-                    // Fourier transformed.
-                    densities[ linearIdx ] = density * beamFactor
-                        / totalSimulationCells;
-                    // Store position in the beam comoving system
-                    // 3rd component is not needed anymore since q_z = 0.
-                    positions[linearIdx] = position_b.shrink< DIM2 >( );
-
-                    // Wait for all threads on the block to finish.
-                    cupla::__syncthreads( acc );
-
-                    // Calculate the density fourier transform:
-                    // Loop over q-vectors in frequency space:
-                    // Each worker process every numWorkers vector.
-                    for(
-                        uint32_t qLoopIdx = workerIdx;
-                        qLoopIdx < totalNumVectors;
-                        qLoopIdx += numWorkers
-                        )
-                    {
-                        float2_X q = scatteringVectors[ qLoopIdx ];
-                        complex_X amplitude( 0.0 );
-                        // Loop over all previously loaded cells:
-                        // This is a volume integral over the local domain
-                        // in the beam coordinate system.
-                        for(
-                            uint32_t rLoopIdx = 0;
-                            rLoopIdx < blockSize;
-                            rLoopIdx++
-                            )
-                        {
-                            float_X dotqr;
-                            density = densities[ rLoopIdx ];
-                            float2_X position = positions[ rLoopIdx ];
-                            dotqr = pmacc::math::dot(
-                                position,
-                                q
-                            );
-                            dotqr *= -1.0;
-                            amplitude += pmacc::math::euler(
-                                density,
-                                dotqr
-                            );
-                        } // end loop over positions
-                        // Add the super cell contribution to the output.
-                        // Avoid racing conditions between blocks.
-                        cupla::atomicAdd(
-                            acc,
-                            &( amplitudeBox[ qLoopIdx ].get_real( ) ),
-                            amplitude.get_real( ),
-                            ::alpaka::hierarchy::Blocks{ }
-                        );
-                        cupla::atomicAdd(
-                            acc,
-                            &( amplitudeBox[ qLoopIdx ].get_imag( ) ),
-                            amplitude.get_imag( ),
-                            ::alpaka::hierarchy::Blocks{ }
-                        );
-                    } // end loop over scattering directions
-                } // end lambda function body
-            );
-        }
-    };
-} // end xrayScattering
-} // end plugins
-} // end picongpu
+                }
+            };
+        } // namespace xrayScattering
+    } // namespace plugins
+} // namespace picongpu

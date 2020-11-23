@@ -23,46 +23,50 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace transitionRadiation
-{
-//! units for linear frequencies distribution for transition radiation plugin
-namespace linearFrequencies
-{
-    constexpr float_X omegaMin = SI::omegaMin*UNIT_TIME;
-    constexpr float_X omegaMax = SI::omegaMax*UNIT_TIME;
-    constexpr float_X deltaOmega = (float_X) ((omegaMax - omegaMin) / (float_X) (nOmega - 1)); // difference beween two omega
+    namespace plugins
+    {
+        namespace transitionRadiation
+        {
+            //! units for linear frequencies distribution for transition radiation plugin
+            namespace linearFrequencies
+            {
+                constexpr float_X omegaMin = SI::omegaMin * UNIT_TIME;
+                constexpr float_X omegaMax = SI::omegaMax * UNIT_TIME;
+                constexpr float_X deltaOmega
+                    = (float_X)((omegaMax - omegaMin) / (float_X)(nOmega - 1)); // difference beween two omega
 
-    constexpr unsigned int blocksizeOmega = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
-    constexpr unsigned int gridsizeOmega = nOmega / blocksizeOmega; // size of grid (dim: x); radiation
-}
+                constexpr unsigned int blocksizeOmega
+                    = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+                constexpr unsigned int gridsizeOmega = nOmega / blocksizeOmega; // size of grid (dim: x); radiation
+            } // namespace linearFrequencies
 
-//! units for logarithmic frequencies distribution for transition radiation plugin
-namespace logFrequencies
-{
-    constexpr float_X omegaMin = (SI::omegaMin*UNIT_TIME);
-    constexpr float_X omegaMax = (SI::omegaMax*UNIT_TIME);
+            //! units for logarithmic frequencies distribution for transition radiation plugin
+            namespace logFrequencies
+            {
+                constexpr float_X omegaMin = (SI::omegaMin * UNIT_TIME);
+                constexpr float_X omegaMax = (SI::omegaMax * UNIT_TIME);
 
-    constexpr unsigned int blocksizeOmega = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
-    constexpr unsigned int gridsizeOmega = nOmega / blocksizeOmega; // size of grid (dim: x); radiation
-}
+                constexpr unsigned int blocksizeOmega
+                    = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+                constexpr unsigned int gridsizeOmega = nOmega / blocksizeOmega; // size of grid (dim: x); radiation
+            } // namespace logFrequencies
 
-//! units for frequencies from list for transition radiation calculation
-namespace listFrequencies
-{
-    constexpr unsigned int blocksizeOmega = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
-    constexpr unsigned int gridsizeOmega = nOmega / blocksizeOmega; // size of grid (dim: x); radiation
-}
+            //! units for frequencies from list for transition radiation calculation
+            namespace listFrequencies
+            {
+                constexpr unsigned int blocksizeOmega
+                    = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+                constexpr unsigned int gridsizeOmega = nOmega / blocksizeOmega; // size of grid (dim: x); radiation
+            } // namespace listFrequencies
 
-//! unit for foil position
-namespace parameters
-{
-    constexpr float_X foilPosition = SI::foilPosition / UNIT_LENGTH;
-}
+            //! unit for foil position
+            namespace parameters
+            {
+                constexpr float_X foilPosition = SI::foilPosition / UNIT_LENGTH;
+            }
 
-} // namespace transitionRadiation
-} // namespace plugins
+        } // namespace transitionRadiation
+    } // namespace plugins
 } // namespace picongpu
 
 #include "picongpu/plugins/transitionRadiation/frequencies/LinearFrequencies.hpp"

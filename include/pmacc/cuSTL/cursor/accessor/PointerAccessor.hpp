@@ -23,28 +23,25 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-
-template<typename Type>
-struct PointerAccessor
-{
-    typedef Type& type;
-
-    /** Returns the dereferenced pointer of type 'Type'
-     *
-     * Here a reference is returned because one expects a reference
-     * if an ordinary c++ pointer is dereferenced too.
-     * There is no danger if the cursor object is temporary.
-     */
-    template<typename Data>
-    HDINLINE
-    type operator()(Data& data) const
+    namespace cursor
     {
-        return *((Type*)data);
-    }
-};
+        template<typename Type>
+        struct PointerAccessor
+        {
+            typedef Type& type;
 
-} // cursor
-} // pmacc
+            /** Returns the dereferenced pointer of type 'Type'
+             *
+             * Here a reference is returned because one expects a reference
+             * if an ordinary c++ pointer is dereferenced too.
+             * There is no danger if the cursor object is temporary.
+             */
+            template<typename Data>
+            HDINLINE type operator()(Data& data) const
+            {
+                return *((Type*) data);
+            }
+        };
 
+    } // namespace cursor
+} // namespace pmacc

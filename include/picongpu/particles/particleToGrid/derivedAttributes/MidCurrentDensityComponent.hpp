@@ -26,46 +26,42 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-
-    template< size_t T_direction>
-    HDINLINE float1_64
-    MidCurrentDensityComponent<T_direction>::getUnit() const
+    namespace particles
     {
-        const float_64 UNIT_AREA = UNIT_LENGTH * UNIT_LENGTH;
-        return UNIT_CHARGE / ( UNIT_TIME * UNIT_AREA );
-    }
+        namespace particleToGrid
+        {
+            namespace derivedAttributes
+            {
+                template<size_t T_direction>
+                HDINLINE float1_64 MidCurrentDensityComponent<T_direction>::getUnit() const
+                {
+                    const float_64 UNIT_AREA = UNIT_LENGTH * UNIT_LENGTH;
+                    return UNIT_CHARGE / (UNIT_TIME * UNIT_AREA);
+                }
 
-    template< size_t T_direction>
-    template< class T_Particle >
-    DINLINE float_X
-    MidCurrentDensityComponent<T_direction>::operator()( T_Particle& particle ) const
-    {
-        /* read existing attributes */
-        const float_X weighting = particle[weighting_];
-        const float_X charge = attribute::getCharge( weighting, particle );
-        const float3_X mom = particle[momentum_];
-        const float_X momCom = mom[T_direction];
-        const float_X mass = attribute::getMass( weighting, particle );
+                template<size_t T_direction>
+                template<class T_Particle>
+                DINLINE float_X MidCurrentDensityComponent<T_direction>::operator()(T_Particle& particle) const
+                {
+                    /* read existing attributes */
+                    const float_X weighting = particle[weighting_];
+                    const float_X charge = attribute::getCharge(weighting, particle);
+                    const float3_X mom = particle[momentum_];
+                    const float_X momCom = mom[T_direction];
+                    const float_X mass = attribute::getMass(weighting, particle);
 
-        /* calculate new attribute */
-        Gamma<float_X> calcGamma;
-        const typename Gamma<float_X>::valueType gamma = calcGamma( mom, mass );
+                    /* calculate new attribute */
+                    Gamma<float_X> calcGamma;
+                    const typename Gamma<float_X>::valueType gamma = calcGamma(mom, mass);
 
-        /* calculate new attribute */
-        const float_X particleCurrentDensity =
-            charge / CELL_VOLUME *     /* rho */
-            momCom / ( gamma * mass ); /* v_component */
+                    /* calculate new attribute */
+                    const float_X particleCurrentDensity = charge / CELL_VOLUME * /* rho */
+                        momCom / (gamma * mass); /* v_component */
 
-        /* return attribute */
-        return particleCurrentDensity;
-    }
-} // namespace derivedAttributes
-} // namespace particleToGrid
-} // namespace particles
+                    /* return attribute */
+                    return particleCurrentDensity;
+                }
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
 } // namespace picongpu

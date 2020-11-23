@@ -57,156 +57,150 @@
 
 namespace picongpu
 {
+    using namespace pmacc;
 
-using namespace pmacc;
-
-class ThermalTestSimulation : public MySimulation
-{
-public:
-
-    ThermalTestSimulation()
-    : MySimulation()
+    class ThermalTestSimulation : public MySimulation
     {
-    }
-
-    void init()
-    {
-        MySimulation::init();
-
-        using namespace ::pmacc::math;
-
-        DataConnector &dc = Environment<>::get().DataConnector();
-        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
-
-        auto fieldE_coreBorder =
-             fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
-                   precisionCast<int>(GuardDim().toRT()), -precisionCast<int>(GuardDim().toRT()));
-
-        this->eField_zt[0] = new container::HostBuffer<float, 2 > (Size_t < 2 > (fieldE_coreBorder.size().z(), this->collectTimesteps));
-        this->eField_zt[1] = new container::HostBuffer<float, 2 >(this->eField_zt[0]->size());
-
-        dc.releaseData( FieldE::getName() );
-    }
-
-    void pluginRegisterHelp(po::options_description& desc)
-    {
-        MySimulation::pluginRegisterHelp(desc);
-    }
-
-    void pluginLoad()
-    {
-        MySimulation::pluginLoad();
-    }
-
-    virtual ~ThermalTestSimulation()
-    {
-        __delete(eField_zt[0]);
-        __delete(eField_zt[1]);
-    }
-
-    void writeOutput()
-    {
-        using namespace ::pmacc::math;
-
-        auto& con = Environment<simDim>::get().GridController();
-        Size_t<SIMDIM> gpuDim = (Size_t<SIMDIM>)con.getGpuNodes();
-        Int<3> gpuPos = (Int<3>)con.getPosition();
-        zone::SphericZone<SIMDIM> gpuGatheringZone(Size_t<SIMDIM > (1, 1, gpuDim.z()));
-        algorithm::mpi::Gather<SIMDIM> gather(gpuGatheringZone);
-
-        container::HostBuffer<float, 2 > eField_zt_reduced(eField_zt[0]->size());
-
-        for (int i = 0; i < 2; i++)
+    public:
+        ThermalTestSimulation() : MySimulation()
         {
-            bool reduceRoot = (gpuPos.x() == 0) && (gpuPos.y() == 0);
-            for(int gpuPos_z = 0; gpuPos_z < (int)gpuDim.z(); gpuPos_z++)
+        }
+
+        void init()
+        {
+            MySimulation::init();
+
+            using namespace ::pmacc::math;
+
+            DataConnector& dc = Environment<>::get().DataConnector();
+            auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
+
+            auto fieldE_coreBorder = fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
+                precisionCast<int>(GuardDim().toRT()),
+                -precisionCast<int>(GuardDim().toRT()));
+
+            this->eField_zt[0]
+                = new container::HostBuffer<float, 2>(Size_t<2>(fieldE_coreBorder.size().z(), this->collectTimesteps));
+            this->eField_zt[1] = new container::HostBuffer<float, 2>(this->eField_zt[0]->size());
+
+            dc.releaseData(FieldE::getName());
+        }
+
+        void pluginRegisterHelp(po::options_description& desc)
+        {
+            MySimulation::pluginRegisterHelp(desc);
+        }
+
+        void pluginLoad()
+        {
+            MySimulation::pluginLoad();
+        }
+
+        virtual ~ThermalTestSimulation()
+        {
+            __delete(eField_zt[0]);
+            __delete(eField_zt[1]);
+        }
+
+        void writeOutput()
+        {
+            using namespace ::pmacc::math;
+
+            auto& con = Environment<simDim>::get().GridController();
+            Size_t<SIMDIM> gpuDim = (Size_t<SIMDIM>) con.getGpuNodes();
+            Int<3> gpuPos = (Int<3>) con.getPosition();
+            zone::SphericZone<SIMDIM> gpuGatheringZone(Size_t<SIMDIM>(1, 1, gpuDim.z()));
+            algorithm::mpi::Gather<SIMDIM> gather(gpuGatheringZone);
+
+            container::HostBuffer<float, 2> eField_zt_reduced(eField_zt[0]->size());
+
+            for(int i = 0; i < 2; i++)
             {
-                zone::SphericZone<3> gpuReducingZone(
-                    Size_t<3>(gpuDim.x(), gpuDim.y(), 1),
-                    Int<3>(0, 0, gpuPos_z));
+                bool reduceRoot = (gpuPos.x() == 0) && (gpuPos.y() == 0);
+                for(int gpuPos_z = 0; gpuPos_z < (int) gpuDim.z(); gpuPos_z++)
+                {
+                    zone::SphericZone<3> gpuReducingZone(Size_t<3>(gpuDim.x(), gpuDim.y(), 1), Int<3>(0, 0, gpuPos_z));
 
-                algorithm::mpi::Reduce<3> reduce(gpuReducingZone, reduceRoot);
+                    algorithm::mpi::Reduce<3> reduce(gpuReducingZone, reduceRoot);
 
-                reduce(eField_zt_reduced, *(eField_zt[i]), pmacc::algorithm::functor::Add());
-            }
-            if(!reduceRoot) continue;
+                    reduce(eField_zt_reduced, *(eField_zt[i]), pmacc::algorithm::functor::Add());
+                }
+                if(!reduceRoot)
+                    continue;
 
-            container::HostBuffer<float, 2 > global_eField_zt(
-                gpuDim.z() * eField_zt_reduced.size().x(), eField_zt_reduced.size().y());
+                container::HostBuffer<float, 2> global_eField_zt(
+                    gpuDim.z() * eField_zt_reduced.size().x(),
+                    eField_zt_reduced.size().y());
 
-            gather(global_eField_zt, eField_zt_reduced, 1);
-            if (gather.root())
-            {
-                std::string filename;
-                if (i == 0)
-                    filename = "eField_zt_trans.dat";
-                else
-                    filename = "eField_zt_long.dat";
-                std::ofstream eField_zt_dat(filename.data());
-                eField_zt_dat << global_eField_zt;
-                eField_zt_dat.close();
+                gather(global_eField_zt, eField_zt_reduced, 1);
+                if(gather.root())
+                {
+                    std::string filename;
+                    if(i == 0)
+                        filename = "eField_zt_trans.dat";
+                    else
+                        filename = "eField_zt_long.dat";
+                    std::ofstream eField_zt_dat(filename.data());
+                    eField_zt_dat << global_eField_zt;
+                    eField_zt_dat.close();
+                }
             }
         }
 
-    }
-
-    /**
-     * Run one simulation step.
-     *
-     * @param currentStep iteration number of the current step
-     */
-    void runOneStep(uint32_t currentStep)
-    {
-        MySimulation::runOneStep(currentStep);
-
-        if (currentStep > this->collectTimesteps + firstTimestep)
-            return;
-        if (currentStep < firstTimestep)
-            return;
-
-        using namespace math;
-
-        DataConnector &dc = Environment<>::get().DataConnector();
-        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
-
-        auto fieldE_coreBorder =
-           fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
-                precisionCast<int>(GuardDim().toRT()), -precisionCast<int>(GuardDim().toRT()));
-
-        for (size_t z = 0; z < eField_zt[0]->size().x(); z++)
+        /**
+         * Run one simulation step.
+         *
+         * @param currentStep iteration number of the current step
+         */
+        void runOneStep(uint32_t currentStep)
         {
-            zone::SphericZone < 2 > reduceZone(fieldE_coreBorder.size().shrink<2>());
-            for (int i = 0; i < 2; i++)
+            MySimulation::runOneStep(currentStep);
+
+            if(currentStep > this->collectTimesteps + firstTimestep)
+                return;
+            if(currentStep < firstTimestep)
+                return;
+
+            using namespace math;
+
+            DataConnector& dc = Environment<>::get().DataConnector();
+            auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
+
+            auto fieldE_coreBorder = fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
+                precisionCast<int>(GuardDim().toRT()),
+                -precisionCast<int>(GuardDim().toRT()));
+
+            for(size_t z = 0; z < eField_zt[0]->size().x(); z++)
             {
-                *(eField_zt[i]->origin()(z, currentStep - firstTimestep)) =
-                    algorithm::kernel::Reduce()
-                        (cursor::make_FunctorCursor(
+                zone::SphericZone<2> reduceZone(fieldE_coreBorder.size().shrink<2>());
+                for(int i = 0; i < 2; i++)
+                {
+                    *(eField_zt[i]->origin()(z, currentStep - firstTimestep)) = algorithm::kernel::Reduce()(
+                        cursor::make_FunctorCursor(
                             cursor::tools::slice(fieldE_coreBorder.origin()(0, 0, z)),
-                            pmacc::algorithm::functor::GetComponent<typename FieldE::ValueType::type>(i == 0 ? 0 : 2)
-                        ),
+                            pmacc::algorithm::functor::GetComponent<typename FieldE::ValueType::type>(i == 0 ? 0 : 2)),
                         reduceZone,
                         nvidia::functors::Add());
+                }
             }
+
+            dc.releaseData(FieldE::getName());
+
+            if(currentStep == this->collectTimesteps + firstTimestep)
+                writeOutput();
         }
 
-        dc.releaseData( FieldE::getName() );
+    private:
+        // number of timesteps which collect the data
+        static constexpr uint32_t collectTimesteps = 512;
+        // first timestep which collects data
+        //   you may like to let the plasma develope/thermalize a little bit
+        static constexpr uint32_t firstTimestep = 1024;
 
-        if (currentStep == this->collectTimesteps + firstTimestep)
-            writeOutput();
-    }
+        container::HostBuffer<float, 2>* eField_zt[2];
 
-private:
-    // number of timesteps which collect the data
-    static constexpr uint32_t collectTimesteps = 512;
-    // first timestep which collects data
-    //   you may like to let the plasma develope/thermalize a little bit
-    static constexpr uint32_t firstTimestep = 1024;
-
-    container::HostBuffer<float, 2 >* eField_zt[2];
-
-    using BlockDim = pmacc::math::CT::Size_t < 16, 16, 1 >;
-    using GuardDim = SuperCellSize;
-};
+        using BlockDim = pmacc::math::CT::Size_t<16, 16, 1>;
+        using GuardDim = SuperCellSize;
+    };
 
 } // namespace picongpu
-

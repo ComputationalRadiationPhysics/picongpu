@@ -34,70 +34,61 @@
 
 namespace picongpu
 {
-namespace simulation
-{
-namespace stage
-{
-
-    //! Functor for the stage of the PIC loop applying field background
-    class FieldBackground
+    namespace simulation
     {
-    public:
-
-        /** Create a field background functor
-         *
-         * Having this in constructor is a temporary solution.
-         *
-         * @param cellDescription mapping for kernels
-         */
-        FieldBackground( MappingDesc const cellDescription ):
-            cellDescription( cellDescription )
+        namespace stage
         {
-        }
+            //! Functor for the stage of the PIC loop applying field background
+            class FieldBackground
+            {
+            public:
+                /** Create a field background functor
+                 *
+                 * Having this in constructor is a temporary solution.
+                 *
+                 * @param cellDescription mapping for kernels
+                 */
+                FieldBackground(MappingDesc const cellDescription) : cellDescription(cellDescription)
+                {
+                }
 
-        /** Add the field background to the current density
-         *
-         * @tparam T_Functor functor type compatible to nvidia::functors
-         *
-         * @param step index of time iteration
-         * @param functor functor to apply to the background
-         */
-        template< typename T_Functor >
-        void operator( )( uint32_t const step, T_Functor functor ) const
-        {
-            using namespace pmacc;
-            DataConnector & dc = Environment< >::get( ).DataConnector( );
-            auto fieldE = dc.get< FieldE >( FieldE::getName( ), true );
-            auto fieldB = dc.get< FieldB >( FieldB::getName( ), true );
-            using Background = cellwiseOperation::CellwiseOperation<
-                CORE + BORDER + GUARD
-            >;
-            Background background( cellDescription );
-            background(
-                fieldE,
-                functor,
-                FieldBackgroundE( fieldE->getUnit( ) ),
-                step,
-                FieldBackgroundE::InfluenceParticlePusher
-            );
-            background(
-                fieldB,
-                functor,
-                FieldBackgroundB( fieldB->getUnit( ) ),
-                step,
-                FieldBackgroundB::InfluenceParticlePusher
-            );
-            dc.releaseData( FieldE::getName( ) );
-            dc.releaseData( FieldB::getName( ) );
-        }
+                /** Add the field background to the current density
+                 *
+                 * @tparam T_Functor functor type compatible to nvidia::functors
+                 *
+                 * @param step index of time iteration
+                 * @param functor functor to apply to the background
+                 */
+                template<typename T_Functor>
+                void operator()(uint32_t const step, T_Functor functor) const
+                {
+                    using namespace pmacc;
+                    DataConnector& dc = Environment<>::get().DataConnector();
+                    auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
+                    auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
+                    using Background = cellwiseOperation::CellwiseOperation<CORE + BORDER + GUARD>;
+                    Background background(cellDescription);
+                    background(
+                        fieldE,
+                        functor,
+                        FieldBackgroundE(fieldE->getUnit()),
+                        step,
+                        FieldBackgroundE::InfluenceParticlePusher);
+                    background(
+                        fieldB,
+                        functor,
+                        FieldBackgroundB(fieldB->getUnit()),
+                        step,
+                        FieldBackgroundB::InfluenceParticlePusher);
+                    dc.releaseData(FieldE::getName());
+                    dc.releaseData(FieldB::getName());
+                }
 
-    private:
+            private:
+                //! Mapping for kernels
+                MappingDesc cellDescription;
+            };
 
-        //! Mapping for kernels
-        MappingDesc cellDescription;
-
-    };
-
-} // namespace stage
-} // namespace simulation
+        } // namespace stage
+    } // namespace simulation
 } // namespace picongpu

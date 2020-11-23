@@ -30,24 +30,21 @@
 
 namespace pmacc
 {
+    /** Join both input types to one boost mpl sequence
+     *
+     * @tparam T_1 a boost mpl sequence or single type
+     * @tparam T_2 a boost mpl sequence or single type
+     */
 
-/** Join both input types to one boost mpl sequence
- *
- * @tparam T_1 a boost mpl sequence or single type
- * @tparam T_2 a boost mpl sequence or single type
- */
+    template<typename T_1, typename T_2 = bmpl::vector0<>>
+    struct JoinToSeq
+    {
+    private:
+        typedef typename ToSeq<T_1>::type Seq1;
+        typedef typename ToSeq<T_2>::type Seq2;
 
-template<typename T_1, typename T_2 = bmpl::vector0<> >
-struct JoinToSeq
-{
-private:
-    typedef typename ToSeq<T_1 >::type Seq1;
-    typedef typename ToSeq<T_2 >::type Seq2;
-public:
-    typedef typename bmpl::copy<
-    Seq2,
-    bmpl::back_inserter< Seq1>
-    >::type type;
-};
+    public:
+        typedef typename bmpl::copy<Seq2, bmpl::back_inserter<Seq1>>::type type;
+    };
 
-} //namespace pmacc
+} // namespace pmacc

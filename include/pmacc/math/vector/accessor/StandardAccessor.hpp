@@ -25,25 +25,23 @@
 
 namespace pmacc
 {
-namespace math
-{
+    namespace math
+    {
+        /** \todo rename this class to AccessorIdentity*/
+        struct StandardAccessor
+        {
+            template<typename Data>
+            HDINLINE Data& operator()(Data& data) const
+            {
+                return data;
+            }
 
-/** \todo rename this class to AccessorIdentity*/
-struct StandardAccessor
-{
-template<typename Data>
-HDINLINE Data& operator()(Data& data) const
-{
-    return data;
-}
+            template<typename Data>
+            HDINLINE const Data& operator()(const Data& data) const
+            {
+                return data;
+            }
+        };
 
-template<typename Data>
-HDINLINE const Data& operator()(const Data& data) const
-{
-    return data;
-}
-
-};
-
-} // math
-} // pmacc
+    } // namespace math
+} // namespace pmacc

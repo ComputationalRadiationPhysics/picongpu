@@ -24,15 +24,15 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-namespace tag
-{
-struct BufferNavigator;
-struct CartNavigator;
-struct MultiIndexNavigator;
-} // tag
-} // cursor
-} // pmacc
+    namespace cursor
+    {
+        namespace tag
+        {
+            struct BufferNavigator;
+            struct CartNavigator;
+            struct MultiIndexNavigator;
+        } // namespace tag
+    } // namespace cursor
+} // namespace pmacc
 
 #endif // CURSOR_NAVIGATOR_TAG_H

@@ -38,61 +38,67 @@
 
 namespace picongpu
 {
-
-template<typename Field>
-SliceFieldPrinterMulti<Field>::SliceFieldPrinterMulti()
-    : name("SliceFieldPrinter: prints a slice of a field"),
-      prefix(Field::getName() + std::string("_slice"))
-{
-    Environment<>::get().PluginConnector().registerPlugin(this);
-}
-
-template<typename Field>
-void SliceFieldPrinterMulti<Field>::pluginRegisterHelp(po::options_description& desc)
-{
-    desc.add_options()
-        ((this->prefix + ".period").c_str(),
-        po::value<std::vector<std::string> > (&this->notifyPeriod)->multitoken(), "notify period");
-    desc.add_options()
-        ((this->prefix + ".fileName").c_str(),
-        po::value<std::vector<std::string> > (&this->fileName)->multitoken(), "file name to store slices in");
-    desc.add_options()
-        ((this->prefix + ".plane").c_str(),
-        po::value<std::vector<int> > (&this->plane)->multitoken(), "specifies the axis which stands on the cutting plane (0,1,2)");
-    desc.add_options()
-        ((this->prefix + ".slicePoint").c_str(),
-        po::value<std::vector<float_X> > (&this->slicePoint)->multitoken(), "slice point 0.0 <= x <= 1.0");
-}
-
-template<typename Field>
-std::string SliceFieldPrinterMulti<Field>::pluginGetName() const {return this->name;}
-
-template<typename Field>
-void SliceFieldPrinterMulti<Field>::pluginLoad()
-{
-    this->childs.resize(this->notifyPeriod.size());
-    for(uint32_t i = 0; i < this->childs.size(); i++)
+    template<typename Field>
+    SliceFieldPrinterMulti<Field>::SliceFieldPrinterMulti()
+        : name("SliceFieldPrinter: prints a slice of a field")
+        , prefix(Field::getName() + std::string("_slice"))
     {
-        this->childs[i].setMappingDescription(this->cellDescription);
-        this->childs[i].notifyPeriod = this->notifyPeriod[i];
-        this->childs[i].fileName = this->fileName[i];
-        this->childs[i].plane = this->plane[i];
-        this->childs[i].slicePoint = this->slicePoint[i];
-        this->childs[i].pluginLoad();
+        Environment<>::get().PluginConnector().registerPlugin(this);
     }
-}
 
-template<typename Field>
-void SliceFieldPrinterMulti<Field>::pluginUnload()
-{
-    for(uint32_t i = 0; i < this->childs.size(); i++)
-        this->childs[i].pluginUnload();
-}
+    template<typename Field>
+    void SliceFieldPrinterMulti<Field>::pluginRegisterHelp(po::options_description& desc)
+    {
+        desc.add_options()(
+            (this->prefix + ".period").c_str(),
+            po::value<std::vector<std::string>>(&this->notifyPeriod)->multitoken(),
+            "notify period");
+        desc.add_options()(
+            (this->prefix + ".fileName").c_str(),
+            po::value<std::vector<std::string>>(&this->fileName)->multitoken(),
+            "file name to store slices in");
+        desc.add_options()(
+            (this->prefix + ".plane").c_str(),
+            po::value<std::vector<int>>(&this->plane)->multitoken(),
+            "specifies the axis which stands on the cutting plane (0,1,2)");
+        desc.add_options()(
+            (this->prefix + ".slicePoint").c_str(),
+            po::value<std::vector<float_X>>(&this->slicePoint)->multitoken(),
+            "slice point 0.0 <= x <= 1.0");
+    }
 
-template<typename Field>
-void SliceFieldPrinterMulti<Field>::setMappingDescription(MappingDesc* desc)
-{
-    this->cellDescription = desc;
-}
+    template<typename Field>
+    std::string SliceFieldPrinterMulti<Field>::pluginGetName() const
+    {
+        return this->name;
+    }
 
-}
+    template<typename Field>
+    void SliceFieldPrinterMulti<Field>::pluginLoad()
+    {
+        this->childs.resize(this->notifyPeriod.size());
+        for(uint32_t i = 0; i < this->childs.size(); i++)
+        {
+            this->childs[i].setMappingDescription(this->cellDescription);
+            this->childs[i].notifyPeriod = this->notifyPeriod[i];
+            this->childs[i].fileName = this->fileName[i];
+            this->childs[i].plane = this->plane[i];
+            this->childs[i].slicePoint = this->slicePoint[i];
+            this->childs[i].pluginLoad();
+        }
+    }
+
+    template<typename Field>
+    void SliceFieldPrinterMulti<Field>::pluginUnload()
+    {
+        for(uint32_t i = 0; i < this->childs.size(); i++)
+            this->childs[i].pluginUnload();
+    }
+
+    template<typename Field>
+    void SliceFieldPrinterMulti<Field>::setMappingDescription(MappingDesc* desc)
+    {
+        this->cellDescription = desc;
+    }
+
+} // namespace picongpu

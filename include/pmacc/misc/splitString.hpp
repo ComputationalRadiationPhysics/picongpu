@@ -28,37 +28,26 @@
 
 namespace pmacc
 {
-namespace misc
-{
-    /** split a string in a vector of strings
-     *
-     * Based on Stack Overflow post:
-     *   source: https://stackoverflow.com/a/28142357
-     *   author: Marcin
-     *   date: Jan 25 '15
-     *
-     * @param input string to split
-     * @param regex separator between two elements
-     */
-    HINLINE std::vector< std::string > splitString(
-        std::string const & input,
-        std::string const & delimiter = ","
-    )
+    namespace misc
     {
-        std::regex re( delimiter );
-        // passing -1 as the submatch index parameter performs splitting
-        std::sregex_token_iterator first{
-            input.begin(),
-            input.end(),
-            re,
-            -1
-        };
-        std::sregex_token_iterator last;
+        /** split a string in a vector of strings
+         *
+         * Based on Stack Overflow post:
+         *   source: https://stackoverflow.com/a/28142357
+         *   author: Marcin
+         *   date: Jan 25 '15
+         *
+         * @param input string to split
+         * @param regex separator between two elements
+         */
+        HINLINE std::vector<std::string> splitString(std::string const& input, std::string const& delimiter = ",")
+        {
+            std::regex re(delimiter);
+            // passing -1 as the submatch index parameter performs splitting
+            std::sregex_token_iterator first{input.begin(), input.end(), re, -1};
+            std::sregex_token_iterator last;
 
-        return {
-            first,
-            last
-        };
-    }
-} // namespace misc
+            return {first, last};
+        }
+    } // namespace misc
 } // namespace pmacc

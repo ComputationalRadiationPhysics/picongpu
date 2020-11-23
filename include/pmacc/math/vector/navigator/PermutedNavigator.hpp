@@ -25,17 +25,16 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<typename Permutation>
-struct PermutedNavigator
-{
-    HDINLINE int operator()(int component) const
+    namespace math
     {
-        return Permutation().toRT()[component];
-    }
-};
+        template<typename Permutation>
+        struct PermutedNavigator
+        {
+            HDINLINE int operator()(int component) const
+            {
+                return Permutation().toRT()[component];
+            }
+        };
 
-} // math
-} // PMacc
+    } // namespace math
+} // namespace pmacc

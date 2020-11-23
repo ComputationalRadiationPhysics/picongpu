@@ -26,28 +26,28 @@
 
 namespace pmacc
 {
-namespace traits
-{
-namespace limits
-{
-/** get maximum finite value
- *
- * @tparam T_Type any type
- * @result ::value
- */
-template<typename T_Type>
-struct Max;
+    namespace traits
+    {
+        namespace limits
+        {
+            /** get maximum finite value
+             *
+             * @tparam T_Type any type
+             * @result ::value
+             */
+            template<typename T_Type>
+            struct Max;
 
-/** get minimum finite value
- *
- * @tparam T_Type any type
- * @result ::value
- */
-template<typename T_Type>
-struct Min;
+            /** get minimum finite value
+             *
+             * @tparam T_Type any type
+             * @result ::value
+             */
+            template<typename T_Type>
+            struct Min;
 
-} //namespace limits
-} //namespace traits
-} //namespace pmacc
+        } // namespace limits
+    } // namespace traits
+} // namespace pmacc
 
 #include "pmacc/traits/Limits.tpp"

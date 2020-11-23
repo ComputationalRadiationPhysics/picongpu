@@ -28,44 +28,46 @@
 
 namespace pmacc
 {
-namespace math
-{
-namespace CT
-{
+    namespace math
+    {
+        namespace CT
+        {
+            /** Compile time uint32_t vector
+             *
+             *
+             * @tparam x value for x allowed range [0;max uint32_t value -1]
+             * @tparam y value for y allowed range [0;max uint32_t value -1]
+             * @tparam z value for z allowed range [0;max uint32_t value -1]
+             *
+             * default parameter is used to distinguish between values given by
+             * the user and unset values.
+             */
+            template<
+                uint32_t x = traits::limits::Max<uint32_t>::value,
+                uint32_t y = traits::limits::Max<uint32_t>::value,
+                uint32_t z = traits::limits::Max<uint32_t>::value>
+            struct UInt32
+                : public CT::
+                      Vector<mpl::integral_c<uint32_t, x>, mpl::integral_c<uint32_t, y>, mpl::integral_c<uint32_t, z>>
+            {
+            };
 
-/** Compile time uint32_t vector
- *
- *
- * @tparam x value for x allowed range [0;max uint32_t value -1]
- * @tparam y value for y allowed range [0;max uint32_t value -1]
- * @tparam z value for z allowed range [0;max uint32_t value -1]
- *
- * default parameter is used to distinguish between values given by
- * the user and unset values.
- */
-template<uint32_t x = traits::limits::Max<uint32_t>::value,
-         uint32_t y = traits::limits::Max<uint32_t>::value,
-         uint32_t z = traits::limits::Max<uint32_t>::value>
-struct UInt32 : public CT::Vector<mpl::integral_c<uint32_t, x>,
-                                                   mpl::integral_c<uint32_t, y>,
-                                                   mpl::integral_c<uint32_t, z> >
-{};
+            template<>
+            struct UInt32<> : public CT::Vector<>
+            {
+            };
 
-template<>
-struct UInt32<> : public CT::Vector<>
-{};
+            template<uint32_t x>
+            struct UInt32<x> : public CT::Vector<mpl::integral_c<uint32_t, x>>
+            {
+            };
 
-template<uint32_t x>
-struct UInt32<x> : public CT::Vector< mpl::integral_c<uint32_t, x> >
-{};
-
-template<uint32_t x, uint32_t y>
-struct UInt32<x, y> : public CT::Vector<mpl::integral_c<uint32_t, x>,
-                                                mpl::integral_c<uint32_t, y> >
-{};
+            template<uint32_t x, uint32_t y>
+            struct UInt32<x, y> : public CT::Vector<mpl::integral_c<uint32_t, x>, mpl::integral_c<uint32_t, y>>
+            {
+            };
 
 
-
-} // CT
-} // math
-} // pmacc
+        } // namespace CT
+    } // namespace math
+} // namespace pmacc

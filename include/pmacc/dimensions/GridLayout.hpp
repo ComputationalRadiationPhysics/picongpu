@@ -26,33 +26,29 @@
 
 namespace pmacc
 {
-
     /**
      * Describes layout of a DIM-dimensional data grid including the actual grid and optional guards.
      *
      * @tparam DIM dimension of the grid
      */
-    template <unsigned DIM>
+    template<unsigned DIM>
     class GridLayout
     {
     public:
-
-        HDINLINE GridLayout() :
-        dataSpace(DataSpace<DIM>::create(1)),
-        guard(DataSpace<DIM>::create(0))
+        HDINLINE GridLayout() : dataSpace(DataSpace<DIM>::create(1)), guard(DataSpace<DIM>::create(0))
         {
         }
 
         /**
          * constructor
          * @param dataSpace DataSpace defining size of the layout (native loacal simulation area whithout any guarding)
-         * @param guard DataSpace defining size of the guard cells. Guard is added to actual grid (dataSpace). Will be initialized to 0.
+         * @param guard DataSpace defining size of the guard cells. Guard is added to actual grid (dataSpace). Will be
+         * initialized to 0.
          */
-        HDINLINE GridLayout(const DataSpace<DIM> &dataSpace, DataSpace<DIM> guard = DataSpace<DIM>()) :
-        dataSpace(dataSpace),
-        guard(guard)
+        HDINLINE GridLayout(const DataSpace<DIM>& dataSpace, DataSpace<DIM> guard = DataSpace<DIM>())
+            : dataSpace(dataSpace)
+            , guard(guard)
         {
-
         }
 
         /**
@@ -82,7 +78,6 @@ namespace pmacc
     private:
         DataSpace<DIM> dataSpace;
         DataSpace<DIM> guard;
-
     };
 
-} //namespace pmacc
+} // namespace pmacc

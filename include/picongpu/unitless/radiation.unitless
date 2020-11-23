@@ -22,46 +22,54 @@
 #include <pmacc/static_assert.hpp>
 
 
-PMACC_CASSERT_MSG( The_Nyquist_limit_needs_to_be_below_one, ( picongpu::plugins::radiation::radiationNyquist::NyquistFactor < 1.0 ) );
-PMACC_CASSERT_MSG( The_Nyquist_limit_needs_to_be_larger_than_zero, ( picongpu::plugins::radiation::radiationNyquist::NyquistFactor > 0.0 ) );
+PMACC_CASSERT_MSG(
+    The_Nyquist_limit_needs_to_be_below_one,
+    (picongpu::plugins::radiation::radiationNyquist::NyquistFactor < 1.0));
+PMACC_CASSERT_MSG(
+    The_Nyquist_limit_needs_to_be_larger_than_zero,
+    (picongpu::plugins::radiation::radiationNyquist::NyquistFactor > 0.0));
 namespace picongpu
 {
-namespace plugins
-{
-namespace radiation
-{
-namespace linear_frequencies
-{
-    constexpr float_X omega_min = SI::omega_min*UNIT_TIME;
-    constexpr float_X omega_max = SI::omega_max*UNIT_TIME;
-    constexpr float_X delta_omega = (float_X) ((omega_max - omega_min) / (float_X) (N_omega - 1)); // difference beween two omega
+    namespace plugins
+    {
+        namespace radiation
+        {
+            namespace linear_frequencies
+            {
+                constexpr float_X omega_min = SI::omega_min * UNIT_TIME;
+                constexpr float_X omega_max = SI::omega_max * UNIT_TIME;
+                constexpr float_X delta_omega
+                    = (float_X)((omega_max - omega_min) / (float_X)(N_omega - 1)); // difference beween two omega
 
-    constexpr unsigned int blocksize_omega = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
-    constexpr unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
-} // namespace linear_frequencies
+                constexpr unsigned int blocksize_omega
+                    = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+                constexpr unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
+            } // namespace linear_frequencies
 
-namespace log_frequencies
-{
-    constexpr float_X omega_min = (SI::omega_min*UNIT_TIME);
-    constexpr float_X omega_max = (SI::omega_max*UNIT_TIME);
+            namespace log_frequencies
+            {
+                constexpr float_X omega_min = (SI::omega_min * UNIT_TIME);
+                constexpr float_X omega_max = (SI::omega_max * UNIT_TIME);
 
-    constexpr unsigned int blocksize_omega = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
-    constexpr unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
-} // namespace log_frequencies
+                constexpr unsigned int blocksize_omega
+                    = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+                constexpr unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
+            } // namespace log_frequencies
 
-namespace frequencies_from_list
-{
-    constexpr unsigned int blocksize_omega = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
-    constexpr unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
-} // namespace frequencies_from_list
+            namespace frequencies_from_list
+            {
+                constexpr unsigned int blocksize_omega
+                    = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+                constexpr unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
+            } // namespace frequencies_from_list
 
-namespace parameters
-{
-    constexpr unsigned int gridsize_theta = N_observer; // size of grid /dim: y); radiation
-} // namespace parameters
+            namespace parameters
+            {
+                constexpr unsigned int gridsize_theta = N_observer; // size of grid /dim: y); radiation
+            } // namespace parameters
 
-} // namespace radiation
-} // namespace plugins
+        } // namespace radiation
+    } // namespace plugins
 } // namespace picongpu
 
 #include "picongpu/plugins/radiation/frequencies/radiation_lin_freq.hpp"

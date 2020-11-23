@@ -27,31 +27,28 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-
-    HDINLINE float1_64
-    Energy::getUnit() const
+    namespace particles
     {
-        return UNIT_ENERGY;
-    }
+        namespace particleToGrid
+        {
+            namespace derivedAttributes
+            {
+                HDINLINE float1_64 Energy::getUnit() const
+                {
+                    return UNIT_ENERGY;
+                }
 
-    template< class T_Particle >
-    DINLINE float_X
-    Energy::operator()( T_Particle& particle ) const
-    {
-        /* read existing attributes */
-        const float_X weighting = particle[weighting_];
-        const float3_X mom = particle[momentum_];
-        const float_X mass = attribute::getMass( weighting, particle );
+                template<class T_Particle>
+                DINLINE float_X Energy::operator()(T_Particle& particle) const
+                {
+                    /* read existing attributes */
+                    const float_X weighting = particle[weighting_];
+                    const float3_X mom = particle[momentum_];
+                    const float_X mass = attribute::getMass(weighting, particle);
 
-        return KinEnergy<>()( mom, mass );
-    }
-} // namespace derivedAttributes
-} // namespace particleToGrid
-} // namespace particles
+                    return KinEnergy<>()(mom, mass);
+                }
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
 } // namespace picongpu

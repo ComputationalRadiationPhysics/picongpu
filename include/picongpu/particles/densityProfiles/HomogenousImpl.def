@@ -22,8 +22,8 @@
 
 namespace picongpu
 {
-namespace densityProfiles
-{
-    struct HomogenousImpl;
-}
-}
+    namespace densityProfiles
+    {
+        struct HomogenousImpl;
+    }
+} // namespace picongpu

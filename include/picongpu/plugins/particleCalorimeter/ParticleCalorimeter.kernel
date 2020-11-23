@@ -24,112 +24,87 @@
 
 namespace picongpu
 {
-using namespace pmacc;
+    using namespace pmacc;
 
-/** This kernel is only called for guard particles.
- *
- * @tparam T_numWorkers number of workers
- */
-template< uint32_t T_numWorkers >
-struct KernelParticleCalorimeter
-{
-    /** call functor calorimeterFunctor for each particle
+    /** This kernel is only called for guard particles.
      *
-     * @tparam T_ParticlesBox pmacc::ParticlesBox, particle box type
-     * @tparam T_CalorimeterFunctor type of the functor
-     * @tparam T_Mapping supercell mapper functor type
-     * @tparam T_Acc alpaka accelerator type
-     *
-     * @param alpaka accelerator
-     * @param particlesBox particle memory
-     * @param mapper functor to map a block to a supercell
+     * @tparam T_numWorkers number of workers
      */
-    template<
-        typename T_ParticlesBox,
-        typename T_CalorimeterFunctor,
-        typename T_Mapper,
-        typename T_Acc,
-        typename T_Filter
-    >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        T_ParticlesBox particlesBox,
-        T_CalorimeterFunctor calorimeterFunctor,
-        T_Mapper mapper,
-        T_Filter filter
-    ) const
+    template<uint32_t T_numWorkers>
+    struct KernelParticleCalorimeter
     {
-        using namespace mappings::threads;
-
-        constexpr uint32_t numWorkers = T_numWorkers;
-        constexpr lcellId_t maxParticlesInFrame = pmacc::math::CT::volume< SuperCellSize >::type::value;
-
-        uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-        /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
-        DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace< simDim > ( cupla::blockIdx(acc) ) )) ;
-
-        using ParticlesFramePtr = typename T_ParticlesBox::FramePtr;
-
-        ParticlesFramePtr particlesFrame;
-
-        particlesFrame = particlesBox.getLastFrame( block );
-
-        // end kernel if we have no frames within the supercell
-        if( !particlesFrame.isValid( ) )
-            return;
-
-        auto accFilter = filter(
-            acc,
-            block - mapper.getGuardingSuperCells( ),
-            WorkerCfg< numWorkers >{ workerIdx }
-        );
-
-        // number of particles in the current frame
-        auto numParticles = particlesBox.getSuperCell( block ).getSizeLastFrame( );
-
-        while( particlesFrame.isValid( ) )
+        /** call functor calorimeterFunctor for each particle
+         *
+         * @tparam T_ParticlesBox pmacc::ParticlesBox, particle box type
+         * @tparam T_CalorimeterFunctor type of the functor
+         * @tparam T_Mapping supercell mapper functor type
+         * @tparam T_Acc alpaka accelerator type
+         *
+         * @param alpaka accelerator
+         * @param particlesBox particle memory
+         * @param mapper functor to map a block to a supercell
+         */
+        template<
+            typename T_ParticlesBox,
+            typename T_CalorimeterFunctor,
+            typename T_Mapper,
+            typename T_Acc,
+            typename T_Filter>
+        DINLINE void operator()(
+            T_Acc const& acc,
+            T_ParticlesBox particlesBox,
+            T_CalorimeterFunctor calorimeterFunctor,
+            T_Mapper mapper,
+            T_Filter filter) const
         {
-            using ParticleDomCfg = IdxConfig<
-                maxParticlesInFrame,
-                numWorkers
-            >;
+            using namespace mappings::threads;
 
-            // loop over all particles in the frame
-            ForEachIdx< ParticleDomCfg >{ workerIdx }
-            (
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const
-                )
-                {
-                    auto particle = particlesFrame[ linearIdx ];
-                    if( linearIdx >= numParticles )
+            constexpr uint32_t numWorkers = T_numWorkers;
+            constexpr lcellId_t maxParticlesInFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
+
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
+
+            /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
+            DataSpace<simDim> const block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+
+            using ParticlesFramePtr = typename T_ParticlesBox::FramePtr;
+
+            ParticlesFramePtr particlesFrame;
+
+            particlesFrame = particlesBox.getLastFrame(block);
+
+            // end kernel if we have no frames within the supercell
+            if(!particlesFrame.isValid())
+                return;
+
+            auto accFilter = filter(acc, block - mapper.getGuardingSuperCells(), WorkerCfg<numWorkers>{workerIdx});
+
+            // number of particles in the current frame
+            auto numParticles = particlesBox.getSuperCell(block).getSizeLastFrame();
+
+            while(particlesFrame.isValid())
+            {
+                using ParticleDomCfg = IdxConfig<maxParticlesInFrame, numWorkers>;
+
+                // loop over all particles in the frame
+                ForEachIdx<ParticleDomCfg>{workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
+                    auto particle = particlesFrame[linearIdx];
+                    if(linearIdx >= numParticles)
                     {
-                        particle.setHandleInvalid( );
+                        particle.setHandleInvalid();
                     }
 
-                    if(
-                        accFilter(
-                            acc,
-                            particle
-                        )
-                    )
+                    if(accFilter(acc, particle))
                     {
-                        calorimeterFunctor(
-                            acc,
-                            particlesFrame,
-                            linearIdx
-                        );
+                        calorimeterFunctor(acc, particlesFrame, linearIdx);
                     }
-                }
-            );
+                });
 
-            // independent for each worker
-            particlesFrame = particlesBox.getPreviousFrame( particlesFrame );
-            numParticles = maxParticlesInFrame;
+                // independent for each worker
+                particlesFrame = particlesBox.getPreviousFrame(particlesFrame);
+                numParticles = maxParticlesInFrame;
+            }
         }
-    }
-};
+    };
 
 } // namespace picongpu

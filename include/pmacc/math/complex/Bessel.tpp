@@ -69,213 +69,207 @@
 
 namespace pmacc
 {
-namespace math
-{
-namespace bessel
-{
-    template<
-        typename T_Type,
-        typename T_TableA,
-        typename T_TableB,
-        typename T_TableA1,
-        typename T_TableB1
-    >
-    struct Cbesselj0Base
+    namespace math
     {
-        using Result = pmacc::math::Complex< T_Type >;
-        using complex_T = pmacc::math::Complex< T_Type >;
-        using float_T = T_Type;
-
-        HDINLINE Result operator( )( complex_T const & z )
+        namespace bessel
         {
-            T_TableA a;
-            T_TableB b;
-            T_TableA1 a1;
-            T_TableB1 b1;
-            Result cj0;
-            /* The target rel. accuracy goal eps is chosen according to the original implementation
-             * of C. Bond, where for double-precision the accuracy goal is 1.0e-15. Here the accuracy
-             * goal value is the same 4.5 * DBL_EPSILON = 1.0e-15 for double-precision, but is similarly
-             * defined for float-precision.
-             */
-            float_T const eps = float_T( 4.5 ) * std::numeric_limits< float_T >::epsilon( );
-
-            complex_T const cii = complex_T( 0, 1 );
-            complex_T const cone = complex_T( 1, 0 );
-            complex_T const czero = complex_T( 0, 0 );
-
-            float_T const a0 = cupla::math::abs( z );
-            complex_T const z2 = z * z;
-            complex_T z1 = z;
-            if( a0 == float_T( 0.0 ) )
+            template<typename T_Type, typename T_TableA, typename T_TableB, typename T_TableA1, typename T_TableB1>
+            struct Cbesselj0Base
             {
-                cj0 = cone;
-                return cj0;
-            }
-            if( z.get_real() < float_T( 0.0 ) )
-                z1 = float_T( -1.0 ) * z;
-            if( a0 <= float_T( 12.0 ) )
+                using Result = pmacc::math::Complex<T_Type>;
+                using complex_T = pmacc::math::Complex<T_Type>;
+                using float_T = T_Type;
+
+                HDINLINE Result operator()(complex_T const& z)
+                {
+                    T_TableA a;
+                    T_TableB b;
+                    T_TableA1 a1;
+                    T_TableB1 b1;
+                    Result cj0;
+                    /* The target rel. accuracy goal eps is chosen according to the original implementation
+                     * of C. Bond, where for double-precision the accuracy goal is 1.0e-15. Here the accuracy
+                     * goal value is the same 4.5 * DBL_EPSILON = 1.0e-15 for double-precision, but is similarly
+                     * defined for float-precision.
+                     */
+                    float_T const eps = float_T(4.5) * std::numeric_limits<float_T>::epsilon();
+
+                    complex_T const cii = complex_T(0, 1);
+                    complex_T const cone = complex_T(1, 0);
+                    complex_T const czero = complex_T(0, 0);
+
+                    float_T const a0 = cupla::math::abs(z);
+                    complex_T const z2 = z * z;
+                    complex_T z1 = z;
+                    if(a0 == float_T(0.0))
+                    {
+                        cj0 = cone;
+                        return cj0;
+                    }
+                    if(z.get_real() < float_T(0.0))
+                        z1 = float_T(-1.0) * z;
+                    if(a0 <= float_T(12.0))
+                    {
+                        cj0 = cone;
+                        complex_T cr = cone;
+                        for(uint32_t k = 1u; k <= 40u; k++)
+                        {
+                            cr *= float_T(-0.25) * z2 / float_T(k * k);
+                            cj0 += cr;
+                            if(cupla::math::abs(cr) < cupla::math::abs(cj0) * eps)
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        uint32_t kz;
+                        if(a0 >= float_T(50.0))
+                            kz = 8u; // can be changed to 10
+                        else if(a0 >= float_T(35.0))
+                            kz = 10u; //   "      "     "  12
+                        else
+                            kz = 12u; //   "      "     "  14
+                        complex_T ct1 = z1 - Pi<float_T>::quarterValue;
+                        complex_T cp0 = cone;
+                        for(uint32_t k = 0u; k < kz; k++)
+                        {
+                            cp0 += a[k] * pow(z1, float_T(-2.0) * k - float_T(2.0));
+                        }
+                        complex_T cq0 = float_T(-0.125) / z1;
+                        for(uint32_t k = 0; k < kz; k++)
+                        {
+                            cq0 += b[k] * cupla::pow(z1, float_T(-2.0) * k - float_T(3.0));
+                        }
+                        complex_T const cu = cupla::math::sqrt(Pi<float_T>::doubleReciprocalValue / z1);
+                        cj0 = cu * (cp0 * cupla::math::cos(ct1) - cq0 * cupla::math::sin(ct1));
+                    }
+                    return cj0;
+                }
+            };
+
+            template<typename T_Type, typename T_TableA, typename T_TableB, typename T_TableA1, typename T_TableB1>
+            struct Cbesselj1Base
             {
-                cj0 = cone;
-                complex_T cr = cone;
-                for ( uint32_t k = 1u; k <= 40u; k++ )
+                using Result = pmacc::math::Complex<T_Type>;
+                using complex_T = pmacc::math::Complex<T_Type>;
+                using float_T = T_Type;
+
+                HDINLINE Result operator()(complex_T const& z)
                 {
-                    cr *= float_T( -0.25 ) * z2 / float_T( k * k );
-                    cj0 += cr;
-                    if( cupla::math::abs( cr ) < cupla::math::abs( cj0 ) * eps ) break;
+                    T_TableA a;
+                    T_TableB b;
+                    T_TableA1 a1;
+                    T_TableB1 b1;
+                    Result cj1;
+                    /* The target rel. accuracy goal eps is chosen according to the original implementation
+                     * of C. Bond, where for double-precision the accuracy goal is 1.0e-15. Here the accuracy
+                     * goal value is the same 4.5 * DBL_EPSILON = 1.0e-15 for double-precision, but is similarly
+                     * defined for float-precision.
+                     */
+                    float_T const eps = float_T(4.5) * std::numeric_limits<float_T>::epsilon();
+
+                    complex_T const cii = complex_T(0, 1);
+                    complex_T const cone = complex_T(1, 0);
+                    complex_T const czero = complex_T(0, 0);
+
+                    float_T const a0 = cupla::math::abs(z);
+                    complex_T const z2 = z * z;
+                    complex_T z1 = z;
+                    if(a0 == float_T(0.0))
+                    {
+                        cj1 = czero;
+                        return cj1;
+                    }
+                    if(z.get_real() < float_T(0.0))
+                        z1 = float_T(-1.0) * z;
+                    if(a0 <= float_T(12.0))
+                    {
+                        cj1 = cone;
+                        complex_T cr = cone;
+                        for(uint32_t k = 1u; k <= 40u; k++)
+                        {
+                            cr *= float_T(-0.25) * z2 / (k * (k + float_T(1.0)));
+                            cj1 += cr;
+                            if(cupla::math::abs(cr) < cupla::math::abs(cj1) * eps)
+                                break;
+                        }
+                        cj1 *= float_T(0.5) * z1;
+                    }
+                    else
+                    {
+                        uint32_t kz;
+                        if(a0 >= float_T(50.0))
+                            kz = 8u; // can be changed to 10
+                        else if(a0 >= float_T(35.0))
+                            kz = 10u; //   "      "     "  12
+                        else
+                            kz = 12u; //   "      "     "  14
+                        complex_T const cu = cupla::math::sqrt(Pi<float_T>::doubleReciprocalValue / z1);
+                        complex_T const ct2 = z1 - float_T(0.75) * Pi<float_T>::value;
+                        complex_T cp1 = cone;
+                        for(uint32_t k = 0u; k < kz; k++)
+                        {
+                            cp1 += a1[k] * cupla::pow(z1, float_T(-2.0) * k - float_T(2.0));
+                        }
+                        complex_T cq1 = float_T(0.375) / z1;
+                        for(uint32_t k = 0u; k < kz; k++)
+                        {
+                            cq1 += b1[k] * cupla::pow(z1, float_T(-2.0) * k - float_T(3.0));
+                        }
+                        cj1 = cu * (cp1 * cupla::math::cos(ct2) - cq1 * cupla::math::sin(ct2));
+                    }
+                    if(z.get_real() < float_T(0.0))
+                    {
+                        cj1 = float_T(-1.0) * cj1;
+                    }
+                    return cj1;
                 }
-            }
-            else {
-                uint32_t kz;
-                if( a0 >= float_T( 50.0 ) ) kz = 8u;       // can be changed to 10
-                else if( a0 >= float_T( 35.0 ) ) kz = 10u; //   "      "     "  12
-                else kz = 12u;                             //   "      "     "  14
-                complex_T ct1 = z1 - Pi< float_T >::quarterValue;
-                complex_T cp0 = cone;
-                for ( uint32_t k = 0u; k < kz; k++ )
-                {
-                    cp0 += a[ k ] * pow(
-                        z1,
-                        float_T( -2.0 ) * k - float_T( 2.0 )
-                    );
-                }
-                complex_T cq0 = float_T( -0.125 ) / z1;
-                for ( uint32_t k = 0; k < kz; k++ )
-                {
-                    cq0 += b[ k ] * cupla::pow(
-                        z1,
-                        float_T( -2.0 ) * k - float_T( 3.0 )
-                    );
-                }
-                complex_T const cu = cupla::math::sqrt( Pi< float_T >::doubleReciprocalValue / z1 );
-                cj0 = cu * ( cp0 * cupla::math::cos( ct1 ) - cq0 * cupla::math::sin( ct1 ) );
-            }
-            return cj0;
-        }
-    };
+            };
 
-    template<
-        typename T_Type,
-        typename T_TableA,
-        typename T_TableB,
-        typename T_TableA1,
-        typename T_TableB1
-    >
-    struct Cbesselj1Base
-    {
-        using Result = pmacc::math::Complex< T_Type >;
-        using complex_T = pmacc::math::Complex< T_Type >;
-        using float_T = T_Type;
-
-        HDINLINE Result operator( )( complex_T const & z )
-        {
-            T_TableA a;
-            T_TableB b;
-            T_TableA1 a1;
-            T_TableB1 b1;
-            Result cj1;
-            /* The target rel. accuracy goal eps is chosen according to the original implementation
-             * of C. Bond, where for double-precision the accuracy goal is 1.0e-15. Here the accuracy
-             * goal value is the same 4.5 * DBL_EPSILON = 1.0e-15 for double-precision, but is similarly
-             * defined for float-precision.
-             */
-            float_T const eps = float_T( 4.5 ) * std::numeric_limits< float_T >::epsilon( );
-
-            complex_T const cii = complex_T( 0, 1 );
-            complex_T const cone = complex_T( 1, 0 );
-            complex_T const czero = complex_T( 0, 0 );
-
-            float_T const a0 = cupla::math::abs( z );
-            complex_T const z2 = z * z;
-            complex_T z1 = z;
-            if( a0 == float_T( 0.0 ) )
+            template<>
+            struct J0<pmacc::math::Complex<double>>
+                : public Cbesselj0Base<
+                      double,
+                      pmacc::math::bessel::aDouble_t,
+                      pmacc::math::bessel::bDouble_t,
+                      pmacc::math::bessel::a1Double_t,
+                      pmacc::math::bessel::b1Double_t>
             {
-                cj1 = czero;
-                return cj1;
-            }
-            if( z.get_real() < float_T( 0.0 ) )
-                z1 = float_T( -1.0 ) * z;
-            if( a0 <= float_T( 12.0 ) )
+            };
+
+            template<>
+            struct J0<pmacc::math::Complex<float>>
+                : public Cbesselj0Base<
+                      float,
+                      pmacc::math::bessel::aFloat_t,
+                      pmacc::math::bessel::bFloat_t,
+                      pmacc::math::bessel::a1Float_t,
+                      pmacc::math::bessel::b1Float_t>
             {
-                cj1 = cone;
-                complex_T cr = cone;
-                for ( uint32_t k = 1u; k <= 40u; k++ )
-                {
-                    cr *= float_T( -0.25 ) * z2 / ( k * ( k + float_T( 1.0 ) ) );
-                    cj1 += cr;
-                    if ( cupla::math::abs( cr ) < cupla::math::abs( cj1 ) * eps ) break;
-                }
-                cj1 *= float_T( 0.5 ) * z1;
-            }
-            else {
-                uint32_t kz;
-                if( a0 >= float_T( 50.0 ) ) kz = 8u;        // can be changed to 10
-                else if ( a0 >= float_T( 35.0 ) ) kz = 10u; //   "      "     "  12
-                else kz = 12u;                              //   "      "     "  14
-                complex_T const cu = cupla::math::sqrt( Pi< float_T >::doubleReciprocalValue / z1 );
-                complex_T const ct2 = z1 - float_T( 0.75 ) * Pi< float_T >::value;
-                complex_T cp1 = cone;
-                for ( uint32_t k = 0u; k < kz; k++ )
-                {
-                    cp1 += a1[ k ] * cupla::pow(
-                        z1,
-                        float_T( -2.0 ) * k - float_T( 2.0 )
-                    );
-                }
-                complex_T cq1 = float_T( 0.375 ) / z1;
-                for ( uint32_t k = 0u; k < kz; k++ )
-                {
-                    cq1 += b1[ k ] * cupla::pow(
-                        z1,
-                        float_T( -2.0 ) * k - float_T( 3.0 )
-                    );
-                }
-                cj1 = cu * ( cp1 * cupla::math::cos( ct2 ) - cq1 * cupla::math::sin( ct2 ) );
-            }
-            if( z.get_real( ) < float_T( 0.0 ) )
+            };
+
+            template<>
+            struct J1<pmacc::math::Complex<double>>
+                : public Cbesselj1Base<
+                      double,
+                      pmacc::math::bessel::aDouble_t,
+                      pmacc::math::bessel::bDouble_t,
+                      pmacc::math::bessel::a1Double_t,
+                      pmacc::math::bessel::b1Double_t>
             {
-                cj1 = float_T( -1.0 ) * cj1;
-            }
-            return cj1;
-        }
-    };
+            };
 
-    template< >
-    struct J0< pmacc::math::Complex< double > > : public Cbesselj0Base<
-        double,
-        pmacc::math::bessel::aDouble_t,
-        pmacc::math::bessel::bDouble_t,
-        pmacc::math::bessel::a1Double_t,
-        pmacc::math::bessel::b1Double_t
-    >{ };
+            template<>
+            struct J1<pmacc::math::Complex<float>>
+                : public Cbesselj1Base<
+                      float,
+                      pmacc::math::bessel::aFloat_t,
+                      pmacc::math::bessel::bFloat_t,
+                      pmacc::math::bessel::a1Float_t,
+                      pmacc::math::bessel::b1Float_t>
+            {
+            };
 
-    template< >
-    struct J0< pmacc::math::Complex< float > > : public Cbesselj0Base<
-        float,
-        pmacc::math::bessel::aFloat_t,
-        pmacc::math::bessel::bFloat_t,
-        pmacc::math::bessel::a1Float_t,
-        pmacc::math::bessel::b1Float_t
-    >{ };
-
-    template< >
-    struct J1< pmacc::math::Complex< double > > : public Cbesselj1Base<
-        double,
-        pmacc::math::bessel::aDouble_t,
-        pmacc::math::bessel::bDouble_t,
-        pmacc::math::bessel::a1Double_t,
-        pmacc::math::bessel::b1Double_t
-    >{ };
-
-    template< >
-    struct J1< pmacc::math::Complex< float > > : public Cbesselj1Base<
-        float,
-        pmacc::math::bessel::aFloat_t,
-        pmacc::math::bessel::bFloat_t,
-        pmacc::math::bessel::a1Float_t,
-        pmacc::math::bessel::b1Float_t
-    >{ };
-
-} //namespace bessel
-} //namespace math
-} //namespace pmacc
+        } // namespace bessel
+    } // namespace math
+} // namespace pmacc

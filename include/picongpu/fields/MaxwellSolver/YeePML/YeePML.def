@@ -26,67 +26,32 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace maxwellSolver
-{
-
-    template<
-        typename T_CurrentInterpolation = currentInterpolation::None,
-        typename T_CurlE = yee::CurlRight,
-        typename T_CurlB = yee::CurlLeft
-    >
-    class YeePML;
-
-} // namespace maxwellSolver
-} // namespace fields
-
-namespace traits
-{
-
-    template<
-        typename T_CurrentInterpolation,
-        typename T_CurlE,
-        typename T_CurlB
-    >
-    struct GetMargin<
-        picongpu::fields::maxwellSolver::YeePML<
-            T_CurrentInterpolation,
-            T_CurlE,
-            T_CurlB
-        >, FIELD_B
-    > : public GetMargin<
-        picongpu::fields::maxwellSolver::Yee<
-            T_CurrentInterpolation,
-            T_CurlE,
-            T_CurlB
-        >,
-        FIELD_B
-    >
+    namespace fields
     {
-    };
+        namespace maxwellSolver
+        {
+            template<
+                typename T_CurrentInterpolation = currentInterpolation::None,
+                typename T_CurlE = yee::CurlRight,
+                typename T_CurlB = yee::CurlLeft>
+            class YeePML;
 
-    template<
-        typename T_CurrentInterpolation,
-        typename T_CurlE,
-        typename T_CurlB
-    >
-    struct GetMargin<
-        picongpu::fields::maxwellSolver::YeePML<
-            T_CurrentInterpolation,
-            T_CurlE,
-            T_CurlB
-        >, FIELD_E
-    > : public GetMargin<
-        picongpu::fields::maxwellSolver::Yee<
-            T_CurrentInterpolation,
-            T_CurlE,
-            T_CurlB
-        >,
-        FIELD_E
-    >
+        } // namespace maxwellSolver
+    } // namespace fields
+
+    namespace traits
     {
-    };
+        template<typename T_CurrentInterpolation, typename T_CurlE, typename T_CurlB>
+        struct GetMargin<picongpu::fields::maxwellSolver::YeePML<T_CurrentInterpolation, T_CurlE, T_CurlB>, FIELD_B>
+            : public GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurrentInterpolation, T_CurlE, T_CurlB>, FIELD_B>
+        {
+        };
 
-} //namespace traits
+        template<typename T_CurrentInterpolation, typename T_CurlE, typename T_CurlB>
+        struct GetMargin<picongpu::fields::maxwellSolver::YeePML<T_CurrentInterpolation, T_CurlE, T_CurlB>, FIELD_E>
+            : public GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurrentInterpolation, T_CurlE, T_CurlB>, FIELD_E>
+        {
+        };
+
+    } // namespace traits
 } // namespace picongpu

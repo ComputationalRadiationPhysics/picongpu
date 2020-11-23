@@ -18,7 +18,6 @@
  */
 
 
-
 #pragma once
 
 
@@ -33,14 +32,11 @@
 
 namespace picongpu
 {
-
     /** copy particle from the device to the host frame
      *
      * @tparam T_numWorkers number of workers
      */
-    template<
-        uint32_t T_numWorkers
-    >
+    template<uint32_t T_numWorkers>
     struct CopySpecies
     {
         /** copy particle of a species to a host frame
@@ -74,20 +70,17 @@ namespace picongpu
             typename T_Identifier,
             typename T_Mapping,
             typename T_Acc,
-            typename T_ParticleFilter
-        >
-        DINLINE void
-        operator()(
-            T_Acc const & acc,
-            int * counter,
+            typename T_ParticleFilter>
+        DINLINE void operator()(
+            T_Acc const& acc,
+            int* counter,
             T_DestFrame destFrame,
             T_SrcBox srcBox,
             T_Filter filter,
             T_Space const domainOffset,
             T_Identifier const domainCellIdxIdentifier,
             T_Mapping const mapper,
-            T_ParticleFilter parFilter
-        ) const
+            T_ParticleFilter parFilter) const
         {
             using namespace pmacc::particles::operations;
             using namespace mappings::threads;
@@ -96,161 +89,90 @@ namespace picongpu
             using SrcFrameType = typename T_SrcBox::FrameType;
             using SrcFramePtr = typename T_SrcBox::FramePtr;
 
-            constexpr uint32_t numParticlesPerFrame = pmacc::math::CT::volume< typename SrcFrameType::SuperCellSize >::type::value;
+            constexpr uint32_t numParticlesPerFrame
+                = pmacc::math::CT::volume<typename SrcFrameType::SuperCellSize>::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
 
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-            PMACC_SMEM( acc, srcFramePtr, SrcFramePtr );
-            PMACC_SMEM( acc, localCounter, int );
-            PMACC_SMEM( acc, globalOffset, int );
+            PMACC_SMEM(acc, srcFramePtr, SrcFramePtr);
+            PMACC_SMEM(acc, localCounter, int);
+            PMACC_SMEM(acc, globalOffset, int);
 
-            using ParticlesDomCfg = IdxConfig<
-                numParticlesPerFrame,
-                numWorkers
-            >;
+            using ParticlesDomCfg = IdxConfig<numParticlesPerFrame, numWorkers>;
 
             // loop over all particles in a frame
-            ForEachIdx< ParticlesDomCfg > forEachParticle( workerIdx );
+            ForEachIdx<ParticlesDomCfg> forEachParticle(workerIdx);
 
-            memory::CtxArray<
-                int,
-                ParticlesDomCfg
-            >
-            storageOffsetCtx{};
+            memory::CtxArray<int, ParticlesDomCfg> storageOffsetCtx{};
 
 
-            DataSpace< simDim > const supcerCellIdx = mapper.getSuperCellIndex( DataSpace< simDim > ( cupla::blockIdx(acc) ) );
+            DataSpace<simDim> const supcerCellIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
             /* offset (in cells) of the supercell relative to the origin of the
              * local domain (without any guards)
              */
-            DataSpace< simDim > const localSuperCellCellOffset(
-                ( supcerCellIdx - mapper.getGuardingSuperCells() ) *
-                mapper.getSuperCellSize()
-            );
+            DataSpace<simDim> const localSuperCellCellOffset(
+                (supcerCellIdx - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());
 
             // each virtual worker needs only one filter
-            filter.setSuperCellPosition( localSuperCellCellOffset );
-            auto accParFilter = parFilter(
-                acc,
-                supcerCellIdx - mapper.getGuardingSuperCells( ),
-                WorkerCfg< numWorkers >{ workerIdx }
-            );
+            filter.setSuperCellPosition(localSuperCellCellOffset);
+            auto accParFilter
+                = parFilter(acc, supcerCellIdx - mapper.getGuardingSuperCells(), WorkerCfg<numWorkers>{workerIdx});
 
-            ForEachIdx<
-                IdxConfig<
-                    1,
-                    numWorkers
-                >
-            > onlyMaster{ workerIdx };
+            ForEachIdx<IdxConfig<1, numWorkers>> onlyMaster{workerIdx};
 
-            onlyMaster(
-                [&](
-                    uint32_t const,
-                    uint32_t const
-                )
-                {
-                    localCounter = 0;
-                    srcFramePtr = srcBox.getFirstFrame( supcerCellIdx );
-                }
-            );
+            onlyMaster([&](uint32_t const, uint32_t const) {
+                localCounter = 0;
+                srcFramePtr = srcBox.getFirstFrame(supcerCellIdx);
+            });
 
-            cupla::__syncthreads( acc );
+            cupla::__syncthreads(acc);
 
             // move over all Frames in the supercell
-            while( srcFramePtr.isValid() )
+            while(srcFramePtr.isValid())
             {
-                forEachParticle(
-                    [&](
-                        uint32_t const localIdx,
-                        uint32_t const idx
-                    )
+                forEachParticle([&](uint32_t const localIdx, uint32_t const idx) {
+                    auto parSrc = (srcFramePtr[localIdx]);
+                    storageOffsetCtx[idx] = -1;
+                    // count particle in frame
+                    if(parSrc[multiMask_] == 1 && filter(*srcFramePtr, localIdx))
+                        if(accParFilter(acc, parSrc))
+                            storageOffsetCtx[idx]
+                                = nvidia::atomicAllInc(acc, &localCounter, ::alpaka::hierarchy::Threads{});
+                });
+                cupla::__syncthreads(acc);
+
+                onlyMaster([&](uint32_t const, uint32_t const) {
+                    // reserve host memory for particle
+                    globalOffset = cupla::atomicAdd(acc, counter, localCounter, ::alpaka::hierarchy::Blocks{});
+                });
+
+                cupla::__syncthreads(acc);
+
+                forEachParticle([&](uint32_t const localIdx, uint32_t const idx) {
+                    if(storageOffsetCtx[idx] != -1)
                     {
-                        auto parSrc = ( srcFramePtr[ localIdx ] );
-                        storageOffsetCtx[ idx ] = -1;
-                        // count particle in frame
-                        if( parSrc[ multiMask_ ] == 1 &&
-                            filter(
-                                *srcFramePtr,
-                                localIdx
-                            )
-                        )
-                            if(
-                                accParFilter(
-                                    acc,
-                                    parSrc
-                                )
-                            )
-                                storageOffsetCtx[ idx ] = nvidia::atomicAllInc(
-                                    acc,
-                                    &localCounter,
-                                    ::alpaka::hierarchy::Threads{}
-                                );
+                        auto parDest = destFrame[globalOffset + storageOffsetCtx[idx]];
+                        auto parDestNoDomainIdx = deselect<T_Identifier>(parDest);
+                        auto parSrc = (srcFramePtr[localIdx]);
+                        assign(parDestNoDomainIdx, parSrc);
+                        // calculate cell index for user-defined domain
+                        DataSpace<simDim> const localCell(
+                            DataSpaceOperations<simDim>::template map<SuperCellSize>(parSrc[localCellIdx_]));
+                        parDest[domainCellIdxIdentifier] = domainOffset + localSuperCellCellOffset + localCell;
                     }
-                );
-                cupla::__syncthreads( acc );
+                });
 
-                onlyMaster(
-                    [&](
-                        uint32_t const,
-                        uint32_t const
-                    )
-                    {
-                        // reserve host memory for particle
-                        globalOffset = cupla::atomicAdd(
-                            acc,
-                            counter,
-                            localCounter,
-                            ::alpaka::hierarchy::Blocks{}
-                        );
-                    }
-                );
+                cupla::__syncthreads(acc);
 
-                cupla::__syncthreads( acc );
-
-                forEachParticle(
-                    [&](
-                        uint32_t const localIdx,
-                        uint32_t const idx
-                    )
-                    {
-                        if( storageOffsetCtx[ idx ] != -1 )
-                        {
-                            auto parDest = destFrame[ globalOffset + storageOffsetCtx[ idx ] ];
-                            auto parDestNoDomainIdx = deselect< T_Identifier >( parDest );
-                            auto parSrc = ( srcFramePtr[ localIdx ] );
-                            assign(
-                                parDestNoDomainIdx,
-                                parSrc
-                            );
-                            // calculate cell index for user-defined domain
-                            DataSpace< simDim > const localCell(
-                                DataSpaceOperations< simDim >::template map<
-                                    SuperCellSize
-                                >( parSrc[ localCellIdx_ ] )
-                            );
-                            parDest[domainCellIdxIdentifier] =
-                                domainOffset + localSuperCellCellOffset + localCell;
-                        }
-                    }
-                );
-
-                cupla::__syncthreads( acc );
-
-                onlyMaster(
-                    [&](
-                        uint32_t const,
-                        uint32_t const
-                    )
-                    {
-                        // get next frame in supercell
-                        srcFramePtr = srcBox.getNextFrame( srcFramePtr );
-                        localCounter = 0;
-                    }
-                );
-                cupla::__syncthreads( acc );
+                onlyMaster([&](uint32_t const, uint32_t const) {
+                    // get next frame in supercell
+                    srcFramePtr = srcBox.getNextFrame(srcFramePtr);
+                    localCounter = 0;
+                });
+                cupla::__syncthreads(acc);
             }
         }
     };
 
-} //namespace picongpu
+} // namespace picongpu

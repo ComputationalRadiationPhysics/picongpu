@@ -23,31 +23,29 @@
 
 namespace pmacc
 {
-namespace math
-{
+    namespace math
+    {
+        template<typename ArgType, typename SinType, typename CosType>
+        struct SinCos;
 
-template<typename ArgType, typename SinType, typename CosType>
-struct SinCos;
-
-template<typename Type>
-struct Sinc;
+        template<typename Type>
+        struct Sinc;
 
 
-template<typename ArgType, typename SinType, typename CosType>
-HDINLINE
-typename SinCos< ArgType, SinType, CosType >::result
-sincos(ArgType arg, SinType& sinValue, CosType& cosValue)
-{
-    return SinCos< ArgType, SinType, CosType > ()(arg, sinValue, cosValue);
-}
+        template<typename ArgType, typename SinType, typename CosType>
+        HDINLINE typename SinCos<ArgType, SinType, CosType>::result sincos(
+            ArgType arg,
+            SinType& sinValue,
+            CosType& cosValue)
+        {
+            return SinCos<ArgType, SinType, CosType>()(arg, sinValue, cosValue);
+        }
 
-template<typename T1>
-HDINLINE
-typename Sinc<T1>::result
-sinc(const T1& value)
-{
-    return Sinc< T1 > ()(value);
-}
+        template<typename T1>
+        HDINLINE typename Sinc<T1>::result sinc(const T1& value)
+        {
+            return Sinc<T1>()(value);
+        }
 
-} /* namespace math */
+    } /* namespace math */
 } /* namespace pmacc */

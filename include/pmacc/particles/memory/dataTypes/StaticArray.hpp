@@ -26,44 +26,45 @@
 
 namespace pmacc
 {
+    namespace pmath = pmacc::math;
 
-namespace pmath = pmacc::math;
-
-template<typename T_Type, typename T_size>
-class StaticArray
-{
-public:
-    static constexpr uint32_t size = T_size::value;
-    typedef T_Type Type;
-private:
-    Type data[size];
-public:
-
-    template<class> struct result;
-
-    template<class F, typename TKey>
-    struct result<F(TKey)>
+    template<typename T_Type, typename T_size>
+    class StaticArray
     {
-        typedef Type& type;
+    public:
+        static constexpr uint32_t size = T_size::value;
+        typedef T_Type Type;
+
+    private:
+        Type data[size];
+
+    public:
+        template<class>
+        struct result;
+
+        template<class F, typename TKey>
+        struct result<F(TKey)>
+        {
+            typedef Type& type;
+        };
+
+        template<class F, typename TKey>
+        struct result<const F(TKey)>
+        {
+            typedef const Type& type;
+        };
+
+        HDINLINE
+        Type& operator[](const int idx)
+        {
+            return data[idx];
+        }
+
+        HDINLINE
+        const Type& operator[](const int idx) const
+        {
+            return data[idx];
+        }
     };
 
-    template<class F, typename TKey>
-    struct result<const F(TKey)>
-    {
-        typedef const Type& type;
-    };
-
-    HDINLINE
-    Type& operator[](const int idx)
-    {
-        return data[idx];
-    }
-
-    HDINLINE
-    const Type& operator[](const int idx) const
-    {
-        return data[idx];
-    }
-};
-
-} //namespace pmacc
+} // namespace pmacc

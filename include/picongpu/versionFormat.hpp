@@ -35,6 +35,5 @@ namespace picongpu
      * @param[out] cliText formatted table for output to a command line
      * @return a list of strings in the form software/version
      */
-    std::list< std::string >
-    getSoftwareVersions( std::ostream & cliText );
+    std::list<std::string> getSoftwareVersions(std::ostream& cliText);
 } // namespace picongpu

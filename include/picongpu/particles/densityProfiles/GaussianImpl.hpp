@@ -25,60 +25,56 @@
 
 namespace picongpu
 {
-namespace densityProfiles
-{
-
-template<typename T_ParamClass>
-struct GaussianImpl : public T_ParamClass
-{
-    using ParamClass = T_ParamClass;
-
-    template<typename T_SpeciesType>
-    struct apply
+    namespace densityProfiles
     {
-        using type = GaussianImpl<ParamClass>;
-    };
-
-    HINLINE GaussianImpl(uint32_t currentStep)
-    {
-    }
-
-    /** Calculate the normalized density
-     *
-     * @param totalCellOffset total offset including all slides [in cells]
-     */
-    HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
-    {
-        const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
-        const float_X gas_center_left = ParamClass::gasCenterLeft_SI / UNIT_LENGTH;
-        const float_X gas_center_right = ParamClass::gasCenterRight_SI / UNIT_LENGTH;
-        const float_X gas_sigma_left = ParamClass::gasSigmaLeft_SI / UNIT_LENGTH;
-        const float_X gas_sigma_right = ParamClass::gasSigmaRight_SI / UNIT_LENGTH;
-
-        const floatD_X globalCellPos(
-                                     precisionCast<float_X>(totalCellOffset) *
-                                     cellSize.shrink<simDim>()
-                                     );
-
-        if (globalCellPos.y() * cellSize.y() < vacuum_y)
+        template<typename T_ParamClass>
+        struct GaussianImpl : public T_ParamClass
         {
-            return float_X(0.0);
-        }
+            using ParamClass = T_ParamClass;
 
-        float_X exponent = float_X(0.0);
-        if (globalCellPos.y() < gas_center_left)
-        {
-            exponent = math::abs((globalCellPos.y() - gas_center_left) / gas_sigma_left);
-        }
-        else if (globalCellPos.y() >= gas_center_right)
-        {
-            exponent = math::abs((globalCellPos.y() - gas_center_right) / gas_sigma_right);
-        }
+            template<typename T_SpeciesType>
+            struct apply
+            {
+                using type = GaussianImpl<ParamClass>;
+            };
 
-        const float_X gas_power = ParamClass::gasPower;
-        const float_X density = math::exp(float_X(ParamClass::gasFactor) * math::pow(exponent, gas_power));
-        return density;
-    }
-};
-}
-}
+            HINLINE GaussianImpl(uint32_t currentStep)
+            {
+            }
+
+            /** Calculate the normalized density
+             *
+             * @param totalCellOffset total offset including all slides [in cells]
+             */
+            HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
+            {
+                const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
+                const float_X gas_center_left = ParamClass::gasCenterLeft_SI / UNIT_LENGTH;
+                const float_X gas_center_right = ParamClass::gasCenterRight_SI / UNIT_LENGTH;
+                const float_X gas_sigma_left = ParamClass::gasSigmaLeft_SI / UNIT_LENGTH;
+                const float_X gas_sigma_right = ParamClass::gasSigmaRight_SI / UNIT_LENGTH;
+
+                const floatD_X globalCellPos(precisionCast<float_X>(totalCellOffset) * cellSize.shrink<simDim>());
+
+                if(globalCellPos.y() * cellSize.y() < vacuum_y)
+                {
+                    return float_X(0.0);
+                }
+
+                float_X exponent = float_X(0.0);
+                if(globalCellPos.y() < gas_center_left)
+                {
+                    exponent = math::abs((globalCellPos.y() - gas_center_left) / gas_sigma_left);
+                }
+                else if(globalCellPos.y() >= gas_center_right)
+                {
+                    exponent = math::abs((globalCellPos.y() - gas_center_right) / gas_sigma_right);
+                }
+
+                const float_X gas_power = ParamClass::gasPower;
+                const float_X density = math::exp(float_X(ParamClass::gasFactor) * math::pow(exponent, gas_power));
+                return density;
+            }
+        };
+    } // namespace densityProfiles
+} // namespace picongpu

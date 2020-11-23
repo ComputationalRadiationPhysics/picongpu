@@ -31,43 +31,27 @@
 
 namespace pmacc
 {
-namespace detail
-{
+    namespace detail
+    {
+        /** get combined type which inherit from a boost mpl sequence
+         *
+         * @tparam T_Sequence boost mpl sequence with classes
+         * @tparam T_Accessor unary operator to transform each element of the sequence
+         */
+        template<typename T_Sequence, template<typename> class T_Accessor = meta::accessors::Identity>
+        using InheritLinearly =
+            typename bmpl::inherit_linearly<T_Sequence, bmpl::inherit<bmpl::_1, T_Accessor<bmpl::_2>>>::type;
 
-    /** get combined type which inherit from a boost mpl sequence
-     *
-     * @tparam T_Sequence boost mpl sequence with classes
-     * @tparam T_Accessor unary operator to transform each element of the sequence
-     */
-    template<
-        typename T_Sequence,
-        template< typename > class T_Accessor = meta::accessors::Identity
-    >
-    using InheritLinearly =
-        typename bmpl::inherit_linearly<
-            T_Sequence,
-            bmpl::inherit<
-                bmpl::_1,
-                T_Accessor< bmpl::_2 >
-            >
-        >::type;
-
-} //namespace detail
+    } // namespace detail
 
     /** type which inherits from multiple classes
      *
      * @tparam T_Sequence boost mpl sequence with classes
      * @tparam T_Accessor unary operator to transform each element of the sequence
      */
-    template<
-        typename T_Sequence,
-        template< typename > class T_Accessor = meta::accessors::Identity
-    >
-    struct InheritLinearly : detail::InheritLinearly<
-        T_Sequence,
-        T_Accessor
-    >
+    template<typename T_Sequence, template<typename> class T_Accessor = meta::accessors::Identity>
+    struct InheritLinearly : detail::InheritLinearly<T_Sequence, T_Accessor>
     {
     };
 
-} //namespace pmacc
+} // namespace pmacc

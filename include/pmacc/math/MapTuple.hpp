@@ -32,220 +32,138 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-    namespace bmpl = boost::mpl;
-
-    /** wrap a datum
-     *
-     * align the data structure with `PMACC_ALIGN`
-     *
-     * @tparam T_Pair boost mpl pair< key, type of the value >
-     */
-    template< typename T_Pair >
-    struct AlignedData
+    namespace math
     {
-        typedef typename T_Pair::first Key;
-        typedef typename T_Pair::second ValueType;
+        namespace bmpl = boost::mpl;
 
-        PMACC_ALIGN( value, ValueType );
-
-        HDINLINE AlignedData( )
+        /** wrap a datum
+         *
+         * align the data structure with `PMACC_ALIGN`
+         *
+         * @tparam T_Pair boost mpl pair< key, type of the value >
+         */
+        template<typename T_Pair>
+        struct AlignedData
         {
-        }
+            typedef typename T_Pair::first Key;
+            typedef typename T_Pair::second ValueType;
 
-        HDINLINE AlignedData( const ValueType& value ) : value( value )
-        {
-        }
+            PMACC_ALIGN(value, ValueType);
 
-        HDINLINE ValueType& operator[]( const Key& )
-        {
-            return value;
-        }
+            HDINLINE AlignedData()
+            {
+            }
 
-        HDINLINE const ValueType& operator[]( const Key& ) const
-        {
-            return value;
-        }
-    };
+            HDINLINE AlignedData(const ValueType& value) : value(value)
+            {
+            }
 
-    /** wrap a datum
-     *
-     * @tparam T_Pair boost mpl pair< key, type of the value >
-     */
-    template< typename T_Pair >
-    struct NativeData
-    {
-        typedef typename T_Pair::first Key;
-        typedef typename T_Pair::second ValueType;
+            HDINLINE ValueType& operator[](const Key&)
+            {
+                return value;
+            }
 
-        ValueType value;
-
-        HDINLINE NativeData( )
-        {
-        }
-
-        HDINLINE NativeData( const ValueType& value ) : value( value )
-        {
-        }
-
-        HDINLINE ValueType& operator[]( const Key& )
-        {
-            return value;
-        }
-
-        HDINLINE const ValueType& operator[]( const Key& ) const
-        {
-            return value;
-        }
-    };
-
-    template<
-        typename T_Map,
-        template< typename > class T_PodType = NativeData
-    >
-    struct MapTuple :
-        protected InheritLinearly<
-            T_Map,
-            T_PodType
-        >
-    {
-
-        typedef T_Map Map;
-        static constexpr int dim = bmpl::size< Map >::type::value;
-        typedef InheritLinearly<
-            T_Map,
-            T_PodType
-        > Base;
-
-        template< class > struct result;
-
-        template<
-            class T_F,
-            class T_Key
-        >
-        struct result< T_F( T_Key ) >
-        {
-            typedef typename bmpl::at<
-                Map,
-                T_Key
-            >::type& type;
+            HDINLINE const ValueType& operator[](const Key&) const
+            {
+                return value;
+            }
         };
 
-        template<
-            class T_F,
-            class T_Key
-        >
-        struct result< const T_F( T_Key ) >
+        /** wrap a datum
+         *
+         * @tparam T_Pair boost mpl pair< key, type of the value >
+         */
+        template<typename T_Pair>
+        struct NativeData
         {
-            typedef const typename bmpl::at<
-                Map,
-                T_Key
-            >::type& type;
+            typedef typename T_Pair::first Key;
+            typedef typename T_Pair::second ValueType;
+
+            ValueType value;
+
+            HDINLINE NativeData()
+            {
+            }
+
+            HDINLINE NativeData(const ValueType& value) : value(value)
+            {
+            }
+
+            HDINLINE ValueType& operator[](const Key&)
+            {
+                return value;
+            }
+
+            HDINLINE const ValueType& operator[](const Key&) const
+            {
+                return value;
+            }
         };
 
-        /** access a datum with a key
-         *
-         * @tparam T_Key key type
-         *
-         * @{
-         */
-        template< typename T_Key >
-        HDINLINE
-        typename boost::result_of<
-            MapTuple( T_Key )
-        >::type
-        operator[]( const T_Key& key )
+        template<typename T_Map, template<typename> class T_PodType = NativeData>
+        struct MapTuple : protected InheritLinearly<T_Map, T_PodType>
         {
-            return
-            (
-                *( static_cast<
-                    T_PodType<
-                        bmpl::pair<
-                            T_Key,
-                            typename bmpl::at<
-                                Map,
-                                T_Key
-                            >::type
-                        >
-                    >*
-                >( this ) )
-            )[key];
-        }
+            typedef T_Map Map;
+            static constexpr int dim = bmpl::size<Map>::type::value;
+            typedef InheritLinearly<T_Map, T_PodType> Base;
 
-        template< typename T_Key >
-        HDINLINE
-        typename boost::result_of<
-            const MapTuple( T_Key )
-        >::type
-        operator[]( const T_Key& key ) const
-        {
-            return (
-                *(
-                    static_cast<
-                        const T_PodType<
-                            bmpl::pair<
-                                T_Key,
-                                typename bmpl::at<
-                                    Map,
-                                    T_Key
-                                >::type
-                            >
-                        >*
-                    >( this )
-                )
-            )[key];
-        }
-        /** @} */
+            template<class>
+            struct result;
 
-        /** access a datum with an index
-         *
-         * @tparam T_i the index of tuple's i-th element
-         *
-         * @{
-         */
-        template< int T_i >
-        HDINLINE
-        typename boost::result_of<
-            MapTuple(
-                typename bmpl::at<
-                    Map,
-                    bmpl::int_< T_i >
-                >::type::first
-            )
-        >::type
-        at( )
-        {
-            return ( *this )[
-                typename bmpl::at<
-                    Map,
-                    bmpl::int_< T_i >
-                >::type::first( )
-            ];
-        }
+            template<class T_F, class T_Key>
+            struct result<T_F(T_Key)>
+            {
+                typedef typename bmpl::at<Map, T_Key>::type& type;
+            };
 
-        template< int T_i >
-        HDINLINE
-        typename boost::result_of<
-            const MapTuple(
-                typename bmpl::at<
-                    Map,
-                    bmpl::int_< T_i >
-                >::type::first
-            )
-        >::type
-        at( ) const
-        {
-            return ( *this )[
-                typename bmpl::at<
-                    Map,
-                    bmpl::int_< T_i >
-                >::type::first( )
-            ];
-        }
-        /** @} */
-    };
+            template<class T_F, class T_Key>
+            struct result<const T_F(T_Key)>
+            {
+                typedef const typename bmpl::at<Map, T_Key>::type& type;
+            };
 
-} // math
-} // PMacc
+            /** access a datum with a key
+             *
+             * @tparam T_Key key type
+             *
+             * @{
+             */
+            template<typename T_Key>
+            HDINLINE typename boost::result_of<MapTuple(T_Key)>::type operator[](const T_Key& key)
+            {
+                return (*(static_cast<T_PodType<bmpl::pair<T_Key, typename bmpl::at<Map, T_Key>::type>>*>(this)))[key];
+            }
+
+            template<typename T_Key>
+            HDINLINE typename boost::result_of<const MapTuple(T_Key)>::type operator[](const T_Key& key) const
+            {
+                return (*(
+                    static_cast<const T_PodType<bmpl::pair<T_Key, typename bmpl::at<Map, T_Key>::type>>*>(this)))[key];
+            }
+            /** @} */
+
+            /** access a datum with an index
+             *
+             * @tparam T_i the index of tuple's i-th element
+             *
+             * @{
+             */
+            template<int T_i>
+            HDINLINE typename boost::result_of<MapTuple(typename bmpl::at<Map, bmpl::int_<T_i>>::type::first)>::type
+            at()
+            {
+                return (*this)[typename bmpl::at<Map, bmpl::int_<T_i>>::type::first()];
+            }
+
+            template<int T_i>
+            HDINLINE
+                typename boost::result_of<const MapTuple(typename bmpl::at<Map, bmpl::int_<T_i>>::type::first)>::type
+                at() const
+            {
+                return (*this)[typename bmpl::at<Map, bmpl::int_<T_i>>::type::first()];
+            }
+            /** @} */
+        };
+
+    } // namespace math
+} // namespace pmacc

@@ -22,20 +22,19 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace differentiation
-{
+    namespace fields
+    {
+        namespace differentiation
+        {
+            //! Forward (upper - current) difference derivative tag
+            struct Forward;
 
-    //! Forward (upper - current) difference derivative tag
-    struct Forward;
+            //! Backward (current - lower) difference derivative tag
+            struct Backward;
 
-    //! Backward (current - lower) difference derivative tag
-    struct Backward;
+            //! Zero derivative tag
+            struct Zero;
 
-    //! Zero derivative tag
-    struct Zero;
-
-} // namespace differentiation
-} // namespace fields
+        } // namespace differentiation
+    } // namespace fields
 } // namespace picongpu

@@ -47,189 +47,136 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-    template<class T_ParticleShape, class T_DerivedAttribute>
-    class ComputeGridValuePerFrame
+    namespace particles
     {
-    public:
-
-        using AssignmentFunction = typename T_ParticleShape::ChargeAssignment;
-        static constexpr int supp = AssignmentFunction::support;
-
-        static constexpr int lowerMargin = supp / 2;
-        static constexpr int upperMargin = (supp + 1) / 2;
-        using LowerMargin = typename pmacc::math::CT::make_Int<simDim, lowerMargin>::type;
-        using UpperMargin = typename pmacc::math::CT::make_Int<simDim, upperMargin>::type;
-
-        HDINLINE ComputeGridValuePerFrame()
+        namespace particleToGrid
         {
-        }
+            template<class T_ParticleShape, class T_DerivedAttribute>
+            class ComputeGridValuePerFrame
+            {
+            public:
+                using AssignmentFunction = typename T_ParticleShape::ChargeAssignment;
+                static constexpr int supp = AssignmentFunction::support;
 
-        /** return unit for this solver
-         *
-         * @return solver unit
-         */
-        HDINLINE float1_64 getUnit() const;
+                static constexpr int lowerMargin = supp / 2;
+                static constexpr int upperMargin = (supp + 1) / 2;
+                using LowerMargin = typename pmacc::math::CT::make_Int<simDim, lowerMargin>::type;
+                using UpperMargin = typename pmacc::math::CT::make_Int<simDim, upperMargin>::type;
 
-        /** return powers of the 7 base measures for this solver
-         *
-         * characterizing the unit of the result of the solver in SI
-         * (length L, mass M, time T, electric current I,
-         *  thermodynamic temperature theta, amount of substance N,
-         *  luminous intensity J) */
-        HINLINE std::vector<float_64> getUnitDimension() const;
+                HDINLINE ComputeGridValuePerFrame()
+                {
+                }
 
-        /** return name of the this solver
-         * @return name of solver
-         */
-        HINLINE static
-        std::string getName();
+                /** return unit for this solver
+                 *
+                 * @return solver unit
+                 */
+                HDINLINE float1_64 getUnit() const;
 
-        template<
-            typename FrameType,
-            typename TVecSuperCell,
-            typename BoxTmp,
-            typename T_Acc >
-        DINLINE void operator()(
-            T_Acc const & acc,
-            FrameType& frame,
-            const int localIdx,
-            const TVecSuperCell superCell,
-            BoxTmp& tmpBox
-        );
-    };
+                /** return powers of the 7 base measures for this solver
+                 *
+                 * characterizing the unit of the result of the solver in SI
+                 * (length L, mass M, time T, electric current I,
+                 *  thermodynamic temperature theta, amount of substance N,
+                 *  luminous intensity J) */
+                HINLINE std::vector<float_64> getUnitDimension() const;
 
-namespace detail
-{
-    /** Most derived fields just operate on the particle shape
-     *
-     * But some "debug" diagnostics just need the nearest cell, e.g. for
-     * counting, so we specialize such options here.
-     */
-    template<
-        typename T_Species,
-        typename T_DerivedAttribute
-    >
-    struct GetAttributeShape
-    {
-        using type = typename GetShape< T_Species >::type;
-    };
+                /** return name of the this solver
+                 * @return name of solver
+                 */
+                HINLINE static std::string getName();
 
-    template< typename T_Species >
-    struct GetAttributeShape<
-        T_Species,
-        derivedAttributes::Counter
-    >
-    {
-        using type = shapes::Counter;
-    };
-    template< typename T_Species >
-    struct GetAttributeShape<
-        T_Species,
-        derivedAttributes::MacroCounter
-    >
-    {
-        using type = shapes::Counter;
-    };
+                template<typename FrameType, typename TVecSuperCell, typename BoxTmp, typename T_Acc>
+                DINLINE void operator()(
+                    T_Acc const& acc,
+                    FrameType& frame,
+                    const int localIdx,
+                    const TVecSuperCell superCell,
+                    BoxTmp& tmpBox);
+            };
 
-    template<
-        typename T_Species,
-        typename T_DerivedAttribute
-    >
-    using GetAttributeShape_t = typename GetAttributeShape<
-        T_Species,
-        T_DerivedAttribute
-    >::type;
+            namespace detail
+            {
+                /** Most derived fields just operate on the particle shape
+                 *
+                 * But some "debug" diagnostics just need the nearest cell, e.g. for
+                 * counting, so we specialize such options here.
+                 */
+                template<typename T_Species, typename T_DerivedAttribute>
+                struct GetAttributeShape
+                {
+                    using type = typename GetShape<T_Species>::type;
+                };
 
-} // namespace detail
+                template<typename T_Species>
+                struct GetAttributeShape<T_Species, derivedAttributes::Counter>
+                {
+                    using type = shapes::Counter;
+                };
+                template<typename T_Species>
+                struct GetAttributeShape<T_Species, derivedAttributes::MacroCounter>
+                {
+                    using type = shapes::Counter;
+                };
 
-    /** Solver Operation for Particle to Grid Projections
-     *
-     * Derives a scalar field from a particle species at runtime.
-     * Values are mapped to cells according either according to the
-     * species' spatial shape or a specifically overwritten (counter) shape
-     * depending on the implementation of the derived attribute
-     *
-     * @tparam T_Species a see picongpu::Particles class with a species definition,
-     *                   see see speciesDefinition.param
-     *
-     * @tparam T_DerivedAttribute a derived particle attribute from
-     *         picongpu::particles::particleToGrid::derivedAttributes
-     *
-     * @typedef defines a FieldTmpOperation class
-     */
-    template<
-        typename T_Species,
-        typename T_DerivedAttribute
-    >
-    struct CreateFieldTmpOperation
-    {
-        using shapeType = detail::GetAttributeShape_t<
-            T_Species,
-            T_DerivedAttribute
-        >;
+                template<typename T_Species, typename T_DerivedAttribute>
+                using GetAttributeShape_t = typename GetAttributeShape<T_Species, T_DerivedAttribute>::type;
 
-        using OperationPerFrame = ComputeGridValuePerFrame<
-            shapeType,
-            T_DerivedAttribute
-        >;
-        using type = FieldTmpOperation<
-            OperationPerFrame,
-            T_Species
-        >;
-    };
-    template<
-        typename T_Species,
-        typename T_DerivedAttribute
-    >
-    using CreateFieldTmpOperation_t = typename CreateFieldTmpOperation<
-        T_Species,
-        T_DerivedAttribute
-    >::type;
+            } // namespace detail
 
-    /** Create a list solvers for derived fields for eligible species
-     *
-     * Returns a list of FieldTmpOperation classes.
-     *
-     * @tparam T_SeqSpecies a sequence of particle species to check if they are
-     *                      eligible to derive the attribute T_DerivedAttribute
-     *                      from, also allows a single type instead of a sequence
-     * @tparam T_DerivedAttribute a derived attribute to map to the field grid,
-     *                            see defines in
-     *                            picongpu::particles::particleToGrid::derivedAttributes
-     */
-    template<
-        typename T_SeqSpecies,
-        typename T_DerivedAttribute
-    >
-    struct CreateEligible
-    {
-        // wrap single arguments to sequence
-        using SeqSpecies = typename pmacc::ToSeq< T_SeqSpecies >::type;
-        using DerivedAttribute = T_DerivedAttribute;
+            /** Solver Operation for Particle to Grid Projections
+             *
+             * Derives a scalar field from a particle species at runtime.
+             * Values are mapped to cells according either according to the
+             * species' spatial shape or a specifically overwritten (counter) shape
+             * depending on the implementation of the derived attribute
+             *
+             * @tparam T_Species a see picongpu::Particles class with a species definition,
+             *                   see see speciesDefinition.param
+             *
+             * @tparam T_DerivedAttribute a derived particle attribute from
+             *         picongpu::particles::particleToGrid::derivedAttributes
+             *
+             * @typedef defines a FieldTmpOperation class
+             */
+            template<typename T_Species, typename T_DerivedAttribute>
+            struct CreateFieldTmpOperation
+            {
+                using shapeType = detail::GetAttributeShape_t<T_Species, T_DerivedAttribute>;
 
-        using type = typename traits::GenerateSolversIfSpeciesEligible<
-            CreateFieldTmpOperation<
-                bmpl::_1,
-                DerivedAttribute
-            >,
-            SeqSpecies,
-            DerivedAttribute
-        >::type;
-    };
+                using OperationPerFrame = ComputeGridValuePerFrame<shapeType, T_DerivedAttribute>;
+                using type = FieldTmpOperation<OperationPerFrame, T_Species>;
+            };
+            template<typename T_Species, typename T_DerivedAttribute>
+            using CreateFieldTmpOperation_t = typename CreateFieldTmpOperation<T_Species, T_DerivedAttribute>::type;
 
-    template<
-        typename T_SeqSpecies,
-        typename T_DerivedAttribute
-    >
-    using CreateEligible_t = typename CreateEligible<
-        T_SeqSpecies,
-        T_DerivedAttribute
-    >::type;
+            /** Create a list solvers for derived fields for eligible species
+             *
+             * Returns a list of FieldTmpOperation classes.
+             *
+             * @tparam T_SeqSpecies a sequence of particle species to check if they are
+             *                      eligible to derive the attribute T_DerivedAttribute
+             *                      from, also allows a single type instead of a sequence
+             * @tparam T_DerivedAttribute a derived attribute to map to the field grid,
+             *                            see defines in
+             *                            picongpu::particles::particleToGrid::derivedAttributes
+             */
+            template<typename T_SeqSpecies, typename T_DerivedAttribute>
+            struct CreateEligible
+            {
+                // wrap single arguments to sequence
+                using SeqSpecies = typename pmacc::ToSeq<T_SeqSpecies>::type;
+                using DerivedAttribute = T_DerivedAttribute;
 
-} // namespace particleToGrid
-} // namespace particles
+                using type = typename traits::GenerateSolversIfSpeciesEligible<
+                    CreateFieldTmpOperation<bmpl::_1, DerivedAttribute>,
+                    SeqSpecies,
+                    DerivedAttribute>::type;
+            };
+
+            template<typename T_SeqSpecies, typename T_DerivedAttribute>
+            using CreateEligible_t = typename CreateEligible<T_SeqSpecies, T_DerivedAttribute>::type;
+
+        } // namespace particleToGrid
+    } // namespace particles
 } // namespace picongpu

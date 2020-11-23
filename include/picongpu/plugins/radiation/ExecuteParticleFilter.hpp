@@ -29,70 +29,65 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace radiation
-{
-
-    /** read the `radiationMask` of a species */
-    template< bool hasFilter >
-    struct ExecuteParticleFilter
+    namespace plugins
     {
-        /** get the attribute value of `radiationMask`
-         *
-         * @param species buffer
-         * @param currentStep current simulation time step
-         * @return value of the attribute `radiationMask`
-         */
-        template< typename T_Species >
-        void operator()( std::shared_ptr<T_Species> const &, const uint32_t currentStep )
+        namespace radiation
         {
-            particles::Manipulate<
-            picongpu::plugins::radiation::RadiationParticleFilter,
-                T_Species
-            >{}( currentStep );
-        }
-    };
+            /** read the `radiationMask` of a species */
+            template<bool hasFilter>
+            struct ExecuteParticleFilter
+            {
+                /** get the attribute value of `radiationMask`
+                 *
+                 * @param species buffer
+                 * @param currentStep current simulation time step
+                 * @return value of the attribute `radiationMask`
+                 */
+                template<typename T_Species>
+                void operator()(std::shared_ptr<T_Species> const&, const uint32_t currentStep)
+                {
+                    particles::Manipulate<picongpu::plugins::radiation::RadiationParticleFilter, T_Species>{}(
+                        currentStep);
+                }
+            };
 
-    /** specialization
-     *
-     * specialization for the case that the species not owns the attribute
-     * `radiationMask`
-     */
-    template< >
-    struct ExecuteParticleFilter< false >
-    {
-        /** get the attribute value of `radiationMask`
-         *
-         * @param particle to be used
-         * @return always true
-         */
-        template< typename T_Species >
-        void operator()( const std::shared_ptr<T_Species>, const uint32_t currentStep )
-        {
-        }
-    };
+            /** specialization
+             *
+             * specialization for the case that the species not owns the attribute
+             * `radiationMask`
+             */
+            template<>
+            struct ExecuteParticleFilter<false>
+            {
+                /** get the attribute value of `radiationMask`
+                 *
+                 * @param particle to be used
+                 * @return always true
+                 */
+                template<typename T_Species>
+                void operator()(const std::shared_ptr<T_Species>, const uint32_t currentStep)
+                {
+                }
+            };
 
-    /** execute the particle filter on a species
-     *
-     * It is **allowed** to call this function even if the species does not contain
-     * the attribute `radiationMask`.
-     * The filter is **not** executed if the species does not contain the attribute `radiationMask`.
-     *
-     * @tparam T_Species species type
-     * @param species species to be filtered
-     */
-    template< typename T_Species >
-    void executeParticleFilter( std::shared_ptr<T_Species>& species, const uint32_t currentStep )
-    {
-        constexpr bool hasRadiationFilter = pmacc::traits::HasIdentifier<
-            typename T_Species::FrameType,
-            radiationMask
-        >::type::value;
+            /** execute the particle filter on a species
+             *
+             * It is **allowed** to call this function even if the species does not contain
+             * the attribute `radiationMask`.
+             * The filter is **not** executed if the species does not contain the attribute `radiationMask`.
+             *
+             * @tparam T_Species species type
+             * @param species species to be filtered
+             */
+            template<typename T_Species>
+            void executeParticleFilter(std::shared_ptr<T_Species>& species, const uint32_t currentStep)
+            {
+                constexpr bool hasRadiationFilter
+                    = pmacc::traits::HasIdentifier<typename T_Species::FrameType, radiationMask>::type::value;
 
-        return ExecuteParticleFilter< hasRadiationFilter >{}( species, currentStep );
-    }
+                return ExecuteParticleFilter<hasRadiationFilter>{}(species, currentStep);
+            }
 
-} // namespace radiation
-} // namespace plugins
+        } // namespace radiation
+    } // namespace plugins
 } // namespace picongpu

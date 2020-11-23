@@ -28,48 +28,47 @@
 
 namespace pmacc
 {
+    /** Wrapper to use any type as identifier
+     *
+     * Wrap a type thus we can call default constructor on every class
+     * This is needed to support that any type can used as identifier in for math::MapTuple
+     */
+    template<typename T_Type>
+    struct TypeAsIdentifier
+    {
+        typedef T_Type type;
+    };
 
-/** Wrapper to use any type as identifier
- *
- * Wrap a type thus we can call default constructor on every class
- * This is needed to support that any type can used as identifier in for math::MapTuple
- */
-template<typename T_Type>
-struct TypeAsIdentifier
-{
-    typedef T_Type type;
-};
+    /** Unary functor to wrap any type with TypeAsIdentifier
+     *
+     * @tparam T_Type to to wrap
+     */
+    template<typename T_Type>
+    struct MakeIdentifier
+    {
+        typedef TypeAsIdentifier<T_Type> type;
+    };
 
-/** Unary functor to wrap any type with TypeAsIdentifier
- *
- * @tparam T_Type to to wrap
- */
-template<typename T_Type>
-struct MakeIdentifier
-{
-    typedef TypeAsIdentifier<T_Type> type;
-};
+    /** Pass through of an already existing Identifier
+     *
+     * Avoids double-wrapping of an Identifier
+     */
+    template<typename T_Type>
+    struct MakeIdentifier<TypeAsIdentifier<T_Type>>
+    {
+        typedef TypeAsIdentifier<T_Type> type;
+    };
 
-/** Pass through of an already existing Identifier
- *
- * Avoids double-wrapping of an Identifier
- */
-template<typename T_Type>
-struct MakeIdentifier<TypeAsIdentifier<T_Type> >
-{
-    typedef TypeAsIdentifier<T_Type> type;
-};
+    /** create boost mpl pair <TypeAsIdentifier<Type>,PointerOfType>
+     *
+     * @tparam T_Type any type
+     * @return ::type boost::mpl::pair<TypeAsIdentifier<Type>,PointerOfType>
+     */
+    template<typename T_Type>
+    struct TypeToPointerPair
+    {
+        typedef T_Type* TypePtr;
+        typedef bmpl::pair<typename MakeIdentifier<T_Type>::type, TypePtr> type;
+    };
 
-/** create boost mpl pair <TypeAsIdentifier<Type>,PointerOfType>
- *
- * @tparam T_Type any type
- * @return ::type boost::mpl::pair<TypeAsIdentifier<Type>,PointerOfType>
- */
-template<typename T_Type>
-struct TypeToPointerPair
-{
-    typedef T_Type* TypePtr;
-    typedef bmpl::pair< typename MakeIdentifier<T_Type>::type , TypePtr > type;
-};
-
-}//namespace pmacc
+} // namespace pmacc

@@ -31,70 +31,51 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace flylite
-{
-    template<
-        //! @todo for multi ion species IPD: typename T_OtherIonsList,
-        typename T_ElectronsList,
-        typename T_PhotonsList
-    >
-    class NonLTE : public IFlyLite
+    namespace particles
     {
-    public:
-        //! @todo for multi ion species IPD: using OtherIonsList = T_OtherIonsList;
+        namespace flylite
+        {
+            template<
+                //! @todo for multi ion species IPD: typename T_OtherIonsList,
+                typename T_ElectronsList,
+                typename T_PhotonsList>
+            class NonLTE : public IFlyLite
+            {
+            public:
+                //! @todo for multi ion species IPD: using OtherIonsList = T_OtherIonsList;
 
-        using ElectronsList = T_ElectronsList;
-        using PhotonsList = T_PhotonsList;
+                using ElectronsList = T_ElectronsList;
+                using PhotonsList = T_PhotonsList;
 
-        virtual
-        void
-        init(
-            pmacc::DataSpace< simDim > const & gridSizeLocal,
-            std::string const & ionSpeciesName
-        );
+                virtual void init(pmacc::DataSpace<simDim> const& gridSizeLocal, std::string const& ionSpeciesName);
 
-        /** Update atomic configurations
-         *
-         * Prepares auxiliary fields for the non-LTE atomic physics model and
-         * updates the configurations & charge states of an ion species.
-         *
-         * @tparam T_IonSpeciesType a picongpu::Particles class with an ion
-         *                          species
-         *
-         * @param ionSpeciesName unique name of the ion species in T_IonSpeciesType
-         * @param currentStep the current time step
-         */
-        template<
-            typename T_IonSpeciesType
-        >
-        void
-        update(
-            std::string const & ionSpeciesName,
-            uint32_t currentStep
-        );
+                /** Update atomic configurations
+                 *
+                 * Prepares auxiliary fields for the non-LTE atomic physics model and
+                 * updates the configurations & charge states of an ion species.
+                 *
+                 * @tparam T_IonSpeciesType a picongpu::Particles class with an ion
+                 *                          species
+                 *
+                 * @param ionSpeciesName unique name of the ion species in T_IonSpeciesType
+                 * @param currentStep the current time step
+                 */
+                template<typename T_IonSpeciesType>
+                void update(std::string const& ionSpeciesName, uint32_t currentStep);
 
-    private:
-        /** Calculate new values in helper fields
-         *
-         * Prepares helper fields by calculating local densities and energy
-         * histograms.
-         *
-         * @param ionSpeciesName unique name of the ion species in T_IonSpeciesType
-         * @param currentStep the current time step
-         */
-        template<
-            typename T_IonSpeciesType
-        >
-        void
-        fillHelpers(
-            std::string const & ionSpeciesName,
-            uint32_t currentStep
-        );
+            private:
+                /** Calculate new values in helper fields
+                 *
+                 * Prepares helper fields by calculating local densities and energy
+                 * histograms.
+                 *
+                 * @param ionSpeciesName unique name of the ion species in T_IonSpeciesType
+                 * @param currentStep the current time step
+                 */
+                template<typename T_IonSpeciesType>
+                void fillHelpers(std::string const& ionSpeciesName, uint32_t currentStep);
+            };
 
-    };
-
-} // namespace flylite
-} // namespace particles
+        } // namespace flylite
+    } // namespace particles
 } // namespace picongpu

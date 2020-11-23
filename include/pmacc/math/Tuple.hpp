@@ -40,129 +40,122 @@
 
 namespace pmacc
 {
-namespace math
-{
-
+    namespace math
+    {
 #ifndef TUPLE_MAX_DIM
-#define TUPLE_MAX_DIM 8
+#    define TUPLE_MAX_DIM 8
 #endif
 
-#define CONSTRUCTOR(Z, N, _)                                \
-    template<BOOST_PP_ENUM_PARAMS(N, typename Arg)>         \
-    HDINLINE                                                \
-    Tuple(BOOST_PP_ENUM_BINARY_PARAMS(N, const Arg, &arg))  \
-    : value(arg0),                                          \
-      base(BOOST_PP_ENUM_SHIFTED_PARAMS(N, arg))            \
-    {                                                       \
-        BOOST_STATIC_ASSERT(dim == N);                      \
+#define CONSTRUCTOR(Z, N, _)                                                                                          \
+    template<BOOST_PP_ENUM_PARAMS(N, typename Arg)>                                                                   \
+    HDINLINE Tuple(BOOST_PP_ENUM_BINARY_PARAMS(N, const Arg, &arg))                                                   \
+        : value(arg0)                                                                                                 \
+        , base(BOOST_PP_ENUM_SHIFTED_PARAMS(N, arg))                                                                  \
+    {                                                                                                                 \
+        BOOST_STATIC_ASSERT(dim == N);                                                                                \
     }
 
-namespace mpl = boost::mpl;
+        namespace mpl = boost::mpl;
 
-template<typename TypeList, bool ListEmpty = mpl::empty<TypeList>::type::value>
-class Tuple;
+        template<typename TypeList, bool ListEmpty = mpl::empty<TypeList>::type::value>
+        class Tuple;
 
-template<typename TypeList>
-class Tuple<TypeList, true> {};
+        template<typename TypeList>
+        class Tuple<TypeList, true>
+        {
+        };
 
-template<typename TypeList>
-class Tuple<TypeList, false>
-    : public Tuple<typename mpl::pop_front<TypeList>::type>
-{
-public:
-    static constexpr int dim = mpl::size<TypeList>::type::value;
-    typedef TypeList TypeList_;
-private:
-    typedef Tuple<typename mpl::pop_front<TypeList>::type> base;
+        template<typename TypeList>
+        class Tuple<TypeList, false> : public Tuple<typename mpl::pop_front<TypeList>::type>
+        {
+        public:
+            static constexpr int dim = mpl::size<TypeList>::type::value;
+            typedef TypeList TypeList_;
 
-    typedef typename mpl::front<TypeList>::type Value;
-    typedef typename boost::remove_reference<Value>::type pureValue;
+        private:
+            typedef Tuple<typename mpl::pop_front<TypeList>::type> base;
 
-    Value value;
-public:
-    HDINLINE Tuple() {}
+            typedef typename mpl::front<TypeList>::type Value;
+            typedef typename boost::remove_reference<Value>::type pureValue;
 
-    HDINLINE Tuple(Value arg0) : value(arg0)
-    {
-        BOOST_STATIC_ASSERT(dim == 1);
-    }
+            Value value;
 
-    BOOST_PP_REPEAT_FROM_TO(2, BOOST_PP_INC(TUPLE_MAX_DIM), CONSTRUCTOR, _)
+        public:
+            HDINLINE Tuple()
+            {
+            }
 
-    template<int i>
-    HDINLINE
-    typename mpl::at_c<TypeList, i>::type&
-    at_c()
-    {
-        return this->at(mpl::int_<i>());
-    }
-    template<int i>
-    HDINLINE
-    const typename mpl::at_c<TypeList, i>::type&
-    at_c() const
-    {
-        return this->at(mpl::int_<i>());
-    }
+            HDINLINE Tuple(Value arg0) : value(arg0)
+            {
+                BOOST_STATIC_ASSERT(dim == 1);
+            }
 
-    HDINLINE Value& at(mpl::int_<0>)
-    {
-        return value;
-    }
-    HDINLINE Value& at(mpl::integral_c<int, 0>)
-    {
-        return value;
-    }
+            BOOST_PP_REPEAT_FROM_TO(2, BOOST_PP_INC(TUPLE_MAX_DIM), CONSTRUCTOR, _)
 
-    HDINLINE const Value& at(mpl::int_<0>) const
-    {
-        return value;
-    }
-    HDINLINE const Value& at(mpl::integral_c<int, 0>) const
-    {
-        return value;
-    }
+            template<int i>
+            HDINLINE typename mpl::at_c<TypeList, i>::type& at_c()
+            {
+                return this->at(mpl::int_<i>());
+            }
+            template<int i>
+            HDINLINE const typename mpl::at_c<TypeList, i>::type& at_c() const
+            {
+                return this->at(mpl::int_<i>());
+            }
 
-    template<typename Idx>
-    HDINLINE
-    typename mpl::at<TypeList, Idx>::type&
-    at(Idx)
-    {
-        return base::at(typename mpl::minus<Idx, mpl::int_<1> >::type());
-    }
+            HDINLINE Value& at(mpl::int_<0>)
+            {
+                return value;
+            }
+            HDINLINE Value& at(mpl::integral_c<int, 0>)
+            {
+                return value;
+            }
 
-    template<typename Idx>
-    HDINLINE
-    const typename mpl::at<TypeList, Idx>::type&
-    at(Idx) const
-    {
-        return base::at(typename mpl::minus<Idx, mpl::int_<1> >::type());
-    }
-};
+            HDINLINE const Value& at(mpl::int_<0>) const
+            {
+                return value;
+            }
+            HDINLINE const Value& at(mpl::integral_c<int, 0>) const
+            {
+                return value;
+            }
+
+            template<typename Idx>
+            HDINLINE typename mpl::at<TypeList, Idx>::type& at(Idx)
+            {
+                return base::at(typename mpl::minus<Idx, mpl::int_<1>>::type());
+            }
+
+            template<typename Idx>
+            HDINLINE const typename mpl::at<TypeList, Idx>::type& at(Idx) const
+            {
+                return base::at(typename mpl::minus<Idx, mpl::int_<1>>::type());
+            }
+        };
 
 #undef CONSTRUCTOR
 
-#define MAKE_TUPLE(Z, N, _) \
-    template<BOOST_PP_ENUM_PARAMS(N, typename Value)> \
-    HDINLINE \
-    Tuple<mpl::vector<BOOST_PP_ENUM_PARAMS(N, Value)> > \
-    make_Tuple(BOOST_PP_ENUM_BINARY_PARAMS(N, Value, value)) \
-    { \
-        return Tuple<mpl::vector<BOOST_PP_ENUM_PARAMS(N, Value)> > \
-            (BOOST_PP_ENUM_PARAMS(N, value)); \
+#define MAKE_TUPLE(Z, N, _)                                                                                           \
+    template<BOOST_PP_ENUM_PARAMS(N, typename Value)>                                                                 \
+    HDINLINE Tuple<mpl::vector<BOOST_PP_ENUM_PARAMS(N, Value)>> make_Tuple(                                           \
+        BOOST_PP_ENUM_BINARY_PARAMS(N, Value, value))                                                                 \
+    {                                                                                                                 \
+        return Tuple<mpl::vector<BOOST_PP_ENUM_PARAMS(N, Value)>>(BOOST_PP_ENUM_PARAMS(N, value));                    \
     }
 
-BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(TUPLE_MAX_DIM), MAKE_TUPLE, _)
+        BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(TUPLE_MAX_DIM), MAKE_TUPLE, _)
 
 #undef MAKE_TUPLE
 
-namespace result_of
-{
-template<typename TTuple, int i>
-struct at_c
-{
-    typedef typename mpl::at_c<typename TTuple::TypeList_, i>::type type;
-};
-} // result_of
+        namespace result_of
+        {
+            template<typename TTuple, int i>
+            struct at_c
+            {
+                typedef typename mpl::at_c<typename TTuple::TypeList_, i>::type type;
+            };
+        } // namespace result_of
 
-} // math
-} // PMacc
+    } // namespace math
+} // namespace pmacc

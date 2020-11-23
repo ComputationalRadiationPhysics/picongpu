@@ -34,7 +34,6 @@ namespace pmacc
         uint32_t lastNotify;
 
     public:
-
         INotify() : lastNotify(0)
         {
         }
@@ -50,7 +49,7 @@ namespace pmacc
          *
          * @param currentStep current simulation iteration step
          */
-        virtual void notify( uint32_t currentStep ) = 0;
+        virtual void notify(uint32_t currentStep) = 0;
 
         /** When was the plugin notified last?
          *
@@ -65,10 +64,9 @@ namespace pmacc
          *
          * @param currentStep current simulation iteration step
          */
-        void setLastNotify( uint32_t currentStep )
+        void setLastNotify(uint32_t currentStep)
         {
             lastNotify = currentStep;
         }
-
     };
-}
+} // namespace pmacc

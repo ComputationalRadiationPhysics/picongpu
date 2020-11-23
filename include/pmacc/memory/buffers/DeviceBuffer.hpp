@@ -31,18 +31,16 @@
 #include "pmacc/types.hpp"
 
 
-
-
 #include <stdexcept>
 
 namespace pmacc
 {
     class EventTask;
 
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class HostBuffer;
 
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class Buffer;
 
     /**
@@ -51,11 +49,10 @@ namespace pmacc
      * @tparam TYPE datatype of the buffer
      * @tparam DIM dimension of the buffer
      */
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class DeviceBuffer : public Buffer<TYPE, DIM>
     {
     protected:
-
         /** constructor
          *
          * @param size extent for each dimension (in elements)
@@ -63,27 +60,26 @@ namespace pmacc
          *             can be less than `physicalMemorySize`
          * @param physicalMemorySize size of the physical memory (in elements)
          */
-        DeviceBuffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize) :
-        Buffer<TYPE, DIM>(size, physicalMemorySize)
+        DeviceBuffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize)
+            : Buffer<TYPE, DIM>(size, physicalMemorySize)
         {
-
         }
 
     public:
-
         using Buffer<TYPE, DIM>::setCurrentSize; //!\todo :this function was hidden, I don't know why.
 
         /**
          * Destructor.
          */
-        virtual ~DeviceBuffer()
-        {
-        };
+        virtual ~DeviceBuffer(){};
 
         HINLINE
-        container::CartBuffer<TYPE, DIM, allocator::DeviceMemAllocator<TYPE, DIM>,
-                                copier::D2DCopier<DIM>,
-                                assigner::DeviceMemAssigner<> >
+        container::CartBuffer<
+            TYPE,
+            DIM,
+            allocator::DeviceMemAllocator<TYPE, DIM>,
+            copier::D2DCopier<DIM>,
+            assigner::DeviceMemAssigner<>>
         cartBuffer() const
         {
             cuplaPitchedPtr cuplaData = this->getCudaPitched();
@@ -92,7 +88,7 @@ namespace pmacc
                 pitch[0] = cuplaData.pitch;
             if(DIM == 3)
                 pitch[1] = pitch[0] * this->getPhysicalMemorySize()[1];
-            container::DeviceBuffer<TYPE, DIM> result((TYPE*)cuplaData.ptr, this->getDataSpace(), false, pitch);
+            container::DeviceBuffer<TYPE, DIM> result((TYPE*) cuplaData.ptr, this->getDataSpace(), false, pitch);
             return result;
         }
 
@@ -121,7 +117,7 @@ namespace pmacc
          *
          * @return pointer to stored value on host side
          */
-        virtual size_t* getCurrentSizeHostSidePointer()=0;
+        virtual size_t* getCurrentSizeHostSidePointer() = 0;
 
         /**
          * Sets current size of any dimension.
@@ -160,7 +156,6 @@ namespace pmacc
          * @param other the DeviceBuffer to copy from
          */
         virtual void copyFrom(DeviceBuffer<TYPE, DIM>& other) = 0;
-
     };
 
-} //namespace pmacc
+} // namespace pmacc

@@ -31,14 +31,13 @@
 
 namespace pmacc
 {
-
-    template< typename T_DeviceHeap >
+    template<typename T_DeviceHeap>
     class MallocMCBuffer : public ISimulationData
     {
     public:
         using DeviceHeap = T_DeviceHeap;
 
-        MallocMCBuffer( const std::shared_ptr<DeviceHeap>& deviceHeap );
+        MallocMCBuffer(const std::shared_ptr<DeviceHeap>& deviceHeap);
 
         virtual ~MallocMCBuffer();
 
@@ -60,7 +59,6 @@ namespace pmacc
         void synchronize() override;
 
     private:
-
         char* hostPtr;
         int64_t hostBufferOffset;
         mallocMC::HeapInfo deviceHeapInfo;

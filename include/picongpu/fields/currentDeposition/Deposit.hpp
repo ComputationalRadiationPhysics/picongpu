@@ -30,128 +30,96 @@
 
 namespace picongpu
 {
-namespace currentSolver
-{
-    /** Executes the current deposition kernel
-     *
-     * @tparam T_Strategy Used strategy to reduce the scattered data [currentSolver::strategy]
-     * @tparam T_Sfinae Optional specialization
-     */
-    template<
-        typename T_Strategy,
-        typename T_Sfinae = void
-    >
-    struct Deposit;
-
-    template< typename T_Strategy >
-    struct Deposit<
-        T_Strategy,
-        typename std::enable_if< T_Strategy::stridedMapping >::type
-    >
+    namespace currentSolver
     {
-        /** Execute the current deposition with a checker board
+        /** Executes the current deposition kernel
          *
-         * The stride between the supercells for the checker board will be automatically
-         * adjusted, based on the species shape.
+         * @tparam T_Strategy Used strategy to reduce the scattered data [currentSolver::strategy]
+         * @tparam T_Sfinae Optional specialization
          */
-        template<
-            uint32_t T_area,
-            uint32_t T_numWorkers,
-            typename T_CellDescription,
-            typename T_DepositionKernel,
-            typename T_FrameSolver,
-            typename T_JBox,
-            typename T_ParticleBox
-        >
-        void execute(
-            T_CellDescription const & cellDescription,
-            T_DepositionKernel const & depositionKernel,
-            T_FrameSolver const & frameSolver,
-            T_JBox const & jBox,
-            T_ParticleBox const & parBox
-        ) const
+        template<typename T_Strategy, typename T_Sfinae = void>
+        struct Deposit;
+
+        template<typename T_Strategy>
+        struct Deposit<T_Strategy, typename std::enable_if<T_Strategy::stridedMapping>::type>
         {
-            /* The needed stride for the stride mapper depends on the stencil width.
-             * If the upper and lower margin of the stencil fits into one supercell
-             * a double checker board (stride 2) is needed.
-             * The round up sum of margins is the number of supercells to skip.
+            /** Execute the current deposition with a checker board
+             *
+             * The stride between the supercells for the checker board will be automatically
+             * adjusted, based on the species shape.
              */
-            using MarginPerDim = typename pmacc::math::CT::add<
-                typename GetMargin< typename T_FrameSolver::ParticleAlgo >::LowerMargin,
-                typename GetMargin< typename T_FrameSolver::ParticleAlgo >::UpperMargin
-            >::type;
-            using MaxMargin = typename pmacc::math::CT::max< MarginPerDim >::type;
-            using SuperCellMinSize = typename pmacc::math::CT::min< SuperCellSize >::type;
-
-            /* number of supercells which must be skipped to avoid overlapping areas
-             * between different blocks in the kernel
-             */
-            constexpr uint32_t skipSuperCells = ( MaxMargin::value + SuperCellMinSize::value - 1u ) / SuperCellMinSize::value;
-            StrideMapping<
-               T_area,
-               skipSuperCells + 1u, // stride 1u means each supercell is used
-               MappingDesc
-            > mapper( cellDescription );
-
-            do
+            template<
+                uint32_t T_area,
+                uint32_t T_numWorkers,
+                typename T_CellDescription,
+                typename T_DepositionKernel,
+                typename T_FrameSolver,
+                typename T_JBox,
+                typename T_ParticleBox>
+            void execute(
+                T_CellDescription const& cellDescription,
+                T_DepositionKernel const& depositionKernel,
+                T_FrameSolver const& frameSolver,
+                T_JBox const& jBox,
+                T_ParticleBox const& parBox) const
             {
-               PMACC_KERNEL( depositionKernel )(
-                   mapper.getGridDim( ),
-                   T_numWorkers
-               )(
-                   jBox,
-                   parBox,
-                   frameSolver,
-                   mapper
-               );
+                /* The needed stride for the stride mapper depends on the stencil width.
+                 * If the upper and lower margin of the stencil fits into one supercell
+                 * a double checker board (stride 2) is needed.
+                 * The round up sum of margins is the number of supercells to skip.
+                 */
+                using MarginPerDim = typename pmacc::math::CT::add<
+                    typename GetMargin<typename T_FrameSolver::ParticleAlgo>::LowerMargin,
+                    typename GetMargin<typename T_FrameSolver::ParticleAlgo>::UpperMargin>::type;
+                using MaxMargin = typename pmacc::math::CT::max<MarginPerDim>::type;
+                using SuperCellMinSize = typename pmacc::math::CT::min<SuperCellSize>::type;
+
+                /* number of supercells which must be skipped to avoid overlapping areas
+                 * between different blocks in the kernel
+                 */
+                constexpr uint32_t skipSuperCells
+                    = (MaxMargin::value + SuperCellMinSize::value - 1u) / SuperCellMinSize::value;
+                StrideMapping<
+                    T_area,
+                    skipSuperCells + 1u, // stride 1u means each supercell is used
+                    MappingDesc>
+                    mapper(cellDescription);
+
+                do
+                {
+                    PMACC_KERNEL(depositionKernel)
+                    (mapper.getGridDim(), T_numWorkers)(jBox, parBox, frameSolver, mapper);
+                } while(mapper.next());
             }
-            while ( mapper.next( ) );
-        }
-    };
+        };
 
-    template< typename T_Strategy >
-    struct Deposit<
-        T_Strategy,
-        typename std::enable_if< !T_Strategy::stridedMapping >::type
-    >
-    {
-        /** Execute the current deposition for each supercell
-         *
-         * All supercells will be processed in parallel.
-         */
-        template<
-            uint32_t T_area,
-            uint32_t T_numWorkers,
-            typename T_CellDescription,
-            typename T_DepositionKernel,
-            typename T_FrameSolver,
-            typename T_JBox,
-            typename T_ParticleBox
-        >
-        void execute(
-            T_CellDescription const & cellDescription,
-            T_DepositionKernel const & depositionKernel,
-            T_FrameSolver const & frameSolver,
-            T_JBox const & jBox,
-            T_ParticleBox const & parBox
-        ) const
+        template<typename T_Strategy>
+        struct Deposit<T_Strategy, typename std::enable_if<!T_Strategy::stridedMapping>::type>
         {
-            AreaMapping<
-                T_area,
-                MappingDesc
-            > mapper( cellDescription );
+            /** Execute the current deposition for each supercell
+             *
+             * All supercells will be processed in parallel.
+             */
+            template<
+                uint32_t T_area,
+                uint32_t T_numWorkers,
+                typename T_CellDescription,
+                typename T_DepositionKernel,
+                typename T_FrameSolver,
+                typename T_JBox,
+                typename T_ParticleBox>
+            void execute(
+                T_CellDescription const& cellDescription,
+                T_DepositionKernel const& depositionKernel,
+                T_FrameSolver const& frameSolver,
+                T_JBox const& jBox,
+                T_ParticleBox const& parBox) const
+            {
+                AreaMapping<T_area, MappingDesc> mapper(cellDescription);
 
-            PMACC_KERNEL( depositionKernel )(
-                mapper.getGridDim( ),
-                T_numWorkers
-            )(
-                jBox,
-                parBox,
-                frameSolver,
-                mapper
-            );
-        }
-    };
+                PMACC_KERNEL(depositionKernel)(mapper.getGridDim(), T_numWorkers)(jBox, parBox, frameSolver, mapper);
+            }
+        };
 
-} // namespace currentSolver
+    } // namespace currentSolver
 } // namespace picongpu

@@ -29,58 +29,52 @@
 #include "pmacc/types.hpp"
 
 
-
-
 namespace pmacc
 {
+    template<class TYPE, unsigned DIM>
+    class DeviceBuffer;
 
-
-template <class TYPE, unsigned DIM>
-class DeviceBuffer;
-
-template <class TYPE, unsigned DIM>
-class TaskGetCurrentSizeFromDevice : public StreamTask
-{
-public:
-
-    TaskGetCurrentSizeFromDevice(DeviceBuffer<TYPE,DIM>& buffer):
-    StreamTask()
+    template<class TYPE, unsigned DIM>
+    class TaskGetCurrentSizeFromDevice : public StreamTask
     {
-        this->buffer =  & buffer;
-    }
+    public:
+        TaskGetCurrentSizeFromDevice(DeviceBuffer<TYPE, DIM>& buffer) : StreamTask()
+        {
+            this->buffer = &buffer;
+        }
 
-    virtual ~TaskGetCurrentSizeFromDevice()
-    {
-        notify(this->myId,GETVALUE, nullptr);
-    }
+        virtual ~TaskGetCurrentSizeFromDevice()
+        {
+            notify(this->myId, GETVALUE, nullptr);
+        }
 
-    bool executeIntern()
-    {
-        return isFinished();
-    }
+        bool executeIntern()
+        {
+            return isFinished();
+        }
 
-    void event(id_t, EventType, IEventData*)
-    {
-    }
+        void event(id_t, EventType, IEventData*)
+        {
+        }
 
-    virtual void init()
-    {
-        CUDA_CHECK(cuplaMemcpyAsync((void*) buffer->getCurrentSizeHostSidePointer(),
-                                   buffer->getCurrentSizeOnDevicePointer(),
-                                   sizeof (size_t),
-                                   cuplaMemcpyDeviceToHost,
-                                   this->getCudaStream()));
-        this->activate();
-    }
+        virtual void init()
+        {
+            CUDA_CHECK(cuplaMemcpyAsync(
+                (void*) buffer->getCurrentSizeHostSidePointer(),
+                buffer->getCurrentSizeOnDevicePointer(),
+                sizeof(size_t),
+                cuplaMemcpyDeviceToHost,
+                this->getCudaStream()));
+            this->activate();
+        }
 
-    virtual std::string toString()
-    {
-        return "TaskGetCurrentSizeFromDevice";
-    }
+        virtual std::string toString()
+        {
+            return "TaskGetCurrentSizeFromDevice";
+        }
 
-private:
+    private:
+        DeviceBuffer<TYPE, DIM>* buffer;
+    };
 
-    DeviceBuffer<TYPE, DIM> *buffer;
-};
-
-} //namespace pmacc
+} // namespace pmacc

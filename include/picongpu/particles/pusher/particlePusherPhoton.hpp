@@ -33,25 +33,24 @@ namespace picongpu
             /* this is an optional extension for sub-sampling pushes that enables grid to particle interpolation
              * for particle positions outside the super cell in one push
              */
-            using LowerMargin = typename pmacc::math::CT::make_Int<simDim,0>::type;
-            using UpperMargin = typename pmacc::math::CT::make_Int<simDim,0>::type;
+            using LowerMargin = typename pmacc::math::CT::make_Int<simDim, 0>::type;
+            using UpperMargin = typename pmacc::math::CT::make_Int<simDim, 0>::type;
 
-            template< typename T_FunctorFieldE, typename T_FunctorFieldB, typename T_Particle, typename T_Pos >
+            template<typename T_FunctorFieldE, typename T_FunctorFieldB, typename T_Particle, typename T_Pos>
             HDINLINE void operator()(
                 const T_FunctorFieldB functorBField,
                 const T_FunctorFieldE functorEField,
-                T_Particle & particle,
-                T_Pos & pos,
-                const uint32_t
-            )
+                T_Particle& particle,
+                T_Pos& pos,
+                const uint32_t)
             {
                 using MomType = momentum::type;
-                MomType const mom = particle[ momentum_ ];
+                MomType const mom = particle[momentum_];
 
-                const float_X mom_abs = math::abs( mom );
-                const MomType vel = mom * ( SPEED_OF_LIGHT / mom_abs );
+                const float_X mom_abs = math::abs(mom);
+                const MomType vel = mom * (SPEED_OF_LIGHT / mom_abs);
 
-                for(uint32_t d=0;d<simDim;++d)
+                for(uint32_t d = 0; d < simDim; ++d)
                 {
                     pos[d] += (vel[d] * DELTA_T) / cellSize[d];
                 }
@@ -59,10 +58,10 @@ namespace picongpu
 
             static pmacc::traits::StringProperty getStringProperties()
             {
-                pmacc::traits::StringProperty propList( "name", "other" );
+                pmacc::traits::StringProperty propList("name", "other");
                 propList["param"] = "free streaming photon pusher";
                 return propList;
             }
         };
-    } //namespace
-}
+    } // namespace particlePusherPhoton
+} // namespace picongpu

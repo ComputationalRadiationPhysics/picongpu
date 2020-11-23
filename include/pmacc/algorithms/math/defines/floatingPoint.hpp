@@ -23,51 +23,50 @@
 
 namespace pmacc
 {
-namespace math
-{
+    namespace math
+    {
+        template<typename Type>
+        struct Float2int_ru;
 
-template<typename Type>
-struct Float2int_ru;
+        template<typename Type>
+        struct Float2int_rd;
 
-template<typename Type>
-struct Float2int_rd;
+        template<typename Type>
+        struct Float2int_rn;
 
-template<typename Type>
-struct Float2int_rn;
+        /**
+         * Returns the smallest int value that is at least as big as value
+         * Note: Using values outside the range of an int is undefined
+         * @return integer value
+         */
+        template<typename T1>
+        HDINLINE typename Float2int_ru<T1>::result float2int_ru(T1 value)
+        {
+            return Float2int_ru<T1>()(value);
+        }
 
-/**
- * Returns the smallest int value that is at least as big as value
- * Note: Using values outside the range of an int is undefined
- * @return integer value
- */
-template<typename T1>
-HDINLINE typename Float2int_ru< T1>::result float2int_ru(T1 value)
-{
-    return Float2int_ru< T1 > ()(value);
-}
+        /**
+         * Returns the largest int value that is not greater than value
+         * Note: Using values outside the range of an int is undefined
+         * @return integer value
+         */
+        template<typename T1>
+        HDINLINE typename Float2int_rd<T1>::result float2int_rd(T1 value)
+        {
+            return Float2int_rd<T1>()(value);
+        }
 
-/**
- * Returns the largest int value that is not greater than value
- * Note: Using values outside the range of an int is undefined
- * @return integer value
- */
-template<typename T1>
-HDINLINE typename Float2int_rd< T1>::result float2int_rd(T1 value)
-{
-    return Float2int_rd< T1 > ()(value);
-}
+        /**
+         * Rounds towards the nearest value returning an int
+         * For the case of x.5 the even value is chosen from the 2 possible values
+         * Note: Using values outside the range of an int is undefined
+         * @return integer value
+         */
+        template<typename T1>
+        HDINLINE typename Float2int_rn<T1>::result float2int_rn(T1 value)
+        {
+            return Float2int_rn<T1>()(value);
+        }
 
-/**
- * Rounds towards the nearest value returning an int
- * For the case of x.5 the even value is chosen from the 2 possible values
- * Note: Using values outside the range of an int is undefined
- * @return integer value
- */
-template<typename T1>
-HDINLINE typename Float2int_rn< T1>::result float2int_rn(T1 value)
-{
-    return Float2int_rn< T1 > ()(value);
-}
-
-} //namespace math
-}//namespace pmacc
+    } // namespace math
+} // namespace pmacc

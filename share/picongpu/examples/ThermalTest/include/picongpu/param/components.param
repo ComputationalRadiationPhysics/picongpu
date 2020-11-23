@@ -30,9 +30,9 @@
 
 namespace picongpu
 {
-/*! Simulation Starter ---------------------------------------------------
- *  - thermalTestStarter         : starter for thermal test
- */
-namespace simulation_starter = thermalTestStarter;
+    /*! Simulation Starter ---------------------------------------------------
+     *  - thermalTestStarter         : starter for thermal test
+     */
+    namespace simulation_starter = thermalTestStarter;
 
 } // namespace picongpu

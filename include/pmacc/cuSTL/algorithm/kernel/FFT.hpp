@@ -23,21 +23,19 @@
 
 namespace pmacc
 {
-namespace algorithm
-{
-namespace kernel
-{
+    namespace algorithm
+    {
+        namespace kernel
+        {
+            template<int dim>
+            struct FFT
+            {
+                template<typename Zone, typename DestCursor, typename SrcCursor>
+                void operator()(const Zone& p_zone, const DestCursor& destCursor, const SrcCursor& srcCursor);
+            };
 
-template<int dim>
-struct FFT
-{
-    template<typename Zone, typename DestCursor, typename SrcCursor>
-    void operator()(const Zone& p_zone, const DestCursor& destCursor, const SrcCursor& srcCursor);
-};
-
-} // kernel
-} // algorithm
-} // pmacc
+        } // namespace kernel
+    } // namespace algorithm
+} // namespace pmacc
 
 #include "FFT.tpp"
-

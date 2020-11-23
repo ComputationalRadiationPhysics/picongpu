@@ -40,684 +40,423 @@
 
 namespace pmacc
 {
-
-template<typename T_ParticleBox, typename T_SuperCellIdxType, typename T_Acc>
-DINLINE typename T_ParticleBox::FramePtr
-getPreviousFrameAndRemoveLastFrame( const T_Acc& acc, const typename T_ParticleBox::FramePtr& frame,
-                                    T_ParticleBox& pb,
-                                    const T_SuperCellIdxType& superCellIdx )
-{
-    typename T_ParticleBox::FramePtr result = pb.getPreviousFrame( frame );
-    pb.removeLastFrame( acc, superCellIdx );
-    return result;
-}
-
-/** fill particle gaps in the last frame
- *
- * Copy all particles in a frame to the storage places at the frame's beginning.
- * This leaves the frame with a contiguous number of valid particles at
- * the beginning and a subsequent, contiguous gap at the end.
- *
- * @tparam T_numWorkers number of workers
- */
-template< uint32_t T_numWorkers >
-struct KernelFillGapsLastFrame
-{
-    /** fill particle gaps
-     *
-     * @tparam T_ParBox pmacc::ParticlesBox, particle box type
-     * @tparam T_Mapping mapper functor type
-     *
-     * @param boxPar particle memory
-     * @param mapper functor to map a block to a supercell
-     */
-    template<
-        typename T_ParBox,
-        typename T_Mapping,
-        typename T_Acc
-    >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        T_ParBox pb,
-        T_Mapping mapper
-    ) const
+    template<typename T_ParticleBox, typename T_SuperCellIdxType, typename T_Acc>
+    DINLINE typename T_ParticleBox::FramePtr getPreviousFrameAndRemoveLastFrame(
+        const T_Acc& acc,
+        const typename T_ParticleBox::FramePtr& frame,
+        T_ParticleBox& pb,
+        const T_SuperCellIdxType& superCellIdx)
     {
-        using namespace particles::operations;
-        using namespace mappings::threads;
+        typename T_ParticleBox::FramePtr result = pb.getPreviousFrame(frame);
+        pb.removeLastFrame(acc, superCellIdx);
+        return result;
+    }
 
-        constexpr uint32_t frameSize = math::CT::volume<typename T_Mapping::SuperCellSize>::type::value;
-        constexpr uint32_t dim = T_Mapping::Dim;
-        constexpr uint32_t numWorkers = T_numWorkers;
+    /** fill particle gaps in the last frame
+     *
+     * Copy all particles in a frame to the storage places at the frame's beginning.
+     * This leaves the frame with a contiguous number of valid particles at
+     * the beginning and a subsequent, contiguous gap at the end.
+     *
+     * @tparam T_numWorkers number of workers
+     */
+    template<uint32_t T_numWorkers>
+    struct KernelFillGapsLastFrame
+    {
+        /** fill particle gaps
+         *
+         * @tparam T_ParBox pmacc::ParticlesBox, particle box type
+         * @tparam T_Mapping mapper functor type
+         *
+         * @param boxPar particle memory
+         * @param mapper functor to map a block to a supercell
+         */
+        template<typename T_ParBox, typename T_Mapping, typename T_Acc>
+        DINLINE void operator()(T_Acc const& acc, T_ParBox pb, T_Mapping mapper) const
+        {
+            using namespace particles::operations;
+            using namespace mappings::threads;
 
-        using FramePtr = typename T_ParBox::FramePtr;
+            constexpr uint32_t frameSize = math::CT::volume<typename T_Mapping::SuperCellSize>::type::value;
+            constexpr uint32_t dim = T_Mapping::Dim;
+            constexpr uint32_t numWorkers = T_numWorkers;
 
-        DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim > ( cupla::blockIdx(acc) ) );
+            using FramePtr = typename T_ParBox::FramePtr;
 
-        PMACC_SMEM(
-            acc,
-            lastFrame,
-            FramePtr
-        );
-        PMACC_SMEM(
-            acc,
-            gapIndices_sh,
-            memory::Array<
-                int,
-                frameSize
-            >
-        );
-        PMACC_SMEM(
-            acc,
-            numGaps,
-            int
-        );
-        PMACC_SMEM(
-            acc,
-            numParticles,
-            int
-        );
-        PMACC_SMEM(
-            acc,
-            srcGap,
-            int
-        );
+            DataSpace<dim> const superCellIdx = mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc)));
 
-        uint32_t const workerIdx = cupla::threadIdx(acc).x;
+            PMACC_SMEM(acc, lastFrame, FramePtr);
+            PMACC_SMEM(acc, gapIndices_sh, memory::Array<int, frameSize>);
+            PMACC_SMEM(acc, numGaps, int);
+            PMACC_SMEM(acc, numParticles, int);
+            PMACC_SMEM(acc, srcGap, int);
 
-        using MasterOnly = IdxConfig<
-            1,
-            numWorkers
-        >;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-        ForEachIdx< MasterOnly >{ workerIdx }(
-            [&](
-                uint32_t const,
-                uint32_t const
-            )
-            {
-                lastFrame = pb.getLastFrame( superCellIdx );
+            using MasterOnly = IdxConfig<1, numWorkers>;
+
+            ForEachIdx<MasterOnly>{workerIdx}([&](uint32_t const, uint32_t const) {
+                lastFrame = pb.getLastFrame(superCellIdx);
                 numGaps = 0;
                 numParticles = 0;
                 srcGap = 0;
-            }
-        );
+            });
 
-        cupla::__syncthreads( acc );
+            cupla::__syncthreads(acc);
 
-        if ( lastFrame.isValid( ) )
-        {
-            using ParticleDomCfg = IdxConfig<
-                frameSize,
-                numWorkers
-            >;
+            if(lastFrame.isValid())
+            {
+                using ParticleDomCfg = IdxConfig<frameSize, numWorkers>;
 
-            /* context if an element within the frame is a particle */
-            memory::CtxArray<
-                bool,
-                ParticleDomCfg
-            >
-            isParticleCtx(
-                workerIdx,
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const
-                )
-                {
-                    return lastFrame[ linearIdx ][ multiMask_ ];
-                }
-            );
+                /* context if an element within the frame is a particle */
+                memory::CtxArray<bool, ParticleDomCfg> isParticleCtx(
+                    workerIdx,
+                    [&](uint32_t const linearIdx, uint32_t const) { return lastFrame[linearIdx][multiMask_]; });
 
-            /* loop over all particles in the frame */
-            ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
+                /* loop over all particles in the frame */
+                ForEachIdx<ParticleDomCfg> forEachParticle(workerIdx);
 
-            // count particles in last frame
-            forEachParticle(
-                [&](
-                    uint32_t const,
-                    uint32_t const idx
-                )
-                {
-                    if( isParticleCtx[ idx ] )
-                        nvidia::atomicAllInc( acc, &numParticles, ::alpaka::hierarchy::Threads{} );
-                }
-            );
+                // count particles in last frame
+                forEachParticle([&](uint32_t const, uint32_t const idx) {
+                    if(isParticleCtx[idx])
+                        nvidia::atomicAllInc(acc, &numParticles, ::alpaka::hierarchy::Threads{});
+                });
 
-            cupla::__syncthreads( acc );
+                cupla::__syncthreads(acc);
 
-            forEachParticle(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
-                {
-                    if ( linearIdx < numParticles && isParticleCtx[ idx ] == false )
+                forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                    if(linearIdx < numParticles && isParticleCtx[idx] == false)
                     {
-                        int const localGapIdx = nvidia::atomicAllInc( acc, &numGaps, ::alpaka::hierarchy::Threads{} );
-                        gapIndices_sh[ localGapIdx ] = linearIdx;
+                        int const localGapIdx = nvidia::atomicAllInc(acc, &numGaps, ::alpaka::hierarchy::Threads{});
+                        gapIndices_sh[localGapIdx] = linearIdx;
                     }
-                }
-            );
-            cupla::__syncthreads( acc );
-            forEachParticle(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
-                {
-                    if ( linearIdx >= numParticles && isParticleCtx[ idx ] )
+                });
+                cupla::__syncthreads(acc);
+                forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                    if(linearIdx >= numParticles && isParticleCtx[idx])
                     {
                         // any particle search a gap
-                        int const srcGapIdx = nvidia::atomicAllInc( acc, &srcGap, ::alpaka::hierarchy::Threads{} );
-                        int const gapIdx = gapIndices_sh[ srcGapIdx ];
-                        auto parDestFull = lastFrame[ gapIdx ];
+                        int const srcGapIdx = nvidia::atomicAllInc(acc, &srcGap, ::alpaka::hierarchy::Threads{});
+                        int const gapIdx = gapIndices_sh[srcGapIdx];
+                        auto parDestFull = lastFrame[gapIdx];
                         /* enable particle */
-                        parDestFull[ multiMask_ ] = 1;
+                        parDestFull[multiMask_] = 1;
                         /* we do not update the multiMask because copying from mem to mem is too slow
                          * we have to enabled particles explicitly
                          */
-                        auto parDest = deselect< multiMask >( parDestFull );
-                        auto parSrc = ( lastFrame[ linearIdx ] );
-                        assign( parDest, parSrc );
+                        auto parDest = deselect<multiMask>(parDestFull);
+                        auto parSrc = (lastFrame[linearIdx]);
+                        assign(parDest, parSrc);
                         parSrc[multiMask_] = 0; // delete old particle
                     }
-                }
-            );
-        }
-        ForEachIdx< MasterOnly >{ workerIdx }(
-            [&](
-                uint32_t const,
-                uint32_t const
-            )
-            {
+                });
+            }
+            ForEachIdx<MasterOnly>{workerIdx}([&](uint32_t const, uint32_t const) {
                 // there is no need to add a zero to the global memory
-                if( numParticles != 0 )
+                if(numParticles != 0)
                 {
-                    auto & superCell = pb.getSuperCell( superCellIdx );
-                    superCell.setNumParticles(
-                        superCell.getNumParticles() + numParticles
-                    );
+                    auto& superCell = pb.getSuperCell(superCellIdx);
+                    superCell.setNumParticles(superCell.getNumParticles() + numParticles);
                 }
                 else
                 {
                     /* The last frame is empty therefore it must be removed.
                      * It is save to call this method even if there is no last frame.
                      */
-                    pb.removeLastFrame(acc, superCellIdx );
+                    pb.removeLastFrame(acc, superCellIdx);
                 }
-            }
-        );
-    }
-};
+            });
+        }
+    };
 
-/** fill particle gaps in all frames
- *
- * Copy all particles from the end to the gaps at the beginning of the frame list.
- * The functor fulfills the restriction that the last frame must be hold a contiguous
- * number of valid particles at the beginning and a subsequent, contiguous gap at the end.
- *
- * @tparam T_numWorkers number of workers
- */
-template< uint32_t T_numWorkers >
-struct KernelFillGaps
-{
-    /** fill particle gaps
+    /** fill particle gaps in all frames
      *
-     * @tparam T_ParBox pmacc::ParticlesBox, particle box type
-     * @tparam T_Mapping mapper functor type
+     * Copy all particles from the end to the gaps at the beginning of the frame list.
+     * The functor fulfills the restriction that the last frame must be hold a contiguous
+     * number of valid particles at the beginning and a subsequent, contiguous gap at the end.
      *
-     * @param pb particle memory
-     * @param mapper functor to map a block to a supercell
+     * @tparam T_numWorkers number of workers
      */
-    template<
-        typename T_ParBox,
-        typename T_Mapping,
-        typename T_Acc
-    >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        T_ParBox pb,
-        T_Mapping const mapper
-    ) const
+    template<uint32_t T_numWorkers>
+    struct KernelFillGaps
     {
-        using namespace particles::operations;
-        using namespace mappings::threads;
-
-        using FramePtr = typename T_ParBox::FramePtr;
-
-        constexpr uint32_t frameSize = math::CT::volume< typename T_ParBox::FrameType::SuperCellSize >::type::value;
-        constexpr uint32_t dim = T_Mapping::Dim;
-        constexpr uint32_t numWorkers = T_numWorkers;
-
-        uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-        DataSpace< dim > const superCellIdx( mapper.getSuperCellIndex( DataSpace< dim >( cupla::blockIdx(acc) ) ) );
-
-        // data copied from right (last) to left (first)
-        PMACC_SMEM(
-            acc,
-            firstFrame,
-            FramePtr
-        );
-        PMACC_SMEM(
-            acc,
-            lastFrame,
-            FramePtr
-        );
-
-        PMACC_SMEM(
-            acc,
-            particleIndices_sh,
-            memory::Array<
-                int,
-                frameSize
-            >
-        );
-        // number of gaps in firstFrame frame
-        PMACC_SMEM(
-            acc,
-            numGaps,
-            int
-        );
-        // number of particles in the lastFrame
-        PMACC_SMEM(
-            acc,
-            numParticles,
-            int
-        );
-
-        uint32_t numParticlesPerSuperCell = 0u;
-
-        ForEachIdx<
-            IdxConfig<
-                1,
-                numWorkers
-            >
-        > onlyMaster{ workerIdx };
-
-        onlyMaster(
-            [&](
-                uint32_t const,
-                uint32_t const
-            )
-            {
-                firstFrame = pb.getFirstFrame( superCellIdx );
-                lastFrame = pb.getLastFrame( superCellIdx );
-            }
-        );
-
-        cupla::__syncthreads( acc );
-
-        while ( firstFrame.isValid( ) && firstFrame != lastFrame )
+        /** fill particle gaps
+         *
+         * @tparam T_ParBox pmacc::ParticlesBox, particle box type
+         * @tparam T_Mapping mapper functor type
+         *
+         * @param pb particle memory
+         * @param mapper functor to map a block to a supercell
+         */
+        template<typename T_ParBox, typename T_Mapping, typename T_Acc>
+        DINLINE void operator()(T_Acc const& acc, T_ParBox pb, T_Mapping const mapper) const
         {
-            onlyMaster(
-                [&](
-                    uint32_t const,
-                    uint32_t const
-                )
-                {
+            using namespace particles::operations;
+            using namespace mappings::threads;
+
+            using FramePtr = typename T_ParBox::FramePtr;
+
+            constexpr uint32_t frameSize = math::CT::volume<typename T_ParBox::FrameType::SuperCellSize>::type::value;
+            constexpr uint32_t dim = T_Mapping::Dim;
+            constexpr uint32_t numWorkers = T_numWorkers;
+
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
+
+            DataSpace<dim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc))));
+
+            // data copied from right (last) to left (first)
+            PMACC_SMEM(acc, firstFrame, FramePtr);
+            PMACC_SMEM(acc, lastFrame, FramePtr);
+
+            PMACC_SMEM(acc, particleIndices_sh, memory::Array<int, frameSize>);
+            // number of gaps in firstFrame frame
+            PMACC_SMEM(acc, numGaps, int);
+            // number of particles in the lastFrame
+            PMACC_SMEM(acc, numParticles, int);
+
+            uint32_t numParticlesPerSuperCell = 0u;
+
+            ForEachIdx<IdxConfig<1, numWorkers>> onlyMaster{workerIdx};
+
+            onlyMaster([&](uint32_t const, uint32_t const) {
+                firstFrame = pb.getFirstFrame(superCellIdx);
+                lastFrame = pb.getLastFrame(superCellIdx);
+            });
+
+            cupla::__syncthreads(acc);
+
+            while(firstFrame.isValid() && firstFrame != lastFrame)
+            {
+                onlyMaster([&](uint32_t const, uint32_t const) {
                     numGaps = 0;
                     numParticles = 0;
-                }
-            );
+                });
 
-            cupla::__syncthreads( acc );
+                cupla::__syncthreads(acc);
 
-            using ParticleDomCfg = IdxConfig<
-                frameSize,
-                numWorkers
-            >;
-            // loop over all particles in the frame
-            ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
+                using ParticleDomCfg = IdxConfig<frameSize, numWorkers>;
+                // loop over all particles in the frame
+                ForEachIdx<ParticleDomCfg> forEachParticle(workerIdx);
 
-            memory::CtxArray<
-                int,
-                ParticleDomCfg
-            > localGapIdxCtx( INV_LOC_IDX );
+                memory::CtxArray<int, ParticleDomCfg> localGapIdxCtx(INV_LOC_IDX);
 
-            // find gaps in firstFrame
-            forEachParticle(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
+                // find gaps in firstFrame
+                forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                    if(firstFrame[linearIdx][multiMask_] == 0)
+                    {
+                        localGapIdxCtx[idx] = nvidia::atomicAllInc(acc, &numGaps, ::alpaka::hierarchy::Threads{});
+                    }
+                });
+
+                cupla::__syncthreads(acc);
+
+                if(numGaps != 0)
                 {
-                    if( firstFrame[ linearIdx ][ multiMask_ ] == 0 )
-                    {
-                        localGapIdxCtx[ idx ] = nvidia::atomicAllInc( acc, &numGaps, ::alpaka::hierarchy::Threads{} );
-                    }
-                }
-            );
-
-            cupla::__syncthreads( acc );
-
-            if( numGaps != 0 )
-            {
-                // count particles in lastFrame
-                forEachParticle(
-                    [&](
-                        uint32_t const linearIdx,
-                        uint32_t const idx
-                    )
-                    {
+                    // count particles in lastFrame
+                    forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
                         // search particles for gaps
-                        if( lastFrame[ linearIdx ][ multiMask_ ] == 1 )
+                        if(lastFrame[linearIdx][multiMask_] == 1)
                         {
-                            int const localParticleIdx = nvidia::atomicAllInc( acc, &numParticles, ::alpaka::hierarchy::Threads{} );
-                            particleIndices_sh[ localParticleIdx ] = linearIdx;
+                            int const localParticleIdx
+                                = nvidia::atomicAllInc(acc, &numParticles, ::alpaka::hierarchy::Threads{});
+                            particleIndices_sh[localParticleIdx] = linearIdx;
                         }
-                    }
-                );
+                    });
 
-                cupla::__syncthreads( acc );
+                    cupla::__syncthreads(acc);
 
-                // copy particles from lastFrame to the gaps in firstFrame
-                forEachParticle(
-                    [&](
-                        uint32_t const linearIdx,
-                        uint32_t const idx
-                    )
-                    {
-                        if( localGapIdxCtx[ idx ] < numParticles )
+                    // copy particles from lastFrame to the gaps in firstFrame
+                    forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                        if(localGapIdxCtx[idx] < numParticles)
                         {
-                            int const parIdx = particleIndices_sh[ localGapIdxCtx[ idx ] ];
-                            auto parDestFull = firstFrame[ linearIdx ];
+                            int const parIdx = particleIndices_sh[localGapIdxCtx[idx]];
+                            auto parDestFull = firstFrame[linearIdx];
                             // enable particle
-                            parDestFull[ multiMask_ ] = 1;
+                            parDestFull[multiMask_] = 1;
                             /* we not update multiMask because copy from mem to mem is to slow
                              * we have enabled particle explicit
                              */
-                            auto parDest = deselect< multiMask >( parDestFull );
-                            auto parSrc = lastFrame[ parIdx ];
-                            assign( parDest, parSrc );
-                            parSrc[ multiMask_ ] = 0;
+                            auto parDest = deselect<multiMask>(parDestFull);
+                            auto parSrc = lastFrame[parIdx];
+                            assign(parDest, parSrc);
+                            parSrc[multiMask_] = 0;
                         }
-                    }
-                );
+                    });
 
-                cupla::__syncthreads( acc );
+                    cupla::__syncthreads(acc);
 
-                onlyMaster(
-                    [&](
-                        uint32_t const,
-                        uint32_t const
-                    )
-                    {
-                        if( numGaps < numParticles )
+                    onlyMaster([&](uint32_t const, uint32_t const) {
+                        if(numGaps < numParticles)
                         {
                             numParticlesPerSuperCell += frameSize;
                             // any gap in the first frame is filled
-                            firstFrame = pb.getNextFrame( firstFrame );
+                            firstFrame = pb.getNextFrame(firstFrame);
                         }
-                        else if( numGaps > numParticles )
+                        else if(numGaps > numParticles)
                         {
                             // we need more particles
-                            lastFrame = getPreviousFrameAndRemoveLastFrame(
-                                acc,
-                                lastFrame,
-                                pb,
-                                superCellIdx
-                            );
+                            lastFrame = getPreviousFrameAndRemoveLastFrame(acc, lastFrame, pb, superCellIdx);
                         }
-                        else if( numGaps == numParticles )
+                        else if(numGaps == numParticles)
                         {
                             // update lastFrame and firstFrame
-                            lastFrame = getPreviousFrameAndRemoveLastFrame(
-                                acc,
-                                lastFrame,
-                                pb,
-                                superCellIdx
-                            );
-                            if( lastFrame.isValid( ) && lastFrame != firstFrame )
+                            lastFrame = getPreviousFrameAndRemoveLastFrame(acc, lastFrame, pb, superCellIdx);
+                            if(lastFrame.isValid() && lastFrame != firstFrame)
                             {
                                 numParticlesPerSuperCell += frameSize;
-                                firstFrame = pb.getNextFrame( firstFrame );
+                                firstFrame = pb.getNextFrame(firstFrame);
                             }
                         }
-                    }
-                );
-            }
-            else
-            {
-                // there are no gaps in firstFrame, goto to next frame
-                onlyMaster(
-                    [&](
-                        uint32_t const,
-                        uint32_t const
-                    )
-                    {
+                    });
+                }
+                else
+                {
+                    // there are no gaps in firstFrame, goto to next frame
+                    onlyMaster([&](uint32_t const, uint32_t const) {
                         numParticlesPerSuperCell += frameSize;
-                        firstFrame = pb.getNextFrame( firstFrame );
-                    }
-                );
+                        firstFrame = pb.getNextFrame(firstFrame);
+                    });
+                }
+
+                cupla::__syncthreads(acc);
             }
 
-            cupla::__syncthreads( acc );
-
-        }
-
-        onlyMaster(
-            [&](
-                uint32_t const,
-                uint32_t const
-            )
-            {
+            onlyMaster([&](uint32_t const, uint32_t const) {
                 /* numParticlesPerSuperCell is the number of particles in the
                  * supercell except the particles in the last frame
                  */
-                auto & superCell = pb.getSuperCell( superCellIdx );
-                superCell.setNumParticles( numParticlesPerSuperCell );
-            }
-        );
+                auto& superCell = pb.getSuperCell(superCellIdx);
+                superCell.setNumParticles(numParticlesPerSuperCell);
+            });
 
-        // fill all gaps in the last frame of the supercell
-        KernelFillGapsLastFrame< numWorkers >{ }(
-            acc,
-            pb,
-            mapper
-        );
-    }
-};
+            // fill all gaps in the last frame of the supercell
+            KernelFillGapsLastFrame<numWorkers>{}(acc, pb, mapper);
+        }
+    };
 
-/** shift particles leaving the supercell
- *
- * The functor fulfills the restriction that all frames except the last
- * must be fully filled with particles as can be stored in a frame.
- *
- * @tparam T_numWorkers number of workers
- */
-template< uint32_t T_numWorkers >
-struct KernelShiftParticles
-{
-    /** This kernel moves particles to the next supercell
+    /** shift particles leaving the supercell
      *
-     * @warning this kernel can only run with a double checker board
+     * The functor fulfills the restriction that all frames except the last
+     * must be fully filled with particles as can be stored in a frame.
+     *
+     * @tparam T_numWorkers number of workers
      */
-    template<
-        typename T_ParBox,
-        typename Mapping,
-        typename T_Acc
-    >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        T_ParBox pb,
-        Mapping mapper
-    ) const
+    template<uint32_t T_numWorkers>
+    struct KernelShiftParticles
     {
-        using ParBox = T_ParBox;
-        using FrameType = typename ParBox::FrameType;
-        using FramePtr = typename ParBox::FramePtr;
-
-        PMACC_CONSTEXPR_CAPTURE uint32_t dim = Mapping::Dim;
-        constexpr uint32_t frameSize = math::CT::volume< typename FrameType::SuperCellSize >::type::value;
-        /* number exchanges in 2D=9 and in 3D=27 */
-        constexpr uint32_t numExchanges = traits::NumberOfExchanges< dim >::value;
-        constexpr uint32_t numWorkers = T_numWorkers;
-
-        /* define memory for two times Exchanges
-         * index range [0,numExchanges-1] are being referred to as `low frames`
-         * index range [numExchanges,2*numExchanges-1] are being referred to as `high frames`
+        /** This kernel moves particles to the next supercell
+         *
+         * @warning this kernel can only run with a double checker board
          */
-        PMACC_SMEM(
-            acc,
-            destFrames,
-            memory::Array<
-                FramePtr,
-                numExchanges * 2
-            >
-        );
-        //count particles per frame
-        PMACC_SMEM(
-            acc,
-            destFramesCounter,
-            memory::Array<
-                int,
-                numExchanges
-            >
-        );
+        template<typename T_ParBox, typename Mapping, typename T_Acc>
+        DINLINE void operator()(T_Acc const& acc, T_ParBox pb, Mapping mapper) const
+        {
+            using ParBox = T_ParBox;
+            using FrameType = typename ParBox::FrameType;
+            using FramePtr = typename ParBox::FramePtr;
 
-        PMACC_SMEM(
-            acc,
-            frame,
-            FramePtr
-        );
-        PMACC_SMEM(
-            acc,
-            mustShift,
-            bool
-        );
+            PMACC_CONSTEXPR_CAPTURE uint32_t dim = Mapping::Dim;
+            constexpr uint32_t frameSize = math::CT::volume<typename FrameType::SuperCellSize>::type::value;
+            /* number exchanges in 2D=9 and in 3D=27 */
+            constexpr uint32_t numExchanges = traits::NumberOfExchanges<dim>::value;
+            constexpr uint32_t numWorkers = T_numWorkers;
 
-        DataSpace< dim > superCellIdx = mapper.getSuperCellIndex( DataSpace< dim >( cupla::blockIdx(acc) ) );
-        uint32_t const workerIdx = cupla::threadIdx(acc).x;
+            /* define memory for two times Exchanges
+             * index range [0,numExchanges-1] are being referred to as `low frames`
+             * index range [numExchanges,2*numExchanges-1] are being referred to as `high frames`
+             */
+            PMACC_SMEM(acc, destFrames, memory::Array<FramePtr, numExchanges * 2>);
+            // count particles per frame
+            PMACC_SMEM(acc, destFramesCounter, memory::Array<int, numExchanges>);
 
-        using namespace mappings::threads;
+            PMACC_SMEM(acc, frame, FramePtr);
+            PMACC_SMEM(acc, mustShift, bool);
 
-        ForEachIdx<
-            IdxConfig<
-                1,
-                numWorkers
-            >
-        >{ workerIdx }(
-            [&](
-                uint32_t const,
-                uint32_t const
-            )
-            {
-                mustShift = pb.getSuperCell( superCellIdx ).mustShift( );
-                if ( mustShift )
+            DataSpace<dim> superCellIdx = mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc)));
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
+
+            using namespace mappings::threads;
+
+            ForEachIdx<IdxConfig<1, numWorkers>>{workerIdx}([&](uint32_t const, uint32_t const) {
+                mustShift = pb.getSuperCell(superCellIdx).mustShift();
+                if(mustShift)
                 {
-                    pb.getSuperCell( superCellIdx ).setMustShift( false );
-                    frame = pb.getFirstFrame( superCellIdx );
+                    pb.getSuperCell(superCellIdx).setMustShift(false);
+                    frame = pb.getFirstFrame(superCellIdx);
                 }
-            }
-        );
+            });
 
-        cupla::__syncthreads( acc );
-        if ( !mustShift || !frame.isValid( ) ) return;
+            cupla::__syncthreads(acc);
+            if(!mustShift || !frame.isValid())
+                return;
 
-        using ExchangeDomCfg = IdxConfig<
-            numExchanges,
-            numWorkers
-        >;
+            using ExchangeDomCfg = IdxConfig<numExchanges, numWorkers>;
 
-        memory::CtxArray<
-            int32_t,
-            ExchangeDomCfg
-        > newParticleInFrame( 0 );
+            memory::CtxArray<int32_t, ExchangeDomCfg> newParticleInFrame(0);
 
-        memory::CtxArray<
-            DataSpace< dim >,
-            ExchangeDomCfg
-        > relativeCtx(
-            workerIdx,
-            [&](
-                uint32_t const linearIdx,
-                uint32_t const
-            )
-            -> DataSpace< dim >
-            {
-                return superCellIdx + Mask::getRelativeDirections< dim > ( linearIdx + 1);
-            }
-        );
+            memory::CtxArray<DataSpace<dim>, ExchangeDomCfg> relativeCtx(
+                workerIdx,
+                [&](uint32_t const linearIdx, uint32_t const) -> DataSpace<dim> {
+                    return superCellIdx + Mask::getRelativeDirections<dim>(linearIdx + 1);
+                });
 
-        ForEachIdx< ExchangeDomCfg > forEachExchange( workerIdx );
+            ForEachIdx<ExchangeDomCfg> forEachExchange(workerIdx);
 
-        /* if a partially filled last frame exists for the neighboring supercell,
-         * each master thread (one master per direction) will load it
-         */
-        forEachExchange(
-            [&](
-                uint32_t const linearIdx,
-                uint32_t const idx
-            )
-            {
-                destFramesCounter[ linearIdx ] = 0;
-                destFrames[ linearIdx ] = FramePtr();
-                destFrames[ linearIdx + numExchanges ] = FramePtr();
+            /* if a partially filled last frame exists for the neighboring supercell,
+             * each master thread (one master per direction) will load it
+             */
+            forEachExchange([&](uint32_t const linearIdx, uint32_t const idx) {
+                destFramesCounter[linearIdx] = 0;
+                destFrames[linearIdx] = FramePtr();
+                destFrames[linearIdx + numExchanges] = FramePtr();
                 /* load last frame of neighboring supercell */
-                FramePtr tmpFrame( pb.getLastFrame( relativeCtx[ idx ] ) );
+                FramePtr tmpFrame(pb.getLastFrame(relativeCtx[idx]));
 
-                if ( tmpFrame.isValid() )
+                if(tmpFrame.isValid())
                 {
-                    int32_t const particlesInFrame = pb.getSuperCell( relativeCtx[ idx ] ).getSizeLastFrame( );
+                    int32_t const particlesInFrame = pb.getSuperCell(relativeCtx[idx]).getSizeLastFrame();
                     // do not use the neighbor's last frame if it is full
-                    if ( particlesInFrame < frameSize )
+                    if(particlesInFrame < frameSize)
                     {
-                        newParticleInFrame[ idx ] = -particlesInFrame;
-                        destFrames[ linearIdx ] = tmpFrame;
-                        destFramesCounter[ linearIdx ] = particlesInFrame;
+                        newParticleInFrame[idx] = -particlesInFrame;
+                        destFrames[linearIdx] = tmpFrame;
+                        destFramesCounter[linearIdx] = particlesInFrame;
                     }
                 }
-            }
-        );
+            });
 
-        cupla::__syncthreads( acc );
+            cupla::__syncthreads(acc);
 
-        /* iterate over the frame list of the current supercell */
-        while ( frame.isValid( ) )
-        {
-            using ParticleDomCfg = IdxConfig<
-                frameSize,
-                numWorkers
-            >;
+            /* iterate over the frame list of the current supercell */
+            while(frame.isValid())
+            {
+                using ParticleDomCfg = IdxConfig<frameSize, numWorkers>;
 
-            ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
+                ForEachIdx<ParticleDomCfg> forEachParticle(workerIdx);
 
-            memory::CtxArray<
-                lcellId_t,
-                ParticleDomCfg
-            > destParticleIdxCtx( INV_LOC_IDX );
-            memory::CtxArray<
-                int,
-                ParticleDomCfg
-            > directionCtx;
+                memory::CtxArray<lcellId_t, ParticleDomCfg> destParticleIdxCtx(INV_LOC_IDX);
+                memory::CtxArray<int, ParticleDomCfg> directionCtx;
 
-            forEachParticle(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
-                {
+                forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
                     /* set to value to of multiMask to a value in range [-2, EXCHANGES - 1]
                      * -2 is no particle
                      * -1 is particle but it is not shifted (stays in supercell)
                      * >=0 particle moves in a certain direction
                      *     (@see ExchangeType in types.h)
                      */
-                    directionCtx[ idx ] = frame[ linearIdx ][ multiMask_ ] - 2;
-                    if ( directionCtx[ idx ] >= 0 )
+                    directionCtx[idx] = frame[linearIdx][multiMask_] - 2;
+                    if(directionCtx[idx] >= 0)
                     {
-                        destParticleIdxCtx[ idx ] = cupla::atomicAdd( acc, &(destFramesCounter[ directionCtx[ idx ] ]), 1, ::alpaka::hierarchy::Threads{} );
+                        destParticleIdxCtx[idx] = cupla::atomicAdd(
+                            acc,
+                            &(destFramesCounter[directionCtx[idx]]),
+                            1,
+                            ::alpaka::hierarchy::Threads{});
                     }
-                }
-            );
-            cupla::__syncthreads( acc );
+                });
+                cupla::__syncthreads(acc);
 
-            forEachExchange(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
-                {
+                forEachExchange([&](uint32_t const linearIdx, uint32_t const idx) {
                     /* If the master thread (responsible for a certain direction) did not
                      * obtain a `low frame` from the neighboring super cell before the loop,
                      * it will create one now.
@@ -726,41 +465,27 @@ struct KernelShiftParticles
                      * supercell fit into the `low frame`, a second frame is created to
                      * contain further particles, the `high frame` (default: invalid).
                      */
-                    if ( destFramesCounter[ linearIdx ] > 0 )
+                    if(destFramesCounter[linearIdx] > 0)
                     {
                         /* if we had no `low frame` we load a new empty one */
-                        if ( !destFrames[ linearIdx ].isValid( ) )
+                        if(!destFrames[linearIdx].isValid())
                         {
-                            FramePtr tmpFrame( pb.getEmptyFrame( acc ) );
-                            destFrames[ linearIdx ] = tmpFrame;
-                            pb.setAsLastFrame(
-                                acc,
-                                tmpFrame,
-                                relativeCtx[ idx ]
-                            );
+                            FramePtr tmpFrame(pb.getEmptyFrame(acc));
+                            destFrames[linearIdx] = tmpFrame;
+                            pb.setAsLastFrame(acc, tmpFrame, relativeCtx[idx]);
                         }
                         /* check if a `high frame` is needed */
-                        if ( destFramesCounter[ linearIdx ] > frameSize )
+                        if(destFramesCounter[linearIdx] > frameSize)
                         {
-                            FramePtr tmpFrame( pb.getEmptyFrame( acc ) );
-                            destFrames[ linearIdx + numExchanges ] = tmpFrame;
-                            pb.setAsLastFrame(
-                                acc,
-                                tmpFrame,
-                                relativeCtx[ idx ]
-                            );
+                            FramePtr tmpFrame(pb.getEmptyFrame(acc));
+                            destFrames[linearIdx + numExchanges] = tmpFrame;
+                            pb.setAsLastFrame(acc, tmpFrame, relativeCtx[idx]);
                         }
                     }
-                }
-            );
-            cupla::__syncthreads( acc );
+                });
+                cupla::__syncthreads(acc);
 
-            forEachParticle(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
-                {
+                forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
                     /* All threads with a valid index in the neighbor's frame, valid index
                      * range is [0, frameSize * 2-1], will copy their particle to the new
                      * frame.
@@ -768,589 +493,366 @@ struct KernelShiftParticles
                      * The default value for indexes (in the destination frame) is
                      * above this range (INV_LOC_IDX) for all particles that are not shifted.
                      */
-                    if ( destParticleIdxCtx[ idx ] < frameSize * 2 )
+                    if(destParticleIdxCtx[idx] < frameSize * 2)
                     {
-                        if ( destParticleIdxCtx[ idx ] >= frameSize )
+                        if(destParticleIdxCtx[idx] >= frameSize)
                         {
                             /* use `high frame` */
-                            directionCtx[ idx ] += numExchanges;
-                            destParticleIdxCtx[ idx ] -= frameSize;
+                            directionCtx[idx] += numExchanges;
+                            destParticleIdxCtx[idx] -= frameSize;
                         }
-                        auto dstParticle = destFrames[ directionCtx[ idx ] ][ destParticleIdxCtx[ idx ] ];
-                        auto srcParticle = frame[ linearIdx ];
-                        dstParticle[ multiMask_ ] = 1;
-                        srcParticle[ multiMask_ ] = 0;
-                        auto dstFilteredParticle =
-                            particles::operations::deselect< multiMask >( dstParticle );
-                        particles::operations::assign(
-                            dstFilteredParticle,
-                            srcParticle
-                        );
+                        auto dstParticle = destFrames[directionCtx[idx]][destParticleIdxCtx[idx]];
+                        auto srcParticle = frame[linearIdx];
+                        dstParticle[multiMask_] = 1;
+                        srcParticle[multiMask_] = 0;
+                        auto dstFilteredParticle = particles::operations::deselect<multiMask>(dstParticle);
+                        particles::operations::assign(dstFilteredParticle, srcParticle);
                     }
-                }
-            );
-            cupla::__syncthreads( acc );
+                });
+                cupla::__syncthreads(acc);
 
-            forEachExchange(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
-                {
+                forEachExchange([&](uint32_t const linearIdx, uint32_t const idx) {
                     /* if the `low frame` is full, each master thread
                      * uses the `high frame` (is invalid, if still empty) as the next
                      * `low frame` for the following iteration of the loop
                      */
-                    if ( destFramesCounter[ linearIdx ] >= frameSize )
+                    if(destFramesCounter[linearIdx] >= frameSize)
                     {
-                        newParticleInFrame[ idx ] += frameSize;
-                        destFramesCounter[ linearIdx ] -= frameSize;
-                        destFrames[ linearIdx ] = destFrames[ linearIdx + numExchanges ];
-                        destFrames[ linearIdx + numExchanges ] = FramePtr( );
+                        newParticleInFrame[idx] += frameSize;
+                        destFramesCounter[linearIdx] -= frameSize;
+                        destFrames[linearIdx] = destFrames[linearIdx + numExchanges];
+                        destFrames[linearIdx + numExchanges] = FramePtr();
                     }
-                    if ( linearIdx == 0 )
+                    if(linearIdx == 0)
                     {
-                        frame = pb.getNextFrame( frame );
+                        frame = pb.getNextFrame(frame);
                     }
-                }
-            );
-            cupla::__syncthreads( acc );
-        }
+                });
+                cupla::__syncthreads(acc);
+            }
 
-        forEachExchange(
-            [&](
-                uint32_t const linearIdx,
-                uint32_t const idx
-            )
-            {
-                newParticleInFrame[ idx ] += destFramesCounter[ linearIdx ];
-                if( newParticleInFrame[ idx ] > 0 )
+            forEachExchange([&](uint32_t const linearIdx, uint32_t const idx) {
+                newParticleInFrame[idx] += destFramesCounter[linearIdx];
+                if(newParticleInFrame[idx] > 0)
                 {
                     /* Each master thread updates the number of particles
                      * for the neighbor frame. The number of particles in the neighbor
                      * frame must be correct because fill gaps is only called on the
                      * current used supercell.
                      */
-                    auto & superCell = pb.getSuperCell( relativeCtx[ idx ] );
-                    superCell.setNumParticles(
-                        superCell.getNumParticles() + newParticleInFrame[ idx ]
-                    );
+                    auto& superCell = pb.getSuperCell(relativeCtx[idx]);
+                    superCell.setNumParticles(superCell.getNumParticles() + newParticleInFrame[idx]);
                 }
-            }
-        );
+            });
 
-        // fill all gaps in the frame list of the supercell
-        KernelFillGaps< numWorkers >{ }(
-            acc,
-            pb,
-            mapper
-        );
-    }
-};
-
-/** deletes all particles within an AREA
- *
- * @tparam T_numWorkers number of workers
- */
-template< uint32_t T_numWorkers >
-struct KernelDeleteParticles
-{
-    /** deletes all particles
-     *
-     * @warning the particle memory of the particle is not byte-wise zeroed
-     *
-     * @tparam T_ParticleBox pmacc::ParticlesBox, particle box type
-     * @tparam T_Mapping mapper functor type
-     *
-     * @param pb particle memory
-     * @param mapper functor to map a block to a supercell
-     */
-    template<
-        typename T_ParticleBox,
-        typename T_Mapping,
-        typename T_Acc
-    >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        T_ParticleBox pb,
-        T_Mapping const mapper
-    ) const
-    {
-        using namespace particles::operations;
-        using namespace mappings::threads;
-
-        using ParticleBox = T_ParticleBox;
-        using FrameType = typename ParticleBox::FrameType;
-        using FramePtr = typename ParticleBox::FramePtr;
-
-        constexpr uint32_t dim = T_Mapping::Dim;
-        constexpr uint32_t frameSize = math::CT::volume< typename FrameType::SuperCellSize >::type::value;
-        constexpr uint32_t numWorkers = T_numWorkers;
-
-        DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim >( cupla::blockIdx(acc) ) );
-        uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-        PMACC_SMEM(
-            acc,
-            frame,
-            FramePtr
-        );
-
-        ForEachIdx<
-            IdxConfig<
-                1,
-                numWorkers
-            >
-        > onlyMaster{ workerIdx };
-
-        onlyMaster(
-            [&](
-                uint32_t const,
-                uint32_t const
-            )
-            {
-                frame = pb.getLastFrame( superCellIdx );
-            }
-        );
-
-        cupla::__syncthreads( acc );
-
-        while( frame.isValid( ) )
-        {
-            using ParticleDomCfg = IdxConfig<
-                frameSize,
-                numWorkers
-            >;
-            // loop over all particles in the frame
-            ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
-
-            forEachParticle(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const
-                )
-                {
-                    auto particle = ( frame[ linearIdx ] );
-                    particle[ multiMask_ ] = 0; // delete particle
-                }
-            );
-
-            cupla::__syncthreads( acc );
-
-            onlyMaster(
-                [&](
-                    uint32_t const,
-                    uint32_t const
-                )
-                {
-                    // always remove the last frame
-                    frame = getPreviousFrameAndRemoveLastFrame(
-                        acc,
-                        frame,
-                        pb,
-                        superCellIdx
-                    );
-                }
-            );
-            cupla::__syncthreads( acc );
+            // fill all gaps in the frame list of the supercell
+            KernelFillGaps<numWorkers>{}(acc, pb, mapper);
         }
+    };
 
-        onlyMaster(
-            [&](
-                uint32_t const,
-                uint32_t const
-            )
-            {
-                // all frames and particles are removed
-                pb.getSuperCell( superCellIdx ).setNumParticles( 0 );
-            }
-        );
-    }
-};
-
-/** copy particles from the guard to an exchange buffer
- *
- * @warning This kernel resets the number of particles in the processed supercells even
- * if there are particles left in the supercell and does not guarantee that the last frame is
- * contiguous filled.
- * Call KernelFillGaps afterwards if you need a valid number of particles
- * and a contiguously filled last frame.
- *
- * @tparam T_numWorkers number of workers
- */
-template< uint32_t T_numWorkers >
-struct KernelCopyGuardToExchange
-{
-    /** copy guard particles to an exchange buffer
+    /** deletes all particles within an AREA
      *
-     * @tparam T_ParBox pmacc::ParticlesBox, particle box type
-     * @tparam T_ExchangeValueType frame type of the exchange buffer
-     * @tparam T_Mapping mapper functor type
-     *
-     * @param pb particle memory
-     * @param exchangeBox exchange buffer for particles
-     * @param mapper functor to map a block to a supercell
+     * @tparam T_numWorkers number of workers
      */
-    template<
-        typename T_ParBox,
-        typename T_ExchangeValueType,
-        typename T_Mapping,
-        typename T_Acc
-    >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        T_ParBox pb,
-        ExchangePushDataBox<
-            vint_t,
-            T_ExchangeValueType,
-            T_Mapping::Dim - 1
-        > exchangeBox,
-        T_Mapping const mapper
-    ) const
+    template<uint32_t T_numWorkers>
+    struct KernelDeleteParticles
     {
-        using namespace particles::operations;
-        using namespace mappings::threads;
-
-        PMACC_CONSTEXPR_CAPTURE uint32_t dim = T_Mapping::Dim;
-        constexpr uint32_t frameSize = math::CT::volume< typename T_ParBox::FrameType::SuperCellSize >::type::value;
-        constexpr uint32_t numWorkers = T_numWorkers;
-
-        using FramePtr = typename T_ParBox::FramePtr;
-
-        DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim >( cupla::blockIdx(acc) ) );
-        uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-        // number of particles in the current handled frame
-        PMACC_SMEM(
-            acc,
-            numParticles,
-            int
-        );
-        PMACC_SMEM(
-            acc,
-            frame,
-            FramePtr
-        );
-
-        /* `exchangeChunk` is a view to a chunk of the memory in the exchange-
-         * The chunk contains between 0 and `numParticles` particles
-         * and is updated for each frame.
-         */
-        PMACC_SMEM(
-            acc,
-            exchangeChunk,
-            TileDataBox< T_ExchangeValueType >
-        );
-
-        /* flag: define if all particles from the current frame are copied to the
-         * exchange buffer
+        /** deletes all particles
          *
-         * `true` if all particles are copied, else `false`
+         * @warning the particle memory of the particle is not byte-wise zeroed
+         *
+         * @tparam T_ParticleBox pmacc::ParticlesBox, particle box type
+         * @tparam T_Mapping mapper functor type
+         *
+         * @param pb particle memory
+         * @param mapper functor to map a block to a supercell
          */
-        PMACC_SMEM(
-            acc,
-            allParticlesCopied,
-            bool
-        );
-
-        ForEachIdx<
-            IdxConfig<
-                1,
-                numWorkers
-            >
-        > onlyMaster{ workerIdx };
-
-        onlyMaster(
-            [&](
-                uint32_t const,
-                uint32_t const
-            )
-            {
-                allParticlesCopied = true;
-                frame = pb.getLastFrame( superCellIdx );
-            }
-        );
-
-        cupla::__syncthreads( acc );
-
-        while ( frame.isValid( ) && allParticlesCopied )
+        template<typename T_ParticleBox, typename T_Mapping, typename T_Acc>
+        DINLINE void operator()(T_Acc const& acc, T_ParticleBox pb, T_Mapping const mapper) const
         {
-            using ParticleDomCfg = IdxConfig<
-                frameSize,
-                numWorkers
-            >;
+            using namespace particles::operations;
+            using namespace mappings::threads;
 
-            /* the index of the gap in the exchange box where the particle
-             * is copied to
-             */
-            memory::CtxArray<
-                lcellId_t,
-                ParticleDomCfg
-            >
-            exchangeGapIdxCtx( INV_LOC_IDX );
+            using ParticleBox = T_ParticleBox;
+            using FrameType = typename ParticleBox::FrameType;
+            using FramePtr = typename ParticleBox::FramePtr;
 
-            onlyMaster(
-                [&](
-                    uint32_t const,
-                    uint32_t const
-                )
-                {
-                    numParticles = 0;
-                }
-            );
+            constexpr uint32_t dim = T_Mapping::Dim;
+            constexpr uint32_t frameSize = math::CT::volume<typename FrameType::SuperCellSize>::type::value;
+            constexpr uint32_t numWorkers = T_numWorkers;
 
-            cupla::__syncthreads( acc );
+            DataSpace<dim> const superCellIdx = mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc)));
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-             // loop over all particles in the frame
-            ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
+            PMACC_SMEM(acc, frame, FramePtr);
 
-            forEachParticle(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
-                {
-                    if ( frame[ linearIdx ][ multiMask_ ] == 1 )
-                    {
-                        exchangeGapIdxCtx[ idx ] = nvidia::atomicAllInc( acc, &numParticles, ::alpaka::hierarchy::Threads{} );
-                    }
-                }
-            );
-            cupla::__syncthreads( acc );
+            ForEachIdx<IdxConfig<1, numWorkers>> onlyMaster{workerIdx};
 
-            if( numParticles > 0 )
+            onlyMaster([&](uint32_t const, uint32_t const) { frame = pb.getLastFrame(superCellIdx); });
+
+            cupla::__syncthreads(acc);
+
+            while(frame.isValid())
             {
+                using ParticleDomCfg = IdxConfig<frameSize, numWorkers>;
+                // loop over all particles in the frame
+                ForEachIdx<ParticleDomCfg> forEachParticle(workerIdx);
 
-                onlyMaster(
-                    [&](
-                        uint32_t const,
-                        uint32_t const
-                    )
+                forEachParticle([&](uint32_t const linearIdx, uint32_t const) {
+                    auto particle = (frame[linearIdx]);
+                    particle[multiMask_] = 0; // delete particle
+                });
+
+                cupla::__syncthreads(acc);
+
+                onlyMaster([&](uint32_t const, uint32_t const) {
+                    // always remove the last frame
+                    frame = getPreviousFrameAndRemoveLastFrame(acc, frame, pb, superCellIdx);
+                });
+                cupla::__syncthreads(acc);
+            }
+
+            onlyMaster([&](uint32_t const, uint32_t const) {
+                // all frames and particles are removed
+                pb.getSuperCell(superCellIdx).setNumParticles(0);
+            });
+        }
+    };
+
+    /** copy particles from the guard to an exchange buffer
+     *
+     * @warning This kernel resets the number of particles in the processed supercells even
+     * if there are particles left in the supercell and does not guarantee that the last frame is
+     * contiguous filled.
+     * Call KernelFillGaps afterwards if you need a valid number of particles
+     * and a contiguously filled last frame.
+     *
+     * @tparam T_numWorkers number of workers
+     */
+    template<uint32_t T_numWorkers>
+    struct KernelCopyGuardToExchange
+    {
+        /** copy guard particles to an exchange buffer
+         *
+         * @tparam T_ParBox pmacc::ParticlesBox, particle box type
+         * @tparam T_ExchangeValueType frame type of the exchange buffer
+         * @tparam T_Mapping mapper functor type
+         *
+         * @param pb particle memory
+         * @param exchangeBox exchange buffer for particles
+         * @param mapper functor to map a block to a supercell
+         */
+        template<typename T_ParBox, typename T_ExchangeValueType, typename T_Mapping, typename T_Acc>
+        DINLINE void operator()(
+            T_Acc const& acc,
+            T_ParBox pb,
+            ExchangePushDataBox<vint_t, T_ExchangeValueType, T_Mapping::Dim - 1> exchangeBox,
+            T_Mapping const mapper) const
+        {
+            using namespace particles::operations;
+            using namespace mappings::threads;
+
+            PMACC_CONSTEXPR_CAPTURE uint32_t dim = T_Mapping::Dim;
+            constexpr uint32_t frameSize = math::CT::volume<typename T_ParBox::FrameType::SuperCellSize>::type::value;
+            constexpr uint32_t numWorkers = T_numWorkers;
+
+            using FramePtr = typename T_ParBox::FramePtr;
+
+            DataSpace<dim> const superCellIdx = mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc)));
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
+
+            // number of particles in the current handled frame
+            PMACC_SMEM(acc, numParticles, int);
+            PMACC_SMEM(acc, frame, FramePtr);
+
+            /* `exchangeChunk` is a view to a chunk of the memory in the exchange-
+             * The chunk contains between 0 and `numParticles` particles
+             * and is updated for each frame.
+             */
+            PMACC_SMEM(acc, exchangeChunk, TileDataBox<T_ExchangeValueType>);
+
+            /* flag: define if all particles from the current frame are copied to the
+             * exchange buffer
+             *
+             * `true` if all particles are copied, else `false`
+             */
+            PMACC_SMEM(acc, allParticlesCopied, bool);
+
+            ForEachIdx<IdxConfig<1, numWorkers>> onlyMaster{workerIdx};
+
+            onlyMaster([&](uint32_t const, uint32_t const) {
+                allParticlesCopied = true;
+                frame = pb.getLastFrame(superCellIdx);
+            });
+
+            cupla::__syncthreads(acc);
+
+            while(frame.isValid() && allParticlesCopied)
+            {
+                using ParticleDomCfg = IdxConfig<frameSize, numWorkers>;
+
+                /* the index of the gap in the exchange box where the particle
+                 * is copied to
+                 */
+                memory::CtxArray<lcellId_t, ParticleDomCfg> exchangeGapIdxCtx(INV_LOC_IDX);
+
+                onlyMaster([&](uint32_t const, uint32_t const) { numParticles = 0; });
+
+                cupla::__syncthreads(acc);
+
+                // loop over all particles in the frame
+                ForEachIdx<ParticleDomCfg> forEachParticle(workerIdx);
+
+                forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                    if(frame[linearIdx][multiMask_] == 1)
                     {
+                        exchangeGapIdxCtx[idx]
+                            = nvidia::atomicAllInc(acc, &numParticles, ::alpaka::hierarchy::Threads{});
+                    }
+                });
+                cupla::__syncthreads(acc);
+
+                if(numParticles > 0)
+                {
+                    onlyMaster([&](uint32_t const, uint32_t const) {
                         // try to get as many memory as particles in the current frame
                         exchangeChunk = exchangeBox.pushN(
                             acc,
                             numParticles,
                             // Compute the target supercell depending on the exchangeType
-                            DataSpaceOperations< dim >::reduce(
-                                superCellIdx,
-                                mapper.getExchangeType( )
-                            ),
-                            ::alpaka::hierarchy::Blocks{}
-                        );
-                        if( exchangeChunk.getSize( ) < numParticles )
+                            DataSpaceOperations<dim>::reduce(superCellIdx, mapper.getExchangeType()),
+                            ::alpaka::hierarchy::Blocks{});
+                        if(exchangeChunk.getSize() < numParticles)
                             allParticlesCopied = false;
-                    }
-                );
+                    });
 
-                cupla::__syncthreads( acc );
+                    cupla::__syncthreads(acc);
 
-                forEachParticle(
-                    [&](
-                        uint32_t const linearIdx,
-                        uint32_t const idx
-                    )
-                    {
-                        if( exchangeGapIdxCtx[ idx ] != INV_LOC_IDX && exchangeGapIdxCtx[ idx ] < exchangeChunk.getSize( ) )
+                    forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                        if(exchangeGapIdxCtx[idx] != INV_LOC_IDX && exchangeGapIdxCtx[idx] < exchangeChunk.getSize())
                         {
-                            auto parDest = exchangeChunk[ exchangeGapIdxCtx[ idx ] ][ 0 ];
-                            auto parSrc = frame[ linearIdx ];
-                            assign( parDest, parSrc );
-                            parSrc[ multiMask_ ] = 0;
+                            auto parDest = exchangeChunk[exchangeGapIdxCtx[idx]][0];
+                            auto parSrc = frame[linearIdx];
+                            assign(parDest, parSrc);
+                            parSrc[multiMask_] = 0;
                         }
-                    }
-                );
-                cupla::__syncthreads( acc );
-            }
+                    });
+                    cupla::__syncthreads(acc);
+                }
 
-            onlyMaster(
-                [&](
-                    uint32_t const,
-                    uint32_t const
-                )
-                {
+                onlyMaster([&](uint32_t const, uint32_t const) {
                     /* do not remove the frame if we had not copied
                      * all particles from the current frame to the exchange buffer
                      */
-                    if ( allParticlesCopied )
-                        frame = getPreviousFrameAndRemoveLastFrame( acc, frame, pb, superCellIdx );
-                }
-            );
+                    if(allParticlesCopied)
+                        frame = getPreviousFrameAndRemoveLastFrame(acc, frame, pb, superCellIdx);
+                });
 
-            cupla::__syncthreads( acc );
-        }
-        onlyMaster(
-            [&](
-                uint32_t const,
-                uint32_t const
-            )
-            {
+                cupla::__syncthreads(acc);
+            }
+            onlyMaster([&](uint32_t const, uint32_t const) {
                 /* Mark supercell as empty even if there are particles left.
                  * This kernel not depends on the correct number particles in the supercell.
                  */
-                pb.getSuperCell( superCellIdx ).setNumParticles( 0 );
-            }
-        );
+                pb.getSuperCell(superCellIdx).setNumParticles(0);
+            });
+        }
+    };
 
-    }
-};
-
-/** copy particles from exchange buffer into the border of the simulation
- *
- * @tparam T_numWorkers number of workers
- */
-template< uint32_t T_numWorkers >
-struct KernelInsertParticles
-{
     /** copy particles from exchange buffer into the border of the simulation
      *
-     * @tparam T_ParBox pmacc::ParticlesBox, particle box type
-     * @tparam T_ExchangeValueType frame type of the exchange buffer
-     * @tparam T_Mapping mapper functor type
-     *
-     * @param pb particle memory
-     * @param exchangeBox exchange box for particles
-     * @param mapper functor to map a block to a supercell
+     * @tparam T_numWorkers number of workers
      */
-    template<
-        typename T_ParBox,
-        typename T_ExchangeValueType,
-        typename T_Mapping,
-        typename T_Acc
-    >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        T_ParBox pb,
-        ExchangePopDataBox<
-            vint_t,
-            T_ExchangeValueType,
-            T_Mapping::Dim - 1
-        > exchangeBox,
-        T_Mapping const mapper
-    ) const
+    template<uint32_t T_numWorkers>
+    struct KernelInsertParticles
     {
-        using namespace particles::operations;
-        using namespace mappings::threads;
-
-        PMACC_CONSTEXPR_CAPTURE uint32_t dim = T_Mapping::Dim;
-        constexpr uint32_t frameSize = math::CT::volume< typename T_ParBox::FrameType::SuperCellSize >::type::value;
-        constexpr uint32_t numWorkers = T_numWorkers;
-
-        uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-        using FramePtr = typename T_ParBox::FramePtr;
-
-        PMACC_SMEM(
-            acc,
-            frame,
-            FramePtr
-        );
-        PMACC_SMEM(
-            acc,
-            elementCount,
-            int
-        );
-        PMACC_SMEM(
-            acc,
-            exchangeChunk,
-            TileDataBox< T_ExchangeValueType >
-        );
-
-        using MasterOnly = IdxConfig<
-            1,
-            numWorkers
-        >;
-
-        /* compressed index of the the supercell
-         * can be uncompressed with `DataSpaceOperations< >::extend()`
+        /** copy particles from exchange buffer into the border of the simulation
+         *
+         * @tparam T_ParBox pmacc::ParticlesBox, particle box type
+         * @tparam T_ExchangeValueType frame type of the exchange buffer
+         * @tparam T_Mapping mapper functor type
+         *
+         * @param pb particle memory
+         * @param exchangeBox exchange box for particles
+         * @param mapper functor to map a block to a supercell
          */
-        memory::CtxArray<
-            DataSpace< dim - 1 >,
-            MasterOnly
-        > compressedSuperCellIdxCtx{ };
+        template<typename T_ParBox, typename T_ExchangeValueType, typename T_Mapping, typename T_Acc>
+        DINLINE void operator()(
+            T_Acc const& acc,
+            T_ParBox pb,
+            ExchangePopDataBox<vint_t, T_ExchangeValueType, T_Mapping::Dim - 1> exchangeBox,
+            T_Mapping const mapper) const
+        {
+            using namespace particles::operations;
+            using namespace mappings::threads;
 
-        ForEachIdx<
-            MasterOnly
-        > onlyMaster{ workerIdx };
+            PMACC_CONSTEXPR_CAPTURE uint32_t dim = T_Mapping::Dim;
+            constexpr uint32_t frameSize = math::CT::volume<typename T_ParBox::FrameType::SuperCellSize>::type::value;
+            constexpr uint32_t numWorkers = T_numWorkers;
 
-        onlyMaster(
-            [&](
-                uint32_t const,
-                uint32_t const idx
-            )
-            {
-                exchangeChunk = exchangeBox.get(
-                    cupla::blockIdx(acc).x,
-                    compressedSuperCellIdxCtx[ idx ]
-                );
-                elementCount = exchangeChunk.getSize( );
-                if ( elementCount > 0 )
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
+
+            using FramePtr = typename T_ParBox::FramePtr;
+
+            PMACC_SMEM(acc, frame, FramePtr);
+            PMACC_SMEM(acc, elementCount, int);
+            PMACC_SMEM(acc, exchangeChunk, TileDataBox<T_ExchangeValueType>);
+
+            using MasterOnly = IdxConfig<1, numWorkers>;
+
+            /* compressed index of the the supercell
+             * can be uncompressed with `DataSpaceOperations< >::extend()`
+             */
+            memory::CtxArray<DataSpace<dim - 1>, MasterOnly> compressedSuperCellIdxCtx{};
+
+            ForEachIdx<MasterOnly> onlyMaster{workerIdx};
+
+            onlyMaster([&](uint32_t const, uint32_t const idx) {
+                exchangeChunk = exchangeBox.get(cupla::blockIdx(acc).x, compressedSuperCellIdxCtx[idx]);
+                elementCount = exchangeChunk.getSize();
+                if(elementCount > 0)
                 {
-                    frame = pb.getEmptyFrame( acc );
+                    frame = pb.getEmptyFrame(acc);
                 }
-            }
-        );
+            });
 
-        cupla::__syncthreads( acc );
+            cupla::__syncthreads(acc);
 
-        // loop over all particles in the frame
-        ForEachIdx<
-            IdxConfig<
-                frameSize,
-                numWorkers
-            >
-        > forEachParticle{ workerIdx };
+            // loop over all particles in the frame
+            ForEachIdx<IdxConfig<frameSize, numWorkers>> forEachParticle{workerIdx};
 
-        forEachParticle(
-            [&](
-                uint32_t const linearIdx,
-                uint32_t const
-            )
-            {
-                if( linearIdx < elementCount )
+            forEachParticle([&](uint32_t const linearIdx, uint32_t const) {
+                if(linearIdx < elementCount)
                 {
-                    auto parDestFull = frame[ linearIdx ];
-                    parDestFull[ multiMask_ ] = 1;
-                    auto parSrc = exchangeChunk[ linearIdx ][ 0 ];
+                    auto parDestFull = frame[linearIdx];
+                    parDestFull[multiMask_] = 1;
+                    auto parSrc = exchangeChunk[linearIdx][0];
                     /*we know that source has no multiMask*/
-                    auto parDest = deselect<multiMask>( parDestFull );
-                    assign( parDest, parSrc );
+                    auto parDest = deselect<multiMask>(parDestFull);
+                    assign(parDest, parSrc);
                 }
-            }
-        );
+            });
 
-        /** @bug This synchronize fixes a kernel crash in special cases,
-         * psychocoderHPC: I can't tell why.
-         */
-        cupla::__syncthreads( acc );
+            /** @bug This synchronize fixes a kernel crash in special cases,
+             * psychocoderHPC: I can't tell why.
+             */
+            cupla::__syncthreads(acc);
 
-        onlyMaster(
-            [&](
-                uint32_t const,
-                uint32_t const idx
-            )
-            {
-                if( elementCount > 0 )
+            onlyMaster([&](uint32_t const, uint32_t const idx) {
+                if(elementCount > 0)
                 {
                     // compute the super cell position in target frame to insert into
                     //! @todo: offset == simulation border should be passed to this func instead of being created here
-                    DataSpace< dim > dstSuperCell = DataSpaceOperations < dim - 1 > ::extend(
-                        compressedSuperCellIdxCtx[ idx ],
-                        mapper.getExchangeType( ),
-                        mapper.getGridSuperCells( ),
-                        mapper.getGuardingSuperCells( )
-                    );
+                    DataSpace<dim> dstSuperCell = DataSpaceOperations<dim - 1>::extend(
+                        compressedSuperCellIdxCtx[idx],
+                        mapper.getExchangeType(),
+                        mapper.getGridSuperCells(),
+                        mapper.getGuardingSuperCells());
 
-                    pb.setAsLastFrame(
-                        acc,
-                        frame,
-                        dstSuperCell
-                    );
+                    pb.setAsLastFrame(acc, frame, dstSuperCell);
                 }
-            }
-        );
+            });
+        }
+    };
 
-    }
-};
-
-} //namespace pmacc
+} // namespace pmacc

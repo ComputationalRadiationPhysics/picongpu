@@ -24,67 +24,68 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace transitionRadiation
-{
-namespace logFrequencies
-{
-    class FreqFunctor
+    namespace plugins
     {
-    public:
-        FreqFunctor( void )
+        namespace transitionRadiation
         {
-            omega_log_min = math::log( omegaMin );
-            delta_omega_log = ( math::log( omegaMax ) - omega_log_min ) / float_X( nOmega - 1 );
-        }
+            namespace logFrequencies
+            {
+                class FreqFunctor
+                {
+                public:
+                    FreqFunctor(void)
+                    {
+                        omega_log_min = math::log(omegaMin);
+                        delta_omega_log = (math::log(omegaMax) - omega_log_min) / float_X(nOmega - 1);
+                    }
 
-        HDINLINE float_X operator( )( const int ID )
-        {
-            return  math::exp( omega_log_min + ( float_X( ID ) ) * delta_omega_log );
-        }
+                    HDINLINE float_X operator()(const int ID)
+                    {
+                        return math::exp(omega_log_min + (float_X(ID)) * delta_omega_log);
+                    }
 
-        HINLINE float_X get( const int ID )
-        {
-            return operator( )( ID );
-        }
+                    HINLINE float_X get(const int ID)
+                    {
+                        return operator()(ID);
+                    }
 
-    private:
-        float_X omega_log_min;
-        float_X delta_omega_log;
-    }; // FreqFunctor
-
-
-    class InitFreqFunctor
-    {
-    public:
-        InitFreqFunctor( void )
-        { }
-
-        HINLINE void Init( const std::string path )
-        { }
+                private:
+                    float_X omega_log_min;
+                    float_X delta_omega_log;
+                }; // FreqFunctor
 
 
-        HINLINE FreqFunctor getFunctor( void )
-        {
-            return FreqFunctor( );
-        }
-    }; // InitFreqFunctor
+                class InitFreqFunctor
+                {
+                public:
+                    InitFreqFunctor(void)
+                    {
+                    }
+
+                    HINLINE void Init(const std::string path)
+                    {
+                    }
 
 
-    //! @return frequency params as string
-    HINLINE
-    std::string
-    getParameters( void )
-    {
-        std::string params = std::string( "log\t" );
-        params += std::to_string( nOmega ) + "\t";
-        params += std::to_string( SI::omegaMin ) + "\t";
-        params += std::to_string( SI::omegaMax ) + "\t";
-        return params;
-    }
+                    HINLINE FreqFunctor getFunctor(void)
+                    {
+                        return FreqFunctor();
+                    }
+                }; // InitFreqFunctor
 
-} // namespace logFrequencies
-} // namespace transitionRadiation
-} // namespace plugins
+
+                //! @return frequency params as string
+                HINLINE
+                std::string getParameters(void)
+                {
+                    std::string params = std::string("log\t");
+                    params += std::to_string(nOmega) + "\t";
+                    params += std::to_string(SI::omegaMin) + "\t";
+                    params += std::to_string(SI::omegaMax) + "\t";
+                    return params;
+                }
+
+            } // namespace logFrequencies
+        } // namespace transitionRadiation
+    } // namespace plugins
 } // namespace picongpu

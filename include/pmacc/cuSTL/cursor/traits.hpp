@@ -23,15 +23,13 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-namespace traits
-{
+    namespace cursor
+    {
+        namespace traits
+        {
+            template<typename type>
+            struct dim;
 
-template<typename type>
-struct dim;
-
-} // traits
-} // cursor
-} // pmacc
-
+        } // namespace traits
+    } // namespace cursor
+} // namespace pmacc

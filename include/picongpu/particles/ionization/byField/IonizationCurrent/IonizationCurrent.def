@@ -21,41 +21,35 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace ionization
-{
-namespace current
-{
-    /** possible inputs for T_IonizationCurrent
-     * EnergyConservation -> with ionization current
-     * None -> without
-     */
-    struct EnergyConservation;
-    struct None;
-} // namespace current
-    /** Implementation of Ionization Current
-     *
-     * In order to conserve energy, PIConGPU supports an ionization current
-     * to decrease the electric field according to the amount of energy lost to field ioniztion processes.
-     *
-     * Reference: P. Mulser et al.
-     *            Modeling field ionization in an energy conserving form and resulting nonstandard fluid dynamcis,
-     *            Physics of Plasmas 5, 4466 (1998)
-     *            https://doi.org/10.1063/1.873184
-     *
-     * \tparam T_Acc alpaka accelerator type
-     * \tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
-     * \tparam T_Dim dimension of simulation
-     * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
-     */
-    template<
-        typename T_Acc,
-        typename T_DestSpecies,
-        unsigned T_Dim,
-        typename T_IonizationCurrent
-    >
-    struct IonizationCurrent;
-} // namespace ionization
-} // namespace particles
-} // namespacepicongpu
+    namespace particles
+    {
+        namespace ionization
+        {
+            namespace current
+            {
+                /** possible inputs for T_IonizationCurrent
+                 * EnergyConservation -> with ionization current
+                 * None -> without
+                 */
+                struct EnergyConservation;
+                struct None;
+            } // namespace current
+            /** Implementation of Ionization Current
+             *
+             * In order to conserve energy, PIConGPU supports an ionization current
+             * to decrease the electric field according to the amount of energy lost to field ioniztion processes.
+             *
+             * Reference: P. Mulser et al.
+             *            Modeling field ionization in an energy conserving form and resulting nonstandard fluid
+             * dynamcis, Physics of Plasmas 5, 4466 (1998) https://doi.org/10.1063/1.873184
+             *
+             * \tparam T_Acc alpaka accelerator type
+             * \tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
+             * \tparam T_Dim dimension of simulation
+             * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
+             */
+            template<typename T_Acc, typename T_DestSpecies, unsigned T_Dim, typename T_IonizationCurrent>
+            struct IonizationCurrent;
+        } // namespace ionization
+    } // namespace particles
+} // namespace picongpu

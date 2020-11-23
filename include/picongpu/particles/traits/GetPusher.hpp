@@ -25,16 +25,14 @@
 
 namespace picongpu
 {
+    namespace traits
+    {
+        template<typename T_Species>
+        struct GetPusher
+        {
+            using type = typename pmacc::traits::Resolve<
+                typename GetFlagType<typename T_Species::FrameType, particlePusher<>>::type>::type;
+        };
 
-namespace traits
-{
-template<typename T_Species>
-struct GetPusher
-{
-    using type = typename pmacc::traits::Resolve<
-        typename GetFlagType<typename T_Species::FrameType, particlePusher<> >::type
-      >::type;
-};
-
-}// namespace traits
-}// namespace picongpu
+    } // namespace traits
+} // namespace picongpu

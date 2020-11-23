@@ -28,40 +28,43 @@
 
 namespace picongpu
 {
+    using namespace pmacc;
 
-using namespace pmacc;
+    namespace po = boost::program_options;
 
-namespace po = boost::program_options;
+    template<typename Field>
+    class SliceFieldPrinterMulti;
 
-template<typename Field>
-class SliceFieldPrinterMulti;
+    template<typename Field>
+    class SliceFieldPrinter : public ILightweightPlugin
+    {
+    private:
+        std::string notifyPeriod;
+        bool sliceIsOK;
+        std::string fileName;
+        int plane;
+        float_X slicePoint;
+        MappingDesc* cellDescription;
+        container::DeviceBuffer<float3_64, simDim - 1>* dBuffer_SI;
 
-template<typename Field>
-class SliceFieldPrinter : public ILightweightPlugin
-{
-private:
-    std::string notifyPeriod;
-    bool sliceIsOK;
-    std::string fileName;
-    int plane;
-    float_X slicePoint;
-    MappingDesc *cellDescription;
-    container::DeviceBuffer<float3_64, simDim-1>* dBuffer_SI;
+        void pluginLoad();
+        void pluginUnload();
 
-    void pluginLoad();
-    void pluginUnload();
+        template<typename TField>
+        void printSlice(const TField& field, int nAxis, float slicePoint, std::string filename);
 
-    template<typename TField>
-    void printSlice(const TField& field, int nAxis, float slicePoint, std::string filename);
+        friend class SliceFieldPrinterMulti<Field>;
 
-    friend class SliceFieldPrinterMulti<Field>;
-public:
-    void notify(uint32_t currentStep);
-    std::string pluginGetName() const;
-    void pluginRegisterHelp(po::options_description& desc);
-    void setMappingDescription(MappingDesc* desc) {this->cellDescription = desc;}
-};
+    public:
+        void notify(uint32_t currentStep);
+        std::string pluginGetName() const;
+        void pluginRegisterHelp(po::options_description& desc);
+        void setMappingDescription(MappingDesc* desc)
+        {
+            this->cellDescription = desc;
+        }
+    };
 
-}
+} // namespace picongpu
 
 #include "SliceFieldPrinter.tpp"

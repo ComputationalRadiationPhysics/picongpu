@@ -24,19 +24,18 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace differentiation
-{
+    namespace fields
+    {
+        namespace differentiation
+        {
+            /** Functor to compute field curl at the given point
+             *
+             * @tparam T_Derivative derivative tag (not functor), defines the
+             *                      finite-difference scheme for partial derivatives
+             */
+            template<typename T_Derivative>
+            struct Curl;
 
-    /** Functor to compute field curl at the given point
-     *
-     * @tparam T_Derivative derivative tag (not functor), defines the
-     *                      finite-difference scheme for partial derivatives
-     */
-    template< typename T_Derivative >
-    struct Curl;
-
-} // namespace differentiation
-} // namespace fields
+        } // namespace differentiation
+    } // namespace fields
 } // namespace picongpu

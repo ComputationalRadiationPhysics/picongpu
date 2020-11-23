@@ -28,565 +28,481 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace randomizedParticleMerger
-{
-
-    /** Implements a randomized modification of the particle merging algorithm.
-     *
-     * The original particle merging algorithms is
-     * Luu, P. T., Tueckmantel, T., & Pukhov, A. (2016).
-     * Voronoi particle merging algorithm for PIC codes.
-     * Computer Physics Communications, 202, 165-174.
-     *
-     * The randomized mofidication developed by S. Bastrakov and X. Bastrakova
-     *
-     * @tparam T_ParticlesBox container of the particle species
-     */
-    template< class T_ParticlesBox >
-    struct RandomizedParticleMergerKernel
+    namespace plugins
     {
-        using ParticlesBox = T_ParticlesBox;
-
-        //! Random factory type
-        using RngFactory = particles::functor::misc::Rng<
-            pmacc::random::distributions::Uniform<float>
-        >;
-
-    private:
-
-        using FramePtr = typename ParticlesBox::FramePtr;
-        using FrameType = typename ParticlesBox::FrameType;
-        using ArrayVoronoiCells = memory::Array<
-            VoronoiCell,
-            picongpu::plugins::particleMerging::MAX_VORONOI_CELLS
-        >;
-        using VoronoiIndexPool = memory::IndexPool<
-            voronoiCellId::type,
-            picongpu::plugins::particleMerging::MAX_VORONOI_CELLS
-        >;
-
-        ParticlesBox particlesBox;
-        /** minimal number of macroparticles needed to divide
-            the macroparticle collection  */
-        uint32_t maxParticlesToMerge;
-
-        pmacc::math::Int<simDim> guardSuperCells;
-        /** estimated fraction of macroparticles
-            remaining after the merging process  */
-        float_X ratioKeptParticles;
-        /** min position threshold for
-            macroparticles to be merged */
-        float_X posSpreadThreshold;
-        /** min momentum threshold for
-            macroparticles to be merged */
-        float_X momSpreadThreshold;
-        /** factory of gitting random value */
-        RngFactory rngFactory;
-        using RandomGen = RngFactory::RandomGen;
-
-    public:
-
-        RandomizedParticleMergerKernel(
-            ParticlesBox particlesBox,
-            uint32_t maxParticlesToMerge,
-            float_X ratioDeletedParticles,
-            float_X posSpreadThreshold,
-            float_X momSpreadThreshold,
-            RngFactory rngFactory,
-            const pmacc::math::Int<simDim> guardSuperCells
-        ) :
-            particlesBox( particlesBox ),
-            maxParticlesToMerge( maxParticlesToMerge ),
-            ratioKeptParticles ( 1.0_X - ratioDeletedParticles ),
-            posSpreadThreshold ( posSpreadThreshold ),
-            momSpreadThreshold ( momSpreadThreshold ),
-            rngFactory ( rngFactory ),
-            guardSuperCells ( guardSuperCells )
-        {}
-
-        /** map cell index to the initial Voronoi cell by aggregating N^simDim 'normal'
-         * cells to a single Voronoi cell.
-         *
-         * @param cellIdx cell index
-         */
-        DINLINE voronoiCellId::type mapCellIdxToInitialVoronoiCell( const uint32_t cellIdx ) const
+        namespace randomizedParticleMerger
         {
-            const DataSpace< simDim > cellIdxDim = DataSpaceOperations< simDim >::template map<
-                SuperCellSize
-            >( cellIdx );
+            /** Implements a randomized modification of the particle merging algorithm.
+             *
+             * The original particle merging algorithms is
+             * Luu, P. T., Tueckmantel, T., & Pukhov, A. (2016).
+             * Voronoi particle merging algorithm for PIC codes.
+             * Computer Physics Communications, 202, 165-174.
+             *
+             * The randomized mofidication developed by S. Bastrakov and X. Bastrakova
+             *
+             * @tparam T_ParticlesBox container of the particle species
+             */
+            template<class T_ParticlesBox>
+            struct RandomizedParticleMergerKernel
+            {
+                using ParticlesBox = T_ParticlesBox;
 
-            const DataSpace< simDim > voronoiCellDim = cellIdxDim / 2;
+                //! Random factory type
+                using RngFactory = particles::functor::misc::Rng<pmacc::random::distributions::Uniform<float>>;
 
-            return static_cast< voronoiCellId::type >(
-                pmacc::math::linearize(
-                    pmacc::math::CT::shrinkTo< SuperCellSize, simDim - 1 >::type::toRT() / 2,
-                    voronoiCellDim
-                )
-            );
-        }
+            private:
+                using FramePtr = typename ParticlesBox::FramePtr;
+                using FrameType = typename ParticlesBox::FrameType;
+                using ArrayVoronoiCells
+                    = memory::Array<VoronoiCell, picongpu::plugins::particleMerging::MAX_VORONOI_CELLS>;
+                using VoronoiIndexPool
+                    = memory::IndexPool<voronoiCellId::type, picongpu::plugins::particleMerging::MAX_VORONOI_CELLS>;
 
-        /** Init the Voronoi cell id attribute for each particle in the super cell.
-         *
-         * The initial Voronoi cell is chosen by aggregating N^simDim 'normal' cells
-         * to a single Voronoi cell.
-         *
-         * @param cellIdx cell index
-         */
-        template< typename T_Acc >
-        DINLINE void initVoronoiCellIdAttribute(
-            T_Acc const & acc,
-            const pmacc::math::Int<simDim>& cellIdx
-        )
-        {
-            //! \todo change this as soon as the kernel support lock step programming
-            constexpr uint32_t numWorkers = pmacc::math::CT::volume< SuperCellSize >::type::value;
-            const uint32_t workerIdx = DataSpaceOperations< simDim >::template map<
-                SuperCellSize
-            >( cellIdx % SuperCellSize::toRT() );
-            particleAccess::Cell2Particle< SuperCellSize, numWorkers > forEachFrame;
-            forEachFrame(
-                acc,
-                particlesBox,
-                workerIdx,
-                cellIdx,
-                [this]( const T_Acc & acc, FramePtr frame, const int linearThreadIdx )
+                ParticlesBox particlesBox;
+                /** minimal number of macroparticles needed to divide
+                    the macroparticle collection  */
+                uint32_t maxParticlesToMerge;
+
+                pmacc::math::Int<simDim> guardSuperCells;
+                /** estimated fraction of macroparticles
+                    remaining after the merging process  */
+                float_X ratioKeptParticles;
+                /** min position threshold for
+                    macroparticles to be merged */
+                float_X posSpreadThreshold;
+                /** min momentum threshold for
+                    macroparticles to be merged */
+                float_X momSpreadThreshold;
+                /** factory of gitting random value */
+                RngFactory rngFactory;
+                using RandomGen = RngFactory::RandomGen;
+
+            public:
+                RandomizedParticleMergerKernel(
+                    ParticlesBox particlesBox,
+                    uint32_t maxParticlesToMerge,
+                    float_X ratioDeletedParticles,
+                    float_X posSpreadThreshold,
+                    float_X momSpreadThreshold,
+                    RngFactory rngFactory,
+                    const pmacc::math::Int<simDim> guardSuperCells)
+                    : particlesBox(particlesBox)
+                    , maxParticlesToMerge(maxParticlesToMerge)
+                    , ratioKeptParticles(1.0_X - ratioDeletedParticles)
+                    , posSpreadThreshold(posSpreadThreshold)
+                    , momSpreadThreshold(momSpreadThreshold)
+                    , rngFactory(rngFactory)
+                    , guardSuperCells(guardSuperCells)
                 {
-                    auto particle = frame[linearThreadIdx];
-                    const lcellId_t particleCellIdx = particle[localCellIdx_];
-                    particle[voronoiCellId_] = this->mapCellIdxToInitialVoronoiCell( particleCellIdx );
-                },
-                particles::filter::All{}
-            );
-        }
-
-        /** Calculate position of particle within a super cell.
-         *
-         * @param particleCellIdx local particle cell index
-         * @param positionWithinCell position within cell
-         * @return position of particle with respect to its super cell's origin
-         */
-        DINLINE floatD_X getParticlePosWithinSuperCell(
-            const lcellId_t particleCellIdx,
-            const floatD_X positionWithinCell
-        ) const
-        {
-            const DataSpace< simDim > particleCellIdxDim = DataSpaceOperations< simDim >::template map<
-                SuperCellSize
-            >( particleCellIdx );
-
-            floatD_X result;
-            for( int i = 0; i < simDim; i++ )
-            {
-                result[i] = static_cast< float_X >( particleCellIdxDim[i] ) + positionWithinCell[i];
-            }
-
-            return result;
-        }
-
-        /** Calculate revative position of partilce in Supercell
-         *
-         * @param absoluteParticlePos absolute particle coordinates
-         * @return particleCellIdx particle's supercell
-         * @return positionWithinCell position particle inside supecell
-         */
-        DINLINE void getSuperCellPos(
-            const floatD_X absoluteParticlePos,
-            ::pmacc::math::Vector<int, simDim>& particleCellIdx,
-            floatD_X& positionWithinCell
-        )
-        {
-            for( int i = 0; i < simDim; i++ )
-            {
-                particleCellIdx[i] = static_cast<int>( absoluteParticlePos[i] );
-                positionWithinCell[i] = absoluteParticlePos[i] - particleCellIdx[i];
-            }
-        }
-
-        /** Decide if subdivision should be done, based on
-         *  information from parents voronoi cells
-         *
-         * @param randomGen ramdom generator functor
-         * @param voronoiCell voronoi cell
-         */
-        DINLINE bool isNeededSubdivision(
-             RandomGen & randomGen,
-             VoronoiCell const & voronoiCell
-        ) const
-        {
-            // With large enough number of macroparticles we always subdivide
-            if ( voronoiCell.numMacroParticles > maxParticlesToMerge )
-                return true;
-
-            // Otherwise we compute subdivision probability based on the parameters
-            // and the number of macroparticles in the cell
-            float_X halfDivisionCoefficient = (
-                voronoiCell.expectedNumMacroParticles + voronoiCell.numMacroParticles
-            ) / 2.0_X;
-
-            float_X subdivisionProbability = (
-                voronoiCell.expectedNumMacroParticles - 1.0_X
-            ) / ( halfDivisionCoefficient - 1.0_X );
-
-            // Spectial probability equations for small Voronoi cells
-            if ( voronoiCell.numMacroParticles == 2 )
-                subdivisionProbability = voronoiCell.expectedNumMacroParticles - 1.0_X;
-            if ( voronoiCell.numMacroParticles == 3 )
-                subdivisionProbability = ( voronoiCell.expectedNumMacroParticles - 1.0_X ) / 2.0_X;
-
-            return randomGen() < subdivisionProbability;
-        }
-
-
-        DINLINE bool isSpreadEnoughForSubdivision(
-            uint8_t & splittingComponent,
-            VoronoiCell & voronoiCell
-        ) const
-        {
-            bool isSpreadEnoughForSubdivision = true;
-            float_X maxSpreadValue = voronoiCell.getMaxValueSpread2( splittingComponent, simDim );
-
-            if ( voronoiCell.splittingStage == VoronoiSplittingStage::position &&
-                maxSpreadValue < posSpreadThreshold )
-            {
-                voronoiCell.invertSplittingStage();
-                maxSpreadValue = voronoiCell.getMaxValueSpread2( splittingComponent, simDim );
-                if ( maxSpreadValue < momSpreadThreshold )
-                {
-                    voronoiCell.setToReadyForMerging();
-                    isSpreadEnoughForSubdivision = false;
                 }
-            }
-            if ( voronoiCell.splittingStage == VoronoiSplittingStage::momentum &&
-                maxSpreadValue < momSpreadThreshold )
-            {
-                voronoiCell.invertSplittingStage();
-                maxSpreadValue = voronoiCell.getMaxValueSpread2( splittingComponent, simDim );
-                if ( maxSpreadValue < posSpreadThreshold )
+
+                /** map cell index to the initial Voronoi cell by aggregating N^simDim 'normal'
+                 * cells to a single Voronoi cell.
+                 *
+                 * @param cellIdx cell index
+                 */
+                DINLINE voronoiCellId::type mapCellIdxToInitialVoronoiCell(const uint32_t cellIdx) const
                 {
-                    voronoiCell.setToReadyForMerging();
-                    isSpreadEnoughForSubdivision = false;
+                    const DataSpace<simDim> cellIdxDim
+                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(cellIdx);
+
+                    const DataSpace<simDim> voronoiCellDim = cellIdxDim / 2;
+
+                    return static_cast<voronoiCellId::type>(pmacc::math::linearize(
+                        pmacc::math::CT::shrinkTo<SuperCellSize, simDim - 1>::type::toRT() / 2,
+                        voronoiCellDim));
                 }
-            }
-            return isSpreadEnoughForSubdivision;
-        }
 
-        /** Merge all particles in voronoi cell into one
-         *
-         * New momentum is weighted average of all particles momentums.
-         * New position is weighted average of all particles positions.
-         * New weight is sum of all particles weights
-         *
-         * @tparam T_Particle particle type
-         * @trapam T_Acc accelerator type
-         *
-         * @param particle current particle
-         * @param voronoiCell current Voronoi cell
-         */
-        template<
-            typename T_Particle,
-            typename T_Acc
-        >
-        DINLINE void mergeVoronoiCell(
-            T_Acc const & acc,
-            T_Particle & particle,
-            VoronoiCell & voronoiCell
-        )
-        {
-            if( voronoiCell.isFirstParticle( acc ) )
-            {
-                /* I am the first particle in the Voronoi cell
-                 * => get dressed with Voronoi cell's attributes
+                /** Init the Voronoi cell id attribute for each particle in the super cell.
+                 *
+                 * The initial Voronoi cell is chosen by aggregating N^simDim 'normal' cells
+                 * to a single Voronoi cell.
+                 *
+                 * @param cellIdx cell index
                  */
+                template<typename T_Acc>
+                DINLINE void initVoronoiCellIdAttribute(T_Acc const& acc, const pmacc::math::Int<simDim>& cellIdx)
+                {
+                    //! \todo change this as soon as the kernel support lock step programming
+                    constexpr uint32_t numWorkers = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                    const uint32_t workerIdx
+                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(cellIdx % SuperCellSize::toRT());
+                    particleAccess::Cell2Particle<SuperCellSize, numWorkers> forEachFrame;
+                    forEachFrame(
+                        acc,
+                        particlesBox,
+                        workerIdx,
+                        cellIdx,
+                        [this](const T_Acc& acc, FramePtr frame, const int linearThreadIdx) {
+                            auto particle = frame[linearThreadIdx];
+                            const lcellId_t particleCellIdx = particle[localCellIdx_];
+                            particle[voronoiCellId_] = this->mapCellIdxToInitialVoronoiCell(particleCellIdx);
+                        },
+                        particles::filter::All{});
+                }
 
-                auto particleCellIdx = pmacc::DataSpace< simDim >::create( 0 );
-                auto relativePosition = floatD_X::create( 0.0_X);
-                getSuperCellPos(
-                    voronoiCell.meanPositionValue,
-                    particleCellIdx,
-                    relativePosition
-                );
-                lcellId_t localCellIdx = pmacc::math::linearize(
-                    pmacc::math::CT::shrinkTo< SuperCellSize, simDim - 1 >::type::toRT(),
-                    particleCellIdx
-                );
-
-                particle[localCellIdx_] = localCellIdx;
-                particle[position_] = relativePosition;
-                /* Here the voronoiCell.meanMomentumValue is for a single particle,
-                 * multiply to make it for macroparticle
+                /** Calculate position of particle within a super cell.
+                 *
+                 * @param particleCellIdx local particle cell index
+                 * @param positionWithinCell position within cell
+                 * @return position of particle with respect to its super cell's origin
                  */
-                particle[momentum_] = voronoiCell.meanMomentumValue * voronoiCell.numRealParticles;
-                particle[weighting_] = voronoiCell.numRealParticles;
-            }
-            else
-            {
-                // I am not the first particle in the Voronoi cell => remove me
-                particle[multiMask_] = 0;
-            }
-        }
-
-        /** This method handles the merging process on the single-particle level.
-         *
-         * It is called in the main loop of the merging algorithm.
-         * Depending on the state of the Voronoi cell where the particle belongs
-         * to the execution is forked into distinct sub-processes.
-         *
-         * @tparam T_Acc accelerator type
-         *
-         * @param acc accelerator
-         * @param cellIdx n-dimensional cell index from the origin of the local domain
-         * @param listVoronoiCells fixed-sized array of Voronoi cells
-         */
-        template< typename T_Acc >
-        DINLINE void processParticles(
-            T_Acc const & acc,
-            const pmacc::math::Int< simDim > & cellIdx,
-            ArrayVoronoiCells & listVoronoiCells
-        )
-        {
-            //! \todo change this as soon as the kernel support lock step programming
-            constexpr uint32_t numWorkers = pmacc::math::CT::volume< SuperCellSize >::type::value;
-            const uint32_t workerIdx = DataSpaceOperations< simDim >::template map<
-                SuperCellSize
-            >( cellIdx % SuperCellSize::toRT() );
-            particleAccess::Cell2Particle< SuperCellSize, numWorkers > forEachFrame;
-            forEachFrame(
-                acc,
-                this->particlesBox,
-                workerIdx,
-                cellIdx,
-                [&]( const T_Acc & acc, FramePtr frame, const int linearThreadIdx )
+                DINLINE floatD_X
+                getParticlePosWithinSuperCell(const lcellId_t particleCellIdx, const floatD_X positionWithinCell) const
                 {
-                    auto particle = frame[linearThreadIdx];
-                    const voronoiCellId::type voronoiCellId = particle[voronoiCellId_];
+                    const DataSpace<simDim> particleCellIdxDim
+                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(particleCellIdx);
 
-                     if( voronoiCellId == -1 )
-                        return;
-
-                    VoronoiCell& voronoiCell = listVoronoiCells[voronoiCellId];
-
-                    const floatD_X position = this->getParticlePosWithinSuperCell(
-                        particle[localCellIdx_],
-                        particle[position_]
-                    );
-
-                    const float_X weighting = particle[weighting_];
-                    /* Algorithm internally operates with momentums for single
-                     * particles, not macroparticles, so convert
-                     */
-                    const float3_X singleParticleMomentum = particle[momentum_] / weighting;
-
-                    switch( voronoiCell.status )
+                    floatD_X result;
+                    for(int i = 0; i < simDim; i++)
                     {
-                    case VoronoiStatus::collecting:
-                        voronoiCell.addParticle(
-                            acc,
-                            position,
-                            singleParticleMomentum,
-                            weighting
-                        );
-                        break;
-
-                    case VoronoiStatus::splitting:
-                    {
-
-                        const voronoiCellId::type subVoronoiCellId = voronoiCell.getSubVoronoiCell(
-                            position,
-                            singleParticleMomentum
-                        );
-                        particle[voronoiCellId_] = subVoronoiCellId;
-                        listVoronoiCells[subVoronoiCellId].addParticle(
-                            acc,
-                            position,
-                            singleParticleMomentum,
-                            weighting
-                        );
-
-                        break;
-                     }
-
-                    case VoronoiStatus::abort:
-                        particle[voronoiCellId_] = -1;
-                        break;
-
-                    case VoronoiStatus::readyForMerging:
-                        mergeVoronoiCell( acc, particle, voronoiCell );
-                        particle[voronoiCellId_] = -1;
+                        result[i] = static_cast<float_X>(particleCellIdxDim[i]) + positionWithinCell[i];
                     }
-                },
-                particles::filter::All{}
-            );
-        }
 
-        /** This method handles the merging process on the Voronoi cell level.
-         *
-         * It is called in the main loop of the merging algorithm.
-         * It does the transition of the distinct states of each Voronoi cell.
-         *
-         * @param listVoronoiCells fixed-sized array of Voronoi cells
-         * @param voronoiIndexPool holds indices of active Voronoi cells within `listVoronoiCells`
-         * @param randomGen random generator functor
-         */
-        DINLINE void processVoronoiCells(
-            ArrayVoronoiCells & listVoronoiCells,
-            VoronoiIndexPool & voronoiIndexPool,
-            RandomGen & randomGen
-        ) const
-        {
-            for( voronoiCellId::type voronoiCellId : voronoiIndexPool )
-            {
-                VoronoiCell& voronoiCell = listVoronoiCells[voronoiCellId];
-                switch( voronoiCell.status )
+                    return result;
+                }
+
+                /** Calculate revative position of partilce in Supercell
+                 *
+                 * @param absoluteParticlePos absolute particle coordinates
+                 * @return particleCellIdx particle's supercell
+                 * @return positionWithinCell position particle inside supecell
+                 */
+                DINLINE void getSuperCellPos(
+                    const floatD_X absoluteParticlePos,
+                    ::pmacc::math::Vector<int, simDim>& particleCellIdx,
+                    floatD_X& positionWithinCell)
                 {
-                case VoronoiStatus::collecting:
-                    if ( voronoiCell.numMacroParticles < 2 )
+                    for(int i = 0; i < simDim; i++)
                     {
-                       voronoiCell.setToAbort();
-                       break;
+                        particleCellIdx[i] = static_cast<int>(absoluteParticlePos[i]);
+                        positionWithinCell[i] = absoluteParticlePos[i] - particleCellIdx[i];
                     }
-                    voronoiCell.finalizePrecalculationValues(
-                        maxParticlesToMerge,
-                        ratioKeptParticles
-                    );
+                }
 
-                    // Check if subdivision is needed probabilistically
-                    if ( isNeededSubdivision( randomGen, voronoiCell ) )
+                /** Decide if subdivision should be done, based on
+                 *  information from parents voronoi cells
+                 *
+                 * @param randomGen ramdom generator functor
+                 * @param voronoiCell voronoi cell
+                 */
+                DINLINE bool isNeededSubdivision(RandomGen& randomGen, VoronoiCell const& voronoiCell) const
+                {
+                    // With large enough number of macroparticles we always subdivide
+                    if(voronoiCell.numMacroParticles > maxParticlesToMerge)
+                        return true;
+
+                    // Otherwise we compute subdivision probability based on the parameters
+                    // and the number of macroparticles in the cell
+                    float_X halfDivisionCoefficient
+                        = (voronoiCell.expectedNumMacroParticles + voronoiCell.numMacroParticles) / 2.0_X;
+
+                    float_X subdivisionProbability
+                        = (voronoiCell.expectedNumMacroParticles - 1.0_X) / (halfDivisionCoefficient - 1.0_X);
+
+                    // Spectial probability equations for small Voronoi cells
+                    if(voronoiCell.numMacroParticles == 2)
+                        subdivisionProbability = voronoiCell.expectedNumMacroParticles - 1.0_X;
+                    if(voronoiCell.numMacroParticles == 3)
+                        subdivisionProbability = (voronoiCell.expectedNumMacroParticles - 1.0_X) / 2.0_X;
+
+                    return randomGen() < subdivisionProbability;
+                }
+
+
+                DINLINE bool isSpreadEnoughForSubdivision(uint8_t& splittingComponent, VoronoiCell& voronoiCell) const
+                {
+                    bool isSpreadEnoughForSubdivision = true;
+                    float_X maxSpreadValue = voronoiCell.getMaxValueSpread2(splittingComponent, simDim);
+
+                    if(voronoiCell.splittingStage == VoronoiSplittingStage::position
+                       && maxSpreadValue < posSpreadThreshold)
                     {
-                        uint8_t splittingComponent;
-                        float_X maxSpreadValue = voronoiCell.getMaxValueSpread2(
-                            splittingComponent,
-                            simDim
-                        );
-
-                        // Continue only when the subdivision makes sense in terms of the spread
-                        if ( !isSpreadEnoughForSubdivision( splittingComponent, voronoiCell ) )
-                            break;
-
-                        voronoiCell.setToSplitting(
-                            splittingComponent,
-                            voronoiIndexPool.get(),
-                            voronoiIndexPool.get()
-                        );
-
-                        // Abort when no memory for more Voronoi cells
-                        if( voronoiCell.lowerCellId == -1 || voronoiCell.higherCellId == -1 )
+                        voronoiCell.invertSplittingStage();
+                        maxSpreadValue = voronoiCell.getMaxValueSpread2(splittingComponent, simDim);
+                        if(maxSpreadValue < momSpreadThreshold)
                         {
-                            voronoiCell.setToAbort();
-                            break;
+                            voronoiCell.setToReadyForMerging();
+                            isSpreadEnoughForSubdivision = false;
                         }
+                    }
+                    if(voronoiCell.splittingStage == VoronoiSplittingStage::momentum
+                       && maxSpreadValue < momSpreadThreshold)
+                    {
+                        voronoiCell.invertSplittingStage();
+                        maxSpreadValue = voronoiCell.getMaxValueSpread2(splittingComponent, simDim);
+                        if(maxSpreadValue < posSpreadThreshold)
+                        {
+                            voronoiCell.setToReadyForMerging();
+                            isSpreadEnoughForSubdivision = false;
+                        }
+                    }
+                    return isSpreadEnoughForSubdivision;
+                }
 
-                        // For better subdivision, change the splitting state each step
-                        VoronoiSplittingStage currentVoronoiStage;
-                        if( voronoiCell.splittingStage == VoronoiSplittingStage::position )
-                            currentVoronoiStage = VoronoiSplittingStage::momentum;
-                        else
-                            currentVoronoiStage = VoronoiSplittingStage::position;
+                /** Merge all particles in voronoi cell into one
+                 *
+                 * New momentum is weighted average of all particles momentums.
+                 * New position is weighted average of all particles positions.
+                 * New weight is sum of all particles weights
+                 *
+                 * @tparam T_Particle particle type
+                 * @trapam T_Acc accelerator type
+                 *
+                 * @param particle current particle
+                 * @param voronoiCell current Voronoi cell
+                 */
+                template<typename T_Particle, typename T_Acc>
+                DINLINE void mergeVoronoiCell(T_Acc const& acc, T_Particle& particle, VoronoiCell& voronoiCell)
+                {
+                    if(voronoiCell.isFirstParticle(acc))
+                    {
+                        /* I am the first particle in the Voronoi cell
+                         * => get dressed with Voronoi cell's attributes
+                         */
 
-                        /* initialize the two new sub Voronoi cells in `collecting` state */
-                        listVoronoiCells[voronoiCell.lowerCellId] = VoronoiCell(
-                            currentVoronoiStage,
-                            voronoiCell.numMacroParticles,
-                            voronoiCell.expectedNumMacroParticles
-                        );
-                        listVoronoiCells[voronoiCell.higherCellId] = VoronoiCell(
-                            currentVoronoiStage,
-                            voronoiCell.numMacroParticles,
-                            voronoiCell.expectedNumMacroParticles
-                        );
+                        auto particleCellIdx = pmacc::DataSpace<simDim>::create(0);
+                        auto relativePosition = floatD_X::create(0.0_X);
+                        getSuperCellPos(voronoiCell.meanPositionValue, particleCellIdx, relativePosition);
+                        lcellId_t localCellIdx = pmacc::math::linearize(
+                            pmacc::math::CT::shrinkTo<SuperCellSize, simDim - 1>::type::toRT(),
+                            particleCellIdx);
 
-                        break;
+                        particle[localCellIdx_] = localCellIdx;
+                        particle[position_] = relativePosition;
+                        /* Here the voronoiCell.meanMomentumValue is for a single particle,
+                         * multiply to make it for macroparticle
+                         */
+                        particle[momentum_] = voronoiCell.meanMomentumValue * voronoiCell.numRealParticles;
+                        particle[weighting_] = voronoiCell.numRealParticles;
                     }
                     else
                     {
-                        voronoiCell.setToReadyForMerging();
-                        break;
+                        // I am not the first particle in the Voronoi cell => remove me
+                        particle[multiMask_] = 0;
                     }
-
-                default:
-                    voronoiIndexPool.release( voronoiCellId );
-                    break;
                 }
-            }
-        }
 
-        /** Entry point of the particle merging algorithm
-         *
-         * @tparam T_Acc accelerator type
-         *
-         * @param acc accelerator
-         * @param cellIndex n-dimensional cell index from the origin of the local domain
-         */
-        template< typename T_Acc>
-        DINLINE void operator()(
-            T_Acc const & acc,
-            const pmacc::math::Int< simDim > & cellIndex
-        )
-        {
-            // multi-dim vector from origin of the super cell to a cell in units of cells
-            const pmacc::math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
-            const int linearThreadIdx = pmacc::math::linearize(
-                pmacc::math::CT::shrinkTo<SuperCellSize, simDim-1>::type::toRT(),
-                threadIndex
-            );
+                /** This method handles the merging process on the single-particle level.
+                 *
+                 * It is called in the main loop of the merging algorithm.
+                 * Depending on the state of the Voronoi cell where the particle belongs
+                 * to the execution is forked into distinct sub-processes.
+                 *
+                 * @tparam T_Acc accelerator type
+                 *
+                 * @param acc accelerator
+                 * @param cellIdx n-dimensional cell index from the origin of the local domain
+                 * @param listVoronoiCells fixed-sized array of Voronoi cells
+                 */
+                template<typename T_Acc>
+                DINLINE void processParticles(
+                    T_Acc const& acc,
+                    const pmacc::math::Int<simDim>& cellIdx,
+                    ArrayVoronoiCells& listVoronoiCells)
+                {
+                    //! \todo change this as soon as the kernel support lock step programming
+                    constexpr uint32_t numWorkers = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                    const uint32_t workerIdx
+                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(cellIdx % SuperCellSize::toRT());
+                    particleAccess::Cell2Particle<SuperCellSize, numWorkers> forEachFrame;
+                    forEachFrame(
+                        acc,
+                        this->particlesBox,
+                        workerIdx,
+                        cellIdx,
+                        [&](const T_Acc& acc, FramePtr frame, const int linearThreadIdx) {
+                            auto particle = frame[linearThreadIdx];
+                            const voronoiCellId::type voronoiCellId = particle[voronoiCellId_];
 
-            // Storage for Voronoi cells in shared memory
-            PMACC_SMEM( acc, listVoronoiCells, ArrayVoronoiCells );
-            PMACC_SMEM( acc, voronoiIndexPool, VoronoiIndexPool );
+                            if(voronoiCellId == -1)
+                                return;
 
-            /* number of initial Voronoi cells
-             * `1u << simDim` is equivalent to `pow(2, simDim)` but can be
-             * calculated at compile-time to save a shared variable.
-             */
-            constexpr uint16_t numInitialVoronoiCells = pmacc::math::CT::volume<
-                SuperCellSize
-            >::type::value / ( 1u << simDim );
+                            VoronoiCell& voronoiCell = listVoronoiCells[voronoiCellId];
+
+                            const floatD_X position
+                                = this->getParticlePosWithinSuperCell(particle[localCellIdx_], particle[position_]);
+
+                            const float_X weighting = particle[weighting_];
+                            /* Algorithm internally operates with momentums for single
+                             * particles, not macroparticles, so convert
+                             */
+                            const float3_X singleParticleMomentum = particle[momentum_] / weighting;
+
+                            switch(voronoiCell.status)
+                            {
+                            case VoronoiStatus::collecting:
+                                voronoiCell.addParticle(acc, position, singleParticleMomentum, weighting);
+                                break;
+
+                            case VoronoiStatus::splitting:
+                            {
+                                const voronoiCellId::type subVoronoiCellId
+                                    = voronoiCell.getSubVoronoiCell(position, singleParticleMomentum);
+                                particle[voronoiCellId_] = subVoronoiCellId;
+                                listVoronoiCells[subVoronoiCellId]
+                                    .addParticle(acc, position, singleParticleMomentum, weighting);
+
+                                break;
+                            }
+
+                            case VoronoiStatus::abort:
+                                particle[voronoiCellId_] = -1;
+                                break;
+
+                            case VoronoiStatus::readyForMerging:
+                                mergeVoronoiCell(acc, particle, voronoiCell);
+                                particle[voronoiCellId_] = -1;
+                            }
+                        },
+                        particles::filter::All{});
+                }
+
+                /** This method handles the merging process on the Voronoi cell level.
+                 *
+                 * It is called in the main loop of the merging algorithm.
+                 * It does the transition of the distinct states of each Voronoi cell.
+                 *
+                 * @param listVoronoiCells fixed-sized array of Voronoi cells
+                 * @param voronoiIndexPool holds indices of active Voronoi cells within `listVoronoiCells`
+                 * @param randomGen random generator functor
+                 */
+                DINLINE void processVoronoiCells(
+                    ArrayVoronoiCells& listVoronoiCells,
+                    VoronoiIndexPool& voronoiIndexPool,
+                    RandomGen& randomGen) const
+                {
+                    for(voronoiCellId::type voronoiCellId : voronoiIndexPool)
+                    {
+                        VoronoiCell& voronoiCell = listVoronoiCells[voronoiCellId];
+                        switch(voronoiCell.status)
+                        {
+                        case VoronoiStatus::collecting:
+                            if(voronoiCell.numMacroParticles < 2)
+                            {
+                                voronoiCell.setToAbort();
+                                break;
+                            }
+                            voronoiCell.finalizePrecalculationValues(maxParticlesToMerge, ratioKeptParticles);
+
+                            // Check if subdivision is needed probabilistically
+                            if(isNeededSubdivision(randomGen, voronoiCell))
+                            {
+                                uint8_t splittingComponent;
+                                float_X maxSpreadValue = voronoiCell.getMaxValueSpread2(splittingComponent, simDim);
+
+                                // Continue only when the subdivision makes sense in terms of the spread
+                                if(!isSpreadEnoughForSubdivision(splittingComponent, voronoiCell))
+                                    break;
+
+                                voronoiCell.setToSplitting(
+                                    splittingComponent,
+                                    voronoiIndexPool.get(),
+                                    voronoiIndexPool.get());
+
+                                // Abort when no memory for more Voronoi cells
+                                if(voronoiCell.lowerCellId == -1 || voronoiCell.higherCellId == -1)
+                                {
+                                    voronoiCell.setToAbort();
+                                    break;
+                                }
+
+                                // For better subdivision, change the splitting state each step
+                                VoronoiSplittingStage currentVoronoiStage;
+                                if(voronoiCell.splittingStage == VoronoiSplittingStage::position)
+                                    currentVoronoiStage = VoronoiSplittingStage::momentum;
+                                else
+                                    currentVoronoiStage = VoronoiSplittingStage::position;
+
+                                /* initialize the two new sub Voronoi cells in `collecting` state */
+                                listVoronoiCells[voronoiCell.lowerCellId] = VoronoiCell(
+                                    currentVoronoiStage,
+                                    voronoiCell.numMacroParticles,
+                                    voronoiCell.expectedNumMacroParticles);
+                                listVoronoiCells[voronoiCell.higherCellId] = VoronoiCell(
+                                    currentVoronoiStage,
+                                    voronoiCell.numMacroParticles,
+                                    voronoiCell.expectedNumMacroParticles);
+
+                                break;
+                            }
+                            else
+                            {
+                                voronoiCell.setToReadyForMerging();
+                                break;
+                            }
+
+                        default:
+                            voronoiIndexPool.release(voronoiCellId);
+                            break;
+                        }
+                    }
+                }
+
+                /** Entry point of the particle merging algorithm
+                 *
+                 * @tparam T_Acc accelerator type
+                 *
+                 * @param acc accelerator
+                 * @param cellIndex n-dimensional cell index from the origin of the local domain
+                 */
+                template<typename T_Acc>
+                DINLINE void operator()(T_Acc const& acc, const pmacc::math::Int<simDim>& cellIndex)
+                {
+                    // multi-dim vector from origin of the super cell to a cell in units of cells
+                    const pmacc::math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
+                    const int linearThreadIdx = pmacc::math::linearize(
+                        pmacc::math::CT::shrinkTo<SuperCellSize, simDim - 1>::type::toRT(),
+                        threadIndex);
+
+                    // Storage for Voronoi cells in shared memory
+                    PMACC_SMEM(acc, listVoronoiCells, ArrayVoronoiCells);
+                    PMACC_SMEM(acc, voronoiIndexPool, VoronoiIndexPool);
+
+                    /* number of initial Voronoi cells
+                     * `1u << simDim` is equivalent to `pow(2, simDim)` but can be
+                     * calculated at compile-time to save a shared variable.
+                     */
+                    constexpr uint16_t numInitialVoronoiCells
+                        = pmacc::math::CT::volume<SuperCellSize>::type::value / (1u << simDim);
 
 
-            pmacc::math::Int<simDim> localOffset = cellIndex / SuperCellSize::toRT() - guardSuperCells;
-            constexpr uint32_t numWorkers = pmacc::math::CT::volume< SuperCellSize >::type::value;
-            pmacc::mappings::threads::WorkerCfg<numWorkers> workerCfg( linearThreadIdx );
+                    pmacc::math::Int<simDim> localOffset = cellIndex / SuperCellSize::toRT() - guardSuperCells;
+                    constexpr uint32_t numWorkers = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                    pmacc::mappings::threads::WorkerCfg<numWorkers> workerCfg(linearThreadIdx);
 
-            // Thread 0 of each block creates Voronoi cells
-            if( linearThreadIdx == 0 )
-            {
-                voronoiIndexPool = VoronoiIndexPool( numInitialVoronoiCells );
-            }
-            __syncthreads();
+                    // Thread 0 of each block creates Voronoi cells
+                    if(linearThreadIdx == 0)
+                    {
+                        voronoiIndexPool = VoronoiIndexPool(numInitialVoronoiCells);
+                    }
+                    __syncthreads();
 
-            // Set initial Voronoi cells into `collecting` state
-            if( linearThreadIdx < numInitialVoronoiCells )
-                listVoronoiCells[linearThreadIdx] = VoronoiCell();
-             __syncthreads();
+                    // Set initial Voronoi cells into `collecting` state
+                    if(linearThreadIdx < numInitialVoronoiCells)
+                        listVoronoiCells[linearThreadIdx] = VoronoiCell();
+                    __syncthreads();
 
-            // Distribute particle between original cells
-            initVoronoiCellIdAttribute( acc, cellIndex );
-             __syncthreads();
+                    // Distribute particle between original cells
+                    initVoronoiCellIdAttribute(acc, cellIndex);
+                    __syncthreads();
 
-            auto generator = rngFactory( acc, localOffset, workerCfg );
-            // Main loop of the algorithm: while there are active cells left
-            while( voronoiIndexPool.size() > 0 )
-            {
-                processParticles(
-                    acc,
-                    cellIndex,
-                    listVoronoiCells
-                );
-                __syncthreads();
+                    auto generator = rngFactory(acc, localOffset, workerCfg);
+                    // Main loop of the algorithm: while there are active cells left
+                    while(voronoiIndexPool.size() > 0)
+                    {
+                        processParticles(acc, cellIndex, listVoronoiCells);
+                        __syncthreads();
 
-                // This part is not yet parallelized between blocks of a thread
-                if( linearThreadIdx == 0 )
-                    processVoronoiCells(
-                        listVoronoiCells,
-                        voronoiIndexPool,
-                        generator
-                    );
-                __syncthreads();
-            }
-        }
-    };
+                        // This part is not yet parallelized between blocks of a thread
+                        if(linearThreadIdx == 0)
+                            processVoronoiCells(listVoronoiCells, voronoiIndexPool, generator);
+                        __syncthreads();
+                    }
+                }
+            };
 
-} // namespace randomizedParticleMerger
-} // namespace plugins
+        } // namespace randomizedParticleMerger
+    } // namespace plugins
 } // namespace picongpu

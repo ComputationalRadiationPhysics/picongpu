@@ -28,18 +28,17 @@
 
 namespace pmacc
 {
-namespace allocator
-{
+    namespace allocator
+    {
+        struct EmptyAllocator
+        {
+            typedef allocator::tag::unspecified tag;
 
-struct EmptyAllocator
-{
-    typedef allocator::tag::unspecified tag;
+            template<typename TCursor>
+            HDINLINE static void deallocate(const TCursor&)
+            {
+            }
+        };
 
-    template<typename TCursor>
-    HDINLINE
-    static void deallocate(const TCursor&) {}
-};
-
-} // allocator
-} // pmacc
-
+    } // namespace allocator
+} // namespace pmacc

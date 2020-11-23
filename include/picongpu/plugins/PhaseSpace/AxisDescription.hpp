@@ -35,10 +35,18 @@ namespace picongpu
 
         /** short hand enums */
         enum element_momentum
-        { px = 0u, py = 1u, pz = 2u };
+        {
+            px = 0u,
+            py = 1u,
+            pz = 2u
+        };
 
         enum element_coordinate
-        { x = 0u, y = 1u, z = 2u };
+        {
+            x = 0u,
+            y = 1u,
+            z = 2u
+        };
     };
 
 } /* namespace picongpu */

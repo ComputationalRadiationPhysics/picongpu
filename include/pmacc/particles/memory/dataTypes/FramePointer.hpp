@@ -26,68 +26,67 @@
 
 namespace pmacc
 {
-
-/** Wrapper for a raw pointer a PMacc frame
- *
- * @tparam T_Type type of the pointed object
- */
-template< typename T_Type >
-class FramePointer : public Pointer< T_Type >
-{
-private:
-    using Base = Pointer< T_Type >;
-public:
-    using type = typename Base::type;
-    using PtrType = typename Base::PtrType;
-
-    /** default constructor
+    /** Wrapper for a raw pointer a PMacc frame
      *
-     * the default pointer points to invalid memory
+     * @tparam T_Type type of the pointed object
      */
-    HDINLINE FramePointer( ) : Base( )
+    template<typename T_Type>
+    class FramePointer : public Pointer<T_Type>
     {
-    }
+    private:
+        using Base = Pointer<T_Type>;
 
-    HDINLINE FramePointer( PtrType const ptrIn ) : Base( ptrIn )
-    {
-    }
+    public:
+        using type = typename Base::type;
+        using PtrType = typename Base::PtrType;
 
-    HDINLINE FramePointer( const Base& other ) : Base( other )
-    {
-    }
+        /** default constructor
+         *
+         * the default pointer points to invalid memory
+         */
+        HDINLINE FramePointer() : Base()
+        {
+        }
 
-    HDINLINE FramePointer( const FramePointer& other ) : Base( other )
-    {
-    }
+        HDINLINE FramePointer(PtrType const ptrIn) : Base(ptrIn)
+        {
+        }
 
-    HDINLINE FramePointer& operator=(const FramePointer& other)
-    {
-        Base::operator=(other);
-        return *this;
-    }
+        HDINLINE FramePointer(const Base& other) : Base(other)
+        {
+        }
 
-    /** access the Nth particle
-     *
-     * it is not checked whether `FramePointer` points to valid memory
-     *
-     * @param idx particle index in the frame
-     */
-    HDINLINE typename type::ParticleType operator[](const uint32_t idx)
-    {
-        return (*Base::ptr)[idx];
-    }
+        HDINLINE FramePointer(const FramePointer& other) : Base(other)
+        {
+        }
 
-    /** access the Nth particle
-     *
-     * it is not checked whether `FramePointer` points to valid memory
-     *
-     * @param idx particle index in the frame
-     */
-    HDINLINE const typename type::ParticleType operator[](const uint32_t idx) const
-    {
-        return (*Base::ptr)[idx];
-    }
+        HDINLINE FramePointer& operator=(const FramePointer& other)
+        {
+            Base::operator=(other);
+            return *this;
+        }
 
-};
+        /** access the Nth particle
+         *
+         * it is not checked whether `FramePointer` points to valid memory
+         *
+         * @param idx particle index in the frame
+         */
+        HDINLINE typename type::ParticleType operator[](const uint32_t idx)
+        {
+            return (*Base::ptr)[idx];
+        }
 
-} //namespace pmacc
+        /** access the Nth particle
+         *
+         * it is not checked whether `FramePointer` points to valid memory
+         *
+         * @param idx particle index in the frame
+         */
+        HDINLINE const typename type::ParticleType operator[](const uint32_t idx) const
+        {
+            return (*Base::ptr)[idx];
+        }
+    };
+
+} // namespace pmacc

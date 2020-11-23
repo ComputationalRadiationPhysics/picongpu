@@ -31,29 +31,27 @@
 
 namespace pmacc
 {
-
     template<class Field>
     class TaskFieldSend : public MPITask
     {
     public:
-
         enum
         {
             Dim = picongpu::simDim
         };
 
-        TaskFieldSend(Field &buffer) :
-        m_buffer(buffer),
-        m_state(Constructor) { }
+        TaskFieldSend(Field& buffer) : m_buffer(buffer), m_state(Constructor)
+        {
+        }
 
         virtual void init()
         {
             m_state = Init;
             EventTask serialEvent = __getTransactionEvent();
 
-            for (uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
+            for(uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
             {
-                if (m_buffer.getGridBuffer().hasSendExchange(i))
+                if(m_buffer.getGridBuffer().hasSendExchange(i))
                 {
                     __startTransaction(serialEvent);
                     FieldFactory::getInstance().createTaskFieldSendExchange(m_buffer, i);
@@ -65,14 +63,14 @@ namespace pmacc
 
         bool executeIntern()
         {
-            switch (m_state)
+            switch(m_state)
             {
-                case Init:
-                    break;
-                case WaitForSend:
-                    return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
-                default:
-                    return false;
+            case Init:
+                break;
+            case WaitForSend:
+                return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
+            default:
+                return false;
             }
 
             return false;
@@ -83,7 +81,9 @@ namespace pmacc
             notify(this->myId, SENDFINISHED, nullptr);
         }
 
-        void event(id_t, EventType, IEventData*) { }
+        void event(id_t, EventType, IEventData*)
+        {
+        }
 
         std::string toString()
         {
@@ -91,7 +91,6 @@ namespace pmacc
         }
 
     private:
-
         enum state_t
         {
             Constructor,
@@ -106,4 +105,4 @@ namespace pmacc
         EventTask tmpEvent;
     };
 
-} //namespace pmacc
+} // namespace pmacc

@@ -30,8 +30,5 @@ namespace pmacc
         {
             typedef Type ValueType;
         };
-    }
-}
-
-
-
+    } // namespace traits
+} // namespace pmacc

@@ -31,41 +31,37 @@
 
 namespace pmacc
 {
-namespace allocator
-{
+    namespace allocator
+    {
+        template<typename Type, int T_dim>
+        struct HostMemAllocator
+        {
+            typedef Type type;
+            static constexpr int dim = T_dim;
+            typedef cursor::BufferCursor<type, T_dim> Cursor;
+            typedef allocator::tag::host tag;
 
-template<typename Type, int T_dim>
-struct HostMemAllocator
-{
-    typedef Type type;
-    static constexpr int dim = T_dim;
-    typedef cursor::BufferCursor<type, T_dim> Cursor;
-    typedef allocator::tag::host tag;
+            HDINLINE
+            static cursor::BufferCursor<type, T_dim> allocate(const math::Size_t<T_dim>& size);
+            template<typename TCursor>
+            HDINLINE static void deallocate(const TCursor& cursor);
+        };
 
-    HDINLINE
-    static cursor::BufferCursor<type, T_dim> allocate(const math::Size_t<T_dim>& size);
-    template<typename TCursor>
-    HDINLINE
-    static void deallocate(const TCursor& cursor);
-};
+        template<typename Type>
+        struct HostMemAllocator<Type, 1>
+        {
+            typedef Type type;
+            static constexpr int dim = 1;
+            typedef cursor::BufferCursor<type, 1> Cursor;
+            typedef allocator::tag::host tag;
 
-template<typename Type>
-struct HostMemAllocator<Type, 1>
-{
-    typedef Type type;
-    static constexpr int dim = 1;
-    typedef cursor::BufferCursor<type, 1> Cursor;
-    typedef allocator::tag::host tag;
+            HDINLINE
+            static cursor::BufferCursor<type, 1> allocate(const math::Size_t<1>& size);
+            template<typename TCursor>
+            HDINLINE static void deallocate(const TCursor& cursor);
+        };
 
-    HDINLINE
-    static cursor::BufferCursor<type, 1> allocate(const math::Size_t<1>& size);
-    template<typename TCursor>
-    HDINLINE
-    static void deallocate(const TCursor& cursor);
-};
-
-} // allocator
-} // pmacc
+    } // namespace allocator
+} // namespace pmacc
 
 #include "HostMemAllocator.tpp"
-

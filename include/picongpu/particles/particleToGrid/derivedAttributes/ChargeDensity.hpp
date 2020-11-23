@@ -26,35 +26,32 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-
-    HDINLINE float1_64
-    ChargeDensity::getUnit() const
+    namespace particles
     {
-        const float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
-        return UNIT_CHARGE / UNIT_VOLUME;
-    }
+        namespace particleToGrid
+        {
+            namespace derivedAttributes
+            {
+                HDINLINE float1_64 ChargeDensity::getUnit() const
+                {
+                    const float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
+                    return UNIT_CHARGE / UNIT_VOLUME;
+                }
 
-    template< class T_Particle >
-    DINLINE float_X
-    ChargeDensity::operator()( T_Particle& particle ) const
-    {
-        /* read existing attributes */
-        const float_X weighting = particle[weighting_];
-        const float_X charge = attribute::getCharge( weighting, particle );
+                template<class T_Particle>
+                DINLINE float_X ChargeDensity::operator()(T_Particle& particle) const
+                {
+                    /* read existing attributes */
+                    const float_X weighting = particle[weighting_];
+                    const float_X charge = attribute::getCharge(weighting, particle);
 
-        /* calculate new attribute */
-        const float_X particleChargeDensity = charge / CELL_VOLUME;
+                    /* calculate new attribute */
+                    const float_X particleChargeDensity = charge / CELL_VOLUME;
 
-        /* return attribute */
-        return particleChargeDensity;
-    }
-} // namespace derivedAttributes
-} // namespace particleToGrid
-} // namespace particles
+                    /* return attribute */
+                    return particleChargeDensity;
+                }
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
 } // namespace picongpu

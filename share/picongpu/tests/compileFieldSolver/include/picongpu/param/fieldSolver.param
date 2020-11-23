@@ -40,44 +40,43 @@
 
 namespace picongpu
 {
-namespace fields
-{
+    namespace fields
+    {
+        /** Current Interpolation
+         *
+         * CurrentInterpolation is used to set a method performing the
+         * interpolate/assign operation from the generated currents of particle
+         * species to the electro-magnetic fields.
+         *
+         * Allowed values are:
+         *   - None:
+         *     - default for staggered grids/Yee-scheme
+         *     - updates E
+         *   - Binomial: 2nd order Binomial filter
+         *     - smooths the current before assignment in staggered grid
+         *     - updates E & breaks local charge conservation slightly
+         */
+        using CurrentInterpolation = currentInterpolation::None;
 
-    /** Current Interpolation
-     *
-     * CurrentInterpolation is used to set a method performing the
-     * interpolate/assign operation from the generated currents of particle
-     * species to the electro-magnetic fields.
-     *
-     * Allowed values are:
-     *   - None:
-     *     - default for staggered grids/Yee-scheme
-     *     - updates E
-     *   - Binomial: 2nd order Binomial filter
-     *     - smooths the current before assignment in staggered grid
-     *     - updates E & breaks local charge conservation slightly
-     */
-    using CurrentInterpolation = currentInterpolation::None;
+        /** FieldSolver
+         *
+         * Field Solver Selection:
+         *  - Yee< CurrentInterpolation > : Standard Yee solver approximating derivatives with respect to time and
+         * space by second order finite differences.
+         *  - YeePML< CurrentInterpolation >: Standard Yee solver using Perfectly Matched Layer Absorbing Boundary
+         * Conditions (PML)
+         *  - Lehe< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
+         *  - LehePML< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
+         *                                     using Perfectly Matched Layer Absorbing Boundary Conditions (PML)
+         *  - ArbitraryOrderFDTD< 4, CurrentInterpolation >: Solver using 4 neighbors to each direction to approximate
+         * *spatial* derivatives by finite differences. The number of neighbors can be changed from 4 to any positive,
+         * integer number. The order of the solver will be twice the number of neighbors in each direction. Yee's
+         * method is a special case of this using one neighbor to each direction.
+         *  - ArbitraryOrderFDTDPML< 4, CurrentInterpolation >: ArbitraryOrderFDTD solver using Perfectly Matched Layer
+         *                                                      Absorbing Boundary Conditions (PML)
+         *  - None< CurrentInterpolation >: disable the vacuum update of E and B
+         */
+        using Solver = maxwellSolver::PARAM_FIELDSOLVER<CurrentInterpolation>;
 
-    /** FieldSolver
-     *
-     * Field Solver Selection:
-     *  - Yee< CurrentInterpolation > : Standard Yee solver approximating derivatives with respect to time and space
-     *                                  by second order finite differences.
-     *  - YeePML< CurrentInterpolation >: Standard Yee solver using Perfectly Matched Layer Absorbing Boundary Conditions (PML)
-     *  - Lehe< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
-     *  - LehePML< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
-     *                                     using Perfectly Matched Layer Absorbing Boundary Conditions (PML)
-     *  - ArbitraryOrderFDTD< 4, CurrentInterpolation >: Solver using 4 neighbors to each direction to approximate *spatial*
-     *                                                   derivatives by finite differences.
-     *                                                   The number of neighbors can be changed from 4 to any positive, integer number.
-     *                                                   The order of the solver will be twice the number of neighbors in each direction.
-     *                                                   Yee's method is a special case of this using one neighbor to each direction.
-     *  - ArbitraryOrderFDTDPML< 4, CurrentInterpolation >: ArbitraryOrderFDTD solver using Perfectly Matched Layer
-     *                                                      Absorbing Boundary Conditions (PML)
-     *  - None< CurrentInterpolation >: disable the vacuum update of E and B
-     */
-    using Solver = maxwellSolver::PARAM_FIELDSOLVER< CurrentInterpolation >;
-
-} // namespace fields
+    } // namespace fields
 } // namespace picongpu

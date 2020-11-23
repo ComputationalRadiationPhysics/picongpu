@@ -24,69 +24,82 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace maxwellSolver
-{
-namespace Pml
-{
+    namespace fields
+    {
+        namespace maxwellSolver
+        {
+            namespace Pml
+            {
+                // Assert parameters are in the valid ranges
+                PMACC_CASSERT_MSG(
+                    You_can_not_set_negative_grading_order_for_pml_kappa_and_sigma___change_pml_param,
+                    (SIGMA_KAPPA_GRADING_ORDER >= 0.0));
+                PMACC_CASSERT_MSG(
+                    You_can_not_set_negative_value_pml_sigma_max_x___change_pml_param,
+                    (SIGMA_MAX_SI[0] >= 0.0));
+                PMACC_CASSERT_MSG(
+                    You_can_not_set_negative_value_pml_sigma_max_y___change_pml_param,
+                    (SIGMA_MAX_SI[1] >= 0.0));
+                PMACC_CASSERT_MSG(
+                    You_can_not_set_negative_value_pml_sigma_max_z___change_pml_param,
+                    (SIGMA_MAX_SI[2] >= 0.0));
+                PMACC_CASSERT_MSG(
+                    You_can_not_set_pml_kappa_max_x_value_less_than_one___change_pml_param,
+                    (KAPPA_MAX[0] >= 1.0));
+                PMACC_CASSERT_MSG(
+                    You_can_not_set_pml_kappa_max_y_value_less_than_one___change_pml_param,
+                    (KAPPA_MAX[1] >= 1.0));
+                PMACC_CASSERT_MSG(
+                    You_can_not_set_pml_kappa_max_z_value_less_than_one___change_pml_param,
+                    (KAPPA_MAX[2] >= 1.0));
+                PMACC_CASSERT_MSG(
+                    You_can_not_set_negative_grading_order_for_pml_alpha___change_pml_param,
+                    (ALPHA_GRADING_ORDER >= 0.0));
+                PMACC_CASSERT_MSG(
+                    You_can_not_set_negative_pml_alpha_max_x___change_pml_param,
+                    (ALPHA_MAX_SI[0] >= 0.0));
+                PMACC_CASSERT_MSG(
+                    You_can_not_set_negative_pml_alpha_max_y___change_pml_param,
+                    (ALPHA_MAX_SI[1] >= 0.0));
+                PMACC_CASSERT_MSG(
+                    You_can_not_set_negative_pml_alpha_max_z___change_pml_param,
+                    (ALPHA_MAX_SI[2] >= 0.0));
 
-    // Assert parameters are in the valid ranges
-    PMACC_CASSERT_MSG( You_can_not_set_negative_grading_order_for_pml_kappa_and_sigma___change_pml_param, (SIGMA_KAPPA_GRADING_ORDER >= 0.0) );
-    PMACC_CASSERT_MSG( You_can_not_set_negative_value_pml_sigma_max_x___change_pml_param, (SIGMA_MAX_SI[ 0 ] >= 0.0) );
-    PMACC_CASSERT_MSG( You_can_not_set_negative_value_pml_sigma_max_y___change_pml_param, (SIGMA_MAX_SI[ 1 ] >= 0.0) );
-    PMACC_CASSERT_MSG( You_can_not_set_negative_value_pml_sigma_max_z___change_pml_param, (SIGMA_MAX_SI[ 2 ] >= 0.0) );
-    PMACC_CASSERT_MSG( You_can_not_set_pml_kappa_max_x_value_less_than_one___change_pml_param, (KAPPA_MAX[ 0 ] >= 1.0) );
-    PMACC_CASSERT_MSG( You_can_not_set_pml_kappa_max_y_value_less_than_one___change_pml_param, (KAPPA_MAX[ 1 ] >= 1.0) );
-    PMACC_CASSERT_MSG( You_can_not_set_pml_kappa_max_z_value_less_than_one___change_pml_param, (KAPPA_MAX[ 2 ] >= 1.0) );
-    PMACC_CASSERT_MSG( You_can_not_set_negative_grading_order_for_pml_alpha___change_pml_param, (ALPHA_GRADING_ORDER >= 0.0) );
-    PMACC_CASSERT_MSG( You_can_not_set_negative_pml_alpha_max_x___change_pml_param, (ALPHA_MAX_SI[ 0 ] >= 0.0) );
-    PMACC_CASSERT_MSG( You_can_not_set_negative_pml_alpha_max_y___change_pml_param, (ALPHA_MAX_SI[ 1 ] >= 0.0) );
-    PMACC_CASSERT_MSG( You_can_not_set_negative_pml_alpha_max_z___change_pml_param, (ALPHA_MAX_SI[ 2 ] >= 0.0) );
+                /* Normalize artificial conductivity by eps0, so that the result can be used
+                 * for matching electric conductivity and magnetic permeability
+                 * unit: 1 / s
+                 */
+                constexpr float_64 NORMALIZED_SIGMA_MAX_SI[3]
+                    = {SIGMA_MAX_SI[0] / SI::EPS0_SI, SIGMA_MAX_SI[1] / SI::EPS0_SI, SIGMA_MAX_SI[2] / SI::EPS0_SI};
 
-    /* Normalize artificial conductivity by eps0, so that the result can be used
-     * for matching electric conductivity and magnetic permeability
-     * unit: 1 / s
-     */
-    constexpr float_64 NORMALIZED_SIGMA_MAX_SI[ 3 ] = {
-        SIGMA_MAX_SI[ 0 ] / SI::EPS0_SI,
-        SIGMA_MAX_SI[ 1 ] / SI::EPS0_SI,
-        SIGMA_MAX_SI[ 2 ] / SI::EPS0_SI
-    };
+                /** Max value of normalized conductivity in PIC units
+                 *
+                 * unit: 1 / time
+                 * (that is why we multiply by UNIT_TIME and not divide)
+                 */
+                constexpr float_64 NORMALIZED_SIGMA_MAX[3]
+                    = {NORMALIZED_SIGMA_MAX_SI[0] * UNIT_TIME,
+                       NORMALIZED_SIGMA_MAX_SI[1] * UNIT_TIME,
+                       NORMALIZED_SIGMA_MAX_SI[2] * UNIT_TIME};
 
-    /** Max value of normalized conductivity in PIC units
-     *
-     * unit: 1 / time
-     * (that is why we multiply by UNIT_TIME and not divide)
-     */
-    constexpr float_64 NORMALIZED_SIGMA_MAX[ 3 ] = {
-        NORMALIZED_SIGMA_MAX_SI[ 0 ] * UNIT_TIME,
-        NORMALIZED_SIGMA_MAX_SI[ 1 ] * UNIT_TIME,
-        NORMALIZED_SIGMA_MAX_SI[ 2 ] * UNIT_TIME
-    };
+                /* Normalize complex frequency shift by eps0, so that the result can be used
+                 * for matching electric conductivity and magnetic permeability
+                 * unit: 1 / s
+                 */
+                constexpr float_64 NORMALIZED_ALPHA_MAX_SI[3]
+                    = {ALPHA_MAX_SI[0] / SI::EPS0_SI, ALPHA_MAX_SI[1] / SI::EPS0_SI, ALPHA_MAX_SI[2] / SI::EPS0_SI};
 
-    /* Normalize complex frequency shift by eps0, so that the result can be used
-     * for matching electric conductivity and magnetic permeability
-     * unit: 1 / s
-     */
-    constexpr float_64 NORMALIZED_ALPHA_MAX_SI[ 3 ] = {
-        ALPHA_MAX_SI[ 0 ] / SI::EPS0_SI,
-        ALPHA_MAX_SI[ 1 ] / SI::EPS0_SI,
-        ALPHA_MAX_SI[ 2 ] / SI::EPS0_SI
-    };
+                /** Max value of normalized complex frequency shift in PIC units
+                 *
+                 * unit: 1 / time
+                 * (that is why we multiply by UNIT_TIME and not divide)
+                 */
+                constexpr float_64 NORMALIZED_ALPHA_MAX[3]
+                    = {NORMALIZED_ALPHA_MAX_SI[0] * UNIT_TIME,
+                       NORMALIZED_ALPHA_MAX_SI[1] * UNIT_TIME,
+                       NORMALIZED_ALPHA_MAX_SI[2] * UNIT_TIME};
 
-    /** Max value of normalized complex frequency shift in PIC units
-     *
-     * unit: 1 / time
-     * (that is why we multiply by UNIT_TIME and not divide)
-     */
-    constexpr float_64 NORMALIZED_ALPHA_MAX[ 3 ] = {
-        NORMALIZED_ALPHA_MAX_SI[ 0 ] * UNIT_TIME,
-        NORMALIZED_ALPHA_MAX_SI[ 1 ] * UNIT_TIME,
-        NORMALIZED_ALPHA_MAX_SI[ 2 ] * UNIT_TIME
-    };
-
-} // namespace Pml
-} // namespace maxwellSolver
-} // namespace fields
+            } // namespace Pml
+        } // namespace maxwellSolver
+    } // namespace fields
 } // namespace picongpu

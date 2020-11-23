@@ -32,19 +32,17 @@ namespace picongpu
 {
     namespace particles
     {
-
         /* a particle with a weighting below MIN_WEIGHTING will not
-        *      be created / will be deleted
-        *  unit: none
-        */
+         *      be created / will be deleted
+         *  unit: none
+         */
         constexpr float_X MIN_WEIGHTING = 1.0;
 
         constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 50;
 
         namespace manipulators
         {
-
-            CONST_VECTOR( float_X, 3, DriftParamNegative_direction, 1.0, 1.0, 0.0 );
+            CONST_VECTOR(float_X, 3, DriftParamNegative_direction, 1.0, 1.0, 0.0);
             struct DriftParamNegative
             {
                 /** Initial particle drift velocity for electrons and ions
@@ -56,10 +54,7 @@ namespace picongpu
                 const DriftParamNegative_direction_t direction;
             };
             // definition of SetDrift start
-            using AssignYDriftNegative = unary::Drift<
-                DriftParamNegative,
-                nvidia::functors::Assign
-            >;
+            using AssignYDriftNegative = unary::Drift<DriftParamNegative, nvidia::functors::Assign>;
 
         } // namespace manipulators
 
@@ -73,7 +68,7 @@ namespace picongpu
                  */
                 static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
             };
-            using Random = RandomImpl< RandomParameter >;
+            using Random = RandomImpl<RandomParameter>;
         } // namespace startPosition
     } // namespace particles
 } // namespace picongpu

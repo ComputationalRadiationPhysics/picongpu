@@ -25,64 +25,49 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
-namespace unary
-{
-namespace param
-{
-    CONST_VECTOR(
-        float_X,
-        3,
-        DriftNegative_direction,
-        -1.0,
-        0.0,
-        0.0
-    );
-
-    //! configuration for the unary manipulator functor Drift
-    struct DriftCfg
+    namespace particles
     {
-        /** Initial particle drift velocity for electrons and ions
-         *  Examples:
-         *    - No drift is equal to 1.0
-         *  unit: none
-         */
-        static constexpr float_64 gamma = 1.021;
-        DriftNegative_direction_t const direction;
-    };
-} // namespace param
+        namespace manipulators
+        {
+            namespace unary
+            {
+                namespace param
+                {
+                    CONST_VECTOR(float_X, 3, DriftNegative_direction, -1.0, 0.0, 0.0);
 
-namespace acc
-{
-    template<
-        typename T_ParamClass,
-        typename T_ValueFunctor
-    >
-    struct Drift;
-} // namespace acc
+                    //! configuration for the unary manipulator functor Drift
+                    struct DriftCfg
+                    {
+                        /** Initial particle drift velocity for electrons and ions
+                         *  Examples:
+                         *    - No drift is equal to 1.0
+                         *  unit: none
+                         */
+                        static constexpr float_64 gamma = 1.021;
+                        DriftNegative_direction_t const direction;
+                    };
+                } // namespace param
 
-    /** change particle's momentum based on speed
-     *
-     * allow to manipulate a speed to a particle
-     *
-     * @tparam T_ParamClass param::DriftCfg, configuration parameter
-     * @tparam T_ValueFunctor pmacc::nvidia::functors::*,  binary functor type to manipulate the momentum attribute
-     */
-    template<
-        typename T_ParamClass = param::DriftCfg,
-        typename T_ValueFunctor = pmacc::nvidia::functors::Add
-    >
-    using Drift = generic::Free<
-        acc::Drift<
-            T_ParamClass,
-            T_ValueFunctor
-        >
-    >;
+                namespace acc
+                {
+                    template<typename T_ParamClass, typename T_ValueFunctor>
+                    struct Drift;
+                } // namespace acc
 
-} // namespace unary
-} // namespace manipulators
-} // namespace particles
+                /** change particle's momentum based on speed
+                 *
+                 * allow to manipulate a speed to a particle
+                 *
+                 * @tparam T_ParamClass param::DriftCfg, configuration parameter
+                 * @tparam T_ValueFunctor pmacc::nvidia::functors::*,  binary functor type to manipulate the momentum
+                 * attribute
+                 */
+                template<
+                    typename T_ParamClass = param::DriftCfg,
+                    typename T_ValueFunctor = pmacc::nvidia::functors::Add>
+                using Drift = generic::Free<acc::Drift<T_ParamClass, T_ValueFunctor>>;
+
+            } // namespace unary
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

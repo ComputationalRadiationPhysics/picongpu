@@ -26,17 +26,16 @@
 
 namespace pmacc
 {
-namespace random
-{
-namespace methods
-{
-
-    //! placeholder for the rng method
-    struct RngPlaceholder
+    namespace random
     {
-        using StateType = int;
-    };
+        namespace methods
+        {
+            //! placeholder for the rng method
+            struct RngPlaceholder
+            {
+                using StateType = int;
+            };
 
-}  // namespace methods
-}  // namespace random
-}  // namespace pmacc
+        } // namespace methods
+    } // namespace random
+} // namespace pmacc

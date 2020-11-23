@@ -38,143 +38,128 @@
 
 namespace picongpu
 {
-namespace particles
-{
-
-    /** a particle with a weighting below MIN_WEIGHTING will not
-     *      be created / will be deleted
-     *
-     *  unit: none */
-    constexpr float_X MIN_WEIGHTING = 10.0;
-
-    /** Number of maximum particles per cell during density profile evaluation.
-     *
-     * Determines the weighting of a macro particle and with it, the number of
-     * particles "sampling" dynamics in phase space.
-     */
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2u;
-
-namespace manipulators
-{
-
-    /** Parameter for DriftParam
-     */
-    CONST_VECTOR(float_X,3,DriftParam_direction,1.0,0.0,0.0);
-    /** Parameter for a particle drift assignment
-     */
-    struct DriftParam
+    namespace particles
     {
-        static constexpr float_64 gamma = 1.0;
-        const DriftParam_direction_t direction;
-    };
-    /** definition of manipulator that assigns a drift in X */
-    using AssignXDrift = unary::Drift<
-        DriftParam,
-        nvidia::functors::Assign
-    >;
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
+         *
+         *  unit: none */
+        constexpr float_X MIN_WEIGHTING = 10.0;
 
-
-    /** Parameter for a temperature assignment
-     */
-    struct TemperatureParam
-    {
-        /*Initial temperature
-         *  unit: keV
+        /** Number of maximum particles per cell during density profile evaluation.
+         *
+         * Determines the weighting of a macro particle and with it, the number of
+         * particles "sampling" dynamics in phase space.
          */
-        static constexpr float_64 temperature = 0.0;
-    };
-    /* definition a temperature assignment manipulator */
-    using AddTemperature = unary::Temperature< TemperatureParam >;
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2u;
 
-    /** Unary particle manipulator: double each weighting
-     */
-    struct DoubleWeightingFunctor
-    {
-        template< typename T_Particle >
-        DINLINE void operator()( T_Particle& particle )
+        namespace manipulators
         {
-            particle[weighting_] *= 2.0_X;
-        }
-    };
+            /** Parameter for DriftParam
+             */
+            CONST_VECTOR(float_X, 3, DriftParam_direction, 1.0, 0.0, 0.0);
+            /** Parameter for a particle drift assignment
+             */
+            struct DriftParam
+            {
+                static constexpr float_64 gamma = 1.0;
+                const DriftParam_direction_t direction;
+            };
+            /** definition of manipulator that assigns a drift in X */
+            using AssignXDrift = unary::Drift<DriftParam, nvidia::functors::Assign>;
 
-    /** definition of a free particle manipulator: double weighting */
-    using DoubleWeighting = generic::Free< DoubleWeightingFunctor >;
 
-    struct RandomEnabledRadiationFunctor
-    {
-        template< typename T_Rng, typename T_Particle >
-        DINLINE void operator()( T_Rng& rng, T_Particle& particle )
+            /** Parameter for a temperature assignment
+             */
+            struct TemperatureParam
+            {
+                /*Initial temperature
+                 *  unit: keV
+                 */
+                static constexpr float_64 temperature = 0.0;
+            };
+            /* definition a temperature assignment manipulator */
+            using AddTemperature = unary::Temperature<TemperatureParam>;
+
+            /** Unary particle manipulator: double each weighting
+             */
+            struct DoubleWeightingFunctor
+            {
+                template<typename T_Particle>
+                DINLINE void operator()(T_Particle& particle)
+                {
+                    particle[weighting_] *= 2.0_X;
+                }
+            };
+
+            /** definition of a free particle manipulator: double weighting */
+            using DoubleWeighting = generic::Free<DoubleWeightingFunctor>;
+
+            struct RandomEnabledRadiationFunctor
+            {
+                template<typename T_Rng, typename T_Particle>
+                DINLINE void operator()(T_Rng& rng, T_Particle& particle)
+                {
+                    // enable radiation for 10% of the particles
+                    particle[radiationMask_] = rng() < 0.1_X;
+                }
+            };
+
+            /* definition of RandomEnableRadiation start */
+            using RandomEnabledRadiation
+                = generic::FreeRng<RandomEnabledRadiationFunctor, pmacc::random::distributions::Uniform<float_X>>;
+
+            /** changes the in-cell position of each particle of a species */
+            using RandomPosition = unary::RandomPosition;
+
+        } // namespace manipulators
+
+        namespace startPosition
         {
-            // enable radiation for 10% of the particles
-            particle[ radiationMask_ ] = rng() < 0.1_X;
-        }
-    };
+            struct RandomParameter
+            {
+                /** Count of particles per cell at initial state
+                 *
+                 *  unit: none */
+                static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+            };
+            /** definition of random particle start */
+            using Random = RandomImpl<RandomParameter>;
 
-    /* definition of RandomEnableRadiation start */
-    using RandomEnabledRadiation = generic::FreeRng<
-        RandomEnabledRadiationFunctor,
-        pmacc::random::distributions::Uniform< float_X >
-    >;
+            struct QuietParam
+            {
+                /** Count of particles per cell per direction at initial state
+                 *
+                 *  unit: none */
+                using numParticlesPerDimension
+                    = mCT::shrinkTo<mCT::Int<1, TYPICAL_PARTICLES_PER_CELL, 1>, simDim>::type;
+            };
 
-    /** changes the in-cell position of each particle of a species */
-    using RandomPosition = unary::RandomPosition;
+            /** definition of quiet particle start */
+            using Quiet = QuietImpl<QuietParam>;
 
-} // namespace manipulators
+            /** sit directly in lower corner of the cell */
+            CONST_VECTOR(
+                float_X,
+                3,
+                InCellOffset,
+                /* each x, y, z in-cell position component in range [0.0, 1.0) */
+                0.0,
+                0.0,
+                0.0);
+            struct OnePositionParameter
+            {
+                /** Count of particles per cell at initial state
+                 *
+                 *  unit: none */
+                static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
 
-namespace startPosition
-{
+                const InCellOffset_t inCellOffset;
+            };
 
-    struct RandomParameter
-    {
-        /** Count of particles per cell at initial state
-         *
-         *  unit: none */
-        static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
-    };
-    /** definition of random particle start */
-    using Random = RandomImpl< RandomParameter >;
+            /** definition of one specific position for particle start */
+            using OnePosition = OnePositionImpl<OnePositionParameter>;
 
-    struct QuietParam
-    {
-        /** Count of particles per cell per direction at initial state
-         *
-         *  unit: none */
-        using numParticlesPerDimension = mCT::shrinkTo<
-            mCT::Int<
-                1,
-                TYPICAL_PARTICLES_PER_CELL,
-                1
-                >,
-            simDim
-        >::type;
-    };
-
-    /** definition of quiet particle start */
-    using Quiet = QuietImpl< QuietParam >;
-
-    /** sit directly in lower corner of the cell */
-    CONST_VECTOR(
-        float_X,
-        3,
-        InCellOffset,
-        /* each x, y, z in-cell position component in range [0.0, 1.0) */
-        0.0,
-        0.0,
-        0.0
-    );
-    struct OnePositionParameter
-    {
-        /** Count of particles per cell at initial state
-         *
-         *  unit: none */
-        static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
-
-        const InCellOffset_t inCellOffset;
-    };
-
-    /** definition of one specific position for particle start */
-    using OnePosition = OnePositionImpl< OnePositionParameter >;
-
-} // namespace startPosition
-} // namespace particles
+        } // namespace startPosition
+    } // namespace particles
 } // namespace picongpu

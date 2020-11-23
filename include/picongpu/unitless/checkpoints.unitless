@@ -28,53 +28,40 @@
 
 namespace picongpu
 {
-namespace detail
-{
-
+    namespace detail
+    {
         /** Additional fields for checkpointing
          *
          * @tparam T_FieldSolver field solver type
          */
-        template< typename T_FieldSolver >
+        template<typename T_FieldSolver>
         struct AdditionalCheckpointFields
         {
-            using type = MakeSeq_t< >;
+            using type = MakeSeq_t<>;
         };
 
         /** Only the YeePML solver needs additional fields for checkpointing
          *
          * Currently LehePML is YeePML so automatically works for it as well.
          */
-        template< typename ... T_Args >
-        struct AdditionalCheckpointFields<
-            fields::maxwellSolver::YeePML< T_Args ... >
-        >
+        template<typename... T_Args>
+        struct AdditionalCheckpointFields<fields::maxwellSolver::YeePML<T_Args...>>
         {
-            using type = MakeSeq_t<
-                fields::maxwellSolver::yeePML::FieldE,
-                fields::maxwellSolver::yeePML::FieldB
-            >;
+            using type = MakeSeq_t<fields::maxwellSolver::yeePML::FieldE, fields::maxwellSolver::yeePML::FieldB>;
         };
 
-} // namespace detail
+    } // namespace detail
 
     /** Note: we need at least FieldE and FieldB for restart
      *        capabilities!
      */
-    using NativeFileCheckpointFields = MakeSeq_t<
-        FieldE,
-        FieldB
-    >;
+    using NativeFileCheckpointFields = MakeSeq_t<FieldE, FieldB>;
 
-    using AdditionalFileCheckpointFields =
-        typename picongpu::detail::AdditionalCheckpointFields< fields::Solver >::type;
+    using AdditionalFileCheckpointFields = typename picongpu::detail::AdditionalCheckpointFields<fields::Solver>::type;
 
     /* List of particle species for checkpoint/restart */
     using FileCheckpointParticles = VectorAllSpecies;
 
     /**  List of fields for checkpoint/restart */
-    using FileCheckpointFields = MakeSeq_t<
-        NativeFileCheckpointFields,
-        AdditionalFileCheckpointFields
-    >;
-}
+    using FileCheckpointFields = MakeSeq_t<NativeFileCheckpointFields, AdditionalFileCheckpointFields>;
+} // namespace picongpu

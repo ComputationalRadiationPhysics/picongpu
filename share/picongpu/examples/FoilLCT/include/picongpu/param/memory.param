@@ -34,7 +34,6 @@
 
 namespace picongpu
 {
-
     /* We have to hold back 350MiB for gpu-internal operations:
      *   - random number generator
      *   - reduces
@@ -48,10 +47,10 @@ namespace picongpu
      *
      * volume of a superCell must be <= 1024
      */
-    using SuperCellSize = mCT::Int< 16, 16 >;
+    using SuperCellSize = mCT::Int<16, 16>;
 
     /** define mapper which is used for kernel call mappings */
-    using MappingDesc = MappingDescription< simDim, SuperCellSize >;
+    using MappingDesc = MappingDescription<simDim, SuperCellSize>;
 
     /** define the size of the core, border and guard area
      *
@@ -67,10 +66,7 @@ namespace picongpu
      *
      * GuardSize is defined in units of SuperCellSize per dimension.
      */
-    using GuardSize = typename mCT::shrinkTo<
-        mCT::Int< 1, 1, 1 >,
-        simDim
-    >::type;
+    using GuardSize = typename mCT::shrinkTo<mCT::Int<1, 1, 1>, simDim>::type;
 
     /** bytes reserved for species exchange buffer
      *

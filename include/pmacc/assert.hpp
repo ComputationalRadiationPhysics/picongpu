@@ -25,36 +25,34 @@
 #include "pmacc/debug/abortWithError.hpp"
 
 #ifdef NDEBUG
-    // debug mode is disabled
+// debug mode is disabled
 
-    /* `(void)0` force a semicolon after the macro function */
-#   define PMACC_ASSERT( expr ) ( (void) 0 )
+/* `(void)0` force a semicolon after the macro function */
+#    define PMACC_ASSERT(expr) ((void) 0)
 
-    /* `(void)0` force a semicolon after the macro function */
-#   define PMACC_ASSERT_MSG( expr, msg ) ( (void) 0 )
+/* `(void)0` force a semicolon after the macro function */
+#    define PMACC_ASSERT_MSG(expr, msg) ((void) 0)
 
 #else
 
-    // debug mode is enabled
+// debug mode is enabled
 
-    /** assert check
-     *
-     * if `NDEBUG` is not defined: macro expands to (void)0
-     *
-     * @param expr expression to be evaluated
-     */
-#   define PMACC_ASSERT( expr )                                                \
-    ( !!(expr) ) ? ( (void) 0 ) : pmacc::abortWithError( #expr, __FILE__, __LINE__ )
+/** assert check
+ *
+ * if `NDEBUG` is not defined: macro expands to (void)0
+ *
+ * @param expr expression to be evaluated
+ */
+#    define PMACC_ASSERT(expr) (!!(expr)) ? ((void) 0) : pmacc::abortWithError(#    expr, __FILE__, __LINE__)
 
-    /** assert check with message
-     *
-     * if `NDEBUG` is not defined: macro expands to (void)0
-     *
-     * @param expr expression to be evaluated
-     * @param msg output message (of type `std::string`) which is printed if the
-     *            expression is evaluated to false
-     */
-#   define PMACC_ASSERT_MSG( expr, msg )                                       \
-    ( !!(expr) ) ? ( (void) 0 ) : pmacc::abortWithError( #expr, __FILE__, __LINE__, msg )
+/** assert check with message
+ *
+ * if `NDEBUG` is not defined: macro expands to (void)0
+ *
+ * @param expr expression to be evaluated
+ * @param msg output message (of type `std::string`) which is printed if the
+ *            expression is evaluated to false
+ */
+#    define PMACC_ASSERT_MSG(expr, msg) (!!(expr)) ? ((void) 0) : pmacc::abortWithError(#    expr, __FILE__, __LINE__, msg)
 
 #endif

@@ -29,41 +29,37 @@
 
 namespace pmacc
 {
-namespace allocator
-{
+    namespace allocator
+    {
+        template<typename Type, int T_dim>
+        struct DeviceMemAllocator
+        {
+            typedef Type type;
+            static constexpr int dim = T_dim;
+            typedef cursor::BufferCursor<type, dim> Cursor;
+            typedef allocator::tag::device tag;
 
-template<typename Type, int T_dim>
-struct DeviceMemAllocator
-{
-    typedef Type type;
-    static constexpr int dim = T_dim;
-    typedef cursor::BufferCursor<type, dim> Cursor;
-    typedef allocator::tag::device tag;
+            HDINLINE
+            static cursor::BufferCursor<type, T_dim> allocate(const math::Size_t<T_dim>& size);
+            template<typename TCursor>
+            HDINLINE static void deallocate(const TCursor& cursor);
+        };
 
-    HDINLINE
-    static cursor::BufferCursor<type, T_dim> allocate(const math::Size_t<T_dim>& size);
-    template<typename TCursor>
-    HDINLINE
-    static void deallocate(const TCursor& cursor);
-};
+        template<typename Type>
+        struct DeviceMemAllocator<Type, 1>
+        {
+            typedef Type type;
+            static constexpr int dim = 1;
+            typedef cursor::BufferCursor<type, 1> Cursor;
+            typedef allocator::tag::device tag;
 
-template<typename Type>
-struct DeviceMemAllocator<Type, 1>
-{
-    typedef Type type;
-    static constexpr int dim = 1;
-    typedef cursor::BufferCursor<type, 1> Cursor;
-    typedef allocator::tag::device tag;
+            HDINLINE
+            static cursor::BufferCursor<type, 1> allocate(const math::Size_t<1>& size);
+            template<typename TCursor>
+            HDINLINE static void deallocate(const TCursor& cursor);
+        };
 
-    HDINLINE
-    static cursor::BufferCursor<type, 1> allocate(const math::Size_t<1>& size);
-    template<typename TCursor>
-    HDINLINE
-    static void deallocate(const TCursor& cursor);
-};
-
-} // allocator
-} // pmacc
+    } // namespace allocator
+} // namespace pmacc
 
 #include "DeviceMemAllocator.tpp"
-

@@ -24,5 +24,15 @@
 #pragma once
 
 
-#define __delete( var ) if( ( var ) ) { delete( var ); ( var ) = nullptr; }
-#define __deleteArray( var ) if( ( var ) ) { delete[ ]( var ); ( var ) = nullptr; }
+#define __delete(var)                                                                                                 \
+    if((var))                                                                                                         \
+    {                                                                                                                 \
+        delete(var);                                                                                                  \
+        (var) = nullptr;                                                                                              \
+    }
+#define __deleteArray(var)                                                                                            \
+    if((var))                                                                                                         \
+    {                                                                                                                 \
+        delete[](var);                                                                                                \
+        (var) = nullptr;                                                                                              \
+    }

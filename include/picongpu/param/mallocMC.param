@@ -34,7 +34,6 @@
 
 namespace picongpu
 {
-
     //! configure the CreationPolicy "Scatter"
     struct DeviceHeapConfig
     {
@@ -62,11 +61,10 @@ namespace picongpu
      */
     using DeviceHeap = mallocMC::Allocator<
         cupla::Acc,
-        mallocMC::CreationPolicies::Scatter< DeviceHeapConfig >,
+        mallocMC::CreationPolicies::Scatter<DeviceHeapConfig>,
         mallocMC::DistributionPolicies::Noop,
         mallocMC::OOMPolicies::ReturnNull,
-        mallocMC::ReservePoolPolicies::AlpakaBuf< cupla::Acc >,
-        mallocMC::AlignmentPolicies::Shrink<>
-    >;
+        mallocMC::ReservePoolPolicies::AlpakaBuf<cupla::Acc>,
+        mallocMC::AlignmentPolicies::Shrink<>>;
 
 } // namespace picongpu

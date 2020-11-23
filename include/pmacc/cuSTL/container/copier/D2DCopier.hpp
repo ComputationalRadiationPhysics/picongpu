@@ -30,43 +30,46 @@
 
 namespace pmacc
 {
-namespace copier
-{
-
-template<int T_dim>
-struct D2DCopier
-{
-    static constexpr int dim = T_dim;
-
-    PMACC_NO_NVCC_HDWARNING /* Handled via CUDA_ARCH */
-    template<typename Type>
-    HDINLINE static void copy(Type* dest, const math::Size_t<dim-1>& pitchDest,
-         Type* source, const math::Size_t<dim-1>& pitchSource,
-         const math::Size_t<dim>& size)
+    namespace copier
     {
-#ifdef __CUDA_ARCH__
-        typedef cursor::BufferCursor<Type, dim> Cursor;
-        Cursor bufCursorDest(dest, pitchDest);
-        Cursor bufCursorSrc(source, pitchSource);
-        cursor::MapTo1DNavigator<dim> myNavi(size);
-
-        auto srcCursor = cursor::make_Cursor(cursor::CursorAccessor<Cursor>(),
-                                                  myNavi,
-                                                  bufCursorSrc);
-        auto destCursor = cursor::make_Cursor(cursor::CursorAccessor<Cursor>(),
-                                                   myNavi,
-                                                   bufCursorDest);
-        size_t sizeProd = size.productOfComponents();
-        for(size_t i = 0; i < sizeProd; i++)
+        template<int T_dim>
+        struct D2DCopier
         {
-            destCursor[i] = srcCursor[i];
-        }
-#else
-        cuplaWrapper::Memcopy<dim>()(dest, pitchDest, source, pitchSource,
-                                    size, cuplaWrapper::flags::Memcopy::deviceToDevice);
-#endif
-    }
-};
+            static constexpr int dim = T_dim;
 
-} // copier
-} // pmacc
+            PMACC_NO_NVCC_HDWARNING /* Handled via CUDA_ARCH */
+                template<typename Type>
+                HDINLINE static void copy(
+                    Type* dest,
+                    const math::Size_t<dim - 1>& pitchDest,
+                    Type* source,
+                    const math::Size_t<dim - 1>& pitchSource,
+                    const math::Size_t<dim>& size)
+            {
+#ifdef __CUDA_ARCH__
+                typedef cursor::BufferCursor<Type, dim> Cursor;
+                Cursor bufCursorDest(dest, pitchDest);
+                Cursor bufCursorSrc(source, pitchSource);
+                cursor::MapTo1DNavigator<dim> myNavi(size);
+
+                auto srcCursor = cursor::make_Cursor(cursor::CursorAccessor<Cursor>(), myNavi, bufCursorSrc);
+                auto destCursor = cursor::make_Cursor(cursor::CursorAccessor<Cursor>(), myNavi, bufCursorDest);
+                size_t sizeProd = size.productOfComponents();
+                for(size_t i = 0; i < sizeProd; i++)
+                {
+                    destCursor[i] = srcCursor[i];
+                }
+#else
+                cuplaWrapper::Memcopy<dim>()(
+                    dest,
+                    pitchDest,
+                    source,
+                    pitchSource,
+                    size,
+                    cuplaWrapper::flags::Memcopy::deviceToDevice);
+#endif
+            }
+        };
+
+    } // namespace copier
+} // namespace pmacc

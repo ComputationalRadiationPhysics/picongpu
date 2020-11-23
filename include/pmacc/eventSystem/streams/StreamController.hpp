@@ -28,7 +28,6 @@
 #include "pmacc/Environment.def"
 
 
-
 #include <string>
 #include <stdexcept>
 #include <vector>
@@ -42,7 +41,6 @@ namespace pmacc
     class StreamController
     {
     public:
-
         /**
          * Returns a pointer to the next EventStream in the controller's queue.
          * @return pointer to next EventStream
@@ -50,10 +48,11 @@ namespace pmacc
         EventStream* getNextStream()
         {
             if(!isActivated)
-                throw std::runtime_error(std::string("StreamController is not activated but getNextStream() was called"));
+                throw std::runtime_error(
+                    std::string("StreamController is not activated but getNextStream() was called"));
             size_t oldIndex = currentStreamIndex;
             currentStreamIndex++;
-            if (currentStreamIndex == streams.size())
+            if(currentStreamIndex == streams.size())
                 currentStreamIndex = 0;
 
             return streams[oldIndex];
@@ -65,8 +64,7 @@ namespace pmacc
          */
         virtual ~StreamController()
         {
-
-            for (size_t i = 0; i < streams.size(); i++)
+            for(size_t i = 0; i < streams.size(); i++)
             {
                 __delete(streams[i]);
             }
@@ -84,7 +82,7 @@ namespace pmacc
          */
         void addStreams(size_t count)
         {
-            for (size_t i = 0; i < count; i++)
+            for(size_t i = 0; i < count; i++)
             {
                 streams.push_back(new EventStream());
             }
@@ -97,7 +95,7 @@ namespace pmacc
         void activate()
         {
             addStreams(1);
-            isActivated=true;
+            isActivated = true;
         }
 
         /**
@@ -110,13 +108,12 @@ namespace pmacc
         }
 
     private:
-
         friend struct detail::Environment;
 
         /**
          * Constructor.
          */
-        StreamController() : isActivated(false),currentStreamIndex(0)
+        StreamController() : isActivated(false), currentStreamIndex(0)
         {
         }
 
@@ -134,7 +131,6 @@ namespace pmacc
         std::vector<EventStream*> streams;
         size_t currentStreamIndex;
         bool isActivated;
-
     };
 
-} //namespace pmacc
+} // namespace pmacc

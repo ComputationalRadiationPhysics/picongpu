@@ -18,7 +18,6 @@
  */
 
 
-
 #pragma once
 #include "picongpu/simulation_defines.hpp"
 

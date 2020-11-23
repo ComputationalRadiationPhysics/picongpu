@@ -46,40 +46,36 @@
 
 namespace picongpu
 {
+    /** select macroparticle shape
+     *
+     * **WARNING** the shape names are redefined and diverge from PIConGPU versions before 0.6.0.
+     *
+     *  - particles::shapes::CIC : Assignment function is a piecewise linear spline
+     *  - particles::shapes::TSC : Assignment function is a piecewise quadratic spline
+     *  - particles::shapes::PQS : Assignment function is a piecewise cubic spline
+     *  - particles::shapes::PCS : Assignment function is a piecewise quartic spline
+     */
+    using UsedParticleShape = particles::shapes::CIC;
 
-/** select macroparticle shape
- *
- * **WARNING** the shape names are redefined and diverge from PIConGPU versions before 0.6.0.
- *
- *  - particles::shapes::CIC : Assignment function is a piecewise linear spline
- *  - particles::shapes::TSC : Assignment function is a piecewise quadratic spline
- *  - particles::shapes::PQS : Assignment function is a piecewise cubic spline
- *  - particles::shapes::PCS : Assignment function is a piecewise quartic spline
- */
-using UsedParticleShape = particles::shapes::CIC;
+    /** select interpolation method to be used for interpolation of grid-based field values to particle positions
+     */
+    using UsedField2Particle = FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpolation>;
 
-/** select interpolation method to be used for interpolation of grid-based field values to particle positions
- */
-using UsedField2Particle = FieldToParticleInterpolation<
-    UsedParticleShape,
-    AssignedTrilinearInterpolation
->;
-
-/*! select current solver method
- * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
- * - currentSolver::VillaBune< SHAPE, STRATEGY > : particle shapes - CIC (1st order) only
- * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
- *
- * For development purposes:
- * - currentSolver::EsirkepovNative< SHAPE, STRATEGY > : generic version of currentSolverEsirkepov
- *   without optimization (~4x slower and needs more shared memory)
- *
- * STRATEGY (optional):
- * - currentSolver::strategy::StridedCachedSupercells
- * - currentSolver::strategy::CachedSupercells
- * - currentSolver::strategy::NonCachedSupercells
- */
-using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
+    /*! select current solver method
+     * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
+     * - currentSolver::VillaBune< SHAPE, STRATEGY > : particle shapes - CIC (1st order) only
+     * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
+     *
+     * For development purposes:
+     * - currentSolver::EsirkepovNative< SHAPE, STRATEGY > : generic version of currentSolverEsirkepov
+     *   without optimization (~4x slower and needs more shared memory)
+     *
+     * STRATEGY (optional):
+     * - currentSolver::strategy::StridedCachedSupercells
+     * - currentSolver::strategy::CachedSupercells
+     * - currentSolver::strategy::NonCachedSupercells
+     */
+    using UsedParticleCurrentSolver = currentSolver::Esirkepov<UsedParticleShape>;
 
 /** particle pusher configuration
  *
@@ -103,8 +99,8 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
  * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
  */
 #ifndef PARAM_PARTICLEPUSHER
-#define PARAM_PARTICLEPUSHER Boris
+#    define PARAM_PARTICLEPUSHER Boris
 #endif
-using UsedParticlePusher = particles::pusher::PARAM_PARTICLEPUSHER;
+    using UsedParticlePusher = particles::pusher::PARAM_PARTICLEPUSHER;
 
 } // namespace picongpu

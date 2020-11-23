@@ -19,67 +19,65 @@
 
 #pragma once
 
-#if (ENABLE_ADIOS==1)
-#include <adios.h>
+#if(ENABLE_ADIOS == 1)
+#    include <adios.h>
 
-#include "picongpu/simulation_defines.hpp"
+#    include "picongpu/simulation_defines.hpp"
 
 namespace picongpu
 {
-
-namespace traits
-{
-
-    template<>
-    struct AdiosToPIC<adios_short>
+    namespace traits
     {
-        typedef int16_t type;
-    };
+        template<>
+        struct AdiosToPIC<adios_short>
+        {
+            typedef int16_t type;
+        };
 
-    template<>
-    struct AdiosToPIC<adios_unsigned_short>
-    {
-        typedef uint16_t type;
-    };
+        template<>
+        struct AdiosToPIC<adios_unsigned_short>
+        {
+            typedef uint16_t type;
+        };
 
-    template<>
-    struct AdiosToPIC<adios_integer>
-    {
-        typedef int32_t type;
-    };
+        template<>
+        struct AdiosToPIC<adios_integer>
+        {
+            typedef int32_t type;
+        };
 
-    template<>
-    struct AdiosToPIC<adios_unsigned_integer>
-    {
-        typedef uint32_t type;
-    };
+        template<>
+        struct AdiosToPIC<adios_unsigned_integer>
+        {
+            typedef uint32_t type;
+        };
 
-    template<>
-    struct AdiosToPIC<adios_long>
-    {
-        typedef int64_t type;
-    };
+        template<>
+        struct AdiosToPIC<adios_long>
+        {
+            typedef int64_t type;
+        };
 
-    template<>
-    struct AdiosToPIC<adios_unsigned_long>
-    {
-        typedef uint64_t type;
-    };
+        template<>
+        struct AdiosToPIC<adios_unsigned_long>
+        {
+            typedef uint64_t type;
+        };
 
-    template<>
-    struct AdiosToPIC<adios_real>
-    {
-        typedef float_32 type;
-    };
+        template<>
+        struct AdiosToPIC<adios_real>
+        {
+            typedef float_32 type;
+        };
 
-    template<>
-    struct AdiosToPIC<adios_double>
-    {
-        typedef float_64 type;
-    };
+        template<>
+        struct AdiosToPIC<adios_double>
+        {
+            typedef float_64 type;
+        };
 
-} //namespace traits
+    } // namespace traits
 
-}// namespace picongpu
+} // namespace picongpu
 
 #endif // (ENABLE_ADIOS==1)

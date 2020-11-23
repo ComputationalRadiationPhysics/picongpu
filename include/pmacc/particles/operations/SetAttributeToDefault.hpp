@@ -26,29 +26,27 @@
 
 namespace pmacc
 {
-
-/** set an attribute of a particle to its default value
- *
- * @tparam  T_Attribute value_identifier or alias which is a value_identifier
- */
-template<typename T_Attribute>
-struct SetAttributeToDefault
-{
-    typedef T_Attribute Attribute;
-
-    /** set an attribute to their default value
+    /** set an attribute of a particle to its default value
      *
-     * @tparam T_Partcile particle type
+     * @tparam  T_Attribute value_identifier or alias which is a value_identifier
      */
-    template<typename T_Particle>
-    HDINLINE
-    void operator()(T_Particle& particle)
+    template<typename T_Attribute>
+    struct SetAttributeToDefault
     {
-        typedef typename pmacc::traits::Resolve<Attribute>::type ResolvedAttr;
-        /* set attribute to it's user defined default value */
-        particle[Attribute()] = ResolvedAttr::getValue();
-    }
-};
+        typedef T_Attribute Attribute;
+
+        /** set an attribute to their default value
+         *
+         * @tparam T_Partcile particle type
+         */
+        template<typename T_Particle>
+        HDINLINE void operator()(T_Particle& particle)
+        {
+            typedef typename pmacc::traits::Resolve<Attribute>::type ResolvedAttr;
+            /* set attribute to it's user defined default value */
+            particle[Attribute()] = ResolvedAttr::getValue();
+        }
+    };
 
 
-}//namespace pmacc
+} // namespace pmacc

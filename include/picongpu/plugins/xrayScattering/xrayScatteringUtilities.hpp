@@ -29,95 +29,81 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace xrayScattering
-{
-    template< typename T >
-    std::vector< T > extractReal(
-        Buffer< pmacc::math::Complex< T >, DIM1 >  & complexBuffer )
+    namespace plugins
     {
-        std::vector< T > realValues;
-        auto size = complexBuffer.getCurrentSize( );
-        auto dataBox = complexBuffer.getDataBox( );
-        realValues.reserve( size );
-        for( uint32_t ii = 0; ii < size;  ii++ )
+        namespace xrayScattering
         {
-            realValues.push_back( dataBox[ ii ].get_real( ) );
-        }
-        return realValues;
-    }
-
-    template< typename T >
-    std::vector< T > extractImag(
-        Buffer< pmacc::math::Complex< T >, DIM1 >  & complexBuffer )
-    {
-        std::vector< T > imagValues;
-        auto size = complexBuffer.getCurrentSize( );
-        auto dataBox = complexBuffer.getDataBox( );
-        imagValues.reserve( size );
-        for( uint32_t ii = 0; ii < size;  ii++ )
-        {
-            imagValues.push_back( dataBox[ ii ].get_imag( ) );
-        }
-        return imagValues;
-    }
-
-    template< typename T >
-    std::vector< T > extractReal(
-        std::vector< pmacc::math::Complex< T > > const & complexVec )
-    {
-        std::vector< T > realValues;
-        realValues.reserve( complexVec.size( ) );
-
-        std::transform(
-            std::begin( complexVec ),
-            std::end( complexVec ),
-            std::back_inserter( realValues ),
-            [ ](  pmacc::math::Complex< T > const & data )
+            template<typename T>
+            std::vector<T> extractReal(Buffer<pmacc::math::Complex<T>, DIM1>& complexBuffer)
             {
-                return data.get_real( );
+                std::vector<T> realValues;
+                auto size = complexBuffer.getCurrentSize();
+                auto dataBox = complexBuffer.getDataBox();
+                realValues.reserve(size);
+                for(uint32_t ii = 0; ii < size; ii++)
+                {
+                    realValues.push_back(dataBox[ii].get_real());
+                }
+                return realValues;
             }
-        );
-        return realValues;
-    }
 
-    template< typename T >
-    std::vector< T > extractImag(
-        std::vector< pmacc::math::Complex< T > > const & complexVec )
-    {
-        std::vector< T > imagValues;
-        imagValues.reserve( complexVec.size( ) );
-
-        std::transform(
-            std::begin( complexVec ),
-            std::end( complexVec ),
-            std::back_inserter( imagValues ),
-            [ ](  pmacc::math::Complex< T > const & data )
+            template<typename T>
+            std::vector<T> extractImag(Buffer<pmacc::math::Complex<T>, DIM1>& complexBuffer)
             {
-                return data.get_imag( );
+                std::vector<T> imagValues;
+                auto size = complexBuffer.getCurrentSize();
+                auto dataBox = complexBuffer.getDataBox();
+                imagValues.reserve(size);
+                for(uint32_t ii = 0; ii < size; ii++)
+                {
+                    imagValues.push_back(dataBox[ii].get_imag());
+                }
+                return imagValues;
             }
-        );
-        return imagValues;
-    }
 
-    template < typename T >
-    void copyVectorToBuffer(
-        std::vector< T > const & vec,
-        Buffer< T, DIM1 > & buffer
-    )
-    {
-        if ( buffer.getCurrentSize( ) == vec.size( ) )
-        {
-            auto dataBox = buffer.getDataBox( );
-            for( std::size_t ii = 0; ii < vec.size( ); ii++ )
+            template<typename T>
+            std::vector<T> extractReal(std::vector<pmacc::math::Complex<T>> const& complexVec)
             {
-                dataBox[ ii ] = vec[ ii ];
+                std::vector<T> realValues;
+                realValues.reserve(complexVec.size());
+
+                std::transform(
+                    std::begin(complexVec),
+                    std::end(complexVec),
+                    std::back_inserter(realValues),
+                    [](pmacc::math::Complex<T> const& data) { return data.get_real(); });
+                return realValues;
             }
-        }
-        else throw std::runtime_error( "XrayScattering: Tried to copy a vector"
-                                       " to a Buffer of a different size");
-    }
-} // namespace xrayScattering
-} // namespace plugins
+
+            template<typename T>
+            std::vector<T> extractImag(std::vector<pmacc::math::Complex<T>> const& complexVec)
+            {
+                std::vector<T> imagValues;
+                imagValues.reserve(complexVec.size());
+
+                std::transform(
+                    std::begin(complexVec),
+                    std::end(complexVec),
+                    std::back_inserter(imagValues),
+                    [](pmacc::math::Complex<T> const& data) { return data.get_imag(); });
+                return imagValues;
+            }
+
+            template<typename T>
+            void copyVectorToBuffer(std::vector<T> const& vec, Buffer<T, DIM1>& buffer)
+            {
+                if(buffer.getCurrentSize() == vec.size())
+                {
+                    auto dataBox = buffer.getDataBox();
+                    for(std::size_t ii = 0; ii < vec.size(); ii++)
+                    {
+                        dataBox[ii] = vec[ii];
+                    }
+                }
+                else
+                    throw std::runtime_error("XrayScattering: Tried to copy a vector"
+                                             " to a Buffer of a different size");
+            }
+        } // namespace xrayScattering
+    } // namespace plugins
 } // namespace picongpu

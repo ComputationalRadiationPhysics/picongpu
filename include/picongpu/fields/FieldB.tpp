@@ -32,36 +32,31 @@
 
 namespace picongpu
 {
-
-    FieldB::FieldB( MappingDesc const & cellDescription ) :
-        fields::EMFieldBase(
-            cellDescription,
-            getName( ),
-            std::integral_constant< CommunicationTag, FIELD_B >{ }
-        )
+    FieldB::FieldB(MappingDesc const& cellDescription)
+        : fields::EMFieldBase(cellDescription, getName(), std::integral_constant<CommunicationTag, FIELD_B>{})
     {
     }
 
-    HDINLINE FieldB::UnitValueType FieldB::getUnit( )
+    HDINLINE FieldB::UnitValueType FieldB::getUnit()
     {
-        return UnitValueType{ UNIT_BFIELD, UNIT_BFIELD, UNIT_BFIELD };
+        return UnitValueType{UNIT_BFIELD, UNIT_BFIELD, UNIT_BFIELD};
     }
 
-    std::vector< float_64 > FieldB::getUnitDimension( )
+    std::vector<float_64> FieldB::getUnitDimension()
     {
         /* B is in Tesla : kg / (A * s^2)
          *   -> M * T^-2 * I^-1
          */
-        std::vector< float_64 > unitDimension( 7, 0.0 );
-        unitDimension.at( SIBaseUnits::mass ) =  1.0;
-        unitDimension.at( SIBaseUnits::time ) = -2.0;
-        unitDimension.at( SIBaseUnits::electricCurrent ) = -1.0;
+        std::vector<float_64> unitDimension(7, 0.0);
+        unitDimension.at(SIBaseUnits::mass) = 1.0;
+        unitDimension.at(SIBaseUnits::time) = -2.0;
+        unitDimension.at(SIBaseUnits::electricCurrent) = -1.0;
         return unitDimension;
     }
 
-    std::string FieldB::getName( )
+    std::string FieldB::getName()
     {
         return "B";
     }
 
-} //namespace picongpu
+} // namespace picongpu

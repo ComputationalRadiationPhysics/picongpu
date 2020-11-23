@@ -28,86 +28,76 @@
 
 namespace pmacc
 {
-
-/**
- * Any DIM-dimensional selection of a simulation volume with a size and offset.
- *
- * @tparam DIM number of dimensions
- */
-template <unsigned DIM>
-class Selection
-{
-public:
-
     /**
-     * Constructor
-     * Size and offset initialized to 0 (empty selection)
+     * Any DIM-dimensional selection of a simulation volume with a size and offset.
+     *
+     * @tparam DIM number of dimensions
      */
-    Selection(void)
+    template<unsigned DIM>
+    class Selection
     {
-        for (uint32_t i = 0; i < DIM; ++i)
+    public:
+        /**
+         * Constructor
+         * Size and offset initialized to 0 (empty selection)
+         */
+        Selection(void)
         {
-            size[i] = 0;
-            offset[i] = 0;
+            for(uint32_t i = 0; i < DIM; ++i)
+            {
+                size[i] = 0;
+                offset[i] = 0;
+            }
         }
-    }
 
-    /**
-     * Copy constructor
-     *
-     * @param other Selection to copy information from
-     */
-    Selection(const Selection<DIM>& other) :
-    size(other.size),
-    offset(other.offset)
-    {
-
-    }
-
-    /**
-     * Constructor
-     * Offset is initialized to 0.
-     *
-     * @param size DataSpace for selection size
-     */
-    Selection(DataSpace<DIM> size) :
-    size(size)
-    {
-        for (uint32_t i = 0; i < DIM; ++i)
+        /**
+         * Copy constructor
+         *
+         * @param other Selection to copy information from
+         */
+        Selection(const Selection<DIM>& other) : size(other.size), offset(other.offset)
         {
-            offset[i] = 0;
         }
-    }
 
-    /**
-     * Constructor
-     *
-     * @param size DataSpace for selection size
-     * @param offset DataSpace for selection offset
-     */
-    Selection(DataSpace<DIM> size, DataSpace<DIM> offset) :
-    size(size),
-    offset(offset)
-    {
+        /**
+         * Constructor
+         * Offset is initialized to 0.
+         *
+         * @param size DataSpace for selection size
+         */
+        Selection(DataSpace<DIM> size) : size(size)
+        {
+            for(uint32_t i = 0; i < DIM; ++i)
+            {
+                offset[i] = 0;
+            }
+        }
 
-    }
+        /**
+         * Constructor
+         *
+         * @param size DataSpace for selection size
+         * @param offset DataSpace for selection offset
+         */
+        Selection(DataSpace<DIM> size, DataSpace<DIM> offset) : size(size), offset(offset)
+        {
+        }
 
-    /**
-     * Return a string representation
-     *
-     * @return string representation
-     */
-    HINLINE const std::string toString(void) const
-    {
-        std::stringstream str;
-        str << "{ size = " << size.toString() <<
-               " offset = " << offset.toString() << " }";
-        return str.str();
-    }
+        /**
+         * Return a string representation
+         *
+         * @return string representation
+         */
+        HINLINE const std::string toString(void) const
+        {
+            std::stringstream str;
+            str << "{ size = " << size.toString() << " offset = " << offset.toString() << " }";
+            return str.str();
+        }
 
-    DataSpace<DIM> size;
+        DataSpace<DIM> size;
 
-    DataSpace<DIM> offset;
-};
+        DataSpace<DIM> offset;
+    };
 
-} // namespace picongpu
+} // namespace pmacc

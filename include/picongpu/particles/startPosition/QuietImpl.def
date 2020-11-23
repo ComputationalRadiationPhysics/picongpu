@@ -27,32 +27,31 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace startPosition
-{
-namespace acc
-{
+    namespace particles
+    {
+        namespace startPosition
+        {
+            namespace acc
+            {
+                /** Set the in cell position (accelerator)
+                 *
+                 * Set the in cell position and the weighting of the macro particle.
+                 */
+                template<typename T_ParamClass>
+                struct QuietImpl;
 
-    /** Set the in cell position (accelerator)
-     *
-     * Set the in cell position and the weighting of the macro particle.
-     */
-    template< typename T_ParamClass >
-    struct QuietImpl;
-
-} // namespace acc
+            } // namespace acc
 
 
-    /** Set the in cell position
-     *
-     * The position of the particle is chosen depending of the number of
-     * macro particles within the cell so that the distance to the next particle
-     * is equal.
-     */
-    template< typename T_ParamClass >
-    using QuietImpl = generic::Free< acc::QuietImpl< T_ParamClass > >;
+            /** Set the in cell position
+             *
+             * The position of the particle is chosen depending of the number of
+             * macro particles within the cell so that the distance to the next particle
+             * is equal.
+             */
+            template<typename T_ParamClass>
+            using QuietImpl = generic::Free<acc::QuietImpl<T_ParamClass>>;
 
-} // namespace startPosition
-} // namespace particles
+        } // namespace startPosition
+    } // namespace particles
 } // namespace picongpu

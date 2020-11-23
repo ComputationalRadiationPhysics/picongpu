@@ -30,25 +30,21 @@
 
 namespace pmacc
 {
-
-/* remove types from a sequence
- *
- * @tparam T_MPLSeqSrc source sequence from were we delete types
- * @tparam T_MPLSeqObjectsToRemove sequence with types which shuld be deleted
- */
-template<
-typename T_MPLSeqSrc,
-typename T_MPLSeqObjectsToRemove
->
-struct RemoveFromSeq
-{
-    template<typename T_Value>
-    struct hasId
+    /* remove types from a sequence
+     *
+     * @tparam T_MPLSeqSrc source sequence from were we delete types
+     * @tparam T_MPLSeqObjectsToRemove sequence with types which shuld be deleted
+     */
+    template<typename T_MPLSeqSrc, typename T_MPLSeqObjectsToRemove>
+    struct RemoveFromSeq
     {
-        typedef bmpl::contains<T_MPLSeqObjectsToRemove,T_Value> type;
+        template<typename T_Value>
+        struct hasId
+        {
+            typedef bmpl::contains<T_MPLSeqObjectsToRemove, T_Value> type;
+        };
+
+        typedef typename bmpl::remove_if<T_MPLSeqSrc, hasId<bmpl::_>>::type type;
     };
 
-    typedef typename bmpl::remove_if< T_MPLSeqSrc, hasId<bmpl::_> >::type type;
-};
-
-}//namespace pmacc
+} // namespace pmacc

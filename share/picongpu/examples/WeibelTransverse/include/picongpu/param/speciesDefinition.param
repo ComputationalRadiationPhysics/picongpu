@@ -31,75 +31,57 @@
 
 namespace picongpu
 {
+    /*########################### define particle attributes #####################*/
 
-/*########################### define particle attributes #####################*/
+    /** describe attributes of a particle */
+    using DefaultParticleAttributes = MakeSeq_t<position<position_pic>, momentum, weighting>;
 
-/** describe attributes of a particle */
-using DefaultParticleAttributes = MakeSeq_t<
-    position<position_pic>,
-    momentum,
-    weighting
->;
+    /*########################### end particle attributes ########################*/
 
-/*########################### end particle attributes ########################*/
-
-/*########################### define species #################################*/
+    /*########################### define species #################################*/
 
 
-/*--------------------------- electrons --------------------------------------*/
+    /*--------------------------- electrons --------------------------------------*/
 
-/* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioElectrons, 1.0 );
-value_identifier( float_X, ChargeRatioElectrons, 1.0 );
+    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    value_identifier(float_X, MassRatioElectrons, 1.0);
+    value_identifier(float_X, ChargeRatioElectrons, 1.0);
 
-using ParticleFlagsElectrons = MakeSeq_t<
-    particlePusher<UsedParticlePusher>,
-    shape<UsedParticleShape>,
-    interpolation<UsedField2Particle>,
-    current<UsedParticleCurrentSolver>,
-    massRatio<MassRatioElectrons>,
-    chargeRatio<ChargeRatioElectrons>
->;
+    using ParticleFlagsElectrons = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        current<UsedParticleCurrentSolver>,
+        massRatio<MassRatioElectrons>,
+        chargeRatio<ChargeRatioElectrons>>;
 
-/* define species electrons */
-using PIC_Electrons = Particles<
-    PMACC_CSTRING( "e" ),
-    ParticleFlagsElectrons,
-    DefaultParticleAttributes
->;
+    /* define species electrons */
+    using PIC_Electrons = Particles<PMACC_CSTRING("e"), ParticleFlagsElectrons, DefaultParticleAttributes>;
 
-/*--------------------------- ions -------------------------------------------*/
+    /*--------------------------- ions -------------------------------------------*/
 
-/* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioIons, 1.0 );
-value_identifier( float_X, ChargeRatioIons, -1.0 );
+    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    value_identifier(float_X, MassRatioIons, 1.0);
+    value_identifier(float_X, ChargeRatioIons, -1.0);
 
-/* ratio relative to BASE_DENSITY */
-value_identifier( float_X, DensityRatioIons, 1.0 );
+    /* ratio relative to BASE_DENSITY */
+    value_identifier(float_X, DensityRatioIons, 1.0);
 
-using ParticleFlagsIons = MakeSeq_t<
-    particlePusher<UsedParticlePusher>,
-    shape<UsedParticleShape>,
-    interpolation<UsedField2Particle>,
-    current<UsedParticleCurrentSolver>,
-    massRatio<MassRatioIons>,
-    chargeRatio<ChargeRatioIons>,
-    densityRatio<DensityRatioIons>,
-    atomicNumbers<ionization::atomicNumbers::Hydrogen_t>
->;
+    using ParticleFlagsIons = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        current<UsedParticleCurrentSolver>,
+        massRatio<MassRatioIons>,
+        chargeRatio<ChargeRatioIons>,
+        densityRatio<DensityRatioIons>,
+        atomicNumbers<ionization::atomicNumbers::Hydrogen_t>>;
 
-/*define specie ions*/
-using PIC_Ions = Particles<
-    PMACC_CSTRING( "i" ),
-    ParticleFlagsIons,
-    DefaultParticleAttributes
->;
+    /*define specie ions*/
+    using PIC_Ions = Particles<PMACC_CSTRING("i"), ParticleFlagsIons, DefaultParticleAttributes>;
 
-/*########################### end species ####################################*/
+    /*########################### end species ####################################*/
 
-using VectorAllSpecies = MakeSeq_t<
-    PIC_Electrons,
-    PIC_Ions
->;
+    using VectorAllSpecies = MakeSeq_t<PIC_Electrons, PIC_Ions>;
 
-} //namespace picongpu
+} // namespace picongpu

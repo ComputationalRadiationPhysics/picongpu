@@ -26,38 +26,33 @@
 
 namespace pmacc
 {
-namespace mappings
-{
-namespace threads
-{
-
-    /** describe a constant index domain
-     *
-     * describe the size of the index domain and the number of workers to operate on the domain
-     *
-     * @tparam T_domainSize number of indices in the domain
-     * @tparam T_workerSize number of worker working on @p T_domainSize
-     * @tparam T_simdSize SIMD width
-     */
-    template<
-        uint32_t T_domainSize,
-        uint32_t T_workerSize,
-        uint32_t T_simdSize = 1u
-    >
-    struct IdxConfig
+    namespace mappings
     {
-        /** number of indices within the domain */
-        static constexpr uint32_t domainSize = T_domainSize;
-        /** number of worker (threads) working on @p domainSize */
-        static constexpr uint32_t workerSize = T_workerSize;
-        /** SIMD width */
-        static constexpr uint32_t simdSize = T_simdSize;
+        namespace threads
+        {
+            /** describe a constant index domain
+             *
+             * describe the size of the index domain and the number of workers to operate on the domain
+             *
+             * @tparam T_domainSize number of indices in the domain
+             * @tparam T_workerSize number of worker working on @p T_domainSize
+             * @tparam T_simdSize SIMD width
+             */
+            template<uint32_t T_domainSize, uint32_t T_workerSize, uint32_t T_simdSize = 1u>
+            struct IdxConfig
+            {
+                /** number of indices within the domain */
+                static constexpr uint32_t domainSize = T_domainSize;
+                /** number of worker (threads) working on @p domainSize */
+                static constexpr uint32_t workerSize = T_workerSize;
+                /** SIMD width */
+                static constexpr uint32_t simdSize = T_simdSize;
 
-        /** number of collective iterations needed to address all indices */
-        static constexpr uint32_t numCollIter =
-            ( domainSize + simdSize * workerSize - 1u ) / ( simdSize * workerSize);
-    };
+                /** number of collective iterations needed to address all indices */
+                static constexpr uint32_t numCollIter
+                    = (domainSize + simdSize * workerSize - 1u) / (simdSize * workerSize);
+            };
 
-} // namespace threads
-} // namespace mappings
+        } // namespace threads
+    } // namespace mappings
 } // namespace pmacc

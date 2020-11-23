@@ -22,26 +22,25 @@
 
 namespace picongpu
 {
-namespace traits
-{
-
-    /** Trait for cell type of a field solver
-     *
-     * Defines the resulting type as ::type.
-     * By default falls back to T_FieldSolver::CellType.
-     *
-     * Note: it was originally indented to be put to a new namespace
-     * picongpu::fields::traits, but this was not possible due to conflicts
-     * with pmacc names lookup.
-     *
-     * @tparam T_FieldSolver field solver type
-     */
-    template< typename T_FieldSolver >
-    struct GetCellType
+    namespace traits
     {
-        //! Cell type, one of fields::cellType:: types
-        using type = typename T_FieldSolver::CellType;
-    };
+        /** Trait for cell type of a field solver
+         *
+         * Defines the resulting type as ::type.
+         * By default falls back to T_FieldSolver::CellType.
+         *
+         * Note: it was originally indented to be put to a new namespace
+         * picongpu::fields::traits, but this was not possible due to conflicts
+         * with pmacc names lookup.
+         *
+         * @tparam T_FieldSolver field solver type
+         */
+        template<typename T_FieldSolver>
+        struct GetCellType
+        {
+            //! Cell type, one of fields::cellType:: types
+            using type = typename T_FieldSolver::CellType;
+        };
 
-} // namespace traits
+    } // namespace traits
 } // namespace picongpu

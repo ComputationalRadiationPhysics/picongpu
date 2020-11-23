@@ -29,32 +29,28 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace maxwellSolver
-{
+    namespace fields
+    {
+        namespace maxwellSolver
+        {
+            /** modified Yee solver with PML absorber
+             *
+             * Reference: R. Lehe et al
+             *            Phys. Rev. ST Accel. Beams 16, 021301 (2013)
+             *
+             * @tparam T_CherenkovFreeDir the direction (axis) which should be free of cherenkov radiation
+             *                            0 = x, 1 = y, 2 = z
+             */
+            template<
+                typename T_CurrentInterpolation = currentInterpolation::None,
+                uint32_t T_cherenkovFreeDir = lehe::CherenkovFreeDirection_Y>
+            using LehePML
+                = ::picongpu::fields::maxwellSolver::YeePML<T_CurrentInterpolation, lehe::CurlE<T_cherenkovFreeDir>>;
 
-    /** modified Yee solver with PML absorber
-     *
-     * Reference: R. Lehe et al
-     *            Phys. Rev. ST Accel. Beams 16, 021301 (2013)
-     *
-     * @tparam T_CherenkovFreeDir the direction (axis) which should be free of cherenkov radiation
-     *                            0 = x, 1 = y, 2 = z
-     */
-    template<
-        typename T_CurrentInterpolation = currentInterpolation::None,
-        uint32_t T_cherenkovFreeDir = lehe::CherenkovFreeDirection_Y
-    >
-    using LehePML = ::picongpu::fields::maxwellSolver::YeePML<
-        T_CurrentInterpolation,
-        lehe::CurlE< T_cherenkovFreeDir >
-    >;
+            /* We need no definition of margins, because the YeePML solver uses its curl
+             * classes to define margins
+             */
 
-    /* We need no definition of margins, because the YeePML solver uses its curl
-     * classes to define margins
-     */
-
-} // namespace maxwellSolver
-} // namespace fields
+        } // namespace maxwellSolver
+    } // namespace fields
 } // namespace picongpu

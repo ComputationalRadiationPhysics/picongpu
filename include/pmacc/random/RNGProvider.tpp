@@ -33,163 +33,115 @@
 
 namespace pmacc
 {
-namespace random
-{
-
-    namespace kernel {
-
-        template<
-            uint32_t T_numWorkers,
-            uint32_t T_blockSize,
-            typename T_RNGMethod
-        >
-        struct InitRNGProvider
+    namespace random
+    {
+        namespace kernel
         {
-            template<
-                typename T_RNGBox,
-                typename T_Space,
-                typename T_Acc
-            >
-            DINLINE void
-            operator()(
-                T_Acc const & acc,
-                T_RNGBox rngBox,
-                uint32_t seed,
-                const T_Space size
-            ) const
+            template<uint32_t T_numWorkers, uint32_t T_blockSize, typename T_RNGMethod>
+            struct InitRNGProvider
             {
-                using namespace mappings::threads;
+                template<typename T_RNGBox, typename T_Space, typename T_Acc>
+                DINLINE void operator()(T_Acc const& acc, T_RNGBox rngBox, uint32_t seed, const T_Space size) const
+                {
+                    using namespace mappings::threads;
 
-                constexpr uint32_t numWorkers = T_numWorkers;
-                uint32_t const workerIdx = cupla::threadIdx(acc).x;
+                    constexpr uint32_t numWorkers = T_numWorkers;
+                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-                using SupercellDomCfg = IdxConfig<
-                    T_blockSize,
-                    numWorkers
-                >;
+                    using SupercellDomCfg = IdxConfig<T_blockSize, numWorkers>;
 
-                // each virtual worker initialize one rng state
-                ForEachIdx< SupercellDomCfg > forEachCell( workerIdx );
+                    // each virtual worker initialize one rng state
+                    ForEachIdx<SupercellDomCfg> forEachCell(workerIdx);
 
-                forEachCell(
-                    [&](
-                        uint32_t const linearIdx,
-                        uint32_t const
-                    )
-                    {
+                    forEachCell([&](uint32_t const linearIdx, uint32_t const) {
                         uint32_t const linearTid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
-                        if( linearTid >= size.productOfComponents() )
+                        if(linearTid >= size.productOfComponents())
                             return;
 
-                        T_Space const cellIdx = DataSpaceOperations< T_Space::dim >::map(size, linearTid);
-                        T_RNGMethod().init(
-                            acc,
-                            rngBox( cellIdx ),
-                            seed,
-                            linearTid
-                        );
-                    }
-                );
-            }
-        };
+                        T_Space const cellIdx = DataSpaceOperations<T_Space::dim>::map(size, linearTid);
+                        T_RNGMethod().init(acc, rngBox(cellIdx), seed, linearTid);
+                    });
+                }
+            };
 
-    }  // namespace kernel
+        } // namespace kernel
 
-    template<uint32_t T_dim, class T_RNGMethod>
-    RNGProvider<T_dim, T_RNGMethod>::RNGProvider(const Space& size, const std::string& uniqueId):
-            m_size(size), m_uniqueId(uniqueId.empty() ? getName() : uniqueId),
-            buffer(new Buffer(size))
-    {
-        if(m_size.productOfComponents() == 0)
-            throw std::invalid_argument("Cannot create RNGProvider with zero size");
-    }
+        template<uint32_t T_dim, class T_RNGMethod>
+        RNGProvider<T_dim, T_RNGMethod>::RNGProvider(const Space& size, const std::string& uniqueId)
+            : m_size(size)
+            , m_uniqueId(uniqueId.empty() ? getName() : uniqueId)
+            , buffer(new Buffer(size))
+        {
+            if(m_size.productOfComponents() == 0)
+                throw std::invalid_argument("Cannot create RNGProvider with zero size");
+        }
 
-    template<uint32_t T_dim, class T_RNGMethod>
-    void RNGProvider<T_dim, T_RNGMethod>::init(uint32_t seed)
-    {
+        template<uint32_t T_dim, class T_RNGMethod>
+        void RNGProvider<T_dim, T_RNGMethod>::init(uint32_t seed)
+        {
+            const uint32_t blockSize = 256;
 
-        const uint32_t blockSize = 256;
+            constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<blockSize>::value;
 
-        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-            blockSize
-        >::value;
+            const uint32_t gridSize = (m_size.productOfComponents() + blockSize - 1u) / blockSize; // Round up
 
-        const uint32_t gridSize = (m_size.productOfComponents() + blockSize - 1u) / blockSize; // Round up
+            auto bufferBox = buffer->getDeviceBuffer().getDataBox();
 
-        auto bufferBox = buffer->getDeviceBuffer().getDataBox();
+            PMACC_KERNEL(kernel::InitRNGProvider<numWorkers, blockSize, RNGMethod>{})
+            (gridSize, numWorkers)(bufferBox, seed, m_size);
+        }
 
-        PMACC_KERNEL(
-            kernel::InitRNGProvider<
-                numWorkers,
-                blockSize,
-                RNGMethod>{}
-        )(
-            gridSize,
-            numWorkers
-        )(
-            bufferBox,
-            seed,
-            m_size
-        );
-    }
+        template<uint32_t T_dim, class T_RNGMethod>
+        typename RNGProvider<T_dim, T_RNGMethod>::Handle RNGProvider<T_dim, T_RNGMethod>::createHandle(
+            const std::string& id)
+        {
+            auto provider = Environment<>::get().DataConnector().get<RNGProvider>(id, true);
+            Handle result(provider->getDeviceDataBox());
+            Environment<>::get().DataConnector().releaseData(id);
+            return result;
+        }
 
-    template<uint32_t T_dim, class T_RNGMethod>
-    typename RNGProvider<T_dim, T_RNGMethod>::Handle
-    RNGProvider<T_dim, T_RNGMethod>::createHandle(const std::string& id)
-    {
-        auto provider =
-            Environment<>::get().DataConnector().get< RNGProvider >( id, true );
-        Handle result( provider->getDeviceDataBox() );
-        Environment<>::get().DataConnector().releaseData( id );
-        return result;
-    }
+        template<uint32_t T_dim, class T_RNGMethod>
+        template<class T_Distribution>
+        typename RNGProvider<T_dim, T_RNGMethod>::template GetRandomType<T_Distribution>::type RNGProvider<
+            T_dim,
+            T_RNGMethod>::createRandom(const std::string& id)
+        {
+            typedef typename GetRandomType<T_Distribution>::type ResultType;
+            return ResultType(createHandle());
+        }
 
-    template<uint32_t T_dim, class T_RNGMethod>
-    template<class T_Distribution>
-    typename RNGProvider<T_dim, T_RNGMethod>::template GetRandomType<T_Distribution>::type
-    RNGProvider<T_dim, T_RNGMethod>::createRandom(const std::string& id)
-    {
-        typedef typename GetRandomType<T_Distribution>::type ResultType;
-        return ResultType(createHandle());
-    }
+        template<uint32_t T_dim, class T_RNGMethod>
+        typename RNGProvider<T_dim, T_RNGMethod>::Buffer& RNGProvider<T_dim, T_RNGMethod>::getStateBuffer()
+        {
+            return *buffer;
+        }
 
-    template<uint32_t T_dim, class T_RNGMethod>
-    typename RNGProvider<T_dim, T_RNGMethod>::Buffer&
-    RNGProvider<T_dim, T_RNGMethod>::getStateBuffer()
-    {
-        return *buffer;
-    }
+        template<uint32_t T_dim, class T_RNGMethod>
+        typename RNGProvider<T_dim, T_RNGMethod>::DataBoxType RNGProvider<T_dim, T_RNGMethod>::getDeviceDataBox()
+        {
+            return buffer->getDeviceBuffer().getDataBox();
+        }
 
-    template<uint32_t T_dim, class T_RNGMethod>
-    typename RNGProvider<T_dim, T_RNGMethod>::DataBoxType
-    RNGProvider<T_dim, T_RNGMethod>::getDeviceDataBox()
-    {
-        return buffer->getDeviceBuffer().getDataBox();
-    }
-
-    template<uint32_t T_dim, class T_RNGMethod>
-    std::string
-    RNGProvider<T_dim, T_RNGMethod>::getName()
-    {
-        /* generate a unique name (for this type!) to use as a default ID */
-        return std::string("RNGProvider")
-                + char('0' + dim) /* valid for 0..9 */
+        template<uint32_t T_dim, class T_RNGMethod>
+        std::string RNGProvider<T_dim, T_RNGMethod>::getName()
+        {
+            /* generate a unique name (for this type!) to use as a default ID */
+            return std::string("RNGProvider") + char('0' + dim) /* valid for 0..9 */
                 + RNGMethod::getName();
-    }
+        }
 
-    template<uint32_t T_dim, class T_RNGMethod>
-    SimulationDataId
-    RNGProvider<T_dim, T_RNGMethod>::getUniqueId()
-    {
-        return m_uniqueId;
-    }
+        template<uint32_t T_dim, class T_RNGMethod>
+        SimulationDataId RNGProvider<T_dim, T_RNGMethod>::getUniqueId()
+        {
+            return m_uniqueId;
+        }
 
-    template<uint32_t T_dim, class T_RNGMethod>
-    void
-    RNGProvider<T_dim, T_RNGMethod>::synchronize()
-    {
-        buffer->deviceToHost();
-    }
+        template<uint32_t T_dim, class T_RNGMethod>
+        void RNGProvider<T_dim, T_RNGMethod>::synchronize()
+        {
+            buffer->deviceToHost();
+        }
 
-}  // namespace random
-}  // namespace pmacc
+    } // namespace random
+} // namespace pmacc

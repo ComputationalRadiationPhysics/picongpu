@@ -25,54 +25,51 @@
 
 namespace picongpu
 {
-namespace densityProfiles
-{
-
-template<typename T_ParamClass>
-struct GaussianCloudImpl : public T_ParamClass
-{
-    using ParamClass = T_ParamClass;
-
-    template<typename T_SpeciesType>
-    struct apply
+    namespace densityProfiles
     {
-        using type = GaussianCloudImpl<ParamClass>;
-    };
+        template<typename T_ParamClass>
+        struct GaussianCloudImpl : public T_ParamClass
+        {
+            using ParamClass = T_ParamClass;
 
-    HINLINE GaussianCloudImpl(uint32_t currentStep)
-    {
-    }
+            template<typename T_SpeciesType>
+            struct apply
+            {
+                using type = GaussianCloudImpl<ParamClass>;
+            };
 
-    /** Calculate the normalized density
-     *
-     * @param totalCellOffset total offset including all slides [in cells]
-     */
-    HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
-    {
-        const float_64 unit_length = UNIT_LENGTH;
-        const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
-        const floatD_X center = precisionCast<float_X>(ParamClass::center_SI / unit_length);
-        const floatD_X sigma = precisionCast<float_X>(ParamClass::sigma_SI / unit_length);
+            HINLINE GaussianCloudImpl(uint32_t currentStep)
+            {
+            }
 
-        const floatD_X globalCellPos(
-                                     precisionCast<float_X>(totalCellOffset) *
-                                     cellSize.shrink<simDim>()
-                                     );
+            /** Calculate the normalized density
+             *
+             * @param totalCellOffset total offset including all slides [in cells]
+             */
+            HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
+            {
+                const float_64 unit_length = UNIT_LENGTH;
+                const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
+                const floatD_X center = precisionCast<float_X>(ParamClass::center_SI / unit_length);
+                const floatD_X sigma = precisionCast<float_X>(ParamClass::sigma_SI / unit_length);
 
-        if (globalCellPos.y() < vacuum_y) return float_X(0.0);
+                const floatD_X globalCellPos(precisionCast<float_X>(totalCellOffset) * cellSize.shrink<simDim>());
 
-        /* for x, y, z calculate: x-x0 / sigma_x */
-        const floatD_X r0overSigma = (globalCellPos - center) / sigma;
-        /* get lenghts of r0 over sigma */
-        const float_X exponent = math::abs(r0overSigma);
+                if(globalCellPos.y() < vacuum_y)
+                    return float_X(0.0);
 
-        /* calculate exp(factor * exponent**power) */
-        const float_X power  = ParamClass::gasPower;
-        const float_X factor = ParamClass::gasFactor;
-        const float_X density = math::exp(factor * math::pow(exponent, power));
+                /* for x, y, z calculate: x-x0 / sigma_x */
+                const floatD_X r0overSigma = (globalCellPos - center) / sigma;
+                /* get lenghts of r0 over sigma */
+                const float_X exponent = math::abs(r0overSigma);
 
-        return density;
-    }
-};
-}
-}
+                /* calculate exp(factor * exponent**power) */
+                const float_X power = ParamClass::gasPower;
+                const float_X factor = ParamClass::gasFactor;
+                const float_X density = math::exp(factor * math::pow(exponent, power));
+
+                return density;
+            }
+        };
+    } // namespace densityProfiles
+} // namespace picongpu

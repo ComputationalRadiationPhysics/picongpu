@@ -29,37 +29,39 @@
 
 namespace picongpu
 {
+    using namespace pmacc;
+    namespace po = boost::program_options;
 
-using namespace pmacc;
-namespace po = boost::program_options;
+    template<typename Field>
+    class SliceFieldPrinterMulti : public ILightweightPlugin
+    {
+    private:
+        std::string name;
+        std::string prefix;
+        std::vector<std::string> notifyPeriod;
+        std::vector<std::string> fileName;
+        std::vector<int> plane;
+        std::vector<float_X> slicePoint;
+        MappingDesc* cellDescription;
+        std::vector<SliceFieldPrinter<Field>> childs;
 
-template<typename Field>
-class SliceFieldPrinterMulti : public ILightweightPlugin
-{
-private:
-    std::string name;
-    std::string prefix;
-    std::vector<std::string> notifyPeriod;
-    std::vector<std::string> fileName;
-    std::vector<int> plane;
-    std::vector<float_X> slicePoint;
-    MappingDesc *cellDescription;
-    std::vector<SliceFieldPrinter<Field> > childs;
+        void pluginLoad();
+        void pluginUnload();
 
-    void pluginLoad();
-    void pluginUnload();
+    public:
+        SliceFieldPrinterMulti();
+        virtual ~SliceFieldPrinterMulti()
+        {
+        }
 
-public:
-    SliceFieldPrinterMulti();
-    virtual ~SliceFieldPrinterMulti() {}
+        void notify(uint32_t)
+        {
+        }
+        void setMappingDescription(MappingDesc* desc);
+        void pluginRegisterHelp(po::options_description& desc);
+        std::string pluginGetName() const;
+    };
 
-    void notify(uint32_t) {}
-    void setMappingDescription(MappingDesc* desc);
-    void pluginRegisterHelp(po::options_description& desc);
-    std::string pluginGetName() const;
-};
-
-}
+} // namespace picongpu
 
 #include "SliceFieldPrinterMulti.tpp"
-

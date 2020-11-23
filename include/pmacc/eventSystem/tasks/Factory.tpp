@@ -43,19 +43,19 @@
 
 namespace pmacc
 {
-
     /**
      * creates a TaskCopyHostToDevice
      * @param src HostBuffer to copy data from
      * @param dst DeviceBuffer to copy data to
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
-    template <class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskCopyHostToDevice(HostBuffer<TYPE, DIM>& src, DeviceBuffer<TYPE, DIM>& dst,
-    ITask *registeringTask)
+    template<class TYPE, unsigned DIM>
+    inline EventTask Factory::createTaskCopyHostToDevice(
+        HostBuffer<TYPE, DIM>& src,
+        DeviceBuffer<TYPE, DIM>& dst,
+        ITask* registeringTask)
     {
-
-        TaskCopyHostToDevice<TYPE, DIM>* task = new TaskCopyHostToDevice<TYPE, DIM > (src, dst);
+        TaskCopyHostToDevice<TYPE, DIM>* task = new TaskCopyHostToDevice<TYPE, DIM>(src, dst);
 
         return startTask(*task, registeringTask);
     }
@@ -66,12 +66,13 @@ namespace pmacc
      * @param dst HostBuffer to copy data to
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
-    template <class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskCopyDeviceToHost(DeviceBuffer<TYPE, DIM>& src,
-    HostBuffer<TYPE, DIM>& dst,
-    ITask *registeringTask)
+    template<class TYPE, unsigned DIM>
+    inline EventTask Factory::createTaskCopyDeviceToHost(
+        DeviceBuffer<TYPE, DIM>& src,
+        HostBuffer<TYPE, DIM>& dst,
+        ITask* registeringTask)
     {
-        TaskCopyDeviceToHost<TYPE, DIM>* task = new TaskCopyDeviceToHost<TYPE, DIM > (src, dst);
+        TaskCopyDeviceToHost<TYPE, DIM>* task = new TaskCopyDeviceToHost<TYPE, DIM>(src, dst);
 
         return startTask(*task, registeringTask);
     }
@@ -82,11 +83,13 @@ namespace pmacc
      * @param dst DeviceBuffer to copy data to
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
-    template <class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskCopyDeviceToDevice( DeviceBuffer<TYPE, DIM>& src, DeviceBuffer<TYPE, DIM>& dst,
-    ITask *registeringTask)
+    template<class TYPE, unsigned DIM>
+    inline EventTask Factory::createTaskCopyDeviceToDevice(
+        DeviceBuffer<TYPE, DIM>& src,
+        DeviceBuffer<TYPE, DIM>& dst,
+        ITask* registeringTask)
     {
-        TaskCopyDeviceToDevice<TYPE, DIM>* task = new TaskCopyDeviceToDevice<TYPE, DIM > (src, dst);
+        TaskCopyDeviceToDevice<TYPE, DIM>* task = new TaskCopyDeviceToDevice<TYPE, DIM>(src, dst);
 
         return startTask(*task, registeringTask);
     }
@@ -96,11 +99,10 @@ namespace pmacc
      * @param ex Exchange to create new TaskReceive with
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
-    template <class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskReceive(Exchange<TYPE, DIM> &ex,
-    ITask *registeringTask)
+    template<class TYPE, unsigned DIM>
+    inline EventTask Factory::createTaskReceive(Exchange<TYPE, DIM>& ex, ITask* registeringTask)
     {
-        TaskReceive<TYPE, DIM>* task = new TaskReceive<TYPE, DIM > (ex);
+        TaskReceive<TYPE, DIM>* task = new TaskReceive<TYPE, DIM>(ex);
 
         return startTask(*task, registeringTask);
     }
@@ -110,11 +112,10 @@ namespace pmacc
      * @param ex Exchange to create new TaskSend with
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
-    template <class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskSend(Exchange<TYPE, DIM> &ex,
-    ITask *registeringTask)
+    template<class TYPE, unsigned DIM>
+    inline EventTask Factory::createTaskSend(Exchange<TYPE, DIM>& ex, ITask* registeringTask)
     {
-        TaskSend<TYPE, DIM>* task = new TaskSend<TYPE, DIM > (ex);
+        TaskSend<TYPE, DIM>* task = new TaskSend<TYPE, DIM>(ex);
 
         return startTask(*task, registeringTask);
     }
@@ -124,11 +125,10 @@ namespace pmacc
      * @param exchange Exchange to create new TaskSendMPI with
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
-    template <class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskSendMPI(Exchange<TYPE, DIM> *ex,
-    ITask *registeringTask)
+    template<class TYPE, unsigned DIM>
+    inline EventTask Factory::createTaskSendMPI(Exchange<TYPE, DIM>* ex, ITask* registeringTask)
     {
-        TaskSendMPI<TYPE, DIM>* task = new TaskSendMPI<TYPE, DIM > (ex);
+        TaskSendMPI<TYPE, DIM>* task = new TaskSendMPI<TYPE, DIM>(ex);
 
         return startTask(*task, registeringTask);
     }
@@ -138,11 +138,10 @@ namespace pmacc
      * @param ex Exchange to create new TaskReceiveMPI with
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
-    template <class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskReceiveMPI(Exchange<TYPE, DIM> *ex,
-    ITask *registeringTask)
+    template<class TYPE, unsigned DIM>
+    inline EventTask Factory::createTaskReceiveMPI(Exchange<TYPE, DIM>* ex, ITask* registeringTask)
     {
-        TaskReceiveMPI<TYPE, DIM>* task = new TaskReceiveMPI<TYPE, DIM > (ex);
+        TaskReceiveMPI<TYPE, DIM>* task = new TaskReceiveMPI<TYPE, DIM>(ex);
 
         return startTask(*task, registeringTask);
     }
@@ -153,20 +152,21 @@ namespace pmacc
      * @param value value to be set in the DeviceBuffer
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
-    template <class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskSetValue(DeviceBuffer<TYPE, DIM>& dst,const TYPE& value,
-    ITask *registeringTask)
+    template<class TYPE, unsigned DIM>
+    inline EventTask Factory::createTaskSetValue(
+        DeviceBuffer<TYPE, DIM>& dst,
+        const TYPE& value,
+        ITask* registeringTask)
     {
-
         /* sizeof(TYPE)<256 use fast set method for small data and slow method for big data
          * the rest of 256bytes are reserved for other kernel parameter
          */
         enum
         {
-            isSmall = (sizeof (TYPE) <= 128)
-        }; //if we use const variable the compiler create warnings
+            isSmall = (sizeof(TYPE) <= 128)
+        }; // if we use const variable the compiler create warnings
 
-        TaskSetValue<TYPE, DIM, isSmall >* task = new TaskSetValue<TYPE, DIM, isSmall > (dst, value);
+        TaskSetValue<TYPE, DIM, isSmall>* task = new TaskSetValue<TYPE, DIM, isSmall>(dst, value);
 
         return startTask(*task, registeringTask);
     }
@@ -177,11 +177,13 @@ namespace pmacc
      * @param size size to be set on DeviceBuffer
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
-    template <class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskSetCurrentSizeOnDevice(DeviceBuffer<TYPE, DIM>& dst, size_t size,
-    ITask *registeringTask)
+    template<class TYPE, unsigned DIM>
+    inline EventTask Factory::createTaskSetCurrentSizeOnDevice(
+        DeviceBuffer<TYPE, DIM>& dst,
+        size_t size,
+        ITask* registeringTask)
     {
-        TaskSetCurrentSizeOnDevice<TYPE, DIM>* task = new TaskSetCurrentSizeOnDevice<TYPE, DIM > (dst, size);
+        TaskSetCurrentSizeOnDevice<TYPE, DIM>* task = new TaskSetCurrentSizeOnDevice<TYPE, DIM>(dst, size);
 
         return startTask(*task, registeringTask);
     }
@@ -191,11 +193,12 @@ namespace pmacc
      * @param buffer DeviceBuffer to get current size from
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */
-    template <class TYPE, unsigned DIM>
-    inline EventTask Factory::createTaskGetCurrentSizeFromDevice(DeviceBuffer<TYPE, DIM>& buffer,
-    ITask *registeringTask)
+    template<class TYPE, unsigned DIM>
+    inline EventTask Factory::createTaskGetCurrentSizeFromDevice(
+        DeviceBuffer<TYPE, DIM>& buffer,
+        ITask* registeringTask)
     {
-        TaskGetCurrentSizeFromDevice<TYPE, DIM>* task = new TaskGetCurrentSizeFromDevice<TYPE, DIM > (buffer);
+        TaskGetCurrentSizeFromDevice<TYPE, DIM>* task = new TaskGetCurrentSizeFromDevice<TYPE, DIM>(buffer);
 
         return startTask(*task, registeringTask);
     }
@@ -206,20 +209,21 @@ namespace pmacc
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      * @return the newly created TaskKernel
      */
-    inline TaskKernel* Factory::createTaskKernel(std::string kernelname, ITask *registeringTask)
+    inline TaskKernel* Factory::createTaskKernel(std::string kernelname, ITask* registeringTask)
     {
         TaskKernel* task = new TaskKernel(kernelname);
 
-        if (registeringTask != nullptr)
+        if(registeringTask != nullptr)
             task->addObserver(registeringTask);
 
         return task;
     }
 
 
-    inline EventTask Factory::startTask(ITask& task, ITask *registeringTask )
+    inline EventTask Factory::startTask(ITask& task, ITask* registeringTask)
     {
-        if (registeringTask != nullptr){
+        if(registeringTask != nullptr)
+        {
             task.addObserver(registeringTask);
         }
         EventTask event(task.getId());
@@ -232,7 +236,4 @@ namespace pmacc
     }
 
 
-} //namespace pmacc
-
-
-
+} // namespace pmacc

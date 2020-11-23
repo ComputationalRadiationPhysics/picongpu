@@ -18,15 +18,12 @@
  */
 
 
-
 #pragma once
 
 namespace picongpu
 {
-
     namespace SI
     {
-
         /** This setup is based on section 7.11.1 of
          *  A. Taflove, S.C. Hagness. Computational Electrodynamics
          *  The Finite-Difference Time-Domain Method. 3rd Edition.
@@ -66,27 +63,27 @@ namespace picongpu
          * in fields with perfect symmetry in Z.
          */
 
-    } //namespace SI
+    } // namespace SI
 
     //! Define the size of the absorbing zone (in cells) for both exponential
     //! absorber and PML, a compile-time parameter
 #ifndef PARAM_ABSORBER_SIZE
-#   define PARAM_ABSORBER_SIZE 8
+#    define PARAM_ABSORBER_SIZE 8
 #endif
     constexpr uint32_t ABSORBER_SIZE = PARAM_ABSORBER_SIZE;
     constexpr uint32_t ABSORBER_CELLS[3][2] = {
-        {ABSORBER_SIZE, ABSORBER_SIZE},  /*x direction [negative,positive]*/
-        {ABSORBER_SIZE, ABSORBER_SIZE},  /*y direction [negative,positive]*/
-        {ABSORBER_SIZE, ABSORBER_SIZE}   /*z direction [negative,positive]*/
-    }; //unit: number of cells
+        {ABSORBER_SIZE, ABSORBER_SIZE}, /*x direction [negative,positive]*/
+        {ABSORBER_SIZE, ABSORBER_SIZE}, /*y direction [negative,positive]*/
+        {ABSORBER_SIZE, ABSORBER_SIZE} /*z direction [negative,positive]*/
+    }; // unit: number of cells
 
     //! Define the strength of the exponential absorber only
     constexpr float_X ABSORBER_STRENGTH_VALUE = 1.0e-3;
     constexpr float_X ABSORBER_STRENGTH[3][2] = {
         {ABSORBER_STRENGTH_VALUE, ABSORBER_STRENGTH_VALUE}, /*x direction [negative,positive]*/
         {ABSORBER_STRENGTH_VALUE, ABSORBER_STRENGTH_VALUE}, /*y direction [negative,positive]*/
-        {ABSORBER_STRENGTH_VALUE, ABSORBER_STRENGTH_VALUE}  /*z direction [negative,positive]*/
-    }; //unit: none
+        {ABSORBER_STRENGTH_VALUE, ABSORBER_STRENGTH_VALUE} /*z direction [negative,positive]*/
+    }; // unit: none
 
     /** When to move the co-moving window.
      *  An initial pseudo particle, flying with the speed of light,
@@ -105,4 +102,4 @@ namespace picongpu
      */
     constexpr float_64 movePoint = 0.90;
 
-}
+} // namespace picongpu

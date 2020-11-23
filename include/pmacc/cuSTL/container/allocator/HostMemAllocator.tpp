@@ -23,81 +23,75 @@
 
 namespace pmacc
 {
-namespace allocator
-{
-
-template<typename Type, int T_dim>
-HDINLINE
-cursor::BufferCursor<Type, T_dim>
-HostMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
-{
+    namespace allocator
+    {
+        template<typename Type, int T_dim>
+        HDINLINE cursor::BufferCursor<Type, T_dim> HostMemAllocator<Type, T_dim>::allocate(
+            const math::Size_t<T_dim>& size)
+        {
 #ifndef __CUDA_ARCH__
-    Type* dataPointer = nullptr;
-    math::Size_t<T_dim-1> pitch;
+            Type* dataPointer = nullptr;
+            math::Size_t<T_dim - 1> pitch;
 
-    if(size.productOfComponents())
-        CUDA_CHECK(cuplaMallocHost((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
-    if(dim == 2u)
-    {
-        pitch[0] = size[0] * sizeof(Type);
-    }
-    else if(dim == 3u)
-    {
-        pitch[0] = size[0] * sizeof(Type);
-        pitch[1] = pitch[0] * size[1];
-    }
+            if(size.productOfComponents())
+                CUDA_CHECK(cuplaMallocHost((void**) &dataPointer, sizeof(Type) * size.productOfComponents()));
+            if(dim == 2u)
+            {
+                pitch[0] = size[0] * sizeof(Type);
+            }
+            else if(dim == 3u)
+            {
+                pitch[0] = size[0] * sizeof(Type);
+                pitch[1] = pitch[0] * size[1];
+            }
 
-    return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
+            return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
 #endif
 
 #ifdef __CUDA_ARCH__
-    Type* dataPointer = nullptr;
-    math::Size_t<T_dim-1> pitch;
-    return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
+            Type* dataPointer = nullptr;
+            math::Size_t<T_dim - 1> pitch;
+            return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
 #endif
-}
+        }
 
-template<typename Type>
-HDINLINE
-cursor::BufferCursor<Type, 1>
-HostMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
-{
+        template<typename Type>
+        HDINLINE cursor::BufferCursor<Type, 1> HostMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
+        {
 #ifndef __CUDA_ARCH__
-    Type* dataPointer = nullptr;
-    math::Size_t<0> pitch;
+            Type* dataPointer = nullptr;
+            math::Size_t<0> pitch;
 
-    if(size.productOfComponents())
-        CUDA_CHECK(cuplaMallocHost((void**)&dataPointer, sizeof(Type) * size.productOfComponents()));
+            if(size.productOfComponents())
+                CUDA_CHECK(cuplaMallocHost((void**) &dataPointer, sizeof(Type) * size.productOfComponents()));
 
-    return cursor::BufferCursor<Type, 1>(dataPointer, pitch);
+            return cursor::BufferCursor<Type, 1>(dataPointer, pitch);
 #endif
 
 #ifdef __CUDA_ARCH__
-    Type* dataPointer = nullptr;
-    math::Size_t<0> pitch;
-    return cursor::BufferCursor<Type, 1>(dataPointer, pitch);
+            Type* dataPointer = nullptr;
+            math::Size_t<0> pitch;
+            return cursor::BufferCursor<Type, 1>(dataPointer, pitch);
 #endif
-}
+        }
 
-template<typename Type, int T_dim>
-template<typename TCursor>
-HDINLINE
-void HostMemAllocator<Type, T_dim>::deallocate(const TCursor& cursor)
-{
+        template<typename Type, int T_dim>
+        template<typename TCursor>
+        HDINLINE void HostMemAllocator<Type, T_dim>::deallocate(const TCursor& cursor)
+        {
 #ifndef __CUDA_ARCH__
-    CUDA_CHECK(cuplaFreeHost(cursor.getMarker()));
+            CUDA_CHECK(cuplaFreeHost(cursor.getMarker()));
 #endif
-}
+        }
 
-template<typename Type>
-template<typename TCursor>
-HDINLINE
-void HostMemAllocator<Type, 1>::deallocate(const TCursor& cursor)
-{
+        template<typename Type>
+        template<typename TCursor>
+        HDINLINE void HostMemAllocator<Type, 1>::deallocate(const TCursor& cursor)
+        {
 #ifndef __CUDA_ARCH__
-    CUDA_CHECK(cuplaFreeHost(cursor.getMarker()));
+            CUDA_CHECK(cuplaFreeHost(cursor.getMarker()));
 #endif
-}
+        }
 
-} // allocator
-} // pmacc
+    } // namespace allocator
+} // namespace pmacc

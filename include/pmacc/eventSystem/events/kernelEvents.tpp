@@ -28,36 +28,16 @@
 
 namespace pmacc
 {
-namespace exec
-{
-    template< typename T_KernelFunctor >
-    template<
-        typename T_VectorGrid,
-        typename T_VectorBlock
-    >
-    HINLINE
-    auto
-    Kernel< T_KernelFunctor >::operator()(
-        T_VectorGrid const & gridExtent,
-        T_VectorBlock const & blockExtent,
-        size_t const sharedMemByte
-    ) const
-    -> KernelStarter<
-        Kernel,
-        T_VectorGrid,
-        T_VectorBlock
-    >
+    namespace exec
     {
-        return KernelStarter<
-            Kernel,
-            T_VectorGrid,
-            T_VectorBlock
-        >(
-            *this,
-            gridExtent,
-            blockExtent,
-            sharedMemByte
-        );
-    }
-} // namespace exec
+        template<typename T_KernelFunctor>
+        template<typename T_VectorGrid, typename T_VectorBlock>
+        HINLINE auto Kernel<T_KernelFunctor>::operator()(
+            T_VectorGrid const& gridExtent,
+            T_VectorBlock const& blockExtent,
+            size_t const sharedMemByte) const -> KernelStarter<Kernel, T_VectorGrid, T_VectorBlock>
+        {
+            return KernelStarter<Kernel, T_VectorGrid, T_VectorBlock>(*this, gridExtent, blockExtent, sharedMemByte);
+        }
+    } // namespace exec
 } // namespace pmacc

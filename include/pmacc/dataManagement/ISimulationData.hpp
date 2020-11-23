@@ -35,7 +35,9 @@ namespace pmacc
     class ISimulationData
     {
     public:
-        virtual ~ISimulationData(){}
+        virtual ~ISimulationData()
+        {
+        }
         /**
          * Synchronizes simulation data, meaning accessing (host side) data
          * will return up-to-date values.
@@ -48,6 +50,5 @@ namespace pmacc
          * @return globally unique identifier
          */
         virtual SimulationDataId getUniqueId() = 0;
-
     };
-}
+} // namespace pmacc

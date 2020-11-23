@@ -32,76 +32,62 @@
 
 namespace pmacc
 {
-
-struct KernelSetValueOnDeviceMemory
-{
-    template< typename T_Acc >
-    DINLINE void operator()(const T_Acc&, size_t* pointer, const size_t size) const
+    struct KernelSetValueOnDeviceMemory
     {
-        *pointer = size;
-    }
-};
+        template<typename T_Acc>
+        DINLINE void operator()(const T_Acc&, size_t* pointer, const size_t size) const
+        {
+            *pointer = size;
+        }
+    };
 
-template <class TYPE, unsigned DIM>
-class DeviceBuffer;
+    template<class TYPE, unsigned DIM>
+    class DeviceBuffer;
 
-template <class TYPE, unsigned DIM>
-class TaskSetCurrentSizeOnDevice : public StreamTask
-{
-public:
-
-    TaskSetCurrentSizeOnDevice(DeviceBuffer<TYPE, DIM>& dst, size_t size) :
-    StreamTask(),
-    size(size)
+    template<class TYPE, unsigned DIM>
+    class TaskSetCurrentSizeOnDevice : public StreamTask
     {
-        this->destination = & dst;
-    }
+    public:
+        TaskSetCurrentSizeOnDevice(DeviceBuffer<TYPE, DIM>& dst, size_t size) : StreamTask(), size(size)
+        {
+            this->destination = &dst;
+        }
 
-    virtual ~TaskSetCurrentSizeOnDevice()
-    {
-        notify(this->myId, SETVALUE, nullptr);
-    }
+        virtual ~TaskSetCurrentSizeOnDevice()
+        {
+            notify(this->myId, SETVALUE, nullptr);
+        }
 
-    virtual void init()
-    {
-        setSize();
-    }
+        virtual void init()
+        {
+            setSize();
+        }
 
-    bool executeIntern()
-    {
-        return isFinished();
-    }
+        bool executeIntern()
+        {
+            return isFinished();
+        }
 
-    void event(id_t, EventType, IEventData*)
-    {
-    }
+        void event(id_t, EventType, IEventData*)
+        {
+        }
 
-    std::string toString()
-    {
-        return "TaskSetCurrentSizeOnDevice";
-    }
+        std::string toString()
+        {
+            return "TaskSetCurrentSizeOnDevice";
+        }
 
-private:
+    private:
+        void setSize()
+        {
+            auto sizePtr = destination->getCurrentSizeOnDevicePointer();
+            CUPLA_KERNEL(KernelSetValueOnDeviceMemory)(1, 1, 0, this->getCudaStream())(sizePtr, size);
 
-    void setSize()
-    {
-        auto sizePtr = destination->getCurrentSizeOnDevicePointer();
-        CUPLA_KERNEL( KernelSetValueOnDeviceMemory )(
-            1,
-            1,
-            0,
-            this->getCudaStream()
-        )(
-            sizePtr,
-            size
-        );
+            activate();
+        }
 
-        activate();
-    }
+        DeviceBuffer<TYPE, DIM>* destination;
+        const size_t size;
+    };
 
-    DeviceBuffer<TYPE, DIM> *destination;
-    const size_t size;
-};
-
-} //namespace pmacc
-
+} // namespace pmacc

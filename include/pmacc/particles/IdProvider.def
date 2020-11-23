@@ -26,7 +26,6 @@
 
 namespace pmacc
 {
-
     /**
      * Provider for globally unique ids (even across ranks)
      * Implemented for use in static contexts which allows e.g. calling from CUDA kernels
@@ -35,7 +34,8 @@ namespace pmacc
     class IdProvider
     {
     public:
-        struct State{
+        struct State
+        {
             /** Next id to be returned */
             uint64_t nextId;
             /** First id used */

@@ -31,14 +31,12 @@
 
 namespace pmacc
 {
-
     class TimeIntervall
     {
     public:
-
         TimeIntervall()
         {
-            start=end=getTime();
+            start = end = getTime();
         }
 
         /*! Get the timestamp in msec
@@ -46,24 +44,24 @@ namespace pmacc
          */
         static double getTime()
         {
-            auto time( Clock::now().time_since_epoch() );
-            auto timestamp = std::chrono::duration_cast< Milliseconds >( time ).count();
-            return static_cast< double >(timestamp);
+            auto time(Clock::now().time_since_epoch());
+            auto timestamp = std::chrono::duration_cast<Milliseconds>(time).count();
+            return static_cast<double>(timestamp);
         }
 
         double toggleStart()
         {
-            return start=getTime();
+            return start = getTime();
         }
 
         double toggleEnd()
         {
-            return end=getTime();
+            return end = getTime();
         }
 
         double getInterval()
         {
-            return end-start;
+            return end - start;
         }
 
         std::string printInterval()
@@ -78,53 +76,52 @@ namespace pmacc
 
             int p_time;
 
-            bool write_all=false;
-            if(time/(3600.*1000.)>1.)
+            bool write_all = false;
+            if(time / (3600. * 1000.) > 1.)
             {
-                p_time=time/(3600.*1000.);
-                time=time-3600.*1000.*p_time;
-                outstr<<std::setw(2)<<p_time<<"h ";
-                write_all=true;
+                p_time = time / (3600. * 1000.);
+                time = time - 3600. * 1000. * p_time;
+                outstr << std::setw(2) << p_time << "h ";
+                write_all = true;
             }
 
 
-            if(write_all || time/(60*1000)>1.)
+            if(write_all || time / (60 * 1000) > 1.)
             {
-                p_time=time/(60.*1000.);
-                time=time-60.*1000.*p_time;
-                outstr<<std::setw(2)<<p_time<<"min ";
-                write_all=true;
+                p_time = time / (60. * 1000.);
+                time = time - 60. * 1000. * p_time;
+                outstr << std::setw(2) << p_time << "min ";
+                write_all = true;
             }
 
 
-            if(write_all || time/1000.>1.)
+            if(write_all || time / 1000. > 1.)
             {
-                p_time=time/1000.;
-                time=time-1000.*p_time;
-                outstr<<std::setw(2)<<p_time<<"sec ";
-                write_all=true;
+                p_time = time / 1000.;
+                time = time - 1000. * p_time;
+                outstr << std::setw(2) << p_time << "sec ";
+                write_all = true;
             }
 
 
-            if(write_all || time>1.)
+            if(write_all || time > 1.)
             {
-                outstr<<std::setw(3)<<(int)time<<"msec";
+                outstr << std::setw(3) << (int) time << "msec";
             }
 
             if(outstr.str().empty())
-                outstr<<"  0msec";
+                outstr << "  0msec";
 
             return outstr.str();
         }
 
     private:
-
         using Clock = std::chrono::high_resolution_clock;
-        template< class Duration >
-        using TimePoint = std::chrono::time_point< Clock, Duration >;
+        template<class Duration>
+        using TimePoint = std::chrono::time_point<Clock, Duration>;
         using Milliseconds = std::chrono::milliseconds;
 
         double start;
         double end;
     };
-} //namespace pmacc
+} // namespace pmacc

@@ -44,177 +44,165 @@
 
 namespace picongpu
 {
-using namespace pmacc;
+    using namespace pmacc;
 
-template<class ParticlesType>
-class CountParticles : public ISimulationPlugin
-{
-private:
-    typedef MappingDesc::SuperCellSize SuperCellSize;
-
-    MappingDesc *cellDescription;
-    std::string notifyPeriod;
-
-    std::string pluginName;
-    std::string pluginPrefix;
-    std::string filename;
-
-    std::ofstream outFile;
-    /*only rank 0 create a file*/
-    bool writeToFile;
-
-    mpi::MPIReduce reduce;
-public:
-
-    CountParticles() :
-    pluginName("CountParticles: count macro particles of a species"),
-    pluginPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesCount")),
-    filename(pluginPrefix + ".dat"),
-    cellDescription(nullptr),
-    writeToFile(false)
+    template<class ParticlesType>
+    class CountParticles : public ISimulationPlugin
     {
-        Environment<>::get().PluginConnector().registerPlugin(this);
-    }
+    private:
+        typedef MappingDesc::SuperCellSize SuperCellSize;
 
-    virtual ~CountParticles()
-    {
+        MappingDesc* cellDescription;
+        std::string notifyPeriod;
 
-    }
+        std::string pluginName;
+        std::string pluginPrefix;
+        std::string filename;
 
-    void notify(uint32_t currentStep)
-    {
-        countParticles < CORE + BORDER > (currentStep);
-    }
+        std::ofstream outFile;
+        /*only rank 0 create a file*/
+        bool writeToFile;
 
-    void pluginRegisterHelp(po::options_description& desc)
-    {
-        desc.add_options()
-            ((pluginPrefix + ".period").c_str(),
-             po::value<std::string> (&notifyPeriod), "enable plugin [for each n-th step]");
-    }
+        mpi::MPIReduce reduce;
 
-    std::string pluginGetName() const
-    {
-        return pluginName;
-    }
-
-    void setMappingDescription(MappingDesc *cellDescription)
-    {
-        this->cellDescription = cellDescription;
-    }
-
-private:
-
-    void pluginLoad()
-    {
-        if(!notifyPeriod.empty())
+    public:
+        CountParticles()
+            : pluginName("CountParticles: count macro particles of a species")
+            , pluginPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesCount"))
+            , filename(pluginPrefix + ".dat")
+            , cellDescription(nullptr)
+            , writeToFile(false)
         {
-            writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
+            Environment<>::get().PluginConnector().registerPlugin(this);
+        }
 
-            if (writeToFile)
+        virtual ~CountParticles()
+        {
+        }
+
+        void notify(uint32_t currentStep)
+        {
+            countParticles<CORE + BORDER>(currentStep);
+        }
+
+        void pluginRegisterHelp(po::options_description& desc)
+        {
+            desc.add_options()(
+                (pluginPrefix + ".period").c_str(),
+                po::value<std::string>(&notifyPeriod),
+                "enable plugin [for each n-th step]");
+        }
+
+        std::string pluginGetName() const
+        {
+            return pluginName;
+        }
+
+        void setMappingDescription(MappingDesc* cellDescription)
+        {
+            this->cellDescription = cellDescription;
+        }
+
+    private:
+        void pluginLoad()
+        {
+            if(!notifyPeriod.empty())
             {
-                outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
-                if (!outFile)
+                writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
+
+                if(writeToFile)
                 {
-                    std::cerr << "Can't open file [" << filename << "] for output, disable plugin output. " << std::endl;
-                    writeToFile = false;
+                    outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
+                    if(!outFile)
+                    {
+                        std::cerr << "Can't open file [" << filename << "] for output, disable plugin output. "
+                                  << std::endl;
+                        writeToFile = false;
+                    }
+                    // create header of the file
+                    outFile << "#step count"
+                            << " \n";
                 }
-                //create header of the file
-                outFile << "#step count" << " \n";
+
+                Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
             }
-
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
         }
-    }
 
-    void pluginUnload()
-    {
-        if(!notifyPeriod.empty())
+        void pluginUnload()
         {
-            if (writeToFile)
+            if(!notifyPeriod.empty())
             {
-                outFile.flush();
-                outFile << std::endl; //now all data are written to file
-                if (outFile.fail())
-                    std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
-                outFile.close();
+                if(writeToFile)
+                {
+                    outFile.flush();
+                    outFile << std::endl; // now all data are written to file
+                    if(outFile.fail())
+                        std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
+                    outFile.close();
+                }
             }
         }
-    }
 
-    void restart(uint32_t restartStep, const std::string restartDirectory)
-    {
-        if( !writeToFile )
-            return;
-
-        writeToFile = restoreTxtFile( outFile,
-                                      filename,
-                                      restartStep,
-                                      restartDirectory );
-    }
-
-    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
-    {
-        if( !writeToFile )
-            return;
-
-        checkpointTxtFile( outFile,
-                           filename,
-                           currentStep,
-                           checkpointDirectory );
-    }
-
-    template< uint32_t AREA>
-    void countParticles(uint32_t currentStep)
-    {
-        uint64_cu size;
-
-        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-        const DataSpace<simDim> localSize(subGrid.getLocalDomain().size);
-
-        DataConnector &dc = Environment<>::get().DataConnector();
-        auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
-
-        // enforce that the filter interface is fulfilled
-        particles::filter::IUnary< particles::filter::All > parFilter{ currentStep };
-
-        /*count local particles*/
-        size = pmacc::CountParticles::countOnDevice<AREA>(*particles,
-                                                          *cellDescription,
-                                                          DataSpace<simDim>(),
-                                                          localSize,
-                                                          parFilter);
-        dc.releaseData( ParticlesType::FrameType::getName() );
-
-        uint64_cu reducedValueMax;
-        if (picLog::log_level & picLog::CRITICAL::lvl)
+        void restart(uint32_t restartStep, const std::string restartDirectory)
         {
-            reduce(nvidia::functors::Max(),
-                   &reducedValueMax,
-                   &size,
-                   1,
-                   mpi::reduceMethods::Reduce());
+            if(!writeToFile)
+                return;
+
+            writeToFile = restoreTxtFile(outFile, filename, restartStep, restartDirectory);
         }
 
-
-        uint64_cu reducedValue;
-        reduce(nvidia::functors::Add(),
-               &reducedValue,
-               &size,
-               1,
-               mpi::reduceMethods::Reduce());
-
-        if (writeToFile)
+        void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
         {
-            if (picLog::log_level & picLog::CRITICAL::lvl)
+            if(!writeToFile)
+                return;
+
+            checkpointTxtFile(outFile, filename, currentStep, checkpointDirectory);
+        }
+
+        template<uint32_t AREA>
+        void countParticles(uint32_t currentStep)
+        {
+            uint64_cu size;
+
+            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+            const DataSpace<simDim> localSize(subGrid.getLocalDomain().size);
+
+            DataConnector& dc = Environment<>::get().DataConnector();
+            auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
+
+            // enforce that the filter interface is fulfilled
+            particles::filter::IUnary<particles::filter::All> parFilter{currentStep};
+
+            /*count local particles*/
+            size = pmacc::CountParticles::countOnDevice<AREA>(
+                *particles,
+                *cellDescription,
+                DataSpace<simDim>(),
+                localSize,
+                parFilter);
+            dc.releaseData(ParticlesType::FrameType::getName());
+
+            uint64_cu reducedValueMax;
+            if(picLog::log_level & picLog::CRITICAL::lvl)
             {
-                log<picLog::CRITICAL > ("maximum number of  particles on a GPU : %d\n") % reducedValueMax;
+                reduce(nvidia::functors::Max(), &reducedValueMax, &size, 1, mpi::reduceMethods::Reduce());
             }
 
-            outFile << currentStep << " " << reducedValue << " " << std::scientific << (float_64) reducedValue << std::endl;
-        }
-    }
 
-};
+            uint64_cu reducedValue;
+            reduce(nvidia::functors::Add(), &reducedValue, &size, 1, mpi::reduceMethods::Reduce());
+
+            if(writeToFile)
+            {
+                if(picLog::log_level & picLog::CRITICAL::lvl)
+                {
+                    log<picLog::CRITICAL>("maximum number of  particles on a GPU : %d\n") % reducedValueMax;
+                }
+
+                outFile << currentStep << " " << reducedValue << " " << std::scientific << (float_64) reducedValue
+                        << std::endl;
+            }
+        }
+    };
 
 } /* namespace picongpu */
