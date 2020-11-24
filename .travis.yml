@@ -79,28 +79,6 @@ jobs:
         # if not an other mainline branch such as `dev` or `release-...`            #
         #############################################################################
         - . test/correctBranchPR
-    - &style-python
-      stage: 'Style'
-      language: python
-      python: "2.7"
-      install: pip install -U flake8
-      script:
-        #############################################################################
-        # Test Python Files for PEP8 conformance                                    #
-        #############################################################################
-        - flake8 --exclude=thirdParty .
-    - &static-code-python
-      stage: 'Static Code Analysis'
-      language: python
-      python: "2.7"
-      install: pip install -U pyflakes
-      script:
-        #############################################################################
-        # Warnings, unused code, etc.                                               #
-        #############################################################################
-        - pyflakes .
-    - <<: *static-code-python
-      python: "3.6"
     - &test-cpp-unit
       stage: 'C++ Unit Tests'
       language: cpp
