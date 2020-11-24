@@ -28,8 +28,14 @@ test-rebase-to-mainline:
     - echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | tee -a /etc/apt/sources.list
     - apt update
     - apt install -y clang-format-11
+    # Test if pull request can be merged into the destination branch
     - source $CI_PROJECT_DIR/share/ci/git_merge.sh
-    - source $CI_PROJECT_DIR/share/ci/run_clang-format.sh
+    - apt install -y -q python3 python3-pip
+    - pip install -U flake8
+    # Test Python Files for PEP8 conformance
+    - flake8 --exclude=thirdParty .
+    # Check C++ code style
+    - source $CI_PROJECT_DIR/share/ci/check_code_style.sh
   tags:
     - x86_64
 
