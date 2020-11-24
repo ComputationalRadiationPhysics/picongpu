@@ -17,6 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-# pragma once
+#pragma once
 
 #include "picongpu/plugins/xrayScattering/beam/beamShapes/ConstShape.hpp"

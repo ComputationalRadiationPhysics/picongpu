@@ -37,441 +37,298 @@
 
 namespace pmacc
 {
-namespace particles
-{
-namespace operations
-{
-namespace kernel
-{
-    /** transform a large frame into a list of small frames
-     *
-     * @tparam T_numWorkers number of workers
-     */
-    template< uint32_t T_numWorkers >
-    struct SplitIntoListOfFrames
+    namespace particles
     {
-        /** Copy particles from big frame to PMacc frame structure
-         *  (Opposite to ConcatListOfFrames)
-         *
-         * - convert a user-defined domainCellIdx to localCellIdx
-         * - processed particles per block <= number of cells per superCell
-         *
-         * @tparam T_CounterBox pmacc:DataBox, type of buffer for the statistics counter
-         * @tparam T_DestBox pmacc:ParticlesBox, type of the destination particle box
-         * @tparam T_SrcFrame pmacc:Frame, type of the source frame
-         * @tparam T_Space pmacc::DataSpace, type for indicies and offsets within the domain
-         * @tparam T_Identifier Identifier, type of the identifier for the total domain offset
-         * @tparam T_CellDescription pmacc::MappingDescription, type of the domain description
-         * @tparam T_Acc alpaka accelerator type
-         *
-         * @param acc alpaka accelerator
-         * @param counter box with three integers [sharedSrcParticleOffset, numLoadedParticles, numUsedFrames]
-         * @param destBox particle box where all particles are copied to (destination)
-         * @param srcFrame frame with particles (is used as source)
-         * @param maxParticles number of particles in srcFrame
-         * @param localDomainCellOffset offset in cells to user-defined domain (@see wiki PIConGPU domain definitions)
-         * @param domainCellIdxIdentifier the identifier for the particle domain cellIdx
-         *                                that is calculated back to the local domain
-         *                                with respect to localDomainCellOffset
-         * @param cellDesc supercell domain description
-         */
-        template<
-            typename T_CounterBox,
-            typename T_DestBox,
-            typename T_SrcFrame,
-            typename T_Space,
-            typename T_Identifier,
-            typename T_CellDescription,
-            typename T_Acc
-        >
-        DINLINE void operator()(
-            T_Acc const & acc,
-            T_CounterBox counter,
-            T_DestBox destBox,
-            T_SrcFrame srcFrame,
-            int const maxParticles,
-            T_Space const localDomainCellOffset,
-            T_Identifier const domainCellIdxIdentifier,
-            T_CellDescription const cellDesc
-        ) const
+        namespace operations
         {
-            using namespace pmacc::particles::operations;
-            using namespace mappings::threads;
-
-            using SrcFrameType = T_SrcFrame;
-            using DestFrameType = typename T_DestBox::FrameType;
-            using DestFramePtr = typename T_DestBox::FramePtr;
-            using SuperCellSize = typename DestFrameType::SuperCellSize;
-
-            constexpr uint32_t numWorkers = T_numWorkers;
-            constexpr uint32_t numDims = T_DestBox::Dim;
-            constexpr uint32_t particlesPerFrame = math::CT::volume< SuperCellSize >::type::value;
-
-            PMACC_SMEM(
-                acc,
-                destFramePtr,
-                memory::Array<
-                    DestFramePtr,
-                    particlesPerFrame
-                >
-            );
-            PMACC_SMEM(
-                acc,
-                sharedLinearSuperCellIds,
-                memory::Array<
-                    int,
-                    particlesPerFrame
-                >
-            );
-            PMACC_SMEM(
-                acc,
-                sharedSrcParticleOffset,
-                int
-            );
-
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-            DataSpace< numDims > const numSuperCells(
-                cellDesc.getGridSuperCells( ) - cellDesc.getGuardingSuperCells( ) * 2
-            );
-
-            ForEachIdx<
-                IdxConfig<
-                    1,
-                    numWorkers
-                >
-            > onlyMaster{ workerIdx };
-
-            onlyMaster(
-                [&](
-                    uint32_t const,
-                    uint32_t const
-                )
+            namespace kernel
+            {
+                /** transform a large frame into a list of small frames
+                 *
+                 * @tparam T_numWorkers number of workers
+                 */
+                template<uint32_t T_numWorkers>
+                struct SplitIntoListOfFrames
                 {
-                    /* apply for work for the full block, counter[0] contains the
-                     * offset in srcFrame to load N particles
+                    /** Copy particles from big frame to PMacc frame structure
+                     *  (Opposite to ConcatListOfFrames)
+                     *
+                     * - convert a user-defined domainCellIdx to localCellIdx
+                     * - processed particles per block <= number of cells per superCell
+                     *
+                     * @tparam T_CounterBox pmacc:DataBox, type of buffer for the statistics counter
+                     * @tparam T_DestBox pmacc:ParticlesBox, type of the destination particle box
+                     * @tparam T_SrcFrame pmacc:Frame, type of the source frame
+                     * @tparam T_Space pmacc::DataSpace, type for indicies and offsets within the domain
+                     * @tparam T_Identifier Identifier, type of the identifier for the total domain offset
+                     * @tparam T_CellDescription pmacc::MappingDescription, type of the domain description
+                     * @tparam T_Acc alpaka accelerator type
+                     *
+                     * @param acc alpaka accelerator
+                     * @param counter box with three integers [sharedSrcParticleOffset, numLoadedParticles,
+                     * numUsedFrames]
+                     * @param destBox particle box where all particles are copied to (destination)
+                     * @param srcFrame frame with particles (is used as source)
+                     * @param maxParticles number of particles in srcFrame
+                     * @param localDomainCellOffset offset in cells to user-defined domain (@see wiki PIConGPU domain
+                     * definitions)
+                     * @param domainCellIdxIdentifier the identifier for the particle domain cellIdx
+                     *                                that is calculated back to the local domain
+                     *                                with respect to localDomainCellOffset
+                     * @param cellDesc supercell domain description
                      */
-                    sharedSrcParticleOffset = cupla::atomicAdd(
-                        acc,
-                        &( counter[ 0 ] ),
-                        particlesPerFrame,
-                        ::alpaka::hierarchy::Blocks{}
-                    );
-                }
-            );
-
-            cupla::__syncthreads( acc );
-
-            using ParticleDomCfg = IdxConfig<
-                particlesPerFrame,
-                numWorkers
-            >;
-
-            memory::CtxArray<
-                int,
-                ParticleDomCfg
-            >
-            srcParticleIdxCtx{ };
-
-            memory::CtxArray<
-                bool,
-                ParticleDomCfg
-            >
-            hasValidParticleCtx{ };
-
-            // loop over all particles in the frame
-            ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
-
-            forEachParticle(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
-                {
-                    destFramePtr[ linearIdx ] = DestFramePtr{ };
-                    sharedLinearSuperCellIds[ linearIdx ] = -1;
-
-                    srcParticleIdxCtx[ idx ] = sharedSrcParticleOffset + linearIdx;
-                    hasValidParticleCtx[ idx ] = srcParticleIdxCtx[ idx ] < maxParticles;
-                }
-            );
-
-            cupla::__syncthreads( acc );
-
-            // supercell index of the particle relative to the origin of the local domain
-            memory::CtxArray<
-                DataSpace< numDims >,
-                ParticleDomCfg
-            >
-            particlesSuperCellCtx{ };
-
-            // linear cell index of the particle within the destination frame
-            memory::CtxArray<
-                lcellId_t,
-                ParticleDomCfg
-            >
-            lCellIdxCtx( INV_LOC_IDX );
-
-            memory::CtxArray<
-                int,
-                ParticleDomCfg
-            >
-            linearParticlesSuperCellCtx( -1 );
-
-            forEachParticle(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
-                {
-                    if( hasValidParticleCtx[ idx ] )
+                    template<
+                        typename T_CounterBox,
+                        typename T_DestBox,
+                        typename T_SrcFrame,
+                        typename T_Space,
+                        typename T_Identifier,
+                        typename T_CellDescription,
+                        typename T_Acc>
+                    DINLINE void operator()(
+                        T_Acc const& acc,
+                        T_CounterBox counter,
+                        T_DestBox destBox,
+                        T_SrcFrame srcFrame,
+                        int const maxParticles,
+                        T_Space const localDomainCellOffset,
+                        T_Identifier const domainCellIdxIdentifier,
+                        T_CellDescription const cellDesc) const
                     {
-                        // offset of the particle relative to the origin of the local domain
-                        DataSpace< numDims > const particleCellOffset =
-                            srcFrame[ srcParticleIdxCtx[ idx ] ][ domainCellIdxIdentifier ] -
-                            localDomainCellOffset;
-                        particlesSuperCellCtx[ idx ] = particleCellOffset / SuperCellSize::toRT( );
-                        linearParticlesSuperCellCtx[ idx ] =
-                            DataSpaceOperations< numDims >::map(
-                                numSuperCells,
-                                particlesSuperCellCtx[ idx ]
-                            );
-                        sharedLinearSuperCellIds[ linearIdx ] = linearParticlesSuperCellCtx[ idx ];
-                        DataSpace< numDims > const localCellIdx(
-                            particleCellOffset -
-                            particlesSuperCellCtx[ idx ] * SuperCellSize::toRT()
-                        );
-                        lCellIdxCtx[ idx ] =
-                            DataSpaceOperations< numDims >::template map< SuperCellSize >( localCellIdx );
-                    }
-                }
-            );
+                        using namespace pmacc::particles::operations;
+                        using namespace mappings::threads;
 
-            cupla::__syncthreads( acc );
+                        using SrcFrameType = T_SrcFrame;
+                        using DestFrameType = typename T_DestBox::FrameType;
+                        using DestFramePtr = typename T_DestBox::FramePtr;
+                        using SuperCellSize = typename DestFrameType::SuperCellSize;
 
-            memory::CtxArray<
-                int,
-                ParticleDomCfg
-            >
-            masterVirtualThreadIdxCtx(
-                workerIdx,
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const
-                )
-                {
-                    return linearIdx - 1;
-                }
-            );
+                        constexpr uint32_t numWorkers = T_numWorkers;
+                        constexpr uint32_t numDims = T_DestBox::Dim;
+                        constexpr uint32_t particlesPerFrame = math::CT::volume<SuperCellSize>::type::value;
 
-            forEachParticle(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
-                {
-                    if( hasValidParticleCtx[ idx ] )
-                    {
-                        auto & vThreadMasterIdx = masterVirtualThreadIdxCtx[ idx ];
-                        /* search master thread index */
-                        while( vThreadMasterIdx >= 0 )
-                        {
-                            if(
-                                linearParticlesSuperCellCtx[ idx ] !=
-                                sharedLinearSuperCellIds[ vThreadMasterIdx ]
-                            )
-                                break;
+                        PMACC_SMEM(acc, destFramePtr, memory::Array<DestFramePtr, particlesPerFrame>);
+                        PMACC_SMEM(acc, sharedLinearSuperCellIds, memory::Array<int, particlesPerFrame>);
+                        PMACC_SMEM(acc, sharedSrcParticleOffset, int);
 
-                            --vThreadMasterIdx;
-                        }
-                        ++vThreadMasterIdx;
+                        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-                        // load empty frame if virtual thread is the master
-                        if( vThreadMasterIdx == linearIdx )
-                        {
-                            /* counter[2] -> number of used frames */
-                            nvidia::atomicAllInc(
-                            acc,
-                                &( counter[ 2 ] ),
-                                ::alpaka::hierarchy::Blocks{}
-                            );
-                            DestFramePtr tmpFrame = destBox.getEmptyFrame( acc );
-                            destFramePtr[ linearIdx ] = tmpFrame;
-                            destBox.setAsFirstFrame(
+                        DataSpace<numDims> const numSuperCells(
+                            cellDesc.getGridSuperCells() - cellDesc.getGuardingSuperCells() * 2);
+
+                        ForEachIdx<IdxConfig<1, numWorkers>> onlyMaster{workerIdx};
+
+                        onlyMaster([&](uint32_t const, uint32_t const) {
+                            /* apply for work for the full block, counter[0] contains the
+                             * offset in srcFrame to load N particles
+                             */
+                            sharedSrcParticleOffset = cupla::atomicAdd(
                                 acc,
-                                tmpFrame,
-                                particlesSuperCellCtx[ idx ] + cellDesc.getGuardingSuperCells( )
-                            );
-                        }
+                                &(counter[0]),
+                                particlesPerFrame,
+                                ::alpaka::hierarchy::Blocks{});
+                        });
+
+                        cupla::__syncthreads(acc);
+
+                        using ParticleDomCfg = IdxConfig<particlesPerFrame, numWorkers>;
+
+                        memory::CtxArray<int, ParticleDomCfg> srcParticleIdxCtx{};
+
+                        memory::CtxArray<bool, ParticleDomCfg> hasValidParticleCtx{};
+
+                        // loop over all particles in the frame
+                        ForEachIdx<ParticleDomCfg> forEachParticle(workerIdx);
+
+                        forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                            destFramePtr[linearIdx] = DestFramePtr{};
+                            sharedLinearSuperCellIds[linearIdx] = -1;
+
+                            srcParticleIdxCtx[idx] = sharedSrcParticleOffset + linearIdx;
+                            hasValidParticleCtx[idx] = srcParticleIdxCtx[idx] < maxParticles;
+                        });
+
+                        cupla::__syncthreads(acc);
+
+                        // supercell index of the particle relative to the origin of the local domain
+                        memory::CtxArray<DataSpace<numDims>, ParticleDomCfg> particlesSuperCellCtx{};
+
+                        // linear cell index of the particle within the destination frame
+                        memory::CtxArray<lcellId_t, ParticleDomCfg> lCellIdxCtx(INV_LOC_IDX);
+
+                        memory::CtxArray<int, ParticleDomCfg> linearParticlesSuperCellCtx(-1);
+
+                        forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                            if(hasValidParticleCtx[idx])
+                            {
+                                // offset of the particle relative to the origin of the local domain
+                                DataSpace<numDims> const particleCellOffset
+                                    = srcFrame[srcParticleIdxCtx[idx]][domainCellIdxIdentifier]
+                                    - localDomainCellOffset;
+                                particlesSuperCellCtx[idx] = particleCellOffset / SuperCellSize::toRT();
+                                linearParticlesSuperCellCtx[idx]
+                                    = DataSpaceOperations<numDims>::map(numSuperCells, particlesSuperCellCtx[idx]);
+                                sharedLinearSuperCellIds[linearIdx] = linearParticlesSuperCellCtx[idx];
+                                DataSpace<numDims> const localCellIdx(
+                                    particleCellOffset - particlesSuperCellCtx[idx] * SuperCellSize::toRT());
+                                lCellIdxCtx[idx]
+                                    = DataSpaceOperations<numDims>::template map<SuperCellSize>(localCellIdx);
+                            }
+                        });
+
+                        cupla::__syncthreads(acc);
+
+                        memory::CtxArray<int, ParticleDomCfg> masterVirtualThreadIdxCtx(
+                            workerIdx,
+                            [&](uint32_t const linearIdx, uint32_t const) { return linearIdx - 1; });
+
+                        forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                            if(hasValidParticleCtx[idx])
+                            {
+                                auto& vThreadMasterIdx = masterVirtualThreadIdxCtx[idx];
+                                /* search master thread index */
+                                while(vThreadMasterIdx >= 0)
+                                {
+                                    if(linearParticlesSuperCellCtx[idx] != sharedLinearSuperCellIds[vThreadMasterIdx])
+                                        break;
+
+                                    --vThreadMasterIdx;
+                                }
+                                ++vThreadMasterIdx;
+
+                                // load empty frame if virtual thread is the master
+                                if(vThreadMasterIdx == linearIdx)
+                                {
+                                    /* counter[2] -> number of used frames */
+                                    nvidia::atomicAllInc(acc, &(counter[2]), ::alpaka::hierarchy::Blocks{});
+                                    DestFramePtr tmpFrame = destBox.getEmptyFrame(acc);
+                                    destFramePtr[linearIdx] = tmpFrame;
+                                    destBox.setAsFirstFrame(
+                                        acc,
+                                        tmpFrame,
+                                        particlesSuperCellCtx[idx] + cellDesc.getGuardingSuperCells());
+                                }
+                            }
+                        });
+
+                        cupla::__syncthreads(acc);
+
+                        forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                            if(hasValidParticleCtx[idx])
+                            {
+                                /* copy attributes and activate particle*/
+                                auto parDest = destFramePtr[masterVirtualThreadIdxCtx[idx]][linearIdx];
+                                auto parDestDeselect = deselect<bmpl::vector2<localCellIdx, multiMask>>(parDest);
+
+                                assign(parDestDeselect, srcFrame[srcParticleIdxCtx[idx]]);
+                                parDest[localCellIdx_] = lCellIdxCtx[idx];
+                                parDest[multiMask_] = 1;
+                                /* counter[1] -> number of loaded particles
+                                 * this counter is evaluated on host side
+                                 * (check that loaded particles by this kernel == loaded particles from HDF5 file)*/
+                                nvidia::atomicAllInc(acc, &(counter[1]), ::alpaka::hierarchy::Blocks{});
+                            }
+                        });
                     }
-                }
-            );
+                };
+            } // namespace kernel
 
-            cupla::__syncthreads( acc );
+            /** Copy particles from big frame to PMacc frame structure
+             *  (Opposite to ConcatListOfFrames)
+             *
+             * - convert a user-defined domainCellIdx to localCellIdx
+             * - processed particles per block <= number of cells per superCell
+             *
+             * @tparam T_LogLvl type of the loc level for debuging output
+             * @tparam T_DestSpecies pmacc:ParticlesBase, type of the destination species
+             * @tparam T_SrcFrame pmacc:ParticlesBox, type of the source particle frame
+             * @tparam T_Space pmacc::DataSpace, type for indicies and offsets within the domain
+             * @tparam T_Identifier Identifier, type of the identifier for the total domain offset
+             * @tparam T_CellDescription pmacc::MappingDescription, type of the domain description
+             *
+             * @param destSpecies particle species instance whose deviceBuffer is written
+             * @param srcFrame device frame with particles (is used as source)
+             * @param numParticles number of particles in srcFrame
+             * @param chunkSize number of particles to process in one kernel call
+             * @param localDomainCellOffset offset in cells to user-defined domain (@see wiki PIConGPU domain
+             * definitions)
+             * @param domainCellIdxIdentifier the identifier for the particle domain cellIdx
+             *                                that is calculated back to the local domain
+             *                                with respect to localDomainCellOffset
+             * @param cellDesc supercell domain description
+             * @param logLvl Log level used for information logging
+             */
+            template<
+                typename T_LogLvl,
+                typename T_DestSpecies,
+                typename T_SrcFrame,
+                typename T_Space,
+                typename T_Identifier,
+                typename T_CellDescription>
+            HINLINE void splitIntoListOfFrames(
+                T_DestSpecies& destSpecies,
+                T_SrcFrame srcFrame,
+                uint32_t numParticles,
+                uint32_t const chunkSize,
+                T_Space const& localDomainCellOffset,
+                T_Identifier const domainCellIdxIdentifier,
+                T_CellDescription const& cellDesc,
+                T_LogLvl const& logLvl = T_LogLvl())
+            {
+                using SuperCellSize = typename T_CellDescription::SuperCellSize;
+                uint32_t const cellsInSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
-            forEachParticle(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
+                /* counter is used to apply for work, count used frames and count loaded particles
+                 * [0] -> offset for loading particles
+                 * [1] -> number of loaded particles
+                 * [2] -> number of used frames
+                 *
+                 * all values are zero after initialization
+                 */
+                GridBuffer<uint32_t, DIM1> counterBuffer(DataSpace<DIM1>(3));
+
+                uint32_t const iterationsForLoad
+                    = math::float2int_ru(static_cast<double>(numParticles) / static_cast<double>(chunkSize));
+                uint32_t leftOverParticles = numParticles;
+
+                for(uint32_t i = 0; i < iterationsForLoad; ++i)
                 {
-                    if( hasValidParticleCtx[ idx ] )
-                    {
-                        /* copy attributes and activate particle*/
-                        auto parDest = destFramePtr[ masterVirtualThreadIdxCtx[ idx ] ][ linearIdx ];
-                        auto parDestDeselect = deselect<
-                            bmpl::vector2<
-                                localCellIdx,
-                                multiMask
-                            >
-                        >( parDest );
+                    /* only load a chunk of particles per iteration to avoid blow up of frame usage */
+                    uint32_t currentChunkSize = std::min(leftOverParticles, chunkSize);
+                    log(logLvl, "load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%")
+                        % (i * chunkSize) % currentChunkSize % leftOverParticles;
 
-                        assign(
-                            parDestDeselect,
-                            srcFrame[ srcParticleIdxCtx[ idx ] ]
-                        );
-                        parDest[ localCellIdx_ ] = lCellIdxCtx[ idx ];
-                        parDest[ multiMask_ ] = 1;
-                        /* counter[1] -> number of loaded particles
-                         * this counter is evaluated on host side
-                         * (check that loaded particles by this kernel == loaded particles from HDF5 file)*/
-                        nvidia::atomicAllInc(
-                            acc,
-                            &( counter[ 1 ] ),
-                            ::alpaka::hierarchy::Blocks{}
-                        );
-                    }
+                    constexpr uint32_t numWorkers
+                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+
+                    PMACC_KERNEL(kernel::SplitIntoListOfFrames<numWorkers>{})
+                    (math::float2int_ru(double(currentChunkSize) / double(cellsInSuperCell)), numWorkers)(
+                        counterBuffer.getDeviceBuffer().getDataBox(),
+                        destSpecies.getDeviceParticlesBox(),
+                        srcFrame,
+                        static_cast<int>(numParticles),
+                        localDomainCellOffset,
+                        domainCellIdxIdentifier,
+                        cellDesc);
+                    destSpecies.fillAllGaps();
+                    leftOverParticles -= currentChunkSize;
                 }
-            );
-        }
-    };
-} // namespace kernel
 
-    /** Copy particles from big frame to PMacc frame structure
-     *  (Opposite to ConcatListOfFrames)
-     *
-     * - convert a user-defined domainCellIdx to localCellIdx
-     * - processed particles per block <= number of cells per superCell
-     *
-     * @tparam T_LogLvl type of the loc level for debuging output
-     * @tparam T_DestSpecies pmacc:ParticlesBase, type of the destination species
-     * @tparam T_SrcFrame pmacc:ParticlesBox, type of the source particle frame
-     * @tparam T_Space pmacc::DataSpace, type for indicies and offsets within the domain
-     * @tparam T_Identifier Identifier, type of the identifier for the total domain offset
-     * @tparam T_CellDescription pmacc::MappingDescription, type of the domain description
-     *
-     * @param destSpecies particle species instance whose deviceBuffer is written
-     * @param srcFrame device frame with particles (is used as source)
-     * @param numParticles number of particles in srcFrame
-     * @param chunkSize number of particles to process in one kernel call
-     * @param localDomainCellOffset offset in cells to user-defined domain (@see wiki PIConGPU domain definitions)
-     * @param domainCellIdxIdentifier the identifier for the particle domain cellIdx
-     *                                that is calculated back to the local domain
-     *                                with respect to localDomainCellOffset
-     * @param cellDesc supercell domain description
-     * @param logLvl Log level used for information logging
-     */
-    template<
-        typename T_LogLvl,
-        typename T_DestSpecies,
-        typename T_SrcFrame,
-        typename T_Space,
-        typename T_Identifier,
-        typename T_CellDescription
-    >
-    HINLINE void splitIntoListOfFrames(
-        T_DestSpecies & destSpecies,
-        T_SrcFrame srcFrame,
-        uint32_t numParticles,
-        uint32_t const chunkSize,
-        T_Space const & localDomainCellOffset,
-        T_Identifier const domainCellIdxIdentifier,
-        T_CellDescription const & cellDesc,
-        T_LogLvl const & logLvl = T_LogLvl( )
-    )
-    {
-        using SuperCellSize = typename T_CellDescription::SuperCellSize;
-        uint32_t const cellsInSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
+                counterBuffer.deviceToHost();
+                log(logLvl, "wait for last processed chunk: %1%") % T_SrcFrame::getName();
 
-        /* counter is used to apply for work, count used frames and count loaded particles
-         * [0] -> offset for loading particles
-         * [1] -> number of loaded particles
-         * [2] -> number of used frames
-         *
-         * all values are zero after initialization
-         */
-        GridBuffer<
-            uint32_t,
-            DIM1
-        > counterBuffer( DataSpace<DIM1>( 3 ) );
+                __getTransactionEvent().waitForFinished();
 
-        uint32_t const iterationsForLoad = math::float2int_ru(
-            static_cast< double >( numParticles ) /
-            static_cast< double >( chunkSize )
-        );
-        uint32_t leftOverParticles = numParticles;
+                log(logLvl, "used frames to load particles: %1%") % counterBuffer.getHostBuffer().getDataBox()[2];
 
-        for( uint32_t i = 0; i < iterationsForLoad; ++i )
-        {
-            /* only load a chunk of particles per iteration to avoid blow up of frame usage */
-            uint32_t currentChunkSize = std::min(
-                leftOverParticles,
-                chunkSize
-            );
-            log(
-                logLvl,
-                "load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%"
-            ) % ( i * chunkSize ) %
-                currentChunkSize %
-                leftOverParticles;
+                if(static_cast<uint64_t>(counterBuffer.getHostBuffer().getDataBox()[1]) != numParticles)
+                {
+                    log(logLvl, "error load species | counter is %1% but should %2%")
+                        % counterBuffer.getHostBuffer().getDataBox()[1] % numParticles;
+                    throw std::runtime_error("Failed to load expected number of particles to GPU.");
+                }
+            }
 
-            constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-                pmacc::math::CT::volume< SuperCellSize >::type::value
-            >::value;
-
-            PMACC_KERNEL( kernel::SplitIntoListOfFrames< numWorkers >{ } )(
-                math::float2int_ru( double( currentChunkSize ) / double( cellsInSuperCell ) ),
-                numWorkers
-            )(
-                counterBuffer.getDeviceBuffer( ).getDataBox( ),
-                destSpecies.getDeviceParticlesBox( ),
-                srcFrame,
-                static_cast< int >( numParticles ),
-                localDomainCellOffset,
-                domainCellIdxIdentifier,
-                cellDesc
-            );
-            destSpecies.fillAllGaps( );
-            leftOverParticles -= currentChunkSize;
-        }
-
-        counterBuffer.deviceToHost( );
-        log(
-            logLvl,
-            "wait for last processed chunk: %1%"
-        ) % T_SrcFrame::getName( );
-
-        __getTransactionEvent( ).waitForFinished( );
-
-        log(
-            logLvl,
-            "used frames to load particles: %1%"
-        ) % counterBuffer.getHostBuffer( ).getDataBox( )[ 2 ];
-
-        if(
-            static_cast<uint64_t>( counterBuffer.getHostBuffer().getDataBox( )[ 1 ] ) !=
-            numParticles
-        )
-        {
-            log(
-                logLvl,
-                "error load species | counter is %1% but should %2%"
-            ) % counterBuffer.getHostBuffer( ).getDataBox( )[ 1 ] %
-                numParticles;
-            throw std::runtime_error( "Failed to load expected number of particles to GPU." );
-        }
-    }
-
-} // namespace operations
-} // namespace particles
+        } // namespace operations
+    } // namespace particles
 } // namespace pmacc

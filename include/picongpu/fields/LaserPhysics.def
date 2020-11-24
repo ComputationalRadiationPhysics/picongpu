@@ -22,4 +22,4 @@
 namespace picongpu
 {
     struct LaserPhysics;
-}//namespace picongpu
+} // namespace picongpu

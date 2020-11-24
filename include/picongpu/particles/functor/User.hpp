@@ -27,58 +27,48 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace functor
-{
-    template< typename T_Functor >
-    struct User : public T_Functor
+    namespace particles
     {
-
-        using Functor = T_Functor;
-
-        /** constructor
-         *
-         * This constructor is only compiled if the user functor has
-         * a host side constructor with one (uint32_t) argument.
-         *
-         * @tparam DeferFunctor is used to defer the functor type evaluation to enable/disable
-         *                      the constructor
-         * @param currentStep current simulation time step
-         * @param is used to enable/disable the constructor (do not pass any value to this parameter)
-         */
-        template< typename DeferFunctor = Functor >
-        HINLINE User(
-            uint32_t currentStep,
-            typename std::enable_if<
-                std::is_constructible<
-                    DeferFunctor,
-                    uint32_t
-                >::value
-            >::type* = 0
-        ) : Functor( currentStep )
+        namespace functor
         {
-        }
+            template<typename T_Functor>
+            struct User : public T_Functor
+            {
+                using Functor = T_Functor;
 
-        /** constructor
-         *
-         * This constructor is only compiled if the user functor has a default constructor.
-         *
-         * @tparam DeferFunctor is used to defer the functor type evaluation to enable/disable
-         *                      the constructor
-         * @param current simulation time step
-         * @param is used to enable/disable the constructor (do not pass any value to this parameter)
-         */
-        template< typename DeferFunctor = Functor >
-        HINLINE User(
-            uint32_t,
-            typename std::enable_if<
-                std::is_constructible< DeferFunctor >::value
-            >::type* = 0
-        ) : Functor( )
-        {
-        }
-    };
-} // namespace functor
-} // namespace particles
+                /** constructor
+                 *
+                 * This constructor is only compiled if the user functor has
+                 * a host side constructor with one (uint32_t) argument.
+                 *
+                 * @tparam DeferFunctor is used to defer the functor type evaluation to enable/disable
+                 *                      the constructor
+                 * @param currentStep current simulation time step
+                 * @param is used to enable/disable the constructor (do not pass any value to this parameter)
+                 */
+                template<typename DeferFunctor = Functor>
+                HINLINE User(
+                    uint32_t currentStep,
+                    typename std::enable_if<std::is_constructible<DeferFunctor, uint32_t>::value>::type* = 0)
+                    : Functor(currentStep)
+                {
+                }
+
+                /** constructor
+                 *
+                 * This constructor is only compiled if the user functor has a default constructor.
+                 *
+                 * @tparam DeferFunctor is used to defer the functor type evaluation to enable/disable
+                 *                      the constructor
+                 * @param current simulation time step
+                 * @param is used to enable/disable the constructor (do not pass any value to this parameter)
+                 */
+                template<typename DeferFunctor = Functor>
+                HINLINE User(uint32_t, typename std::enable_if<std::is_constructible<DeferFunctor>::value>::type* = 0)
+                    : Functor()
+                {
+                }
+            };
+        } // namespace functor
+    } // namespace particles
 } // namespace picongpu

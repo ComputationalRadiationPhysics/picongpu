@@ -28,39 +28,38 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<>
-struct SinCos<double, double, double>
-{
-    typedef void result;
-
-    HDINLINE void operator( )(double arg, double& sinValue, double& cosValue )
+    namespace math
     {
+        template<>
+        struct SinCos<double, double, double>
+        {
+            typedef void result;
+
+            HDINLINE void operator()(double arg, double& sinValue, double& cosValue)
+            {
 #if defined(_MSC_VER) && !defined(__CUDA_ARCH__)
-        sinValue = cupla::math::sin(arg);
-        cosValue = cupla::math::cos(arg);
+                sinValue = cupla::math::sin(arg);
+                cosValue = cupla::math::cos(arg);
 #else
-        ::sincos(arg, &sinValue, &cosValue);
+                ::sincos(arg, &sinValue, &cosValue);
 #endif
-    }
-};
+            }
+        };
 
 
-template<>
-struct Sinc<double>
-{
-    typedef double result;
+        template<>
+        struct Sinc<double>
+        {
+            typedef double result;
 
-    HDINLINE double operator( )(const double& value )
-    {
-        if(cupla::math::abs(value) < DBL_EPSILON)
-            return 1.0;
-        else
-            return cupla::math::sin( value )/value;
-    }
-};
+            HDINLINE double operator()(const double& value)
+            {
+                if(cupla::math::abs(value) < DBL_EPSILON)
+                    return 1.0;
+                else
+                    return cupla::math::sin(value) / value;
+            }
+        };
 
-} //namespace math
+    } // namespace math
 } // namespace pmacc

@@ -24,17 +24,16 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-    template<typename Type>
-    struct Log10;
-
-    template<typename T1>
-    HDINLINE typename Log10< T1 >::result log10(const T1& value)
+    namespace math
     {
-        return Log10< T1 > ()(value);
-    }
+        template<typename Type>
+        struct Log10;
 
-} //namespace math
-}//namespace pmacc
+        template<typename T1>
+        HDINLINE typename Log10<T1>::result log10(const T1& value)
+        {
+            return Log10<T1>()(value);
+        }
+
+    } // namespace math
+} // namespace pmacc

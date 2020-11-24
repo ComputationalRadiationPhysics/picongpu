@@ -25,9 +25,9 @@
 #include <boost/property_tree/xml_parser.hpp>
 
 // STL
-#include <string>    /* std::string */
-#include <sstream>   /* std::stringstream */
-#include <map>       /* std::map */
+#include <string> /* std::string */
+#include <sstream> /* std::stringstream */
+#include <map> /* std::map */
 #include <stdexcept> /* std::runtime_error */
 
 // C LIB
@@ -36,55 +36,45 @@
 
 namespace picongpu
 {
-namespace detail
-{
-    std::string
-    writeMapToPropertyTree(
-        std::map< std::string, size_t > valueMap,
-        std::string outputFormat
-    )
+    namespace detail
     {
-        // Create property tree which contains the resource information
-        using boost::property_tree::ptree;
-        ptree pt;
+        std::string writeMapToPropertyTree(std::map<std::string, size_t> valueMap, std::string outputFormat)
+        {
+            // Create property tree which contains the resource information
+            using boost::property_tree::ptree;
+            ptree pt;
 
-        for( auto it = valueMap.begin(); it != valueMap.end(); ++it ) {
-            pt.put( it->first, it->second );
-        }
+            for(auto it = valueMap.begin(); it != valueMap.end(); ++it)
+            {
+                pt.put(it->first, it->second);
+            }
 
-        // Write property tree to string stream
-        std::stringstream ss;
-        if( outputFormat == "json" )
-        {
-            write_json( ss, pt, false );
-        }
-        else if( outputFormat == "jsonpp" )
-        {
-            write_json( ss, pt, true );
-        }
-        else if( outputFormat == "xml" )
-        {
-            write_xml( ss, pt );
-        }
-        else if( outputFormat == "xmlpp" )
-        {
-            write_xml(
-                ss,
-                pt,
-                boost::property_tree::xml_writer_make_settings< std::string >( '\t', 1 )
-            );
-        }
-        else
-        {
-            throw std::runtime_error(
-                std::string( "resourcelog.format " ) +
-                outputFormat +
-                std::string( " is not known, use json or xml." )
-            );
-        }
+            // Write property tree to string stream
+            std::stringstream ss;
+            if(outputFormat == "json")
+            {
+                write_json(ss, pt, false);
+            }
+            else if(outputFormat == "jsonpp")
+            {
+                write_json(ss, pt, true);
+            }
+            else if(outputFormat == "xml")
+            {
+                write_xml(ss, pt);
+            }
+            else if(outputFormat == "xmlpp")
+            {
+                write_xml(ss, pt, boost::property_tree::xml_writer_make_settings<std::string>('\t', 1));
+            }
+            else
+            {
+                throw std::runtime_error(
+                    std::string("resourcelog.format ") + outputFormat
+                    + std::string(" is not known, use json or xml."));
+            }
 
-        return ss.str();
-    }
-} // namespace detail
+            return ss.str();
+        }
+    } // namespace detail
 } // namespace picongpu
-

@@ -18,7 +18,6 @@
  */
 
 
-
 #pragma once
 
 #include <pmacc/types.hpp>
@@ -30,7 +29,7 @@ namespace picongpu
 {
     using namespace pmacc;
 
-    class IInitPlugin :  public ILightweightPlugin
+    class IInitPlugin : public ILightweightPlugin
     {
     public:
         virtual void slide(uint32_t currentStep) = 0;
@@ -40,7 +39,5 @@ namespace picongpu
         virtual ~IInitPlugin()
         {
         }
-
     };
-}
-
+} // namespace picongpu

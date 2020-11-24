@@ -28,44 +28,46 @@
 
 namespace pmacc
 {
-namespace math
-{
-namespace CT
-{
+    namespace math
+    {
+        namespace CT
+        {
+            /** Compile time uint64_t vector
+             *
+             *
+             * @tparam x value for x allowed range [0;max uint64_t value -1]
+             * @tparam y value for y allowed range [0;max uint64_t value -1]
+             * @tparam z value for z allowed range [0;max uint64_t value -1]
+             *
+             * default parameter is used to distinguish between values given by
+             * the user and unset values.
+             */
+            template<
+                uint64_t x = traits::limits::Max<uint64_t>::value,
+                uint64_t y = traits::limits::Max<uint64_t>::value,
+                uint64_t z = traits::limits::Max<uint64_t>::value>
+            struct UInt64
+                : public CT::
+                      Vector<mpl::integral_c<uint64_t, x>, mpl::integral_c<uint64_t, y>, mpl::integral_c<uint64_t, z>>
+            {
+            };
 
-/** Compile time uint64_t vector
- *
- *
- * @tparam x value for x allowed range [0;max uint64_t value -1]
- * @tparam y value for y allowed range [0;max uint64_t value -1]
- * @tparam z value for z allowed range [0;max uint64_t value -1]
- *
- * default parameter is used to distinguish between values given by
- * the user and unset values.
- */
-template<uint64_t x = traits::limits::Max<uint64_t>::value,
-         uint64_t y = traits::limits::Max<uint64_t>::value,
-         uint64_t z = traits::limits::Max<uint64_t>::value>
-struct UInt64 : public CT::Vector<mpl::integral_c<uint64_t, x>,
-                                  mpl::integral_c<uint64_t, y>,
-                                  mpl::integral_c<uint64_t, z> >
-{};
+            template<>
+            struct UInt64<> : public CT::Vector<>
+            {
+            };
 
-template<>
-struct UInt64<> : public CT::Vector<>
-{};
+            template<uint64_t x>
+            struct UInt64<x> : public CT::Vector<mpl::integral_c<uint64_t, x>>
+            {
+            };
 
-template<uint64_t x>
-struct UInt64<x> : public CT::Vector< mpl::integral_c<uint64_t, x> >
-{};
-
-template<uint64_t x, uint64_t y>
-struct UInt64<x, y> : public CT::Vector<mpl::integral_c<uint64_t, x>,
-                                        mpl::integral_c<uint64_t, y> >
-{};
+            template<uint64_t x, uint64_t y>
+            struct UInt64<x, y> : public CT::Vector<mpl::integral_c<uint64_t, x>, mpl::integral_c<uint64_t, y>>
+            {
+            };
 
 
-
-} // CT
-} // math
-} // pmacc
+        } // namespace CT
+    } // namespace math
+} // namespace pmacc

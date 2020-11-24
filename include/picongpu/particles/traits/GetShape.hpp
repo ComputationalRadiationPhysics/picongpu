@@ -25,17 +25,15 @@
 
 namespace picongpu
 {
-namespace traits
-{
+    namespace traits
+    {
+        template<typename T_Species>
+        struct GetShape
+        {
+            using type = typename pmacc::traits::Resolve<
+                typename GetFlagType<typename T_Species::FrameType, shape<>>::type>::type;
+        };
 
-template<typename T_Species>
-struct GetShape
-{
-    using type = typename pmacc::traits::Resolve<
-        typename GetFlagType<typename T_Species::FrameType, shape<> >::type
-    >::type;
-};
+    } // namespace traits
 
-} //namespace traits
-
-}// namespace picongpu
+} // namespace picongpu

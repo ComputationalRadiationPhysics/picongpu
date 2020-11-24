@@ -23,39 +23,35 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace xrayScattering
-{
-namespace beam
-{
-namespace beamProfiles
-{
-    /** Gaussian beam transverse profile.
-     *
-     * @tparam T_ParamClass Param Class defining @f[ /sigma_x / /simga_y @f] .
-     */
-    template < typename T_ParamClass >
-    struct GaussianProfile  : public T_ParamClass
+    namespace plugins
     {
-        using ParamClass = T_ParamClass;
-
-        static HDINLINE float_X getFactor(
-            float_X const & x,
-            float_X const & y
-        )
+        namespace xrayScattering
         {
-            constexpr float_X s_x = ParamClass::sigmaX_SI / UNIT_LENGTH;
-            constexpr float_X s_y = ParamClass::sigmaY_SI / UNIT_LENGTH;
-            constexpr float_X tmp_x = x / s_x;
-            constexpr float_X tmp_y = y / s_y;
-            float_X exponent = -0.5 * ( tmp_x * tmp_x +
-                tmp_y * tmp_y );
-            return math::exp( exponent );
-        }
-    };
-} // namespace beamProfiles
-} // namespace beam
-} // namespace xrayScattering
-} // namespace plugins
+            namespace beam
+            {
+                namespace beamProfiles
+                {
+                    /** Gaussian beam transverse profile.
+                     *
+                     * @tparam T_ParamClass Param Class defining @f[ /sigma_x / /simga_y @f] .
+                     */
+                    template<typename T_ParamClass>
+                    struct GaussianProfile : public T_ParamClass
+                    {
+                        using ParamClass = T_ParamClass;
+
+                        static HDINLINE float_X getFactor(float_X const& x, float_X const& y)
+                        {
+                            constexpr float_X s_x = ParamClass::sigmaX_SI / UNIT_LENGTH;
+                            constexpr float_X s_y = ParamClass::sigmaY_SI / UNIT_LENGTH;
+                            constexpr float_X tmp_x = x / s_x;
+                            constexpr float_X tmp_y = y / s_y;
+                            float_X exponent = -0.5 * (tmp_x * tmp_x + tmp_y * tmp_y);
+                            return math::exp(exponent);
+                        }
+                    };
+                } // namespace beamProfiles
+            } // namespace beam
+        } // namespace xrayScattering
+    } // namespace plugins
 } // namespace picongpu

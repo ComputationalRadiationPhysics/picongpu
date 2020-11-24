@@ -24,14 +24,10 @@
 
 namespace picongpu
 {
-namespace traits
-{
-    template<
-        typename T_CellType,
-        typename T_Field,
-        uint32_t T_simDim = simDim
-    >
-    struct FieldPosition;
+    namespace traits
+    {
+        template<typename T_CellType, typename T_Field, uint32_t T_simDim = simDim>
+        struct FieldPosition;
 
-} // namespace traits
+    } // namespace traits
 } // namespace picongpu

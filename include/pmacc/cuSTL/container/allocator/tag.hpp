@@ -24,15 +24,15 @@
 
 namespace pmacc
 {
-namespace allocator
-{
-namespace tag
-{
-struct host;
-struct device;
-struct unspecified;
-} // tag
-} // allocator
-} // pmacc
+    namespace allocator
+    {
+        namespace tag
+        {
+            struct host;
+            struct device;
+            struct unspecified;
+        } // namespace tag
+    } // namespace allocator
+} // namespace pmacc
 
 #endif // ALLOCATOR_TAG_H

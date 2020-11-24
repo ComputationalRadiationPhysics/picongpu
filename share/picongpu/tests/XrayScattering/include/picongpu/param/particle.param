@@ -33,68 +33,62 @@
 
 namespace picongpu
 {
-namespace particles
-{
-
-    /** a particle with a weighting below MIN_WEIGHTING will not
-     *      be created / will be deleted
-     *
-     *  unit: none */
-    constexpr float_X MIN_WEIGHTING = 10.0;
-
-    /** Number of maximum particles per cell during density profile evaluation.
-     *
-     * Determines the weighting of a macro particle and with it, the number of
-     * particles "sampling" dynamics in phase space.
-     */
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1u;
-
-namespace manipulators
-{
-    // ionize ions once by removing one bound electron
-    struct OnceIonizedImpl
+    namespace particles
     {
-        template< typename T_Particle >
-        DINLINE void operator()(
-            T_Particle& particle
-        )
-        {
-            constexpr float_X protonNumber = GetAtomicNumbers<
-                T_Particle >::type::numberOfProtons;
-            particle[ boundElectrons_ ] = protonNumber - 1.0_X;
-        }
-    };
-    using OnceIonized = generic::Free< OnceIonizedImpl >;
-
-
-} // namespace manipulators
-
-namespace startPosition
-{
-
-    /** sit directly in the middle of the cell */
-    CONST_VECTOR(
-        float_X,
-        3,
-        InCellOffset,
-        /* each x, y, z in-cell position component in range [0.0, 1.0) */
-        0.5,
-        0.5,
-        0.5
-    );
-    struct OnePositionParameter
-    {
-        /** Count of particles per cell at initial state
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
          *
          *  unit: none */
-        static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+        constexpr float_X MIN_WEIGHTING = 10.0;
 
-        const InCellOffset_t inCellOffset;
-    };
+        /** Number of maximum particles per cell during density profile evaluation.
+         *
+         * Determines the weighting of a macro particle and with it, the number of
+         * particles "sampling" dynamics in phase space.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1u;
 
-    /** definition of one specific position for particle start */
-    using OnePosition = OnePositionImpl< OnePositionParameter >;
+        namespace manipulators
+        {
+            // ionize ions once by removing one bound electron
+            struct OnceIonizedImpl
+            {
+                template<typename T_Particle>
+                DINLINE void operator()(T_Particle& particle)
+                {
+                    constexpr float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
+                    particle[boundElectrons_] = protonNumber - 1.0_X;
+                }
+            };
+            using OnceIonized = generic::Free<OnceIonizedImpl>;
 
-} // namespace startPosition
-} // namespace particles
+
+        } // namespace manipulators
+
+        namespace startPosition
+        {
+            /** sit directly in the middle of the cell */
+            CONST_VECTOR(
+                float_X,
+                3,
+                InCellOffset,
+                /* each x, y, z in-cell position component in range [0.0, 1.0) */
+                0.5,
+                0.5,
+                0.5);
+            struct OnePositionParameter
+            {
+                /** Count of particles per cell at initial state
+                 *
+                 *  unit: none */
+                static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+
+                const InCellOffset_t inCellOffset;
+            };
+
+            /** definition of one specific position for particle start */
+            using OnePosition = OnePositionImpl<OnePositionParameter>;
+
+        } // namespace startPosition
+    } // namespace particles
 } // namespace picongpu

@@ -27,25 +27,27 @@
 #include "pmacc/particles/ParticlesBase.hpp"
 #include <boost/type_traits.hpp>
 
-namespace pmacc{
-
+namespace pmacc
+{
     /**
      * Trait that should return true if T is a particle species
      */
     template<typename T>
     struct IsParticleSpecies
     {
-        enum{ value = boost::is_same<typename T::SimulationDataTag, ParticlesTag>::value };
+        enum
+        {
+            value = boost::is_same<typename T::SimulationDataTag, ParticlesTag>::value
+        };
     };
 
-    namespace communication {
-
+    namespace communication
+    {
         template<typename T_Data>
-        struct AsyncCommunicationImpl<T_Data, Bool2Type<IsParticleSpecies<T_Data>::value> >
+        struct AsyncCommunicationImpl<T_Data, Bool2Type<IsParticleSpecies<T_Data>::value>>
         {
             template<class T_Particles>
-            EventTask
-            operator()(T_Particles& par, EventTask event) const
+            EventTask operator()(T_Particles& par, EventTask event) const
             {
                 EventTask ret;
                 __startTransaction(event);
@@ -59,5 +61,5 @@ namespace pmacc{
             }
         };
 
-    }  // namespace communication
-}  // namespace pmacc
+    } // namespace communication
+} // namespace pmacc

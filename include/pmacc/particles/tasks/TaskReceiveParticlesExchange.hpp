@@ -28,25 +28,25 @@
 
 namespace pmacc
 {
-
     template<class ParBase>
     class TaskReceiveParticlesExchange : public MPITask
     {
     public:
-
         enum
         {
             Dim = ParBase::Dim,
             Exchanges = traits::NumberOfExchanges<Dim>::value
         };
 
-        TaskReceiveParticlesExchange(ParBase &parBase, uint32_t exchange) :
-        parBase(parBase),
-        exchange(exchange),
-        state(Constructor),
-        maxSize(parBase.getParticlesBuffer().getReceiveExchangeStack(exchange).getMaxParticlesCount()),
-        initDependency(__getTransactionEvent()),
-        lastSize(0) { }
+        TaskReceiveParticlesExchange(ParBase& parBase, uint32_t exchange)
+            : parBase(parBase)
+            , exchange(exchange)
+            , state(Constructor)
+            , maxSize(parBase.getParticlesBuffer().getReceiveExchangeStack(exchange).getMaxParticlesCount())
+            , initDependency(__getTransactionEvent())
+            , lastSize(0)
+        {
+        }
 
         virtual void init()
         {
@@ -58,48 +58,49 @@ namespace pmacc
 
         bool executeIntern()
         {
-            switch (state)
+            switch(state)
             {
-                case Init:
-                    break;
-                case WaitForReceive:
+            case Init:
+                break;
+            case WaitForReceive:
 
-                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastReceiveEvent.getTaskId()))
-                    {
-                        state = InitInsert;
-                        //bash is finished
-                        __startTransaction();
-                        lastSize = parBase.getParticlesBuffer().getReceiveExchangeStack(exchange).getHostParticlesCurrentSize();
-                        parBase.insertParticles(exchange);
-                        tmpEvent = __endTransaction();
-                        initDependency = tmpEvent;
-                        state = WaitForInsert;
-                    }
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastReceiveEvent.getTaskId()))
+                {
+                    state = InitInsert;
+                    // bash is finished
+                    __startTransaction();
+                    lastSize
+                        = parBase.getParticlesBuffer().getReceiveExchangeStack(exchange).getHostParticlesCurrentSize();
+                    parBase.insertParticles(exchange);
+                    tmpEvent = __endTransaction();
+                    initDependency = tmpEvent;
+                    state = WaitForInsert;
+                }
 
-                    break;
-                case InitInsert:
-                    break;
-                case WaitForInsert:
-                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                break;
+            case InitInsert:
+                break;
+            case WaitForInsert:
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                {
+                    state = Wait;
+                    PMACC_ASSERT(lastSize <= maxSize);
+                    // check for next bash round
+                    if(lastSize == maxSize)
+                        init(); // call init and run a full send cycle
+                    else
                     {
-                        state=Wait;
-                        PMACC_ASSERT(lastSize <= maxSize);
-                        //check for next bash round
-                        if (lastSize == maxSize)
-                            init(); //call init and run a full send cycle
-                        else
-                        {
-                            state = Finished;
-                            return true;
-                        }
+                        state = Finished;
+                        return true;
                     }
-                    break;
-                case Wait:
-                    break;
-                case Finished:
-                    return true;
-                default:
-                    return false;
+                }
+                break;
+            case Wait:
+                break;
+            case Finished:
+                return true;
+            default:
+                return false;
             }
 
             return false;
@@ -110,7 +111,9 @@ namespace pmacc
             notify(this->myId, RECVFINISHED, nullptr);
         }
 
-        void event(id_t, EventType, IEventData*) { }
+        void event(id_t, EventType, IEventData*)
+        {
+        }
 
         std::string toString()
         {
@@ -118,7 +121,6 @@ namespace pmacc
         }
 
     private:
-
         enum state_t
         {
             Constructor,
@@ -132,8 +134,6 @@ namespace pmacc
         };
 
 
-
-
         ParBase& parBase;
         state_t state;
         EventTask tmpEvent;
@@ -144,4 +144,4 @@ namespace pmacc
         size_t lastSize;
     };
 
-} //namespace pmacc
+} // namespace pmacc

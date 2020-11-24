@@ -18,7 +18,6 @@
  */
 
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
@@ -29,101 +28,89 @@
 
 namespace picongpu
 {
-
-/** interpolate field which are defined on a grid to a point inside of a grid
- *
- * interpolate around a point from -AssignmentFunction::support/2 to
- * (AssignmentFunction::support+1)/2
- *
- * \tparam GridShiftMethod functor which shift coordinate system that al value are
- * located on corner
- * \tparam AssignmentFunction AssignmentFunction which is used for interpolation
- * \tparam InterpolationMethod functor for interpolation method
- */
-template<class T_Shape, class InterpolationMethod>
-struct FieldToParticleInterpolation
-{
-    using AssignmentFunction = typename T_Shape::ChargeAssignmentOnSupport;
-    static constexpr int supp = AssignmentFunction::support;
-
-    static constexpr int lowerMargin = supp / 2 ;
-    static constexpr int upperMargin = (supp + 1) / 2;
-    using LowerMargin = typename pmacc::math::CT::make_Int<simDim,lowerMargin>::type;
-    using UpperMargin = typename pmacc::math::CT::make_Int<simDim,upperMargin>::type;
-
-    PMACC_CASSERT_MSG(
-        __FieldToParticleInterpolation_supercell_is_too_small_for_stencil,
-        pmacc::math::CT::min<
-            typename pmacc::math::CT::mul<
-                SuperCellSize,
-                GuardSize
-            >::type
-        >::type::value >= lowerMargin &&
-        pmacc::math::CT::min<
-            typename pmacc::math::CT::mul<
-                SuperCellSize,
-                GuardSize
-            >::type
-        >::type::value >= upperMargin
-    );
-
-    /*(supp + 1) % 2 is 1 for even supports else 0*/
-    static constexpr int begin = -supp / 2 + (supp + 1) % 2;
-    static constexpr int end = begin+supp-1;
-
-
-    template<class Cursor, class VecVector>
-    HDINLINE typename Cursor::ValueType operator()(Cursor field,
-                                                   const floatD_X& particlePos,
-                                                   const VecVector& fieldPos)
+    /** interpolate field which are defined on a grid to a point inside of a grid
+     *
+     * interpolate around a point from -AssignmentFunction::support/2 to
+     * (AssignmentFunction::support+1)/2
+     *
+     * \tparam GridShiftMethod functor which shift coordinate system that al value are
+     * located on corner
+     * \tparam AssignmentFunction AssignmentFunction which is used for interpolation
+     * \tparam InterpolationMethod functor for interpolation method
+     */
+    template<class T_Shape, class InterpolationMethod>
+    struct FieldToParticleInterpolation
     {
-        /**\brief:
-         * The following calls seperate the vector interpolation into
-         * independent scalar interpolations.
-         */
-        using Supports = typename pmacc::math::CT::make_Int<simDim,supp>::type;
+        using AssignmentFunction = typename T_Shape::ChargeAssignmentOnSupport;
+        static constexpr int supp = AssignmentFunction::support;
 
-        typename Cursor::ValueType result;
-        for(uint32_t i = 0; i < Cursor::ValueType::dim; i++)
+        static constexpr int lowerMargin = supp / 2;
+        static constexpr int upperMargin = (supp + 1) / 2;
+        using LowerMargin = typename pmacc::math::CT::make_Int<simDim, lowerMargin>::type;
+        using UpperMargin = typename pmacc::math::CT::make_Int<simDim, upperMargin>::type;
+
+        PMACC_CASSERT_MSG(
+            __FieldToParticleInterpolation_supercell_is_too_small_for_stencil,
+            pmacc::math::CT::min<typename pmacc::math::CT::mul<SuperCellSize, GuardSize>::type>::type::value
+                    >= lowerMargin
+                && pmacc::math::CT::min<typename pmacc::math::CT::mul<SuperCellSize, GuardSize>::type>::type::value
+                    >= upperMargin);
+
+        /*(supp + 1) % 2 is 1 for even supports else 0*/
+        static constexpr int begin = -supp / 2 + (supp + 1) % 2;
+        static constexpr int end = begin + supp - 1;
+
+
+        template<class Cursor, class VecVector>
+        HDINLINE typename Cursor::ValueType operator()(
+            Cursor field,
+            const floatD_X& particlePos,
+            const VecVector& fieldPos)
         {
-            auto fieldComponent = pmacc::cursor::make_FunctorCursor(
-                field,
-                pmacc::algorithm::functor::GetComponent<float_X>(i)
-            );
-            floatD_X particlePosShifted = particlePos;
-            ShiftCoordinateSystem<Supports>()(fieldComponent, particlePosShifted, fieldPos[i]);
-            result[i] = InterpolationMethod::template interpolate<AssignmentFunction, begin, end > (fieldComponent, particlePosShifted);
+            /**\brief:
+             * The following calls seperate the vector interpolation into
+             * independent scalar interpolations.
+             */
+            using Supports = typename pmacc::math::CT::make_Int<simDim, supp>::type;
+
+            typename Cursor::ValueType result;
+            for(uint32_t i = 0; i < Cursor::ValueType::dim; i++)
+            {
+                auto fieldComponent
+                    = pmacc::cursor::make_FunctorCursor(field, pmacc::algorithm::functor::GetComponent<float_X>(i));
+                floatD_X particlePosShifted = particlePos;
+                ShiftCoordinateSystem<Supports>()(fieldComponent, particlePosShifted, fieldPos[i]);
+                result[i] = InterpolationMethod::template interpolate<AssignmentFunction, begin, end>(
+                    fieldComponent,
+                    particlePosShifted);
+            }
+
+            return result;
         }
 
-        return result;
-    }
+        static pmacc::traits::StringProperty getStringProperties()
+        {
+            GetStringProperties<InterpolationMethod> propList;
+            return propList;
+        }
+    };
 
-    static pmacc::traits::StringProperty getStringProperties()
+    namespace traits
     {
-        GetStringProperties<InterpolationMethod> propList;
-        return propList;
-    }
+        /*Get margin of a solver
+         * class must define a LowerMargin and UpperMargin
+         */
+        template<class AssignMethod, class InterpolationMethod>
+        struct GetMargin<picongpu::FieldToParticleInterpolation<AssignMethod, InterpolationMethod>>
+        {
+        private:
+            using Interpolation = picongpu::FieldToParticleInterpolation<AssignMethod, InterpolationMethod>;
 
-};
+        public:
+            using LowerMargin = typename Interpolation::LowerMargin;
+            using UpperMargin = typename Interpolation::UpperMargin;
+        };
 
-namespace traits
-{
+    } // namespace traits
 
-/*Get margin of a solver
- * class must define a LowerMargin and UpperMargin
- */
-template<class AssignMethod, class InterpolationMethod>
-struct GetMargin<picongpu::FieldToParticleInterpolation<AssignMethod, InterpolationMethod> >
-{
-private:
-    using Interpolation = picongpu::FieldToParticleInterpolation<AssignMethod, InterpolationMethod>;
-public:
-    using LowerMargin = typename Interpolation::LowerMargin;
-    using UpperMargin = typename Interpolation::UpperMargin;
-};
-
-} //namespace traits
-
-} //namespace picongpu
-
-
+} // namespace picongpu

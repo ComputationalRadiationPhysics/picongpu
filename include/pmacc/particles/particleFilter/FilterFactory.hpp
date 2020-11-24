@@ -37,27 +37,12 @@
 
 namespace pmacc
 {
-
-
-
-template<typename UserTypeList = bmpl::vector<NullFrame> >
+    template<typename UserTypeList = bmpl::vector<NullFrame>>
     class FilterFactory
-{
-public:
+    {
+    public:
+        typedef
+            typename LinearInherit<typename MakeSeq<DefaultFilter<>, UserTypeList, TrueFilter>::type>::type FilterType;
+    };
 
-    typedef
-    typename LinearInherit
-    <
-        typename MakeSeq<
-           DefaultFilter<> ,
-           UserTypeList,
-           TrueFilter
-        >::type
-    >::type FilterType;
-
-};
-
-}//namespace pmacc
-
-
-
+} // namespace pmacc

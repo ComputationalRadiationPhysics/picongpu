@@ -29,7 +29,6 @@
 
 namespace pmacc
 {
-
     /**
      * Helper class for debugging exchange types.
      *
@@ -37,7 +36,6 @@ namespace pmacc
     class DebugExchangeTypes
     {
     public:
-
         /**
          * Converts an exchange type to a string for debugging.
          *
@@ -51,22 +49,22 @@ namespace pmacc
             std::stringstream stream;
             stream << "[";
 
-            if (mask.containsExchangeType(LEFT))
+            if(mask.containsExchangeType(LEFT))
                 stream << "LEFT ";
 
-            if (mask.containsExchangeType(RIGHT))
+            if(mask.containsExchangeType(RIGHT))
                 stream << "RIGHT ";
 
-            if (mask.containsExchangeType(TOP))
+            if(mask.containsExchangeType(TOP))
                 stream << "TOP ";
 
-            if (mask.containsExchangeType(BOTTOM))
+            if(mask.containsExchangeType(BOTTOM))
                 stream << "BOTTOM ";
 
-            if (mask.containsExchangeType(FRONT))
+            if(mask.containsExchangeType(FRONT))
                 stream << "FRONT ";
 
-            if (mask.containsExchangeType(BACK))
+            if(mask.containsExchangeType(BACK))
                 stream << "BACK ";
 
             stream << "]";
@@ -75,4 +73,4 @@ namespace pmacc
         }
     };
 
-}
+} // namespace pmacc

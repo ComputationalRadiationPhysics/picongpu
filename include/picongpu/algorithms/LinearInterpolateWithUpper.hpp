@@ -18,7 +18,6 @@
  */
 
 
-
 #pragma once
 
 #include <pmacc/types.hpp>
@@ -26,60 +25,57 @@
 
 namespace picongpu
 {
-
-/** Calculate linear interpolation to upper cell value
- *
- * @tparam T_Dim for how many dimensions does this operator interpolate
- *
- * If `GetDifference` is called for a direction greater or equal T_Dim,
- * a zeroed value is returned (assumes symmetry in those directions).
- */
-template<uint32_t T_Dim>
-struct LinearInterpolateWithUpper
-{
-    static constexpr uint32_t dim = T_Dim;
-
-    using OffsetOrigin = typename pmacc::math::CT::make_Int<dim, 0>::type;
-    using OffsetEnd = typename pmacc::math::CT::make_Int<dim, 1>::type;
-
-    /** calculate the linear interpolation for a given direction
+    /** Calculate linear interpolation to upper cell value
      *
-     * @tparam T_direction direction for the interpolation operation
-     * @tparam T_isLesserThanDim not needed/ this is calculated by the compiler
+     * @tparam T_Dim for how many dimensions does this operator interpolate
+     *
+     * If `GetDifference` is called for a direction greater or equal T_Dim,
+     * a zeroed value is returned (assumes symmetry in those directions).
      */
-    template<uint32_t T_direction, bool T_isLesserThanDim = (T_direction < dim)>
-    struct GetInterpolatedValue
+    template<uint32_t T_Dim>
+    struct LinearInterpolateWithUpper
     {
-        static constexpr uint32_t direction = T_direction;
+        static constexpr uint32_t dim = T_Dim;
 
-        /** get interpolated value
-         * @return interpolated value
+        using OffsetOrigin = typename pmacc::math::CT::make_Int<dim, 0>::type;
+        using OffsetEnd = typename pmacc::math::CT::make_Int<dim, 1>::type;
+
+        /** calculate the linear interpolation for a given direction
+         *
+         * @tparam T_direction direction for the interpolation operation
+         * @tparam T_isLesserThanDim not needed/ this is calculated by the compiler
          */
-        template<class Memory >
-        HDINLINE typename Memory::ValueType operator()(const Memory& mem) const
+        template<uint32_t T_direction, bool T_isLesserThanDim = (T_direction < dim)>
+        struct GetInterpolatedValue
         {
-            const DataSpace<dim> indexIdentity; /* defaults to (0, 0, 0) in 3D */
-            DataSpace<dim> indexUpper; /* e.g., (0, 1, 0) for direction y in 3D */
-            indexUpper[direction] = 1;
+            static constexpr uint32_t direction = T_direction;
 
-            return ( mem(indexUpper) + mem(indexIdentity)) * Memory::ValueType::create(0.5);
-        }
+            /** get interpolated value
+             * @return interpolated value
+             */
+            template<class Memory>
+            HDINLINE typename Memory::ValueType operator()(const Memory& mem) const
+            {
+                const DataSpace<dim> indexIdentity; /* defaults to (0, 0, 0) in 3D */
+                DataSpace<dim> indexUpper; /* e.g., (0, 1, 0) for direction y in 3D */
+                indexUpper[direction] = 1;
+
+                return (mem(indexUpper) + mem(indexIdentity)) * Memory::ValueType::create(0.5);
+            }
+        };
+
+        /** special case for `direction >= simulation dimensions`*/
+        template<uint32_t T_direction>
+        struct GetInterpolatedValue<T_direction, false>
+        {
+            /** @return always identity
+             */
+            template<class Memory>
+            HDINLINE typename Memory::ValueType operator()(const Memory& mem) const
+            {
+                return *mem;
+            }
+        };
     };
 
-    /** special case for `direction >= simulation dimensions`*/
-    template<uint32_t T_direction>
-    struct GetInterpolatedValue<T_direction, false>
-    {
-
-        /** @return always identity
-         */
-        template<class Memory >
-        HDINLINE typename Memory::ValueType operator()(const Memory& mem) const
-        {
-            return *mem;
-        }
-    };
-
-};
-
-} //namespace picongpu
+} // namespace picongpu

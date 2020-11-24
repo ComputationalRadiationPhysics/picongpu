@@ -26,35 +26,32 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-
-    HDINLINE float1_64
-    Density::getUnit() const
+    namespace particles
     {
-        const float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
-        return particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / UNIT_VOLUME;
-    }
+        namespace particleToGrid
+        {
+            namespace derivedAttributes
+            {
+                HDINLINE float1_64 Density::getUnit() const
+                {
+                    const float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
+                    return particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / UNIT_VOLUME;
+                }
 
-    template< class T_Particle >
-    DINLINE float_X
-    Density::operator()( T_Particle& particle ) const
-    {
-        /* read existing attributes */
-        const float_X weighting = particle[weighting_];
+                template<class T_Particle>
+                DINLINE float_X Density::operator()(T_Particle& particle) const
+                {
+                    /* read existing attributes */
+                    const float_X weighting = particle[weighting_];
 
-        /* calculate new attribute */
-        const float_X particleDensity = weighting /
-            ( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * CELL_VOLUME );
+                    /* calculate new attribute */
+                    const float_X particleDensity
+                        = weighting / (particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * CELL_VOLUME);
 
-        /* return attribute */
-        return particleDensity;
-    }
-} // namespace derivedAttributes
-} // namespace particleToGrid
-} // namespace particles
+                    /* return attribute */
+                    return particleDensity;
+                }
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
 } // namespace picongpu

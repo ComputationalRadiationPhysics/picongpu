@@ -27,76 +27,71 @@
 
 namespace pmacc
 {
-namespace random
-{
-
-    /**
-     * A reference to a state of a RNG provider
-     */
-    template<class T_RNGProvider>
-    struct RNGHandle
+    namespace random
     {
-        typedef T_RNGProvider RNGProvider;
-        static constexpr uint32_t rngDim = RNGProvider::dim;
-        typedef typename RNGProvider::DataBoxType RNGBox;
-        typedef typename RNGProvider::RNGMethod RNGMethod;
-        typedef typename RNGMethod::StateType RNGState;
-        typedef pmacc::DataSpace<rngDim> RNGSpace;
-
-        template<class T_Distribution>
-        struct GetRandomType
+        /**
+         * A reference to a state of a RNG provider
+         */
+        template<class T_RNGProvider>
+        struct RNGHandle
         {
-            typedef typename T_Distribution::template applyMethod<RNGMethod>::type Distribution;
-            typedef Random<Distribution, RNGMethod, RNGState*> type;
+            typedef T_RNGProvider RNGProvider;
+            static constexpr uint32_t rngDim = RNGProvider::dim;
+            typedef typename RNGProvider::DataBoxType RNGBox;
+            typedef typename RNGProvider::RNGMethod RNGMethod;
+            typedef typename RNGMethod::StateType RNGState;
+            typedef pmacc::DataSpace<rngDim> RNGSpace;
+
+            template<class T_Distribution>
+            struct GetRandomType
+            {
+                typedef typename T_Distribution::template applyMethod<RNGMethod>::type Distribution;
+                typedef Random<Distribution, RNGMethod, RNGState*> type;
+            };
+
+            /**
+             * Creates an instance of the functor
+             *
+             * @param rngBox Databox of the RNG provider
+             */
+            RNGHandle(const RNGBox& rngBox) : m_rngBox(rngBox)
+            {
+            }
+
+            /**
+             * Initializes this instance
+             *
+             * \param cellIdx index into the underlying RNG provider
+             */
+            HDINLINE void init(const RNGSpace& cellIdx)
+            {
+                m_rngBox = m_rngBox.shift(cellIdx);
+            }
+
+            HDINLINE RNGState& getState()
+            {
+                return m_rngBox(RNGSpace::create(0));
+            }
+
+            HDINLINE RNGState& operator*()
+            {
+                return m_rngBox(RNGSpace::create(0));
+            }
+
+            HDINLINE RNGState& operator->()
+            {
+                return m_rngBox(RNGSpace::create(0));
+            }
+
+            template<class T_Distribution>
+            HDINLINE typename GetRandomType<T_Distribution>::type applyDistribution()
+            {
+                return typename GetRandomType<T_Distribution>::type(&getState());
+            }
+
+        protected:
+            PMACC_ALIGN8(m_rngBox, RNGBox);
         };
 
-        /**
-         * Creates an instance of the functor
-         *
-         * @param rngBox Databox of the RNG provider
-         */
-        RNGHandle(const RNGBox& rngBox): m_rngBox(rngBox)
-        {}
-
-        /**
-         * Initializes this instance
-         *
-         * \param cellIdx index into the underlying RNG provider
-         */
-        HDINLINE void
-        init(const RNGSpace& cellIdx)
-        {
-            m_rngBox = m_rngBox.shift(cellIdx);
-        }
-
-        HDINLINE RNGState&
-        getState()
-        {
-            return m_rngBox(RNGSpace::create(0));
-        }
-
-        HDINLINE RNGState&
-        operator*()
-        {
-            return m_rngBox(RNGSpace::create(0));
-        }
-
-        HDINLINE RNGState&
-        operator->()
-        {
-            return m_rngBox(RNGSpace::create(0));
-        }
-
-        template<class T_Distribution>
-        HDINLINE typename GetRandomType<T_Distribution>::type
-        applyDistribution()
-        {
-            return typename GetRandomType<T_Distribution>::type(&getState());
-        }
-
-    protected:
-        PMACC_ALIGN8(m_rngBox, RNGBox);
-    };
-
-}  // namespace random
-}  // namespace pmacc
+    } // namespace random
+} // namespace pmacc

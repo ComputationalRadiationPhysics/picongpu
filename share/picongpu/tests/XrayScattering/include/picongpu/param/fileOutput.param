@@ -63,41 +63,27 @@ namespace picongpu
     namespace deriveField = particles::particleToGrid;
 
     /* ChargeDensity section */
-    using ChargeDensity_Seq = deriveField::CreateEligible_t<
-        VectorAllSpecies,
-        deriveField::derivedAttributes::ChargeDensity
-    >;
+    using ChargeDensity_Seq
+        = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::ChargeDensity>;
 
     /* Density section */
-    using Density_Seq = deriveField::CreateEligible_t<
-        VectorAllSpecies,
-        deriveField::derivedAttributes::Density
-    >;
+    using Density_Seq = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::Density>;
 
 
     /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
      *
      * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
      */
-    using FieldTmpSolvers = MakeSeq_t<
-        ChargeDensity_Seq,
-        Density_Seq
-    >;
+    using FieldTmpSolvers = MakeSeq_t<ChargeDensity_Seq, Density_Seq>;
 
 
     /** FileOutputFields: Groups all Fields that shall be dumped *************/
 
     /** Possible native fields: FieldE, FieldB, FieldJ
      */
-    using NativeFileOutputFields = MakeSeq_t<
-        FieldE,
-        FieldB
-    >;
+    using NativeFileOutputFields = MakeSeq_t<FieldE, FieldB>;
 
-    using FileOutputFields = MakeSeq_t<
-        NativeFileOutputFields,
-        FieldTmpSolvers
-    >;
+    using FileOutputFields = MakeSeq_t<NativeFileOutputFields, FieldTmpSolvers>;
 
 
     /** FileOutputParticles: Groups all Species that shall be dumped **********
@@ -107,4 +93,4 @@ namespace picongpu
      */
     using FileOutputParticles = VectorAllSpecies;
 
-}
+} // namespace picongpu

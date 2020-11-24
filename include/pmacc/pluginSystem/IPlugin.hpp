@@ -39,7 +39,6 @@ namespace pmacc
     class PluginException : public std::runtime_error
     {
     public:
-
         PluginException(const char* message) : std::runtime_error(message)
         {
         }
@@ -55,11 +54,8 @@ namespace pmacc
     class IPlugin : public INotify
     {
     public:
-
-        IPlugin() :
-        loaded(false), lastCheckpoint(0)
+        IPlugin() : loaded(false), lastCheckpoint(0)
         {
-
         }
 
         virtual ~IPlugin()
@@ -128,7 +124,8 @@ namespace pmacc
          * \param direction the direction the particles are leaving the simulation
          */
         virtual void onParticleLeave(const std::string& /*speciesName*/, const int32_t /*direction*/)
-        {}
+        {
+        }
 
         /** When was the plugin checkpointed last?
          *
@@ -143,7 +140,7 @@ namespace pmacc
          *
          * @param currentStep current simulation iteration step
          */
-        void setLastCheckpoint( uint32_t currentStep )
+        void setLastCheckpoint(uint32_t currentStep)
         {
             lastCheckpoint = currentStep;
         }
@@ -162,4 +159,4 @@ namespace pmacc
         bool loaded;
         uint32_t lastCheckpoint;
     };
-}
+} // namespace pmacc

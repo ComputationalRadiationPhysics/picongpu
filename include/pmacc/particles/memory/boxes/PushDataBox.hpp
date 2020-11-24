@@ -21,7 +21,6 @@
  */
 
 
-
 #pragma once
 
 
@@ -32,8 +31,6 @@
 
 namespace pmacc
 {
-
-
     /**
      * Implements a Box to which elements can only be added, using atomic operations.
      *
@@ -41,10 +38,9 @@ namespace pmacc
      * @tparam VALUE datatype for values addresses point to
      */
     template<class TYPE, class VALUE>
-    class PushDataBox : public DataBox<PitchedBox<VALUE, DIM1> >
+    class PushDataBox : public DataBox<PitchedBox<VALUE, DIM1>>
     {
     public:
-
         /**
          * Constructor.
          *
@@ -52,11 +48,11 @@ namespace pmacc
          * @param offset relative offset to pointer start address
          * @param currentSize size of the buffer data points to
          */
-        HDINLINE PushDataBox(VALUE *data, TYPE *currentSize, DataSpace<DIM1> offset=DataSpace<DIM1>(0)) :
-        DataBox<PitchedBox<VALUE, DIM1> >(PitchedBox<VALUE,DIM1> ( data, offset)),
-        currentSize(currentSize),maxSize(0) /*\todo implement max size*/
+        HDINLINE PushDataBox(VALUE* data, TYPE* currentSize, DataSpace<DIM1> offset = DataSpace<DIM1>(0))
+            : DataBox<PitchedBox<VALUE, DIM1>>(PitchedBox<VALUE, DIM1>(data, offset))
+            , currentSize(currentSize)
+            , maxSize(0) /*\todo implement max size*/
         {
-
         }
 
         /** Increases the size of the stack with count elements in an atomic operation
@@ -73,11 +69,11 @@ namespace pmacc
          *
          * @return a TileDataBox of size count pointing to the new stack elements
          */
-        template< typename T_Acc, typename T_Hierarchy >
-        HDINLINE TileDataBox<VALUE> pushN(T_Acc const & acc, TYPE count, T_Hierarchy const & hierarchy)
+        template<typename T_Acc, typename T_Hierarchy>
+        HDINLINE TileDataBox<VALUE> pushN(T_Acc const& acc, TYPE count, T_Hierarchy const& hierarchy)
         {
             TYPE old_addr = cupla::atomicAdd(acc, currentSize, count, hierarchy);
-            return TileDataBox<VALUE > (this->fixedPointer, DataSpace<DIM1>(old_addr));
+            return TileDataBox<VALUE>(this->fixedPointer, DataSpace<DIM1>(old_addr));
         }
 
         /** Adds a value to the stack in an atomic operation.
@@ -94,15 +90,15 @@ namespace pmacc
          *
          * @return a TileDataBox of size count pointing to the new stack elements
          */
-        template< typename T_Acc, typename T_Hierarchy >
-        HDINLINE void push(T_Acc const & acc, VALUE val, T_Hierarchy const & hierarchy)
+        template<typename T_Acc, typename T_Hierarchy>
+        HDINLINE void push(T_Acc const& acc, VALUE val, T_Hierarchy const& hierarchy)
         {
             TYPE old_addr = cupla::atomicAdd(acc, currentSize, 1, hierarchy);
             (*this)[old_addr] = val;
         }
 
     protected:
-        PMACC_ALIGN(maxSize,TYPE);
-        PMACC_ALIGN(currentSize,TYPE*);
+        PMACC_ALIGN(maxSize, TYPE);
+        PMACC_ALIGN(currentSize, TYPE*);
     };
-}
+} // namespace pmacc

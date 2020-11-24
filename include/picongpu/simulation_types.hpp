@@ -34,41 +34,42 @@
 
 namespace picongpu
 {
+    //! define all elements which can send and resive
 
-//! define all elements which can send and resive
-
-enum CommunicationTag
-{
-    NO_COMMUNICATION = 0u,
-    FIELD_B = 1u,
-    FIELD_E = 2u,
-    FIELD_J = 3u,
-    FIELD_JRECV = 4u,
-    SPECIES_FIRSTTAG = 42u
-};
+    enum CommunicationTag
+    {
+        NO_COMMUNICATION = 0u,
+        FIELD_B = 1u,
+        FIELD_E = 2u,
+        FIELD_J = 3u,
+        FIELD_JRECV = 4u,
+        SPECIES_FIRSTTAG = 42u
+    };
 
 
-//! defines field types some various methods (e.g. Laser::manipulate)
+    //! defines field types some various methods (e.g. Laser::manipulate)
 
-enum FieldType
-{
-    FIELD_TYPE_E, FIELD_TYPE_B, FIELD_TYPE_TMP
-};
+    enum FieldType
+    {
+        FIELD_TYPE_E,
+        FIELD_TYPE_B,
+        FIELD_TYPE_TMP
+    };
 
-namespace precision32Bit
-{
-using precisionType = float;
-}
+    namespace precision32Bit
+    {
+        using precisionType = float;
+    }
 
-namespace precision64Bit
-{
-using precisionType = double;
-}
+    namespace precision64Bit
+    {
+        using precisionType = double;
+    }
 
-namespace math = cupla::device::math;
-using namespace pmacc::algorithms::precisionCast;
-using namespace pmacc::algorithms::promoteType;
-using namespace pmacc::traits;
-using namespace picongpu::traits;
+    namespace math = cupla::device::math;
+    using namespace pmacc::algorithms::precisionCast;
+    using namespace pmacc::algorithms::promoteType;
+    using namespace pmacc::traits;
+    using namespace picongpu::traits;
 
-}
+} // namespace picongpu

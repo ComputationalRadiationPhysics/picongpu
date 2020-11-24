@@ -26,27 +26,26 @@
 
 namespace pmacc
 {
-namespace traits
-{
-
-/** Return an initialized instance. Expects a single parameter.
- *
- * The main reason to use this is for templated types where it's unknown
- * if they are fundamental or vector-like.
- *
- * \tparam T_Type type of object
- */
-template<typename T_Type>
-struct GetInitializedInstance
-{
-    typedef T_Type Type;
-
-    template<typename ValueType>
-    HDINLINE Type operator()(const ValueType& value) const
+    namespace traits
     {
-        return Type(value);
-    }
-};
+        /** Return an initialized instance. Expects a single parameter.
+         *
+         * The main reason to use this is for templated types where it's unknown
+         * if they are fundamental or vector-like.
+         *
+         * \tparam T_Type type of object
+         */
+        template<typename T_Type>
+        struct GetInitializedInstance
+        {
+            typedef T_Type Type;
 
-} // traits
-} // PMacc
+            template<typename ValueType>
+            HDINLINE Type operator()(const ValueType& value) const
+            {
+                return Type(value);
+            }
+        };
+
+    } // namespace traits
+} // namespace pmacc

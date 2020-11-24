@@ -25,108 +25,71 @@
 
 namespace picongpu
 {
-namespace currentSolver
-{
-
-    /**
-     * Implements the current deposition algorithm from T.Zh. Esirkepov
-     *
-     * for an arbitrary particle assign function given as a template parameter.
-     * See available shapes at "intermediateLib/particleShape".
-     * paper: "Exact charge conservation scheme for Particle-in-Cell simulation
-     *  with an arbitrary form-factor"
-     *
-     * @tparam T_ParticleShape the particle shape for the species, [picongpu::particles::shapes]
-     * @tparam T_Strategy Used strategy to reduce the scattered data [currentSolver::strategy]
-     * @tparam T_Dim Implementation for 2D or 3D
-     */
-    template<
-        typename T_ParticleShape,
-        typename T_Strategy = traits::GetDefaultStrategy_t<>,
-        uint32_t T_dim = simDim
-    >
-    struct Esirkepov;
-
-    /** Paper like implementation of Esirkepov current deposition
-     *
-     * The implementation uses an non optimized stencil width and is therefore over
-     * 4x slower than the other Esirkepov implementation.
-     * @attention this solver is only for testing
-     *
-     * @tparam T_ParticleShape the particle shape for the species, [picongpu::particles::shapes]
-     * @tparam T_Strategy Used strategy to reduce the scattered data [currentSolver::strategy]
-     */
-    template<
-        typename T_ParticleShape,
-        typename T_Strategy = traits::GetDefaultStrategy_t<>
-    >
-    struct EsirkepovNative;
-
-namespace traits
-{
-    template<
-        typename T_ParticleShape,
-        typename T_Strategy,
-        uint32_t T_dim
-    >
-    struct GetStrategy<
-        Esirkepov<
-            T_ParticleShape,
-            T_Strategy,
-            T_dim
-        >
-    >
+    namespace currentSolver
     {
-        using type = T_Strategy;
-    };
+        /**
+         * Implements the current deposition algorithm from T.Zh. Esirkepov
+         *
+         * for an arbitrary particle assign function given as a template parameter.
+         * See available shapes at "intermediateLib/particleShape".
+         * paper: "Exact charge conservation scheme for Particle-in-Cell simulation
+         *  with an arbitrary form-factor"
+         *
+         * @tparam T_ParticleShape the particle shape for the species, [picongpu::particles::shapes]
+         * @tparam T_Strategy Used strategy to reduce the scattered data [currentSolver::strategy]
+         * @tparam T_Dim Implementation for 2D or 3D
+         */
+        template<
+            typename T_ParticleShape,
+            typename T_Strategy = traits::GetDefaultStrategy_t<>,
+            uint32_t T_dim = simDim>
+        struct Esirkepov;
 
-    template<
-        typename T_ParticleShape,
-        typename T_Strategy
-    >
-    struct GetStrategy<
-        EsirkepovNative<
-            T_ParticleShape,
-            T_Strategy
-        >
-    >
+        /** Paper like implementation of Esirkepov current deposition
+         *
+         * The implementation uses an non optimized stencil width and is therefore over
+         * 4x slower than the other Esirkepov implementation.
+         * @attention this solver is only for testing
+         *
+         * @tparam T_ParticleShape the particle shape for the species, [picongpu::particles::shapes]
+         * @tparam T_Strategy Used strategy to reduce the scattered data [currentSolver::strategy]
+         */
+        template<typename T_ParticleShape, typename T_Strategy = traits::GetDefaultStrategy_t<>>
+        struct EsirkepovNative;
+
+        namespace traits
+        {
+            template<typename T_ParticleShape, typename T_Strategy, uint32_t T_dim>
+            struct GetStrategy<Esirkepov<T_ParticleShape, T_Strategy, T_dim>>
+            {
+                using type = T_Strategy;
+            };
+
+            template<typename T_ParticleShape, typename T_Strategy>
+            struct GetStrategy<EsirkepovNative<T_ParticleShape, T_Strategy>>
+            {
+                using type = T_Strategy;
+            };
+
+        } // namespace traits
+    } // namespace currentSolver
+
+    namespace traits
     {
-        using type = T_Strategy;
-    };
+        /*Get margin of a solver
+         * class must define a LowerMargin and UpperMargin
+         */
+        template<typename T_ParticleShape, typename T_Strategy, uint32_t T_dim>
+        struct GetMargin<picongpu::currentSolver::Esirkepov<T_ParticleShape, T_Strategy, T_dim>>
+        {
+        private:
+            using Solver = picongpu::currentSolver::Esirkepov<T_ParticleShape, T_Strategy, T_dim>;
 
-} // namespace traits
-} //namespace currentSolver
+        public:
+            typedef typename Solver::LowerMargin LowerMargin;
+            typedef typename Solver::UpperMargin UpperMargin;
+        };
 
-namespace traits
-{
+    } // namespace traits
 
-    /*Get margin of a solver
-     * class must define a LowerMargin and UpperMargin
-     */
-    template<
-        typename T_ParticleShape,
-        typename T_Strategy,
-        uint32_t T_dim
-    >
-    struct GetMargin<
-        picongpu::currentSolver::Esirkepov<
-            T_ParticleShape,
-            T_Strategy,
-            T_dim
-        >
-    >
-    {
-    private:
-        using Solver = picongpu::currentSolver::Esirkepov<
-            T_ParticleShape,
-            T_Strategy,
-            T_dim
-        >;
-    public:
-        typedef typename Solver::LowerMargin LowerMargin;
-        typedef typename Solver::UpperMargin UpperMargin;
-    };
-
-} //namespace traits
-
-} //namespace picongpu
+} // namespace picongpu

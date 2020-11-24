@@ -25,84 +25,81 @@
 
 namespace pmacc
 {
-
-/** Wrapper for a raw pointer
- *
- * @tparam T_Type type of the pointed object
- */
-template< typename T_Type >
-class Pointer
-{
-public:
-
-    using type = T_Type;
-    using PtrType = type*;
-    using ConstPtrType = const type*;
-
-    HDINLINE Pointer( ):
-        ptr{ nullptr }
-    {
-    }
-
-    HDINLINE Pointer( PtrType const ptrIn ) : ptr( ptrIn )
-    {
-    }
-
-    HDINLINE Pointer( const Pointer& other ) : ptr( other.ptr )
-    {
-    }
-
-    HDINLINE Pointer& operator=(const Pointer& other)
-    {
-        ptr = other.ptr;
-        return *this;
-    }
-
-    /** dereference the pointer*/
-    HDINLINE type& operator*()
-    {
-        return *ptr;
-    }
-
-    /** dereference the pointer*/
-    HDINLINE const type& operator*() const
-    {
-        return *ptr;
-    }
-
-    /** access member*/
-    HDINLINE PtrType operator->()
-    {
-        return ptr;
-    }
-
-    /** access member*/
-    HDINLINE ConstPtrType operator->() const
-    {
-        return ptr;
-    }
-
-    /** compare if two pointers point to the same memory address*/
-    HDINLINE bool operator==(const Pointer<type>& other) const
-    {
-        return ptr == other.ptr;
-    }
-
-    /** check if the memory address of two pointers are different*/
-    HDINLINE bool operator!=(const Pointer<type>& other) const
-    {
-        return ptr != other.ptr;
-    }
-
-    /** check if the memory pointed to has a valid address
-     * @return false if memory adress is nullptr else true
+    /** Wrapper for a raw pointer
+     *
+     * @tparam T_Type type of the pointed object
      */
-    HDINLINE bool isValid( ) const
+    template<typename T_Type>
+    class Pointer
     {
-        return ptr != nullptr;
-    }
+    public:
+        using type = T_Type;
+        using PtrType = type*;
+        using ConstPtrType = const type*;
 
-    PMACC_ALIGN( ptr, PtrType );
-};
+        HDINLINE Pointer() : ptr{nullptr}
+        {
+        }
 
-} //namespace pmacc
+        HDINLINE Pointer(PtrType const ptrIn) : ptr(ptrIn)
+        {
+        }
+
+        HDINLINE Pointer(const Pointer& other) : ptr(other.ptr)
+        {
+        }
+
+        HDINLINE Pointer& operator=(const Pointer& other)
+        {
+            ptr = other.ptr;
+            return *this;
+        }
+
+        /** dereference the pointer*/
+        HDINLINE type& operator*()
+        {
+            return *ptr;
+        }
+
+        /** dereference the pointer*/
+        HDINLINE const type& operator*() const
+        {
+            return *ptr;
+        }
+
+        /** access member*/
+        HDINLINE PtrType operator->()
+        {
+            return ptr;
+        }
+
+        /** access member*/
+        HDINLINE ConstPtrType operator->() const
+        {
+            return ptr;
+        }
+
+        /** compare if two pointers point to the same memory address*/
+        HDINLINE bool operator==(const Pointer<type>& other) const
+        {
+            return ptr == other.ptr;
+        }
+
+        /** check if the memory address of two pointers are different*/
+        HDINLINE bool operator!=(const Pointer<type>& other) const
+        {
+            return ptr != other.ptr;
+        }
+
+        /** check if the memory pointed to has a valid address
+         * @return false if memory adress is nullptr else true
+         */
+        HDINLINE bool isValid() const
+        {
+            return ptr != nullptr;
+        }
+
+        PMACC_ALIGN(ptr, PtrType);
+    };
+
+} // namespace pmacc

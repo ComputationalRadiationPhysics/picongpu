@@ -46,62 +46,58 @@
 
 namespace picongpu
 {
+    /** select macroparticle shape
+     *
+     * **WARNING** the shape names are redefined and diverge from PIConGPU versions before 0.6.0.
+     *
+     *  - particles::shapes::CIC : Assignment function is a piecewise linear spline
+     *  - particles::shapes::TSC : Assignment function is a piecewise quadratic spline
+     *  - particles::shapes::PQS : Assignment function is a piecewise cubic spline
+     *  - particles::shapes::PCS : Assignment function is a piecewise quartic spline
+     */
+    using UsedParticleShape = particles::shapes::Counter;
 
-/** select macroparticle shape
- *
- * **WARNING** the shape names are redefined and diverge from PIConGPU versions before 0.6.0.
- *
- *  - particles::shapes::CIC : Assignment function is a piecewise linear spline
- *  - particles::shapes::TSC : Assignment function is a piecewise quadratic spline
- *  - particles::shapes::PQS : Assignment function is a piecewise cubic spline
- *  - particles::shapes::PCS : Assignment function is a piecewise quartic spline
- */
-using UsedParticleShape = particles::shapes::Counter;
+    /** select interpolation method to be used for interpolation of grid-based field values to particle positions
+     */
+    using UsedField2Particle = FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpolation>;
 
-/** select interpolation method to be used for interpolation of grid-based field values to particle positions
- */
-using UsedField2Particle = FieldToParticleInterpolation<
-    UsedParticleShape,
-    AssignedTrilinearInterpolation
->;
+    /*! select current solver method
+     * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
+     * - currentSolver::VillaBune< SHAPE, STRATEGY > : particle shapes - CIC (1st order) only
+     * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
+     *
+     * For development purposes:
+     * - currentSolver::EsirkepovNative< SHAPE, STRATEGY > : generic version of currentSolverEsirkepov
+     *   without optimization (~4x slower and needs more shared memory)
+     *
+     * STRATEGY (optional):
+     * - currentSolver::strategy::StridedCachedSupercells
+     * - currentSolver::strategy::CachedSupercells
+     * - currentSolver::strategy::NonCachedSupercells
+     */
+    using UsedParticleCurrentSolver = currentSolver::Esirkepov<UsedParticleShape>;
 
-/*! select current solver method
- * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
- * - currentSolver::VillaBune< SHAPE, STRATEGY > : particle shapes - CIC (1st order) only
- * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
- *
- * For development purposes:
- * - currentSolver::EsirkepovNative< SHAPE, STRATEGY > : generic version of currentSolverEsirkepov
- *   without optimization (~4x slower and needs more shared memory)
- *
- * STRATEGY (optional):
- * - currentSolver::strategy::StridedCachedSupercells
- * - currentSolver::strategy::CachedSupercells
- * - currentSolver::strategy::NonCachedSupercells
- */
-using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
-
-/** particle pusher configuration
- *
- * Defining a pusher is optional for particles
- *
- * - particles::pusher::HigueraCary : Higuera & Cary's relativistic pusher preserving both volume and ExB velocity
- * - particles::pusher::Vay : Vay's relativistic pusher preserving ExB velocity
- * - particles::pusher::Boris : Boris' relativistic pusher preserving volume
- * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher
- *                                              with classical radiation reaction
- * - particles::pusher::Composite : composite of two given pushers,
- *                                  switches between using one (or none) of those
- *
- * For diagnostics & modeling: ------------------------------------------------
- * - particles::pusher::Acceleration : Accelerate particles by applying a constant electric field
- * - particles::pusher::Free : free propagation, ignore fields
- *                             (= free stream model)
- * - particles::pusher::Photon : propagate with c in direction of normalized mom.
- * - particles::pusher::Probe : Probe particles that interpolate E & B
- * For development purposes: --------------------------------------------------
- * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
- */
-using UsedParticlePusher = particles::pusher::Boris;
+    /** particle pusher configuration
+     *
+     * Defining a pusher is optional for particles
+     *
+     * - particles::pusher::HigueraCary : Higuera & Cary's relativistic pusher preserving both volume and ExB velocity
+     * - particles::pusher::Vay : Vay's relativistic pusher preserving ExB velocity
+     * - particles::pusher::Boris : Boris' relativistic pusher preserving volume
+     * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher
+     *                                              with classical radiation reaction
+     * - particles::pusher::Composite : composite of two given pushers,
+     *                                  switches between using one (or none) of those
+     *
+     * For diagnostics & modeling: ------------------------------------------------
+     * - particles::pusher::Acceleration : Accelerate particles by applying a constant electric field
+     * - particles::pusher::Free : free propagation, ignore fields
+     *                             (= free stream model)
+     * - particles::pusher::Photon : propagate with c in direction of normalized mom.
+     * - particles::pusher::Probe : Probe particles that interpolate E & B
+     * For development purposes: --------------------------------------------------
+     * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
+     */
+    using UsedParticlePusher = particles::pusher::Boris;
 
 } // namespace picongpu

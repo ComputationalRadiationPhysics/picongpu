@@ -29,69 +29,64 @@
 
 namespace pmacc
 {
-
-inline StreamTask::StreamTask( ) :
-ITask( ),
-stream( nullptr ),
-hasCudaEventHandle( false ),
-alwaysFinished( false )
-{
-    this->setTaskType( ITask::TASK_DEVICE );
-}
-
-inline CudaEventHandle StreamTask::getCudaEventHandle( ) const
-{
-    PMACC_ASSERT( hasCudaEventHandle );
-    return cuplaEvent;
-}
-
-inline void StreamTask::setCudaEventHandle(const CudaEventHandle& cuplaEvent )
-{
-    this->hasCudaEventHandle = true;
-    this->cuplaEvent = cuplaEvent;
-}
-
-inline bool StreamTask::isFinished( )
-{
-    if ( alwaysFinished )
-        return true;
-    if ( hasCudaEventHandle )
+    inline StreamTask::StreamTask() : ITask(), stream(nullptr), hasCudaEventHandle(false), alwaysFinished(false)
     {
-        if ( cuplaEvent.isFinished( ) )
-        {
-            alwaysFinished = true;
-            return true;
-        }
+        this->setTaskType(ITask::TASK_DEVICE);
     }
-    return false;
-}
 
-inline EventStream* StreamTask::getEventStream( )
-{
-    if ( stream == nullptr )
-        stream = __getEventStream( TASK_DEVICE );
-    return stream;
-}
+    inline CudaEventHandle StreamTask::getCudaEventHandle() const
+    {
+        PMACC_ASSERT(hasCudaEventHandle);
+        return cuplaEvent;
+    }
 
-inline void StreamTask::setEventStream( EventStream* newStream )
-{
-    PMACC_ASSERT( newStream != nullptr );
-    PMACC_ASSERT( stream == nullptr ); //it is only allowed to set a stream if no stream is set before
-    this->stream = newStream;
-}
+    inline void StreamTask::setCudaEventHandle(const CudaEventHandle& cuplaEvent)
+    {
+        this->hasCudaEventHandle = true;
+        this->cuplaEvent = cuplaEvent;
+    }
 
-inline cuplaStream_t StreamTask::getCudaStream( )
-{
-    if ( stream == nullptr )
-        stream = Environment<>::get( ).TransactionManager( ).getEventStream( TASK_DEVICE );
-    return stream->getCudaStream( );
-}
+    inline bool StreamTask::isFinished()
+    {
+        if(alwaysFinished)
+            return true;
+        if(hasCudaEventHandle)
+        {
+            if(cuplaEvent.isFinished())
+            {
+                alwaysFinished = true;
+                return true;
+            }
+        }
+        return false;
+    }
 
-inline void StreamTask::activate( )
-{
-    cuplaEvent = Environment<>::get().EventPool( ).pop( );
-    cuplaEvent.recordEvent( getCudaStream( ) );
-    hasCudaEventHandle = true;
-}
+    inline EventStream* StreamTask::getEventStream()
+    {
+        if(stream == nullptr)
+            stream = __getEventStream(TASK_DEVICE);
+        return stream;
+    }
 
-} //namespace pmacc
+    inline void StreamTask::setEventStream(EventStream* newStream)
+    {
+        PMACC_ASSERT(newStream != nullptr);
+        PMACC_ASSERT(stream == nullptr); // it is only allowed to set a stream if no stream is set before
+        this->stream = newStream;
+    }
+
+    inline cuplaStream_t StreamTask::getCudaStream()
+    {
+        if(stream == nullptr)
+            stream = Environment<>::get().TransactionManager().getEventStream(TASK_DEVICE);
+        return stream->getCudaStream();
+    }
+
+    inline void StreamTask::activate()
+    {
+        cuplaEvent = Environment<>::get().EventPool().pop();
+        cuplaEvent.recordEvent(getCudaStream());
+        hasCudaEventHandle = true;
+    }
+
+} // namespace pmacc

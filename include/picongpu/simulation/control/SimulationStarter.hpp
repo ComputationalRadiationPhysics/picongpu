@@ -49,8 +49,8 @@ namespace picongpu
 
 
         MappingDesc* mappingDesc;
-    public:
 
+    public:
         SimulationStarter() : mappingDesc(nullptr)
         {
             simulationClass = new SimulationClass();
@@ -75,7 +75,7 @@ namespace picongpu
         {
             PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
             pluginConnector.loadPlugins();
-            log<picLog::SIMULATION_STATE > ("Startup");
+            log<picLog::SIMULATION_STATE>("Startup");
             simulationClass->setInitController(initClass);
             simulationClass->startSimulation();
         }
@@ -88,7 +88,7 @@ namespace picongpu
         {
         }
 
-        ArgsParser::Status parseConfigs(int argc, char **argv)
+        ArgsParser::Status parseConfigs(int argc, char** argv)
         {
             ArgsParser& ap = ArgsParser::getInstance();
             PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
@@ -108,8 +108,7 @@ namespace picongpu
             // setup all boost::program_options and add to ArgsParser
             BoostOptionsList options = pluginConnector.registerHelp();
 
-            for (BoostOptionsList::const_iterator iter = options.begin();
-                 iter != options.end(); ++iter)
+            for(BoostOptionsList::const_iterator iter = options.begin(); iter != options.end(); ++iter)
             {
                 ap.addOptions(*iter);
             }
@@ -117,8 +116,8 @@ namespace picongpu
             // parse environment variables, config files and command line
             return ap.parse(argc, argv);
         }
-    protected:
 
+    protected:
         void pluginLoad()
         {
             simulationClass->load();
@@ -135,17 +134,16 @@ namespace picongpu
             pluginClass->unload();
             simulationClass->unload();
         }
-    private:
 
-        void printStartParameters(int argc, char **argv)
+    private:
+        void printStartParameters(int argc, char** argv)
         {
             std::cout << "Start Parameters: ";
-            for (int i = 0; i < argc; ++i)
+            for(int i = 0; i < argc; ++i)
             {
                 std::cout << argv[i] << " ";
             }
             std::cout << std::endl;
         }
     };
-}
-
+} // namespace picongpu

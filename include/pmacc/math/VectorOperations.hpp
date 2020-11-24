@@ -26,64 +26,56 @@
 
 namespace pmacc
 {
-namespace math
-{
-    /** Map a runtime linear index to a N dimensional position
-     *
-     *  The size of the space to map the index to must be know at compile time
-     *
-     * \tparam T_Dim dimension of the position to map to
-     */
-    template<uint32_t T_Dim>
-    struct MapToPos;
-
-    template<>
-    struct MapToPos<3>
+    namespace math
     {
-        /** Functor
+        /** Map a runtime linear index to a N dimensional position
          *
-         *  \tparam T_ctVec math::CT::vector type like \see math::CT::Int
-         *  \param math::CT::vector with spatial size to map the index to
-         *  \param linearIndex linear index to be mapped
-         *  \return runtime math::vector of dimension T_Dim
+         *  The size of the space to map the index to must be know at compile time
+         *
+         * \tparam T_Dim dimension of the position to map to
          */
-        template<typename T_ctVec>
-        DINLINE
-        typename T_ctVec::RT_type
-        operator()( T_ctVec, const int linearIndex )
-        {
-            return typename T_ctVec::RT_type(
-                (linearIndex  % T_ctVec::x::value),
-                ((linearIndex % (T_ctVec::x::value * T_ctVec::y::value)) / T_ctVec::x::value),
-                (linearIndex  / (T_ctVec::x::value * T_ctVec::y::value)));
-        }
-    };
+        template<uint32_t T_Dim>
+        struct MapToPos;
 
-    template<>
-    struct MapToPos<2>
-    {
-        template<typename T_ctVec>
-        DINLINE
-        typename T_ctVec::RT_type
-        operator()( T_ctVec, const int linearIndex )
+        template<>
+        struct MapToPos<3>
         {
-            return typename T_ctVec::RT_type(
-                (linearIndex % T_ctVec::x::value),
-                (linearIndex / T_ctVec::x::value));
-        }
-    };
+            /** Functor
+             *
+             *  \tparam T_ctVec math::CT::vector type like \see math::CT::Int
+             *  \param math::CT::vector with spatial size to map the index to
+             *  \param linearIndex linear index to be mapped
+             *  \return runtime math::vector of dimension T_Dim
+             */
+            template<typename T_ctVec>
+            DINLINE typename T_ctVec::RT_type operator()(T_ctVec, const int linearIndex)
+            {
+                return typename T_ctVec::RT_type(
+                    (linearIndex % T_ctVec::x::value),
+                    ((linearIndex % (T_ctVec::x::value * T_ctVec::y::value)) / T_ctVec::x::value),
+                    (linearIndex / (T_ctVec::x::value * T_ctVec::y::value)));
+            }
+        };
 
-    template<>
-    struct MapToPos<1>
-    {
-        template<typename T_ctVec>
-        DINLINE
-        typename T_ctVec::RT_type
-        operator()( T_ctVec, const int linearIndex )
+        template<>
+        struct MapToPos<2>
         {
-            return typename T_ctVec::RT_type( linearIndex );
-        }
-    };
+            template<typename T_ctVec>
+            DINLINE typename T_ctVec::RT_type operator()(T_ctVec, const int linearIndex)
+            {
+                return typename T_ctVec::RT_type((linearIndex % T_ctVec::x::value), (linearIndex / T_ctVec::x::value));
+            }
+        };
 
-} /* namespace math */
+        template<>
+        struct MapToPos<1>
+        {
+            template<typename T_ctVec>
+            DINLINE typename T_ctVec::RT_type operator()(T_ctVec, const int linearIndex)
+            {
+                return typename T_ctVec::RT_type(linearIndex);
+            }
+        };
+
+    } /* namespace math */
 } /* namespace pmacc */

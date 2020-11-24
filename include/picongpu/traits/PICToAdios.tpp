@@ -19,124 +19,125 @@
 
 #pragma once
 
-#if (ENABLE_ADIOS==1)
-#include <adios.h>
+#if(ENABLE_ADIOS == 1)
+#    include <adios.h>
 
-#include "picongpu/simulation_defines.hpp"
-#include <boost/mpl/if.hpp>
-#include <boost/type_traits.hpp>
+#    include "picongpu/simulation_defines.hpp"
+#    include <boost/mpl/if.hpp>
+#    include <boost/type_traits.hpp>
 
 namespace picongpu
 {
-
-namespace traits
-{
-    template<>
-    struct PICToAdios<bool>
+    namespace traits
     {
-        ADIOS_DATATYPES type;
+        template<>
+        struct PICToAdios<bool>
+        {
+            ADIOS_DATATYPES type;
 
-        PICToAdios() :
-        type(adios_unsigned_byte) {}
+            PICToAdios() : type(adios_unsigned_byte)
+            {
+            }
 
-        PMACC_STATIC_ASSERT_MSG(
-            sizeof(bool) == 1,
-            ADIOS_Plugin__Can_not_find_a_one_byte_representation_of_bool
-        );
-    };
+            PMACC_STATIC_ASSERT_MSG(sizeof(bool) == 1, ADIOS_Plugin__Can_not_find_a_one_byte_representation_of_bool);
+        };
 
-    template<>
-    struct PICToAdios<int16_t>
-    {
-        ADIOS_DATATYPES type;
+        template<>
+        struct PICToAdios<int16_t>
+        {
+            ADIOS_DATATYPES type;
 
-        PICToAdios() :
-        type(adios_short) {}
-    };
+            PICToAdios() : type(adios_short)
+            {
+            }
+        };
 
-    template<>
-    struct PICToAdios<uint16_t>
-    {
-        ADIOS_DATATYPES type;
+        template<>
+        struct PICToAdios<uint16_t>
+        {
+            ADIOS_DATATYPES type;
 
-        PICToAdios() :
-        type(adios_unsigned_short) {}
-    };
+            PICToAdios() : type(adios_unsigned_short)
+            {
+            }
+        };
 
-    template<>
-    struct PICToAdios<int32_t>
-    {
-        ADIOS_DATATYPES type;
+        template<>
+        struct PICToAdios<int32_t>
+        {
+            ADIOS_DATATYPES type;
 
-        PICToAdios() :
-        type(adios_integer) {}
-    };
+            PICToAdios() : type(adios_integer)
+            {
+            }
+        };
 
-    template<>
-    struct PICToAdios<uint32_t>
-    {
-        ADIOS_DATATYPES type;
+        template<>
+        struct PICToAdios<uint32_t>
+        {
+            ADIOS_DATATYPES type;
 
-        PICToAdios() :
-        type(adios_unsigned_integer) {}
-    };
+            PICToAdios() : type(adios_unsigned_integer)
+            {
+            }
+        };
 
-    template<>
-    struct PICToAdios<int64_t>
-    {
-        ADIOS_DATATYPES type;
+        template<>
+        struct PICToAdios<int64_t>
+        {
+            ADIOS_DATATYPES type;
 
-        PICToAdios() :
-        type(adios_long) {}
-    };
+            PICToAdios() : type(adios_long)
+            {
+            }
+        };
 
-    template<>
-    struct PICToAdios<uint64_t>
-    {
-        ADIOS_DATATYPES type;
+        template<>
+        struct PICToAdios<uint64_t>
+        {
+            ADIOS_DATATYPES type;
 
-        PICToAdios() :
-        type(adios_unsigned_long) {}
-    };
+            PICToAdios() : type(adios_unsigned_long)
+            {
+            }
+        };
 
-    /** Specialization for uint64_cu.
-     *  If uint64_cu happens to be the same as uint64_t we use an unused dummy type
-     *  to avoid duplicate specialization
-     */
-    struct uint64_cu_unused_adios;
-    template<>
-    struct PICToAdios<
-                        typename bmpl::if_<
-                            typename bmpl::or_<
-                                boost::is_same<uint64_t, uint64_cu>,
-                                bmpl::bool_<sizeof(uint64_cu) != sizeof(uint64_t)>
-                            >::type,
-                            uint64_cu_unused_adios,
-                            uint64_cu
-                        >::type
-                     >: public PICToAdios<uint64_t>
-    {};
+        /** Specialization for uint64_cu.
+         *  If uint64_cu happens to be the same as uint64_t we use an unused dummy type
+         *  to avoid duplicate specialization
+         */
+        struct uint64_cu_unused_adios;
+        template<>
+        struct PICToAdios<typename bmpl::if_<
+            typename bmpl::
+                or_<boost::is_same<uint64_t, uint64_cu>, bmpl::bool_<sizeof(uint64_cu) != sizeof(uint64_t)>>::type,
+            uint64_cu_unused_adios,
+            uint64_cu>::type> : public PICToAdios<uint64_t>
+        {
+        };
 
-    template<>
-    struct PICToAdios<float_32>
-    {
-        ADIOS_DATATYPES type;
+        template<>
+        struct PICToAdios<float_32>
+        {
+            ADIOS_DATATYPES type;
 
-        PICToAdios() :
-        type(adios_real) {}
-    };
+            PICToAdios() : type(adios_real)
+            {
+            }
+        };
 
-    template<>
-    struct PICToAdios<float_64>
-    {
-        ADIOS_DATATYPES type;
+        template<>
+        struct PICToAdios<float_64>
+        {
+            ADIOS_DATATYPES type;
 
-        PICToAdios() :
-        type(adios_double) {}
-    };
+            PICToAdios() : type(adios_double)
+            {
+            }
+        };
 
-} //namespace traits
+    } // namespace traits
 
-}// namespace picongpu
+} // namespace picongpu
 
 #endif // (ENABLE_ADIOS==1)

@@ -41,96 +41,91 @@
 
 namespace picongpu
 {
-namespace fields
-{
-
-    /** Base class for implementation inheritance in classes for the
-     *  electromagnetic fields
-     *
-     * Stores field values on host and device and provides data synchronization
-     * between them.
-     *
-     * Implements interfaces defined by SimulationFieldHelper< MappingDesc > and
-     * ISimulationData.
-     */
-    class EMFieldBase :
-        public SimulationFieldHelper< MappingDesc >,
-        public ISimulationData
+    namespace fields
     {
-    public:
-
-        //! Type of each field value
-        using ValueType = float3_X;
-
-        //! Number of components of ValueType, for serialization
-        static constexpr int numComponents = ValueType::dim;
-
-        //! Type of host-device buffer for field values
-        using Buffer = pmacc::GridBuffer< ValueType, simDim >;
-
-        //! Type of data box for field values on host and device
-        using DataBoxType = pmacc::DataBox< PitchedBox< ValueType, simDim > >;
-
-        //! Size of supercell
-        using SuperCellSize = MappingDesc::SuperCellSize;
-
-        /** Create a field
+        /** Base class for implementation inheritance in classes for the
+         *  electromagnetic fields
          *
-         * @tparam T_tag communication tag value
+         * Stores field values on host and device and provides data synchronization
+         * between them.
          *
-         * @param cellDescription mapping for kernels
-         * @param id unique id
-         * @param tag helper parameter for T_tag deduction
+         * Implements interfaces defined by SimulationFieldHelper< MappingDesc > and
+         * ISimulationData.
          */
-        template< CommunicationTag T_tag >
-        HINLINE EMFieldBase(
-            MappingDesc const & cellDescription,
-            pmacc::SimulationDataId const & id,
-            std::integral_constant< CommunicationTag, T_tag > tag
-        );
+        class EMFieldBase
+            : public SimulationFieldHelper<MappingDesc>
+            , public ISimulationData
+        {
+        public:
+            //! Type of each field value
+            using ValueType = float3_X;
 
-        //! Get a reference to the host-device buffer for the field values
-        HINLINE Buffer & getGridBuffer( );
+            //! Number of components of ValueType, for serialization
+            static constexpr int numComponents = ValueType::dim;
 
-        //! Get the grid layout
-        HINLINE GridLayout< simDim > getGridLayout( );
+            //! Type of host-device buffer for field values
+            using Buffer = pmacc::GridBuffer<ValueType, simDim>;
 
-        //! Get the host data box for the field values
-        HINLINE DataBoxType getHostDataBox( );
+            //! Type of data box for field values on host and device
+            using DataBoxType = pmacc::DataBox<PitchedBox<ValueType, simDim>>;
 
-        //! Get the device data box for the field values
-        HINLINE DataBoxType getDeviceDataBox( );
+            //! Size of supercell
+            using SuperCellSize = MappingDesc::SuperCellSize;
 
-        /** Start asynchronous communication of field values
-         *
-         * @param serialEvent event to depend on
-         */
-        HINLINE EventTask asyncCommunication( EventTask serialEvent );
+            /** Create a field
+             *
+             * @tparam T_tag communication tag value
+             *
+             * @param cellDescription mapping for kernels
+             * @param id unique id
+             * @param tag helper parameter for T_tag deduction
+             */
+            template<CommunicationTag T_tag>
+            HINLINE EMFieldBase(
+                MappingDesc const& cellDescription,
+                pmacc::SimulationDataId const& id,
+                std::integral_constant<CommunicationTag, T_tag> tag);
 
-        /** Reset the host-device buffer for field values
-         *
-         * @param currentStep index of time iteration
-         */
-        HINLINE void reset( uint32_t currentStep ) override;
+            //! Get a reference to the host-device buffer for the field values
+            HINLINE Buffer& getGridBuffer();
 
-        //! Synchronize device data with host data
-        HINLINE void syncToDevice( ) override;
+            //! Get the grid layout
+            HINLINE GridLayout<simDim> getGridLayout();
 
-        //! Synchronize host data with device data
-        HINLINE void synchronize( ) override;
+            //! Get the host data box for the field values
+            HINLINE DataBoxType getHostDataBox();
 
-        //! Get id
-        HINLINE SimulationDataId getUniqueId( ) override;
+            //! Get the device data box for the field values
+            HINLINE DataBoxType getDeviceDataBox();
 
-    private:
+            /** Start asynchronous communication of field values
+             *
+             * @param serialEvent event to depend on
+             */
+            HINLINE EventTask asyncCommunication(EventTask serialEvent);
 
-        //! Host-device buffer for field values
-        std::unique_ptr< Buffer > buffer;
+            /** Reset the host-device buffer for field values
+             *
+             * @param currentStep index of time iteration
+             */
+            HINLINE void reset(uint32_t currentStep) override;
 
-        //! Unique id
-        pmacc::SimulationDataId id;
+            //! Synchronize device data with host data
+            HINLINE void syncToDevice() override;
 
-    };
+            //! Synchronize host data with device data
+            HINLINE void synchronize() override;
 
-} // namespace fields
+            //! Get id
+            HINLINE SimulationDataId getUniqueId() override;
+
+        private:
+            //! Host-device buffer for field values
+            std::unique_ptr<Buffer> buffer;
+
+            //! Unique id
+            pmacc::SimulationDataId id;
+        };
+
+    } // namespace fields
 } // namespace picongpu

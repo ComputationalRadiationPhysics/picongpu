@@ -33,13 +33,13 @@
 
 namespace picongpu
 {
-namespace particles
-{
-    /** InitPipeline defines in which order species are initialized
-     *
-     * the functors are called in order (from first to last functor)
-     */
-    using InitPipeline = bmpl::vector<>;
+    namespace particles
+    {
+        /** InitPipeline defines in which order species are initialized
+         *
+         * the functors are called in order (from first to last functor)
+         */
+        using InitPipeline = bmpl::vector<>;
 
-} // namespace particles
+    } // namespace particles
 } // namespace picongpu

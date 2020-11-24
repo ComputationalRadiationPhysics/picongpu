@@ -33,78 +33,69 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace flylite
-{
-namespace helperFields
-{
-    class LocalDensity :
-        public ISimulationData
+    namespace particles
     {
-    public:
-        using ValueType = float_X;
-
-    private:
-        GridBuffer< ValueType, simDim >* m_density;
-        std::string m_speciesGroup;
-
-    public:
-        /** Allocate and initialize local (number) density
-         *
-         * @param speciesGroup unique naming for the species inside this density,
-         *                     e.g. a collection of electron species or ions
-         * @param sizeLocal spatial size of the local density value
-         */
-        LocalDensity(
-            std::string const & speciesGroup,
-            DataSpace< simDim > const & sizeLocal
-        ) :
-            m_density( nullptr ),
-            m_speciesGroup( speciesGroup )
+        namespace flylite
         {
-            // without guards
-            m_density = new GridBuffer< ValueType, simDim >( sizeLocal );
-        }
+            namespace helperFields
+            {
+                class LocalDensity : public ISimulationData
+                {
+                public:
+                    using ValueType = float_X;
 
-        ~LocalDensity()
-        {
-            __delete( m_density );
-        }
+                private:
+                    GridBuffer<ValueType, simDim>* m_density;
+                    std::string m_speciesGroup;
 
-        static std::string
-        getName( std::string const & speciesGroup )
-        {
-            return speciesGroup + "_LocalDensity";
-        }
+                public:
+                    /** Allocate and initialize local (number) density
+                     *
+                     * @param speciesGroup unique naming for the species inside this density,
+                     *                     e.g. a collection of electron species or ions
+                     * @param sizeLocal spatial size of the local density value
+                     */
+                    LocalDensity(std::string const& speciesGroup, DataSpace<simDim> const& sizeLocal)
+                        : m_density(nullptr)
+                        , m_speciesGroup(speciesGroup)
+                    {
+                        // without guards
+                        m_density = new GridBuffer<ValueType, simDim>(sizeLocal);
+                    }
 
-        std::string
-        getName( )
-        {
-            return getName( m_speciesGroup );
-        }
+                    ~LocalDensity()
+                    {
+                        __delete(m_density);
+                    }
 
-        GridBuffer< ValueType, simDim >&
-        getGridBuffer( )
-        {
-            return *m_density;
-        }
+                    static std::string getName(std::string const& speciesGroup)
+                    {
+                        return speciesGroup + "_LocalDensity";
+                    }
 
-        /* implement ISimulationData members */
-        void
-        synchronize() override
-        {
-            m_density->deviceToHost( );
-        }
+                    std::string getName()
+                    {
+                        return getName(m_speciesGroup);
+                    }
 
-        SimulationDataId
-        getUniqueId() override
-        {
-            return getName();
-        }
-    };
+                    GridBuffer<ValueType, simDim>& getGridBuffer()
+                    {
+                        return *m_density;
+                    }
 
-} // namespace helperFields
-} // namespace flylite
-} // namespace particles
+                    /* implement ISimulationData members */
+                    void synchronize() override
+                    {
+                        m_density->deviceToHost();
+                    }
+
+                    SimulationDataId getUniqueId() override
+                    {
+                        return getName();
+                    }
+                };
+
+            } // namespace helperFields
+        } // namespace flylite
+    } // namespace particles
 } // namespace picongpu

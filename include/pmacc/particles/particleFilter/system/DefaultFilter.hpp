@@ -27,22 +27,21 @@
 
 namespace pmacc
 {
-
-
-template<class Base = NullFrame>
-class DefaultFilter : public Base
-{
+    template<class Base = NullFrame>
+    class DefaultFilter : public Base
+    {
     private:
         bool filterActive;
-    public:
 
+    public:
         HDINLINE DefaultFilter() : filterActive(false)
-        {}
+        {
+        }
 
         template<class FRAME>
-        HDINLINE bool operator()(FRAME & frame,lcellId_t id)
+        HDINLINE bool operator()(FRAME& frame, lcellId_t id)
         {
-            return (!filterActive)||Base::operator() (frame,id);
+            return (!filterActive) || Base::operator()(frame, id);
         }
 
         /*disable or enable filter
@@ -51,41 +50,42 @@ class DefaultFilter : public Base
          */
         HDINLINE void setStatus(bool active)
         {
-            filterActive=active;
+            filterActive = active;
         }
 
         HDINLINE bool getStatus()
         {
             return filterActive;
         }
-};
+    };
 
-template<>
-class DefaultFilter<NullFrame>
-{
+    template<>
+    class DefaultFilter<NullFrame>
+    {
     private:
         bool alwaysTrue;
-    public:
 
+    public:
         HDINLINE DefaultFilter() : alwaysTrue(true)
-        {}
+        {
+        }
 
         template<class FRAME>
-        HDINLINE bool operator()(FRAME & frame,lcellId_t id)
+        HDINLINE bool operator()(FRAME& frame, lcellId_t id)
         {
             return alwaysTrue;
         }
 
         HDINLINE void setDefault(bool value)
         {
-            alwaysTrue=value;
+            alwaysTrue = value;
         }
 
         HDINLINE bool getDefault()
         {
             return alwaysTrue;
         }
-};
+    };
 
 
-} //namespace Frame
+} // namespace pmacc

@@ -29,48 +29,60 @@
 
 namespace pmacc
 {
-namespace algorithm
-{
-namespace mpi
-{
-
-/**
- */
-template<int dim>
-class Gather
-{
-private:
-    MPI_Comm comm;
-    std::vector<math::Int<dim> > positions;
-    bool m_participate;
-
-    struct CopyToDest
+    namespace algorithm
     {
-        template<typename Type, int memDim, class T_Alloc, class T_Copy, class T_Assign>
-        void operator()(const Gather<dim>& gather,
+        namespace mpi
+        {
+            /**
+             */
+            template<int dim>
+            class Gather
+            {
+            private:
+                MPI_Comm comm;
+                std::vector<math::Int<dim>> positions;
+                bool m_participate;
+
+                struct CopyToDest
+                {
+                    template<typename Type, int memDim, class T_Alloc, class T_Copy, class T_Assign>
+                    void operator()(
+                        const Gather<dim>& gather,
                         container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign>& dest,
                         std::vector<Type>& tmpDest,
                         int dir,
-                        const std::vector<math::Size_t<memDim> >& srcSizes,
+                        const std::vector<math::Size_t<memDim>>& srcSizes,
                         const std::vector<size_t>& srcOffsets) const;
-    };
+                };
 
-public:
-    Gather(const zone::SphericZone<dim>& p_zone);
-    ~Gather();
+            public:
+                Gather(const zone::SphericZone<dim>& p_zone);
+                ~Gather();
 
-    template<typename Type, int memDim, class T_Alloc, class T_Copy, class T_Assign, class T_Alloc2, class T_Copy2, class T_Assign2>
-    void operator()(container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign>& dest,
+                template<
+                    typename Type,
+                    int memDim,
+                    class T_Alloc,
+                    class T_Copy,
+                    class T_Assign,
+                    class T_Alloc2,
+                    class T_Copy2,
+                    class T_Assign2>
+                void operator()(
+                    container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign>& dest,
                     container::CartBuffer<Type, memDim, T_Alloc2, T_Copy2, T_Assign2>& source,
                     int dir = -1) const;
 
-    inline bool participate() const {return m_participate;}
-    inline bool root() const;
-    inline int rank() const;
-};
+                inline bool participate() const
+                {
+                    return m_participate;
+                }
+                inline bool root() const;
+                inline int rank() const;
+            };
 
-} // mpi
-} // algorithm
-} // pmacc
+        } // namespace mpi
+    } // namespace algorithm
+} // namespace pmacc
 
 #include "Gather.tpp"

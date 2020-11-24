@@ -23,24 +23,25 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
-namespace promoteType
-{
+    namespace algorithms
+    {
+        namespace promoteType
+        {
+            // general: use first type
+            template<class T1, class T2>
+            struct promoteType
+            {
+                typedef T1 type;
+            };
 
-    // general: use first type
-    template<class T1, class T2>
-    struct promoteType {
-        typedef T1 type;
-    };
-
-    // special: promote float to double
-    template< >
-    struct promoteType<float, double> {
-        typedef double type;
-    };
+            // special: promote float to double
+            template<>
+            struct promoteType<float, double>
+            {
+                typedef double type;
+            };
 
 
-} //namespace promoteType
-} //namespace algorithms
-} //namespace pmacc
+        } // namespace promoteType
+    } // namespace algorithms
+} // namespace pmacc

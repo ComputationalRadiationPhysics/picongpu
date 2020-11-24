@@ -24,16 +24,15 @@
 
 namespace pmacc
 {
-namespace container
-{
+    namespace container
+    {
+        namespace tag
+        {
+            struct HostBuffer;
+            struct DeviceBuffer;
+        } // namespace tag
 
-namespace tag
-{
-struct HostBuffer;
-struct DeviceBuffer;
-}
-
-} // container
-} // pmacc
+    } // namespace container
+} // namespace pmacc
 
 #endif // CONTAINER_TAG_H

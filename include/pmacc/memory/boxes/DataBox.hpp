@@ -33,10 +33,9 @@ namespace pmacc
         class Box;
 
         template<class Base>
-        class Box< DIM1, Base> : public Base
+        class Box<DIM1, Base> : public Base
         {
         public:
-
             enum
             {
                 Dim = DIM1
@@ -44,12 +43,12 @@ namespace pmacc
             typedef typename Base::ValueType ValueType;
             typedef typename Base::RefValueType RefValueType;
 
-            HDINLINE RefValueType operator()(const DataSpace<DIM1> &idx = DataSpace<DIM1>()) const
+            HDINLINE RefValueType operator()(const DataSpace<DIM1>& idx = DataSpace<DIM1>()) const
             {
                 return Base::operator[](idx.x());
             }
 
-            HDINLINE RefValueType operator()(const DataSpace<DIM1> &idx = DataSpace<DIM1>())
+            HDINLINE RefValueType operator()(const DataSpace<DIM1>& idx = DataSpace<DIM1>())
             {
                 return Base::operator[](idx.x());
             }
@@ -63,24 +62,23 @@ namespace pmacc
             }
         };
 
-        template< class Base>
-        class Box< DIM2, Base> : public Base
+        template<class Base>
+        class Box<DIM2, Base> : public Base
         {
         public:
-
             enum
             {
                 Dim = DIM2
             };
             typedef typename Base::ValueType ValueType;
-             typedef typename Base::RefValueType RefValueType;
+            typedef typename Base::RefValueType RefValueType;
 
-            HDINLINE RefValueType operator()(const DataSpace<DIM2> &idx = DataSpace<DIM2>()) const
+            HDINLINE RefValueType operator()(const DataSpace<DIM2>& idx = DataSpace<DIM2>()) const
             {
                 return (Base::operator[](idx.y()))[idx.x()];
             }
 
-            HDINLINE RefValueType operator()(const DataSpace<DIM2> &idx = DataSpace<DIM2>())
+            HDINLINE RefValueType operator()(const DataSpace<DIM2>& idx = DataSpace<DIM2>())
             {
                 return (Base::operator[](idx.y()))[idx.x()];
             }
@@ -92,14 +90,12 @@ namespace pmacc
             HDINLINE Box() : Base()
             {
             }
-
         };
 
         template<class Base>
         class Box<DIM3, Base> : public Base
         {
         public:
-
             enum
             {
                 Dim = DIM3
@@ -107,12 +103,12 @@ namespace pmacc
             typedef typename Base::ValueType ValueType;
             typedef typename Base::RefValueType RefValueType;
 
-            HDINLINE RefValueType operator()(const DataSpace<DIM3> &idx = DataSpace<DIM3>()) const
+            HDINLINE RefValueType operator()(const DataSpace<DIM3>& idx = DataSpace<DIM3>()) const
             {
                 return (Base::operator[](idx.z()))[idx.y()][idx.x()];
             }
 
-            HDINLINE RefValueType operator()(const DataSpace<DIM3> &idx = DataSpace<DIM3>())
+            HDINLINE RefValueType operator()(const DataSpace<DIM3>& idx = DataSpace<DIM3>())
             {
                 return (Base::operator[](idx.z()))[idx.y()][idx.x()];
             }
@@ -124,18 +120,15 @@ namespace pmacc
             HDINLINE Box() : Base()
             {
             }
-
         };
 
 
-
-    }
+    } // namespace private_Box
 
     template<class Base>
     class DataBox : public private_Box::Box<Base::Dim, Base>
     {
     public:
-
         typedef typename Base::ValueType ValueType;
         typedef DataBox<Base> Type;
         typedef typename Base::RefValueType RefValueType;
@@ -157,8 +150,8 @@ namespace pmacc
 
         HDINLINE DataBox<typename Base::ReducedType> reduceZ(const int zOffset) const
         {
-            return DataBox<typename Base::ReducedType > (Base::reduceZ(zOffset));
+            return DataBox<typename Base::ReducedType>(Base::reduceZ(zOffset));
         }
     };
 
-}
+} // namespace pmacc

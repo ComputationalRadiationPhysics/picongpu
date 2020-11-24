@@ -32,140 +32,109 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace multi
-{
-    /** Master class to create multi plugins
-     *
-     * Create and handle a plugin as multi plugin. Parameter of a multi plugin
-     * can be used multiple times on the command line.
-     *
-     * @tparam T_Slave type of the plugin (must inherit from ISlave)
-     */
-    template< typename T_Slave >
-    class Master : public ISimulationPlugin
+    namespace plugins
     {
-    public:
-
-        using Slave = T_Slave;
-        using SlaveList =  std::list< std::shared_ptr< ISlave > >;
-        SlaveList slaveList;
-
-        std::shared_ptr< IHelp > slaveHelp;
-
-        MappingDesc* m_cellDescription = nullptr;
-
-        Master( ) : slaveHelp( Slave::getHelp() )
+        namespace multi
         {
-            Environment<>::get( ).PluginConnector( ).registerPlugin(this);
-        }
-
-        virtual ~Master( )
-        {
-
-        }
-
-        std::string pluginGetName( ) const
-        {
-            // the PMacc plugin system needs a short description instead of the plugin name
-            return slaveHelp->getName( ) + ": " + slaveHelp->getDescription( );
-        }
-
-        void pluginRegisterHelp( boost::program_options::options_description& desc )
-        {
-            slaveHelp->registerHelp( desc );
-        }
-
-        void setMappingDescription( MappingDesc* cellDescription )
-        {
-            m_cellDescription = cellDescription;
-        }
-
-        /** restart a checkpoint
-         *
-         * Trigger the method restart() for all slave instances.
-         */
-        void restart(
-            uint32_t restartStep,
-            std::string const restartDirectory
-        )
-        {
-            for( auto & slave : slaveList )
-                slave->restart(
-                    restartStep,
-                    restartDirectory
-                );
-        }
-
-        /** create a checkpoint
-         *
-         * Trigger the method checkpoint() for all slave instances.
-         */
-        void checkpoint(
-            uint32_t currentStep,
-            std::string const checkpointDirectory
-        )
-        {
-            for( auto & slave : slaveList )
-                slave->checkpoint(
-                    currentStep,
-                    checkpointDirectory
-                );
-        }
-
-    private:
-
-        void pluginLoad( )
-        {
-            size_t const numSlaves = slaveHelp->getNumPlugins( );
-            if( numSlaves > 0u )
-                slaveHelp->validateOptions( );
-            for( size_t i = 0; i < numSlaves; ++i )
+            /** Master class to create multi plugins
+             *
+             * Create and handle a plugin as multi plugin. Parameter of a multi plugin
+             * can be used multiple times on the command line.
+             *
+             * @tparam T_Slave type of the plugin (must inherit from ISlave)
+             */
+            template<typename T_Slave>
+            class Master : public ISimulationPlugin
             {
-                slaveList.emplace_back(
-                    slaveHelp->create(
-                        slaveHelp,
-                        i,
-                        m_cellDescription
-                    )
-                );
-            }
-        }
+            public:
+                using Slave = T_Slave;
+                using SlaveList = std::list<std::shared_ptr<ISlave>>;
+                SlaveList slaveList;
 
-        void pluginUnload( )
-        {
-            slaveList.clear( );
-        }
+                std::shared_ptr<IHelp> slaveHelp;
 
-        void notify(uint32_t currentStep)
-        {
-            // nothing to do here
-        }
+                MappingDesc* m_cellDescription = nullptr;
 
-    };
+                Master() : slaveHelp(Slave::getHelp())
+                {
+                    Environment<>::get().PluginConnector().registerPlugin(this);
+                }
 
-} // namespace multi
-} // namespace plugins
+                virtual ~Master()
+                {
+                }
 
-namespace particles
-{
-namespace traits
-{
-    template<
-        typename T_Species,
-        typename T_Slave
-    >
-    struct SpeciesEligibleForSolver<
-        T_Species,
-        plugins::multi::Master< T_Slave >
-    >
+                std::string pluginGetName() const
+                {
+                    // the PMacc plugin system needs a short description instead of the plugin name
+                    return slaveHelp->getName() + ": " + slaveHelp->getDescription();
+                }
+
+                void pluginRegisterHelp(boost::program_options::options_description& desc)
+                {
+                    slaveHelp->registerHelp(desc);
+                }
+
+                void setMappingDescription(MappingDesc* cellDescription)
+                {
+                    m_cellDescription = cellDescription;
+                }
+
+                /** restart a checkpoint
+                 *
+                 * Trigger the method restart() for all slave instances.
+                 */
+                void restart(uint32_t restartStep, std::string const restartDirectory)
+                {
+                    for(auto& slave : slaveList)
+                        slave->restart(restartStep, restartDirectory);
+                }
+
+                /** create a checkpoint
+                 *
+                 * Trigger the method checkpoint() for all slave instances.
+                 */
+                void checkpoint(uint32_t currentStep, std::string const checkpointDirectory)
+                {
+                    for(auto& slave : slaveList)
+                        slave->checkpoint(currentStep, checkpointDirectory);
+                }
+
+            private:
+                void pluginLoad()
+                {
+                    size_t const numSlaves = slaveHelp->getNumPlugins();
+                    if(numSlaves > 0u)
+                        slaveHelp->validateOptions();
+                    for(size_t i = 0; i < numSlaves; ++i)
+                    {
+                        slaveList.emplace_back(slaveHelp->create(slaveHelp, i, m_cellDescription));
+                    }
+                }
+
+                void pluginUnload()
+                {
+                    slaveList.clear();
+                }
+
+                void notify(uint32_t currentStep)
+                {
+                    // nothing to do here
+                }
+            };
+
+        } // namespace multi
+    } // namespace plugins
+
+    namespace particles
     {
-        using type = typename SpeciesEligibleForSolver<
-            T_Species,
-            T_Slave
-        >::type;
-    };
-} // namespace traits
-} // namespace particles
+        namespace traits
+        {
+            template<typename T_Species, typename T_Slave>
+            struct SpeciesEligibleForSolver<T_Species, plugins::multi::Master<T_Slave>>
+            {
+                using type = typename SpeciesEligibleForSolver<T_Species, T_Slave>::type;
+            };
+        } // namespace traits
+    } // namespace particles
 } // namespace picongpu

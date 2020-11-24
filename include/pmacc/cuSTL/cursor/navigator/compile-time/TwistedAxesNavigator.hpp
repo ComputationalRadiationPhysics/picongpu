@@ -25,48 +25,44 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-namespace CT
-{
-
-template<typename Axes, int dim = Axes::dim>
-struct TwistedAxesNavigator;
-
-template<typename Axes>
-struct TwistedAxesNavigator<Axes, 2>
-{
-    static constexpr int dim = 2;
-
-    template<typename TCursor>
-    HDINLINE
-    TCursor operator()(const TCursor& cursor, const math::Int<2>& jump) const
+    namespace cursor
     {
-        math::Int<2> twistedJump;
-        twistedJump[Axes::x::value] = jump.x();
-        twistedJump[Axes::y::value] = jump.y();
-        return cursor(twistedJump);
-    }
-};
+        namespace CT
+        {
+            template<typename Axes, int dim = Axes::dim>
+            struct TwistedAxesNavigator;
 
-template<typename Axes>
-struct TwistedAxesNavigator<Axes, 3>
-{
-    static constexpr int dim = 3;
+            template<typename Axes>
+            struct TwistedAxesNavigator<Axes, 2>
+            {
+                static constexpr int dim = 2;
 
-    template<typename TCursor>
-    HDINLINE
-    TCursor operator()(const TCursor& cursor, const math::Int<3>& jump) const
-    {
-        math::Int<3> twistedJump;
-        twistedJump[Axes::x::value] = jump.x();
-        twistedJump[Axes::y::value] = jump.y();
-        twistedJump[Axes::z::value] = jump.z();
-        return cursor(twistedJump);
-    }
-};
+                template<typename TCursor>
+                HDINLINE TCursor operator()(const TCursor& cursor, const math::Int<2>& jump) const
+                {
+                    math::Int<2> twistedJump;
+                    twistedJump[Axes::x::value] = jump.x();
+                    twistedJump[Axes::y::value] = jump.y();
+                    return cursor(twistedJump);
+                }
+            };
 
-} // CT
-} // cursor
-} // pmacc
+            template<typename Axes>
+            struct TwistedAxesNavigator<Axes, 3>
+            {
+                static constexpr int dim = 3;
 
+                template<typename TCursor>
+                HDINLINE TCursor operator()(const TCursor& cursor, const math::Int<3>& jump) const
+                {
+                    math::Int<3> twistedJump;
+                    twistedJump[Axes::x::value] = jump.x();
+                    twistedJump[Axes::y::value] = jump.y();
+                    twistedJump[Axes::z::value] = jump.z();
+                    return cursor(twistedJump);
+                }
+            };
+
+        } // namespace CT
+    } // namespace cursor
+} // namespace pmacc

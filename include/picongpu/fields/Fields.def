@@ -21,7 +21,6 @@
 
 namespace picongpu
 {
-
     /** Define which operation is used to fill up FieldTmp
      *
      * This is better than use of boost::mtl::pair because

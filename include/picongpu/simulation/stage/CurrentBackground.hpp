@@ -34,57 +34,49 @@
 
 namespace picongpu
 {
-namespace simulation
-{
-namespace stage
-{
-
-    //! Functor for the stage of the PIC loop applying current background
-    class CurrentBackground
+    namespace simulation
     {
-    public:
-
-        /** Create a current background functor
-         *
-         * Having this in constructor is a temporary solution.
-         *
-         * @param cellDescription mapping for kernels
-         */
-        CurrentBackground( MappingDesc const cellDescription ):
-            cellDescription( cellDescription )
+        namespace stage
         {
-        }
+            //! Functor for the stage of the PIC loop applying current background
+            class CurrentBackground
+            {
+            public:
+                /** Create a current background functor
+                 *
+                 * Having this in constructor is a temporary solution.
+                 *
+                 * @param cellDescription mapping for kernels
+                 */
+                CurrentBackground(MappingDesc const cellDescription) : cellDescription(cellDescription)
+                {
+                }
 
-        /** Add the current background to the current density
-         *
-         * @param step index of time iteration
-         */
-        void operator( )( uint32_t const step ) const
-        {
-            using namespace pmacc;
-            DataConnector & dc = Environment< >::get( ).DataConnector( );
-            auto & fieldJ = *dc.get< FieldJ >( FieldJ::getName( ), true );
-            using CurrentBackground = cellwiseOperation::CellwiseOperation<
-                type::CORE + type::BORDER
-            >;
-            CurrentBackground currentBackground( cellDescription );
-            currentBackground(
-                &fieldJ,
-                nvidia::functors::Add( ),
-                FieldBackgroundJ( fieldJ.getUnit() ),
-                step,
-                FieldBackgroundJ::activated
-            );
-            dc.releaseData( FieldJ::getName( ) );
-        }
+                /** Add the current background to the current density
+                 *
+                 * @param step index of time iteration
+                 */
+                void operator()(uint32_t const step) const
+                {
+                    using namespace pmacc;
+                    DataConnector& dc = Environment<>::get().DataConnector();
+                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                    using CurrentBackground = cellwiseOperation::CellwiseOperation<type::CORE + type::BORDER>;
+                    CurrentBackground currentBackground(cellDescription);
+                    currentBackground(
+                        &fieldJ,
+                        nvidia::functors::Add(),
+                        FieldBackgroundJ(fieldJ.getUnit()),
+                        step,
+                        FieldBackgroundJ::activated);
+                    dc.releaseData(FieldJ::getName());
+                }
 
-    private:
+            private:
+                //! Mapping for kernels
+                MappingDesc cellDescription;
+            };
 
-        //! Mapping for kernels
-        MappingDesc cellDescription;
-
-    };
-
-} // namespace stage
-} // namespace simulation
+        } // namespace stage
+    } // namespace simulation
 } // namespace picongpu

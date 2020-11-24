@@ -26,27 +26,25 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-
-template<typename TCursor, typename Axes>
-struct TwistAxesAccessor
-{
-    typedef typename math::result_of::TwistComponents<
-        Axes, typename TCursor::ValueType>::type type;
-
-    /** Returns a reference to the result of '*cursor' (with twisted axes).
-     *
-     * Be aware that the underlying cursor must not be a temporary object if '*cursor'
-     * refers to something inside the cursor.
-     */
-    HDINLINE type operator()(TCursor& cursor)
+    namespace cursor
     {
-        return math::twistComponents<Axes>(*cursor);
-    }
+        template<typename TCursor, typename Axes>
+        struct TwistAxesAccessor
+        {
+            typedef typename math::result_of::TwistComponents<Axes, typename TCursor::ValueType>::type type;
 
-    ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
-};
+            /** Returns a reference to the result of '*cursor' (with twisted axes).
+             *
+             * Be aware that the underlying cursor must not be a temporary object if '*cursor'
+             * refers to something inside the cursor.
+             */
+            HDINLINE type operator()(TCursor& cursor)
+            {
+                return math::twistComponents<Axes>(*cursor);
+            }
 
-} // cursor
-} // pmacc
+            ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
+        };
+
+    } // namespace cursor
+} // namespace pmacc

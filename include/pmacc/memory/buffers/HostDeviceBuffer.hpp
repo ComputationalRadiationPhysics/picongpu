@@ -29,20 +29,23 @@
 #include <boost/type_traits.hpp>
 
 
-namespace pmacc{
-
+namespace pmacc
+{
     /** Buffer that contains a host and device buffer and allows synchronizing those 2 */
     template<typename T_Type, unsigned T_dim>
     class HostDeviceBuffer
     {
         typedef HostBufferIntern<T_Type, T_dim> HostBufferType;
         typedef DeviceBufferIntern<T_Type, T_dim> DeviceBufferType;
+
     public:
         using ValueType = T_Type;
         typedef HostBuffer<T_Type, T_dim> HBuffer;
         typedef DeviceBuffer<T_Type, T_dim> DBuffer;
         typedef typename HostBufferType::DataBoxType DataBoxType;
-        PMACC_CASSERT_MSG(DataBoxTypes_must_match, boost::is_same<DataBoxType, typename DeviceBufferType::DataBoxType>::value);
+        PMACC_CASSERT_MSG(
+            DataBoxTypes_must_match,
+            boost::is_same<DataBoxType, typename DeviceBufferType::DataBoxType>::value);
 
         /**
          * Constructor that creates the buffers with the given size
@@ -69,12 +72,12 @@ namespace pmacc{
          * Passing a size bigger than the buffer (minus the offset) is undefined.
          */
         HostDeviceBuffer(
-                   HBuffer& otherHostBuffer,
-                   const DataSpace<T_dim>& offsetHost,
-                   DBuffer& otherDeviceBuffer,
-                   const DataSpace<T_dim>& offsetDevice,
-                   const GridLayout<T_dim> size,
-                   bool sizeOnDevice = false);
+            HBuffer& otherHostBuffer,
+            const DataSpace<T_dim>& offsetHost,
+            DBuffer& otherDeviceBuffer,
+            const DataSpace<T_dim>& offsetDevice,
+            const GridLayout<T_dim> size,
+            bool sizeOnDevice = false);
 
         HINLINE virtual ~HostDeviceBuffer();
 
@@ -111,12 +114,12 @@ namespace pmacc{
          * Asynchronously copies data from internal device to internal host buffer.
          */
         HINLINE void deviceToHost();
+
     private:
         HBuffer* hostBuffer;
         DBuffer* deviceBuffer;
-
     };
 
-}  // namespace pmacc
+} // namespace pmacc
 
 #include "pmacc/memory/buffers/HostDeviceBuffer.tpp"

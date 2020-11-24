@@ -29,61 +29,50 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace startPosition
-{
-namespace acc
-{
-
-    template< typename T_ParamClass >
-    struct RandomImpl
+    namespace particles
     {
-        /** set in-cell position and weighting
-         *
-         * @tparam T_Rng functor::misc::RngWrapper, type of the random number generator
-         * @tparam T_Particle pmacc::Particle, particle type
-         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
-         *
-         * @param rng random number generator
-         * @param particle particle to be manipulated
-         * @param ... unused particles
-         */
-        template<
-            typename T_Rng,
-            typename T_Particle,
-            typename ... T_Args
-        >
-        HDINLINE void operator()(
-            T_Rng & rng,
-            T_Particle & particle,
-            T_Args && ...
-        )
+        namespace startPosition
         {
-            floatD_X tmpPos;
+            namespace acc
+            {
+                template<typename T_ParamClass>
+                struct RandomImpl
+                {
+                    /** set in-cell position and weighting
+                     *
+                     * @tparam T_Rng functor::misc::RngWrapper, type of the random number generator
+                     * @tparam T_Particle pmacc::Particle, particle type
+                     * @tparam T_Args pmacc::Particle, arbitrary number of particles types
+                     *
+                     * @param rng random number generator
+                     * @param particle particle to be manipulated
+                     * @param ... unused particles
+                     */
+                    template<typename T_Rng, typename T_Particle, typename... T_Args>
+                    HDINLINE void operator()(T_Rng& rng, T_Particle& particle, T_Args&&...)
+                    {
+                        floatD_X tmpPos;
 
-            for( uint32_t d = 0; d < simDim; ++d )
-                tmpPos[ d ] = rng( );
+                        for(uint32_t d = 0; d < simDim; ++d)
+                            tmpPos[d] = rng();
 
-            particle[ position_ ] = tmpPos;
-            particle[ weighting_ ] = m_weighting;
-        }
+                        particle[position_] = tmpPos;
+                        particle[weighting_] = m_weighting;
+                    }
 
-        template< typename T_Particle >
-        HDINLINE uint32_t
-        numberOfMacroParticles( float_X const realParticlesPerCell )
-        {
-            return startPosition::detail::WeightMacroParticles{}(
-                realParticlesPerCell,
-                T_ParamClass::numParticlesPerCell,
-                m_weighting
-            );
-        }
+                    template<typename T_Particle>
+                    HDINLINE uint32_t numberOfMacroParticles(float_X const realParticlesPerCell)
+                    {
+                        return startPosition::detail::WeightMacroParticles{}(
+                            realParticlesPerCell,
+                            T_ParamClass::numParticlesPerCell,
+                            m_weighting);
+                    }
 
-        float_X m_weighting;
-    };
+                    float_X m_weighting;
+                };
 
-} // namespace acc
-} // namespace startPosition
-} // namespace particles
+            } // namespace acc
+        } // namespace startPosition
+    } // namespace particles
 } // namespace picongpu

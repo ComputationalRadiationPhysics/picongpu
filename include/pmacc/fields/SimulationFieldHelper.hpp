@@ -28,37 +28,37 @@
 
 namespace pmacc
 {
-
-template<class CellDescription>
-class SimulationFieldHelper
-{
-public:
-
-    typedef CellDescription MappingDesc;
-
-    SimulationFieldHelper(CellDescription description) :
-    cellDescription(description)
-    {}
-
-    virtual ~SimulationFieldHelper(){}
-
-    /**
-     * Reset is as well used for init.
-     */
-    virtual void reset(uint32_t currentStep) = 0;
-
-    /**
-     * Synchronize data from host to device.
-     */
-    virtual void syncToDevice() = 0;
-
-    CellDescription getCellDescription() const
+    template<class CellDescription>
+    class SimulationFieldHelper
     {
-        return cellDescription;
-    }
+    public:
+        typedef CellDescription MappingDesc;
 
-protected:
-    CellDescription cellDescription;
-};
+        SimulationFieldHelper(CellDescription description) : cellDescription(description)
+        {
+        }
 
-} //namespace pmacc
+        virtual ~SimulationFieldHelper()
+        {
+        }
+
+        /**
+         * Reset is as well used for init.
+         */
+        virtual void reset(uint32_t currentStep) = 0;
+
+        /**
+         * Synchronize data from host to device.
+         */
+        virtual void syncToDevice() = 0;
+
+        CellDescription getCellDescription() const
+        {
+            return cellDescription;
+        }
+
+    protected:
+        CellDescription cellDescription;
+    };
+
+} // namespace pmacc

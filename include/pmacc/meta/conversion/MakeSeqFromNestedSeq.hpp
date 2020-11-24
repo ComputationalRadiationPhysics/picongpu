@@ -29,26 +29,21 @@
 
 namespace pmacc
 {
+    /** combine all elements of the input type to a single vector
+     *
+     * If elements of the input sequence are a sequence themself, all of their
+     * elements will be added to the resulting sequence
+     *
+     * @tparam T_In a boost mpl sequence or single type
+     */
+    template<typename T_In>
+    struct MakeSeqFromNestedSeq
+    {
+    private:
+        typedef typename ToSeq<T_In>::type Seq;
 
-/** combine all elements of the input type to a single vector
- *
- * If elements of the input sequence are a sequence themself, all of their
- * elements will be added to the resulting sequence
- *
- * @tparam T_In a boost mpl sequence or single type
- */
-template<typename T_In>
-struct MakeSeqFromNestedSeq
-{
-private:
-    typedef typename ToSeq<T_In >::type Seq;
+    public:
+        typedef typename bmpl::fold<Seq, bmpl::vector0<>, JoinToSeq<bmpl::_1, bmpl::_2>>::type type;
+    };
 
-public:
-    typedef typename bmpl::fold<
-      Seq,
-      bmpl::vector0<>,
-      JoinToSeq<bmpl::_1,bmpl::_2>
-    >::type type;
-};
-
-} //namespace pmacc
+} // namespace pmacc

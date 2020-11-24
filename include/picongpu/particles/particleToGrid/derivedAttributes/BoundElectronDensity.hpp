@@ -25,35 +25,32 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-
-    HDINLINE float1_64
-    BoundElectronDensity::getUnit() const
+    namespace particles
     {
-        constexpr float_64 UNIT_VOLUME = UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH;
-        return particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / UNIT_VOLUME;
-    }
+        namespace particleToGrid
+        {
+            namespace derivedAttributes
+            {
+                HDINLINE float1_64 BoundElectronDensity::getUnit() const
+                {
+                    constexpr float_64 UNIT_VOLUME = UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH;
+                    return particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / UNIT_VOLUME;
+                }
 
-    template< class T_Particle >
-    DINLINE float_X
-    BoundElectronDensity::operator()( T_Particle& particle ) const
-    {
-        // read existing attributes
-        float_X const weighting = particle[ weighting_ ];
-        float_X const boundElectrons = particle[ boundElectrons_ ];
+                template<class T_Particle>
+                DINLINE float_X BoundElectronDensity::operator()(T_Particle& particle) const
+                {
+                    // read existing attributes
+                    float_X const weighting = particle[weighting_];
+                    float_X const boundElectrons = particle[boundElectrons_];
 
-        // calculate new attribute
-        float_X const boundElectronDensity = weighting * boundElectrons /
-            ( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * CELL_VOLUME );
+                    // calculate new attribute
+                    float_X const boundElectronDensity = weighting * boundElectrons
+                        / (particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * CELL_VOLUME);
 
-        return boundElectronDensity;
-    }
-} // namespace derivedAttributes
-} // namespace particleToGrid
-} // namespace particles
+                    return boundElectronDensity;
+                }
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
 } // namespace picongpu

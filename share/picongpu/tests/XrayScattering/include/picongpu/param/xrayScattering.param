@@ -26,45 +26,49 @@
 #include <pmacc/preprocessor/struct.hpp>
 
 #ifndef PARAM_ANGLES
-#   define PARAM_ANGLES 0
+#    define PARAM_ANGLES 0
 #endif
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace xrayScattering
-{
-namespace beam
-{
-    using namespace picongpu::plugins::xrayScattering::beam;
-    /* Choose from:
-     *  - ZSide
-     *  - YSide
-     *  - XSide
-     * - ZRSide
-     * - YRSide
-     * - XRSide
-     */
-    using ProbingSide = ZSide;
+    namespace plugins
+    {
+        namespace xrayScattering
+        {
+            namespace beam
+            {
+                using namespace picongpu::plugins::xrayScattering::beam;
+                /* Choose from:
+                 *  - ZSide
+                 *  - YSide
+                 *  - XSide
+                 * - ZRSide
+                 * - YRSide
+                 * - XRSide
+                 */
+                using ProbingSide = ZSide;
 
-    PMACC_STRUCT( RotationParam,
-        ( PMACC_C_VALUE ( float_X, yawAngle,
+                PMACC_STRUCT(
+                    RotationParam,
+                    (PMACC_C_VALUE(
+                        float_X,
+                        yawAngle,
 #if PARAM_ANGLES == 1
-            20.0_X / 180.0_X * pmacc::math::Pi< float_X >::value
+                        20.0_X / 180.0_X * pmacc::math::Pi<float_X>::value
 #else
-        0.0_X
+                        0.0_X
 #endif
-            ) )
-        ( PMACC_C_VALUE ( float_X, pitchAngle,
+                        ))(
+                        PMACC_C_VALUE(
+                            float_X,
+                            pitchAngle,
 #if PARAM_ANGLES == 1
-            42.0_X / 180.0_X * pmacc::math::Pi< float_X >::value
+                            42.0_X / 180.0_X * pmacc::math::Pi<float_X>::value
 #else
-            0.0_X
+                            0.0_X
 #endif
-            ) )
-    );
-}// namespace beam
-}// namespace xrayScattering
-}// namespace plugins
-}// namespace picongpu
+                            )));
+            } // namespace beam
+        } // namespace xrayScattering
+    } // namespace plugins
+} // namespace picongpu

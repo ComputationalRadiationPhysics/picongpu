@@ -33,102 +33,81 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-    /** Energy Density Operation for Particle to Grid Projections
-     *
-     * Derives a scalar field for average kinetic particle energy per cell times the
-     * particle density from a particle species at runtime.
-     * Each value is mapped per cell according to the species' spatial shape.
-     *
-     * @note this is the same as the sum of kinetic particle energy
-     *       divided by a constant for the cell volume
-     *       @see CreateEnergyOperation
-     */
-    struct EnergyDensity
+    namespace particles
     {
-
-        HDINLINE float1_64
-        getUnit() const;
-
-        HINLINE std::vector<float_64>
-        getUnitDimension() const
+        namespace particleToGrid
         {
-           /* L, M, T, I, theta, N, J
-            *
-            * EnergyDensity is in Joule / cubic meter: J / m^3 = kg * m^2 / s^2 / m^3
-            *                                                  = kg / (s^2 * m)
-            *   -> L^-1 * M * T^-2
-            */
-           std::vector<float_64> unitDimension( 7, 0.0 );
-           unitDimension.at(SIBaseUnits::length) = -1.0;
-           unitDimension.at(SIBaseUnits::mass)   =  1.0;
-           unitDimension.at(SIBaseUnits::time)   = -2.0;
+            namespace derivedAttributes
+            {
+                /** Energy Density Operation for Particle to Grid Projections
+                 *
+                 * Derives a scalar field for average kinetic particle energy per cell times the
+                 * particle density from a particle species at runtime.
+                 * Each value is mapped per cell according to the species' spatial shape.
+                 *
+                 * @note this is the same as the sum of kinetic particle energy
+                 *       divided by a constant for the cell volume
+                 *       @see CreateEnergyOperation
+                 */
+                struct EnergyDensity
+                {
+                    HDINLINE float1_64 getUnit() const;
 
-           return unitDimension;
-        }
+                    HINLINE std::vector<float_64> getUnitDimension() const
+                    {
+                        /* L, M, T, I, theta, N, J
+                         *
+                         * EnergyDensity is in Joule / cubic meter: J / m^3 = kg * m^2 / s^2 / m^3
+                         *                                                  = kg / (s^2 * m)
+                         *   -> L^-1 * M * T^-2
+                         */
+                        std::vector<float_64> unitDimension(7, 0.0);
+                        unitDimension.at(SIBaseUnits::length) = -1.0;
+                        unitDimension.at(SIBaseUnits::mass) = 1.0;
+                        unitDimension.at(SIBaseUnits::time) = -2.0;
 
-        HINLINE static
-        std::string
-        getName()
+                        return unitDimension;
+                    }
+
+                    HINLINE static std::string getName()
+                    {
+                        return "energyDensity";
+                    }
+
+                    /** Calculate a new attribute  per particle
+                     *
+                     * Returns a new (on-the-fly calculated) attribute of a particle
+                     * that can then be mapped to the cells the particle contributes to.
+                     * This method is called on a per-thread basis (each thread of a block
+                     * handles a particle of a frame).
+                     *
+                     * \tparam T_Particle particle in the frame
+                     * \param particle particle in the frame
+                     *
+                     * \return new attribute for the particle (type \see T_AttributeType)
+                     */
+                    template<class T_Particle>
+                    DINLINE float_X operator()(T_Particle& particle) const;
+                };
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+
+        namespace traits
         {
-            return "energyDensity";
-        }
+            template<typename T_Species>
+            struct SpeciesEligibleForSolver<T_Species, particleToGrid::derivedAttributes::EnergyDensity>
+            {
+                using FrameType = typename T_Species::FrameType;
 
-        /** Calculate a new attribute  per particle
-         *
-         * Returns a new (on-the-fly calculated) attribute of a particle
-         * that can then be mapped to the cells the particle contributes to.
-         * This method is called on a per-thread basis (each thread of a block
-         * handles a particle of a frame).
-         *
-         * \tparam T_Particle particle in the frame
-         * \param particle particle in the frame
-         *
-         * \return new attribute for the particle (type \see T_AttributeType)
-         */
-        template< class T_Particle >
-        DINLINE float_X
-        operator()( T_Particle& particle ) const;
-    };
-} // namespace derivedAttributes
-} // namespace particleToGrid
+                using RequiredIdentifiers = MakeSeq_t<weighting, position<>, momentum>;
 
-namespace traits
-{
-    template< typename T_Species >
-    struct SpeciesEligibleForSolver<
-        T_Species,
-        particleToGrid::derivedAttributes::EnergyDensity
-    >
-    {
-        using FrameType = typename T_Species::FrameType;
+                using SpeciesHasIdentifiers =
+                    typename pmacc::traits::HasIdentifiers<FrameType, RequiredIdentifiers>::type;
 
-        using RequiredIdentifiers = MakeSeq_t<
-            weighting,
-            position<>,
-            momentum
-        >;
+                using SpeciesHasFlags = typename pmacc::traits::HasFlag<FrameType, massRatio<>>::type;
 
-        using SpeciesHasIdentifiers = typename pmacc::traits::HasIdentifiers<
-            FrameType,
-            RequiredIdentifiers
-        >::type;
-
-        using SpeciesHasFlags = typename pmacc::traits::HasFlag<
-            FrameType,
-            massRatio<>
-        >::type;
-
-        using type = typename bmpl::and_<
-            SpeciesHasIdentifiers,
-            SpeciesHasFlags
-        >;
-    };
-} // namespace traits
-} // namespace particles
+                using type = typename bmpl::and_<SpeciesHasIdentifiers, SpeciesHasFlags>;
+            };
+        } // namespace traits
+    } // namespace particles
 } // namespace picongpu

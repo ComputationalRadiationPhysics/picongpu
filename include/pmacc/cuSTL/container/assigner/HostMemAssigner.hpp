@@ -33,31 +33,30 @@
 
 namespace pmacc
 {
-namespace assigner
-{
-
-namespace bmpl = boost::mpl;
-
-template<typename T_Dim = bmpl::_1, typename T_CartBuffer = bmpl::_2>
-struct HostMemAssigner
-{
-    static constexpr int dim = T_Dim::value;
-    typedef T_CartBuffer CartBuffer;
-
-    template<typename Type>
-    HINLINE void assign(const Type& value)
+    namespace assigner
     {
-        // "Curiously recurring template pattern"
-        CartBuffer* buffer = static_cast<CartBuffer*>(this);
+        namespace bmpl = boost::mpl;
 
-        // get a host accelerator
-        auto hostDev = cupla::manager::Device< cupla::AccHost >::get().device( );
+        template<typename T_Dim = bmpl::_1, typename T_CartBuffer = bmpl::_2>
+        struct HostMemAssigner
+        {
+            static constexpr int dim = T_Dim::value;
+            typedef T_CartBuffer CartBuffer;
 
-        algorithm::host::Foreach foreach;
-        foreach(hostDev, buffer->zone(), buffer->origin(), pmacc::algorithm::functor::AssignValue<Type>(value));
-    }
-};
+            template<typename Type>
+            HINLINE void assign(const Type& value)
+            {
+                // "Curiously recurring template pattern"
+                CartBuffer* buffer = static_cast<CartBuffer*>(this);
 
-} // assigner
-} // pmacc
+                // get a host accelerator
+                auto hostDev = cupla::manager::Device<cupla::AccHost>::get().device();
 
+                algorithm::host::Foreach foreach;
+                foreach(hostDev, buffer->zone(), buffer->origin(), pmacc::algorithm::functor::AssignValue<Type>(value))
+                    ;
+            }
+        };
+
+    } // namespace assigner
+} // namespace pmacc

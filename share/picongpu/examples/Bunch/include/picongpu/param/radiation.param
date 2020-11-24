@@ -18,13 +18,12 @@
  */
 
 
-
 #pragma once
 
-  /*
-    radiation verbose level:
-    0=nothing, 1=physics, 2=simulation_state, 4=memory, 8=critical
-  */
+/*
+  radiation verbose level:
+  0=nothing, 1=physics, 2=simulation_state, 4=memory, 8=critical
+*/
 
 #define PIC_VERBOSE_RADIATION 3
 
@@ -36,146 +35,162 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace radiation
-{
-namespace linear_frequencies
-{
-namespace SI
-{
-constexpr float_64 omega_min = 0.0;
-constexpr float_64 omega_max = 5.8869e17;
-}
+    namespace plugins
+    {
+        namespace radiation
+        {
+            namespace linear_frequencies
+            {
+                namespace SI
+                {
+                    constexpr float_64 omega_min = 0.0;
+                    constexpr float_64 omega_max = 5.8869e17;
+                } // namespace SI
 
-constexpr unsigned int N_omega = 1024; // number of frequencies
-}
+                constexpr unsigned int N_omega = 1024; // number of frequencies
+            } // namespace linear_frequencies
 
-namespace log_frequencies
-{
-namespace SI
-{
-constexpr float_64 omega_min = 1.0e14;
-constexpr float_64 omega_max = 1.0e17;
-}
+            namespace log_frequencies
+            {
+                namespace SI
+                {
+                    constexpr float_64 omega_min = 1.0e14;
+                    constexpr float_64 omega_max = 1.0e17;
+                } // namespace SI
 
-constexpr unsigned int N_omega = 2048; // number of frequencies
-}
-
-
-namespace frequencies_from_list
-{
-/** path to text file with frequencies */
-constexpr const char * listLocation = "/path/to/frequency.list";
-constexpr unsigned int N_omega = 2048; // number of frequencies
-}
+                constexpr unsigned int N_omega = 2048; // number of frequencies
+            } // namespace log_frequencies
 
 
-namespace radiation_frequencies = linear_frequencies;
+            namespace frequencies_from_list
+            {
+                /** path to text file with frequencies */
+                constexpr const char* listLocation = "/path/to/frequency.list";
+                constexpr unsigned int N_omega = 2048; // number of frequencies
+            } // namespace frequencies_from_list
 
 
-namespace radiationNyquist
-{
-  constexpr float_32 NyquistFactor = 0.5;
-}
-
-///////////////////////////////////////////////////
+            namespace radiation_frequencies = linear_frequencies;
 
 
-  // correct treatment of coherent and incoherent radiation from macroparticles
-  /* Choose different form factors in order to consider different  particle shapes for radiation
-   *  - radFormFactor_CIC_3D ... CIC charge distribution
-   *  - radFormFactor_TSC_3D ... TSC charge distribution
-   *  - radFormFactor_PCS_3D ... PCS charge distribution
-   *  - radFormFactor_CIC_1Dy ... only CIC charge distribution in y
-   *  - radFormFactor_Gauss_spherical ... symmetric Gauss charge distribution
-   *  - radFormFactor_Gauss_cell ... Gauss charge distribution according to cell size
-   *  - radFormFactor_incoherent ... only incoherent radiation
-   *  - radFormFactor_coherent ... only coherent radiation
-   */
-  namespace radFormFactor_CIC_3D { }
-  namespace radFormFactor_TSC_3D { }
-  namespace radFormFactor_PCS_3D { }
-  namespace radFormFactor_CIC_1Dy { }
-  namespace radFormFactor_Gauss_spherical { }
-  namespace radFormFactor_Gauss_cell { }
-  namespace radFormFactor_incoherent { }
-  namespace radFormFactor_coherent { }
+            namespace radiationNyquist
+            {
+                constexpr float_32 NyquistFactor = 0.5;
+            }
+
+            ///////////////////////////////////////////////////
+
+
+            // correct treatment of coherent and incoherent radiation from macroparticles
+            /* Choose different form factors in order to consider different  particle shapes for radiation
+             *  - radFormFactor_CIC_3D ... CIC charge distribution
+             *  - radFormFactor_TSC_3D ... TSC charge distribution
+             *  - radFormFactor_PCS_3D ... PCS charge distribution
+             *  - radFormFactor_CIC_1Dy ... only CIC charge distribution in y
+             *  - radFormFactor_Gauss_spherical ... symmetric Gauss charge distribution
+             *  - radFormFactor_Gauss_cell ... Gauss charge distribution according to cell size
+             *  - radFormFactor_incoherent ... only incoherent radiation
+             *  - radFormFactor_coherent ... only coherent radiation
+             */
+            namespace radFormFactor_CIC_3D
+            {
+            }
+            namespace radFormFactor_TSC_3D
+            {
+            }
+            namespace radFormFactor_PCS_3D
+            {
+            }
+            namespace radFormFactor_CIC_1Dy
+            {
+            }
+            namespace radFormFactor_Gauss_spherical
+            {
+            }
+            namespace radFormFactor_Gauss_cell
+            {
+            }
+            namespace radFormFactor_incoherent
+            {
+            }
+            namespace radFormFactor_coherent
+            {
+            }
 
 #ifndef PARAM_RADFORMFACTOR
-#   define PARAM_RADFORMFACTOR radFormFactor_Gauss_spherical
+#    define PARAM_RADFORMFACTOR radFormFactor_Gauss_spherical
 #endif
-namespace radFormFactor = PARAM_RADFORMFACTOR;
+            namespace radFormFactor = PARAM_RADFORMFACTOR;
 
 
-///////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////
 
 
-namespace parameters
-{
+            namespace parameters
+            {
+                constexpr unsigned int N_observer = 128; // number of looking directions
+
+            } /* end namespace parameters */
+
+            /** activate particles for radiation */
+            struct GammaFilterFunctor
+            {
+                static constexpr float_X radiationGamma = 3.0;
+
+                template<typename T_Particle>
+                HDINLINE void operator()(T_Particle& particle)
+                {
+                    if(picongpu::gamma<float_X>(
+                           particle[picongpu::momentum_],
+                           picongpu::traits::attribute::getMass(particle[picongpu::weighting_], particle))
+                       >= radiationGamma)
+                        particle[picongpu::radiationMask_] = true;
+                }
+            };
 
 
-constexpr unsigned int N_observer = 128; // number of looking directions
-
-} /* end namespace parameters */
-
-  /** activate particles for radiation */
-  struct GammaFilterFunctor
-  {
-      static constexpr float_X radiationGamma = 3.0;
-
-      template< typename T_Particle >
-      HDINLINE void operator()( T_Particle& particle )
-      {
-          if(
-             picongpu::gamma<float_X>(
-                                      particle[ picongpu::momentum_ ],
-                                      picongpu::traits::attribute::getMass(
-                                                                           particle[ picongpu::weighting_ ],
-                                                                           particle
-                                                                           )
-                                      ) >= radiationGamma
-             )
-            particle[ picongpu::radiationMask_ ] = true;
-      }
-  };
+            /* filter to enable radiation for electrons
+             *
+             * to enable the filter:
+             *   - goto file `speciesDefinition.param`
+             *   - add the attribute `radiationMask` to the electron species
+             */
+            using RadiationParticleFilter = picongpu::particles::manipulators::generic::Free<GammaFilterFunctor>;
 
 
-  /* filter to enable radiation for electrons
-   *
-   * to enable the filter:
-   *   - goto file `speciesDefinition.param`
-   *   - add the attribute `radiationMask` to the electron species
-   */
-  using RadiationParticleFilter = picongpu::particles::manipulators::generic::Free<
-    GammaFilterFunctor
-    >;
+            // add a window function weighting to the radiation in order
+            // to avoid ringing effects from sharpe boundaries
+            // default: no window function via `radWindowFunctionNone`
 
-
-
-// add a window function weighting to the radiation in order
-// to avoid ringing effects from sharpe boundaries
-// default: no window function via `radWindowFunctionNone`
-
-/* Choose different window function in order to get better ringing reduction
- * radWindowFunctionTriangle
- * radWindowFunctionHamming
- * radWindowFunctionTriplett
- * radWindowFunctionGauss
- * radWindowFunctionNone
- */
+            /* Choose different window function in order to get better ringing reduction
+             * radWindowFunctionTriangle
+             * radWindowFunctionHamming
+             * radWindowFunctionTriplett
+             * radWindowFunctionGauss
+             * radWindowFunctionNone
+             */
 
 #ifndef PARAM_RADWINDOW
-#   define PARAM_RADWINDOW radWindowFunctionNone
+#    define PARAM_RADWINDOW radWindowFunctionNone
 #endif
-  namespace radWindowFunctionTriangle { }
-  namespace radWindowFunctionHamming { }
-  namespace radWindowFunctionTriplett { }
-  namespace radWindowFunctionGauss { }
-  namespace radWindowFunctionNone { }
+            namespace radWindowFunctionTriangle
+            {
+            }
+            namespace radWindowFunctionHamming
+            {
+            }
+            namespace radWindowFunctionTriplett
+            {
+            }
+            namespace radWindowFunctionGauss
+            {
+            }
+            namespace radWindowFunctionNone
+            {
+            }
 
-  namespace radWindowFunction = PARAM_RADWINDOW;
+            namespace radWindowFunction = PARAM_RADWINDOW;
 
-} // namespace radiation
-} // namespace plugins
+        } // namespace radiation
+    } // namespace plugins
 } // namespace picongpu

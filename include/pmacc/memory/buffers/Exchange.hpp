@@ -26,7 +26,6 @@
 
 namespace pmacc
 {
-
     /**
      * Interface for a DIM-dimensional buffer used for data exchange.
      *
@@ -38,24 +37,23 @@ namespace pmacc
      * @tparam TYPE the datatype for internal buffers
      * @tparam DIM the dimension of the internal buffers
      */
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class Exchange
     {
     public:
-
         /**
          * Returns the exchange buffer on the device.
          *
          * @return Exchange buffer on device
          */
-        virtual DeviceBuffer<TYPE, DIM> &getDeviceBuffer() = 0;
+        virtual DeviceBuffer<TYPE, DIM>& getDeviceBuffer() = 0;
 
         /**
          * Returns the exchange buffer on the host.
          *
          * @return Exchange buffer on host
          */
-        virtual HostBuffer <TYPE, DIM> &getHostBuffer() = 0;
+        virtual HostBuffer<TYPE, DIM>& getHostBuffer() = 0;
 
         /**
          * Returns the type describing exchange directions
@@ -84,21 +82,17 @@ namespace pmacc
          */
         virtual Buffer<TYPE, DIM>* getCommunicationBuffer() = 0;
 
-        virtual bool hasDeviceDoubleBuffer()=0;
+        virtual bool hasDeviceDoubleBuffer() = 0;
 
-        virtual DeviceBuffer<TYPE, DIM>& getDeviceDoubleBuffer()=0;
+        virtual DeviceBuffer<TYPE, DIM>& getDeviceDoubleBuffer() = 0;
 
     protected:
-
-        Exchange(uint32_t extype, uint32_t tag) :
-        exchange(extype),
-        communicationTag(tag)
+        Exchange(uint32_t extype, uint32_t tag) : exchange(extype), communicationTag(tag)
         {
-
         }
 
         uint32_t exchange;
         uint32_t communicationTag;
     };
 
-}
+} // namespace pmacc

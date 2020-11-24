@@ -32,43 +32,34 @@
 
 namespace pmacc
 {
-
-
-
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class TaskSend : public MPITask
     {
     public:
-
-        TaskSend(Exchange<TYPE, DIM> &ex) :
-        exchange(&ex),
-        state(Constructor)
+        TaskSend(Exchange<TYPE, DIM>& ex) : exchange(&ex), state(Constructor)
         {
         }
 
         virtual void init()
         {
             state = InitDone;
-            if (exchange->hasDeviceDoubleBuffer())
+            if(exchange->hasDeviceDoubleBuffer())
             {
                 if(Environment<>::get().isMpiDirectEnabled())
                     Environment<>::get().Factory().createTaskCopyDeviceToDevice(
                         exchange->getDeviceBuffer(),
                         exchange->getDeviceDoubleBuffer(),
-                        this
-                    );
+                        this);
                 else
                 {
                     Environment<>::get().Factory().createTaskCopyDeviceToDevice(
                         exchange->getDeviceBuffer(),
-                        exchange->getDeviceDoubleBuffer()
-                    );
+                        exchange->getDeviceDoubleBuffer());
 
                     Environment<>::get().Factory().createTaskCopyDeviceToHost(
                         exchange->getDeviceDoubleBuffer(),
                         exchange->getHostBuffer(),
-                        this
-                    );
+                        this);
                 }
             }
             else
@@ -85,30 +76,28 @@ namespace pmacc
                     Environment<>::get().Factory().createTaskCopyDeviceToHost(
                         exchange->getDeviceBuffer(),
                         exchange->getHostBuffer(),
-                        this
-                    );
+                        this);
             }
-
         }
 
         bool executeIntern()
         {
-            switch (state)
+            switch(state)
             {
-                case InitDone:
-                    break;
-                case ReadyForMPISend:
-                    state = SendDone;
-                    __startTransaction();
-                    Environment<>::get().Factory().createTaskSendMPI(exchange, this);
-                    __endTransaction();
-                    break;
-                case SendDone:
-                    break;
-                case Finish:
-                    return true;
-                default:
-                    return false;
+            case InitDone:
+                break;
+            case ReadyForMPISend:
+                state = SendDone;
+                __startTransaction();
+                Environment<>::get().Factory().createTaskSendMPI(exchange, this);
+                __endTransaction();
+                break;
+            case SendDone:
+                break;
+            case Finish:
+                return true;
+            default:
+                return false;
             }
 
             return false;
@@ -125,25 +114,22 @@ namespace pmacc
             {
                 state = ReadyForMPISend;
                 executeIntern();
-
             }
 
             if(type == SENDFINISHED)
             {
                 state = Finish;
             }
-
         }
 
         std::string toString()
         {
             std::stringstream ss;
-            ss<<state;
-            return std::string("TaskSend ")+ ss.str();
+            ss << state;
+            return std::string("TaskSend ") + ss.str();
         }
 
     private:
-
         enum state_t
         {
             Constructor,
@@ -153,9 +139,8 @@ namespace pmacc
             Finish
         };
 
-        Exchange<TYPE, DIM> *exchange;
+        Exchange<TYPE, DIM>* exchange;
         state_t state;
     };
 
-} //namespace pmacc
-
+} // namespace pmacc

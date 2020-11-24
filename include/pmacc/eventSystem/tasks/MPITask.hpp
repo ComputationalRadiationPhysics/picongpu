@@ -27,21 +27,17 @@
 
 namespace pmacc
 {
-
     /**
      * Abstract base class for all tasks which depend on MPI communication.
      */
     class MPITask : public ITask
     {
     public:
-
         /**
          * Constructor.
          * Starts a MPI operation on the transaction system.
          */
-        MPITask() :
-        ITask(),
-        finished(false)
+        MPITask() : ITask(), finished(false)
         {
             this->setTaskType(ITask::TASK_MPI);
         }
@@ -54,7 +50,6 @@ namespace pmacc
         }
 
     protected:
-
         /**
          * Returns if the task is finished.
          *
@@ -72,7 +67,8 @@ namespace pmacc
         {
             finished = true;
         }
+
     private:
         bool finished;
     };
-}
+} // namespace pmacc

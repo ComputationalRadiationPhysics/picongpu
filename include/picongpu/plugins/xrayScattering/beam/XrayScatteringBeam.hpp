@@ -28,30 +28,23 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace xrayScattering
-{
-namespace beam
-{
-   // TODO: Move this back to the param file after fixing the coordinate
-   // transform.
-    constexpr float_X BEAM_OFFSET[ 2 ] = { 0.0, 0.0 };
-    constexpr float_X BEAM_DELAY_SI = 0.0;
-    using BeamProfile = beamProfiles::ConstProfile;
-    using BeamShape = beamShapes::ConstShape;
+    namespace plugins
+    {
+        namespace xrayScattering
+        {
+            namespace beam
+            {
+                // TODO: Move this back to the param file after fixing the coordinate
+                // transform.
+                constexpr float_X BEAM_OFFSET[2] = {0.0, 0.0};
+                constexpr float_X BEAM_DELAY_SI = 0.0;
+                using BeamProfile = beamProfiles::ConstProfile;
+                using BeamShape = beamShapes::ConstShape;
 
-    using BeamCoordinates = CoordinateTransform<
-        ProbingSide,
-        SecondaryRotation< RotationParam >
-    >;
-    using XrayScatteringBeam = ProbingBeam<
-        BeamProfile,
-        BeamShape,
-        BeamCoordinates
-    >;
+                using BeamCoordinates = CoordinateTransform<ProbingSide, SecondaryRotation<RotationParam>>;
+                using XrayScatteringBeam = ProbingBeam<BeamProfile, BeamShape, BeamCoordinates>;
 
-} // namespace beam
-} // namespace xrayScattering
-} // namespace plugins
+            } // namespace beam
+        } // namespace xrayScattering
+    } // namespace plugins
 } // namespace picongpu

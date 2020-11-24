@@ -27,50 +27,40 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace boundary
-{
-    /**
-     * Guard handler policy calling all registered plugins when particles
-     * leave the global simulation volume. This class serves as policy for
-     * the `ParticleDescription` template class.
-     *
-     * For each plugin the method `IPlugin::onParticleLeave()` is called.
-     * After that the guard particles are deleted.
-     */
-    struct CallPluginsAndDeleteParticles
+    namespace particles
     {
-        template< class T_Particles >
-        void
-        handleOutgoing(
-            T_Particles & particles,
-            int32_t const direction
-        ) const
+        namespace boundary
         {
-            using Plugins = std::list<pmacc::IPlugin*>;
-            Plugins plugins = Environment<>::get().PluginConnector().getAllPlugins();
-
-            for( Plugins::iterator iter = plugins.begin(); iter != plugins.end(); iter++ )
+            /**
+             * Guard handler policy calling all registered plugins when particles
+             * leave the global simulation volume. This class serves as policy for
+             * the `ParticleDescription` template class.
+             *
+             * For each plugin the method `IPlugin::onParticleLeave()` is called.
+             * After that the guard particles are deleted.
+             */
+            struct CallPluginsAndDeleteParticles
             {
-                ( *iter )->onParticleLeave(
-                    T_Particles::FrameType::getName(),
-                    direction
-                );
-            }
+                template<class T_Particles>
+                void handleOutgoing(T_Particles& particles, int32_t const direction) const
+                {
+                    using Plugins = std::list<pmacc::IPlugin*>;
+                    Plugins plugins = Environment<>::get().PluginConnector().getAllPlugins();
 
-            particles.deleteGuardParticles( direction );
-        }
+                    for(Plugins::iterator iter = plugins.begin(); iter != plugins.end(); iter++)
+                    {
+                        (*iter)->onParticleLeave(T_Particles::FrameType::getName(), direction);
+                    }
 
-        template< class T_Particles >
-        void
-        handleIncoming(
-            T_Particles &,
-            int32_t const
-        ) const
-        {}
-    };
+                    particles.deleteGuardParticles(direction);
+                }
 
-} // namespace particles
-} // namespace boundary
+                template<class T_Particles>
+                void handleIncoming(T_Particles&, int32_t const) const
+                {
+                }
+            };
+
+        } // namespace boundary
+    } // namespace particles
 } // namespace picongpu

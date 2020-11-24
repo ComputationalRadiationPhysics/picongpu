@@ -27,55 +27,55 @@
 
 namespace picongpu
 {
-namespace templates
-{
-namespace twts
-{
-/** Auxiliary functions for calculating the TWTS field */
-namespace detail
-{
-    /** Calculate the SI position vectors that later enter the Ex(r, t), By(r, t)
-     *  and Bz(r ,t) calculations as r.
-     *  \param cellIdx The total cell id counted from the start at timestep 0. */
-    HDINLINE pmacc::math::Vector<floatD_64,numComponents>
-    getFieldPositions_SI(const DataSpace<simDim>& cellIdx,
-                         const DataSpace<simDim>& halfSimSize,
-                         const pmacc::math::Vector<floatD_X, numComponents>& fieldOnGridPositions,
-                         const float_64 unit_length,
-                         const float_64 focus_y_SI,
-                         const float_X phi )
+    namespace templates
     {
-        /* Note: Neither direct precisionCast on picongpu::cellSize
-           or casting on floatD_ does work. */
-        const floatD_64 cellDim(picongpu::cellSize.shrink<simDim>());
-        const floatD_64 cellDimensions = cellDim * unit_length;
-
-        /* TWTS laser coordinate origin is centered transversally and defined longitudinally by
-           the laser center in y (usually maximum of intensity). */
-        floatD_X laserOrigin = precisionCast<float_X>(halfSimSize);
-        laserOrigin.y() = float_X( focus_y_SI/cellDimensions.y() );
-
-        /* For staggered fields (e.g. Yee-grid), obtain the fractional cell index components and add
-         * that to the total cell indices. The physical field coordinate origin is transversally
-         * centered with respect to the global simulation volume.
-         * pmacc::math::Vector<floatD_X, numComponents> fieldPositions =
-         *                traits::FieldPosition<fields::CellType, FieldE>(); */
-        pmacc::math::Vector<floatD_X, numComponents> fieldPositions = fieldOnGridPositions;
-
-        pmacc::math::Vector<floatD_64,numComponents> fieldPositions_SI;
-
-        for( uint32_t i = 0; i < numComponents; ++i ) /* cellIdx Ex, Ey and Ez */
+        namespace twts
         {
-            fieldPositions[i]   += ( precisionCast<float_X>(cellIdx) - laserOrigin );
-            fieldPositions_SI[i] = precisionCast<float_64>(fieldPositions[i]) * cellDimensions;
+            /** Auxiliary functions for calculating the TWTS field */
+            namespace detail
+            {
+                /** Calculate the SI position vectors that later enter the Ex(r, t), By(r, t)
+                 *  and Bz(r ,t) calculations as r.
+                 *  \param cellIdx The total cell id counted from the start at timestep 0. */
+                HDINLINE pmacc::math::Vector<floatD_64, numComponents> getFieldPositions_SI(
+                    const DataSpace<simDim>& cellIdx,
+                    const DataSpace<simDim>& halfSimSize,
+                    const pmacc::math::Vector<floatD_X, numComponents>& fieldOnGridPositions,
+                    const float_64 unit_length,
+                    const float_64 focus_y_SI,
+                    const float_X phi)
+                {
+                    /* Note: Neither direct precisionCast on picongpu::cellSize
+                       or casting on floatD_ does work. */
+                    const floatD_64 cellDim(picongpu::cellSize.shrink<simDim>());
+                    const floatD_64 cellDimensions = cellDim * unit_length;
 
-            fieldPositions_SI[i] = rotateField(fieldPositions_SI[i],phi);
-        }
+                    /* TWTS laser coordinate origin is centered transversally and defined longitudinally by
+                       the laser center in y (usually maximum of intensity). */
+                    floatD_X laserOrigin = precisionCast<float_X>(halfSimSize);
+                    laserOrigin.y() = float_X(focus_y_SI / cellDimensions.y());
 
-        return fieldPositions_SI;
-    }
+                    /* For staggered fields (e.g. Yee-grid), obtain the fractional cell index components and add
+                     * that to the total cell indices. The physical field coordinate origin is transversally
+                     * centered with respect to the global simulation volume.
+                     * pmacc::math::Vector<floatD_X, numComponents> fieldPositions =
+                     *                traits::FieldPosition<fields::CellType, FieldE>(); */
+                    pmacc::math::Vector<floatD_X, numComponents> fieldPositions = fieldOnGridPositions;
 
-} /* namespace detail */
-} /* namespace twts */
-} /* namespace templates */
+                    pmacc::math::Vector<floatD_64, numComponents> fieldPositions_SI;
+
+                    for(uint32_t i = 0; i < numComponents; ++i) /* cellIdx Ex, Ey and Ez */
+                    {
+                        fieldPositions[i] += (precisionCast<float_X>(cellIdx) - laserOrigin);
+                        fieldPositions_SI[i] = precisionCast<float_64>(fieldPositions[i]) * cellDimensions;
+
+                        fieldPositions_SI[i] = rotateField(fieldPositions_SI[i], phi);
+                    }
+
+                    return fieldPositions_SI;
+                }
+
+            } /* namespace detail */
+        } /* namespace twts */
+    } /* namespace templates */
 } /* namespace picongpu */

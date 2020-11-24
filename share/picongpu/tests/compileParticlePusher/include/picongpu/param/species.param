@@ -46,7 +46,6 @@
 
 namespace picongpu
 {
-
 /** select macroparticle shape
  *
  * **WARNING** the shape names are redefined and diverge from PIConGPU versions before 0.6.0.
@@ -57,32 +56,29 @@ namespace picongpu
  *  - particles::shapes::PCS : Assignment function is a piecewise quartic spline
  */
 #ifndef PARAM_PARTICLESHAPE
-#define PARAM_PARTICLESHAPE TSC
+#    define PARAM_PARTICLESHAPE TSC
 #endif
-using UsedParticleShape = particles::shapes::PARAM_PARTICLESHAPE;
+    using UsedParticleShape = particles::shapes::PARAM_PARTICLESHAPE;
 
-/** select interpolation method to be used for interpolation of grid-based field values to particle positions
- */
-using UsedField2Particle = FieldToParticleInterpolation<
-    UsedParticleShape,
-    AssignedTrilinearInterpolation
->;
+    /** select interpolation method to be used for interpolation of grid-based field values to particle positions
+     */
+    using UsedField2Particle = FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpolation>;
 
-/*! select current solver method
- * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
- * - currentSolver::VillaBune< SHAPE, STRATEGY > : particle shapes - CIC (1st order) only
- * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
- *
- * For development purposes:
- * - currentSolver::EsirkepovNative< SHAPE, STRATEGY > : generic version of currentSolverEsirkepov
- *   without optimization (~4x slower and needs more shared memory)
- *
- * STRATEGY (optional):
- * - currentSolver::strategy::StridedCachedSupercells
- * - currentSolver::strategy::CachedSupercells
- * - currentSolver::strategy::NonCachedSupercells
- */
-using UsedParticleCurrentSolver = currentSolver::EmZ< UsedParticleShape >;
+    /*! select current solver method
+     * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
+     * - currentSolver::VillaBune< SHAPE, STRATEGY > : particle shapes - CIC (1st order) only
+     * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
+     *
+     * For development purposes:
+     * - currentSolver::EsirkepovNative< SHAPE, STRATEGY > : generic version of currentSolverEsirkepov
+     *   without optimization (~4x slower and needs more shared memory)
+     *
+     * STRATEGY (optional):
+     * - currentSolver::strategy::StridedCachedSupercells
+     * - currentSolver::strategy::CachedSupercells
+     * - currentSolver::strategy::NonCachedSupercells
+     */
+    using UsedParticleCurrentSolver = currentSolver::EmZ<UsedParticleShape>;
 
 /** particle pusher configuration
  *
@@ -106,25 +102,26 @@ using UsedParticleCurrentSolver = currentSolver::EmZ< UsedParticleShape >;
  * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
  */
 #ifndef PARAM_PARTICLEPUSHER
-#define PARAM_PARTICLEPUSHER Boris
+#    define PARAM_PARTICLEPUSHER Boris
 #endif
 
 /* To avoid issues with commas in macro definitions,
  * pass composite pushers via a special flag
  */
 #ifndef PARAM_COMPOSITEPUSHER
-#define PARAM_COMPOSITEPUSHER 0
+#    define PARAM_COMPOSITEPUSHER 0
 #endif
 
 #if PARAM_COMPOSITEPUSHER
-#define PUSHER particles::pusher::Composite<particles::pusher::Vay, \
-    particles::pusher::PARAM_PARTICLEPUSHER,                        \
-    particles::pusher::CompositeBinarySwitchActivationFunctor<10>   \
->
+#    define PUSHER                                                                                                    \
+        particles::pusher::Composite<                                                                                 \
+            particles::pusher::Vay,                                                                                   \
+            particles::pusher::PARAM_PARTICLEPUSHER,                                                                  \
+            particles::pusher::CompositeBinarySwitchActivationFunctor<10>>
 #else
-#define PUSHER particles::pusher::PARAM_PARTICLEPUSHER
+#    define PUSHER particles::pusher::PARAM_PARTICLEPUSHER
 #endif
 
-using UsedParticlePusher = PUSHER;
+    using UsedParticlePusher = PUSHER;
 
 } // namespace picongpu

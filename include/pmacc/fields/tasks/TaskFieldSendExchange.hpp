@@ -28,20 +28,17 @@
 #include "pmacc/eventSystem/events/EventDataReceive.hpp"
 
 
-
 namespace pmacc
 {
-
     template<class Field>
     class TaskFieldSendExchange : public MPITask
     {
     public:
-
-        TaskFieldSendExchange(Field &buffer, uint32_t exchange) :
-        m_buffer(buffer),
-        m_exchange(exchange),
-        m_state(Constructor),
-        m_initDependency(__getTransactionEvent())
+        TaskFieldSendExchange(Field& buffer, uint32_t exchange)
+            : m_buffer(buffer)
+            , m_exchange(exchange)
+            , m_state(Constructor)
+            , m_initDependency(__getTransactionEvent())
         {
         }
 
@@ -56,13 +53,13 @@ namespace pmacc
 
         bool executeIntern()
         {
-            switch (m_state)
+            switch(m_state)
             {
             case Init:
                 break;
             case WaitForBash:
 
-                if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_initDependency.getTaskId()) )
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_initDependency.getTaskId()))
                 {
                     m_state = InitSend;
                     m_sendEvent = m_buffer.getGridBuffer().asyncSend(EventTask(), m_exchange);
@@ -74,7 +71,7 @@ namespace pmacc
             case InitSend:
                 break;
             case WaitForSendEnd:
-                if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_sendEvent.getTaskId()))
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_sendEvent.getTaskId()))
                 {
                     m_state = Finished;
                     return true;
@@ -104,7 +101,6 @@ namespace pmacc
         }
 
     private:
-
         enum state_t
         {
             Constructor,
@@ -124,5 +120,4 @@ namespace pmacc
         uint32_t m_exchange;
     };
 
-} //namespace pmacc
-
+} // namespace pmacc

@@ -27,45 +27,42 @@
 
 namespace picongpu
 {
-namespace densityProfiles
-{
-
-    /** Wrapper around a given density profile functor
-     *
-     * Defines density profile "concept" interface and compile-time checks that
-     * the given profile type is compatible to it
-     *
-     * @tparam T_Profile wrapped density profile functor type
-     */
-    template< typename T_Profile >
-    struct IProfile : private T_Profile
+    namespace densityProfiles
     {
-
-        /** Create a profile functor for the given time iteration
+        /** Wrapper around a given density profile functor
          *
-         * @param currentStep current time iteration
+         * Defines density profile "concept" interface and compile-time checks that
+         * the given profile type is compatible to it
+         *
+         * @tparam T_Profile wrapped density profile functor type
          */
-        HINLINE IProfile( uint32_t const currentStep ):
-            T_Profile( currentStep )
+        template<typename T_Profile>
+        struct IProfile : private T_Profile
         {
-        }
+            /** Create a profile functor for the given time iteration
+             *
+             * @param currentStep current time iteration
+             */
+            HINLINE IProfile(uint32_t const currentStep) : T_Profile(currentStep)
+            {
+            }
 
-        /** Calculate physical particle density value for the given cell
-         *
-         * It concerns real (physical, not macro-) particles.
-         * The result is in units of BASE_DENSITY times PIC units of volume**-3.
-         *
-         * The density is assumed constant inside a cell, so the underlying
-         * functor should preferably return a value in the cell center.
-         *
-         * @param totalCellOffset total offset from the start of the global
-         *                        simulation area, including all slides [in cells]
-         */
-        HDINLINE float_X operator()( pmacc::DataSpace< simDim > const & totalCellOffset )
-        {
-            return T_Profile::operator()( totalCellOffset );
-        }
-    };
+            /** Calculate physical particle density value for the given cell
+             *
+             * It concerns real (physical, not macro-) particles.
+             * The result is in units of BASE_DENSITY times PIC units of volume**-3.
+             *
+             * The density is assumed constant inside a cell, so the underlying
+             * functor should preferably return a value in the cell center.
+             *
+             * @param totalCellOffset total offset from the start of the global
+             *                        simulation area, including all slides [in cells]
+             */
+            HDINLINE float_X operator()(pmacc::DataSpace<simDim> const& totalCellOffset)
+            {
+                return T_Profile::operator()(totalCellOffset);
+            }
+        };
 
-} // namespace densityProfiles
+    } // namespace densityProfiles
 } // namespace picongpu

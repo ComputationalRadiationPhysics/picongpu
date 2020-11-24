@@ -31,63 +31,49 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace differentiation
-{
-
-    /** Interface of field derivative functors created by makeDerivativeFunctor()
-     *
-     * In addition to operator(), the functor must be copyable and assignable.
-     */
-    struct DerivativeFunctorConcept
+    namespace fields
     {
-        /** Return derivative value at the given point
-         *
-         * @tparam T_DataBox data box type with field data
-         * @param data position in the data box to compute derivative at
-         */
-        template< typename T_DataBox >
-        HDINLINE typename T_DataBox::ValueType operator()(
-            T_DataBox const & data ) const;
-    };
+        namespace differentiation
+        {
+            /** Interface of field derivative functors created by makeDerivativeFunctor()
+             *
+             * In addition to operator(), the functor must be copyable and assignable.
+             */
+            struct DerivativeFunctorConcept
+            {
+                /** Return derivative value at the given point
+                 *
+                 * @tparam T_DataBox data box type with field data
+                 * @param data position in the data box to compute derivative at
+                 */
+                template<typename T_DataBox>
+                HDINLINE typename T_DataBox::ValueType operator()(T_DataBox const& data) const;
+            };
 
-    /** Type of derivative functor for the given derivative tag and direction
-     *
-     * Derivative tag defines the scheme and is used for configuration, while
-     * the functor actually computes the derivatives along the given direction.
-     *
-     * @tparam T_Derivative derivative tag, defines the finite-difference scheme
-     * @tparam T_direction direction to take derivative in, 0 = x, 1 = y, 2 = z
-     */
-    template<
-        typename T_Derivative,
-        uint32_t T_direction
-    >
-    using DerivativeFunctor = typename traits::DerivativeFunctor<
-        T_Derivative,
-        T_direction
-    >::type;
+            /** Type of derivative functor for the given derivative tag and direction
+             *
+             * Derivative tag defines the scheme and is used for configuration, while
+             * the functor actually computes the derivatives along the given direction.
+             *
+             * @tparam T_Derivative derivative tag, defines the finite-difference scheme
+             * @tparam T_direction direction to take derivative in, 0 = x, 1 = y, 2 = z
+             */
+            template<typename T_Derivative, uint32_t T_direction>
+            using DerivativeFunctor = typename traits::DerivativeFunctor<T_Derivative, T_direction>::type;
 
-    /** Create a functor to compute field derivative along the given direction
-     *
-     * In case T_direction is >= simDim, returns the zero derivative functor
-     *
-     * @tparam T_Derivative derivative tag, defines the finite-difference scheme
-     * @tparam T_direction direction to take derivative in, 0 = x, 1 = y, 2 = z
-     */
-    template<
-        typename T_Derivative,
-        uint32_t T_direction
-    >
-    HDINLINE auto makeDerivativeFunctor()
-    {
-        return traits::MakeDerivativeFunctor<
-            T_Derivative,
-            T_direction
-        >{}();
-    }
+            /** Create a functor to compute field derivative along the given direction
+             *
+             * In case T_direction is >= simDim, returns the zero derivative functor
+             *
+             * @tparam T_Derivative derivative tag, defines the finite-difference scheme
+             * @tparam T_direction direction to take derivative in, 0 = x, 1 = y, 2 = z
+             */
+            template<typename T_Derivative, uint32_t T_direction>
+            HDINLINE auto makeDerivativeFunctor()
+            {
+                return traits::MakeDerivativeFunctor<T_Derivative, T_direction>{}();
+            }
 
-} // namespace differentiation
-} // namespace fields
+        } // namespace differentiation
+    } // namespace fields
 } // namespace picongpu

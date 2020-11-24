@@ -28,33 +28,28 @@
 
 namespace pmacc
 {
-namespace{
-    /** abort program with an exception
-     *
-     * This function always throws a `runtime_error`.
-     *
-     * @param exp evaluated expression
-     * @param filename name of the broken file
-     * @param lineNumber line in file
-     * @param msg user defined error message
-     */
-    void abortWithError(
-        const std::string exp,
-        const std::string filename,
-        const uint32_t lineNumber,
-        const std::string msg = std::string()
-    )
+    namespace
     {
-        std::stringstream line;
-        line << lineNumber;
+        /** abort program with an exception
+         *
+         * This function always throws a `runtime_error`.
+         *
+         * @param exp evaluated expression
+         * @param filename name of the broken file
+         * @param lineNumber line in file
+         * @param msg user defined error message
+         */
+        void abortWithError(
+            const std::string exp,
+            const std::string filename,
+            const uint32_t lineNumber,
+            const std::string msg = std::string())
+        {
+            std::stringstream line;
+            line << lineNumber;
 
-        throw std::runtime_error(
-            "expression (" +
-            exp +
-            ") failed in file (" +
-            filename + ":" + line.str() + ") : " +
-            msg
-        );
-    }
-}
-}
+            throw std::runtime_error(
+                "expression (" + exp + ") failed in file (" + filename + ":" + line.str() + ") : " + msg);
+        }
+    } // namespace
+} // namespace pmacc

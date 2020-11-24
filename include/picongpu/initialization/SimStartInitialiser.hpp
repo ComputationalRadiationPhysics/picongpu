@@ -27,26 +27,21 @@
 
 namespace picongpu
 {
-
-/**
- * Simulation startup initialiser.
- *
- * Initialises a new simulation from default values.
- *
- */
-class SimStartInitialiser : public AbstractInitialiser
-{
-public:
-
-    void init(ISimulationData& data, uint32_t currentStep)
+    /**
+     * Simulation startup initialiser.
+     *
+     * Initialises a new simulation from default values.
+     *
+     */
+    class SimStartInitialiser : public AbstractInitialiser
     {
+    public:
+        void init(ISimulationData& data, uint32_t currentStep)
+        {
+        }
 
-    }
-
-    virtual ~SimStartInitialiser()
-    {
-
-    }
-};
-}
-
+        virtual ~SimStartInitialiser()
+        {
+        }
+    };
+} // namespace picongpu

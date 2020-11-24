@@ -6,7 +6,23 @@ We agree on the following simple rules to make our lives easier :)
 - Stick to the **style** below for **commit messages**
 - **Commit compiling patches** for the *main* branches (`master` and `dev`),
   you can be less strict for (unshared) *topic branches*
+- Commits should be formated with clang-format-11
 
+Format Code
+-----------
+
+- Install clang-format-11
+- To format all file in your working copy, you can run this command in bash from the root folder of PIConGPU:
+  ```bash
+  find include/ share/picongpu/ share/pmacc -iname "*.def" \
+  -o -iname "*.h" -o -iname "*.cpp" -o -iname "*.cu" \
+  -o -iname "*.hpp" -o -iname "*.tpp" -o -iname "*.kernel" \
+  -o -iname "*.loader" -o -iname "*.param" -o -iname "*.unitless" \
+  | xargs clang-format-11 -i
+  ```
+ 
+To format only lines you added with `git add` you can call `git clang-format-11` before you create a commit.
+Take care that un-staged changes will not be formatted.
 
 Commit Messages
 ---------------

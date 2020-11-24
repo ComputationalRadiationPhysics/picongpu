@@ -27,7 +27,7 @@
 
 #include "picongpu/param/dimension.param"
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
-#   include "picongpu/param/mallocMC.param"
+#    include "picongpu/param/mallocMC.param"
 #endif
 #include "picongpu/param/memory.param"
 #include "picongpu/param/random.param"
@@ -46,8 +46,8 @@
 #include "picongpu/param/pml.param"
 #include "picongpu/param/unit.param"
 #include "picongpu/param/particleFilters.param"
-#if( PMACC_CUDA_ENABLED == 1 )
-#   include "picongpu/param/bremsstrahlung.param"
+#if(PMACC_CUDA_ENABLED == 1)
+#    include "picongpu/param/bremsstrahlung.param"
 #endif
 #include "picongpu/param/radiation.param"
 #include "picongpu/param/transitionRadiation.param"
@@ -65,6 +65,6 @@
 #include "picongpu/param/isaac.param"
 #include "picongpu/param/radiationObserver.param"
 #include "picongpu/param/particleMerger.param"
-#if( ENABLE_OPENPMD == 1 )
-#   include "picongpu/param/xrayScattering.param"
+#if(ENABLE_OPENPMD == 1)
+#    include "picongpu/param/xrayScattering.param"
 #endif

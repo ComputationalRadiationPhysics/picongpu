@@ -38,179 +38,135 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace maxwellSolver
-{
-
-    template<
-        typename T_CurrentInterpolation,
-        class CurlE,
-        class CurlB
-    >
-    class Yee
+    namespace fields
     {
-    private:
-        typedef MappingDesc::SuperCellSize SuperCellSize;
-
-
-        std::shared_ptr< FieldE > fieldE;
-        std::shared_ptr< FieldB > fieldB;
-        MappingDesc m_cellDescription;
-
-        template<uint32_t AREA>
-        void updateE()
+        namespace maxwellSolver
         {
-            /* Courant-Friedrichs-Levy-Condition for Yee Field Solver:
-             *
-             * A workaround is to add a template dependency to the expression.
-             * `sizeof(ANY_TYPE*) != 0` is always true and defers the evaluation.
-             */
-            PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_grid_param_file,
-                (SPEED_OF_LIGHT*SPEED_OF_LIGHT*DELTA_T*DELTA_T*INV_CELL2_SUM)<=1.0 && sizeof(T_CurrentInterpolation*) != 0);
+            template<typename T_CurrentInterpolation, class CurlE, class CurlB>
+            class Yee
+            {
+            private:
+                typedef MappingDesc::SuperCellSize SuperCellSize;
 
-            typedef SuperCellDescription<
-                    SuperCellSize,
-                    typename traits::GetLowerMargin<CurlB>::type,
-                    typename traits::GetUpperMargin<CurlB>::type
-                    > BlockArea;
 
-            AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
+                std::shared_ptr<FieldE> fieldE;
+                std::shared_ptr<FieldB> fieldB;
+                MappingDesc m_cellDescription;
 
-            constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-                pmacc::math::CT::volume< SuperCellSize >::type::value
-            >::value;
+                template<uint32_t AREA>
+                void updateE()
+                {
+                    /* Courant-Friedrichs-Levy-Condition for Yee Field Solver:
+                     *
+                     * A workaround is to add a template dependency to the expression.
+                     * `sizeof(ANY_TYPE*) != 0` is always true and defers the evaluation.
+                     */
+                    PMACC_CASSERT_MSG(
+                        Courant_Friedrichs_Levy_condition_failure____check_your_grid_param_file,
+                        (SPEED_OF_LIGHT * SPEED_OF_LIGHT * DELTA_T * DELTA_T * INV_CELL2_SUM) <= 1.0
+                            && sizeof(T_CurrentInterpolation*) != 0);
 
-            PMACC_KERNEL(yee::KernelUpdateE< numWorkers, BlockArea >{ })
-                ( mapper.getGridDim(), numWorkers )(
-                    CurlB( ),
-                    this->fieldE->getDeviceDataBox(),
-                    this->fieldB->getDeviceDataBox(),
-                    mapper
-                );
-        }
+                    typedef SuperCellDescription<
+                        SuperCellSize,
+                        typename traits::GetLowerMargin<CurlB>::type,
+                        typename traits::GetUpperMargin<CurlB>::type>
+                        BlockArea;
 
-        template<uint32_t AREA>
-        void updateBHalf()
-        {
-            typedef SuperCellDescription<
-                    SuperCellSize,
-                    typename CurlE::LowerMargin,
-                    typename CurlE::UpperMargin
-                    > BlockArea;
+                    AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
 
-            AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
+                    constexpr uint32_t numWorkers
+                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
-            constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-                pmacc::math::CT::volume< SuperCellSize >::type::value
-            >::value;
+                    PMACC_KERNEL(yee::KernelUpdateE<numWorkers, BlockArea>{})
+                    (mapper.getGridDim(),
+                     numWorkers)(CurlB(), this->fieldE->getDeviceDataBox(), this->fieldB->getDeviceDataBox(), mapper);
+                }
 
-            PMACC_KERNEL(yee::KernelUpdateBHalf< numWorkers, BlockArea >{ })
-                ( mapper.getGridDim(), numWorkers )(
-                    CurlE( ),
-                    this->fieldB->getDeviceDataBox(),
-                    this->fieldE->getDeviceDataBox(),
-                    mapper
-                );
-        }
+                template<uint32_t AREA>
+                void updateBHalf()
+                {
+                    typedef SuperCellDescription<
+                        SuperCellSize,
+                        typename CurlE::LowerMargin,
+                        typename CurlE::UpperMargin>
+                        BlockArea;
 
-    public:
+                    AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
 
-        using CellType = cellType::Yee;
-        using CurrentInterpolation = T_CurrentInterpolation;
+                    constexpr uint32_t numWorkers
+                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
-        Yee(MappingDesc cellDescription) : m_cellDescription(cellDescription)
-        {
-            DataConnector &dc = Environment<>::get().DataConnector();
+                    PMACC_KERNEL(yee::KernelUpdateBHalf<numWorkers, BlockArea>{})
+                    (mapper.getGridDim(),
+                     numWorkers)(CurlE(), this->fieldB->getDeviceDataBox(), this->fieldE->getDeviceDataBox(), mapper);
+                }
 
-            this->fieldE = dc.get< FieldE >( FieldE::getName(), true );
-            this->fieldB = dc.get< FieldB >( FieldB::getName(), true );
-        }
+            public:
+                using CellType = cellType::Yee;
+                using CurrentInterpolation = T_CurrentInterpolation;
 
-        void update_beforeCurrent(uint32_t)
-        {
-            updateBHalf < CORE+BORDER >();
-            EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
+                Yee(MappingDesc cellDescription) : m_cellDescription(cellDescription)
+                {
+                    DataConnector& dc = Environment<>::get().DataConnector();
 
-            updateE<CORE>();
-            __setTransactionEvent(eRfieldB);
-            updateE<BORDER>();
-        }
+                    this->fieldE = dc.get<FieldE>(FieldE::getName(), true);
+                    this->fieldB = dc.get<FieldB>(FieldB::getName(), true);
+                }
 
-        void update_afterCurrent(uint32_t currentStep)
-        {
-            using Absorber = absorber::ExponentialDamping;
-            Absorber::run(
-                currentStep,
-                this->m_cellDescription,
-                this->fieldE->getDeviceDataBox()
-            );
-            if (laserProfiles::Selected::INIT_TIME > float_X(0.0))
-                LaserPhysics{}(currentStep);
+                void update_beforeCurrent(uint32_t)
+                {
+                    updateBHalf<CORE + BORDER>();
+                    EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
 
-            EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());
+                    updateE<CORE>();
+                    __setTransactionEvent(eRfieldB);
+                    updateE<BORDER>();
+                }
 
-            updateBHalf < CORE> ();
-            __setTransactionEvent(eRfieldE);
-            updateBHalf < BORDER > ();
+                void update_afterCurrent(uint32_t currentStep)
+                {
+                    using Absorber = absorber::ExponentialDamping;
+                    Absorber::run(currentStep, this->m_cellDescription, this->fieldE->getDeviceDataBox());
+                    if(laserProfiles::Selected::INIT_TIME > float_X(0.0))
+                        LaserPhysics{}(currentStep);
 
-            Absorber::run(
-                currentStep,
-                this->m_cellDescription,
-                fieldB->getDeviceDataBox()
-            );
+                    EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());
 
-            EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
-            __setTransactionEvent(eRfieldB);
-        }
+                    updateBHalf<CORE>();
+                    __setTransactionEvent(eRfieldE);
+                    updateBHalf<BORDER>();
 
-        static pmacc::traits::StringProperty getStringProperties()
-        {
-            pmacc::traits::StringProperty propList( "name", "Yee" );
-            return propList;
-        }
-    };
+                    Absorber::run(currentStep, this->m_cellDescription, fieldB->getDeviceDataBox());
 
-} // namespace maxwellSolver
-} // namespace fields
+                    EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
+                    __setTransactionEvent(eRfieldB);
+                }
 
-namespace traits
-{
+                static pmacc::traits::StringProperty getStringProperties()
+                {
+                    pmacc::traits::StringProperty propList("name", "Yee");
+                    return propList;
+                }
+            };
 
-    template<
-        typename T_CurrentInterpolation,
-        class CurlE,
-        class CurlB
-    >
-    struct GetMargin<
-        picongpu::fields::maxwellSolver::Yee<
-            T_CurrentInterpolation,
-            CurlE,
-            CurlB
-        >, FIELD_B
-    >
+        } // namespace maxwellSolver
+    } // namespace fields
+
+    namespace traits
     {
-        using LowerMargin = typename CurlB::LowerMargin;
-        using UpperMargin = typename CurlB::UpperMargin;
-    };
+        template<typename T_CurrentInterpolation, class CurlE, class CurlB>
+        struct GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurrentInterpolation, CurlE, CurlB>, FIELD_B>
+        {
+            using LowerMargin = typename CurlB::LowerMargin;
+            using UpperMargin = typename CurlB::UpperMargin;
+        };
 
-    template<
-        typename T_CurrentInterpolation,
-        class CurlE,
-        class CurlB
-    >
-    struct GetMargin<
-        picongpu::fields::maxwellSolver::Yee<
-            T_CurrentInterpolation,
-            CurlE,
-            CurlB
-        >,
-        FIELD_E
-    >
-    {
-        using LowerMargin = typename CurlE::LowerMargin;
-        using UpperMargin = typename CurlE::UpperMargin;
-    };
+        template<typename T_CurrentInterpolation, class CurlE, class CurlB>
+        struct GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurrentInterpolation, CurlE, CurlB>, FIELD_E>
+        {
+            using LowerMargin = typename CurlE::LowerMargin;
+            using UpperMargin = typename CurlE::UpperMargin;
+        };
 
-} //namespace traits
-} // picongpu
+    } // namespace traits
+} // namespace picongpu

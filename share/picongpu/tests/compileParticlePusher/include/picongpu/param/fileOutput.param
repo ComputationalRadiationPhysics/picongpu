@@ -31,7 +31,6 @@
 
 namespace picongpu
 {
-
     /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
      *
      * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
@@ -54,4 +53,4 @@ namespace picongpu
      */
     using FileOutputParticles = MakeSeq_t<>;
 
-}
+} // namespace picongpu

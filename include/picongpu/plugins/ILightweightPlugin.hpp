@@ -42,7 +42,6 @@ namespace picongpu
 
         virtual ~ILightweightPlugin()
         {
-
         }
     };
-} //namespace picongpu
+} // namespace picongpu

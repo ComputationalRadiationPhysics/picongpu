@@ -26,20 +26,19 @@
 
 namespace pmacc
 {
-namespace cudaSpecs
-{
+    namespace cudaSpecs
+    {
+        /* Various hardware specific numerical limits taken from the
+         * *CUDA C Programming Guide* Section: G.1. Features and Technical Specifications.
+         *
+         * Valid for sm_2.x - sm_5.3
+         */
 
-/* Various hardware specific numerical limits taken from the
- * *CUDA C Programming Guide* Section: G.1. Features and Technical Specifications.
- *
- * Valid for sm_2.x - sm_5.3
- */
+        /** maximum number of threads per block */
+        constexpr uint32_t maxNumThreadsPerBlock = 1024;
 
-/** maximum number of threads per block */
-constexpr uint32_t maxNumThreadsPerBlock = 1024;
+        /** maximum number of threads per axis of a block */
+        typedef math::CT::Size_t<1024, 1024, 64> MaxNumThreadsPerBlockDim;
 
-/** maximum number of threads per axis of a block */
-typedef math::CT::Size_t<1024, 1024, 64> MaxNumThreadsPerBlockDim;
-
-} // namespace cudaSpecs
+    } // namespace cudaSpecs
 } // namespace pmacc

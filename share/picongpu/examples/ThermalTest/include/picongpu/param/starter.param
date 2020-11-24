@@ -18,18 +18,12 @@
  */
 
 
-
 #pragma once
 
 
 namespace picongpu
 {
-
     namespace thermalTestStarter
     {
-
     }
-}
-
-
-
+} // namespace picongpu

@@ -28,28 +28,20 @@
 
 namespace pmacc
 {
-namespace traits
-{
-    template<
-        uint32_t T_neighbors,
-        typename T_CurrentInterpolation
-    >
-    struct StringProperties<
-        ::picongpu::fields::maxwellSolver::ArbitraryOrderFDTDPML<
-            T_neighbors,
-            T_CurrentInterpolation
-        >
-    >
+    namespace traits
     {
-        static StringProperty get()
+        template<uint32_t T_neighbors, typename T_CurrentInterpolation>
+        struct StringProperties<
+            ::picongpu::fields::maxwellSolver::ArbitraryOrderFDTDPML<T_neighbors, T_CurrentInterpolation>>
         {
-            pmacc::traits::StringProperty propList( "name", "other" );
-            propList["param"] = std::string("Arbitrary order FDTD with PML, order ")
-                + std::to_string(T_neighbors);
+            static StringProperty get()
+            {
+                pmacc::traits::StringProperty propList("name", "other");
+                propList["param"] = std::string("Arbitrary order FDTD with PML, order ") + std::to_string(T_neighbors);
 
-            return propList;
-        }
-    };
+                return propList;
+            }
+        };
 
-} // namespace traits
+    } // namespace traits
 } // namespace pmacc

@@ -30,8 +30,7 @@
  *
  * @param expr expression to be evaluated
  */
-#define PMACC_VERIFY( expr )                                                   \
-    ( !!(expr) ) ? ( (void) 0 ) : pmacc::abortWithError( #expr, __FILE__, __LINE__ )
+#define PMACC_VERIFY(expr) (!!(expr)) ? ((void) 0) : pmacc::abortWithError(#expr, __FILE__, __LINE__)
 
 /** verify expression with message
  *
@@ -41,5 +40,4 @@
  * @param msg output message (of type `std::string`) which is printed if the
  *            expression is evaluated to false
  */
-#define PMACC_VERIFY_MSG( expr, msg )                                          \
-    ( !!(expr) ) ? ( (void) 0 ) : pmacc::abortWithError( #expr, __FILE__, __LINE__, msg )
+#define PMACC_VERIFY_MSG(expr, msg) (!!(expr)) ? ((void) 0) : pmacc::abortWithError(#expr, __FILE__, __LINE__, msg)

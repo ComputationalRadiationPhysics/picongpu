@@ -34,51 +34,30 @@
 
 namespace pmacc
 {
-namespace random
-{
-namespace distributions
-{
-namespace detail
-{
+    namespace random
+    {
+        namespace distributions
+        {
+            namespace detail
+            {
 /* XorMin and MRG32k3aMin uses the alpaka RNG as fallback for CPU accelerators
  * therefore we are not allowed to add a specialization for those RNG methods
  */
-#if( PMACC_CUDA_ENABLED == 1 )
-    //! specialization for XorMin
-    template<
-        typename T_Acc
-    >
-    struct Normal<
-        double,
-        methods::XorMin< T_Acc >,
-        void
-    > :
-        public MullerBox<
-            double,
-            methods::XorMin< T_Acc >
-        >
-    {
+#if(PMACC_CUDA_ENABLED == 1)
+                //! specialization for XorMin
+                template<typename T_Acc>
+                struct Normal<double, methods::XorMin<T_Acc>, void> : public MullerBox<double, methods::XorMin<T_Acc>>
+                {
+                };
 
-    };
-
-    //! specialization for MRG32k3aMin
-    template<
-        typename T_Acc
-    >
-    struct Normal<
-        double,
-        methods::MRG32k3aMin< T_Acc >,
-        void
-    > :
-        public MullerBox<
-            double,
-            methods::MRG32k3aMin< T_Acc >
-        >
-    {
-
-    };
+                //! specialization for MRG32k3aMin
+                template<typename T_Acc>
+                struct Normal<double, methods::MRG32k3aMin<T_Acc>, void>
+                    : public MullerBox<double, methods::MRG32k3aMin<T_Acc>>
+                {
+                };
 #endif
-}  // namespace detail
-}  // namespace distributions
-}  // namespace random
-}  // namespace pmacc
+            } // namespace detail
+        } // namespace distributions
+    } // namespace random
+} // namespace pmacc

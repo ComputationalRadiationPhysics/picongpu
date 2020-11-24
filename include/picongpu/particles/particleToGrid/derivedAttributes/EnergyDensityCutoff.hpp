@@ -26,46 +26,38 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-
-    template< class T_ParamClass >
-    template< class T_Particle >
-    DINLINE float_X
-    EnergyDensityCutoff< T_ParamClass >::operator()( T_Particle& particle ) const
+    namespace particles
     {
-        using ParamClass =  T_ParamClass;
+        namespace particleToGrid
+        {
+            namespace derivedAttributes
+            {
+                template<class T_ParamClass>
+                template<class T_Particle>
+                DINLINE float_X EnergyDensityCutoff<T_ParamClass>::operator()(T_Particle& particle) const
+                {
+                    using ParamClass = T_ParamClass;
 
-        /* read existing attributes */
-        float_X const weighting = particle[ weighting_ ];
-        float3_X const mom = particle[ momentum_ ];
-        float_X const mass = attribute::getMass(
-            weighting,
-            particle
-        );
+                    /* read existing attributes */
+                    float_X const weighting = particle[weighting_];
+                    float3_X const mom = particle[momentum_];
+                    float_X const mass = attribute::getMass(weighting, particle);
 
-        constexpr float_X INV_CELL_VOLUME = float_X( 1.0 ) / CELL_VOLUME;
+                    constexpr float_X INV_CELL_VOLUME = float_X(1.0) / CELL_VOLUME;
 
-        /* value for energy cut-off */
-        float_X const cutoffMaxEnergy = ParamClass::cutoffMaxEnergy;
-        float_X const cutoff = cutoffMaxEnergy / UNIT_ENERGY * weighting;
+                    /* value for energy cut-off */
+                    float_X const cutoffMaxEnergy = ParamClass::cutoffMaxEnergy;
+                    float_X const cutoff = cutoffMaxEnergy / UNIT_ENERGY * weighting;
 
-        float_X const kinEnergy = KinEnergy< >( )(
-            mom,
-            mass
-        );
+                    float_X const kinEnergy = KinEnergy<>()(mom, mass);
 
-        float_X result( 0. );
-        if( kinEnergy < cutoff )
-            result =  kinEnergy * INV_CELL_VOLUME;
+                    float_X result(0.);
+                    if(kinEnergy < cutoff)
+                        result = kinEnergy * INV_CELL_VOLUME;
 
-        return result;
-    }
-} // namespace derivedAttributes
-} // namespace particleToGrid
-} // namespace particles
+                    return result;
+                }
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
 } // namespace picongpu

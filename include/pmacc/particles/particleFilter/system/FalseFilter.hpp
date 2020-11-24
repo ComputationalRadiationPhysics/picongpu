@@ -27,12 +27,9 @@
 
 namespace pmacc
 {
-
     class FalseFilter
     {
-
     public:
-
         FalseFilter()
         {
         }
@@ -42,10 +39,10 @@ namespace pmacc
         }
 
         template<class FRAME>
-        bool operator()(FRAME & frame, lcellId_t id)
+        bool operator()(FRAME& frame, lcellId_t id)
         {
             return false;
         }
     };
 
-} //namespace Frame
+} // namespace pmacc

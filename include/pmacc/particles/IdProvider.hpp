@@ -31,9 +31,8 @@
 
 namespace pmacc
 {
-
-     namespace idDetail {
-
+    namespace idDetail
+    {
         DEVICEONLY uint64_cu nextId;
 
         struct KernelSetNextId
@@ -63,7 +62,7 @@ namespace pmacc
             }
         };
 
-    }  // namespace idDetail
+    } // namespace idDetail
 
     template<unsigned T_dim>
     uint64_t IdProvider<T_dim>::m_maxNumProc;
@@ -94,9 +93,8 @@ namespace pmacc
         m_startId = state.startId;
         if(m_maxNumProc < state.maxNumProc)
             m_maxNumProc = state.maxNumProc;
-        log<ggLog::INFO>("(Re-)Initialized IdProvider with id=%1%/%2% and maxNumProc=%3%/%4%")
-                % state.nextId % state.startId
-                % state.maxNumProc % m_maxNumProc;
+        log<ggLog::INFO>("(Re-)Initialized IdProvider with id=%1%/%2% and maxNumProc=%3%/%4%") % state.nextId
+            % state.startId % state.maxNumProc % m_maxNumProc;
     }
 
     template<unsigned T_dim>
@@ -127,7 +125,8 @@ namespace pmacc
          * when counting the bits from 1 = right most bit
          * So first we calculate n, then remove the lowest bits of the next id so we have only the n upper bits
          * If any of them is non-zero, it is an overflow and we can have duplicate ids.
-         * If not, then all ids are probably unique (still a chance, the id is overflown so much, that detection is impossible)
+         * If not, then all ids are probably unique (still a chance, the id is overflown so much, that detection is
+         * impossible)
          */
         uint64_t tmp = curState.maxNumProc - 1;
         int32_t bitsToCheck = 0;
@@ -182,4 +181,4 @@ namespace pmacc
         return static_cast<uint64_t>(newIdBuf.getHostBuffer().getDataBox()(0));
     }
 
-}  // namespace pmacc
+} // namespace pmacc

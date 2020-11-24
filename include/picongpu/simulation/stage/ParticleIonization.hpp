@@ -29,55 +29,44 @@
 
 namespace picongpu
 {
-namespace simulation
-{
-namespace stage
-{
-
-    /** Functor for the stage of the PIC loop performing particle ionization
-     *
-     * Only affects particle species with the ionizers attribute.
-     */
-    class ParticleIonization
+    namespace simulation
     {
-    public:
-
-        /** Create a particle ionization functor
-         *
-         * Having this in constructor is a temporary solution.
-         *
-         * @param cellDescription mapping for kernels
-         */
-        ParticleIonization( MappingDesc const cellDescription ):
-            cellDescription( cellDescription )
+        namespace stage
         {
-        }
+            /** Functor for the stage of the PIC loop performing particle ionization
+             *
+             * Only affects particle species with the ionizers attribute.
+             */
+            class ParticleIonization
+            {
+            public:
+                /** Create a particle ionization functor
+                 *
+                 * Having this in constructor is a temporary solution.
+                 *
+                 * @param cellDescription mapping for kernels
+                 */
+                ParticleIonization(MappingDesc const cellDescription) : cellDescription(cellDescription)
+                {
+                }
 
-        /** Ionize particles
-         *
-         * @param step index of time iteration
-         */
-        void operator( )( uint32_t const step ) const
-        {
-            using pmacc::particles::traits::FilterByFlag;
-            using SpeciesWithIonizers = typename FilterByFlag<
-                VectorAllSpecies,
-                ionizers< >
-            >::type;
-            pmacc::meta::ForEach<
-                SpeciesWithIonizers,
-                particles::CallIonization< bmpl::_1 >
-            > particleIonization;
-            particleIonization( cellDescription, step );
-        }
+                /** Ionize particles
+                 *
+                 * @param step index of time iteration
+                 */
+                void operator()(uint32_t const step) const
+                {
+                    using pmacc::particles::traits::FilterByFlag;
+                    using SpeciesWithIonizers = typename FilterByFlag<VectorAllSpecies, ionizers<>>::type;
+                    pmacc::meta::ForEach<SpeciesWithIonizers, particles::CallIonization<bmpl::_1>> particleIonization;
+                    particleIonization(cellDescription, step);
+                }
 
-    private:
+            private:
+                //! Mapping for kernels
+                MappingDesc cellDescription;
+            };
 
-        //! Mapping for kernels
-        MappingDesc cellDescription;
-
-    };
-
-} // namespace stage
-} // namespace simulation
+        } // namespace stage
+    } // namespace simulation
 } // namespace picongpu

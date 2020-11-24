@@ -18,7 +18,6 @@
  */
 
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
@@ -33,15 +32,10 @@
 
 namespace picongpu
 {
+    /*########################### define particle attributes #####################*/
 
-/*########################### define particle attributes #####################*/
-
-/** describe attributes of a particle*/
-using DefaultParticleAttributes = MakeSeq_t<
-    position<position_pic>,
-    momentum,
-    weighting
->;
+    /** describe attributes of a particle*/
+    using DefaultParticleAttributes = MakeSeq_t<position<position_pic>, momentum, weighting>;
 
 /*########################### end particle attributes ########################*/
 
@@ -49,39 +43,32 @@ using DefaultParticleAttributes = MakeSeq_t<
 
 /* enable pusher by default if `PARAM_ENABLEPUSHER` is not defined in `cmakeFlags` */
 #ifndef PARAM_ENABLEPUSHER
-#   define PARAM_ENABLEPUSHER 1
+#    define PARAM_ENABLEPUSHER 1
 #endif
 
-/*--------------------------- electrons --------------------------------------*/
+    /*--------------------------- electrons --------------------------------------*/
 
-/* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier(float_X, MassRatioElectrons, 1.0);
-value_identifier(float_X, ChargeRatioElectrons, 1.0);
+    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    value_identifier(float_X, MassRatioElectrons, 1.0);
+    value_identifier(float_X, ChargeRatioElectrons, 1.0);
 
-using ParticleFlagsElectrons = MakeSeq_t<
+    using ParticleFlagsElectrons = MakeSeq_t<
 /* enable the pusher only if PARAM_ENABLEPUSHER is defined as one `1` */
-#if( PARAM_ENABLEPUSHER == 1 )
-    particlePusher<UsedParticlePusher>,
+#if(PARAM_ENABLEPUSHER == 1)
+        particlePusher<UsedParticlePusher>,
 #endif
-    shape<UsedParticleShape>,
-    interpolation<UsedField2Particle>,
-    current<UsedParticleCurrentSolver>,
-    massRatio<MassRatioElectrons>,
-    chargeRatio<ChargeRatioElectrons>
->;
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        current<UsedParticleCurrentSolver>,
+        massRatio<MassRatioElectrons>,
+        chargeRatio<ChargeRatioElectrons>>;
 
-/* define species electrons */
-using PIC_Electrons = Particles<
-    PMACC_CSTRING( "e" ),
-    ParticleFlagsElectrons,
-    DefaultParticleAttributes
->;
+    /* define species electrons */
+    using PIC_Electrons = Particles<PMACC_CSTRING("e"), ParticleFlagsElectrons, DefaultParticleAttributes>;
 
-/*########################### end species ####################################*/
+    /*########################### end species ####################################*/
 
-using VectorAllSpecies = MakeSeq_t<
-    PIC_Electrons
->;
+    using VectorAllSpecies = MakeSeq_t<PIC_Electrons>;
 
 
-} //namespace picongpu
+} // namespace picongpu

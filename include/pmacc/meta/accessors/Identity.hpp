@@ -27,25 +27,22 @@
 
 namespace pmacc
 {
-namespace meta
-{
+    namespace meta
+    {
+        namespace accessors
+        {
+            /** Get the type of a given type without changes
+             *
+             * \tparam T in type
+             *
+             */
+            template<typename T = bmpl::_1>
+            struct Identity : bmpl::identity<T>
+            {
+            };
 
-namespace accessors
-{
+        } // namespace accessors
 
-/** Get the type of a given type without changes
- *
- * \tparam T in type
- *
- */
-template<typename T=bmpl::_1>
-struct Identity : bmpl::identity<T>
-{
+    } // namespace meta
 
-};
-
-}//namespace accessors
-
-}//namespace meta
-
-}//namespace  pmacc
+} // namespace  pmacc

@@ -22,39 +22,39 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace filter
-{
-namespace param
-{
-    struct RelativeGlobalDomainPosition
+    namespace particles
     {
-        /* lowerBound is included in the range*/
-        static constexpr float_X lowerBound = 0.0;
-        /* upperBound is excluded in the range*/
-        static constexpr float_X upperBound = 1.0;
-        /* dimension for the filter
-         * x = 0; y= 1; z = 2
-         */
-        static constexpr uint32_t dimension = 0;
+        namespace filter
+        {
+            namespace param
+            {
+                struct RelativeGlobalDomainPosition
+                {
+                    /* lowerBound is included in the range*/
+                    static constexpr float_X lowerBound = 0.0;
+                    /* upperBound is excluded in the range*/
+                    static constexpr float_X upperBound = 1.0;
+                    /* dimension for the filter
+                     * x = 0; y= 1; z = 2
+                     */
+                    static constexpr uint32_t dimension = 0;
 
-        // name of the filter
-        static constexpr char const * name = "relativeGlobalDomainPosition";
-    };
-} // namespace param
+                    // name of the filter
+                    static constexpr char const* name = "relativeGlobalDomainPosition";
+                };
+            } // namespace param
 
-    /** filter particle dependent on the global position
-     *
-     * Check if a particle is within a relative area in one direction of the global
-     * domain.
-     *
-     * @tparam T_Params picongpu::particles::filter::param::RelativeGlobalDomainPosition,
-     *                  parameter to configure the functor
-     */
-    template< typename T_Params = param::RelativeGlobalDomainPosition >
-    struct RelativeGlobalDomainPosition;
+            /** filter particle dependent on the global position
+             *
+             * Check if a particle is within a relative area in one direction of the global
+             * domain.
+             *
+             * @tparam T_Params picongpu::particles::filter::param::RelativeGlobalDomainPosition,
+             *                  parameter to configure the functor
+             */
+            template<typename T_Params = param::RelativeGlobalDomainPosition>
+            struct RelativeGlobalDomainPosition;
 
-} //namespace filter
-} //namespace particles
-} //namespace picongpu
+        } // namespace filter
+    } // namespace particles
+} // namespace picongpu

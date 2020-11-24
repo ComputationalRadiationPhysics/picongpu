@@ -24,49 +24,52 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace ionization
-{
-
-    /** Keldysh model
-     *
-     * \tparam T_DestSpecies electron species to be created
-     * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
-     * \tparam T_SrcSpecies ion species to be ionized
-     *         default is boost::mpl placeholder because specialization
-     *         cannot be known in list of particle species' flags
-     *         \see speciesDefinition.param
-     */
-    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_IonizationCurrent, typename T_SrcSpecies = bmpl::_1>
-    struct Keldysh_Impl;
-
-    /** Keldysh ionization model
-     *
-     * - Keldysh viewed ionization not as multiple different effects but rather as
-     *   one that can be classified in different ionization regimes characterized
-     *   by certain values of the Keldysh parameter
-     * - takes the ionization energies of the various charge states of ions
-     * - calculates the ionization rates and then the ionization probabilities from them
-     * - ATTENTION: this approach is not very applicable for rapidly changing high intensity laser fields
-     * - this is a Monte Carlo method: if a random number is smaller
-     *   or equal than the ionization probability -> increase the charge state
-     * - see for example: D. Bauer and P. Mulser. Exact field ionization rates in the barrier-suppression
-     *   regime from numerical time-dependent Schroedinger-equation calculations.
-     *   Physical Review A, 59(1):569+, January 1999.
-     *
-     * wrapper class,
-     * needed because the SrcSpecies cannot be known during the
-     * first specialization of the ionization model in the particle definition
-     * \see speciesDefinition.param
-     */
-    template<typename T_DestSpecies, typename T_IonizationCurrent = current::None>
-    struct Keldysh
+    namespace particles
     {
-        using IonizationAlgorithm = particles::ionization::AlgorithmKeldysh;
-        using type = Keldysh_Impl< IonizationAlgorithm, T_DestSpecies, T_IonizationCurrent >;
-    };
+        namespace ionization
+        {
+            /** Keldysh model
+             *
+             * \tparam T_DestSpecies electron species to be created
+             * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
+             * \tparam T_SrcSpecies ion species to be ionized
+             *         default is boost::mpl placeholder because specialization
+             *         cannot be known in list of particle species' flags
+             *         \see speciesDefinition.param
+             */
+            template<
+                typename T_IonizationAlgorithm,
+                typename T_DestSpecies,
+                typename T_IonizationCurrent,
+                typename T_SrcSpecies = bmpl::_1>
+            struct Keldysh_Impl;
 
-} // namespace ionization
-} // namespace particles
+            /** Keldysh ionization model
+             *
+             * - Keldysh viewed ionization not as multiple different effects but rather as
+             *   one that can be classified in different ionization regimes characterized
+             *   by certain values of the Keldysh parameter
+             * - takes the ionization energies of the various charge states of ions
+             * - calculates the ionization rates and then the ionization probabilities from them
+             * - ATTENTION: this approach is not very applicable for rapidly changing high intensity laser fields
+             * - this is a Monte Carlo method: if a random number is smaller
+             *   or equal than the ionization probability -> increase the charge state
+             * - see for example: D. Bauer and P. Mulser. Exact field ionization rates in the barrier-suppression
+             *   regime from numerical time-dependent Schroedinger-equation calculations.
+             *   Physical Review A, 59(1):569+, January 1999.
+             *
+             * wrapper class,
+             * needed because the SrcSpecies cannot be known during the
+             * first specialization of the ionization model in the particle definition
+             * \see speciesDefinition.param
+             */
+            template<typename T_DestSpecies, typename T_IonizationCurrent = current::None>
+            struct Keldysh
+            {
+                using IonizationAlgorithm = particles::ionization::AlgorithmKeldysh;
+                using type = Keldysh_Impl<IonizationAlgorithm, T_DestSpecies, T_IonizationCurrent>;
+            };
+
+        } // namespace ionization
+    } // namespace particles
 } // namespace picongpu

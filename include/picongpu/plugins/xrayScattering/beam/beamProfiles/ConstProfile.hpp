@@ -23,27 +23,24 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace xrayScattering
-{
-namespace beam
-{
-namespace beamProfiles
-{
-    //! Homogeneous beam profile.
-    struct ConstProfile
+    namespace plugins
     {
-        static HDINLINE constexpr float_X getFactor(
-            const float_X & positionX,
-            const float_X & positionY
-        )
+        namespace xrayScattering
         {
-            return float_X( 1.0 );
-        }
-    };
-} // namespace beamProfiles
-} // namespace beam
-} // namespace xrayScattering
-} // namespace plugins
+            namespace beam
+            {
+                namespace beamProfiles
+                {
+                    //! Homogeneous beam profile.
+                    struct ConstProfile
+                    {
+                        static HDINLINE constexpr float_X getFactor(const float_X& positionX, const float_X& positionY)
+                        {
+                            return float_X(1.0);
+                        }
+                    };
+                } // namespace beamProfiles
+            } // namespace beam
+        } // namespace xrayScattering
+    } // namespace plugins
 } // namespace picongpu

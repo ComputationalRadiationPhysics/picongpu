@@ -26,7 +26,6 @@
 
 namespace pmacc
 {
-
     class IEventData;
 
     /**
@@ -35,7 +34,6 @@ namespace pmacc
     class IEvent
     {
     public:
-
         /**
          * Destructor.
          */
@@ -53,4 +51,4 @@ namespace pmacc
         virtual void event(id_t eventId, EventType type, IEventData* data) = 0;
     };
 
-} //namespace pmacc
+} // namespace pmacc

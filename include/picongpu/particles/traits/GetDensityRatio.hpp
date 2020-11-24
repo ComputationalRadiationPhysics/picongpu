@@ -29,38 +29,30 @@
 
 namespace picongpu
 {
-namespace traits
-{
+    namespace traits
+    {
+        namespace detail
+        {
+            value_identifier(float_X, DefaultDensityRatio, 1.0);
+        } // namespace detail
 
-namespace detail
-{
-    value_identifier(float_X, DefaultDensityRatio, 1.0);
-} // namespace detail
 
+        /** get density ratio of a species
+         *
+         * ratio is set to 1.0 if no alias `densityRatio<>` is defined
+         *
+         * @treturn ::type `value_identifier` with the default density
+         */
+        template<typename T_Species>
+        struct GetDensityRatio
+        {
+            using FrameType = typename T_Species::FrameType;
+            typedef typename HasFlag<FrameType, densityRatio<>>::type hasDensityRatio;
+            typedef typename pmacc::traits::Resolve<typename GetFlagType<FrameType, densityRatio<>>::type>::type
+                DensityRatioOfSpecies;
 
-/** get density ratio of a species
- *
- * ratio is set to 1.0 if no alias `densityRatio<>` is defined
- *
- * @treturn ::type `value_identifier` with the default density
- */
-template<typename T_Species>
-struct GetDensityRatio
-{
-    using FrameType = typename T_Species::FrameType;
-    typedef typename HasFlag<FrameType, densityRatio<> >::type hasDensityRatio;
-    typedef typename pmacc::traits::Resolve<
-        typename GetFlagType<
-            FrameType, densityRatio<>
-        >::type
-    >::type DensityRatioOfSpecies;
+            typedef typename bmpl::if_<hasDensityRatio, DensityRatioOfSpecies, detail::DefaultDensityRatio>::type type;
+        };
 
-    typedef typename bmpl::if_<
-        hasDensityRatio,
-        DensityRatioOfSpecies,
-        detail::DefaultDensityRatio
-    >::type type;
-};
-
-} // namespace traits
+    } // namespace traits
 } // namespace picongpu

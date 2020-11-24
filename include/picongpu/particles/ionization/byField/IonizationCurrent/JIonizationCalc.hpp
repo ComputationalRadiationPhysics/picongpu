@@ -23,25 +23,24 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace ionization
-{
-    /** calculates ionization current
-     */
-    struct JIonizationCalc
+    namespace particles
     {
-        /** Functor calculating ionization current.
-         * Is only called if ionization energy is not zero,
-         * thus we ensure the field is different from zero.
-         */
-        HDINLINE float3_X
-        operator()( float_X const ionizationEnergy, float3_X const eField )
+        namespace ionization
         {
-            float3_X jion = ionizationEnergy * eField / pmacc::math::abs2(eField) / DELTA_T / CELL_VOLUME;
-            return jion;
-        }
-    };
-} // namespace ionization
-} // namespace particles
+            /** calculates ionization current
+             */
+            struct JIonizationCalc
+            {
+                /** Functor calculating ionization current.
+                 * Is only called if ionization energy is not zero,
+                 * thus we ensure the field is different from zero.
+                 */
+                HDINLINE float3_X operator()(float_X const ionizationEnergy, float3_X const eField)
+                {
+                    float3_X jion = ionizationEnergy * eField / pmacc::math::abs2(eField) / DELTA_T / CELL_VOLUME;
+                    return jion;
+                }
+            };
+        } // namespace ionization
+    } // namespace particles
 } // namespace picongpu

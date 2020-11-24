@@ -24,50 +24,50 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace radiation
-{
-
-namespace linear_frequencies
-{
-
-
-    class FreqFunctor
+    namespace plugins
     {
-    public:
-      FreqFunctor(void)
-      { }
+        namespace radiation
+        {
+            namespace linear_frequencies
+            {
+                class FreqFunctor
+                {
+                public:
+                    FreqFunctor(void)
+                    {
+                    }
 
-      HDINLINE float_X operator()(const int ID)
-      {
-          return omega_min + float_X(ID) * delta_omega;
-      }
+                    HDINLINE float_X operator()(const int ID)
+                    {
+                        return omega_min + float_X(ID) * delta_omega;
+                    }
 
-      HINLINE float_X get(const int ID)
-      {
-          return operator()(ID);
-      }
-    };
-
-
-    class InitFreqFunctor
-    {
-    public:
-      InitFreqFunctor(void)
-      { }
-
-      HINLINE void Init(const std::string path )
-      { }
+                    HINLINE float_X get(const int ID)
+                    {
+                        return operator()(ID);
+                    }
+                };
 
 
-      HINLINE FreqFunctor getFunctor(void)
-      {
-    return FreqFunctor();
-      }
-    };
+                class InitFreqFunctor
+                {
+                public:
+                    InitFreqFunctor(void)
+                    {
+                    }
 
-} // namespace linear_frequencies
-} // namespace radiation
-} // namespace plugins
+                    HINLINE void Init(const std::string path)
+                    {
+                    }
+
+
+                    HINLINE FreqFunctor getFunctor(void)
+                    {
+                        return FreqFunctor();
+                    }
+                };
+
+            } // namespace linear_frequencies
+        } // namespace radiation
+    } // namespace plugins
 } // namespace picongpu

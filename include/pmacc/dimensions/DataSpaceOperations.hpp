@@ -29,7 +29,6 @@
 
 namespace pmacc
 {
-
     /**
      * Implements operations on DataSpace objects such as reduce and extend.
      *
@@ -62,7 +61,7 @@ namespace pmacc
          * @param ex exchange direction for reduction
          * @return reduced DataSpace with dimension DIM-1
          */
-        static HDINLINE DataSpace<DIM - 1 > reduce(DataSpace<DIM> ds, uint32_t ex);
+        static HDINLINE DataSpace<DIM - 1> reduce(DataSpace<DIM> ds, uint32_t ex);
 
         /**
          * Extends the DataSpace object ds of dimension DIM to a DataSpace object of dimension DIM+1.
@@ -78,19 +77,21 @@ namespace pmacc
          * @param offset DataSpace describing size of target grid's offset
          * @return extended DataSpace with dimension DIM+1
          */
-        static HDINLINE DataSpace<DIM + 1 > extend(DataSpace<DIM> ds, uint32_t ex,
-                                                  DataSpace<DIM + 1 > target, DataSpace<DIM + 1 > offset);
+        static HDINLINE DataSpace<DIM + 1> extend(
+            DataSpace<DIM> ds,
+            uint32_t ex,
+            DataSpace<DIM + 1> target,
+            DataSpace<DIM + 1> offset);
     };
 
     template<>
     class DataSpaceOperations<DIM1>
     {
     public:
-
         template<class TVEC>
         static HDINLINE DataSpace<DIM1> map(uint32_t pos)
         {
-            return DataSpace<DIM1 > (pos);
+            return DataSpace<DIM1>(pos);
         }
 
         template<class TVEC>
@@ -101,66 +102,64 @@ namespace pmacc
 
         static HDINLINE DataSpace<DIM1> map(const DataSpace<DIM1>& size, uint32_t pos)
         {
-            return DataSpace<DIM1 > (pos);
+            return DataSpace<DIM1>(pos);
         }
 
-        static HDINLINE DataSpace<DIM2> extend(DataSpace<DIM1> ds, uint32_t ex,
-                                              DataSpace<DIM2> target, DataSpace<DIM2> offset)
+        static HDINLINE DataSpace<DIM2> extend(
+            DataSpace<DIM1> ds,
+            uint32_t ex,
+            DataSpace<DIM2> target,
+            DataSpace<DIM2> offset)
         {
-            DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 > (ex);
+            DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2>(ex);
 
             DataSpace<DIM2> result(ds[0], ds[0]);
 
             // RIGHT
-            if (directions.x() == 1)
+            if(directions.x() == 1)
             {
                 result.x() = target.x() - offset.x() - 1;
             }
 
             // LEFT
-            if (directions.x() == -1)
+            if(directions.x() == -1)
             {
                 result.x() = offset.x();
             }
 
             // TOP
-            if (directions.y() == 1)
+            if(directions.y() == 1)
             {
                 result.y() = target.y() - offset.y() - 1;
             }
 
             // BOTTOM
-            if (directions.y() == -1)
+            if(directions.y() == -1)
             {
                 result.y() = offset.y();
             }
 
             return result;
-
         }
-
     };
 
     template<>
     class DataSpaceOperations<DIM2>
     {
     public:
-
         template<class TVEC>
         static HDINLINE DataSpace<DIM2> map(uint32_t pos)
         {
             auto const y = pos / TVEC::x::value;
             auto const x = pos - y * TVEC::x::value;
 
-            return DataSpace< DIM2 >( x , y );
+            return DataSpace<DIM2>(x, y);
         }
 
         template<class TVEC>
         static HDINLINE uint32_t map(const DataSpace<DIM2>& pos)
         {
-            return
-                pos.y() * TVEC::x::value +
-                pos.x();
+            return pos.y() * TVEC::x::value + pos.x();
         }
 
         static HDINLINE DataSpace<DIM2> map(const DataSpace<DIM2>& size, uint32_t pos)
@@ -168,33 +167,34 @@ namespace pmacc
             auto const y = pos / size.x();
             auto const x = pos - y * size.x();
 
-            return DataSpace< DIM2 >( x , y );
+            return DataSpace<DIM2>(x, y);
         }
 
         static HDINLINE uint32_t map(const DataSpace<DIM2>& size, const DataSpace<DIM2>& pos)
         {
-            return
-                pos.y() * size.x() +
-                pos.x();
+            return pos.y() * size.x() + pos.x();
         }
 
         static HDINLINE DataSpace<DIM1> reduce(DataSpace<DIM2> ds, uint32_t ex)
         {
-            DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 > (ex);
+            DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2>(ex);
 
-            if (directions.x() != 0)
-                return DataSpace<DIM1 > (ds.y());
+            if(directions.x() != 0)
+                return DataSpace<DIM1>(ds.y());
 
-            if (directions.y() != 0)
-                return DataSpace<DIM1 > (ds.x());
+            if(directions.y() != 0)
+                return DataSpace<DIM1>(ds.x());
 
-            return DataSpace<DIM1 > (0);
+            return DataSpace<DIM1>(0);
         }
 
-        static HDINLINE DataSpace<DIM3> extend(DataSpace<DIM2> ds, uint32_t ex,
-                                              DataSpace<DIM3> target, DataSpace<DIM3> offset)
+        static HDINLINE DataSpace<DIM3> extend(
+            DataSpace<DIM2> ds,
+            uint32_t ex,
+            DataSpace<DIM3> target,
+            DataSpace<DIM3> offset)
         {
-            DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 > (ex);
+            DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3>(ex);
 
             DataSpace<DIM3> result;
 
@@ -202,7 +202,7 @@ namespace pmacc
             const uint32_t z_entry(1);
             uint32_t y_entry(1);
 
-            switch (directions.x())
+            switch(directions.x())
             {
                 // RIGHT
             case 1:
@@ -219,7 +219,7 @@ namespace pmacc
                 break;
             }
 
-            switch (directions.z())
+            switch(directions.z())
             {
                 // BACK
             case 1:
@@ -234,7 +234,7 @@ namespace pmacc
                 break;
             }
 
-            switch (directions.y())
+            switch(directions.y())
             {
                 // BOTTOM
             case 1:
@@ -245,8 +245,8 @@ namespace pmacc
                 result.y() = offset.y();
                 break;
             case 0:
-                //thsi if fiy lmem usage (old wars result.y()=ds[y_entry] )
-                if (y_entry == 0)
+                // thsi if fiy lmem usage (old wars result.y()=ds[y_entry] )
+                if(y_entry == 0)
                     result.y() = ds.x();
                 else
                     result.y() = ds.y();
@@ -255,14 +255,12 @@ namespace pmacc
 
             return result;
         }
-
     };
 
     template<>
     class DataSpaceOperations<DIM3>
     {
     public:
-
         template<class TVEC>
         static HDINLINE DataSpace<DIM3> map(uint32_t pos)
         {
@@ -272,7 +270,7 @@ namespace pmacc
             auto const y = pos / TVEC::x::value;
             auto const x = pos - y * TVEC::x::value;
 
-            return DataSpace< DIM3 >( x , y, z );
+            return DataSpace<DIM3>(x, y, z);
         }
 
         static HDINLINE DataSpace<DIM3> map(const DataSpace<DIM3>& size, uint32_t pos)
@@ -283,41 +281,35 @@ namespace pmacc
             auto const y = pos / size.x();
             auto const x = pos - y * size.x();
 
-            return DataSpace< DIM3 >( x , y, z );
+            return DataSpace<DIM3>(x, y, z);
         }
 
         template<class TVEC>
         static HDINLINE uint32_t map(const DataSpace<DIM3>& pos)
         {
-            return
-                pos.z() * ( TVEC::x::value * TVEC::y::value ) +
-                pos.y() * TVEC::x::value +
-                pos.x();
+            return pos.z() * (TVEC::x::value * TVEC::y::value) + pos.y() * TVEC::x::value + pos.x();
         }
 
         static HDINLINE uint32_t map(const DataSpace<DIM3>& size, const DataSpace<DIM3>& pos)
         {
-            return
-                pos.z() * size.x() * size.y() +
-                pos.y() * size.x() +
-                pos.x();
+            return pos.z() * size.x() * size.y() + pos.y() * size.x() + pos.x();
         }
 
         static HDINLINE DataSpace<DIM2> reduce(DataSpace<DIM3> ds, uint32_t ex)
         {
-            DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 > (ex);
+            DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3>(ex);
 
-            if (directions.x() != 0)
-                return DataSpace<DIM2 > (ds.y(), ds.z());
+            if(directions.x() != 0)
+                return DataSpace<DIM2>(ds.y(), ds.z());
 
-            if (directions.z() != 0)
-                return DataSpace<DIM2 > (ds.x(), ds.y());
+            if(directions.z() != 0)
+                return DataSpace<DIM2>(ds.x(), ds.y());
 
-            if (directions.y() != 0)
-                return DataSpace<DIM2 > (ds.x(), ds.z());
+            if(directions.y() != 0)
+                return DataSpace<DIM2>(ds.x(), ds.z());
 
 
-            return DataSpace<DIM2 > (0, 0);
+            return DataSpace<DIM2>(0, 0);
         }
     };
-}
+} // namespace pmacc

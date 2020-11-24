@@ -29,34 +29,31 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace startPosition
-{
-namespace acc
-{
+    namespace particles
+    {
+        namespace startPosition
+        {
+            namespace acc
+            {
+                /** set the particle attribute position to in-cell random
+                 *
+                 * The particle attribute position is assigned with a random
+                 * in-cell position.
+                 * This functor also sets the macro particle weighting.
+                 */
+                template<typename T_ParamClass>
+                struct RandomImpl;
 
-    /** set the particle attribute position to in-cell random
-     *
-     * The particle attribute position is assigned with a random
-     * in-cell position.
-     * This functor also sets the macro particle weighting.
-     */
-    template< typename T_ParamClass >
-    struct RandomImpl;
-
-} // namespace acc
+            } // namespace acc
 
 
-    /** Set the in cell position to in-cell random
-     *
-     * The new in-cell position is uniformly distributed position between [0.0;1.0).
-     */
-    template< typename T_ParamClass >
-    using RandomImpl = generic::FreeRng<
-        acc::RandomImpl< T_ParamClass >,
-        pmacc::random::distributions::Uniform< float_X >
-    >;
-} // namespace startPosition
-} // namespace particles
+            /** Set the in cell position to in-cell random
+             *
+             * The new in-cell position is uniformly distributed position between [0.0;1.0).
+             */
+            template<typename T_ParamClass>
+            using RandomImpl
+                = generic::FreeRng<acc::RandomImpl<T_ParamClass>, pmacc::random::distributions::Uniform<float_X>>;
+        } // namespace startPosition
+    } // namespace particles
 } // namespace picongpu

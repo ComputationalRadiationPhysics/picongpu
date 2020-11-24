@@ -23,10 +23,10 @@
 
 #include "pmacc/types.hpp"
 
-//define which index means that the index is invalid
+// define which index means that the index is invalid
 #define INV_IDX 0xFFFFFFFF
 
-//define which index means that a local cell index is invalid
+// define which index means that a local cell index is invalid
 #define INV_LOC_IDX 0xFFFF
 
 namespace pmacc
@@ -45,5 +45,10 @@ namespace pmacc
     /**
      * Describes type of a frame (core, border)
      */
-    enum FrameType { CORE_FRAME = 0u, BORDER_FRAME =1u , BIG_FRAME=2u};
-}
+    enum FrameType
+    {
+        CORE_FRAME = 0u,
+        BORDER_FRAME = 1u,
+        BIG_FRAME = 2u
+    };
+} // namespace pmacc

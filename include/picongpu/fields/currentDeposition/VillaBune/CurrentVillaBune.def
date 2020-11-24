@@ -27,39 +27,29 @@
 
 namespace picongpu
 {
-namespace currentSolver
-{
-
-    /** Current deposition algorithm from J. Villasenor and O. Buneman
-     *
-     * paper: J. Villasenor and O. Buneman. Rigorous charge conservation for local
-     * electromagnetic field solvers. Computer Physics Communications, 69:306, 1992.
-     * https://doi.org/10.1016/0010-4655(92)90169-Y
-     *
-     * @tparam T_ParticleShape the particle shape for the species, supports only [picongpu::particles::shapes::CIC]
-     * @tparam T_Strategy Used strategy to reduce the scattered data [currentSolver::strategy]
-     */
-    template<
-        typename T_ParticleShape = picongpu::particles::shapes::CIC,
-        typename T_Strategy = traits::GetDefaultStrategy_t<>
-    >
-    struct VillaBune;
-
-namespace traits
-{
-    template<
-        typename T_ParticleShape,
-        typename T_Strategy
-    >
-    struct GetStrategy<
-        VillaBune<
-            T_ParticleShape,
-            T_Strategy
-        >
-    >
+    namespace currentSolver
     {
-        using type = T_Strategy;
-    };
-} // namespace traits
-} //namespace currentSolver
-} //namespace picongpu
+        /** Current deposition algorithm from J. Villasenor and O. Buneman
+         *
+         * paper: J. Villasenor and O. Buneman. Rigorous charge conservation for local
+         * electromagnetic field solvers. Computer Physics Communications, 69:306, 1992.
+         * https://doi.org/10.1016/0010-4655(92)90169-Y
+         *
+         * @tparam T_ParticleShape the particle shape for the species, supports only [picongpu::particles::shapes::CIC]
+         * @tparam T_Strategy Used strategy to reduce the scattered data [currentSolver::strategy]
+         */
+        template<
+            typename T_ParticleShape = picongpu::particles::shapes::CIC,
+            typename T_Strategy = traits::GetDefaultStrategy_t<>>
+        struct VillaBune;
+
+        namespace traits
+        {
+            template<typename T_ParticleShape, typename T_Strategy>
+            struct GetStrategy<VillaBune<T_ParticleShape, T_Strategy>>
+            {
+                using type = T_Strategy;
+            };
+        } // namespace traits
+    } // namespace currentSolver
+} // namespace picongpu

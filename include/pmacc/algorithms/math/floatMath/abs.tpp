@@ -27,19 +27,18 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<>
-struct Abs2<float>
-{
-    typedef float result;
-
-    HDINLINE float operator( )(const float& value )
+    namespace math
     {
-        return value*value;
-    }
-};
+        template<>
+        struct Abs2<float>
+        {
+            typedef float result;
 
-} //namespace math
+            HDINLINE float operator()(const float& value)
+            {
+                return value * value;
+            }
+        };
+
+    } // namespace math
 } // namespace pmacc

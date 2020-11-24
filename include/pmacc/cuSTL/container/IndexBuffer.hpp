@@ -32,63 +32,66 @@
 
 namespace pmacc
 {
-namespace container
-{
-
-template<int dim>
-class IndexBuffer
-{
-private:
-    math::UInt32<dim> _size;
-public:
-    IndexBuffer(const math::UInt32<dim>& _size) : _size(_size) {}
-    IndexBuffer(uint32_t x) : _size(x) {}
-    IndexBuffer(uint32_t x, uint32_t y) : _size(x,y) {}
-    IndexBuffer(uint32_t x, uint32_t y, uint32_t z) : _size(x,y,z) {}
-
-    inline
-    cursor::Cursor<cursor::MarkerAccessor<math::Int<dim> >,
-                   cursor::CartNavigator<dim>,
-                   math::Int<dim> >
-    origin() const
+    namespace container
     {
-        math::Int<dim> factor;
-        factor[0] = 1; factor[1] = this->_size.x();
-        if(dim == 3) factor[2] = this->_size.x() * this->_size.y();
+        template<int dim>
+        class IndexBuffer
+        {
+        private:
+            math::UInt32<dim> _size;
 
-        return cursor::Cursor<cursor::MarkerAccessor<math::Int<dim> >,
-                              cursor::CartNavigator<dim>,
-                              math::Int<dim> >
-                              (cursor::MarkerAccessor<math::Int<dim> >(),
-                               cursor::CartNavigator<dim>(factor),
-                               math::Int<dim>(0));
-    }
-    inline
-    cursor::Cursor<cursor::MarkerAccessor<math::Int<dim> >,
-                   cursor::CartNavigator<dim>,
-                   math::Int<dim> >
-    originCustomAxes(const math::UInt32<dim>& axes) const
-    {
-        math::Int<dim> factor;
-        factor[0] = 1; factor[1] = this->_size.x();
-        if(dim == 3) factor[2] = this->_size.x() * this->_size.y();
-        math::Int<dim> customFactor;
-        for(uint32_t i = 0; i < dim; i++)
-            customFactor[i] = factor[axes[i]];
+        public:
+            IndexBuffer(const math::UInt32<dim>& _size) : _size(_size)
+            {
+            }
+            IndexBuffer(uint32_t x) : _size(x)
+            {
+            }
+            IndexBuffer(uint32_t x, uint32_t y) : _size(x, y)
+            {
+            }
+            IndexBuffer(uint32_t x, uint32_t y, uint32_t z) : _size(x, y, z)
+            {
+            }
 
-        return cursor::Cursor<cursor::MarkerAccessor<math::Int<dim> >,
-                              cursor::CartNavigator<dim>,
-                              math::Int<dim> >
-                              (cursor::MarkerAccessor<math::Int<dim> >(),
-                               cursor::CartNavigator<dim>(customFactor),
-                               math::Int<dim>(0));
-    }
-    inline zone::SphericZone<dim> zone() const
-    {
-        return zone::SphericZone<dim>((math::Size_t<dim>)this->_size);
-    }
-};
+            inline cursor::Cursor<cursor::MarkerAccessor<math::Int<dim>>, cursor::CartNavigator<dim>, math::Int<dim>>
+            origin() const
+            {
+                math::Int<dim> factor;
+                factor[0] = 1;
+                factor[1] = this->_size.x();
+                if(dim == 3)
+                    factor[2] = this->_size.x() * this->_size.y();
 
-} // container
-} // pmacc
+                return cursor::
+                    Cursor<cursor::MarkerAccessor<math::Int<dim>>, cursor::CartNavigator<dim>, math::Int<dim>>(
+                        cursor::MarkerAccessor<math::Int<dim>>(),
+                        cursor::CartNavigator<dim>(factor),
+                        math::Int<dim>(0));
+            }
+            inline cursor::Cursor<cursor::MarkerAccessor<math::Int<dim>>, cursor::CartNavigator<dim>, math::Int<dim>>
+            originCustomAxes(const math::UInt32<dim>& axes) const
+            {
+                math::Int<dim> factor;
+                factor[0] = 1;
+                factor[1] = this->_size.x();
+                if(dim == 3)
+                    factor[2] = this->_size.x() * this->_size.y();
+                math::Int<dim> customFactor;
+                for(uint32_t i = 0; i < dim; i++)
+                    customFactor[i] = factor[axes[i]];
 
+                return cursor::
+                    Cursor<cursor::MarkerAccessor<math::Int<dim>>, cursor::CartNavigator<dim>, math::Int<dim>>(
+                        cursor::MarkerAccessor<math::Int<dim>>(),
+                        cursor::CartNavigator<dim>(customFactor),
+                        math::Int<dim>(0));
+            }
+            inline zone::SphericZone<dim> zone() const
+            {
+                return zone::SphericZone<dim>((math::Size_t<dim>) this->_size);
+            }
+        };
+
+    } // namespace container
+} // namespace pmacc

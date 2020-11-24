@@ -27,92 +27,80 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace laserProfiles
-{
-namespace none
-{
-    template< typename T_Params >
-    struct Unitless : public T_Params
+    namespace fields
     {
-        using Params = T_Params;
-
-        static constexpr float_X WAVE_LENGTH = float_X( Params::WAVE_LENGTH_SI / UNIT_LENGTH ); // unit: meter
-        static constexpr float_X PULSE_LENGTH = float_X( Params::PULSE_LENGTH_SI / UNIT_TIME ); // unit: seconds (1 sigma)
-        static constexpr float_X AMPLITUDE = float_X( Params::AMPLITUDE_SI / UNIT_EFIELD ); // unit: Volt /meter
-        static constexpr float_X INIT_TIME = 0.0_X; // unit: seconds (no initialization time)
-    };
-} // namespace none
-namespace acc
-{
-    template< typename T_Unitless >
-    struct None : public T_Unitless
-    {
-        using Unitless = T_Unitless;
-
-        /** Device-Side Constructor
-         */
-        HDINLINE None()
+        namespace laserProfiles
         {
-        }
+            namespace none
+            {
+                template<typename T_Params>
+                struct Unitless : public T_Params
+                {
+                    using Params = T_Params;
 
-        /** device side manipulation for init plane (transversal)
-         *
-         * @tparam T_Args type of the arguments passed to the user manipulator functor
-         */
-        template< typename T_Acc >
-        HDINLINE
-        void operator( )(
-            T_Acc const &,
-            DataSpace< simDim > const &
-        )
-        {
-        }
-    };
-} // namespace acc
+                    static constexpr float_X WAVE_LENGTH
+                        = float_X(Params::WAVE_LENGTH_SI / UNIT_LENGTH); // unit: meter
+                    static constexpr float_X PULSE_LENGTH
+                        = float_X(Params::PULSE_LENGTH_SI / UNIT_TIME); // unit: seconds (1 sigma)
+                    static constexpr float_X AMPLITUDE
+                        = float_X(Params::AMPLITUDE_SI / UNIT_EFIELD); // unit: Volt /meter
+                    static constexpr float_X INIT_TIME = 0.0_X; // unit: seconds (no initialization time)
+                };
+            } // namespace none
+            namespace acc
+            {
+                template<typename T_Unitless>
+                struct None : public T_Unitless
+                {
+                    using Unitless = T_Unitless;
 
-    template< typename T_Params >
-    struct None : public none::Unitless< T_Params >
-    {
-        using Unitless = none::Unitless< T_Params >;
+                    /** Device-Side Constructor
+                     */
+                    HDINLINE None()
+                    {
+                    }
 
-        /** constructor
-         */
-        HINLINE None( uint32_t )
-        {
-        }
+                    /** device side manipulation for init plane (transversal)
+                     *
+                     * @tparam T_Args type of the arguments passed to the user manipulator functor
+                     */
+                    template<typename T_Acc>
+                    HDINLINE void operator()(T_Acc const&, DataSpace<simDim> const&)
+                    {
+                    }
+                };
+            } // namespace acc
 
-        /** create device manipulator functor
-         *
-         * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
-         * @tparam T_Acc alpaka accelerator type
-         */
-        template<
-            typename T_WorkerCfg,
-            typename T_Acc
-        >
-        HDINLINE acc::None< Unitless >
-        operator()(
-            T_Acc const &,
-            DataSpace< simDim > const &,
-            T_WorkerCfg const &
-        ) const
-        {
-            return acc::None< Unitless >( );
-        }
+            template<typename T_Params>
+            struct None : public none::Unitless<T_Params>
+            {
+                using Unitless = none::Unitless<T_Params>;
 
-        //! get the name of the laser profile
-        static
-        HINLINE std::string
-        getName( )
-        {
-            return "None";
-        }
+                /** constructor
+                 */
+                HINLINE None(uint32_t)
+                {
+                }
 
-    };
+                /** create device manipulator functor
+                 *
+                 * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+                 * @tparam T_Acc alpaka accelerator type
+                 */
+                template<typename T_WorkerCfg, typename T_Acc>
+                HDINLINE acc::None<Unitless> operator()(T_Acc const&, DataSpace<simDim> const&, T_WorkerCfg const&)
+                    const
+                {
+                    return acc::None<Unitless>();
+                }
 
-} // namespace laserProfiles
-} // namespace fields
+                //! get the name of the laser profile
+                static HINLINE std::string getName()
+                {
+                    return "None";
+                }
+            };
+
+        } // namespace laserProfiles
+    } // namespace fields
 } // namespace picongpu
-

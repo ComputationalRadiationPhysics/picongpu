@@ -23,37 +23,38 @@
 
 namespace pmacc
 {
-namespace container
-{
-
-template<typename Type, int dim>
-template<typename _Type>
-PseudoBuffer<Type, dim>::PseudoBuffer(pmacc::DeviceBuffer<_Type, dim>& devBuffer)
-{
-    cuplaPitchedPtr cuplaData = devBuffer.getCudaPitched();
-    this->dataPointer = (Type*)cuplaData.ptr;
-    this->_size = (math::Size_t<dim>)devBuffer.getDataSpace();
-    if(dim == 2) this->pitch[0] = cuplaData.pitch;
-    if(dim == 3)
+    namespace container
     {
-        this->pitch[0] = cuplaData.pitch;
-        this->pitch[1] = cuplaData.pitch * this->_size.y();
-    }
-}
+        template<typename Type, int dim>
+        template<typename _Type>
+        PseudoBuffer<Type, dim>::PseudoBuffer(pmacc::DeviceBuffer<_Type, dim>& devBuffer)
+        {
+            cuplaPitchedPtr cuplaData = devBuffer.getCudaPitched();
+            this->dataPointer = (Type*) cuplaData.ptr;
+            this->_size = (math::Size_t<dim>) devBuffer.getDataSpace();
+            if(dim == 2)
+                this->pitch[0] = cuplaData.pitch;
+            if(dim == 3)
+            {
+                this->pitch[0] = cuplaData.pitch;
+                this->pitch[1] = cuplaData.pitch * this->_size.y();
+            }
+        }
 
-template<typename Type, int dim>
-template<typename _Type>
-PseudoBuffer<Type, dim>::PseudoBuffer(pmacc::HostBuffer<_Type, dim>& hostBuffer)
-{
-    this->dataPointer = (Type*)hostBuffer.getBasePointer();
-    this->_size = (math::Size_t<dim>)hostBuffer.getDataSpace();
-    if(dim == 2) this->pitch[0] = sizeof(Type) * this->_size[0];
-    if(dim == 3)
-    {
-        this->pitch[0] = sizeof(Type) * this->_size[0];
-        this->pitch[1] = this->pitch[0] * this->_size[1];
-    }
-}
+        template<typename Type, int dim>
+        template<typename _Type>
+        PseudoBuffer<Type, dim>::PseudoBuffer(pmacc::HostBuffer<_Type, dim>& hostBuffer)
+        {
+            this->dataPointer = (Type*) hostBuffer.getBasePointer();
+            this->_size = (math::Size_t<dim>) hostBuffer.getDataSpace();
+            if(dim == 2)
+                this->pitch[0] = sizeof(Type) * this->_size[0];
+            if(dim == 3)
+            {
+                this->pitch[0] = sizeof(Type) * this->_size[0];
+                this->pitch[1] = this->pitch[0] * this->_size[1];
+            }
+        }
 
-} // container
-} // pmacc
+    } // namespace container
+} // namespace pmacc

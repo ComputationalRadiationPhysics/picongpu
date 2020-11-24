@@ -28,176 +28,156 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace cellType
-{
-
-    struct Centered{};
-
-} //namespace fields
-} //namespace cellType
-
-namespace traits
-{
-    /** position (floatD_X in case of T_simDim == simDim) in cell for
-     *  E_x, E_y, E_z
-     */
-    template< uint32_t T_simDim >
-    struct FieldPosition<
-        fields::cellType::Centered,
-        FieldE,
-        T_simDim
-    >
+    namespace fields
     {
-        using PosType = pmacc::math::Vector<float_X, T_simDim>;
-        using ReturnType = const pmacc::math::Vector<PosType, DIM3>;
-
-        /// boost::result_of hints
-        template<class> struct result;
-
-        template<class F>
-        struct result<F()> {
-            using type = ReturnType;
-        };
-
-        HDINLINE FieldPosition()
+        namespace cellType
         {
-        }
+            struct Centered
+            {
+            };
 
-        HDINLINE ReturnType operator()() const
-        {
-            const auto center = PosType::create( 0.5 );
+        } // namespace cellType
+    } // namespace fields
 
-            return ReturnType::create( center );
-        }
-    };
-
-    /** position (floatD_X in case of T_simDim == simDim) in cell for
-     *  B_x, B_y, B_z
-     */
-    template< uint32_t T_simDim >
-    struct FieldPosition<
-        fields::cellType::Centered,
-        FieldB,
-        T_simDim
-    > : public FieldPosition<
-        fields::cellType::Centered,
-        FieldE,
-        T_simDim
-    >
+    namespace traits
     {
-        HDINLINE FieldPosition()
-        {
-        }
-    };
-
-    /** position (float2_X) in cell for J_x, J_y, J_z */
-    template<>
-    struct FieldPosition<
-        fields::cellType::Centered,
-        FieldJ,
-        DIM2
-    >
-    {
-        /** \tparam float2_X position of the component in the cell
-         *  \tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
+        /** position (floatD_X in case of T_simDim == simDim) in cell for
+         *  E_x, E_y, E_z
          */
-        using VectorVector2D3V = const ::pmacc::math::Vector<
-           float2_X,
-           DIM3
-        >;
-        /// boost::result_of hints
-        template<class> struct result;
+        template<uint32_t T_simDim>
+        struct FieldPosition<fields::cellType::Centered, FieldE, T_simDim>
+        {
+            using PosType = pmacc::math::Vector<float_X, T_simDim>;
+            using ReturnType = const pmacc::math::Vector<PosType, DIM3>;
 
-        template<class F>
-        struct result<F()> {
-            using type = VectorVector2D3V;
+            /// boost::result_of hints
+            template<class>
+            struct result;
+
+            template<class F>
+            struct result<F()>
+            {
+                using type = ReturnType;
+            };
+
+            HDINLINE FieldPosition()
+            {
+            }
+
+            HDINLINE ReturnType operator()() const
+            {
+                const auto center = PosType::create(0.5);
+
+                return ReturnType::create(center);
+            }
         };
 
-        HDINLINE FieldPosition()
-        {
-        }
-
-        HDINLINE VectorVector2D3V operator()() const
-        {
-            const float2_X posJ_x( 0.5, 0.0 );
-            const float2_X posJ_y( 0.0, 0.5 );
-            const float2_X posJ_z( 0.0, 0.0 );
-
-            return VectorVector2D3V( posJ_x, posJ_y, posJ_z );
-        }
-    };
-
-    /** position (float3_X) in cell for J_x, J_y, J_z
-     */
-    template<>
-    struct FieldPosition<
-        fields::cellType::Centered,
-        FieldJ,
-        DIM3
-    >
-    {
-        /** \tparam float2_X position of the component in the cell
-         *  \tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
+        /** position (floatD_X in case of T_simDim == simDim) in cell for
+         *  B_x, B_y, B_z
          */
-        using VectorVector3D3V = const ::pmacc::math::Vector<
-            float3_X,
-            DIM3
-        >;
-        /// boost::result_of hints
-        template<class> struct result;
-
-        template<class F>
-        struct result<F()> {
-            using type = VectorVector3D3V;
+        template<uint32_t T_simDim>
+        struct FieldPosition<fields::cellType::Centered, FieldB, T_simDim>
+            : public FieldPosition<fields::cellType::Centered, FieldE, T_simDim>
+        {
+            HDINLINE FieldPosition()
+            {
+            }
         };
 
-        HDINLINE FieldPosition()
+        /** position (float2_X) in cell for J_x, J_y, J_z */
+        template<>
+        struct FieldPosition<fields::cellType::Centered, FieldJ, DIM2>
         {
-        }
+            /** \tparam float2_X position of the component in the cell
+             *  \tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
+             */
+            using VectorVector2D3V = const ::pmacc::math::Vector<float2_X, DIM3>;
+            /// boost::result_of hints
+            template<class>
+            struct result;
 
-        HDINLINE VectorVector3D3V operator()() const
-        {
-            const float3_X posJ_x( 0.5, 0.0, 0.0 );
-            const float3_X posJ_y( 0.0, 0.5, 0.0 );
-            const float3_X posJ_z( 0.0, 0.0, 0.5 );
+            template<class F>
+            struct result<F()>
+            {
+                using type = VectorVector2D3V;
+            };
 
-            return VectorVector3D3V( posJ_x, posJ_y, posJ_z );
-        }
-    };
+            HDINLINE FieldPosition()
+            {
+            }
 
-    /** position (floatD_X in case of T_simDim == simDim) in cell, wrapped in
-     * one-component vector since it's a scalar field with only one component, for the
-     * scalar field FieldTmp
-     */
-    template< uint32_t T_simDim >
-    struct FieldPosition<
-        fields::cellType::Centered,
-        FieldTmp,
-        T_simDim
-    >
-    {
-        using FieldPos = pmacc::math::Vector<float_X, T_simDim>;
-        using ReturnType = pmacc::math::Vector<FieldPos, DIM1>;
+            HDINLINE VectorVector2D3V operator()() const
+            {
+                const float2_X posJ_x(0.5, 0.0);
+                const float2_X posJ_y(0.0, 0.5);
+                const float2_X posJ_z(0.0, 0.0);
 
-        /// boost::result_of hints
-        template<class> struct result;
-
-        template<class F>
-        struct result<F()> {
-            using type = ReturnType;
+                return VectorVector2D3V(posJ_x, posJ_y, posJ_z);
+            }
         };
 
-        HDINLINE FieldPosition()
+        /** position (float3_X) in cell for J_x, J_y, J_z
+         */
+        template<>
+        struct FieldPosition<fields::cellType::Centered, FieldJ, DIM3>
         {
-        }
+            /** \tparam float2_X position of the component in the cell
+             *  \tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
+             */
+            using VectorVector3D3V = const ::pmacc::math::Vector<float3_X, DIM3>;
+            /// boost::result_of hints
+            template<class>
+            struct result;
 
-        HDINLINE ReturnType operator()() const
+            template<class F>
+            struct result<F()>
+            {
+                using type = VectorVector3D3V;
+            };
+
+            HDINLINE FieldPosition()
+            {
+            }
+
+            HDINLINE VectorVector3D3V operator()() const
+            {
+                const float3_X posJ_x(0.5, 0.0, 0.0);
+                const float3_X posJ_y(0.0, 0.5, 0.0);
+                const float3_X posJ_z(0.0, 0.0, 0.5);
+
+                return VectorVector3D3V(posJ_x, posJ_y, posJ_z);
+            }
+        };
+
+        /** position (floatD_X in case of T_simDim == simDim) in cell, wrapped in
+         * one-component vector since it's a scalar field with only one component, for the
+         * scalar field FieldTmp
+         */
+        template<uint32_t T_simDim>
+        struct FieldPosition<fields::cellType::Centered, FieldTmp, T_simDim>
         {
-            return ReturnType( FieldPos::create(0.0) );
-        }
-    };
+            using FieldPos = pmacc::math::Vector<float_X, T_simDim>;
+            using ReturnType = pmacc::math::Vector<FieldPos, DIM1>;
 
-} // namespace traits
+            /// boost::result_of hints
+            template<class>
+            struct result;
+
+            template<class F>
+            struct result<F()>
+            {
+                using type = ReturnType;
+            };
+
+            HDINLINE FieldPosition()
+            {
+            }
+
+            HDINLINE ReturnType operator()() const
+            {
+                return ReturnType(FieldPos::create(0.0));
+            }
+        };
+
+    } // namespace traits
 } // namespace picongpu

@@ -37,7 +37,7 @@
 /*******************************************************************************
  * Test Suite
  ******************************************************************************/
-BOOST_AUTO_TEST_SUITE( template_unit_test )
+BOOST_AUTO_TEST_SUITE(template_unit_test)
 
 
 /***************************************************************************
@@ -45,9 +45,9 @@ BOOST_AUTO_TEST_SUITE( template_unit_test )
  ****************************************************************************/
 
 // Normal test case
-BOOST_AUTO_TEST_CASE( first ){
-    BOOST_CHECK_EQUAL( sizeof(uint8_t), 1u );
-
+BOOST_AUTO_TEST_CASE(first)
+{
+    BOOST_CHECK_EQUAL(sizeof(uint8_t), 1u);
 }
 
 

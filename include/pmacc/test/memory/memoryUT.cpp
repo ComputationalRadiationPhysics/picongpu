@@ -48,41 +48,42 @@
 
 namespace pmacc
 {
-namespace test
-{
-namespace memory
-{
+    namespace test
+    {
+        namespace memory
+        {
+            /*******************************************************************************
+             * Configuration
+             ******************************************************************************/
 
-/*******************************************************************************
- * Configuration
- ******************************************************************************/
+            /**
+             * Defines for which numbers of elements a
+             * test should be verfied e.g. the size
+             * of a host or device buffer.
+             */
+            template<typename T_Dim>
+            std::vector<size_t> getElementsPerDim()
+            {
+                std::vector<size_t> nElements;
+                std::vector<size_t> nElementsPerDim;
 
-/**
- * Defines for which numbers of elements a
- * test should be verfied e.g. the size
- * of a host or device buffer.
- */
-template<typename T_Dim>
-std::vector<size_t> getElementsPerDim(){
-    std::vector<size_t> nElements;
-    std::vector<size_t> nElementsPerDim;
+                // Elements total
+                nElements.push_back(1);
+                nElements.push_back(1 * 1000);
+                nElements.push_back(1 * 1000 * 1000);
+                nElements.push_back(1 * 1000 * 1000 * 10);
 
-    // Elements total
-    nElements.push_back(1);
-    nElements.push_back(1 * 1000);
-    nElements.push_back(1 * 1000 * 1000);
-    nElements.push_back(1 * 1000 * 1000 * 10);
+                // Elements per dimension
+                for(size_t i = 0; i < nElements.size(); ++i)
+                {
+                    nElementsPerDim.push_back(
+                        std::pow(nElements[i], static_cast<double>(1) / static_cast<double>(T_Dim::value)));
+                }
+                return nElementsPerDim;
+            }
 
-    // Elements per dimension
-    for(size_t i = 0; i < nElements.size(); ++i){
-        nElementsPerDim.push_back(std::pow(nElements[i], static_cast<double>(1)/static_cast<double>(T_Dim::value)));
-
-    }
-    return nElementsPerDim;
-}
-
-} // namespace memory
-} // namespace test
+        } // namespace memory
+    } // namespace test
 } // namespace pmacc
 
 /**
@@ -91,23 +92,21 @@ std::vector<size_t> getElementsPerDim(){
  * each dimension setup automatically. For this
  * purpose boost::mpl::for_each is used.
  */
-using Dims = ::boost::mpl::list< boost::mpl::int_< DIM1 >,
-                                 boost::mpl::int_< DIM2 >,
-                                 boost::mpl::int_< DIM3 > >;
+using Dims = ::boost::mpl::list<boost::mpl::int_<DIM1>, boost::mpl::int_<DIM2>, boost::mpl::int_<DIM3>>;
 
 /*******************************************************************************
  * Test Suites
  ******************************************************************************/
-using MyPMaccFixture = pmacc::test::PMaccFixture< TEST_DIM >;
+using MyPMaccFixture = pmacc::test::PMaccFixture<TEST_DIM>;
 
-BOOST_GLOBAL_FIXTURE( MyPMaccFixture );
+BOOST_GLOBAL_FIXTURE(MyPMaccFixture);
 
-BOOST_AUTO_TEST_SUITE( memory )
+BOOST_AUTO_TEST_SUITE(memory)
 
-  BOOST_AUTO_TEST_SUITE( HostBufferIntern )
-#   include "HostBufferIntern/copyFrom.hpp"
-#   include "HostBufferIntern/reset.hpp"
-#   include "HostBufferIntern/setValue.hpp"
-  BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE(HostBufferIntern)
+#include "HostBufferIntern/copyFrom.hpp"
+#include "HostBufferIntern/reset.hpp"
+#include "HostBufferIntern/setValue.hpp"
+BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE_END()

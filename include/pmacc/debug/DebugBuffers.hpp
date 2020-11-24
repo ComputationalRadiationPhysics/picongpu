@@ -29,13 +29,12 @@
 
 namespace pmacc
 {
-
     /**
      * Helper class for debugging buffers
      *
      * @tparam DIM dimension of the buffer to debug.
      */
-    template <unsigned DIM>
+    template<unsigned DIM>
     class DebugBuffers
     {
     public:
@@ -46,25 +45,24 @@ namespace pmacc
          * @param hostBuffer the HostBuffer to convert to a string
          * @return a string representing the buffer
          */
-        template <class TYPE>
+        template<class TYPE>
         static std::string bufferToStr(HostBuffer<TYPE, DIM>& hostBuffer);
     };
 
-    template <>
+    template<>
     class DebugBuffers<DIM2>
     {
     public:
-
-        template <class TYPE>
+        template<class TYPE>
         static std::string bufferToStr(HostBuffer<TYPE, DIM2>& hostBuffer)
         {
             std::stringstream stream;
 
             typename HostBuffer<TYPE, DIM2>::DataBoxType db = hostBuffer.getDataBox();
 
-            for (size_t y = 0; y < hostBuffer.getDataSpace().y(); y++)
+            for(size_t y = 0; y < hostBuffer.getDataSpace().y(); y++)
             {
-                for (size_t x = 0; x < hostBuffer.getDataSpace().x(); x++)
+                for(size_t x = 0; x < hostBuffer.getDataSpace().x(); x++)
                     stream << db[y][x] << " ";
 
                 stream << std::endl;
@@ -74,33 +72,31 @@ namespace pmacc
         }
     };
 
-    template <>
+    template<>
     class DebugBuffers<DIM3>
     {
     public:
-
-        template <class TYPE>
+        template<class TYPE>
         static std::string bufferToStr(HostBuffer<TYPE, DIM3>& hostBuffer)
         {
             std::stringstream stream;
 
             typename HostBuffer<TYPE, DIM3>::DataBoxType db = hostBuffer.getDataBox();
 
-            for (size_t z = 0; z < hostBuffer.getDataSpace().z(); z++)
+            for(size_t z = 0; z < hostBuffer.getDataSpace().z(); z++)
             {
                 stream << "z = " << z << std::endl;
 
-                for (size_t y = 0; y < hostBuffer.getDataSpace().y(); y++)
+                for(size_t y = 0; y < hostBuffer.getDataSpace().y(); y++)
                 {
-                    for (size_t x = 0; x < hostBuffer.getDataSpace().x(); x++)
+                    for(size_t x = 0; x < hostBuffer.getDataSpace().x(); x++)
                         stream << db[z][y][x] << " ";
 
                     stream << std::endl;
                 }
-
             }
 
             return stream.str();
         }
     };
-}
+} // namespace pmacc

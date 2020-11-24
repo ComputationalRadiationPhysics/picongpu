@@ -29,57 +29,40 @@
 
 namespace pmacc
 {
-namespace random
-{
-namespace distributions
-{
-namespace detail
-{
-
-    /** Returns a random floating point value uniformly distributed in [0,1)
-     *
-     * Equivalent to uniform::ExcludeOne< T_Type >::Reduced
-     */
-    template<
-        typename T_Type,
-        class T_RNGMethod
-    >
-    class Uniform<
-        T_Type,
-        T_RNGMethod,
-        typename std::enable_if<
-            std::is_floating_point< T_Type >::value
-        >::type
-    > :
-        public pmacc::random::distributions::Uniform<
-            typename uniform::ExcludeOne< T_Type >::Reduced,
-            T_RNGMethod
-        >
+    namespace random
     {
-    };
+        namespace distributions
+        {
+            namespace detail
+            {
+                /** Returns a random floating point value uniformly distributed in [0,1)
+                 *
+                 * Equivalent to uniform::ExcludeOne< T_Type >::Reduced
+                 */
+                template<typename T_Type, class T_RNGMethod>
+                class Uniform<
+                    T_Type,
+                    T_RNGMethod,
+                    typename std::enable_if<std::is_floating_point<T_Type>::value>::type>
+                    : public pmacc::random::distributions::
+                          Uniform<typename uniform::ExcludeOne<T_Type>::Reduced, T_RNGMethod>
+                {
+                };
 
-    /** Returns a random floating point value uniformly distributed in [0,1)
-     *
-     * Equivalent to uniform::ExcludeOne< T_Type >::Reduced
-     */
-    template<
-        typename T_Type,
-        class T_RNGMethod
-    >
-    class Uniform<
-        uniform::ExcludeOne< T_Type>,
-        T_RNGMethod,
-        typename std::enable_if<
-            std::is_floating_point< T_Type >::value
-        >::type
-    > :
-        public pmacc::random::distributions::Uniform<
-            typename uniform::ExcludeOne< T_Type >::Reduced,
-            T_RNGMethod
-        >
-    {
-    };
-}  // namespace detail
-}  // namespace distributions
-}  // namespace random
-}  // namespace pmacc
+                /** Returns a random floating point value uniformly distributed in [0,1)
+                 *
+                 * Equivalent to uniform::ExcludeOne< T_Type >::Reduced
+                 */
+                template<typename T_Type, class T_RNGMethod>
+                class Uniform<
+                    uniform::ExcludeOne<T_Type>,
+                    T_RNGMethod,
+                    typename std::enable_if<std::is_floating_point<T_Type>::value>::type>
+                    : public pmacc::random::distributions::
+                          Uniform<typename uniform::ExcludeOne<T_Type>::Reduced, T_RNGMethod>
+                {
+                };
+            } // namespace detail
+        } // namespace distributions
+    } // namespace random
+} // namespace pmacc

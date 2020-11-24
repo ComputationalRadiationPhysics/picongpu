@@ -26,79 +26,68 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
-namespace binary
-{
-namespace acc
-{
-
-    //! Re-scale the weighting of a cloned particle by densityRatio
-    struct DensityWeighting
+    namespace particles
     {
-        /** Adjust the weighting of particleDes by densityRatio of particleDes & Src particle
-         *
-         * While deriving a particle (particleDes) from another (T_SrcParticle), one
-         * can afterwards directly normalize the weighting back to the intended density:
-         * - divide weighting with the `T_SrcParticle`'s densityRatio
-         *   (to get macro particle weighting according to reference BASE_DENSITY * profile
-         *    at this specific point in space & time)
-         * - multiply weighting with own densityRatio (to get this species'
-         *    densityRatio * BASE_DENSITY * profile)
-         *
-         * This is useful when the profile and number of macro particles for both species
-         * shall be the same and the initialization of another profile via `CreateDensity`
-         * would be expensive (or one wants to keep the exact same position while deriving).
-         *
-         * @tparam T_DesParticle type of the particle species with weighting to manipulate
-         * @tparam T_SrcParticle type of the particle species one cloned from
-         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
-         *
-         * @param particleDest destination particle
-         * @param particleSrc source particle (the density ratio of this particle is used)
-         * @param ... unused particles
-         *
-         * @see picongpu::particles::ManipulateDerive, picongpu::kernelCloneParticles
-         */
-        template<
-            typename T_DesParticle,
-            typename T_SrcParticle,
-            typename ... T_Args
-        >
-        HDINLINE void operator()(
-            T_DesParticle & particleDes,
-            T_SrcParticle const &,
-            T_Args && ...
-        )
+        namespace manipulators
         {
-            const float_X densityRatioDes =
-                traits::GetDensityRatio< T_DesParticle >::type::getValue( );
-            const float_X densityRatioSrc =
-                traits::GetDensityRatio< T_SrcParticle >::type::getValue( );
+            namespace binary
+            {
+                namespace acc
+                {
+                    //! Re-scale the weighting of a cloned particle by densityRatio
+                    struct DensityWeighting
+                    {
+                        /** Adjust the weighting of particleDes by densityRatio of particleDes & Src particle
+                         *
+                         * While deriving a particle (particleDes) from another (T_SrcParticle), one
+                         * can afterwards directly normalize the weighting back to the intended density:
+                         * - divide weighting with the `T_SrcParticle`'s densityRatio
+                         *   (to get macro particle weighting according to reference BASE_DENSITY * profile
+                         *    at this specific point in space & time)
+                         * - multiply weighting with own densityRatio (to get this species'
+                         *    densityRatio * BASE_DENSITY * profile)
+                         *
+                         * This is useful when the profile and number of macro particles for both species
+                         * shall be the same and the initialization of another profile via `CreateDensity`
+                         * would be expensive (or one wants to keep the exact same position while deriving).
+                         *
+                         * @tparam T_DesParticle type of the particle species with weighting to manipulate
+                         * @tparam T_SrcParticle type of the particle species one cloned from
+                         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
+                         *
+                         * @param particleDest destination particle
+                         * @param particleSrc source particle (the density ratio of this particle is used)
+                         * @param ... unused particles
+                         *
+                         * @see picongpu::particles::ManipulateDerive, picongpu::kernelCloneParticles
+                         */
+                        template<typename T_DesParticle, typename T_SrcParticle, typename... T_Args>
+                        HDINLINE void operator()(T_DesParticle& particleDes, T_SrcParticle const&, T_Args&&...)
+                        {
+                            const float_X densityRatioDes = traits::GetDensityRatio<T_DesParticle>::type::getValue();
+                            const float_X densityRatioSrc = traits::GetDensityRatio<T_SrcParticle>::type::getValue();
 
-            particleDes[ weighting_ ] *= densityRatioDes / densityRatioSrc;
-        }
-    };
+                            particleDes[weighting_] *= densityRatioDes / densityRatioSrc;
+                        }
+                    };
 
-} // namespace acc
+                } // namespace acc
 
-    /** Re-scale the weighting of a cloned species by densityRatio
-     *
-     * When deriving species from each other, the new
-     * species "inherits" the macro-particle weighting
-     * of the first one.
-     * This functor can be used to manipulate the weighting
-     * of the new species' macro particles to satisfy the
-     * input densityRatio of it.
-     *
-     * note: needs the densityRatio flag on both species,
-     *       used by the GetDensityRatio trait.
-     */
-    using DensityWeighting = generic::Free< acc::DensityWeighting >;
+                /** Re-scale the weighting of a cloned species by densityRatio
+                 *
+                 * When deriving species from each other, the new
+                 * species "inherits" the macro-particle weighting
+                 * of the first one.
+                 * This functor can be used to manipulate the weighting
+                 * of the new species' macro particles to satisfy the
+                 * input densityRatio of it.
+                 *
+                 * note: needs the densityRatio flag on both species,
+                 *       used by the GetDensityRatio trait.
+                 */
+                using DensityWeighting = generic::Free<acc::DensityWeighting>;
 
-} // namespace binary
-} // namespace manipulators
-} // namespace particles
+            } // namespace binary
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

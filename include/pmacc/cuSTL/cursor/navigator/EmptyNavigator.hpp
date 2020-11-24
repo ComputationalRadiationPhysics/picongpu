@@ -23,19 +23,16 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-
-struct EmptyNavigator
-{
-    template<typename Marker, typename Jump>
-    HDINLINE
-    Marker operator()(const Marker& marker, Jump) const
+    namespace cursor
     {
-        return marker;
-    }
-};
+        struct EmptyNavigator
+        {
+            template<typename Marker, typename Jump>
+            HDINLINE Marker operator()(const Marker& marker, Jump) const
+            {
+                return marker;
+            }
+        };
 
-} // cursor
-} // pmacc
-
+    } // namespace cursor
+} // namespace pmacc

@@ -27,100 +27,80 @@
 
 namespace picongpu
 {
-namespace traits
-{
-
-    /** Get margins of a pusher for species
-     *
-     * @tparam T_Species particle species type
-     * @tparam T_GetLowerMargin lower margin for pusher getter type
-     * @tparam T_GetUpperMargin upper margin for pusher getter type
-     */
-    template<
-        typename T_Species,
-        typename T_GetLowerMargin = GetLowerMargin< GetPusher< bmpl::_1 > >,
-        typename T_GetUpperMargin = GetUpperMargin< GetPusher< bmpl::_1 > >
-    >
-    struct GetMarginPusher
+    namespace traits
     {
-        using AddLowerMargins = pmacc::math::CT::add<
-            GetLowerMargin< GetInterpolation< bmpl::_1 > >,
-            T_GetLowerMargin
-        >;
-        using LowerMargin = typename bmpl::apply<AddLowerMargins, T_Species>::type;
+        /** Get margins of a pusher for species
+         *
+         * @tparam T_Species particle species type
+         * @tparam T_GetLowerMargin lower margin for pusher getter type
+         * @tparam T_GetUpperMargin upper margin for pusher getter type
+         */
+        template<
+            typename T_Species,
+            typename T_GetLowerMargin = GetLowerMargin<GetPusher<bmpl::_1>>,
+            typename T_GetUpperMargin = GetUpperMargin<GetPusher<bmpl::_1>>>
+        struct GetMarginPusher
+        {
+            using AddLowerMargins = pmacc::math::CT::add<GetLowerMargin<GetInterpolation<bmpl::_1>>, T_GetLowerMargin>;
+            using LowerMargin = typename bmpl::apply<AddLowerMargins, T_Species>::type;
 
-        using AddUpperMargins = pmacc::math::CT::add<
-            GetUpperMargin< GetInterpolation< bmpl::_1 > >,
-            T_GetUpperMargin
-        >;
-        using UpperMargin = typename bmpl::apply<AddUpperMargins, T_Species>::type;
-    };
+            using AddUpperMargins = pmacc::math::CT::add<GetUpperMargin<GetInterpolation<bmpl::_1>>, T_GetUpperMargin>;
+            using UpperMargin = typename bmpl::apply<AddUpperMargins, T_Species>::type;
+        };
 
-    /** Get lower margin of a pusher for species
-     *
-     * @tparam T_Species particle species type
-     */
-    template< typename T_Species >
-    struct GetLowerMarginPusher
-    {
-        using type = typename traits::GetMarginPusher<
-            T_Species
-        >::LowerMargin;
-    };
+        /** Get lower margin of a pusher for species
+         *
+         * @tparam T_Species particle species type
+         */
+        template<typename T_Species>
+        struct GetLowerMarginPusher
+        {
+            using type = typename traits::GetMarginPusher<T_Species>::LowerMargin;
+        };
 
-    /** Get lower margin of the given pusher for species
-     *
-     * Normally, the pusher does not have to be given explicitly.
-     * However, it is needed for composite pushers
-     *
-     * @tparam T_Species particle species type
-     * @tparam T_Pusher pusher type
-     */
-    template<
-        typename T_Species,
-        typename T_Pusher
-    >
-    struct GetLowerMarginForPusher
-    {
-        using type = typename traits::GetMarginPusher<
-            T_Species,
-            typename GetLowerMargin< T_Pusher >::type,
-            typename GetUpperMargin< T_Pusher >::type
-        >::LowerMargin;
-    };
+        /** Get lower margin of the given pusher for species
+         *
+         * Normally, the pusher does not have to be given explicitly.
+         * However, it is needed for composite pushers
+         *
+         * @tparam T_Species particle species type
+         * @tparam T_Pusher pusher type
+         */
+        template<typename T_Species, typename T_Pusher>
+        struct GetLowerMarginForPusher
+        {
+            using type = typename traits::GetMarginPusher<
+                T_Species,
+                typename GetLowerMargin<T_Pusher>::type,
+                typename GetUpperMargin<T_Pusher>::type>::LowerMargin;
+        };
 
-    /** Get upper margin of a pusher for species
-     *
-     * @tparam T_Species particle species type
-     */
-    template< typename T_Species >
-    struct GetUpperMarginPusher
-    {
-        using type = typename traits::GetMarginPusher<
-            T_Species
-        >::UpperMargin;
-    };
+        /** Get upper margin of a pusher for species
+         *
+         * @tparam T_Species particle species type
+         */
+        template<typename T_Species>
+        struct GetUpperMarginPusher
+        {
+            using type = typename traits::GetMarginPusher<T_Species>::UpperMargin;
+        };
 
-    /** Get upper margin of the given pusher for species
-     *
-     * Normally, the pusher does not have to be given explicitly.
-     * However, it is needed for composite pushers
-     *
-     * @tparam T_Species particle species type
-     * @tparam T_Pusher pusher type
-     */
-    template<
-        typename T_Species,
-        typename T_Pusher
-    >
-    struct GetUpperMarginForPusher
-    {
-        using type = typename traits::GetMarginPusher<
-            T_Species,
-            typename GetLowerMargin< T_Pusher >::type,
-            typename GetUpperMargin< T_Pusher >::type
-        >::UpperMargin;
-    };
+        /** Get upper margin of the given pusher for species
+         *
+         * Normally, the pusher does not have to be given explicitly.
+         * However, it is needed for composite pushers
+         *
+         * @tparam T_Species particle species type
+         * @tparam T_Pusher pusher type
+         */
+        template<typename T_Species, typename T_Pusher>
+        struct GetUpperMarginForPusher
+        {
+            using type = typename traits::GetMarginPusher<
+                T_Species,
+                typename GetLowerMargin<T_Pusher>::type,
+                typename GetUpperMargin<T_Pusher>::type>::UpperMargin;
+        };
 
-}// namespace traits
-}// namespace picongpu
+    } // namespace traits
+} // namespace picongpu

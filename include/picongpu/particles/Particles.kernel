@@ -48,521 +48,383 @@
 
 namespace picongpu
 {
-
-/** derive new particles from a source species
- *
- * This functor prepares a source and destination particle box to call
- * a user defined functor which allows to derive new particles out of
- * another species.
- *
- * @tparam T_numWorkers number of workers
- */
-template< uint32_t T_numWorkers >
-struct KernelDeriveParticles
-{
-    /** frame-wise derive new particles
+    /** derive new particles from a source species
      *
-     * @tparam T_DestParBox pmacc::ParticlesBox, type of the destination species box
-     * @tparam T_SrcParBox pmacc::ParticlesBox, type of the source species box
-     * @tparam T_ManipulateFunctor type of the user functor to derive a particle
-     * @tparam T_Mapping mapping functor type
+     * This functor prepares a source and destination particle box to call
+     * a user defined functor which allows to derive new particles out of
+     * another species.
      *
-     * @param destBox particles box for the destination species
-     * @param srcBox particles box of the source species
-     * @param manipulateFunctor functor to derive a particle out of another one
-     *                          must fulfill the interface particles::manipulators::IManipulator
-     * @param srcFilterFunctor unary filter to select in the source species
-     *                         which particles to derive
-     * @param mapper functor to map a block to a supercell
+     * @tparam T_numWorkers number of workers
      */
-   template<
-        typename T_DestParBox,
-        typename T_SrcParBox,
-        typename T_ManipulateFunctor,
-        typename T_SrcFilterFunctor,
-        typename T_Mapping,
-        typename T_Acc
-    >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        T_DestParBox destBox,
-        T_SrcParBox srcBox,
-        T_ManipulateFunctor manipulateFunctor,
-        T_SrcFilterFunctor srcFilterFunctor,
-        T_Mapping const mapper
-    ) const
+    template<uint32_t T_numWorkers>
+    struct KernelDeriveParticles
     {
-        using namespace pmacc::particles::operations;
-        using namespace mappings::threads;
+        /** frame-wise derive new particles
+         *
+         * @tparam T_DestParBox pmacc::ParticlesBox, type of the destination species box
+         * @tparam T_SrcParBox pmacc::ParticlesBox, type of the source species box
+         * @tparam T_ManipulateFunctor type of the user functor to derive a particle
+         * @tparam T_Mapping mapping functor type
+         *
+         * @param destBox particles box for the destination species
+         * @param srcBox particles box of the source species
+         * @param manipulateFunctor functor to derive a particle out of another one
+         *                          must fulfill the interface particles::manipulators::IManipulator
+         * @param srcFilterFunctor unary filter to select in the source species
+         *                         which particles to derive
+         * @param mapper functor to map a block to a supercell
+         */
+        template<
+            typename T_DestParBox,
+            typename T_SrcParBox,
+            typename T_ManipulateFunctor,
+            typename T_SrcFilterFunctor,
+            typename T_Mapping,
+            typename T_Acc>
+        DINLINE void operator()(
+            T_Acc const& acc,
+            T_DestParBox destBox,
+            T_SrcParBox srcBox,
+            T_ManipulateFunctor manipulateFunctor,
+            T_SrcFilterFunctor srcFilterFunctor,
+            T_Mapping const mapper) const
+        {
+            using namespace pmacc::particles::operations;
+            using namespace mappings::threads;
 
-        using DestFramePtr = typename T_DestParBox::FramePtr;
-        using SrcFramePtr = typename T_SrcParBox::FramePtr;
+            using DestFramePtr = typename T_DestParBox::FramePtr;
+            using SrcFramePtr = typename T_SrcParBox::FramePtr;
 
-        constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
-        constexpr uint32_t numWorker = T_numWorkers;
+            constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+            constexpr uint32_t numWorker = T_numWorkers;
 
-        uint32_t const workerIdx = cupla::threadIdx(acc).x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-        PMACC_SMEM(
-            acc,
-            srcFrame,
-            SrcFramePtr
-        );
-        PMACC_SMEM(
-            acc,
-            destFrame,
-            DestFramePtr
-        );
+            PMACC_SMEM(acc, srcFrame, SrcFramePtr);
+            PMACC_SMEM(acc, destFrame, DestFramePtr);
 
-        DataSpace< simDim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< simDim >( cupla::blockIdx(acc) ) );
+            DataSpace<simDim> const superCellIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
 
-        // offset of the superCell (in cells, without any guards) to the origin of the local domain
-        DataSpace< simDim > const localSuperCellOffset =
-            superCellIdx - mapper.getGuardingSuperCells( );
+            // offset of the superCell (in cells, without any guards) to the origin of the local domain
+            DataSpace<simDim> const localSuperCellOffset = superCellIdx - mapper.getGuardingSuperCells();
 
-        ForEachIdx<
-            IdxConfig<
-                1,
-                numWorker
-            >
-        > onlyMaster{ workerIdx };
+            ForEachIdx<IdxConfig<1, numWorker>> onlyMaster{workerIdx};
 
-        onlyMaster(
-            [&](
-                uint32_t const,
-                uint32_t const
-            )
-            {
-                srcFrame = srcBox.getFirstFrame( superCellIdx );
-                if( srcFrame.isValid( ) )
+            onlyMaster([&](uint32_t const, uint32_t const) {
+                srcFrame = srcBox.getFirstFrame(superCellIdx);
+                if(srcFrame.isValid())
                 {
                     // we have something to clone
-                    destFrame = destBox.getEmptyFrame( acc );
+                    destFrame = destBox.getEmptyFrame(acc);
                 }
+            });
+
+            auto accManipulator = manipulateFunctor(acc, localSuperCellOffset, WorkerCfg<numWorker>{workerIdx});
+            auto accSrcFilter = srcFilterFunctor(acc, localSuperCellOffset, WorkerCfg<numWorker>{workerIdx});
+
+            cupla::__syncthreads(acc);
+
+            // move over all Frames
+            while(srcFrame.isValid())
+            {
+                using ParticleDomCfg = IdxConfig<frameSize, numWorker>;
+
+                // loop over all particles in the frame
+                ForEachIdx<ParticleDomCfg>{workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
+                    auto parDest = destFrame[linearIdx];
+                    auto parSrc = srcFrame[linearIdx];
+                    if(parSrc[multiMask_] != 1)
+                        parSrc.setHandleInvalid();
+
+                    if(accSrcFilter(acc, parSrc))
+                    {
+                        assign(parDest, deselect<particleId>(parSrc));
+
+                        accManipulator(acc, parDest, parSrc);
+                    }
+                });
+
+                cupla::__syncthreads(acc);
+
+                onlyMaster([&](uint32_t const, uint32_t const) {
+                    destBox.setAsLastFrame(acc, destFrame, superCellIdx);
+
+                    srcFrame = srcBox.getNextFrame(srcFrame);
+                    if(srcFrame.isValid())
+                    {
+                        destFrame = destBox.getEmptyFrame(acc);
+                    }
+                });
+                cupla::__syncthreads(acc);
             }
-        );
-
-        auto accManipulator = manipulateFunctor(
-            acc,
-            localSuperCellOffset,
-            WorkerCfg< numWorker >{ workerIdx }
-        );
-        auto accSrcFilter = srcFilterFunctor(
-            acc,
-            localSuperCellOffset,
-            WorkerCfg< numWorker >{ workerIdx }
-        );
-
-        cupla::__syncthreads( acc );
-
-        // move over all Frames
-        while( srcFrame.isValid( ) )
-        {
-            using ParticleDomCfg = IdxConfig<
-                frameSize,
-                numWorker
-            >;
-
-            // loop over all particles in the frame
-            ForEachIdx< ParticleDomCfg >{ workerIdx }
-            (
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const
-                )
-                {
-                    auto parDest = destFrame[ linearIdx ];
-                    auto parSrc = srcFrame[ linearIdx ];
-                    if( parSrc[ multiMask_ ] != 1 )
-                        parSrc.setHandleInvalid( );
-
-                    if( accSrcFilter( acc, parSrc ) )
-                    {
-                        assign(
-                            parDest,
-                            deselect< particleId >( parSrc )
-                        );
-
-                        accManipulator(
-                            acc,
-                            parDest,
-                            parSrc
-                        );
-                    }
-                }
-            );
-
-            cupla::__syncthreads( acc );
-
-            onlyMaster(
-                [&](
-                    uint32_t const,
-                    uint32_t const
-                )
-                {
-                    destBox.setAsLastFrame(
-                        acc,
-                        destFrame,
-                        superCellIdx
-                    );
-
-                    srcFrame = srcBox.getNextFrame( srcFrame );
-                    if( srcFrame.isValid( ) )
-                    {
-                        destFrame = destBox.getEmptyFrame( acc );
-                    }
-                }
-            );
-            cupla::__syncthreads( acc );
         }
-    }
-};
+    };
 
-/** move over all particles
- *
- * Move frame-wise over a species and call a functor for each particle.
- * This kernel is optimized for the particle push step and handles the
- * special flag `mustShift` of the supercell to optimize the kernel shift particles
- * in pmacc.
- *
- * @tparam T_numWorkers number of workers
- * @tparam T_DataDomain pmacc::SuperCellDescription, compile time data domain
- *                      description with a CORE and GUARD
- */
-template<
-    uint32_t T_numWorkers,
-    typename T_DataDomain
->
-struct KernelMoveAndMarkParticles
-{
-    /** update all particles
+    /** move over all particles
      *
-     * @tparam T_ParBox pmacc::ParticlesBox, particle box type
-     * @tparam T_EBox pmacc::DataBox, electric field box type
-     * @tparam T_BBox pmacc::DataBox, magnetic field box type
-     * @tparam T_ParticleFunctor particle functor type
-     * @tparam T_Mapping mapper functor type
-     * @tparam T_Acc alpaka accelerator type
+     * Move frame-wise over a species and call a functor for each particle.
+     * This kernel is optimized for the particle push step and handles the
+     * special flag `mustShift` of the supercell to optimize the kernel shift particles
+     * in pmacc.
      *
-     * @param alpaka accelerator
-     * @param pb particle memory
-     * @param fieldE electric field data
-     * @param fieldB magnetic field data
-     * @param particleFunctor functor to manipulate (update) a particle
-     * @param mapper functor to map a block to a supercell
+     * @tparam T_numWorkers number of workers
+     * @tparam T_DataDomain pmacc::SuperCellDescription, compile time data domain
+     *                      description with a CORE and GUARD
      */
-    template<
-        typename T_ParBox,
-        typename T_EBox,
-        typename T_BBox,
-        typename T_ParticleFunctor,
-        typename T_Mapping,
-        typename T_Acc
-    >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        T_ParBox pb,
-        T_EBox fieldE,
-        T_BBox fieldB,
-        uint32_t const currentStep,
-        T_ParticleFunctor particleFunctor,
-        T_Mapping mapper
-    ) const
+    template<uint32_t T_numWorkers, typename T_DataDomain>
+    struct KernelMoveAndMarkParticles
     {
-        using namespace mappings::threads;
-
-        constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
-        constexpr uint32_t numWorkers = T_numWorkers;
-
-        uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-        using FramePtr = typename T_ParBox::FramePtr;
-
-        DataSpace< simDim > const block(
-            mapper.getSuperCellIndex( DataSpace< simDim >( cupla::blockIdx(acc) ) )
-        );
-
-        // relative offset (in cells) to the supercell (including the guard)
-        DataSpace< simDim > const superCellOffset = block * SuperCellSize::toRT();
-
-        using ParticleDomCfg = IdxConfig<
-            frameSize,
-            numWorkers
-        >;
-
-        PMACC_SMEM(
-            acc,
-            mustShift,
-            int
-        );
-
-        // current processed frame
-        FramePtr frame;
-        lcellId_t particlesInSuperCell;
-
-        ForEachIdx<
-            IdxConfig<
-                1,
-                numWorkers
-            >
-        > onlyMaster{ workerIdx };
-
-        onlyMaster(
-            [&](
-                uint32_t const,
-                uint32_t const
-            )
-            {
-                mustShift = 0;
-            }
-        );
-
-        frame = pb.getLastFrame( block );
-        particlesInSuperCell = pb.getSuperCell( block ).getSizeLastFrame( );
-
-        auto cachedB = CachedBox::create<
-            0,
-            typename T_BBox::ValueType
-        >(
-            acc,
-            T_DataDomain( )
-        );
-        auto cachedE = CachedBox::create<
-            1,
-            typename T_EBox::ValueType
-        >(
-            acc,
-            T_DataDomain( )
-        );
-
-        cupla::__syncthreads( acc );
-
-        // end kernel if we have no frames
-        if( !frame.isValid( ) )
-           return;
-
-        nvidia::functors::Assign assign;
-        ThreadCollective<
-            T_DataDomain,
-            numWorkers
-        > collective{ workerIdx };
-
-        auto fieldBBlock = fieldB.shift( superCellOffset );
-        collective(
-            acc,
-            assign,
-            cachedB,
-            fieldBBlock
-        );
-
-        auto fieldEBlock = fieldE.shift( superCellOffset );
-        collective(
-            acc,
-            assign,
-            cachedE,
-            fieldEBlock
-        );
-
-        cupla::__syncthreads( acc );
-
-        // move over frames and call frame solver
-        while( frame.isValid( ) )
+        /** update all particles
+         *
+         * @tparam T_ParBox pmacc::ParticlesBox, particle box type
+         * @tparam T_EBox pmacc::DataBox, electric field box type
+         * @tparam T_BBox pmacc::DataBox, magnetic field box type
+         * @tparam T_ParticleFunctor particle functor type
+         * @tparam T_Mapping mapper functor type
+         * @tparam T_Acc alpaka accelerator type
+         *
+         * @param alpaka accelerator
+         * @param pb particle memory
+         * @param fieldE electric field data
+         * @param fieldB magnetic field data
+         * @param particleFunctor functor to manipulate (update) a particle
+         * @param mapper functor to map a block to a supercell
+         */
+        template<
+            typename T_ParBox,
+            typename T_EBox,
+            typename T_BBox,
+            typename T_ParticleFunctor,
+            typename T_Mapping,
+            typename T_Acc>
+        DINLINE void operator()(
+            T_Acc const& acc,
+            T_ParBox pb,
+            T_EBox fieldE,
+            T_BBox fieldB,
+            uint32_t const currentStep,
+            T_ParticleFunctor particleFunctor,
+            T_Mapping mapper) const
         {
-            // loop over all particles in the frame
-            ForEachIdx< ParticleDomCfg >{ workerIdx }
-            (
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const
-                )
-                {
-                    if( linearIdx < particlesInSuperCell )
-                    {
-                        particleFunctor(
-                            acc,
-                            *frame,
-                            linearIdx,
-                            cachedB,
-                            cachedE,
-                            currentStep,
-                            mustShift
-                        );
-                    }
-                }
-            );
-            // independent for each worker
-            frame = pb.getPreviousFrame( frame );
-            particlesInSuperCell = frameSize;
-        }
+            using namespace mappings::threads;
 
-        cupla::__syncthreads( acc );
+            constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+            constexpr uint32_t numWorkers = T_numWorkers;
 
-        onlyMaster(
-            [&](
-                uint32_t const,
-                uint32_t const
-            )
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
+
+            using FramePtr = typename T_ParBox::FramePtr;
+
+            DataSpace<simDim> const block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+
+            // relative offset (in cells) to the supercell (including the guard)
+            DataSpace<simDim> const superCellOffset = block * SuperCellSize::toRT();
+
+            using ParticleDomCfg = IdxConfig<frameSize, numWorkers>;
+
+            PMACC_SMEM(acc, mustShift, int);
+
+            // current processed frame
+            FramePtr frame;
+            lcellId_t particlesInSuperCell;
+
+            ForEachIdx<IdxConfig<1, numWorkers>> onlyMaster{workerIdx};
+
+            onlyMaster([&](uint32_t const, uint32_t const) { mustShift = 0; });
+
+            frame = pb.getLastFrame(block);
+            particlesInSuperCell = pb.getSuperCell(block).getSizeLastFrame();
+
+            auto cachedB = CachedBox::create<0, typename T_BBox::ValueType>(acc, T_DataDomain());
+            auto cachedE = CachedBox::create<1, typename T_EBox::ValueType>(acc, T_DataDomain());
+
+            cupla::__syncthreads(acc);
+
+            // end kernel if we have no frames
+            if(!frame.isValid())
+                return;
+
+            nvidia::functors::Assign assign;
+            ThreadCollective<T_DataDomain, numWorkers> collective{workerIdx};
+
+            auto fieldBBlock = fieldB.shift(superCellOffset);
+            collective(acc, assign, cachedB, fieldBBlock);
+
+            auto fieldEBlock = fieldE.shift(superCellOffset);
+            collective(acc, assign, cachedE, fieldEBlock);
+
+            cupla::__syncthreads(acc);
+
+            // move over frames and call frame solver
+            while(frame.isValid())
             {
+                // loop over all particles in the frame
+                ForEachIdx<ParticleDomCfg>{workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
+                    if(linearIdx < particlesInSuperCell)
+                    {
+                        particleFunctor(acc, *frame, linearIdx, cachedB, cachedE, currentStep, mustShift);
+                    }
+                });
+                // independent for each worker
+                frame = pb.getPreviousFrame(frame);
+                particlesInSuperCell = frameSize;
+            }
+
+            cupla::__syncthreads(acc);
+
+            onlyMaster([&](uint32_t const, uint32_t const) {
                 /* set in SuperCell the mustShift flag which is an optimization
                  * for shift particles (pmacc::KernelShiftParticles)
                  */
-                if( mustShift == 1 )
+                if(mustShift == 1)
                 {
-                    pb.getSuperCell(
-                        mapper.getSuperCellIndex( DataSpace< simDim >( cupla::blockIdx(acc) ) )
-                    ).setMustShift( true );
+                    pb.getSuperCell(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))))
+                        .setMustShift(true);
                 }
-            }
-        );
-   }
-};
+            });
+        }
+    };
 
-template<class PushAlgo, class TVec, class T_Field2ParticleInterpolation>
-struct PushParticlePerFrame
-{
-
-    template<class FrameType, class BoxB, class BoxE, typename T_Acc >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        FrameType& frame,
-        int localIdx,
-        BoxB& bBox,
-        BoxE& eBox,
-        uint32_t const currentStep,
-        int& mustShift
-    )
+    template<class PushAlgo, class TVec, class T_Field2ParticleInterpolation>
+    struct PushParticlePerFrame
     {
-
-        using Block = TVec;
-        using Field2ParticleInterpolation = T_Field2ParticleInterpolation;
-
-        using BType = typename BoxB::ValueType;
-        using EType = typename BoxE::ValueType;
-
-        auto particle = frame[localIdx];
-
-        floatD_X pos = particle[position_];
-        const int particleCellIdx = particle[localCellIdx_];
-
-        DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
-
-        const traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
-        const traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
-
-        auto functorEfield = CreateInterpolationForPusher<Field2ParticleInterpolation>()( eBox.shift(localCell).toCursor(), fieldPosE() );
-        auto functorBfield = CreateInterpolationForPusher<Field2ParticleInterpolation>()( bBox.shift(localCell).toCursor(), fieldPosB() );
-
-        /** @todo this functor should only manipulate the momentum and all changes
-         *        in position and cell below need to go into a separate kernel
-         */
-        PushAlgo push;
-        push(
-             functorBfield,
-             functorEfield,
-             particle,
-             pos,
-             currentStep
-        );
-
-        DataSpace<simDim> dir;
-        for (uint32_t i = 0; i < simDim; ++i)
+        template<class FrameType, class BoxB, class BoxE, typename T_Acc>
+        DINLINE void operator()(
+            T_Acc const& acc,
+            FrameType& frame,
+            int localIdx,
+            BoxB& bBox,
+            BoxE& eBox,
+            uint32_t const currentStep,
+            int& mustShift)
         {
-            /* ATTENTION we must handle float rounding errors
-             * pos in range [-1;2)
-             *
-             * If pos is negative and very near to 0 (e.g. pos < -1e-8)
-             * and we move pos with pos+=1.0 back to normal in cell postion
-             * we get a rounding error and pos is assigned to 1. This breaks
-             * our in cell definition range [0,1)
-             *
-             * if pos negativ moveDir is set to -1
-             * if pos positive and >1 moveDir is set to +1
-             * 0 (zero) if particle stays in cell
+            using Block = TVec;
+            using Field2ParticleInterpolation = T_Field2ParticleInterpolation;
+
+            using BType = typename BoxB::ValueType;
+            using EType = typename BoxE::ValueType;
+
+            auto particle = frame[localIdx];
+
+            floatD_X pos = particle[position_];
+            const int particleCellIdx = particle[localCellIdx_];
+
+            DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec>(particleCellIdx));
+
+            const traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
+            const traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
+
+            auto functorEfield = CreateInterpolationForPusher<Field2ParticleInterpolation>()(
+                eBox.shift(localCell).toCursor(),
+                fieldPosE());
+            auto functorBfield = CreateInterpolationForPusher<Field2ParticleInterpolation>()(
+                bBox.shift(localCell).toCursor(),
+                fieldPosB());
+
+            /** @todo this functor should only manipulate the momentum and all changes
+             *        in position and cell below need to go into a separate kernel
              */
-            float_X moveDir = math::floor(pos[i]);
-            /* shift pos back to cell range [0;1)*/
-            pos[i] -= moveDir;
-            /* check for rounding errors and correct them
-             * if position now is 1 we have a rounding error
-             *
-             * We correct moveDir that we not have left the cell
+            PushAlgo push;
+            push(functorBfield, functorEfield, particle, pos, currentStep);
+
+            DataSpace<simDim> dir;
+            for(uint32_t i = 0; i < simDim; ++i)
+            {
+                /* ATTENTION we must handle float rounding errors
+                 * pos in range [-1;2)
+                 *
+                 * If pos is negative and very near to 0 (e.g. pos < -1e-8)
+                 * and we move pos with pos+=1.0 back to normal in cell postion
+                 * we get a rounding error and pos is assigned to 1. This breaks
+                 * our in cell definition range [0,1)
+                 *
+                 * if pos negativ moveDir is set to -1
+                 * if pos positive and >1 moveDir is set to +1
+                 * 0 (zero) if particle stays in cell
+                 */
+                float_X moveDir = math::floor(pos[i]);
+                /* shift pos back to cell range [0;1)*/
+                pos[i] -= moveDir;
+                /* check for rounding errors and correct them
+                 * if position now is 1 we have a rounding error
+                 *
+                 * We correct moveDir that we not have left the cell
+                 */
+                const float_X valueCorrector = math::floor(pos[i]);
+                /* One has also to correct moveDir for the following reason:
+                 * Imagine a new particle moves to -1e-20, leaving the cell to the left,
+                 * setting moveDir to -1.
+                 * The new in-cell position will be -1e-20 + 1.0,
+                 * which can flip to 1.0 (wrong value).
+                 * We move the particle back to the old cell at position 0.0 and
+                 * moveDir has to be corrected back, too (add +1 again).*/
+                moveDir += valueCorrector;
+                /* If we have corrected moveDir we must set pos to 0 */
+                pos[i] -= valueCorrector;
+                dir[i] = precisionCast<int>(moveDir);
+            }
+            particle[position_] = pos;
+
+            /* new local cell position after particle move
+             * can be out of supercell
              */
-            const float_X valueCorrector = math::floor(pos[i]);
-            /* One has also to correct moveDir for the following reason:
-             * Imagine a new particle moves to -1e-20, leaving the cell to the left,
-             * setting moveDir to -1.
-             * The new in-cell position will be -1e-20 + 1.0,
-             * which can flip to 1.0 (wrong value).
-             * We move the particle back to the old cell at position 0.0 and
-             * moveDir has to be corrected back, too (add +1 again).*/
-            moveDir += valueCorrector;
-            /* If we have corrected moveDir we must set pos to 0 */
-            pos[i] -= valueCorrector;
-            dir[i] = precisionCast<int>(moveDir);
+            localCell += dir;
+
+            /* ATTENTION ATTENTION we cast to unsigned, this means that a negative
+             * direction is know a very very big number, than we compare with supercell!
+             *
+             * if particle is inside of the supercell the **unsigned** representation
+             * of dir is always >= size of the supercell
+             */
+            for(uint32_t i = 0; i < simDim; ++i)
+                dir[i] *= precisionCast<uint32_t>(localCell[i]) >= precisionCast<uint32_t>(TVec::toRT()[i]) ? 1 : 0;
+
+            /* if partice is outside of the supercell we use mod to
+             * set particle at cell supercellSize to 1
+             * and partticle at cell -1 to supercellSize-1
+             * % (mod) can't use with negativ numbers, we add one supercellSize to hide this
+             *
+            localCell.x() = (localCell.x() + TVec::x) % TVec::x;
+            localCell.y() = (localCell.y() + TVec::y) % TVec::y;
+            localCell.z() = (localCell.z() + TVec::z) % TVec::z;
+             */
+
+            /*dir is only +1 or -1 if particle is outside of supercell
+             * y=cell-(dir*superCell_size)
+             * y=0 if dir==-1
+             * y=superCell_size if dir==+1
+             * for dir 0 localCel is not changed
+             */
+            localCell -= (dir * TVec::toRT());
+            /*calculate one dimensional cell index*/
+            particle[localCellIdx_] = DataSpaceOperations<TVec::dim>::template map<TVec>(localCell);
+
+            /* [ dir + int(dir < 0)*3 ] == [ (dir + 3) %3 = y ]
+             * but without modulo
+             * y=0 for dir = 0
+             * y=1 for dir = 1
+             * y=2 for dir = -1
+             */
+            int direction = 1;
+            uint32_t exchangeType = 1; // see inlcude/pmacc/types.h for RIGHT, BOTTOM and BACK
+            for(uint32_t i = 0; i < simDim; ++i)
+            {
+                direction += (dir[i] == -1 ? 2 : dir[i]) * exchangeType;
+                exchangeType *= 3; // =3^i (1=RIGHT, 3=BOTTOM; 9=BACK)
+            }
+
+            particle[multiMask_] = direction;
+
+            /* set our tuning flag if minimal one particle leave the supercell
+             * This flag is needed for later fast shift of particles only if needed
+             */
+            if(direction >= 2)
+            {
+                /* if we did not use atomic we would get a WAW error */
+                nvidia::atomicAllExch(acc, &mustShift, 1, ::alpaka::hierarchy::Threads{});
+            }
         }
-        particle[position_] = pos;
-
-        /* new local cell position after particle move
-         * can be out of supercell
-         */
-        localCell += dir;
-
-        /* ATTENTION ATTENTION we cast to unsigned, this means that a negative
-         * direction is know a very very big number, than we compare with supercell!
-         *
-         * if particle is inside of the supercell the **unsigned** representation
-         * of dir is always >= size of the supercell
-         */
-        for (uint32_t i = 0; i < simDim; ++i)
-            dir[i] *= precisionCast<uint32_t>(localCell[i]) >= precisionCast<uint32_t>(TVec::toRT()[i]) ? 1 : 0;
-
-        /* if partice is outside of the supercell we use mod to
-         * set particle at cell supercellSize to 1
-         * and partticle at cell -1 to supercellSize-1
-         * % (mod) can't use with negativ numbers, we add one supercellSize to hide this
-         *
-        localCell.x() = (localCell.x() + TVec::x) % TVec::x;
-        localCell.y() = (localCell.y() + TVec::y) % TVec::y;
-        localCell.z() = (localCell.z() + TVec::z) % TVec::z;
-         */
-
-        /*dir is only +1 or -1 if particle is outside of supercell
-         * y=cell-(dir*superCell_size)
-         * y=0 if dir==-1
-         * y=superCell_size if dir==+1
-         * for dir 0 localCel is not changed
-         */
-        localCell -= (dir * TVec::toRT());
-        /*calculate one dimensional cell index*/
-        particle[localCellIdx_] = DataSpaceOperations<TVec::dim>::template map<TVec > (localCell);
-
-        /* [ dir + int(dir < 0)*3 ] == [ (dir + 3) %3 = y ]
-         * but without modulo
-         * y=0 for dir = 0
-         * y=1 for dir = 1
-         * y=2 for dir = -1
-         */
-        int direction = 1;
-        uint32_t exchangeType = 1; // see inlcude/pmacc/types.h for RIGHT, BOTTOM and BACK
-        for (uint32_t i = 0; i < simDim; ++i)
-        {
-            direction += (dir[i] == -1 ? 2 : dir[i]) * exchangeType;
-            exchangeType *= 3; // =3^i (1=RIGHT, 3=BOTTOM; 9=BACK)
-        }
-
-        particle[multiMask_] = direction;
-
-        /* set our tuning flag if minimal one particle leave the supercell
-         * This flag is needed for later fast shift of particles only if needed
-         */
-        if (direction >= 2)
-        {
-            /* if we did not use atomic we would get a WAW error */
-            nvidia::atomicAllExch(acc, &mustShift, 1, ::alpaka::hierarchy::Threads{});
-        }
-    }
-};
+    };
 
 
-
-} //namespace
+} // namespace picongpu

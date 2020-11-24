@@ -28,87 +28,60 @@
 
 namespace pmacc
 {
-namespace memory
-{
-namespace shared
-{
-
-    /** allocate shared memory
-     *
-     * shared memory is always uninitialized
-     *
-     * @tparam T_uniqueId unique id for this object
-     *          (is needed if more than one instance of shared memory in one kernel is used)
-     * @tparam T_Type type of the stored object
-     */
-    template<
-        uint32_t T_uniqueId,
-        typename T_Type
-    >
-    struct Allocate
+    namespace memory
     {
-        /** get a shared memory
-         *
-         * @return reference to shared memory
-         */
-        template< typename T_Acc >
-        static DINLINE T_Type &
-        get( T_Acc const & acc )
+        namespace shared
         {
-            auto& smem = ::alpaka::block::shared::st::allocVar<
-                T_Type,
-                T_uniqueId
-            >( acc );
-            return smem;
-        }
-    };
+            /** allocate shared memory
+             *
+             * shared memory is always uninitialized
+             *
+             * @tparam T_uniqueId unique id for this object
+             *          (is needed if more than one instance of shared memory in one kernel is used)
+             * @tparam T_Type type of the stored object
+             */
+            template<uint32_t T_uniqueId, typename T_Type>
+            struct Allocate
+            {
+                /** get a shared memory
+                 *
+                 * @return reference to shared memory
+                 */
+                template<typename T_Acc>
+                static DINLINE T_Type& get(T_Acc const& acc)
+                {
+                    auto& smem = ::alpaka::block::shared::st::allocVar<T_Type, T_uniqueId>(acc);
+                    return smem;
+                }
+            };
 
-    /** allocate shared memory
-     *
-     * shared memory is always uninitialized
-     *
-     * @tparam T_uniqueId unique id for this object
-     *          (is needed if more than one instance of shared memory in one kernel is used)
-     * @tparam T_Type type of the stored object
-     * @return reference to shared memory
-     *
-     * @{
-     */
-    template<
-        uint32_t T_uniqueId,
-        typename T_Type,
-        typename T_Acc
-    >
-    DINLINE T_Type&
-    allocate( T_Acc const & acc )
-    {
-        return Allocate<
-            T_uniqueId,
-            T_Type
-        >::get( acc );
-    }
+            /** allocate shared memory
+             *
+             * shared memory is always uninitialized
+             *
+             * @tparam T_uniqueId unique id for this object
+             *          (is needed if more than one instance of shared memory in one kernel is used)
+             * @tparam T_Type type of the stored object
+             * @return reference to shared memory
+             *
+             * @{
+             */
+            template<uint32_t T_uniqueId, typename T_Type, typename T_Acc>
+            DINLINE T_Type& allocate(T_Acc const& acc)
+            {
+                return Allocate<T_uniqueId, T_Type>::get(acc);
+            }
 
-    /* @param instance of the type to store (is not to initialize the shared memory) */
-    template<
-        uint32_t T_uniqueId,
-        typename T_Type,
-        typename T_Acc
-    >
-    DINLINE T_Type&
-    allocate(
-        T_Acc const & acc,
-        T_Type const &
-    )
-    {
-        return Allocate<
-            T_uniqueId,
-            T_Type
-        >::get( );
-    }
-    /** @} */
+            /* @param instance of the type to store (is not to initialize the shared memory) */
+            template<uint32_t T_uniqueId, typename T_Type, typename T_Acc>
+            DINLINE T_Type& allocate(T_Acc const& acc, T_Type const&)
+            {
+                return Allocate<T_uniqueId, T_Type>::get();
+            }
+            /** @} */
 
-} // namespace shared
-} // namespace memory
+        } // namespace shared
+    } // namespace memory
 } // namespace pmacc
 
 /** allocate shared memory
@@ -149,4 +122,4 @@ namespace shared
  * @param varName name of the variable
  * @param ... type of the variable
  */
-#define PMACC_SMEM( acc, varName, ... ) auto & varName = pmacc::memory::shared::allocate< __COUNTER__, __VA_ARGS__ >( acc )
+#define PMACC_SMEM(acc, varName, ...) auto& varName = pmacc::memory::shared::allocate<__COUNTER__, __VA_ARGS__>(acc)

@@ -30,14 +30,14 @@
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 #include <boost/array.hpp>
-#if( BOOST_VERSION == 106400 )
-    /* `array_wrapper.hpp` must be included before `integrate.hpp` to avoid
-     * the error
-     * `boost/numeric/ublas/matrix.hpp(5977): error: namespace "boost::serialization" has no member "make_array"`
-     * in boost 1.64.0
-     * see boost issue https://svn.boost.org/trac/boost/ticket/12516
-     */
-#   include <boost/serialization/array_wrapper.hpp>
+#if(BOOST_VERSION == 106400)
+/* `array_wrapper.hpp` must be included before `integrate.hpp` to avoid
+ * the error
+ * `boost/numeric/ublas/matrix.hpp(5977): error: namespace "boost::serialization" has no member "make_array"`
+ * in boost 1.64.0
+ * see boost issue https://svn.boost.org/trac/boost/ticket/12516
+ */
+#    include <boost/serialization/array_wrapper.hpp>
 #endif
 #include <boost/numeric/odeint/integrate/integrate.hpp>
 #include <boost/shared_ptr.hpp>
@@ -45,156 +45,154 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace bremsstrahlung
-{
-
-namespace detail
-{
-
-/** Functor for the scaled differential cross section (dcs) which
- * equals to the electron energy loss times the cross section per unit energy.
- */
-struct LookupTableFunctor
-{
-    using LinInterpCursor = typename ::pmacc::result_of::Functor<
-        ::pmacc::cursor::tools::LinearInterp<float_X>,
-        ::pmacc::cursor::BufferCursor<float_X, DIM2>
-    >::type;
-
-    using type = float_X;
-
-    LinInterpCursor linInterpCursor;
-    float_X lnEMin;
-    float_X lnEMax;
-
-    /** constructor
-     *
-     * @param linInterpCursor
-     */
-    HDINLINE LookupTableFunctor(LinInterpCursor linInterpCursor);
-    /** scaled differential cross section
-     *
-     * @param Ekin kinetic energy of the incident electron
-     * @param kappa energy loss normalized to Ekin
-     */
-    HDINLINE float_X operator()(const float_X Ekin, const float_X kappa) const;
-};
-
-} // namespace detail
-
-
-/** Generates and holds the lookup tables for the scaled differential cross section
- * and the stopping power.
- *
- * scaled differential cross section = electron energy loss times cross section per unit energy
- *
- * stopping power = energy loss per unit length
- *
- * The lookup tables are generated from the screened Bethe-Heitler cross section. See e.g.:
- * Salvat, F., et al. "Monte Carlo simulation of bremsstrahlung emission by electrons."
- * Radiation Physics and Chemistry 75.10 (2006): 1201-1219.
- */
-struct ScaledSpectrum
-{
-public:
-    using LookupTableFunctor = detail::LookupTableFunctor;
-private:
-
-    using MyBuf = boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM2> >;
-    MyBuf dBufScaledSpectrum;
-    MyBuf dBufStoppingPower;
-
-    /** differential cross section: cross section per unit energy
-     *
-     * This is the screened Bethe-Heitler cross section. See e.g.:
-     * Salvat, F., et al. "Monte Carlo simulation of bremsstrahlung emission by electrons."
-     * Radiation Physics and Chemistry 75.10 (2006): 1201-1219.
-     *
-     * @param Ekin kinetic electron energy
-     * @param kappa energy loss normalized to Ekin
-     * @param targetZ atomic number of the target material
-     */
-    HINLINE float_64 dcs(const float_64 Ekin, const float_64 kappa, const float_64 targetZ) const;
-
-    /** differential cross section times energy loss
-     */
-    struct StoppingPowerIntegrand
+    namespace particles
     {
-        const float_64 Ekin;
-        const float_64 targetZ;
-        const ScaledSpectrum& scaledSpectrum;
-
-        StoppingPowerIntegrand(const float_64 Ekin, const ScaledSpectrum& scaledSpectrum, const float_64 targetZ) :
-            Ekin(Ekin), scaledSpectrum(scaledSpectrum), targetZ(targetZ) {}
-
-        template<typename T_State, typename T_W>
-        void operator()(const T_State &x, T_State &dxdW, T_W W) const
+        namespace bremsstrahlung
         {
-            dxdW[0] = this->scaledSpectrum.dcs(this->Ekin, W / this->Ekin, this->targetZ) * W;
-        }
-    };
+            namespace detail
+            {
+                /** Functor for the scaled differential cross section (dcs) which
+                 * equals to the electron energy loss times the cross section per unit energy.
+                 */
+                struct LookupTableFunctor
+                {
+                    using LinInterpCursor = typename ::pmacc::result_of::Functor<
+                        ::pmacc::cursor::tools::LinearInterp<float_X>,
+                        ::pmacc::cursor::BufferCursor<float_X, DIM2>>::type;
 
-public:
+                    using type = float_X;
 
-    /** Generate lookup tables
-     *
-     * @param targetZ atomic number of the target material
-     */
-    HINLINE void init(const float_64 targetZ);
+                    LinInterpCursor linInterpCursor;
+                    float_X lnEMin;
+                    float_X lnEMax;
 
-    /** Return a functor representing the scaled differential cross section
-     *
-     * scaled differential cross section = electron energy loss times cross section per unit energy
-     */
-    HINLINE LookupTableFunctor getScaledSpectrumFunctor() const;
+                    /** constructor
+                     *
+                     * @param linInterpCursor
+                     */
+                    HDINLINE LookupTableFunctor(LinInterpCursor linInterpCursor);
+                    /** scaled differential cross section
+                     *
+                     * @param Ekin kinetic energy of the incident electron
+                     * @param kappa energy loss normalized to Ekin
+                     */
+                    HDINLINE float_X operator()(const float_X Ekin, const float_X kappa) const;
+                };
 
-    /** Return a functor representing the stopping power
-     *
-     * stopping power = energy loss per unit length
-     */
-    HINLINE LookupTableFunctor getStoppingPowerFunctor() const;
-};
+            } // namespace detail
 
 
-/** Creates a `ScaledSpectrum` instance for a given electron species
- * and stores it in a map<atomic number, ScaledSpectrum> object.
- *
- * This functor is called from MySimulation::init() to generate lookup tables.
- *
- * @tparam T_ElectronSpecies type or name as boost::mpl::string of the electron species
- */
-template<typename T_ElectronSpecies>
-struct FillScaledSpectrumMap
-{
-    using ElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<
-        VectorAllSpecies,
-        T_ElectronSpecies
-    >;
+            /** Generates and holds the lookup tables for the scaled differential cross section
+             * and the stopping power.
+             *
+             * scaled differential cross section = electron energy loss times cross section per unit energy
+             *
+             * stopping power = energy loss per unit length
+             *
+             * The lookup tables are generated from the screened Bethe-Heitler cross section. See e.g.:
+             * Salvat, F., et al. "Monte Carlo simulation of bremsstrahlung emission by electrons."
+             * Radiation Physics and Chemistry 75.10 (2006): 1201-1219.
+             */
+            struct ScaledSpectrum
+            {
+            public:
+                using LookupTableFunctor = detail::LookupTableFunctor;
 
-    using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<
-        VectorAllSpecies,
-        typename pmacc::particles::traits::ResolveAliasFromSpecies<
-            ElectronSpecies,
-            bremsstrahlungIons<>
-        >::type
-    >;
+            private:
+                using MyBuf = boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM2>>;
+                MyBuf dBufScaledSpectrum;
+                MyBuf dBufStoppingPower;
 
-    template<typename T_Map>
-    void operator()(T_Map& map) const
-    {
-        const float_X targetZ = GetAtomicNumbers<IonSpecies>::type::numberOfProtons;
+                /** differential cross section: cross section per unit energy
+                 *
+                 * This is the screened Bethe-Heitler cross section. See e.g.:
+                 * Salvat, F., et al. "Monte Carlo simulation of bremsstrahlung emission by electrons."
+                 * Radiation Physics and Chemistry 75.10 (2006): 1201-1219.
+                 *
+                 * @param Ekin kinetic electron energy
+                 * @param kappa energy loss normalized to Ekin
+                 * @param targetZ atomic number of the target material
+                 */
+                HINLINE float_64 dcs(const float_64 Ekin, const float_64 kappa, const float_64 targetZ) const;
 
-        if(map.count(targetZ) == 0)
-        {
-            ScaledSpectrum scaledSpectrum;
-            scaledSpectrum.init(static_cast<float_64>(targetZ));
-            map[targetZ] = scaledSpectrum;
-        }
-    }
-};
+                /** differential cross section times energy loss
+                 */
+                struct StoppingPowerIntegrand
+                {
+                    const float_64 Ekin;
+                    const float_64 targetZ;
+                    const ScaledSpectrum& scaledSpectrum;
 
-} // namespace bremsstrahlung
-} // namespace particles
+                    StoppingPowerIntegrand(
+                        const float_64 Ekin,
+                        const ScaledSpectrum& scaledSpectrum,
+                        const float_64 targetZ)
+                        : Ekin(Ekin)
+                        , scaledSpectrum(scaledSpectrum)
+                        , targetZ(targetZ)
+                    {
+                    }
+
+                    template<typename T_State, typename T_W>
+                    void operator()(const T_State& x, T_State& dxdW, T_W W) const
+                    {
+                        dxdW[0] = this->scaledSpectrum.dcs(this->Ekin, W / this->Ekin, this->targetZ) * W;
+                    }
+                };
+
+            public:
+                /** Generate lookup tables
+                 *
+                 * @param targetZ atomic number of the target material
+                 */
+                HINLINE void init(const float_64 targetZ);
+
+                /** Return a functor representing the scaled differential cross section
+                 *
+                 * scaled differential cross section = electron energy loss times cross section per unit energy
+                 */
+                HINLINE LookupTableFunctor getScaledSpectrumFunctor() const;
+
+                /** Return a functor representing the stopping power
+                 *
+                 * stopping power = energy loss per unit length
+                 */
+                HINLINE LookupTableFunctor getStoppingPowerFunctor() const;
+            };
+
+
+            /** Creates a `ScaledSpectrum` instance for a given electron species
+             * and stores it in a map<atomic number, ScaledSpectrum> object.
+             *
+             * This functor is called from MySimulation::init() to generate lookup tables.
+             *
+             * @tparam T_ElectronSpecies type or name as boost::mpl::string of the electron species
+             */
+            template<typename T_ElectronSpecies>
+            struct FillScaledSpectrumMap
+            {
+                using ElectronSpecies
+                    = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_ElectronSpecies>;
+
+                using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<
+                    VectorAllSpecies,
+                    typename pmacc::particles::traits::ResolveAliasFromSpecies<ElectronSpecies, bremsstrahlungIons<>>::
+                        type>;
+
+                template<typename T_Map>
+                void operator()(T_Map& map) const
+                {
+                    const float_X targetZ = GetAtomicNumbers<IonSpecies>::type::numberOfProtons;
+
+                    if(map.count(targetZ) == 0)
+                    {
+                        ScaledSpectrum scaledSpectrum;
+                        scaledSpectrum.init(static_cast<float_64>(targetZ));
+                        map[targetZ] = scaledSpectrum;
+                    }
+                }
+            };
+
+        } // namespace bremsstrahlung
+    } // namespace particles
 } // namespace picongpu

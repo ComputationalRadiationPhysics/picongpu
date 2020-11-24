@@ -24,30 +24,29 @@
 
 namespace picongpu
 {
-namespace densityProfiles
-{
-
-struct HomogenousImpl
-{
-    template<typename T_SpeciesType>
-    struct apply
+    namespace densityProfiles
     {
-        using type = HomogenousImpl;
-    };
+        struct HomogenousImpl
+        {
+            template<typename T_SpeciesType>
+            struct apply
+            {
+                using type = HomogenousImpl;
+            };
 
-    HINLINE HomogenousImpl(uint32_t currentStep)
-    {
-    }
+            HINLINE HomogenousImpl(uint32_t currentStep)
+            {
+            }
 
-    /** Calculate the normalized density
-     *
-     * @param totalCellOffset total offset including all slides [in cells]
-     * @return float_X always 1.0
-     */
-    HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
-    {
-        return float_X(1.0);
-    }
-};
-}
-}
+            /** Calculate the normalized density
+             *
+             * @param totalCellOffset total offset including all slides [in cells]
+             * @return float_X always 1.0
+             */
+            HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
+            {
+                return float_X(1.0);
+            }
+        };
+    } // namespace densityProfiles
+} // namespace picongpu

@@ -25,160 +25,158 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace radiation
-{
-
-template<typename V, typename T>
-struct cuda_vec : public V
-{
-    // constructor
-
-    HDINLINE cuda_vec(T x, T y, T z)
+    namespace plugins
     {
-        this->x() = x;
-        this->y() = y;
-        this->z() = z;
-    }
+        namespace radiation
+        {
+            template<typename V, typename T>
+            struct cuda_vec : public V
+            {
+                // constructor
 
-    // default constructor
+                HDINLINE cuda_vec(T x, T y, T z)
+                {
+                    this->x() = x;
+                    this->y() = y;
+                    this->z() = z;
+                }
 
-    HDINLINE cuda_vec()
-    {
+                // default constructor
 
-    }
+                HDINLINE cuda_vec()
+                {
+                }
 
-    // constructor
+                // constructor
 
-    HDINLINE cuda_vec(const V & other)
-    {
-        this->x() = other.x();
-        this->y() = other.y();
-        this->z() = other.z();
-    }
+                HDINLINE cuda_vec(const V& other)
+                {
+                    this->x() = other.x();
+                    this->y() = other.y();
+                    this->z() = other.z();
+                }
 
-    HDINLINE static cuda_vec<V, T> zero()
-    {
-        return cuda_vec(0, 0, 0);
-    }
-
-
-    // conversion between two cuda vectors with different types
-
-    template<typename O, typename Q >
-            HDINLINE cuda_vec(const cuda_vec<O, Q>& other)
-    {
-        this->x() = (T) other.x();
-        this->y() = (T) other.y();
-        this->z() = (T) other.z();
-    }
-
-    HDINLINE cuda_vec<V, T>& operator=(const cuda_vec<V, T>& other)
-    {
-        this->x() = other.x();
-        this->y() = other.y();
-        this->z() = other.z();
-        return (*this);
-    }
-
-    HDINLINE T &operator[](uint32_t dim)
-    {
-        return (&(this->x()))[dim];
-    }
-
-    HDINLINE const T &operator[](uint32_t dim) const
-    {
-        return (&(this->x()))[dim];
-    }
+                HDINLINE static cuda_vec<V, T> zero()
+                {
+                    return cuda_vec(0, 0, 0);
+                }
 
 
-    // addition
+                // conversion between two cuda vectors with different types
 
-    HDINLINE cuda_vec<V, T> operator+(const cuda_vec<V, T>& other) const
-    {
-        return cuda_vec<V, T > (this->x() + other.x(), this->y() + other.y(), this->z() + other.z());
-    }
+                template<typename O, typename Q>
+                HDINLINE cuda_vec(const cuda_vec<O, Q>& other)
+                {
+                    this->x() = (T) other.x();
+                    this->y() = (T) other.y();
+                    this->z() = (T) other.z();
+                }
 
-    // difference
+                HDINLINE cuda_vec<V, T>& operator=(const cuda_vec<V, T>& other)
+                {
+                    this->x() = other.x();
+                    this->y() = other.y();
+                    this->z() = other.z();
+                    return (*this);
+                }
 
-    HDINLINE cuda_vec<V, T> operator-(const cuda_vec<V, T>& other) const
-    {
-        return cuda_vec<V, T > (this->x() - other.x(), this->y() - other.y(), this->z() - other.z());
-    }
+                HDINLINE T& operator[](uint32_t dim)
+                {
+                    return (&(this->x()))[dim];
+                }
 
-    // vector multiplication
+                HDINLINE const T& operator[](uint32_t dim) const
+                {
+                    return (&(this->x()))[dim];
+                }
 
-    HDINLINE T operator*(const cuda_vec<V, T>& other) const
-    {
-        return this->x() * other.x() + this->y() * other.y() + this->z() * other.z();
-    }
 
-    // scalar multiplication
+                // addition
 
-    HDINLINE cuda_vec<V, T> operator*(const T scalar) const
-    {
-        return cuda_vec(scalar * this->x(), scalar * this->y(), scalar * this->z());
-    }
+                HDINLINE cuda_vec<V, T> operator+(const cuda_vec<V, T>& other) const
+                {
+                    return cuda_vec<V, T>(this->x() + other.x(), this->y() + other.y(), this->z() + other.z());
+                }
 
-    // division (scalar)
+                // difference
 
-    HDINLINE cuda_vec<V, T> operator/(const T scalar) const
-    {
-        return cuda_vec(this->x() / scalar, this->y() / scalar, this->z() / scalar);
-    }
+                HDINLINE cuda_vec<V, T> operator-(const cuda_vec<V, T>& other) const
+                {
+                    return cuda_vec<V, T>(this->x() - other.x(), this->y() - other.y(), this->z() - other.z());
+                }
 
-    // cross product (vector)
+                // vector multiplication
 
-    HDINLINE cuda_vec<V, T> operator%(const cuda_vec<V, T>& other) const
-    {
-        return cuda_vec(this->y() * other.z() - this->z() * other.y(), this->z() * other.x() - this->x() * other.z(), this->x() * other.y() - this->y() * other.x());
-    }
+                HDINLINE T operator*(const cuda_vec<V, T>& other) const
+                {
+                    return this->x() * other.x() + this->y() * other.y() + this->z() * other.z();
+                }
 
-    // magnitude of vector (length of vector)
+                // scalar multiplication
 
-    HDINLINE T magnitude(void) const
-    {
+                HDINLINE cuda_vec<V, T> operator*(const T scalar) const
+                {
+                    return cuda_vec(scalar * this->x(), scalar * this->y(), scalar * this->z());
+                }
 
-        return picongpu::math::sqrt(this->x() * this->x() + this->y() * this->y() + this->z() * this->z());
+                // division (scalar)
 
-    }
+                HDINLINE cuda_vec<V, T> operator/(const T scalar) const
+                {
+                    return cuda_vec(this->x() / scalar, this->y() / scalar, this->z() / scalar);
+                }
 
-    // unit vector in the direction of the vector
+                // cross product (vector)
 
-    HDINLINE cuda_vec<V, T> unit_vec(void) const
-    {
-        return *this / magnitude();
-    }
+                HDINLINE cuda_vec<V, T> operator%(const cuda_vec<V, T>& other) const
+                {
+                    return cuda_vec(
+                        this->y() * other.z() - this->z() * other.y(),
+                        this->z() * other.x() - this->x() * other.z(),
+                        this->x() * other.y() - this->y() * other.x());
+                }
 
-    // assign add
+                // magnitude of vector (length of vector)
 
-    HDINLINE void operator+=(const cuda_vec<V, T>& other)
-    {
-        this->x() += other.x();
-        this->y() += other.y();
-        this->z() += other.z();
-    }
+                HDINLINE T magnitude(void) const
+                {
+                    return picongpu::math::sqrt(this->x() * this->x() + this->y() * this->y() + this->z() * this->z());
+                }
 
-    // assign multiply
+                // unit vector in the direction of the vector
 
-    HDINLINE void operator*=(const T scalar)
-    {
-        this->x() *= scalar;
-        this->y() *= scalar;
-        this->z() *= scalar;
-    }
+                HDINLINE cuda_vec<V, T> unit_vec(void) const
+                {
+                    return *this / magnitude();
+                }
 
-};
+                // assign add
 
-} // namespace radiation
-} // namespace plugins
+                HDINLINE void operator+=(const cuda_vec<V, T>& other)
+                {
+                    this->x() += other.x();
+                    this->y() += other.y();
+                    this->z() += other.z();
+                }
+
+                // assign multiply
+
+                HDINLINE void operator*=(const T scalar)
+                {
+                    this->x() *= scalar;
+                    this->y() *= scalar;
+                    this->z() *= scalar;
+                }
+            };
+
+        } // namespace radiation
+    } // namespace plugins
 } // namespace picongpu
 
 // print
 
 template<typename V, typename T>
-HINLINE std::ostream & operator <<(std::ostream & os, const picongpu::plugins::radiation::cuda_vec<V, T> & v)
+HINLINE std::ostream& operator<<(std::ostream& os, const picongpu::plugins::radiation::cuda_vec<V, T>& v)
 {
     os << " ( " << v.x() << " , " << v.y() << " , " << v.z() << " ) ";
     return os;

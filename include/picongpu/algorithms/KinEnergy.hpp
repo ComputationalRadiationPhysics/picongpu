@@ -25,48 +25,47 @@
 
 namespace picongpu
 {
+    using namespace pmacc;
 
-using namespace pmacc;
-
-/** Computes the kinetic energy of a particle given its momentum and mass.
- *
- * The mass may be zero.
- *
- * For massive particle with low energy the non-relativistic
- * kinetic energy expression is used in order to avoid bad roundings.
- *
- */
-template< typename T_PrecisionType = float_X >
-struct KinEnergy
-{
-    using ValueType = T_PrecisionType;
-
-    template< typename MomType, typename MassType >
-    HDINLINE ValueType operator()( MomType const & mom, MassType const & mass )
+    /** Computes the kinetic energy of a particle given its momentum and mass.
+     *
+     * The mass may be zero.
+     *
+     * For massive particle with low energy the non-relativistic
+     * kinetic energy expression is used in order to avoid bad roundings.
+     *
+     */
+    template<typename T_PrecisionType = float_X>
+    struct KinEnergy
     {
-        if( mass == MassType( 0.0 ) )
-            return SPEED_OF_LIGHT * math::abs( precisionCast< ValueType >( mom ) );
+        using ValueType = T_PrecisionType;
 
-        /* if mass is non-zero then gamma is well defined */
-        const ValueType gamma = Gamma< ValueType >()( mom, mass );
-
-        ValueType kinEnergy;
-
-        if( gamma < GAMMA_THRESH )
+        template<typename MomType, typename MassType>
+        HDINLINE ValueType operator()(MomType const& mom, MassType const& mass)
         {
-            const ValueType mom2 = pmacc::math::abs2( precisionCast< ValueType >( mom ) );
-            /* non relativistic kinetic energy expression */
-            kinEnergy = mom2 / ( ValueType( 2.0 ) * mass );
-        }
-        else
-        {
-            constexpr ValueType c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
-            /* kinetic energy for particles: E = (gamma - 1) * m * c^2 */
-            kinEnergy = ( gamma - ValueType( 1.0 ) ) * mass * c2;
-        }
+            if(mass == MassType(0.0))
+                return SPEED_OF_LIGHT * math::abs(precisionCast<ValueType>(mom));
 
-        return kinEnergy;
-    }
-};
+            /* if mass is non-zero then gamma is well defined */
+            const ValueType gamma = Gamma<ValueType>()(mom, mass);
 
-}
+            ValueType kinEnergy;
+
+            if(gamma < GAMMA_THRESH)
+            {
+                const ValueType mom2 = pmacc::math::abs2(precisionCast<ValueType>(mom));
+                /* non relativistic kinetic energy expression */
+                kinEnergy = mom2 / (ValueType(2.0) * mass);
+            }
+            else
+            {
+                constexpr ValueType c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                /* kinetic energy for particles: E = (gamma - 1) * m * c^2 */
+                kinEnergy = (gamma - ValueType(1.0)) * mass * c2;
+            }
+
+            return kinEnergy;
+        }
+    };
+
+} // namespace picongpu

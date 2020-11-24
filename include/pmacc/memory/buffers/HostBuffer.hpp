@@ -28,43 +28,40 @@
 
 namespace pmacc
 {
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class HostBuffer;
 
-namespace detail
-{
-    template< class TYPE >
-    container::HostBuffer< TYPE, 1u >
-    make_CartBuffer( HostBuffer<TYPE, 1u> & hb )
+    namespace detail
     {
-        return container::HostBuffer<TYPE, 1u>(hb.getBasePointer(), hb.getDataSpace(), false);
-    }
+        template<class TYPE>
+        container::HostBuffer<TYPE, 1u> make_CartBuffer(HostBuffer<TYPE, 1u>& hb)
+        {
+            return container::HostBuffer<TYPE, 1u>(hb.getBasePointer(), hb.getDataSpace(), false);
+        }
 
-    template< class TYPE >
-    container::HostBuffer< TYPE, 2u >
-    make_CartBuffer( HostBuffer<TYPE, 2u> & hb )
-    {
-        math::Size_t<2u - 1u> pitch;
-        pitch[0] = hb.getPhysicalMemorySize()[0] * sizeof(TYPE);
-        return container::HostBuffer<TYPE, 2u>(hb.getBasePointer(), hb.getDataSpace(), false, pitch);
-    }
+        template<class TYPE>
+        container::HostBuffer<TYPE, 2u> make_CartBuffer(HostBuffer<TYPE, 2u>& hb)
+        {
+            math::Size_t<2u - 1u> pitch;
+            pitch[0] = hb.getPhysicalMemorySize()[0] * sizeof(TYPE);
+            return container::HostBuffer<TYPE, 2u>(hb.getBasePointer(), hb.getDataSpace(), false, pitch);
+        }
 
-    template< class TYPE >
-    container::HostBuffer< TYPE, 3u >
-    make_CartBuffer( HostBuffer<TYPE, 3u> & hb )
-    {
-        math::Size_t<3u - 1u> pitch;
-        pitch[0] = hb.getPhysicalMemorySize()[0] * sizeof(TYPE);
-        pitch[1] = pitch[0] * hb.getPhysicalMemorySize()[1];
-        return container::HostBuffer<TYPE, 3u>(hb.getBasePointer(), hb.getDataSpace(), false, pitch);
-    }
-}
+        template<class TYPE>
+        container::HostBuffer<TYPE, 3u> make_CartBuffer(HostBuffer<TYPE, 3u>& hb)
+        {
+            math::Size_t<3u - 1u> pitch;
+            pitch[0] = hb.getPhysicalMemorySize()[0] * sizeof(TYPE);
+            pitch[1] = pitch[0] * hb.getPhysicalMemorySize()[1];
+            return container::HostBuffer<TYPE, 3u>(hb.getBasePointer(), hb.getDataSpace(), false, pitch);
+        }
+    } // namespace detail
     class EventTask;
 
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class DeviceBuffer;
 
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class Buffer;
 
     /**
@@ -73,7 +70,7 @@ namespace detail
      * @tparam TYPE datatype for buffer data
      * @tparam DIM dimension of the buffer
      */
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class HostBuffer : public Buffer<TYPE, DIM>
     {
     public:
@@ -98,9 +95,7 @@ namespace detail
         /**
          * Destructor.
          */
-        virtual ~HostBuffer()
-        {
-        };
+        virtual ~HostBuffer(){};
 
         /**
          * Conversion to cuSTL HostBuffer.
@@ -108,14 +103,12 @@ namespace detail
          * Returns a cuSTL HostBuffer with reference to the same data.
          */
         HINLINE
-        container::HostBuffer<TYPE, DIM>
-        cartBuffer()
+        container::HostBuffer<TYPE, DIM> cartBuffer()
         {
-            return detail::make_CartBuffer( *this );
+            return detail::make_CartBuffer(*this);
         }
 
     protected:
-
         /** Constructor.
          *
          * @param size extent for each dimension (in elements)
@@ -123,11 +116,10 @@ namespace detail
          *             can be less than `physicalMemorySize`
          * @param physicalMemorySize size of the physical memory (in elements)
          */
-        HostBuffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize) :
-        Buffer<TYPE, DIM>(size, physicalMemorySize)
+        HostBuffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize)
+            : Buffer<TYPE, DIM>(size, physicalMemorySize)
         {
-
         }
     };
 
-} //namespace pmacc
+} // namespace pmacc

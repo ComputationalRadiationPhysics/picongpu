@@ -45,11 +45,10 @@ namespace picongpu
     {
         typedef void result_type;
 
-        template< typename T_Acc >
-        DINLINE void
-        operator()( const T_Acc& acc, Type& dest, const Type src ) const
+        template<typename T_Acc>
+        DINLINE void operator()(const T_Acc& acc, Type& dest, const Type src) const
         {
-            cupla::atomicAdd( acc, &dest, src, ::alpaka::hierarchy::Blocks{} );
+            cupla::atomicAdd(acc, &dest, src, ::alpaka::hierarchy::Blocks{});
         }
     };
 
@@ -77,14 +76,14 @@ namespace picongpu
          * \param el_p coordinate of the momentum \see PhaseSpace::axis_element \see AxisDescription
          * \param axis_p_range range of the momentum coordinate \see PhaseSpace::axis_p_range
          */
-        template<typename FramePtr, typename float_PS, typename Pitch, typename T_Acc >
-        DINLINE void
-        operator()( const T_Acc & acc,
+        template<typename FramePtr, typename float_PS, typename Pitch, typename T_Acc>
+        DINLINE void operator()(
+            const T_Acc& acc,
             FramePtr frame,
             uint16_t particleID,
             cursor::CT::BufferCursor<float_PS, Pitch> curDBufferOriginInBlock,
             const uint32_t el_p,
-            const std::pair<float_X, float_X>& axis_p_range )
+            const std::pair<float_X, float_X>& axis_p_range)
         {
             auto particle = frame[particleID];
             /** \todo this can become a functor to be even more flexible */
@@ -92,32 +91,29 @@ namespace picongpu
 
             /* cell id in this block */
             const int linearCellIdx = particle[localCellIdx_];
-            const pmacc::math::UInt32<simDim> cellIdx(
-                pmacc::math::MapToPos<simDim>()( SuperCellSize(), linearCellIdx ) );
+            const pmacc::math::UInt32<simDim> cellIdx(pmacc::math::MapToPos<simDim>()(SuperCellSize(), linearCellIdx));
 
-            const uint32_t r_bin    = cellIdx[r_dir];
+            const uint32_t r_bin = cellIdx[r_dir];
             const float_X weighting = particle[weighting_];
-            const float_X charge    = attribute::getCharge( weighting,particle );
-            const float_PS particleChargeDensity =
-              precisionCast<float_PS>( charge / CELL_VOLUME );
+            const float_X charge = attribute::getCharge(weighting, particle);
+            const float_PS particleChargeDensity = precisionCast<float_PS>(charge / CELL_VOLUME);
 
-            const float_X rel_bin = (mom_i / weighting - axis_p_range.first)
-                                  / (axis_p_range.second - axis_p_range.first);
-            int p_bin = int( rel_bin * float_X(num_pbins) );
+            const float_X rel_bin
+                = (mom_i / weighting - axis_p_range.first) / (axis_p_range.second - axis_p_range.first);
+            int p_bin = int(rel_bin * float_X(num_pbins));
 
             /* out-of-range bins back to min/max */
-            if( p_bin < 0 )
+            if(p_bin < 0)
                 p_bin = 0;
-            if( p_bin >= num_pbins )
+            if(p_bin >= num_pbins)
                 p_bin = num_pbins - 1;
 
             /** \todo take particle shape into account */
             cupla::atomicAdd(
                 acc,
-                &(*curDBufferOriginInBlock( p_bin, r_bin )),
+                &(*curDBufferOriginInBlock(p_bin, r_bin)),
                 particleChargeDensity,
-                ::alpaka::hierarchy::Threads{}
-            );
+                ::alpaka::hierarchy::Threads{});
         }
     };
 
@@ -142,8 +138,7 @@ namespace picongpu
         uint32_t num_pbins,
         uint32_t r_dir,
         typename T_Filter,
-        uint32_t T_numWorkers
-    >
+        uint32_t T_numWorkers>
     struct FunctorBlock
     {
         typedef void result_type;
@@ -170,11 +165,14 @@ namespace picongpu
             cursor::BufferCursor<float_PS, 2> cur,
             const uint32_t p_dir,
             const std::pair<float_X, float_X>& p_range,
-            const T_Filter & parFilter
-        ) :
-            particlesBox(pb), curOriginPhaseSpace(cur), p_element(p_dir),
-            axis_p_range(p_range), particleFilter(parFilter)
-        {}
+            const T_Filter& parFilter)
+            : particlesBox(pb)
+            , curOriginPhaseSpace(cur)
+            , p_element(p_dir)
+            , axis_p_range(p_range)
+            , particleFilter(parFilter)
+        {
+        }
 
         /** Called for the first cell of each block #-of-cells-in-block times
          *
@@ -182,9 +180,8 @@ namespace picongpu
          *                         the current block starts
          *                         \see cuSTL/algorithm/kernel/Foreach.hpp
          */
-        template< typename T_Acc >
-        DINLINE void
-        operator()( const T_Acc& acc,  const pmacc::math::Int<simDim>& indexBlockOffset )
+        template<typename T_Acc>
+        DINLINE void operator()(const T_Acc& acc, const pmacc::math::Int<simDim>& indexBlockOffset)
         {
             constexpr uint32_t numWorkers = T_numWorkers;
             const uint32_t workerIdx = cupla::threadIdx(acc).x;
@@ -195,24 +192,20 @@ namespace picongpu
             /* create shared mem */
             const int blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
             typedef typename pmacc::math::CT::Int<num_pbins, blockCellsInDir> dBufferSizeInBlock;
-            container::CT::SharedBuffer<float_PS, dBufferSizeInBlock > dBufferInBlock( acc );
+            container::CT::SharedBuffer<float_PS, dBufferSizeInBlock> dBufferInBlock(acc);
 
             /* init shared mem */
-            pmacc::algorithm::cuplaBlock::Foreach<
-                pmacc::math::CT::Int< numWorkers >
-            > forEachThreadInBlock(workerIdx);
-            forEachThreadInBlock( acc,
-                                  dBufferInBlock.zone(),
-                                  dBufferInBlock.origin(),
-                                  pmacc::algorithm::functor::AssignValue<float_PS>(0.0) );
-            cupla::__syncthreads( acc );
+            pmacc::algorithm::cuplaBlock::Foreach<pmacc::math::CT::Int<numWorkers>> forEachThreadInBlock(workerIdx);
+            forEachThreadInBlock(
+                acc,
+                dBufferInBlock.zone(),
+                dBufferInBlock.origin(),
+                pmacc::algorithm::functor::AssignValue<float_PS>(0.0));
+            cupla::__syncthreads(acc);
 
             FunctorParticle<r_dir, num_pbins, SuperCellSize> functorParticle;
 
-            particleAccess::Cell2Particle<
-                SuperCellSize,
-                numWorkers
-            > forEachParticleInCell;
+            particleAccess::Cell2Particle<SuperCellSize, numWorkers> forEachParticleInCell;
             forEachParticleInCell(
                 acc,
                 /* mandatory params */
@@ -224,20 +217,20 @@ namespace picongpu
                 /* optional params */
                 dBufferInBlock.origin(),
                 p_element,
-                axis_p_range
-            );
+                axis_p_range);
 
-            cupla::__syncthreads( acc );
+            cupla::__syncthreads(acc);
             /* add to global dBuffer */
-            forEachThreadInBlock( acc,
-                                  /* area to work on */
-                                  dBufferInBlock.zone(),
-                                  /* data below - cursors will be shifted and
-                                   * dereferenced */
-                                  curOriginPhaseSpace(0, indexBlockOffset[r_dir]),
-                                  dBufferInBlock.origin(),
-                                  /* functor */
-                                  FunctorAtomicAdd<float_PS>() );
+            forEachThreadInBlock(
+                acc,
+                /* area to work on */
+                dBufferInBlock.zone(),
+                /* data below - cursors will be shifted and
+                 * dereferenced */
+                curOriginPhaseSpace(0, indexBlockOffset[r_dir]),
+                dBufferInBlock.origin(),
+                /* functor */
+                FunctorAtomicAdd<float_PS>());
         }
     };
 

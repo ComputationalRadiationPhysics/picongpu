@@ -23,55 +23,48 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-struct RungeKutta4
-{
-    /** Runge Kutta solver 4th order
-     *
-     *  Calculate next time step based on the Runge Kutta
-     *  algorithm and return next variable
-     *
-     *  @param diffEq functor with first argument time and second variables
-     *  @param var variables of type T_Variable (can be vector type)
-     *  @param time current time
-     *  @param deltaTime time step
-     *  @return var for the consecutive time step
-     */
-    template<typename T_Functor, typename T_Variable, typename T_Time>
-    HDINLINE T_Variable operator()(const T_Functor diffEq,
-                                   const T_Variable var,
-                                   const T_Time time,
-                                   const T_Time deltaTime)
+    namespace math
     {
-      // use typenames instead of template types
-      typedef T_Functor FunctorType;
-      typedef T_Variable VariableType;
-      typedef T_Time TimeType;
+        struct RungeKutta4
+        {
+            /** Runge Kutta solver 4th order
+             *
+             *  Calculate next time step based on the Runge Kutta
+             *  algorithm and return next variable
+             *
+             *  @param diffEq functor with first argument time and second variables
+             *  @param var variables of type T_Variable (can be vector type)
+             *  @param time current time
+             *  @param deltaTime time step
+             *  @return var for the consecutive time step
+             */
+            template<typename T_Functor, typename T_Variable, typename T_Time>
+            HDINLINE T_Variable
+            operator()(const T_Functor diffEq, const T_Variable var, const T_Time time, const T_Time deltaTime)
+            {
+                // use typenames instead of template types
+                typedef T_Functor FunctorType;
+                typedef T_Variable VariableType;
+                typedef T_Time TimeType;
 
-      // calculate all 4 steps of the Runge Kutta 4th order
-      const VariableType k_1 = diffEq(time,
-                                      var);
-      const VariableType k_2 = diffEq(time + TimeType(0.5) * deltaTime,
-                                      var + (TimeType(0.5) * deltaTime) * k_1);
-      const VariableType k_3 = diffEq(time + TimeType(0.5) * deltaTime,
-                                      var + (TimeType(0.5) * deltaTime) * k_2);
-      const VariableType k_4 = diffEq(time + deltaTime,
-                                      var + deltaTime * k_3);
+                // calculate all 4 steps of the Runge Kutta 4th order
+                const VariableType k_1 = diffEq(time, var);
+                const VariableType k_2
+                    = diffEq(time + TimeType(0.5) * deltaTime, var + (TimeType(0.5) * deltaTime) * k_1);
+                const VariableType k_3
+                    = diffEq(time + TimeType(0.5) * deltaTime, var + (TimeType(0.5) * deltaTime) * k_2);
+                const VariableType k_4 = diffEq(time + deltaTime, var + deltaTime * k_3);
 
-      // combine all 4 steps
-      const VariableType diff = deltaTime/TimeType(6.) * (k_1
-                                                          + TimeType(2.) * k_2
-                                                          + TimeType(2.) * k_3
-                                                          +  k_4);
+                // combine all 4 steps
+                const VariableType diff
+                    = deltaTime / TimeType(6.) * (k_1 + TimeType(2.) * k_2 + TimeType(2.) * k_3 + k_4);
 
-      // current var + difference = new var
-      const VariableType out = var + diff;
-      return out;
-    }
-};
+                // current var + difference = new var
+                const VariableType out = var + diff;
+                return out;
+            }
+        };
 
 
-} //namespace math
-} //namespace pmacc
+    } // namespace math
+} // namespace pmacc

@@ -32,7 +32,6 @@
 
 namespace picongpu
 {
-
     /** Representation of the electric field
      *
      * Stores field values on host and device and provides data synchronization
@@ -44,18 +43,17 @@ namespace picongpu
     class FieldE : public fields::EMFieldBase
     {
     public:
-
         /** Create a field
          *
          * @param cellDescription mapping for kernels
          */
-        HINLINE FieldE( MappingDesc const & cellDescription );
+        HINLINE FieldE(MappingDesc const& cellDescription);
 
         //! Unit type of field components
-        using UnitValueType = promoteType< float_64, ValueType >::type;
+        using UnitValueType = promoteType<float_64, ValueType>::type;
 
         //! Get units of field components
-        HDINLINE static UnitValueType getUnit( );
+        HDINLINE static UnitValueType getUnit();
 
         /** Get unit representation as powers of the 7 base measures
          *
@@ -64,11 +62,10 @@ namespace picongpu
          *  thermodynamic temperature theta, amount of substance N,
          *  luminous intensity J)
          */
-        HINLINE static std::vector< float_64 > getUnitDimension( );
+        HINLINE static std::vector<float_64> getUnitDimension();
 
         //! Get text name
-        HINLINE static std::string getName( );
-
+        HINLINE static std::string getName();
     };
 
 } // namespace picongpu

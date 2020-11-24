@@ -24,57 +24,57 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace radiation
-{
-namespace log_frequencies
-{
-
-
-    class FreqFunctor
+    namespace plugins
     {
-    public:
-      FreqFunctor(void)
-      {
-          omega_log_min = math::log(omega_min);
-          delta_omega_log = (math::log(omega_max) - omega_log_min) / float_X(N_omega - 1);
-       }
+        namespace radiation
+        {
+            namespace log_frequencies
+            {
+                class FreqFunctor
+                {
+                public:
+                    FreqFunctor(void)
+                    {
+                        omega_log_min = math::log(omega_min);
+                        delta_omega_log = (math::log(omega_max) - omega_log_min) / float_X(N_omega - 1);
+                    }
 
-      HDINLINE float_X operator()(const int ID)
-      {
-          return  math::exp(omega_log_min + (float_X(ID)) * delta_omega_log) ;
-      }
+                    HDINLINE float_X operator()(const int ID)
+                    {
+                        return math::exp(omega_log_min + (float_X(ID)) * delta_omega_log);
+                    }
 
-      HINLINE float_X get(const int ID)
-      {
-          return operator()(ID);
-      }
+                    HINLINE float_X get(const int ID)
+                    {
+                        return operator()(ID);
+                    }
 
-    private:
-      float_X omega_log_min;
-      float_X delta_omega_log;
-    };
-
-
-    class InitFreqFunctor
-    {
-    public:
-      InitFreqFunctor(void)
-      { }
-
-      HINLINE void Init(const std::string path )
-      { }
+                private:
+                    float_X omega_log_min;
+                    float_X delta_omega_log;
+                };
 
 
-      HINLINE FreqFunctor getFunctor(void)
-      {
-          return FreqFunctor();
-      }
-    };
+                class InitFreqFunctor
+                {
+                public:
+                    InitFreqFunctor(void)
+                    {
+                    }
+
+                    HINLINE void Init(const std::string path)
+                    {
+                    }
 
 
-} // namespace log_frequencies
-} // namespace radiation
-} // namespace plugins
+                    HINLINE FreqFunctor getFunctor(void)
+                    {
+                        return FreqFunctor();
+                    }
+                };
+
+
+            } // namespace log_frequencies
+        } // namespace radiation
+    } // namespace plugins
 } // namespace picongpu

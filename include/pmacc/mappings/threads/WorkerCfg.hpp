@@ -26,58 +26,54 @@
 
 namespace pmacc
 {
-namespace mappings
-{
-namespace threads
-{
-
-/** holds a worker configuration
- *
- * collection of the compile time number of workers and the runtime worker index
- *
- * @tparam T_numWorkers number of workers which are used to execute this functor
- */
-template< uint32_t T_numWorkers >
-class WorkerCfg
-{
-private:
-
-    //! index of the worker: range [0;T_numWorkers) */
-    PMACC_ALIGN( m_workerIdx, uint32_t const );
-
-public:
-
-    //! number of workers
-    static constexpr uint32_t numWorkers = T_numWorkers;
-
-    /** constructor
-     *
-     * @param workerIdx worker index
-     */
-    HDINLINE WorkerCfg( uint32_t const workerIdx ) :
-        m_workerIdx( workerIdx )
-    { }
-
-    /** get the worker index
-     *
-     * @return index of the worker
-     */
-    HDINLINE uint32_t getWorkerIdx( ) const
+    namespace mappings
     {
-        return m_workerIdx;
-    }
+        namespace threads
+        {
+            /** holds a worker configuration
+             *
+             * collection of the compile time number of workers and the runtime worker index
+             *
+             * @tparam T_numWorkers number of workers which are used to execute this functor
+             */
+            template<uint32_t T_numWorkers>
+            class WorkerCfg
+            {
+            private:
+                //! index of the worker: range [0;T_numWorkers) */
+                PMACC_ALIGN(m_workerIdx, uint32_t const);
 
-    /** get the number of workers
-     *
-     * @return number of workers
-     */
-    HDINLINE static
-    constexpr uint32_t getNumWorkers( )
-    {
-        return T_numWorkers;
-    }
-};
+            public:
+                //! number of workers
+                static constexpr uint32_t numWorkers = T_numWorkers;
 
-} // namespace threads
-} // namespace mappings
+                /** constructor
+                 *
+                 * @param workerIdx worker index
+                 */
+                HDINLINE WorkerCfg(uint32_t const workerIdx) : m_workerIdx(workerIdx)
+                {
+                }
+
+                /** get the worker index
+                 *
+                 * @return index of the worker
+                 */
+                HDINLINE uint32_t getWorkerIdx() const
+                {
+                    return m_workerIdx;
+                }
+
+                /** get the number of workers
+                 *
+                 * @return number of workers
+                 */
+                HDINLINE static constexpr uint32_t getNumWorkers()
+                {
+                    return T_numWorkers;
+                }
+            };
+
+        } // namespace threads
+    } // namespace mappings
 } // namespace pmacc

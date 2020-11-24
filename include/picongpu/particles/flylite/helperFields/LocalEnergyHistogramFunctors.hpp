@@ -34,135 +34,122 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace flylite
-{
-namespace helperFields
-{
-namespace detail
-{
-    /** Takes a single species and adds it to a LocalEnergyHistogram
-     *
-     * @tparam T_SpeciesType a picongpu::Particles class with a particle species
-     */
-    template<
-        typename T_SpeciesType
-    >
-    struct AddSingleEnergyHistogram
+    namespace particles
     {
-        using SpeciesType = T_SpeciesType;
-        using FrameType = typename SpeciesType::FrameType;
-
-        /** Functor
-         *
-         * @param currentStep the current time step
-         * @param eneHistLocal the GridBuffer for local energy histograms
-         * @param minEnergy minimum energy to account for (eV)
-         * @param maxEnergy maximum energy to account for (eV)
-         */
-        void operator()(
-            uint32_t currentStep,
-            std::shared_ptr< LocalEnergyHistogram > & eneHistLocal,
-            float_X const minEnergy,
-            float_X const maxEnergy
-        )
+        namespace flylite
         {
-            DataConnector &dc = Environment<>::get().DataConnector();
+            namespace helperFields
+            {
+                namespace detail
+                {
+                    /** Takes a single species and adds it to a LocalEnergyHistogram
+                     *
+                     * @tparam T_SpeciesType a picongpu::Particles class with a particle species
+                     */
+                    template<typename T_SpeciesType>
+                    struct AddSingleEnergyHistogram
+                    {
+                        using SpeciesType = T_SpeciesType;
+                        using FrameType = typename SpeciesType::FrameType;
 
-            // load particle without copy particle data to host
-            auto speciesTmp = dc.get< SpeciesType >( FrameType::getName(), true );
+                        /** Functor
+                         *
+                         * @param currentStep the current time step
+                         * @param eneHistLocal the GridBuffer for local energy histograms
+                         * @param minEnergy minimum energy to account for (eV)
+                         * @param maxEnergy maximum energy to account for (eV)
+                         */
+                        void operator()(
+                            uint32_t currentStep,
+                            std::shared_ptr<LocalEnergyHistogram>& eneHistLocal,
+                            float_X const minEnergy,
+                            float_X const maxEnergy)
+                        {
+                            DataConnector& dc = Environment<>::get().DataConnector();
 
-            // mapper to access species in CORE & BORDER only
-            MappingDesc cellDescription(
-                speciesTmp->getParticlesBuffer().getSuperCellsLayout().getDataSpace() * SuperCellSize::toRT(),
-                GuardSize::toRT()
-            );
-            AreaMapping<
-                CORE + BORDER,
-                MappingDesc
-            > mapper( cellDescription );
+                            // load particle without copy particle data to host
+                            auto speciesTmp = dc.get<SpeciesType>(FrameType::getName(), true);
 
-            // add energy histogram on top of existing data
-            constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-                pmacc::math::CT::volume< SuperCellSize >::type::value
-            >::value;
-            PMACC_KERNEL( helperFields::KernelAddLocalEnergyHistogram< numWorkers >{ } )
-            (
-                // one block per local energy histogram
-                mapper.getGridDim(),
-                numWorkers
-            )
-            (
-                // start in border (jump over GUARD area)
-                speciesTmp->getDeviceParticlesBox(),
-                // start in border (has no GUARD area)
-                eneHistLocal->getGridBuffer().getDeviceBuffer( ).getDataBox( ),
-                minEnergy,
-                maxEnergy,
-                mapper
-            );
+                            // mapper to access species in CORE & BORDER only
+                            MappingDesc cellDescription(
+                                speciesTmp->getParticlesBuffer().getSuperCellsLayout().getDataSpace()
+                                    * SuperCellSize::toRT(),
+                                GuardSize::toRT());
+                            AreaMapping<CORE + BORDER, MappingDesc> mapper(cellDescription);
 
-            dc.releaseData( FrameType::getName() );
-        }
-    };
-}
-    /** Add a group of species to a local energy histogram
-     *
-     * Takes a list of species and fills the LocalEnergyHistogram with it.
-     * Ideally executed for a list of electron species or an photon species.
-     *
-     * @tparam T_SpeciesList sequence of picongpu::Particles to create a
-     *                       local energy histogram from
-     */
-    template<
-        typename T_SpeciesList
-    >
-    struct FillLocalEnergyHistogram
-    {
-        using SpeciesList = T_SpeciesList;
+                            // add energy histogram on top of existing data
+                            constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+                                pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+                            PMACC_KERNEL(helperFields::KernelAddLocalEnergyHistogram<numWorkers>{})
+                            (
+                                // one block per local energy histogram
+                                mapper.getGridDim(),
+                                numWorkers)(
+                                // start in border (jump over GUARD area)
+                                speciesTmp->getDeviceParticlesBox(),
+                                // start in border (has no GUARD area)
+                                eneHistLocal->getGridBuffer().getDeviceBuffer().getDataBox(),
+                                minEnergy,
+                                maxEnergy,
+                                mapper);
 
-        /** Functor
-         *
-         * @param currentStep the current time step
-         * @param speciesGroup naming for the group of species in T_SpeciesList
-         * @param minEnergy minimum energy to account for (eV)
-         * @param maxEnergy maximum energy to account for (eV)
-         */
-        void operator()(
-            uint32_t currentStep,
-            std::string const & speciesGroup,
-            float_X const minEnergy,
-            float_X const maxEnergy
-        )
-        {
-            DataConnector &dc = Environment<>::get().DataConnector();
+                            dc.releaseData(FrameType::getName());
+                        }
+                    };
+                } // namespace detail
+                /** Add a group of species to a local energy histogram
+                 *
+                 * Takes a list of species and fills the LocalEnergyHistogram with it.
+                 * Ideally executed for a list of electron species or an photon species.
+                 *
+                 * @tparam T_SpeciesList sequence of picongpu::Particles to create a
+                 *                       local energy histogram from
+                 */
+                template<typename T_SpeciesList>
+                struct FillLocalEnergyHistogram
+                {
+                    using SpeciesList = T_SpeciesList;
 
-            /* load local energy histogram field without copy data to host and
-             * zero it
-             */
-            auto eneHistLocal = dc.get< LocalEnergyHistogram >(
-                helperFields::LocalEnergyHistogram::getName( speciesGroup ),
-                true
-            );
+                    /** Functor
+                     *
+                     * @param currentStep the current time step
+                     * @param speciesGroup naming for the group of species in T_SpeciesList
+                     * @param minEnergy minimum energy to account for (eV)
+                     * @param maxEnergy maximum energy to account for (eV)
+                     */
+                    void operator()(
+                        uint32_t currentStep,
+                        std::string const& speciesGroup,
+                        float_X const minEnergy,
+                        float_X const maxEnergy)
+                    {
+                        DataConnector& dc = Environment<>::get().DataConnector();
 
-            // reset local energy histograms
-            eneHistLocal->getGridBuffer().getDeviceBuffer().setValue( float_X( 0.0 ) );
+                        /* load local energy histogram field without copy data to host and
+                         * zero it
+                         */
+                        auto eneHistLocal = dc.get<LocalEnergyHistogram>(
+                            helperFields::LocalEnergyHistogram::getName(speciesGroup),
+                            true);
 
-            // add local energy histogram of each species in list
-            meta::ForEach< SpeciesList, detail::AddSingleEnergyHistogram< bmpl::_1 > > addSingleEnergyHistogram;
-            addSingleEnergyHistogram( currentStep, eneHistLocal, minEnergy, maxEnergy );
+                        // reset local energy histograms
+                        eneHistLocal->getGridBuffer().getDeviceBuffer().setValue(float_X(0.0));
 
-            /* note: for average != supercell the BORDER region would need to be
-             *       build up via communication accordingly
-             */
+                        // add local energy histogram of each species in list
+                        meta::ForEach<SpeciesList, detail::AddSingleEnergyHistogram<bmpl::_1>>
+                            addSingleEnergyHistogram;
+                        addSingleEnergyHistogram(currentStep, eneHistLocal, minEnergy, maxEnergy);
 
-            // release fields
-            dc.releaseData( helperFields::LocalEnergyHistogram::getName( speciesGroup ) );
-        }
-    };
+                        /* note: for average != supercell the BORDER region would need to be
+                         *       build up via communication accordingly
+                         */
 
-} // namespace helperFields
-} // namespace flylite
-} // namespace particles
+                        // release fields
+                        dc.releaseData(helperFields::LocalEnergyHistogram::getName(speciesGroup));
+                    }
+                };
+
+            } // namespace helperFields
+        } // namespace flylite
+    } // namespace particles
 } // namespace picongpu

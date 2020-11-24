@@ -29,64 +29,58 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-    /** Macro-Particle Counter Operation for Particle to Grid Projections
-     *
-     * Derives a scalar field with number of macro particles per cell from a particle
-     * species at runtime.
-     * Each macro particle is counted straight to the cell it belongs to, which is
-     * in most cases as floor operation in space (and not necessarily the "nearest"
-     * cell-origin).
-     *
-     * @note Use this only for debug purposes, e.g. to validate particle memory.
-     */
-    struct MacroCounter
+    namespace particles
     {
-
-        HDINLINE float1_64
-        getUnit() const;
-
-        HINLINE std::vector<float_64>
-        getUnitDimension() const
+        namespace particleToGrid
         {
-           /* L, M, T, I, theta, N, J
-            *
-            * Counter is unitless
-            */
-           std::vector<float_64> unitDimension( 7, 0.0 );
+            namespace derivedAttributes
+            {
+                /** Macro-Particle Counter Operation for Particle to Grid Projections
+                 *
+                 * Derives a scalar field with number of macro particles per cell from a particle
+                 * species at runtime.
+                 * Each macro particle is counted straight to the cell it belongs to, which is
+                 * in most cases as floor operation in space (and not necessarily the "nearest"
+                 * cell-origin).
+                 *
+                 * @note Use this only for debug purposes, e.g. to validate particle memory.
+                 */
+                struct MacroCounter
+                {
+                    HDINLINE float1_64 getUnit() const;
 
-           return unitDimension;
-        }
+                    HINLINE std::vector<float_64> getUnitDimension() const
+                    {
+                        /* L, M, T, I, theta, N, J
+                         *
+                         * Counter is unitless
+                         */
+                        std::vector<float_64> unitDimension(7, 0.0);
 
-        HINLINE static
-        std::string
-        getName()
-        {
-            return "macroParticleCounter";
-        }
+                        return unitDimension;
+                    }
 
-        /** Calculate a new attribute  per particle
-         *
-         * Returns a new (on-the-fly calculated) attribute of a particle
-         * that can then be mapped to the cells the particle contributes to.
-         * This method is called on a per-thread basis (each thread of a block
-         * handles a particle of a frame).
-         *
-         * \tparam T_Particle particle in the frame
-         * \param particle particle in the frame
-         *
-         * \return new attribute for the particle (type \see T_AttributeType)
-         */
-        template< class T_Particle >
-        DINLINE float_X
-        operator()( T_Particle& particle ) const;
-    };
-} // namespace derivedAttributes
-} // namespace particleToGrid
-} // namespace particles
+                    HINLINE static std::string getName()
+                    {
+                        return "macroParticleCounter";
+                    }
+
+                    /** Calculate a new attribute  per particle
+                     *
+                     * Returns a new (on-the-fly calculated) attribute of a particle
+                     * that can then be mapped to the cells the particle contributes to.
+                     * This method is called on a per-thread basis (each thread of a block
+                     * handles a particle of a frame).
+                     *
+                     * \tparam T_Particle particle in the frame
+                     * \param particle particle in the frame
+                     *
+                     * \return new attribute for the particle (type \see T_AttributeType)
+                     */
+                    template<class T_Particle>
+                    DINLINE float_X operator()(T_Particle& particle) const;
+                };
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
 } // namespace picongpu

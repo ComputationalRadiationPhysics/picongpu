@@ -24,34 +24,33 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace maxwellSolver
-{
-namespace aoFDTD
-{
+    namespace fields
+    {
+        namespace maxwellSolver
+        {
+            namespace aoFDTD
+            {
+                /** Tag for forward derivative used in CurlE
+                 *  of the ArbitraryOrderFDTD solver
+                 *
+                 * @tparam T_neighbors Number of neighbors used to calculate
+                 *                     the spatial derivatives with finite differences.
+                 *                     Order of approximation is 2 * T_neighbors.
+                 */
+                template<uint32_t T_neighbors>
+                struct Forward;
 
-    /** Tag for forward derivative used in CurlE
-     *  of the ArbitraryOrderFDTD solver
-     *
-     * @tparam T_neighbors Number of neighbors used to calculate
-     *                     the spatial derivatives with finite differences.
-     *                     Order of approximation is 2 * T_neighbors.
-     */
-    template< uint32_t T_neighbors >
-    struct Forward;
+                /** Tag for forward derivative used in CurlE
+                 *  of the ArbitraryOrderFDTD solver
+                 *
+                 * @tparam T_neighbors Number of neighbors used to calculate
+                 *                     the spatial derivatives with finite differences.
+                 *                     Order of approximation is 2 * T_neighbors.
+                 */
+                template<uint32_t T_neighbors>
+                struct Backward;
 
-    /** Tag for forward derivative used in CurlE
-     *  of the ArbitraryOrderFDTD solver
-     *
-     * @tparam T_neighbors Number of neighbors used to calculate
-     *                     the spatial derivatives with finite differences.
-     *                     Order of approximation is 2 * T_neighbors.
-     */
-    template< uint32_t T_neighbors >
-    struct Backward;
-
-} // namespace aoFDTD
-} // namespace maxwellSolver
-} // namespace fields
+            } // namespace aoFDTD
+        } // namespace maxwellSolver
+    } // namespace fields
 } // namespace picongpu

@@ -33,26 +33,24 @@
 
 namespace pmacc
 {
-
     /** Manages a pool of cuplaEvent_t objects and gives access to them. */
     class EventPool
     {
     public:
-
         /** Returns a free cupla event
          *
          * @return free cupla event
          */
-        CudaEventHandle pop( )
+        CudaEventHandle pop()
         {
-            if( freeEvents.size( ) != 0 )
+            if(freeEvents.size() != 0)
             {
-                CudaEventHandle result = freeEvents.front( );
-                freeEvents.pop_front( );
+                CudaEventHandle result = freeEvents.front();
+                freeEvents.pop_front();
                 return result;
             }
-            createEvents( );
-            return pop( );
+            createEvents();
+            return pop();
         }
 
 
@@ -62,26 +60,26 @@ namespace pmacc
          *
          * @param ev pointer to CudaEvent
          */
-        void push( CudaEvent* const ev )
+        void push(CudaEvent* const ev)
         {
             /* Guard that no event is added during the pool is closed (shutdown phase).
              * This method is also called during the evaluation of the destructor.
              */
-            if( !isClosed )
-                freeEvents.push_back( CudaEventHandle(ev) );
+            if(!isClosed)
+                freeEvents.push_back(CudaEventHandle(ev));
         }
 
         /** create and add cupla events to the pool
          *
          * @param count number of cupla events to add
          */
-        void createEvents( size_t count = 1u )
+        void createEvents(size_t count = 1u)
         {
-            for( size_t i = 0u; i < count; i++ )
+            for(size_t i = 0u; i < count; i++)
             {
-                CudaEvent* nativeEvent = new CudaEvent( );
-                events.push_back( nativeEvent );
-                push( nativeEvent );
+                CudaEvent* nativeEvent = new CudaEvent();
+                events.push_back(nativeEvent);
+                push(nativeEvent);
             }
         }
 
@@ -89,23 +87,22 @@ namespace pmacc
          *
          * @return number of cupla events
          */
-        size_t getEventsCount( )
+        size_t getEventsCount()
         {
-            return events.size( );
+            return events.size();
         }
 
     private:
-
         friend struct detail::Environment;
 
-        static EventPool& getInstance( )
+        static EventPool& getInstance()
         {
             static EventPool instance;
             return instance;
         }
 
         /** Constructor */
-        EventPool( ) : isClosed( false )
+        EventPool() : isClosed(false)
         {
         }
 
@@ -115,14 +112,14 @@ namespace pmacc
          */
         ~EventPool()
         {
-            log( ggLog::CUDA_RT( )+ggLog::EVENT( ), "shutdown EventPool with %1% events" ) % getEventsCount( );
+            log(ggLog::CUDA_RT() + ggLog::EVENT(), "shutdown EventPool with %1% events") % getEventsCount();
             isClosed = true;
-            freeEvents.clear( );
-            for( std::vector<CudaEvent*>::const_iterator iter = events.begin(); iter != events.end(); ++iter )
+            freeEvents.clear();
+            for(std::vector<CudaEvent*>::const_iterator iter = events.begin(); iter != events.end(); ++iter)
             {
                 delete *iter;
             }
-            events.clear( );
+            events.clear();
         }
 
         //! hold all CudaEvents
@@ -137,4 +134,4 @@ namespace pmacc
          */
         bool isClosed;
     };
-}
+} // namespace pmacc

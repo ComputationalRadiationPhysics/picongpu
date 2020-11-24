@@ -34,124 +34,98 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace flylite
-{
-namespace helperFields
-{
-    /** Average a FieldTmp density to a smaller resolution
-     *
-     * Average a FieldTmp density to a smaller (per-supercell) resolution and
-     * add it to a local density field.
-     *
-     * @tparam T_numWorkers number of workers for lockstep execution per block,
-     *                      arbitrary for reduce since it will loop over the
-     *                      source size when necessary
-     */
-    template<
-        uint32_t T_numWorkers
-    >
-    struct KernelAverageDensity
+    namespace particles
     {
-        /** Functor
-         *
-         * @tparam T_TmpBox pmacc::DataBox with full-resolution density
-         * @tparam T_LocalDensityBox pmacc::DataBox local density with less
-         *                           resolution
-         * @tparam T_Acc alpaka accelerator type
-         *
-         * @param alpaka accelerator
-         * @param fieldTmp pmacc::DataBox with FieldTmp density scalar field
-         * @param localDensity pmacc::DataBox with global memory, e.g. for each
-         *                     supercell's density
-         */
-        template<
-            typename T_TmpBox,
-            typename T_LocalDensityBox,
-            typename T_Acc
-        >
-        DINLINE void operator()(
-            T_Acc const & acc,
-            T_TmpBox fieldTmp,
-            T_LocalDensityBox localDensity
-        ) const
+        namespace flylite
         {
-            using picongpu::flylite::spatialAverageBox;
-            using ValueType = typename T_TmpBox::ValueType;
-            constexpr uint32_t numWorkers = T_numWorkers;
-
-            // cell index in the average box in reduced resolution
-            DataSpace< simDim > const avgBoxCell( cupla::blockIdx(acc) );
-            // first cell index inside FieldTmp (originating from BORDER) for block
-            DataSpace< simDim > const fieldTmpBlockOriginCell = avgBoxCell * spatialAverageBox::toRT();
-            // our workers per block are started 1D
-            uint32_t const linearThreadIdx( cupla::threadIdx(acc).x );
-
-            // shift the fieldTmp to the start of average box
-            auto fieldTmpBlock = fieldTmp.shift( fieldTmpBlockOriginCell );
-
-            // shared memory for reduce
-            PMACC_SMEM(
-                acc,
-                shReduceBuffer,
-                memory::Array<
-                    ValueType,
-                    numWorkers
-                >
-            );
-
-            // re-map access indices to local average view
-            using D1Box = DataBoxDim1Access< T_TmpBox >;
-            D1Box d1access(
-                fieldTmpBlock,
-                spatialAverageBox::toRT()
-            );
-
-            cupla::__syncthreads( acc );
-
-            uint32_t const numAvgCells = pmacc::math::CT::volume< spatialAverageBox >::type::value;
-
-            nvidia::reduce::kernel::Reduce<
-                ValueType,
-                numAvgCells,
-                numWorkers
-            > reduce{};
-
-
-            reduce(
-                acc,
-                mappings::threads::WorkerCfg< numWorkers >( linearThreadIdx ),
-                numAvgCells,
-                /* access inside local average view */
-                d1access,
-                numAvgCells,
-                nvidia::functors::Add(),
-                shReduceBuffer
-            );
-
-            /* continue with master
-             *
-             * - before working with this field, multiply by
-             *   particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
-             * - divide by for average by numAvgCells
-             * - write back to global
-             *
-             * - change those lines if you want to re-use this kernel for a vector field
-             */
-            if( linearThreadIdx == 0 )
+            namespace helperFields
             {
-                ValueType localAverageResult = shReduceBuffer[ 0 ] *
-                    particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE /
-                    float_X( numAvgCells );
+                /** Average a FieldTmp density to a smaller resolution
+                 *
+                 * Average a FieldTmp density to a smaller (per-supercell) resolution and
+                 * add it to a local density field.
+                 *
+                 * @tparam T_numWorkers number of workers for lockstep execution per block,
+                 *                      arbitrary for reduce since it will loop over the
+                 *                      source size when necessary
+                 */
+                template<uint32_t T_numWorkers>
+                struct KernelAverageDensity
+                {
+                    /** Functor
+                     *
+                     * @tparam T_TmpBox pmacc::DataBox with full-resolution density
+                     * @tparam T_LocalDensityBox pmacc::DataBox local density with less
+                     *                           resolution
+                     * @tparam T_Acc alpaka accelerator type
+                     *
+                     * @param alpaka accelerator
+                     * @param fieldTmp pmacc::DataBox with FieldTmp density scalar field
+                     * @param localDensity pmacc::DataBox with global memory, e.g. for each
+                     *                     supercell's density
+                     */
+                    template<typename T_TmpBox, typename T_LocalDensityBox, typename T_Acc>
+                    DINLINE void operator()(T_Acc const& acc, T_TmpBox fieldTmp, T_LocalDensityBox localDensity) const
+                    {
+                        using picongpu::flylite::spatialAverageBox;
+                        using ValueType = typename T_TmpBox::ValueType;
+                        constexpr uint32_t numWorkers = T_numWorkers;
 
-                localDensity( avgBoxCell ) =
-                    static_cast< typename T_LocalDensityBox::ValueType >( localAverageResult );
-            }
-        }
-    };
+                        // cell index in the average box in reduced resolution
+                        DataSpace<simDim> const avgBoxCell(cupla::blockIdx(acc));
+                        // first cell index inside FieldTmp (originating from BORDER) for block
+                        DataSpace<simDim> const fieldTmpBlockOriginCell = avgBoxCell * spatialAverageBox::toRT();
+                        // our workers per block are started 1D
+                        uint32_t const linearThreadIdx(cupla::threadIdx(acc).x);
 
-} // namespace helperFields
-} // namespace flylite
-} // namespace particles
+                        // shift the fieldTmp to the start of average box
+                        auto fieldTmpBlock = fieldTmp.shift(fieldTmpBlockOriginCell);
+
+                        // shared memory for reduce
+                        PMACC_SMEM(acc, shReduceBuffer, memory::Array<ValueType, numWorkers>);
+
+                        // re-map access indices to local average view
+                        using D1Box = DataBoxDim1Access<T_TmpBox>;
+                        D1Box d1access(fieldTmpBlock, spatialAverageBox::toRT());
+
+                        cupla::__syncthreads(acc);
+
+                        uint32_t const numAvgCells = pmacc::math::CT::volume<spatialAverageBox>::type::value;
+
+                        nvidia::reduce::kernel::Reduce<ValueType, numAvgCells, numWorkers> reduce{};
+
+
+                        reduce(
+                            acc,
+                            mappings::threads::WorkerCfg<numWorkers>(linearThreadIdx),
+                            numAvgCells,
+                            /* access inside local average view */
+                            d1access,
+                            numAvgCells,
+                            nvidia::functors::Add(),
+                            shReduceBuffer);
+
+                        /* continue with master
+                         *
+                         * - before working with this field, multiply by
+                         *   particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+                         * - divide by for average by numAvgCells
+                         * - write back to global
+                         *
+                         * - change those lines if you want to re-use this kernel for a vector field
+                         */
+                        if(linearThreadIdx == 0)
+                        {
+                            ValueType localAverageResult = shReduceBuffer[0]
+                                * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE / float_X(numAvgCells);
+
+                            localDensity(avgBoxCell)
+                                = static_cast<typename T_LocalDensityBox::ValueType>(localAverageResult);
+                        }
+                    }
+                };
+
+            } // namespace helperFields
+        } // namespace flylite
+    } // namespace particles
 } // namespace picongpu

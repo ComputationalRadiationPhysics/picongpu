@@ -24,19 +24,19 @@
  * https://github.com/ComputationalRadiationPhysics/picongpu/issues/3294
  */
 #include <boost/version.hpp>
-#if (BOOST_VERSION < 106900 && defined(__CUDACC__) && defined(__clang__))
-#   if defined(__CUDACC__)
-#       include <boost/config/compiler/nvcc.hpp>
-#   endif
-#   if (!defined(__ibmxl__))
-#       include <boost/config/compiler/clang.hpp>
-#   endif
-#   undef __CUDACC__
-#   include <boost/config/detail/select_compiler_config.hpp>
-#   define __CUDACC__
+#if(BOOST_VERSION < 106900 && defined(__CUDACC__) && defined(__clang__))
+#    if defined(__CUDACC__)
+#        include <boost/config/compiler/nvcc.hpp>
+#    endif
+#    if(!defined(__ibmxl__))
+#        include <boost/config/compiler/clang.hpp>
+#    endif
+#    undef __CUDACC__
+#    include <boost/config/detail/select_compiler_config.hpp>
+#    define __CUDACC__
 #endif
 /* workaround for compile error with clang-cuda
- * boost/type_traits/is_base_and_derived.hpp:142:25: error: invalid application of 'sizeof' to an incomplete type 'boost::in_place_factory_base'
- *   BOOST_STATIC_ASSERT(sizeof(B) != 0);
+ * boost/type_traits/is_base_and_derived.hpp:142:25: error: invalid application of 'sizeof' to an incomplete type
+ * 'boost::in_place_factory_base' BOOST_STATIC_ASSERT(sizeof(B) != 0);
  */
 #include <boost/optional/optional.hpp>

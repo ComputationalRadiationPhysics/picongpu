@@ -28,24 +28,25 @@
 
 namespace pmacc
 {
-namespace algorithm
-{
-namespace kernel
-{
+    namespace algorithm
+    {
+        namespace kernel
+        {
+            template<>
+            template<typename Zone, typename DestCursor, typename SrcCursor>
+            void FFT<2>::operator()(const Zone& p_zone, const DestCursor& destCursor, const SrcCursor& srcCursor)
+            {
+                cufftHandle plan;
+                CUFFT_CHECK(cufftPlan2d(&plan, p_zone.size.x(), p_zone.size.y(), CUFFT_R2C));
 
-template<>
-template<typename Zone, typename DestCursor, typename SrcCursor>
-void FFT<2>::operator()(const Zone& p_zone, const DestCursor& destCursor, const SrcCursor& srcCursor)
-{
-    cufftHandle plan;
-    CUFFT_CHECK(cufftPlan2d(&plan, p_zone.size.x(), p_zone.size.y(), CUFFT_R2C));
+                CUFFT_CHECK(cufftExecR2C(
+                    plan,
+                    (cufftReal*) &(*(srcCursor(p_zone.offset))),
+                    (cufftComplex*) &(*destCursor(p_zone.offset))));
 
-    CUFFT_CHECK(cufftExecR2C(plan, (cufftReal*)&(*(srcCursor(p_zone.offset))),
-                        (cufftComplex*)&(*destCursor(p_zone.offset))));
+                CUFFT_CHECK(cufftDestroy(plan));
+            }
 
-    CUFFT_CHECK(cufftDestroy(plan));
-}
-
-} // kernel
-} // algorithm
-} // pmacc
+        } // namespace kernel
+    } // namespace algorithm
+} // namespace pmacc

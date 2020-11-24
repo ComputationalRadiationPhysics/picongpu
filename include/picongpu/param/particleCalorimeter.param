@@ -21,31 +21,25 @@
 
 namespace picongpu
 {
-namespace particleCalorimeter
-{
+    namespace particleCalorimeter
+    {
+        /** Map yaw and pitch into [0,1] respectively. These ranges correspond to
+         * the normalized histogram range of the calorimeter (0: first bin, 1: last bin).
+         * Out-of-range values are mapped to the first or the last bin.
+         *
+         * Useful for fine tuning the spatial calorimeter resolution.
+         *
+         * \param yaw -maxYaw...maxYaw
+         * \param pitch -maxPitch...maxPitch
+         * \param maxYaw maximum value of angle yaw
+         * \param maxPitch maximum value of angle pitch
+         * \return Two values within [-1,1]
+         */
+        HDINLINE float2_X
+        mapYawPitchToNormedRange(const float_X yaw, const float_X pitch, const float_X maxYaw, const float_X maxPitch)
+        {
+            return float2_X(0.5_X + 0.5_X * yaw / maxYaw, 0.5_X + 0.5_X * pitch / maxPitch);
+        }
 
-/** Map yaw and pitch into [0,1] respectively. These ranges correspond to
- * the normalized histogram range of the calorimeter (0: first bin, 1: last bin).
- * Out-of-range values are mapped to the first or the last bin.
- *
- * Useful for fine tuning the spatial calorimeter resolution.
- *
- * \param yaw -maxYaw...maxYaw
- * \param pitch -maxPitch...maxPitch
- * \param maxYaw maximum value of angle yaw
- * \param maxPitch maximum value of angle pitch
- * \return Two values within [-1,1]
- */
-HDINLINE float2_X mapYawPitchToNormedRange(const float_X yaw,
-                                           const float_X pitch,
-                                           const float_X maxYaw,
-                                           const float_X maxPitch)
-{
-    return float2_X(
-        0.5_X + 0.5_X * yaw / maxYaw,
-        0.5_X + 0.5_X * pitch / maxPitch
-    );
-}
-
-} // namespace particleCalorimeter
+    } // namespace particleCalorimeter
 } // namespace picongpu

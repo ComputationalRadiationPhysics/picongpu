@@ -30,54 +30,50 @@
 
 namespace pmacc
 {
-namespace pluginSystem
-{
-    struct TimeSlice
+    namespace pluginSystem
     {
-        /** time slice configuration
-         *
-         * 0 = begin of the interval
-         * 1 = end of the interval
-         * 2 = period
-         */
-        std::array< uint32_t, 3 > values;
-
-        std::string toString() const
+        struct TimeSlice
         {
-            std::string result;
-            result = std::to_string(values[0]) + ":" +
-                std::to_string(values[1]) + ":" +
-                std::to_string(values[2]);
-            return result;
-        }
-
-        /** set the value
-         *
-         * if str is empty the default value for the given index is selected
-         *
-         * @param idx index to set, range [0,3)
-         * @param str value to set, can be empty
-         */
-        void setValue(uint32_t const idx, std::string const & str)
-        {
-            if(!str.empty())
-            {
-                uint32_t value = std::stoul( str );
-                PMACC_VERIFY_MSG(
-                    !( idx == 2 && value == 0 ),
-                    "Zero is not a valid period"
-                );
-                values.at( idx )  = value;
-            }
-        }
-
-        //! create a time slice instance
-        TimeSlice() :
-            /* default: start:end:period
-             * -1 stored as unsigned is the highest available unsigned integer
+            /** time slice configuration
+             *
+             * 0 = begin of the interval
+             * 1 = end of the interval
+             * 2 = period
              */
-            values( { 0, uint32_t( -1 ), 1 } )
-        { }
-    };
-} // namespace pluginSystem
+            std::array<uint32_t, 3> values;
+
+            std::string toString() const
+            {
+                std::string result;
+                result = std::to_string(values[0]) + ":" + std::to_string(values[1]) + ":" + std::to_string(values[2]);
+                return result;
+            }
+
+            /** set the value
+             *
+             * if str is empty the default value for the given index is selected
+             *
+             * @param idx index to set, range [0,3)
+             * @param str value to set, can be empty
+             */
+            void setValue(uint32_t const idx, std::string const& str)
+            {
+                if(!str.empty())
+                {
+                    uint32_t value = std::stoul(str);
+                    PMACC_VERIFY_MSG(!(idx == 2 && value == 0), "Zero is not a valid period");
+                    values.at(idx) = value;
+                }
+            }
+
+            //! create a time slice instance
+            TimeSlice()
+                : /* default: start:end:period
+                   * -1 stored as unsigned is the highest available unsigned integer
+                   */
+                values({0, uint32_t(-1), 1})
+            {
+            }
+        };
+    } // namespace pluginSystem
 } // namespace pmacc

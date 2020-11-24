@@ -26,11 +26,10 @@
 
 namespace picongpu
 {
-namespace fields
-{
+    namespace fields
+    {
+        //! Alias for a cell type used by the field solver
+        using CellType = traits::GetCellType<Solver>::type;
 
-    //! Alias for a cell type used by the field solver
-    using CellType = traits::GetCellType< Solver >::type;
-
-} // namespace fields
+    } // namespace fields
 } // namespace picongpu

@@ -39,71 +39,64 @@
 
 namespace picongpu
 {
-namespace simulation
-{
-namespace stage
-{
-
-    /** Functor for the stage of the PIC loop performing current interpolation
-     *  and addition to grid values of the electromagnetic field
-     */
-    struct CurrentInterpolationAndAdditionToEMF
+    namespace simulation
     {
-        /** Compute the current created by particles and add it to the current
-         *  density
-         *
-         * @param step index of time iteration
-         */
-        void operator( )( uint32_t const step ) const
+        namespace stage
         {
-            using namespace pmacc;
-            using SpeciesWithCurrentSolver = typename pmacc::particles::traits::FilterByFlag<
-                VectorAllSpecies,
-                current< >
-            >::type;
-            auto const numSpeciesWithCurrentSolver =
-                bmpl::size< SpeciesWithCurrentSolver >::type::value;
-            auto const existsCurrent = numSpeciesWithCurrentSolver > 0;
-            if( !existsCurrent )
-                return;
-
-            DataConnector & dc = Environment< >::get( ).DataConnector( );
-            auto & fieldJ = *dc.get< FieldJ >( FieldJ::getName( ), true );
-            auto eRecvCurrent = fieldJ.asyncCommunication( __getTransactionEvent() );
-            using CurrentInterpolation = fields::Solver::CurrentInterpolation;
-            CurrentInterpolation currentInterpolation;
-            using Margin = traits::GetMargin< CurrentInterpolation >;
-            DataSpace< simDim > const currentRecvLower( Margin::LowerMargin().toRT() );
-            DataSpace< simDim > const currentRecvUpper( Margin::UpperMargin().toRT() );
-
-            /* without interpolation, we do not need to access the FieldJ GUARD
-            * and can therefore overlap communication of GUARD->(ADD)BORDER & computation of CORE */
-            if( currentRecvLower == DataSpace< simDim >::create( 0 ) &&
-                currentRecvUpper == DataSpace< simDim >::create( 0 )
-            )
+            /** Functor for the stage of the PIC loop performing current interpolation
+             *  and addition to grid values of the electromagnetic field
+             */
+            struct CurrentInterpolationAndAdditionToEMF
             {
-                fieldJ.addCurrentToEMF< type::CORE >( currentInterpolation );
-                __setTransactionEvent( eRecvCurrent );
-                fieldJ.addCurrentToEMF< type::BORDER >( currentInterpolation );
-            }
-            else
-            {
-                /* in case we perform a current interpolation/filter, we need
-                * to access the BORDER area from the CORE (and the GUARD area
-                * from the BORDER)
-                * `fieldJ->asyncCommunication` first adds the neighbors' values
-                * to BORDER (send) and then updates the GUARD (receive)
-                * \todo split the last `receive` part in a separate method to
-                *       allow already a computation of CORE */
-                __setTransactionEvent( eRecvCurrent );
-                fieldJ.addCurrentToEMF<
-                    type::CORE + type::BORDER
-                >( currentInterpolation );
-            }
-            dc.releaseData( FieldJ::getName( ) );
-        }
-    };
+                /** Compute the current created by particles and add it to the current
+                 *  density
+                 *
+                 * @param step index of time iteration
+                 */
+                void operator()(uint32_t const step) const
+                {
+                    using namespace pmacc;
+                    using SpeciesWithCurrentSolver =
+                        typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
+                    auto const numSpeciesWithCurrentSolver = bmpl::size<SpeciesWithCurrentSolver>::type::value;
+                    auto const existsCurrent = numSpeciesWithCurrentSolver > 0;
+                    if(!existsCurrent)
+                        return;
 
-} // namespace stage
-} // namespace simulation
+                    DataConnector& dc = Environment<>::get().DataConnector();
+                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                    auto eRecvCurrent = fieldJ.asyncCommunication(__getTransactionEvent());
+                    using CurrentInterpolation = fields::Solver::CurrentInterpolation;
+                    CurrentInterpolation currentInterpolation;
+                    using Margin = traits::GetMargin<CurrentInterpolation>;
+                    DataSpace<simDim> const currentRecvLower(Margin::LowerMargin().toRT());
+                    DataSpace<simDim> const currentRecvUpper(Margin::UpperMargin().toRT());
+
+                    /* without interpolation, we do not need to access the FieldJ GUARD
+                     * and can therefore overlap communication of GUARD->(ADD)BORDER & computation of CORE */
+                    if(currentRecvLower == DataSpace<simDim>::create(0)
+                       && currentRecvUpper == DataSpace<simDim>::create(0))
+                    {
+                        fieldJ.addCurrentToEMF<type::CORE>(currentInterpolation);
+                        __setTransactionEvent(eRecvCurrent);
+                        fieldJ.addCurrentToEMF<type::BORDER>(currentInterpolation);
+                    }
+                    else
+                    {
+                        /* in case we perform a current interpolation/filter, we need
+                         * to access the BORDER area from the CORE (and the GUARD area
+                         * from the BORDER)
+                         * `fieldJ->asyncCommunication` first adds the neighbors' values
+                         * to BORDER (send) and then updates the GUARD (receive)
+                         * \todo split the last `receive` part in a separate method to
+                         *       allow already a computation of CORE */
+                        __setTransactionEvent(eRecvCurrent);
+                        fieldJ.addCurrentToEMF<type::CORE + type::BORDER>(currentInterpolation);
+                    }
+                    dc.releaseData(FieldJ::getName());
+                }
+            };
+
+        } // namespace stage
+    } // namespace simulation
 } // namespace picongpu

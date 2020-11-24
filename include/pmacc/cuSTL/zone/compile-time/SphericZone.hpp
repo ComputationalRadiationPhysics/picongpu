@@ -25,29 +25,29 @@
 
 namespace pmacc
 {
-namespace zone
-{
-namespace CT
-{
+    namespace zone
+    {
+        namespace CT
+        {
+            /* spheric (no holes), cartesian, compile-time zone
+             *
+             * \tparam _Size compile-time vector (pmacc::math::CT::Size_t) of the zone's size.
+             * \tparam _Offset compile-time vector (pmacc::math::CT::Size_t) of the zone's offset. default is a zero
+             * vector.
+             *
+             * This is a zone which is simply described by a size and a offset.
+             *
+             * Compile-time version of zone::SphericZone
+             *
+             */
+            template<typename _Size, typename _Offset = typename math::CT::make_Int<_Size::dim, 0>::type>
+            struct SphericZone
+            {
+                typedef _Size Size;
+                typedef _Offset Offset;
+                static constexpr int dim = Size::dim;
+            };
 
-/* spheric (no holes), cartesian, compile-time zone
- *
- * \tparam _Size compile-time vector (pmacc::math::CT::Size_t) of the zone's size.
- * \tparam _Offset compile-time vector (pmacc::math::CT::Size_t) of the zone's offset. default is a zero vector.
- *
- * This is a zone which is simply described by a size and a offset.
- *
- * Compile-time version of zone::SphericZone
- *
- */
-template<typename _Size, typename _Offset = typename math::CT::make_Int<_Size::dim, 0>::type>
-struct SphericZone
-{
-    typedef _Size Size;
-    typedef _Offset Offset;
-    static constexpr int dim = Size::dim;
-};
-
-} // CT
-} // zone
-} // pmacc
+        } // namespace CT
+    } // namespace zone
+} // namespace pmacc

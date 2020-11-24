@@ -22,15 +22,15 @@
 
 namespace picongpu
 {
-namespace templates
-{
-namespace twts
-{
-namespace detail
-{
-    /* Number of field components used in the simulation. [Default: 3 for both 2D and 3D] */
-    const uint32_t numComponents = 3;
-} /* namespace detail */
-} /* namespace twts */
-} /* namespace templates */
+    namespace templates
+    {
+        namespace twts
+        {
+            namespace detail
+            {
+                /* Number of field components used in the simulation. [Default: 3 for both 2D and 3D] */
+                const uint32_t numComponents = 3;
+            } /* namespace detail */
+        } /* namespace twts */
+    } /* namespace templates */
 } /* namespace picongpu */

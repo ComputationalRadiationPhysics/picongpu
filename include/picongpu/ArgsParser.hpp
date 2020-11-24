@@ -41,7 +41,6 @@ namespace picongpu
     class ArgsParser
     {
     public:
-
         //! Parsing status
         enum Status
         {
@@ -69,7 +68,7 @@ namespace picongpu
          * @param argv command line arguments
          * @return parsing status
          */
-        Status parse(int argc, char **argv);
+        Status parse(int argc, char** argv);
 
     private:
         /**
@@ -82,4 +81,4 @@ namespace picongpu
         std::list<po::options_description> options;
     };
 
-}
+} // namespace picongpu
