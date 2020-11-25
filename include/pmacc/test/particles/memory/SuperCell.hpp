@@ -46,12 +46,12 @@ namespace pmacc
                      * @param particleLastFrame the assumed result with the given number of particles
                      *                          and T_SuperCell
                      */
-                    HDINLINE void operator()(uint32_t numParticlesPerCell, uint32_t particleLastFrame)
+                    HINLINE void operator()(uint32_t numParticlesPerCell, uint32_t particleLastFrame)
                     {
                         pmacc::SuperCell<FrameTypeDummy> superCell;
                         superCell.setNumParticles(numParticlesPerCell);
 
-                        BOOST_CHECK_EQUAL(superCell.getSizeLastFrame(), particleLastFrame);
+                        REQUIRE(superCell.getSizeLastFrame() == particleLastFrame);
                     }
                 };
 
@@ -63,7 +63,7 @@ namespace pmacc
 /* The supercell test is always performed with a 3 dimensional supercell
  * because the supercell is agnostic about the number of dimensions.
  */
-BOOST_AUTO_TEST_CASE(copyFrom)
+TEST_CASE("particles::SuperCell", "[SuperCell]")
 {
     using namespace pmacc::test::particles::memory;
     TestNumParticlesLastFrame<pmacc::math::CT::Int<8, 8, 4>> cell256{};

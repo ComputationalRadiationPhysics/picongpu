@@ -21,15 +21,15 @@
 
 #include "pmacc/test/PMaccFixture.hpp"
 
-#include <boost/test/unit_test.hpp>
+#include <catch2/catch.hpp>
 
 
 #if TEST_DIM == 2
 using pmacc::test::PMaccFixture2D;
-BOOST_GLOBAL_FIXTURE(PMaccFixture2D);
+static PMaccFixture2D fixture;
 #else
 using pmacc::test::PMaccFixture3D;
-BOOST_GLOBAL_FIXTURE(PMaccFixture3D);
+static PMaccFixture3D fixture;
 #endif
 
 #include "IdProvider.hpp"

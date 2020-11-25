@@ -32,12 +32,12 @@
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/int.hpp>
-#include <boost/test/unit_test.hpp>
+
+#include <catch2/catch.hpp>
+
 #include <set>
 #include <algorithm>
 #include <stdint.h>
-
-BOOST_AUTO_TEST_SUITE(particles)
 
 
 namespace pmacc
@@ -78,9 +78,9 @@ namespace pmacc
                 }
             };
 
-            /**
-             * Boost.Test compatible function that checks if a value is in a collection
-             * Use like: BOOST_REQUIRE(checkDuplicate(col, value, true|false));
+            /** function checks if a value is in a collection
+             *
+             * Use like: REQUIRE(checkDuplicate(col, value, true|false));
              * @param col Container to be searched
              * @param value Value to search for
              * @param shouldFind Whether the value is expected in the collection or not
@@ -88,22 +88,19 @@ namespace pmacc
              *         the value is found and shouldFind is false, otherwise a True-Value
              */
             template<class T_Collection, typename T>
-            boost::test_tools::predicate_result checkDuplicate(
-                const T_Collection& col,
-                const T& value,
-                bool shouldFind)
+            bool checkDuplicate(const T_Collection& col, const T& value, bool shouldFind)
             {
                 if((std::find(col.begin(), col.end(), value) != col.end()) != shouldFind)
                 {
-                    boost::test_tools::predicate_result res(false);
+                    bool res(false);
                     if(shouldFind)
-                        res.message() << "Value not found found: ";
+                        std::cout << "Value not found found: ";
                     else
-                        res.message() << "Duplicate found: ";
-                    res.message() << value << ". Values=[";
+                        std::cout << "Duplicate found: ";
+                    std::cout << value << ". Values=[";
                     for(typename T_Collection::const_iterator it = col.begin(); it != col.end(); ++it)
-                        res.message() << *it << ",";
-                    res.message() << "]";
+                        std::cout << *it << ",";
+                    std::cout << "]";
                     return res;
                 }
 
@@ -128,33 +125,33 @@ namespace pmacc
                     IdProvider::init();
                     // Check initial state
                     typename IdProvider::State state = IdProvider::getState();
-                    BOOST_REQUIRE_EQUAL(state.startId, state.nextId);
-                    BOOST_REQUIRE_EQUAL(state.maxNumProc, 1u);
-                    BOOST_REQUIRE(!IdProvider::isOverflown());
+                    REQUIRE(state.startId == state.nextId);
+                    REQUIRE(state.maxNumProc == 1u);
+                    REQUIRE(!IdProvider::isOverflown());
                     std::set<uint64_t> ids;
-                    BOOST_REQUIRE_EQUAL(IdProvider::getNewIdHost(), state.nextId);
+                    REQUIRE(IdProvider::getNewIdHost() == state.nextId);
                     // Generate some IDs using the function
                     for(int i = 0; i < numIds; i++)
                     {
                         const uint64_t newId = IdProvider::getNewIdHost();
-                        BOOST_REQUIRE(checkDuplicate(ids, newId, false));
+                        REQUIRE(checkDuplicate(ids, newId, false));
                         ids.insert(newId);
                     }
                     // Reset the state
                     IdProvider::setState(state);
-                    BOOST_REQUIRE_EQUAL(IdProvider::getNewIdHost(), state.nextId);
+                    REQUIRE(IdProvider::getNewIdHost() == state.nextId);
                     // Generate the same IDs on the device
                     HostDeviceBuffer<uint64_t, 1> idBuf(numIds);
                     constexpr uint32_t numWorkers = traits::GetNumWorkers<numIdsPerBlock>::value;
                     PMACC_KERNEL(GenerateIds<numWorkers, numIdsPerBlock, IdProvider>{})
                     (numBlocks, numWorkers)(idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
                     idBuf.deviceToHost();
-                    BOOST_REQUIRE_EQUAL(numIds, ids.size());
+                    REQUIRE(numIds == ids.size());
                     auto hostBox = idBuf.getHostBuffer().getDataBox();
                     // Make sure they are the same
                     for(uint32_t i = 0; i < numIds; i++)
                     {
-                        BOOST_REQUIRE(checkDuplicate(ids, hostBox(i), true));
+                        REQUIRE(checkDuplicate(ids, hostBox(i), true));
                     }
                 }
             };
@@ -163,10 +160,8 @@ namespace pmacc
     } // namespace test
 } // namespace pmacc
 
-BOOST_AUTO_TEST_CASE(IdProvider)
+TEST_CASE("particles::IDProvider", "[IDProvider]")
 {
     using namespace pmacc::test::particles;
     IdProviderTest<TEST_DIM>()();
 }
-
-BOOST_AUTO_TEST_SUITE_END()

@@ -59,7 +59,7 @@ namespace pmacc
                             auto ptr = hostBufferIntern.getPointer();
                             for(size_t j = 0; j < static_cast<size_t>(dataSpace.productOfComponents()); ++j)
                             {
-                                BOOST_CHECK_EQUAL(ptr[j], value);
+                                REQUIRE(ptr[j] == value);
                             }
                         }
                     }
@@ -77,7 +77,7 @@ namespace pmacc
     } // namespace test
 } // namespace pmacc
 
-BOOST_AUTO_TEST_CASE(setValue)
+TEST_CASE("HostBufferIntern::setValue", "[setValue]")
 {
     using namespace pmacc::test::memory::HostBufferIntern;
     ::boost::mpl::for_each<Dims>(setValueTest());

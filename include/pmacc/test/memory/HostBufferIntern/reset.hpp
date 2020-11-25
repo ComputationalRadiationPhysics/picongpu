@@ -57,7 +57,7 @@ namespace pmacc
 
                             for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i)
                             {
-                                BOOST_CHECK_EQUAL(hostBufferIntern.getPointer()[i], 0);
+                                REQUIRE(hostBufferIntern.getPointer()[i] == 0);
                             }
                         }
                     }
@@ -75,7 +75,7 @@ namespace pmacc
     } // namespace test
 } // namespace pmacc
 
-BOOST_AUTO_TEST_CASE(reset)
+TEST_CASE("HostBufferIntern::reset", "[reset]")
 {
     using namespace pmacc::test::memory::HostBufferIntern;
     ::boost::mpl::for_each<Dims>(ResetTest());
