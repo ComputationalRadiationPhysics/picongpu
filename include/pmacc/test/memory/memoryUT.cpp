@@ -19,7 +19,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pmacc/test/PMaccFixture.hpp"
+#include <pmacc/boost_workaround.hpp>
+#include <pmacc/test/PMaccFixture.hpp>
 
 // STL
 #include <stdint.h> /* uint8_t */
