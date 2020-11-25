@@ -1,4 +1,4 @@
-/* Copyright 2020 Sergei Bastrakov
+/* Copyright 2020-2021 Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -21,182 +21,178 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/debyeLength/Check.kernel"
+#include "picongpu/particles/debyeLength/Check.hpp"
+#include "picongpu/particles/debyeLength/Estimate.hpp"
+#include "picongpu/plugins/output/ConstSpeciesAttributes.hpp"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/Environment.hpp>
 #include <pmacc/math/Vector.hpp>
-#include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/mpi/reduceMethods/AllReduce.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/traits/GetCTName.hpp>
 
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
+#include <cstdlib>
 
 
 namespace picongpu
 {
-namespace particles
-{
-namespace debyeLength
-{
-namespace detail
-{
-
-    /** Check Debye length resolution for the given electron species
-     *  in the local simulation volume
-     *
-     * @tparam T_ElectronSpecies electron species type
-     *
-     * @param cellDescription mapping for kernels
-     */
-    template< typename T_ElectronSpecies >
-    HINLINE Result checkLocalDebyeLength( MappingDesc const cellDescription )
+    namespace particles
     {
-        using Frame = typename T_ElectronSpecies::FrameType;
-        DataConnector & dc = Environment< >::get( ).DataConnector( );
-        auto & electrons = *( dc.get< T_ElectronSpecies >( Frame::getName(), true ) );
-
-        pmacc::AreaMapping<
-            CORE + BORDER,
-            MappingDesc
-        > mapper( cellDescription );
-        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-            pmacc::math::CT::volume< MappingDesc::SuperCellSize >::type::value
-        >::value;
-
-        auto hostDeviceBuffer = pmacc::HostDeviceBuffer< Result, 1 >{ 1u };
-        auto hostBox = hostDeviceBuffer.getHostBuffer( ).getDataBox( );
-        hostDeviceBuffer.hostToDevice( );
-        auto kernel = DebyeLengthCheckKernel<
-            numWorkers
-        >{ };
-        PMACC_KERNEL( kernel )(
-            mapper.getGridDim( ),
-            numWorkers
-        )(
-            electrons.getDeviceParticlesBox( ),
-            mapper,
-            hostDeviceBuffer.getDeviceBuffer( ).getDataBox( )
-        );
-        hostDeviceBuffer.deviceToHost( );
-
-        // Copy is asynchronous, need to wait for it to finish
-        __getTransactionEvent().waitForFinished();
-        dc.releaseData( Frame::getName() );
-        return hostBox( 0 );
-    }
-
-    //! Result of the Debye length check
-    enum class Status
-    {
-        Passed,
-        Failed,
-        Skipped
-    };
-
-    /** Check Debye length resolution for the given electron species
-     *  in the global simulation volume
-     *
-     * This function must be called from all MPI ranks.
-     *
-     * @tparam T_ElectronSpecies electron species type
-     *
-     * @param cellDescription mapping for kernels
-     */
-    template< typename T_ElectronSpecies >
-    HINLINE Status checkDebyeLength( MappingDesc const cellDescription )
-    {
-        auto localResult = checkLocalDebyeLength< T_ElectronSpecies >(
-            cellDescription
-        );
-        auto globalResult = Result{};
-        pmacc::mpi::MPIReduce reduce;
-        reduce(
-            pmacc::nvidia::functors::Add(),
-            &globalResult.numViolatingSupercells,
-            &localResult.numViolatingSupercells,
-            1,
-            pmacc::mpi::reduceMethods::AllReduce()
-        );
-        reduce(
-            pmacc::nvidia::functors::Add(),
-            &globalResult.numActiveSupercells,
-            &localResult.numActiveSupercells,
-            1,
-            pmacc::mpi::reduceMethods::AllReduce()
-        );
-        if( globalResult.numActiveSupercells )
+        namespace debyeLength
         {
-            auto const ratioFailing =
-                static_cast< float_64 >( globalResult.numViolatingSupercells ) /
-                static_cast< float_64 >( globalResult.numActiveSupercells );
-            /* Due to random nature of temperature and estimates used internally,
-             * we allow a relatively small number of supercells to fail the check
-             */
-            auto const thresholdFailing = 0.1;
-            if( ratioFailing <= thresholdFailing )
-                return Status::Passed;
-            else
-                return Status::Failed;
-        }
-        else
-            return Status::Skipped;
-    }
-
-} // namespace detail
-
-    /** Check Debye length resolution
-     *
-     * The check is currently done only for species called "e" and is supposed
-     * to be called just after the particles are initialized as start of a
-     * simulation. The results are output to log< picLog::PHYSICS >.
-     *
-     * This function must be called from all MPI ranks.
-     *
-     * @param cellDescription mapping for kernels
-     */
-    HINLINE void check( MappingDesc const cellDescription )
-    {
-        bool isPrinting = ( Environment<simDim>::get().GridController().getGlobalRank() == 0 );
-        using ElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<
-            VectorAllSpecies,
-            PMACC_CSTRING( "e" ),
-            pmacc::errorHandlerPolicies::ReturnType< void >
-        >;
-        bool isElectronsFound = !std::is_same< ElectronSpecies, void >::value;
-        if( isElectronsFound )
-        {
-            auto status = detail::checkDebyeLength< ElectronSpecies >( cellDescription );
-            if( isPrinting )
-                switch( status )
+            namespace detail
+            {
+                /** Return if given species is electron-like in charge and mass
+                 *
+                 * @tparam T_Species species type
+                 */
+                template<typename T_Species>
+                HINLINE bool isElectronLike()
                 {
-                    case detail::Status::Passed:
-                        log< picLog::PHYSICS >(
-                            "Estimated Debye length for species \"e\" is resolved by the grid"
-                        );
-                        break;
-                    case detail::Status::Failed:
-                         log< picLog::PHYSICS >(
-                            "Warning: estimated Debye length for species \"e\" is not resolved by the grid\n"
-                            "Estimates are based on initial momentums of electrons\n"
-                            "   (see: speciesInitialization.param)"
-                        );
-                        break;
-                    case detail::Status::Skipped:
-                        log< picLog::PHYSICS >(
-                            "Debye length resolution check skipped, "
-                            "as there are no particles of species \"e\"\n"
-                        );
+                    using FrameType = typename T_Species::FrameType;
+                    auto const charge = plugins::output::GetChargeOrZero<FrameType>{}();
+                    auto const chargeRatio = charge / ELECTRON_CHARGE;
+                    auto const mass = plugins::output::GetMassOrZero<FrameType>{}();
+                    auto const massRatio = mass / ELECTRON_MASS;
+                    // Allow slight deviation due to unit conversions
+                    auto const tolerance = 0.001_X;
+                    return (std::abs(chargeRatio - 1.0_X) < tolerance) && (std::abs(massRatio - 1.0_X) < tolerance);
                 }
-        }
-        else
-            if( isPrinting )
-                log< picLog::PHYSICS >("Debye length resolution check skipped, "
-                    "as there are no species \"e\"\n");
-    }
 
-} // namespace debyeLength
-} // namespace particles
+                //! Utility class for static storage of counter
+                struct Counter
+                {
+                    //! Get the counter value
+                    static std::uint32_t& value()
+                    {
+                        static uint32_t counter = 0u;
+                        return counter;
+                    }
+                };
+
+                /** Functor to count electron-like species
+                 *
+                 * Calling the functor increments Counter::value() by 1 if T_Species is electron-like.
+                 *
+                 * @tparam T_Species species type
+                 */
+                template<typename T_Species>
+                struct ElectonLikeSpeciesCounter : public Counter
+                {
+                    //! Apply a functor for the species
+                    void operator()() const
+                    {
+                        if(isElectronLike<T_Species>())
+                            Counter::value()++;
+                    }
+                };
+
+                /** Return the number of electron-like species in the given sequence of species types
+                 *
+                 * @tparam T_SpeciesSeq sequence of species types
+                 */
+                template<typename T_SpeciesSeq>
+                HINLINE std::uint32_t countElectronLikeSpecies()
+                {
+                    Counter::value() = 0u;
+                    meta::ForEach<T_SpeciesSeq, ElectonLikeSpeciesCounter<bmpl::_1>> count;
+                    count();
+                    return Counter::value();
+                }
+
+                /** Functor to check Debye length resolution for the given species in the global domain
+                 *
+                 * Accepts any species, but only performs the check for electron-like species.
+                 *
+                 * @tparam T_Species species type
+                 */
+                template<typename T_Species>
+                struct CheckDebyeLength
+                {
+                    /** Check Debye length resolution for the given species in the global domain
+                     *
+                     * Does nothing for not electron-like species.
+                     * Results are printed to the log.
+                     * This function must be called from all MPI ranks.
+                     *
+                     * @param cellDescription mapping for kernels
+                     * @param isPrinting whether the current process should print the result
+                     */
+                    HINLINE void operator()(MappingDesc const cellDescription, bool isPrinting) const
+                    {
+                        if(!isElectronLike<T_Species>())
+                            return;
+                        auto estimate = estimateGlobalDebyeLength<T_Species>(cellDescription);
+                        if(!isPrinting)
+                            return;
+
+                        auto const name = pmacc::traits::GetCTName_t<T_Species>::str();
+                        log<picLog::PHYSICS>("Resolving Debye length for species \"%1%\"?") % name;
+
+                        if(estimate.sumWeighting)
+                        {
+                            auto const temperatureKeV = estimate.sumTemperatureKeV / estimate.sumWeighting;
+                            auto const debyeLength = estimate.sumDebyeLength / estimate.sumWeighting;
+                            auto maxCellSize = cellSize[0];
+                            // For 2D do not use grid size along z, as it is always resolved
+                            for(uint32_t d = 1; d < simDim; d++)
+                                maxCellSize = std::max(maxCellSize, cellSize[d]);
+                            auto const cellsPerDebyeLength = debyeLength / maxCellSize;
+                            auto const debyeLengthSI = debyeLength * UNIT_LENGTH;
+                            log<picLog::PHYSICS>("Estimated temperature %1% KeV and Debye length %2% m."
+                                                 " The grid has %3% cells per Debye length\n"
+                                                 "   Estimates are based on variance in initial momentums and assume"
+                                                 " a single electron species")
+                                % temperatureKeV % debyeLengthSI % cellsPerDebyeLength;
+                        }
+                        else
+                            log<picLog::PHYSICS>("Check skipped due to no particles");
+                    }
+                };
+
+            } // namespace detail
+
+            /** Check Debye length resolution
+             *
+             * The check is currently done only for species called "e" and is supposed
+             * to be called just after the particles are initialized as start of a
+             * simulation. The results are output to log< picLog::PHYSICS >.
+             *
+             * This function must be called from all MPI ranks.
+             *
+             * @param cellDescription mapping for kernels
+             */
+            HINLINE void check(MappingDesc const cellDescription)
+            {
+                bool isPrinting = (Environment<simDim>::get().GridController().getGlobalRank() == 0);
+
+                // Filter out potential probes having no current flag
+                using AllSpeciesWithCurrent =
+                    typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
+                auto const numElectronLikeSpecies = detail::countElectronLikeSpecies<AllSpeciesWithCurrent>();
+
+                // Only perform a check if there is a single electron-like species
+                if(numElectronLikeSpecies == 0)
+                {
+                    if(isPrinting)
+                        log<picLog::PHYSICS>(
+                            "Debye length resolution check skipped due to no electron species found\n");
+                }
+                else if(numElectronLikeSpecies > 1)
+                {
+                    if(isPrinting)
+                        log<picLog::PHYSICS>(
+                            "Debye length resolution check skipped due to multiple electron-like species found\n");
+                }
+                else
+                {
+                    meta::ForEach<AllSpeciesWithCurrent, detail::CheckDebyeLength<bmpl::_1>> checkDebyeLength;
+                    checkDebyeLength(cellDescription, isPrinting);
+                }
+            }
+
+        } // namespace debyeLength
+    } // namespace particles
 } // namespace picongpu
