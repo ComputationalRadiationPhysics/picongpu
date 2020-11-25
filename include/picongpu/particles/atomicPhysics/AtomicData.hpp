@@ -120,7 +120,7 @@ namespace atomicPhysics
         // get energy, respective to ground state, of atomic state
         // @param idx ... configNumber of atomic state
         // return unit: SI_uints
-        HDINLINE ValueType operator( )( Idx const idx )
+        HDINLINE ValueType operator( )( Idx const idx ) const
         {
             // one is a special case
             if( idx == 0 )
@@ -139,13 +139,13 @@ namespace atomicPhysics
             return static_cast< ValueType >( 0 );
         }
 
-        HDINLINE Idx getAtomicStateConfigNumberIndex( uint32_t indexState )
+        HDINLINE Idx getAtomicStateConfigNumberIndex( uint32_t indexState ) const
         {
             return this->m_boxStateIdx( indexState );
         }
 
         // returns index of transition in databox, numTransitions qual to not found
-        HDINLINE uint32_t findTransition( Idx const lowerIdx, Idx const upperIdx )
+        HDINLINE uint32_t findTransition( Idx const lowerIdx, Idx const upperIdx ) const
         {
             // search for transition in list
             for ( uint32_t i = 0u; i < this->m_numTransitions; i++ )

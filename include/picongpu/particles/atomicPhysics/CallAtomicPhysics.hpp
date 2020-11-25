@@ -302,7 +302,8 @@ namespace atomicPhysics
                     this->numberTransitions
                 ),
                 initialGridWidth, // unit: J, SI
-                relativeErrorTarget // unit: 1/s /( 1/( m^3 * J ) ), SI
+                relativeErrorTarget, // unit: 1/s /( 1/( m^3 * J ) ), SI
+                step
             );
 
             dc.releaseData( ElectronFrameType::getName() );

@@ -98,6 +98,7 @@ namespace atomicPhysics
 
         ConfigNumberDataType oldState;
         ConfigNumberDataType newState;
+        uint32_t newStatesCollectionIndex;
 
         uint16_t histogramIndex;
         float_X energyElectron;
@@ -118,8 +119,14 @@ namespace atomicPhysics
             // read out old state index
             oldState = configNumber.getStateIndex( );
 
+
             // get a random new state index
-            newState = randomGenInt( ) % ConfigNumber::numberStates( );
+            newStatesCollectionIndex = randomGenInt( ) % atomicDataBox.getNumStates( );
+            newState = atomicDataBox.getAtomicStateConfigNumberIndex( newStatesCollectionIndex );
+
+            // newState = randomGenInt( ) % ConfigNumber::numberStates( );
+            // unperformant since many states do not actually exist
+            // and very large number of states possible in uint64 >> 15000
 
             // choose random histogram collection index
             histogramIndex = static_cast< uint16_t >( randomGenInt( ) ) %
