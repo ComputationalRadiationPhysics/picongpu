@@ -1,16 +1,16 @@
 #
-# Copyright 2015-2020 Benjamin Worpitz, Axel Huebl
+# Copyright 2015-2020 Benjamin Worpitz, Axel Huebl, Rene Widera
 #
-# This file is part of alpaka.
+# This file is copied from lpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-option(ALPAKA_USE_INTERNAL_CATCH2 "Use internally shipped Catch2" ON)
+option(USE_INTERNAL_CATCH2 "Use internally shipped Catch2" ON)
 
-if(ALPAKA_USE_INTERNAL_CATCH2)
+if(USE_INTERNAL_CATCH2)
     message(STATUS "Catch2: Using INTERNAL version 2.11.0")
 else()
     find_package(Catch2 2.11.0 CONFIG REQUIRED)
@@ -40,9 +40,9 @@ if(MSVC)
     target_compile_options(CatchMain PUBLIC "/bigobj")
 endif()
 
-if(ALPAKA_USE_INTERNAL_CATCH2)
+if(USE_INTERNAL_CATCH2)
     target_include_directories(CatchMain SYSTEM PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/../../thirdParty/catch2/include)
+        ${CMAKE_CURRENT_LIST_DIR}/../include)
 else()
     target_include_directories(CatchMain SYSTEM PUBLIC
         $<TARGET_PROPERTY:Catch2::Catch2,INTERFACE_INCLUDE_DIRECTORIES>)
