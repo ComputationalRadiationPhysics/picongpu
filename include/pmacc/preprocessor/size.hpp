@@ -32,7 +32,7 @@
  * for usage check if PMACC_PP_VARIADIC_SIZE is defined.
  * Implementation is essentially the same as BOOST_PP_VARIADIC_SIZE,
  * but supports up to 120 arguments instead of 64.
- * The implementation uses the “paired, sliding arg list” trick
+ * The implementation uses the "paired, sliding arg list" trick
  * explained in https://codecraft.co/2014/11/25/variadic-macros-tricks/
  */
 #if(BOOST_PP_VARIADICS == 1)
