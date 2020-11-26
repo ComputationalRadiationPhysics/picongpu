@@ -10,8 +10,9 @@
     - apt update
     - apt install -y curl
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
-    - source share/ci/bash.profile
-    - source share/ci/run_test.sh
+    - $CI_PROJECT_DIR/share/ci/bash.profile
+    - $CI_PROJECT_DIR/share/ci/run_pmacc_tests.sh
+    - $CI_PROJECT_DIR/share/ci/run_picongpu_tests.sh
   tags:
     - cuda
     - x86_64 

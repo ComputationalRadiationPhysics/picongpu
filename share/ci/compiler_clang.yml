@@ -7,11 +7,12 @@
     GIT_SUBMODULE_STRATEGY: normal
     PIC_CMAKE_ARGS: "-DALPAKA_CUDA_COMPILER=clang"
   script:
-      - apt update
-      - apt install -y curl
-      - $CI_PROJECT_DIR/share/ci/git_merge.sh
-      - source share/ci/bash.profile
-      - source share/ci/run_test.sh
+    - apt update
+    - apt install -y curl
+    - $CI_PROJECT_DIR/share/ci/git_merge.sh
+    - $CI_PROJECT_DIR/share/ci/bash.profile
+    - $CI_PROJECT_DIR/share/ci/run_pmacc_tests.sh
+    - $CI_PROJECT_DIR/share/ci/run_picongpu_tests.sh
   # x86_64 tag is used to get a multi-core CPU for the tests
   tags:
     - x86_64

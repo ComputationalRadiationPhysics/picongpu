@@ -18,6 +18,8 @@ PMACC_CONST_ARGS=""
 # to save compile time reduce the isaac functor chain length to one
 PMACC_CONST_ARGS="${PMACC_CONST_ARGS} -DCMAKE_BUILD_TYPE=${PMACC_BUILD_TYPE}"
 CMAKE_ARGS="${PMACC_CONST_ARGS} ${PIC_CMAKE_ARGS} -DCMAKE_CXX_COMPILER=${CXX_VERSION} -DBOOST_ROOT=/opt/boost/${BOOST_VERSION}"
+# allow root user to execute MPI
+CMAKE_ARGS="$CMAKE_ARGS -DUSE_MPI_AS_ROOT_USER=ON"
 
 # workaround for clang cuda
 # HDF5 from the apt sources is pulling -D_FORTIFY_SOURCE=2 into the compile flags
@@ -27,6 +29,52 @@ CMAKE_ARGS="${PMACC_CONST_ARGS} ${PIC_CMAKE_ARGS} -DCMAKE_CXX_COMPILER=${CXX_VER
 if [[ $CXX_VERSION =~ ^clang && $PMACC_BACKEND =~ ^cuda ]] ; then
     CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_FLAGS=-D_FORTIFY_SOURCE=0"
 fi
+
+###################################################
+# translate PIConGPU backend names into CMake Flags
+###################################################
+
+get_backend_flags()
+{
+    backend_cfg=(${1//:/ })
+    num_options="${#backend_cfg[@]}"
+    if [ $num_options -gt 2 ] ; then
+        echo "-b|--backend must be contain 'backend:arch' or 'backend'" >&2
+        exit 1
+    fi
+    if [ "${backend_cfg[0]}" == "cuda" ] ; then
+        result+=" -DALPAKA_ACC_GPU_CUDA_ENABLE=ON -DALPAKA_ACC_GPU_CUDA_ONLY_MODE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DALPAKA_CUDA_ARCH=\"${backend_cfg[1]}\""
+        fi
+    elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
+        result+=" -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
+        fi
+    elif [ "${backend_cfg[0]}" == "serial" ] ; then
+        result+=" -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
+        fi
+    elif [ "${backend_cfg[0]}" == "tbb" ] ; then
+        result+=" -DALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
+        fi
+    elif [ "${backend_cfg[0]}" == "threads" ] ; then
+        result+=" -DALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
+        fi
+    else
+        echo "unsupported backend given '$1'" >&2
+        exit 1
+    fi
+
+    echo "$result"
+    exit 0
+}
 
 ###################################################
 # build an run tests
@@ -45,6 +93,9 @@ PMACC_PARALLEL_BUILDS=$(nproc)
 if [ $PMACC_PARALLEL_BUILDS -gt $CI_MAX_PARALLELISM ] ; then
     PMACC_PARALLEL_BUILDS=$CI_MAX_PARALLELISM
 fi
+alpaka_backend=$(get_backend_flags ${PIC_BACKEND})
+CMAKE_ARGS="$CMAKE_ARGS $alpaka_backend"
+
 echo -e "\033[0;32m///////////////////////////////////////////////////"
 echo "number of processor threads -> $(nproc)"
 echo "number of parallel builds -> $PMACC_PARALLEL_BUILDS"
@@ -52,13 +103,11 @@ echo "cmake version   -> $(cmake --version | head -n 1)"
 echo "build directory -> $(pwd)"
 echo "CMAKE_ARGS      -> ${CMAKE_ARGS}"
 echo "accelerator     -> ${PIC_BACKEND}"
-echo "input set       -> ${PIC_TEST_CASE_FOLDER}"
 echo -e "/////////////////////////////////////////////////// \033[0m \n\n"
 
-if [ "$PIC_TEST_CASE_FOLDER" == "examples/" ] || [ "$PIC_TEST_CASE_FOLDER" == "tests/" ] ; then
-    extended_compile_options="-l"
-fi
+# disable warning if infiniband is not used
+export OMPI_MCA_btl_base_warn_component_unused=0
 
 cmake $CMAKE_ARGS $code_DIR/include/pmacc
-make -j $PMACC_PARALLEL_BUILDS
-make test
+make
+ctest -V

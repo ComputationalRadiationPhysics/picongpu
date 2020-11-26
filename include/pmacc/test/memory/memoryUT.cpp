@@ -19,15 +19,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pmacc/test/PMaccFixture.hpp"
+#include <pmacc/boost_workaround.hpp>
+#include <pmacc/test/PMaccFixture.hpp>
 
 // STL
 #include <stdint.h> /* uint8_t */
 #include <iostream> /* cout, endl */
 #include <string>
 
+#include <catch2/catch.hpp>
+
 // BOOST
-#include <boost/test/unit_test.hpp>
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/int.hpp>
@@ -99,14 +101,8 @@ using Dims = ::boost::mpl::list<boost::mpl::int_<DIM1>, boost::mpl::int_<DIM2>, 
  ******************************************************************************/
 using MyPMaccFixture = pmacc::test::PMaccFixture<TEST_DIM>;
 
-BOOST_GLOBAL_FIXTURE(MyPMaccFixture);
+static MyPMaccFixture fixture;
 
-BOOST_AUTO_TEST_SUITE(memory)
-
-BOOST_AUTO_TEST_SUITE(HostBufferIntern)
 #include "HostBufferIntern/copyFrom.hpp"
 #include "HostBufferIntern/reset.hpp"
 #include "HostBufferIntern/setValue.hpp"
-BOOST_AUTO_TEST_SUITE_END()
-
-BOOST_AUTO_TEST_SUITE_END()

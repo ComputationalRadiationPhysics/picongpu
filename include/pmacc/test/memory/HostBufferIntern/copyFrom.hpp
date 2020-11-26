@@ -70,7 +70,7 @@ namespace pmacc
 
                             for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i)
                             {
-                                BOOST_CHECK_EQUAL(hostBufferIntern->getPointer()[i], static_cast<Data>(i));
+                                REQUIRE(hostBufferIntern->getPointer()[i] == static_cast<Data>(i));
                             }
 
                             delete hostBufferIntern;
@@ -91,7 +91,7 @@ namespace pmacc
     } // namespace test
 } // namespace pmacc
 
-BOOST_AUTO_TEST_CASE(copyFrom)
+TEST_CASE("HostBufferIntern::copyFrom", "[copyFrom]")
 {
     using namespace pmacc::test::memory::HostBufferIntern;
     ::boost::mpl::for_each<Dims>(CopyFromTest());

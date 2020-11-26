@@ -19,19 +19,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pmacc/types.hpp"
-#include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
-#include "pmacc/random/RNGProvider.hpp"
-#include "pmacc/random/distributions/Uniform.hpp"
-#include "pmacc/random/methods/AlpakaRand.hpp"
-#include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/assert.hpp"
-#include "pmacc/mappings/threads/ForEachIdx.hpp"
-#include "pmacc/mappings/threads/IdxConfig.hpp"
-#include "pmacc/traits/GetNumWorkers.hpp"
-#include "pmacc/dataManagement/ISimulationData.hpp"
-#include "pmacc/Environment.hpp"
-#include "pmacc/eventSystem/tasks/ITask.hpp"
+#include <pmacc/boost_workaround.hpp>
+#include <pmacc/types.hpp>
+#include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
+#include <pmacc/random/RNGProvider.hpp>
+#include <pmacc/random/distributions/Uniform.hpp>
+#include <pmacc/random/methods/AlpakaRand.hpp>
+#include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/assert.hpp>
+#include <pmacc/mappings/threads/ForEachIdx.hpp>
+#include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/dataManagement/ISimulationData.hpp>
+#include <pmacc/Environment.hpp>
+#include <pmacc/eventSystem/tasks/ITask.hpp>
 
 #include <stdint.h>
 #include <iostream>
