@@ -18,7 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "picongpu/boost_workaround.hpp"
+#include <pmacc/boost_workaround.hpp>
 
 #include "picongpu/ArgsParser.hpp"
 #include <pmacc/Environment.hpp>
