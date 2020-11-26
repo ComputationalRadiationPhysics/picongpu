@@ -1,5 +1,5 @@
 FROM       nvidia/cuda:9.2-base
-MAINTAINER Axel Huebl <a.huebl@hzdr.de>
+LABEL      maintainer="Axel Huebl <a.huebl@hzdr.de>, Rene Widera <r.widera@hzdr.de>"
 
 # docker and image environment
 ENV        DEBIAN_FRONTEND=noninteractive \

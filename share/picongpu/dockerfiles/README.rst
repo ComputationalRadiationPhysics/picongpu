@@ -56,7 +56,7 @@ You can also push the result to dockerhub and singularity-hub (you need an accou
     cd ubuntu-1604
 
     # docker image
-    docker build -t ax3l/picongpu:0.5.0 .
+    docker build -t ax3l/picongpu:0.5.0
     # optional: push to dockerhub (needed for singularity bootstrap)
     docker login
     docker push ax3l/picongpu:0.5.0

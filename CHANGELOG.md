@@ -1,6 +1,288 @@
 Changelog
 =========
 
+0.5.0
+-----
+
+**Date:** 2020-06-03
+
+Perfectly Matched Layer (PML) and Bug Fixes
+
+This release adds a new field absorber for the Yee solver, convolutional
+perfectly matched layer (PML). Compared to the still supported exponential
+dampling absorber, PML provides better absorption rate and much less spurious
+reflections.
+
+We added new plugins for computing emittance and transition radiation, particle
+rendering with the ISAAC plugin, Python tools for reading and visualizing output
+of a few plugins.
+
+The release also adds a few quality-of-life features, including a new memory
+calculator, better command-line experience with new options and bashcompletion,
+improved error handling, cleanup of the example setups, and extensions to
+documentation.
+
+Thanks to Igor Andriyash, Sergei Bastrakov, Xeinia Bastrakova, Andrei Berceanu,
+Finn-Ole Carstens, Alexander Debus, Jian Fuh Ong, Marco Garten, Axel Huebl,
+Sophie Rudat (Koßagk), Anton Lebedev, Felix Meyer, Pawel Ordyna, Richard Pausch,
+Franz Pöschel, Adam Simpson, Sebastian Starke, Klaus Steiniger, René Widera
+for contributions to this release!
+
+### Changes to "0.4.0"
+
+**User Input Changes:**
+ - Particle pusher acceleration #2731
+ - stop moving window after N steps #2792
+ - Remove unused ABSORBER_FADE_IN_STEPS from .param files in examples #2942
+ - add namespace "radiation" around code related to radiation plugin #3004
+ - Add a runtime parameter for window move point #3022
+ - Ionization: add silicon to pre-defines #3078
+ - Make dependency between boundElectrons and atomicNumbers more explicit #3076
+ - openPMD: use particle id naming #3165
+ - Docs: update `species.param` #2793 #2795
+
+**New Features:**
+ - PIC:
+   - Particle pusher acceleration #2731
+   - Stop moving window after N steps #2792
+   - Auto domain adjustment #2840
+   - Add a wrapper around main() to catch and report exceptions #2962
+   - Absorber perfectly matched layer PML #2950 #2967
+   - Make dependency between boundElectrons and atomicNumbers more explicit #3076
+ - PMacc:
+   - `ExchangeTypeNames` Verify Parameter for Access #2926
+   - Name directions in species buffer warnings #2925
+   - Add an implementation of exp for pmacc vectors #2956
+   - SimulationFieldHelper: getter method to access cell description #2986
+ - plugins:
+   - PhaseSpaceData: allow multiple iterations #2754
+   - Python MPL Visualizer: plot for several simulations #2762
+   - Emittance Plugin #2588
+   - DataReader: Emittance & PlotMPL: Emittance, SliceEmittance, EnergyWaterfall #2737
+   - Isaac: updated for particle rendering #2940
+   - Resource Monitor Plugin: Warnings #3013
+   - Transition radiation plugin #3003
+   - Add output and python module doc for radiation plugin #3052
+   - Add reference to thesis for emittance plugin doc #3101
+   - Plugins: ADIOS & PhaseSpace Wterminate #2817
+   - Calorimeter Plugin: Document File Suffix #2800
+   - Fix returning a stringstream by value #3251
+ - tools:
+   - Support alpaka accelerator `threads` #2701
+   - Add getter for omega and n to python module #2776
+   - Python Tools: Incorporate sim_time into readers and visualizers #2779
+   - Add PIConGPU memory calculator #2806
+   - Python visualizers as jupyter widgets #2691
+   - pic-configure: add `--force/-f` option #2901
+   - Correct target thickness in memory calculator #2873
+   - CMake: Warning in 3.14+ Cache List #3008
+   - Add an option to account for PML in the memory calculator #3029
+   - Update profile hemera-hzdr: CMake version #3059
+   - Travis CI: OSX sed Support #3073
+   - CMake: mark cuda 10.2 as tested #3118
+   - Avoid bash completion file path repetition #3136
+   - Bashcompletion #3069
+   - Jupyter widgets output capture #3149
+   - Docs: Add ionization prediction plot #2870
+   - pic-edit: clean cmake file cache if new param added #2904
+   - CMake: Honor _ROOT Env Hints #2891
+   - Slurm: Link stdout live #2839
+
+**Bug Fixes:**
+ - PIC:
+   - fix EveryNthCellImpl #2768
+   - Split `ParserGridDistribution` into `hpp/cpp` file #2899
+   - Add missing inline qualifiers potentially causing multiple definitions #3006
+   - fix wrong used method prefix #3114
+   - fix wrong constructor call #3117
+   - Fix calculation of omega_p for logging #3163
+   - Fix laser bug in case focus position is at the init plane #2922
+   - Fix binomial current interpolation #2838
+   - Fix particle creation if density zero #2831
+   - Avoid two slides #2774
+   - Fix warning: comparison of unsigned integer #2987
+ - PMacc:
+   - Typo fix in Send/receive buffer warning #2924
+   - Explicitly specify template argument for std::forward #2902
+   - Fix signed int overflow in particle migration between supercells #2989
+   - Boost 1.67.0+ Template Aliases #2908
+   - Fix multiple definitions of PMacc identifiers and aliases #3036
+   - Fix a compilation issue with ForEach lookup #2985
+ - plugins:
+   - Fix misspelled words in plugin documentation #2705
+   - Fix particle merging #2753
+   - OpenMPI: Use ROMIO for IO #2857
+   - Radiation Plugin: fix bool conditions for hdf5 output #3021
+   - CMake Modules: Update ADIOS FindModule #3116
+   - ADIOS Particle Writer: Fix timeOffset #3120
+   - openPMD: use particle id naming #3165
+   - Include int16 and uint16 types as traits for ADIOS #2929
+   - Fix observation direction of transition radiation plugin #3091
+   - Fix doc transition radiation plugin #3089
+   - Fix doc rad plugin units and factors #3113
+   - Fix wrong underline in TransRad plugin doc #3102
+   - Fix docs for radiation in 2D #2772
+   - Fix radiation plugin misleading filename #3019
+ - tools:
+   - Update cuda_memtest: NVML Noise #2785
+   - Dockerfile: No SSH Deamon & Keys, Fix Flex Build #2970
+   - Fix hemera k80_restart.tpl #2938
+   - Templates/profile for hemera k20 queue #2935
+   - Splash2txt Build: Update deps #2914
+   - splash2txt: fix file name trimming #2913
+   - Fix compile splash2txt #2912
+   - Docker CUDA Image: Hwloc Default #2906
+   - Fix Python EnergyHistogramData: skip of first iteration #2799
+ - Spack: Fix Compiler Docs #2997
+ - Singularity: Workaround Chmod Issue, No UCX #3017
+ - Fix examples particle filters #3065
+ - Fix CUDA device selection #3084
+ - Fix 8.cfg for Bremsstrahlung example #3097
+ - Fix taurus profile #3152
+ - Fix a typo in density ratio value of the KHI example #3162
+ - Fix GCC constexpr lambda bug #3188
+ - CFL Static Assert: new grid.param #2804
+ - Fix missing exponent in fieldIonization.rst #2790
+ - Spack: Improve Bootstrap #2773
+ - Fix python requirements: remove sys and getopt #3172
+
+**Misc:**
+ - refactoring:
+   - PIC:
+     - Eliminate M_PI (again) #2833
+     - Fix MappingDesc name hiding  #2835
+     - More fixes for MSVC capturing constexpr in lambdas #2834
+     - Core Particles: C++11 Using for Typedef #2859
+     - Remove unused getCommTag() in FieldE, FieldB, FieldJ #2947
+     - Add a using declaration for Difference type to yee::Curl #2955
+     - Separate the code processing currents from MySimulation #2964
+     - Add DataConnector::consume(), which shares and consumes the input #2951
+     - Move picongpu/simulationControl to picongpu/simulation/control #2971
+     - Separate the code processing particles from MySimulation #2974
+     - Refactor cell types #2972
+     - Rename `compileTime` into `meta` #2983
+     - Move fields/FieldManipulator to fields/absorber/ExponentialDamping #2995
+     - Add picongpu::particles::manipulate() as a high-level interface to particle manipulation #2993
+     - `particles::forEach` #2991
+     - Refactor and modernize implementation of fields #3005
+     - Modernize ArgsParser::ArgsErrorCode #3023
+     - Allow constructor for density free formular functor #3024
+     - Reduce PML memory consumption #3122
+     - Bremsstrahlung: use more constexpr #3176
+     - Pass mapping description by value instead of pointer from simulation stages #3014
+     - Add missing inline specifiers for functions defined in header files #3051
+     - Remove ZigZag current deposition  #2837
+     - Fix style issues with particlePusherAcceleration #2781
+   - PMacc:
+     - Supercell particle counter #2637
+     - ForEachIdx::operator(): Use Universal Reference #2881
+     - Remove duplicated definition of `BOOST_MPL_LIMIT_VECTOR_SIZE` #2883
+     - Cleanup `pmacc/types.hpp` #2927
+     - Add pmacc::memory::makeUnique similar to std::make_unique #2949
+     - PMacc Vector: C++11 Using #2957
+     - Remove pmacc::forward and pmacc::RefWrapper #2963
+     - Add const getters to ParticleBox #2941
+     - Remove unused pmacc::traits::GetEmptyDefaultConstructibleType #2976
+     - Remove pmacc::traits::IsSameType which is no longer used #2979
+     - Remove template parameter for initialization method of Pointer and FramePointer #2977
+     - Remove pmacc::expressions which is no longer used #2978
+     - Remove unused pmacc::IDataSorter #3030
+     - Change PMACC_C_STRING to produce a static constexpr member #3050
+     - Refactor internals of pmacc::traits::GetUniqueTypeId #3049
+     - rename "counterParticles" to "numParticles" #3062
+     - Make pmacc::DataSpace conversions explicit #3124
+   - plugins:
+     - Small update for python visualizers #2882
+     - Add namespace "radiation" around code related to radiation plugin #3004
+     - Remove unused includes of pthread #3040
+     - SpeciesEligibleForSolver for radiation plugin #3061
+     - ADIOS: Avoid unsafe temporary strings #2946
+   - tools:
+     - Update cuda_memtest: CMake CUDA_ROOT Env #2892
+     - Update hemera tpl after SLURM update  #3123
+   - Add pillow as dependency #3180
+   - Params: remove `boost::vector<>` usage #2769
+   - Use _X syntax in OnceIonized manipulator #2745
+   - Add missing const to some GridController getters #3154
+ - documentation:
+   - Containers: Update 0.4.0 #2750
+   - Merge 0.4.0 Changelog #2748
+   - Update Readme & License: People #2749
+   - Add .zenodo.json #2747
+   - Fix species.param docu (in all examples too) #2795
+   - Fix species.param example doc and grammar #2793
+   - Further improve wording in docs #2710
+   - MemoryCalculator: fix example output for documentation #2822
+   - Manual: Plugin & Particle Sections, Map #2820
+   - System: D.A.V.I.D.E #2821
+   - License Header: Update 2019 #2845
+   - Docs: Memory per Device Spelling #2868
+   - CMake 3.11.0+ #2959
+   - CUDA 9.0+, GCC 5.1+, Boost 1.65.1+ #2961
+   - CMake: CUDA 9.0+ #2965
+   - Docs: Update Sphinx #2969
+   - CMake: CUDA 9.2-10.1, Boost <= 1.70.0 #2975
+   - Badge: Commits Since Release & Good First #2980
+   - Update info on maintainers in README.md #2984
+   - Fix grammar in all `.profile.example` #2930
+   - Docs: Dr.s #3009
+   - Fix old file name in radiation doc #3018
+   - System: ARIS #3039
+   - fix typo in getNode and getDevice #3046
+   - Window move point clean up #3045
+   - Docs: Cori's KNL Nodes (NERSC) #3043
+   - Fix various sphinx issues not related to doxygen #3056
+   - Extend the particle merger plugin documentation #3057
+   - Fix docs using outdated ManipulateDeriveSpecies #3068
+   - Adjust cores per gpu on taurus after multicore update #3071
+   - Docs: create conda env for building docs #3074
+   - Docs: add missing checkpoint options #3080
+   - Remove titan ornl setup and doc #3086
+   - Summit: Profile & Templates #3007
+   - Update URL to ADIOS #3099
+   - License Header: Update 2020 #3138
+   - Add PhD thesis reference in radiation plugin #3151
+   - Spack: w/o Modules by Default #3182
+   - Add a brief description of simulation output to basics #3183
+   - Fix a typo in exchange communication tag status output #3141
+   - Add a link to PoGit to the docs #3115
+   - fix optional install instructions in the Summit profile #3094
+   - Update the form factor documentation #3083
+   - Docs: Add New References #3072
+   - Add information about submit.cfg and submit.tpl files to docs. #3070
+   - Fix style (underline length) in profile.rst #2936
+   - Profiles: Section Title Length #2934
+   - Contributor name typo in LICENSE.md #2880
+   - Update modules and memory in gpu_picongpu.profile #2923
+   - Add k80_picongpu.profile and k80.tpl #2919
+   - Update taurus-tud profiles for the `ml` partition #2903
+   - Hypnos: CMake 3.13.4 #2887
+   - Docs: Install Blosc #2829
+   - Docs: Source Intro Details #2828
+   - Taurus Profile: Project #2819
+   - Doc: Add System Links #2818
+   - remove grep file redirect #2788
+   - Correct jupyter widget example #3191
+   - fix typo: `UNIT_LENGHT` to `UNIT_LENGTH` #3194
+   - Change link to CRP group @ HZDR #2814
+ - Examples: Unify .cfg #2826
+ - Remove unused ABSORBER_FADE_IN_STEPS from .param files in examples #2942
+ - Field absorber test example #2948
+ - Singularity: Avoid Dotfiles in Home #2981
+ - Boost: No std::auto_ptr #3012
+ - Add YeePML to comments for field solver selection #3042
+ - Add a runtime parameter for window move point #3022
+ - Ionization: add silicon to pre-defines #3078
+ - Add 1.cfg to Bremsstrahlung example #3098
+ - Fix cmake flags for MSVS #3126
+ - Fix missing override flags #3156
+ - Fix warning #222-D: floating-point operation result is out of range #3170
+ - Update alpaka to 0.4.0 and cupla to 0.2.0 #3175
+ - Slurm update taurus: workdir to chdir #3181
+ - Adjust profiles for taurus-tud #2990
+ - Update mallocMC to 2.3.1crp #2893
+ - Change imread import from scipy.misc to imageio #3192
+
 0.4.3
 -----
 
