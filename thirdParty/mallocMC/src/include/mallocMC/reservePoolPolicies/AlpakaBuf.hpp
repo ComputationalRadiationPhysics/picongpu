@@ -39,15 +39,14 @@ namespace mallocMC
         struct AlpakaBuf
         {
             template<typename AlpakaDev>
-            auto setMemPool(const AlpakaDev & dev, size_t memsize) -> void *
+            auto setMemPool(const AlpakaDev& dev, size_t memsize) -> void*
             {
-                poolBuffer = std::make_unique<PoolBufferType>(
-                    alpaka::mem::buf::alloc<unsigned char, size_t>(
-                        dev, memsize));
-                return alpaka::mem::view::getPtrNative(*poolBuffer);
+                poolBuffer
+                    = std::make_unique<PoolBufferType>(alpaka::allocBuf<unsigned char, size_t>(dev, memsize));
+                return alpaka::getPtrNative(*poolBuffer);
             }
 
-            void resetMemPool(void * p)
+            void resetMemPool(void* p)
             {
                 poolBuffer = {};
             }
@@ -58,13 +57,9 @@ namespace mallocMC
             }
 
         private:
-            using PoolBufferType = alpaka::mem::buf::Buf<
-                alpaka::dev::Dev<AlpakaAcc>,
-                unsigned char,
-                alpaka::dim::DimInt<1>,
-                size_t>;
-            std::unique_ptr<PoolBufferType>
-                poolBuffer; // FIXME(bgruber): replace by std::optional<>
+            using PoolBufferType
+                = alpaka::Buf<alpaka::Dev<AlpakaAcc>, unsigned char, alpaka::DimInt<1>, size_t>;
+            std::unique_ptr<PoolBufferType> poolBuffer; // FIXME(bgruber): replace by std::optional<>
         };
     } // namespace ReservePoolPolicies
 } // namespace mallocMC

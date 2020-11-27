@@ -88,13 +88,14 @@ namespace mallocMC
             using Properties = T_Config;
 
             template<typename AlpakaAcc>
-            ALPAKA_FN_ACC XMallocSIMD(const AlpakaAcc & acc) :
-                    can_use_coalescing(false),
-                    warpid(warpid_withinblock(acc)),
-                    myoffset(0),
-                    threadcount(0),
-                    req_size(0)
-            {}
+            ALPAKA_FN_ACC XMallocSIMD(const AlpakaAcc& acc)
+                : can_use_coalescing(false)
+                , warpid(warpid_withinblock(acc))
+                , myoffset(0)
+                , threadcount(0)
+                , req_size(0)
+            {
+            }
 
         private:
 /** Allow for a hierarchical validation of parameters:
@@ -107,7 +108,7 @@ namespace mallocMC
  * default-struct < template-struct < command-line parameter
  */
 #ifndef MALLOCMC_DP_XMALLOCSIMD_PAGESIZE
-#define MALLOCMC_DP_XMALLOCSIMD_PAGESIZE (Properties::pagesize)
+#    define MALLOCMC_DP_XMALLOCSIMD_PAGESIZE (Properties::pagesize)
 #endif
             static constexpr uint32 pagesize = MALLOCMC_DP_XMALLOCSIMD_PAGESIZE;
 
@@ -115,17 +116,16 @@ namespace mallocMC
             static constexpr uint32 _pagesize = pagesize;
 
             template<typename AlpakaAcc>
-            ALPAKA_FN_ACC auto collect(const AlpakaAcc & acc, uint32 bytes)
-                -> uint32
+            ALPAKA_FN_ACC auto collect(const AlpakaAcc& acc, uint32 bytes) -> uint32
             {
                 can_use_coalescing = false;
                 myoffset = 0;
                 threadcount = 0;
 
                 // init with initial counter
-                auto & warp_sizecounter = alpaka::block::shared::st::allocVar<
-                    std::uint32_t[maxThreadsPerBlock / warpSize],
-                    __COUNTER__>(acc);
+                auto& warp_sizecounter
+                    = alpaka::declareSharedVar<std::uint32_t[maxThreadsPerBlock / warpSize], __COUNTER__>(
+                        acc);
                 warp_sizecounter[warpid] = 16;
 
                 // second half: make sure that all coalesced allocations can fit
@@ -140,8 +140,7 @@ namespace mallocMC
                 if(coalescible && threadcount > 1)
                 {
                     myoffset
-                        = alpaka::atomic::atomicOp<alpaka::atomic::op::Add>(
-                            acc, &warp_sizecounter[warpid], bytes);
+                        = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &warp_sizecounter[warpid], bytes);
                     can_use_coalescing = true;
                 }
 
@@ -153,24 +152,22 @@ namespace mallocMC
             }
 
             template<typename AlpakaAcc>
-            ALPAKA_FN_ACC auto
-            distribute(const AlpakaAcc & acc, void * allocatedMem) -> void *
+            ALPAKA_FN_ACC auto distribute(const AlpakaAcc& acc, void* allocatedMem) -> void*
             {
-                auto & warp_res = alpaka::block::shared::st::allocVar<
-                    char * [maxThreadsPerBlock / warpSize],
-                    __COUNTER__>(acc);
+                auto& warp_res
+                    = alpaka::declareSharedVar<char * [maxThreadsPerBlock / warpSize], __COUNTER__>(acc);
 
-                char * myalloc = (char *)allocatedMem;
+                char* myalloc = (char*) allocatedMem;
                 if(req_size && can_use_coalescing)
                 {
                     warp_res[warpid] = myalloc;
                     if(myalloc != 0)
-                        *(uint32 *)myalloc = threadcount;
+                        *(uint32*) myalloc = threadcount;
                 }
 
                 threadfenceBlock(acc);
 
-                void * myres = myalloc;
+                void* myres = myalloc;
                 if(can_use_coalescing)
                 {
                     if(warp_res[warpid] != 0)
