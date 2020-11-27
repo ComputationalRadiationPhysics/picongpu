@@ -49,6 +49,7 @@ Individual chapters are based on the information of the chapters before.
 
    advanced/rationale.rst
    advanced/mapping.rst
+   advanced/cmake.rst
 
 .. toctree::
    :caption: Extra Info

@@ -9,13 +9,10 @@
 
 #pragma once
 
-#include <alpaka/queue/QueueGenericThreadsNonBlocking.hpp>
 #include <alpaka/event/EventCpu.hpp>
+#include <alpaka/queue/QueueGenericThreadsNonBlocking.hpp>
 
 namespace alpaka
 {
-    namespace queue
-    {
-        using QueueCpuNonBlocking = QueueGenericThreadsNonBlocking<dev::DevCpu>;
-    }
+    using QueueCpuNonBlocking = QueueGenericThreadsNonBlocking<DevCpu>;
 }

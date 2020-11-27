@@ -12,7 +12,7 @@
 #include <boost/predef/version_number.h>
 
 #define ALPAKA_VERSION_MAJOR 0
-#define ALPAKA_VERSION_MINOR 5
+#define ALPAKA_VERSION_MINOR 6
 #define ALPAKA_VERSION_PATCH 0
 
 //! The alpaka library version number

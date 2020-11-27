@@ -18,19 +18,17 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathAtan2{};
+        struct ConceptMathAtan2
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The atan2 trait.
-            template<
-                typename T,
-                typename Ty,
-                typename Tx,
-                typename TSfinae = void>
+            template<typename T, typename Ty, typename Tx, typename TSfinae = void>
             struct Atan2;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the arc tangent of y/x using the signs of arguments to determine the correct quadrant.
@@ -42,25 +40,11 @@ namespace alpaka
         //! \param y The y arg.
         //! \param x The x arg.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename Ty,
-            typename Tx>
-        ALPAKA_FN_HOST_ACC auto atan2(
-            T const & atan2_ctx,
-            Ty const & y,
-            Tx const & x)
+        template<typename T, typename Ty, typename Tx>
+        ALPAKA_FN_HOST_ACC auto atan2(T const& atan2_ctx, Ty const& y, Tx const& x)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathAtan2, T>;
-            return
-                traits::Atan2<
-                    ImplementationBase,
-                    Ty,
-                    Tx>
-                ::atan2(
-                    atan2_ctx,
-                    y,
-                    x);
+            return traits::Atan2<ImplementationBase, Ty, Tx>::atan2(atan2_ctx, y, x);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

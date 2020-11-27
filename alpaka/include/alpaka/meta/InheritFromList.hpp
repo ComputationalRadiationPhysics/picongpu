@@ -13,20 +13,12 @@ namespace alpaka
 {
     namespace meta
     {
-        template<
-            typename TBaseList
-        >
+        template<typename TBaseList>
         class InheritFromList;
 
-        template<
-            template<typename...> class TList,
-            typename... TBases
-        >
-        class InheritFromList<
-            TList<TBases...>
-        >
-            : public TBases...
+        template<template<typename...> class TList, typename... TBases>
+        class InheritFromList<TList<TBases...>> : public TBases...
         {
         };
-    }
-}
+    } // namespace meta
+} // namespace alpaka

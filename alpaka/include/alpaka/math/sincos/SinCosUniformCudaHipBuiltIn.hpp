@@ -11,37 +11,36 @@
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-#include <alpaka/core/BoostPredef.hpp>
+#    include <alpaka/core/BoostPredef.hpp>
 
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-    #include <cuda_runtime.h>
-    #if !BOOST_LANG_CUDA
-        #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-    #endif
-#endif
+#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+#        include <cuda_runtime.h>
+#        if !BOOST_LANG_CUDA
+#            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
+#        endif
+#    endif
 
-#if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+#    if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-    #if BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(9, 0, 0)
-        #include <cuda_runtime_api.h>
-    #else
-        #if BOOST_COMP_HIP
-            #include <hip/math_functions.h>
-        #else
-            #include <math_functions.hpp>
-        #endif
-    #endif
-    
-    #if !BOOST_LANG_HIP
-        #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-    #endif
-#endif
+#        if BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(9, 0, 0)
+#            include <cuda_runtime_api.h>
+#        else
+#            if BOOST_COMP_HIP
+#                include <hip/math_functions.h>
+#            else
+#                include <math_functions.hpp>
+#            endif
+#        endif
 
-#include <alpaka/math/sincos/Traits.hpp>
+#        if !BOOST_LANG_HIP
+#            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
+#        endif
+#    endif
 
-#include <alpaka/core/Unused.hpp>
+#    include <alpaka/core/Unused.hpp>
+#    include <alpaka/math/sincos/Traits.hpp>
 
-#include <type_traits>
+#    include <type_traits>
 
 namespace alpaka
 {
@@ -59,16 +58,13 @@ namespace alpaka
 
             //! sincos trait specialization.
             template<>
-            struct SinCos<
-                SinCosUniformCudaHipBuiltIn,
-                double>
+            struct SinCos<SinCosUniformCudaHipBuiltIn, double>
             {
                 __device__ static auto sincos(
-                    SinCosUniformCudaHipBuiltIn const & sincos_ctx,
-                    double const & arg,
-                    double & result_sin,
-                    double & result_cos)
-                -> void
+                    SinCosUniformCudaHipBuiltIn const& sincos_ctx,
+                    double const& arg,
+                    double& result_sin,
+                    double& result_cos) -> void
                 {
                     alpaka::ignore_unused(sincos_ctx);
                     ::sincos(arg, &result_sin, &result_cos);
@@ -77,24 +73,21 @@ namespace alpaka
 
             //! The CUDA sin float specialization.
             template<>
-            struct SinCos<
-                SinCosUniformCudaHipBuiltIn,
-                float>
+            struct SinCos<SinCosUniformCudaHipBuiltIn, float>
             {
                 __device__ static auto sincos(
-                    SinCosUniformCudaHipBuiltIn const & sincos_ctx,
-                    float const & arg,
-                    float & result_sin,
-                    float & result_cos)
-                -> void
+                    SinCosUniformCudaHipBuiltIn const& sincos_ctx,
+                    float const& arg,
+                    float& result_sin,
+                    float& result_cos) -> void
                 {
                     alpaka::ignore_unused(sincos_ctx);
                     ::sincosf(arg, &result_sin, &result_cos);
                 }
             };
 
-        }
-    }
-}
+        } // namespace traits
+    } // namespace math
+} // namespace alpaka
 
 #endif

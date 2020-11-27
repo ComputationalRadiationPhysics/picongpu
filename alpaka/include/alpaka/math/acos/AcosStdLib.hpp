@@ -9,12 +9,11 @@
 
 #pragma once
 
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/math/acos/Traits.hpp>
 
-#include <alpaka/core/Unused.hpp>
-
-#include <type_traits>
 #include <cmath>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -30,22 +29,15 @@ namespace alpaka
         {
             //#############################################################################
             //! The standard library acos trait specialization.
-            template<
-                typename TArg>
-            struct Acos<
-                AcosStdLib,
-                TArg,
-                std::enable_if_t<
-                    std::is_arithmetic<TArg>::value>>
+            template<typename TArg>
+            struct Acos<AcosStdLib, TArg, std::enable_if_t<std::is_arithmetic<TArg>::value>>
             {
-                ALPAKA_FN_HOST static auto acos(
-                    AcosStdLib const & acos_ctx,
-                    TArg const & arg)
+                ALPAKA_FN_HOST static auto acos(AcosStdLib const& acos_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(acos_ctx);
                     return std::acos(arg);
                 }
             };
-        }
-    }
-}
+        } // namespace traits
+    } // namespace math
+} // namespace alpaka

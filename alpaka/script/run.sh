@@ -33,6 +33,13 @@ then
     then
         LD_LIBRARY_PATH=
     fi
+    if [ "${CXX}" = "clang++" ]
+    then
+        if [ "${ALPAKA_CI_CLANG_VER}" -ge "10" ]
+        then
+            export LD_LIBRARY_PATH="/usr/lib/llvm-${ALPAKA_CI_CLANG_VER}/lib/:${LD_LIBRARY_PATH}"
+        fi
+    fi
 fi
 
 # CMake
@@ -45,7 +52,6 @@ cmake --version
 #TBB
 if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
-    #ALPAKA_TBB_BIN_DIR="${TBB_ROOT}/bin/ia32/vc14"
     ALPAKA_TBB_BIN_DIR="${TBB_ROOT}/bin/intel64/vc14"
     export PATH=${PATH}:"${ALPAKA_TBB_BIN_DIR}"
 fi
@@ -87,6 +93,7 @@ then
     export PATH=${HIP_PATH}/bin:$PATH
     export LD_LIBRARY_PATH=${HIP_PATH}/lib64:${HIP_PATH}/hiprand/lib:${LD_LIBRARY_PATH}
     export CMAKE_PREFIX_PATH=${HIP_PATH}:${HIP_PATH}/hiprand:${CMAKE_PREFIX_PATH:-}
+    export CMAKE_MODULE_PATH=${HIP_PATH}/hip/cmake
     # calls nvcc or clang
     which hipcc
     hipcc --version

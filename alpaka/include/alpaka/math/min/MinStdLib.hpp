@@ -9,13 +9,12 @@
 
 #pragma once
 
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/math/min/Traits.hpp>
 
-#include <alpaka/core/Unused.hpp>
-
-#include <type_traits>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -31,21 +30,10 @@ namespace alpaka
         {
             //#############################################################################
             //! The standard library integral min trait specialization.
-            template<
-                typename Tx,
-                typename Ty>
-            struct Min<
-                MinStdLib,
-                Tx,
-                Ty,
-                std::enable_if_t<
-                    std::is_integral<Tx>::value
-                    && std::is_integral<Ty>::value>>
+            template<typename Tx, typename Ty>
+            struct Min<MinStdLib, Tx, Ty, std::enable_if_t<std::is_integral<Tx>::value && std::is_integral<Ty>::value>>
             {
-                ALPAKA_FN_HOST static auto min(
-                    MinStdLib const & min_ctx,
-                    Tx const & x,
-                    Ty const & y)
+                ALPAKA_FN_HOST static auto min(MinStdLib const& min_ctx, Tx const& x, Ty const& y)
                 {
                     alpaka::ignore_unused(min_ctx);
                     return std::min(x, y);
@@ -53,28 +41,21 @@ namespace alpaka
             };
             //#############################################################################
             //! The standard library mixed integral floating point min trait specialization.
-            template<
-                typename Tx,
-                typename Ty>
+            template<typename Tx, typename Ty>
             struct Min<
                 MinStdLib,
                 Tx,
                 Ty,
                 std::enable_if_t<
-                    std::is_arithmetic<Tx>::value
-                    && std::is_arithmetic<Ty>::value
-                    && !(std::is_integral<Tx>::value
-                        && std::is_integral<Ty>::value)>>
+                    std::is_arithmetic<Tx>::value && std::is_arithmetic<Ty>::value
+                    && !(std::is_integral<Tx>::value && std::is_integral<Ty>::value)>>
             {
-                ALPAKA_FN_HOST static auto min(
-                    MinStdLib const & min_ctx,
-                    Tx const & x,
-                    Ty const & y)
+                ALPAKA_FN_HOST static auto min(MinStdLib const& min_ctx, Tx const& x, Ty const& y)
                 {
                     alpaka::ignore_unused(min_ctx);
                     return std::fmin(x, y);
                 }
             };
-        }
-    }
-}
+        } // namespace traits
+    } // namespace math
+} // namespace alpaka

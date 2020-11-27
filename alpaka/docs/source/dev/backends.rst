@@ -26,7 +26,7 @@ The table shows which native implementation or information is used to represent 
     +---------------------------------------------------------------+-----------------------------------------------+---------------------------------------------------------------------------------+--------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------+
     | getExtent                                                     | member variables                              | member variables                                                                | member variables                                                               | member variables                                                                    | member variables                                                                                                                      | gridDim, blockDim                                |
     +---------------------------------------------------------------+-----------------------------------------------+---------------------------------------------------------------------------------+--------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------+
-    | getBlockSharedExternMem                                       | allocated in memory prior to kernel execution | allocated in memory prior to kernel execution                                   | allocated in memory prior to kernel execution                                  | allocated in memory prior to kernel execution                                       | allocated in memory prior to kernel execution                                                                                         | __shared__                                       |
+    | getBlockSharedMemDynSizeBytes                                 | allocated in memory prior to kernel execution | allocated in memory prior to kernel execution                                   | allocated in memory prior to kernel execution                                  | allocated in memory prior to kernel execution                                       | allocated in memory prior to kernel execution                                                                                         | __shared__                                       |
     +---------------------------------------------------------------+-----------------------------------------------+---------------------------------------------------------------------------------+--------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------+
     | allocBlockSharedMem                                           | master thread allocates                       | syncBlockKernels -> master thread allocates -> syncBlockKernels                 | syncBlockKernels -> master thread allocates -> syncBlockKernels                | syncBlockKernels -> master thread allocates -> syncBlockKernels                     | syncBlockKernels -> master thread allocates -> syncBlockKernels                                                                       | __shared__                                       |
     +---------------------------------------------------------------+-----------------------------------------------+---------------------------------------------------------------------------------+--------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------+
@@ -132,14 +132,14 @@ Programming Interface
    +-----------------------------------------------------+----------------------------------------------------------------------------+
    | CUDA                                                | alpaka                                                                     |
    +=====================================================+============================================================================+
-   | ``__shared__``                                      | ``alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc)``   |
+   | ``__shared__``                                      | ``alpaka::declareSharedVar<std::uint32_t, __COUNTER__>(acc)``              |
    +-----------------------------------------------------+----------------------------------------------------------------------------+
    | ``__constant__``                                    | ``ALPAKA_STATIC_ACC_MEM_CONSTANT``                                         |
    +-----------------------------------------------------+----------------------------------------------------------------------------+
    | ``__device__``                                      | ``ALPAKA_STATIC_ACC_MEM_GLOBAL``                                           |
    +-----------------------------------------------------+----------------------------------------------------------------------------+
 
-.. doxygenfunction:: alpaka::block::shared::st::allocVar
+.. doxygenfunction:: alpaka::declareSharedVar
    :project: alpaka
 
 .. doxygendefine:: ALPAKA_STATIC_ACC_MEM_CONSTANT
@@ -155,13 +155,13 @@ Programming Interface
     +---------------------------------+----------------------------------------------------------------------------------+
     | CUDA                            | alpaka                                                                           |
     +=================================+==================================================================================+
-    | ``threadIdx``                   | ``alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc)``                     |
+    | ``threadIdx``                   | ``alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc)``                          |
     +---------------------------------+----------------------------------------------------------------------------------+
-    | ``blockIdx``                    | ``alpaka::idx::getIdx<alpaka::Grid, alpaka::Blocks>(acc)``                       |
+    | ``blockIdx``                    | ``alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc)``                            |
     +---------------------------------+----------------------------------------------------------------------------------+
-    | ``blockDim``                    | ``alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(acc)``             |
+    | ``blockDim``                    | ``alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc)``                      |
     +---------------------------------+----------------------------------------------------------------------------------+
-    | ``gridDim``                     | ``alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc)``               |
+    | ``gridDim``                     | ``alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc)``                        |
     +---------------------------------+----------------------------------------------------------------------------------+
     | ``warpSize``                    | ``alpaka::warp::getSize(acc)``                                                   |
     +---------------------------------+----------------------------------------------------------------------------------+
@@ -173,7 +173,7 @@ Programming Interface
     +----------+-------------------------------------+
     | CUDA     | alpaka                              |
     +==========+=====================================+
-    | ``dim3`` | ``alpaka::vec::Vec< TDim, TVal >``  |
+    | ``dim3`` | ``alpaka::Vec< TDim, TVal >``  |
     +----------+-------------------------------------+
 
 
@@ -208,7 +208,7 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +---------------------------------+-----------------------------------------------------------------------+
     | cudaDeviceGetQueuePriorityRange | --                                                                    |
     +---------------------------------+-----------------------------------------------------------------------+
-    | cudaDeviceReset                 | alpaka::dev::reset(device)                                            |
+    | cudaDeviceReset                 | alpaka::reset(device)                                                 |
     +---------------------------------+-----------------------------------------------------------------------+
     | cudaDeviceSetCacheConfig        | --                                                                    |
     +---------------------------------+-----------------------------------------------------------------------+
@@ -216,15 +216,15 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +---------------------------------+-----------------------------------------------------------------------+
     | cudaDeviceSetSharedMemConfig    | --                                                                    |
     +---------------------------------+-----------------------------------------------------------------------+
-    | cudaDeviceSynchronize           | void alpaka::wait::wait(device)                                       |
+    | cudaDeviceSynchronize           | void alpaka::wait(device)                                             |
     +---------------------------------+-----------------------------------------------------------------------+
     | cudaGetDevice                   | n/a (no current device)                                               |
     +---------------------------------+-----------------------------------------------------------------------+
-    | cudaGetDeviceCount              | std::sizet alpaka::pltf::getDevCount< TPltf >()                       |
+    | cudaGetDeviceCount              | std::sizet alpaka::getDevCount< TPltf >()                             |
     +---------------------------------+-----------------------------------------------------------------------+
     | cudaGetDeviceFlags              | --                                                                    |
     +---------------------------------+-----------------------------------------------------------------------+
-    | cudaGetDeviceProperties         | alpaka::acc::getAccDevProps(dev) (Only some properties available)     |
+    | cudaGetDeviceProperties         | alpaka::getAccDevProps(dev) (Only some properties available)          |
     +---------------------------------+-----------------------------------------------------------------------+
     | cudaIpcCloseMemHandle           | --                                                                    |
     +---------------------------------+-----------------------------------------------------------------------+
@@ -268,12 +268,12 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +------------------------------+---------------------------------------------------------+
     | CUDA                         | alpaka                                                  |
     +==============================+=========================================================+
-    | cudaStreamAddCallback        | alpaka::queue::enqueue(queue, [](){dosomething();})     |
+    | cudaStreamAddCallback        | alpaka::enqueue(queue, [](){dosomething();})            |
     +------------------------------+---------------------------------------------------------+
     | cudaStreamAttachMemAsync     | --                                                      |
     +------------------------------+---------------------------------------------------------+
-    | cudaStreamCreate             | - queue=alpaka::queue::QueueCudaRtNonBlocking(device);  |
-    | \                            | - queue=alpaka::queue::QueueCudaRtBlocking(device);     |
+    | cudaStreamCreate             | - queue=alpaka::QueueCudaRtNonBlocking(device);         |
+    | \                            | - queue=alpaka::QueueCudaRtBlocking(device);            |
     +------------------------------+---------------------------------------------------------+
     | cudaStreamCreateWithFlags    | see cudaStreamCreate (cudaStreamNonBlocking hard coded) |
     +------------------------------+---------------------------------------------------------+
@@ -285,11 +285,11 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +------------------------------+---------------------------------------------------------+
     | cudaStreamGetPriority        | --                                                      |
     +------------------------------+---------------------------------------------------------+
-    | cudaStreamQuery              | bool alpaka::queue::empty(queue)                        |
+    | cudaStreamQuery              | bool alpaka::empty(queue)                               |
     +------------------------------+---------------------------------------------------------+
-    | cudaStreamSynchronize        | void alpaka::wait::wait(queue)                          |
+    | cudaStreamSynchronize        | void alpaka::wait(queue)                                |
     +------------------------------+---------------------------------------------------------+
-    | cudaStreamWaitEvent          | void alpaka::wait::wait(queue, event)                   |
+    | cudaStreamWaitEvent          | void alpaka::wait(queue, event)                         |
     +------------------------------+---------------------------------------------------------+
 
 *Event Management*
@@ -299,7 +299,7 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +--------------------------+--------------------------------------------+
     | CUDA                     | alpaka                                     |
     +==========================+============================================+
-    | cudaEventCreate          | alpaka::event::Event< TQueue > event(dev); |
+    | cudaEventCreate          | alpaka::Event< TQueue > event(dev);        |
     +--------------------------+--------------------------------------------+
     | cudaEventCreateWithFlags | --                                         |
     +--------------------------+--------------------------------------------+
@@ -307,11 +307,11 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +--------------------------+--------------------------------------------+
     | cudaEventElapsedTime     | --                                         |
     +--------------------------+--------------------------------------------+
-    | cudaEventQuery           | bool alpaka::event::test(event)            |
+    | cudaEventQuery           | bool alpaka::isComplete(event)             |
     +--------------------------+--------------------------------------------+
-    | cudaEventRecord          | void alpaka::queue::enqueue(queue, event)  |
+    | cudaEventRecord          | void alpaka::enqueue(queue, event)         |
     +--------------------------+--------------------------------------------+
-    | cudaEventSynchronize     | void alpaka::wait::wait(event)             |
+    | cudaEventSynchronize     | void alpaka::wait(event)                   |
     +--------------------------+--------------------------------------------+
 
 *Memory Management*
@@ -337,7 +337,7 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaGetSymbolSize          | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaHostAlloc              | n/a, the existing buffer can be pinned using alpaka::mem::buf::prepareForAsyncCopy(memBuf) |
+    | cudaHostAlloc              | n/a, the existing buffer can be pinned using alpaka::prepareForAsyncCopy(memBuf)           |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaHostGetDevicePointer   | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
@@ -347,26 +347,26 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaHostUnregister         | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMalloc                 | alpaka::mem::buf::alloc<TElement>(device, extents1D)                                       |
+    | cudaMalloc                 | alpaka::allocBuf<TElement>(device, extents1D)                                              |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMalloc3D               | alpaka::mem::buf::alloc<TElement>(device, extents3D)                                       |
+    | cudaMalloc3D               | alpaka::allocBuf<TElement>(device, extents3D)                                              |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMalloc3DArray          | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMallocArray            | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMallocHost             | alpaka::mem::buf::alloc<TElement>(device, extents) 1D, 2D, 3D suppoorted!                  |
+    | cudaMallocHost             | alpaka::allocBuf<TElement>(device, extents) 1D, 2D, 3D suppoorted!                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMallocManaged          | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMallocMipmappedArray   | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMallocPitch            | alpaka::mem::alloc<TElement>(device, extents2D)                                            |
+    | cudaMallocPitch            | alpaka::allocBuf<TElement>(device, extents2D)                                              |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemAdvise              | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemGetInfo             | - alpaka::dev::getMemBytes                                                                 |
-    |                            | - alpaka::dev::getFreeMemBytes                                                             |
+    | cudaMemGetInfo             | - alpaka::getMemBytes                                                                      |
+    |                            | - alpaka::getFreeMemBytes                                                                  |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemPrefetchAsync       | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
@@ -374,13 +374,13 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemRangeGetAttributes  | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy                 | alpaka::mem::view::copy(memBufDst, memBufSrc, extents1D)                                   |
+    | cudaMemcpy                 | alpaka::memcpy(memBufDst, memBufSrc, extents1D)                                            |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy2D               | alpaka::mem::view::copy(memBufDst, memBufSrc, extents2D)                                   |
+    | cudaMemcpy2D               | alpaka::memcpy(memBufDst, memBufSrc, extents2D)                                            |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpy2DArrayToArray   | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy2DAsync          | alpaka::mem::view::copy(memBufDst, memBufSrc, extents2D, queue)                            |
+    | cudaMemcpy2DAsync          | alpaka::memcpy(memBufDst, memBufSrc, extents2D, queue)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpy2DFromArray      | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
@@ -390,17 +390,17 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpy2DToArrayAsync   | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy3D               | alpaka::mem::view::copy(memBufDst, memBufSrc, extents3D)                                   |
+    | cudaMemcpy3D               | alpaka::memcpy(memBufDst, memBufSrc, extents3D)                                            |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy3DAsync          | alpaka::mem::view::copy(memBufDst, memBufSrc, extents3D, queue)                            |
+    | cudaMemcpy3DAsync          | alpaka::memcpy(memBufDst, memBufSrc, extents3D, queue)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy3DPeer           | alpaka::mem::view::copy(memBufDst, memBufSrc, extents3D)                                   |
+    | cudaMemcpy3DPeer           | alpaka::memcpy(memBufDst, memBufSrc, extents3D)                                            |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpy3DPeerAsync      | alpaka::mem::view::copy(memBufDst, memBufSrc, extents3D, queue)                            |
+    | cudaMemcpy3DPeerAsync      | alpaka::memcpy(memBufDst, memBufSrc, extents3D, queue)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpyArrayToArray     | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpyAsync            | alpaka::mem::view::copy(memBufDst, memBufSrc, extents1D, queue)                            |
+    | cudaMemcpyAsync            | alpaka::memcpy(memBufDst, memBufSrc, extents1D, queue)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpyFromArray        | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
@@ -410,9 +410,9 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpyFromSymbolAsync  | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpyPeer             | alpaka::mem::view::copy(memBufDst, memBufSrc, extents1D)                                   |
+    | cudaMemcpyPeer             | alpaka::memcpy(memBufDst, memBufSrc, extents1D)                                            |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemcpyPeerAsync        | alpaka::mem::view::copy(memBufDst, memBufSrc, extents1D, queue)                            |
+    | cudaMemcpyPeerAsync        | alpaka::memcpy(memBufDst, memBufSrc, extents1D, queue)                                     |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpyToArray          | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
@@ -422,17 +422,17 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------+
     | cudaMemcpyToSymbolAsync    | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemset                 | alpaka::mem::view::set(memBufDst, byte, extents1D)                                         |
+    | cudaMemset                 | alpaka::memset(memBufDst, byte, extents1D)                                                 |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemset2D               | alpaka::mem::view::set(memBufDst, byte, extents2D)                                         |
+    | cudaMemset2D               | alpaka::memset(memBufDst, byte, extents2D)                                                 |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemset2DAsync          | alpaka::mem::view::set(memBufDst, byte, extents2D, queue)                                  |
+    | cudaMemset2DAsync          | alpaka::memset(memBufDst, byte, extents2D, queue)                                          |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemset3D               | alpaka::mem::view::set(memBufDst, byte, extents3D)                                         |
+    | cudaMemset3D               | alpaka::memset(memBufDst, byte, extents3D)                                                 |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemset3DAsync          | alpaka::mem::view::set(memBufDst, byte, extents3D, queue)                                  |
+    | cudaMemset3DAsync          | alpaka::memset(memBufDst, byte, extents3D, queue)                                          |
     +----------------------------+--------------------------------------------------------------------------------------------+
-    | cudaMemsetAsync            | alpaka::mem::view::set(memBufDst, byte, extents1D, queue)                                  |
+    | cudaMemsetAsync            | alpaka::memset(memBufDst, byte, extents1D, queue)                                          |
     +----------------------------+--------------------------------------------------------------------------------------------+
     | makecudaExtent             | --                                                                                         |
     +----------------------------+--------------------------------------------------------------------------------------------+
@@ -459,8 +459,8 @@ The following tables list the functions available in the `CUDA Runtime API <http
     +----------------------------+--------------------------------------------------------------------------------------------------------------+
     | cudaFuncSetSharedMemConfig | --                                                                                                           |
     +----------------------------+--------------------------------------------------------------------------------------------------------------+
-    | cudaLaunchKernel           | - alpaka::kernel::exec<TAcc>(queue, workDiv, kernel, params...)                                              |
-    | \                          | - alpaka::kernel::BlockSharedExternMemSizeBytes< TKernel<TAcc> >::getBlockSharedExternMemSizeBytes<...>(...) |
+    | cudaLaunchKernel           | - alpaka::exec<TAcc>(queue, workDiv, kernel, params...)                                                      |
+    | \                          | - auto byteDynSharedMem = alpaka::getBlockSharedMemDynSizeBytes(kernel, ...)                                 |
     +----------------------------+--------------------------------------------------------------------------------------------------------------+
     | cudaSetDoubleForDevice     | n/a (alpaka assumes double support)                                                                          |
     +----------------------------+--------------------------------------------------------------------------------------------------------------+
@@ -546,7 +546,7 @@ Current Restrictions on HCC platform
 - Note that ``printf`` in kernels is still not supported in HIP
 - Exclude ``hipMalloc3D`` and ``hipMallocPitch`` when size is zero otherwise they throw an Unknown Error
 - ``TestAccs`` excludes 3D specialization of HIP back-end for now because ``verifyBytesSet`` fails in ``memView`` for 3D specialization
-- ``dim3`` structure is not available on device (use ``alpaka::vec::Vec`` instead)
+- ``dim3`` structure is not available on device (use ``alpaka::Vec`` instead)
 - Constructors' attributes unified with destructors'.
 
   - Host/device signature must match in HIP(HCC)

@@ -57,7 +57,7 @@ namespace detail
         TimePoint time;
 
     public:
-        using AlpakaEvent = ::alpaka::event::Event< T_QueueType >;
+        using AlpakaEvent = ::alpaka::Event< T_QueueType >;
         std::unique_ptr< AlpakaEvent > event;
 
         EmulatedEvent( uint32_t flags ) :
@@ -83,10 +83,10 @@ namespace detail
 
         void record( T_QueueType & stream )
         {
-            ::alpaka::queue::enqueue( stream, *event );
+            ::alpaka::enqueue( stream, *event );
             if( hasTimer )
             {
-                ::alpaka::wait::wait( *event );
+                ::alpaka::wait( *event );
                 time = std::chrono::high_resolution_clock::now();
             }
         }

@@ -9,86 +9,69 @@
 
 #pragma once
 
-#include <alpaka/pltf/Traits.hpp>
-#include <alpaka/dev/DevCpu.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/pltf/Traits.hpp>
 
 #include <sstream>
 #include <vector>
 
 namespace alpaka
 {
-    namespace pltf
+    //#############################################################################
+    //! The CPU device platform.
+    class PltfCpu : public concepts::Implements<ConceptPltf, PltfCpu>
+    {
+    public:
+        //-----------------------------------------------------------------------------
+        ALPAKA_FN_HOST PltfCpu() = delete;
+    };
+
+    namespace traits
     {
         //#############################################################################
-        //! The CPU device platform.
-        class PltfCpu :
-            public concepts::Implements<ConceptPltf, PltfCpu>
+        //! The CPU device device type trait specialization.
+        template<>
+        struct DevType<PltfCpu>
         {
-        public:
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST PltfCpu() = delete;
+            using type = DevCpu;
         };
-    }
 
-    namespace dev
-    {
-        namespace traits
+        //#############################################################################
+        //! The CPU platform device count get trait specialization.
+        template<>
+        struct GetDevCount<PltfCpu>
         {
-            //#############################################################################
-            //! The CPU device device type trait specialization.
-            template<>
-            struct DevType<
-                pltf::PltfCpu>
+            //-----------------------------------------------------------------------------
+            ALPAKA_FN_HOST static auto getDevCount() -> std::size_t
             {
-                using type = dev::DevCpu;
-            };
-        }
-    }
-    namespace pltf
-    {
-        namespace traits
+                ALPAKA_DEBUG_FULL_LOG_SCOPE;
+
+                return 1;
+            }
+        };
+
+        //#############################################################################
+        //! The CPU platform device get trait specialization.
+        template<>
+        struct GetDevByIdx<PltfCpu>
         {
-            //#############################################################################
-            //! The CPU platform device count get trait specialization.
-            template<>
-            struct GetDevCount<
-                pltf::PltfCpu>
+            //-----------------------------------------------------------------------------
+            ALPAKA_FN_HOST static auto getDevByIdx(std::size_t const& devIdx) -> DevCpu
             {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto getDevCount()
-                -> std::size_t
+                ALPAKA_DEBUG_FULL_LOG_SCOPE;
+
+                std::size_t const devCount(getDevCount<PltfCpu>());
+                if(devIdx >= devCount)
                 {
-                    ALPAKA_DEBUG_FULL_LOG_SCOPE;
-
-                    return 1;
+                    std::stringstream ssErr;
+                    ssErr << "Unable to return device handle for CPU device with index " << devIdx
+                          << " because there are only " << devCount << " devices!";
+                    throw std::runtime_error(ssErr.str());
                 }
-            };
 
-            //#############################################################################
-            //! The CPU platform device get trait specialization.
-            template<>
-            struct GetDevByIdx<
-                pltf::PltfCpu>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto getDevByIdx(
-                    std::size_t const & devIdx)
-                -> dev::DevCpu
-                {
-                    ALPAKA_DEBUG_FULL_LOG_SCOPE;
-
-                    std::size_t const devCount(pltf::getDevCount<pltf::PltfCpu>());
-                    if(devIdx >= devCount)
-                    {
-                        std::stringstream ssErr;
-                        ssErr << "Unable to return device handle for CPU device with index " << devIdx << " because there are only " << devCount << " devices!";
-                        throw std::runtime_error(ssErr.str());
-                    }
-
-                    return {};
-                }
-            };
-        }
-    }
-}
+                return {};
+            }
+        };
+    } // namespace traits
+} // namespace alpaka

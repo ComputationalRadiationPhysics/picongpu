@@ -11,37 +11,36 @@
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-#include <alpaka/core/BoostPredef.hpp>
+#    include <alpaka/core/BoostPredef.hpp>
 
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-    #include <cuda_runtime.h>
-    #if !BOOST_LANG_CUDA
-        #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-    #endif
-#endif
+#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+#        include <cuda_runtime.h>
+#        if !BOOST_LANG_CUDA
+#            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
+#        endif
+#    endif
 
-#if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+#    if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-    #if BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(9, 0, 0)
-        #include <cuda_runtime_api.h>
-    #else
-        #if BOOST_COMP_HIP
-            #include <hip/math_functions.h>
-        #else
-            #include <math_functions.hpp>
-        #endif
-    #endif
-    
-    #if !BOOST_LANG_HIP
-        #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-    #endif
-#endif
+#        if BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(9, 0, 0)
+#            include <cuda_runtime_api.h>
+#        else
+#            if BOOST_COMP_HIP
+#                include <hip/math_functions.h>
+#            else
+#                include <math_functions.hpp>
+#            endif
+#        endif
 
-#include <alpaka/math/asin/Traits.hpp>
+#        if !BOOST_LANG_HIP
+#            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
+#        endif
+#    endif
 
-#include <alpaka/core/Unused.hpp>
+#    include <alpaka/core/Unused.hpp>
+#    include <alpaka/math/asin/Traits.hpp>
 
-#include <type_traits>
+#    include <type_traits>
 
 namespace alpaka
 {
@@ -57,17 +56,10 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA asin trait specialization.
-            template<
-                typename TArg>
-            struct Asin<
-                AsinUniformCudaHipBuiltIn,
-                TArg,
-                std::enable_if_t<
-                    std::is_floating_point<TArg>::value>>
+            template<typename TArg>
+            struct Asin<AsinUniformCudaHipBuiltIn, TArg, std::enable_if_t<std::is_floating_point<TArg>::value>>
             {
-                __device__ static auto asin(
-                    AsinUniformCudaHipBuiltIn const & asin_ctx,
-                    TArg const & arg)
+                __device__ static auto asin(AsinUniformCudaHipBuiltIn const& asin_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(asin_ctx);
                     return ::asin(arg);
@@ -75,21 +67,16 @@ namespace alpaka
             };
 
             template<>
-            struct Asin<
-                AsinUniformCudaHipBuiltIn,
-                float>
+            struct Asin<AsinUniformCudaHipBuiltIn, float>
             {
-                __device__ static auto asin(
-                    AsinUniformCudaHipBuiltIn const & asin_ctx,
-                    float const & arg)
-                -> float
+                __device__ static auto asin(AsinUniformCudaHipBuiltIn const& asin_ctx, float const& arg) -> float
                 {
                     alpaka::ignore_unused(asin_ctx);
                     return ::asinf(arg);
                 }
             };
-        }
-    }
-}
+        } // namespace traits
+    } // namespace math
+} // namespace alpaka
 
 #endif

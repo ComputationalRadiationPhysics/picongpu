@@ -18,18 +18,17 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathCeil{};
+        struct ConceptMathCeil
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The ceil trait.
-            template<
-                typename T,
-                typename TArg,
-                typename TSfinae = void>
+            template<typename T, typename TArg, typename TSfinae = void>
             struct Ceil;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the smallest integer value not less than arg.
@@ -39,21 +38,11 @@ namespace alpaka
         //! \param ceil_ctx The object specializing Ceil.
         //! \param arg The arg.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename TArg>
-        ALPAKA_FN_HOST_ACC auto ceil(
-            T const & ceil_ctx,
-            TArg const & arg)
+        template<typename T, typename TArg>
+        ALPAKA_FN_HOST_ACC auto ceil(T const& ceil_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathCeil, T>;
-            return
-                traits::Ceil<
-                    ImplementationBase,
-                    TArg>
-                ::ceil(
-                    ceil_ctx,
-                    arg);
+            return traits::Ceil<ImplementationBase, TArg>::ceil(ceil_ctx, arg);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

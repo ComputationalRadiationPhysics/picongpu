@@ -14,22 +14,15 @@
 namespace alpaka
 {
     ALPAKA_NO_HOST_ACC_WARNING
-    template< typename... Ts >
-    ALPAKA_FN_INLINE
-    constexpr
-    ALPAKA_FN_HOST_ACC
-    void
-    ignore_unused( Ts const& ... )
-    {}
+    template<typename... Ts>
+    ALPAKA_FN_INLINE constexpr ALPAKA_FN_HOST_ACC void ignore_unused(Ts const&...)
+    {
+    }
 
     ALPAKA_NO_HOST_ACC_WARNING
-    template< typename... Ts >
-    ALPAKA_FN_INLINE
-    constexpr
-    ALPAKA_FN_HOST_ACC
-    void
-    ignore_unused()
-    {}
+    template<typename... Ts>
+    ALPAKA_FN_INLINE constexpr ALPAKA_FN_HOST_ACC void ignore_unused()
+    {
+    }
 
 } // namespace alpaka
-

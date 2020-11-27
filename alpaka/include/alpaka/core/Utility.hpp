@@ -11,9 +11,9 @@
 #include <alpaka/core/Common.hpp>
 
 #if BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA || BOOST_COMP_HIP
-#   include <type_traits>
+#    include <type_traits>
 #else
-#   include <utility>
+#    include <utility>
 #endif
 
 namespace alpaka
@@ -28,12 +28,10 @@ namespace alpaka
         // This function can be used only within std::decltype().
         //-----------------------------------------------------------------------------
 #if BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA || BOOST_COMP_HIP
-        template< class T >
-        ALPAKA_FN_HOST_ACC
-        std::add_rvalue_reference_t<T>
-        declval();
+        template<class T>
+        ALPAKA_FN_HOST_ACC std::add_rvalue_reference_t<T> declval();
 #else
         using std::declval;
 #endif
-    }
-}
+    } // namespace core
+} // namespace alpaka

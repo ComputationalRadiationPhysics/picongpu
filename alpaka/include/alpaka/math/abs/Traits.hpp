@@ -18,7 +18,9 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathAbs{};
+        struct ConceptMathAbs
+        {
+        };
 
         //-----------------------------------------------------------------------------
         //! The math traits.
@@ -26,12 +28,9 @@ namespace alpaka
         {
             //#############################################################################
             //! The abs trait.
-            template<
-                typename T,
-                typename TArg,
-                typename TSfinae = void>
+            template<typename T, typename TArg, typename TSfinae = void>
             struct Abs;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the absolute value.
@@ -41,21 +40,11 @@ namespace alpaka
         //! \param abs_ctx The object specializing Abs.
         //! \param arg The arg.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename TArg>
-        ALPAKA_FN_HOST_ACC auto abs(
-            T const & abs_ctx,
-            TArg const & arg)
+        template<typename T, typename TArg>
+        ALPAKA_FN_HOST_ACC auto abs(T const& abs_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathAbs, T>;
-            return
-                traits::Abs<
-                    ImplementationBase,
-                    TArg>
-                ::abs(
-                    abs_ctx,
-                    arg);
+            return traits::Abs<ImplementationBase, TArg>::abs(abs_ctx, arg);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

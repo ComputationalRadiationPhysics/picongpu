@@ -6,6 +6,25 @@ Coding Guidelines
 .. attention::
    The Coding Guidelines are currently revised
 
+General
+-------
+
+* Use the ``.clang-format`` file supplied in alpaka's top-level directory to format your code. This will handle indentation,
+whitespace and braces automatically. Usage:
+
+.. code-block:: bash
+
+  clang-format-11 -i --style=file <sourcefile>
+
+* If you want to format the entire code base execute the following command from alpaka's top-level directory:
+
+.. code-block:: bash
+
+  find example include test -name '*.hpp' -o -name '*.cpp' | xargs clang-format-11 -i --style=file
+
+Windows users should use `Visual Studio's native clang-format integration
+<https://devblogs.microsoft.com/cppblog/clangformat-support-in-visual-studio-2017-15-7-preview-1/>`.
+
 Naming
 ------
 
@@ -55,31 +74,6 @@ Comments
 * For functions use
   ``//-----------------------------------------------------------------------------``
   to start the comment block.
-* Never write comments for closing braces (namespaces, classes, etc ...)
-
-
-Braces
-------
-
-* Braces (opening and closing) for classes, structs, functions, namespaces, etc. appear on a new line. Exception: If the function or class body is empty, the opening and closing braces are on the same (next) line.
-* Only braces for variable initialization can appear in-line.
-
-
-Indentation
------------
-
-* Always indent everything by *one level* (namespace body, class members, function body, ...)
-* Do not use more indentation e.g. to align function parameters.
-
-
-Spaces
-------
-
-* Trailing white-spaces are forbidden.
-* There is no space between keywords (if, for, ...) and the opening parenthesis.
-* There is no space after the opening ``(`` or ``<`` and before the closing ``)`` or ``>``.
-* There is a space before and after binary operators (=, \*, +, ...)
-* There is no space after the unary operators !, ~, ...
 
 
 Functions
