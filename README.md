@@ -1,8 +1,8 @@
 PIConGPU - Particle-in-Cell Simulations for the Exascale Era
 ============================================================
 
-[![Code Status master](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/master.svg?label=master)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
-[![Code Status dev](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/dev.svg?label=dev)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
+[![Code Status master](https://gitlab.com/hzdr/crp/picongpu/badges/master/pipeline.svg?key_text=master)](https://gitlab.com/hzdr/crp/picongpu/pipelines/master/latest)
+[![Code Status dev](https://gitlab.com/hzdr/crp/picongpu/badges/dev/pipeline.svg?key_text=dev)](https://gitlab.com/hzdr/crp/picongpu/pipelines/dev/latest)
 [![Documentation Status](https://readthedocs.org/projects/picongpu/badge/?version=latest)](http://picongpu.readthedocs.io)
 [![Doxygen](https://img.shields.io/badge/API-Doxygen-blue.svg)](http://computationalradiationphysics.github.io/picongpu)
 [![GitHub commits since last release](https://img.shields.io/github/commits-since/ComputationalRadiationPhysics/picongpu/latest/dev.svg)](https://github.com/ComputationalRadiationPhysics/picongpu/compare/master...dev)
