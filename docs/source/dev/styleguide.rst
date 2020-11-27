@@ -31,15 +31,24 @@ To format all files in your working copy, you can run this command in bash from 
      -o -iname "*.loader" -o -iname "*.param" -o -iname "*.unitless" \
      | xargs clang-format-11 -i
 
-Format Git Staged Changes
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Format Changes Using Git
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-To format all changed added with `git add` you can run `git clang-format-11`.
+Instead of using the bash command above you can use *Git* together with *ClangFormat* to format your patched code only.
+Before applying this command, you must extend your local git configuration **once** with all file endings used in *PIConGPU*:
 
-Format Commits
-^^^^^^^^^^^^^^
+.. code-block:: bash
 
-To format the last commit you can run `git clang-format-11 HEAD~1`.
+   git config --local clangFormat.extensions def,h,cpp,cu,hpp,tpp,kernel,loader,param,unitless
+
+.. warning::
+
+    The binary for *ClangFormat* is on some operating systems called `clang-format`.
+    If so please check that `clang-format --version` returns version `11.X.X`.
+
+For only formatting lines you added using `git add`, call `git clang-format-11` before you create a commit.
+Please be aware that un-staged changes will not be formatted.
+Formatting all changes of the previous commit can be achieved by executing the command `git clang-format-11 HEAD~1`.
 
 License Header
 --------------

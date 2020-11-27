@@ -11,8 +11,8 @@ We agree on the following simple rules to make our lives easier :)
 Format Code
 -----------
 
-- Install clang-format-11
-- To format all file in your working copy, you can run this command in bash from the root folder of PIConGPU:
+- Install *ClangFormat 11*
+- To format all files in your working copy, you can run this command in bash from the root folder of PIConGPU:
   ```bash
   find include/ share/picongpu/ share/pmacc -iname "*.def" \
   -o -iname "*.h" -o -iname "*.cpp" -o -iname "*.cu" \
@@ -21,8 +21,15 @@ Format Code
   | xargs clang-format-11 -i
   ```
  
-To format only lines you added with `git add` you can call `git clang-format-11` before you create a commit.
-Take care that un-staged changes will not be formatted.
+Instead of using the bash command above you can use *Git* together with *ClangFormat* to format your patched code only. 
+Before applying this command, you must extend your local git configuration **once** with all file endings used in *PIConGPU*:
+
+```
+git config --local clangFormat.extensions def,h,cpp,cu,hpp,tpp,kernel,loader,param,unitless
+```
+
+For only formatting lines you added using `git add`, call `git clang-format-11` before you create a commit.
+Please be aware that un-staged changes will not be formatted.
 
 Commit Messages
 ---------------
