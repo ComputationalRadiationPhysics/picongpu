@@ -18,18 +18,17 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathCbrt{};
+        struct ConceptMathCbrt
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The cbrt trait.
-            template<
-                typename T,
-                typename TArg,
-                typename TSfinae = void>
+            template<typename T, typename TArg, typename TSfinae = void>
             struct Cbrt;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the cbrt.
@@ -39,21 +38,11 @@ namespace alpaka
         //! \param cbrt_ctx The object specializing Cbrt.
         //! \param arg The arg.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename TArg>
-        ALPAKA_FN_HOST_ACC auto cbrt(
-            T const & cbrt_ctx,
-            TArg const & arg)
+        template<typename T, typename TArg>
+        ALPAKA_FN_HOST_ACC auto cbrt(T const& cbrt_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathCbrt, T>;
-            return
-                traits::Cbrt<
-                    ImplementationBase,
-                    TArg>
-                ::cbrt(
-                    cbrt_ctx,
-                    arg);
+            return traits::Cbrt<ImplementationBase, TArg>::cbrt(cbrt_ctx, arg);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

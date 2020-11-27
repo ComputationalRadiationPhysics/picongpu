@@ -17,8 +17,7 @@ source ./script/before_install.sh
 
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
-  ./script/docker_install.sh
-  ./script/docker_run.sh
+  ./script/docker_ci.sh
 elif [ "$ALPAKA_CI_OS_NAME" = "Windows" ] || [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
 then
   ./script/install.sh

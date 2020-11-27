@@ -15,19 +15,19 @@
 // std::current_exception, std::make_exception_ptr, etc. which are not declared in device code.
 // Therefore, we can not even parse those parts when compiling device code.
 //-----------------------------------------------------------------------------
-#include <alpaka/core/Common.hpp>
 #include <alpaka/core/BoostPredef.hpp>
+#include <alpaka/core/Common.hpp>
 
-#include <queue>
-#include <mutex>
-#include <stdexcept>
-#include <vector>
-#include <exception>
-#include <utility>
 #include <atomic>
+#include <exception>
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <queue>
+#include <stdexcept>
 #include <type_traits>
+#include <utility>
+#include <vector>
 
 namespace alpaka
 {
@@ -36,27 +36,23 @@ namespace alpaka
         namespace detail
         {
             //#############################################################################
-            template<
-                typename T>
-            class ThreadSafeQueue :
-                private std::queue<T>
+            template<typename T>
+            class ThreadSafeQueue : private std::queue<T>
             {
             public:
                 //-----------------------------------------------------------------------------
                 ThreadSafeQueue()
-                {}
+                {
+                }
                 //-----------------------------------------------------------------------------
                 //! \return If the queue is empty.
-                auto empty() const
-                -> bool
+                auto empty() const -> bool
                 {
                     return std::queue<T>::empty();
                 }
                 //-----------------------------------------------------------------------------
                 //! Pushes the given value onto the back of the queue.
-                auto push(
-                    T && t)
-                -> void
+                auto push(T&& t) -> void
                 {
                     std::lock_guard<std::mutex> lk(m_Mutex);
 
@@ -64,9 +60,7 @@ namespace alpaka
                 }
                 //-----------------------------------------------------------------------------
                 //! Pops the given value from the front of the queue.
-                auto pop(
-                    T & t)
-                -> bool
+                auto pop(T& t) -> bool
                 {
                     std::lock_guard<std::mutex> lk(m_Mutex);
 
@@ -91,8 +85,8 @@ namespace alpaka
             // \NOTE: We can not use std::packaged_task as it forces the use of std::future
             // but we additionally support boost::fibers::promise.
 #if BOOST_COMP_CLANG
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wweak-vtables"
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wweak-vtables"
 #endif
             class ITaskPkg
             {
@@ -102,8 +96,7 @@ namespace alpaka
 
                 //-----------------------------------------------------------------------------
                 //! Runs this task.
-                auto runTask() noexcept
-                -> void
+                auto runTask() noexcept -> void
                 {
                     try
                     {
@@ -128,18 +121,17 @@ namespace alpaka
 #if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
                 //-----------------------------------------------------------------------------
                 //! Sets an exception.
-                virtual auto setException(
-                    std::exception_ptr const & exceptPtr)
-                -> void = 0;
+                virtual auto setException(std::exception_ptr const& exceptPtr) -> void = 0;
 #endif
             };
 #if BOOST_COMP_CLANG
-    #pragma clang diagnostic pop
+#    pragma clang diagnostic pop
 #endif
 
             //#############################################################################
             template<
-                template<typename TFnObjReturn> class TPromise,
+                template<typename TFnObjReturn>
+                class TPromise,
                 typename TFnObj,
                 typename TFnObjReturn = decltype(std::declval<TFnObj>()())>
             class TaskPkg;
@@ -150,42 +142,35 @@ namespace alpaka
             //! \tparam TPromise The promise type returned by the task.
             //! \tparam TFnObj The type of the function to execute.
             //! \tparam TFnObjReturn The return type of the TFnObj. Used for class specialization.
-            template<
-                template<typename TFnObjReturn> class TPromise,
-                typename TFnObj,
-                typename TFnObjReturn>
-            class TaskPkg final :
-                public ITaskPkg
+            template<template<typename TFnObjReturn> class TPromise, typename TFnObj, typename TFnObjReturn>
+            class TaskPkg final : public ITaskPkg
             {
             public:
                 //-----------------------------------------------------------------------------
-                TaskPkg(
-                    TFnObj && func) :
-                        m_Promise(),
-                        m_FnObj(std::move(func))
-                {}
+                TaskPkg(TFnObj&& func) : m_Promise(), m_FnObj(std::move(func))
+                {
+                }
 
             private:
                 //-----------------------------------------------------------------------------
                 //! The execution function.
-                virtual auto run()
-                -> void final
+                virtual auto run() -> void final
                 {
                     m_Promise.set_value(this->m_FnObj());
                 }
+
             public:
 // Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
 #if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
                 //-----------------------------------------------------------------------------
                 //! Sets an exception.
-                virtual auto setException(
-                    std::exception_ptr const & exceptPtr)
-                -> void final
+                virtual auto setException(std::exception_ptr const& exceptPtr) -> void final
                 {
                     m_Promise.set_exception(exceptPtr);
                 }
 #endif
                 TPromise<TFnObjReturn> m_Promise;
+
             private:
                 // NOTE: To avoid invalid memory accesses to memory of a different thread
                 // `std::remove_reference` enforces the function object to be copied.
@@ -197,45 +182,36 @@ namespace alpaka
             //!
             //! \tparam TPromise The promise type returned by the task.
             //! \tparam TFnObj The type of the function to execute.
-            template<
-                template<typename TFnObjReturn> class TPromise,
-                typename TFnObj>
-            class TaskPkg<
-                TPromise,
-                TFnObj,
-                void> final :
-                public ITaskPkg
+            template<template<typename TFnObjReturn> class TPromise, typename TFnObj>
+            class TaskPkg<TPromise, TFnObj, void> final : public ITaskPkg
             {
             public:
                 //-----------------------------------------------------------------------------
-                TaskPkg(
-                    TFnObj && func) :
-                        m_Promise(),
-                        m_FnObj(std::move(func))
-                {}
+                TaskPkg(TFnObj&& func) : m_Promise(), m_FnObj(std::move(func))
+                {
+                }
 
             private:
                 //-----------------------------------------------------------------------------
                 //! The execution function.
-                virtual auto run()
-                -> void final
+                virtual auto run() -> void final
                 {
                     this->m_FnObj();
                     m_Promise.set_value();
                 }
+
             public:
 // Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
 #if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
                 //-----------------------------------------------------------------------------
                 //! Sets an exception.
-                virtual auto setException(
-                    std::exception_ptr const & exceptPtr)
-                -> void final
+                virtual auto setException(std::exception_ptr const& exceptPtr) -> void final
                 {
                     m_Promise.set_exception(exceptPtr);
                 }
 #endif
                 TPromise<void> m_Promise;
+
             private:
                 // NOTE: To avoid invalid memory accesses to memory of a different thread
                 // `std::remove_reference` enforces the function object to be copied.
@@ -247,9 +223,7 @@ namespace alpaka
                 typename TFnObj0,
                 typename TFnObj1,
                 typename = std::enable_if_t<!std::is_same<void, decltype(std::declval<TFnObj0>()())>::value>>
-            auto invokeBothReturnFirst(
-                    TFnObj0 && fn0,
-                    TFnObj1 && fn1)
+            auto invokeBothReturnFirst(TFnObj0&& fn0, TFnObj1&& fn1)
             {
                 auto ret = fn0();
                 fn1();
@@ -261,10 +235,7 @@ namespace alpaka
                 typename TFnObj0,
                 typename TFnObj1,
                 typename = std::enable_if_t<std::is_same<void, decltype(std::declval<TFnObj0>()())>::value>>
-            auto invokeBothReturnFirst(
-                    TFnObj0 && fn0,
-                    TFnObj1 && fn1)
-            -> void
+            auto invokeBothReturnFirst(TFnObj0&& fn0, TFnObj1&& fn1) -> void
             {
                 fn0();
                 fn1();
@@ -275,14 +246,15 @@ namespace alpaka
             //!
             //! \tparam TConcurrentExec The type of concurrent executor (for example std::thread).
             //! \tparam TPromise The promise type returned by the task.
-            //! \tparam TYield The type is required to have a static method "void yield()" to yield the current thread if there is no work.
-            //! \tparam TMutex Unused. The mutex type used for locking threads.
-            //! \tparam TCondVar Unused. The condition variable type used to make the threads wait if there is no work.
-            //! \tparam TisYielding Boolean value if the threads should yield instead of wait for a condition variable.
+            //! \tparam TYield The type is required to have a static method "void yield()" to yield the current thread
+            //! if there is no work. \tparam TMutex Unused. The mutex type used for locking threads. \tparam TCondVar
+            //! Unused. The condition variable type used to make the threads wait if there is no work. \tparam
+            //! TisYielding Boolean value if the threads should yield instead of wait for a condition variable.
             template<
                 typename TIdx,
                 typename TConcurrentExec,
-                template<typename TFnObjReturn> class TPromise,
+                template<typename TFnObjReturn>
+                class TPromise,
                 typename TYield,
                 typename TMutex = void,
                 typename TCondVar = void,
@@ -291,21 +263,22 @@ namespace alpaka
             {
             public:
                 //-----------------------------------------------------------------------------
-                //! Creates a concurrent executor pool with a specific number of concurrent executors and a maximum number of queued tasks.
+                //! Creates a concurrent executor pool with a specific number of concurrent executors and a maximum
+                //! number of queued tasks.
                 //!
                 //! \param concurrentExecutionCount
                 //!    The guaranteed number of concurrent executors used in the pool.
                 //!    This is also the maximum number of tasks worked on concurrently.
-                ConcurrentExecPool(
-                    TIdx concurrentExecutionCount) :
-                    m_vConcurrentExecs(),
-                    m_qTasks(),
-                    m_numActiveTasks(0u),
-                    m_bShutdownFlag(false)
+                ConcurrentExecPool(TIdx concurrentExecutionCount)
+                    : m_vConcurrentExecs()
+                    , m_qTasks()
+                    , m_numActiveTasks(0u)
+                    , m_bShutdownFlag(false)
                 {
                     if(concurrentExecutionCount < 1)
                     {
-                        throw std::invalid_argument("The argument 'concurrentExecutionCount' has to be greate or equal to one!");
+                        throw std::invalid_argument(
+                            "The argument 'concurrentExecutionCount' has to be greate or equal to one!");
                     }
 
                     m_vConcurrentExecs.reserve(static_cast<std::size_t>(concurrentExecutionCount));
@@ -313,17 +286,17 @@ namespace alpaka
                     // Create all concurrent executors.
                     for(TIdx concurrentExec(0u); concurrentExec < concurrentExecutionCount; ++concurrentExec)
                     {
-                        m_vConcurrentExecs.emplace_back([this](){concurrentExecFn();});
+                        m_vConcurrentExecs.emplace_back([this]() { concurrentExecFn(); });
                     }
                 }
                 //-----------------------------------------------------------------------------
-                ConcurrentExecPool(ConcurrentExecPool const &) = delete;
+                ConcurrentExecPool(ConcurrentExecPool const&) = delete;
                 //-----------------------------------------------------------------------------
-                ConcurrentExecPool(ConcurrentExecPool &&) = delete;
+                ConcurrentExecPool(ConcurrentExecPool&&) = delete;
                 //-----------------------------------------------------------------------------
-                auto operator=(ConcurrentExecPool const &) -> ConcurrentExecPool & = delete;
+                auto operator=(ConcurrentExecPool const&) -> ConcurrentExecPool& = delete;
                 //-----------------------------------------------------------------------------
-                auto operator=(ConcurrentExecPool &&) -> ConcurrentExecPool & = delete;
+                auto operator=(ConcurrentExecPool&&) -> ConcurrentExecPool& = delete;
 
                 //-----------------------------------------------------------------------------
                 //! Completes any currently running task normally.
@@ -340,7 +313,8 @@ namespace alpaka
                     // Signal to each incomplete task that it will not complete due to pool destruction.
                     while(popTask(currentTaskPackage))
                     {
-                        auto const except(std::runtime_error("Could not perform task before ConcurrentExecPool destruction"));
+                        auto const except(
+                            std::runtime_error("Could not perform task before ConcurrentExecPool destruction"));
 // Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
 #if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
                         currentTaskPackage->setException(std::make_exception_ptr(except));
@@ -356,29 +330,20 @@ namespace alpaka
                 //!                 Takes an arbitrary number of arguments and arbitrary return type.
                 //! \tparam TArgs   The argument types pack.
                 //! \param args     Arguments for task, cannot be moved.
-                //!                 If such parameters must be used, use a lambda and capture via move then move the lambda.
+                //!                 If such parameters must be used, use a lambda and capture via move then move the
+                //!                 lambda.
                 //!
                 //! \return Signals when the task has completed with either success or an exception.
                 //!         Also results in an exception if the pool is destroyed before execution has begun.
-                template<
-                    typename TFnObj,
-                    typename ... TArgs>
-                auto enqueueTask(
-                    TFnObj && task,
-                    TArgs && ... args)
+                template<typename TFnObj, typename... TArgs>
+                auto enqueueTask(TFnObj&& task, TArgs&&... args)
                 {
-                    auto boundTask([=](){return task(args...);});
-                    auto decrementNumActiveTasks([this](){--m_numActiveTasks;});
+                    auto boundTask([=]() { return task(args...); });
+                    auto decrementNumActiveTasks([this]() { --m_numActiveTasks; });
 
-                    auto extendedTask(
-                        [boundTask, decrementNumActiveTasks]()
-                        {
-                            return
-                                invokeBothReturnFirst(
-                                    std::move(boundTask),
-                                    std::move(decrementNumActiveTasks)
-                                );
-                        });
+                    auto extendedTask([boundTask, decrementNumActiveTasks]() {
+                        return invokeBothReturnFirst(std::move(boundTask), std::move(decrementNumActiveTasks));
+                    });
 
                     using TaskPackage = TaskPkg<TPromise, decltype(extendedTask)>;
                     auto pTaskPackage(new TaskPackage(std::move(extendedTask)));
@@ -393,15 +358,13 @@ namespace alpaka
                 }
                 //-----------------------------------------------------------------------------
                 //! \return The number of concurrent executors available.
-                auto getConcurrentExecutionCount() const
-                -> TIdx
+                auto getConcurrentExecutionCount() const -> TIdx
                 {
                     return m_vConcurrentExecs.size();
                 }
                 //-----------------------------------------------------------------------------
                 //! \return If the thread pool is idle.
-                auto isIdle() const
-                -> bool
+                auto isIdle() const -> bool
                 {
                     return m_numActiveTasks == 0u;
                 }
@@ -432,16 +395,14 @@ namespace alpaka
                 //! Joins all concurrent executors.
                 void joinAllConcurrentExecs()
                 {
-                    for(auto && concurrentExec : m_vConcurrentExecs)
+                    for(auto&& concurrentExec : m_vConcurrentExecs)
                     {
                         concurrentExec.join();
                     }
                 }
                 //-----------------------------------------------------------------------------
                 //! Pops a task from the queue.
-                auto popTask(
-                    std::shared_ptr<ITaskPkg> & out)
-                -> bool
+                auto popTask(std::shared_ptr<ITaskPkg>& out) -> bool
                 {
                     if(m_qTasks.pop(out))
                     {
@@ -462,44 +423,39 @@ namespace alpaka
             //!
             //! \tparam TConcurrentExec The type of concurrent executor (for example std::thread).
             //! \tparam TPromise The promise type returned by the task.
-            //! \tparam TYield Unused. The type is required to have a static method "void yield()" to yield the current thread if there is no work.
-            //! \tparam TMutex The mutex type used for locking threads.
-            //! \tparam TCondVar The condition variable type used to make the threads wait if there is no work.
+            //! \tparam TYield Unused. The type is required to have a static method "void yield()" to yield the current
+            //! thread if there is no work. \tparam TMutex The mutex type used for locking threads. \tparam TCondVar
+            //! The condition variable type used to make the threads wait if there is no work.
             template<
                 typename TIdx,
                 typename TConcurrentExec,
-                template<typename TFnObjReturn> class TPromise,
+                template<typename TFnObjReturn>
+                class TPromise,
                 typename TYield,
                 typename TMutex,
                 typename TCondVar>
-            class ConcurrentExecPool<
-                TIdx,
-                TConcurrentExec,
-                TPromise,
-                TYield,
-                TMutex,
-                TCondVar,
-                false> final
+            class ConcurrentExecPool<TIdx, TConcurrentExec, TPromise, TYield, TMutex, TCondVar, false> final
             {
             public:
                 //-----------------------------------------------------------------------------
-                //! Creates a concurrent executors pool with a specific number of concurrent executors and a maximum number of queued tasks.
+                //! Creates a concurrent executors pool with a specific number of concurrent executors and a maximum
+                //! number of queued tasks.
                 //!
                 //! \param concurrentExecutionCount
                 //!    The guaranteed number of concurrent executors used in the pool.
                 //!    This is also the maximum number of tasks worked on concurrently.
-                ConcurrentExecPool(
-                    TIdx concurrentExecutionCount) :
-                    m_vConcurrentExecs(),
-                    m_qTasks(),
-                    m_numActiveTasks(0u),
-                    m_mtxWakeup(),
-                    m_cvWakeup(),
-                    m_bShutdownFlag(false)
+                ConcurrentExecPool(TIdx concurrentExecutionCount)
+                    : m_vConcurrentExecs()
+                    , m_qTasks()
+                    , m_numActiveTasks(0u)
+                    , m_mtxWakeup()
+                    , m_cvWakeup()
+                    , m_bShutdownFlag(false)
                 {
                     if(concurrentExecutionCount < 1)
                     {
-                        throw std::invalid_argument("The argument 'concurrentExecutionCount' has to be greate or equal to one!");
+                        throw std::invalid_argument(
+                            "The argument 'concurrentExecutionCount' has to be greate or equal to one!");
                     }
 
                     m_vConcurrentExecs.reserve(static_cast<std::size_t>(concurrentExecutionCount));
@@ -507,17 +463,17 @@ namespace alpaka
                     // Create all concurrent executors.
                     for(TIdx concurrentExec(0u); concurrentExec < concurrentExecutionCount; ++concurrentExec)
                     {
-                        m_vConcurrentExecs.emplace_back([this](){concurrentExecFn();});
+                        m_vConcurrentExecs.emplace_back([this]() { concurrentExecFn(); });
                     }
                 }
                 //-----------------------------------------------------------------------------
-                ConcurrentExecPool(ConcurrentExecPool const &) = delete;
+                ConcurrentExecPool(ConcurrentExecPool const&) = delete;
                 //-----------------------------------------------------------------------------
-                ConcurrentExecPool(ConcurrentExecPool &&) = delete;
+                ConcurrentExecPool(ConcurrentExecPool&&) = delete;
                 //-----------------------------------------------------------------------------
-                auto operator=(ConcurrentExecPool const &) -> ConcurrentExecPool & = delete;
+                auto operator=(ConcurrentExecPool const&) -> ConcurrentExecPool& = delete;
                 //-----------------------------------------------------------------------------
-                auto operator=(ConcurrentExecPool &&) -> ConcurrentExecPool & = delete;
+                auto operator=(ConcurrentExecPool&&) -> ConcurrentExecPool& = delete;
 
                 //-----------------------------------------------------------------------------
                 //! Completes any currently running task normally.
@@ -540,7 +496,8 @@ namespace alpaka
                     // Signal to each incomplete task that it will not complete due to pool destruction.
                     while(popTask(currentTaskPackage))
                     {
-                        auto const except(std::runtime_error("Could not perform task before ConcurrentExecPool destruction"));
+                        auto const except(
+                            std::runtime_error("Could not perform task before ConcurrentExecPool destruction"));
 // Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
 #if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
                         currentTaskPackage->setException(std::make_exception_ptr(except));
@@ -556,29 +513,20 @@ namespace alpaka
                 //!                 Takes an arbitrary number of arguments and arbitrary return type.
                 //! \tparam TArgs   The argument types pack.
                 //! \param args     Arguments for task, cannot be moved.
-                //!                 If such parameters must be used, use a lambda and capture via move then move the lambda.
+                //!                 If such parameters must be used, use a lambda and capture via move then move the
+                //!                 lambda.
                 //!
                 //! \return Signals when the task has completed with either success or an exception.
                 //!         Also results in an exception if the pool is destroyed before execution has begun.
-                template<
-                    typename TFnObj,
-                    typename ... TArgs>
-                auto enqueueTask(
-                    TFnObj && task,
-                    TArgs && ... args)
+                template<typename TFnObj, typename... TArgs>
+                auto enqueueTask(TFnObj&& task, TArgs&&... args)
                 {
-                    auto boundTask([=](){return task(args...);});
-                    auto decrementNumActiveTasks([this](){--m_numActiveTasks;});
+                    auto boundTask([=]() { return task(args...); });
+                    auto decrementNumActiveTasks([this]() { --m_numActiveTasks; });
 
-                    auto extendedTask(
-                        [boundTask, decrementNumActiveTasks]()
-                        {
-                            return
-                                invokeBothReturnFirst(
-                                    std::move(boundTask),
-                                    std::move(decrementNumActiveTasks)
-                                );
-                        });
+                    auto extendedTask([boundTask, decrementNumActiveTasks]() {
+                        return invokeBothReturnFirst(std::move(boundTask), std::move(decrementNumActiveTasks));
+                    });
 
                     using TaskPackage = TaskPkg<TPromise, decltype(extendedTask)>;
                     auto pTaskPackage(new TaskPackage(std::move(extendedTask)));
@@ -598,15 +546,13 @@ namespace alpaka
                 }
                 //-----------------------------------------------------------------------------
                 //! \return The number of concurrent executors available.
-                auto getConcurrentExecutionCount() const
-                -> TIdx
+                auto getConcurrentExecutionCount() const -> TIdx
                 {
                     return m_vConcurrentExecs.size();
                 }
                 //-----------------------------------------------------------------------------
                 //! \return If the thread pool is idle.
-                auto isIdle() const
-                -> bool
+                auto isIdle() const -> bool
                 {
                     return m_numActiveTasks == 0u;
                 }
@@ -646,16 +592,14 @@ namespace alpaka
                 //! Joins all concurrent executors.
                 void joinAllConcurrentExecs()
                 {
-                    for(auto && concurrentExec : m_vConcurrentExecs)
+                    for(auto&& concurrentExec : m_vConcurrentExecs)
                     {
                         concurrentExec.join();
                     }
                 }
                 //-----------------------------------------------------------------------------
                 //! Pops a task from the queue.
-                auto popTask(
-                    std::shared_ptr<ITaskPkg> & out)
-                -> bool
+                auto popTask(std::shared_ptr<ITaskPkg>& out) -> bool
                 {
                     if(m_qTasks.pop(out))
                     {
@@ -673,6 +617,6 @@ namespace alpaka
                 TCondVar m_cvWakeup;
                 std::atomic<bool> m_bShutdownFlag;
             };
-        }
-    }
-}
+        } // namespace detail
+    } // namespace core
+} // namespace alpaka

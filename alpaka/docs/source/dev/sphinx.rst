@@ -52,7 +52,7 @@ Please check your documentation build is successful and renders as you expected 
     doxygen Doxyfile
 
     # render the cheatsheet.pdf
-    rst2pdf -s cheatsheet/cheatsheet.style source/usage/cheatsheet.rst -o cheatsheet/cheatsheet.pdf
+    rst2pdf -s cheatsheet/cheatsheet.style source/basic/cheatsheet.rst -o cheatsheet/cheatsheet.pdf
 
     # render the '.rst' files with sphinx
     make html

@@ -10,6 +10,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+source ./script/travis_retry.sh
 source ./script/set.sh
 
 : "${BOOST_ROOT?'BOOST_ROOT must be specified'}"
@@ -28,7 +29,7 @@ then
     : "${ALPAKA_CI_CL_VER?'ALPAKA_CI_CL_VER must be specified'}"
 fi
 
-git clone -b "${ALPAKA_CI_BOOST_BRANCH}" --quiet --recursive --single-branch --depth 1 https://github.com/boostorg/boost.git "${BOOST_ROOT}"
+travis_retry rm -rf ${BOOST_ROOT} && git clone -b "${ALPAKA_CI_BOOST_BRANCH}" --quiet --recursive --single-branch --depth 1 https://github.com/boostorg/boost.git "${BOOST_ROOT}"
 
 # Bootstrap boost.
 if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
@@ -115,6 +116,13 @@ then
         fi
         ALPAKA_BOOST_B2+=" --with-fiber --with-context --with-thread --with-atomic --with-system --with-chrono --with-date_time"
     fi
+    if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
+    then
+        if [ "${ALPAKA_CI_STDLIB}" == "libc++" ]
+        then
+            ALPAKA_BOOST_B2_CXXFLAGS+=" -stdlib=libc++"
+        fi
+    fi
     if [ "${ALPAKA_BOOST_B2_CFLAGS}" != "" ]
     then
         ALPAKA_BOOST_B2+=' cflags="'
@@ -125,13 +133,6 @@ then
     then
         ALPAKA_BOOST_B2+=' cxxflags="'
         ALPAKA_BOOST_B2+="${ALPAKA_BOOST_B2_CXXFLAGS}"
-        if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
-        then
-            if [ "${ALPAKA_CI_STDLIB}" == "libc++" ]
-            then
-                ALPAKA_BOOST_B2+=" -stdlib=libc++"
-            fi
-        fi
         ALPAKA_BOOST_B2+='"'
     fi
 

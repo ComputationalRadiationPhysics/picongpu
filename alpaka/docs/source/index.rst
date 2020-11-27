@@ -34,33 +34,41 @@ Individual chapters are based on the information of the chapters before.
 
 
 .. toctree::
-   :caption: INSTALLATION
+   :caption: Basic
    :maxdepth: 1
 
-   install/instructions
-   install/HIP
+   basic/intro.rst
+   basic/install.rst
+   basic/abstraction.rst
+   basic/library.rst
+   basic/cheatsheet.rst
 
 .. toctree::
-   :caption: USAGE
+   :caption: Advanced
    :maxdepth: 1
 
-   usage/intro
-   usage/abstraction
-   usage/implementation
-   usage/cmake_example
-   usage/cheatsheet
+   advanced/rationale.rst
+   advanced/mapping.rst
+   advanced/cmake.rst
 
 .. toctree::
-   :caption: DEVELOPMENT
+   :caption: Extra Info
    :maxdepth: 1
 
+   info/similar_projects.rst
+
+.. toctree::
+   :caption: Development
+   :maxdepth: 1
+
+   dev/backends.rst
+   dev/details.rst
    dev/style
    dev/sphinx
    API Reference <https://alpaka-group.github.io/alpaka>
 
-Indices and tables
+Indices and Tables
 ==================
 
 * :ref:`genindex`
 * :ref:`search`
-

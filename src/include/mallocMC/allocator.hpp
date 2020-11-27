@@ -48,15 +48,8 @@ namespace mallocMC
         template<typename T_Allocator, bool T_providesAvailableSlots>
         struct GetAvailableSlotsIfAvailHost
         {
-            template<
-                typename AlpakaAcc,
-                typename AlpakaDevice,
-                typename AlpakaQueue>
-            ALPAKA_FN_HOST static auto getAvailableSlots(
-                AlpakaDevice &,
-                AlpakaQueue &,
-                size_t,
-                T_Allocator &) -> unsigned
+            template<typename AlpakaAcc, typename AlpakaDevice, typename AlpakaQueue>
+            ALPAKA_FN_HOST static auto getAvailableSlots(AlpakaDevice&, AlpakaQueue&, size_t, T_Allocator&) -> unsigned
             {
                 return 0;
             }
@@ -65,29 +58,25 @@ namespace mallocMC
         template<class T_Allocator>
         struct GetAvailableSlotsIfAvailHost<T_Allocator, true>
         {
-            template<
-                typename AlpakaAcc,
-                typename AlpakaDevice,
-                typename AlpakaQueue>
+            template<typename AlpakaAcc, typename AlpakaDevice, typename AlpakaQueue>
             ALPAKA_FN_HOST static auto getAvailableSlots(
-                AlpakaDevice & dev,
-                AlpakaQueue & queue,
+                AlpakaDevice& dev,
+                AlpakaQueue& queue,
                 size_t slotSize,
-                T_Allocator & alloc) -> unsigned
+                T_Allocator& alloc) -> unsigned
             {
-                return T_Allocator::CreationPolicy::
-                    template getAvailableSlotsHost<AlpakaAcc>(
-                        dev,
-                        queue,
-                        slotSize,
-                        alloc.getAllocatorHandle().devAllocator);
+                return T_Allocator::CreationPolicy::template getAvailableSlotsHost<AlpakaAcc>(
+                    dev,
+                    queue,
+                    slotSize,
+                    alloc.getAllocatorHandle().devAllocator);
             }
         };
     } // namespace detail
 
     struct HeapInfo
     {
-        void * p;
+        void* p;
         size_t size;
     };
 
@@ -112,13 +101,13 @@ namespace mallocMC
         typename T_OOMPolicy,
         typename T_ReservePoolPolicy,
         typename T_AlignmentPolicy>
-    class Allocator :
-            public PolicyConstraints<
-                T_CreationPolicy,
-                T_DistributionPolicy,
-                T_OOMPolicy,
-                T_ReservePoolPolicy,
-                T_AlignmentPolicy>
+    class Allocator
+        : public PolicyConstraints<
+              T_CreationPolicy,
+              T_DistributionPolicy,
+              T_OOMPolicy,
+              T_ReservePoolPolicy,
+              T_AlignmentPolicy>
     {
         using uint32 = std::uint32_t;
 
@@ -129,20 +118,13 @@ namespace mallocMC
         using ReservePoolPolicy = T_ReservePoolPolicy;
         using AlignmentPolicy = T_AlignmentPolicy;
         using HeapInfoVector = std::vector<HeapInfo>;
-        using DevAllocator = DeviceAllocator<
-            CreationPolicy,
-            DistributionPolicy,
-            OOMPolicy,
-            AlignmentPolicy>;
+        using DevAllocator = DeviceAllocator<CreationPolicy, DistributionPolicy, OOMPolicy, AlignmentPolicy>;
         using AllocatorHandle = AllocatorHandleImpl<Allocator>;
 
     private:
         ReservePoolPolicy reservePolicy;
-        using DevAllocatorStorageBufferType = alpaka::mem::buf::Buf<
-            alpaka::dev::Dev<AlpakaAcc>,
-            DevAllocator,
-            alpaka::dim::DimInt<1>,
-            int>;
+        using DevAllocatorStorageBufferType
+            = alpaka::Buf<alpaka::Dev<AlpakaAcc>, DevAllocator, alpaka::DimInt<1>, int>;
         std::unique_ptr<DevAllocatorStorageBufferType>
             devAllocatorBuffer; // FIXME(bgruber): replace by std::optional<>
         HeapInfo heapInfos;
@@ -158,18 +140,17 @@ namespace mallocMC
          * compile time. The volatile workaround has no negative effects on the
          * register usage in CUDA.
          */
-        alloc(AlpakaDevice & dev, AlpakaQueue & queue, volatile size_t size)
+        alloc(AlpakaDevice& dev, AlpakaQueue& queue, volatile size_t size)
         {
-            void * pool = reservePolicy.setMemPool(dev, size);
+            void* pool = reservePolicy.setMemPool(dev, size);
             std::tie(pool, size) = AlignmentPolicy::alignPool(pool, size);
 
             devAllocatorBuffer
-                = std::make_unique<DevAllocatorStorageBufferType>(
-                    alpaka::mem::buf::alloc<DevAllocator, int>(dev, 1));
+                = std::make_unique<DevAllocatorStorageBufferType>(alpaka::allocBuf<DevAllocator, int>(dev, 1));
             CreationPolicy::template initHeap<AlpakaAcc>(
                 dev,
                 queue,
-                alpaka::mem::view::getPtrNative(*devAllocatorBuffer),
+                alpaka::getPtrNative(*devAllocatorBuffer),
                 pool,
                 size);
 
@@ -192,14 +173,11 @@ namespace mallocMC
 
         /* forbid to copy the allocator */
         ALPAKA_FN_HOST
-        Allocator(const Allocator &) = delete;
+        Allocator(const Allocator&) = delete;
 
     public:
         template<typename AlpakaDevice, typename AlpakaQueue>
-        ALPAKA_FN_HOST Allocator(
-            AlpakaDevice & dev,
-            AlpakaQueue & queue,
-            size_t size = 8U * 1024U * 1024U)
+        ALPAKA_FN_HOST Allocator(AlpakaDevice& dev, AlpakaQueue& queue, size_t size = 8U * 1024U * 1024U)
         {
             alloc(dev, queue, size);
         }
@@ -215,8 +193,7 @@ namespace mallocMC
          * @param size number of bytes
          */
         template<typename AlpakaDevice, typename AlpakaQueue>
-        ALPAKA_FN_HOST void
-        destructiveResize(AlpakaDevice & dev, AlpakaQueue & queue, size_t size)
+        ALPAKA_FN_HOST void destructiveResize(AlpakaDevice& dev, AlpakaQueue& queue, size_t size)
         {
             free();
             alloc(dev, queue, size);
@@ -225,8 +202,7 @@ namespace mallocMC
         ALPAKA_FN_HOST
         auto getAllocatorHandle() -> AllocatorHandle
         {
-            return AllocatorHandle{
-                alpaka::mem::view::getPtrNative(*devAllocatorBuffer)};
+            return AllocatorHandle{alpaka::getPtrNative(*devAllocatorBuffer)};
         }
 
         ALPAKA_FN_HOST
@@ -235,37 +211,25 @@ namespace mallocMC
             return getAllocatorHandle();
         }
 
-        ALPAKA_FN_HOST static auto info(std::string linebreak = " ")
-            -> std::string
+        ALPAKA_FN_HOST static auto info(std::string linebreak = " ") -> std::string
         {
             std::stringstream ss;
-            ss << "CreationPolicy:      " << CreationPolicy::classname()
-               << "    " << linebreak;
-            ss << "DistributionPolicy:  " << DistributionPolicy::classname()
-               << "" << linebreak;
-            ss << "OOMPolicy:           " << OOMPolicy::classname()
-               << "         " << linebreak;
-            ss << "ReservePoolPolicy:   " << ReservePoolPolicy::classname()
-               << " " << linebreak;
-            ss << "AlignmentPolicy:     " << AlignmentPolicy::classname()
-               << "   " << linebreak;
+            ss << "CreationPolicy:      " << CreationPolicy::classname() << "    " << linebreak;
+            ss << "DistributionPolicy:  " << DistributionPolicy::classname() << "" << linebreak;
+            ss << "OOMPolicy:           " << OOMPolicy::classname() << "         " << linebreak;
+            ss << "ReservePoolPolicy:   " << ReservePoolPolicy::classname() << " " << linebreak;
+            ss << "AlignmentPolicy:     " << AlignmentPolicy::classname() << "   " << linebreak;
             return ss.str();
         }
 
         // polymorphism over the availability of getAvailableSlots for calling
         // from the host
         template<typename AlpakaDevice, typename AlpakaQueue>
-        ALPAKA_FN_HOST auto getAvailableSlots(
-            AlpakaDevice & dev,
-            AlpakaQueue & queue,
-            size_t slotSize) -> unsigned
+        ALPAKA_FN_HOST auto getAvailableSlots(AlpakaDevice& dev, AlpakaQueue& queue, size_t slotSize) -> unsigned
         {
             slotSize = AlignmentPolicy::applyPadding(slotSize);
-            return detail::GetAvailableSlotsIfAvailHost<
-                Allocator,
-                Traits<Allocator>::providesAvailableSlots>::
-                template getAvailableSlots<AlpakaAcc>(
-                    dev, queue, slotSize, *this);
+            return detail::GetAvailableSlotsIfAvailHost<Allocator, Traits<Allocator>::providesAvailableSlots>::
+                template getAvailableSlots<AlpakaAcc>(dev, queue, slotSize, *this);
         }
 
         ALPAKA_FN_HOST

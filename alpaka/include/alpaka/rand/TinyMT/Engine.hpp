@@ -16,68 +16,68 @@
 
 namespace alpaka
 {
-namespace rand
-{
-namespace generator
-{
-namespace cpu
-{
-    //! Implementation of std::UniformRandomBitGenerator for TinyMT32
-    struct TinyMTengine
+    namespace rand
     {
-        using result_type = std::uint32_t;
-
-        static constexpr result_type default_seed()
+        namespace generator
         {
-            return 42u;
-        }
+            namespace cpu
+            {
+                //! Implementation of std::UniformRandomBitGenerator for TinyMT32
+                struct TinyMTengine
+                {
+                    using result_type = std::uint32_t;
 
-        void seed( result_type value = default_seed() )
-        {
-            // parameters from TinyMT/jump/sample.c
-            prng.mat1 = 0x8f7011ee;
-            prng.mat2 = 0xfc78ff1f;
-            prng.tmat = 0x3793fdff;
+                    static constexpr result_type default_seed()
+                    {
+                        return 42u;
+                    }
 
-            tinymt32_init( &prng, value );
-        }
+                    void seed(result_type value = default_seed())
+                    {
+                        // parameters from TinyMT/jump/sample.c
+                        prng.mat1 = 0x8f7011ee;
+                        prng.mat2 = 0xfc78ff1f;
+                        prng.tmat = 0x3793fdff;
 
-        TinyMTengine( std::uint32_t const & seedValue )
-        {
-            seed( seedValue );
-        }
+                        tinymt32_init(&prng, value);
+                    }
 
-        TinyMTengine()
-        {
-            std::uint32_t const magicSeed = 42u;
-            seed( magicSeed );
-        }
+                    TinyMTengine(std::uint32_t const& seedValue)
+                    {
+                        seed(seedValue);
+                    }
 
-        result_type operator()()
-        {
-            return tinymt32_generate_uint32( &prng );
-        }
+                    TinyMTengine()
+                    {
+                        std::uint32_t const magicSeed = 42u;
+                        seed(magicSeed);
+                    }
 
-        static constexpr result_type min()
-        {
-            return 0u;
-        }
+                    result_type operator()()
+                    {
+                        return tinymt32_generate_uint32(&prng);
+                    }
 
-        static constexpr result_type max()
-        {
-            return UINT32_MAX;
-        }
+                    static constexpr result_type min()
+                    {
+                        return 0u;
+                    }
 
-        void discard( unsigned long long ) // z
-        {
-            // not implemented
-            // tinymt32_jump( &prng, z, z );
-        }
+                    static constexpr result_type max()
+                    {
+                        return UINT32_MAX;
+                    }
 
-        tinymt32_t prng;
-    };
+                    void discard(unsigned long long) // z
+                    {
+                        // not implemented
+                        // tinymt32_jump( &prng, z, z );
+                    }
 
-} // namespace cpu
-} // namespace generator
-} // namespace rand
+                    tinymt32_t prng;
+                };
+
+            } // namespace cpu
+        } // namespace generator
+    } // namespace rand
 } // namespace alpaka

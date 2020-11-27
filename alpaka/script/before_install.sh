@@ -20,7 +20,7 @@ then
     export ALPAKA_CI_GCC_VER_MAJOR="${ALPAKA_CI_GCC_VER_SEMANTIC[0]}"
     echo ALPAKA_CI_GCC_VER_MAJOR: "${ALPAKA_CI_GCC_VER_MAJOR}"
 
-    if [[ "${ALPAKA_CI_DOCKER_BASE_IMAGE_NAME}" == *"20.04"* ]]
+    if [[ "$(cat /etc/os-release)" == *"20.04"* ]]
     then
         if (( "${ALPAKA_CI_GCC_VER_MAJOR}" <= 6 ))
         then
@@ -130,29 +130,10 @@ then
 
     if [ "${ALPAKA_CI_STDLIB}" == "libstdc++" ]
     then
-        if [ "${CXX}" == "clang++" ]
-        then
-            if [[ "${ALPAKA_CI_DOCKER_BASE_IMAGE_NAME}" == *"20.04"* ]]
-            then
-                if (( "${ALPAKA_CI_CLANG_LIBSTDCPP_VERSION}" <= 6 ))
-                then
-                    echo "Ubuntu 20.04 does not provide libstdc++-6 and older anymore."
-                    exit 1
-                fi
-            fi
-        fi
         if [ ! -z "${ALPAKA_CXX_STANDARD+x}" ]
         then
             if (( "${ALPAKA_CXX_STANDARD}" >= 17 ))
             then
-                if [ "${CXX}" == "clang++" ]
-                then
-                    if (( "${ALPAKA_CI_CLANG_LIBSTDCPP_VERSION}" < 7 ))
-                    then
-                        echo "Clang used in c++17 mode requires libstdc++-7 or newer."
-                        exit 1
-                    fi
-                fi
                 if [ "${ALPAKA_CI_INSTALL_FIBERS}" == "ON" ]
                 then
                     if (( ( ( "${ALPAKA_CI_BOOST_BRANCH_MAJOR}" == 1 ) && ( "${ALPAKA_CI_BOOST_BRANCH_MINOR}" < 67 ) ) || ( "${ALPAKA_CI_BOOST_BRANCH_MAJOR}" < 1 ) ))

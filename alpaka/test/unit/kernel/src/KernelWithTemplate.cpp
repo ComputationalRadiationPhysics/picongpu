@@ -8,49 +8,40 @@
  */
 
 #include <alpaka/kernel/Traits.hpp>
-
-#include <alpaka/test/acc/TestAccs.hpp>
-#include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/meta/ForEachType.hpp>
+#include <alpaka/test/KernelExecutionFixture.hpp>
+#include <alpaka/test/acc/TestAccs.hpp>
 
 #include <catch2/catch.hpp>
 
 #include <type_traits>
 
 //#############################################################################
-template<
-    typename T>
+template<typename T>
 class KernelFuntionObjectTemplate
 {
 public:
     //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
-    template<
-        typename TAcc>
-    ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc,
-        bool * success) const
-    -> void
+    template<typename TAcc>
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
     {
         ALPAKA_CHECK(
             *success,
-            static_cast<alpaka::idx::Idx<TAcc>>(1) == (alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
+            static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
-        static_assert(
-            std::is_same<std::int32_t, T>::value,
-            "Incorrect additional kernel template parameter type!");
+        static_assert(std::is_same<std::int32_t, T>::value, "Incorrect additional kernel template parameter type!");
     }
 };
 
 //-----------------------------------------------------------------------------
-TEMPLATE_LIST_TEST_CASE( "kernelFuntionObjectTemplate", "[kernel]", alpaka::test::acc::TestAccs)
+TEMPLATE_LIST_TEST_CASE("kernelFuntionObjectTemplate", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
-    using Dim = alpaka::dim::Dim<Acc>;
-    using Idx = alpaka::idx::Idx<Acc>;
+    using Dim = alpaka::Dim<Acc>;
+    using Idx = alpaka::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<Acc> fixture(
-        alpaka::vec::Vec<Dim, Idx>::ones());
+    alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::ones());
 
     KernelFuntionObjectTemplate<std::int32_t> kernel;
 
@@ -63,34 +54,25 @@ class KernelInvocationWithAdditionalTemplate
 public:
     //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
-    template<
-        typename TAcc,
-        typename T>
-    ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc,
-        bool * success,
-        T const &) const
-    -> void
+    template<typename TAcc, typename T>
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, T const&) const -> void
     {
         ALPAKA_CHECK(
             *success,
-            static_cast<alpaka::idx::Idx<TAcc>>(1) == (alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
+            static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
-        static_assert(
-            std::is_same<std::int32_t, T>::value,
-            "Incorrect additional kernel template parameter type!");
+        static_assert(std::is_same<std::int32_t, T>::value, "Incorrect additional kernel template parameter type!");
     }
 };
 
 //-----------------------------------------------------------------------------
-TEMPLATE_LIST_TEST_CASE( "kernelFuntionObjectExtraTemplate", "[kernel]", alpaka::test::acc::TestAccs)
+TEMPLATE_LIST_TEST_CASE("kernelFuntionObjectExtraTemplate", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
-    using Dim = alpaka::dim::Dim<Acc>;
-    using Idx = alpaka::idx::Idx<Acc>;
+    using Dim = alpaka::Dim<Acc>;
+    using Idx = alpaka::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<Acc> fixture(
-        alpaka::vec::Vec<Dim, Idx>::ones());
+    alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::ones());
 
     KernelInvocationWithAdditionalTemplate kernel;
 

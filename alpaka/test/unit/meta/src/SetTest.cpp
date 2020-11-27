@@ -17,43 +17,23 @@
 //-----------------------------------------------------------------------------
 TEST_CASE("isSetTrue", "[meta]")
 {
-    using IsSetInput =
-        std::tuple<
-            int,
-            float,
-            long>;
+    using IsSetInput = std::tuple<int, float, long>;
 
-    constexpr bool IsSetResult =
-        alpaka::meta::IsSet<
-            IsSetInput
-        >::value;
+    constexpr bool IsSetResult = alpaka::meta::IsSet<IsSetInput>::value;
 
-    constexpr bool IsSetReference =
-        true;
+    constexpr bool IsSetReference = true;
 
-    static_assert(
-        IsSetReference == IsSetResult,
-        "alpaka::meta::IsSet failed!");
+    static_assert(IsSetReference == IsSetResult, "alpaka::meta::IsSet failed!");
 }
 
 //-----------------------------------------------------------------------------
 TEST_CASE("isSetFalse", "[meta]")
 {
-    using IsSetInput =
-        std::tuple<
-            int,
-            float,
-            int>;
+    using IsSetInput = std::tuple<int, float, int>;
 
-    constexpr bool IsSetResult =
-        alpaka::meta::IsSet<
-            IsSetInput
-        >::value;
+    constexpr bool IsSetResult = alpaka::meta::IsSet<IsSetInput>::value;
 
-    constexpr bool IsSetReference =
-        false;
+    constexpr bool IsSetReference = false;
 
-    static_assert(
-        IsSetReference == IsSetResult,
-        "alpaka::meta::IsSet failed!");
+    static_assert(IsSetReference == IsSetResult, "alpaka::meta::IsSet failed!");
 }

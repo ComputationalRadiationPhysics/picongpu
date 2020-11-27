@@ -51,36 +51,31 @@ namespace mallocMC
             static constexpr auto providesAvailableSlots = false;
 
             template<typename AlpakaAcc>
-            ALPAKA_FN_ACC auto create(const AlpakaAcc & acc, uint32 bytes) const
-                -> void *
+            ALPAKA_FN_ACC auto create(const AlpakaAcc& acc, uint32 bytes) const -> void*
             {
                 return ::malloc(static_cast<size_t>(bytes));
             }
 
             template<typename AlpakaAcc>
-            ALPAKA_FN_ACC void
-            destroy(const AlpakaAcc & /*acc*/, void * mem) const
+            ALPAKA_FN_ACC void destroy(const AlpakaAcc& /*acc*/, void* mem) const
             {
                 ::free(mem);
             }
 
-            ALPAKA_FN_ACC auto isOOM(void * p, size_t s) const -> bool
+            ALPAKA_FN_ACC auto isOOM(void* p, size_t s) const -> bool
             {
                 return s != 0 && (p == nullptr);
             }
 
-            template<
-                typename AlpakaAcc,
-                typename AlpakaDevice,
-                typename AlpakaQueue,
-                typename T_DeviceAllocator>
+            template<typename AlpakaAcc, typename AlpakaDevice, typename AlpakaQueue, typename T_DeviceAllocator>
             static void initHeap(
-                AlpakaDevice & dev,
-                AlpakaQueue & queue,
-                T_DeviceAllocator * heap,
-                void * pool,
+                AlpakaDevice& dev,
+                AlpakaQueue& queue,
+                T_DeviceAllocator* heap,
+                void* pool,
                 size_t memsize)
-            {}
+            {
+            }
 
             static auto classname() -> std::string
             {

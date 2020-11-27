@@ -9,12 +9,11 @@
 
 #pragma once
 
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/math/log/Traits.hpp>
 
-#include <alpaka/core/Unused.hpp>
-
-#include <type_traits>
 #include <cmath>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -30,22 +29,15 @@ namespace alpaka
         {
             //#############################################################################
             //! The standard library log trait specialization.
-            template<
-                typename TArg>
-            struct Log<
-                LogStdLib,
-                TArg,
-                std::enable_if_t<
-                    std::is_arithmetic<TArg>::value>>
+            template<typename TArg>
+            struct Log<LogStdLib, TArg, std::enable_if_t<std::is_arithmetic<TArg>::value>>
             {
-                ALPAKA_FN_HOST static auto log(
-                    LogStdLib const & log_ctx,
-                    TArg const & arg)
+                ALPAKA_FN_HOST static auto log(LogStdLib const& log_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(log_ctx);
                     return std::log(arg);
                 }
             };
-        }
-    }
-}
+        } // namespace traits
+    } // namespace math
+} // namespace alpaka

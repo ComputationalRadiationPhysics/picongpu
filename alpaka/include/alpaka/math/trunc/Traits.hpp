@@ -18,18 +18,17 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathTrunc{};
+        struct ConceptMathTrunc
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The trunc trait.
-            template<
-                typename T,
-                typename TArg,
-                typename TSfinae = void>
+            template<typename T, typename TArg, typename TSfinae = void>
             struct Trunc;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the nearest integer not greater in magnitude than arg.
@@ -39,21 +38,11 @@ namespace alpaka
         //! \param trunc_ctx The object specializing Trunc.
         //! \param arg The arg.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename TArg>
-        ALPAKA_FN_HOST_ACC auto trunc(
-            T const & trunc_ctx,
-            TArg const & arg)
+        template<typename T, typename TArg>
+        ALPAKA_FN_HOST_ACC auto trunc(T const& trunc_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathTrunc, T>;
-            return
-                traits::Trunc<
-                    ImplementationBase,
-                    TArg>
-                ::trunc(
-                    trunc_ctx,
-                    arg);
+            return traits::Trunc<ImplementationBase, TArg>::trunc(trunc_ctx, arg);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

@@ -2194,7 +2194,7 @@ PREDEFINED             = ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED \
                          ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED \
                          ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED \
                          ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED \
-                         ALPAKA_ACC_CPU_BT_OMP4_ENABLED \
+                         ALPAKA_ACC_ANY_BT_OMP5_ENABLED \
                          ALPAKA_ACC_GPU_CUDA_ENABLED \
                          __CUDACC__ \
                          _OPENMP=201307

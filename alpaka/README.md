@@ -5,7 +5,7 @@
 [![Continuous Integration](https://github.com/alpaka-group/alpaka/workflows/Continuous%20Integration/badge.svg)](https://github.com/alpaka-group/alpaka/actions?query=workflow%3A%22Continuous+Integration%22)
 [![Documentation Status](https://readthedocs.org/projects/alpaka/badge/?version=latest)](https://alpaka.readthedocs.io)
 [![Doxygen](https://img.shields.io/badge/API-Doxygen-blue.svg)](https://alpaka-group.github.io/alpaka)
-[![Language](https://img.shields.io/badge/language-C%2B%2B11-orange.svg)](https://isocpp.org/)
+[![Language](https://img.shields.io/badge/language-C%2B%2B14-orange.svg)](https://isocpp.org/)
 [![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20mac-lightgrey.svg)](https://github.com/alpaka-group/alpaka)
 [![License](https://img.shields.io/badge/license-MPL--2.0-blue.svg)](https://www.mozilla.org/en-US/MPL/2.0/)
 
@@ -54,12 +54,15 @@ Accelerator Back-ends
 |Serial|n/a|Host CPU (single core)|sequential|sequential (only 1 thread per block)|
 |OpenMP 2.0+ blocks|OpenMP 2.0+|Host CPU (multi core)|parallel (preemptive multitasking)|sequential (only 1 thread per block)|
 |OpenMP 2.0+ threads|OpenMP 2.0+|Host CPU (multi core)|sequential|parallel (preemptive multitasking)|
-|OpenMP 4.0+ (CPU)|OpenMP 4.0+|Host CPU (multi core)|parallel (undefined)|parallel (preemptive multitasking)|
+|OpenMP 5.0+ |OpenMP 5.0+|Host CPU (multi core)|parallel (undefined)|parallel (preemptive multitasking)|
+| ||GPU|parallel (undefined)|parallel (lock-step within warps)|
+|OpenACC (experimental)|OpenACC 2.0+|Host CPU (multi core)|parallel (undefined)|parallel (preemptive multitasking)|
+|||GPU|parallel (undefined)|parallel (lock-step within warps)|
 | std::thread | std::thread |Host CPU (multi core)|sequential|parallel (preemptive multitasking)|
 | Boost.Fiber | boost::fibers::fiber |Host CPU (single core)|sequential|parallel (cooperative multitasking)|
 |TBB|TBB 2.2+|Host CPU (multi core)|parallel (preemptive multitasking)|sequential (only 1 thread per block)|
-|CUDA|CUDA 9.0-10.2|NVIDIA GPUs|parallel (undefined)|parallel (lock-step within warps)|
-|HIP(nvcc)|[HIP 3.3+](https://github.com/ROCm-Developer-Tools/HIP)|NVIDIA GPUs SM 3.0+|parallel (undefined)|parallel (lock-step within warps)|
+|CUDA|CUDA 9.0+|NVIDIA GPUs|parallel (undefined)|parallel (lock-step within warps)|
+|HIP(clang)|[HIP 3.5+](https://github.com/ROCm-Developer-Tools/HIP)|AMD GPUs |parallel (undefined)|parallel (lock-step within warps)|
 
 
 Supported Compilers
@@ -67,18 +70,18 @@ Supported Compilers
 
 This library uses C++14 (or newer when available).
 
-|Accelerator Back-end|gcc 5.5 <br/> (Linux)|gcc 6.4/7.3 <br/> (Linux)|gcc 8.1 <br/> (Linux)|gcc 9.1 <br/> (Linux)|gcc 10.1 <br/> (Linux)|clang 4 <br/> (Linux)|clang 5 <br/> (Linux)|clang 6 <br/> (Linux)|clang 7 <br/> (Linux)|clang 8 <br/> (Linux)|clang 9 <br/> (Linux)|clang 10 <br/> (Linux)|Apple LLVM 11.0-11.4 <br/> (macOS)|MSVC 2017/2019 <br/> (Windows)|
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|Serial|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|OpenMP 2.0+ blocks|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|
-|OpenMP 2.0+ threads|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|
-|OpenMP 4.0+ (CPU)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:x:|
-| std::thread |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-| Boost.Fiber |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|
-|TBB|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|CUDA (nvcc)|:white_check_mark: <br/> (CUDA 9.0-11.0)|:white_check_mark: <br/> (CUDA 9.2-11.0) |:white_check_mark: <br/> (CUDA 10.1-11.0) |:white_check_mark: <br/> (CUDA 11.0)|:x:|:white_check_mark: <br/> (CUDA 9.1-11.0)|:white_check_mark: <br/> (CUDA 10.1-11.0)|:white_check_mark: <br/> (CUDA 10.1-11.0)|:white_check_mark: <br/> (CUDA 10.1-11.0)|:white_check_mark: <br/> (CUDA 10.1-11.0)|:white_check_mark: <br/> (CUDA 11.0)|:x:|:x:|:white_check_mark: <br/> (CUDA 10.0-10.2)|
-|CUDA (clang) | - | - | - | - | - | - | - | :white_check_mark: <br/> (CUDA 9.0) | :white_check_mark: <br/> (CUDA 9.0-9.2) | :white_check_mark: <br/> (CUDA 9.0-10.0) | :white_check_mark: <br/> (CUDA 9.2-10.1) | :white_check_mark: <br/> (CUDA 9.2-10.1) | - | - |
-|[HIP](https://alpaka.readthedocs.io/en/latest/install/HIP.html) (nvcc)|:white_check_mark: <br/> (nvcc 9.2+)|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|
+|Accelerator Back-end|gcc 5.5 <br/> (Linux)|gcc 6.4/7.3 <br/> (Linux)|gcc 8.1 <br/> (Linux)|gcc 9.1 <br/> (Linux)|gcc 10.1 <br/> (Linux)|clang 4 <br/> (Linux)|clang 5 <br/> (Linux)|clang 6 <br/> (Linux)|clang 7 <br/> (Linux)|clang 8 <br/> (Linux)|clang 9 <br/> (Linux)|clang 10 <br/> (Linux)|Apple LLVM 11.2.1-12.2.0 <br/> (macOS)|MSVC 2017 <br/> (Windows)|MSVC 2019 <br/> (Windows)|
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|Serial|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+|OpenMP 2.0+ blocks|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|:white_check_mark:|
+|OpenMP 2.0+ threads|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|:white_check_mark:|
+|OpenMP 4.0+ (CPU)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:x:|:x:|
+| std::thread |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+| Boost.Fiber |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|:white_check_mark:|
+|TBB|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:x:|
+|CUDA (nvcc)|:white_check_mark: <br/> (CUDA 9.0-11.1)|:white_check_mark: <br/> (CUDA 9.2-11.1) |:white_check_mark: <br/> (CUDA 10.1-11.1) |:white_check_mark: <br/> (CUDA 11.0-11.1)|:white_check_mark: <br/> (CUDA 11.1)|:white_check_mark: <br/> (CUDA 9.1-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|:white_check_mark: <br/> (CUDA 11.0-11.1)|:white_check_mark: <br/> (CUDA 11.1)|:x:|:white_check_mark: <br/> (CUDA 10.0-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|
+|CUDA (clang) | - | - | - | - | - | - | - | :white_check_mark: <br/> (CUDA 9.0) | :white_check_mark: <br/> (CUDA 9.0-9.2) | :white_check_mark: <br/> (CUDA 9.0-10.0) | :white_check_mark: <br/> (CUDA 9.2-10.1) | :white_check_mark: <br/> (CUDA 9.2-10.1) | - | - | - |
+|[HIP](https://alpaka.readthedocs.io/en/latest/install/HIP.html) (clang)|:white_check_mark: |:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|
 
 
 Other compilers or combinations marked with :x: in the table above may work but are not tested in CI and are therefore not explicitly supported.
@@ -95,7 +98,7 @@ When *Boost.Fiber* is enabled and alpaka is built in C++17 mode with clang and l
 
 When an accelerator back-end using *CUDA* is enabled, version *9.0* of the *CUDA SDK* is the minimum requirement.
 *NOTE*: When using nvcc as *CUDA* compiler, the *CUDA accelerator back-end* can not be enabled together with the *Boost.Fiber accelerator back-end* due to bugs in the nvcc compiler.
-*NOTE*: When using clang as a native *CUDA* compiler, the *CUDA accelerator back-end* can not be enabled together with any *OpenMP accelerator back-end* because this combination is currently unsupported.
+*NOTE*: When using clang as a native *CUDA* compiler, the *CUDA accelerator back-end* can not be enabled together with the *Boost.Fiber accelerator back-end* or any *OpenMP accelerator back-end* because this combination is currently unsupported.
 *NOTE*: Separable compilation is only supported when using nvcc, not with clang as native *CUDA* compiler. It is disabled by default and can be enabled via the CMake flag `ALPAKA_CUDA_NVCC_SEPARABLE_COMPILATION`.
 
 When an accelerator back-end using *OpenMP* is enabled, the compiler and the platform have to support the corresponding minimum *OpenMP* version.
@@ -200,6 +203,10 @@ consider citing us accordingly in your derived work and publications:
 }
 ```
 
+Contributing
+------------
+
+Rules for contributions can be found in [CONTRIBUTING.md](CONTRIBUTING.md)
 
 Authors
 -------

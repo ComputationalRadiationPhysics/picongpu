@@ -11,9 +11,9 @@ project = 'alpaka'
 copyright = 'Documentation under CC-BY 4.0, Benjamin Worpitz, René Widera, Axel Huebl, Michael Bussmann'
 author = 'Benjamin Worpitz, René Widera, Axel Huebl, Michael Bussmann'
 # The short X.Y version.
-version = u'0.5.0'
+version = u'0.6.0'
 # The full version, including alpha/beta/rc tags.
-release = u'0.5.0'
+release = u'0.6.0'
 
 # The master toctree document.
 master_doc = 'index'
@@ -63,7 +63,10 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-#html_static_path = ['_static']
+html_static_path = ['_static']
+
+# modifies the HTML Sphinx Doc layout
+html_css_files = ["custom.css"]
 
 html_logo = "../logo/alpaka.svg"
 html_theme_options = {
@@ -163,7 +166,7 @@ cpp_id_attributes = ["ALPAKA_FN_ACC",
 
 if on_rtd:
     subprocess.call('cd ..; doxygen', shell=True)
-    subprocess.call('cd ../cheatsheet; rst2pdf -s cheatsheet.style ../source/usage/cheatsheet.rst -o cheatsheet.pdf', shell=True)
+    subprocess.call('cd ../cheatsheet; rst2pdf -s cheatsheet.style ../source/basic/cheatsheet.rst -o cheatsheet.pdf', shell=True)
 else:
     import sphinx_rtd_theme
     html_theme = "sphinx_rtd_theme"

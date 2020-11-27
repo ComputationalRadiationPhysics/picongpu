@@ -17,126 +17,141 @@ namespace alpaka
     //! The test specifics.
     namespace test
     {
-        //-----------------------------------------------------------------------------
-        //! The test queue specifics.
-        namespace queue
+        namespace traits
         {
-            namespace traits
-            {
-                //#############################################################################
-                //! The default queue type trait for devices.
-                template<
-                    typename TDev,
-                    typename TSfinae = void>
-                struct DefaultQueueType;
+            //#############################################################################
+            //! The default queue type trait for devices.
+            template<typename TDev, typename TSfinae = void>
+            struct DefaultQueueType;
 
-                //#############################################################################
-                //! The default queue type trait specialization for the CPU device.
-                template<>
-                struct DefaultQueueType<
-                    alpaka::dev::DevCpu>
-                {
-#if (ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-                    using type = alpaka::queue::QueueCpuBlocking;
+            //#############################################################################
+            //! The default queue type trait specialization for the CPU device.
+            template<>
+            struct DefaultQueueType<alpaka::DevCpu>
+            {
+#if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
+                using type = alpaka::QueueCpuBlocking;
 #else
-                    using type = alpaka::queue::QueueCpuNonBlocking;
+                using type = alpaka::QueueCpuNonBlocking;
 #endif
-                };
+            };
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-                //#############################################################################
-                //! The default queue type trait specialization for the CUDA/HIP device.
-                template<>
-                struct DefaultQueueType<
-                    alpaka::dev::DevUniformCudaHipRt>
-                {
-#if (ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-                    using type = alpaka::queue::QueueUniformCudaHipRtBlocking;
-#else
-                    using type = alpaka::queue::QueueUniformCudaHipRtNonBlocking;
-#endif
-                };
-#endif
-            }
             //#############################################################################
-            //! The queue type that should be used for the given accelerator.
-            template<
-                typename TAcc>
-            using DefaultQueue = typename traits::DefaultQueueType<TAcc>::type;
-
-            namespace traits
+            //! The default queue type trait specialization for the CUDA/HIP device.
+            template<>
+            struct DefaultQueueType<alpaka::DevUniformCudaHipRt>
             {
-                //#############################################################################
-                //! The blocking queue trait.
-                template<
-                    typename TQueue,
-                    typename TSfinae = void>
-                struct IsBlockingQueue;
+#    if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
+                using type = alpaka::QueueUniformCudaHipRtBlocking;
+#    else
+                using type = alpaka::QueueUniformCudaHipRtNonBlocking;
+#    endif
+            };
+#endif
+        } // namespace traits
+        //#############################################################################
+        //! The queue type that should be used for the given accelerator.
+        template<typename TAcc>
+        using DefaultQueue = typename traits::DefaultQueueType<TAcc>::type;
 
-                //#############################################################################
-                //! The blocking queue trait specialization for a blocking CPU queue.
-                template<>
-                struct IsBlockingQueue<
-                    alpaka::queue::QueueCpuBlocking>
-                {
-                    static constexpr bool value = true;
-                };
+        namespace traits
+        {
+            //#############################################################################
+            //! The blocking queue trait.
+            template<typename TQueue, typename TSfinae = void>
+            struct IsBlockingQueue;
 
-                //#############################################################################
-                //! The blocking queue trait specialization for a non-blocking CPU queue.
-                template<>
-                struct IsBlockingQueue<
-                    alpaka::queue::QueueCpuNonBlocking>
-                {
-                    static constexpr bool value = false;
-                };
+            //#############################################################################
+            //! The blocking queue trait specialization for a blocking CPU queue.
+            template<typename TDev>
+            struct IsBlockingQueue<alpaka::QueueGenericThreadsBlocking<TDev>>
+            {
+                static constexpr bool value = true;
+            };
+
+            //#############################################################################
+            //! The blocking queue trait specialization for a non-blocking CPU queue.
+            template<typename TDev>
+            struct IsBlockingQueue<alpaka::QueueGenericThreadsNonBlocking<TDev>>
+            {
+                static constexpr bool value = false;
+            };
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-                //#############################################################################
-                //! The blocking queue trait specialization for a blocking CUDA/HIP RT queue.
-                template<>
-                struct IsBlockingQueue<
-                    alpaka::queue::QueueUniformCudaHipRtBlocking>
-                {
-                    static constexpr bool value = true;
-                };
+            //#############################################################################
+            //! The blocking queue trait specialization for a blocking CUDA/HIP RT queue.
+            template<>
+            struct IsBlockingQueue<alpaka::QueueUniformCudaHipRtBlocking>
+            {
+                static constexpr bool value = true;
+            };
 
-                //#############################################################################
-                //! The blocking queue trait specialization for a non-blocking CUDA/HIP RT queue.
-                template<>
-                struct IsBlockingQueue<
-                    alpaka::queue::QueueUniformCudaHipRtNonBlocking>
-                {
-                    static constexpr bool value = false;
-                };
+            //#############################################################################
+            //! The blocking queue trait specialization for a non-blocking CUDA/HIP RT queue.
+            template<>
+            struct IsBlockingQueue<alpaka::QueueUniformCudaHipRtNonBlocking>
+            {
+                static constexpr bool value = false;
+            };
 #endif
 
-            }
-            //#############################################################################
-            //! The queue type that should be used for the given accelerator.
-            template<
-                typename TQueue>
-            using IsBlockingQueue = traits::IsBlockingQueue<TQueue>;
+#ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
 
             //#############################################################################
-            //! A std::tuple holding tuples of devices and corresponding queue types.
-            using TestQueues =
-                std::tuple<
-                    std::tuple<alpaka::dev::DevCpu, alpaka::queue::QueueCpuBlocking>,
-                    std::tuple<alpaka::dev::DevCpu, alpaka::queue::QueueCpuNonBlocking>
+            //! The default queue type trait specialization for the Omp5 device.
+            template<>
+            struct DefaultQueueType<alpaka::DevOmp5>
+            {
+#    if(ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
+                using type = alpaka::QueueOmp5Blocking;
+#    else
+                using type = alpaka::QueueOmp5Blocking;
+#    endif
+            };
+#elif defined ALPAKA_ACC_ANY_BT_OACC_ENABLED
+
+            //#############################################################################
+            //! The default queue type trait specialization for the OMP4 device.
+            template<>
+            struct DefaultQueueType<alpaka::DevOacc>
+            {
+                using type = alpaka::QueueOaccBlocking;
+            };
+#endif
+
+        } // namespace traits
+        //#############################################################################
+        //! The queue type that should be used for the given accelerator.
+        template<typename TQueue>
+        using IsBlockingQueue = traits::IsBlockingQueue<TQueue>;
+
+        //#############################################################################
+        //! A std::tuple holding tuples of devices and corresponding queue types.
+        using TestQueues = std::tuple<
+            std::tuple<alpaka::DevCpu, alpaka::QueueCpuBlocking>,
+            std::tuple<alpaka::DevCpu, alpaka::QueueCpuNonBlocking>
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-                    ,
-                    std::tuple<alpaka::dev::DevUniformCudaHipRt, alpaka::queue::QueueUniformCudaHipRtBlocking>,
-                    std::tuple<alpaka::dev::DevUniformCudaHipRt, alpaka::queue::QueueUniformCudaHipRtNonBlocking>
+            ,
+            std::tuple<alpaka::DevUniformCudaHipRt, alpaka::QueueUniformCudaHipRtBlocking>,
+            std::tuple<alpaka::DevUniformCudaHipRt, alpaka::QueueUniformCudaHipRtNonBlocking>
 #endif
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
-                    ,
-                    std::tuple<alpaka::dev::DevHipRt, alpaka::queue::QueueHipRtBlocking>,
-                    std::tuple<alpaka::dev::DevHipRt, alpaka::queue::QueueHipRtNonBlocking>
+            ,
+            std::tuple<alpaka::DevHipRt, alpaka::QueueHipRtBlocking>,
+            std::tuple<alpaka::DevHipRt, alpaka::QueueHipRtNonBlocking>
 #endif
-                >;
-        }
-    }
-}
+#ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
+            ,
+            std::tuple<alpaka::DevOmp5, alpaka::QueueOmp5Blocking>,
+            std::tuple<alpaka::DevOmp5, alpaka::QueueOmp5NonBlocking>
+#elif defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED)
+            ,
+            std::tuple<alpaka::DevOacc, alpaka::QueueOaccBlocking>,
+            std::tuple<alpaka::DevOacc, alpaka::QueueOaccNonBlocking>
+#endif
+            >;
+    } // namespace test
+} // namespace alpaka

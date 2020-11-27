@@ -33,11 +33,11 @@
 #include <numeric>
 #include <vector>
 
-using Dim = alpaka::dim::DimInt<1>;
+using Dim = alpaka::DimInt<1>;
 using Idx = std::size_t;
-// using Acc = alpaka::acc::AccCpuThreads<Dim, Idx>;
-// using Acc = alpaka::acc::AccCpuOmp2Threads<Dim, Idx>;
-using Acc = alpaka::acc::AccGpuCudaRt<Dim, Idx>;
+// using Acc = alpaka::AccCpuThreads<Dim, Idx>;
+// using Acc = alpaka::AccCpuOmp2Threads<Dim, Idx>;
+using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
 
 struct ScatterConfig
 {
@@ -69,20 +69,17 @@ using ScatterAllocator = mallocMC::Allocator<
     mallocMC::ReservePoolPolicies::AlpakaBuf<Acc>,
     mallocMC::AlignmentPolicies::Shrink<AlignmentConfig>>;
 
-ALPAKA_STATIC_ACC_MEM_GLOBAL int * arA = nullptr;
+ALPAKA_STATIC_ACC_MEM_GLOBAL int* arA = nullptr;
 
 struct ExampleKernel
 {
-    ALPAKA_FN_ACC void operator()(
-        const Acc & acc,
-        ScatterAllocator::AllocatorHandle allocHandle) const
+    ALPAKA_FN_ACC void operator()(const Acc& acc, ScatterAllocator::AllocatorHandle allocHandle) const
     {
-        const auto id
-            = static_cast<uint32_t>(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0]);
+        const auto id = static_cast<uint32_t>(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0]);
         if(id == 0)
-            arA = (int *)allocHandle.malloc(acc, sizeof(int) * 32);
+            arA = (int*) allocHandle.malloc(acc, sizeof(int) * 32);
         // wait the the malloc from thread zero is not changing the result for some threads
-        alpaka::block::sync::syncBlockThreads(acc);
+        alpaka::syncBlockThreads(acc);
         const auto slots = allocHandle.getAvailableSlots(acc, 1);
         if(arA != nullptr)
         {
@@ -93,7 +90,7 @@ struct ExampleKernel
             printf("error: device size allocation failed");
 
         // wait that all thread read from `arA`
-        alpaka::block::sync::syncBlockThreads(acc);
+        alpaka::syncBlockThreads(acc);
         if(id == 0)
             allocHandle.free(acc, arA);
     }
@@ -101,21 +98,17 @@ struct ExampleKernel
 
 auto main() -> int
 {
-    const auto dev = alpaka::pltf::getDevByIdx<Acc>(0);
-    auto queue = alpaka::queue::Queue<Acc, alpaka::queue::Blocking>{dev};
+    const auto dev = alpaka::getDevByIdx<Acc>(0);
+    auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
 
-    ScatterAllocator scatterAlloc(
-        dev, queue, 1U * 1024U * 1024U * 1024U); // 1GB for device-side malloc
+    ScatterAllocator scatterAlloc(dev, queue, 1U * 1024U * 1024U * 1024U); // 1GB for device-side malloc
 
-    const auto workDiv
-        = alpaka::workdiv::WorkDivMembers<Dim, Idx>{Idx{1}, Idx{32}, Idx{1}};
-    alpaka::queue::enqueue(
+    const auto workDiv = alpaka::WorkDivMembers<Dim, Idx>{Idx{1}, Idx{32}, Idx{1}};
+    alpaka::enqueue(
         queue,
-        alpaka::kernel::createTaskKernel<Acc>(
-            workDiv, ExampleKernel{}, scatterAlloc.getAllocatorHandle()));
+        alpaka::createTaskKernel<Acc>(workDiv, ExampleKernel{}, scatterAlloc.getAllocatorHandle()));
 
-    std::cout << "Slots from Host: "
-              << scatterAlloc.getAvailableSlots(dev, queue, 1) << '\n';
+    std::cout << "Slots from Host: " << scatterAlloc.getAvailableSlots(dev, queue, 1) << '\n';
 
     return 0;
 }

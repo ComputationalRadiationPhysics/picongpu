@@ -18,18 +18,17 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathFloor{};
+        struct ConceptMathFloor
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The floor trait.
-            template<
-                typename T,
-                typename TArg,
-                typename TSfinae = void>
+            template<typename T, typename TArg, typename TSfinae = void>
             struct Floor;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the largest integer value not greater than arg.
@@ -39,21 +38,11 @@ namespace alpaka
         //! \param floor_ctx The object specializing Floor.
         //! \param arg The arg.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename TArg>
-        ALPAKA_FN_HOST_ACC auto floor(
-            T const & floor_ctx,
-            TArg const & arg)
+        template<typename T, typename TArg>
+        ALPAKA_FN_HOST_ACC auto floor(T const& floor_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathFloor, T>;
-            return
-                traits::Floor<
-                    ImplementationBase,
-                    TArg>
-                ::floor(
-                    floor_ctx,
-                    arg);
+            return traits::Floor<ImplementationBase, TArg>::floor(floor_ctx, arg);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

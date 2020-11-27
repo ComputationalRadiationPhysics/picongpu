@@ -7,10 +7,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <alpaka/time/Traits.hpp>
-
-#include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
+#include <alpaka/test/acc/TestAccs.hpp>
+#include <alpaka/time/Traits.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -20,19 +19,13 @@ class ClockTestKernel
 public:
     //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
-    template<
-        typename TAcc>
-    ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc,
-        bool * success) const
-    -> void
+    template<typename TAcc>
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
     {
-        std::uint64_t const start(
-            alpaka::time::clock(acc));
+        std::uint64_t const start(alpaka::clock(acc));
         ALPAKA_CHECK(*success, 0u != start);
 
-        std::uint64_t const end(
-            alpaka::time::clock(acc));
+        std::uint64_t const end(alpaka::clock(acc));
         ALPAKA_CHECK(*success, 0u != end);
 
         // 'end' has to be greater equal 'start'.
@@ -42,14 +35,13 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-TEMPLATE_LIST_TEST_CASE( "clockIsWorking", "[timeClock]", alpaka::test::acc::TestAccs)
+TEMPLATE_LIST_TEST_CASE("clockIsWorking", "[timeClock]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
-    using Dim = alpaka::dim::Dim<Acc>;
-    using Idx = alpaka::idx::Idx<Acc>;
+    using Dim = alpaka::Dim<Acc>;
+    using Idx = alpaka::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<Acc> fixture(
-        alpaka::vec::Vec<Dim, Idx>::ones());
+    alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::ones());
 
     ClockTestKernel kernel;
 

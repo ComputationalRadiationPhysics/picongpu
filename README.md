@@ -4,8 +4,8 @@ mallocMC
 mallocMC: *Memory Allocator for Many Core Architectures*
 
 This project provides a framework for **fast memory managers** on **many core
-accelerators**. Currently, it supports **NVIDIA GPUs** of compute capability
-`sm_20` or higher through the *ScatterAlloc* algorithm.
+accelerators**. It is based on [alpaka](https://github.com/alpaka-group/alpaka)
+to run on many different accelerators and implements the *ScatterAlloc* algorithm.
 
 
 Usage

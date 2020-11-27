@@ -18,18 +18,17 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathTan{};
+        struct ConceptMathTan
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The tan trait.
-            template<
-                typename T,
-                typename TArg,
-                typename TSfinae = void>
+            template<typename T, typename TArg, typename TSfinae = void>
             struct Tan;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the tangent (measured in radians).
@@ -39,21 +38,11 @@ namespace alpaka
         //! \param tan_ctx The object specializing Tan.
         //! \param arg The arg.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename TArg>
-        ALPAKA_FN_HOST_ACC auto tan(
-            T const & tan_ctx,
-            TArg const & arg)
+        template<typename T, typename TArg>
+        ALPAKA_FN_HOST_ACC auto tan(T const& tan_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathTan, T>;
-            return
-                traits::Tan<
-                    ImplementationBase,
-                    TArg>
-                ::tan(
-                    tan_ctx,
-                    arg);
+            return traits::Tan<ImplementationBase, TArg>::tan(tan_ctx, arg);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

@@ -30,6 +30,11 @@ set_target_properties(CatchMain PROPERTIES
 )
 
 target_compile_definitions(CatchMain PUBLIC "CATCH_CONFIG_FAST_COMPILE")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "PGI")
+    # Workaround for STL atomic issue: https://forums.developer.nvidia.com/t/support-for-atomic-in-libstdc-missing/135403/2
+    # still appears in NVHPC 20.7
+    target_compile_definitions(CatchMain PUBLIC "__GCC_ATOMIC_TEST_AND_SET_TRUEVAL=1")
+endif()
 if(MSVC)
     target_compile_definitions(CatchMain PUBLIC "CATCH_CONFIG_WINDOWS_CRTDBG")
     target_compile_options(CatchMain PUBLIC "/bigobj")

@@ -9,12 +9,11 @@
 
 #pragma once
 
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/math/atan2/Traits.hpp>
 
-#include <alpaka/core/Unused.hpp>
-
-#include <type_traits>
 #include <cmath>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -30,26 +29,19 @@ namespace alpaka
         {
             //#############################################################################
             //! The standard library atan2 trait specialization.
-            template<
-                typename Ty,
-                typename Tx>
+            template<typename Ty, typename Tx>
             struct Atan2<
                 Atan2StdLib,
                 Ty,
                 Tx,
-                std::enable_if_t<
-                    std::is_arithmetic<Ty>::value
-                    && std::is_arithmetic<Tx>::value>>
+                std::enable_if_t<std::is_arithmetic<Ty>::value && std::is_arithmetic<Tx>::value>>
             {
-                ALPAKA_FN_HOST static auto atan2(
-                    Atan2StdLib const & abs,
-                    Ty const & y,
-                    Tx const & x)
+                ALPAKA_FN_HOST static auto atan2(Atan2StdLib const& abs, Ty const& y, Tx const& x)
                 {
                     alpaka::ignore_unused(abs);
                     return std::atan2(y, x);
                 }
             };
-        }
-    }
-}
+        } // namespace traits
+    } // namespace math
+} // namespace alpaka

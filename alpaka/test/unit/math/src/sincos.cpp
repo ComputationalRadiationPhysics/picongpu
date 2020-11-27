@@ -8,27 +8,28 @@
  */
 
 #include <alpaka/math/sincos/Traits.hpp>
-
+#include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
-#include <alpaka/test/KernelExecutionFixture.hpp>
 
 #include <catch2/catch.hpp>
 
 #include <type_traits>
 
 // https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
-template <typename TAcc, typename FP>
-ALPAKA_FN_ACC
-std::enable_if_t< !std::numeric_limits<FP>::is_integer, bool >
-almost_equal(TAcc const & acc, FP x, FP y, int ulp)
+template<typename TAcc, typename FP>
+ALPAKA_FN_ACC std::enable_if_t<!std::numeric_limits<FP>::is_integer, bool> almost_equal(
+    TAcc const& acc,
+    FP x,
+    FP y,
+    int ulp)
 {
     // the machine epsilon has to be scaled to the magnitude of the values used
     // and multiplied by the desired precision in ULPs (units in the last place)
-    return alpaka::math::abs(acc, x-y)
-        <= std::numeric_limits<FP>::epsilon() * alpaka::math::abs(acc, x+y) * static_cast<FP>(ulp)
+    return alpaka::math::abs(acc, x - y)
+        <= std::numeric_limits<FP>::epsilon() * alpaka::math::abs(acc, x + y) * static_cast<FP>(ulp)
         // unless the result is subnormal
-        || alpaka::math::abs(acc, x-y) < std::numeric_limits<FP>::min();
+        || alpaka::math::abs(acc, x - y) < std::numeric_limits<FP>::min();
 }
 
 class SinCosTestKernel
@@ -36,15 +37,8 @@ class SinCosTestKernel
 public:
     //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
-    template<
-    typename TAcc,
-    typename FP
-    >
-    ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc,
-        bool * success,
-        FP const arg) const
-    -> void
+    template<typename TAcc, typename FP>
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, FP const arg) const -> void
     {
         // if arg is hardcoded then compiler can optimize it out
         // (PTX kernel (float) was just empty)
@@ -53,30 +47,25 @@ public:
         FP result_sin = 0.;
         FP result_cos = 0.;
         alpaka::math::sincos(acc, arg, result_sin, result_cos);
-        ALPAKA_CHECK(*success,
-                     almost_equal(acc, result_sin, check_sin, 1)
-                     &&
-                     almost_equal(acc, result_cos, check_cos, 1)
-            );
+        ALPAKA_CHECK(
+            *success,
+            almost_equal(acc, result_sin, check_sin, 1) && almost_equal(acc, result_cos, check_cos, 1));
     }
 };
 
-using TestAccs = alpaka::test::acc::EnabledAccs<
-    alpaka::dim::DimInt<1u>,
-    std::size_t>;
+using TestAccs = alpaka::test::EnabledAccs<alpaka::DimInt<1u>, std::size_t>;
 
 //-----------------------------------------------------------------------------
-TEMPLATE_LIST_TEST_CASE( "sincos", "[sincos]", TestAccs)
+TEMPLATE_LIST_TEST_CASE("sincos", "[sincos]", TestAccs)
 {
     using Acc = TestType;
-    using Dim = alpaka::dim::Dim<Acc>;
-    using Idx = alpaka::idx::Idx<Acc>;
+    using Dim = alpaka::Dim<Acc>;
+    using Idx = alpaka::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<Acc> fixture(
-        alpaka::vec::Vec<Dim, Idx>::ones());
+    alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::ones());
 
     SinCosTestKernel kernel;
 
-    REQUIRE(fixture( kernel, 0.42f )); // float
-    REQUIRE(fixture( kernel, 0.42 ));  // double
+    REQUIRE(fixture(kernel, 0.42f)); // float
+    REQUIRE(fixture(kernel, 0.42)); // double
 }

@@ -18,19 +18,17 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathMin{};
+        struct ConceptMathMin
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The min trait.
-            template<
-                typename T,
-                typename Tx,
-                typename Ty,
-                typename TSfinae = void>
+            template<typename T, typename Tx, typename Ty, typename TSfinae = void>
             struct Min;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Returns the smaller of two arguments.
@@ -43,25 +41,11 @@ namespace alpaka
         //! \param x The first argument.
         //! \param y The second argument.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename Tx,
-            typename Ty>
-        ALPAKA_FN_HOST_ACC auto min(
-            T const & min_ctx,
-            Tx const & x,
-            Ty const & y)
+        template<typename T, typename Tx, typename Ty>
+        ALPAKA_FN_HOST_ACC auto min(T const& min_ctx, Tx const& x, Ty const& y)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathMin, T>;
-            return
-                traits::Min<
-                    ImplementationBase,
-                    Tx,
-                    Ty>
-                ::min(
-                    min_ctx,
-                    x,
-                    y);
+            return traits::Min<ImplementationBase, Tx, Ty>::min(min_ctx, x, y);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

@@ -42,31 +42,32 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library math trait specializations.
-        class MathStdLib :
-            public AbsStdLib,
-            public AcosStdLib,
-            public AsinStdLib,
-            public AtanStdLib,
-            public Atan2StdLib,
-            public CbrtStdLib,
-            public CeilStdLib,
-            public CosStdLib,
-            public ErfStdLib,
-            public ExpStdLib,
-            public FloorStdLib,
-            public FmodStdLib,
-            public LogStdLib,
-            public MaxStdLib,
-            public MinStdLib,
-            public PowStdLib,
-            public RemainderStdLib,
-            public RoundStdLib,
-            public RsqrtStdLib,
-            public SinStdLib,
-            public SinCosStdLib,
-            public SqrtStdLib,
-            public TanStdLib,
-            public TruncStdLib
-        {};
-    }
-}
+        class MathStdLib
+            : public AbsStdLib
+            , public AcosStdLib
+            , public AsinStdLib
+            , public AtanStdLib
+            , public Atan2StdLib
+            , public CbrtStdLib
+            , public CeilStdLib
+            , public CosStdLib
+            , public ErfStdLib
+            , public ExpStdLib
+            , public FloorStdLib
+            , public FmodStdLib
+            , public LogStdLib
+            , public MaxStdLib
+            , public MinStdLib
+            , public PowStdLib
+            , public RemainderStdLib
+            , public RoundStdLib
+            , public RsqrtStdLib
+            , public SinStdLib
+            , public SinCosStdLib
+            , public SqrtStdLib
+            , public TanStdLib
+            , public TruncStdLib
+        {
+        };
+    } // namespace math
+} // namespace alpaka

@@ -10,62 +10,61 @@
 #pragma once
 
 #include <cmath>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <limits>
 
-namespace alpaka {
-namespace test {
-namespace unit {
-namespace math {
-
-    // New types need to be added to the switch-case in DataGen.hpp
-    enum class Range
+namespace alpaka
+{
+    namespace test
     {
-        OneNeighbourhood,
-        PositiveOnly,
-        PositiveAndZero,
-        NotZero,
-        Unrestricted
-    };
-
-    // New types need to be added to the operator() function in Functor.hpp
-    enum class Arity
-    {
-        Unary = 1,
-        Binary = 2
-    };
-
-    template<typename T, Arity Tarity>
-    struct ArgsItem{
-        static constexpr Arity arity = Tarity;
-        static constexpr size_t arity_nr = static_cast<size_t>(Tarity);
-
-        T arg[arity_nr]; // represents arg0, arg1, ...
-
-        friend std::ostream & operator<<(
-            std::ostream & os,
-            const ArgsItem & argsItem
-        )
+        namespace unit
         {
-            os.precision(17);
-            os << "[ ";
-            for( size_t i = 0; i < argsItem.arity_nr; ++i )
-                os << std::setprecision(
-                    std::numeric_limits<T>::digits10 + 1) <<
-                argsItem.arg[i] << ", ";
-             os << "]";
-            return os;
-        }
-    };
+            namespace math
+            {
+                // New types need to be added to the switch-case in DataGen.hpp
+                enum class Range
+                {
+                    OneNeighbourhood,
+                    PositiveOnly,
+                    PositiveAndZero,
+                    NotZero,
+                    Unrestricted
+                };
 
-    template< typename T >
-    auto rsqrt( T const & arg ) -> decltype( std::sqrt( arg ) )
-    {
-        return static_cast<T>(1) / std::sqrt( arg );
-    }
+                // New types need to be added to the operator() function in Functor.hpp
+                enum class Arity
+                {
+                    Unary = 1,
+                    Binary = 2
+                };
 
-} // math
-} // unit
-} // test
-} // alpaka
+                template<typename T, Arity Tarity>
+                struct ArgsItem
+                {
+                    static constexpr Arity arity = Tarity;
+                    static constexpr size_t arity_nr = static_cast<size_t>(Tarity);
+
+                    T arg[arity_nr]; // represents arg0, arg1, ...
+
+                    friend std::ostream& operator<<(std::ostream& os, const ArgsItem& argsItem)
+                    {
+                        os.precision(17);
+                        os << "[ ";
+                        for(size_t i = 0; i < argsItem.arity_nr; ++i)
+                            os << std::setprecision(std::numeric_limits<T>::digits10 + 1) << argsItem.arg[i] << ", ";
+                        os << "]";
+                        return os;
+                    }
+                };
+
+                template<typename T>
+                auto rsqrt(T const& arg) -> decltype(std::sqrt(arg))
+                {
+                    return static_cast<T>(1) / std::sqrt(arg);
+                }
+
+            } // namespace math
+        } // namespace unit
+    } // namespace test
+} // namespace alpaka
