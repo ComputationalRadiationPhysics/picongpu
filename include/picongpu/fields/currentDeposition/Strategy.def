@@ -45,8 +45,7 @@ namespace picongpu
             {
                 static constexpr bool useBlockCache = true;
                 static constexpr bool stridedMapping = true;
-                using BlockReductionOp
-                    = nvidia::functors::Atomic<::alpaka::atomic::op::Add, ::alpaka::hierarchy::Threads>;
+                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
                 using GridReductionOp = nvidia::functors::Add;
             };
 
@@ -61,10 +60,8 @@ namespace picongpu
             {
                 static constexpr bool useBlockCache = true;
                 static constexpr bool stridedMapping = false;
-                using BlockReductionOp
-                    = nvidia::functors::Atomic<::alpaka::atomic::op::Add, ::alpaka::hierarchy::Threads>;
-                using GridReductionOp
-                    = nvidia::functors::Atomic<::alpaka::atomic::op::Add, ::alpaka::hierarchy::Blocks>;
+                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
+                using GridReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
             };
 
             /** Non cached strategy
@@ -79,8 +76,7 @@ namespace picongpu
             {
                 static constexpr bool useBlockCache = false;
                 static constexpr bool stridedMapping = false;
-                using BlockReductionOp
-                    = nvidia::functors::Atomic<::alpaka::atomic::op::Add, ::alpaka::hierarchy::Blocks>;
+                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
                 // dummy which produces a compile time error if used
                 using GridReductionOp = void;
             };
@@ -125,7 +121,7 @@ namespace picongpu
 
 #if(ALPAKA_ACC_GPU_CUDA_ENABLED == 1)
             template<typename... T_Args>
-            struct GetDefaultStrategy<alpaka::acc::AccGpuCudaRt<T_Args...>>
+            struct GetDefaultStrategy<alpaka::AccGpuCudaRt<T_Args...>>
             {
                 // GPU Utilization is higher compared to `StridedCachedSupercells`
                 using type = strategy::CachedSupercells;
@@ -134,7 +130,7 @@ namespace picongpu
 
 #if(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
             template<typename... T_Args>
-            struct GetDefaultStrategy<alpaka::acc::AccGpuHipRt<T_Args...>>
+            struct GetDefaultStrategy<alpaka::AccGpuHipRt<T_Args...>>
             {
                 // GPU Utilization is higher compared to `StridedCachedSupercells`
                 using type = strategy::CachedSupercells;

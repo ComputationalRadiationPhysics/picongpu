@@ -50,7 +50,7 @@ namespace pmacc
                 template<typename T_Acc>
                 static DINLINE T_Type& get(T_Acc const& acc)
                 {
-                    auto& smem = ::alpaka::block::shared::st::allocVar<T_Type, T_uniqueId>(acc);
+                    auto& smem = ::alpaka::declareSharedVar<T_Type, T_uniqueId>(acc);
                     return smem;
                 }
             };
