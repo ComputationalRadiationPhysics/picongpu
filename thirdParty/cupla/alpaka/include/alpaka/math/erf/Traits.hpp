@@ -18,18 +18,17 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathErf{};
+        struct ConceptMathErf
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The erf trait.
-            template<
-                typename T,
-                typename TArg,
-                typename TSfinae = void>
+            template<typename T, typename TArg, typename TSfinae = void>
             struct Erf;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the error function of arg.
@@ -39,21 +38,11 @@ namespace alpaka
         //! \param erf_ctx The object specializing Erf.
         //! \param arg The arg.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename TArg>
-        ALPAKA_FN_HOST_ACC auto erf(
-            T const & erf_ctx,
-            TArg const & arg)
+        template<typename T, typename TArg>
+        ALPAKA_FN_HOST_ACC auto erf(T const& erf_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathErf, T>;
-            return
-                traits::Erf<
-                    ImplementationBase,
-                    TArg>
-                ::erf(
-                    erf_ctx,
-                    arg);
+            return traits::Erf<ImplementationBase, TArg>::erf(erf_ctx, arg);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

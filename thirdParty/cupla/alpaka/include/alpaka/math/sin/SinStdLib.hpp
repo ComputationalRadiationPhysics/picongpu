@@ -9,12 +9,11 @@
 
 #pragma once
 
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/math/sin/Traits.hpp>
 
-#include <alpaka/core/Unused.hpp>
-
-#include <type_traits>
 #include <cmath>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -30,22 +29,15 @@ namespace alpaka
         {
             //#############################################################################
             //! The standard library sin trait specialization.
-            template<
-                typename TArg>
-            struct Sin<
-                SinStdLib,
-                TArg,
-                std::enable_if_t<
-                    std::is_arithmetic<TArg>::value>>
+            template<typename TArg>
+            struct Sin<SinStdLib, TArg, std::enable_if_t<std::is_arithmetic<TArg>::value>>
             {
-                ALPAKA_FN_HOST static auto sin(
-                    SinStdLib const & sin_ctx,
-                    TArg const & arg)
+                ALPAKA_FN_HOST static auto sin(SinStdLib const& sin_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(sin_ctx);
                     return std::sin(arg);
                 }
             };
-        }
-    }
-}
+        } // namespace traits
+    } // namespace math
+} // namespace alpaka

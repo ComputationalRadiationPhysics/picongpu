@@ -40,7 +40,7 @@ namespace detail
 {
     /** Get the concept implementation of the current accelerator
      *
-     * @tparam T_AccOrMathImpl accelerator or math implementation [type alpaka::acc::* or alpaka::math::MathStdLib]
+     * @tparam T_AccOrMathImpl accelerator or math implementation [type alpaka::* or alpaka::math::MathStdLib]
      * @tparam T_Concept alpaka concept
      * @return implementation of the concept
      */

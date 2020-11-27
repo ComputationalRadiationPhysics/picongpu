@@ -51,6 +51,7 @@ ELSE()
         LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Werror")
         LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wdouble-promotion")
         LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wmissing-include-dirs")
+        LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wconversion")
         LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wunknown-pragmas")
         # Higher levels (max is 5) produce some strange warnings
         LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wstrict-overflow=2")
@@ -115,7 +116,7 @@ ELSE()
         ENDIF()
         IF(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0)
             # This warning might be useful but it is triggered by comile-time code where it does not make any sense:
-            # E.g. "vec::Vec<dim::DimInt<(TidxDimOut < TidxDimIn) ? TidxDimIn : TidxDimOut>, TElem>" when both values are equal
+            # E.g. "Vec<DimInt<(TidxDimOut < TidxDimIn) ? TidxDimIn : TidxDimOut>, TElem>" when both values are equal
             #LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wduplicated-branches")
             LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Walloc-zero")
             LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Walloca")
@@ -139,6 +140,13 @@ ELSE()
         # as they are stored as members. Therefore, the padding warning is triggered by the calling code
         # and does not indicate a failure within alpaka.
         LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wno-padded")
+        # Triggers for all instances of ALPAKA_DEBUG_MINIMAL_LOG_SCOPE and similar macros followed by semicolon
+        IF(CLANG_VERSION_MAJOR GREATER 7)
+            LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wno-extra-semi-stmt")
+        ENDIF()
+        IF(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12.0)
+            LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wno-poison-system-directories")
+        ENDIF()
     # ICC
     ELSEIF(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
         LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wall")

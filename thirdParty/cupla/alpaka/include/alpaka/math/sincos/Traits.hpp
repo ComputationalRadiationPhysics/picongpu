@@ -18,18 +18,17 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathSinCos{};
+        struct ConceptMathSinCos
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The sincos trait.
-            template<
-                typename T,
-                typename TArg,
-                typename TSfinae = void>
+            template<typename T, typename TArg, typename TSfinae = void>
             struct SinCos;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the sine and cosine (measured in radians).
@@ -41,26 +40,12 @@ namespace alpaka
         //! \param result_sin result of sine
         //! \param result_cos result of cosine
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename TArg>
-        ALPAKA_FN_HOST_ACC auto sincos(
-            T const & sincos_ctx,
-            TArg const & arg,
-            TArg & result_sin,
-            TArg & result_cos)
-        -> void
+        template<typename T, typename TArg>
+        ALPAKA_FN_HOST_ACC auto sincos(T const& sincos_ctx, TArg const& arg, TArg& result_sin, TArg& result_cos)
+            -> void
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathSinCos, T>;
-            traits::SinCos<
-                ImplementationBase,
-                TArg>
-                ::sincos(
-                    sincos_ctx,
-                    arg,
-                    result_sin,
-                    result_cos
-                    );
+            traits::SinCos<ImplementationBase, TArg>::sincos(sincos_ctx, arg, result_sin, result_cos);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

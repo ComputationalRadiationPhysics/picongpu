@@ -16,56 +16,37 @@
 
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
-    //! The grid block specifics
-    namespace block
+    struct ConceptBlockSharedDyn
     {
-        //-----------------------------------------------------------------------------
-        //! The block shared memory operation specifics.
-        namespace shared
-        {
-            //-----------------------------------------------------------------------------
-            //! The block shared dynamic memory operation specifics.
-            namespace dyn
-            {
-                struct ConceptBlockSharedDyn{};
+    };
 
-                //-----------------------------------------------------------------------------
-                //! The block shared dynamic memory operation traits.
-                namespace traits
-                {
-                    //#############################################################################
-                    //! The block shared dynamic memory get trait.
-                    template<
-                        typename T,
-                        typename TBlockSharedMemDyn,
-                        typename TSfinae = void>
-                    struct GetMem;
-                }
+    //-----------------------------------------------------------------------------
+    //! The block shared dynamic memory operation traits.
+    namespace traits
+    {
+        //#############################################################################
+        //! The block shared dynamic memory get trait.
+        template<typename T, typename TBlockSharedMemDyn, typename TSfinae = void>
+        struct GetDynSharedMem;
+    } // namespace traits
 
-                //-----------------------------------------------------------------------------
-                //! Returns the pointr to the block shared dynamic memory.
-                //!
-                //! \tparam T The element type.
-                //! \tparam TBlockSharedMemDyn The block shared dynamic memory implementation type.
-                //! \param blockSharedMemDyn The block shared dynamic memory implementation.
-                ALPAKA_NO_HOST_ACC_WARNING
-                template<
-                    typename T,
-                    typename TBlockSharedMemDyn>
-                ALPAKA_FN_ACC auto getMem(
-                    TBlockSharedMemDyn const & blockSharedMemDyn)
-                -> T *
-                {
-                    using ImplementationBase = concepts::ImplementationBase<ConceptBlockSharedDyn, TBlockSharedMemDyn>;
-                    return
-                        traits::GetMem<
-                            T,
-                            ImplementationBase>
-                        ::getMem(
-                            blockSharedMemDyn);
-                }
-            }
-        }
+    //-----------------------------------------------------------------------------
+    //! Get block shared dynamic memory.
+    //!
+    //! The available size of the memory can be defined by specializing the trait
+    //! BlockSharedMemDynSizeBytes for a kernel.
+    //! The Memory can be accessed by all threads within a block.
+    //! Access to the memory is not thread safe.
+    //!
+    //! \tparam T The element type.
+    //! \tparam TBlockSharedMemDyn The block shared dynamic memory implementation type.
+    //! \param blockSharedMemDyn The block shared dynamic memory implementation.
+    //! \return Pointer to pre-allocated contiguous memory.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename T, typename TBlockSharedMemDyn>
+    ALPAKA_FN_ACC auto getDynSharedMem(TBlockSharedMemDyn const& blockSharedMemDyn) -> T*
+    {
+        using ImplementationBase = concepts::ImplementationBase<ConceptBlockSharedDyn, TBlockSharedMemDyn>;
+        return traits::GetDynSharedMem<T, ImplementationBase>::getMem(blockSharedMemDyn);
     }
-}
+} // namespace alpaka

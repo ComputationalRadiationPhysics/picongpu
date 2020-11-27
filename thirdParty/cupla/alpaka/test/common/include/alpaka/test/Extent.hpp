@@ -9,14 +9,17 @@
 
 #pragma once
 
+#include <alpaka/alpaka.hpp>
+
+#include <cstddef>
+
 namespace alpaka
 {
     //-----------------------------------------------------------------------------
     //! The test specifics.
     namespace test
     {
-        template<
-            typename TIdx>
+        template<typename TIdx>
         struct CreateVecWithIdx
         {
             //#############################################################################
@@ -24,8 +27,7 @@ namespace alpaka
             //! 2D: (11, 10)
             //! 3D: (11, 10, 9)
             //! 4D: (11, 10, 9, 8)
-            template<
-                std::size_t Tidx>
+            template<std::size_t Tidx>
             struct ForExtentBuf
             {
                 //-----------------------------------------------------------------------------
@@ -40,8 +42,7 @@ namespace alpaka
             //! 2D: (8, 6)
             //! 3D: (8, 6, 4)
             //! 4D: (8, 6, 4, 2)
-            template<
-                std::size_t Tidx>
+            template<std::size_t Tidx>
             struct ForExtentSubView
             {
                 //-----------------------------------------------------------------------------
@@ -56,8 +57,7 @@ namespace alpaka
             //! 2D: (2, 3)
             //! 3D: (2, 3, 4)
             //! 4D: (2, 3, 4, 5)
-            template<
-                std::size_t Tidx>
+            template<std::size_t Tidx>
             struct ForOffset
             {
                 //-----------------------------------------------------------------------------
@@ -67,5 +67,5 @@ namespace alpaka
                 }
             };
         };
-    }
-}
+    } // namespace test
+} // namespace alpaka

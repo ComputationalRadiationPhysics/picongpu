@@ -20,7 +20,6 @@ then
     travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libtbb-dev
 elif [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
 then
-    brew unlink python@2
     brew install tbb
 elif [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then

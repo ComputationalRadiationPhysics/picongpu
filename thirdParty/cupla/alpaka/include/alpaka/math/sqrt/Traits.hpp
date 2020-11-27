@@ -18,42 +18,35 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathSqrt{};
+        struct ConceptMathSqrt
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The sqrt trait.
-            template<
-                typename T,
-                typename TArg,
-                typename TSfinae = void>
+            template<typename T, typename TArg, typename TSfinae = void>
             struct Sqrt;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the square root of arg.
+        //!
+        //! Valid real arguments are non-negative. For other values the result
+        //! may depend on the backend and compilation options, will likely
+        //! be NaN.
         //!
         //! \tparam T The type of the object specializing Sqrt.
         //! \tparam TArg The arg type.
         //! \param sqrt_ctx The object specializing Sqrt.
         //! \param arg The arg.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename TArg>
-        ALPAKA_FN_HOST_ACC auto sqrt(
-            T const & sqrt_ctx,
-            TArg const & arg)
+        template<typename T, typename TArg>
+        ALPAKA_FN_HOST_ACC auto sqrt(T const& sqrt_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathSqrt, T>;
-            return
-                traits::Sqrt<
-                    ImplementationBase,
-                    TArg>
-                ::sqrt(
-                    sqrt_ctx,
-                    arg);
+            return traits::Sqrt<ImplementationBase, TArg>::sqrt(sqrt_ctx, arg);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

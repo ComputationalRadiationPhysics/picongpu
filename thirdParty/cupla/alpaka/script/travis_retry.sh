@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2019 Benjamin Worpitz
+# Copyright 2019 Benjamin Worpitz, Rene Widera
 #
 # This file is part of alpaka.
 #
@@ -9,9 +9,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-set -euo pipefail
+ANSI_RED="\033[31m"
+ANSI_RESET="\033[0m"
 
 travis_retry() {
+  set +euo pipefail
   local result=0
   local count=1
   while [ $count -le 3 ]; do

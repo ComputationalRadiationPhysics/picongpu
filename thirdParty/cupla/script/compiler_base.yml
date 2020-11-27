@@ -53,3 +53,21 @@
   tags:
     - cuda
     - intel
+
+.base_hip:
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+    CUPLA_CXX: "hipcc"
+    ALPAKA_ACCS: "ALPAKA_ACC_GPU_HIP_ENABLE"
+    # architecture of the Vega 64
+    CUPLA_CMAKE_ARGS: "-DALPAKA_HIP_ARCH=900"
+  before_script:
+    - rocm-smi
+    - hipcc --version
+  script:
+    # use Vega 64 of the CI node
+    - export HIP_VISIBLE_DEVICES=2
+    - source script/run_test.sh
+  tags:
+    - amd
+    - rocm

@@ -11,6 +11,7 @@
 #
 
 source ./script/set.sh
+source ./script/docker_retry.sh
 
 # runtime and compile time options
 ALPAKA_DOCKER_ENV_LIST=()
@@ -29,6 +30,18 @@ fi
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_STDLIB=${ALPAKA_CI_STDLIB}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_CMAKE_VER=${ALPAKA_CI_CMAKE_VER}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_CMAKE_DIR=${ALPAKA_CI_CMAKE_DIR}")
+if [ ! -z "${CMAKE_CXX_FLAGS+x}" ]
+then
+    ALPAKA_DOCKER_ENV_LIST+=("--env" "CMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}")
+fi
+if [ ! -z "${CMAKE_EXE_LINKER_FLAGS+x}" ]
+then
+    ALPAKA_DOCKER_ENV_LIST+=("--env" "CMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}")
+fi
+if [ ! -z "${CMAKE_CXX_EXTENSIONS+x}" ]
+then
+    ALPAKA_DOCKER_ENV_LIST+=("--env" "CMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
+fi
 if [ ! -z "${ALPAKA_CI_GCC_VER+x}" ]
 then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_GCC_VER=${ALPAKA_CI_GCC_VER}")
@@ -57,9 +70,17 @@ if [ ! -z "${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE+x}" ]
 then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE=${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE}")
 fi
-if [ ! -z "${ALPAKA_ACC_CPU_BT_OMP4_ENABLE+x}" ]
+if [ ! -z "${ALPAKA_ACC_ANY_BT_OMP5_ENABLE+x}" ]
 then
-    ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_ACC_CPU_BT_OMP4_ENABLE=${ALPAKA_ACC_CPU_BT_OMP4_ENABLE}")
+    ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_ACC_ANY_BT_OMP5_ENABLE=${ALPAKA_ACC_ANY_BT_OMP5_ENABLE}")
+fi
+if [ ! -z "${ALPAKA_ACC_ANY_BT_OACC_ENABLE+x}" ]
+then
+    ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_ACC_ANY_BT_OACC_ENABLE=${ALPAKA_ACC_ANY_BT_OACC_ENABLE}")
+fi
+if [ ! -z "${ALPAKA_OFFLOAD_MAX_BLOCK_SIZE+x}" ]
+then
+    ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_OFFLOAD_MAX_BLOCK_SIZE=${ALPAKA_OFFLOAD_MAX_BLOCK_SIZE}")
 fi
 if [ ! -z "${ALPAKA_ACC_GPU_CUDA_ENABLE+x}" ]
 then
@@ -143,4 +164,4 @@ then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CUDA_NVCC_SEPARABLE_COMPILATION=${ALPAKA_CUDA_NVCC_SEPARABLE_COMPILATION}")
 fi
 
-docker run -v "$(pwd)":"$(pwd)" -w "$(pwd)" "${ALPAKA_DOCKER_ENV_LIST[@]}" "${ALPAKA_CI_DOCKER_BASE_IMAGE_NAME}" /bin/bash -c "./script/install.sh && ./script/run.sh"
+docker_retry docker run -v "$(pwd)":"$(pwd)" -w "$(pwd)" "${ALPAKA_DOCKER_ENV_LIST[@]}" "${ALPAKA_CI_DOCKER_BASE_IMAGE_NAME}" /bin/bash -c "./script/install.sh && ./script/run.sh"

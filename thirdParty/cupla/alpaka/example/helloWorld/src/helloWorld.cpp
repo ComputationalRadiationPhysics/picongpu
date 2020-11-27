@@ -27,31 +27,26 @@
 struct HelloWorldKernel
 {
     //-----------------------------------------------------------------------------
-    template<
-        typename TAcc>
-    ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc) const
-    -> void
+    template<typename TAcc>
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc) const -> void
     {
-        using Dim = alpaka::dim::Dim<TAcc>;
-        using Idx = alpaka::idx::Idx<TAcc>;
-        using Vec = alpaka::vec::Vec<Dim, Idx>;
-        using Vec1 = alpaka::vec::Vec<alpaka::dim::DimInt<1u>, Idx>;
+        using Dim = alpaka::Dim<TAcc>;
+        using Idx = alpaka::Idx<TAcc>;
+        using Vec = alpaka::Vec<Dim, Idx>;
+        using Vec1 = alpaka::Vec<alpaka::DimInt<1u>, Idx>;
 
         // In the most cases the parallel work distibution depends
         // on the current index of a thread and how many threads
         // exist overall. These information can be obtained by
         // getIdx() and getWorkDiv(). In this example these
         // values are obtained for a global scope.
-        Vec const globalThreadIdx = alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-        Vec const globalThreadExtent = alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+        Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+        Vec const globalThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
         // Map the three dimensional thread index into a
         // one dimensional thread index space. We call it
         // linearize the thread index.
-        Vec1 const linearizedGlobalThreadIdx = alpaka::idx::mapIdx<1u>(
-            globalThreadIdx,
-            globalThreadExtent);
+        Vec1 const linearizedGlobalThreadIdx = alpaka::mapIdx<1u>(globalThreadIdx, globalThreadExtent);
 
         // Each thread prints a hello world to the terminal
         // together with the global index of the thread in
@@ -67,8 +62,7 @@ struct HelloWorldKernel
     }
 };
 
-auto main()
--> int
+auto main() -> int
 {
 // Fallback for the CI with disabled sequential backend
 #if defined(ALPAKA_CI) && !defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
@@ -80,20 +74,19 @@ auto main()
     // the dimensionality as well as the type used for indices.
     // For small index domains 16 or 32 bit indices may be enough
     // and may be faster to calculate depending on the accelerator.
-    using Dim = alpaka::dim::DimInt<3>;
+    using Dim = alpaka::DimInt<3>;
     using Idx = std::size_t;
 
     // Define the accelerator
     //
-    // It is possible to choose from a set of accelerators
-    // that are defined in the alpaka::acc namespace e.g.:
+    // It is possible to choose from a set of accelerators:
     // - AccGpuCudaRt
     // - AccGpuHipRt
     // - AccCpuThreads
     // - AccCpuFibers
     // - AccCpuOmp2Threads
     // - AccCpuOmp2Blocks
-    // - AccCpuOmp4
+    // - AccOmp5
     // - AccCpuTbbBlocks
     // - AccCpuSerial
     //
@@ -104,15 +97,15 @@ auto main()
     // automatically.
 
     // By exchanging the Acc and Queue types you can select where to execute the kernel.
-    // using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
-    using Acc = alpaka::example::ExampleDefaultAcc<Dim, Idx>;
-    std::cout << "Using alpaka accelerator: " << alpaka::acc::getAccName<Acc>() << std::endl;
+    // using Acc = alpaka::AccCpuSerial<Dim, Idx>;
+    using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
+    std::cout << "Using alpaka accelerator: " << alpaka::getAccName<Acc>() << std::endl;
 
     // Defines the synchronization behavior of a queue
     //
     // choose between Blocking and NonBlocking
-    using QueueProperty = alpaka::queue::Blocking;
-    using Queue = alpaka::queue::Queue<Acc, QueueProperty>;
+    using QueueProperty = alpaka::Blocking;
+    using Queue = alpaka::Queue<Acc, QueueProperty>;
 
     // Select a device
     //
@@ -122,7 +115,7 @@ auto main()
     // by id (0 to the number of devices minus 1) or you
     // can also retrieve all devices in a vector (getDevs()).
     // In this example the first devices is choosen.
-    auto const devAcc = alpaka::pltf::getDevByIdx<Acc>(0u);
+    auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
 
     // Create a queue on the device
     //
@@ -164,16 +157,16 @@ auto main()
     // memory. Elements are supposed to be used for vectorization.
     // Thus, a thread can process data element size wise with its
     // vector processing unit.
-    using Vec = alpaka::vec::Vec<Dim, Idx>;
+    using Vec = alpaka::Vec<Dim, Idx>;
     Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
     Vec const threadsPerGrid(Vec::all(static_cast<Idx>(8)));
-    using WorkDiv = alpaka::workdiv::WorkDivMembers<Dim, Idx>;
-    WorkDiv const workDiv = alpaka::workdiv::getValidWorkDiv<Acc>(
+    using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
+    WorkDiv const workDiv = alpaka::getValidWorkDiv<Acc>(
         devAcc,
         threadsPerGrid,
         elementsPerThread,
         false,
-        alpaka::workdiv::GridBlockExtentSubDivRestrictions::Unrestricted);
+        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted);
 
     // Instantiate the kernel function object
     //
@@ -191,12 +184,12 @@ auto main()
     // The queue can be blocking or non-blocking
     // depending on the choosen queue type (see type definitions above).
     // Here it is synchronous which means that the kernel is directly executed.
-    alpaka::kernel::exec<Acc>(
+    alpaka::exec<Acc>(
         queue,
         workDiv,
         helloWorldKernel
         /* put kernel arguments here */);
-    alpaka::wait::wait(queue);
+    alpaka::wait(queue);
 
     return EXIT_SUCCESS;
 #endif

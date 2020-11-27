@@ -84,11 +84,10 @@ This function simply forwards its arguments *"to a class template containing a s
 This template class can fully or partially be specialized without affecting overload resolution.
 
 The way the *alpaka* library implements this is by not using the C++ inherent object orientation but lifting those abstractions to a higher level.
-Instead of using a non-extensible``class``/``struct`` for defining the interface, a namespace is utilized.
-In place of abstract virtual member functions of the interface, *alpaka* defines free functions within those namespaces.
+Instead of using a non-extensible``class``/``struct`` and abstract virtual member functions for the interface, *alpaka* defines free functions.
 All those functions are templates allowing the user to call them with arbitrary self defined types and not only those inheriting from a special interface type.
 Unlike member functions, they have no implicit ``this`` pointer, so the object instance has to be explicitly given as a parameter.
-Overriding the abstract virtual interface methods is replaced by the specialization of a template type that is defined for each such namespace function.
+Overriding the abstract virtual interface methods is replaced by the specialization of a template type that is defined for each such function.
 
 A concept is completely implemented by specializing the predefined template types.
 This allows to extend and fine-tune the implementation non-intrusively.
@@ -100,7 +99,7 @@ The ``TSfinae`` template parameter will be explained in a `following section <#T
 
 .. code-block::
 
-   namespace queue
+   namespace alpaka
    {
      template<
        typename TQueue,
@@ -133,7 +132,7 @@ The example given in the following code shows this by specializing the ``Enqueue
 
    struct UserQueue{};
 
-   namespace queue
+   namespace alpaka
    {
      // partial specialization
      template<
@@ -159,7 +158,7 @@ In addition the subsequent code shows a full specialization of the ``Enqueue`` t
    struct UserQueue{};
    struct UserTask{};
 
-   namespace queue
+   namespace alpaka
    {
      // full specialization
      template<>
@@ -179,8 +178,8 @@ In addition the subsequent code shows a full specialization of the ``Enqueue`` t
 
 When the ``enqueue`` function template is called with an instance of ``UserQueue``, the most specialized version of the ``Enqueue`` template is selected depending on the type of the task ``TTask`` it is called with.
 
-A type can model the queue concept completely by defining specializations for ``alpaka::queue::Enqueue`` and ``alpaka::queue::Empty``.
-This functionality can be accessed by the corresponding ``alpaka::queue::enqueue`` and ``alpaka::queue::empty`` template functions.
+A type can model the queue concept completely by defining specializations for ``alpaka::Enqueue`` and ``alpaka::Empty``.
+This functionality can be accessed by the corresponding ``alpaka::enqueue`` and ``alpaka::empty`` template functions.
 
 Currently there is no native language support for describing and checking concepts in C++ at compile time.
 A study group (SG8) is working on the ISO `specification for conecpts <http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4377.pdf>`_ and compiler forks implementing them do exist.
@@ -212,7 +211,7 @@ An example in the context of the ``Enqueue`` template type is shown in the follo
 
    struct UserQueue{};
 
-   namespace queue
+   namespace alpaka
    {
      template<
        typename TQueue,

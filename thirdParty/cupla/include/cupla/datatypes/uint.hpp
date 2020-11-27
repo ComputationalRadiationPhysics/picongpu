@@ -43,7 +43,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
         >
         ALPAKA_FN_HOST_ACC
         uint3(
-          ::alpaka::vec::Vec<
+          ::alpaka::Vec<
               TDim,
               TSize
           > const &vec
@@ -66,12 +66,12 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
 #endif
 
         ALPAKA_FN_HOST_ACC
-        operator ::alpaka::vec::Vec<
+        operator ::alpaka::Vec<
             cupla::AlpakaDim< 3u >,
             IdxType
         >(void) const
         {
-            ::alpaka::vec::Vec<
+            ::alpaka::Vec<
                 cupla::AlpakaDim< 3u >,
                 IdxType
             > vec(z, y, x);
@@ -85,8 +85,6 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
 
 namespace alpaka
 {
-namespace dim
-{
 namespace traits
 {
 
@@ -95,14 +93,11 @@ namespace traits
     struct DimType<
         cupla::uint3
     >{
-      using type = ::alpaka::dim::DimInt<3u>;
+      using type = ::alpaka::DimInt<3u>;
     };
 
 } // namespace traits
-} // namespace dim
 
-namespace elem
-{
 namespace traits
 {
 
@@ -115,7 +110,6 @@ namespace traits
     };
 
 } // namespace traits
-} // namspace elem
 
 namespace extent
 {
@@ -168,8 +162,6 @@ namespace traits
 } // namespace traits
 } // namespace extent
 
-namespace offset
-{
 namespace traits
 {
 
@@ -217,10 +209,7 @@ namespace traits
         }
     };
 } // namespace traits
-} // namespace offset
 
-namespace idx
-{
 namespace traits
 {
 
@@ -233,5 +222,4 @@ namespace traits
     };
 
 } // namespace traits
-} // namespace idx
 } // namespave alpaka

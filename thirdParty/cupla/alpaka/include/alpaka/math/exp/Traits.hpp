@@ -18,18 +18,17 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathExp{};
+        struct ConceptMathExp
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The exp trait.
-            template<
-                typename T,
-                typename TArg,
-                typename TSfinae = void>
+            template<typename T, typename TArg, typename TSfinae = void>
             struct Exp;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the e (Euler's number, 2.7182818) raised to the given power arg.
@@ -39,21 +38,11 @@ namespace alpaka
         //! \param exp_ctx The object specializing Exp.
         //! \param arg The arg.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename TArg>
-        ALPAKA_FN_HOST_ACC auto exp(
-            T const & exp_ctx,
-            TArg const & arg)
+        template<typename T, typename TArg>
+        ALPAKA_FN_HOST_ACC auto exp(T const& exp_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathExp, T>;
-            return
-                traits::Exp<
-                    ImplementationBase,
-                    TArg>
-                ::exp(
-                    exp_ctx,
-                    arg);
+            return traits::Exp<ImplementationBase, TArg>::exp(exp_ctx, arg);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

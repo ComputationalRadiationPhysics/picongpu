@@ -42,7 +42,7 @@ inline namespace device
          * to atomicity between different kernels, Blocks - to different blocks \
          * in the same grid/kernel, Threads - to threads of the same block.    \
          * @tparam T_Hierarchy parallelism hierarchy level within the operation is atomic [type cupla::hierarchy::*] \
-         * @tparam T_Acc alpaka accelerator [alpaka::acc::*]                   \
+         * @tparam T_Acc alpaka accelerator [alpaka::*]                   \
          * @tparam T_Type type of the value                                    \
          * @param acc alpaka accelerator                                       \
          * @param ptr destination pointer                                      \
@@ -61,7 +61,7 @@ inline namespace device
             T_Type const & value                                               \
         )                                                                      \
         {                                                                      \
-            return ::alpaka::atomic::atomicOp< alpakaOp >(                     \
+            return ::alpaka::atomicOp< alpakaOp >(                     \
                 acc,                                                           \
                 ptr,                                                           \
                 value,                                                         \
@@ -94,25 +94,25 @@ inline namespace device
          */
 
         /// atomic addition
-        CUPLA_UNARY_ATOMIC_OP( atomicAdd, ::alpaka::atomic::op::Add )
+        CUPLA_UNARY_ATOMIC_OP( atomicAdd, ::alpaka::AtomicAdd )
         /// atomic subtraction
-        CUPLA_UNARY_ATOMIC_OP( atomicSub, ::alpaka::atomic::op::Sub )
+        CUPLA_UNARY_ATOMIC_OP( atomicSub, ::alpaka::AtomicSub )
         /// atomic minimum
-        CUPLA_UNARY_ATOMIC_OP( atomicMin, ::alpaka::atomic::op::Min )
+        CUPLA_UNARY_ATOMIC_OP( atomicMin, ::alpaka::AtomicMin )
         /// atomic maximum
-        CUPLA_UNARY_ATOMIC_OP( atomicMax, ::alpaka::atomic::op::Max )
+        CUPLA_UNARY_ATOMIC_OP( atomicMax, ::alpaka::AtomicMax )
         /// atomic increment
-        CUPLA_UNARY_ATOMIC_OP( atomicInc, ::alpaka::atomic::op::Inc )
+        CUPLA_UNARY_ATOMIC_OP( atomicInc, ::alpaka::AtomicInc )
         /// atomic decrement
-        CUPLA_UNARY_ATOMIC_OP( atomicDec, ::alpaka::atomic::op::Dec )
+        CUPLA_UNARY_ATOMIC_OP( atomicDec, ::alpaka::AtomicDec )
         /// atomic bit-wise and
-        CUPLA_UNARY_ATOMIC_OP( atomicAnd, ::alpaka::atomic::op::And )
+        CUPLA_UNARY_ATOMIC_OP( atomicAnd, ::alpaka::AtomicAnd )
         /// atomic bit-wise or
-        CUPLA_UNARY_ATOMIC_OP( atomicOr, ::alpaka::atomic::op::Or )
+        CUPLA_UNARY_ATOMIC_OP( atomicOr, ::alpaka::AtomicOr )
         /// atomic exchange
-        CUPLA_UNARY_ATOMIC_OP( atomicExch, ::alpaka::atomic::op::Exch )
+        CUPLA_UNARY_ATOMIC_OP( atomicExch, ::alpaka::AtomicExch )
         /// atomic bit-wise xor
-        CUPLA_UNARY_ATOMIC_OP( atomicXor, ::alpaka::atomic::op::Xor )
+        CUPLA_UNARY_ATOMIC_OP( atomicXor, ::alpaka::AtomicXor )
 
 #undef CUPLA_UNARY_ATOMIC_OP
 
@@ -120,7 +120,7 @@ inline namespace device
          *
          * @{
          * @tparam T_Hierarchy parallelism hierarchy level within the operation is atomic [type cupla::hierarchy::*]
-         * @tparam T_Acc alpaka accelerator [alpaka::acc::*]
+         * @tparam T_Acc alpaka accelerator [alpaka::*]
          * @tparam T_Type type of the value
          * @param acc alpaka accelerator
          * @param ptr destination pointer
@@ -139,7 +139,7 @@ inline namespace device
             T_Type const & value
         )
         {
-            return ::alpaka::atomic::atomicOp< ::alpaka::atomic::op::Cas >(
+            return ::alpaka::atomicOp< ::alpaka::AtomicCas >(
                 acc,
                 ptr,
                 compare,
