@@ -12,9 +12,15 @@
 #include <catch2/catch.hpp>
 
 //#############################################################################
-struct Foo {
-    Foo(int num) : num_(num) {}
-    auto add(int i) const -> int { return num_ + i; }
+struct Foo
+{
+    Foo(int num) : num_(num)
+    {
+    }
+    auto add(int i) const -> int
+    {
+        return num_ + i;
+    }
     int num_;
 };
 
@@ -26,7 +32,8 @@ auto abs_num(int i) -> int
 }
 
 //#############################################################################
-struct AbsNum {
+struct AbsNum
+{
     auto operator()(int i) const -> int
     {
         return std::abs(i);

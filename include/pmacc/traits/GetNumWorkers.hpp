@@ -45,21 +45,21 @@ namespace pmacc
 
 #if(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED == 1)
         template<uint32_t T_maxWorkers, typename... T_Args>
-        struct GetNumWorkers<T_maxWorkers, alpaka::acc::AccCpuOmp2Blocks<T_Args...>>
+        struct GetNumWorkers<T_maxWorkers, alpaka::AccCpuOmp2Blocks<T_Args...>>
         {
             static constexpr uint32_t value = 1u;
         };
 #endif
 #if(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED == 1)
         template<uint32_t T_maxWorkers, typename... T_Args>
-        struct GetNumWorkers<T_maxWorkers, alpaka::acc::AccCpuSerial<T_Args...>>
+        struct GetNumWorkers<T_maxWorkers, alpaka::AccCpuSerial<T_Args...>>
         {
             static constexpr uint32_t value = 1u;
         };
 #endif
 #if(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED == 1)
         template<uint32_t T_maxWorkers, typename... T_Args>
-        struct GetNumWorkers<T_maxWorkers, alpaka::acc::AccCpuTbbBlocks<T_Args...>>
+        struct GetNumWorkers<T_maxWorkers, alpaka::AccCpuTbbBlocks<T_Args...>>
         {
             static constexpr uint32_t value = 1u;
         };

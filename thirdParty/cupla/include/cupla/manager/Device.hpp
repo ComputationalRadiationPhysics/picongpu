@@ -75,7 +75,7 @@ namespace manager
             }
             else
             {
-                using Pltf = ::alpaka::pltf::Pltf< DeviceType >;
+                using Pltf = ::alpaka::Pltf< DeviceType >;
 
                 const int numDevices = count();
                 if( idx >= numDevices )
@@ -98,7 +98,7 @@ namespace manager
                      */
                     dev.reset(
                         new DeviceType(
-                            alpaka::pltf::getDevByIdx<
+                            alpaka::getDevByIdx<
                                 Pltf
                             >( idx )
                         )
@@ -127,7 +127,7 @@ namespace manager
          */
         bool reset()
         {
-            ::alpaka::dev::reset( this->current( ) );
+            ::alpaka::reset( this->current( ) );
             auto iter = m_map.find( this->id( ) );
 
             if( iter == m_map.end() )
@@ -162,8 +162,8 @@ namespace manager
         count()
         -> int
         {
-            using Pltf = ::alpaka::pltf::Pltf< DeviceType >;
-            return static_cast< int >( ::alpaka::pltf::getDevCount< Pltf >( ) );
+            using Pltf = ::alpaka::Pltf< DeviceType >;
+            return static_cast< int >( ::alpaka::getDevCount< Pltf >( ) );
         }
 
     protected:

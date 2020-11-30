@@ -30,8 +30,8 @@
 #include <mallocMC/mallocMC.hpp>
 
 using Idx = std::size_t;
-using Dim = alpaka::dim::DimInt<1>;
-using Acc = alpaka::acc::AccGpuCudaRt<Dim, Idx>;
+using Dim = alpaka::DimInt<1>;
+using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
 
 struct ScatterConfig
 {
@@ -63,18 +63,16 @@ struct AlignmentConfig
 template<typename ScatterAllocator>
 void run()
 {
-    const auto dev = alpaka::pltf::getDevByIdx<Acc>(0);
-    auto queue = alpaka::queue::Queue<Acc, alpaka::queue::Blocking>{dev};
+    const auto dev = alpaka::getDevByIdx<Acc>(0);
+    auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
 
     ScatterAllocator scatterAlloc(dev, queue, 1024U * 1024U); // 1 MiB
-    alpaka::queue::enqueue(
+    alpaka::enqueue(
         queue,
-        alpaka::kernel::createTaskKernel<Acc>(
-            alpaka::workdiv::WorkDivMembers<Dim, Idx>{Idx{1}, Idx{1}, Idx{1}},
-            [] ALPAKA_FN_ACC(
-                const Acc & acc,
-                typename ScatterAllocator::AllocatorHandle allocHandle) {
-                auto * ptr = allocHandle.malloc(acc, sizeof(int) * 1000);
+        alpaka::createTaskKernel<Acc>(
+            alpaka::WorkDivMembers<Dim, Idx>{Idx{1}, Idx{1}, Idx{1}},
+            [] ALPAKA_FN_ACC(const Acc& acc, typename ScatterAllocator::AllocatorHandle allocHandle) {
+                auto* ptr = allocHandle.malloc(acc, sizeof(int) * 1000);
                 allocHandle.free(acc, ptr);
             },
             scatterAlloc.getAllocatorHandle()));

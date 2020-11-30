@@ -37,32 +37,28 @@ namespace mallocMC
      */
     template<typename Policy1>
     class PolicyCheck1
-    {};
+    {
+    };
 
     template<typename Policy1, typename Policy2>
     class PolicyCheck2
-    {};
+    {
+    };
 
     template<typename Policy1, typename Policy2, typename Policy3>
     class PolicyCheck3
-    {};
+    {
+    };
 
-    template<
-        typename Policy1,
-        typename Policy2,
-        typename Policy3,
-        typename Policy4>
+    template<typename Policy1, typename Policy2, typename Policy3, typename Policy4>
     class PolicyCheck4
-    {};
+    {
+    };
 
-    template<
-        typename Policy1,
-        typename Policy2,
-        typename Policy3,
-        typename Policy4,
-        typename Policy5>
+    template<typename Policy1, typename Policy2, typename Policy3, typename Policy4, typename Policy5>
     class PolicyCheck5
-    {};
+    {
+    };
 
     /** Enforces constraints on policies or combinations of polices
      *
@@ -75,9 +71,9 @@ namespace mallocMC
         typename T_GetHeapPolicy,
         typename T_AlignmentPolicy>
 
-    class PolicyConstraints :
-            PolicyCheck2<T_CreationPolicy, T_DistributionPolicy>
-    {};
+    class PolicyConstraints : PolicyCheck2<T_CreationPolicy, T_DistributionPolicy>
+    {
+    };
 
     /** Scatter and XMallocSIMD need the same pagesize!
      *
@@ -86,13 +82,9 @@ namespace mallocMC
      * the same value for their "pagesize"-parameter.
      */
     template<typename x, typename y, typename z>
-    class PolicyCheck2<
-        typename CreationPolicies::Scatter<x, y>,
-        typename DistributionPolicies::XMallocSIMD<z>>
+    class PolicyCheck2<typename CreationPolicies::Scatter<x, y>, typename DistributionPolicies::XMallocSIMD<z>>
     {
-        static_assert(
-            x::pagesize == z::pagesize,
-            "Pagesize must be the same when combining Scatter and XMallocSIMD");
+        static_assert(x::pagesize == z::pagesize, "Pagesize must be the same when combining Scatter and XMallocSIMD");
     };
 
 } // namespace mallocMC

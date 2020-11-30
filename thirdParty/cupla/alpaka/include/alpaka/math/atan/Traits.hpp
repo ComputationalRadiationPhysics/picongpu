@@ -18,18 +18,17 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathAtan{};
+        struct ConceptMathAtan
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The atan trait.
-            template<
-                typename T,
-                typename TArg,
-                typename TSfinae = void>
+            template<typename T, typename TArg, typename TSfinae = void>
             struct Atan;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the principal value of the arc tangent.
@@ -38,21 +37,11 @@ namespace alpaka
         //! \param atan_ctx The object specializing Atan.
         //! \param arg The arg.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename TArg>
-        ALPAKA_FN_HOST_ACC auto atan(
-            T const & atan_ctx,
-            TArg const & arg)
+        template<typename T, typename TArg>
+        ALPAKA_FN_HOST_ACC auto atan(T const& atan_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathAtan, T>;
-            return
-                traits::Atan<
-                    ImplementationBase,
-                    TArg>
-                ::atan(
-                    atan_ctx,
-                    arg);
+            return traits::Atan<ImplementationBase, TArg>::atan(atan_ctx, arg);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

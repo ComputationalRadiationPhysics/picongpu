@@ -18,19 +18,17 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathFmod{};
+        struct ConceptMathFmod
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The fmod trait.
-            template<
-                typename T,
-                typename Tx,
-                typename Ty,
-                typename TSfinae = void>
+            template<typename T, typename Tx, typename Ty, typename TSfinae = void>
             struct Fmod;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the floating-point remainder of the division operation x/y.
@@ -42,25 +40,11 @@ namespace alpaka
         //! \param x The first argument.
         //! \param y The second argument.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename Tx,
-            typename Ty>
-        ALPAKA_FN_HOST_ACC auto fmod(
-            T const & fmod_ctx,
-            Tx const & x,
-            Ty const & y)
+        template<typename T, typename Tx, typename Ty>
+        ALPAKA_FN_HOST_ACC auto fmod(T const& fmod_ctx, Tx const& x, Ty const& y)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathFmod, T>;
-            return
-                traits::Fmod<
-                    ImplementationBase,
-                    Tx,
-                    Ty>
-                ::fmod(
-                    fmod_ctx,
-                    x,
-                    y);
+            return traits::Fmod<ImplementationBase, Tx, Ty>::fmod(fmod_ctx, x, y);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

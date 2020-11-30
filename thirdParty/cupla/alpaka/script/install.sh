@@ -53,6 +53,9 @@ then
     if [ "${CXX}" == "clang++" ] ;then source ./script/install_clang.sh ;fi
 elif [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
 then
+    echo "### list all applications ###"
+    ls "/Applications/"
+    echo "### end list all applications ###"
     sudo xcode-select -s "/Applications/Xcode_${ALPAKA_CI_XCODE_VER}.app/Contents/Developer"
 fi
 

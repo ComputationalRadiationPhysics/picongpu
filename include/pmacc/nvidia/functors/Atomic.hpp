@@ -33,7 +33,7 @@ namespace pmacc
         {
             /** Addition of two values
              *
-             * @tparam T_AlpakaOperation alpaka atomic operation [::alpaka::atomic::op]
+             * @tparam T_AlpakaOperation alpaka atomic operation [::alpaka::op]
              * @tparam T_AlpakaHierarchy alpaka atomic hierarchy [::alpaka::hierarchy]
              */
             template<typename T_AlpakaOperation, typename T_AlpakaHierarchy = ::alpaka::hierarchy::Grids>
@@ -43,7 +43,7 @@ namespace pmacc
                 template<typename T_Acc, typename T_Dst, typename T_Src>
                 HDINLINE void operator()(T_Acc const& acc, T_Dst& dst, T_Src const& src) const
                 {
-                    ::alpaka::atomic::atomicOp<T_AlpakaOperation>(acc, &dst, src, T_AlpakaHierarchy{});
+                    ::alpaka::atomicOp<T_AlpakaOperation>(acc, &dst, src, T_AlpakaHierarchy{});
                 }
 
                 /** pmacc::math::Vector atomic add implementation */
@@ -65,7 +65,7 @@ namespace pmacc
                     pmacc::math::Vector<T_Type, T_dim, T_SrcAccessor, T_SrcNavigator, T_SrcStorage> const& src) const
                 {
                     for(int i = 0; i < T_dim; ++i)
-                        ::alpaka::atomic::atomicOp<T_AlpakaOperation>(acc, &dst[i], src[i], T_AlpakaHierarchy{});
+                        ::alpaka::atomicOp<T_AlpakaOperation>(acc, &dst[i], src[i], T_AlpakaHierarchy{});
                 }
             };
 

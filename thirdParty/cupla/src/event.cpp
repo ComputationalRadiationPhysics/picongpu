@@ -125,7 +125,7 @@ cuplaEventSynchronize(
         cupla::AccDev,
         cupla::AccStream
     >::get().event( event );
-    ::alpaka::wait::wait( *eventObject );
+    ::alpaka::wait( *eventObject );
     return cuplaSuccess;
 }
 
@@ -138,7 +138,7 @@ cuplaEventQuery( cuplaEvent_t event )
         cupla::AccStream
     >::get().event( event );
 
-    if( ::alpaka::event::test( *eventObject ) )
+    if( ::alpaka::isComplete( *eventObject ) )
     {
         return cuplaSuccess;
     }

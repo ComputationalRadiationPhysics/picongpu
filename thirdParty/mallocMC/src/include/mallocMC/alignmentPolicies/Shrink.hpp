@@ -84,8 +84,7 @@ namespace mallocMC
             using Properties = T_Config;
 
         private:
-            using PointerEquivalent
-                = Shrink2NS::__PointerEquivalent<sizeof(char *)>::type;
+            using PointerEquivalent = Shrink2NS::__PointerEquivalent<sizeof(char*)>::type;
 
 /** Allow for a hierarchical validation of parameters:
  *
@@ -97,41 +96,33 @@ namespace mallocMC
  * default-struct < template-struct < command-line parameter
  */
 #ifndef MALLOCMC_AP_SHRINK_DATAALIGNMENT
-#define MALLOCMC_AP_SHRINK_DATAALIGNMENT (Properties::dataAlignment)
+#    define MALLOCMC_AP_SHRINK_DATAALIGNMENT (Properties::dataAlignment)
 #endif
-            static constexpr size_t dataAlignment
-                = MALLOCMC_AP_SHRINK_DATAALIGNMENT;
+            static constexpr size_t dataAlignment = MALLOCMC_AP_SHRINK_DATAALIGNMENT;
 
             // dataAlignment must be a power of 2!
             static_assert(
-                dataAlignment != 0
-                    && (dataAlignment & (dataAlignment - 1)) == 0,
+                dataAlignment != 0 && (dataAlignment & (dataAlignment - 1)) == 0,
                 "dataAlignment must also be a power of 2");
 
         public:
-            static auto alignPool(void * memory, size_t memsize)
-                -> std::tuple<void *, size_t>
+            static auto alignPool(void* memory, size_t memsize) -> std::tuple<void*, size_t>
             {
-                PointerEquivalent alignmentstatus
-                    = ((PointerEquivalent)memory) & (dataAlignment - 1);
+                PointerEquivalent alignmentstatus = ((PointerEquivalent) memory) & (dataAlignment - 1);
                 if(alignmentstatus != 0)
                 {
-                    std::cout << "Heap Warning: memory to use not "
-                              << dataAlignment << " byte aligned...\n"
+                    std::cout << "Heap Warning: memory to use not " << dataAlignment << " byte aligned...\n"
                               << "Before:\n"
                               << "dataAlignment:   " << dataAlignment << '\n'
                               << "Alignmentstatus: " << alignmentstatus << '\n'
-                              << "size_t memsize   " << memsize << " byte"
-                              << '\n'
+                              << "size_t memsize   " << memsize << " byte" << '\n'
                               << "void *memory     " << memory << '\n';
 
-                    memory
-                        = (void *)(((PointerEquivalent)memory) + dataAlignment - alignmentstatus);
-                    memsize -= dataAlignment + (size_t)alignmentstatus;
+                    memory = (void*) (((PointerEquivalent) memory) + dataAlignment - alignmentstatus);
+                    memsize -= dataAlignment + (size_t) alignmentstatus;
 
                     std::cout << "Was shrunk automatically to: " << '\n'
-                              << "size_t memsize   " << memsize << " byte"
-                              << '\n'
+                              << "size_t memsize   " << memsize << " byte" << '\n'
                               << "void *memory     " << memory << '\n';
                 }
 

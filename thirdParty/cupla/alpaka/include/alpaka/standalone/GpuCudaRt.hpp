@@ -10,5 +10,5 @@
 #pragma once
 
 #ifndef ALPAKA_ACC_GPU_CUDA_ENABLED
-    #define ALPAKA_ACC_GPU_CUDA_ENABLED
+#    define ALPAKA_ACC_GPU_CUDA_ENABLED
 #endif

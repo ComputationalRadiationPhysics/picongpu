@@ -46,7 +46,7 @@ namespace pmacc
                 template<typename T_Acc, typename T_Hierarchy>
                 HDINLINE T_Type operator()(const T_Acc& acc, T_Type* ptr, const T_Hierarchy& hierarchy)
                 {
-                    return ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Add>(acc, ptr, T_Type(1), hierarchy);
+                    return ::alpaka::atomicOp<::alpaka::AtomicAdd>(acc, ptr, T_Type(1), hierarchy);
                 }
             };
 
@@ -90,24 +90,22 @@ namespace pmacc
                 HDINLINE T_Type operator()(const T_Acc& acc, T_Type* ptr, const T_Hierarchy& hierarchy)
                 {
                     const auto mask = alpaka::warp::activemask(acc);
-                    const auto leader
-                        = alpaka::intrinsic::ffs(acc, static_cast<std::make_signed_t<decltype(mask)>>(mask)) - 1;
+                    const auto leader = alpaka::ffs(acc, static_cast<std::make_signed_t<decltype(mask)>>(mask)) - 1;
 
                     T_Type result;
                     const int laneId = getLaneId();
                     /* Get the start value for this warp */
                     if(laneId == leader)
-                        result = ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Add>(
+                        result = ::alpaka::atomicOp<::alpaka::AtomicAdd>(
                             acc,
                             ptr,
-                            static_cast<T_Type>(alpaka::intrinsic::popcount(acc, mask)),
+                            static_cast<T_Type>(alpaka::popcount(acc, mask)),
                             hierarchy);
                     result = warpBroadcast(result, leader);
                     /* Add offset per thread */
                     return result
-                        + static_cast<T_Type>(alpaka::intrinsic::popcount(
-                            acc,
-                            mask & ((static_cast<decltype(mask)>(1u) << laneId) - 1u)));
+                        + static_cast<T_Type>(
+                               alpaka::popcount(acc, mask & ((static_cast<decltype(mask)>(1u) << laneId) - 1u)));
                 }
             };
 
@@ -188,12 +186,12 @@ namespace pmacc
         DINLINE void atomicAllExch(const T_Acc& acc, T_Type* ptr, const T_Type value, const T_Hierarchy& hierarchy)
         {
             const auto mask = alpaka::warp::activemask(acc);
-            const auto leader = alpaka::intrinsic::ffs(acc, static_cast<std::make_signed_t<decltype(mask)>>(mask)) - 1;
+            const auto leader = alpaka::ffs(acc, static_cast<std::make_signed_t<decltype(mask)>>(mask)) - 1;
 
 #if CUPLA_DEVICE_COMPILE == 1
             if(getLaneId() == leader)
 #endif
-                ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Exch>(acc, ptr, value, hierarchy);
+                ::alpaka::atomicOp<::alpaka::AtomicExch>(acc, ptr, value, hierarchy);
         }
 
     } // namespace nvidia

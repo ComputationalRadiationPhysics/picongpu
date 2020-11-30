@@ -15,22 +15,16 @@
 
 namespace alpaka
 {
-    namespace dim
+    //-----------------------------------------------------------------------------
+    // Trait specializations for unsigned integral types.
+    namespace traits
     {
-        //-----------------------------------------------------------------------------
-        // Trait specializations for unsigned integral types.
-        namespace traits
+        //#############################################################################
+        //! The arithmetic type dimension getter trait specialization.
+        template<typename T>
+        struct DimType<T, std::enable_if_t<std::is_arithmetic<T>::value>>
         {
-            //#############################################################################
-            //! The arithmetic type dimension getter trait specialization.
-            template<
-                typename T>
-            struct DimType<
-                T,
-                std::enable_if_t<std::is_arithmetic<T>::value>>
-            {
-                using type = dim::DimInt<1u>;
-            };
-        }
-    }
-}
+            using type = DimInt<1u>;
+        };
+    } // namespace traits
+} // namespace alpaka

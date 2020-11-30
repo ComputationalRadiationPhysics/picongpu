@@ -13,9 +13,9 @@
 #include <alpaka/core/Common.hpp>
 
 #if BOOST_COMP_MSVC
-    #include <malloc.h>
+#    include <malloc.h>
 #else
-    #include <cstdlib>
+#    include <cstdlib>
 #endif
 
 namespace alpaka
@@ -25,13 +25,12 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! Rounds to the next higher power of two (if not already power of two).
         // Adapted from llvm/ADT/SmallPtrSet.h
-        ALPAKA_FN_INLINE ALPAKA_FN_HOST
-        void* alignedAlloc(size_t alignment, size_t size)
+        ALPAKA_FN_INLINE ALPAKA_FN_HOST void* alignedAlloc(size_t alignment, size_t size)
         {
 #if BOOST_OS_WINDOWS
             return _aligned_malloc(size, alignment);
 #elif BOOST_OS_MACOS
-            void * ptr = nullptr;
+            void* ptr = nullptr;
             posix_memalign(&ptr, alignment, size);
             return ptr;
 #else
@@ -41,14 +40,13 @@ namespace alpaka
 #endif
         }
 
-        ALPAKA_FN_INLINE ALPAKA_FN_HOST
-        void alignedFree(void* ptr)
+        ALPAKA_FN_INLINE ALPAKA_FN_HOST void alignedFree(void* ptr)
         {
 #if BOOST_OS_WINDOWS
             _aligned_free(ptr);
 #else
             // linux and macos
-            free(ptr);
+            ::free(ptr);
 #endif
         }
 
@@ -63,10 +61,10 @@ namespace alpaka
             template<typename T>
             void operator()(T* ptr) const
             {
-                if (ptr)
+                if(ptr)
                     ptr->~T();
                 alignedFree(reinterpret_cast<void*>(ptr));
             }
         };
-    }
-}
+    } // namespace core
+} // namespace alpaka

@@ -11,21 +11,17 @@
 
 namespace alpaka
 {
-    namespace queue
+    //-----------------------------------------------------------------------------
+    //! Properties to define queue behavior
+    namespace property
     {
-        //-----------------------------------------------------------------------------
-        //! Properties to define queue behavior
-        namespace property
-        {
-            //#############################################################################
-            //! The caller is waiting until the enqueued task is finished
-            struct Blocking;
+        //#############################################################################
+        //! The caller is waiting until the enqueued task is finished
+        struct Blocking;
 
-            //#############################################################################
-            //! The caller is NOT waiting until the enqueued task is finished
-            struct NonBlocking;
-        }
-
-        using namespace property;
-    }
-}
+        //#############################################################################
+        //! The caller is NOT waiting until the enqueued task is finished
+        struct NonBlocking;
+    } // namespace property
+    using namespace property;
+} // namespace alpaka

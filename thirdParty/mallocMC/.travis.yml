@@ -28,7 +28,7 @@ install:
 script:
   - mkdir build_tmp && cd build_tmp
   - CXX=g++-5 && CC=gcc-5
-  - cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $TRAVIS_BUILD_DIR
+  - cmake -DALPAKA_ACC_GPU_CUDA_ENABLE=ON -DALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE=ON -DALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE=ON -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $TRAVIS_BUILD_DIR
   - make
   - make install
   - make examples

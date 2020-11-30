@@ -8,19 +8,18 @@
  */
 
 #include <alpaka/alpaka.hpp>
-
 #include <alpaka/test/MeasureKernelRunTime.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
 #include <catch2/catch.hpp>
 
-#include <iostream>
-#include <typeinfo>
-#include <random>
-#include <limits>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <limits>
+#include <random>
+#include <typeinfo>
 
 //#############################################################################
 //! A vector addition kernel.
@@ -38,34 +37,28 @@ public:
     //! \param X Vector of at least n elements.
     //! \param Y Vector of at least n elements.
     ALPAKA_NO_HOST_ACC_WARNING
-    template<
-        typename TAcc,
-        typename TElem,
-        typename TIdx>
+    template<typename TAcc, typename TElem, typename TIdx>
     ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc,
-        TIdx const & numElements,
-        TElem const & alpha,
-        TElem const * const X,
-        TElem * const Y) const
-    -> void
+        TAcc const& acc,
+        TIdx const& numElements,
+        TElem const& alpha,
+        TElem const* const X,
+        TElem* const Y) const -> void
     {
-        static_assert(
-            alpaka::dim::Dim<TAcc>::value == 1,
-            "The AxpyKernel expects 1-dimensional indices!");
+        static_assert(alpaka::Dim<TAcc>::value == 1, "The AxpyKernel expects 1-dimensional indices!");
 
-        auto const gridThreadIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u]);
-        auto const threadElemExtent(alpaka::workdiv::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u]);
+        auto const gridThreadIdx(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u]);
+        auto const threadElemExtent(alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u]);
         auto const threadFirstElemIdx(gridThreadIdx * threadElemExtent);
 
         if(threadFirstElemIdx < numElements)
         {
             // Calculate the number of elements to compute in this thread.
             // The result is uniform for all but the last thread.
-            auto const threadLastElemIdx(threadFirstElemIdx+threadElemExtent);
+            auto const threadLastElemIdx(threadFirstElemIdx + threadElemExtent);
             auto const threadLastElemIdxClipped((numElements > threadLastElemIdx) ? threadLastElemIdx : numElements);
 
-            for(TIdx i(threadFirstElemIdx); i<threadLastElemIdxClipped; ++i)
+            for(TIdx i(threadFirstElemIdx); i < threadLastElemIdxClipped; ++i)
             {
                 Y[i] = alpha * X[i] + Y[i];
             }
@@ -73,145 +66,130 @@ public:
     }
 };
 
-using TestAccs = alpaka::test::acc::EnabledAccs<
-    alpaka::dim::DimInt<1u>,
-    std::size_t>;
+using TestAccs = alpaka::test::EnabledAccs<alpaka::DimInt<1u>, std::size_t>;
 
-TEMPLATE_LIST_TEST_CASE( "axpy", "[axpy]", TestAccs)
+TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
 {
     using Acc = TestType;
-    using Dim = alpaka::dim::Dim<Acc>;
-    using Idx = alpaka::idx::Idx<Acc>;
+    using Dim = alpaka::Dim<Acc>;
+    using Idx = alpaka::Idx<Acc>;
 
 #ifdef ALPAKA_CI
-    Idx const numElements = 1u<<9u;
+    Idx const numElements = 1u << 9u;
 #else
-    Idx const numElements = 1u<<16u;
+    Idx const numElements = 1u << 16u;
 #endif
 
     using Val = float;
-    using DevAcc = alpaka::dev::Dev<Acc>;
-    using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using QueueAcc = alpaka::test::queue::DefaultQueue<DevAcc>;
-    using PltfHost = alpaka::pltf::PltfCpu;
+    using DevAcc = alpaka::Dev<Acc>;
+    using PltfAcc = alpaka::Pltf<DevAcc>;
+    using QueueAcc = alpaka::test::DefaultQueue<DevAcc>;
+    using PltfHost = alpaka::PltfCpu;
 
     // Create the kernel function object.
     AxpyKernel kernel;
 
     // Get the host device.
-    auto const devHost(
-        alpaka::pltf::getDevByIdx<PltfHost>(0u));
+    auto const devHost(alpaka::getDevByIdx<PltfHost>(0u));
 
     // Select a device to execute on.
-    auto const devAcc(
-        alpaka::pltf::getDevByIdx<PltfAcc>(0u));
+    auto const devAcc(alpaka::getDevByIdx<PltfAcc>(0u));
 
     // Get a queue on this device.
     QueueAcc queue(devAcc);
 
-    alpaka::vec::Vec<Dim, Idx> const extent(
-        numElements);
+    alpaka::Vec<Dim, Idx> const extent(numElements);
 
     // Let alpaka calculate good block and grid sizes given our full problem extent.
-    alpaka::workdiv::WorkDivMembers<Dim, Idx> const workDiv(
-        alpaka::workdiv::getValidWorkDiv<Acc>(
-            devAcc,
-            extent,
-            static_cast<Idx>(3u),
-            false,
-            alpaka::workdiv::GridBlockExtentSubDivRestrictions::Unrestricted));
+    alpaka::WorkDivMembers<Dim, Idx> const workDiv(alpaka::getValidWorkDiv<Acc>(
+        devAcc,
+        extent,
+        static_cast<Idx>(3u),
+        false,
+        alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
 
-    std::cout
-        << "AxpyKernel("
-        << " numElements:" << numElements
-        << ", accelerator: " << alpaka::acc::getAccName<Acc>()
-        << ", kernel: " << typeid(kernel).name()
-        << ", workDiv: " << workDiv
-        << ")" << std::endl;
+    std::cout << "AxpyKernel("
+              << " numElements:" << numElements << ", accelerator: " << alpaka::getAccName<Acc>()
+              << ", kernel: " << typeid(kernel).name() << ", workDiv: " << workDiv << ")" << std::endl;
 
     // Allocate host memory buffers.
-    auto memBufHostX(alpaka::mem::buf::alloc<Val, Idx>(devHost, extent));
-    auto memBufHostOrigY(alpaka::mem::buf::alloc<Val, Idx>(devHost, extent));
-    auto memBufHostY(alpaka::mem::buf::alloc<Val, Idx>(devHost, extent));
-    Val * const pBufHostX = alpaka::mem::view::getPtrNative(memBufHostX);
-    Val * const pBufHostOrigY = alpaka::mem::view::getPtrNative(memBufHostOrigY);
-    Val * const pBufHostY = alpaka::mem::view::getPtrNative(memBufHostY);
+    auto memBufHostX(alpaka::allocBuf<Val, Idx>(devHost, extent));
+    auto memBufHostOrigY(alpaka::allocBuf<Val, Idx>(devHost, extent));
+    auto memBufHostY(alpaka::allocBuf<Val, Idx>(devHost, extent));
+    Val* const pBufHostX = alpaka::getPtrNative(memBufHostX);
+    Val* const pBufHostOrigY = alpaka::getPtrNative(memBufHostOrigY);
+    Val* const pBufHostY = alpaka::getPtrNative(memBufHostY);
 
     // random generator for uniformly distributed numbers in [0,1)
     // keep in mind, this can generate different values on different platforms
     std::random_device rd{};
     auto const seed = rd();
-    std::default_random_engine eng{ seed };
+    std::default_random_engine eng{seed};
     std::uniform_real_distribution<Val> dist(0.0, 1.0);
     std::cout << "using seed: " << seed << "\n";
     // Initialize the host input vectors
-    for (Idx i(0); i < numElements; ++i)
+    for(Idx i(0); i < numElements; ++i)
     {
         pBufHostX[i] = dist(eng);
         pBufHostOrigY[i] = dist(eng);
     }
-    Val const alpha( dist(eng) );
+    Val const alpha(dist(eng));
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-    std::cout << __func__
-        << " alpha: " << alpha << std::endl;
+    std::cout << __func__ << " alpha: " << alpha << std::endl;
     std::cout << __func__ << " X_host: ";
-    alpaka::mem::view::print(memBufHostX, std::cout);
+    alpaka::print(memBufHostX, std::cout);
     std::cout << std::endl;
     std::cout << __func__ << " Y_host: ";
-    alpaka::mem::view::print(memBufHostOrigY, std::cout);
+    alpaka::print(memBufHostOrigY, std::cout);
     std::cout << std::endl;
 #endif
 
     // Allocate the buffer on the accelerator.
-    auto memBufAccX(alpaka::mem::buf::alloc<Val, Idx>(devAcc, extent));
-    auto memBufAccY(alpaka::mem::buf::alloc<Val, Idx>(devAcc, extent));
+    auto memBufAccX(alpaka::allocBuf<Val, Idx>(devAcc, extent));
+    auto memBufAccY(alpaka::allocBuf<Val, Idx>(devAcc, extent));
 
     // Copy Host -> Acc.
-    alpaka::mem::view::copy(queue, memBufAccX, memBufHostX, extent);
-    alpaka::mem::view::copy(queue, memBufAccY, memBufHostOrigY, extent);
+    alpaka::memcpy(queue, memBufAccX, memBufHostX, extent);
+    alpaka::memcpy(queue, memBufAccY, memBufHostOrigY, extent);
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-    alpaka::wait::wait(queue);
+    alpaka::wait(queue);
 
     std::cout << __func__ << " X_Dev: ";
-    alpaka::mem::view::print(memBufHostX, std::cout);
+    alpaka::print(memBufHostX, std::cout);
     std::cout << std::endl;
     std::cout << __func__ << " Y_Dev: ";
-    alpaka::mem::view::print(memBufHostX, std::cout);
+    alpaka::print(memBufHostX, std::cout);
     std::cout << std::endl;
 #endif
 
     // Create the kernel execution task.
-    auto const taskKernel(alpaka::kernel::createTaskKernel<Acc>(
+    auto const taskKernel(alpaka::createTaskKernel<Acc>(
         workDiv,
         kernel,
         numElements,
         alpha,
-        alpaka::mem::view::getPtrNative(memBufAccX),
-        alpaka::mem::view::getPtrNative(memBufAccY)));
+        alpaka::getPtrNative(memBufAccX),
+        alpaka::getPtrNative(memBufAccY)));
 
     // Profile the kernel execution.
-    std::cout << "Execution time: "
-        << alpaka::test::integ::measureTaskRunTimeMs(
-            queue,
-            taskKernel)
-        << " ms"
-        << std::endl;
+    std::cout << "Execution time: " << alpaka::test::integ::measureTaskRunTimeMs(queue, taskKernel) << " ms"
+              << std::endl;
 
     // Copy back the result.
-    alpaka::mem::view::copy(queue, memBufHostY, memBufAccY, extent);
+    alpaka::memcpy(queue, memBufHostY, memBufAccY, extent);
 
     // Wait for the queue to finish the memory operation.
-    alpaka::wait::wait(queue);
+    alpaka::wait(queue);
 
     bool resultCorrect(true);
     for(Idx i(0u); i < numElements; ++i)
     {
-        auto const & val(pBufHostY[i]);
+        auto const& val(pBufHostY[i]);
         auto const correctResult(alpha * pBufHostX[i] + pBufHostOrigY[i]);
         auto const relDiff = std::abs((val - correctResult) / std::min(val, correctResult));
-        if( relDiff > std::numeric_limits<Val>::epsilon() )
+        if(relDiff > std::numeric_limits<Val>::epsilon())
         {
             std::cerr << "C[" << i << "] == " << val << " != " << correctResult << std::endl;
             resultCorrect = false;

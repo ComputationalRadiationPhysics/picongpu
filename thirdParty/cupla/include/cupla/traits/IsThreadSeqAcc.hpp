@@ -49,7 +49,7 @@ namespace traits
         typename T_IndexType
     >
     struct IsThreadSeqAcc<
-        ::alpaka::acc::AccCpuOmp2Blocks<
+        ::alpaka::AccCpuOmp2Blocks<
             T_KernelDim,
             T_IndexType
         >
@@ -65,7 +65,7 @@ namespace traits
         typename T_IndexType
     >
     struct IsThreadSeqAcc<
-        ::alpaka::acc::AccCpuSerial<
+        ::alpaka::AccCpuSerial<
             T_KernelDim,
             T_IndexType
         >
@@ -81,7 +81,7 @@ namespace traits
         typename T_IndexType
     >
     struct IsThreadSeqAcc<
-        ::alpaka::acc::AccCpuTbbBlocks<
+        ::alpaka::AccCpuTbbBlocks<
             T_KernelDim,
             T_IndexType
         >

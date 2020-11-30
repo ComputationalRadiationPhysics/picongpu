@@ -14,27 +14,22 @@ namespace alpaka
     namespace test
     {
         //#############################################################################
-        template<
-            typename TType,
-            size_t TSize>
-        struct Array {
+        template<typename TType, size_t TSize>
+        struct Array
+        {
             TType m_data[TSize];
 
-            template<
-                typename T_Idx>
-            ALPAKA_FN_HOST_ACC const TType & operator[](
-                const T_Idx idx) const
+            template<typename T_Idx>
+            ALPAKA_FN_HOST_ACC const TType& operator[](const T_Idx idx) const
             {
                 return m_data[idx];
             }
 
-            template<
-                typename TIdx>
-            ALPAKA_FN_HOST_ACC TType & operator[](
-                const TIdx idx)
+            template<typename TIdx>
+            ALPAKA_FN_HOST_ACC TType& operator[](const TIdx idx)
             {
                 return m_data[idx];
             }
         };
-    }
-}
+    } // namespace test
+} // namespace alpaka

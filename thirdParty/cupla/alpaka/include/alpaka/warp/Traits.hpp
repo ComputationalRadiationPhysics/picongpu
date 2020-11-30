@@ -21,7 +21,9 @@ namespace alpaka
     //! The thread warp specifics
     namespace warp
     {
-        struct ConceptWarp{};
+        struct ConceptWarp
+        {
+        };
 
         //-----------------------------------------------------------------------------
         //! The warp traits.
@@ -29,39 +31,29 @@ namespace alpaka
         {
             //#############################################################################
             //! The warp size trait.
-            template<
-                typename TWarp,
-                typename TSfinae = void>
+            template<typename TWarp, typename TSfinae = void>
             struct GetSize;
 
             //#############################################################################
             //! The all warp vote trait.
-            template<
-                typename TWarp,
-                typename TSfinae = void>
+            template<typename TWarp, typename TSfinae = void>
             struct All;
 
             //#############################################################################
             //! The any warp vote trait.
-            template<
-                typename TWarp,
-                typename TSfinae = void>
+            template<typename TWarp, typename TSfinae = void>
             struct Any;
 
             //#############################################################################
             //! The ballot warp vote trait.
-            template<
-                typename TWarp,
-                typename TSfinae = void>
+            template<typename TWarp, typename TSfinae = void>
             struct Ballot;
 
             //#############################################################################
             //! The active mask trait.
-            template<
-                typename TWarp,
-                typename TSfinae = void>
+            template<typename TWarp, typename TSfinae = void>
             struct Activemask;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Returns warp size.
@@ -69,19 +61,11 @@ namespace alpaka
         //! \tparam TWarp The warp implementation type.
         //! \param warp The warp implementation.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename TWarp>
-        ALPAKA_FN_ACC auto getSize(
-            TWarp const & warp)
-        -> std::int32_t
+        template<typename TWarp>
+        ALPAKA_FN_ACC auto getSize(TWarp const& warp) -> std::int32_t
         {
-            using ImplementationBase = concepts::ImplementationBase<
-                ConceptWarp,
-                TWarp>;
-            return traits::GetSize<
-                ImplementationBase>
-            ::getSize(
-                warp);
+            using ImplementationBase = concepts::ImplementationBase<ConceptWarp, TWarp>;
+            return traits::GetSize<ImplementationBase>::getSize(warp);
         }
 
         //-----------------------------------------------------------------------------
@@ -98,19 +82,12 @@ namespace alpaka
         //! \param warp The warp implementation.
         //! \return 32-bit or 64-bit unsigned type depending on the accelerator.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename TWarp>
-        ALPAKA_FN_ACC auto activemask(
-            TWarp const & warp) -> decltype(traits::Activemask<
-                concepts::ImplementationBase<ConceptWarp, TWarp> >::activemask(warp))
+        template<typename TWarp>
+        ALPAKA_FN_ACC auto activemask(TWarp const& warp)
+            -> decltype(traits::Activemask<concepts::ImplementationBase<ConceptWarp, TWarp>>::activemask(warp))
         {
-            using ImplementationBase = concepts::ImplementationBase<
-                ConceptWarp,
-                TWarp>;
-            return traits::Activemask<
-                ImplementationBase>
-                ::activemask(
-                    warp);
+            using ImplementationBase = concepts::ImplementationBase<ConceptWarp, TWarp>;
+            return traits::Activemask<ImplementationBase>::activemask(warp);
         }
 
         //-----------------------------------------------------------------------------
@@ -125,19 +102,11 @@ namespace alpaka
         //! \param warp The warp implementation.
         //! \param predicate The predicate value for current thread.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename TWarp>
-        ALPAKA_FN_ACC auto all(
-            TWarp const & warp,
-            std::int32_t predicate)
-        -> std::int32_t
+        template<typename TWarp>
+        ALPAKA_FN_ACC auto all(TWarp const& warp, std::int32_t predicate) -> std::int32_t
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptWarp, TWarp>;
-            return traits::All<
-                ImplementationBase>
-            ::all(
-                warp,
-                predicate);
+            return traits::All<ImplementationBase>::all(warp, predicate);
         }
 
         //-----------------------------------------------------------------------------
@@ -152,19 +121,11 @@ namespace alpaka
         //! \param warp The warp implementation.
         //! \param predicate The predicate value for current thread.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename TWarp>
-        ALPAKA_FN_ACC auto any(
-            TWarp const & warp,
-            std::int32_t predicate)
-        -> std::int32_t
+        template<typename TWarp>
+        ALPAKA_FN_ACC auto any(TWarp const& warp, std::int32_t predicate) -> std::int32_t
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptWarp, TWarp>;
-            return traits::Any<
-                ImplementationBase>
-            ::any(
-                warp,
-                predicate);
+            return traits::Any<ImplementationBase>::any(warp, predicate);
         }
 
         //-----------------------------------------------------------------------------
@@ -183,18 +144,11 @@ namespace alpaka
         //! \param predicate The predicate value for current thread.
         //! \return 32-bit or 64-bit unsigned type depending on the accelerator.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename TWarp>
-        ALPAKA_FN_ACC auto ballot(
-            TWarp const & warp,
-            std::int32_t predicate)
+        template<typename TWarp>
+        ALPAKA_FN_ACC auto ballot(TWarp const& warp, std::int32_t predicate)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptWarp, TWarp>;
-            return traits::Ballot<
-                ImplementationBase>
-            ::ballot(
-                warp,
-                predicate);
+            return traits::Ballot<ImplementationBase>::ballot(warp, predicate);
         }
-    }
-}
+    } // namespace warp
+} // namespace alpaka

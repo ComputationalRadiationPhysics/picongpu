@@ -18,18 +18,17 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathCos{};
+        struct ConceptMathCos
+        {
+        };
 
         namespace traits
         {
             //#############################################################################
             //! The cos trait.
-            template<
-                typename T,
-                typename TArg,
-                typename TSfinae = void>
+            template<typename T, typename TArg, typename TSfinae = void>
             struct Cos;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the cosine (measured in radians).
@@ -39,21 +38,11 @@ namespace alpaka
         //! \param cos_ctx The object specializing Cos.
         //! \param arg The arg.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename TArg>
-        ALPAKA_FN_HOST_ACC auto cos(
-            T const & cos_ctx,
-            TArg const & arg)
+        template<typename T, typename TArg>
+        ALPAKA_FN_HOST_ACC auto cos(T const& cos_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathCos, T>;
-            return
-                traits::Cos<
-                    ImplementationBase,
-                    TArg>
-                ::cos(
-                    cos_ctx,
-                    arg);
+            return traits::Cos<ImplementationBase, TArg>::cos(cos_ctx, arg);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

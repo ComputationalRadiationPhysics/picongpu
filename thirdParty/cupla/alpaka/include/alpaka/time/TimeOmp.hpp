@@ -11,60 +11,52 @@
 
 #ifdef _OPENMP
 
-#include <alpaka/time/Traits.hpp>
+#    include <alpaka/core/Common.hpp>
+#    include <alpaka/core/Unused.hpp>
+#    include <alpaka/time/Traits.hpp>
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
-
-#include <omp.h>
+#    include <omp.h>
 
 namespace alpaka
 {
-    namespace time
+    //#############################################################################
+    //! The OpenMP accelerator time implementation.
+    class TimeOmp : public concepts::Implements<ConceptTime, TimeOmp>
+    {
+    public:
+        //-----------------------------------------------------------------------------
+        TimeOmp() = default;
+        //-----------------------------------------------------------------------------
+        ALPAKA_FN_HOST TimeOmp(TimeOmp const&) = delete;
+        //-----------------------------------------------------------------------------
+        ALPAKA_FN_HOST TimeOmp(TimeOmp&&) = delete;
+        //-----------------------------------------------------------------------------
+        ALPAKA_FN_HOST auto operator=(TimeOmp const&) -> TimeOmp& = delete;
+        //-----------------------------------------------------------------------------
+        ALPAKA_FN_HOST auto operator=(TimeOmp&&) -> TimeOmp& = delete;
+        //-----------------------------------------------------------------------------
+        /*virtual*/ ~TimeOmp() = default;
+    };
+
+    namespace traits
     {
         //#############################################################################
-        //! The OpenMP accelerator time implementation.
-        class TimeOmp : public concepts::Implements<ConceptTime, TimeOmp>
+        //! The OpenMP accelerator clock operation.
+        template<>
+        struct Clock<TimeOmp>
         {
-        public:
             //-----------------------------------------------------------------------------
-            TimeOmp() = default;
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST TimeOmp(TimeOmp const &) = delete;
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST TimeOmp(TimeOmp &&) = delete;
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(TimeOmp const &) -> TimeOmp & = delete;
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(TimeOmp &&) -> TimeOmp & = delete;
-            //-----------------------------------------------------------------------------
-            /*virtual*/ ~TimeOmp() = default;
-        };
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The OpenMP accelerator clock operation.
-            template<>
-            struct Clock<
-                time::TimeOmp>
+            ALPAKA_FN_HOST static auto clock(TimeOmp const& time) -> std::uint64_t
             {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto clock(
-                    time::TimeOmp const & time)
-                -> std::uint64_t
-                {
-                    alpaka::ignore_unused(time);
-                    // NOTE: We compute the number of clock ticks by dividing the following durations:
-                    // - omp_get_wtime returns the elapsed wall clock time in seconds.
-                    // - omp_get_wtick gets the timer precision, i.e., the number of seconds between two successive clock ticks. 
-                    return
-                        static_cast<std::uint64_t>(
-                            omp_get_wtime() / omp_get_wtick());
-                }
-            };
-        }
-    }
-}
+                alpaka::ignore_unused(time);
+                // NOTE: We compute the number of clock ticks by dividing the following durations:
+                // - omp_get_wtime returns the elapsed wall clock time in seconds.
+                // - omp_get_wtick gets the timer precision, i.e., the number of seconds between two successive clock
+                // ticks.
+                return static_cast<std::uint64_t>(omp_get_wtime() / omp_get_wtick());
+            }
+        };
+    } // namespace traits
+} // namespace alpaka
 
 #endif

@@ -1,6 +1,6 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2020 Jeffrey Kelling
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,6 +9,6 @@
 
 #pragma once
 
-#ifndef ALPAKA_ACC_CPU_BT_OMP4_ENABLED
-    #define ALPAKA_ACC_CPU_BT_OMP4_ENABLED
+#ifndef ALPAKA_ACC_ANY_BT_OACC_ENABLED
+#    define ALPAKA_ACC_ANY_BT_OACC_ENABLED
 #endif

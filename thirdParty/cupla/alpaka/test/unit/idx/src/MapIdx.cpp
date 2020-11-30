@@ -9,26 +9,26 @@
 
 #include <alpaka/idx/Accessors.hpp>
 #include <alpaka/idx/MapIdx.hpp>
-
 #include <alpaka/meta/ForEachType.hpp>
-#include <alpaka/test/dim/TestDims.hpp>
 #include <alpaka/test/Extent.hpp>
+#include <alpaka/test/dim/TestDims.hpp>
 
 #include <catch2/catch.hpp>
 
 //-----------------------------------------------------------------------------
-TEMPLATE_LIST_TEST_CASE( "mapIdx", "[idx]", alpaka::test::dim::TestDims)
+TEMPLATE_LIST_TEST_CASE("mapIdx", "[idx]", alpaka::test::TestDims)
 {
     using Dim = TestType;
     using Idx = std::size_t;
-    using Vec = alpaka::vec::Vec<Dim, Idx>;
+    using Vec = alpaka::Vec<Dim, Idx>;
 
-    auto const extentNd(alpaka::vec::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>());
+    auto const extentNd(
+        alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>());
     auto const idxNd(extentNd - Vec::all(4u));
 
-    auto const idx1d(alpaka::idx::mapIdx<1u>(idxNd, extentNd));
+    auto const idx1d(alpaka::mapIdx<1u>(idxNd, extentNd));
 
-    auto const idxNdResult(alpaka::idx::mapIdx<Dim::value>(idx1d, extentNd));
+    auto const idxNdResult(alpaka::mapIdx<Dim::value>(idx1d, extentNd));
 
     REQUIRE(idxNd == idxNdResult);
 }

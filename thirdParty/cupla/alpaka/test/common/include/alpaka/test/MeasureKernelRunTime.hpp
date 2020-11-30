@@ -22,32 +22,25 @@ namespace alpaka
         {
             //-----------------------------------------------------------------------------
             //! \return The run time of the given kernel.
-            template<
-                typename TQueue,
-                typename TTask>
-            auto measureTaskRunTimeMs(
-                TQueue & queue,
-                TTask && task)
-            -> std::chrono::milliseconds::rep
+            template<typename TQueue, typename TTask>
+            auto measureTaskRunTimeMs(TQueue& queue, TTask&& task) -> std::chrono::milliseconds::rep
             {
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-                std::cout
-                    << "measureKernelRunTime("
-                    << " queue: " << typeid(TQueue).name()
-                    << " task: " << typeid(std::decay_t<TTask>).name()
-                    << ")" << std::endl;
+                std::cout << "measureKernelRunTime("
+                          << " queue: " << typeid(TQueue).name() << " task: " << typeid(std::decay_t<TTask>).name()
+                          << ")" << std::endl;
 #endif
                 // Wait for the queue to finish all tasks enqueued prior to the giventask.
-                alpaka::wait::wait(queue);
+                alpaka::wait(queue);
 
                 // Take the time prior to the execution.
                 auto const tpStart(std::chrono::high_resolution_clock::now());
 
                 // Enqueue the task.
-                alpaka::queue::enqueue(queue, std::forward<TTask>(task));
+                alpaka::enqueue(queue, std::forward<TTask>(task));
 
                 // Wait for the queue to finish the task execution to measure its run time.
-                alpaka::wait::wait(queue);
+                alpaka::wait(queue);
 
                 // Take the time after the execution.
                 auto const tpEnd(std::chrono::high_resolution_clock::now());
@@ -57,6 +50,6 @@ namespace alpaka
                 // Return the duration.
                 return std::chrono::duration_cast<std::chrono::milliseconds>(durElapsed).count();
             }
-        }
-    }
-}
+        } // namespace integ
+    } // namespace test
+} // namespace alpaka

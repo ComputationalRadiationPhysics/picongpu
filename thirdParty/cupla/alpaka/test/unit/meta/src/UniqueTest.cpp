@@ -17,54 +17,23 @@
 //-----------------------------------------------------------------------------
 TEST_CASE("uniqueWithDuplicate", "[meta]")
 {
-    using UniqueInput =
-        std::tuple<
-            int,
-            float,
-            int,
-            float,
-            float,
-            int>;
+    using UniqueInput = std::tuple<int, float, int, float, float, int>;
 
-    using UniqueResult =
-        alpaka::meta::Unique<
-            UniqueInput
-        >;
+    using UniqueResult = alpaka::meta::Unique<UniqueInput>;
 
-    using UniqueReference =
-        std::tuple<
-            int,
-            float>;
+    using UniqueReference = std::tuple<int, float>;
 
-    static_assert(
-        std::is_same<
-            UniqueReference,
-            UniqueResult
-        >::value,
-        "alpaka::meta::Unique failed!");
+    static_assert(std::is_same<UniqueReference, UniqueResult>::value, "alpaka::meta::Unique failed!");
 }
 
 //-----------------------------------------------------------------------------
 TEST_CASE("uniqueWithoutDuplicate", "[meta]")
 {
-    using UniqueInput =
-        std::tuple<
-            int,
-            float,
-            double>;
+    using UniqueInput = std::tuple<int, float, double>;
 
-    using UniqueResult =
-        alpaka::meta::Unique<
-            UniqueInput
-        >;
+    using UniqueResult = alpaka::meta::Unique<UniqueInput>;
 
-    using UniqueReference =
-        UniqueInput;
+    using UniqueReference = UniqueInput;
 
-    static_assert(
-        std::is_same<
-            UniqueReference,
-            UniqueResult
-        >::value,
-        "alpaka::meta::Unique failed!");
+    static_assert(std::is_same<UniqueReference, UniqueResult>::value, "alpaka::meta::Unique failed!");
 }

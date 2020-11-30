@@ -16,28 +16,17 @@ namespace alpaka
         namespace detail
         {
             //#############################################################################
-            template<
-                typename Ts,
-                template<typename...> class TOp>
+            template<typename Ts, template<typename...> class TOp>
             struct TransformImpl;
             //#############################################################################
-            template<
-                template<typename...> class TList,
-                typename... Ts,
-                template<typename...> class TOp>
-            struct TransformImpl<
-                TList<Ts...>,
-                TOp>
+            template<template<typename...> class TList, typename... Ts, template<typename...> class TOp>
+            struct TransformImpl<TList<Ts...>, TOp>
             {
-                using type =
-                    TList<
-                        TOp<Ts>...>;
+                using type = TList<TOp<Ts>...>;
             };
-        }
+        } // namespace detail
         //#############################################################################
-        template<
-            typename Ts,
-            template<typename...> class TOp>
+        template<typename Ts, template<typename...> class TOp>
         using Transform = typename detail::TransformImpl<Ts, TOp>::type;
-    }
-}
+    } // namespace meta
+} // namespace alpaka
