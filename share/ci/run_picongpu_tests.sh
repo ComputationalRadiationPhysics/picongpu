@@ -40,20 +40,31 @@ cd buildCI
 export picongpu_DIR=$CI_PROJECT_DIR
 export PATH=$picongpu_DIR/bin:$PATH
 
-PIC_PARALLEL_BUILDS=$(nproc)
-# limit to $CI_MAX_PARALLELISM parallel builds to avoid out of memory errors
+# adjust number of parallel builds to avoid out of memory errors
+# PIC_BUILD_REQUIRED_MEM_BYTES is a configured variable in the CI web interface
+PIC_PARALLEL_BUILDS=$(($CI_RAM_BYTES_TOTAL/$PIC_BUILD_REQUIRED_MEM_BYTES))
+
+# limit to number of available cores
+if [ $PIC_PARALLEL_BUILDS -gt $CI_CPUS ] ; then
+    PIC_PARALLEL_BUILDS=$CI_CPUS
+fi
+
 # CI_MAX_PARALLELISM is a configured variable in the CI web interface
 if [ $PIC_PARALLEL_BUILDS -gt $CI_MAX_PARALLELISM ] ; then
     PIC_PARALLEL_BUILDS=$CI_MAX_PARALLELISM
 fi
 echo -e "\033[0;32m///////////////////////////////////////////////////"
+echo "PIC_BUILD_REQUIRED_MEM_BYTES-> ${PIC_BUILD_REQUIRED_MEM_BYTES}"
+echo "CI_RAM_BYTES_TOTAL          -> ${CI_RAM_BYTES_TOTAL}"
+echo "CI_CPUS                     -> ${CI_CPUS}"
+echo "CI_MAX_PARALLELISM          -> ${CI_MAX_PARALLELISM}"
 echo "number of processor threads -> $(nproc)"
-echo "number of parallel builds -> $PIC_PARALLEL_BUILDS"
-echo "cmake version   -> $(cmake --version | head -n 1)"
-echo "build directory -> $(pwd)"
-echo "CMAKE_ARGS      -> ${CMAKE_ARGS}"
-echo "accelerator     -> ${PIC_BACKEND}"
-echo "input set       -> ${PIC_TEST_CASE_FOLDER}"
+echo "number of parallel builds   -> $PIC_PARALLEL_BUILDS"
+echo "cmake version               -> $(cmake --version | head -n 1)"
+echo "build directory             -> $(pwd)"
+echo "CMAKE_ARGS                  -> ${CMAKE_ARGS}"
+echo "accelerator                 -> ${PIC_BACKEND}"
+echo "input set                   -> ${PIC_TEST_CASE_FOLDER}"
 echo -e "/////////////////////////////////////////////////// \033[0m \n\n"
 
 if [ "$PIC_TEST_CASE_FOLDER" == "examples/" ] || [ "$PIC_TEST_CASE_FOLDER" == "tests/" ] ; then
@@ -77,7 +88,7 @@ for test_case in $(ls -w1 ./build) ; do
     fi
 done
 if [ "$error_code" != "0" ] ; then
-    return 1
+    exit 1
 fi
 # runtime test (call --help)
 for test_case_folder in $(ls params/*/* -d -w1) ; do
