@@ -40,6 +40,55 @@ namespace pmacc
     {
         namespace detail
         {
+            /** optimized atomic operation without return value
+             *
+             * For some backends PMacc is using optimized intrinsics to perform this operation.
+             *
+             * @tparam T_Op atomic alpaka operation type
+             * @tparam T_Acc alpaka accelerator context type
+             * @tparam T_Type value type
+             * @tparam T_Hierarchy alpaka hierarchy type of the atomic operation
+             */
+            template<typename T_Op, typename T_Acc, typename T_Type, typename T_Hierarchy>
+            struct AtomicOpNoRet
+            {
+                /** perform the atomic operation
+                 *
+                 * @param acc alpaka accelerator context
+                 * @param ptr pointer to destination memory
+                 * @param value input value
+                 * @param hierarchy alpaka hierarchy scope for atomics
+                 */
+                DINLINE void operator()(
+                    T_Acc const& acc,
+                    T_Type* ptr,
+                    T_Type const value,
+                    T_Hierarchy const& hierarchy)
+                {
+                    ::alpaka::atomicOp<T_Op>(acc, ptr, value, hierarchy);
+                }
+            };
+
+#if(!defined(__CUDA__) && ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+            /** HIP backend specialization for atomic add
+             *
+             * Uses the intrinsic atomicAddNoRet available for AMD gpus only.
+             * Not compatible with HIP-nvcc.
+             */
+            template<typename T_Hierarchy, typename... T_AccArgs>
+            struct AtomicOpNoRet<::alpaka::AtomicAdd, alpaka::AccGpuHipRt<T_AccArgs...>, float, T_Hierarchy>
+            {
+                DINLINE void operator()(
+                    alpaka::AccGpuHipRt<T_AccArgs...> const& acc,
+                    float* ptr,
+                    float const value,
+                    T_Hierarchy const& hierarchy)
+                {
+                    ::atomicAddNoRet(ptr, value);
+                }
+            };
+#endif
+
             template<typename T_Type, bool T_isKepler>
             struct AtomicAllInc
             {
@@ -194,5 +243,24 @@ namespace pmacc
                 ::alpaka::atomicOp<::alpaka::AtomicExch>(acc, ptr, value, hierarchy);
         }
 
+        /** optimized atomic operation without return value
+         *
+         * Executes an alpaka atomic operation but without giving the old value back.
+         * For some backends PMacc is using optimized intrinsics to perform this operation.
+         *
+         * @tparam T_Op atomic alpaka operation type
+         * @tparam T_Acc alpaka accelerator context type
+         * @tparam T_Type value type
+         * @tparam T_Hierarchy alpaka hierarchy type of the atomic operation
+         * @param acc alpaka accelerator context
+         * @param ptr pointer to memory
+         * @param value input value
+         * @param hierarchy alpaka hierarchy scope for atomics
+         */
+        template<typename T_Op, typename T_Acc, typename T_Type, typename T_Hierarchy>
+        DINLINE void atomicOpNoRet(T_Acc const& acc, T_Type* ptr, T_Type const value, T_Hierarchy const& hierarchy)
+        {
+            return detail::AtomicOpNoRet<T_Op, T_Acc, T_Type, T_Hierarchy>{}(acc, ptr, value, hierarchy);
+        }
     } // namespace nvidia
 } // namespace pmacc
