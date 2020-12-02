@@ -23,7 +23,7 @@
 
 #include "pmacc/types.hpp"
 
-#include <alpaka/alpaka.hpp>
+#include "pmacc/nvidia/atomic.hpp"
 
 namespace pmacc
 {
@@ -39,14 +39,14 @@ namespace pmacc
             template<typename T_AlpakaOperation, typename T_AlpakaHierarchy = ::alpaka::hierarchy::Grids>
             struct Atomic
             {
-                /** Generic atomic add implementation */
+                /** Execute generic atomic operation */
                 template<typename T_Acc, typename T_Dst, typename T_Src>
                 HDINLINE void operator()(T_Acc const& acc, T_Dst& dst, T_Src const& src) const
                 {
-                    ::alpaka::atomicOp<T_AlpakaOperation>(acc, &dst, src, T_AlpakaHierarchy{});
+                    atomicOpNoRet<T_AlpakaOperation>(acc, &dst, src, T_AlpakaHierarchy{});
                 }
 
-                /** pmacc::math::Vector atomic add implementation */
+                /** Execute atomic operation for pmacc::math::Vector */
                 template<
                     typename T_Acc,
                     typename T_Type,
@@ -65,7 +65,7 @@ namespace pmacc
                     pmacc::math::Vector<T_Type, T_dim, T_SrcAccessor, T_SrcNavigator, T_SrcStorage> const& src) const
                 {
                     for(int i = 0; i < T_dim; ++i)
-                        ::alpaka::atomicOp<T_AlpakaOperation>(acc, &dst[i], src[i], T_AlpakaHierarchy{});
+                        atomicOpNoRet<T_AlpakaOperation>(acc, &dst[i], src[i], T_AlpakaHierarchy{});
                 }
             };
 
