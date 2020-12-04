@@ -11,7 +11,8 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Project Information ######################################## (edit this line)
 #   - project and account for allocation
-export proj=$(groups | awk '{print $4}')
+export proj=$(groups | awk '{print $NF}')
+#export proj="ea_picongpu"
 export account=$(jutil user projects -n | awk '{print $NF}')
 
 # Text Editor for Tools ###################################### (edit this line)
@@ -24,16 +25,16 @@ jutil env activate -p $proj -A $account
 # General modules #############################################################
 #
 module purge
-module load GCC/8.3.0
-module load CUDA/10.1.105
-module load CMake/3.14.0
-module load MVAPICH2/2.3.3-GDR
-module load Python/3.6.8
+module load GCC/9.3.0
+module load CUDA/11.0
+module load CMake/3.18.0
+module load ParaStationMPI/5.4.7-1
+module load Python/3.8.5
 
-module load Boost/1.69.0-Python-3.6.8
-module load HDF5/1.10.5
+module load Boost/1.74.0
+module load HDF5/1.10.6
 # necessary for evaluations (NumPy, SciPy, Matplotlib, SymPy, Pandas, IPython)
-module load SciPy-Stack/2019a-Python-3.6.8
+module load SciPy-Stack/2020-Python-3.8.5
 
 # Other Software ##############################################################
 #
