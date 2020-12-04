@@ -3,7 +3,7 @@
 The Particle-in-Cell Algorithm
 ==============================
 
-.. sectionauthor:: Axel Huebl
+.. sectionauthor:: Axel Huebl, Klaus Steiniger
 
 Please also refer to the textbooks [BirdsallLangdon]_, [HockneyEastwood]_, our :ref:`latest paper on PIConGPU <usage-reference>` and the works in [Huebl2014]_ and [Huebl2019]_ .
 
@@ -13,15 +13,15 @@ System of Equations
 .. math::
 
    \nabla \cdot \mathbf{E} &= \frac{1}{\varepsilon_0}\sum_s \rho_s
-   
+
    \nabla \cdot \mathbf{B} &= 0
-   
+
    \nabla \times \mathbf{E} &= -\frac{\partial \mathbf{B}} {\partial t}
-   
+
    \nabla \times \mathbf{B} &= \mu_0\left(\sum_s \mathbf{J}_s + \varepsilon_0 \frac{\partial \mathbf{E}} {\partial t} \right)
-   
+
 for multiple particle species :math:`s`.
-:math:`\mathbf{E}(t)` represents the electic, :math:`\mathbf{B}(t)` the magnetic, :math:`\rho_s` the charge density and :math:`\mathbf{J}_s(t)` the current density field.
+:math:`\mathbf{E}(t)` represents the electric, :math:`\mathbf{B}(t)` the magnetic, :math:`\rho_s` the charge density and :math:`\mathbf{J}_s(t)` the current density field.
 
 Except for normalization of constants, PIConGPU implements the governing equations in SI units.
 
@@ -61,22 +61,15 @@ Electro-Magnetic PIC Method
 ---------------------------
 
 **Fields** such as :math:`\mathbf{E}(t), \mathbf{B}(t)` and :math:`\mathbf{J}(t)` are discretized on a regular mesh in Eulerian frame of reference (see [EulerLagrangeFrameOfReference]_).
+See :ref:`section Finite-Difference Time-Domain Method <model-AOFDTD>` describing how Maxwell's equations are discretized on a mesh in PIConGPU.
 
 The distribution of **Particles** is described by the distribution function :math:`f_s(\mathbf{x},\mathbf{v},t)`.
-This distribution function is sampled by *markers* (commonly referred to as *macro-particles*).
+This distribution function is sampled by *markers*, which are commonly referred to as *macroparticles*.
+These markers represent blobs of incompressible phase fluid moving in phase space.
 The temporal evolution of the distribution function is simulated by advancing the markers over time according to the Vlasov--Maxwell--Equation in Lagrangian frame (see eq. :eq:`VlasovMaxwell` and [EulerLagrangeFrameOfReference]_).
-
-Markers carry a spatial shape of order :math:`n` and a delta-distribution in momentum space.
-In most cases, these shapes are implemented as B-splines and are pre-integrated to *assignment functions* :math:`S` of the form:
-
-.. math::
-
-   S^0(x) = \big\{ \substack{1 \qquad \text{if}~0 \le x \lt 1\\ 0 \qquad \text{else}}
-
-   S^n(x) = \left(S^{n-1} * S^0\right)(x) = \int_{x-1}^x S^{n-1}(\xi) d\xi
-
-PIConGPU implements these up to order :math:`n=4`.
-The three dimensional marker shape is a multiplicative union of B-splines :math:`S^n(x,y,z) = S^n(x) S^n(y) S^n(z)`.
+A marker has a finite-size and a velocity, such that it can be regarded as a cloud of particles, whose center of mass is the marker's position and whose mean velocity is the marker's velocity.
+The cloud shape :math:`S^n(x)` of order :math:`n` of a marker describes its charge density distribution.
+See :ref:`section Hierarchy of Charge Assignment Schemes <model-shapes>` for a list of available marker shapes in PIConGPU.
 
 References
 ----------

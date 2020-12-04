@@ -22,15 +22,14 @@
 
 namespace picongpu
 {
-namespace currentInterpolation
-{
+    namespace currentInterpolation
+    {
+        /* None interpolated current assignment
+         *
+         * Default for staggered grids/Yee-scheme.
+         * Updates field E only.
+         */
+        struct None;
 
-    /* None interpolated current assignment
-     *
-     * Default for staggered grids/Yee-scheme.
-     * Updates field E only.
-     */
-    struct None;
-
-} // namespace currentInterpolation
+    } // namespace currentInterpolation
 } // namespace picongpu

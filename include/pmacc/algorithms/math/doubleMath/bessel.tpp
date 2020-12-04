@@ -27,173 +27,130 @@
 
 namespace pmacc
 {
-namespace math
-{
-namespace bessel
-{
-
-    template< >
-    struct I0< double >
+    namespace math
     {
-        using result = double;
-
-        HDINLINE result operator( )( result const & x )
+        namespace bessel
         {
-#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
-            return ::cyl_bessel_i0( x );
+            template<>
+            struct I0<double>
+            {
+                using result = double;
+
+                HDINLINE result operator()(result const& x)
+                {
+#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+                    return ::cyl_bessel_i0(x);
 #else
-            return boost::math::cyl_bessel_i(
-                0,
-                x
-            );
+                    return boost::math::cyl_bessel_i(0, x);
 #endif
-        }
-    };
+                }
+            };
 
-    template< >
-    struct I1< double >
-    {
-        using result = double;
+            template<>
+            struct I1<double>
+            {
+                using result = double;
 
-        HDINLINE result operator( )( result const & x )
-        {
-#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
-            return ::cyl_bessel_i1( x );
+                HDINLINE result operator()(result const& x)
+                {
+#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+                    return ::cyl_bessel_i1(x);
 #else
-            return boost::math::cyl_bessel_i(
-                1,
-                x
-            );
+                    return boost::math::cyl_bessel_i(1, x);
 #endif
-        }
-    };
+                }
+            };
 
-    template< >
-    struct J0< double >
-    {
-        using result = double;
+            template<>
+            struct J0<double>
+            {
+                using result = double;
 
-        HDINLINE result operator( )( result const & x )
-        {
-#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
-            return ::j0( x );
+                HDINLINE result operator()(result const& x)
+                {
+#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+                    return ::j0(x);
 #else
-            return boost::math::cyl_bessel_j(
-                0,
-                x
-            );
+                    return boost::math::cyl_bessel_j(0, x);
 #endif
-        }
-    };
+                }
+            };
 
-    template< >
-    struct J1< double >
-    {
-        using result = double;
+            template<>
+            struct J1<double>
+            {
+                using result = double;
 
-        HDINLINE result operator( )( result const & x )
-        {
-#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
-            return ::j1( x );
+                HDINLINE result operator()(result const& x)
+                {
+#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+                    return ::j1(x);
 #else
-            return boost::math::cyl_bessel_j(
-                1,
-                x
-            );
+                    return boost::math::cyl_bessel_j(1, x);
 #endif
-        }
-    };
+                }
+            };
 
-    template< >
-    struct Jn<
-        int,
-        double
-    >
-    {
-        using result = double;
+            template<>
+            struct Jn<int, double>
+            {
+                using result = double;
 
-        HDINLINE result operator( )(
-            int const & n,
-            result const & x
-        )
-        {
-#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
-            return ::jn(
-                n,
-                x
-            );
+                HDINLINE result operator()(int const& n, result const& x)
+                {
+#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+                    return ::jn(n, x);
 #else
-            return boost::math::cyl_bessel_j(
-                n,
-                x
-            );
+                    return boost::math::cyl_bessel_j(n, x);
 #endif
-        }
-    };
+                }
+            };
 
-    template< >
-    struct Y0< double >
-    {
-        using result = double;
+            template<>
+            struct Y0<double>
+            {
+                using result = double;
 
-        HDINLINE result operator( )( result const & x )
-        {
-#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
-            return ::y0( x );
+                HDINLINE result operator()(result const& x)
+                {
+#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+                    return ::y0(x);
 #else
-            return boost::math::cyl_neumann(
-                0,
-                x
-            );
+                    return boost::math::cyl_neumann(0, x);
 #endif
-        }
-    };
+                }
+            };
 
-    template< >
-    struct Y1< double >
-    {
-        using result = double;
+            template<>
+            struct Y1<double>
+            {
+                using result = double;
 
-        HDINLINE result operator( )( result const & x )
-        {
-#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
-            return ::y1( x );
+                HDINLINE result operator()(result const& x)
+                {
+#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+                    return ::y1(x);
 #else
-            return boost::math::cyl_neumann(
-                1,
-                x
-            );
+                    return boost::math::cyl_neumann(1, x);
 #endif
-        }
-    };
+                }
+            };
 
-    template< >
-    struct Yn<
-        int,
-        double
-    >
-    {
-        using result = double;
+            template<>
+            struct Yn<int, double>
+            {
+                using result = double;
 
-        HDINLINE result operator( )(
-            int const & n,
-            result const & x
-        )
-        {
-#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
-            return ::yn(
-                n,
-                x
-            );
+                HDINLINE result operator()(int const& n, result const& x)
+                {
+#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+                    return ::yn(n, x);
 #else
-            return boost::math::cyl_neumann(
-                n,
-                x
-            );
+                    return boost::math::cyl_neumann(n, x);
 #endif
-        }
-    };
+                }
+            };
 
-} //namespace bessel
-} //namespace math
-} //namespace pmacc
+        } // namespace bessel
+    } // namespace math
+} // namespace pmacc

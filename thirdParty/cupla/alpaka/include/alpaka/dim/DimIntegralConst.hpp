@@ -15,12 +15,8 @@
 
 namespace alpaka
 {
-    namespace dim
-    {
-        //-----------------------------------------------------------------------------
-        // N(th) dimension(s).
-        template<
-            std::size_t N>
-        using DimInt = std::integral_constant<std::size_t, N>;
-    }
-}
+    //-----------------------------------------------------------------------------
+    // N(th) dimension(s).
+    template<std::size_t N>
+    using DimInt = std::integral_constant<std::size_t, N>;
+} // namespace alpaka

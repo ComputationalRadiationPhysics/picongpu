@@ -343,8 +343,8 @@ if(ALPAKA_ACC_GPU_CUDA_ENABLE)
                             "(Found ${CUDA_VERSION})")
     endif()
     # Newer CUDA releases: probably troublesome, warn at least
-    if(CUDA_VERSION VERSION_GREATER 10.2)
-        message(WARNING "Untested CUDA release >10.2 (Found ${CUDA_VERSION})! "
+    if(CUDA_VERSION VERSION_GREATER 11.1)
+        message(WARNING "Untested CUDA release >11.1 (Found ${CUDA_VERSION})! "
                         "Maybe use a newer PIConGPU?")
     endif()
 endif()

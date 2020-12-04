@@ -28,29 +28,28 @@
 
 namespace pmacc
 {
-namespace test
-{
-
-/** Fixture that initializes PMacc for a given dimensionality */
-template<unsigned T_dim>
-struct PMaccFixture
-{
-    PMaccFixture()
+    namespace test
     {
-        const pmacc::DataSpace<T_dim> devices = pmacc::DataSpace<T_dim>::create(1);
-        const pmacc::DataSpace<T_dim> periodic = pmacc::DataSpace<T_dim>::create(1);
-        pmacc::Environment<T_dim>::get().initDevices(devices, periodic);
-    }
+        /** Fixture that initializes PMacc for a given dimensionality */
+        template<unsigned T_dim>
+        struct PMaccFixture
+        {
+            PMaccFixture()
+            {
+                const pmacc::DataSpace<T_dim> devices = pmacc::DataSpace<T_dim>::create(1);
+                const pmacc::DataSpace<T_dim> periodic = pmacc::DataSpace<T_dim>::create(1);
+                pmacc::Environment<T_dim>::get().initDevices(devices, periodic);
+            }
 
-    ~PMaccFixture()
-    {
-        /* finalize the PMacc context */
-        pmacc::Environment<>::get().finalize();
-    }
-};
+            ~PMaccFixture()
+            {
+                /* finalize the PMacc context */
+                pmacc::Environment<>::get().finalize();
+            }
+        };
 
-using PMaccFixture2D = PMaccFixture< 2 >;
-using PMaccFixture3D = PMaccFixture< 3 >;
+        using PMaccFixture2D = PMaccFixture<2>;
+        using PMaccFixture3D = PMaccFixture<3>;
 
-} // namespace test
+    } // namespace test
 } // namespace pmacc

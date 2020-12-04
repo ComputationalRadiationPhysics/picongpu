@@ -34,21 +34,21 @@ namespace pmacc
     template<typename T_DIM, typename T_Species>
     struct MyCountParticles
     {
-        template <typename T_Vector, typename T_MappingDesc, typename T_ParticleFilter>
-        void operator()(T_Vector & particleCounts, T_MappingDesc & cellDescription,  T_ParticleFilter & parFilter)
+        template<typename T_Vector, typename T_MappingDesc, typename T_ParticleFilter>
+        void operator()(T_Vector& particleCounts, T_MappingDesc& cellDescription, T_ParticleFilter& parFilter)
         {
-            DataConnector & dc = Environment<>::get().DataConnector();
+            DataConnector& dc = Environment<>::get().DataConnector();
 
-            const SubGrid<T_DIM::value> & subGrid = Environment<T_DIM::value>::get().SubGrid();
+            const SubGrid<T_DIM::value>& subGrid = Environment<T_DIM::value>::get().SubGrid();
             const DataSpace<T_DIM::value> localSize(subGrid.getLocalDomain().size);
 
             uint64_cu totalNumParticles = 0;
-            totalNumParticles = pmacc::CountParticles::countOnDevice < CORE + BORDER > (
-                    *dc.get<T_Species >(T_Species::FrameType::getName(), true),
-                    cellDescription,
-                    DataSpace<T_DIM::value>(),
-                    localSize,
-                    parFilter);
+            totalNumParticles = pmacc::CountParticles::countOnDevice<CORE + BORDER>(
+                *dc.get<T_Species>(T_Species::FrameType::getName(), true),
+                cellDescription,
+                DataSpace<T_DIM::value>(),
+                localSize,
+                parFilter);
             particleCounts.push_back(totalNumParticles);
         }
     };
@@ -56,7 +56,6 @@ namespace pmacc
     template<unsigned T_DIM>
     ResourceMonitor<T_DIM>::ResourceMonitor()
     {
-
     }
 
     template<unsigned T_DIM>
@@ -66,14 +65,16 @@ namespace pmacc
     }
 
     template<unsigned T_DIM>
-    template <typename T_Species, typename T_MappingDesc, typename T_ParticleFilter>
-    std::vector<size_t> ResourceMonitor<T_DIM>::getParticleCounts(T_MappingDesc &cellDescription, T_ParticleFilter & parFilter)
+    template<typename T_Species, typename T_MappingDesc, typename T_ParticleFilter>
+    std::vector<size_t> ResourceMonitor<T_DIM>::getParticleCounts(
+        T_MappingDesc& cellDescription,
+        T_ParticleFilter& parFilter)
     {
         typedef bmpl::integral_c<unsigned, T_DIM> dim;
         std::vector<size_t> particleCounts;
-        meta::ForEach<T_Species, MyCountParticles<dim, bmpl::_1> > countParticles;
+        meta::ForEach<T_Species, MyCountParticles<dim, bmpl::_1>> countParticles;
         countParticles(particleCounts, cellDescription, parFilter);
         return particleCounts;
     }
 
-} //namespace pmacc
+} // namespace pmacc

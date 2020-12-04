@@ -28,106 +28,88 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
-namespace generic
-{
-namespace acc
-{
-    /** wrapper for the user manipulator functor on the accelerator
-     *
-     * @tparam T_Functor user defined manipulators
-     */
-    template< typename T_Functor >
-    struct Free : private T_Functor
+    namespace particles
     {
-        //! type of the user manipulators
-        using Functor = T_Functor;
-
-        //! store user manipulators instance
-        HDINLINE Free( Functor const & manipulators ) :
-            Functor( manipulators )
+        namespace manipulators
         {
-        }
+            namespace generic
+            {
+                namespace acc
+                {
+                    /** wrapper for the user manipulator functor on the accelerator
+                     *
+                     * @tparam T_Functor user defined manipulators
+                     */
+                    template<typename T_Functor>
+                    struct Free : private T_Functor
+                    {
+                        //! type of the user manipulators
+                        using Functor = T_Functor;
 
-        /** execute the user manipulator functor
-         *
-         * @tparam T_Args type of the arguments passed to the user manipulator functor
-         *
-         * @param args arguments passed to the user functor
-         */
-        template<
-            typename T_Acc,
-            typename ... T_Args >
-        HDINLINE
-        void operator( )(
-            T_Acc const &,
-            T_Args && ... args
-        )
-        {
-            Functor::operator( )( args ... );
-        }
-    };
-} // namespace acc
+                        //! store user manipulators instance
+                        HDINLINE Free(Functor const& manipulators) : Functor(manipulators)
+                        {
+                        }
 
-    template< typename T_Functor >
-    struct Free : protected functor::User< T_Functor >
-    {
+                        /** execute the user manipulator functor
+                         *
+                         * @tparam T_Args type of the arguments passed to the user manipulator functor
+                         *
+                         * @param args arguments passed to the user functor
+                         */
+                        template<typename T_Acc, typename... T_Args>
+                        HDINLINE void operator()(T_Acc const&, T_Args&&... args)
+                        {
+                            Functor::operator()(args...);
+                        }
+                    };
+                } // namespace acc
 
-        using Functor = functor::User< T_Functor >;
+                template<typename T_Functor>
+                struct Free : protected functor::User<T_Functor>
+                {
+                    using Functor = functor::User<T_Functor>;
 
-        template< typename T_SpeciesType >
-        struct apply
-        {
-            using type = Free;
-        };
+                    template<typename T_SpeciesType>
+                    struct apply
+                    {
+                        using type = Free;
+                    };
 
-        /** constructor
-         *
-         * @param currentStep current simulation time step
-         */
-        HINLINE Free( uint32_t currentStep ) : Functor( currentStep )
-        {
-        }
+                    /** constructor
+                     *
+                     * @param currentStep current simulation time step
+                     */
+                    HINLINE Free(uint32_t currentStep) : Functor(currentStep)
+                    {
+                    }
 
-        /** create device manipulator functor
-         *
-         * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
-         * @tparam T_Acc alpaka accelerator type
-         *
-         * @param alpaka accelerator
-         * @param offset (in supercells, without any guards) to the
-         *         origin of the local domain
-         * @param configuration of the worker
-         */
-        template<
-            typename T_WorkerCfg,
-            typename T_Acc
-        >
-        HDINLINE acc::Free< Functor >
-        operator()(
-            T_Acc const &,
-            DataSpace< simDim > const &,
-            T_WorkerCfg const &
-        ) const
-        {
-            return acc::Free< Functor >( *static_cast< Functor const * >( this ) );
-        }
+                    /** create device manipulator functor
+                     *
+                     * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+                     * @tparam T_Acc alpaka accelerator type
+                     *
+                     * @param alpaka accelerator
+                     * @param offset (in supercells, without any guards) to the
+                     *         origin of the local domain
+                     * @param configuration of the worker
+                     */
+                    template<typename T_WorkerCfg, typename T_Acc>
+                    HDINLINE acc::Free<Functor> operator()(T_Acc const&, DataSpace<simDim> const&, T_WorkerCfg const&)
+                        const
+                    {
+                        return acc::Free<Functor>(*static_cast<Functor const*>(this));
+                    }
 
-        //! get the name of the functor
-        static
-        HINLINE std::string
-        getName( )
-        {
-            // we provide the name from the param class
-            return Functor::name;
-        }
+                    //! get the name of the functor
+                    static HINLINE std::string getName()
+                    {
+                        // we provide the name from the param class
+                        return Functor::name;
+                    }
+                };
 
-    };
-
-} // namespace generic
-} // namespace manipulators
-} // namespace particles
+            } // namespace generic
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

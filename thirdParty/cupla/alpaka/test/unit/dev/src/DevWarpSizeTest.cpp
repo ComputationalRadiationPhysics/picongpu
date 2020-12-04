@@ -8,17 +8,16 @@
  */
 
 #include <alpaka/dev/Traits.hpp>
-
 #include <alpaka/test/acc/TestAccs.hpp>
 
 #include <catch2/catch.hpp>
 
 //-----------------------------------------------------------------------------
-TEMPLATE_LIST_TEST_CASE( "getWarpSize", "[dev]", alpaka::test::acc::TestAccs)
+TEMPLATE_LIST_TEST_CASE("getWarpSize", "[dev]", alpaka::test::TestAccs)
 {
-    using Dev = alpaka::dev::Dev<TestType>;
-    using Pltf = alpaka::pltf::Pltf<Dev>;
-    Dev const dev(alpaka::pltf::getDevByIdx<Pltf>(0u));
-    auto const warpExtent = alpaka::dev::getWarpSize(dev);
+    using Dev = alpaka::Dev<TestType>;
+    using Pltf = alpaka::Pltf<Dev>;
+    Dev const dev(alpaka::getDevByIdx<Pltf>(0u));
+    auto const warpExtent = alpaka::getWarpSize(dev);
     REQUIRE(warpExtent > 0);
 }

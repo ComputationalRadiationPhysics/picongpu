@@ -41,404 +41,254 @@
 
 namespace picongpu
 {
-namespace currentSolver
-{
-/** compute current
- *
- * @tparam T_numWorkers number of workers
- * @tparam T_BlockDescription current field domain description needed for the
- *                            collective stencil
- */
-template<
-    uint32_t T_numWorkers,
-    typename T_BlockDescription
->
-struct KernelComputeCurrent
-{
-    /** scatter particle current of particles located in a supercell
-     *
-     * The current for the supercell including the guards is cached in shared memory
-     * and scattered at the end of the functor to the global memory.
-     *
-     * @tparam JBox pmacc::DataBox, particle current box type
-     * @tparam ParBox pmacc::ParticlesBox, particle box type
-     * @tparam Mapping mapper functor type
-     * @tparam FrameSolver frame solver functor type
-     * @param T_Acc alpaka accelerator type
-     *
-     * @param alpaka accelerator
-     * @param fieldJ field with particle current
-     * @param boxPar particle memory
-     * @param frameSolver functor to calculate the current for a frame
-     * @param mapper functor to map a block to a supercell
-     */
-    template<
-        typename JBox,
-        typename ParBox,
-        typename FrameSolver,
-        typename Mapping,
-        typename T_Acc
-    >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        JBox fieldJ,
-        ParBox boxPar,
-        FrameSolver frameSolver,
-        Mapping mapper
-    ) const
+    namespace currentSolver
     {
-        using namespace mappings::threads;
-
-        using FrameType = typename ParBox::FrameType;
-        using FramePtr = typename ParBox::FramePtr;
-        using SuperCellSize = typename Mapping::SuperCellSize;
-
-        /** @todo numParticlesPerFrame should be max number of particles within a frame
-         * and not a magic number derived from SuperCellSize
+        /** compute current
+         *
+         * @tparam T_numWorkers number of workers
+         * @tparam T_BlockDescription current field domain description needed for the
+         *                            collective stencil
          */
-        constexpr uint32_t numParticlesPerFrame = pmacc::math::CT::volume< SuperCellSize >::type::value;
-        constexpr uint32_t numWorkers = T_numWorkers;
-
-        /* We work with virtual CUDA blocks if we have more workers than particles.
-         * Each virtual CUDA block is working on a frame, if we have 2 blocks each block processes
-         * every second frame until all frames are processed.
-         */
-        constexpr uint32_t numVirtualBlocks = ( numWorkers + numParticlesPerFrame - 1u ) / numParticlesPerFrame;
-
-
-        const DataSpace< simDim > block(
-            mapper.getSuperCellIndex(
-                DataSpace< simDim >( cupla::blockIdx(acc) )
-            )
-        );
-        uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-        using VirtualWorkerDomCfg = IdxConfig<
-            numParticlesPerFrame * numVirtualBlocks,
-            numWorkers
-        >;
-
-        /* each virtual worker is part of one virtual block */
-        memory::CtxArray<
-            uint32_t,
-            VirtualWorkerDomCfg
-        >
-        virtualBlockIdCtx(
-            workerIdx,
-            [&](
-                uint32_t const linearIdx,
-                uint32_t const
-            )
-            {
-                return linearIdx / numParticlesPerFrame;
-            }
-        );
-
-        /* linear virtual worker index in the virtual block*/
-        memory::CtxArray<
-            uint32_t,
-            VirtualWorkerDomCfg
-        >
-        virtualLinearIdCtx(
-            workerIdx,
-            [&](
-                uint32_t const linearIdx,
-                uint32_t const idx
-            )
-            {
-                /* map virtualLinearIdCtx to the range [0;numParticlesPerFrame) */
-                return linearIdx - ( virtualBlockIdCtx[ idx ] * numParticlesPerFrame );
-            }
-        );
-
-        /* each virtual worker stores the currently used frame */
-        memory::CtxArray<
-            FramePtr,
-            VirtualWorkerDomCfg
-        > frameCtx;
-
-        memory::CtxArray<
-            lcellId_t,
-            VirtualWorkerDomCfg
-        > particlesInSuperCellCtx( 0u );
-
-        /* loop over all virtual workers */
-        ForEachIdx< VirtualWorkerDomCfg > forEachVirtualWorker( workerIdx );
-
-        forEachVirtualWorker(
-            [&](
-                uint32_t const,
-                uint32_t const idx
-            )
-            {
-                frameCtx[ idx ] = boxPar.getLastFrame( block );
-                if( frameCtx[ idx ].isValid() && virtualBlockIdCtx[ idx ] == 0u )
-                    particlesInSuperCellCtx[ idx ] = boxPar.getSuperCell( block ).getSizeLastFrame();
-
-                /* select N-th (N=virtualBlockId) frame from the end of the list */
-                for( uint32_t i = 1; i <= virtualBlockIdCtx[ idx ] && frameCtx[ idx ].isValid(); ++i )
-                {
-                    particlesInSuperCellCtx[ idx ] = numParticlesPerFrame;
-                    frameCtx[ idx ] = boxPar.getPreviousFrame( frameCtx[ idx ] );
-                }
-            }
-        );
-
-        DataSpace< simDim > const blockCell = block * SuperCellSize::toRT();
-        using Strategy = currentSolver::traits::GetStrategy_t< FrameSolver >;
-
-        /* this memory is used by all virtual blocks */
-        auto cachedJ = detail::Cache< Strategy >::template create<
-            numWorkers,
-            T_BlockDescription
-        >(
-            acc,
-            fieldJ.shift( blockCell ),
-            workerIdx
-        );
-
-        cupla::__syncthreads( acc );
-
-        while( true )
+        template<uint32_t T_numWorkers, typename T_BlockDescription>
+        struct KernelComputeCurrent
         {
-            bool isOneFrameValid = false;
-            forEachVirtualWorker(
-                [&](
-                    uint32_t const,
-                    uint32_t const idx
-                )
-                {
-                    isOneFrameValid = isOneFrameValid || frameCtx[ idx ].isValid();
-                }
-            );
-
-            if( !isOneFrameValid )
-                break;
-
-            forEachVirtualWorker(
-                [&](
-                    uint32_t const,
-                    uint32_t const idx
-                )
-                {
-                    /* this test is only important for the last frame
-                     * if the frame is not the last one then: `particlesInSuperCell == numParticlesPerFrame`
-                     */
-                    if(
-                        frameCtx[ idx ].isValid() &&
-                        virtualLinearIdCtx[ idx ] < particlesInSuperCellCtx[ idx ]
-                    )
-                    {
-                        frameSolver(
-                            acc,
-                            *frameCtx[ idx ],
-                            virtualLinearIdCtx[ idx ],
-                            cachedJ
-                        );
-                    }
-                }
-            );
-
-            forEachVirtualWorker(
-                [&](
-                    uint32_t const,
-                    uint32_t const idx
-                )
-                {
-                    if( frameCtx[ idx ].isValid() )
-                    {
-                        particlesInSuperCellCtx[ idx ] = numParticlesPerFrame;
-                        for( int i = 0; i < numVirtualBlocks && frameCtx[ idx ].isValid(); ++i )
-                        {
-                            frameCtx[ idx ] = boxPar.getPreviousFrame( frameCtx[ idx ] );
-                        }
-                    }
-                }
-            );
-        }
-
-        /* we wait that all workers finish the loop */
-        cupla::__syncthreads( acc );
-
-        /* this memory is used by all virtual blocks */
-        detail::Cache< Strategy >::template flush<
-            numWorkers,
-            T_BlockDescription
-        >(
-            acc,
-            fieldJ.shift( blockCell ),
-            cachedJ,
-            workerIdx
-        );
-    }
-};
-
-template<typename T_ParticleAlgo, typename Velocity, typename TVec>
-struct ComputePerFrame
-{
-    using ParticleAlgo = T_ParticleAlgo;
-
-    HDINLINE ComputePerFrame(const float_X deltaTime) :
-    m_deltaTime(deltaTime)
-    {
-    }
-
-    template<
-        typename FrameType,
-        typename BoxJ,
-        typename T_Acc
-    >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        FrameType& frame,
-        const int localIdx,
-        BoxJ & jBox
-    )
-    {
-
-        auto particle = frame[localIdx];
-        const float_X weighting = particle[weighting_];
-        const floatD_X pos = particle[position_];
-        const int particleCellIdx = particle[localCellIdx_];
-        const float_X charge = attribute::getCharge(weighting,particle);
-        const DataSpace<simDim> localCell(DataSpaceOperations<simDim>::template map<TVec > (particleCellIdx));
-
-        Velocity velocity;
-        const float3_X vel = velocity(
-                                      particle[momentum_],
-                                      attribute::getMass(weighting,particle));
-        auto fieldJShiftToParticle = jBox.shift(localCell);
-        ParticleAlgo perParticle;
-        perParticle(
-            acc,
-            fieldJShiftToParticle,
-            pos,
-            vel,
-            charge,
-            m_deltaTime
-        );
-    }
-
-private:
-    PMACC_ALIGN(m_deltaTime, const float_32);
-};
-
-namespace traits
-{
-    template<
-        typename ParticleAlgo,
-        typename Velocity,
-        typename TVec
-    >
-    struct GetStrategy<
-        ComputePerFrame<
-            ParticleAlgo,
-            Velocity,
-            TVec
-        >
-    >
-    {
-        using type = GetStrategy_t< ParticleAlgo >;
-    };
-} // namespace traits
-
-/** add current to electric and magnetic field
- *
- * @tparam T_numWorkers number of workers
- */
-template<
-    uint32_t T_numWorkers
->
-struct KernelAddCurrentToEMF
-{
-    template<
-        typename T_CurrentInterpolation,
-        typename T_Mapping,
-        typename T_Acc
-    >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        typename FieldE::DataBoxType fieldE,
-        typename FieldB::DataBoxType fieldB,
-        typename FieldJ::DataBoxType fieldJ,
-        T_CurrentInterpolation currentInterpolation,
-        T_Mapping mapper
-    ) const
-    {
-        using namespace mappings::threads;
-
-        /* Caching of fieldJ */
-        typedef SuperCellDescription<
-            SuperCellSize,
-            typename T_CurrentInterpolation::LowerMargin,
-            typename T_CurrentInterpolation::UpperMargin
-        > BlockArea;
-
-        constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
-        constexpr uint32_t numWorkers = T_numWorkers;
-
-        uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-        auto cachedJ = CachedBox::create<
-            0,
-            typename FieldJ::DataBoxType::ValueType
-        >(
-            acc,
-            BlockArea( )
-        );
-
-        nvidia::functors::Assign assign;
-        DataSpace< simDim > const block(
-            mapper.getSuperCellIndex( DataSpace< simDim >( cupla::blockIdx(acc) ) )
-        );
-        DataSpace< simDim > const blockCell = block * MappingDesc::SuperCellSize::toRT();
-
-
-        auto fieldJBlock = fieldJ.shift(blockCell);
-
-        ThreadCollective<
-            BlockArea,
-            numWorkers
-        > collective( workerIdx );
-
-        collective(
-            acc,
-            assign,
-            cachedJ,
-            fieldJBlock
-        );
-
-        cupla::__syncthreads( acc );
-
-        ForEachIdx<
-            IdxConfig<
-                cellsPerSuperCell,
-                numWorkers
-            >
-        >{ workerIdx }(
-            [&](
-                uint32_t const linearIdx,
-                uint32_t const
-            )
+            /** scatter particle current of particles located in a supercell
+             *
+             * The current for the supercell including the guards is cached in shared memory
+             * and scattered at the end of the functor to the global memory.
+             *
+             * @tparam JBox pmacc::DataBox, particle current box type
+             * @tparam ParBox pmacc::ParticlesBox, particle box type
+             * @tparam Mapping mapper functor type
+             * @tparam FrameSolver frame solver functor type
+             * @param T_Acc alpaka accelerator type
+             *
+             * @param alpaka accelerator
+             * @param fieldJ field with particle current
+             * @param boxPar particle memory
+             * @param frameSolver functor to calculate the current for a frame
+             * @param mapper functor to map a block to a supercell
+             */
+            template<typename JBox, typename ParBox, typename FrameSolver, typename Mapping, typename T_Acc>
+            DINLINE void operator()(
+                T_Acc const& acc,
+                JBox fieldJ,
+                ParBox boxPar,
+                FrameSolver frameSolver,
+                Mapping mapper) const
             {
-                /* cell index within the superCell */
-                DataSpace< simDim > const cellIdx =
-                    DataSpaceOperations< simDim >::template map< SuperCellSize >( linearIdx );
-                DataSpace< simDim > const cell( blockCell + cellIdx );
+                using namespace mappings::threads;
 
-                // Amperes Law:
-                //   Change of the dE = - j / EPS0 * dt
-                //                        j = current density (= current per area)
-                //                          = fieldJ
-                currentInterpolation(
-                    fieldE.shift( cell ),
-                    fieldB.shift( cell ),
-                    cachedJ.shift( cellIdx )
-                );
+                using FrameType = typename ParBox::FrameType;
+                using FramePtr = typename ParBox::FramePtr;
+                using SuperCellSize = typename Mapping::SuperCellSize;
+
+                /** @todo numParticlesPerFrame should be max number of particles within a frame
+                 * and not a magic number derived from SuperCellSize
+                 */
+                constexpr uint32_t numParticlesPerFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                constexpr uint32_t numWorkers = T_numWorkers;
+
+                /* We work with virtual CUDA blocks if we have more workers than particles.
+                 * Each virtual CUDA block is working on a frame, if we have 2 blocks each block processes
+                 * every second frame until all frames are processed.
+                 */
+                constexpr uint32_t numVirtualBlocks = (numWorkers + numParticlesPerFrame - 1u) / numParticlesPerFrame;
+
+
+                const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+                uint32_t const workerIdx = cupla::threadIdx(acc).x;
+
+                using VirtualWorkerDomCfg = IdxConfig<numParticlesPerFrame * numVirtualBlocks, numWorkers>;
+
+                /* each virtual worker is part of one virtual block */
+                memory::CtxArray<uint32_t, VirtualWorkerDomCfg> virtualBlockIdCtx(
+                    workerIdx,
+                    [&](uint32_t const linearIdx, uint32_t const) { return linearIdx / numParticlesPerFrame; });
+
+                /* linear virtual worker index in the virtual block*/
+                memory::CtxArray<uint32_t, VirtualWorkerDomCfg> virtualLinearIdCtx(
+                    workerIdx,
+                    [&](uint32_t const linearIdx, uint32_t const idx) {
+                        /* map virtualLinearIdCtx to the range [0;numParticlesPerFrame) */
+                        return linearIdx - (virtualBlockIdCtx[idx] * numParticlesPerFrame);
+                    });
+
+                /* each virtual worker stores the currently used frame */
+                memory::CtxArray<FramePtr, VirtualWorkerDomCfg> frameCtx;
+
+                memory::CtxArray<lcellId_t, VirtualWorkerDomCfg> particlesInSuperCellCtx(0u);
+
+                /* loop over all virtual workers */
+                ForEachIdx<VirtualWorkerDomCfg> forEachVirtualWorker(workerIdx);
+
+                forEachVirtualWorker([&](uint32_t const, uint32_t const idx) {
+                    frameCtx[idx] = boxPar.getLastFrame(block);
+                    if(frameCtx[idx].isValid() && virtualBlockIdCtx[idx] == 0u)
+                        particlesInSuperCellCtx[idx] = boxPar.getSuperCell(block).getSizeLastFrame();
+
+                    /* select N-th (N=virtualBlockId) frame from the end of the list */
+                    for(uint32_t i = 1; i <= virtualBlockIdCtx[idx] && frameCtx[idx].isValid(); ++i)
+                    {
+                        particlesInSuperCellCtx[idx] = numParticlesPerFrame;
+                        frameCtx[idx] = boxPar.getPreviousFrame(frameCtx[idx]);
+                    }
+                });
+
+                DataSpace<simDim> const blockCell = block * SuperCellSize::toRT();
+                using Strategy = currentSolver::traits::GetStrategy_t<FrameSolver>;
+
+                /* this memory is used by all virtual blocks */
+                auto cachedJ = detail::Cache<Strategy>::template create<numWorkers, T_BlockDescription>(
+                    acc,
+                    fieldJ.shift(blockCell),
+                    workerIdx);
+
+                cupla::__syncthreads(acc);
+
+                while(true)
+                {
+                    bool isOneFrameValid = false;
+                    forEachVirtualWorker([&](uint32_t const, uint32_t const idx) {
+                        isOneFrameValid = isOneFrameValid || frameCtx[idx].isValid();
+                    });
+
+                    if(!isOneFrameValid)
+                        break;
+
+                    forEachVirtualWorker([&](uint32_t const, uint32_t const idx) {
+                        /* this test is only important for the last frame
+                         * if the frame is not the last one then: `particlesInSuperCell == numParticlesPerFrame`
+                         */
+                        if(frameCtx[idx].isValid() && virtualLinearIdCtx[idx] < particlesInSuperCellCtx[idx])
+                        {
+                            frameSolver(acc, *frameCtx[idx], virtualLinearIdCtx[idx], cachedJ);
+                        }
+                    });
+
+                    forEachVirtualWorker([&](uint32_t const, uint32_t const idx) {
+                        if(frameCtx[idx].isValid())
+                        {
+                            particlesInSuperCellCtx[idx] = numParticlesPerFrame;
+                            for(int i = 0; i < numVirtualBlocks && frameCtx[idx].isValid(); ++i)
+                            {
+                                frameCtx[idx] = boxPar.getPreviousFrame(frameCtx[idx]);
+                            }
+                        }
+                    });
+                }
+
+                /* we wait that all workers finish the loop */
+                cupla::__syncthreads(acc);
+
+                /* this memory is used by all virtual blocks */
+                detail::Cache<Strategy>::template flush<numWorkers, T_BlockDescription>(
+                    acc,
+                    fieldJ.shift(blockCell),
+                    cachedJ,
+                    workerIdx);
             }
-        );
-    }
-};
+        };
 
-} // namespace currentSolver
+        template<typename T_ParticleAlgo, typename Velocity, typename TVec>
+        struct ComputePerFrame
+        {
+            using ParticleAlgo = T_ParticleAlgo;
+
+            HDINLINE ComputePerFrame(const float_X deltaTime) : m_deltaTime(deltaTime)
+            {
+            }
+
+            template<typename FrameType, typename BoxJ, typename T_Acc>
+            DINLINE void operator()(T_Acc const& acc, FrameType& frame, const int localIdx, BoxJ& jBox)
+            {
+                auto particle = frame[localIdx];
+                const float_X weighting = particle[weighting_];
+                const floatD_X pos = particle[position_];
+                const int particleCellIdx = particle[localCellIdx_];
+                const float_X charge = attribute::getCharge(weighting, particle);
+                const DataSpace<simDim> localCell(DataSpaceOperations<simDim>::template map<TVec>(particleCellIdx));
+
+                Velocity velocity;
+                const float3_X vel = velocity(particle[momentum_], attribute::getMass(weighting, particle));
+                auto fieldJShiftToParticle = jBox.shift(localCell);
+                ParticleAlgo perParticle;
+                perParticle(acc, fieldJShiftToParticle, pos, vel, charge, m_deltaTime);
+            }
+
+        private:
+            PMACC_ALIGN(m_deltaTime, const float_32);
+        };
+
+        namespace traits
+        {
+            template<typename ParticleAlgo, typename Velocity, typename TVec>
+            struct GetStrategy<ComputePerFrame<ParticleAlgo, Velocity, TVec>>
+            {
+                using type = GetStrategy_t<ParticleAlgo>;
+            };
+        } // namespace traits
+
+        /** add current to electric and magnetic field
+         *
+         * @tparam T_numWorkers number of workers
+         */
+        template<uint32_t T_numWorkers>
+        struct KernelAddCurrentToEMF
+        {
+            template<typename T_CurrentInterpolation, typename T_Mapping, typename T_Acc>
+            DINLINE void operator()(
+                T_Acc const& acc,
+                typename FieldE::DataBoxType fieldE,
+                typename FieldB::DataBoxType fieldB,
+                typename FieldJ::DataBoxType fieldJ,
+                T_CurrentInterpolation currentInterpolation,
+                T_Mapping mapper) const
+            {
+                using namespace mappings::threads;
+
+                /* Caching of fieldJ */
+                typedef SuperCellDescription<
+                    SuperCellSize,
+                    typename T_CurrentInterpolation::LowerMargin,
+                    typename T_CurrentInterpolation::UpperMargin>
+                    BlockArea;
+
+                constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                constexpr uint32_t numWorkers = T_numWorkers;
+
+                uint32_t const workerIdx = cupla::threadIdx(acc).x;
+
+                auto cachedJ = CachedBox::create<0, typename FieldJ::DataBoxType::ValueType>(acc, BlockArea());
+
+                nvidia::functors::Assign assign;
+                DataSpace<simDim> const block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+                DataSpace<simDim> const blockCell = block * MappingDesc::SuperCellSize::toRT();
+
+
+                auto fieldJBlock = fieldJ.shift(blockCell);
+
+                ThreadCollective<BlockArea, numWorkers> collective(workerIdx);
+
+                collective(acc, assign, cachedJ, fieldJBlock);
+
+                cupla::__syncthreads(acc);
+
+                ForEachIdx<IdxConfig<cellsPerSuperCell, numWorkers>>{workerIdx}(
+                    [&](uint32_t const linearIdx, uint32_t const) {
+                        /* cell index within the superCell */
+                        DataSpace<simDim> const cellIdx
+                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                        DataSpace<simDim> const cell(blockCell + cellIdx);
+
+                        // Amperes Law:
+                        //   Change of the dE = - j / EPS0 * dt
+                        //                        j = current density (= current per area)
+                        //                          = fieldJ
+                        currentInterpolation(fieldE.shift(cell), fieldB.shift(cell), cachedJ.shift(cellIdx));
+                    });
+            }
+        };
+
+    } // namespace currentSolver
 } // namespace picongpu

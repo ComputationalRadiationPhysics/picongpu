@@ -26,65 +26,49 @@
 
 namespace picongpu
 {
-namespace currentInterpolation
-{
-
-    struct None
+    namespace currentInterpolation
     {
-        static constexpr uint32_t dim = simDim;
-
-        using LowerMargin = typename pmacc::math::CT::make_Int<
-            dim,
-            0
-        >::type;
-        using UpperMargin = LowerMargin;
-
-        template<
-            typename T_DataBoxE,
-            typename T_DataBoxB,
-            typename T_DataBoxJ
-        >
-        HDINLINE void operator()(
-            T_DataBoxE fieldE,
-            T_DataBoxB const,
-            T_DataBoxJ const fieldJ
-        )
+        struct None
         {
-            DataSpace< dim > const self;
+            static constexpr uint32_t dim = simDim;
 
-            constexpr float_X deltaT = DELTA_T;
-            fieldE( self ) -= fieldJ( self ) * ( float_X( 1.0 ) / EPS0 ) * deltaT;
-        }
+            using LowerMargin = typename pmacc::math::CT::make_Int<dim, 0>::type;
+            using UpperMargin = LowerMargin;
 
-        static pmacc::traits::StringProperty getStringProperties( )
-        {
-            pmacc::traits::StringProperty propList(
-                "name",
-                "none"
-            );
-            return propList;
-        }
-    };
+            template<typename T_DataBoxE, typename T_DataBoxB, typename T_DataBoxJ>
+            HDINLINE void operator()(T_DataBoxE fieldE, T_DataBoxB const, T_DataBoxJ const fieldJ)
+            {
+                DataSpace<dim> const self;
 
-} // namespace currentInterpolation
+                constexpr float_X deltaT = DELTA_T;
+                fieldE(self) -= fieldJ(self) * (float_X(1.0) / EPS0) * deltaT;
+            }
 
-namespace traits
-{
+            static pmacc::traits::StringProperty getStringProperties()
+            {
+                pmacc::traits::StringProperty propList("name", "none");
+                return propList;
+            }
+        };
 
-    /* Get margin of the current interpolation
-     *
-     * This class defines a LowerMargin and an UpperMargin.
-     */
-    template< >
-    struct GetMargin< picongpu::currentInterpolation::None >
+    } // namespace currentInterpolation
+
+    namespace traits
     {
-    private:
-        using MyInterpolation = picongpu::currentInterpolation::None;
+        /* Get margin of the current interpolation
+         *
+         * This class defines a LowerMargin and an UpperMargin.
+         */
+        template<>
+        struct GetMargin<picongpu::currentInterpolation::None>
+        {
+        private:
+            using MyInterpolation = picongpu::currentInterpolation::None;
 
-    public:
-        using LowerMargin = typename MyInterpolation::LowerMargin;
-        using UpperMargin = typename MyInterpolation::UpperMargin;
-    };
+        public:
+            using LowerMargin = typename MyInterpolation::LowerMargin;
+            using UpperMargin = typename MyInterpolation::UpperMargin;
+        };
 
-} // namespace traits
+    } // namespace traits
 } // namespace picongpu

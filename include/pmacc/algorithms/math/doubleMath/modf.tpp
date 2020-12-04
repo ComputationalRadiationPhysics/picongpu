@@ -26,23 +26,22 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<>
-struct Modf<double>
-{
-    typedef double result;
-
-    HDINLINE double operator()(double value, double* intpart)
+    namespace math
     {
-#if( CUPLA_DEVICE_COMPILE == 1) //we are on gpu
-        return ::modf(value, intpart);
-#else
-        return std::modf(value, intpart);
-#endif
-    }
-};
+        template<>
+        struct Modf<double>
+        {
+            typedef double result;
 
-} //namespace math
+            HDINLINE double operator()(double value, double* intpart)
+            {
+#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+                return ::modf(value, intpart);
+#else
+                return std::modf(value, intpart);
+#endif
+            }
+        };
+
+    } // namespace math
 } // namespace pmacc

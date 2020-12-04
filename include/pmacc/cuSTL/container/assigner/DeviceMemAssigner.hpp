@@ -38,42 +38,42 @@
 
 namespace pmacc
 {
-namespace assigner
-{
-
-namespace bmpl = boost::mpl;
-
-template<typename T_Dim = bmpl::_1, typename T_CartBuffer = bmpl::_2>
-struct DeviceMemAssigner
-{
-    static constexpr int dim = T_Dim::value;
-    typedef T_CartBuffer CartBuffer;
-
-    template<typename Type>
-    HINLINE void assign(const Type& value)
+    namespace assigner
     {
-        // "Curiously recurring template pattern"
-        CartBuffer* buffer = static_cast<CartBuffer*>(this);
+        namespace bmpl = boost::mpl;
 
-        zone::SphericZone<dim> myZone(buffer->size());
-        cursor::BufferCursor<Type, dim> cursor(buffer->dataPointer, buffer->pitch);
-
-        /* The greatest common divisor of each component of the volume size
-         * and a certain power of two value gives the best suitable block size */
-        math::Size_t<3> blockSize(math::Size_t<3>::create(1));
-        size_t maxValues[] = {16, 16, 4}; // maximum values for each dimension
-        for(int i = 0; i < dim; i++)
+        template<typename T_Dim = bmpl::_1, typename T_CartBuffer = bmpl::_2>
+        struct DeviceMemAssigner
         {
-            blockSize[i] = boost::integer::gcd(buffer->size()[i], maxValues[dim-1]);
-        }
-        /* the maximum number of threads per block for devices with
-         * compute capability > 2.0 is 1024 */
-        PMACC_VERIFY(blockSize.productOfComponents() <= 1024);
+            static constexpr int dim = T_Dim::value;
+            typedef T_CartBuffer CartBuffer;
 
-        algorithm::kernel::RT::Foreach foreach(blockSize);
-        foreach(myZone, cursor, pmacc::algorithm::functor::AssignValue<Type>(value));
-    }
-};
+            template<typename Type>
+            HINLINE void assign(const Type& value)
+            {
+                // "Curiously recurring template pattern"
+                CartBuffer* buffer = static_cast<CartBuffer*>(this);
 
-} // assigner
-} // pmacc
+                zone::SphericZone<dim> myZone(buffer->size());
+                cursor::BufferCursor<Type, dim> cursor(buffer->dataPointer, buffer->pitch);
+
+                /* The greatest common divisor of each component of the volume size
+                 * and a certain power of two value gives the best suitable block size */
+                math::Size_t<3> blockSize(math::Size_t<3>::create(1));
+                size_t maxValues[] = {16, 16, 4}; // maximum values for each dimension
+                for(int i = 0; i < dim; i++)
+                {
+                    blockSize[i] = boost::integer::gcd(buffer->size()[i], maxValues[dim - 1]);
+                }
+                /* the maximum number of threads per block for devices with
+                 * compute capability > 2.0 is 1024 */
+                PMACC_VERIFY(blockSize.productOfComponents() <= 1024);
+
+                algorithm::kernel::RT::Foreach foreach(blockSize);
+                foreach(myZone, cursor, pmacc::algorithm::functor::AssignValue<Type>(value))
+                    ;
+            }
+        };
+
+    } // namespace assigner
+} // namespace pmacc

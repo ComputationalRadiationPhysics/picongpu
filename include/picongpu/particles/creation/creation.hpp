@@ -28,57 +28,59 @@
 
 namespace picongpu
 {
+    namespace particles
+    {
+        namespace creation
+        {
+            /** Calls the `createParticlesKernel` kernel to create new particles.
+             *
+             * @param sourceSpecies species from which new particles are created
+             * @param targetSpecies species of the created particles
+             * @param particleCreator functor that defines the particle creation
+             * @param cellDesc mapping description
+             *
+             * `particleCreator` must define: `init()`, `numNewParticles()` and `operator()()`
+             * \see `PhotonCreator.hpp` for a further description.
+             */
+            template<
+                typename T_SourceSpecies,
+                typename T_TargetSpecies,
+                typename T_ParticleCreator,
+                typename T_CellDescription>
+            void createParticlesFromSpecies(
+                T_SourceSpecies& sourceSpecies,
+                T_TargetSpecies& targetSpecies,
+                T_ParticleCreator particleCreator,
+                T_CellDescription cellDesc)
+            {
+                using SuperCellSize = typename MappingDesc::SuperCellSize;
+                const pmacc::math::Int<simDim> coreBorderGuardSuperCells = cellDesc.getGridSuperCells();
+                const pmacc::math::Int<simDim> guardSuperCells = cellDesc.getGuardingSuperCells();
+                const pmacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2 * guardSuperCells;
 
-namespace particles
-{
+                constexpr uint32_t numWorkers
+                    = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
-namespace creation
-{
+                /* Functor holding the actual generic particle creation kernel */
+                auto createParticlesKernel = make_CreateParticlesKernel<numWorkers>(
+                    sourceSpecies.getDeviceParticlesBox(),
+                    targetSpecies.getDeviceParticlesBox(),
+                    particleCreator,
+                    guardSuperCells);
 
-/** Calls the `createParticlesKernel` kernel to create new particles.
- *
- * @param sourceSpecies species from which new particles are created
- * @param targetSpecies species of the created particles
- * @param particleCreator functor that defines the particle creation
- * @param cellDesc mapping description
- *
- * `particleCreator` must define: `init()`, `numNewParticles()` and `operator()()`
- * \see `PhotonCreator.hpp` for a further description.
- */
-template<typename T_SourceSpecies, typename T_TargetSpecies, typename T_ParticleCreator, typename T_CellDescription>
-void createParticlesFromSpecies(T_SourceSpecies& sourceSpecies,
-                                T_TargetSpecies& targetSpecies,
-                                T_ParticleCreator particleCreator,
-                                T_CellDescription cellDesc)
-{
-    using SuperCellSize = typename MappingDesc::SuperCellSize;
-    const pmacc::math::Int<simDim> coreBorderGuardSuperCells = cellDesc.getGridSuperCells();
-    const pmacc::math::Int<simDim> guardSuperCells = cellDesc.getGuardingSuperCells();
-    const pmacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2 * guardSuperCells;
+                /* This zone represents the core+border area with guard offset in unit of cells */
+                const zone::SphericZone<simDim> zone(
+                    static_cast<pmacc::math::Size_t<simDim>>(coreBorderSuperCells * SuperCellSize::toRT()),
+                    guardSuperCells * SuperCellSize::toRT());
 
-    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-        pmacc::math::CT::volume< SuperCellSize >::type::value
-    >::value;
+                algorithm::kernel::ForeachLockstep<numWorkers, SuperCellSize> foreach;
+                foreach(zone, createParticlesKernel, cursor::make_MultiIndexCursor<simDim>())
+                    ;
 
-    /* Functor holding the actual generic particle creation kernel */
-    auto createParticlesKernel = make_CreateParticlesKernel< numWorkers >(
-        sourceSpecies.getDeviceParticlesBox(),
-        targetSpecies.getDeviceParticlesBox(),
-        particleCreator,
-        guardSuperCells);
+                /* Make sure to leave no gaps in newly created frames */
+                targetSpecies.fillAllGaps();
+            }
 
-    /* This zone represents the core+border area with guard offset in unit of cells */
-    const zone::SphericZone<simDim> zone(
-        static_cast<pmacc::math::Size_t<simDim> >(coreBorderSuperCells * SuperCellSize::toRT()),
-        guardSuperCells * SuperCellSize::toRT());
-
-    algorithm::kernel::ForeachLockstep<numWorkers, SuperCellSize> foreach;
-    foreach(zone, createParticlesKernel, cursor::make_MultiIndexCursor<simDim>());
-
-    /* Make sure to leave no gaps in newly created frames */
-    targetSpecies.fillAllGaps();
-}
-
-} // namespace creation
-} // namespace particles
+        } // namespace creation
+    } // namespace particles
 } // namespace picongpu

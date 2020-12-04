@@ -44,188 +44,141 @@
 
 namespace picongpu
 {
+    /*########################### define particle attributes #####################*/
 
-/*########################### define particle attributes #####################*/
+    //! describe attributes of a particle
+    using DefaultParticleAttributes = MakeSeq_t<position<position_pic>, momentum, weighting>;
 
-//! describe attributes of a particle
-using DefaultParticleAttributes = MakeSeq_t<
-    position< position_pic >,
-    momentum,
-    weighting
->;
+    //! ions also need to have a boundElectrons attribute for ionization
+    using IonParticleAttributes = MakeSeq_t<DefaultParticleAttributes, boundElectrons>;
 
-//! ions also need to have a boundElectrons attribute for ionization
-using IonParticleAttributes = MakeSeq_t<
-    DefaultParticleAttributes,
-    boundElectrons
->;
+    /*########################### end particle attributes ########################*/
 
-/*########################### end particle attributes ########################*/
+    /*########################### define species #################################*/
 
-/*########################### define species #################################*/
+    /*--------------------------- electrons --------------------------------------*/
 
-/*--------------------------- electrons --------------------------------------*/
+    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    value_identifier(float_X, MassRatioElectrons, 1.0);
+    value_identifier(float_X, ChargeRatioElectrons, 1.0);
 
-/* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioElectrons, 1.0 );
-value_identifier( float_X, ChargeRatioElectrons, 1.0 );
+    using ParticleFlagsElectrons = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        current<UsedParticleCurrentSolver>,
+        massRatio<MassRatioElectrons>,
+        chargeRatio<ChargeRatioElectrons>>;
 
-using ParticleFlagsElectrons = MakeSeq_t<
-    particlePusher< UsedParticlePusher >,
-    shape< UsedParticleShape >,
-    interpolation< UsedField2Particle >,
-    current< UsedParticleCurrentSolver >,
-    massRatio< MassRatioElectrons >,
-    chargeRatio< ChargeRatioElectrons >
->;
+    /* define species electrons */
+    using Electrons = Particles<PMACC_CSTRING("e"), ParticleFlagsElectrons, DefaultParticleAttributes>;
 
-/* define species electrons */
-using Electrons = Particles<
-    PMACC_CSTRING( "e" ),
-    ParticleFlagsElectrons,
-    DefaultParticleAttributes
->;
+    /*--------------------------- H+ --------------------------------------------*/
 
-/*--------------------------- H+ --------------------------------------------*/
+    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    value_identifier(float_X, MassRatioHydrogen, 1836.152672);
+    value_identifier(float_X, ChargeRatioHydrogen, -1.0);
 
-/* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioHydrogen, 1836.152672 );
-value_identifier( float_X, ChargeRatioHydrogen, -1.0 );
+    /* ratio relative to BASE_DENSITY (n_e) */
+    value_identifier(float_X, DensityRatioHydrogen, 25. / 158.);
 
-/* ratio relative to BASE_DENSITY (n_e) */
-value_identifier( float_X, DensityRatioHydrogen, 25. / 158. );
 
-using ParticleFlagsHydrogen = MakeSeq_t<
-    particlePusher< UsedParticlePusher >,
-    shape< UsedParticleShape >,
-    interpolation< UsedField2Particle >,
-    current< UsedParticleCurrentSolver >,
-    massRatio< MassRatioHydrogen >,
-    chargeRatio< ChargeRatioHydrogen >,
-    densityRatio< DensityRatioHydrogen >,
-    atomicNumbers< ionization::atomicNumbers::Hydrogen_t >,
-    ionizationEnergies< ionization::energies::AU::Hydrogen_t >,
-    effectiveNuclearCharge< ionization::effectiveNuclearCharge::Hydrogen_t >,
-    ionizers<
-        MakeSeq_t<
-            particles::ionization::BSIEffectiveZ< Electrons >,
-            particles::ionization::ADKLinPol< Electrons >,
-            particles::ionization::ThomasFermi< Electrons >
-        >
-    >
->;
+#ifndef PARAM_IONIZATIONCURRENT
+#    define PARAM_IONIZATIONCURRENT None
+#endif
+    using ParticleFlagsHydrogen = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        current<UsedParticleCurrentSolver>,
+        massRatio<MassRatioHydrogen>,
+        chargeRatio<ChargeRatioHydrogen>,
+        densityRatio<DensityRatioHydrogen>,
+        atomicNumbers<ionization::atomicNumbers::Hydrogen_t>,
+        ionizationEnergies<ionization::energies::AU::Hydrogen_t>,
+        effectiveNuclearCharge<ionization::effectiveNuclearCharge::Hydrogen_t>,
+        ionizers<MakeSeq_t<
+            particles::ionization::BSIEffectiveZ<Electrons, particles::ionization::current::PARAM_IONIZATIONCURRENT>,
+            particles::ionization::ADKLinPol<Electrons, particles::ionization::current::PARAM_IONIZATIONCURRENT>,
+            particles::ionization::ThomasFermi<Electrons>>>>;
 
-/* define species Hydrogen */
-using Hydrogen = Particles<
-    PMACC_CSTRING( "H" ),
-    ParticleFlagsHydrogen,
-    IonParticleAttributes
->;
+    /* define species Hydrogen */
+    using Hydrogen = Particles<PMACC_CSTRING("H"), ParticleFlagsHydrogen, IonParticleAttributes>;
 
-/*--------------------------- C ---------------------------------------------*/
+    /*--------------------------- C ---------------------------------------------*/
 
-/* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioCarbon, 22032.0 );
-value_identifier( float_X, ChargeRatioCarbon, -6.0 );
+    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    value_identifier(float_X, MassRatioCarbon, 22032.0);
+    value_identifier(float_X, ChargeRatioCarbon, -6.0);
 
-/* ratio relative to BASE_DENSITY (n_e) */
-value_identifier( float_X, DensityRatioCarbon, 21. / 158. );
+    /* ratio relative to BASE_DENSITY (n_e) */
+    value_identifier(float_X, DensityRatioCarbon, 21. / 158.);
 
-using ParticleFlagsCarbon = MakeSeq_t<
-    particlePusher< UsedParticlePusher >,
-    shape< UsedParticleShape >,
-    interpolation< UsedField2Particle >,
-    current< UsedParticleCurrentSolver >,
-    massRatio< MassRatioCarbon >,
-    chargeRatio< ChargeRatioCarbon >,
-    densityRatio< DensityRatioCarbon >,
-    atomicNumbers< ionization::atomicNumbers::Carbon_t >,
-    ionizationEnergies< ionization::energies::AU::Carbon_t >,
-    effectiveNuclearCharge< ionization::effectiveNuclearCharge::Carbon_t >,
-    ionizers<
-        MakeSeq_t<
-            particles::ionization::BSIEffectiveZ< Electrons >,
-            particles::ionization::ADKLinPol< Electrons >,
-            particles::ionization::ThomasFermi< Electrons >
-        >
-    >
->;
+    using ParticleFlagsCarbon = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        current<UsedParticleCurrentSolver>,
+        massRatio<MassRatioCarbon>,
+        chargeRatio<ChargeRatioCarbon>,
+        densityRatio<DensityRatioCarbon>,
+        atomicNumbers<ionization::atomicNumbers::Carbon_t>,
+        ionizationEnergies<ionization::energies::AU::Carbon_t>,
+        effectiveNuclearCharge<ionization::effectiveNuclearCharge::Carbon_t>,
+        ionizers<MakeSeq_t<
+            particles::ionization::BSIEffectiveZ<Electrons, particles::ionization::current::PARAM_IONIZATIONCURRENT>,
+            particles::ionization::ADKLinPol<Electrons, particles::ionization::current::PARAM_IONIZATIONCURRENT>,
+            particles::ionization::ThomasFermi<Electrons>>>>;
 
-/* define species Carbon */
-using Carbon = Particles<
-    PMACC_CSTRING( "C" ),
-    ParticleFlagsCarbon,
-    IonParticleAttributes
->;
+    /* define species Carbon */
+    using Carbon = Particles<PMACC_CSTRING("C"), ParticleFlagsCarbon, IonParticleAttributes>;
 
-/*--------------------------- N ---------------------------------------------*/
+    /*--------------------------- N ---------------------------------------------*/
 
-/* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioNitrogen, 25716.852 );
-value_identifier( float_X, ChargeRatioNitrogen, -7.0 );
+    /* ratio relative to BASE_CHARGE and BASE_MASS */
+    value_identifier(float_X, MassRatioNitrogen, 25716.852);
+    value_identifier(float_X, ChargeRatioNitrogen, -7.0);
 
-/* ratio relative to BASE_DENSITY (n_e) */
-value_identifier( float_X, DensityRatioNitrogen, 1. / 158. );
+    /* ratio relative to BASE_DENSITY (n_e) */
+    value_identifier(float_X, DensityRatioNitrogen, 1. / 158.);
 
-using ParticleFlagsNitrogen = MakeSeq_t<
-    particlePusher< UsedParticlePusher >,
-    shape< UsedParticleShape >,
-    interpolation< UsedField2Particle >,
-    current< UsedParticleCurrentSolver >,
-    massRatio< MassRatioNitrogen >,
-    chargeRatio< ChargeRatioNitrogen >,
-    densityRatio< DensityRatioNitrogen >,
-    atomicNumbers< ionization::atomicNumbers::Nitrogen_t >,
-    ionizationEnergies< ionization::energies::AU::Nitrogen_t >,
-    effectiveNuclearCharge< ionization::effectiveNuclearCharge::Nitrogen_t >,
-    ionizers<
-        MakeSeq_t<
-            particles::ionization::BSIEffectiveZ< Electrons >,
-            particles::ionization::ADKLinPol< Electrons >,
-            particles::ionization::ThomasFermi< Electrons >
-        >
-    >
->;
+    using ParticleFlagsNitrogen = MakeSeq_t<
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        current<UsedParticleCurrentSolver>,
+        massRatio<MassRatioNitrogen>,
+        chargeRatio<ChargeRatioNitrogen>,
+        densityRatio<DensityRatioNitrogen>,
+        atomicNumbers<ionization::atomicNumbers::Nitrogen_t>,
+        ionizationEnergies<ionization::energies::AU::Nitrogen_t>,
+        effectiveNuclearCharge<ionization::effectiveNuclearCharge::Nitrogen_t>,
+        ionizers<MakeSeq_t<
+            particles::ionization::BSIEffectiveZ<Electrons, particles::ionization::current::PARAM_IONIZATIONCURRENT>,
+            particles::ionization::ADKLinPol<Electrons, particles::ionization::current::PARAM_IONIZATIONCURRENT>,
+            particles::ionization::ThomasFermi<Electrons>>>>;
 
-/* define species Nitrogen */
-using Nitrogen = Particles<
-    PMACC_CSTRING( "N" ),
-    ParticleFlagsNitrogen,
-    IonParticleAttributes
->;
+    /* define species Nitrogen */
+    using Nitrogen = Particles<PMACC_CSTRING("N"), ParticleFlagsNitrogen, IonParticleAttributes>;
 
-/*--------------------------- Probe Particles -------------------------------*/
+    /*--------------------------- Probe Particles -------------------------------*/
 
-using ParticleFlagsProbes = MakeSeq_t<
-    particlePusher< particles::pusher::Probe >,
-    shape< UsedParticleShape >,
-    interpolation< UsedField2Particle >
->;
+    using ParticleFlagsProbes = MakeSeq_t<
+        particlePusher<particles::pusher::Probe>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>>;
 
-/* define species Probe */
-using Probes = Particles<
-    PMACC_CSTRING( "probe" ),
-    ParticleFlagsProbes,
-    MakeSeq_t<
-        position< position_pic >,
-        probeB,
-        probeE
-    >
->;
+    /* define species Probe */
+    using Probes
+        = Particles<PMACC_CSTRING("probe"), ParticleFlagsProbes, MakeSeq_t<position<position_pic>, probeB, probeE>>;
 
-/*########################### end species ####################################*/
+    /*########################### end species ####################################*/
 
-/** All known particle species of the simulation
- *
- * List all defined particle species from above in this list
- * to make them available to the PIC algorithm.
- */
-using VectorAllSpecies = MakeSeq_t<
-    Electrons,
-    Hydrogen,
-    Carbon,
-    Nitrogen,
-    Probes
->;
+    /** All known particle species of the simulation
+     *
+     * List all defined particle species from above in this list
+     * to make them available to the PIC algorithm.
+     */
+    using VectorAllSpecies = MakeSeq_t<Electrons, Hydrogen, Carbon, Nitrogen, Probes>;
 
 } // namespace picongpu

@@ -27,58 +27,53 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-
-    HDINLINE float1_64
-    LarmorPower::getUnit() const
+    namespace particles
     {
-        return UNIT_ENERGY;
-    }
+        namespace particleToGrid
+        {
+            namespace derivedAttributes
+            {
+                HDINLINE float1_64 LarmorPower::getUnit() const
+                {
+                    return UNIT_ENERGY;
+                }
 
-    template< class T_Particle >
-    DINLINE float_X
-    LarmorPower::operator()( T_Particle& particle ) const
-    {
+                template<class T_Particle>
+                DINLINE float_X LarmorPower::operator()(T_Particle& particle) const
+                {
+                    constexpr bool hasMomentumPrev1
+                        = pmacc::traits::HasIdentifier<typename T_Particle::FrameType, momentumPrev1>::type::value;
+                    PMACC_CASSERT_MSG_TYPE(
+                        species_must_have_the_attribute_momentumPrev1,
+                        T_Particle,
+                        hasMomentumPrev1);
 
-        constexpr bool hasMomentumPrev1 = pmacc::traits::HasIdentifier<
-            typename T_Particle::FrameType,
-            momentumPrev1
-        >::type::value;
-        PMACC_CASSERT_MSG_TYPE( species_must_have_the_attribute_momentumPrev1, T_Particle, hasMomentumPrev1 );
+                    /* read existing attributes */
+                    const float3_X mom = particle[momentum_];
+                    const float3_X mom_mt1 = particle[momentumPrev1_];
+                    const float_X weighting = particle[weighting_];
+                    const float_X charge = attribute::getCharge(weighting, particle);
+                    const float_X mass = attribute::getMass(weighting, particle);
 
-        /* read existing attributes */
-        const float3_X mom = particle[momentum_];
-        const float3_X mom_mt1 = particle[momentumPrev1_];
-        const float_X weighting = particle[weighting_];
-        const float_X charge = attribute::getCharge( weighting, particle );
-        const float_X mass = attribute::getMass( weighting, particle );
+                    /* calculate new attribute */
+                    Gamma<float_X> calcGamma;
+                    const typename Gamma<float_X>::valueType gamma = calcGamma(mom, mass);
+                    const float_X gamma2 = gamma * gamma;
+                    const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
-        /* calculate new attribute */
-        Gamma<float_X> calcGamma;
-        const typename Gamma<float_X>::valueType gamma = calcGamma( mom, mass );
-        const float_X gamma2 = gamma * gamma;
-        const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                    const float3_X mom_dt = (mom - mom_mt1) / float_X(DELTA_T);
+                    const float_X el_factor = charge * charge
+                        / (float_X(6.0) * PI * EPS0 * c2 * SPEED_OF_LIGHT * mass * mass) * gamma2 * gamma2;
+                    const float_X momentumToBetaConvert = float_X(1.0) / (mass * SPEED_OF_LIGHT * gamma);
+                    const float_X larmorPower = el_factor
+                        * (pmacc::math::abs2(mom_dt)
+                           - momentumToBetaConvert * momentumToBetaConvert
+                               * pmacc::math::abs2(pmacc::math::cross(mom, mom_dt)));
 
-        const float3_X mom_dt = (mom - mom_mt1) / float_X(DELTA_T);
-        const float_X el_factor = charge * charge
-            / (float_X(6.0) * PI * EPS0 *
-               c2 * SPEED_OF_LIGHT * mass * mass) * gamma2 * gamma2;
-        const float_X momentumToBetaConvert = float_X(1.0)/ (mass * SPEED_OF_LIGHT * gamma);
-        const float_X larmorPower = el_factor
-                                    * ( pmacc::math::abs2(mom_dt)
-                                        - momentumToBetaConvert * momentumToBetaConvert
-                                          * pmacc::math::abs2(pmacc::math::cross(mom, mom_dt))
-                                      );
-
-        /* return attribute */
-        return larmorPower;
-    }
-} // namespace derivedAttributes
-} // namespace particleToGrid
-} // namespace particles
+                    /* return attribute */
+                    return larmorPower;
+                }
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
 } // namespace picongpu

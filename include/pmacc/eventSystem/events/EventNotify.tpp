@@ -30,27 +30,25 @@
 
 namespace pmacc
 {
-
-        inline void EventNotify::notify( id_t eventId, EventType type, IEventData *data )
+    inline void EventNotify::notify(id_t eventId, EventType type, IEventData* data)
+    {
+        std::set<IEvent*>::iterator iter = observers.begin();
+        for(; iter != observers.end(); iter++)
         {
-            std::set<IEvent*>::iterator iter = observers.begin( );
-            for (; iter != observers.end( ); iter++ )
-            {
-                if ( *iter != nullptr )
-                    ( *iter )->event( eventId, type, data );
-            }
-            /* if notify is not called from destructor
-             * other tasks can register after this call.
-             * But any ITask must call this function in destrctor again"
-             */
-            observers.clear( );
-
-            /**
-             * \TODO are we sure that data won't be deleted anywhere else?
-             * if (data != nullptr)
-             *  delete data;
-             **/
-
+            if(*iter != nullptr)
+                (*iter)->event(eventId, type, data);
         }
+        /* if notify is not called from destructor
+         * other tasks can register after this call.
+         * But any ITask must call this function in destrctor again"
+         */
+        observers.clear();
 
-} //namespace pmacc
+        /**
+         * \TODO are we sure that data won't be deleted anywhere else?
+         * if (data != nullptr)
+         *  delete data;
+         **/
+    }
+
+} // namespace pmacc

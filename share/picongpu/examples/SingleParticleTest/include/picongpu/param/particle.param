@@ -31,73 +31,65 @@
 
 namespace picongpu
 {
-
-namespace particles
-{
-
-    /** a particle with a weighting below MIN_WEIGHTING will not
-     *      be created / will be deleted
-     *  note: this specific setting allows all kinds of weightings > 0.0
-     *  unit: none
-     */
-    constexpr float_X MIN_WEIGHTING = std::numeric_limits< float_X >::min();
-
-namespace manipulators
-{
-
-    // Parameters for a particle drift in X
-    CONST_VECTOR(
-        float_X,
-        3,
-        DriftParam_direction,
-        // unit vector for direction of drift: x, y, z
-        1.0,
-        0.0,
-        0.0
-    );
-    struct DriftParam
+    namespace particles
     {
-        static constexpr float_64 gamma = 1.1547; // beta: 0.5
-        const DriftParam_direction_t direction;
-    };
-    using AssignYDrift = unary::Drift<
-        DriftParam,
-        nvidia::functors::Assign
-    >;
-
-} // namespace manipulators
-
-
-namespace startPosition
-{
-    // sit directly in lower corner of the cell
-    CONST_VECTOR(
-        float_X,
-        3,
-        InCellOffset,
-        // each x, y, z in-cell position component in range [0.0, 1.0)
-        0.0,
-        0.0,
-        0.0
-    );
-    struct OnePositionParameter
-    {
-        /** Count of particles per cell at initial state
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
+         *  note: this specific setting allows all kinds of weightings > 0.0
          *  unit: none
          */
-        static constexpr uint32_t numParticlesPerCell = 1u;
+        constexpr float_X MIN_WEIGHTING = std::numeric_limits<float_X>::min();
 
-        const InCellOffset_t inCellOffset;
-    };
-    using OnePosition = OnePositionImpl< OnePositionParameter >;
+        namespace manipulators
+        {
+            // Parameters for a particle drift in X
+            CONST_VECTOR(
+                float_X,
+                3,
+                DriftParam_direction,
+                // unit vector for direction of drift: x, y, z
+                1.0,
+                0.0,
+                0.0);
+            struct DriftParam
+            {
+                static constexpr float_64 gamma = 1.1547; // beta: 0.5
+                const DriftParam_direction_t direction;
+            };
+            using AssignYDrift = unary::Drift<DriftParam, nvidia::functors::Assign>;
 
-} // namespace startPosition
+        } // namespace manipulators
 
-    /** During unit normalization, we assume this is a typical
-     *  number of particles per cell for normalization of weighted
-     *  particle attributes.
-     */
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1u;
 
-} // namespace particles
+        namespace startPosition
+        {
+            // sit directly in lower corner of the cell
+            CONST_VECTOR(
+                float_X,
+                3,
+                InCellOffset,
+                // each x, y, z in-cell position component in range [0.0, 1.0)
+                0.0,
+                0.0,
+                0.0);
+            struct OnePositionParameter
+            {
+                /** Count of particles per cell at initial state
+                 *  unit: none
+                 */
+                static constexpr uint32_t numParticlesPerCell = 1u;
+
+                const InCellOffset_t inCellOffset;
+            };
+            using OnePosition = OnePositionImpl<OnePositionParameter>;
+
+        } // namespace startPosition
+
+        /** During unit normalization, we assume this is a typical
+         *  number of particles per cell for normalization of weighted
+         *  particle attributes.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1u;
+
+    } // namespace particles
 } // namespace picongpu

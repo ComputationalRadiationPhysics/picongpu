@@ -27,34 +27,33 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace startPosition
-{
-namespace acc
-{
+    namespace particles
+    {
+        namespace startPosition
+        {
+            namespace acc
+            {
+                /** set the particle attribute position
+                 *
+                 * This functor also sets the macro particle weighting.
+                 */
+                template<typename T_ParamClass>
+                struct OnePositionImpl;
 
-    /** set the particle attribute position
-     *
-     * This functor also sets the macro particle weighting.
-     */
-    template< typename T_ParamClass >
-    struct OnePositionImpl;
-
-} // namespace acc
+            } // namespace acc
 
 
-    /** Set the in cell position
-     *
-     * All macro particles are set to the same in cell position defined in
-     * T_ParamClass.
-     *
-     * @tparam T_ParamClass Parameter class with off `InCellOffset` defined as
-     *                      CONST_VECTOR of 3 float_X [0.0, 1.0).
-     */
-    template< typename T_ParamClass >
-    using OnePositionImpl = generic::Free< acc::OnePositionImpl< T_ParamClass > >;
+            /** Set the in cell position
+             *
+             * All macro particles are set to the same in cell position defined in
+             * T_ParamClass.
+             *
+             * @tparam T_ParamClass Parameter class with off `InCellOffset` defined as
+             *                      CONST_VECTOR of 3 float_X [0.0, 1.0).
+             */
+            template<typename T_ParamClass>
+            using OnePositionImpl = generic::Free<acc::OnePositionImpl<T_ParamClass>>;
 
-} // namespace startPosition
-} // namespace particles
+        } // namespace startPosition
+    } // namespace particles
 } // namespace picongpu

@@ -7,10 +7,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <alpaka/vec/Vec.hpp>
-
-#include <alpaka/test/dim/TestDims.hpp>
 #include <alpaka/meta/ForEachType.hpp>
+#include <alpaka/test/dim/TestDims.hpp>
+#include <alpaka/vec/Vec.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -19,52 +18,36 @@
 //-----------------------------------------------------------------------------
 TEST_CASE("basicVecTraits", "[vec]")
 {
-    using Dim = alpaka::dim::DimInt<3u>;
+    using Dim = alpaka::DimInt<3u>;
     using Idx = std::size_t;
-    using Vec = alpaka::vec::Vec<Dim, Idx>;
+    using Vec = alpaka::Vec<Dim, Idx>;
 
-    Vec const vec(
-        static_cast<Idx>(0u),
-        static_cast<Idx>(8u),
-        static_cast<Idx>(15u));
-
+    Vec const vec(static_cast<Idx>(0u), static_cast<Idx>(8u), static_cast<Idx>(15u));
 
 
     //-----------------------------------------------------------------------------
-    // alpaka::vec::Vec zero elements
+    // alpaka::Vec zero elements
     {
-        using Dim0 = alpaka::dim::DimInt<0u>;
-        alpaka::vec::Vec<Dim0, Idx> const vec0{};
+        using Dim0 = alpaka::DimInt<0u>;
+        alpaka::Vec<Dim0, Idx> const vec0{};
     }
 
     //-----------------------------------------------------------------------------
-    // alpaka::vec::subVecFromIndices
+    // alpaka::subVecFromIndices
     {
-        using IdxSequence =
-            std::integer_sequence<
-                std::size_t,
-                0u,
-                Dim::value -1u,
-                0u>;
-        auto const vecSubIndices(
-            alpaka::vec::subVecFromIndices<
-                IdxSequence>(
-                    vec));
+        using IdxSequence = std::integer_sequence<std::size_t, 0u, Dim::value - 1u, 0u>;
+        auto const vecSubIndices(alpaka::subVecFromIndices<IdxSequence>(vec));
 
         REQUIRE(vecSubIndices[0u] == vec[0u]);
-        REQUIRE(vecSubIndices[1u] == vec[Dim::value -1u]);
+        REQUIRE(vecSubIndices[1u] == vec[Dim::value - 1u]);
         REQUIRE(vecSubIndices[2u] == vec[0u]);
     }
 
     //-----------------------------------------------------------------------------
-    // alpaka::vec::subVecBegin
+    // alpaka::subVecBegin
     {
-        using DimSubVecEnd =
-            alpaka::dim::DimInt<2u>;
-        auto const vecSubBegin(
-            alpaka::vec::subVecBegin<
-                DimSubVecEnd>(
-                    vec));
+        using DimSubVecEnd = alpaka::DimInt<2u>;
+        auto const vecSubBegin(alpaka::subVecBegin<DimSubVecEnd>(vec));
 
         for(typename Dim::value_type i(0); i < DimSubVecEnd::value; ++i)
         {
@@ -73,14 +56,10 @@ TEST_CASE("basicVecTraits", "[vec]")
     }
 
     //-----------------------------------------------------------------------------
-    // alpaka::vec::subVecEnd
+    // alpaka::subVecEnd
     {
-        using DimSubVecEnd =
-            alpaka::dim::DimInt<2u>;
-        auto const vecSubEnd(
-            alpaka::vec::subVecEnd<
-                DimSubVecEnd>(
-                    vec));
+        using DimSubVecEnd = alpaka::DimInt<2u>;
+        auto const vecSubEnd(alpaka::subVecEnd<DimSubVecEnd>(vec));
 
         for(typename Dim::value_type i(0); i < DimSubVecEnd::value; ++i)
         {
@@ -89,19 +68,16 @@ TEST_CASE("basicVecTraits", "[vec]")
     }
 
     //-----------------------------------------------------------------------------
-    // alpaka::vec::cast
+    // alpaka::castVec
     {
         using SizeCast = std::uint16_t;
-        auto const vecCast(
-            alpaka::vec::cast<
-                SizeCast>(
-                    vec));
+        auto const vecCast(alpaka::castVec<SizeCast>(vec));
 
         /*using VecCastConst = decltype(vecCast);
         using VecCast = std::decay_t<VecCastConst>;
         static_assert(
             std::is_same<
-                alpaka::idx::Idx<VecCast>,
+                alpaka::Idx<VecCast>,
                 SizeCast
             >::value,
             "The idx type of the casted vec is wrong");*/
@@ -113,11 +89,9 @@ TEST_CASE("basicVecTraits", "[vec]")
     }
 
     //-----------------------------------------------------------------------------
-    // alpaka::vec::reverse
+    // alpaka::reverseVec
     {
-        auto const vecReverse(
-            alpaka::vec::reverse(
-                vec));
+        auto const vecReverse(alpaka::reverseVec(vec));
 
         for(typename Dim::value_type i(0); i < Dim::value; ++i)
         {
@@ -126,20 +100,15 @@ TEST_CASE("basicVecTraits", "[vec]")
     }
 
     //-----------------------------------------------------------------------------
-    // alpaka::vec::concat
+    // alpaka::concatVec
     {
-        using Dim2 = alpaka::dim::DimInt<2u>;
-        alpaka::vec::Vec<Dim2, Idx> const vec2(
-            static_cast<Idx>(47u),
-            static_cast<Idx>(11u));
+        using Dim2 = alpaka::DimInt<2u>;
+        alpaka::Vec<Dim2, Idx> const vec2(static_cast<Idx>(47u), static_cast<Idx>(11u));
 
-        auto const vecConcat(
-            alpaka::vec::concat(
-                vec,
-                vec2));
+        auto const vecConcat(alpaka::concatVec(vec, vec2));
 
         static_assert(
-            std::is_same<alpaka::dim::Dim<std::decay<decltype(vecConcat)>::type>, alpaka::dim::DimInt<5u>>::value,
+            std::is_same<alpaka::Dim<std::decay<decltype(vecConcat)>::type>, alpaka::DimInt<5u>>::value,
             "Result dimension type of concatenation incorrect!");
 
         for(typename Dim::value_type i(0); i < Dim::value; ++i)
@@ -153,25 +122,22 @@ TEST_CASE("basicVecTraits", "[vec]")
     }
 
     {
-        alpaka::vec::Vec<Dim, Idx> const vec3(
-            static_cast<Idx>(47u),
-            static_cast<Idx>(8u),
-            static_cast<Idx>(3u));
+        alpaka::Vec<Dim, Idx> const vec3(static_cast<Idx>(47u), static_cast<Idx>(8u), static_cast<Idx>(3u));
 
         //-----------------------------------------------------------------------------
-        // alpaka::vec::Vec operator +
+        // alpaka::Vec operator +
         {
             auto const vecLessEqual(vec + vec3);
 
             static_assert(
-                std::is_same<alpaka::dim::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
+                std::is_same<alpaka::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
                 "Result dimension type of operator <= incorrect!");
 
             static_assert(
-                std::is_same<alpaka::idx::Idx<std::decay<decltype(vecLessEqual)>::type>, Idx>::value,
+                std::is_same<alpaka::Idx<std::decay<decltype(vecLessEqual)>::type>, Idx>::value,
                 "Result idx type of operator <= incorrect!");
 
-            alpaka::vec::Vec<Dim, Idx> const referenceVec(
+            alpaka::Vec<Dim, Idx> const referenceVec(
                 static_cast<Idx>(47u),
                 static_cast<Idx>(16u),
                 static_cast<Idx>(18u));
@@ -180,19 +146,19 @@ TEST_CASE("basicVecTraits", "[vec]")
         }
 
         //-----------------------------------------------------------------------------
-        // alpaka::vec::Vec operator -
+        // alpaka::Vec operator -
         {
             auto const vecLessEqual(vec - vec3);
 
             static_assert(
-                std::is_same<alpaka::dim::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
+                std::is_same<alpaka::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
                 "Result dimension type of operator <= incorrect!");
 
             static_assert(
-                std::is_same<alpaka::idx::Idx<std::decay<decltype(vecLessEqual)>::type>, Idx>::value,
+                std::is_same<alpaka::Idx<std::decay<decltype(vecLessEqual)>::type>, Idx>::value,
                 "Result idx type of operator <= incorrect!");
 
-            alpaka::vec::Vec<Dim, Idx> const referenceVec(
+            alpaka::Vec<Dim, Idx> const referenceVec(
                 static_cast<Idx>(-47),
                 static_cast<Idx>(0u),
                 static_cast<Idx>(12u));
@@ -201,19 +167,19 @@ TEST_CASE("basicVecTraits", "[vec]")
         }
 
         //-----------------------------------------------------------------------------
-        // alpaka::vec::Vec operator *
+        // alpaka::Vec operator *
         {
             auto const vecLessEqual(vec * vec3);
 
             static_assert(
-                std::is_same<alpaka::dim::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
+                std::is_same<alpaka::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
                 "Result dimension type of operator <= incorrect!");
 
             static_assert(
-                std::is_same<alpaka::idx::Idx<std::decay<decltype(vecLessEqual)>::type>, Idx>::value,
+                std::is_same<alpaka::Idx<std::decay<decltype(vecLessEqual)>::type>, Idx>::value,
                 "Result idx type of operator <= incorrect!");
 
-            alpaka::vec::Vec<Dim, Idx> const referenceVec(
+            alpaka::Vec<Dim, Idx> const referenceVec(
                 static_cast<Idx>(0u),
                 static_cast<Idx>(64u),
                 static_cast<Idx>(45u));
@@ -222,85 +188,73 @@ TEST_CASE("basicVecTraits", "[vec]")
         }
 
         //-----------------------------------------------------------------------------
-        // alpaka::vec::Vec operator <
+        // alpaka::Vec operator <
         {
             auto const vecLessEqual(vec < vec3);
 
             static_assert(
-                std::is_same<alpaka::dim::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
+                std::is_same<alpaka::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
                 "Result dimension type of operator <= incorrect!");
 
             static_assert(
-                std::is_same<alpaka::idx::Idx<std::decay<decltype(vecLessEqual)>::type>, bool>::value,
+                std::is_same<alpaka::Idx<std::decay<decltype(vecLessEqual)>::type>, bool>::value,
                 "Result idx type of operator <= incorrect!");
 
-            alpaka::vec::Vec<Dim, bool> const referenceVec(
-                true,
-                false,
-                false);
+            alpaka::Vec<Dim, bool> const referenceVec(true, false, false);
 
             REQUIRE(referenceVec == vecLessEqual);
         }
 
         //-----------------------------------------------------------------------------
-        // alpaka::vec::Vec operator <=
+        // alpaka::Vec operator <=
         {
             auto const vecLessEqual(vec <= vec3);
 
             static_assert(
-                std::is_same<alpaka::dim::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
+                std::is_same<alpaka::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
                 "Result dimension type of operator <= incorrect!");
 
             static_assert(
-                std::is_same<alpaka::idx::Idx<std::decay<decltype(vecLessEqual)>::type>, bool>::value,
+                std::is_same<alpaka::Idx<std::decay<decltype(vecLessEqual)>::type>, bool>::value,
                 "Result idx type of operator <= incorrect!");
 
-            alpaka::vec::Vec<Dim, bool> const referenceVec(
-                true,
-                true,
-                false);
+            alpaka::Vec<Dim, bool> const referenceVec(true, true, false);
 
             REQUIRE(referenceVec == vecLessEqual);
         }
 
         //-----------------------------------------------------------------------------
-        // alpaka::vec::Vec operator >=
+        // alpaka::Vec operator >=
         {
             auto const vecLessEqual(vec >= vec3);
 
             static_assert(
-                std::is_same<alpaka::dim::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
+                std::is_same<alpaka::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
                 "Result dimension type of operator <= incorrect!");
 
             static_assert(
-                std::is_same<alpaka::idx::Idx<std::decay<decltype(vecLessEqual)>::type>, bool>::value,
+                std::is_same<alpaka::Idx<std::decay<decltype(vecLessEqual)>::type>, bool>::value,
                 "Result idx type of operator <= incorrect!");
 
-            alpaka::vec::Vec<Dim, bool> const referenceVec(
-                false,
-                true,
-                true);
+            alpaka::Vec<Dim, bool> const referenceVec(false, true, true);
 
             REQUIRE(referenceVec == vecLessEqual);
         }
 
         //-----------------------------------------------------------------------------
-        // alpaka::vec::Vec operator >
+        // alpaka::Vec operator >
         {
             auto const vecLessEqual(vec > vec3);
 
             static_assert(
-                std::is_same<alpaka::dim::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
+                std::is_same<alpaka::Dim<std::decay<decltype(vecLessEqual)>::type>, Dim>::value,
                 "Result dimension type of operator <= incorrect!");
 
             static_assert(
-                std::is_same<alpaka::idx::Idx<std::decay<decltype(vecLessEqual)>::type>, bool>::value,
+                std::is_same<alpaka::Idx<std::decay<decltype(vecLessEqual)>::type>, bool>::value,
                 "Result idx type of operator <= incorrect!");
 
-            alpaka::vec::Vec<Dim, bool> const referenceVec(
-                false,
-                false,
-                true);
+            alpaka::Vec<Dim, bool> const referenceVec(false, false, true);
 
             REQUIRE(referenceVec == vecLessEqual);
         }
@@ -308,20 +262,13 @@ TEST_CASE("basicVecTraits", "[vec]")
 }
 
 //#############################################################################
-template<
-    typename TDim,
-    typename TIdx>
+template<typename TDim, typename TIdx>
 struct NonAlpakaVec
 {
     //-----------------------------------------------------------------------------
-    operator ::alpaka::vec::Vec<
-        TDim,
-        TIdx>() const
+    operator ::alpaka::Vec<TDim, TIdx>() const
     {
-        using AlpakaVector = ::alpaka::vec::Vec<
-            TDim,
-            TIdx
-        >;
+        using AlpakaVector = ::alpaka::Vec<TDim, TIdx>;
         AlpakaVector result(AlpakaVector::zeros());
 
         for(TIdx d(0); d < TDim::value; ++d)
@@ -332,21 +279,20 @@ struct NonAlpakaVec
         return result;
     }
     //-----------------------------------------------------------------------------
-    auto operator [](TIdx /*idx*/) const
-    -> TIdx
+    auto operator[](TIdx /*idx*/) const -> TIdx
     {
         return static_cast<TIdx>(0);
     }
 };
 
 //-----------------------------------------------------------------------------
-TEMPLATE_LIST_TEST_CASE( "vecNDConstructionFromNonAlpakaVec", "[vec]", alpaka::test::dim::TestDims)
+TEMPLATE_LIST_TEST_CASE("vecNDConstructionFromNonAlpakaVec", "[vec]", alpaka::test::TestDims)
 {
     using Dim = TestType;
     using Idx = std::size_t;
 
     NonAlpakaVec<Dim, Idx> nonAlpakaVec;
-    auto const alpakaVec(static_cast<alpaka::vec::Vec<Dim, Idx>>(nonAlpakaVec));
+    auto const alpakaVec(static_cast<alpaka::Vec<Dim, Idx>>(nonAlpakaVec));
 
     for(Idx d(0); d < Dim::value; ++d)
     {

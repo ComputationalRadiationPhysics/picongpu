@@ -29,57 +29,52 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
-
-/* Reduce values in GPU memory over all MPI instances
- */
-class GlobalReduce
-{
-public:
-
-    GlobalReduce(const uint32_t byte, const uint32_t sharedMemByte = 4 * 1024) : reduce(byte, sharedMemByte)
+    namespace algorithms
     {
-    }
+        /* Reduce values in GPU memory over all MPI instances
+         */
+        class GlobalReduce
+        {
+        public:
+            GlobalReduce(const uint32_t byte, const uint32_t sharedMemByte = 4 * 1024) : reduce(byte, sharedMemByte)
+            {
+            }
 
-    /* Activate participation for reduce algorithm.
-     * Must called from any mpi process. This function use global blocking mpi calls.
-     * Don't create a instance befor you have set you cuda device!
-     * @param isActive true if mpi rank should be part of reduce operation, else false
-     */
-    void participate(bool isActive)
-    {
-        mpi_reduce.participate(isActive);
-    }
+            /* Activate participation for reduce algorithm.
+             * Must called from any mpi process. This function use global blocking mpi calls.
+             * Don't create a instance befor you have set you cuda device!
+             * @param isActive true if mpi rank should be part of reduce operation, else false
+             */
+            void participate(bool isActive)
+            {
+                mpi_reduce.participate(isActive);
+            }
 
-    /* Reduce elements in global gpu memeory
-     *
-     * @param func functor for reduce which takes two arguments, first argument is the source and get the new reduced value.
-     * Functor must specialize the function getMPI_Op.
-     * @param src a class or a pointer where the reduce algorithm can access the value by operator [] (one dimension access)
-     * @param n number of elements to reduce
-     *
-     * @return reduced value (same on every mpi instance)
-     */
-    template<class Functor, typename Src>
-    typename traits::GetValueType<Src>::ValueType operator()(Functor func,
-                                                           Src src,
-                                                           uint32_t n)
-    {
-        typedef typename traits::GetValueType<Src>::ValueType Type;
+            /* Reduce elements in global gpu memeory
+             *
+             * @param func functor for reduce which takes two arguments, first argument is the source and get the new
+             * reduced value. Functor must specialize the function getMPI_Op.
+             * @param src a class or a pointer where the reduce algorithm can access the value by operator [] (one
+             * dimension access)
+             * @param n number of elements to reduce
+             *
+             * @return reduced value (same on every mpi instance)
+             */
+            template<class Functor, typename Src>
+            typename traits::GetValueType<Src>::ValueType operator()(Functor func, Src src, uint32_t n)
+            {
+                typedef typename traits::GetValueType<Src>::ValueType Type;
 
-        Type localResult = reduce(func, src, n);
-        Type globalResult;
+                Type localResult = reduce(func, src, n);
+                Type globalResult;
 
-        mpi_reduce(func, &globalResult, &localResult, 1);
-        return globalResult;
-    }
-private:
-    ::pmacc::nvidia::reduce::Reduce reduce;
-    ::pmacc::mpi::MPIReduce mpi_reduce;
-};
-}
-}
+                mpi_reduce(func, &globalResult, &localResult, 1);
+                return globalResult;
+            }
 
-
-
+        private:
+            ::pmacc::nvidia::reduce::Reduce reduce;
+            ::pmacc::mpi::MPIReduce mpi_reduce;
+        };
+    } // namespace algorithms
+} // namespace pmacc

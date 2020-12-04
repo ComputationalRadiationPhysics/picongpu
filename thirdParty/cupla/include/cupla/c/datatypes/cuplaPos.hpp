@@ -52,7 +52,7 @@ struct cuplaPos{
     >
     ALPAKA_FN_HOST_ACC
     cuplaPos(
-        ::alpaka::vec::Vec<
+        ::alpaka::Vec<
             TDim,
             TSize
         > const &vec
@@ -65,12 +65,12 @@ struct cuplaPos{
     }
 
     ALPAKA_FN_HOST_ACC
-    operator ::alpaka::vec::Vec<
+    operator ::alpaka::Vec<
         cupla::AlpakaDim< 3u >,
         cupla::MemSizeType
     >(void) const
     {
-        ::alpaka::vec::Vec<
+        ::alpaka::Vec<
             cupla::AlpakaDim< 3u >,
             cupla::MemSizeType
         > vec( x, y, z );
@@ -82,8 +82,6 @@ struct cuplaPos{
 
 namespace alpaka
 {
-namespace dim
-{
 namespace traits
 {
 
@@ -92,14 +90,11 @@ namespace traits
     struct DimType<
         cuplaPos
     >{
-      using type = ::alpaka::dim::DimInt<3u>;
+      using type = ::alpaka::DimInt<3u>;
     };
 
 } // namespace traits
-} // namespace dim
 
-namespace elem
-{
 namespace traits
 {
 
@@ -112,7 +107,6 @@ namespace traits
     };
 
 } // namespace traits
-} // namspace elem
 
 namespace extent
 {
@@ -166,8 +160,6 @@ namespace traits
 } // namespace traits
 } // namespace extent
 
-namespace offset
-{
 namespace traits
 {
 
@@ -215,10 +207,7 @@ namespace traits
         }
     };
 } // namespace traits
-} // namespace offset
 
-namespace idx
-{
 namespace traits
 {
 
@@ -231,5 +220,4 @@ namespace traits
     };
 
 } // namespace traits
-} // namespace idx
 } // namespave alpaka

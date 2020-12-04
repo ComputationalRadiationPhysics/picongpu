@@ -30,51 +30,59 @@
 
 namespace pmacc
 {
-namespace container
-{
-namespace CT
-{
+    namespace container
+    {
+        namespace CT
+        {
+            /** compile-time version of container::CartBuffer
+             * \tparam _Size compile-time vector specifying the size of the container
+             */
+            template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
+            class CartBuffer
+            {
+            public:
+                typedef Type type;
+                typedef _Size Size;
+                typedef typename Allocator::Pitch Pitch;
+                typedef cursor::CT::BufferCursor<Type, Pitch> Cursor;
+                static constexpr int dim = Size::dim;
+                typedef zone::CT::SphericZone<_Size, typename math::CT::make_Int<dim, 0>::type> Zone;
 
-/** compile-time version of container::CartBuffer
- * \tparam _Size compile-time vector specifying the size of the container
- */
-template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
-class CartBuffer
-{
-public:
-    typedef Type type;
-    typedef _Size Size;
-    typedef typename Allocator::Pitch Pitch;
-    typedef cursor::CT::BufferCursor<Type, Pitch> Cursor;
-    static constexpr int dim = Size::dim;
-    typedef zone::CT::SphericZone<_Size, typename math::CT::make_Int<dim, 0>::type> Zone;
-private:
-    Type* dataPointer;
-    //HDINLINE void init();
-public:
-    template< typename T_Acc >
-    DINLINE CartBuffer( T_Acc const & acc );
-    DINLINE CartBuffer(const CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>& other);
+            private:
+                Type* dataPointer;
+                // HDINLINE void init();
+            public:
+                template<typename T_Acc>
+                DINLINE CartBuffer(T_Acc const& acc);
+                DINLINE CartBuffer(const CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>& other);
 
-    DINLINE CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>&
-    operator=(const CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>& rhs);
+                DINLINE CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>& operator=(
+                    const CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>& rhs);
 
-    DINLINE void assign(const Type& value);
-    DINLINE Type* getDataPointer() const {return dataPointer;}
+                DINLINE void assign(const Type& value);
+                DINLINE Type* getDataPointer() const
+                {
+                    return dataPointer;
+                }
 
-    DINLINE cursor::CT::BufferCursor<Type, Pitch> origin() const;
-    /*
-    HDINLINE Cursor<PointerAccessor<Type>, CartNavigator<dim>, char*>
-    originCustomAxes(const math::UInt32<dim>& axes) const;
-    */
-    DINLINE math::Size_t<dim> size() const {return math::Size_t<dim>(Size());}
+                DINLINE cursor::CT::BufferCursor<Type, Pitch> origin() const;
+                /*
+                HDINLINE Cursor<PointerAccessor<Type>, CartNavigator<dim>, char*>
+                originCustomAxes(const math::UInt32<dim>& axes) const;
+                */
+                DINLINE math::Size_t<dim> size() const
+                {
+                    return math::Size_t<dim>(Size());
+                }
 
-    DINLINE Zone zone() const { return Zone(); }
-};
+                DINLINE Zone zone() const
+                {
+                    return Zone();
+                }
+            };
 
-} // CT
-} // container
-} // pmacc
+        } // namespace CT
+    } // namespace container
+} // namespace pmacc
 
 #include "CartBuffer.tpp"
-

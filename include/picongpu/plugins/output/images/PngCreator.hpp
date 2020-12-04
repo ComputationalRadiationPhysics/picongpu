@@ -39,12 +39,11 @@ namespace picongpu
 
     struct PngCreator
     {
-
-        PngCreator(std::string name, std::string folder) :
-            m_name(folder + "/" + name),
-            m_folder(folder),
-            m_createFolder(true),
-            m_isThreadActive(false)
+        PngCreator(std::string name, std::string folder)
+            : m_name(folder + "/" + name)
+            , m_folder(folder)
+            , m_createFolder(true)
+            , m_isThreadActive(false)
         {
         }
 
@@ -93,10 +92,7 @@ namespace picongpu
          * @param header meta information about the simulation
          */
         template<class Box>
-        void operator()(
-                        const Box data,
-                        const MessageHeader::Size2D size,
-                        const MessageHeader  header)
+        void operator()(const Box data, const MessageHeader::Size2D size, const MessageHeader header)
         {
             if(m_isThreadActive)
             {
@@ -107,11 +103,8 @@ namespace picongpu
         }
 
     private:
-
         template<class Box>
-        void createImage(const Box data,
-                        const MessageHeader::Size2D size,
-                        const MessageHeader header);
+        void createImage(const Box data, const MessageHeader::Size2D size, const MessageHeader header);
 
         std::string m_name;
         std::string m_folder;
@@ -119,7 +112,6 @@ namespace picongpu
         std::thread workerThread;
         /* status whether a thread is currently active */
         bool m_isThreadActive;
-
     };
 
 } /* namespace picongpu */

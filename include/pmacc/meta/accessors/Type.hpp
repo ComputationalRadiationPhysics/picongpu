@@ -27,22 +27,22 @@
 
 namespace pmacc
 {
-namespace meta
-{
-namespace accessors
-{
-    /** Get ::type member of the given type
-     *
-     * @tparam T type from which we return the type held in ::type
-     *
-     * T must have defined ::type
-     */
-    template< typename T = bmpl::_1 >
-    struct Type
+    namespace meta
     {
-        using type = typename T::type;
-    };
+        namespace accessors
+        {
+            /** Get ::type member of the given type
+             *
+             * @tparam T type from which we return the type held in ::type
+             *
+             * T must have defined ::type
+             */
+            template<typename T = bmpl::_1>
+            struct Type
+            {
+                using type = typename T::type;
+            };
 
-} // namespace accessors
-} // namespace meta
+        } // namespace accessors
+    } // namespace meta
 } // namespace pmacc

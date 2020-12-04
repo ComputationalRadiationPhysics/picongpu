@@ -70,7 +70,7 @@ cuplaStreamSynchronize(
         cupla::AccDev,
         cupla::AccStream
     >::get().stream( stream );
-    ::alpaka::wait::wait( streamObject );
+    ::alpaka::wait( streamObject );
     return cuplaSuccess;
 }
 
@@ -92,7 +92,7 @@ cuplaStreamWaitEvent(
         cupla::AccStream
     >::get().event( event );
 
-    ::alpaka::wait::wait(streamObject,eventObject);
+    ::alpaka::wait(streamObject,eventObject);
     return cuplaSuccess;
 }
 
@@ -105,7 +105,7 @@ cuplaStreamQuery( cuplaStream_t stream )
         cupla::AccStream
     >::get().stream( stream );
 
-    if( alpaka::queue::empty( streamObject ) )
+    if( alpaka::empty( streamObject ) )
         return cuplaSuccess;
     else
         return cuplaErrorNotReady;

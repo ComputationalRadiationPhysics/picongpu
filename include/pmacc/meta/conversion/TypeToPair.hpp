@@ -27,23 +27,16 @@
 
 namespace pmacc
 {
+    /** create boost mpl pair
+     *
+     * @tparam T_Type any type
+     * @resturn ::type boost mpl pair where first and second is set to T_Type
+     */
+    template<typename T_Type>
+    struct TypeToPair
+    {
+        typedef bmpl::pair<T_Type, T_Type> type;
+    };
 
 
-
-/** create boost mpl pair
- *
- * @tparam T_Type any type
- * @resturn ::type boost mpl pair where first and second is set to T_Type
- */
-template<typename T_Type>
-struct TypeToPair
-{
-    typedef
-    bmpl::pair< T_Type,
-            T_Type >
-            type;
-};
-
-
-
-}//namespace pmacc
+} // namespace pmacc

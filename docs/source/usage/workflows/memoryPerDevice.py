@@ -4,7 +4,7 @@
 This file is part of PIConGPU.
 
 Copyright 2018-2020 PIConGPU contributors
-Authors: Marco Garten, Paweł Ordyna
+Authors: Marco Garten, Pawel Ordyna
 License: GPLv3+
 """
 

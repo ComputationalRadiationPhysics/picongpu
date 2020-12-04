@@ -1,8 +1,8 @@
 PIConGPU - Particle-in-Cell Simulations for the Exascale Era
 ============================================================
 
-[![Code Status master](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/master.svg?label=master)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
-[![Code Status dev](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/dev.svg?label=dev)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
+[![Code Status master](https://gitlab.com/hzdr/crp/picongpu/badges/master/pipeline.svg?key_text=master)](https://gitlab.com/hzdr/crp/picongpu/pipelines/master/latest)
+[![Code Status dev](https://gitlab.com/hzdr/crp/picongpu/badges/dev/pipeline.svg?key_text=dev)](https://gitlab.com/hzdr/crp/picongpu/pipelines/dev/latest)
 [![Documentation Status](https://readthedocs.org/projects/picongpu/badge/?version=latest)](http://picongpu.readthedocs.io)
 [![Doxygen](https://img.shields.io/badge/API-Doxygen-blue.svg)](http://computationalradiationphysics.github.io/picongpu)
 [![GitHub commits since last release](https://img.shields.io/github/commits-since/ComputationalRadiationPhysics/picongpu/latest/dev.svg)](https://github.com/ComputationalRadiationPhysics/picongpu/compare/master...dev)
@@ -38,7 +38,7 @@ Its features for the electro-magnetic PIC algorithm include:
   [*Esirkepov*](http://dx.doi.org/10.1016/S0010-4655%2800%2900228-9)
   and *ZigZag*
 - macro-particle form factors ranging from NGP (0th order), CIC (1st),
-  TSC (2nd), PSQ (3rd) to P4S (4th)
+  TSC (2nd), PQS (3rd) to PCS (4th)
 
 and the electro-magnetic PIC algorithm is further self-consistently coupled to:
 - classical radiation reaction

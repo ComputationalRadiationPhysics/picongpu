@@ -23,27 +23,25 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-
-template<typename Marker>
-struct MarkerAccessor
-{
-    typedef const Marker type;
-    /** returns the cursor's marker.
-     *
-     * Here a copy of marker is returned because the cursor object
-     * could be a temporary object. Therefore any reference or const-reference
-     * of marker is dangerous. If you want to have a reference to marker use e.g.
-     * FunctorAccessor or Cursor::getMarker().
-     */
-    HDINLINE
-    type operator()(const Marker& marker) const
+    namespace cursor
     {
-        return marker;
-    }
-};
+        template<typename Marker>
+        struct MarkerAccessor
+        {
+            typedef const Marker type;
+            /** returns the cursor's marker.
+             *
+             * Here a copy of marker is returned because the cursor object
+             * could be a temporary object. Therefore any reference or const-reference
+             * of marker is dangerous. If you want to have a reference to marker use e.g.
+             * FunctorAccessor or Cursor::getMarker().
+             */
+            HDINLINE
+            type operator()(const Marker& marker) const
+            {
+                return marker;
+            }
+        };
 
-} // cursor
-} // pmacc
-
+    } // namespace cursor
+} // namespace pmacc

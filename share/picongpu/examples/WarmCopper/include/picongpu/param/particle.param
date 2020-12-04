@@ -29,81 +29,72 @@
 
 namespace picongpu
 {
-
-namespace particles
-{
-
-    /** a particle with a weighting below MIN_WEIGHTING will not
-     *      be created / will be deleted
-     *  unit: none
-     */
-    constexpr float_X MIN_WEIGHTING = 10.0;
-
-namespace manipulators
-{
-    // define a drift in X equal to 200 keV for electrons
-    CONST_VECTOR(float_X, 3, DriftParam_direction, 1.0, 0.0, 0.0);
-    struct Drift200keVParam
+    namespace particles
     {
-        static constexpr float_64 gamma = 1.39139;
-        const DriftParam_direction_t direction;
-    };
-    using Assign200keVDrift = unary::Drift< Drift200keVParam, nvidia::functors::Assign >;
-
-    struct TemperatureParam
-    {
-        /** Initial temperature
-         *  unit: keV
-         */
-        static constexpr float_64 temperature = 0.1;
-    };
-    using AddTemperature = unary::Temperature< TemperatureParam >;
-
-    struct OnceIonizedImpl
-    {
-        template< typename T_Particle >
-        DINLINE void operator()( T_Particle& particle )
-        {
-            constexpr float_X ion1plus =
-                GetAtomicNumbers< T_Particle >::type::numberOfProtons -
-                1._X;
-
-            // set (Z - 1) bound electrons
-            particle[boundElectrons_] = ion1plus;
-        }
-    };
-    // definition of SetDrift start
-    using OnceIonized = generic::Free< OnceIonizedImpl >;
-
-} // namespace manipulators
-
-
-namespace startPosition
-{
-
-    struct QuietParam2ppc
-    {
-        /** Count of particles per cell per direction at initial state
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
          *  unit: none
          */
-        using numParticlesPerDimension = typename mCT::shrinkTo<
-            mCT::Int< 1, 2, 1 >,
-            simDim
-        >::type;
-    };
+        constexpr float_X MIN_WEIGHTING = 10.0;
 
-    // definition of quiet particle start
-    using Quiet2ppc = QuietImpl< QuietParam2ppc >;
+        namespace manipulators
+        {
+            // define a drift in X equal to 200 keV for electrons
+            CONST_VECTOR(float_X, 3, DriftParam_direction, 1.0, 0.0, 0.0);
+            struct Drift200keVParam
+            {
+                static constexpr float_64 gamma = 1.39139;
+                const DriftParam_direction_t direction;
+            };
+            using Assign200keVDrift = unary::Drift<Drift200keVParam, nvidia::functors::Assign>;
 
-} // namespace startPosition
+            struct TemperatureParam
+            {
+                /** Initial temperature
+                 *  unit: keV
+                 */
+                static constexpr float_64 temperature = 0.1;
+            };
+            using AddTemperature = unary::Temperature<TemperatureParam>;
 
-    /** During unit normalization, we assume this is a typical
-     *  number of particles per cell for normalization of weighted
-     *  particle attributes.
-     */
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = mCT::volume<
-        startPosition::QuietParam2ppc::numParticlesPerDimension
-    >::type::value;
+            struct OnceIonizedImpl
+            {
+                template<typename T_Particle>
+                DINLINE void operator()(T_Particle& particle)
+                {
+                    constexpr float_X ion1plus = GetAtomicNumbers<T_Particle>::type::numberOfProtons - 1._X;
 
-} // namespace particles
+                    // set (Z - 1) bound electrons
+                    particle[boundElectrons_] = ion1plus;
+                }
+            };
+            // definition of SetDrift start
+            using OnceIonized = generic::Free<OnceIonizedImpl>;
+
+        } // namespace manipulators
+
+
+        namespace startPosition
+        {
+            struct QuietParam2ppc
+            {
+                /** Count of particles per cell per direction at initial state
+                 *  unit: none
+                 */
+                using numParticlesPerDimension = typename mCT::shrinkTo<mCT::Int<1, 2, 1>, simDim>::type;
+            };
+
+            // definition of quiet particle start
+            using Quiet2ppc = QuietImpl<QuietParam2ppc>;
+
+        } // namespace startPosition
+
+        /** During unit normalization, we assume this is a typical
+         *  number of particles per cell for normalization of weighted
+         *  particle attributes.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL
+            = mCT::volume<startPosition::QuietParam2ppc::numParticlesPerDimension>::type::value;
+
+    } // namespace particles
 } // namespace picongpu

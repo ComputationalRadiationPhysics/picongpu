@@ -23,17 +23,16 @@
 
 namespace pmacc
 {
-namespace math
-{
+    namespace math
+    {
+        template<typename Type>
+        struct Modf;
 
-template<typename Type>
-struct Modf;
+        template<typename T>
+        HDINLINE typename Modf<T>::result modf(T value, T* intpart)
+        {
+            return Modf<T>()(value, intpart);
+        }
 
-template<typename T>
-HDINLINE typename Modf<T>::result modf(T value, T* intpart)
-{
-    return Modf<T>()(value, intpart);
-}
-
-} //namespace math
-}//namespace pmacc
+    } // namespace math
+} // namespace pmacc

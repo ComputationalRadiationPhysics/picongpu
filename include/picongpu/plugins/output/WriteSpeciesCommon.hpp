@@ -42,109 +42,105 @@
 
 namespace picongpu
 {
-
-using namespace pmacc;
-
+    using namespace pmacc;
 
 
-template<typename T_Type>
-struct MallocMemory
-{
-    template<typename ValueType >
-    HINLINE void operator()(ValueType& v1, const size_t size) const
+    template<typename T_Type>
+    struct MallocMemory
     {
-        typedef typename pmacc::traits::Resolve<T_Type>::type::type type;
-
-        type* ptr = nullptr;
-        if (size != 0)
+        template<typename ValueType>
+        HINLINE void operator()(ValueType& v1, const size_t size) const
         {
-#if( PMACC_CUDA_ENABLED == 1 )
-            CUDA_CHECK((cuplaError_t)cudaHostAlloc(&ptr, size * sizeof (type), cudaHostAllocMapped));
+            typedef typename pmacc::traits::Resolve<T_Type>::type::type type;
+
+            type* ptr = nullptr;
+            if(size != 0)
+            {
+#if(PMACC_CUDA_ENABLED == 1)
+                CUDA_CHECK((cuplaError_t) cudaHostAlloc(&ptr, size * sizeof(type), cudaHostAllocMapped));
 #else
-            ptr = new type[size];
+                ptr = new type[size];
 #endif
+            }
+            v1.getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
         }
-        v1.getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
+    };
 
-    }
-};
-
-/** allocate memory on host
- *
- * This functor use `new[]` to allocate memory
- */
-template<typename T_Attribute>
-struct MallocHostMemory
-{
-    template<typename ValueType >
-    HINLINE void operator()(ValueType& v1, const size_t size) const
+    /** allocate memory on host
+     *
+     * This functor use `new[]` to allocate memory
+     */
+    template<typename T_Attribute>
+    struct MallocHostMemory
     {
-        typedef T_Attribute Attribute;
-        typedef typename pmacc::traits::Resolve<Attribute>::type::type type;
-
-        type* ptr = nullptr;
-        if (size != 0)
+        template<typename ValueType>
+        HINLINE void operator()(ValueType& v1, const size_t size) const
         {
-            ptr = new type[size];
+            typedef T_Attribute Attribute;
+            typedef typename pmacc::traits::Resolve<Attribute>::type::type type;
+
+            type* ptr = nullptr;
+            if(size != 0)
+            {
+                ptr = new type[size];
+            }
+            v1.getIdentifier(Attribute()) = VectorDataBox<type>(ptr);
         }
-        v1.getIdentifier(Attribute()) = VectorDataBox<type>(ptr);
-
-    }
-};
+    };
 
 
-/** copy species to host memory
- *
- * use `DataConnector::get<...>()` to copy data
- */
-template<typename T_SpeciesType>
-struct CopySpeciesToHost
-{
-    typedef T_SpeciesType SpeciesType;
-
-    HINLINE void operator()() const
+    /** copy species to host memory
+     *
+     * use `DataConnector::get<...>()` to copy data
+     */
+    template<typename T_SpeciesType>
+    struct CopySpeciesToHost
     {
-        /* DataConnector copies data to host */
-        DataConnector &dc = Environment<>::get().DataConnector();
-        dc.get< SpeciesType >( SpeciesType::FrameType::getName() );
-        dc.releaseData( SpeciesType::FrameType::getName() );
-    }
-};
+        typedef T_SpeciesType SpeciesType;
 
-template<typename T_Type>
-struct GetDevicePtr
-{
-    template<typename ValueType >
-    HINLINE void operator()(ValueType& dest, ValueType& src)
-    {
-        typedef typename pmacc::traits::Resolve<T_Type>::type::type type;
-
-        type* ptr = nullptr;
-        type* srcPtr = src.getIdentifier(T_Type()).getPointer();
-        if (srcPtr != nullptr)
+        HINLINE void operator()() const
         {
-#if( PMACC_CUDA_ENABLED == 1 )
-            CUDA_CHECK((cuplaError_t)cudaHostGetDevicePointer(&ptr, srcPtr, 0));
+            /* DataConnector copies data to host */
+            DataConnector& dc = Environment<>::get().DataConnector();
+            dc.get<SpeciesType>(SpeciesType::FrameType::getName());
+            dc.releaseData(SpeciesType::FrameType::getName());
+        }
+    };
+
+    template<typename T_Type>
+    struct GetDevicePtr
+    {
+        template<typename ValueType>
+        HINLINE void operator()(ValueType& dest, ValueType& src)
+        {
+            typedef typename pmacc::traits::Resolve<T_Type>::type::type type;
+
+            type* ptr = nullptr;
+            type* srcPtr = src.getIdentifier(T_Type()).getPointer();
+            if(srcPtr != nullptr)
+            {
+#if(PMACC_CUDA_ENABLED == 1)
+                CUDA_CHECK((cuplaError_t) cudaHostGetDevicePointer(&ptr, srcPtr, 0));
 #else
-            ptr = srcPtr;
+                ptr = srcPtr;
 #endif
+            }
+            dest.getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
         }
-        dest.getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
-    }
-};
+    };
 
-template<typename T_Type>
-struct FreeMemory
-{
-    template<typename ValueType >
-    HINLINE void operator()(ValueType& value) const
+    template<typename T_Type>
+    struct FreeMemory
     {
-        typedef typename pmacc::traits::Resolve<T_Type>::type::type type;
-
-        type* ptr = value.getIdentifier(T_Type()).getPointer();
-        if (ptr != nullptr)
+        template<typename ValueType>
+        HINLINE void operator()(ValueType& value) const
         {
-#if( PMACC_CUDA_ENABLED == 1 )
+            typedef typename pmacc::traits::Resolve<T_Type>::type::type type;
+
+            type* ptr = value.getIdentifier(T_Type()).getPointer();
+            if(ptr != nullptr)
+            {
+#if(PMACC_CUDA_ENABLED == 1)
 /* cupla 0.2.0 does not support the function cudaHostAlloc to create mapped memory.
  * Therefore we need to call the native CUDA function cudaFreeHost to free memory.
  * Due to the renaming of cuda functions with cupla via macros we need to remove
@@ -156,52 +152,47 @@ struct FreeMemory
  *   https://github.com/ComputationalRadiationPhysics/alpaka/issues/296
  *   https://github.com/ComputationalRadiationPhysics/alpaka/issues/612
  */
-#   undef cudaFreeHost
-            CUDA_CHECK((cuplaError_t)cudaFreeHost(ptr));
+#    undef cudaFreeHost
+                CUDA_CHECK((cuplaError_t) cudaFreeHost(ptr));
 // re-introduce the cupla macro
-#   define cudaFreeHost(...) cuplaFreeHost(__VA_ARGS__)
+#    define cudaFreeHost(...) cuplaFreeHost(__VA_ARGS__)
 #else
-            __deleteArray(ptr);
+                __deleteArray(ptr);
 #endif
+            }
         }
-    }
-};
-
-/** free memory
- *
- * use `__deleteArray()` to free memory
- */
-template<typename T_Attribute>
-struct FreeHostMemory
-{
-
-    template<typename ValueType >
-    HINLINE void operator()(ValueType& value) const
-    {
-        typedef T_Attribute Attribute;
-        typedef typename pmacc::traits::Resolve<Attribute>::type::type type;
-
-        type* ptr = value.getIdentifier(Attribute()).getPointer();
-        if (ptr != nullptr)
-        {
-            __deleteArray(ptr);
-            ptr=nullptr;
-        }
-    }
-};
-
-/*functor to create a pair for a MapTuple map*/
-struct OperatorCreateVectorBox
-{
-    template<typename InType>
-    struct apply
-    {
-        typedef
-        bmpl::pair< InType,
-        pmacc::VectorDataBox< typename pmacc::traits::Resolve<InType>::type::type > >
-        type;
     };
-};
 
-} //namespace picongpu
+    /** free memory
+     *
+     * use `__deleteArray()` to free memory
+     */
+    template<typename T_Attribute>
+    struct FreeHostMemory
+    {
+        template<typename ValueType>
+        HINLINE void operator()(ValueType& value) const
+        {
+            typedef T_Attribute Attribute;
+            typedef typename pmacc::traits::Resolve<Attribute>::type::type type;
 
+            type* ptr = value.getIdentifier(Attribute()).getPointer();
+            if(ptr != nullptr)
+            {
+                __deleteArray(ptr);
+                ptr = nullptr;
+            }
+        }
+    };
+
+    /*functor to create a pair for a MapTuple map*/
+    struct OperatorCreateVectorBox
+    {
+        template<typename InType>
+        struct apply
+        {
+            typedef bmpl::pair<InType, pmacc::VectorDataBox<typename pmacc::traits::Resolve<InType>::type::type>> type;
+        };
+    };
+
+} // namespace picongpu

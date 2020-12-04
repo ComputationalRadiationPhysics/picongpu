@@ -32,19 +32,17 @@
 
 namespace pmacc
 {
-
     /**
      * Minimal function description of a buffer,
      *
      * @tparam TYPE data type stored in the buffer
      * @tparam DIM dimension of the buffer (1-3)
      */
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class Buffer
     {
     public:
-
-        typedef DataBox<PitchedBox<TYPE, DIM> > DataBoxType;
+        typedef DataBox<PitchedBox<TYPE, DIM>> DataBoxType;
 
         /** constructor
          *
@@ -53,10 +51,13 @@ namespace pmacc
          *             can be less than `physicalMemorySize`
          * @param physicalMemorySize size of the physical memory (in elements)
          */
-        Buffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize) :
-        data_space(size), data1D(true), current_size(nullptr), m_physicalMemorySize(physicalMemorySize)
+        Buffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize)
+            : data_space(size)
+            , data1D(true)
+            , current_size(nullptr)
+            , m_physicalMemorySize(physicalMemorySize)
         {
-            CUDA_CHECK(cuplaMallocHost((void**)&current_size, sizeof (size_t)));
+            CUDA_CHECK(cuplaMallocHost((void**) &current_size, sizeof(size_t)));
             *current_size = size.productOfComponents();
         }
 
@@ -110,41 +111,44 @@ namespace pmacc
             int64_t current_size = static_cast<int64_t>(currentSize);
 
             //!\todo: current size can be changed if it is a DeviceBuffer and current size is on device
-            //call first get current size (but const not allow this)
+            // call first get current size (but const not allow this)
 
-            if (DIM == DIM1)
+            if(DIM == DIM1)
             {
                 tmp[0] = current_size;
             }
-            if (DIM == DIM2)
+            if(DIM == DIM2)
             {
-                if (current_size <= data_space[0])
+                if(current_size <= data_space[0])
                 {
                     tmp[0] = current_size;
                     tmp[1] = 1;
-                } else
+                }
+                else
                 {
                     tmp[0] = data_space[0];
-                    tmp[1] = (current_size+data_space[0]-1) / data_space[0];
+                    tmp[1] = (current_size + data_space[0] - 1) / data_space[0];
                 }
             }
-            if (DIM == DIM3)
+            if(DIM == DIM3)
             {
-                if (current_size <= data_space[0])
+                if(current_size <= data_space[0])
                 {
                     tmp[0] = current_size;
                     tmp[1] = 1;
                     tmp[2] = 1;
-                } else if (current_size <= (data_space[0] * data_space[1]))
+                }
+                else if(current_size <= (data_space[0] * data_space[1]))
                 {
                     tmp[0] = data_space[0];
-                    tmp[1] = (current_size+data_space[0]-1) / data_space[0];
+                    tmp[1] = (current_size + data_space[0] - 1) / data_space[0];
                     tmp[2] = 1;
-                } else
+                }
+                else
                 {
                     tmp[0] = data_space[0];
                     tmp[1] = data_space[1];
-                    tmp[2] = (current_size+(data_space[0] * data_space[1])-1) / (data_space[0] * data_space[1]);
+                    tmp[2] = (current_size + (data_space[0] * data_space[1]) - 1) / (data_space[0] * data_space[1]);
                 }
             }
 
@@ -170,11 +174,11 @@ namespace pmacc
             *current_size = newsize;
         }
 
-        virtual void reset(bool preserveData = false)=0;
+        virtual void reset(bool preserveData = false) = 0;
 
-        virtual void setValue(const TYPE& value)=0;
+        virtual void setValue(const TYPE& value) = 0;
 
-        virtual DataBox<PitchedBox<TYPE,DIM> > getDataBox()=0;
+        virtual DataBox<PitchedBox<TYPE, DIM>> getDataBox() = 0;
 
         inline bool is1D()
         {
@@ -182,7 +186,6 @@ namespace pmacc
         }
 
     protected:
-
         /*! Check if my DataSpace is greater than other.
          * @param other other DataSpace
          * @return true if my DataSpace (one dimension) is greater than other, false otherwise
@@ -195,10 +198,9 @@ namespace pmacc
         DataSpace<DIM> data_space;
         DataSpace<DIM> m_physicalMemorySize;
 
-        size_t *current_size;
+        size_t* current_size;
 
         bool data1D;
-
     };
 
-} //namespace pmacc
+} // namespace pmacc

@@ -27,44 +27,35 @@
 
 namespace pmacc
 {
-namespace random
-{
-namespace distributions
-{
-namespace detail
-{
-
-    /**
-     * Returns a random, uniformly distributed (up to) 32 bit integral value
-     */
-    template<typename T_Type, class T_RNGMethod>
-    class Uniform<
-        T_Type,
-        T_RNGMethod,
-        typename bmpl::if_c<
-            boost::is_integral<T_Type>::value && sizeof(T_Type) <= 4,
-            void,
-            T_Type
-        >::type
-    >
+    namespace random
     {
-        typedef T_RNGMethod RNGMethod;
-        typedef typename RNGMethod::StateType StateType;
-    public:
-        typedef T_Type result_type;
-
-        template< typename T_Acc >
-        DINLINE result_type
-        operator()(
-            T_Acc const & acc,
-            StateType& state
-        )
+        namespace distributions
         {
-            return static_cast<result_type>(RNGMethod().get32Bits(acc, state));
-        }
-    };
+            namespace detail
+            {
+                /**
+                 * Returns a random, uniformly distributed (up to) 32 bit integral value
+                 */
+                template<typename T_Type, class T_RNGMethod>
+                class Uniform<
+                    T_Type,
+                    T_RNGMethod,
+                    typename bmpl::if_c<boost::is_integral<T_Type>::value && sizeof(T_Type) <= 4, void, T_Type>::type>
+                {
+                    typedef T_RNGMethod RNGMethod;
+                    typedef typename RNGMethod::StateType StateType;
 
-}  // namespace detail
-}  // namespace distributions
-}  // namespace random
-}  // namespace pmacc
+                public:
+                    typedef T_Type result_type;
+
+                    template<typename T_Acc>
+                    DINLINE result_type operator()(T_Acc const& acc, StateType& state)
+                    {
+                        return static_cast<result_type>(RNGMethod().get32Bits(acc, state));
+                    }
+                };
+
+            } // namespace detail
+        } // namespace distributions
+    } // namespace random
+} // namespace pmacc

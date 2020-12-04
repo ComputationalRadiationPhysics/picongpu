@@ -32,7 +32,6 @@ namespace picongpu
     class ISimulationStarter : public IPlugin
     {
     public:
-
         virtual ~ISimulationStarter()
         {
         }
@@ -43,7 +42,7 @@ namespace picongpu
          *
          * @return true if no error else false
          */
-        virtual ArgsParser::Status parseConfigs(int argc, char **argv) = 0;
+        virtual ArgsParser::Status parseConfigs(int argc, char** argv) = 0;
 
         /*start simulation
          * is called after parsConfig and pluginLoad
@@ -60,4 +59,4 @@ namespace picongpu
             // nothing to do here
         }
     };
-}
+} // namespace picongpu

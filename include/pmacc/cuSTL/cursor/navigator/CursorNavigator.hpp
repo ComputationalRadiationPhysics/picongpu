@@ -25,19 +25,16 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-
-struct CursorNavigator
-{
-    template<typename Cursor, typename Jump>
-    HDINLINE
-    Cursor operator()(const Cursor& cursor, const Jump& jump) const
+    namespace cursor
     {
-        return cursor(jump);
-    }
-};
+        struct CursorNavigator
+        {
+            template<typename Cursor, typename Jump>
+            HDINLINE Cursor operator()(const Cursor& cursor, const Jump& jump) const
+            {
+                return cursor(jump);
+            }
+        };
 
-} // cursor
-} // pmacc
-
+    } // namespace cursor
+} // namespace pmacc

@@ -37,12 +37,12 @@ namespace pmacc
      * @tparam T_OffsetOrigin compile time size of the guard relative to origin (positive value)
      * @tparam T_OffsetEnd compile time size of the guard relative to end of SuperCell (positive value)
      */
-    template< class T_SuperCellSize,
-    class T_OffsetOrigin = typename math::CT::make_Int<T_SuperCellSize::dim, 0>::type,
-    class T_OffsetEnd = typename math::CT::make_Int<T_SuperCellSize::dim, 0>::type >
+    template<
+        class T_SuperCellSize,
+        class T_OffsetOrigin = typename math::CT::make_Int<T_SuperCellSize::dim, 0>::type,
+        class T_OffsetEnd = typename math::CT::make_Int<T_SuperCellSize::dim, 0>::type>
     struct SuperCellDescription
     {
-
         enum
         {
             Dim = T_SuperCellSize::dim
@@ -52,8 +52,8 @@ namespace pmacc
         typedef T_OffsetEnd OffsetEnd;
         typedef SuperCellDescription<SuperCellSize, OffsetOrigin, OffsetEnd> Type;
 
-        typedef typename ct::add<OffsetOrigin,SuperCellSize>::type AddFirst;
-        typedef typename ct::add<AddFirst,OffsetEnd>::type FullSuperCellSize;
+        typedef typename ct::add<OffsetOrigin, SuperCellSize>::type AddFirst;
+        typedef typename ct::add<AddFirst, OffsetEnd>::type FullSuperCellSize;
     };
 
-}//namespace
+} // namespace pmacc

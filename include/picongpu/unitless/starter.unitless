@@ -27,7 +27,6 @@
 
 namespace picongpu
 {
-
     namespace defaultPIConGPU
     {
         /* Define a starter for the simulation with the name "SimStarter"
@@ -37,9 +36,6 @@ namespace picongpu
         using SimStarter = ::picongpu::SimulationStarter<
             ::picongpu::InitialiserController,
             ::picongpu::PluginController,
-            ::picongpu::MySimulation
-        >;
-    }
-}
-
-
+            ::picongpu::MySimulation>;
+    } // namespace defaultPIConGPU
+} // namespace picongpu

@@ -47,8 +47,7 @@ namespace mallocMC
         class Noop
         {
         public:
-            static auto alignPool(void * memory, size_t memsize)
-                -> std::tuple<void *, size_t>
+            static auto alignPool(void* memory, size_t memsize) -> std::tuple<void*, size_t>
             {
                 return std::make_tuple(memory, memsize);
             }

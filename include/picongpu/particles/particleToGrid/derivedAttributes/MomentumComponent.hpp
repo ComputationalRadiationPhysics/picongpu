@@ -26,42 +26,37 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-
-    template< size_t T_direction>
-    HDINLINE float1_64
-    MomentumComponent<T_direction>::getUnit() const
+    namespace particles
     {
-        return 1.0;
-    }
+        namespace particleToGrid
+        {
+            namespace derivedAttributes
+            {
+                template<size_t T_direction>
+                HDINLINE float1_64 MomentumComponent<T_direction>::getUnit() const
+                {
+                    return 1.0;
+                }
 
-    template< size_t T_direction>
-    template< class T_Particle >
-    DINLINE float_X
-    MomentumComponent<T_direction>::operator()( T_Particle& particle ) const
-    {
-        // read existing attributes
-        const float3_X mom = particle[momentum_];
+                template<size_t T_direction>
+                template<class T_Particle>
+                DINLINE float_X MomentumComponent<T_direction>::operator()(T_Particle& particle) const
+                {
+                    // read existing attributes
+                    const float3_X mom = particle[momentum_];
 
-        // calculate new attribute: |p| and p.[x|y|z]
-        const float_X momAbs = math::abs(mom);
-        const float_X momCom = mom[T_direction];
+                    // calculate new attribute: |p| and p.[x|y|z]
+                    const float_X momAbs = math::abs(mom);
+                    const float_X momCom = mom[T_direction];
 
-        // total momentum == 0 then perpendicular measure shall be zero, too
-        // values: [-1.:1.]
-        const float_X momComOverTotal = (momAbs > float_X(0.)) ?
-            momCom / momAbs :
-            float_X(0.);
+                    // total momentum == 0 then perpendicular measure shall be zero, too
+                    // values: [-1.:1.]
+                    const float_X momComOverTotal = (momAbs > float_X(0.)) ? momCom / momAbs : float_X(0.);
 
-        // return attribute
-        return momComOverTotal;
-    }
-} // namespace derivedAttributes
-} // namespace particleToGrid
-} // namespace particles
+                    // return attribute
+                    return momComOverTotal;
+                }
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
 } // namespace picongpu

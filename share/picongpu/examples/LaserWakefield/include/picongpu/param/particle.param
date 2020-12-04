@@ -28,53 +28,49 @@
 
 namespace picongpu
 {
-namespace particles
-{
-
-    /** a particle with a weighting below MIN_WEIGHTING will not
-     *      be created / will be deleted
-     *  unit: none
-     */
-    constexpr float_X MIN_WEIGHTING = 10.0;
-
-namespace startPosition
-{
-
-    struct RandomParameter2ppc
+    namespace particles
     {
-        /** Count of particles per cell at initial state
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
          *  unit: none
          */
-        static constexpr uint32_t numParticlesPerCell = 2u;
-    };
-    using Random2ppc = RandomImpl< RandomParameter2ppc >;
+        constexpr float_X MIN_WEIGHTING = 10.0;
 
-} // namespace startPosition
-
-    /** During unit normalization, we assume this is a typical
-     *  number of particles per cell for normalization of weighted
-     *  particle attributes.
-     */
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL =
-        startPosition::RandomParameter2ppc::numParticlesPerCell;
-
-namespace manipulators
-{
-
-    struct SetIonToNeutral
-    {
-        template< typename T_Particle >
-        DINLINE void operator()( T_Particle & particle )
+        namespace startPosition
         {
-            using Particle = T_Particle;
+            struct RandomParameter2ppc
+            {
+                /** Count of particles per cell at initial state
+                 *  unit: none
+                 */
+                static constexpr uint32_t numParticlesPerCell = 2u;
+            };
+            using Random2ppc = RandomImpl<RandomParameter2ppc>;
 
-            // number of bound electrons at initialization state of the neutral atom
-            float_X const protonNumber = traits::GetAtomicNumbers< T_Particle >::type::numberOfProtons;
+        } // namespace startPosition
 
-            particle[ boundElectrons_ ] = protonNumber;
-        }
-    };
-    using SetBoundElectrons = generic::Free< SetIonToNeutral >;
-} // namespace manipulators
-} // namespace particles
+        /** During unit normalization, we assume this is a typical
+         *  number of particles per cell for normalization of weighted
+         *  particle attributes.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameter2ppc::numParticlesPerCell;
+
+        namespace manipulators
+        {
+            struct SetIonToNeutral
+            {
+                template<typename T_Particle>
+                DINLINE void operator()(T_Particle& particle)
+                {
+                    using Particle = T_Particle;
+
+                    // number of bound electrons at initialization state of the neutral atom
+                    float_X const protonNumber = traits::GetAtomicNumbers<T_Particle>::type::numberOfProtons;
+
+                    particle[boundElectrons_] = protonNumber;
+                }
+            };
+            using SetBoundElectrons = generic::Free<SetIonToNeutral>;
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

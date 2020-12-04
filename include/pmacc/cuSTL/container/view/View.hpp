@@ -23,53 +23,53 @@
 
 namespace pmacc
 {
-namespace container
-{
-
-/** Represents a clipped area of its inherited container.
- *
- * View are not designed to do hard data copies.
- * Views don't take care of reference counters. So if the corresponding
- * container dies, all views become invalid.
- * Usual way to contruct a view goes with container.view(...);
- * \tparam Buffer Corresponding container type
- */
-template<typename Buffer>
-struct View : public Buffer
-{
-    HDINLINE View() {}
-
-    template<typename TBuffer>
-    HDINLINE View(const View<TBuffer>& other)
+    namespace container
     {
-        *this = other;
-    }
-
-    HDINLINE ~View()
-    {
-        /* increment the reference counter because the container's destructor decrements it.
-         * We want to compensate this.
+        /** Represents a clipped area of its inherited container.
+         *
+         * View are not designed to do hard data copies.
+         * Views don't take care of reference counters. So if the corresponding
+         * container dies, all views become invalid.
+         * Usual way to contruct a view goes with container.view(...);
+         * \tparam Buffer Corresponding container type
          */
-        (*this->refCount)++;
-    }
+        template<typename Buffer>
+        struct View : public Buffer
+        {
+            HDINLINE View()
+            {
+            }
 
-    template<typename TBuffer>
-    HDINLINE View& operator=(const View<TBuffer>& other)
-    {
-        this->dataPointer = other.dataPointer;
-        this->_size = other._size;
-        this->pitch = other.pitch;
-        this->refCount = other.refCount;
+            template<typename TBuffer>
+            HDINLINE View(const View<TBuffer>& other)
+            {
+                *this = other;
+            }
 
-        return *this;
-    }
+            HDINLINE ~View()
+            {
+                /* increment the reference counter because the container's destructor decrements it.
+                 * We want to compensate this.
+                 */
+                (*this->refCount)++;
+            }
 
-private:
-    // forbid view = container
-    HDINLINE Buffer&
-    operator=(const Buffer& rhs);
-};
+            template<typename TBuffer>
+            HDINLINE View& operator=(const View<TBuffer>& other)
+            {
+                this->dataPointer = other.dataPointer;
+                this->_size = other._size;
+                this->pitch = other.pitch;
+                this->refCount = other.refCount;
+
+                return *this;
+            }
+
+        private:
+            // forbid view = container
+            HDINLINE Buffer& operator=(const Buffer& rhs);
+        };
 
 
-} // container
-} // pmacc
+    } // namespace container
+} // namespace pmacc

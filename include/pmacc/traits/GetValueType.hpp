@@ -30,7 +30,7 @@ namespace pmacc
         {
             typedef typename T::ValueType ValueType;
         };
-    }
-}
+    } // namespace traits
+} // namespace pmacc
 
 #include "GetValueType.tpp"

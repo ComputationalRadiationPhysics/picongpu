@@ -24,54 +24,44 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace xrayScattering
-{
-namespace beam
-{
-
-
-    /** Defines the probing beam characteristic.
-     *
-     * @tparam T_BeamProfile Beam transverse profile.
-     * @tparam T_BeamShape Beam temporal shape.
-     * @tparam T_CoordinateTransform Coordinate transform from the pic
-     *      coordinate system to the beam coordinate system.
-     */
-    template<
-        typename T_BeamProfile,
-        typename T_BeamShape,
-        typename T_CoordinateTransform
-    >
-    struct ProbingBeam
+    namespace plugins
     {
-        using BeamProfile = T_BeamProfile;
-        using BeamShape = T_BeamShape;
-        PMACC_ALIGN( coordinateTransform, T_CoordinateTransform );
-
-        HINLINE ProbingBeam( ) : coordinateTransform( )
-        { };
-
-        /** Calculates the probing amplitude at a given position.
-         * @param position_b Position in the beam comoving coordinate system
-         *      (x, y, z__at_t_0 - c*t).
-         * @returns Probing wave amplitude scaling at position_b.
-         */
-        HDINLINE float_X operator( )( float3_X const & position_b )
+        namespace xrayScattering
         {
-            float_X profileFactor = BeamProfile::getFactor(
-                position_b[ 0 ],
-                position_b[ 1 ]
-            );
+            namespace beam
+            {
+                /** Defines the probing beam characteristic.
+                 *
+                 * @tparam T_BeamProfile Beam transverse profile.
+                 * @tparam T_BeamShape Beam temporal shape.
+                 * @tparam T_CoordinateTransform Coordinate transform from the pic
+                 *      coordinate system to the beam coordinate system.
+                 */
+                template<typename T_BeamProfile, typename T_BeamShape, typename T_CoordinateTransform>
+                struct ProbingBeam
+                {
+                    using BeamProfile = T_BeamProfile;
+                    using BeamShape = T_BeamShape;
+                    PMACC_ALIGN(coordinateTransform, T_CoordinateTransform);
 
-            float_X  beamTime = position_b[ 2 ] / SPEED_OF_LIGHT;
-            float_X shapeFactor = BeamShape::getFactor( beamTime );
+                    HINLINE ProbingBeam() : coordinateTransform(){};
 
-            return profileFactor * shapeFactor;
-        }
-    };
-} // namespace beam
-} // namespace xrayScattering
-} // namespace plugins
+                    /** Calculates the probing amplitude at a given position.
+                     * @param position_b Position in the beam comoving coordinate system
+                     *      (x, y, z__at_t_0 - c*t).
+                     * @returns Probing wave amplitude scaling at position_b.
+                     */
+                    HDINLINE float_X operator()(float3_X const& position_b)
+                    {
+                        float_X profileFactor = BeamProfile::getFactor(position_b[0], position_b[1]);
+
+                        float_X beamTime = position_b[2] / SPEED_OF_LIGHT;
+                        float_X shapeFactor = BeamShape::getFactor(beamTime);
+
+                        return profileFactor * shapeFactor;
+                    }
+                };
+            } // namespace beam
+        } // namespace xrayScattering
+    } // namespace plugins
 } // namespace picongpu

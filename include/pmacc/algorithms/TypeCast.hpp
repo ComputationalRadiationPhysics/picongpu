@@ -23,29 +23,28 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
-namespace precisionCast
-{
-
-template<typename CastToType, typename Type>
-struct TypeCast
-{
-    typedef CastToType result;
-
-    HDINLINE result operator()(const Type& value) const
+    namespace algorithms
     {
-        return static_cast<result>(value);
-    }
-};
+        namespace precisionCast
+        {
+            template<typename CastToType, typename Type>
+            struct TypeCast
+            {
+                typedef CastToType result;
+
+                HDINLINE result operator()(const Type& value) const
+                {
+                    return static_cast<result>(value);
+                }
+            };
 
 
-template<typename CastToType, typename Type>
-HDINLINE typename TypeCast<CastToType, Type>::result precisionCast(const Type& value)
-{
-    return TypeCast<CastToType, Type > ()(value);
-}
+            template<typename CastToType, typename Type>
+            HDINLINE typename TypeCast<CastToType, Type>::result precisionCast(const Type& value)
+            {
+                return TypeCast<CastToType, Type>()(value);
+            }
 
-} //namespace precisionCast
-} //namespace algorithms
-}//namespace pmacc
+        } // namespace precisionCast
+    } // namespace algorithms
+} // namespace pmacc

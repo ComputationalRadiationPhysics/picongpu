@@ -38,7 +38,7 @@ cuplaMalloc(
 )
 {
 
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim<1u>,
         cupla::MemSizeType
     > extent( size );
@@ -49,7 +49,7 @@ cuplaMalloc(
     >::get().alloc( extent );
 
     // @toto catch errors
-    *ptrptr = ::alpaka::mem::view::getPtrNative(buf);
+    *ptrptr = ::alpaka::getPtrNative(buf);
     return cuplaSuccess;
 }
 
@@ -62,7 +62,7 @@ cuplaMallocPitch(
     size_t const height
 )
 {
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim< 2u >,
         cupla::MemSizeType
     > extent( height, width );
@@ -73,8 +73,8 @@ cuplaMallocPitch(
     >::get().alloc( extent );
 
     // @toto catch errors
-    *devPtr = ::alpaka::mem::view::getPtrNative(buf);
-    *pitch = ::alpaka::mem::view::getPitchBytes< 1u >( buf );
+    *devPtr = ::alpaka::getPtrNative(buf);
+    *pitch = ::alpaka::getPitchBytes< 1u >( buf );
 
     return cuplaSuccess;
 }
@@ -94,8 +94,8 @@ cuplaMalloc3D(
 
     // @toto catch errors
     *pitchedDevPtr = make_cuplaPitchedPtr(
-        ::alpaka::mem::view::getPtrNative(buf),
-        ::alpaka::mem::view::getPitchBytes< 2u >( buf ),
+        ::alpaka::getPtrNative(buf),
+        ::alpaka::getPitchBytes< 2u >( buf ),
         extent.width,
         extent.height
     );
@@ -144,7 +144,7 @@ cuplaMallocHost(
     size_t size
 )
 {
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim<1u>,
         cupla::MemSizeType
     > extent( size );
@@ -157,7 +157,7 @@ cuplaMallocHost(
     prepareForAsyncCopy( buf );
 
     // @toto catch errors
-    *ptrptr = ::alpaka::mem::view::getPtrNative(buf);
+    *ptrptr = ::alpaka::getPtrNative(buf);
     return cuplaSuccess;
 }
 
@@ -216,7 +216,7 @@ cuplaError_t cuplaMemcpyAsync(
     cuplaStream_t stream
 )
 {
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim<1u>,
         cupla::MemSizeType
     > numBytes(count);
@@ -259,7 +259,7 @@ cuplaError_t cuplaMemcpyAsync(
                 numBytes
             );
 
-            ::alpaka::mem::view::copy(
+            ::alpaka::memcpy(
                 streamObject,
                 dBuf,
                 hBuf,
@@ -290,7 +290,7 @@ cuplaError_t cuplaMemcpyAsync(
                 numBytes
             );
 
-            ::alpaka::mem::view::copy(
+            ::alpaka::memcpy(
                 streamObject,
                 hBuf,
                 dBuf,
@@ -316,7 +316,7 @@ cuplaError_t cuplaMemcpyAsync(
                 numBytes
             );
 
-            ::alpaka::mem::view::copy(
+            ::alpaka::memcpy(
                 streamObject,
                 dDestBuf,
                 dSrcBuf,
@@ -353,7 +353,7 @@ cuplaError_t cuplaMemcpyAsync(
                 numBytes
             );
 
-            ::alpaka::mem::view::copy(
+            ::alpaka::memcpy(
                 hostStreamObject,
                 hDestBuf,
                 hSrcBuf,
@@ -391,7 +391,7 @@ cuplaMemcpy(
             cupla::AccStream
         >::get().stream( 0 )
     );
-    ::alpaka::wait::wait( streamObject );
+    ::alpaka::wait( streamObject );
 
     return cuplaSuccess;
 }
@@ -418,7 +418,7 @@ cuplaMemsetAsync(
         >::get().stream( stream )
     );
 
-    ::alpaka::vec::Vec<
+    ::alpaka::Vec<
         cupla::AlpakaDim<1u>,
         cupla::MemSizeType
     > const
@@ -431,7 +431,7 @@ cuplaMemsetAsync(
         numBytes
     );
 
-    ::alpaka::mem::view::set(
+    ::alpaka::memset(
         streamObject,
         dBuf,
         value,
@@ -464,7 +464,7 @@ cuplaMemset(
             cupla::AccStream
         >::get().stream( 0 )
     );
-    ::alpaka::wait::wait( streamObject );
+    ::alpaka::wait( streamObject );
 
     return cuplaSuccess;
 }
@@ -482,17 +482,17 @@ cuplaMemcpy2DAsync(
     cuplaStream_t const stream
 )
 {
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim<2u>,
         cupla::MemSizeType
     > numBytes( height, width );
 
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim<2u>,
         cupla::MemSizeType
     > dstPitch( dPitch * height , dPitch );
 
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim<2u>,
         cupla::MemSizeType
     > srcPitch( sPitch * height , sPitch );
@@ -537,7 +537,7 @@ cuplaMemcpy2DAsync(
                 dstPitch
             );
 
-            ::alpaka::mem::view::copy(
+            ::alpaka::memcpy(
                 streamObject,
                 dBuf,
                 hBuf,
@@ -570,7 +570,7 @@ cuplaMemcpy2DAsync(
                 dstPitch
             );
 
-            ::alpaka::mem::view::copy(
+            ::alpaka::memcpy(
                 streamObject,
                 hBuf,
                 dBuf,
@@ -598,7 +598,7 @@ cuplaMemcpy2DAsync(
                 dstPitch
             );
 
-            ::alpaka::mem::view::copy(
+            ::alpaka::memcpy(
                 streamObject,
                 dDestBuf,
                 dSrcBuf,
@@ -637,7 +637,7 @@ cuplaMemcpy2DAsync(
                 dstPitch
             );
 
-            ::alpaka::mem::view::copy(
+            ::alpaka::memcpy(
                 hostStreamObject,
                 hDestBuf,
                 hSrcBuf,
@@ -681,7 +681,7 @@ cuplaMemcpy2D(
             cupla::AccStream
         >::get().stream( 0 )
     );
-    ::alpaka::wait::wait( streamObject );
+    ::alpaka::wait( streamObject );
 
     return cuplaSuccess;
 }
@@ -693,12 +693,12 @@ cuplaMemcpy3DAsync(
     cuplaStream_t stream
 )
 {
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim<3u>,
         cupla::MemSizeType
     > numBytes( p->extent );
 
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim<3u>,
         cupla::MemSizeType
     > extentSrc(
@@ -707,7 +707,7 @@ cuplaMemcpy3DAsync(
         p->srcPtr.xsize
     );
 
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim<3u>,
         cupla::MemSizeType
     > extentDst(
@@ -716,7 +716,7 @@ cuplaMemcpy3DAsync(
         p->dstPtr.xsize
     );
 
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim<3u>,
         cupla::MemSizeType
     > offsetSrc(
@@ -725,7 +725,7 @@ cuplaMemcpy3DAsync(
         p->srcPos.x
     );
 
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim<3u>,
         cupla::MemSizeType
     > offsetDst(
@@ -734,7 +734,7 @@ cuplaMemcpy3DAsync(
         p->dstPos.x
     );
 
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim<3u>,
         cupla::MemSizeType
     > dstPitch(
@@ -743,7 +743,7 @@ cuplaMemcpy3DAsync(
         p->dstPtr.pitch
     );
 
-    const ::alpaka::vec::Vec<
+    const ::alpaka::Vec<
         cupla::AlpakaDim<3u>,
         cupla::MemSizeType
     > srcPitch(
@@ -798,7 +798,7 @@ cuplaMemcpy3DAsync(
                 offsetDst
             );
 
-            ::alpaka::mem::view::copy(
+            ::alpaka::memcpy(
                 streamObject,
                 dView,
                 cupla::HostViewWrapper< 3u >(
@@ -841,7 +841,7 @@ cuplaMemcpy3DAsync(
                 offsetDst
             );
 
-            ::alpaka::mem::view::copy(
+            ::alpaka::memcpy(
                 streamObject,
                 hView,
                 cupla::DeviceViewWrapper< 3u >(
@@ -879,7 +879,7 @@ cuplaMemcpy3DAsync(
                 offsetDst
             );
 
-            ::alpaka::mem::view::copy(
+            ::alpaka::memcpy(
                 streamObject,
                 dView,
                 cupla::DeviceViewWrapper< 3u >(
@@ -928,7 +928,7 @@ cuplaMemcpy3DAsync(
                 extentDst - offsetDst,
                 offsetDst
             );
-            ::alpaka::mem::view::copy(
+            ::alpaka::memcpy(
                 hostStreamObject,
                 hView,
                 cupla::HostViewWrapper< 3u >(
@@ -961,7 +961,7 @@ cuplaMemcpy3D(
             cupla::AccStream
         >::get().stream( 0 )
     );
-    ::alpaka::wait::wait( streamObject );
+    ::alpaka::wait( streamObject );
 
     return cuplaSuccess;
 }

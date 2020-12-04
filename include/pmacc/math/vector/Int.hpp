@@ -25,46 +25,46 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<int dim>
-struct Int : public Vector<int, dim>
-{
-    using BaseType = Vector<int, dim>;
-
-    HDINLINE Int()
+    namespace math
     {
-    }
+        template<int dim>
+        struct Int : public Vector<int, dim>
+        {
+            using BaseType = Vector<int, dim>;
 
-    HDINLINE Int(int x) : BaseType(x)
-    {
-    }
+            HDINLINE Int()
+            {
+            }
 
-    HDINLINE Int(int x, int y) : BaseType(x, y)
-    {
-    }
+            HDINLINE Int(int x) : BaseType(x)
+            {
+            }
 
-    HDINLINE Int(int x, int y, int z) : BaseType(x, y, z)
-    {
-    }
+            HDINLINE Int(int x, int y) : BaseType(x, y)
+            {
+            }
 
-    /*! only allow explicit cast*/
-    template<
-    typename T_OtherType,
-    typename T_OtherAccessor,
-    typename T_OtherNavigator,
-    template <typename, int> class T_OtherStorage>
-    HDINLINE explicit Int(const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec) :
-    BaseType(vec)
-    {
-    }
+            HDINLINE Int(int x, int y, int z) : BaseType(x, y, z)
+            {
+            }
 
-    HDINLINE Int(const BaseType& vec) :
-    BaseType(vec)
-    {
-    }
-};
+            /*! only allow explicit cast*/
+            template<
+                typename T_OtherType,
+                typename T_OtherAccessor,
+                typename T_OtherNavigator,
+                template<typename, int>
+                class T_OtherStorage>
+            HDINLINE explicit Int(
+                const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec)
+                : BaseType(vec)
+            {
+            }
 
-} // math
-} // PMacc
+            HDINLINE Int(const BaseType& vec) : BaseType(vec)
+            {
+            }
+        };
+
+    } // namespace math
+} // namespace pmacc

@@ -52,452 +52,274 @@
 
 namespace picongpu
 {
+    using namespace pmacc;
 
+    template<typename T_Name, typename T_Flags, typename T_Attributes>
+    Particles<T_Name, T_Flags, T_Attributes>::Particles(
+        const std::shared_ptr<DeviceHeap>& heap,
+        picongpu::MappingDesc cellDescription,
+        SimulationDataId datasetID)
+        : ParticlesBase<SpeciesParticleDescription, picongpu::MappingDesc, DeviceHeap>(heap, cellDescription)
+        , m_datasetID(datasetID)
+    {
+        using ExchangeMemCfg = GetExchangeMemCfg_t<Particles>;
 
-using namespace pmacc;
+        size_t sizeOfExchanges = 0u;
 
-template<
-    typename T_Name,
-    typename T_Flags,
-    typename T_Attributes
->
-Particles<
-    T_Name,
-    T_Flags,
-    T_Attributes
->::Particles(
-    const std::shared_ptr<DeviceHeap>& heap,
-    picongpu::MappingDesc cellDescription,
-    SimulationDataId datasetID
-) :
-    ParticlesBase<
-        SpeciesParticleDescription,
-        picongpu::MappingDesc,
-        DeviceHeap
-    >(
-        heap,
-        cellDescription
-    ),
-    m_datasetID( datasetID )
-{
-    using ExchangeMemCfg = GetExchangeMemCfg_t< Particles >;
+        const uint32_t commTag = pmacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() + SPECIES_FIRSTTAG;
+        log<picLog::MEMORY>("communication tag for species %1%: %2%") % FrameType::getName() % commTag;
 
-    size_t sizeOfExchanges = 0u;
+        this->particlesBuffer->addExchange(Mask(LEFT) + Mask(RIGHT), ExchangeMemCfg::BYTES_EXCHANGE_X, commTag);
+        sizeOfExchanges += ExchangeMemCfg::BYTES_EXCHANGE_X * 2u;
 
-    const uint32_t commTag = pmacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() + SPECIES_FIRSTTAG;
-    log<picLog::MEMORY > ( "communication tag for species %1%: %2%" ) % FrameType::getName( ) % commTag;
+        this->particlesBuffer->addExchange(Mask(TOP) + Mask(BOTTOM), ExchangeMemCfg::BYTES_EXCHANGE_Y, commTag);
+        sizeOfExchanges += ExchangeMemCfg::BYTES_EXCHANGE_Y * 2u;
 
-    this->particlesBuffer->addExchange( Mask( LEFT ) + Mask( RIGHT ),
-                                        ExchangeMemCfg::BYTES_EXCHANGE_X,
-                                        commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_EXCHANGE_X * 2u;
+        // edges of the simulation area
+        this->particlesBuffer->addExchange(
+            Mask(RIGHT + TOP) + Mask(LEFT + TOP) + Mask(LEFT + BOTTOM) + Mask(RIGHT + BOTTOM),
+            ExchangeMemCfg::BYTES_EDGES,
+            commTag);
+        sizeOfExchanges += ExchangeMemCfg::BYTES_EDGES * 4u;
 
-    this->particlesBuffer->addExchange( Mask( TOP ) + Mask( BOTTOM ),
-                                        ExchangeMemCfg::BYTES_EXCHANGE_Y,
-                                        commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_EXCHANGE_Y * 2u;
+#if(SIMDIM == DIM3)
+        this->particlesBuffer->addExchange(Mask(FRONT) + Mask(BACK), ExchangeMemCfg::BYTES_EXCHANGE_Z, commTag);
+        sizeOfExchanges += ExchangeMemCfg::BYTES_EXCHANGE_Z * 2u;
 
-    //edges of the simulation area
-    this->particlesBuffer->addExchange( Mask( RIGHT + TOP ) + Mask( LEFT + TOP ) +
-                                        Mask( LEFT + BOTTOM ) + Mask( RIGHT + BOTTOM ), ExchangeMemCfg::BYTES_EDGES,
-                                        commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_EDGES * 4u;
+        // edges of the simulation area
+        this->particlesBuffer->addExchange(
+            Mask(FRONT + TOP) + Mask(BACK + TOP) + Mask(FRONT + BOTTOM) + Mask(BACK + BOTTOM),
+            ExchangeMemCfg::BYTES_EDGES,
+            commTag);
+        sizeOfExchanges += ExchangeMemCfg::BYTES_EDGES * 4u;
 
-#if(SIMDIM==DIM3)
-    this->particlesBuffer->addExchange( Mask( FRONT ) + Mask( BACK ), ExchangeMemCfg::BYTES_EXCHANGE_Z,
-                                        commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_EXCHANGE_Z * 2u;
+        this->particlesBuffer->addExchange(
+            Mask(FRONT + RIGHT) + Mask(BACK + RIGHT) + Mask(FRONT + LEFT) + Mask(BACK + LEFT),
+            ExchangeMemCfg::BYTES_EDGES,
+            commTag);
+        sizeOfExchanges += ExchangeMemCfg::BYTES_EDGES * 4u;
 
-    //edges of the simulation area
-    this->particlesBuffer->addExchange( Mask( FRONT + TOP ) + Mask( BACK + TOP ) +
-                                        Mask( FRONT + BOTTOM ) + Mask( BACK + BOTTOM ),
-                                        ExchangeMemCfg::BYTES_EDGES,
-                                        commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_EDGES * 4u;
+        // corner of the simulation area
+        this->particlesBuffer->addExchange(
+            Mask(TOP + FRONT + RIGHT) + Mask(TOP + BACK + RIGHT) + Mask(BOTTOM + FRONT + RIGHT)
+                + Mask(BOTTOM + BACK + RIGHT),
+            ExchangeMemCfg::BYTES_CORNER,
+            commTag);
+        sizeOfExchanges += ExchangeMemCfg::BYTES_CORNER * 4u;
 
-    this->particlesBuffer->addExchange( Mask( FRONT + RIGHT ) + Mask( BACK + RIGHT ) +
-                                        Mask( FRONT + LEFT ) + Mask( BACK + LEFT ),
-                                        ExchangeMemCfg::BYTES_EDGES,
-                                        commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_EDGES * 4u;
-
-    //corner of the simulation area
-    this->particlesBuffer->addExchange( Mask( TOP + FRONT + RIGHT ) + Mask( TOP + BACK + RIGHT ) +
-                                        Mask( BOTTOM + FRONT + RIGHT ) + Mask( BOTTOM + BACK + RIGHT ),
-                                        ExchangeMemCfg::BYTES_CORNER,
-                                        commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_CORNER * 4u;
-
-    this->particlesBuffer->addExchange( Mask( TOP + FRONT + LEFT ) + Mask( TOP + BACK + LEFT ) +
-                                        Mask( BOTTOM + FRONT + LEFT ) + Mask( BOTTOM + BACK + LEFT ),
-                                        ExchangeMemCfg::BYTES_CORNER,
-                                        commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_CORNER * 4u;
+        this->particlesBuffer->addExchange(
+            Mask(TOP + FRONT + LEFT) + Mask(TOP + BACK + LEFT) + Mask(BOTTOM + FRONT + LEFT)
+                + Mask(BOTTOM + BACK + LEFT),
+            ExchangeMemCfg::BYTES_CORNER,
+            commTag);
+        sizeOfExchanges += ExchangeMemCfg::BYTES_CORNER * 4u;
 #endif
 
-    /* The buffer size must be multiplied by two because PMacc generates a send
-     * and receive buffer for each direction.
-     */
-    sizeOfExchanges *= 2u;
-
-    constexpr size_t byteToMiB = 1024u * 1024u;
-
-    log< picLog::MEMORY >( "size for all exchange of species %1% = %2% MiB" ) %
-        FrameType::getName( ) %
-        ( static_cast< float_64 >( sizeOfExchanges ) / static_cast< float_64 >( byteToMiB ) );
-}
-
-template<
-    typename T_Name,
-    typename T_Flags,
-    typename T_Attributes
->
-void
-Particles<
-    T_Name,
-    T_Flags,
-    T_Attributes
->::createParticleBuffer( )
-{
-    this->particlesBuffer->createParticleBuffer( );
-}
-
-template<
-    typename T_Name,
-    typename T_Flags,
-    typename T_Attributes
->
-SimulationDataId
-Particles<
-    T_Name,
-    T_Flags,
-    T_Attributes
->::getUniqueId( )
-{
-    return m_datasetID;
-}
-
-template<
-    typename T_Name,
-    typename T_Flags,
-    typename T_Attributes
->
-void
-Particles<
-    T_Name,
-    T_Flags,
-    T_Attributes
->::synchronize( )
-{
-    this->particlesBuffer->deviceToHost();
-}
-
-template<
-    typename T_Name,
-    typename T_Flags,
-    typename T_Attributes
->
-void
-Particles<
-    T_Name,
-    T_Flags,
-    T_Attributes
->::syncToDevice( )
-{
-
-}
-
-/** Launcher of the particle push
- *
- * @tparam T_Pusher pusher type
- * @tparam T_isComposite if the pusher is composite
- */
-template<
-    typename T_Pusher,
-    bool T_isComposite = particles::pusher::IsComposite< T_Pusher >::value
->
-struct PushLauncher;
-
-/** Launcher of the particle push for non-composite pushers
- *
- * @tparam T_Pusher pusher type
- */
-template< typename T_Pusher >
-struct PushLauncher<
-    T_Pusher,
-    false
->
-{
-    /** Launch the pusher for all particles of a species
-     *
-     * @tparam T_Particles particles type
-     * @param currentStep current time iteration
-     */
-    template< typename T_Particles >
-    void operator()(
-        T_Particles && particles,
-        uint32_t const currentStep
-    ) const
-    {
-        particles.template push< T_Pusher >( currentStep );
-    }
-};
-
-/** Launcher of the particle push for composite pushers
- *
- * @tparam T_Pusher pusher type
- */
-template< typename T_CompositePusher >
-struct PushLauncher<
-    T_CompositePusher,
-    true
->
-{
-    /** Launch the pusher for all particles of a species
-     *
-     * @tparam T_Particles particles type
-     * @param currentStep current time iteration
-     */
-    template< typename T_Particles >
-    void operator()(
-        T_Particles && particles,
-        uint32_t const currentStep
-    ) const
-    {
-        /* Here we check for the active pusher and only call PushLauncher for
-         * that one. Note that we still instantiate both templates, but this
-         * should be fine as both pushers are eventually getting used (otherwise
-         * using the composite does not make sense).
+        /* The buffer size must be multiplied by two because PMacc generates a send
+         * and receive buffer for each direction.
          */
-        auto activePusherIdx = T_CompositePusher::activePusherIdx( currentStep );
-        if( activePusherIdx == 1 )
-            PushLauncher< typename T_CompositePusher::FirstPusher >{}(
-                particles,
-                currentStep
-            );
-        else if( activePusherIdx == 2 )
-            PushLauncher< typename T_CompositePusher::SecondPusher >{}(
-                particles,
-                currentStep
-            );
+        sizeOfExchanges *= 2u;
+
+        constexpr size_t byteToMiB = 1024u * 1024u;
+
+        log<picLog::MEMORY>("size for all exchange of species %1% = %2% MiB") % FrameType::getName()
+            % (static_cast<float_64>(sizeOfExchanges) / static_cast<float_64>(byteToMiB));
     }
-};
 
-template<
-    typename T_Name,
-    typename T_Flags,
-    typename T_Attributes
->
-void
-Particles<
-    T_Name,
-    T_Flags,
-    T_Attributes
->::update( uint32_t const currentStep )
-{
-    using PusherAlias = typename GetFlagType<FrameType,particlePusher<> >::type;
-    using ParticlePush = typename pmacc::traits::Resolve<PusherAlias>::type;
-    // Because of composite pushers, we have to defer using the launcher
-    PushLauncher< ParticlePush >{}(
-        *this,
-        currentStep
-    );
-}
+    template<typename T_Name, typename T_Flags, typename T_Attributes>
+    void Particles<T_Name, T_Flags, T_Attributes>::createParticleBuffer()
+    {
+        this->particlesBuffer->createParticleBuffer();
+    }
 
-/** Do the particle push stage using the given pusher
- *
- * @tparam T_Pusher non-composite pusher type
- * @param currentStep current time iteration
- */
-template<
-    typename T_Name,
-    typename T_Flags,
-    typename T_Attributes
->
-template< typename T_Pusher >
-void
-Particles<
-    T_Name,
-    T_Flags,
-    T_Attributes
->::push( uint32_t const currentStep )
-{
-    PMACC_CASSERT_MSG(
-        _internal_error_particle_push_instantiated_for_composite_pusher,
-        particles::pusher::IsComposite< T_Pusher >::type::value == false
-    );
+    template<typename T_Name, typename T_Flags, typename T_Attributes>
+    SimulationDataId Particles<T_Name, T_Flags, T_Attributes>::getUniqueId()
+    {
+        return m_datasetID;
+    }
 
-    using InterpolationScheme = typename pmacc::traits::Resolve<
-        typename GetFlagType<
-            FrameType,
-            interpolation< >
-        >::type
-    >::type;
+    template<typename T_Name, typename T_Flags, typename T_Attributes>
+    void Particles<T_Name, T_Flags, T_Attributes>::synchronize()
+    {
+        this->particlesBuffer->deviceToHost();
+    }
 
-    using FrameSolver = PushParticlePerFrame<
-        T_Pusher,
-        MappingDesc::SuperCellSize,
-        InterpolationScheme
-    >;
+    template<typename T_Name, typename T_Flags, typename T_Attributes>
+    void Particles<T_Name, T_Flags, T_Attributes>::syncToDevice()
+    {
+    }
 
-    DataConnector & dc = Environment< >::get( ).DataConnector( );
-    auto fieldE = dc.get< FieldE >(
-        FieldE::getName(),
-        true
-    );
-    auto fieldB = dc.get< FieldB >(
-        FieldB::getName(),
-        true
-    );
-
-    /* Adjust interpolation area in particle pusher to allow sub-stepping pushes.
-     * Here were provide an actual pusher and use its actual margins
+    /** Launcher of the particle push
+     *
+     * @tparam T_Pusher pusher type
+     * @tparam T_isComposite if the pusher is composite
      */
-    using LowerMargin = typename GetLowerMarginForPusher<
-        Particles,
-        T_Pusher
-    >::type;
-    using UpperMargin = typename GetUpperMarginForPusher<
-        Particles,
-        T_Pusher
-    >::type;
+    template<typename T_Pusher, bool T_isComposite = particles::pusher::IsComposite<T_Pusher>::value>
+    struct PushLauncher;
 
-    using BlockArea = SuperCellDescription<
-        typename MappingDesc::SuperCellSize,
-        LowerMargin,
-        UpperMargin
-    >;
+    /** Launcher of the particle push for non-composite pushers
+     *
+     * @tparam T_Pusher pusher type
+     */
+    template<typename T_Pusher>
+    struct PushLauncher<T_Pusher, false>
+    {
+        /** Launch the pusher for all particles of a species
+         *
+         * @tparam T_Particles particles type
+         * @param currentStep current time iteration
+         */
+        template<typename T_Particles>
+        void operator()(T_Particles&& particles, uint32_t const currentStep) const
+        {
+            particles.template push<T_Pusher>(currentStep);
+        }
+    };
 
-    AreaMapping<
-        CORE + BORDER,
-        picongpu::MappingDesc
-    > mapper( this->cellDescription );
+    /** Launcher of the particle push for composite pushers
+     *
+     * @tparam T_Pusher pusher type
+     */
+    template<typename T_CompositePusher>
+    struct PushLauncher<T_CompositePusher, true>
+    {
+        /** Launch the pusher for all particles of a species
+         *
+         * @tparam T_Particles particles type
+         * @param currentStep current time iteration
+         */
+        template<typename T_Particles>
+        void operator()(T_Particles&& particles, uint32_t const currentStep) const
+        {
+            /* Here we check for the active pusher and only call PushLauncher for
+             * that one. Note that we still instantiate both templates, but this
+             * should be fine as both pushers are eventually getting used (otherwise
+             * using the composite does not make sense).
+             */
+            auto activePusherIdx = T_CompositePusher::activePusherIdx(currentStep);
+            if(activePusherIdx == 1)
+                PushLauncher<typename T_CompositePusher::FirstPusher>{}(particles, currentStep);
+            else if(activePusherIdx == 2)
+                PushLauncher<typename T_CompositePusher::SecondPusher>{}(particles, currentStep);
+        }
+    };
 
-    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-        pmacc::math::CT::volume< SuperCellSize >::type::value
-    >::value;
+    template<typename T_Name, typename T_Flags, typename T_Attributes>
+    void Particles<T_Name, T_Flags, T_Attributes>::update(uint32_t const currentStep)
+    {
+        using PusherAlias = typename GetFlagType<FrameType, particlePusher<>>::type;
+        using ParticlePush = typename pmacc::traits::Resolve<PusherAlias>::type;
+        // Because of composite pushers, we have to defer using the launcher
+        PushLauncher<ParticlePush>{}(*this, currentStep);
+    }
 
-    PMACC_KERNEL( KernelMoveAndMarkParticles< numWorkers, BlockArea >{ } )(
-        mapper.getGridDim(),
-        numWorkers
-    )(
-        this->getDeviceParticlesBox( ),
-        fieldE->getDeviceDataBox( ),
-        fieldB->getDeviceDataBox( ),
-        currentStep,
-        FrameSolver( ),
-        mapper
-    );
+    /** Do the particle push stage using the given pusher
+     *
+     * @tparam T_Pusher non-composite pusher type
+     * @param currentStep current time iteration
+     */
+    template<typename T_Name, typename T_Flags, typename T_Attributes>
+    template<typename T_Pusher>
+    void Particles<T_Name, T_Flags, T_Attributes>::push(uint32_t const currentStep)
+    {
+        PMACC_CASSERT_MSG(
+            _internal_error_particle_push_instantiated_for_composite_pusher,
+            particles::pusher::IsComposite<T_Pusher>::type::value == false);
 
-    dc.releaseData( FieldE::getName() );
-    dc.releaseData( FieldB::getName() );
+        using InterpolationScheme =
+            typename pmacc::traits::Resolve<typename GetFlagType<FrameType, interpolation<>>::type>::type;
 
-    ParticlesBaseType::template shiftParticles < CORE + BORDER > ( );
-}
+        using FrameSolver = PushParticlePerFrame<T_Pusher, MappingDesc::SuperCellSize, InterpolationScheme>;
 
-template<
-    typename T_Name,
-    typename T_Flags,
-    typename T_Attributes
->
-template<
-    typename T_DensityFunctor,
-    typename T_PositionFunctor
->
-void
-Particles<
-    T_Name,
-    T_Flags,
-    T_Attributes
->::initDensityProfile(
-    T_DensityFunctor& densityFunctor,
-    T_PositionFunctor& positionFunctor,
-    const uint32_t currentStep
-)
-{
-    log<picLog::SIMULATION_STATE >( "initialize density profile for species %1%" ) % FrameType::getName( );
+        DataConnector& dc = Environment<>::get().DataConnector();
+        auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
+        auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
 
-    uint32_t const numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
-    SubGrid< simDim > const & subGrid = Environment< simDim >::get( ).SubGrid( );
-    DataSpace< simDim > localCells = subGrid.getLocalDomain( ).size;
-    DataSpace< simDim > totalGpuCellOffset = subGrid.getLocalDomain( ).offset;
-    totalGpuCellOffset.y( ) += numSlides * localCells.y( );
+        /* Adjust interpolation area in particle pusher to allow sub-stepping pushes.
+         * Here were provide an actual pusher and use its actual margins
+         */
+        using LowerMargin = typename GetLowerMarginForPusher<Particles, T_Pusher>::type;
+        using UpperMargin = typename GetUpperMarginForPusher<Particles, T_Pusher>::type;
 
-    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-        pmacc::math::CT::volume< SuperCellSize >::type::value
-    >::value;
+        using BlockArea = SuperCellDescription<typename MappingDesc::SuperCellSize, LowerMargin, UpperMargin>;
 
-    AreaMapping<
-        CORE + BORDER,
-        picongpu::MappingDesc
-    > mapper( this->cellDescription );
-    PMACC_KERNEL(
-        KernelFillGridWithParticles<
-            numWorkers,
-            Particles
-        >{}
-    )
-    (
-        mapper.getGridDim( ),
-        numWorkers
-    )
-    (
-        densityFunctor,
-        positionFunctor,
-        totalGpuCellOffset,
-        this->particlesBuffer->getDeviceParticleBox( ),
-        mapper
-    );
+        AreaMapping<CORE + BORDER, picongpu::MappingDesc> mapper(this->cellDescription);
 
-    this->fillAllGaps( );
-}
+        constexpr uint32_t numWorkers
+            = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
-template<
-    typename T_Name,
-    typename T_Flags,
-    typename T_Attributes
->
-template<
-    typename T_SrcName,
-    typename T_SrcAttributes,
-    typename T_SrcFlags,
-    typename T_ManipulateFunctor,
-    typename T_SrcFilterFunctor
->
-void
-Particles<
-    T_Name,
-    T_Flags,
-    T_Attributes
->::deviceDeriveFrom(
-    Particles<
-        T_SrcName,
-        T_SrcAttributes,
-        T_SrcFlags
-    >& src,
-    T_ManipulateFunctor& manipulatorFunctor,
-    T_SrcFilterFunctor& srcFilterFunctor
-)
-{
-    log< picLog::SIMULATION_STATE > ( "clone species %1%" ) % FrameType::getName( );
+        PMACC_KERNEL(KernelMoveAndMarkParticles<numWorkers, BlockArea>{})
+        (mapper.getGridDim(), numWorkers)(
+            this->getDeviceParticlesBox(),
+            fieldE->getDeviceDataBox(),
+            fieldB->getDeviceDataBox(),
+            currentStep,
+            FrameSolver(),
+            mapper);
 
-    AreaMapping<CORE + BORDER, picongpu::MappingDesc> mapper(this->cellDescription);
+        dc.releaseData(FieldE::getName());
+        dc.releaseData(FieldB::getName());
 
-    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-           pmacc::math::CT::volume< SuperCellSize >::type::value
-    >::value;
+        ParticlesBaseType::template shiftParticles<CORE + BORDER>();
+    }
 
-    PMACC_KERNEL( KernelDeriveParticles< numWorkers >{ } )(
-        mapper.getGridDim(),
-        numWorkers
-    )(
-        this->getDeviceParticlesBox( ),
-        src.getDeviceParticlesBox( ),
-        manipulatorFunctor,
-        srcFilterFunctor,
-        mapper
-    );
-    this->fillAllGaps( );
-}
+    template<typename T_Name, typename T_Flags, typename T_Attributes>
+    template<typename T_DensityFunctor, typename T_PositionFunctor>
+    void Particles<T_Name, T_Flags, T_Attributes>::initDensityProfile(
+        T_DensityFunctor& densityFunctor,
+        T_PositionFunctor& positionFunctor,
+        const uint32_t currentStep)
+    {
+        log<picLog::SIMULATION_STATE>("initialize density profile for species %1%") % FrameType::getName();
+
+        uint32_t const numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
+        SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
+        DataSpace<simDim> localCells = subGrid.getLocalDomain().size;
+        DataSpace<simDim> totalGpuCellOffset = subGrid.getLocalDomain().offset;
+        totalGpuCellOffset.y() += numSlides * localCells.y();
+
+        constexpr uint32_t numWorkers
+            = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+
+        AreaMapping<CORE + BORDER, picongpu::MappingDesc> mapper(this->cellDescription);
+        PMACC_KERNEL(KernelFillGridWithParticles<numWorkers, Particles>{})
+        (mapper.getGridDim(), numWorkers)(
+            densityFunctor,
+            positionFunctor,
+            totalGpuCellOffset,
+            this->particlesBuffer->getDeviceParticleBox(),
+            mapper);
+
+        this->fillAllGaps();
+    }
+
+    template<typename T_Name, typename T_Flags, typename T_Attributes>
+    template<
+        typename T_SrcName,
+        typename T_SrcAttributes,
+        typename T_SrcFlags,
+        typename T_ManipulateFunctor,
+        typename T_SrcFilterFunctor>
+    void Particles<T_Name, T_Flags, T_Attributes>::deviceDeriveFrom(
+        Particles<T_SrcName, T_SrcAttributes, T_SrcFlags>& src,
+        T_ManipulateFunctor& manipulatorFunctor,
+        T_SrcFilterFunctor& srcFilterFunctor)
+    {
+        log<picLog::SIMULATION_STATE>("clone species %1%") % FrameType::getName();
+
+        AreaMapping<CORE + BORDER, picongpu::MappingDesc> mapper(this->cellDescription);
+
+        constexpr uint32_t numWorkers
+            = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+
+        PMACC_KERNEL(KernelDeriveParticles<numWorkers>{})
+        (mapper.getGridDim(), numWorkers)(
+            this->getDeviceParticlesBox(),
+            src.getDeviceParticlesBox(),
+            manipulatorFunctor,
+            srcFilterFunctor,
+            mapper);
+        this->fillAllGaps();
+    }
 
 } // namespace picongpu

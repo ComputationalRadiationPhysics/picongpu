@@ -1,5 +1,5 @@
 /* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera,
- *                     Alexander Grund
+ *                     Alexander Grund, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -25,93 +25,68 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
-namespace unary
-{
-namespace acc
-{
-
-    /** manipulate the speed based on a temperature
-     *
-     * @tparam T_ParamClass picongpu::particles::manipulators::unary::param::TemperatureCfg,
-     *                      type with compile configuration
-     * @tparam T_ValueFunctor pmacc::nvidia::functors, binary operator type to reduce current and new value
-     */
-    template<
-        typename T_ParamClass,
-        typename T_ValueFunctor
-    >
-    struct Temperature : private T_ValueFunctor
+    namespace particles
     {
-        /** manipulate the speed of the particle
-         *
-         * @tparam T_Rng functor::misc::RngWrapper, type of the random number generator
-         * @tparam T_Particle pmacc::Particle, particle type
-         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
-         *
-         * @param rng random number generator
-         * @param particle particle to be manipulated
-         * @param ... unused particles
-         */
-        template<
-            typename T_Rng,
-            typename T_Particle,
-            typename ... T_Args
-        >
-        HDINLINE void operator()(
-            T_Rng & rng,
-            T_Particle & particle,
-            T_Args && ...
-        )
+        namespace manipulators
         {
-            using ParamClass = T_ParamClass;
+            namespace unary
+            {
+                namespace acc
+                {
+                    /** Modify particle momentum based on temperature
+                     *
+                     * Generate a new random momentum distributed according to the given
+                     * temperature and add it to the existing particle momentum.
+                     * This functor is for the non-relativistic case only.
+                     * In this case the new momentums follow the Maxwell-Boltzmann distribution.
+                     *
+                     * @tparam T_ParamClass picongpu::particles::manipulators::unary::param::TemperatureCfg,
+                     *                      type with compile configuration
+                     * @tparam T_ValueFunctor pmacc::nvidia::functors::*, binary functor type to
+                     *                        add a new momentum to an old one
+                     */
+                    template<typename T_ParamClass, typename T_ValueFunctor>
+                    struct Temperature : private T_ValueFunctor
+                    {
+                        /** manipulate the speed of the particle
+                         *
+                         * @tparam T_StandardNormalRng functor::misc::RngWrapper, standard
+                         *                             normal random number generator type
+                         * @tparam T_Particle pmacc::Particle, particle type
+                         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
+                         *
+                         * @param rng standard normal random number generator
+                         * @param particle particle to be manipulated
+                         * @param ... unused parameters
+                         */
+                        template<typename T_StandardNormalRng, typename T_Particle, typename... T_Args>
+                        HDINLINE void operator()(
+                            T_StandardNormalRng& standardNormalRng,
+                            T_Particle& particle,
+                            T_Args&&...)
+                        {
+                            /* In the non-relativistic case, particle momentums are following
+                             * the Maxwell-Boltzmann distribution: each component is
+                             * independently normally distributed with zero mean and variance of
+                             * m * k * T = m * E.
+                             * For the macroweighted momentums we store as particle[ momentum_ ],
+                             * the same relation holds, just m and E are also macroweighted
+                             */
+                            float_X const energy = (T_ParamClass::temperature * UNITCONV_keV_to_Joule) / UNIT_ENERGY;
+                            float_X const macroWeighting = particle[weighting_];
+                            float_X const macroEnergy = macroWeighting * energy;
+                            float_X const macroMass = attribute::getMass(macroWeighting, particle);
+                            float_X const standardDeviation
+                                = static_cast<float_X>(math::sqrt(precisionCast<sqrt_X>(macroEnergy * macroMass)));
+                            float3_X const mom
+                                = float3_X(standardNormalRng(), standardNormalRng(), standardNormalRng())
+                                * standardDeviation;
+                            T_ValueFunctor::operator()(particle[momentum_], mom);
+                        }
+                    };
 
-            const float3_X tmpRand = float3_X(
-                rng(),
-                rng(),
-                rng()
-            );
-            float_X const macroWeighting = particle[ weighting_ ];
-
-            float_X const energy = ( ParamClass::temperature * UNITCONV_keV_to_Joule ) / UNIT_ENERGY;
-
-            // since energy is related to one particle
-            // and our units are normalized for macro particle quanities
-            // energy is quite small
-            float_X const macroEnergy = macroWeighting * energy;
-            // non-rel, MW:
-            //    p = m * v
-            //            v ~ sqrt(k*T/m), k*T = E
-            // => p = sqrt(m)
-            //
-            // Note on macro particle energies, with weighting w:
-            //    p_1 = m_1 * v
-            //                v = v_1 = v_w
-            //    p_w = p_1 * w
-            //    E_w = E_1 * w
-            // Since masses, energies and momenta add up linear, we can
-            // just take w times the p_1. Take care, E means E_1 !
-            // This goes to:
-            //    p_w = w * p_1 = w * m_1 * sqrt( E / m_1 )
-            //        = sqrt( E * w^2 * m_1 )
-            //        = sqrt( E * w * m_w )
-            // Which makes sense, since it means that we use a macroMass
-            // and a macroEnergy now.
-            float3_X const mom = tmpRand * ( float_X )math::sqrt(
-                precisionCast< sqrt_X >(
-                    macroEnergy *
-                    attribute::getMass(macroWeighting,particle)
-                )
-            );
-            T_ValueFunctor::operator( )( particle[ momentum_ ], mom );
-        }
-    };
-
-} // namespace acc
-} // namespace unary
-} // namespace manipulators
-} // namespace particles
+                } // namespace acc
+            } // namespace unary
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

@@ -26,141 +26,117 @@
 
 namespace picongpu
 {
-namespace currentSolver
-{
-namespace strategy
-{
-
-    /** Work on strided supercell domains with local caching strategy
-     *
-     * The current for each particle will be reduced with atomic operations into a supercell
-     * local cache. The cache will be flushed to the global memory without atomics.
-     * The device local domain of fieldJ will be decomposed with a checker board.
-     *
-     * Suggestion: Use this strategy if atomic operations to global memory are slow.
-     * To utilize the device fully you should have enough supercells
-     *   - 2D: minimum multiprocessor count * 9 * 4
-     *   - 3D: minimum multiprocessor count * 27 * 4
-     */
-    struct StridedCachedSupercells
+    namespace currentSolver
     {
-        static constexpr bool useBlockCache = true;
-        static constexpr bool stridedMapping = true;
-        using BlockReductionOp = nvidia::functors::Atomic<
-            ::alpaka::atomic::op::Add,
-            ::alpaka::hierarchy::Threads
-        >;
-        using GridReductionOp = nvidia::functors::Add;
-    };
+        namespace strategy
+        {
+            /** Work on strided supercell domains with local caching strategy
+             *
+             * The current for each particle will be reduced with atomic operations into a supercell
+             * local cache. The cache will be flushed to the global memory without atomics.
+             * The device local domain of fieldJ will be decomposed with a checker board.
+             *
+             * Suggestion: Use this strategy if atomic operations to global memory are slow.
+             * To utilize the device fully you should have enough supercells
+             *   - 2D: minimum multiprocessor count * 9 * 4
+             *   - 3D: minimum multiprocessor count * 27 * 4
+             */
+            struct StridedCachedSupercells
+            {
+                static constexpr bool useBlockCache = true;
+                static constexpr bool stridedMapping = true;
+                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
+                using GridReductionOp = nvidia::functors::Add;
+            };
 
-    /** Local caching strategy
-     *
-     * The current for each particle will be reduced with atomic operations into a supercell
-     * local cache. The cache will be flushed with atomic operations to the global memory.
-     *
-     * Suggestion: Use this strategy if block local and global atomics are fast.
-     */
-    struct CachedSupercells
-    {
-        static constexpr bool useBlockCache = true;
-        static constexpr bool stridedMapping = false;
-        using BlockReductionOp = nvidia::functors::Atomic<
-            ::alpaka::atomic::op::Add,
-            ::alpaka::hierarchy::Threads
-        >;
-        using GridReductionOp = nvidia::functors::Atomic<
-            ::alpaka::atomic::op::Add,
-            ::alpaka::hierarchy::Blocks
-        >;
-    };
+            /** Local caching strategy
+             *
+             * The current for each particle will be reduced with atomic operations into a supercell
+             * local cache. The cache will be flushed with atomic operations to the global memory.
+             *
+             * Suggestion: Use this strategy if block local and global atomics are fast.
+             */
+            struct CachedSupercells
+            {
+                static constexpr bool useBlockCache = true;
+                static constexpr bool stridedMapping = false;
+                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
+                using GridReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
+            };
 
-    /** Non cached strategy
-     *
-     * The current for each particle will be reduced with atomic operations directly
-     * to the global memory.
-     *
-     * Suggestion: Use this strategy if global atomics are fast and random memory access
-     * to a large range in memory is not a bottle neck.
-     */
-    struct NonCachedSupercells
-    {
-        static constexpr bool useBlockCache = false;
-        static constexpr bool stridedMapping = false;
-        using BlockReductionOp = nvidia::functors::Atomic<
-            ::alpaka::atomic::op::Add,
-            ::alpaka::hierarchy::Blocks
-        >;
-        // dummy which produces a compile time error if used
-        using GridReductionOp = void;
-    };
+            /** Non cached strategy
+             *
+             * The current for each particle will be reduced with atomic operations directly
+             * to the global memory.
+             *
+             * Suggestion: Use this strategy if global atomics are fast and random memory access
+             * to a large range in memory is not a bottle neck.
+             */
+            struct NonCachedSupercells
+            {
+                static constexpr bool useBlockCache = false;
+                static constexpr bool stridedMapping = false;
+                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
+                // dummy which produces a compile time error if used
+                using GridReductionOp = void;
+            };
 
-} // namespace strategy
+        } // namespace strategy
 
-namespace traits
-{
+        namespace traits
+        {
+            /** Get current deposition strategy from a solver
+             *
+             * @tparam T_Solver type to derive the strategy
+             * @treturn ::type strategy description
+             */
+            template<typename T_Solver>
+            struct GetStrategy;
 
-    /** Get current deposition strategy from a solver
-     *
-     * @tparam T_Solver type to derive the strategy
-     * @treturn ::type strategy description
-     */
-    template< typename T_Solver >
-    struct GetStrategy;
+            /** Get current deposition strategy from a solver
+             *
+             * @see GetStrategy
+             */
+            template<typename T_Solver>
+            using GetStrategy_t = typename GetStrategy<T_Solver>::type;
 
-    /** Get current deposition strategy from a solver
-     *
-     * @see GetStrategy
-     */
-    template< typename T_Solver >
-    using GetStrategy_t = typename GetStrategy< T_Solver >::type;
+            /** Default strategy for the current deposition
+             *
+             * Default will be selected based on the cupla accelerator.
+             *
+             * @tparam T_Acc the accelerator type
+             */
+            template<typename T_Acc = cupla::AccThreadSeq>
+            struct GetDefaultStrategy
+            {
+                using type = strategy::StridedCachedSupercells;
+            };
 
-    /** Default strategy for the current deposition
-     *
-     * Default will be selected based on the cupla accelerator.
-     *
-     * @tparam T_Acc the accelerator type
-     */
-    template<
-        typename T_Acc = cupla::AccThreadSeq
-    >
-    struct GetDefaultStrategy
-    {
-        using type = strategy::StridedCachedSupercells;
-    };
+            /** Default strategy for the current deposition
+             *
+             * @see GetDefaultStrategy
+             */
+            template<typename T_Acc = cupla::AccThreadSeq>
+            using GetDefaultStrategy_t = typename GetDefaultStrategy<T_Acc>::type;
 
-    /** Default strategy for the current deposition
-     *
-     * @see GetDefaultStrategy
-     */
-    template< typename T_Acc = cupla::AccThreadSeq >
-    using GetDefaultStrategy_t = typename GetDefaultStrategy< T_Acc >::type;
-
-#if( ALPAKA_ACC_GPU_CUDA_ENABLED == 1 )
-    template<
-        typename ... T_Args
-    >
-    struct GetDefaultStrategy<
-        alpaka::acc::AccGpuCudaRt< T_Args... >
-    >
-    {
-        // GPU Utilization is higher compared to `StridedCachedSupercells`
-        using type = strategy::CachedSupercells;
-    };
+#if(ALPAKA_ACC_GPU_CUDA_ENABLED == 1)
+            template<typename... T_Args>
+            struct GetDefaultStrategy<alpaka::AccGpuCudaRt<T_Args...>>
+            {
+                // GPU Utilization is higher compared to `StridedCachedSupercells`
+                using type = strategy::CachedSupercells;
+            };
 #endif
 
-#if( ALPAKA_ACC_GPU_HIP_ENABLED == 1 )
-    template<
-        typename ... T_Args
-    >
-    struct GetDefaultStrategy<
-        alpaka::acc::AccGpuHipRt< T_Args... >
-    >
-    {
-        // GPU Utilization is higher compared to `StridedCachedSupercells`
-        using type = strategy::CachedSupercells;
-    };
+#if(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+            template<typename... T_Args>
+            struct GetDefaultStrategy<alpaka::AccGpuHipRt<T_Args...>>
+            {
+                // GPU Utilization is higher compared to `StridedCachedSupercells`
+                using type = strategy::CachedSupercells;
+            };
 #endif
 
-} // namespace traits
-} // namespace currentSolver
+        } // namespace traits
+    } // namespace currentSolver
 } // namespace picongpu

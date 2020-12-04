@@ -31,44 +31,33 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace traits
-{
-
-    /** Get the functor to create photons from a species
-     *
-     * @tparam T_SpeciesType type or name as boost::mpl::string
-     */
-    template< typename T_SpeciesType >
-    struct GetPhotonCreator
+    namespace particles
     {
-        using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
-            VectorAllSpecies,
-            T_SpeciesType
-        >;
-        using FrameType = typename SpeciesType::FrameType;
+        namespace traits
+        {
+            /** Get the functor to create photons from a species
+             *
+             * @tparam T_SpeciesType type or name as boost::mpl::string
+             */
+            template<typename T_SpeciesType>
+            struct GetPhotonCreator
+            {
+                using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
+                using FrameType = typename SpeciesType::FrameType;
 
-        // The following line only fetches the alias
-        using FoundSynchrotronPhotonsAlias = typename GetFlagType<
-            FrameType,
-            picongpu::synchrotronPhotons<>
-        >::type;
+                // The following line only fetches the alias
+                using FoundSynchrotronPhotonsAlias =
+                    typename GetFlagType<FrameType, picongpu::synchrotronPhotons<>>::type;
 
-        // This now resolves the alias into the actual object type and select the species from the species list
-        using FoundPhotonSpecies = pmacc::particles::meta::FindByNameOrType_t<
-            VectorAllSpecies,
-            typename pmacc::traits::Resolve< FoundSynchrotronPhotonsAlias >::type
-        >;
+                // This now resolves the alias into the actual object type and select the species from the species list
+                using FoundPhotonSpecies = pmacc::particles::meta::FindByNameOrType_t<
+                    VectorAllSpecies,
+                    typename pmacc::traits::Resolve<FoundSynchrotronPhotonsAlias>::type>;
 
-        // This specifies the target species as the second template parameter of the photon creator
-        using type = synchrotronPhotons::PhotonCreator<
-            SpeciesType,
-            FoundPhotonSpecies
-        >;
+                // This specifies the target species as the second template parameter of the photon creator
+                using type = synchrotronPhotons::PhotonCreator<SpeciesType, FoundPhotonSpecies>;
+            };
 
-    };
-
-} // namespace traits
-} // namespace particles
+        } // namespace traits
+    } // namespace particles
 } // namespace picongpu

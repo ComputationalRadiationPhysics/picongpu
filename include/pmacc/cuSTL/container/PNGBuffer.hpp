@@ -32,70 +32,86 @@
 
 namespace pmacc
 {
-namespace container
-{
-
-/** Think of a container being a PNG-image
- * offers only write-only access
- */
-class PNGBuffer
-{
-private:
-    class Plotter
+    namespace container
     {
-    private:
-        pngwriter& png;
-        math::Int<2> pos;
-    public:
-        Plotter(pngwriter& png) : png(png) {}
-        inline Plotter& operator=(const math::Float<3>& color)
+        /** Think of a container being a PNG-image
+         * offers only write-only access
+         */
+        class PNGBuffer
         {
-            png.plot(pos.x()+1, pos.y()+1, (double)color.x(), (double)color.y(), (double)color.z());
-            return *this;
-        }
-        void setPos(const math::Int<2>& pos)
-        {
-            this->pos = pos;
-        }
-    };
-    struct Accessor
-    {
-        typedef Plotter& type;
-        pngwriter& png;
-        Plotter plotter;
-        Accessor(pngwriter& png) : png(png), plotter(png) {}
-        inline type operator()(math::Int<2>& index)
-        {
-            plotter.setPos(index);
-            return this->plotter;
-        }
-    };
-    pngwriter png;
-    math::Size_t<2> size;
-public:
-    typedef cursor::Cursor<PNGBuffer::Accessor, cursor::MultiIndexNavigator<2>, math::Int<2> > Cursor;
+        private:
+            class Plotter
+            {
+            private:
+                pngwriter& png;
+                math::Int<2> pos;
 
-    /* constructor
-     * \param x width of png image
-     * \param y height of png image
-     * \name name of png file
-     */
-    PNGBuffer(int x, int y, const std::string& name) : png(x, y, 0.0, name.data()), size(x,y) {}
-    PNGBuffer(math::Size_t<2> size, const std::string& name) : png(size.x(), size.y(), 0.0, name.data()), size(size) {}
-    ~PNGBuffer() {png.close();}
+            public:
+                Plotter(pngwriter& png) : png(png)
+                {
+                }
+                inline Plotter& operator=(const math::Float<3>& color)
+                {
+                    png.plot(pos.x() + 1, pos.y() + 1, (double) color.x(), (double) color.y(), (double) color.z());
+                    return *this;
+                }
+                void setPos(const math::Int<2>& pos)
+                {
+                    this->pos = pos;
+                }
+            };
+            struct Accessor
+            {
+                typedef Plotter& type;
+                pngwriter& png;
+                Plotter plotter;
+                Accessor(pngwriter& png) : png(png), plotter(png)
+                {
+                }
+                inline type operator()(math::Int<2>& index)
+                {
+                    plotter.setPos(index);
+                    return this->plotter;
+                }
+            };
+            pngwriter png;
+            math::Size_t<2> size;
 
-    /* get a cursor at the top left pixel
-     * access via a Float<3> reference
-     */
-    inline Cursor origin()
-    {
-        return Cursor(Accessor(this->png), cursor::MultiIndexNavigator<2>(), math::Int<2>(0));
-    }
+        public:
+            typedef cursor::Cursor<PNGBuffer::Accessor, cursor::MultiIndexNavigator<2>, math::Int<2>> Cursor;
 
-    /* get a zone spanning the whole container */
-    inline zone::SphericZone<2> zone() const {return zone::SphericZone<2>(this->size);}
-};
+            /* constructor
+             * \param x width of png image
+             * \param y height of png image
+             * \name name of png file
+             */
+            PNGBuffer(int x, int y, const std::string& name) : png(x, y, 0.0, name.data()), size(x, y)
+            {
+            }
+            PNGBuffer(math::Size_t<2> size, const std::string& name)
+                : png(size.x(), size.y(), 0.0, name.data())
+                , size(size)
+            {
+            }
+            ~PNGBuffer()
+            {
+                png.close();
+            }
 
-} // container
-} // pmacc
+            /* get a cursor at the top left pixel
+             * access via a Float<3> reference
+             */
+            inline Cursor origin()
+            {
+                return Cursor(Accessor(this->png), cursor::MultiIndexNavigator<2>(), math::Int<2>(0));
+            }
 
+            /* get a zone spanning the whole container */
+            inline zone::SphericZone<2> zone() const
+            {
+                return zone::SphericZone<2>(this->size);
+            }
+        };
+
+    } // namespace container
+} // namespace pmacc

@@ -24,31 +24,31 @@
 #include "pmacc/types.hpp"
 #include "pmacc/Environment.hpp"
 
-namespace pmacc{
-namespace particles {
-namespace policies {
-
-    /**
-     * Policy for \see HandleGuardRegion that moves particles from guard cells to exchange buffers
-     * and sends those to the correct neighbors
-     */
-    struct ExchangeParticles
+namespace pmacc
+{
+    namespace particles
     {
-        template< class T_Particles >
-        void
-        handleOutgoing(T_Particles& par, int32_t direction) const
+        namespace policies
         {
-            Environment<>::get().ParticleFactory().createTaskSendParticlesExchange(par, direction);
-        }
+            /**
+             * Policy for \see HandleGuardRegion that moves particles from guard cells to exchange buffers
+             * and sends those to the correct neighbors
+             */
+            struct ExchangeParticles
+            {
+                template<class T_Particles>
+                void handleOutgoing(T_Particles& par, int32_t direction) const
+                {
+                    Environment<>::get().ParticleFactory().createTaskSendParticlesExchange(par, direction);
+                }
 
-        template< class T_Particles >
-        void
-        handleIncoming(T_Particles& par, int32_t direction) const
-        {
-            Environment<>::get().ParticleFactory().createTaskReceiveParticlesExchange(par, direction);
-        }
-    };
+                template<class T_Particles>
+                void handleIncoming(T_Particles& par, int32_t direction) const
+                {
+                    Environment<>::get().ParticleFactory().createTaskReceiveParticlesExchange(par, direction);
+                }
+            };
 
-}  // namespace policies
-}  // namespace particles
-}  // namespace pmacc
+        } // namespace policies
+    } // namespace particles
+} // namespace pmacc

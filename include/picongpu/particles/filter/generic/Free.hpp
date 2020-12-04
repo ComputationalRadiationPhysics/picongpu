@@ -28,109 +28,89 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace filter
-{
-namespace generic
-{
-namespace acc
-{
-    /** wrapper for the user filter on the accelerator
-     *
-     * @tparam T_Functor user defined filter
-     */
-    template< typename T_Functor >
-    struct Free : private T_Functor
+    namespace particles
     {
-        //! type of the user filter
-        using Functor = T_Functor;
-
-        //! store user filter instance
-        HDINLINE Free( Functor const & filter ) :
-            Functor( filter )
+        namespace filter
         {
-        }
+            namespace generic
+            {
+                namespace acc
+                {
+                    /** wrapper for the user filter on the accelerator
+                     *
+                     * @tparam T_Functor user defined filter
+                     */
+                    template<typename T_Functor>
+                    struct Free : private T_Functor
+                    {
+                        //! type of the user filter
+                        using Functor = T_Functor;
 
-        /** execute the user filter
-         *
-         * @tparam T_Args type of the arguments passed to the user filter
-         *
-         * @param particle particle to use for the filtering
-         */
-        template<
-            typename T_Acc,
-            typename T_Particle
-        >
-        HDINLINE
-        bool operator( )(
-            T_Acc const &,
-            T_Particle const & particle
-        )
-        {
-            bool const isValid = particle.isHandleValid( );
+                        //! store user filter instance
+                        HDINLINE Free(Functor const& filter) : Functor(filter)
+                        {
+                        }
 
-            return isValid && Functor::operator( )( particle );
-        }
+                        /** execute the user filter
+                         *
+                         * @tparam T_Args type of the arguments passed to the user filter
+                         *
+                         * @param particle particle to use for the filtering
+                         */
+                        template<typename T_Acc, typename T_Particle>
+                        HDINLINE bool operator()(T_Acc const&, T_Particle const& particle)
+                        {
+                            bool const isValid = particle.isHandleValid();
 
-    };
-} // namespace acc
+                            return isValid && Functor::operator()(particle);
+                        }
+                    };
+                } // namespace acc
 
-    template< typename T_Functor >
-    struct Free : protected functor::User< T_Functor >
-    {
+                template<typename T_Functor>
+                struct Free : protected functor::User<T_Functor>
+                {
+                    using Functor = functor::User<T_Functor>;
 
-        using Functor = functor::User< T_Functor >;
+                    template<typename T_SpeciesType>
+                    struct apply
+                    {
+                        using type = Free;
+                    };
 
-        template< typename T_SpeciesType >
-        struct apply
-        {
-            using type = Free;
-        };
+                    /** constructor
+                     *
+                     * @param currentStep current simulation time step
+                     */
+                    HINLINE Free(uint32_t currentStep) : Functor(currentStep)
+                    {
+                    }
 
-        /** constructor
-         *
-         * @param currentStep current simulation time step
-         */
-        HINLINE Free( uint32_t currentStep ) : Functor( currentStep )
-        {
-        }
+                    /** create device filter
+                     *
+                     * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+                     * @tparam T_Acc alpaka accelerator type
+                     *
+                     * @param alpaka accelerator
+                     * @param offset (in supercells, without any guards) to the
+                     *         origin of the local domain
+                     * @param configuration of the worker
+                     */
+                    template<typename T_WorkerCfg, typename T_Acc>
+                    HDINLINE acc::Free<Functor> operator()(T_Acc const&, DataSpace<simDim> const&, T_WorkerCfg const&)
+                        const
+                    {
+                        return acc::Free<Functor>(*static_cast<Functor const*>(this));
+                    }
 
-        /** create device filter
-         *
-         * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
-         * @tparam T_Acc alpaka accelerator type
-         *
-         * @param alpaka accelerator
-         * @param offset (in supercells, without any guards) to the
-         *         origin of the local domain
-         * @param configuration of the worker
-         */
-        template<
-            typename T_WorkerCfg,
-            typename T_Acc
-        >
-        HDINLINE acc::Free< Functor >
-        operator()(
-            T_Acc const &,
-            DataSpace< simDim > const &,
-            T_WorkerCfg const &
-        ) const
-        {
-            return acc::Free< Functor >( *static_cast< Functor const * >( this ) );
-        }
+                    static HINLINE std::string getName()
+                    {
+                        // provide the name from the user functor
+                        return Functor::name;
+                    }
+                };
 
-        static
-        HINLINE std::string
-        getName( )
-        {
-            // provide the name from the user functor
-            return Functor::name;
-        }
-
-    };
-
-} // namespace generic
-} // namespace filter
-} // namespace particles
+            } // namespace generic
+        } // namespace filter
+    } // namespace particles
 } // namespace picongpu

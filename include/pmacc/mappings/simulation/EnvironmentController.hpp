@@ -28,58 +28,54 @@
 
 namespace pmacc
 {
-
-class EnvironmentController
-{
-public:
-
-    /*! Get communicator
-     * @return Communicator for MPI
-     */
-    ICommunicator& getCommunicator() const
+    class EnvironmentController
     {
-        return *comm;
-    }
+    public:
+        /*! Get communicator
+         * @return Communicator for MPI
+         */
+        ICommunicator& getCommunicator() const
+        {
+            return *comm;
+        }
 
 
+        /*! Get Mask with all GPU neighbar
+         * @return Mask with neighbar
+         */
+        const Mask& getCommunicationMask() const
+        {
+            return comm->getCommunicationMask();
+        }
 
-    /*! Get Mask with all GPU neighbar
-     * @return Mask with neighbar
-     */
-    const Mask& getCommunicationMask() const
-    {
-        return comm->getCommunicationMask();
-    }
 
+        /*! Set MPI communicator
+         * @param comm A instance of ICommunicator
+         */
+        void setCommunicator(ICommunicator& comm)
+        {
+            this->comm = &comm;
+        }
 
-    /*! Set MPI communicator
-     * @param comm A instance of ICommunicator
-     */
-    void setCommunicator(ICommunicator& comm)
-    {
-        this->comm = &comm;
-    }
+    private:
+        friend struct detail::Environment;
 
-private:
+        /*! Default constructor.
+         */
+        EnvironmentController()
+        {
+        }
 
-    friend struct detail::Environment;
+        static EnvironmentController& getInstance()
+        {
+            static EnvironmentController instance;
+            return instance;
+        }
 
-    /*! Default constructor.
-     */
-    EnvironmentController() {}
+    private:
+        /*! Pointer to MPI communicator.
+         */
+        ICommunicator* comm;
+    };
 
-    static EnvironmentController& getInstance()
-    {
-        static EnvironmentController instance;
-        return instance;
-    }
-
-private:
-
-    /*! Pointer to MPI communicator.
-     */
-    ICommunicator* comm;
-
-};
-
-} //namespace pmacc
+} // namespace pmacc

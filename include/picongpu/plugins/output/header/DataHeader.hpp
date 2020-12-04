@@ -22,21 +22,18 @@
 
 namespace picongpu
 {
-
-struct DataHeader
-{
-
-    uint32_t byte;
-
-    DataHeader() : byte(0)
+    struct DataHeader
     {
-    }
+        uint32_t byte;
 
-    void writeToConsole(std::ostream& ocons) const
-    {
-        ocons << "DataHeader.byte " << byte << std::endl;
-    }
+        DataHeader() : byte(0)
+        {
+        }
 
-};
+        void writeToConsole(std::ostream& ocons) const
+        {
+            ocons << "DataHeader.byte " << byte << std::endl;
+        }
+    };
 
 } // namespace picongpu

@@ -25,45 +25,31 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace maxwellSolver
-{
-
-    template< typename T_CurrentInterpolation = currentInterpolation::None >
-    class None;
-
-} // namespace maxwellSolver
-} // namespace fields
-
-namespace traits
-{
-
-    template< typename T_CurrentInterpolation >
-    struct GetMargin<
-        picongpu::fields::maxwellSolver::None< T_CurrentInterpolation >,
-        FIELD_B
-    >
+    namespace fields
     {
-        using LowerMargin = typename pmacc::math::CT::make_Int<
-            simDim,
-            0
-        >::type;
-        using UpperMargin = LowerMargin;
-    };
+        namespace maxwellSolver
+        {
+            template<typename T_CurrentInterpolation = currentInterpolation::None>
+            class None;
 
-    template< typename T_CurrentInterpolation >
-    struct GetMargin<
-        picongpu::fields::maxwellSolver::None< T_CurrentInterpolation >,
-        FIELD_E
-    >
+        } // namespace maxwellSolver
+    } // namespace fields
+
+    namespace traits
     {
-        using LowerMargin = typename pmacc::math::CT::make_Int<
-            simDim,
-            0
-        >::type;
-        using UpperMargin = LowerMargin;
-    };
+        template<typename T_CurrentInterpolation>
+        struct GetMargin<picongpu::fields::maxwellSolver::None<T_CurrentInterpolation>, FIELD_B>
+        {
+            using LowerMargin = typename pmacc::math::CT::make_Int<simDim, 0>::type;
+            using UpperMargin = LowerMargin;
+        };
 
-} // namespace traits
+        template<typename T_CurrentInterpolation>
+        struct GetMargin<picongpu::fields::maxwellSolver::None<T_CurrentInterpolation>, FIELD_E>
+        {
+            using LowerMargin = typename pmacc::math::CT::make_Int<simDim, 0>::type;
+            using UpperMargin = LowerMargin;
+        };
+
+    } // namespace traits
 } // namespace picongpu

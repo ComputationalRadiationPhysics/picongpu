@@ -31,75 +31,64 @@
 
 namespace pmacc
 {
-
-template <class TYPE, unsigned DIM>
-class TaskSendMPI : public MPITask
-{
-public:
-
-    TaskSendMPI(Exchange<TYPE, DIM> *exchange) :
-    MPITask(),
-    exchange(exchange)
+    template<class TYPE, unsigned DIM>
+    class TaskSendMPI : public MPITask
     {
+    public:
+        TaskSendMPI(Exchange<TYPE, DIM>* exchange) : MPITask(), exchange(exchange)
+        {
+        }
 
-    }
+        virtual void init()
+        {
+            Buffer<TYPE, DIM>* src = exchange->getCommunicationBuffer();
 
-    virtual void init()
-    {
-        Buffer< TYPE, DIM >* src = exchange->getCommunicationBuffer();
-
-        this->request = Environment<DIM>::get().EnvironmentController()
-            .getCommunicator().startSend(
+            this->request = Environment<DIM>::get().EnvironmentController().getCommunicator().startSend(
                 exchange->getExchangeType(),
                 reinterpret_cast<char*>(src->getPointer()),
-                src->getCurrentSize() * sizeof (TYPE),
-                exchange->getCommunicationTag()
-            );
-    }
-
-    bool executeIntern()
-    {
-        if (this->isFinished())
-            return true;
-
-        if (this->request == nullptr)
-            throw std::runtime_error("request was nullptr (call executeIntern after freed");
-
-        int flag=0;
-        MPI_CHECK(MPI_Test(this->request, &flag, &(this->status)));
-
-        if (flag) //finished
-        {
-            delete this->request;
-            this->request = nullptr;
-            this->setFinished();
-            return true;
+                src->getCurrentSize() * sizeof(TYPE),
+                exchange->getCommunicationTag());
         }
-        return false;
-    }
 
-    virtual ~TaskSendMPI()
-    {
-        notify(this->myId, SENDFINISHED, nullptr);
-    }
+        bool executeIntern()
+        {
+            if(this->isFinished())
+                return true;
 
-    void event(id_t, EventType, IEventData*)
-    {
+            if(this->request == nullptr)
+                throw std::runtime_error("request was nullptr (call executeIntern after freed");
 
-    }
+            int flag = 0;
+            MPI_CHECK(MPI_Test(this->request, &flag, &(this->status)));
 
-    std::string toString()
-    {
-        return std::string("TaskSendMPI exchange type=") + std::to_string(
-                exchange->getExchangeType()
-        );
-    }
+            if(flag) // finished
+            {
+                delete this->request;
+                this->request = nullptr;
+                this->setFinished();
+                return true;
+            }
+            return false;
+        }
 
-private:
-    Exchange<TYPE, DIM> *exchange;
-    MPI_Request *request;
-    MPI_Status status;
-};
+        virtual ~TaskSendMPI()
+        {
+            notify(this->myId, SENDFINISHED, nullptr);
+        }
 
-} //namespace pmacc
+        void event(id_t, EventType, IEventData*)
+        {
+        }
 
+        std::string toString()
+        {
+            return std::string("TaskSendMPI exchange type=") + std::to_string(exchange->getExchangeType());
+        }
+
+    private:
+        Exchange<TYPE, DIM>* exchange;
+        MPI_Request* request;
+        MPI_Status status;
+    };
+
+} // namespace pmacc

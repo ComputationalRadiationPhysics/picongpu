@@ -33,99 +33,79 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-    /** Charge Density Operation for Particle to Grid Projections
-     *
-     * Derives a scalar charge density field from a particle species at runtime.
-     * Each value is mapped per cell according to the species' spatial shape.
-     *
-     * @note for species that do not change their charge state, this is identical
-     *       to the density times the (constant) particles' charge,
-     *       @see CreateDensityOperation
-     */
-    struct ChargeDensity
+    namespace particles
     {
-
-        HDINLINE float1_64
-        getUnit() const;
-
-        HINLINE std::vector<float_64>
-        getUnitDimension() const
+        namespace particleToGrid
         {
-           /* L, M, T, I, theta, N, J
-            *
-            * ChargeDensity is in Coulomb / cubic meter: Q / m^3 = A * s / m^3
-            *   -> L^-3 * T * I
-            */
-           std::vector<float_64> unitDimension( 7, 0.0 );
-           unitDimension.at(SIBaseUnits::length) = -3.0;
-           unitDimension.at(SIBaseUnits::time)   =  1.0;
-           unitDimension.at(SIBaseUnits::electricCurrent) =  1.0;
+            namespace derivedAttributes
+            {
+                /** Charge Density Operation for Particle to Grid Projections
+                 *
+                 * Derives a scalar charge density field from a particle species at runtime.
+                 * Each value is mapped per cell according to the species' spatial shape.
+                 *
+                 * @note for species that do not change their charge state, this is identical
+                 *       to the density times the (constant) particles' charge,
+                 *       @see CreateDensityOperation
+                 */
+                struct ChargeDensity
+                {
+                    HDINLINE float1_64 getUnit() const;
 
-           return unitDimension;
-        }
+                    HINLINE std::vector<float_64> getUnitDimension() const
+                    {
+                        /* L, M, T, I, theta, N, J
+                         *
+                         * ChargeDensity is in Coulomb / cubic meter: Q / m^3 = A * s / m^3
+                         *   -> L^-3 * T * I
+                         */
+                        std::vector<float_64> unitDimension(7, 0.0);
+                        unitDimension.at(SIBaseUnits::length) = -3.0;
+                        unitDimension.at(SIBaseUnits::time) = 1.0;
+                        unitDimension.at(SIBaseUnits::electricCurrent) = 1.0;
 
-        HINLINE static
-        std::string
-        getName()
+                        return unitDimension;
+                    }
+
+                    HINLINE static std::string getName()
+                    {
+                        return "chargeDensity";
+                    }
+
+                    /** Calculate a new attribute  per particle
+                     *
+                     * Returns a new (on-the-fly calculated) attribute of a particle
+                     * that can then be mapped to the cells the particle contributes to.
+                     * This method is called on a per-thread basis (each thread of a block
+                     * handles a particle of a frame).
+                     *
+                     * \tparam T_Particle particle in the frame
+                     * \param particle particle in the frame
+                     *
+                     * \return new attribute for the particle (type \see T_AttributeType)
+                     */
+                    template<class T_Particle>
+                    DINLINE float_X operator()(T_Particle& particle) const;
+                };
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+
+        namespace traits
         {
-            return "chargeDensity";
-        }
+            template<typename T_Species>
+            struct SpeciesEligibleForSolver<T_Species, particleToGrid::derivedAttributes::ChargeDensity>
+            {
+                using FrameType = typename T_Species::FrameType;
 
-        /** Calculate a new attribute  per particle
-         *
-         * Returns a new (on-the-fly calculated) attribute of a particle
-         * that can then be mapped to the cells the particle contributes to.
-         * This method is called on a per-thread basis (each thread of a block
-         * handles a particle of a frame).
-         *
-         * \tparam T_Particle particle in the frame
-         * \param particle particle in the frame
-         *
-         * \return new attribute for the particle (type \see T_AttributeType)
-         */
-        template< class T_Particle >
-        DINLINE float_X
-        operator()( T_Particle& particle ) const;
-    };
-} // namespace derivedAttributes
-} // namespace particleToGrid
+                using RequiredIdentifiers = MakeSeq_t<weighting, position<>>;
 
-namespace traits
-{
-    template< typename T_Species >
-    struct SpeciesEligibleForSolver<
-        T_Species,
-        particleToGrid::derivedAttributes::ChargeDensity
-    >
-    {
-        using FrameType = typename T_Species::FrameType;
+                using SpeciesHasIdentifiers =
+                    typename pmacc::traits::HasIdentifiers<FrameType, RequiredIdentifiers>::type;
 
-        using RequiredIdentifiers = MakeSeq_t<
-            weighting,
-            position<>
-        >;
+                using SpeciesHasFlags = typename pmacc::traits::HasFlag<FrameType, chargeRatio<>>::type;
 
-        using SpeciesHasIdentifiers = typename pmacc::traits::HasIdentifiers<
-            FrameType,
-            RequiredIdentifiers
-        >::type;
-
-        using SpeciesHasFlags = typename pmacc::traits::HasFlag<
-            FrameType,
-            chargeRatio<>
-        >::type;
-
-        using type = typename bmpl::and_<
-            SpeciesHasIdentifiers,
-            SpeciesHasFlags
-        >;
-    };
-} // namespace traits
-} // namespace particles
+                using type = typename bmpl::and_<SpeciesHasIdentifiers, SpeciesHasFlags>;
+            };
+        } // namespace traits
+    } // namespace particles
 } // namespace picongpu

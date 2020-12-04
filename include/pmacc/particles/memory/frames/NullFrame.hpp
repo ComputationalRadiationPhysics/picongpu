@@ -26,16 +26,14 @@
 
 namespace pmacc
 {
-
-
     class NullFrame
     {
     public:
-
         enum
         {
-            tileSize = 0, dim = DIM3
+            tileSize = 0,
+            dim = DIM3
         };
     };
 
-}//namespace
+} // namespace pmacc

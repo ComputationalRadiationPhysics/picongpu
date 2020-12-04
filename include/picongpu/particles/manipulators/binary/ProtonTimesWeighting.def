@@ -26,75 +26,66 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
-namespace binary
-{
-namespace acc
-{
-
-    //! Re-scale the weighting of a cloned species by numberOfProtons
-    struct ProtonTimesWeighting
+    namespace particles
     {
-
-        /** Increase weighting of particleDest by proton number of SrcParticle
-         *
-         * The frame's `numberOfProtons`of `T_SrcParticle`
-         * is used to increase the weighting of particleDest.
-         * Useful to increase the weighting of macro electrons when cloned from an
-         * ion with Z>1. Otherwise one would need Z macro electrons (each with the
-         * same weighting as the initial ion) to keep the charge of a pre-ionized
-         * atom neutral.
-         *
-         * @tparam T_DestParticle type of the particle species with weighting to manipulate
-         * @tparam T_SrcParticle type of the particle species with proton number Z
-         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
-         *
-         * @param particleDest destination particle
-         * @param source particle (the number of protons of this particle is used)
-         * @param unused particles
-         *
-         * @see picongpu::particles::ManipulateDerive, picongpu::particles::Manipulate
-         */
-        template<
-            typename T_DesParticle,
-            typename T_SrcParticle,
-            typename ... T_Args
-        >
-        HDINLINE void operator()(
-            T_DesParticle & particleDest,
-            T_SrcParticle const &,
-            T_Args && ...
-        )
+        namespace manipulators
         {
-            float_X const protonNumber = traits::GetAtomicNumbers< T_SrcParticle >::type::numberOfProtons;
-            particleDest[ weighting_ ] *= protonNumber;
-        }
-    };
-} // namespace acc
+            namespace binary
+            {
+                namespace acc
+                {
+                    //! Re-scale the weighting of a cloned species by numberOfProtons
+                    struct ProtonTimesWeighting
+                    {
+                        /** Increase weighting of particleDest by proton number of SrcParticle
+                         *
+                         * The frame's `numberOfProtons`of `T_SrcParticle`
+                         * is used to increase the weighting of particleDest.
+                         * Useful to increase the weighting of macro electrons when cloned from an
+                         * ion with Z>1. Otherwise one would need Z macro electrons (each with the
+                         * same weighting as the initial ion) to keep the charge of a pre-ionized
+                         * atom neutral.
+                         *
+                         * @tparam T_DestParticle type of the particle species with weighting to manipulate
+                         * @tparam T_SrcParticle type of the particle species with proton number Z
+                         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
+                         *
+                         * @param particleDest destination particle
+                         * @param source particle (the number of protons of this particle is used)
+                         * @param unused particles
+                         *
+                         * @see picongpu::particles::ManipulateDerive, picongpu::particles::Manipulate
+                         */
+                        template<typename T_DesParticle, typename T_SrcParticle, typename... T_Args>
+                        HDINLINE void operator()(T_DesParticle& particleDest, T_SrcParticle const&, T_Args&&...)
+                        {
+                            float_X const protonNumber
+                                = traits::GetAtomicNumbers<T_SrcParticle>::type::numberOfProtons;
+                            particleDest[weighting_] *= protonNumber;
+                        }
+                    };
+                } // namespace acc
 
-    /** Re-scale the weighting of a cloned species by numberOfProtons
-     *
-     * When deriving species from each other, the new
-     * species "inherits" the macro-particle weighting
-     * of the first one.
-     * This functor can be used to manipulate the weighting
-     * of the new species' macro particles to be a multiplied by
-     * the number of protons of the initial species.
-     *
-     * As an example, this is useful when initializing a quasi-neutral,
-     * pre-ionized plasma of ions and electrons. Electrons can be created
-     * from ions via deriving and increasing their weight to avoid simulating
-     * multiple macro electrons per macro ion (with Z>1).
-     *
-     * note: needs the atomicNumbers flag on the initial species,
-     *       used by the GetAtomicNumbers trait.
-     */
-    using ProtonTimesWeighting = generic::Free< acc::ProtonTimesWeighting >;
+                /** Re-scale the weighting of a cloned species by numberOfProtons
+                 *
+                 * When deriving species from each other, the new
+                 * species "inherits" the macro-particle weighting
+                 * of the first one.
+                 * This functor can be used to manipulate the weighting
+                 * of the new species' macro particles to be a multiplied by
+                 * the number of protons of the initial species.
+                 *
+                 * As an example, this is useful when initializing a quasi-neutral,
+                 * pre-ionized plasma of ions and electrons. Electrons can be created
+                 * from ions via deriving and increasing their weight to avoid simulating
+                 * multiple macro electrons per macro ion (with Z>1).
+                 *
+                 * note: needs the atomicNumbers flag on the initial species,
+                 *       used by the GetAtomicNumbers trait.
+                 */
+                using ProtonTimesWeighting = generic::Free<acc::ProtonTimesWeighting>;
 
-} // namespace binary
-} // namespace manipulators
-} // namespace particles
+            } // namespace binary
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

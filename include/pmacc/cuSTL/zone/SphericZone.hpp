@@ -27,44 +27,52 @@
 
 namespace pmacc
 {
-namespace zone
-{
-
-namespace tag
-{
-struct SphericZone {};
-}
-
-/* spheric (no holes), cartesian zone
- *
- * \tparam T_dim dimension of the zone
- *
- * This is a zone which is simply described by a size and a offset.
- *
- */
-template<int T_dim>
-struct SphericZone
-{
-    typedef tag::SphericZone tag;
-    static constexpr int dim = T_dim;
-    math::Size_t<dim> size;
-    math::Int<dim> offset;
-
-    HDINLINE SphericZone() {}
-    HDINLINE SphericZone(const math::Size_t<dim>& size) : size(size), offset(math::Int<dim>::create(0)) {}
-    HDINLINE SphericZone(const math::Size_t<dim>& size,
-                         const math::Int<dim>& offset) : size(size), offset(offset) {}
-
-    /* Returns whether pos is within the zone */
-    HDINLINE bool within(const pmacc::math::Int<T_dim>& pos) const
+    namespace zone
     {
-        bool result = true;
-        for(int i = 0; i < T_dim; i++)
-            if((pos[i] < offset[i]) || (pos[i] >= offset[i] + (int)size[i])) result = false;
-        return result;
-    }
-};
+        namespace tag
+        {
+            struct SphericZone
+            {
+            };
+        } // namespace tag
 
-} // zone
-} // pmacc
+        /* spheric (no holes), cartesian zone
+         *
+         * \tparam T_dim dimension of the zone
+         *
+         * This is a zone which is simply described by a size and a offset.
+         *
+         */
+        template<int T_dim>
+        struct SphericZone
+        {
+            typedef tag::SphericZone tag;
+            static constexpr int dim = T_dim;
+            math::Size_t<dim> size;
+            math::Int<dim> offset;
 
+            HDINLINE SphericZone()
+            {
+            }
+            HDINLINE SphericZone(const math::Size_t<dim>& size) : size(size), offset(math::Int<dim>::create(0))
+            {
+            }
+            HDINLINE SphericZone(const math::Size_t<dim>& size, const math::Int<dim>& offset)
+                : size(size)
+                , offset(offset)
+            {
+            }
+
+            /* Returns whether pos is within the zone */
+            HDINLINE bool within(const pmacc::math::Int<T_dim>& pos) const
+            {
+                bool result = true;
+                for(int i = 0; i < T_dim; i++)
+                    if((pos[i] < offset[i]) || (pos[i] >= offset[i] + (int) size[i]))
+                        result = false;
+                return result;
+            }
+        };
+
+    } // namespace zone
+} // namespace pmacc

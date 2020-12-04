@@ -25,62 +25,47 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
-namespace binary
-{
-namespace acc
-{
-
-    //! assign attributes of one particle to another
-    struct Assign
+    namespace particles
     {
-        /** execute assign operator
-         *
-         * @tparam T_DestParticle pmacc::Particle, type of the destination particle
-         * @tparam T_SrcParticle pmacc::Particle, type of the source particle
-         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
-         *
-         * @param particleDest destination particle
-         * @param particleSrc source particle
-         * @param ... unused particles
-         */
-        template<
-            typename T_DestParticle,
-            typename T_SrcParticle,
-            typename ... T_Args
-        >
-        HDINLINE void
-        operator( )(
-            T_DestParticle & particleDest,
-            T_SrcParticle & particleSrc,
-            T_Args && ...
-        )
+        namespace manipulators
         {
-            pmacc::particles::operations::assign(
-                    particleDest,
-                    particleSrc
-            );
-        }
-    };
-} // namespace acc
+            namespace binary
+            {
+                namespace acc
+                {
+                    //! assign attributes of one particle to another
+                    struct Assign
+                    {
+                        /** execute assign operator
+                         *
+                         * @tparam T_DestParticle pmacc::Particle, type of the destination particle
+                         * @tparam T_SrcParticle pmacc::Particle, type of the source particle
+                         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
+                         *
+                         * @param particleDest destination particle
+                         * @param particleSrc source particle
+                         * @param ... unused particles
+                         */
+                        template<typename T_DestParticle, typename T_SrcParticle, typename... T_Args>
+                        HDINLINE void operator()(T_DestParticle& particleDest, T_SrcParticle& particleSrc, T_Args&&...)
+                        {
+                            pmacc::particles::operations::assign(particleDest, particleSrc);
+                        }
+                    };
+                } // namespace acc
 
-    /** assign attributes of one particle to another
-     *
-     * Can be used as binary and higher order operator but only the first two
-     * particles are used for the assign operation.
-     *
-     * Assign all matching attributes of a source particle to the destination
-     * particle. Attributes that only exist in the destination species are initialized
-     * with the default value. Attributes that only exists in the source particle will be ignored.
-     */
-    using Assign = generic::Free<
-        acc::Assign
-    >;
+                /** assign attributes of one particle to another
+                 *
+                 * Can be used as binary and higher order operator but only the first two
+                 * particles are used for the assign operation.
+                 *
+                 * Assign all matching attributes of a source particle to the destination
+                 * particle. Attributes that only exist in the destination species are initialized
+                 * with the default value. Attributes that only exists in the source particle will be ignored.
+                 */
+                using Assign = generic::Free<acc::Assign>;
 
-} // namespace binary
-} // namespace manipulators
-} // namespace particles
+            } // namespace binary
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

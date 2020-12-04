@@ -27,26 +27,28 @@ namespace mpl = boost::mpl;
 
 namespace pmacc
 {
-namespace result_of
-{
-template<typename _Functor, typename Arg0 = mpl::void_,
-                            typename Arg1 = mpl::void_,
-                            typename Arg2 = mpl::void_,
-                            typename Arg3 = mpl::void_,
-                            typename Arg4 = mpl::void_,
-                            typename Arg5 = mpl::void_,
-                            typename Arg6 = mpl::void_,
-                            typename Arg7 = mpl::void_,
-                            typename Arg8 = mpl::void_,
-                            typename Arg9 = mpl::void_,
-                            typename Arg10 = mpl::void_,
-                            typename Arg11 = mpl::void_,
-                            typename Arg12 = mpl::void_,
-                            typename dummy = mpl::void_>
-struct Functor
-{
-    typedef typename _Functor::result_type type;
-};
+    namespace result_of
+    {
+        template<
+            typename _Functor,
+            typename Arg0 = mpl::void_,
+            typename Arg1 = mpl::void_,
+            typename Arg2 = mpl::void_,
+            typename Arg3 = mpl::void_,
+            typename Arg4 = mpl::void_,
+            typename Arg5 = mpl::void_,
+            typename Arg6 = mpl::void_,
+            typename Arg7 = mpl::void_,
+            typename Arg8 = mpl::void_,
+            typename Arg9 = mpl::void_,
+            typename Arg10 = mpl::void_,
+            typename Arg11 = mpl::void_,
+            typename Arg12 = mpl::void_,
+            typename dummy = mpl::void_>
+        struct Functor
+        {
+            typedef typename _Functor::result_type type;
+        };
 
-} // result_of
-} // PMacc
+    } // namespace result_of
+} // namespace pmacc

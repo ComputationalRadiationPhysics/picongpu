@@ -30,23 +30,23 @@
 
 namespace picongpu
 {
-namespace traits
-{
-    /** Reinterpret attributes for openPMD
-     *
-     * Currently, this conversion tables are used to translate the PIConGPU
-     * totalCellIdx (unitless cell index) to the openPMD positionOffset (length)
-     */
-    template<typename T_Identifier>
-    struct OpenPMDName;
+    namespace traits
+    {
+        /** Reinterpret attributes for openPMD
+         *
+         * Currently, this conversion tables are used to translate the PIConGPU
+         * totalCellIdx (unitless cell index) to the openPMD positionOffset (length)
+         */
+        template<typename T_Identifier>
+        struct OpenPMDName;
 
-    template<typename T_Identifier>
-    struct OpenPMDUnit;
+        template<typename T_Identifier>
+        struct OpenPMDUnit;
 
-    template<typename T_Identifier>
-    struct OpenPMDUnitDimension;
+        template<typename T_Identifier>
+        struct OpenPMDUnitDimension;
 
-} // namespace traits
+    } // namespace traits
 } // namespace picongpu
 
 #include "PICToOpenPMD.tpp"

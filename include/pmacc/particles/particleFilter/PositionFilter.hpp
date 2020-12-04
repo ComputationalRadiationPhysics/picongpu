@@ -29,87 +29,82 @@
 
 namespace pmacc
 {
-
-
-namespace privatePositionFilter
-{
-
-template<unsigned T_dim, class Base = NullFrame>
-class PositionFilter : public Base
-{
-public:
-    static constexpr uint32_t dim = T_dim;
-protected:
-    DataSpace<dim> offset;
-    DataSpace<dim> max;
-    DataSpace<dim> superCellIdx;
-
-public:
-
-    HDINLINE PositionFilter()
+    namespace privatePositionFilter
     {
-    }
+        template<unsigned T_dim, class Base = NullFrame>
+        class PositionFilter : public Base
+        {
+        public:
+            static constexpr uint32_t dim = T_dim;
 
-    HDINLINE void setWindowPosition(DataSpace<dim> offset, DataSpace<dim> size)
+        protected:
+            DataSpace<dim> offset;
+            DataSpace<dim> max;
+            DataSpace<dim> superCellIdx;
+
+        public:
+            HDINLINE PositionFilter()
+            {
+            }
+
+            HDINLINE void setWindowPosition(DataSpace<dim> offset, DataSpace<dim> size)
+            {
+                this->offset = offset;
+                this->max = offset + size;
+            }
+
+            HDINLINE void setSuperCellPosition(DataSpace<dim> superCellIdx)
+            {
+                this->superCellIdx = superCellIdx;
+            }
+
+            HDINLINE DataSpace<dim> getOffset()
+            {
+                return offset;
+            }
+
+            template<class FRAME>
+            HDINLINE bool operator()(FRAME& frame, lcellId_t id)
+            {
+                DataSpace<dim> localCellIdx = DataSpaceOperations<dim>::template map<typename FRAME::SuperCellSize>(
+                    (uint32_t)(frame[id][localCellIdx_]));
+                DataSpace<dim> pos = this->superCellIdx + localCellIdx;
+                bool result = true;
+                for(uint32_t d = 0; d < dim; ++d)
+                    result = result && (this->offset[d] <= pos[d]) && (pos[d] < this->max[d]);
+                return Base::operator()(frame, id) && result;
+            }
+        };
+
+    } // namespace privatePositionFilter
+
+    /** This wrapper class is needed because for filters we are only allowed to
+     * define one template parameter "base" (it is a constrain from FilterFactory)
+     */
+    template<class Base = NullFrame>
+    class PositionFilter3D : public privatePositionFilter::PositionFilter<DIM3, Base>
     {
-        this->offset = offset;
-        this->max = offset + size;
-    }
+    };
 
-    HDINLINE void setSuperCellPosition(DataSpace<dim> superCellIdx)
+    template<class Base = NullFrame>
+    class PositionFilter2D : public privatePositionFilter::PositionFilter<DIM2, Base>
     {
-        this->superCellIdx = superCellIdx;
-    }
+    };
 
-    HDINLINE DataSpace<dim> getOffset()
+    template<unsigned dim>
+    struct GetPositionFilter;
+
+    template<>
+    struct GetPositionFilter<DIM3>
     {
-        return offset;
-    }
+        typedef PositionFilter3D<> type;
+    };
 
-    template<class FRAME>
-    HDINLINE bool operator()(FRAME & frame, lcellId_t id)
+    template<>
+    struct GetPositionFilter<DIM2>
     {
-        DataSpace<dim> localCellIdx = DataSpaceOperations<dim>::template map<
-            typename FRAME::SuperCellSize
-            > ((uint32_t) (frame[id][localCellIdx_]));
-        DataSpace<dim> pos = this->superCellIdx + localCellIdx;
-        bool result = true;
-        for (uint32_t d = 0; d < dim; ++d)
-            result= result && (this->offset[d] <= pos[d]) && (pos[d]<this->max[d]);
-        return Base::operator() (frame, id) && result;
-    }
-
-};
-
-} //namespace privatePositionFilter
-
-/** This wrapper class is needed because for filters we are only allowed to
- * define one template parameter "base" (it is a constrain from FilterFactory)
- */
-template<class Base = NullFrame>
-class PositionFilter3D : public privatePositionFilter::PositionFilter<DIM3, Base>
-{
-};
-
-template<class Base = NullFrame>
-class PositionFilter2D : public privatePositionFilter::PositionFilter<DIM2, Base>
-{
-};
-
-template<unsigned dim>
-struct GetPositionFilter;
-
-template<>
-struct GetPositionFilter<DIM3>
-{
-    typedef PositionFilter3D<> type;
-};
-
-template<>
-struct GetPositionFilter<DIM2>
-{
-    typedef PositionFilter2D<> type;
-};
+        typedef PositionFilter2D<> type;
+    };
 
 
-} //namespace pmacc
+} // namespace pmacc

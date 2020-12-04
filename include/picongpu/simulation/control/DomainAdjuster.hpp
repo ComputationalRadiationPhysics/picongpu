@@ -45,7 +45,6 @@ namespace picongpu
      */
     class DomainAdjuster
     {
-
     public:
         /** constructor
          *
@@ -56,16 +55,15 @@ namespace picongpu
          * @param movingWindowEnabled if moving window is enabled
          */
         DomainAdjuster(
-            DataSpace< simDim > const & numDevices,
-            DataSpace< simDim > const & mpiPosition,
-            DataSpace< simDim > const & isPeriodic,
-            bool const movingWindowEnabled
-        ) :
-            m_numDevices( numDevices),
-            m_mpiPosition( mpiPosition ),
-            m_isPeriodic( isPeriodic ),
-            m_movingWindowEnabled( movingWindowEnabled ),
-            m_isMaster( mpiPosition == DataSpace< simDim >::create( 0 ) )
+            DataSpace<simDim> const& numDevices,
+            DataSpace<simDim> const& mpiPosition,
+            DataSpace<simDim> const& isPeriodic,
+            bool const movingWindowEnabled)
+            : m_numDevices(numDevices)
+            , m_mpiPosition(mpiPosition)
+            , m_isPeriodic(isPeriodic)
+            , m_movingWindowEnabled(movingWindowEnabled)
+            , m_isMaster(mpiPosition == DataSpace<simDim>::create(0))
         {
         }
 
@@ -78,29 +76,26 @@ namespace picongpu
          * @param[out] localDomainOffset local offset [in cells] relative to the origin of the global domain
          */
         void operator()(
-            DataSpace< simDim > & globalDomainSize,
-            DataSpace< simDim > & localDomainSize,
-            DataSpace< simDim > & localDomainOffset
-        )
+            DataSpace<simDim>& globalDomainSize,
+            DataSpace<simDim>& localDomainSize,
+            DataSpace<simDim>& localDomainOffset)
         {
             m_globalDomainSize = globalDomainSize;
             m_localDomainSize = localDomainSize;
 
-            for( uint32_t d = 0; d < simDim; ++d )
+            for(uint32_t d = 0; d < simDim; ++d)
             {
-                multipleOfSuperCell( d );
-                minThreeSuperCells( d );
-                greaterEqualThanAbsorber( d );
-                deriveGlobalDomainSize( d );
-                updateLocalDomainOffset( d );
+                multipleOfSuperCell(d);
+                minThreeSuperCells(d);
+                greaterEqualThanAbsorber(d);
+                deriveGlobalDomainSize(d);
+                updateLocalDomainOffset(d);
             }
 
-            if( globalDomainSize != m_globalDomainSize || localDomainSize != m_localDomainSize )
+            if(globalDomainSize != m_globalDomainSize || localDomainSize != m_localDomainSize)
             {
-                std::cout << " new grid size (global|local|offset): " <<
-                    m_globalDomainSize.toString() << "|" <<
-                    m_localDomainSize.toString() << "|" <<
-                    m_localDomainOffset.toString() << std::endl;
+                std::cout << " new grid size (global|local|offset): " << m_globalDomainSize.toString() << "|"
+                          << m_localDomainSize.toString() << "|" << m_localDomainOffset.toString() << std::endl;
             }
 
             // write results back
@@ -120,7 +115,6 @@ namespace picongpu
         }
 
     private:
-
         /** update local domain offset
          *
          * Share the local domain size with all MPI ranks and calculate the offset of the
@@ -128,76 +122,70 @@ namespace picongpu
          *
          * @param dim dimension to update
          */
-        void updateLocalDomainOffset( size_t const dim )
+        void updateLocalDomainOffset(size_t const dim)
         {
-            pmacc::GridController< simDim > & gc = pmacc::Environment< simDim >::get( ).GridController( );
+            pmacc::GridController<simDim>& gc = pmacc::Environment<simDim>::get().GridController();
 
-            int mpiPos( gc.getPosition( )[ dim ] );
+            int mpiPos(gc.getPosition()[dim]);
             int numMpiRanks = gc.getGlobalSize();
 
             // gather mpi position in the direction we are checking
-            std::vector< int > mpiPositions( numMpiRanks );
-            MPI_CHECK( MPI_Allgather(
+            std::vector<int> mpiPositions(numMpiRanks);
+            MPI_CHECK(MPI_Allgather(
                 &mpiPos,
                 1,
                 MPI_INT,
                 mpiPositions.data(),
                 1,
                 MPI_INT,
-                gc.getCommunicator().getMPIComm()
-            ));
+                gc.getCommunicator().getMPIComm()));
 
             // gather local sizes in the direction we are checking
-            std::vector< uint64_t > allLocalSizes( numMpiRanks );
-            uint64_t lSize = static_cast< uint64_t >( m_localDomainSize[ dim ] );
-            MPI_CHECK( MPI_Allgather(
+            std::vector<uint64_t> allLocalSizes(numMpiRanks);
+            uint64_t lSize = static_cast<uint64_t>(m_localDomainSize[dim]);
+            MPI_CHECK(MPI_Allgather(
                 &lSize,
                 1,
                 MPI_UINT64_T,
                 allLocalSizes.data(),
                 1,
                 MPI_UINT64_T,
-                gc.getCommunicator().getMPIComm()
-            ));
+                gc.getCommunicator().getMPIComm()));
 
             uint64_t offset = 0u;
-            for( size_t i = 0u; i < mpiPositions.size(); ++i )
+            for(size_t i = 0u; i < mpiPositions.size(); ++i)
             {
-                if( mpiPositions[ i ] < mpiPos )
-                    offset += allLocalSizes[ i ];
+                if(mpiPositions[i] < mpiPos)
+                    offset += allLocalSizes[i];
             }
 
             /* since we are not doing independent reduces per slice we need
              * to adjust the offset result by dividing with the number of
              * MPI ranks in all other dimensions.
              */
-            offset /= static_cast< uint64_t >( m_numDevices.productOfComponents() / m_numDevices[ dim ] );
-            m_localDomainOffset[ dim ] = static_cast< int >( offset );
-
+            offset /= static_cast<uint64_t>(m_numDevices.productOfComponents() / m_numDevices[dim]);
+            m_localDomainOffset[dim] = static_cast<int>(offset);
         }
 
         /** ensure that the local size is a multiple of the supercell size
          *
          * @param dim dimension to update
          */
-        void multipleOfSuperCell( size_t const dim )
+        void multipleOfSuperCell(size_t const dim)
         {
-            int const sCellSize = SuperCellSize::toRT()[ dim ];
+            int const sCellSize = SuperCellSize::toRT()[dim];
             // round up to full supercells
-            int const validLocalSize =
-                ( ( m_localDomainSize[ dim ] + sCellSize - 1 ) / sCellSize ) *
-                sCellSize;
+            int const validLocalSize = ((m_localDomainSize[dim] + sCellSize - 1) / sCellSize) * sCellSize;
 
-            if( validLocalSize != m_localDomainSize[ dim ] )
+            if(validLocalSize != m_localDomainSize[dim])
             {
                 showMessage(
                     dim,
                     "Local grid size is not a multiple of supercell size.",
-                    m_localDomainSize[ dim ],
-                    validLocalSize
-                );
+                    m_localDomainSize[dim],
+                    validLocalSize);
 
-                m_localDomainSize[ dim ] = validLocalSize;
+                m_localDomainSize[dim] = validLocalSize;
             }
         }
 
@@ -207,21 +195,20 @@ namespace picongpu
          *
          * @param dim dimension to update
          */
-        void minThreeSuperCells( size_t const  dim )
+        void minThreeSuperCells(size_t const dim)
         {
-            int numSuperCells = m_localDomainSize[ dim ] / SuperCellSize::toRT()[ dim ];
+            int numSuperCells = m_localDomainSize[dim] / SuperCellSize::toRT()[dim];
 
-            if( numSuperCells < 3 )
+            if(numSuperCells < 3)
             {
-                int newLocalDomainSize = 3 * SuperCellSize::toRT()[ dim ];
+                int newLocalDomainSize = 3 * SuperCellSize::toRT()[dim];
                 showMessage(
                     dim,
                     "Local grid size is not containing at least 3 supercells.",
-                    m_localDomainSize[ dim ],
-                    newLocalDomainSize
-                );
+                    m_localDomainSize[dim],
+                    newLocalDomainSize);
 
-                m_localDomainSize[ dim ] = newLocalDomainSize;
+                m_localDomainSize[dim] = newLocalDomainSize;
             }
         }
 
@@ -232,49 +219,42 @@ namespace picongpu
          *
          * @param dim dimension to update
          */
-        void greaterEqualThanAbsorber( size_t const dim )
+        void greaterEqualThanAbsorber(size_t const dim)
         {
-            int validLocalSize = m_localDomainSize[ dim ];
+            int validLocalSize = m_localDomainSize[dim];
 
-            bool const isAbsorberEnabled = !m_isPeriodic[ dim ];
-            bool const isBoundaryDevice = ( m_mpiPosition[ dim ] == 0 || m_mpiPosition[ dim ] == m_numDevices[ dim ] - 1 );
-            if( isAbsorberEnabled && isBoundaryDevice )
+            bool const isAbsorberEnabled = !m_isPeriodic[dim];
+            bool const isBoundaryDevice = (m_mpiPosition[dim] == 0 || m_mpiPosition[dim] == m_numDevices[dim] - 1);
+            if(isAbsorberEnabled && isBoundaryDevice)
             {
-                size_t boundary = m_mpiPosition[ dim ] == 0u ? 0u : 1u;
-                int maxAbsorberCells = fields::absorber::numCells[ dim ][ boundary ];
+                size_t boundary = m_mpiPosition[dim] == 0u ? 0u : 1u;
+                int maxAbsorberCells = fields::absorber::numCells[dim][boundary];
 
-                if( m_movingWindowEnabled && dim == 1u )
+                if(m_movingWindowEnabled && dim == 1u)
                 {
                     /* since the device changes their position during the simulation
                      * the negative and positive absorber cells must fit into the domain
                      */
-                    maxAbsorberCells = static_cast< int >(
-                        std::max(
-                            fields::absorber::numCells[ dim ][ 0 ],
-                            fields::absorber::numCells[ dim ][ 1 ]
-                        )
-                    );
+                    maxAbsorberCells = static_cast<int>(
+                        std::max(fields::absorber::numCells[dim][0], fields::absorber::numCells[dim][1]));
                 }
 
-                if( m_localDomainSize[ dim ] < maxAbsorberCells )
+                if(m_localDomainSize[dim] < maxAbsorberCells)
                 {
-                    int const sCellSize = SuperCellSize::toRT()[ dim ];
+                    int const sCellSize = SuperCellSize::toRT()[dim];
                     // round up to full supercells
-                    validLocalSize =
-                        ( ( maxAbsorberCells + sCellSize - 1 ) / sCellSize ) *
-                        sCellSize;
+                    validLocalSize = ((maxAbsorberCells + sCellSize - 1) / sCellSize) * sCellSize;
                 }
 
-                if( validLocalSize != m_localDomainSize[ dim ] )
+                if(validLocalSize != m_localDomainSize[dim])
                 {
                     showMessage(
                         dim,
                         "Local grid size must be greater or equal than the largest absorber.",
-                        m_localDomainSize[ dim ],
-                        validLocalSize
-                    );
+                        m_localDomainSize[dim],
+                        validLocalSize);
 
-                    m_localDomainSize[ dim ] = validLocalSize;
+                    m_localDomainSize[dim] = validLocalSize;
                 }
             }
         }
@@ -287,43 +267,39 @@ namespace picongpu
          *
          * @param dim dimension to update
          */
-        void deriveLocalDomainSize( size_t const dim )
+        void deriveLocalDomainSize(size_t const dim)
         {
-            if( m_movingWindowEnabled && dim == 1u )
+            if(m_movingWindowEnabled && dim == 1u)
             {
-
                 pmacc::mpi::MPIReduce mpiReduce;
 
                 int globalMax;
                 mpiReduce(
                     pmacc::nvidia::functors::Max(),
                     &globalMax,
-                    &m_localDomainSize[ dim ],
+                    &m_localDomainSize[dim],
                     1,
-                    pmacc::mpi::reduceMethods::AllReduce()
-                );
+                    pmacc::mpi::reduceMethods::AllReduce());
 
                 int globalMin;
                 mpiReduce(
                     pmacc::nvidia::functors::Min(),
                     &globalMin,
-                    &m_localDomainSize[ dim ],
+                    &m_localDomainSize[dim],
                     1,
-                    pmacc::mpi::reduceMethods::AllReduce()
-                );
+                    pmacc::mpi::reduceMethods::AllReduce());
 
                 // local size must be equal for all devices in y direction
-                if( m_isMaster && globalMax != globalMin )
+                if(m_isMaster && globalMax != globalMin)
                 {
                     showMessage(
                         dim,
                         "Local grid size must be equal for all devices because moving window is enabled.",
-                        m_localDomainSize[ dim ],
-                        globalMax
-                    );
+                        m_localDomainSize[dim],
+                        globalMax);
                 }
 
-                m_localDomainSize[ dim ] = globalMax;
+                m_localDomainSize[dim] = globalMax;
             }
         }
 
@@ -333,49 +309,40 @@ namespace picongpu
          *
          * @param dim dimension to update
          */
-        void deriveGlobalDomainSize( size_t const dim )
+        void deriveGlobalDomainSize(size_t const dim)
         {
             uint64_t validGlobalGridSize = 0u;
 
-            deriveLocalDomainSize( dim );
+            deriveLocalDomainSize(dim);
 
-            if( m_movingWindowEnabled && dim == 1u )
+            if(m_movingWindowEnabled && dim == 1u)
             {
                 // the local sizes in slide direction must be equal sized
-                validGlobalGridSize = static_cast< uint64_t >( m_localDomainSize[ dim ] * m_numDevices[ dim ] );
+                validGlobalGridSize = static_cast<uint64_t>(m_localDomainSize[dim] * m_numDevices[dim]);
             }
             else
             {
-                uint64_t localDomainSize = static_cast< uint64_t >( m_localDomainSize[ dim ] );
+                uint64_t localDomainSize = static_cast<uint64_t>(m_localDomainSize[dim]);
                 pmacc::mpi::MPIReduce mpiReduce;
                 mpiReduce(
                     pmacc::nvidia::functors::Add(),
                     &validGlobalGridSize,
                     &localDomainSize,
                     1,
-                    pmacc::mpi::reduceMethods::AllReduce()
-                );
+                    pmacc::mpi::reduceMethods::AllReduce());
                 /* since we are not doing independent reduces per slice we need
                  * to adjust the reduce result by dividing the sizes of all other dimensions
                  * we are not check within the method call
                  */
-                validGlobalGridSize /= static_cast< uint64_t >(
-                    m_numDevices.productOfComponents() / m_numDevices[ dim ]
-                );
-
+                validGlobalGridSize /= static_cast<uint64_t>(m_numDevices.productOfComponents() / m_numDevices[dim]);
             }
 
-            if( m_isMaster && validGlobalGridSize != static_cast< uint64_t >( m_globalDomainSize[ dim ] ) )
+            if(m_isMaster && validGlobalGridSize != static_cast<uint64_t>(m_globalDomainSize[dim]))
             {
-                showMessage(
-                    dim,
-                    "Invalid global grid size.",
-                    m_globalDomainSize[ dim ],
-                    validGlobalGridSize
-                );
+                showMessage(dim, "Invalid global grid size.", m_globalDomainSize[dim], validGlobalGridSize);
             }
 
-            m_globalDomainSize[ dim ] = static_cast< int >( validGlobalGridSize );
+            m_globalDomainSize[dim] = static_cast<int>(validGlobalGridSize);
         }
 
         /** print a message to the user
@@ -387,38 +354,30 @@ namespace picongpu
          * @param currentSize current domain size in the given direction
          * @param updatedSize updated/corrected domain size for the given dimension
          */
-        void showMessage(
-            size_t const dim,
-            std::string const & msg,
-            int const currentSize,
-            int const updatedSize
-        ) const
+        void showMessage(size_t const dim, std::string const& msg, int const currentSize, int const updatedSize) const
         {
             /**! lookup table to translate a dimension index into a name
              *
              * \warning `= { { ... } }` is not required by the c++11 standard but
              * is necessary for g++ 4.9
              */
-            std::array< char, 3 > const dimNames = { { 'x', 'y', 'z' } };
+            std::array<char, 3> const dimNames = {{'x', 'y', 'z'}};
 
-            if( m_validateOnly )
+            if(m_validateOnly)
                 throw std::runtime_error(
-                    std::string( "Dimension " ) + dimNames[ dim ] + ": " +
-                    msg + " Suggestion: set " + std::to_string( currentSize ) +
-                    " to " + std::to_string( updatedSize )
-                );
+                    std::string("Dimension ") + dimNames[dim] + ": " + msg + " Suggestion: set "
+                    + std::to_string(currentSize) + " to " + std::to_string(updatedSize));
             else
-                std::cout << "Dimension " << dimNames[ dim ] << ": " <<
-                    msg << " Auto adjust from " <<
-                    currentSize << " to " << updatedSize << std::endl;
+                std::cout << "Dimension " << dimNames[dim] << ": " << msg << " Auto adjust from " << currentSize
+                          << " to " << updatedSize << std::endl;
         }
 
-        DataSpace< simDim > m_globalDomainSize;
-        DataSpace< simDim > m_localDomainSize;
-        DataSpace< simDim > m_localDomainOffset;
-        DataSpace< simDim > const m_numDevices;
-        DataSpace< simDim > const m_mpiPosition;
-        DataSpace< simDim > const m_isPeriodic;
+        DataSpace<simDim> m_globalDomainSize;
+        DataSpace<simDim> m_localDomainSize;
+        DataSpace<simDim> m_localDomainOffset;
+        DataSpace<simDim> const m_numDevices;
+        DataSpace<simDim> const m_mpiPosition;
+        DataSpace<simDim> const m_isPeriodic;
         bool const m_movingWindowEnabled;
         bool const m_isMaster;
 

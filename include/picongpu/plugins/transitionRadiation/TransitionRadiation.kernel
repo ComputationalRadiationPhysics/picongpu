@@ -36,353 +36,302 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 
-
 namespace picongpu
 {
-namespace plugins
-{
-namespace transitionRadiation
-{
-/** Kernel for computation of transition radiation on GPUs.
- *
- * @tparam T_numWorkers maximal CUDA threads
- * @tparam T_ParBox box with particles
- * @tparam T_DBox box with float data
- * @tparam T_DBoxComplex box with complex data
- * @tparam T_Mapping MappingDescription object
- * @tparam T_Acc alpaka accelerator
- * @param acc alpaka accelerator
- * @param incTransRad output array for storage incoherent transition radiation
- * @param cohTransRadPara output array for storage of parallel parts of coherent transition radiation
- * @param cohTransRadPerp output array for storage of perpendicular parts of coherent transition radiation
- * @param numParticles output array for amount of particles
- * @param globalOffset offset of simulation
- * @param mapper MappingDesction object
- * @param freqFkt frequency functor
- * @param simBoxSize size of simulation box
- */
-    template<
-        uint32_t T_numWorkers
-    >
-    struct KernelTransRadParticles
+    namespace plugins
     {
-        template<
-            typename T_ParBox,
-            typename T_DBox,
-            typename T_DBoxComplex, // Formfactor returns complex values
-            typename T_Mapping,
-            typename T_Acc
-        >
-        DINLINE
-        void operator( )(
-            T_Acc const & acc,
-            T_ParBox pb,
-            T_DBox incTransRad,
-            T_DBoxComplex cohTransRadPara,
-            T_DBoxComplex cohTransRadPerp,
-            T_DBox numParticles,
-            DataSpace< simDim > globalOffset,
-            T_Mapping mapper,
-            transitionRadiation::frequencies::FreqFunctor freqFkt,
-            DataSpace< simDim > simBoxSize
-        ) const
+        namespace transitionRadiation
         {
-            using namespace mappings::threads;
-            using complex_X = pmacc::math::Complex< float_X >;
-            using complex_64 = pmacc::math::Complex< float_64 >;
-
-            constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
-            constexpr uint32_t numWorker = T_numWorkers;
-
-            using FrameType = typename T_ParBox::FrameType;
-            using FramePtr = typename T_ParBox::FramePtr;
-
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-            /* parallelized in 2 dimensions:
-            * looking direction (theta, phi)
-            * (not anymore data handling)
-            * create shared memory for particle data to reduce global memory calls
-            * every thread in a block loads one particle and every thread runs
-            * through all particles and calculates the radiation for one direction
-            * for all frequencies
-            */
-            constexpr int blockSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
-
-            // perpendicular part of normalized energy
-            PMACC_SMEM( acc, energyPerp_s, memory::Array< float_X, blockSize > );
-
-            // parallel part of normalized energy
-            PMACC_SMEM( acc, energyPara_s, memory::Array< float_X, blockSize > );
-
-            // exponent of the form factor
-            PMACC_SMEM( acc, formfactorExponent_s, memory::Array< complex_X, blockSize > );
-
-            // storage for macro particle weighting needed if
-            // the coherent and incoherent radiation of a single
-            // macro-particle needs to be considered
-            PMACC_SMEM( acc, radWeighting_s, memory::Array< float_X, blockSize > );
-
-            // particle counter used if not all particles are considered for
-            // radiation calculation
-            PMACC_SMEM( acc, counter_s, int );
-
-
-            int const theta_idx = cupla::blockIdx(acc).x; //cupla::blockIdx(acc).x is used to determine theta
-
-            // looking direction (needed for observer) used in the thread
-            float3_X const look = transitionRadiation::observationDirection( theta_idx );
-
-            // get extent of guarding super cells (needed to ignore them)
-            DataSpace< simDim > const guardingSuperCells = mapper.getGuardingSuperCells( );
-
-            /* number of super cells on GPU per dimension (still including guard cells)
-            * remove both guards from count [later one sided guard needs to be added again]
-            */
-            DataSpace< simDim > const superCellsCount( mapper.getGridSuperCells( ) - 2 * guardingSuperCells );
-
-            // get absolute number of relevant super cells
-            int const numSuperCells = superCellsCount.productOfComponents( );
-
-            // propagation distance for the particle bunch
-            float_X const propagationDistance = parameters::foilPosition - globalOffset[ 1 ];
-
-
-            /* go over all super cells on GPU
-            * but ignore all guarding supercells
-            */
-            for( int superCellIndex = 0; superCellIndex <= numSuperCells; ++superCellIndex )
+            /** Kernel for computation of transition radiation on GPUs.
+             *
+             * @tparam T_numWorkers maximal CUDA threads
+             * @tparam T_ParBox box with particles
+             * @tparam T_DBox box with float data
+             * @tparam T_DBoxComplex box with complex data
+             * @tparam T_Mapping MappingDescription object
+             * @tparam T_Acc alpaka accelerator
+             * @param acc alpaka accelerator
+             * @param incTransRad output array for storage incoherent transition radiation
+             * @param cohTransRadPara output array for storage of parallel parts of coherent transition radiation
+             * @param cohTransRadPerp output array for storage of perpendicular parts of coherent transition radiation
+             * @param numParticles output array for amount of particles
+             * @param globalOffset offset of simulation
+             * @param mapper MappingDesction object
+             * @param freqFkt frequency functor
+             * @param simBoxSize size of simulation box
+             */
+            template<uint32_t T_numWorkers>
+            struct KernelTransRadParticles
             {
-                // select SuperCell and add one sided guard again
-                DataSpace< simDim > const superCell = DataSpaceOperations< simDim >::map(
-                    superCellsCount,
-                    superCellIndex
-                ) + guardingSuperCells;
-
-
-                // -guardingSuperCells remove guarding block
-                DataSpace< simDim > const superCellOffset(
-                    globalOffset + (
-                        ( superCell - guardingSuperCells ) *
-                        SuperCellSize::toRT( )
-                    )
-                );
-
-                // pointer to  frame storing particles
-                FramePtr frame = pb.getLastFrame( superCell );
-
-                // number  of particles in current frame
-                lcellId_t particlesInFrame = pb.getSuperCell( superCell ).getSizeLastFrame( );
-
-                /* go to next supercell
-                *
-                * if "isValid" is false then there is no frame
-                * inside the superCell (anymore)
-                */
-                while( frame.isValid( ) )
+                template<
+                    typename T_ParBox,
+                    typename T_DBox,
+                    typename T_DBoxComplex, // Formfactor returns complex values
+                    typename T_Mapping,
+                    typename T_Acc>
+                DINLINE void operator()(
+                    T_Acc const& acc,
+                    T_ParBox pb,
+                    T_DBox incTransRad,
+                    T_DBoxComplex cohTransRadPara,
+                    T_DBoxComplex cohTransRadPerp,
+                    T_DBox numParticles,
+                    DataSpace<simDim> globalOffset,
+                    T_Mapping mapper,
+                    transitionRadiation::frequencies::FreqFunctor freqFkt,
+                    DataSpace<simDim> simBoxSize) const
                 {
-                    /* since a race condition can occur if "continue loop" is called,
-                    *  all threads must wait for the selection of a new frame
-                    *  until all threads have evaluated "isValid"
-                    */
-                    cupla::__syncthreads( acc );
+                    using namespace mappings::threads;
+                    using complex_X = pmacc::math::Complex<float_X>;
+                    using complex_64 = pmacc::math::Complex<float_64>;
 
-                    ForEachIdx<
-                        IdxConfig<
-                            1,
-                            numWorker
-                        >
-                    > onlyMaster{ workerIdx };
+                    constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                    constexpr uint32_t numWorker = T_numWorkers;
 
-                    /* The Master process (thread 0) in every thread block is in
-                    * charge of loading a frame from
-                    * the current super cell and evaluate the total number of
-                    * particles in this frame.
-                    */
-                    onlyMaster(
-                        [ & ](
-                            uint32_t const,
-                            uint32_t const
-                        )
-                        {
-                            counter_s = 0;
-                        }
-                    );
+                    using FrameType = typename T_ParBox::FrameType;
+                    using FramePtr = typename T_ParBox::FramePtr;
 
-                    cupla::__syncthreads( acc );
+                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-                    using ParticleDomCfg = IdxConfig<
-                        frameSize,
-                        numWorker
-                    >;
+                    /* parallelized in 2 dimensions:
+                     * looking direction (theta, phi)
+                     * (not anymore data handling)
+                     * create shared memory for particle data to reduce global memory calls
+                     * every thread in a block loads one particle and every thread runs
+                     * through all particles and calculates the radiation for one direction
+                     * for all frequencies
+                     */
+                    constexpr int blockSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
-                    // loop over all particles in the frame
-                    ForEachIdx< ParticleDomCfg > forEachParticle{ workerIdx };
+                    // perpendicular part of normalized energy
+                    PMACC_SMEM(acc, energyPerp_s, memory::Array<float_X, blockSize>);
 
-                    forEachParticle(
-                        [ & ](
-                            uint32_t const linearIdx,
-                            uint32_t const
-                        )
-                        {
-                            // only threads with particles are running
-                            if( linearIdx < particlesInFrame )
-                            {
-                                auto par = frame[ linearIdx ];
-                                // get particle momenta
-                                float3_X const particleMomentum = par[ momentum_ ];
-                                /* initializes "saveParticleAt" flag with -1
-                                * because "counter_s" will never be -1
-                                * therefore, if a particle is saved, a value of counter
-                                * is stored in "saveParticleAt" != -1
-                                * THIS IS ACTUALLY ONLY NEEDED IF: the radiation flag was set
-                                * LATER: can this be optimized?
-                                */
+                    // parallel part of normalized energy
+                    PMACC_SMEM(acc, energyPara_s, memory::Array<float_X, blockSize>);
 
-                                int saveParticleAt = -1;
+                    // exponent of the form factor
+                    PMACC_SMEM(acc, formfactorExponent_s, memory::Array<complex_X, blockSize>);
 
-                                // only moving particles create transition radiation
-                                if( ( particleMomentum * particleMomentum ).sumOfComponents( ) > 0.0)
-                                {
-                                    if( transitionRadiation::getTransitionRadiationMask( par ) )
-                                        saveParticleAt = nvidia::atomicAllInc(
-                                            acc,
-                                            &counter_s,
-                                            ::alpaka::hierarchy::Threads{ }
-                                        );
+                    // storage for macro particle weighting needed if
+                    // the coherent and incoherent radiation of a single
+                    // macro-particle needs to be considered
+                    PMACC_SMEM(acc, radWeighting_s, memory::Array<float_X, blockSize>);
 
-                                    /* for information:
-                                    *   atomicAdd returns an int with the previous
-                                    *   value of "counter_s" != -1
-                                    *   therefore, if a particle is selected
-                                    *   "saveParticleAt" != -1
-                                    */
-                                    // if a particle needs to be considered
-                                    if( saveParticleAt != -1 )
-                                    {
-                                        // calculate global position
-                                        lcellId_t const cellIdx = par[ localCellIdx_ ];
+                    // particle counter used if not all particles are considered for
+                    // radiation calculation
+                    PMACC_SMEM(acc, counter_s, int);
 
-                                        // position inside of the cell
-                                        floatD_X const pos = par[ position_ ];
 
-                                        // calculate global position of cell
-                                        DataSpace< simDim > const globalPos(
-                                            superCellOffset +
-                                            DataSpaceOperations< simDim >::
-                                                template map< SuperCellSize >( cellIdx )
-                                        );
+                    int const theta_idx = cupla::blockIdx(acc).x; // cupla::blockIdx(acc).x is used to determine theta
 
-                                        // add global position of cell with local position of particle in cell
-                                        float3_X particleLocation;
-                                        // set z component to zero in case of simDim==DIM2
-                                        particleLocation[ 2 ] = 0.0;
-                                        // run over all components and compute gobal position
-                                        for( int i = 0; i < simDim; ++i )
-                                            particleLocation[ i ] = (
-                                                float_X( globalPos[ i ] ) + pos[ i ]
-                                            ) * cellSize[ i ];
+                    // looking direction (needed for observer) used in the thread
+                    float3_X const look = transitionRadiation::observationDirection(theta_idx);
 
-                                        /* get macro-particle weighting
-                                        *
-                                        * Info:
-                                        * the weighting is the number of real particles described
-                                        * by a macro-particle
-                                        */
-                                        float_X const weighting = par[ weighting_ ];
-                                        radWeighting_s[ saveParticleAt ] = weighting;
+                    // get extent of guarding super cells (needed to ignore them)
+                    DataSpace<simDim> const guardingSuperCells = mapper.getGuardingSuperCells();
 
-                                        // mass of macro-particle
-                                        float_X const particleMass = attribute::getMass(
-                                            weighting,
-                                            par
-                                        );
+                    /* number of super cells on GPU per dimension (still including guard cells)
+                     * remove both guards from count [later one sided guard needs to be added again]
+                     */
+                    DataSpace<simDim> const superCellsCount(mapper.getGridSuperCells() - 2 * guardingSuperCells);
 
-                                        // using transition radiation particle class
-                                        transitionRadiation::Particle particle(
-                                            particleLocation,
-                                            particleMomentum,
-                                            particleMass
-                                        );
+                    // get absolute number of relevant super cells
+                    int const numSuperCells = superCellsCount.productOfComponents();
 
-                                        // only propagate particles if it is set up in transitionRadiation.param
-                                        if(  parameters::foilPosition != 0.0 )
-                                            particle.propagate( propagationDistance );
+                    // propagation distance for the particle bunch
+                    float_X const propagationDistance = parameters::foilPosition - globalOffset[1];
 
-                                        // create calculator for TR calculations
-                                        transitionRadiation::Calculator const calculator =  transitionRadiation::Calculator(
-                                            particle,
-                                            look
-                                        );
 
-                                        // calculate values for transition radiation
-                                        energyPara_s[ saveParticleAt ] = calculator.calcEnergyPara( );
-
-                                        energyPerp_s[ saveParticleAt ] = calculator.calcEnergyPerp( );
-
-                                        formfactorExponent_s[ saveParticleAt ] = calculator.calcFormFactorExponent( );
-                                    }
-                                } // only moving particles
-                            } // only threads with particle
-                        }
-                    ); // for each particle
-                    cupla::__syncthreads( acc );
-
-                    // run over all  valid omegas for this thread
-                    for( int o = workerIdx; o < transitionRadiation::frequencies::nOmega; o += T_numWorkers )
+                    /* go over all super cells on GPU
+                     * but ignore all guarding supercells
+                     */
+                    for(int superCellIndex = 0; superCellIndex <= numSuperCells; ++superCellIndex)
                     {
-                        float_X itrSum = 0.0;
-                        float_X totalParticles = 0.0;
-                        complex_X ctrSumPara = complex_X( 0.0, 0.0 );
-                        complex_X ctrSumPerp = complex_X( 0.0, 0.0 );
+                        // select SuperCell and add one sided guard again
+                        DataSpace<simDim> const superCell
+                            = DataSpaceOperations<simDim>::map(superCellsCount, superCellIndex) + guardingSuperCells;
 
-                        // create a form factor object for physical correct coherence effects within macro-particles
-                        macroParticleFormFactor::radFormFactor const macroParticleFormFactor{ };
 
-                        for( int j = 0; j < counter_s; ++j )
+                        // -guardingSuperCells remove guarding block
+                        DataSpace<simDim> const superCellOffset(
+                            globalOffset + ((superCell - guardingSuperCells) * SuperCellSize::toRT()));
+
+                        // pointer to  frame storing particles
+                        FramePtr frame = pb.getLastFrame(superCell);
+
+                        // number  of particles in current frame
+                        lcellId_t particlesInFrame = pb.getSuperCell(superCell).getSizeLastFrame();
+
+                        /* go to next supercell
+                         *
+                         * if "isValid" is false then there is no frame
+                         * inside the superCell (anymore)
+                         */
+                        while(frame.isValid())
                         {
-                            float_X const omega = freqFkt( o );
-                            complex_X const formfactor = transitionRadiation::calcFormFactor(
-                                omega,
-                                formfactorExponent_s[ j ]
-                            ) * macroParticleFormFactor(
-                                radWeighting_s[ j ],
-                                omega,
-                                look
-                            );
+                            /* since a race condition can occur if "continue loop" is called,
+                             *  all threads must wait for the selection of a new frame
+                             *  until all threads have evaluated "isValid"
+                             */
+                            cupla::__syncthreads(acc);
 
-                            itrSum += radWeighting_s[ j ] * (
-                                energyPerp_s[ j ] * energyPerp_s[ j ] +
-                                energyPara_s[ j ] * energyPara_s[ j ]
-                            );
-                            totalParticles += radWeighting_s[ j ];
+                            ForEachIdx<IdxConfig<1, numWorker>> onlyMaster{workerIdx};
 
-                            ctrSumPara += energyPara_s[ j ] * formfactor;
-                            ctrSumPerp += energyPerp_s[ j ] * formfactor;
-                        }
+                            /* The Master process (thread 0) in every thread block is in
+                             * charge of loading a frame from
+                             * the current super cell and evaluate the total number of
+                             * particles in this frame.
+                             */
+                            onlyMaster([&](uint32_t const, uint32_t const) { counter_s = 0; });
 
-                        int const index = theta_idx * transitionRadiation::frequencies::nOmega + o;
-                        incTransRad[ index ] += itrSum;
-                        numParticles[ index ] += totalParticles;
-                        cohTransRadPara[ index ] += ctrSumPara;
-                        cohTransRadPerp[ index ] += ctrSumPerp;
-                    }
+                            cupla::__syncthreads(acc);
 
-                    cupla::__syncthreads( acc );
+                            using ParticleDomCfg = IdxConfig<frameSize, numWorker>;
 
-                    /* First threads starts loading next frame of the super-cell:
-                    *
-                    * Info:
-                    *   The calculation starts with the last SuperCell (must not be full filled)
-                    *   all previous SuperCells are full with particles
-                    */
-                    particlesInFrame = frameSize;
-                    frame = pb.getPreviousFrame( frame );
-                } // while frame is valid
-            } // for all supercells
-        }
-    }; // struct KernelTransRad
+                            // loop over all particles in the frame
+                            ForEachIdx<ParticleDomCfg> forEachParticle{workerIdx};
 
-} // namespace transitionRadiation
-} // namespace plugins
+                            forEachParticle([&](uint32_t const linearIdx, uint32_t const) {
+                                // only threads with particles are running
+                                if(linearIdx < particlesInFrame)
+                                {
+                                    auto par = frame[linearIdx];
+                                    // get particle momenta
+                                    float3_X const particleMomentum = par[momentum_];
+                                    /* initializes "saveParticleAt" flag with -1
+                                     * because "counter_s" will never be -1
+                                     * therefore, if a particle is saved, a value of counter
+                                     * is stored in "saveParticleAt" != -1
+                                     * THIS IS ACTUALLY ONLY NEEDED IF: the radiation flag was set
+                                     * LATER: can this be optimized?
+                                     */
+
+                                    int saveParticleAt = -1;
+
+                                    // only moving particles create transition radiation
+                                    if((particleMomentum * particleMomentum).sumOfComponents() > 0.0)
+                                    {
+                                        if(transitionRadiation::getTransitionRadiationMask(par))
+                                            saveParticleAt = nvidia::atomicAllInc(
+                                                acc,
+                                                &counter_s,
+                                                ::alpaka::hierarchy::Threads{});
+
+                                        /* for information:
+                                         *   atomicAdd returns an int with the previous
+                                         *   value of "counter_s" != -1
+                                         *   therefore, if a particle is selected
+                                         *   "saveParticleAt" != -1
+                                         */
+                                        // if a particle needs to be considered
+                                        if(saveParticleAt != -1)
+                                        {
+                                            // calculate global position
+                                            lcellId_t const cellIdx = par[localCellIdx_];
+
+                                            // position inside of the cell
+                                            floatD_X const pos = par[position_];
+
+                                            // calculate global position of cell
+                                            DataSpace<simDim> const globalPos(
+                                                superCellOffset
+                                                + DataSpaceOperations<simDim>::template map<SuperCellSize>(cellIdx));
+
+                                            // add global position of cell with local position of particle in cell
+                                            float3_X particleLocation;
+                                            // set z component to zero in case of simDim==DIM2
+                                            particleLocation[2] = 0.0;
+                                            // run over all components and compute gobal position
+                                            for(int i = 0; i < simDim; ++i)
+                                                particleLocation[i] = (float_X(globalPos[i]) + pos[i]) * cellSize[i];
+
+                                            /* get macro-particle weighting
+                                             *
+                                             * Info:
+                                             * the weighting is the number of real particles described
+                                             * by a macro-particle
+                                             */
+                                            float_X const weighting = par[weighting_];
+                                            radWeighting_s[saveParticleAt] = weighting;
+
+                                            // mass of macro-particle
+                                            float_X const particleMass = attribute::getMass(weighting, par);
+
+                                            // using transition radiation particle class
+                                            transitionRadiation::Particle particle(
+                                                particleLocation,
+                                                particleMomentum,
+                                                particleMass);
+
+                                            // only propagate particles if it is set up in transitionRadiation.param
+                                            if(parameters::foilPosition != 0.0)
+                                                particle.propagate(propagationDistance);
+
+                                            // create calculator for TR calculations
+                                            transitionRadiation::Calculator const calculator
+                                                = transitionRadiation::Calculator(particle, look);
+
+                                            // calculate values for transition radiation
+                                            energyPara_s[saveParticleAt] = calculator.calcEnergyPara();
+
+                                            energyPerp_s[saveParticleAt] = calculator.calcEnergyPerp();
+
+                                            formfactorExponent_s[saveParticleAt] = calculator.calcFormFactorExponent();
+                                        }
+                                    } // only moving particles
+                                } // only threads with particle
+                            }); // for each particle
+                            cupla::__syncthreads(acc);
+
+                            // run over all  valid omegas for this thread
+                            for(int o = workerIdx; o < transitionRadiation::frequencies::nOmega; o += T_numWorkers)
+                            {
+                                float_X itrSum = 0.0;
+                                float_X totalParticles = 0.0;
+                                complex_X ctrSumPara = complex_X(0.0, 0.0);
+                                complex_X ctrSumPerp = complex_X(0.0, 0.0);
+
+                                // create a form factor object for physical correct coherence effects within
+                                // macro-particles
+                                macroParticleFormFactor::radFormFactor const macroParticleFormFactor{};
+
+                                for(int j = 0; j < counter_s; ++j)
+                                {
+                                    float_X const omega = freqFkt(o);
+                                    complex_X const formfactor
+                                        = transitionRadiation::calcFormFactor(omega, formfactorExponent_s[j])
+                                        * macroParticleFormFactor(radWeighting_s[j], omega, look);
+
+                                    itrSum += radWeighting_s[j]
+                                        * (energyPerp_s[j] * energyPerp_s[j] + energyPara_s[j] * energyPara_s[j]);
+                                    totalParticles += radWeighting_s[j];
+
+                                    ctrSumPara += energyPara_s[j] * formfactor;
+                                    ctrSumPerp += energyPerp_s[j] * formfactor;
+                                }
+
+                                int const index = theta_idx * transitionRadiation::frequencies::nOmega + o;
+                                incTransRad[index] += itrSum;
+                                numParticles[index] += totalParticles;
+                                cohTransRadPara[index] += ctrSumPara;
+                                cohTransRadPerp[index] += ctrSumPerp;
+                            }
+
+                            cupla::__syncthreads(acc);
+
+                            /* First threads starts loading next frame of the super-cell:
+                             *
+                             * Info:
+                             *   The calculation starts with the last SuperCell (must not be full filled)
+                             *   all previous SuperCells are full with particles
+                             */
+                            particlesInFrame = frameSize;
+                            frame = pb.getPreviousFrame(frame);
+                        } // while frame is valid
+                    } // for all supercells
+                }
+            }; // struct KernelTransRad
+
+        } // namespace transitionRadiation
+    } // namespace plugins
 } // namespace picongpu

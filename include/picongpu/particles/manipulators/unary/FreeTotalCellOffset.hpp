@@ -28,133 +28,106 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
-namespace unary
-{
-namespace acc
-{
-    template< typename T_Functor >
-    struct FreeTotalCellOffset : private T_Functor
+    namespace particles
     {
-
-        using Functor = T_Functor;
-
-        HDINLINE FreeTotalCellOffset(
-            Functor const & functor,
-            DataSpace< simDim > const & superCellToLocalOriginCellOffset
-        ) :
-            T_Functor( functor ),
-            m_superCellToLocalOriginCellOffset( superCellToLocalOriginCellOffset )
+        namespace manipulators
         {
-        }
+            namespace unary
+            {
+                namespace acc
+                {
+                    template<typename T_Functor>
+                    struct FreeTotalCellOffset : private T_Functor
+                    {
+                        using Functor = T_Functor;
 
-        /** call user functor
-         *
-         * The random number generator is initialized with the first call.
-         *
-         * @tparam T_Particle type of the particle to manipulate
-         * @tparam T_Args type of the arguments passed to the user functor
-         * @tparam T_Acc alpaka accelerator type
-         *
-         * @param alpaka accelerator
-         * @param particle particle which is given to the user functor
-         * @return void is used to enable the operator if the user functor expects two arguments
-         */
-        template<
-            typename T_Particle,
-            typename T_Acc
-        >
-        HDINLINE
-        void operator()(
-            T_Acc const &,
-            T_Particle & particle
-        )
-        {
-            DataSpace< simDim > const cellInSuperCell(
-                DataSpaceOperations< simDim >::template map< SuperCellSize >( particle[ localCellIdx_ ] )
-            );
-            Functor::operator( )(
-                m_superCellToLocalOriginCellOffset + cellInSuperCell,
-                particle
-            );
-        }
+                        HDINLINE FreeTotalCellOffset(
+                            Functor const& functor,
+                            DataSpace<simDim> const& superCellToLocalOriginCellOffset)
+                            : T_Functor(functor)
+                            , m_superCellToLocalOriginCellOffset(superCellToLocalOriginCellOffset)
+                        {
+                        }
 
-    private:
+                        /** call user functor
+                         *
+                         * The random number generator is initialized with the first call.
+                         *
+                         * @tparam T_Particle type of the particle to manipulate
+                         * @tparam T_Args type of the arguments passed to the user functor
+                         * @tparam T_Acc alpaka accelerator type
+                         *
+                         * @param alpaka accelerator
+                         * @param particle particle which is given to the user functor
+                         * @return void is used to enable the operator if the user functor expects two arguments
+                         */
+                        template<typename T_Particle, typename T_Acc>
+                        HDINLINE void operator()(T_Acc const&, T_Particle& particle)
+                        {
+                            DataSpace<simDim> const cellInSuperCell(
+                                DataSpaceOperations<simDim>::template map<SuperCellSize>(particle[localCellIdx_]));
+                            Functor::operator()(m_superCellToLocalOriginCellOffset + cellInSuperCell, particle);
+                        }
 
-        DataSpace< simDim > const m_superCellToLocalOriginCellOffset;
-    };
-} // namespace acc
+                    private:
+                        DataSpace<simDim> const m_superCellToLocalOriginCellOffset;
+                    };
+                } // namespace acc
 
-    template< typename T_Functor >
-    struct FreeTotalCellOffset :
-        protected functor::User< T_Functor >,
-        private functor::misc::TotalCellOffset
-    {
-        using CellOffsetFunctor = functor::misc::TotalCellOffset;
-        using Functor = functor::User< T_Functor >;
+                template<typename T_Functor>
+                struct FreeTotalCellOffset
+                    : protected functor::User<T_Functor>
+                    , private functor::misc::TotalCellOffset
+                {
+                    using CellOffsetFunctor = functor::misc::TotalCellOffset;
+                    using Functor = functor::User<T_Functor>;
 
-        template< typename T_SpeciesType >
-        struct apply
-        {
-            using type = FreeTotalCellOffset;
-        };
+                    template<typename T_SpeciesType>
+                    struct apply
+                    {
+                        using type = FreeTotalCellOffset;
+                    };
 
-        /** constructor
-         *
-         * @param currentStep current simulation time step
-         */
-        HINLINE FreeTotalCellOffset( uint32_t currentStep ) :
-            Functor( currentStep ),
-            CellOffsetFunctor( currentStep )
-        {
-        }
+                    /** constructor
+                     *
+                     * @param currentStep current simulation time step
+                     */
+                    HINLINE FreeTotalCellOffset(uint32_t currentStep)
+                        : Functor(currentStep)
+                        , CellOffsetFunctor(currentStep)
+                    {
+                    }
 
-        /** create functor for the accelerator
-         *
-         * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
-         * @tparam T_Acc alpaka accelerator type
-         *
-         * @param alpaka accelerator
-         * @param localSupercellOffset offset (in superCells, without any guards) relative
-         *                             to the origin of the local domain
-         * @param workerCfg configuration of the worker
-         */
-        template<
-            typename T_WorkerCfg,
-            typename T_Acc
-        >
-        HDINLINE auto
-        operator()(
-            T_Acc const & acc,
-            DataSpace< simDim > const & localSupercellOffset,
-            T_WorkerCfg const & workerCfg
-        ) const
-        -> acc::FreeTotalCellOffset< Functor >
-        {
-            auto & cellOffsetFunctor = *static_cast< CellOffsetFunctor const * >( this );
-            return acc::FreeTotalCellOffset< Functor >(
-                *static_cast< Functor const * >( this ),
-                cellOffsetFunctor(
-                    acc,
-                    localSupercellOffset,
-                    workerCfg
-                )
-            );
-        }
+                    /** create functor for the accelerator
+                     *
+                     * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+                     * @tparam T_Acc alpaka accelerator type
+                     *
+                     * @param alpaka accelerator
+                     * @param localSupercellOffset offset (in superCells, without any guards) relative
+                     *                             to the origin of the local domain
+                     * @param workerCfg configuration of the worker
+                     */
+                    template<typename T_WorkerCfg, typename T_Acc>
+                    HDINLINE auto operator()(
+                        T_Acc const& acc,
+                        DataSpace<simDim> const& localSupercellOffset,
+                        T_WorkerCfg const& workerCfg) const -> acc::FreeTotalCellOffset<Functor>
+                    {
+                        auto& cellOffsetFunctor = *static_cast<CellOffsetFunctor const*>(this);
+                        return acc::FreeTotalCellOffset<Functor>(
+                            *static_cast<Functor const*>(this),
+                            cellOffsetFunctor(acc, localSupercellOffset, workerCfg));
+                    }
 
-        static
-        HINLINE std::string
-        getName( )
-        {
-            // we provide the name from the param class
-            return Functor::name;
-        }
-    };
+                    static HINLINE std::string getName()
+                    {
+                        // we provide the name from the param class
+                        return Functor::name;
+                    }
+                };
 
-} // namespace unary
-} // namespace manipulators
-} // namespace particles
+            } // namespace unary
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

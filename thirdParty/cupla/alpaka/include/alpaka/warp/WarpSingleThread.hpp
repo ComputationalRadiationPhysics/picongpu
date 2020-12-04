@@ -25,13 +25,13 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             WarpSingleThread() = default;
             //-----------------------------------------------------------------------------
-            WarpSingleThread(WarpSingleThread const &) = delete;
+            WarpSingleThread(WarpSingleThread const&) = delete;
             //-----------------------------------------------------------------------------
-            WarpSingleThread(WarpSingleThread &&) = delete;
+            WarpSingleThread(WarpSingleThread&&) = delete;
             //-----------------------------------------------------------------------------
-            auto operator=(WarpSingleThread const &) -> WarpSingleThread & = delete;
+            auto operator=(WarpSingleThread const&) -> WarpSingleThread& = delete;
             //-----------------------------------------------------------------------------
-            auto operator=(WarpSingleThread &&) -> WarpSingleThread & = delete;
+            auto operator=(WarpSingleThread&&) -> WarpSingleThread& = delete;
             //-----------------------------------------------------------------------------
             ~WarpSingleThread() = default;
         };
@@ -40,12 +40,10 @@ namespace alpaka
         {
             //#############################################################################
             template<>
-            struct GetSize<
-                WarpSingleThread>
+            struct GetSize<WarpSingleThread>
             {
                 //-----------------------------------------------------------------------------
-                static auto getSize(
-                    warp::WarpSingleThread const & /*warp*/)
+                static auto getSize(warp::WarpSingleThread const& /*warp*/)
                 {
                     return 1;
                 }
@@ -53,12 +51,10 @@ namespace alpaka
 
             //#############################################################################
             template<>
-            struct Activemask<
-                WarpSingleThread>
+            struct Activemask<WarpSingleThread>
             {
                 //-----------------------------------------------------------------------------
-                static auto activemask(
-                    warp::WarpSingleThread const & /*warp*/)
+                static auto activemask(warp::WarpSingleThread const& /*warp*/)
                 {
                     return 1u;
                 }
@@ -66,13 +62,10 @@ namespace alpaka
 
             //#############################################################################
             template<>
-            struct All<
-                WarpSingleThread>
+            struct All<WarpSingleThread>
             {
                 //-----------------------------------------------------------------------------
-                static auto all(
-                    warp::WarpSingleThread const & /*warp*/,
-                    std::int32_t predicate)
+                static auto all(warp::WarpSingleThread const& /*warp*/, std::int32_t predicate)
                 {
                     return predicate;
                 }
@@ -80,13 +73,10 @@ namespace alpaka
 
             //#############################################################################
             template<>
-            struct Any<
-                WarpSingleThread>
+            struct Any<WarpSingleThread>
             {
                 //-----------------------------------------------------------------------------
-                static auto any(
-                    warp::WarpSingleThread const & /*warp*/,
-                    std::int32_t predicate)
+                static auto any(warp::WarpSingleThread const& /*warp*/, std::int32_t predicate)
                 {
                     return predicate;
                 }
@@ -94,17 +84,14 @@ namespace alpaka
 
             //#############################################################################
             template<>
-            struct Ballot<
-                WarpSingleThread>
+            struct Ballot<WarpSingleThread>
             {
                 //-----------------------------------------------------------------------------
-                static auto ballot(
-                    warp::WarpSingleThread const & /*warp*/,
-                    std::int32_t predicate)
+                static auto ballot(warp::WarpSingleThread const& /*warp*/, std::int32_t predicate)
                 {
                     return predicate ? 1u : 0u;
                 }
             };
-        }
-    }
-}
+        } // namespace traits
+    } // namespace warp
+} // namespace alpaka

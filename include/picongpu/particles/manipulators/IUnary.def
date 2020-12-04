@@ -27,41 +27,29 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
+    namespace particles
+    {
+        namespace manipulators
+        {
+            /** interface for a unary filtered particle functor
+             *
+             * The functor is only called if the filter result is `true`.
+             * The user functor and filter is passed by the manipulation algorithm
+             * (e.g. picongpu::particles::Manipulate, ...) to this interface, there is
+             * no need to do this explicitly in the param files.
+             *
+             * @tparam T_UnaryFunctor unary particle functor, must contain
+             *                         `void operator()(P & particle, ...)`
+             *                          and support at least one particle
+             * @tparam T_UnaryFilter unary particle filter must contain `bool operator()(P particle)`,
+             *                       each particle of the `T_UnaryFunctor::operator()` is passed through the filter
+             */
+            template<typename T_UnaryFunctor, typename T_UnaryFilter = filter::All>
+            using IUnary = pmacc::functor::Filtered<
+                pmacc::filter::operators::And,
+                pmacc::filter::Interface<T_UnaryFilter, 1u>,
+                pmacc::functor::Interface<T_UnaryFunctor, 1u, void>>;
 
-    /** interface for a unary filtered particle functor
-     *
-     * The functor is only called if the filter result is `true`.
-     * The user functor and filter is passed by the manipulation algorithm
-     * (e.g. picongpu::particles::Manipulate, ...) to this interface, there is
-     * no need to do this explicitly in the param files.
-     *
-     * @tparam T_UnaryFunctor unary particle functor, must contain
-     *                         `void operator()(P & particle, ...)`
-     *                          and support at least one particle
-     * @tparam T_UnaryFilter unary particle filter must contain `bool operator()(P particle)`,
-     *                       each particle of the `T_UnaryFunctor::operator()` is passed through the filter
-     */
-    template<
-        typename T_UnaryFunctor,
-        typename T_UnaryFilter = filter::All
-    >
-    using IUnary = pmacc::functor::Filtered<
-        pmacc::filter::operators::And,
-        pmacc::filter::Interface<
-            T_UnaryFilter,
-            1u
-        >,
-        pmacc::functor::Interface<
-            T_UnaryFunctor,
-            1u,
-            void
-        >
-    >;
-
-} // namespace manipulators
-} // namespace particles
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

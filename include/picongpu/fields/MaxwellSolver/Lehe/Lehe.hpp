@@ -29,32 +29,20 @@
 
 namespace pmacc
 {
-namespace traits
-{
-
-    template<
-        typename T_CurrentInterpolation,
-        uint32_t T_cherenkovFreeDir
-    >
-    struct StringProperties<
-        ::picongpu::fields::maxwellSolver::Lehe<
-            T_CurrentInterpolation,
-            T_cherenkovFreeDir
-        >
-    >
+    namespace traits
     {
-        static StringProperty get()
+        template<typename T_CurrentInterpolation, uint32_t T_cherenkovFreeDir>
+        struct StringProperties<::picongpu::fields::maxwellSolver::Lehe<T_CurrentInterpolation, T_cherenkovFreeDir>>
         {
-            auto propList =
-                ::picongpu::fields::maxwellSolver::Lehe<
-                    T_CurrentInterpolation,
-                    T_cherenkovFreeDir
-                >::getStringProperties();
-            // overwrite the name of the Yee solver (inherit all other properties)
-            propList["name"].value = "Lehe";
-            return propList;
-        }
-    };
+            static StringProperty get()
+            {
+                auto propList = ::picongpu::fields::maxwellSolver::Lehe<T_CurrentInterpolation, T_cherenkovFreeDir>::
+                    getStringProperties();
+                // overwrite the name of the Yee solver (inherit all other properties)
+                propList["name"].value = "Lehe";
+                return propList;
+            }
+        };
 
-} // namespace traits
+    } // namespace traits
 } // namespace pmacc

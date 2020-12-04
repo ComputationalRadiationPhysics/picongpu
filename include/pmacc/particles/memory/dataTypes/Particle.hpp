@@ -49,295 +49,246 @@
 
 namespace pmacc
 {
+    namespace pmath = pmacc::math;
 
-namespace pmath = pmacc::math;
-
-/** A single particle of a @see Frame
- *
- * A instance of this Particle is a representation ("pointer") to the memory
- * where the frame is stored.
- *
- * @tparam T_FrameType type of the parent frame
- * @tparam T_ValueTypeSeq sequence with all attribute identifiers
- *                        (can be a subset of T_FrameType::ValueTypeSeq)
- */
-template<typename T_FrameType, typename T_ValueTypeSeq = typename T_FrameType::ValueTypeSeq>
-struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
-{
-    typedef T_FrameType FrameType;
-    typedef T_ValueTypeSeq ValueTypeSeq;
-    typedef typename FrameType::Name Name;
-    typedef typename FrameType::SuperCellSize SuperCellSize;
-    typedef Particle<FrameType, ValueTypeSeq> ThisType;
-    typedef typename FrameType::MethodsList MethodsList;
-
-    /** index of particle inside the Frame*/
-    PMACC_ALIGN(idx, uint32_t);
-
-    /** pointer to parent frame where this particle is from
+    /** A single particle of a @see Frame
      *
-     * ATTENTION: The pointer must be the last member to avoid local memory usage
-     *            https://github.com/ComputationalRadiationPhysics/picongpu/pull/762
-     */
-    PMACC_ALIGN(frame, FrameType*);
-
-    /** set particle handle to invalid
+     * A instance of this Particle is a representation ("pointer") to the memory
+     * where the frame is stored.
      *
-     * This method sets the particle handle to invalid. It is possible to test with
-     * the method isHandleValid if the particle is valid.
-     * If the particle is set to invalid it is not allowed to call any method other
-     * than isHandleValid or setHandleInvalid, but it does not mean the particle is
-     * deactivated outside of this instance.
+     * @tparam T_FrameType type of the parent frame
+     * @tparam T_ValueTypeSeq sequence with all attribute identifiers
+     *                        (can be a subset of T_FrameType::ValueTypeSeq)
      */
-    HDINLINE void setHandleInvalid()
+    template<typename T_FrameType, typename T_ValueTypeSeq = typename T_FrameType::ValueTypeSeq>
+    struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     {
-        frame = nullptr;
-    }
+        typedef T_FrameType FrameType;
+        typedef T_ValueTypeSeq ValueTypeSeq;
+        typedef typename FrameType::Name Name;
+        typedef typename FrameType::SuperCellSize SuperCellSize;
+        typedef Particle<FrameType, ValueTypeSeq> ThisType;
+        typedef typename FrameType::MethodsList MethodsList;
 
-    /** check if particle handle is valid
-     *
-     * A valid particle handle means that the memory behind the handle can be used
-     * savely. A valid handle does not mean that the particle's multiMask is valid (>=1).
-     *
-     * @return true if the particle handle is valid, else false
-     */
-    HDINLINE bool isHandleValid() const
-    {
-        return frame != nullptr;
-    }
+        /** index of particle inside the Frame*/
+        PMACC_ALIGN(idx, uint32_t);
 
-    /** create particle
-     *
-     * @param frame reference to parent frame
-     * @param idx index of particle inside the frame
-     */
-    HDINLINE Particle(FrameType& frame, uint32_t idx) : frame(&frame), idx(idx)
-    {
-    }
+        /** pointer to parent frame where this particle is from
+         *
+         * ATTENTION: The pointer must be the last member to avoid local memory usage
+         *            https://github.com/ComputationalRadiationPhysics/picongpu/pull/762
+         */
+        PMACC_ALIGN(frame, FrameType*);
 
-    template<typename T_OtherParticle >
-    HDINLINE Particle(const T_OtherParticle& other) : frame(other.frame), idx(other.idx)
-    {
-    }
+        /** set particle handle to invalid
+         *
+         * This method sets the particle handle to invalid. It is possible to test with
+         * the method isHandleValid if the particle is valid.
+         * If the particle is set to invalid it is not allowed to call any method other
+         * than isHandleValid or setHandleInvalid, but it does not mean the particle is
+         * deactivated outside of this instance.
+         */
+        HDINLINE void setHandleInvalid()
+        {
+            frame = nullptr;
+        }
 
-    /** access attribute with a identifier
-     *
-     * @param T_Key instance of identifier type
-     *              (can be an alias, value_identifier or any other class)
-     * @return result of operator[] of the Frame
-     */
-    template<typename T_Key >
-    HDINLINE
-    typename boost::result_of<
-    typename boost::remove_reference<
-    typename boost::result_of < FrameType(T_Key)>::type
-    >::type(uint32_t)
-    >::type
-    operator[](const T_Key key)
-    {
-        PMACC_CASSERT_MSG_TYPE(
-            key_not_available,
-            T_Key,
-            traits::HasIdentifier< Particle, T_Key >::type::value
-        );
+        /** check if particle handle is valid
+         *
+         * A valid particle handle means that the memory behind the handle can be used
+         * savely. A valid handle does not mean that the particle's multiMask is valid (>=1).
+         *
+         * @return true if the particle handle is valid, else false
+         */
+        HDINLINE bool isHandleValid() const
+        {
+            return frame != nullptr;
+        }
 
-        return frame->getIdentifier(key)[idx];
-    }
+        /** create particle
+         *
+         * @param frame reference to parent frame
+         * @param idx index of particle inside the frame
+         */
+        HDINLINE Particle(FrameType& frame, uint32_t idx) : frame(&frame), idx(idx)
+        {
+        }
 
-    /** const version of method operator(const T_Key) */
-    template<typename T_Key >
-    HDINLINE
-    typename boost::result_of<
-    typename boost::remove_reference<
-    typename boost::result_of <const FrameType(T_Key)>::type
-    >::type(uint32_t)
-    >::type
-    operator[](const T_Key key) const
-    {
-        PMACC_CASSERT_MSG_TYPE(
-            key_not_available,
-            T_Key,
-            traits::HasIdentifier< Particle, T_Key >::type::value
-        );
+        template<typename T_OtherParticle>
+        HDINLINE Particle(const T_OtherParticle& other) : frame(other.frame)
+                                                        , idx(other.idx)
+        {
+        }
 
-        return frame->getIdentifier(key)[idx];
-    }
+        /** access attribute with a identifier
+         *
+         * @param T_Key instance of identifier type
+         *              (can be an alias, value_identifier or any other class)
+         * @return result of operator[] of the Frame
+         */
+        template<typename T_Key>
+        HDINLINE typename boost::result_of<
+            typename boost::remove_reference<typename boost::result_of<FrameType(T_Key)>::type>::type(uint32_t)>::type
+        operator[](const T_Key key)
+        {
+            PMACC_CASSERT_MSG_TYPE(key_not_available, T_Key, traits::HasIdentifier<Particle, T_Key>::type::value);
 
-    HDINLINE
-    ThisType& operator=(const ThisType& other) = default;
+            return frame->getIdentifier(key)[idx];
+        }
 
-private:
-    /* we disallow to assign this class*/
-    template<typename T_OtherParticle >
-    HDINLINE
-    ThisType& operator=(const T_OtherParticle& other);
+        /** const version of method operator(const T_Key) */
+        template<typename T_Key>
+        HDINLINE typename boost::result_of<typename boost::remove_reference<
+            typename boost::result_of<const FrameType(T_Key)>::type>::type(uint32_t)>::type
+        operator[](const T_Key key) const
+        {
+            PMACC_CASSERT_MSG_TYPE(key_not_available, T_Key, traits::HasIdentifier<Particle, T_Key>::type::value);
 
-};
+            return frame->getIdentifier(key)[idx];
+        }
 
-namespace traits
-{
+        HDINLINE
+        ThisType& operator=(const ThisType& other) = default;
 
-template<
-    typename T_Key,
-    typename T_FrameType,
-    typename T_ValueTypeSeq
->
-struct HasIdentifier<
-    pmacc::Particle< T_FrameType, T_ValueTypeSeq >,
-    T_Key
->
-{
-private:
-    typedef pmacc::Particle<T_FrameType, T_ValueTypeSeq> ParticleType;
-    typedef typename ParticleType::ValueTypeSeq ValueTypeSeq;
-public:
-    /* If T_Key can not be found in the T_ValueTypeSeq of this Particle class,
-     * SolvedAliasName will be void_.
-     * Look-up is also valid if T_Key is an alias.
-     */
-    typedef typename GetKeyFromAlias<
-        ValueTypeSeq,
-        T_Key
-    >::type SolvedAliasName;
-
-    typedef bmpl::contains<ValueTypeSeq, SolvedAliasName> type;
-};
-
-template<
-    typename T_Key,
-    typename T_FrameType,
-    typename T_ValueTypeSeq
->
-struct HasFlag<
-    pmacc::Particle<T_FrameType, T_ValueTypeSeq>,
-    T_Key
->: public HasFlag<T_FrameType, T_Key>
-{};
-
-template<
-    typename T_Key,
-    typename T_FrameType,
-    typename T_ValueTypeSeq
->
-struct GetFlagType<
-    pmacc::Particle<T_FrameType, T_ValueTypeSeq>,
-    T_Key
->: public GetFlagType<T_FrameType, T_Key>
-{};
-
-} //namespace traits
-
-namespace particles
-{
-namespace operations
-{
-namespace detail
-{
-
-/** Assign common attributes of two particle species
- *
- * Assigns all attributes in ValueTypeSeq1 that also exist in T_ValueTypeSeq2
- * from T_FrameType1 to T_FrameType2.
- */
-template<
-typename T_FrameType1, typename T_ValueTypeSeq1,
-typename T_FrameType2, typename T_ValueTypeSeq2
->
-struct Assign
-<
-pmacc::Particle<T_FrameType1, T_ValueTypeSeq1>,
-pmacc::Particle<T_FrameType2, T_ValueTypeSeq2>
->
-{
-    typedef pmacc::Particle<T_FrameType1, T_ValueTypeSeq1> Dest;
-    typedef pmacc::Particle<T_FrameType2, T_ValueTypeSeq2> Src;
-
-    typedef typename Dest::ValueTypeSeq DestTypeSeq;
-    typedef typename Src::ValueTypeSeq SrcTypeSeq;
-
-    /* create attribute list with a subset of common attributes in two sequences
-     * bmpl::contains has lower complexity than traits::HasIdentifier
-     * and was used for this reason
-     */
-    typedef typename bmpl::copy_if<
-            DestTypeSeq,
-            bmpl::contains<SrcTypeSeq, bmpl::_1>,
-            bmpl::back_inserter< bmpl::vector0<> >
-            >::type CommonTypeSeq;
-
-    /* create sequences with disjunct attributes from `DestTypeSeq` */
-    typedef typename bmpl::copy_if<
-            DestTypeSeq,
-            bmpl::not_<bmpl::contains<SrcTypeSeq, bmpl::_1> >,
-            bmpl::back_inserter< bmpl::vector0<> >
-            >::type UniqueInDestTypeSeq;
-
-    /** Assign particle attributes
-     *
-     * The common subset of the attribute lists from both particles is
-     * used to set the attributes in dest with the corresponding ones from src.
-     * The remaining attributes that only exist in dest (UniqueInDestTypeSeq)
-     * are simply set to their default values.
-     *
-     * @param dest destination particle that shall be initialized/assigned with values from src
-     * @param src source particle were attributes are loaded from
-     */
-    HDINLINE
-    void operator()(Dest& dest, const Src& src)
-    {
-        using pmacc::meta::ForEach;
-        /* assign attributes from src to dest*/
-        ForEach<CommonTypeSeq,
-            CopyIdentifier<bmpl::_1> > copy;
-        copy(dest, src);
-
-        /* set all attributes which are not in src to their default value*/
-        ForEach<UniqueInDestTypeSeq,
-            SetAttributeToDefault<bmpl::_1> > setAttributeToDefault;
-        setAttributeToDefault(dest);
-
-    };
-};
-
-template<
-typename T_MPLSeqWithObjectsToRemove,
-typename T_FrameType, typename T_ValueTypeSeq
->
-struct Deselect
-<
-T_MPLSeqWithObjectsToRemove,
-pmacc::Particle<T_FrameType, T_ValueTypeSeq>
->
-{
-    typedef T_FrameType FrameType;
-    typedef T_ValueTypeSeq ValueTypeSeq;
-    typedef pmacc::Particle<FrameType, ValueTypeSeq> ParticleType;
-    typedef T_MPLSeqWithObjectsToRemove MPLSeqWithObjectsToRemove;
-
-    /* translate aliases to full specialized identifier*/
-    typedef typename ResolveAliases<MPLSeqWithObjectsToRemove, ValueTypeSeq, errorHandlerPolicies::ReturnValue>::type ResolvedSeqWithObjectsToRemove;
-    /* remove types from original particle attribute list*/
-    typedef typename RemoveFromSeq<ValueTypeSeq, ResolvedSeqWithObjectsToRemove>::type NewValueTypeSeq;
-    /* new particle type*/
-    typedef pmacc::Particle<FrameType, NewValueTypeSeq> ResultType;
-
-    template<class> struct result;
-
-    template<class F, class T_Obj>
-    struct result< F(T_Obj)>
-    {
-        typedef ResultType type;
+    private:
+        /* we disallow to assign this class*/
+        template<typename T_OtherParticle>
+        HDINLINE ThisType& operator=(const T_OtherParticle& other);
     };
 
-    HDINLINE
-    ResultType operator()(const ParticleType& particle)
+    namespace traits
     {
-        return ResultType(particle);
-    };
-};
+        template<typename T_Key, typename T_FrameType, typename T_ValueTypeSeq>
+        struct HasIdentifier<pmacc::Particle<T_FrameType, T_ValueTypeSeq>, T_Key>
+        {
+        private:
+            typedef pmacc::Particle<T_FrameType, T_ValueTypeSeq> ParticleType;
+            typedef typename ParticleType::ValueTypeSeq ValueTypeSeq;
 
-} //namespace detail
-} //namespace operations
-} //namespace particles
+        public:
+            /* If T_Key can not be found in the T_ValueTypeSeq of this Particle class,
+             * SolvedAliasName will be void_.
+             * Look-up is also valid if T_Key is an alias.
+             */
+            typedef typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type SolvedAliasName;
 
-} //namespace pmacc
+            typedef bmpl::contains<ValueTypeSeq, SolvedAliasName> type;
+        };
+
+        template<typename T_Key, typename T_FrameType, typename T_ValueTypeSeq>
+        struct HasFlag<pmacc::Particle<T_FrameType, T_ValueTypeSeq>, T_Key> : public HasFlag<T_FrameType, T_Key>
+        {
+        };
+
+        template<typename T_Key, typename T_FrameType, typename T_ValueTypeSeq>
+        struct GetFlagType<pmacc::Particle<T_FrameType, T_ValueTypeSeq>, T_Key>
+            : public GetFlagType<T_FrameType, T_Key>
+        {
+        };
+
+    } // namespace traits
+
+    namespace particles
+    {
+        namespace operations
+        {
+            namespace detail
+            {
+                /** Assign common attributes of two particle species
+                 *
+                 * Assigns all attributes in ValueTypeSeq1 that also exist in T_ValueTypeSeq2
+                 * from T_FrameType1 to T_FrameType2.
+                 */
+                template<
+                    typename T_FrameType1,
+                    typename T_ValueTypeSeq1,
+                    typename T_FrameType2,
+                    typename T_ValueTypeSeq2>
+                struct Assign<
+                    pmacc::Particle<T_FrameType1, T_ValueTypeSeq1>,
+                    pmacc::Particle<T_FrameType2, T_ValueTypeSeq2>>
+                {
+                    typedef pmacc::Particle<T_FrameType1, T_ValueTypeSeq1> Dest;
+                    typedef pmacc::Particle<T_FrameType2, T_ValueTypeSeq2> Src;
+
+                    typedef typename Dest::ValueTypeSeq DestTypeSeq;
+                    typedef typename Src::ValueTypeSeq SrcTypeSeq;
+
+                    /* create attribute list with a subset of common attributes in two sequences
+                     * bmpl::contains has lower complexity than traits::HasIdentifier
+                     * and was used for this reason
+                     */
+                    typedef typename bmpl::copy_if<
+                        DestTypeSeq,
+                        bmpl::contains<SrcTypeSeq, bmpl::_1>,
+                        bmpl::back_inserter<bmpl::vector0<>>>::type CommonTypeSeq;
+
+                    /* create sequences with disjunct attributes from `DestTypeSeq` */
+                    typedef typename bmpl::copy_if<
+                        DestTypeSeq,
+                        bmpl::not_<bmpl::contains<SrcTypeSeq, bmpl::_1>>,
+                        bmpl::back_inserter<bmpl::vector0<>>>::type UniqueInDestTypeSeq;
+
+                    /** Assign particle attributes
+                     *
+                     * The common subset of the attribute lists from both particles is
+                     * used to set the attributes in dest with the corresponding ones from src.
+                     * The remaining attributes that only exist in dest (UniqueInDestTypeSeq)
+                     * are simply set to their default values.
+                     *
+                     * @param dest destination particle that shall be initialized/assigned with values from src
+                     * @param src source particle were attributes are loaded from
+                     */
+                    HDINLINE
+                    void operator()(Dest& dest, const Src& src)
+                    {
+                        using pmacc::meta::ForEach;
+                        /* assign attributes from src to dest*/
+                        ForEach<CommonTypeSeq, CopyIdentifier<bmpl::_1>> copy;
+                        copy(dest, src);
+
+                        /* set all attributes which are not in src to their default value*/
+                        ForEach<UniqueInDestTypeSeq, SetAttributeToDefault<bmpl::_1>> setAttributeToDefault;
+                        setAttributeToDefault(dest);
+                    };
+                };
+
+                template<typename T_MPLSeqWithObjectsToRemove, typename T_FrameType, typename T_ValueTypeSeq>
+                struct Deselect<T_MPLSeqWithObjectsToRemove, pmacc::Particle<T_FrameType, T_ValueTypeSeq>>
+                {
+                    typedef T_FrameType FrameType;
+                    typedef T_ValueTypeSeq ValueTypeSeq;
+                    typedef pmacc::Particle<FrameType, ValueTypeSeq> ParticleType;
+                    typedef T_MPLSeqWithObjectsToRemove MPLSeqWithObjectsToRemove;
+
+                    /* translate aliases to full specialized identifier*/
+                    typedef typename ResolveAliases<
+                        MPLSeqWithObjectsToRemove,
+                        ValueTypeSeq,
+                        errorHandlerPolicies::ReturnValue>::type ResolvedSeqWithObjectsToRemove;
+                    /* remove types from original particle attribute list*/
+                    typedef typename RemoveFromSeq<ValueTypeSeq, ResolvedSeqWithObjectsToRemove>::type NewValueTypeSeq;
+                    /* new particle type*/
+                    typedef pmacc::Particle<FrameType, NewValueTypeSeq> ResultType;
+
+                    template<class>
+                    struct result;
+
+                    template<class F, class T_Obj>
+                    struct result<F(T_Obj)>
+                    {
+                        typedef ResultType type;
+                    };
+
+                    HDINLINE
+                    ResultType operator()(const ParticleType& particle)
+                    {
+                        return ResultType(particle);
+                    };
+                };
+
+            } // namespace detail
+        } // namespace operations
+    } // namespace particles
+
+} // namespace pmacc

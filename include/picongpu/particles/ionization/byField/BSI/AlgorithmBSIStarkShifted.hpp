@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Marco Garten
+/* Copyright 2014-2020 Marco Garten, Jakob Trojok
  *
  * This file is part of PIConGPU.
  *
@@ -23,6 +23,7 @@
 #include "picongpu/particles/traits/GetIonizationEnergies.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 #include "picongpu/traits/attribute/GetChargeState.hpp"
+#include "picongpu/particles/ionization/byField/IonizationCurrent/IonizerReturn.hpp"
 
 /** @file AlgorithmBSIStarkShifted.hpp
  *
@@ -35,58 +36,55 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace ionization
-{
-
-    /** Calculation for the Barrier Suppression Ionization model
-     */
-    struct AlgorithmBSIStarkShifted
+    namespace particles
     {
-
-        /** Functor implementation
-         *
-         * \tparam EType type of electric field
-         * \tparam ParticleType type of particle to be ionized
-         *
-         * \param eField electric field value at t=0
-         * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
-         *
-         * and "t" being with respect to the current time step (on step/half a step backward/-""-forward)
-         *
-         * \return the number of electrons to produce
-         * (current implementation supports only 0 or 1 per execution)
-         */
-        template<typename EType, typename ParticleType >
-        HDINLINE uint32_t
-        operator()( const EType eField, ParticleType& parentIon )
+        namespace ionization
         {
-
-            const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
-            float_X chargeState = attribute::getChargeState(parentIon);
-
-            /* verify that ion is not completely ionized */
-            if (chargeState < protonNumber)
+            /** Calculation for the Barrier Suppression Ionization model
+             */
+            struct AlgorithmBSIStarkShifted
             {
-                uint32_t cs = pmacc::math::float2int_rd(chargeState);
-                /* ionization potential in atomic units */
-                const float_X iEnergy = typename GetIonizationEnergies<ParticleType>::type{ }[cs];
-                /* critical field strength in atomic units */
-                float_X critField = (math::sqrt(float_X(2.))-float_X(1.)) * math::pow(iEnergy,float_X(3./2.));
-
-                /* ionization condition */
-                if (math::abs(eField) / ATOMIC_UNIT_EFIELD >= critField)
+                /** Functor implementation
+                 *
+                 * \tparam EType type of electric field
+                 * \tparam ParticleType type of particle to be ionized
+                 *
+                 * \param eField electric field value at t=0
+                 * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
+                 *
+                 * and "t" being with respect to the current time step (on step/half a step backward/-""-forward)
+                 *
+                 * \return ionization energy and number of new macro electrons to be created
+                 * (current implementation supports only 0 or 1 per execution)
+                 */
+                template<typename EType, typename ParticleType>
+                HDINLINE IonizerReturn operator()(const EType eField, ParticleType& parentIon)
                 {
-                    /* return number of electrons to produce */
-                    return 1u;
-                }
-            }
-            /* no ionization */
-            return 0u;
-        }
-    };
+                    const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
+                    float_X chargeState = attribute::getChargeState(parentIon);
 
-} // namespace ionization
-} // namespace particles
+                    /* verify that ion is not completely ionized */
+                    if(chargeState < protonNumber)
+                    {
+                        uint32_t cs = pmacc::math::float2int_rd(chargeState);
+                        /* ionization potential in atomic units */
+                        const float_X iEnergy = typename GetIonizationEnergies<ParticleType>::type{}[cs];
+                        /* critical field strength in atomic units */
+                        float_X critField
+                            = (math::sqrt(float_X(2.)) - float_X(1.)) * math::pow(iEnergy, float_X(3. / 2.));
+
+                        /* ionization condition */
+                        if(math::abs(eField) / ATOMIC_UNIT_EFIELD >= critField)
+                        {
+                            /* return ionization energy number of electrons to produce */
+                            return IonizerReturn{iEnergy, 1u};
+                        }
+                    }
+                    /* no ionization */
+                    return IonizerReturn{0.0, 0u};
+                }
+            };
+
+        } // namespace ionization
+    } // namespace particles
 } // namespace picongpu

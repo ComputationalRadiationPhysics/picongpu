@@ -23,20 +23,19 @@
 
 namespace picongpu
 {
+    namespace traits
+    {
+        /** Convert an Adios type to a PIConGPU Type
+         *
+         * implements a public type as result of the trait
+         *
+         * @tparam T_AdiosType Adios data type
+         */
+        template<typename T_AdiosType>
+        struct AdiosToPIC;
 
-namespace traits
-{
-    /** Convert an Adios type to a PIConGPU Type
-     *
-     * implements a public type as result of the trait
-     *
-     * @tparam T_AdiosType Adios data type
-     */
-    template<typename T_AdiosType>
-    struct AdiosToPIC;
+    } // namespace traits
 
-} //namespace traits
-
-}// namespace picongpu
+} // namespace picongpu
 
 #include "AdiosToPIC.tpp"

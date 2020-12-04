@@ -28,70 +28,66 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace maxwellSolver
-{
-namespace none
-{
-    /** Check Yee grid and time conditions
-     *
-     * This is a workaround that the condition check is only
-     * triggered if the current used solver is `NoSolver`
-     */
-    template<typename T_UsedSolver, typename T_Dummy = void>
-    struct ConditionCheck
+    namespace fields
     {
-    };
-
-    template<typename T_CurrentInterpolation, typename T_Dummy>
-    struct ConditionCheck<
-        None< T_CurrentInterpolation > ,
-        T_Dummy
-    >
-    {
-        /* Courant-Friedrichs-Levy-Condition for Yee Field Solver:
-         *
-         * A workaround is to add a template dependency to the expression.
-         * `sizeof(ANY_TYPE*) != 0` is always true and defers the evaluation.
-         */
-        PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_grid_param_file,
-            (SPEED_OF_LIGHT*SPEED_OF_LIGHT*DELTA_T*DELTA_T*INV_CELL2_SUM)<=1.0 && sizeof(T_Dummy*) != 0);
-    };
-} // namespace none
-
-    template< typename T_CurrentInterpolation >
-    class None : private none::ConditionCheck< None< T_CurrentInterpolation> >
-    {
-    private:
-        typedef MappingDesc::SuperCellSize SuperCellSize;
-
-    public:
-        using CellType = cellType::Yee;
-        using CurrentInterpolation = T_CurrentInterpolation;
-
-        None(MappingDesc)
+        namespace maxwellSolver
         {
+            namespace none
+            {
+                /** Check Yee grid and time conditions
+                 *
+                 * This is a workaround that the condition check is only
+                 * triggered if the current used solver is `NoSolver`
+                 */
+                template<typename T_UsedSolver, typename T_Dummy = void>
+                struct ConditionCheck
+                {
+                };
 
-        }
+                template<typename T_CurrentInterpolation, typename T_Dummy>
+                struct ConditionCheck<None<T_CurrentInterpolation>, T_Dummy>
+                {
+                    /* Courant-Friedrichs-Levy-Condition for Yee Field Solver:
+                     *
+                     * A workaround is to add a template dependency to the expression.
+                     * `sizeof(ANY_TYPE*) != 0` is always true and defers the evaluation.
+                     */
+                    PMACC_CASSERT_MSG(
+                        Courant_Friedrichs_Levy_condition_failure____check_your_grid_param_file,
+                        (SPEED_OF_LIGHT * SPEED_OF_LIGHT * DELTA_T * DELTA_T * INV_CELL2_SUM) <= 1.0
+                            && sizeof(T_Dummy*) != 0);
+                };
+            } // namespace none
 
-        void update_beforeCurrent(uint32_t)
-        {
+            template<typename T_CurrentInterpolation>
+            class None : private none::ConditionCheck<None<T_CurrentInterpolation>>
+            {
+            private:
+                typedef MappingDesc::SuperCellSize SuperCellSize;
 
-        }
+            public:
+                using CellType = cellType::Yee;
+                using CurrentInterpolation = T_CurrentInterpolation;
 
-        void update_afterCurrent(uint32_t)
-        {
+                None(MappingDesc)
+                {
+                }
 
-        }
+                void update_beforeCurrent(uint32_t)
+                {
+                }
 
-        static pmacc::traits::StringProperty getStringProperties()
-        {
-            pmacc::traits::StringProperty propList( "name", "none" );
-            return propList;
-        }
-    };
+                void update_afterCurrent(uint32_t)
+                {
+                }
 
-} // namespace maxwellSolver
-} // namespace fields
+                static pmacc::traits::StringProperty getStringProperties()
+                {
+                    pmacc::traits::StringProperty propList("name", "none");
+                    return propList;
+                }
+            };
+
+        } // namespace maxwellSolver
+    } // namespace fields
 } // namespace picongpu

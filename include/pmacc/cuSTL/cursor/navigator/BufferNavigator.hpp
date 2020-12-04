@@ -32,68 +32,72 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-
-template<int T_dim>
-class BufferNavigator
-{
-public:
-    typedef tag::BufferNavigator tag;
-    static constexpr int dim = T_dim;
-private:
-    math::Size_t<dim-1> pitch;
-public:
-    HDINLINE
-    BufferNavigator(math::Size_t<dim-1> pitch) : pitch(pitch) {}
-
-    template<typename Data>
-    HDINLINE Data
-    operator()(const Data& data, const math::Int<dim>& jump) const
+    namespace cursor
     {
-        char* result = (char*)data;
-        result += jump.x() * sizeof(typename boost::remove_pointer<Data>::type);
-        for(int i = 1; i < dim; i++)
-            result += jump[i] * this->pitch[i-1];
-        return (Data)result;
-    }
+        template<int T_dim>
+        class BufferNavigator
+        {
+        public:
+            typedef tag::BufferNavigator tag;
+            static constexpr int dim = T_dim;
 
-    HDINLINE
-    const math::Size_t<dim-1>& getPitch() const {return pitch;}
-};
+        private:
+            math::Size_t<dim - 1> pitch;
 
-template<>
-class BufferNavigator<1>
-{
-public:
-    typedef tag::BufferNavigator tag;
-    static constexpr int dim = 1;
+        public:
+            HDINLINE
+            BufferNavigator(math::Size_t<dim - 1> pitch) : pitch(pitch)
+            {
+            }
 
-public:
-    HDINLINE
-    BufferNavigator(math::Size_t<dim-1>) {}
+            template<typename Data>
+            HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
+            {
+                char* result = (char*) data;
+                result += jump.x() * sizeof(typename boost::remove_pointer<Data>::type);
+                for(int i = 1; i < dim; i++)
+                    result += jump[i] * this->pitch[i - 1];
+                return (Data) result;
+            }
 
-    template<typename Data>
-    HDINLINE Data
-    operator()(const Data& data, const math::Int<dim>& jump) const
-    {
-        char* result = (char*)data;
-        result += jump.x() * sizeof(typename boost::remove_pointer<Data>::type);
-        return (Data)result;
-    }
-};
+            HDINLINE
+            const math::Size_t<dim - 1>& getPitch() const
+            {
+                return pitch;
+            }
+        };
 
-namespace traits
-{
+        template<>
+        class BufferNavigator<1>
+        {
+        public:
+            typedef tag::BufferNavigator tag;
+            static constexpr int dim = 1;
 
-template<int T_dim>
-struct dim<BufferNavigator<T_dim> >
-{
-    static constexpr int value = T_dim;
-};
+        public:
+            HDINLINE
+            BufferNavigator(math::Size_t<dim - 1>)
+            {
+            }
 
-} // traits
+            template<typename Data>
+            HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
+            {
+                char* result = (char*) data;
+                result += jump.x() * sizeof(typename boost::remove_pointer<Data>::type);
+                return (Data) result;
+            }
+        };
 
-} //cursor
-} // pmacc
+        namespace traits
+        {
+            template<int T_dim>
+            struct dim<BufferNavigator<T_dim>>
+            {
+                static constexpr int value = T_dim;
+            };
 
+        } // namespace traits
+
+    } // namespace cursor
+} // namespace pmacc

@@ -24,55 +24,51 @@
 
 namespace picongpu
 {
-namespace densityProfiles
-{
-
-template<typename T_ParamClass>
-struct LinearExponentialImpl : public T_ParamClass
-{
-    using ParamClass = T_ParamClass;
-
-    template<typename T_SpeciesType>
-    struct apply
+    namespace densityProfiles
     {
-        using type = LinearExponentialImpl<ParamClass>;
-    };
+        template<typename T_ParamClass>
+        struct LinearExponentialImpl : public T_ParamClass
+        {
+            using ParamClass = T_ParamClass;
 
-    HINLINE LinearExponentialImpl(uint32_t currentStep)
-    {
+            template<typename T_SpeciesType>
+            struct apply
+            {
+                using type = LinearExponentialImpl<ParamClass>;
+            };
 
-    }
+            HINLINE LinearExponentialImpl(uint32_t currentStep)
+            {
+            }
 
-    /* Calculate the normalized density
-     *
-     * @param totalCellOffset total offset including all slides [in cells]
-     */
-    HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
-    {
-        const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
-        const float_X gas_a = ParamClass::gasA_SI * UNIT_LENGTH;
-        const float_X gas_d = ParamClass::gasD_SI * UNIT_LENGTH;
-        const float_X gas_y_max = ParamClass::gasYMax_SI / UNIT_LENGTH;
+            /* Calculate the normalized density
+             *
+             * @param totalCellOffset total offset including all slides [in cells]
+             */
+            HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
+            {
+                const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
+                const float_X gas_a = ParamClass::gasA_SI * UNIT_LENGTH;
+                const float_X gas_d = ParamClass::gasD_SI * UNIT_LENGTH;
+                const float_X gas_y_max = ParamClass::gasYMax_SI / UNIT_LENGTH;
 
-        const floatD_X globalCellPos(
-                                     precisionCast<float_X>(totalCellOffset) *
-                                     cellSize.shrink<simDim>()
-                                     );
-        float_X density = float_X(0.0);
+                const floatD_X globalCellPos(precisionCast<float_X>(totalCellOffset) * cellSize.shrink<simDim>());
+                float_X density = float_X(0.0);
 
-        if (globalCellPos.y() < vacuum_y) return density;
+                if(globalCellPos.y() < vacuum_y)
+                    return density;
 
-        if (globalCellPos.y() <= gas_y_max) // linear slope
-            density = gas_a * globalCellPos.y() + ParamClass::gasB;
-        else // exponential slope
-            density = math::exp((globalCellPos.y() - gas_y_max) * gas_d);
+                if(globalCellPos.y() <= gas_y_max) // linear slope
+                    density = gas_a * globalCellPos.y() + ParamClass::gasB;
+                else // exponential slope
+                    density = math::exp((globalCellPos.y() - gas_y_max) * gas_d);
 
-        // avoid < 0 densities for the linear slope
-        if (density < float_X(0.0))
-            density = float_X(0.0);
+                // avoid < 0 densities for the linear slope
+                if(density < float_X(0.0))
+                    density = float_X(0.0);
 
-        return density;
-    }
-};
-}
-}
+                return density;
+            }
+        };
+    } // namespace densityProfiles
+} // namespace picongpu

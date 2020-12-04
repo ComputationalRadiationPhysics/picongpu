@@ -21,69 +21,28 @@
 
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
 #include "picongpu/fields/differentiation/Curl.def"
+#include "picongpu/fields/differentiation/Derivative.def"
 
 
 namespace picongpu
 {
-namespace fields
-{
-namespace maxwellSolver
-{
-namespace yee
-{
-
-    using CurlLeft = differentiation::Curl< differentiation::Backward >;
-    using CurlRight = differentiation::Curl< differentiation::Forward >;
-
-}
-
-    template<
-        typename T_CurrentInterpolation = currentInterpolation::None,
-        typename CurlE = yee::CurlRight,
-        typename CurlB = yee::CurlLeft
-    >
-    class Yee;
-
-} // namespace maxwellSolver
-} // namespace fields
-
-namespace traits
-{
-
-    template<
-        typename T_CurrentInterpolation,
-        class CurlE,
-        class CurlB
-    >
-    struct GetMargin<
-        picongpu::fields::maxwellSolver::Yee<
-            T_CurrentInterpolation,
-            CurlE,
-            CurlB
-        >, FIELD_B
-    >
+    namespace fields
     {
-        using LowerMargin = typename CurlB::LowerMargin;
-        using UpperMargin = typename CurlB::UpperMargin;
-    };
+        namespace maxwellSolver
+        {
+            namespace yee
+            {
+                using CurlLeft = differentiation::Curl<differentiation::Backward>;
+                using CurlRight = differentiation::Curl<differentiation::Forward>;
 
-    template<
-        typename T_CurrentInterpolation,
-        class CurlE,
-        class CurlB
-    >
-    struct GetMargin<
-        picongpu::fields::maxwellSolver::Yee<
-            T_CurrentInterpolation,
-            CurlE,
-            CurlB
-        >,
-        FIELD_E
-    >
-    {
-        using LowerMargin = typename CurlE::LowerMargin;
-        using UpperMargin = typename CurlE::UpperMargin;
-    };
+            } // namespace yee
 
-} //namespace traits
+            template<
+                typename T_CurrentInterpolation = currentInterpolation::None,
+                typename CurlE = yee::CurlRight,
+                typename CurlB = yee::CurlLeft>
+            class Yee;
+
+        } // namespace maxwellSolver
+    } // namespace fields
 } // namespace picongpu

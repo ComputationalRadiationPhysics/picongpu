@@ -67,15 +67,14 @@ namespace pmacc
          * adds an ITask to the manager and returns an EventTask for it
          * @param task task to add to the manager
          */
-        void addTask(ITask *task);
+        void addTask(ITask* task);
 
-        void addPassiveTask(ITask *task);
+        void addPassiveTask(ITask* task);
 
 
         std::size_t getCount();
 
     private:
-
         friend struct detail::Environment;
 
         inline ITask* getPassiveITaskIfNotFinished(id_t taskId) const;
@@ -98,4 +97,4 @@ namespace pmacc
         TaskMap passiveTasks;
     };
 
-} //namespace pmacc
+} // namespace pmacc

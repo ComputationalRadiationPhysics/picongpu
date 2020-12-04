@@ -26,25 +26,22 @@
 #include "pmacc/types.hpp"
 
 
-
-
 namespace pmacc
 {
-    CudaEvent::CudaEvent( ) : isRecorded( false ), finished( true ), refCounter( 0u )
+    CudaEvent::CudaEvent() : isRecorded(false), finished(true), refCounter(0u)
     {
-        log( ggLog::CUDA_RT()+ggLog::EVENT(), "create event" );
-        CUDA_CHECK( cuplaEventCreateWithFlags( &event, cuplaEventDisableTiming ) );
+        log(ggLog::CUDA_RT() + ggLog::EVENT(), "create event");
+        CUDA_CHECK(cuplaEventCreateWithFlags(&event, cuplaEventDisableTiming));
     }
 
 
-    CudaEvent::~CudaEvent( )
+    CudaEvent::~CudaEvent()
     {
-        PMACC_ASSERT( refCounter == 0u );
-        log( ggLog::CUDA_RT()+ggLog::EVENT(), "sync and delete event" );
+        PMACC_ASSERT(refCounter == 0u);
+        log(ggLog::CUDA_RT() + ggLog::EVENT(), "sync and delete event");
         // free cupla event
-        CUDA_CHECK_NO_EXCEPT(cuplaEventSynchronize( event ));
-        CUDA_CHECK_NO_EXCEPT(cuplaEventDestroy( event ));
-
+        CUDA_CHECK_NO_EXCEPT(cuplaEventSynchronize(event));
+        CUDA_CHECK_NO_EXCEPT(cuplaEventDestroy(event));
     }
 
     void CudaEvent::registerHandle()
@@ -54,16 +51,16 @@ namespace pmacc
 
     void CudaEvent::releaseHandle()
     {
-        assert( refCounter != 0u );
+        assert(refCounter != 0u);
         // get old value and decrement
         uint32_t oldCounter = refCounter--;
-        if( oldCounter == 1u )
+        if(oldCounter == 1u)
         {
             // reset event meta data
             isRecorded = false;
             finished = true;
 
-            Environment<>::get().EventPool( ).push( this );
+            Environment<>::get().EventPool().push(this);
         }
     }
 
@@ -71,9 +68,9 @@ namespace pmacc
     bool CudaEvent::isFinished()
     {
         // avoid cupla driver calls if event is already finished
-        if( finished )
+        if(finished)
             return true;
-        assert( isRecorded );
+        assert(isRecorded);
 
         cuplaError_t rc = cuplaEventQuery(event);
 
@@ -99,4 +96,4 @@ namespace pmacc
         CUDA_CHECK(cuplaEventRecord(event, stream));
     }
 
-} // namepsace pmacc
+} // namespace pmacc

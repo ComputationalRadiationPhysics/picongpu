@@ -24,25 +24,24 @@
 
 namespace pmacc
 {
-namespace traits
-{
+    namespace traits
+    {
+        /** Get resolved type
+         *
+         * Explicitly resolve the type of a synonym type, e.g., resolve the type of an PMacc alias.
+         * A synonym type is wrapper type (class) around an other type.
+         * If this trait is not defined for the given type the result is the identity of the given type.
+         *
+         * @tparam T_Object any object (class or typename)
+         *
+         * @treturn ::type
+         */
+        template<typename T_Object>
+        struct Resolve
+        {
+            typedef T_Object type;
+        };
 
-/** Get resolved type
- *
- * Explicitly resolve the type of a synonym type, e.g., resolve the type of an PMacc alias.
- * A synonym type is wrapper type (class) around an other type.
- * If this trait is not defined for the given type the result is the identity of the given type.
- *
- * @tparam T_Object any object (class or typename)
- *
- * @treturn ::type
- */
-template<typename T_Object>
-struct Resolve
-{
-    typedef T_Object type;
-};
+    } // namespace traits
 
-}//namespace traits
-
-}//namespace pmacc
+} // namespace pmacc

@@ -34,79 +34,61 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace functor
-{
-namespace misc
-{
-    /** call simple free user defined functor and provide a random number generator
-     *
-     * @tparam T_Distribution random number distribution
-     */
-    template<
-        typename T_Distribution
-    >
-    struct Rng
+    namespace particles
     {
-        using Distribution = T_Distribution;
-        using RNGFactory = pmacc::random::RNGProvider<
-            simDim,
-            random::Generator
-        >;
-        using RngHandle = typename RNGFactory::Handle;
-        using RandomGen = RngWrapper<
-            cupla::Acc,
-            typename RngHandle::GetRandomType< Distribution >::type
-        >;
-
-        /** constructor
-         *
-         * @param currentStep current simulation time step
-         */
-        HINLINE Rng( uint32_t currentStep ) : rngHandle( RNGFactory::createHandle() )
+        namespace functor
         {
-        }
+            namespace misc
+            {
+                /** call simple free user defined functor and provide a random number generator
+                 *
+                 * @tparam T_Distribution random number distribution
+                 */
+                template<typename T_Distribution>
+                struct Rng
+                {
+                    using Distribution = T_Distribution;
+                    using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
+                    using RngHandle = typename RNGFactory::Handle;
+                    using RandomGen = RngWrapper<cupla::Acc, typename RngHandle::GetRandomType<Distribution>::type>;
+
+                    /** constructor
+                     *
+                     * @param currentStep current simulation time step
+                     */
+                    HINLINE Rng(uint32_t currentStep) : rngHandle(RNGFactory::createHandle())
+                    {
+                    }
 
 
-        /** create functor a random number generator
-         *
-         * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
-         * @tparam T_Acc alpaka accelerator type
-         *
-         * @param alpaka accelerator
-         * @param localSupercellOffset offset (in superCells, without any guards) relative
-         *                        to the origin of the local domain
-         * @param workerCfg configuration of the worker
-         */
-        template<
-            typename T_WorkerCfg,
-            typename T_Acc
-        >
-        HDINLINE
-        RandomGen
-        operator()(
-            T_Acc const & acc,
-            DataSpace< simDim > const & localSupercellOffset,
-            T_WorkerCfg const & workerCfg
-        ) const
-        {
-            RngHandle tmp( rngHandle );
-            tmp.init(
-                localSupercellOffset * SuperCellSize::toRT() +
-                DataSpaceOperations< simDim >::template map< SuperCellSize >( workerCfg.getWorkerIdx( ) )
-            );
-            return RandomGen(
-                acc,
-                tmp.applyDistribution< Distribution >()
-            );
-        }
+                    /** create functor a random number generator
+                     *
+                     * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+                     * @tparam T_Acc alpaka accelerator type
+                     *
+                     * @param alpaka accelerator
+                     * @param localSupercellOffset offset (in superCells, without any guards) relative
+                     *                        to the origin of the local domain
+                     * @param workerCfg configuration of the worker
+                     */
+                    template<typename T_WorkerCfg, typename T_Acc>
+                    HDINLINE RandomGen operator()(
+                        T_Acc const& acc,
+                        DataSpace<simDim> const& localSupercellOffset,
+                        T_WorkerCfg const& workerCfg) const
+                    {
+                        RngHandle tmp(rngHandle);
+                        tmp.init(
+                            localSupercellOffset * SuperCellSize::toRT()
+                            + DataSpaceOperations<simDim>::template map<SuperCellSize>(workerCfg.getWorkerIdx()));
+                        return RandomGen(acc, tmp.applyDistribution<Distribution>());
+                    }
 
-    private:
-        RngHandle rngHandle;
-    };
+                private:
+                    RngHandle rngHandle;
+                };
 
-} // namepsace misc
-} // namespace functor
-} // namespace particles
+            } // namespace misc
+        } // namespace functor
+    } // namespace particles
 } // namespace picongpu

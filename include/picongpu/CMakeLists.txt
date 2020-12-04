@@ -271,12 +271,18 @@ endif()
 ################################################################################
 
 # find openPMD installation
-find_package(openPMD 0.11.0 CONFIG COMPONENTS MPI)
+find_package(openPMD 0.12.0 CONFIG COMPONENTS MPI)
 
 if(openPMD_FOUND)
-    message(STATUS "Found openPMD: ${openPMD_DIR}")
-    add_definitions(-DENABLE_OPENPMD=1)
-    set(LIBS ${LIBS} openPMD::openPMD)
+    if(openPMD_HAVE_ADIOS2 OR openPMD_HAVE_HDF5)
+        message(STATUS "Found openPMD: ${openPMD_DIR}")
+        add_definitions(-DENABLE_OPENPMD=1)
+        set(LIBS ${LIBS} openPMD::openPMD)
+    else()
+        message(STATUS "Found openPMD at ${openPMD_DIR}, but PIConGPU requires"
+                       " availability of either its ADIOS2 or HDF5 backend - "
+                       "NOT BUILDING the openPMD plugin")
+    endif()
 else(openPMD_FOUND)
     message(STATUS "Could NOT find openPMD - set openPMD_DIR or check your CMAKE_PREFIX_PATH")
 endif(openPMD_FOUND)
@@ -371,6 +377,21 @@ else(ISAAC_FOUND)
         message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH")
     endif()
 endif(ISAAC_FOUND)
+
+################################################################################
+# PIConGPU Workarounds
+################################################################################
+
+set(PIC_COMPUTE_CURRENT_THREAD_LIMITER_DEFAULT OFF)
+if(ALPAKA_ACC_GPU_HIP_ENABLE)
+    set(PIC_COMPUTE_CURRENT_THREAD_LIMITER_DEFAULT ON)
+endif()
+option(PIC_COMPUTE_CURRENT_THREAD_LIMITER "Compute current results with HIP alpaka backend are wrong when more threads than particles in a frame will be used (possible compiler BUG).\
+ ON means the number of threads will be limited to number of particles in a frame." ${PIC_COMPUTE_CURRENT_THREAD_LIMITER_DEFAULT})
+
+if(PIC_COMPUTE_CURRENT_THREAD_LIMITER)
+    add_definitions(-DPIC_COMPUTE_CURRENT_THREAD_LIMITER=1)
+endif()
 
 ################################################################################
 # Check if PIC_EXTENSION_PATH is relative or absolute

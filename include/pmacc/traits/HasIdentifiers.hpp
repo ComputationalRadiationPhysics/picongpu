@@ -29,58 +29,33 @@
 
 namespace pmacc
 {
-namespace traits
-{
-
-    /** Checks if an object has all specified identifiers
-     *
-     * Individual identifiers checks are logically connected via
-     * boost::mpl::and_ .
-     *
-     * @tparam T_Object any object (class or typename)
-     * @tparam T_SeqKeys a sequence of identifiers
-     *
-     * This struct must define
-     * ::type (boost::mpl::bool_<>)
-     */
-    template<
-        typename T_Object,
-        typename T_SeqKeys
-    >
-    struct HasIdentifiers
+    namespace traits
     {
-        using SeqHasIdentifiers = typename bmpl::transform<
-            T_SeqKeys,
-            HasIdentifier<
-                T_Object,
-                bmpl::_1
-            >
-        >::type;
+        /** Checks if an object has all specified identifiers
+         *
+         * Individual identifiers checks are logically connected via
+         * boost::mpl::and_ .
+         *
+         * @tparam T_Object any object (class or typename)
+         * @tparam T_SeqKeys a sequence of identifiers
+         *
+         * This struct must define
+         * ::type (boost::mpl::bool_<>)
+         */
+        template<typename T_Object, typename T_SeqKeys>
+        struct HasIdentifiers
+        {
+            using SeqHasIdentifiers = typename bmpl::transform<T_SeqKeys, HasIdentifier<T_Object, bmpl::_1>>::type;
 
-        using type = typename bmpl::accumulate<
-            SeqHasIdentifiers,
-            bmpl::bool_< true >,
-            bmpl::and_<
-                bmpl::_1,
-                bmpl::_2
-            >
-        >::type;
-    };
+            using type =
+                typename bmpl::accumulate<SeqHasIdentifiers, bmpl::bool_<true>, bmpl::and_<bmpl::_1, bmpl::_2>>::type;
+        };
 
-    template<
-        typename T_Object,
-        typename T_SeqKeys
-    >
-    bool hasIdentifiers(
-        T_Object const &,
-        T_SeqKeys const &
-    )
-    {
-        return HasIdentifiers<
-            T_Object,
-            T_SeqKeys
-        >::type::value;
-    }
+        template<typename T_Object, typename T_SeqKeys>
+        bool hasIdentifiers(T_Object const&, T_SeqKeys const&)
+        {
+            return HasIdentifiers<T_Object, T_SeqKeys>::type::value;
+        }
 
-} // namespace traits
+    } // namespace traits
 } // namespace pmacc

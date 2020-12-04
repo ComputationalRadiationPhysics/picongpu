@@ -29,83 +29,75 @@
 
 namespace picongpu
 {
-
-namespace particles
-{
-
-    /** a particle with a weighting below MIN_WEIGHTING will not
-     *      be created / will be deleted
-     *  unit: none
-     */
-    constexpr float_X MIN_WEIGHTING = 10.0;
-
-namespace manipulators
-{
-
-    CONST_VECTOR( float_X, 3, DriftParamElectrons_direction, 0.0, 0.0, 1.0 );
-    struct DriftParamElectrons
+    namespace particles
     {
-        /** Initial particle drift velocity for electrons and ions
-         *  Examples:
-         *    - No drift is equal to 1.0
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
          *  unit: none
          */
-        static constexpr float_64 gamma = 1.021;
-        const DriftParamElectrons_direction_t direction;
-    };
-    using AssignZDriftElectrons = unary::Drift< DriftParamElectrons, nvidia::functors::Assign >;
+        constexpr float_X MIN_WEIGHTING = 10.0;
 
-    CONST_VECTOR( float_X, 3, DriftParamIons_direction, 0.0, 0.0, -1.0 );
-    struct DriftParamIons
-    {
-        /** Initial particle drift velocity for electrons and ions
-         *  Examples:
-         *    - No drift is equal to 1.0
-         *  unit: none
+        namespace manipulators
+        {
+            CONST_VECTOR(float_X, 3, DriftParamElectrons_direction, 0.0, 0.0, 1.0);
+            struct DriftParamElectrons
+            {
+                /** Initial particle drift velocity for electrons and ions
+                 *  Examples:
+                 *    - No drift is equal to 1.0
+                 *  unit: none
+                 */
+                static constexpr float_64 gamma = 1.021;
+                const DriftParamElectrons_direction_t direction;
+            };
+            using AssignZDriftElectrons = unary::Drift<DriftParamElectrons, nvidia::functors::Assign>;
+
+            CONST_VECTOR(float_X, 3, DriftParamIons_direction, 0.0, 0.0, -1.0);
+            struct DriftParamIons
+            {
+                /** Initial particle drift velocity for electrons and ions
+                 *  Examples:
+                 *    - No drift is equal to 1.0
+                 *  unit: none
+                 */
+                static constexpr float_64 gamma = 1.021;
+                const DriftParamIons_direction_t direction;
+            };
+            // definition of SetDrift start
+            using AssignZDriftIons = unary::Drift<DriftParamIons, nvidia::functors::Assign>;
+
+            struct TemperatureParam
+            {
+                /** Initial temperature
+                 *  unit: keV
+                 */
+                static constexpr float_64 temperature = 0.005;
+            };
+            using AddTemperature = unary::Temperature<TemperatureParam>;
+
+        } // namespace manipulators
+
+        namespace startPosition
+        {
+            struct QuietParam4ppc
+            {
+                /** Count of particles per cell per direction at initial state
+                 *  unit: none
+                 */
+                using numParticlesPerDimension = mCT::shrinkTo<mCT::Int<2, 2, 1>, simDim>::type;
+            };
+
+            // definition of quiet particle start
+            using Quiet4ppc = QuietImpl<QuietParam4ppc>;
+
+        } // namespace startPosition
+
+        /** During unit normalization, we assume this is a typical
+         *  number of particles per cell for normalization of weighted
+         *  particle attributes.
          */
-        static constexpr float_64 gamma = 1.021;
-        const DriftParamIons_direction_t direction;
-    };
-    // definition of SetDrift start
-    using AssignZDriftIons = unary::Drift< DriftParamIons, nvidia::functors::Assign >;
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL
+            = mCT::volume<startPosition::QuietParam4ppc::numParticlesPerDimension>::type::value;
 
-    struct TemperatureParam
-    {
-        /** Initial temperature
-         *  unit: keV
-         */
-        static constexpr float_64 temperature = 0.005;
-    };
-    using AddTemperature = unary::Temperature< TemperatureParam >;
-
-} // namespace manipulators
-
-namespace startPosition
-{
-
-    struct QuietParam4ppc
-    {
-        /** Count of particles per cell per direction at initial state
-         *  unit: none
-         */
-        using numParticlesPerDimension = mCT::shrinkTo<
-            mCT::Int< 2, 2, 1 >,
-            simDim
-        >::type;
-    };
-
-    // definition of quiet particle start
-    using Quiet4ppc = QuietImpl< QuietParam4ppc >;
-
-} // namespace startPosition
-
-    /** During unit normalization, we assume this is a typical
-     *  number of particles per cell for normalization of weighted
-     *  particle attributes.
-     */
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = mCT::volume<
-        startPosition::QuietParam4ppc::numParticlesPerDimension
-    >::type::value;
-
-} // namespace particles
+    } // namespace particles
 } // namespace picongpu

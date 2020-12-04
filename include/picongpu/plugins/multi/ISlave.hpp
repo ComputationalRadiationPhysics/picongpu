@@ -27,37 +27,31 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace multi
-{
-    struct IHelp;
-
-    /** Interface for a slave plugin
-     *
-     * A plugin which fulfil l this interface can be used as slave plugin for
-     * multi::Master.
-     *
-     * A slave must register itself to the PluginConnector to receive the notify calls.
-     */
-    struct ISlave : public pmacc::INotify
+    namespace plugins
     {
-        //! must be implemented by the user
-        static std::shared_ptr< IHelp > getHelp();
+        namespace multi
+        {
+            struct IHelp;
 
-        //! restart the plugin from a checkpoint
-        virtual void restart(
-            uint32_t restartStep,
-            std::string const & restartDirectory
-        ) = 0;
+            /** Interface for a slave plugin
+             *
+             * A plugin which fulfil l this interface can be used as slave plugin for
+             * multi::Master.
+             *
+             * A slave must register itself to the PluginConnector to receive the notify calls.
+             */
+            struct ISlave : public pmacc::INotify
+            {
+                //! must be implemented by the user
+                static std::shared_ptr<IHelp> getHelp();
 
-        //! create a check point forthe plugin
-        virtual void checkpoint(
-            uint32_t currentStep,
-            std::string const & checkpointDirectory
-        ) = 0;
-    };
+                //! restart the plugin from a checkpoint
+                virtual void restart(uint32_t restartStep, std::string const& restartDirectory) = 0;
 
-} // namespace multi
-} // namespace plugins
+                //! create a check point forthe plugin
+                virtual void checkpoint(uint32_t currentStep, std::string const& checkpointDirectory) = 0;
+            };
+
+        } // namespace multi
+    } // namespace plugins
 } // namespace picongpu

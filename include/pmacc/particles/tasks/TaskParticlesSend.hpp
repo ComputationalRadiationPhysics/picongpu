@@ -27,97 +27,92 @@
 
 namespace pmacc
 {
-
-template<class T_Particles>
-class TaskParticlesSend : public MPITask
-{
-public:
-
-    typedef T_Particles Particles;
-    typedef typename Particles::HandleGuardRegion HandleGuardRegion;
-    typedef typename HandleGuardRegion::HandleExchanged HandleExchanged;
-    typedef typename HandleGuardRegion::HandleNotExchanged HandleNotExchanged;
-
-    enum
+    template<class T_Particles>
+    class TaskParticlesSend : public MPITask
     {
-        Dim = Particles::Dim,
-        Exchanges = traits::NumberOfExchanges<Dim>::value
-    };
+    public:
+        typedef T_Particles Particles;
+        typedef typename Particles::HandleGuardRegion HandleGuardRegion;
+        typedef typename HandleGuardRegion::HandleExchanged HandleExchanged;
+        typedef typename HandleGuardRegion::HandleNotExchanged HandleNotExchanged;
 
-    TaskParticlesSend(Particles &parBase) :
-    parBase(parBase),
-    state(Constructor)
-    {
-    }
-
-    virtual void init()
-    {
-        state = Init;
-        EventTask serialEvent = __getTransactionEvent();
-        HandleExchanged handleExchanged;
-        HandleNotExchanged handleNotExchanged;
-
-        for (int i = 1; i < Exchanges; ++i)
+        enum
         {
-            /* Start new transaction */
-            __startTransaction(serialEvent);
+            Dim = Particles::Dim,
+            Exchanges = traits::NumberOfExchanges<Dim>::value
+        };
 
-            /* Handle particles */
-            if (parBase.getParticlesBuffer().hasSendExchange(i))
-                handleExchanged.handleOutgoing(parBase, i);
-            else
-                handleNotExchanged.handleOutgoing(parBase, i);
-
-            /* End transaction */
-            tmpEvent += __endTransaction();
+        TaskParticlesSend(Particles& parBase) : parBase(parBase), state(Constructor)
+        {
         }
 
-        state = WaitForSend;
-    }
-
-    bool executeIntern()
-    {
-        switch (state)
+        virtual void init()
         {
-        case Init:
-            break;
-        case WaitForSend:
-            return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
-        default:
+            state = Init;
+            EventTask serialEvent = __getTransactionEvent();
+            HandleExchanged handleExchanged;
+            HandleNotExchanged handleNotExchanged;
+
+            for(int i = 1; i < Exchanges; ++i)
+            {
+                /* Start new transaction */
+                __startTransaction(serialEvent);
+
+                /* Handle particles */
+                if(parBase.getParticlesBuffer().hasSendExchange(i))
+                    handleExchanged.handleOutgoing(parBase, i);
+                else
+                    handleNotExchanged.handleOutgoing(parBase, i);
+
+                /* End transaction */
+                tmpEvent += __endTransaction();
+            }
+
+            state = WaitForSend;
+        }
+
+        bool executeIntern()
+        {
+            switch(state)
+            {
+            case Init:
+                break;
+            case WaitForSend:
+                return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
+            default:
+                return false;
+            }
+
             return false;
         }
 
-        return false;
-    }
+        virtual ~TaskParticlesSend()
+        {
+            notify(this->myId, RECVFINISHED, nullptr);
+        }
 
-    virtual ~TaskParticlesSend()
-    {
-        notify(this->myId, RECVFINISHED, nullptr);
-    }
+        void event(id_t, EventType, IEventData*)
+        {
+        }
 
-    void event(id_t, EventType, IEventData*)
-    {
-    }
+        std::string toString()
+        {
+            return "TaskParticlesSend";
+        }
 
-    std::string toString()
-    {
-        return "TaskParticlesSend";
-    }
+    private:
+        enum state_t
+        {
+            Constructor,
+            Init,
+            WaitForSend
 
-private:
+        };
 
-    enum state_t
-    {
-        Constructor,
-        Init,
-        WaitForSend
 
+        Particles& parBase;
+        state_t state;
+        EventTask tmpEvent;
     };
 
-
-    Particles& parBase;
-    state_t state;
-    EventTask tmpEvent;
-};
-
-} //namespace pmacc
+} // namespace pmacc

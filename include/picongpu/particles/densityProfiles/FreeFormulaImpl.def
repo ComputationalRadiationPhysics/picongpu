@@ -22,9 +22,9 @@
 
 namespace picongpu
 {
-namespace densityProfiles
-{
-    template<typename T_ParamClass>
-    struct FreeFormulaImpl;
-}
-}
+    namespace densityProfiles
+    {
+        template<typename T_ParamClass>
+        struct FreeFormulaImpl;
+    }
+} // namespace picongpu

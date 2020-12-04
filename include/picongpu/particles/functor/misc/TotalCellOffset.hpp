@@ -25,63 +25,55 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace functor
-{
-namespace misc
-{
-    struct TotalCellOffset
+    namespace particles
     {
-
-        /** constructor
-         *
-         * @param currentStep current simulation time step
-         */
-        HINLINE TotalCellOffset( uint32_t currentStep )
+        namespace functor
         {
-            uint32_t const numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
-            SubGrid< simDim > const & subGrid = Environment< simDim >::get( ).SubGrid( );
-            DataSpace< simDim > const localCells = subGrid.getLocalDomain( ).size;
-            gpuCellOffsetToTotalOrigin = subGrid.getLocalDomain( ).offset;
-            gpuCellOffsetToTotalOrigin.y( ) += numSlides * localCells.y( );
-        }
+            namespace misc
+            {
+                struct TotalCellOffset
+                {
+                    /** constructor
+                     *
+                     * @param currentStep current simulation time step
+                     */
+                    HINLINE TotalCellOffset(uint32_t currentStep)
+                    {
+                        uint32_t const numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
+                        SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
+                        DataSpace<simDim> const localCells = subGrid.getLocalDomain().size;
+                        gpuCellOffsetToTotalOrigin = subGrid.getLocalDomain().offset;
+                        gpuCellOffsetToTotalOrigin.y() += numSlides * localCells.y();
+                    }
 
-        /** get cell offset of the supercell
-         *
-         * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
-         * @tparam T_Acc alpaka accelerator type
-         *
-         * @param alpaka accelerator
-         * @param offset (in supercells, without any guards) to the
-         *         origin of the local domain
-         * @param configuration of the worker
-         */
-        template<
-            typename T_WorkerCfg,
-            typename T_Acc
-        >
-        HDINLINE DataSpace< simDim >
-        operator()(
-            T_Acc const & acc,
-            DataSpace< simDim > const & localSupercellOffset,
-            T_WorkerCfg const &
-        ) const
-        {
-            DataSpace< simDim > const superCellToLocalOriginCellOffset(
-                localSupercellOffset * SuperCellSize::toRT( )
-            );
+                    /** get cell offset of the supercell
+                     *
+                     * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+                     * @tparam T_Acc alpaka accelerator type
+                     *
+                     * @param alpaka accelerator
+                     * @param offset (in supercells, without any guards) to the
+                     *         origin of the local domain
+                     * @param configuration of the worker
+                     */
+                    template<typename T_WorkerCfg, typename T_Acc>
+                    HDINLINE DataSpace<simDim> operator()(
+                        T_Acc const& acc,
+                        DataSpace<simDim> const& localSupercellOffset,
+                        T_WorkerCfg const&) const
+                    {
+                        DataSpace<simDim> const superCellToLocalOriginCellOffset(
+                            localSupercellOffset * SuperCellSize::toRT());
 
-            return gpuCellOffsetToTotalOrigin + superCellToLocalOriginCellOffset;
-        }
+                        return gpuCellOffsetToTotalOrigin + superCellToLocalOriginCellOffset;
+                    }
 
-    private:
+                private:
+                    //! offset in cells to the total domain origin
+                    DataSpace<simDim> gpuCellOffsetToTotalOrigin;
+                };
 
-        //! offset in cells to the total domain origin
-        DataSpace< simDim > gpuCellOffsetToTotalOrigin;
-    };
-
-} // namespace misc
-} // namespace functor
-} // namespace particles
+            } // namespace misc
+        } // namespace functor
+    } // namespace particles
 } // namespace picongpu

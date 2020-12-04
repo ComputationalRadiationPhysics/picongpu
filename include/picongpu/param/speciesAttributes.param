@@ -53,63 +53,31 @@ namespace picongpu
      * float3_64, ...
      * This is only a name without a specialization.
      */
-    alias( position );
+    alias(position);
 
     //! unique identifier for a particle
-    value_identifier(
-        uint64_t,
-        particleId,
-        IdProvider< simDim >::getNewId()
-    );
+    value_identifier(uint64_t, particleId, IdProvider<simDim>::getNewId());
 
     //! specialization for the relative in-cell position
-    value_identifier(
-        floatD_X,
-        position_pic,
-        floatD_X::create( 0. )
-    );
+    value_identifier(floatD_X, position_pic, floatD_X::create(0.));
 
     //! momentum at timestep t
-    value_identifier(
-        float3_X,
-        momentum,
-        float3_X::create( 0. )
-    );
+    value_identifier(float3_X, momentum, float3_X::create(0.));
 
     //! momentum at (previous) timestep t-1
-    value_identifier(
-        float3_X,
-        momentumPrev1,
-        float3_X::create( 0._X )
-    );
+    value_identifier(float3_X, momentumPrev1, float3_X::create(0._X));
 
     //! weighting of the macro particle
-    value_identifier(
-        float_X,
-        weighting,
-        0._X
-    );
+    value_identifier(float_X, weighting, 0._X);
 
     //! Voronoi cell of the macro particle
-    value_identifier(
-        int16_t,
-        voronoiCellId,
-        -1
-    );
+    value_identifier(int16_t, voronoiCellId, -1);
 
     //! interpolated electric field with respect to particle shape
-    value_identifier(
-        float3_X,
-        probeE,
-        float3_X::create( 0. )
-    );
+    value_identifier(float3_X, probeE, float3_X::create(0.));
 
     //! interpolated electric field with respect to particle shape
-    value_identifier(
-        float3_X,
-        probeB,
-        float3_X::create( 0. )
-    );
+    value_identifier(float3_X, probeB, float3_X::create(0.));
 
     /** masking a particle for radiation
      *
@@ -117,11 +85,7 @@ namespace picongpu
      * `RadiationParticleFilter` in radiation.param to (de)select
      * particles for the radiation calculation.
      */
-    value_identifier(
-        bool,
-        radiationMask,
-        false
-    );
+    value_identifier(bool, radiationMask, false);
 
     /** masking a particle for transition radiation
      *
@@ -129,11 +93,7 @@ namespace picongpu
      * `TransitionRadiationParticleFilter` in transitionRadiation.param to (de)select
      * particles for the transition radiation calculation.
      */
-    value_identifier(
-        bool,
-        transitionRadiationMask,
-        false
-    );
+    value_identifier(bool, transitionRadiationMask, false);
 
     /** number of electrons bound to the atom / ion
      *
@@ -145,22 +105,14 @@ namespace picongpu
      *
      * @todo connect default to proton number
      */
-    value_identifier(
-        float_X,
-        boundElectrons,
-        0._X
-    );
+    value_identifier(float_X, boundElectrons, 0._X);
 
     /** atomic superconfiguration
      *
      * atomic configuration of an ion for collisional-radiative modeling,
      * see also flylite.param
      */
-    value_identifier(
-        flylite::Superconfig,
-        superconfig,
-        flylite::Superconfig::create( 0. )
-    );
+    value_identifier(flylite::Superconfig, superconfig, flylite::Superconfig::create(0.));
 
     /** Total cell index of a particle.
      *
@@ -169,57 +121,53 @@ namespace picongpu
      *    `globalDomain.offset` + `localDomain.offset`
      *  added to the N-dimensional cell index the particle belongs to on that GPU.
      */
-    value_identifier(
-        DataSpace< simDim >,
-        totalCellIdx,
-        DataSpace< simDim >( )
-    );
+    value_identifier(DataSpace<simDim>, totalCellIdx, DataSpace<simDim>());
 
     //! alias for particle shape, see also species.param
-    alias( shape );
+    alias(shape);
 
     //! alias for particle pusher, see alsospecies.param
-    alias( particlePusher );
+    alias(particlePusher);
 
     //! alias for particle ionizers, see also ionizer.param
-    alias( ionizers );
+    alias(ionizers);
 
     //! alias for ionization energy container, see also ionizationEnergies.param
-    alias( ionizationEnergies );
+    alias(ionizationEnergies);
 
     //! alias for synchrotronPhotons, see also speciesDefinition.param
-    alias( synchrotronPhotons );
+    alias(synchrotronPhotons);
 
     //! alias for ion species used for bremsstrahlung
-    alias( bremsstrahlungIons );
+    alias(bremsstrahlungIons);
 
     //! alias for photon species used for bremsstrahlung
-    alias( bremsstrahlungPhotons );
+    alias(bremsstrahlungPhotons);
 
     //! alias for particle to field interpolation, see also species.param
-    alias( interpolation );
+    alias(interpolation);
 
     //! alias for particle current solver, see also species.param
-    alias( current );
+    alias(current);
 
     /** alias for particle flag: atomic numbers, see also ionizer.param
      * - only reasonable for atoms / ions / nuclei
      * - is required when boundElectrons is set
      */
-    alias( atomicNumbers );
+    alias(atomicNumbers);
 
     /** alias for particle flag: effective nuclear charge,
      *
      * - see also ionizer.param
      * - only reasonable for atoms / ions / nuclei
      */
-    alias( effectiveNuclearCharge );
+    alias(effectiveNuclearCharge);
 
     /** alias for particle population kinetics model (e.g. FLYlite)
      *
      * see also flylite.param
      */
-    alias( populationKinetics );
+    alias(populationKinetics);
 
     /** alias for particle mass ratio
      *
@@ -228,7 +176,7 @@ namespace picongpu
      *
      * default value: 1.0 if unset
      */
-    alias( massRatio );
+    alias(massRatio);
 
     /** alias for particle charge ratio
      *
@@ -237,7 +185,7 @@ namespace picongpu
      *
      * default value: 1.0 if unset
      */
-    alias( chargeRatio );
+    alias(chargeRatio);
 
     /** alias for particle density ratio
      *
@@ -246,7 +194,7 @@ namespace picongpu
      *
      * default value: 1.0 if unset
      */
-    alias( densityRatio );
+    alias(densityRatio);
 
     /** alias to reserved bytes for each communication direction
      *
@@ -266,7 +214,7 @@ namespace picongpu
      * };
      * @endcode
      */
-    alias( exchangeMemCfg );
+    alias(exchangeMemCfg);
 
     /** alias to specify the boundary condition for particles
      *
@@ -277,6 +225,6 @@ namespace picongpu
      * Note: alias `boundaryCondition` will be ignored if the runtime parameter
      * `--periodic` is set.
      */
-    alias( boundaryCondition );
+    alias(boundaryCondition);
 
 } // namespace picongpu

@@ -22,26 +22,47 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/densityProfiles/IProfile.def"
 
+#include <cstdlib>
+
 
 namespace picongpu
 {
-namespace densityProfiles
-{
-
-template<typename T_Base>
-struct IProfile : private T_Base
-{
-
-    using Base = T_Base;
-
-    HINLINE IProfile(uint32_t currentStep) : Base(currentStep)
+    namespace densityProfiles
     {
-    }
+        /** Wrapper around a given density profile functor
+         *
+         * Defines density profile "concept" interface and compile-time checks that
+         * the given profile type is compatible to it
+         *
+         * @tparam T_Profile wrapped density profile functor type
+         */
+        template<typename T_Profile>
+        struct IProfile : private T_Profile
+        {
+            /** Create a profile functor for the given time iteration
+             *
+             * @param currentStep current time iteration
+             */
+            HINLINE IProfile(uint32_t const currentStep) : T_Profile(currentStep)
+            {
+            }
 
-    HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
-    {
-        return Base::operator()(totalCellOffset);
-    }
-};
-}
-}
+            /** Calculate physical particle density value for the given cell
+             *
+             * It concerns real (physical, not macro-) particles.
+             * The result is in units of BASE_DENSITY times PIC units of volume**-3.
+             *
+             * The density is assumed constant inside a cell, so the underlying
+             * functor should preferably return a value in the cell center.
+             *
+             * @param totalCellOffset total offset from the start of the global
+             *                        simulation area, including all slides [in cells]
+             */
+            HDINLINE float_X operator()(pmacc::DataSpace<simDim> const& totalCellOffset)
+            {
+                return T_Profile::operator()(totalCellOffset);
+            }
+        };
+
+    } // namespace densityProfiles
+} // namespace picongpu

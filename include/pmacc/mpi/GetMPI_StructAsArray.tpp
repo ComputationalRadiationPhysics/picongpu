@@ -25,93 +25,83 @@
 
 namespace pmacc
 {
-namespace mpi
-{
-namespace def
-{
-
-template<>
-struct GetMPI_StructAsArray<int >
-{
-
-    MPI_StructAsArray operator()() const
+    namespace mpi
     {
-        return MPI_StructAsArray(MPI_INT, 1);
-    }
-};
+        namespace def
+        {
+            template<>
+            struct GetMPI_StructAsArray<int>
+            {
+                MPI_StructAsArray operator()() const
+                {
+                    return MPI_StructAsArray(MPI_INT, 1);
+                }
+            };
 
-template<>
-struct GetMPI_StructAsArray<unsigned >
-{
+            template<>
+            struct GetMPI_StructAsArray<unsigned>
+            {
+                MPI_StructAsArray operator()() const
+                {
+                    return MPI_StructAsArray(MPI_UNSIGNED, 1);
+                }
+            };
 
-    MPI_StructAsArray operator()() const
-    {
-        return MPI_StructAsArray(MPI_UNSIGNED, 1);
-    }
-};
+            template<>
+            struct GetMPI_StructAsArray<long>
+            {
+                MPI_StructAsArray operator()() const
+                {
+                    return MPI_StructAsArray(MPI_LONG, 1);
+                }
+            };
 
-template<>
-struct GetMPI_StructAsArray<long >
-{
+            template<>
+            struct GetMPI_StructAsArray<unsigned long>
+            {
+                MPI_StructAsArray operator()() const
+                {
+                    return MPI_StructAsArray(MPI_UNSIGNED_LONG, 1);
+                }
+            };
 
-    MPI_StructAsArray operator()() const
-    {
-        return MPI_StructAsArray(MPI_LONG, 1);
-    }
-};
+            template<>
+            struct GetMPI_StructAsArray<long long>
+            {
+                MPI_StructAsArray operator()() const
+                {
+                    return MPI_StructAsArray(MPI_LONG_LONG, 1);
+                }
+            };
 
-template<>
-struct GetMPI_StructAsArray<unsigned long >
-{
+            template<>
+            struct GetMPI_StructAsArray<unsigned long long>
+            {
+                MPI_StructAsArray operator()() const
+                {
+                    return MPI_StructAsArray(MPI_UNSIGNED_LONG_LONG, 1);
+                }
+            };
 
-    MPI_StructAsArray operator()() const
-    {
-        return MPI_StructAsArray(MPI_UNSIGNED_LONG, 1);
-    }
-};
+            template<>
+            struct GetMPI_StructAsArray<float>
+            {
+                MPI_StructAsArray operator()() const
+                {
+                    return MPI_StructAsArray(MPI_FLOAT, 1);
+                }
+            };
 
-template<>
-struct GetMPI_StructAsArray<long long >
-{
+            template<>
+            struct GetMPI_StructAsArray<double>
+            {
+                MPI_StructAsArray operator()() const
+                {
+                    return MPI_StructAsArray(MPI_DOUBLE, 1);
+                }
+            };
 
-    MPI_StructAsArray operator()() const
-    {
-        return MPI_StructAsArray(MPI_LONG_LONG, 1);
-    }
-};
+        } // namespace def
+    } // namespace mpi
 
-template<>
-struct GetMPI_StructAsArray<unsigned long long >
-{
-
-    MPI_StructAsArray operator()() const
-    {
-        return MPI_StructAsArray(MPI_UNSIGNED_LONG_LONG, 1);
-    }
-};
-
-template<>
-struct GetMPI_StructAsArray<float >
-{
-
-    MPI_StructAsArray operator()() const
-    {
-        return MPI_StructAsArray(MPI_FLOAT, 1);
-    }
-};
-
-template<>
-struct GetMPI_StructAsArray<double >
-{
-
-    MPI_StructAsArray operator()() const
-    {
-        return MPI_StructAsArray(MPI_DOUBLE, 1);
-    }
-};
-
-} //namespace def
-}//namespace mpi
-
-}//namespace pmacc
-
+} // namespace pmacc

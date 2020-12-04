@@ -27,42 +27,30 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
+    namespace particles
+    {
+        namespace manipulators
+        {
+            /** interface for a binary filtered particle functor
+             *
+             * The result of the filter is linked by a logic AND operation and the functor
+             * is only called if the filter result is `true`.
+             * The user functor and filter is passed by the manipulation algorithm
+             * (e.g. picongpu::particles::ManipulateDerive, ...) to this interface, there is
+             * no need to do this explicitly in the param files.
+             *
+             * @tparam T_BinaryFunctor binary particle functor, must contain
+             *                         `void operator()(P1 & particle1, P2 & particle2, ...)`
+             *                          and support at least two particles
+             * @tparam T_UnaryFilter unary particle filter, must contain `bool operator()(P particle)`
+             *                       each particle of the `T_BinaryFunctor::operator()`is passed through the filter
+             */
+            template<typename T_BinaryFunctor, typename T_UnaryFilter = filter::All>
+            using IBinary = pmacc::functor::Filtered<
+                pmacc::filter::operators::And,
+                pmacc::filter::Interface<T_UnaryFilter, 1u>,
+                pmacc::functor::Interface<T_BinaryFunctor, 2u, void>>;
 
-    /** interface for a binary filtered particle functor
-     *
-     * The result of the filter is linked by a logic AND operation and the functor
-     * is only called if the filter result is `true`.
-     * The user functor and filter is passed by the manipulation algorithm
-     * (e.g. picongpu::particles::ManipulateDerive, ...) to this interface, there is
-     * no need to do this explicitly in the param files.
-     *
-     * @tparam T_BinaryFunctor binary particle functor, must contain
-     *                         `void operator()(P1 & particle1, P2 & particle2, ...)`
-     *                          and support at least two particles
-     * @tparam T_UnaryFilter unary particle filter, must contain `bool operator()(P particle)`
-     *                       each particle of the `T_BinaryFunctor::operator()`is passed through the filter
-     */
-    template<
-        typename T_BinaryFunctor,
-        typename T_UnaryFilter = filter::All
-    >
-    using IBinary = pmacc::functor::Filtered<
-        pmacc::filter::operators::And,
-        pmacc::filter::Interface<
-            T_UnaryFilter,
-            1u
-        >,
-        pmacc::functor::Interface<
-            T_BinaryFunctor,
-            2u,
-            void
-        >
-    >;
-
-} // namespace manipulators
-} // namespace particles
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

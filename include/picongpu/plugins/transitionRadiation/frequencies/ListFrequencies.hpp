@@ -27,115 +27,115 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace transitionRadiation
-{
-namespace listFrequencies
-{
-    class FreqFunctor
+    namespace plugins
     {
-    public:
-
-        typedef GridBuffer< float_X, DIM1 >::DataBoxType DBoxType;
-
-        FreqFunctor( void )
-        { }
-
-        template< typename T >
-        FreqFunctor( T frequencies_handed )
+        namespace transitionRadiation
         {
-            this->frequencies_dev = frequencies_handed->getDeviceBuffer( ).getDataBox( );
-            this->frequencies_host = frequencies_handed->getHostBuffer( ).getDataBox( );
-        }
-
-        HDINLINE float_X operator( )( const unsigned int ID )
-        {
-            return ( ID < frequencies::nOmega ) ?  frequencies_dev[ ID ] : 0.0;
-        }
-
-        HINLINE float_X get( const unsigned int ID )
-        {
-            return ( ID < frequencies::nOmega ) ?  frequencies_host[ ID ] : 0.0;
-        }
-
-    private:
-        DBoxType frequencies_dev;
-        DBoxType frequencies_host;
-    }; // FreqFunctor
-
-
-
-    class InitFreqFunctor
-    {
-    public:
-        InitFreqFunctor( void )
-        { }
-
-        ~InitFreqFunctor( void )
-        {
-            __delete( frequencyBuffer );
-        }
-
-        typedef GridBuffer< picongpu::float_X, DIM1 >::DataBoxType DBoxType;
-
-        HINLINE void Init( const std::string path )
-        {
-
-            frequencyBuffer = new GridBuffer< float_X, DIM1 >( DataSpace< DIM1 >( nOmega ) );
-
-
-            DBoxType frequencyDB = frequencyBuffer->getHostBuffer( ).getDataBox( );
-
-            std::ifstream freqListFile( path.c_str( ) );
-            unsigned int i;
-
-            printf( "freq: %s\n", path.c_str( ) );
-
-            if( !freqListFile )
+            namespace listFrequencies
             {
-                throw std::runtime_error( std::string( "The radiation-frequency-file " ) +
-                    path + std::string( " could not be found.\n" ) );
-            }
+                class FreqFunctor
+                {
+                public:
+                    typedef GridBuffer<float_X, DIM1>::DataBoxType DBoxType;
+
+                    FreqFunctor(void)
+                    {
+                    }
+
+                    template<typename T>
+                    FreqFunctor(T frequencies_handed)
+                    {
+                        this->frequencies_dev = frequencies_handed->getDeviceBuffer().getDataBox();
+                        this->frequencies_host = frequencies_handed->getHostBuffer().getDataBox();
+                    }
+
+                    HDINLINE float_X operator()(const unsigned int ID)
+                    {
+                        return (ID < frequencies::nOmega) ? frequencies_dev[ID] : 0.0;
+                    }
+
+                    HINLINE float_X get(const unsigned int ID)
+                    {
+                        return (ID < frequencies::nOmega) ? frequencies_host[ID] : 0.0;
+                    }
+
+                private:
+                    DBoxType frequencies_dev;
+                    DBoxType frequencies_host;
+                }; // FreqFunctor
 
 
-            for( i = 0; i < nOmega && !freqListFile.eof( ); ++i )
-            {
-                freqListFile >> frequencyDB[ i ];
-                // verbose output of loaded frequencies if verbose level PHYSICS is set:
-                log< plugins::radiation::PIConGPUVerboseRadiation::PHYSICS >("freq: %1% \t %2%") % i % frequencyDB[ i ];
-                frequencyDB[ i ] *= UNIT_TIME;
-            }
+                class InitFreqFunctor
+                {
+                public:
+                    InitFreqFunctor(void)
+                    {
+                    }
 
-            if( i != nOmega )
-            {
-                throw std::runtime_error( std::string( "The number of frequencies in the list and the number of frequencies in the parameters differ.\n" ) );
-            }
+                    ~InitFreqFunctor(void)
+                    {
+                        __delete(frequencyBuffer);
+                    }
 
-            frequencyBuffer->hostToDevice( );
+                    typedef GridBuffer<picongpu::float_X, DIM1>::DataBoxType DBoxType;
 
-        }
+                    HINLINE void Init(const std::string path)
+                    {
+                        frequencyBuffer = new GridBuffer<float_X, DIM1>(DataSpace<DIM1>(nOmega));
 
-        FreqFunctor getFunctor( void )
-        {
-            return FreqFunctor( frequencyBuffer );
-        }
 
-    private:
-        GridBuffer< float_X, DIM1 > * frequencyBuffer = nullptr;
-    }; // InitFreqFunctor
+                        DBoxType frequencyDB = frequencyBuffer->getHostBuffer().getDataBox();
 
-    //! @return frequency params as string
-    HINLINE
-    std::string
-    getParameters( )
-    {
-        std::string params = std::string( "list\t" );
-        params += std::string( listLocation ) + std::string( "\t" );
-        return params;
-    }
+                        std::ifstream freqListFile(path.c_str());
+                        unsigned int i;
 
-} // namespace listFrequencies
-} // namespace transitionRadiation
-} // namespace plugins
+                        printf("freq: %s\n", path.c_str());
+
+                        if(!freqListFile)
+                        {
+                            throw std::runtime_error(
+                                std::string("The radiation-frequency-file ") + path
+                                + std::string(" could not be found.\n"));
+                        }
+
+
+                        for(i = 0; i < nOmega && !freqListFile.eof(); ++i)
+                        {
+                            freqListFile >> frequencyDB[i];
+                            // verbose output of loaded frequencies if verbose level PHYSICS is set:
+                            log<plugins::radiation::PIConGPUVerboseRadiation::PHYSICS>("freq: %1% \t %2%") % i
+                                % frequencyDB[i];
+                            frequencyDB[i] *= UNIT_TIME;
+                        }
+
+                        if(i != nOmega)
+                        {
+                            throw std::runtime_error(std::string("The number of frequencies in the list and the "
+                                                                 "number of frequencies in the parameters differ.\n"));
+                        }
+
+                        frequencyBuffer->hostToDevice();
+                    }
+
+                    FreqFunctor getFunctor(void)
+                    {
+                        return FreqFunctor(frequencyBuffer);
+                    }
+
+                private:
+                    GridBuffer<float_X, DIM1>* frequencyBuffer = nullptr;
+                }; // InitFreqFunctor
+
+                //! @return frequency params as string
+                HINLINE
+                std::string getParameters()
+                {
+                    std::string params = std::string("list\t");
+                    params += std::string(listLocation) + std::string("\t");
+                    return params;
+                }
+
+            } // namespace listFrequencies
+        } // namespace transitionRadiation
+    } // namespace plugins
 } // namespace picongpu

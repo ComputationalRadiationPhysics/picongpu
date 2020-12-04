@@ -30,138 +30,121 @@
 
 namespace picongpu
 {
-namespace openPMD
-{
-    using namespace pmacc;
-
-    static const std::string name_lookup[] = { "x", "y", "z" };
-
-
-    /** write attribute of a particle to openPMD series
-     *
-     * @tparam T_Identifier identifier of a particle attribute
-     */
-    template< typename T_Identifier >
-    struct ParticleAttribute
+    namespace openPMD
     {
-        /** write attribute to openPMD series
+        using namespace pmacc;
+
+        static const std::string name_lookup[] = {"x", "y", "z"};
+
+
+        /** write attribute of a particle to openPMD series
          *
-         * @param params wrapped params
-         * @param elements elements of this attribute
+         * @tparam T_Identifier identifier of a particle attribute
          */
-        template< typename FrameType >
-        HINLINE void
-        operator()(
-            ThreadParams * params,
-            FrameType & frame,
-            ::openPMD::Container<::openPMD::Record > & particleSpecies,
-            const size_t elements,
-            const size_t globalElements,
-            const size_t globalOffset )
+        template<typename T_Identifier>
+        struct ParticleAttribute
         {
-            using Identifier = T_Identifier;
-            using ValueType =
-                typename pmacc::traits::Resolve< Identifier >::type::type;
-            const uint32_t components = GetNComponents< ValueType >::value;
-            using ComponentType = typename GetComponentsType< ValueType >::type;
-
-            OpenPMDName< T_Identifier > openPMDName;
-            ::openPMD::Record record = particleSpecies[ openPMDName() ];
-            ::openPMD::Datatype openPMDType =
-                ::openPMD::determineDatatype< ComponentType >();
-
-            // get the SI scaling, dimensionality and weighting of the attribute
-            OpenPMDUnit< T_Identifier > openPMDUnit;
-            std::vector< float_64 > unit = openPMDUnit();
-            OpenPMDUnitDimension< T_Identifier > openPMDUnitDimension;
-            std::vector< float_64 > unitDimension = openPMDUnitDimension();
-            const bool macroWeightedBool = MacroWeighted< T_Identifier >::get();
-            const uint32_t macroWeighted = ( macroWeightedBool ? 1 : 0 );
-            const float_64 weightingPower =
-                WeightingPower< T_Identifier >::get();
-
-            PMACC_ASSERT(
-                unit.size() == components ); // unitSI for each component
-            PMACC_ASSERT(
-                unitDimension.size() == 7 ); // seven openPMD base units
-
-            log< picLog::INPUT_OUTPUT >(
-                "openPMD:  (begin) write species attribute: %1%" ) %
-                Identifier::getName();
-
-            std::shared_ptr< ComponentType > storeBfr;
-            if ( elements > 0 )
-                storeBfr = std::shared_ptr< ComponentType >{
-                    new ComponentType[ elements ],
-                    []( ComponentType * ptr ) { delete[] ptr; }
-                };
-
-            for( uint32_t d = 0; d < components; d++ )
+            /** write attribute to openPMD series
+             *
+             * @param params wrapped params
+             * @param elements elements of this attribute
+             */
+            template<typename FrameType>
+            HINLINE void operator()(
+                ThreadParams* params,
+                FrameType& frame,
+                ::openPMD::Container<::openPMD::Record>& particleSpecies,
+                const size_t elements,
+                const size_t globalElements,
+                const size_t globalOffset)
             {
-                ::openPMD::RecordComponent recordComponent = components > 1
-                    ? record[ name_lookup[ d ] ]
-                    : record[::openPMD::MeshRecordComponent::SCALAR ];
+                using Identifier = T_Identifier;
+                using ValueType = typename pmacc::traits::Resolve<Identifier>::type::type;
+                const uint32_t components = GetNComponents<ValueType>::value;
+                using ComponentType = typename GetComponentsType<ValueType>::type;
 
-                ValueType * dataPtr = frame.getIdentifier( Identifier() )
-                                          .getPointer(); // can be moved up?
-                auto storePtr = storeBfr.get();
+                OpenPMDName<T_Identifier> openPMDName;
+                ::openPMD::Record record = particleSpecies[openPMDName()];
+                ::openPMD::Datatype openPMDType = ::openPMD::determineDatatype<ComponentType>();
+
+                // get the SI scaling, dimensionality and weighting of the attribute
+                OpenPMDUnit<T_Identifier> openPMDUnit;
+                std::vector<float_64> unit = openPMDUnit();
+                OpenPMDUnitDimension<T_Identifier> openPMDUnitDimension;
+                std::vector<float_64> unitDimension = openPMDUnitDimension();
+                const bool macroWeightedBool = MacroWeighted<T_Identifier>::get();
+                const uint32_t macroWeighted = (macroWeightedBool ? 1 : 0);
+                const float_64 weightingPower = WeightingPower<T_Identifier>::get();
+
+                PMACC_ASSERT(unit.size() == components); // unitSI for each component
+                PMACC_ASSERT(unitDimension.size() == 7); // seven openPMD base units
+
+                log<picLog::INPUT_OUTPUT>("openPMD:  (begin) write species attribute: %1%") % Identifier::getName();
+
+                std::shared_ptr<ComponentType> storeBfr;
+                if(elements > 0)
+                    storeBfr = std::shared_ptr<ComponentType>{new ComponentType[elements], [](ComponentType* ptr) {
+                                                                  delete[] ptr;
+                                                              }};
+
+                for(uint32_t d = 0; d < components; d++)
+                {
+                    ::openPMD::RecordComponent recordComponent
+                        = components > 1 ? record[name_lookup[d]] : record[::openPMD::MeshRecordComponent::SCALAR];
+
+                    ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer(); // can be moved up?
+                    auto storePtr = storeBfr.get();
 
 /* copy strided data from source to temporary buffer */
 #pragma omp parallel for simd
-                for( size_t i = 0; i < elements; ++i )
-                {
-                    storePtr[ i ] = reinterpret_cast< ComponentType * >(
-                        dataPtr )[ d + i * components ];
-                }
+                    for(size_t i = 0; i < elements; ++i)
+                    {
+                        storePtr[i] = reinterpret_cast<ComponentType*>(dataPtr)[d + i * components];
+                    }
 
-                params
-                    ->initDataset< DIM1 >(
+                    params->initDataset<DIM1>(
                         recordComponent,
                         openPMDType,
-                        { globalElements },
+                        {globalElements},
                         true,
-                        params->compressionMethod );
-                if( storeBfr )
-                    recordComponent.storeChunk(
-                        storeBfr, { globalOffset }, { elements } );
+                        params->compressionMethod);
+                    if(storeBfr)
+                        recordComponent.storeChunk(storeBfr, {globalOffset}, {elements});
 
-                if( unit.size() >= ( d + 1 ) )
-                {
-                    recordComponent.setUnitSI( unit[ d ] );
+                    if(unit.size() >= (d + 1))
+                    {
+                        recordComponent.setUnitSI(unit[d]);
+                    }
+                    params->openPMDSeries->flush();
                 }
-                params->openPMDSeries->flush();
+
+                static constexpr ::openPMD::UnitDimension openPMDUnitDimensions[7]
+                    = {::openPMD::UnitDimension::L,
+                       ::openPMD::UnitDimension::M,
+                       ::openPMD::UnitDimension::T,
+                       ::openPMD::UnitDimension::I,
+                       ::openPMD::UnitDimension::theta,
+                       ::openPMD::UnitDimension::N,
+                       ::openPMD::UnitDimension::J};
+                std::map<::openPMD::UnitDimension, double> unitMap;
+                for(unsigned i = 0; i < 7; ++i)
+                {
+                    unitMap[openPMDUnitDimensions[i]] = unitDimension[i];
+                }
+
+                record.setUnitDimension(unitMap);
+                record.setAttribute("macroWeighted", macroWeighted);
+                record.setAttribute("weightingPower", weightingPower);
+
+                /* @todo check if always correct at this point,
+                 * depends on attribute and MW-solver/pusher implementation
+                 */
+                float_X const timeOffset = 0.0;
+                record.setAttribute("timeOffset", timeOffset);
+
+                log<picLog::INPUT_OUTPUT>("openPMD:  ( end ) write species attribute: %1%") % Identifier::getName();
             }
+        };
 
-            static constexpr ::openPMD::UnitDimension
-                openPMDUnitDimensions[ 7 ] = {
-                    ::openPMD::UnitDimension::L,
-                    ::openPMD::UnitDimension::M,
-                    ::openPMD::UnitDimension::T,
-                    ::openPMD::UnitDimension::I,
-                    ::openPMD::UnitDimension::theta,
-                    ::openPMD::UnitDimension::N,
-                    ::openPMD::UnitDimension::J };
-            std::map<::openPMD::UnitDimension, double > unitMap;
-            for( unsigned i = 0; i < 7; ++i )
-            {
-                unitMap[ openPMDUnitDimensions[ i ] ] = unitDimension[ i ];
-            }
-
-            record.setUnitDimension( unitMap );
-            record.setAttribute( "macroWeighted", macroWeighted );
-            record.setAttribute( "weightingPower", weightingPower );
-
-            /* @todo check if always correct at this point,
-             * depends on attribute and MW-solver/pusher implementation
-             */
-            float_X const timeOffset = 0.0;
-            record.setAttribute( "timeOffset", timeOffset );
-
-            log< picLog::INPUT_OUTPUT >(
-                "openPMD:  ( end ) write species attribute: %1%" ) %
-                Identifier::getName();
-        }
-    };
-
-} // namespace openPMD
+    } // namespace openPMD
 } // namespace picongpu

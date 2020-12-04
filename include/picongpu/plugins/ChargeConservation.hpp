@@ -33,82 +33,70 @@
 
 namespace picongpu
 {
-using namespace pmacc;
+    using namespace pmacc;
 
-namespace po = boost::program_options;
+    namespace po = boost::program_options;
 
-/**
- * @class ChargeConservation
- * @brief maximum difference between electron charge density and div E
- *
- * WARNING: This plugin assumes a Yee-cell!
- * Do not use it together with other field solvers like `directional splitting` or `Lehe`
- */
-class ChargeConservation : public ISimulationPlugin
-{
-private:
-    std::string name;
-    std::string prefix;
-    std::string notifyPeriod;
-    const std::string filename;
-    MappingDesc* cellDescription;
-    std::ofstream output_file;
-
-    using AllGPU_reduce = boost::shared_ptr<pmacc::algorithm::mpi::Reduce<simDim> >;
-    AllGPU_reduce allGPU_reduce;
-
-    HINLINE void restart(uint32_t restartStep, const std::string restartDirectory);
-    HINLINE void checkpoint(uint32_t currentStep, const std::string checkpointDirectory);
-
-    HINLINE void pluginLoad();
-public:
-    HINLINE ChargeConservation();
-    virtual ~ChargeConservation() {}
-
-    HINLINE void notify(uint32_t currentStep);
-    HINLINE void setMappingDescription(MappingDesc*);
-    HINLINE void pluginRegisterHelp(po::options_description& desc);
-    HINLINE std::string pluginGetName() const;
-};
-
-namespace particles
-{
-namespace traits
-{
-    template<
-        typename T_Species
-    >
-    struct SpeciesEligibleForSolver<
-        T_Species,
-        ChargeConservation
-    >
+    /**
+     * @class ChargeConservation
+     * @brief maximum difference between electron charge density and div E
+     *
+     * WARNING: This plugin assumes a Yee-cell!
+     * Do not use it together with other field solvers like `directional splitting` or `Lehe`
+     */
+    class ChargeConservation : public ISimulationPlugin
     {
-        using FrameType = typename T_Species::FrameType;
+    private:
+        std::string name;
+        std::string prefix;
+        std::string notifyPeriod;
+        const std::string filename;
+        MappingDesc* cellDescription;
+        std::ofstream output_file;
 
-        // this plugin needs at least the weighting particle attribute
-        using RequiredIdentifiers = MakeSeq_t<
-            weighting
-        >;
+        using AllGPU_reduce = boost::shared_ptr<pmacc::algorithm::mpi::Reduce<simDim>>;
+        AllGPU_reduce allGPU_reduce;
 
-        using SpeciesHasIdentifiers = typename pmacc::traits::HasIdentifiers<
-            FrameType,
-            RequiredIdentifiers
-        >::type;
+        HINLINE void restart(uint32_t restartStep, const std::string restartDirectory);
+        HINLINE void checkpoint(uint32_t currentStep, const std::string checkpointDirectory);
 
-        // and also a charge ratio for a charge density
-        using SpeciesHasFlags = typename pmacc::traits::HasFlag<
-            FrameType,
-            chargeRatio<>
-        >::type;
+        HINLINE void pluginLoad();
 
-        using type = typename bmpl::and_<
-            SpeciesHasIdentifiers,
-            SpeciesHasFlags
-        >;
+    public:
+        HINLINE ChargeConservation();
+        virtual ~ChargeConservation()
+        {
+        }
+
+        HINLINE void notify(uint32_t currentStep);
+        HINLINE void setMappingDescription(MappingDesc*);
+        HINLINE void pluginRegisterHelp(po::options_description& desc);
+        HINLINE std::string pluginGetName() const;
     };
 
-} // namespace traits
-} // namespace particles
+    namespace particles
+    {
+        namespace traits
+        {
+            template<typename T_Species>
+            struct SpeciesEligibleForSolver<T_Species, ChargeConservation>
+            {
+                using FrameType = typename T_Species::FrameType;
+
+                // this plugin needs at least the weighting particle attribute
+                using RequiredIdentifiers = MakeSeq_t<weighting>;
+
+                using SpeciesHasIdentifiers =
+                    typename pmacc::traits::HasIdentifiers<FrameType, RequiredIdentifiers>::type;
+
+                // and also a charge ratio for a charge density
+                using SpeciesHasFlags = typename pmacc::traits::HasFlag<FrameType, chargeRatio<>>::type;
+
+                using type = typename bmpl::and_<SpeciesHasIdentifiers, SpeciesHasFlags>;
+            };
+
+        } // namespace traits
+    } // namespace particles
 } // namespace picongpu
 
 #include "ChargeConservation.tpp"

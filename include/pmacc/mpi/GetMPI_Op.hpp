@@ -28,8 +28,7 @@ namespace pmacc
 {
     namespace mpi
     {
-
         template<class Functor>
         MPI_Op getMPI_Op();
     }
-}
+} // namespace pmacc

@@ -25,46 +25,46 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<int dim>
-struct UInt32 : public Vector<uint32_t, dim>
-{
-    using BaseType = Vector<uint32_t, dim>;
-
-    HDINLINE UInt32()
+    namespace math
     {
-    }
+        template<int dim>
+        struct UInt32 : public Vector<uint32_t, dim>
+        {
+            using BaseType = Vector<uint32_t, dim>;
 
-    HDINLINE UInt32(uint32_t x) : BaseType(x)
-    {
-    }
+            HDINLINE UInt32()
+            {
+            }
 
-    HDINLINE UInt32(uint32_t x, uint32_t y) : BaseType(x, y)
-    {
-    }
+            HDINLINE UInt32(uint32_t x) : BaseType(x)
+            {
+            }
 
-    HDINLINE UInt32(uint32_t x, uint32_t y, uint32_t z) : BaseType(x, y, z)
-    {
-    }
+            HDINLINE UInt32(uint32_t x, uint32_t y) : BaseType(x, y)
+            {
+            }
 
-    /*! only allow explicit cast*/
-    template<
-    typename T_OtherType,
-    typename T_OtherAccessor,
-    typename T_OtherNavigator,
-    template <typename, int> class T_OtherStorage>
-    HDINLINE explicit UInt32(const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec) :
-    BaseType(vec)
-    {
-    }
+            HDINLINE UInt32(uint32_t x, uint32_t y, uint32_t z) : BaseType(x, y, z)
+            {
+            }
 
-    HDINLINE UInt32(const BaseType& vec) :
-    BaseType(vec)
-    {
-    }
-};
+            /*! only allow explicit cast*/
+            template<
+                typename T_OtherType,
+                typename T_OtherAccessor,
+                typename T_OtherNavigator,
+                template<typename, int>
+                class T_OtherStorage>
+            HDINLINE explicit UInt32(
+                const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec)
+                : BaseType(vec)
+            {
+            }
 
-} // math
-} // PMacc
+            HDINLINE UInt32(const BaseType& vec) : BaseType(vec)
+            {
+            }
+        };
+
+    } // namespace math
+} // namespace pmacc

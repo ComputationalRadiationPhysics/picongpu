@@ -28,45 +28,42 @@
 #include <adios_error.h>
 #include <stdexcept>
 
-namespace picongpu {
-namespace adios {
-
-    /**
-     * Read an attribute from an open ADIOS file, check that its type is correct and return it
-     *
-     * @param fp       Open ADIOS file handle
-     * @param basePath Path where the attribute is located in the file (with or w/o trailing slash)
-     * @param attrName Name of the attribute. Used for status output and concatenated with basePath
-     * @retval Attribute value
-     */
-    template<typename T_Attribute>
-    T_Attribute readAttribute(ADIOS_FILE* fp, const std::string& basePath, const std::string& attrName)
+namespace picongpu
+{
+    namespace adios
     {
-        // Build full path
-        std::string attrPath = basePath;
-        if(!attrPath.empty() && attrPath[attrPath.size() - 1] != '/')
-            attrPath += '/';
-        attrPath += attrName;
-        // Actually read the data
-        enum ADIOS_DATATYPES attrType;
-        int attrSize;
-        T_Attribute* attrValuePtr;
-        ADIOS_CMD( adios_get_attr(fp,
-                                  attrPath.c_str(),
-                                  &attrType,
-                                  &attrSize,
-                                  (void**) &attrValuePtr) );
-        // Sanity checks
-        if(attrType != traits::PICToAdios<T_Attribute>().type)
-            throw std::runtime_error(std::string("Invalid type of ADIOS attribute ") + attrName);
-        if(attrSize != sizeof(T_Attribute))
-            throw std::runtime_error(std::string("Invalid size of ADIOS attribute ") + attrName);
+        /**
+         * Read an attribute from an open ADIOS file, check that its type is correct and return it
+         *
+         * @param fp       Open ADIOS file handle
+         * @param basePath Path where the attribute is located in the file (with or w/o trailing slash)
+         * @param attrName Name of the attribute. Used for status output and concatenated with basePath
+         * @retval Attribute value
+         */
+        template<typename T_Attribute>
+        T_Attribute readAttribute(ADIOS_FILE* fp, const std::string& basePath, const std::string& attrName)
+        {
+            // Build full path
+            std::string attrPath = basePath;
+            if(!attrPath.empty() && attrPath[attrPath.size() - 1] != '/')
+                attrPath += '/';
+            attrPath += attrName;
+            // Actually read the data
+            enum ADIOS_DATATYPES attrType;
+            int attrSize;
+            T_Attribute* attrValuePtr;
+            ADIOS_CMD(adios_get_attr(fp, attrPath.c_str(), &attrType, &attrSize, (void**) &attrValuePtr));
+            // Sanity checks
+            if(attrType != traits::PICToAdios<T_Attribute>().type)
+                throw std::runtime_error(std::string("Invalid type of ADIOS attribute ") + attrName);
+            if(attrSize != sizeof(T_Attribute))
+                throw std::runtime_error(std::string("Invalid size of ADIOS attribute ") + attrName);
 
-        T_Attribute attribute = *attrValuePtr;
-        __delete(attrValuePtr);
-        log<picLog::INPUT_OUTPUT > ("ADIOS: value of %1% = %2%") % attrName % attribute;
-        return attribute;
-    }
+            T_Attribute attribute = *attrValuePtr;
+            __delete(attrValuePtr);
+            log<picLog::INPUT_OUTPUT>("ADIOS: value of %1% = %2%") % attrName % attribute;
+            return attribute;
+        }
 
-}  // namespace adios
-}  // namespace picongpu
+    } // namespace adios
+} // namespace picongpu

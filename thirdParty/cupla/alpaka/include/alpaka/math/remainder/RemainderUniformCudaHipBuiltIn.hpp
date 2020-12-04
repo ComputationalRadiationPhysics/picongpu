@@ -11,37 +11,36 @@
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-#include <alpaka/core/BoostPredef.hpp>
+#    include <alpaka/core/BoostPredef.hpp>
 
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-    #include <cuda_runtime.h>
-    #if !BOOST_LANG_CUDA
-        #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-    #endif
-#endif
+#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+#        include <cuda_runtime.h>
+#        if !BOOST_LANG_CUDA
+#            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
+#        endif
+#    endif
 
-#if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+#    if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-    #if BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(9, 0, 0)
-        #include <cuda_runtime_api.h>
-    #else
-        #if BOOST_COMP_HIP
-            #include <hip/math_functions.h>
-        #else
-            #include <math_functions.hpp>
-        #endif
-    #endif
-    
-    #if !BOOST_LANG_HIP
-        #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-    #endif
-#endif
+#        if BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(9, 0, 0)
+#            include <cuda_runtime_api.h>
+#        else
+#            if BOOST_COMP_HIP
+#                include <hip/math_functions.h>
+#            else
+#                include <math_functions.hpp>
+#            endif
+#        endif
 
-#include <alpaka/math/remainder/Traits.hpp>
+#        if !BOOST_LANG_HIP
+#            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
+#        endif
+#    endif
 
-#include <alpaka/core/Unused.hpp>
+#    include <alpaka/core/Unused.hpp>
+#    include <alpaka/math/remainder/Traits.hpp>
 
-#include <type_traits>
+#    include <type_traits>
 
 namespace alpaka
 {
@@ -49,7 +48,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in remainder.
-        class RemainderUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathRemainder, RemainderUniformCudaHipBuiltIn>
+        class RemainderUniformCudaHipBuiltIn
+            : public concepts::Implements<ConceptMathRemainder, RemainderUniformCudaHipBuiltIn>
         {
         };
 
@@ -57,49 +57,37 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA remainder trait specialization.
-            template<
-                typename Tx,
-                typename Ty>
+            template<typename Tx, typename Ty>
             struct Remainder<
                 RemainderUniformCudaHipBuiltIn,
                 Tx,
                 Ty,
-                std::enable_if_t<
-                    std::is_floating_point<Tx>::value
-                    && std::is_floating_point<Ty>::value>>
+                std::enable_if_t<std::is_floating_point<Tx>::value && std::is_floating_point<Ty>::value>>
             {
                 __device__ static auto remainder(
-                    RemainderUniformCudaHipBuiltIn const & remainder_ctx,
-                    Tx const & x,
-                    Ty const & y)
+                    RemainderUniformCudaHipBuiltIn const& remainder_ctx,
+                    Tx const& x,
+                    Ty const& y)
                 {
                     alpaka::ignore_unused(remainder_ctx);
-                    return ::remainder(
-                        x,
-                        y);
+                    return ::remainder(x, y);
                 }
             };
             //! The CUDA remainder float specialization.
             template<>
-            struct Remainder<
-                RemainderUniformCudaHipBuiltIn,
-                float,
-                float>
+            struct Remainder<RemainderUniformCudaHipBuiltIn, float, float>
             {
                 __device__ static auto remainder(
-                    RemainderUniformCudaHipBuiltIn const & remainder_ctx,
-                    float const & x,
-                    float const & y)
-                -> float
+                    RemainderUniformCudaHipBuiltIn const& remainder_ctx,
+                    float const& x,
+                    float const& y) -> float
                 {
                     alpaka::ignore_unused(remainder_ctx);
-                    return ::remainderf(
-                        x,
-                        y);
+                    return ::remainderf(x, y);
                 }
             };
-        }
-    }
-}
+        } // namespace traits
+    } // namespace math
+} // namespace alpaka
 
 #endif

@@ -25,27 +25,25 @@
 
 namespace pmacc
 {
-
-namespace traits
-{
-    /** Get component type of an object
-     *
-     * \tparam T_Type any type
-     * \return \p ::type get result type
-     *            If T_Type is fundamental c++ type, the identity is returned
-     *
-     * Attention: do not defines this trait for structs with different attributes inside
-     */
-    template<typename T_Type,bool T_IsFundamental=boost::is_fundamental<T_Type>::value >
-    struct GetComponentsType;
-
-    template<typename T_Type>
-    struct GetComponentsType<T_Type,true>
+    namespace traits
     {
-        typedef T_Type type;
-    };
+        /** Get component type of an object
+         *
+         * \tparam T_Type any type
+         * \return \p ::type get result type
+         *            If T_Type is fundamental c++ type, the identity is returned
+         *
+         * Attention: do not defines this trait for structs with different attributes inside
+         */
+        template<typename T_Type, bool T_IsFundamental = boost::is_fundamental<T_Type>::value>
+        struct GetComponentsType;
 
-} //namespace traits
+        template<typename T_Type>
+        struct GetComponentsType<T_Type, true>
+        {
+            typedef T_Type type;
+        };
 
-}// namespace pmacc
+    } // namespace traits
 
+} // namespace pmacc

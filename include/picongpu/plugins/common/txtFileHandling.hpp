@@ -28,7 +28,7 @@
 
 namespace picongpu
 {
-using namespace boost::filesystem;
+    using namespace boost::filesystem;
 
     /** Restore a txt file from the checkpoint dir
      *
@@ -43,41 +43,41 @@ using namespace boost::filesystem;
      *
      * \return operation was successful or not
      */
-    HINLINE bool restoreTxtFile( std::ofstream& outFile, std::string filename,
-                         uint32_t restartStep, const std::string restartDirectory )
+    HINLINE bool restoreTxtFile(
+        std::ofstream& outFile,
+        std::string filename,
+        uint32_t restartStep,
+        const std::string restartDirectory)
     {
         /* get restart time step as string */
         std::stringstream sStep;
         sStep << restartStep;
 
         /* set location of restart file and output file */
-        path src( restartDirectory + std::string("/") + filename +
-                  std::string(".") + sStep.str() );
-        path dst( filename );
+        path src(restartDirectory + std::string("/") + filename + std::string(".") + sStep.str());
+        path dst(filename);
 
         /* check whether restart file exists */
-        if( !boost::filesystem::exists( src ) )
+        if(!boost::filesystem::exists(src))
         {
             /* restart file does not exists */
-            log<picLog::INPUT_OUTPUT> ("Plugin restart file: %1% was not found. \
-                                       --> Starting plugin from current time step.") % src;
+            log<picLog::INPUT_OUTPUT>("Plugin restart file: %1% was not found. \
+                                       --> Starting plugin from current time step.")
+                % src;
             return true;
         }
         else
         {
             /* restart file found - fix output file created at restart */
-            if( outFile.is_open() )
+            if(outFile.is_open())
                 outFile.close();
 
-            copy_file( src,
-                       dst,
-                       copy_option::overwrite_if_exists );
+            copy_file(src, dst, copy_option::overwrite_if_exists);
 
-            outFile.open( filename.c_str(), std::ofstream::out | std::ostream::app );
-            if( !outFile )
+            outFile.open(filename.c_str(), std::ofstream::out | std::ostream::app);
+            if(!outFile)
             {
-                std::cerr << "[Plugin] Can't open file '" << filename
-                          << "', output disabled" << std::endl;
+                std::cerr << "[Plugin] Can't open file '" << filename << "', output disabled" << std::endl;
                 return false;
             }
             return true;
@@ -93,21 +93,21 @@ using namespace boost::filesystem;
      * \param currentStep the current time step
      * \param checkpointDirectory path to the checkpoint directory
      */
-    HINLINE void checkpointTxtFile( std::ofstream& outFile, std::string filename,
-                            uint32_t currentStep, const std::string checkpointDirectory )
+    HINLINE void checkpointTxtFile(
+        std::ofstream& outFile,
+        std::string filename,
+        uint32_t currentStep,
+        const std::string checkpointDirectory)
     {
         outFile.flush();
 
         std::stringstream sStep;
         sStep << currentStep;
 
-        path src( filename );
-        path dst( checkpointDirectory + std::string("/") + filename +
-        std::string(".") + sStep.str() );
+        path src(filename);
+        path dst(checkpointDirectory + std::string("/") + filename + std::string(".") + sStep.str());
 
-        copy_file( src,
-                   dst,
-                   copy_option::overwrite_if_exists );
+        copy_file(src, dst, copy_option::overwrite_if_exists);
     }
 
 } /* namespace picongpu */

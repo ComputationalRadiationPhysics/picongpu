@@ -17,27 +17,11 @@
 //-----------------------------------------------------------------------------
 TEST_CASE("filter", "[meta]")
 {
-    using FilterInput =
-        std::tuple<
-            int,
-            float,
-            long>;
+    using FilterInput = std::tuple<int, float, long>;
 
-    using FilterResult =
-        alpaka::meta::Filter<
-            FilterInput,
-            std::is_integral
-        >;
+    using FilterResult = alpaka::meta::Filter<FilterInput, std::is_integral>;
 
-    using FilterReference =
-        std::tuple<
-            int,
-            long>;
+    using FilterReference = std::tuple<int, long>;
 
-    static_assert(
-        std::is_same<
-            FilterReference,
-            FilterResult
-        >::value,
-        "alpaka::meta::Filter failed!");
+    static_assert(std::is_same<FilterReference, FilterResult>::value, "alpaka::meta::Filter failed!");
 }

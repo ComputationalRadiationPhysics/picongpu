@@ -32,16 +32,10 @@
 
 namespace picongpu
 {
-
     /*########################### define particle attributes #####################*/
 
     /** describe attributes of a particle*/
-    using DefaultParticleAttributes = MakeSeq_t<
-        position< position_pic >,
-        momentum,
-        weighting,
-        transitionRadiationMask
-    >;
+    using DefaultParticleAttributes = MakeSeq_t<position<position_pic>, momentum, weighting, transitionRadiationMask>;
 
     /*########################### end particle attributes ########################*/
 
@@ -50,28 +44,21 @@ namespace picongpu
     /*--------------------------- electrons --------------------------------------*/
 
     /* ratio relative to BASE_CHARGE and BASE_MASS */
-    value_identifier( float_X, MassRatioElectrons, 1.0 );
-    value_identifier( float_X, ChargeRatioElectrons, 1.0 );
+    value_identifier(float_X, MassRatioElectrons, 1.0);
+    value_identifier(float_X, ChargeRatioElectrons, 1.0);
 
     using ParticleFlagsElectrons = MakeSeq_t<
-        particlePusher< UsedParticlePusher >,
-        shape< UsedParticleShape >,
-        interpolation< UsedField2Particle >,
-        massRatio< MassRatioElectrons >,
-        chargeRatio< ChargeRatioElectrons >
-    >;
+        particlePusher<UsedParticlePusher>,
+        shape<UsedParticleShape>,
+        interpolation<UsedField2Particle>,
+        massRatio<MassRatioElectrons>,
+        chargeRatio<ChargeRatioElectrons>>;
 
     /* define species electrons */
-    using PIC_Electrons = Particles<
-        PMACC_CSTRING( "e" ),
-        ParticleFlagsElectrons,
-        DefaultParticleAttributes
-    >;
+    using PIC_Electrons = Particles<PMACC_CSTRING("e"), ParticleFlagsElectrons, DefaultParticleAttributes>;
 
     /*########################### end species ####################################*/
 
-    using VectorAllSpecies = MakeSeq_t<
-        PIC_Electrons
-    >;
+    using VectorAllSpecies = MakeSeq_t<PIC_Electrons>;
 
-} //namespace picongpu
+} // namespace picongpu

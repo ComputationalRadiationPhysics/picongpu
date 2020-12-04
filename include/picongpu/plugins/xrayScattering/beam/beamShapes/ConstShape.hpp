@@ -23,24 +23,24 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace xrayScattering
-{
-namespace beam
-{
-namespace beamShapes
-{
-    //! Beam intensity homogeneous along the propagation direction.
-    struct ConstShape
+    namespace plugins
     {
-        static HDINLINE constexpr float_X getFactor( const float_X & time )
+        namespace xrayScattering
         {
-            return 1.0_X;
-        }
-    };
-} // namespace beamShapes
-} // namespace beam
-} // namespace xrayScattering
-} // namespace plugins
+            namespace beam
+            {
+                namespace beamShapes
+                {
+                    //! Beam intensity homogeneous along the propagation direction.
+                    struct ConstShape
+                    {
+                        static HDINLINE constexpr float_X getFactor(const float_X& time)
+                        {
+                            return 1.0_X;
+                        }
+                    };
+                } // namespace beamShapes
+            } // namespace beam
+        } // namespace xrayScattering
+    } // namespace plugins
 } // namespace picongpu

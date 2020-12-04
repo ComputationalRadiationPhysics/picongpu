@@ -43,232 +43,244 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-// initiate the formfactor namespaces from the radiation plugin
-namespace radiation
-{
-    namespace radFormFactor_CIC_3D { }
-    namespace radFormFactor_TSC_3D { }
-    namespace radFormFactor_PCS_3D { }
-    namespace radFormFactor_CIC_1Dy { }
-    namespace radFormFactor_Gauss_spherical { }
-    namespace radFormFactor_Gauss_cell { }
-    namespace radFormFactor_incoherent { }
-    namespace radFormFactor_coherent { }
-} // namespace radiation
-
-namespace transitionRadiation
-{
-namespace linearFrequencies
-{
-    namespace SI
+    namespace plugins
     {
-        //! mimimum frequency of the linear frequency scale in units of [1/s]
-        constexpr float_64 omegaMin = 0.0;
-        //! maximum frequency of the linear frequency scale in units of [1/s]
-        constexpr float_64 omegaMax = 1.06e16;
-    }
-
-    //! number of frequency values to compute in the linear frequency [unitless]
-    constexpr unsigned int nOmega = 512;
-
-} // namespace linearFrequencies
-
-namespace logFrequencies
-{
-    namespace SI
-    {
-        //! mimimum frequency of the logarithmic frequency scale in units of [1/s]
-        constexpr float_64 omegaMin = 1.0e13;
-        //! maximum frequency of the logarithmic frequency scale in units of [1/s]
-        constexpr float_64 omegaMax = 1.0e17;
-    }
-
-    //! number of frequency values to compute in the logarithmic frequency [unitless]
-    constexpr unsigned int nOmega = 256;
-
-} // namespace logFrequencies
-
-
-namespace listFrequencies
-{
-    //! path to text file with frequencies
-    constexpr char listLocation[] = "/path/to/frequency_list";
-    //! number of frequency values to compute if frequencies are given in a file [unitless]
-    constexpr unsigned int nOmega = 512;
-
-} // namespace listFrequencies
-
-
-    /** selected mode of frequency scaling:
-     *
-     * options:
-     * - linearFrequencies
-     * - logFrequencies
-     * - listFrequencies
-     */
-    namespace frequencies = logFrequencies;
-
-    ///////////////////////////////////////////////////
-
-
-    /** correct treatment of coherent radiation from macro particles
-     *
-     * These formfactors are the same as in the radiation plugin!
-     * Choose different form factors in order to consider different particle shapes for radiation
-     *  - ::picongpu::plugins::radiation::radFormFactor_CIC_3D ... CIC charge distribution
-     *  - ::picongpu::plugins::radiation::radFormFactor_TSC_3D ... TSC charge distribution
-     *  - ::picongpu::plugins::radiation::radFormFactor_PCS_3D ... PCS charge distribution
-     *  - ::picongpu::plugins::radiation::radFormFactor_CIC_1Dy ... only CIC charge distribution in y
-     *  - ::picongpu::plugins::radiation::radFormFactor_Gauss_spherical ... symmetric Gauss charge distribution
-     *  - ::picongpu::plugins::radiation::radFormFactor_Gauss_cell ... Gauss charge distribution according to cell size
-     *  - ::picongpu::plugins::radiation::radFormFactor_incoherent ... only incoherent radiation
-     *  - ::picongpu::plugins::radiation::radFormFactor_coherent ... only coherent radiation
-     */
-    namespace macroParticleFormFactor = ::picongpu::plugins::radiation::radFormFactor_Gauss_spherical;
-
-    ///////////////////////////////////////////////////////////
-
-    namespace parameters
-    {
-        /** Number of observation directions
-         *
-         * If nPhi or nTheta is equal to 1, the transition radiation will be calculated
-         * for phiMin or thetaMin respectively.
-         */
-        constexpr unsigned int nPhi = 128;
-        constexpr unsigned int nTheta = 128;
-        constexpr unsigned int nObserver = nPhi * nTheta;
-
-        // theta goes from 0 to pi
-        constexpr float_64 thetaMin = 0.0;
-        constexpr float_64 thetaMax = picongpu::PI;
-
-        // phi goes from 0 to 2*pi
-        constexpr float_64 phiMin = 0.0;
-        constexpr float_64 phiMax = 2 * picongpu::PI;
-
-        namespace SI
+        // initiate the formfactor namespaces from the radiation plugin
+        namespace radiation
         {
-            // y position of the foil to calculate transition radiation at
-            // leave at 0 for no virtual particle propagation
-            constexpr float_64 foilPosition = 0.0;
-        }
+            namespace radFormFactor_CIC_3D
+            {
+            }
+            namespace radFormFactor_TSC_3D
+            {
+            }
+            namespace radFormFactor_PCS_3D
+            {
+            }
+            namespace radFormFactor_CIC_1Dy
+            {
+            }
+            namespace radFormFactor_Gauss_spherical
+            {
+            }
+            namespace radFormFactor_Gauss_cell
+            {
+            }
+            namespace radFormFactor_incoherent
+            {
+            }
+            namespace radFormFactor_coherent
+            {
+            }
+        } // namespace radiation
 
-    } /* end namespace parameters */
-
-
-    //! example of a filter for the relativistic Lorentz factor gamma
-    struct GammaFilterFunctor
-    {
-        //! Gamma value above which the radiation is calculated
-        static constexpr float_X filterGamma = 5.0;
-
-        template< typename T_Particle >
-        HDINLINE void operator()( T_Particle& particle )
+        namespace transitionRadiation
         {
-            if(
-                picongpu::gamma<float_X>(
-                    particle[ picongpu::momentum_ ],
-                    picongpu::traits::attribute::getMass(
-                        particle[ picongpu::weighting_ ],
-                        particle
-                    )
-                ) >= filterGamma
-            )
-                particle[ picongpu::transitionRadiationMask_ ] = true;
-        }
-    };
+            namespace linearFrequencies
+            {
+                namespace SI
+                {
+                    //! mimimum frequency of the linear frequency scale in units of [1/s]
+                    constexpr float_64 omegaMin = 0.0;
+                    //! maximum frequency of the linear frequency scale in units of [1/s]
+                    constexpr float_64 omegaMax = 1.06e16;
+                } // namespace SI
 
-    /** filter to (de)select particles for the radiation calculation
-     *
-     * to activate the filter:
-     *   - goto file `speciesDefinition.param`
-     *   - add the attribute `transitionRadiationMask` to the particle species
-     */
-    using GammaFilter = picongpu::particles::manipulators::generic::Free<
-        GammaFilterFunctor
-    >;
+                //! number of frequency values to compute in the linear frequency [unitless]
+                constexpr unsigned int nOmega = 512;
 
-    /** Compute observation angles
-     *
-     * This function is used in the transition radiation plugin kernel to compute
-     * the observation directions given as a unit vector pointing
-     * towards a 'virtual' detector
-     *
-     * This default setup is an example of a 2D detector array. It computes
-     * observation directions for 2D virtual detector field
-     * with its center pointing toward the +y direction (for theta=0, phi=0)
-     * with observation angles ranging from
-     * theta = [angle_theta_start : angle_theta_end]
-     * phi   = [angle_phi_start   : angle_phi_end  ]
-     * Every observation_id_extern index moves the phi angle from its
-     * start value toward its end value until the observation_id_extern
-     * reaches N_split. After that the theta angle moves further from its
-     * start value towards its end value while phi is reset to its start
-     * value.
-     *
-     * The unit vector pointing towards the observing virtual detector
-     * can be described using theta and phi by:
-     * x_value = sin(theta) * cos(phi)
-     * y_value = cos(theta)
-     * z_value = sin(theta) * sin(phi)
-     * These are the standard spherical coordinates.
-     *
-     * The example setup describes an detector array of
-     * 128X128 detectors ranging from 0 to pi for the azimuth angle
-     * theta and from 0 to 2 pi for the polar angle phi.
-     *
-     * If the calculation is only supposed to be done for a single azimuth
-     * or polar angle, it will use the respective minimal angle.
-     *
-     * @param    observation_id_extern
-     *           int index that identifies each block on the GPU
-     *           to compute the observation direction
-     *
-     * @return   unit vector pointing in observation direction
-     *           type: float3_X
-     */
-    HDINLINE float3_X observationDirection(const int observation_id_extern)
-    {
-        /* generate two indices from single block index */
-        /** split distance of given index
-         * pseudo-code:
-         * index_a = index / split_distance
-         * index_b = index % split_distance
-         */
-        /** get index for computing angle theta: */
-        const int indexTheta = observation_id_extern / parameters::nPhi;
+            } // namespace linearFrequencies
 
-        /** step width angle theta */
-        const picongpu::float_64 deltaTheta = ( parameters::nTheta > 1 ) ?
-                ( parameters::thetaMax - parameters::thetaMin ) / ( parameters::nTheta - 1.0 ) : 0.0;
+            namespace logFrequencies
+            {
+                namespace SI
+                {
+                    //! mimimum frequency of the logarithmic frequency scale in units of [1/s]
+                    constexpr float_64 omegaMin = 1.0e13;
+                    //! maximum frequency of the logarithmic frequency scale in units of [1/s]
+                    constexpr float_64 omegaMax = 1.0e17;
+                } // namespace SI
 
-        /** compute observation angles theta */
-        const picongpu::float_64 theta = indexTheta * deltaTheta + parameters::thetaMin;
+                //! number of frequency values to compute in the logarithmic frequency [unitless]
+                constexpr unsigned int nOmega = 256;
 
-        /** get index for computing angle phi: */
-        const int indexPhi = observation_id_extern % parameters::nPhi;
+            } // namespace logFrequencies
 
-        /** step width angle phi */
-        const picongpu::float_64 deltaPhi = ( parameters::nPhi > 1 ) ?
-                ( parameters::phiMax - parameters::phiMin ) / ( parameters::nPhi - 1.0 ) : 0.0;
 
-        /** compute observation angles phi */
-        const picongpu::float_64 phi = indexPhi * deltaPhi - parameters::phiMin;
+            namespace listFrequencies
+            {
+                //! path to text file with frequencies
+                constexpr char listLocation[] = "/path/to/frequency_list";
+                //! number of frequency values to compute if frequencies are given in a file [unitless]
+                constexpr unsigned int nOmega = 512;
 
-        /* helper functions for efficient trigonometric calculations */
-        picongpu::float_32 sinPhi;
-        picongpu::float_32 cosPhi;
-        picongpu::float_32 sinTheta;
-        picongpu::float_32 cosTheta;
-        pmacc::math::sincos( precisionCast< picongpu::float_32 >( phi ), sinPhi, cosPhi );
-        pmacc::math::sincos( precisionCast< picongpu::float_32 >( theta ), sinTheta, cosTheta );
-        /** compute observation unit vector */
-        return float3_X( sinTheta * cosPhi , cosTheta, sinTheta * sinPhi );
-    }
+            } // namespace listFrequencies
 
-} // namespace transitionRadiation
-} // namespace plugins
+
+            /** selected mode of frequency scaling:
+             *
+             * options:
+             * - linearFrequencies
+             * - logFrequencies
+             * - listFrequencies
+             */
+            namespace frequencies = logFrequencies;
+
+            ///////////////////////////////////////////////////
+
+
+            /** correct treatment of coherent radiation from macro particles
+             *
+             * These formfactors are the same as in the radiation plugin!
+             * Choose different form factors in order to consider different particle shapes for radiation
+             *  - ::picongpu::plugins::radiation::radFormFactor_CIC_3D ... CIC charge distribution
+             *  - ::picongpu::plugins::radiation::radFormFactor_TSC_3D ... TSC charge distribution
+             *  - ::picongpu::plugins::radiation::radFormFactor_PCS_3D ... PCS charge distribution
+             *  - ::picongpu::plugins::radiation::radFormFactor_CIC_1Dy ... only CIC charge distribution in y
+             *  - ::picongpu::plugins::radiation::radFormFactor_Gauss_spherical ... symmetric Gauss charge distribution
+             *  - ::picongpu::plugins::radiation::radFormFactor_Gauss_cell ... Gauss charge distribution according to
+             * cell size
+             *  - ::picongpu::plugins::radiation::radFormFactor_incoherent ... only incoherent radiation
+             *  - ::picongpu::plugins::radiation::radFormFactor_coherent ... only coherent radiation
+             */
+            namespace macroParticleFormFactor = ::picongpu::plugins::radiation::radFormFactor_Gauss_spherical;
+
+            ///////////////////////////////////////////////////////////
+
+            namespace parameters
+            {
+                /** Number of observation directions
+                 *
+                 * If nPhi or nTheta is equal to 1, the transition radiation will be calculated
+                 * for phiMin or thetaMin respectively.
+                 */
+                constexpr unsigned int nPhi = 128;
+                constexpr unsigned int nTheta = 128;
+                constexpr unsigned int nObserver = nPhi * nTheta;
+
+                // theta goes from 0 to pi
+                constexpr float_64 thetaMin = 0.0;
+                constexpr float_64 thetaMax = picongpu::PI;
+
+                // phi goes from 0 to 2*pi
+                constexpr float_64 phiMin = 0.0;
+                constexpr float_64 phiMax = 2 * picongpu::PI;
+
+                namespace SI
+                {
+                    // y position of the foil to calculate transition radiation at
+                    // leave at 0 for no virtual particle propagation
+                    constexpr float_64 foilPosition = 0.0;
+                } // namespace SI
+
+            } /* end namespace parameters */
+
+
+            //! example of a filter for the relativistic Lorentz factor gamma
+            struct GammaFilterFunctor
+            {
+                //! Gamma value above which the radiation is calculated
+                static constexpr float_X filterGamma = 5.0;
+
+                template<typename T_Particle>
+                HDINLINE void operator()(T_Particle& particle)
+                {
+                    if(picongpu::gamma<float_X>(
+                           particle[picongpu::momentum_],
+                           picongpu::traits::attribute::getMass(particle[picongpu::weighting_], particle))
+                       >= filterGamma)
+                        particle[picongpu::transitionRadiationMask_] = true;
+                }
+            };
+
+            /** filter to (de)select particles for the radiation calculation
+             *
+             * to activate the filter:
+             *   - goto file `speciesDefinition.param`
+             *   - add the attribute `transitionRadiationMask` to the particle species
+             */
+            using GammaFilter = picongpu::particles::manipulators::generic::Free<GammaFilterFunctor>;
+
+            /** Compute observation angles
+             *
+             * This function is used in the transition radiation plugin kernel to compute
+             * the observation directions given as a unit vector pointing
+             * towards a 'virtual' detector
+             *
+             * This default setup is an example of a 2D detector array. It computes
+             * observation directions for 2D virtual detector field
+             * with its center pointing toward the +y direction (for theta=0, phi=0)
+             * with observation angles ranging from
+             * theta = [angle_theta_start : angle_theta_end]
+             * phi   = [angle_phi_start   : angle_phi_end  ]
+             * Every observation_id_extern index moves the phi angle from its
+             * start value toward its end value until the observation_id_extern
+             * reaches N_split. After that the theta angle moves further from its
+             * start value towards its end value while phi is reset to its start
+             * value.
+             *
+             * The unit vector pointing towards the observing virtual detector
+             * can be described using theta and phi by:
+             * x_value = sin(theta) * cos(phi)
+             * y_value = cos(theta)
+             * z_value = sin(theta) * sin(phi)
+             * These are the standard spherical coordinates.
+             *
+             * The example setup describes an detector array of
+             * 128X128 detectors ranging from 0 to pi for the azimuth angle
+             * theta and from 0 to 2 pi for the polar angle phi.
+             *
+             * If the calculation is only supposed to be done for a single azimuth
+             * or polar angle, it will use the respective minimal angle.
+             *
+             * @param    observation_id_extern
+             *           int index that identifies each block on the GPU
+             *           to compute the observation direction
+             *
+             * @return   unit vector pointing in observation direction
+             *           type: float3_X
+             */
+            HDINLINE float3_X observationDirection(const int observation_id_extern)
+            {
+                /* generate two indices from single block index */
+                /** split distance of given index
+                 * pseudo-code:
+                 * index_a = index / split_distance
+                 * index_b = index % split_distance
+                 */
+                /** get index for computing angle theta: */
+                const int indexTheta = observation_id_extern / parameters::nPhi;
+
+                /** step width angle theta */
+                const picongpu::float_64 deltaTheta = (parameters::nTheta > 1)
+                    ? (parameters::thetaMax - parameters::thetaMin) / (parameters::nTheta - 1.0)
+                    : 0.0;
+
+                /** compute observation angles theta */
+                const picongpu::float_64 theta = indexTheta * deltaTheta + parameters::thetaMin;
+
+                /** get index for computing angle phi: */
+                const int indexPhi = observation_id_extern % parameters::nPhi;
+
+                /** step width angle phi */
+                const picongpu::float_64 deltaPhi = (parameters::nPhi > 1)
+                    ? (parameters::phiMax - parameters::phiMin) / (parameters::nPhi - 1.0)
+                    : 0.0;
+
+                /** compute observation angles phi */
+                const picongpu::float_64 phi = indexPhi * deltaPhi - parameters::phiMin;
+
+                /* helper functions for efficient trigonometric calculations */
+                picongpu::float_32 sinPhi;
+                picongpu::float_32 cosPhi;
+                picongpu::float_32 sinTheta;
+                picongpu::float_32 cosTheta;
+                pmacc::math::sincos(precisionCast<picongpu::float_32>(phi), sinPhi, cosPhi);
+                pmacc::math::sincos(precisionCast<picongpu::float_32>(theta), sinTheta, cosTheta);
+                /** compute observation unit vector */
+                return float3_X(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi);
+            }
+
+        } // namespace transitionRadiation
+    } // namespace plugins
 } // namespace picongpu

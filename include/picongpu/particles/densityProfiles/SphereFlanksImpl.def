@@ -22,9 +22,9 @@
 
 namespace picongpu
 {
-namespace densityProfiles
-{
-    template<typename T_ParamClass>
-    struct SphereFlanksImpl;
-}
-}
+    namespace densityProfiles
+    {
+        template<typename T_ParamClass>
+        struct SphereFlanksImpl;
+    }
+} // namespace picongpu

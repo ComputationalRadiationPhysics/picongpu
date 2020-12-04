@@ -38,7 +38,6 @@
 
 namespace picongpu
 {
-
     /** Representation of the temporary scalar field for plugins and temporary
      *  particle data mapped to grid (charge density, energy density, etc.)
      *
@@ -48,12 +47,11 @@ namespace picongpu
      * Implements interfaces defined by SimulationFieldHelper< MappingDesc > and
      * ISimulationData.
      */
-    class FieldTmp :
-        public SimulationFieldHelper<MappingDesc>,
-        public ISimulationData
+    class FieldTmp
+        : public SimulationFieldHelper<MappingDesc>
+        , public ISimulationData
     {
     public:
-
         //! Type of each field value
         using ValueType = float1_X;
 
@@ -64,32 +62,29 @@ namespace picongpu
         using SuperCellSize = MappingDesc::SuperCellSize;
 
         //! Type of data box for field values on host and device
-        using DataBoxType = DataBox<PitchedBox<ValueType, simDim> >;
+        using DataBoxType = DataBox<PitchedBox<ValueType, simDim>>;
 
         /** Create a field
          *
          * @param cellDescription mapping for kernels
          * @param slotId index of the temporary field
          */
-        HINLINE FieldTmp(
-            MappingDesc const & cellDescription,
-            uint32_t slotId
-        );
+        HINLINE FieldTmp(MappingDesc const& cellDescription, uint32_t slotId);
 
         //! Destroy a field
-        virtual ~FieldTmp( ) = default;
+        virtual ~FieldTmp() = default;
 
         //! Get a reference to the host-device buffer for the field values
-        HINLINE GridBuffer<ValueType, simDim>& getGridBuffer( );
+        HINLINE GridBuffer<ValueType, simDim>& getGridBuffer();
 
         //! Get the grid layout
-        HINLINE GridLayout<simDim> getGridLayout( );
+        HINLINE GridLayout<simDim> getGridLayout();
 
         //! Get the host data box for the field values
-        HINLINE DataBoxType getHostDataBox( );
+        HINLINE DataBoxType getHostDataBox();
 
         //! Get the device data box for the field values
-        HINLINE DataBoxType getDeviceDataBox( );
+        HINLINE DataBoxType getDeviceDataBox();
 
         /** Start asynchronous send of field values
          *
@@ -99,31 +94,31 @@ namespace picongpu
          *
          * @param serialEvent event to depend on
          */
-        HINLINE virtual EventTask asyncCommunication( EventTask serialEvent );
+        HINLINE virtual EventTask asyncCommunication(EventTask serialEvent);
 
         /** Reset the host-device buffer for field values
          *
          * @param currentStep index of time iteration
          */
-        HINLINE void reset( uint32_t currentStep ) override;
+        HINLINE void reset(uint32_t currentStep) override;
 
         //! Synchronize device data with host data
-        HINLINE void syncToDevice( ) override;
+        HINLINE void syncToDevice() override;
 
         //! Synchronize host data with device data
-        HINLINE void synchronize( ) override;
+        HINLINE void synchronize() override;
 
         /** Get id
          *
          * @param slotId index of the temporary field
          */
-        HINLINE static SimulationDataId getUniqueId( uint32_t slotId );
+        HINLINE static SimulationDataId getUniqueId(uint32_t slotId);
 
         //! Get id
         HINLINE SimulationDataId getUniqueId() override;
 
         //! Get unit of field components
-        template< class FrameSolver >
+        template<class FrameSolver>
         HDINLINE static UnitValueType getUnit();
 
         /** Get unit representation as powers of the 7 base measures
@@ -133,7 +128,7 @@ namespace picongpu
          *  thermodynamic temperature theta, amount of substance N,
          *  luminous intensity J)
          */
-        template< class FrameSolver >
+        template<class FrameSolver>
         HINLINE static std::vector<float_64> getUnitDimension();
 
         //! Get mapping for kernels
@@ -151,7 +146,7 @@ namespace picongpu
          * This method can be called before or after asyncCommunication without
          * explicit handling to avoid race conditions between both methods.
          */
-        HINLINE EventTask asyncCommunicationGather( EventTask serialEvent );
+        HINLINE EventTask asyncCommunicationGather(EventTask serialEvent);
 
         /** Compute current density created by a species in an area
          *
@@ -169,21 +164,20 @@ namespace picongpu
          *
          * @param exchangeType exchange type
          */
-        HINLINE void bashField( uint32_t exchangeType );
+        HINLINE void bashField(uint32_t exchangeType);
 
         /** Insert all particles which are in device exchange buffer
          *
          * @param exchangeType exchange type
          */
-        HINLINE void insertField( uint32_t exchangeType );
+        HINLINE void insertField(uint32_t exchangeType);
 
     private:
-
         //! Host-device buffer for current density values
-        std::unique_ptr< GridBuffer<ValueType, simDim> > fieldTmp;
+        std::unique_ptr<GridBuffer<ValueType, simDim>> fieldTmp;
 
         //! Buffer for receiving near-boundary values
-        std::unique_ptr< GridBuffer<ValueType, simDim> > fieldTmpRecv;
+        std::unique_ptr<GridBuffer<ValueType, simDim>> fieldTmpRecv;
 
         //! Index of the temporary field
         uint32_t m_slotId;
@@ -195,7 +189,6 @@ namespace picongpu
         //! Tags for communication
         uint32_t m_commTagScatter;
         uint32_t m_commTagGather;
-
     };
 
 } // namespace picongpu

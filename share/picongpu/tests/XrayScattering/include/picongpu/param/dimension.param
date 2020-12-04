@@ -20,7 +20,7 @@
 #pragma once
 
 #ifndef PARAM_DIMENSION
-#define PARAM_DIMENSION DIM2
+#    define PARAM_DIMENSION DIM2
 #endif
 
 #define SIMDIM PARAM_DIMENSION

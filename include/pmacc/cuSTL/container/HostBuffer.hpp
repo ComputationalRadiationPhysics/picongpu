@@ -39,118 +39,149 @@
 
 namespace pmacc
 {
-namespace container
-{
-
-/** typedef version of a CartBuffer for a CPU.
- * Additional feature: Able to copy data from a DeviceBuffer
- * \tparam Type type of a single datum
- * \tparam T_dim Dimension of the container
- */
-template<typename Type, int T_dim>
-class HostBuffer
- : public CartBuffer<Type, T_dim, allocator::HostMemAllocator<Type, T_dim>,
-                                copier::H2HCopier<T_dim>,
-                                assigner::HostMemAssigner<> >
-{
-private:
-    using Base = CartBuffer<Type, T_dim, allocator::HostMemAllocator<Type, T_dim>,
-                                  copier::H2HCopier<T_dim>,
-                                  assigner::HostMemAssigner<> >;
-protected:
-    HostBuffer() {}
-public:
-    using PitchType = typename Base::PitchType;
-
-    /* constructors
-     *
-     * \param _size size of the container
-     *
-     * \param x,y,z convenient wrapper
-     *
-     */
-    HINLINE HostBuffer(const math::Size_t<T_dim>& size) : Base(size) {}
-    HINLINE HostBuffer(size_t x) : Base(x) {}
-    HINLINE HostBuffer(size_t x, size_t y) : Base(x, y) {}
-    HINLINE HostBuffer(size_t x, size_t y, size_t z) : Base(x, y, z) {}
-    /**
-     * Creates a host buffer from a pointer with a size. Assumes dense layout (no padding)
-     *
-     * @param ptr Pointer to the first element
-     * @param size Size of the buffer
-     * @param ownMemory Set to false if the memory is only a reference and managed outside of this class
-     * @param pitch Pitch in bytes (number of bytes in the lower dimensions)
-     */
-    HINLINE HostBuffer(Type* ptr, const math::Size_t<3>& size, bool ownMemory, math::Size_t<2> pitch = math::Size_t<2>::create(0) )
+    namespace container
     {
-        this->dataPointer = ptr;
-        this->_size = size;
-        this->pitch[0] = (pitch[0]) ? pitch[0] : size.x() * sizeof(Type);
-        this->pitch[1] = (pitch[1]) ? pitch[1] : this->pitch[0] * size.y();
-        this->refCount = new int;
-        *this->refCount = (ownMemory) ? 1 : 2;
-    }
-    HINLINE HostBuffer(Type* ptr, const math::Size_t<2>& size, bool ownMemory, math::Size_t<1> pitch = math::Size_t<1>::create(0) )
-    {
-        this->dataPointer = ptr;
-        this->_size = size;
-        this->pitch[0] = (pitch[0]) ? pitch[0] : size.x() * sizeof(Type);
-        this->refCount = new int;
-        *this->refCount = (ownMemory) ? 1 : 2;
-    }
-    HINLINE HostBuffer(Type* ptr, const math::Size_t<1>& size, bool ownMemory)
-    {
-        this->dataPointer = ptr;
-        this->_size = size;
-        // intentionally uninitialized and not RT accessible via []
-        // this->pitch = pitch;
-        this->refCount = new int;
-        *this->refCount = (ownMemory) ? 1 : 2;
-    }
-    HINLINE HostBuffer(const Base& base) : Base(base) {}
-    HINLINE HostBuffer(HostBuffer&& obj): Base(std::move(static_cast<Base&>(obj))) {}
+        /** typedef version of a CartBuffer for a CPU.
+         * Additional feature: Able to copy data from a DeviceBuffer
+         * \tparam Type type of a single datum
+         * \tparam T_dim Dimension of the container
+         */
+        template<typename Type, int T_dim>
+        class HostBuffer
+            : public CartBuffer<
+                  Type,
+                  T_dim,
+                  allocator::HostMemAllocator<Type, T_dim>,
+                  copier::H2HCopier<T_dim>,
+                  assigner::HostMemAssigner<>>
+        {
+        private:
+            using Base = CartBuffer<
+                Type,
+                T_dim,
+                allocator::HostMemAllocator<Type, T_dim>,
+                copier::H2HCopier<T_dim>,
+                assigner::HostMemAssigner<>>;
 
-    HINLINE HostBuffer&
-    operator=(HostBuffer&& rhs)
-    {
-        Base::operator=(std::move(static_cast<Base&>(rhs)));
-        return *this;
-    }
+        protected:
+            HostBuffer()
+            {
+            }
 
-    template<typename DBuffer>
-    HINLINE
-    typename boost::enable_if<
-        boost::is_same<typename DBuffer::memoryTag, allocator::tag::device>,
-        HostBuffer&
-        >::type
-    operator=(const DBuffer& rhs)
-    {
-        BOOST_STATIC_ASSERT((boost::is_same<typename DBuffer::type, Type>::value));
-        BOOST_STATIC_ASSERT(DBuffer::dim == T_dim);
-        if(rhs.size() != this->size())
-            throw std::invalid_argument(static_cast<std::stringstream&>(
-                std::stringstream() << "Assignment: Sizes of buffers do not match: "
-                    << this->size() << " <-> " << rhs.size() << std::endl).str());
+        public:
+            using PitchType = typename Base::PitchType;
 
-        cuplaWrapper::Memcopy<T_dim>()(this->dataPointer, this->pitch, rhs.getDataPointer(), rhs.getPitch(),
-                                this->_size, cuplaWrapper::flags::Memcopy::deviceToHost);
+            /* constructors
+             *
+             * \param _size size of the container
+             *
+             * \param x,y,z convenient wrapper
+             *
+             */
+            HINLINE HostBuffer(const math::Size_t<T_dim>& size) : Base(size)
+            {
+            }
+            HINLINE HostBuffer(size_t x) : Base(x)
+            {
+            }
+            HINLINE HostBuffer(size_t x, size_t y) : Base(x, y)
+            {
+            }
+            HINLINE HostBuffer(size_t x, size_t y, size_t z) : Base(x, y, z)
+            {
+            }
+            /**
+             * Creates a host buffer from a pointer with a size. Assumes dense layout (no padding)
+             *
+             * @param ptr Pointer to the first element
+             * @param size Size of the buffer
+             * @param ownMemory Set to false if the memory is only a reference and managed outside of this class
+             * @param pitch Pitch in bytes (number of bytes in the lower dimensions)
+             */
+            HINLINE HostBuffer(
+                Type* ptr,
+                const math::Size_t<3>& size,
+                bool ownMemory,
+                math::Size_t<2> pitch = math::Size_t<2>::create(0))
+            {
+                this->dataPointer = ptr;
+                this->_size = size;
+                this->pitch[0] = (pitch[0]) ? pitch[0] : size.x() * sizeof(Type);
+                this->pitch[1] = (pitch[1]) ? pitch[1] : this->pitch[0] * size.y();
+                this->refCount = new int;
+                *this->refCount = (ownMemory) ? 1 : 2;
+            }
+            HINLINE HostBuffer(
+                Type* ptr,
+                const math::Size_t<2>& size,
+                bool ownMemory,
+                math::Size_t<1> pitch = math::Size_t<1>::create(0))
+            {
+                this->dataPointer = ptr;
+                this->_size = size;
+                this->pitch[0] = (pitch[0]) ? pitch[0] : size.x() * sizeof(Type);
+                this->refCount = new int;
+                *this->refCount = (ownMemory) ? 1 : 2;
+            }
+            HINLINE HostBuffer(Type* ptr, const math::Size_t<1>& size, bool ownMemory)
+            {
+                this->dataPointer = ptr;
+                this->_size = size;
+                // intentionally uninitialized and not RT accessible via []
+                // this->pitch = pitch;
+                this->refCount = new int;
+                *this->refCount = (ownMemory) ? 1 : 2;
+            }
+            HINLINE HostBuffer(const Base& base) : Base(base)
+            {
+            }
+            HINLINE HostBuffer(HostBuffer&& obj) : Base(std::move(static_cast<Base&>(obj)))
+            {
+            }
 
-        return *this;
-    }
+            HINLINE HostBuffer& operator=(HostBuffer&& rhs)
+            {
+                Base::operator=(std::move(static_cast<Base&>(rhs)));
+                return *this;
+            }
 
-    HINLINE HostBuffer& operator=(const Base& rhs)
-    {
-        Base::operator=(rhs);
-        return *this;
-    }
+            template<typename DBuffer>
+            HINLINE typename boost::
+                enable_if<boost::is_same<typename DBuffer::memoryTag, allocator::tag::device>, HostBuffer&>::type
+                operator=(const DBuffer& rhs)
+            {
+                BOOST_STATIC_ASSERT((boost::is_same<typename DBuffer::type, Type>::value));
+                BOOST_STATIC_ASSERT(DBuffer::dim == T_dim);
+                if(rhs.size() != this->size())
+                    throw std::invalid_argument(static_cast<std::stringstream&>(
+                                                    std::stringstream()
+                                                    << "Assignment: Sizes of buffers do not match: " << this->size()
+                                                    << " <-> " << rhs.size() << std::endl)
+                                                    .str());
 
-    HINLINE HostBuffer& operator=(const HostBuffer& rhs)
-    {
-        Base::operator=(rhs);
-        return *this;
-    }
-};
+                cuplaWrapper::Memcopy<T_dim>()(
+                    this->dataPointer,
+                    this->pitch,
+                    rhs.getDataPointer(),
+                    rhs.getPitch(),
+                    this->_size,
+                    cuplaWrapper::flags::Memcopy::deviceToHost);
 
-} // container
-} // pmacc
+                return *this;
+            }
 
+            HINLINE HostBuffer& operator=(const Base& rhs)
+            {
+                Base::operator=(rhs);
+                return *this;
+            }
+
+            HINLINE HostBuffer& operator=(const HostBuffer& rhs)
+            {
+                Base::operator=(rhs);
+                return *this;
+            }
+        };
+
+    } // namespace container
+} // namespace pmacc

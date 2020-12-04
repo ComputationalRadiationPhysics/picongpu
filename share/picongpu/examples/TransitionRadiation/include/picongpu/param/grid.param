@@ -18,12 +18,10 @@
  */
 
 
-
 #pragma once
 
 namespace picongpu
 {
-
     namespace SI
     {
         /** Duration of one timestep
@@ -52,21 +50,21 @@ namespace picongpu
          * behave like the interaction of infinite "wire particles"
          * in fields with perfect symmetry in Z.
          */
-    } //namespace SI
+    } // namespace SI
 
     //! Defines the size of the absorbing zone (in cells)
     constexpr uint32_t ABSORBER_CELLS[3][2] = {
-        {32, 32},  /*x direction [negative,positive]*/
-        {32, 32},  /*y direction [negative,positive]*/
-        {32, 32}   /*z direction [negative,positive]*/
-    }; //unit: number of cells
+        {32, 32}, /*x direction [negative,positive]*/
+        {32, 32}, /*y direction [negative,positive]*/
+        {32, 32} /*z direction [negative,positive]*/
+    }; // unit: number of cells
 
     //! Define the strength of the absorber for any direction
     constexpr float_X ABSORBER_STRENGTH[3][2] = {
         {1.0e-3, 1.0e-3}, /*x direction [negative,positive]*/
         {1.0e-3, 1.0e-3}, /*y direction [negative,positive]*/
-        {1.0e-3, 1.0e-3}  /*z direction [negative,positive]*/
-    }; //unit: none
+        {1.0e-3, 1.0e-3} /*z direction [negative,positive]*/
+    }; // unit: none
 
     constexpr uint32_t ABSORBER_FADE_IN_STEPS = 16;
 
@@ -82,7 +80,4 @@ namespace picongpu
      */
     constexpr float_64 movePoint = 0.90;
 
-}
-
-
-
+} // namespace picongpu

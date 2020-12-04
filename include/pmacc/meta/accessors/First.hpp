@@ -26,26 +26,24 @@
 
 namespace pmacc
 {
-namespace meta
-{
+    namespace meta
+    {
+        namespace accessors
+        {
+            /** Get first type of the given type
+             *
+             * \tparam T type from which we return the first held type
+             *
+             * T must have defined ::first
+             */
+            template<typename T>
+            struct First
+            {
+                typedef typename T::first type;
+            };
 
-namespace accessors
-{
+        } // namespace accessors
 
-/** Get first type of the given type
- *
- * \tparam T type from which we return the first held type
- *
- * T must have defined ::first
- */
-template<typename T>
-struct First
-{
-    typedef typename T::first type;
-};
+    } // namespace meta
 
-}//namespace accessors
-
-}//namespace meta
-
-}//namespace  pmacc
+} // namespace  pmacc

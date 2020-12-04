@@ -27,20 +27,20 @@
 
 namespace picongpu
 {
-namespace traits
-{
-template<typename T_Species>
-struct GetAtomicNumbers
-{
-    using FrameType = typename T_Species::FrameType;
+    namespace traits
+    {
+        template<typename T_Species>
+        struct GetAtomicNumbers
+        {
+            using FrameType = typename T_Species::FrameType;
 
-    using hasAtomicNumbers = typename HasFlag<FrameType, atomicNumbers<> >::type;
-    /* throw static assert if species has no protons or neutrons */
-    PMACC_CASSERT_MSG(This_species_has_no_atomic_numbers,hasAtomicNumbers::value==true);
+            using hasAtomicNumbers = typename HasFlag<FrameType, atomicNumbers<>>::type;
+            /* throw static assert if species has no protons or neutrons */
+            PMACC_CASSERT_MSG(This_species_has_no_atomic_numbers, hasAtomicNumbers::value == true);
 
-    using FoundAtomicNumbersAlias = typename GetFlagType<FrameType,atomicNumbers<> >::type;
-    using type = typename pmacc::traits::Resolve<FoundAtomicNumbersAlias >::type;
-};
-} //namespace traits
+            using FoundAtomicNumbersAlias = typename GetFlagType<FrameType, atomicNumbers<>>::type;
+            using type = typename pmacc::traits::Resolve<FoundAtomicNumbersAlias>::type;
+        };
+    } // namespace traits
 
-}// namespace picongpu
+} // namespace picongpu

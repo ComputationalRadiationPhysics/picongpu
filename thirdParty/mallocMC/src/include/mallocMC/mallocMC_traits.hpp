@@ -33,7 +33,6 @@ namespace mallocMC
     template<class T_Allocator>
     struct Traits
     {
-        static constexpr bool providesAvailableSlots
-            = T_Allocator::CreationPolicy::providesAvailableSlots;
+        static constexpr bool providesAvailableSlots = T_Allocator::CreationPolicy::providesAvailableSlots;
     };
 } // namespace mallocMC

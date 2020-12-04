@@ -29,9 +29,9 @@
 
 namespace picongpu
 {
-/*! Simulation Starter ---------------------------------------------------
- *  - defaultPIConGPU         : default PIConGPU configuration
- */
-namespace simulation_starter = defaultPIConGPU;
+    /*! Simulation Starter ---------------------------------------------------
+     *  - defaultPIConGPU         : default PIConGPU configuration
+     */
+    namespace simulation_starter = defaultPIConGPU;
 
-}
+} // namespace picongpu

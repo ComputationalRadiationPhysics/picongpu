@@ -22,17 +22,16 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace filter
-{
+    namespace particles
+    {
+        namespace filter
+        {
+            /** check if a particle handle is valid
+             *
+             * the particle method `::isValidHandle()` is called.
+             */
+            struct All;
 
-    /** check if a particle handle is valid
-     *
-     * the particle method `::isValidHandle()` is called.
-     */
-    struct All;
-
-} //namespace filter
-} //namespace particles
-} //namespace picongpu
+        } // namespace filter
+    } // namespace particles
+} // namespace picongpu

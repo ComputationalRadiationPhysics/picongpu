@@ -26,36 +26,36 @@
 
 namespace pmacc
 {
-namespace nvidia
-{
-namespace functors
-{
-    struct Add
+    namespace nvidia
     {
-        template<typename Dst, typename Src >
-        HDINLINE void operator()(Dst & dst, const Src & src) const
+        namespace functors
         {
-            dst += src;
-        }
+            struct Add
+            {
+                template<typename Dst, typename Src>
+                HDINLINE void operator()(Dst& dst, const Src& src) const
+                {
+                    dst += src;
+                }
 
-        template<typename Dst, typename Src, typename T_Acc >
-        HDINLINE void operator()(const T_Acc &, Dst & dst, const Src & src) const
-        {
-            dst += src;
-        }
-    };
-} // namespace functors
-} // namespace nvidia
+                template<typename Dst, typename Src, typename T_Acc>
+                HDINLINE void operator()(const T_Acc&, Dst& dst, const Src& src) const
+                {
+                    dst += src;
+                }
+            };
+        } // namespace functors
+    } // namespace nvidia
 } // namespace pmacc
 
 namespace pmacc
 {
-namespace mpi
-{
-    template<>
-    HINLINE MPI_Op getMPI_Op<pmacc::nvidia::functors::Add>()
+    namespace mpi
     {
-        return MPI_SUM;
-    }
-} // namespace mpi
+        template<>
+        HINLINE MPI_Op getMPI_Op<pmacc::nvidia::functors::Add>()
+        {
+            return MPI_SUM;
+        }
+    } // namespace mpi
 } // namespace pmacc

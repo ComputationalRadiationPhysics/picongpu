@@ -28,32 +28,25 @@
 
 namespace pmacc
 {
-namespace nvidia
-{
-
-    /**
-     *
-     * @tparam T_KernelFunctor type of the functor for device execution
-    */
-    template< typename T_KernelFunctor >
-    struct PMaccKernel
+    namespace nvidia
     {
         /**
          *
-         * @param acc functor for device execution
-         * @param args arguments for the functor
+         * @tparam T_KernelFunctor type of the functor for device execution
          */
-        template<
-            typename T_Acc,
-            typename ... T_Args
-        >
-        DINLINE void operator()(
-            T_Acc const acc,
-            T_Args ... args
-        ) const
+        template<typename T_KernelFunctor>
+        struct PMaccKernel
         {
-            T_KernelFunctor{}( acc, args ... );
-        }
-    };
-} //namespace nvidia
-} //namespace pmacc
+            /**
+             *
+             * @param acc functor for device execution
+             * @param args arguments for the functor
+             */
+            template<typename T_Acc, typename... T_Args>
+            DINLINE void operator()(T_Acc const acc, T_Args... args) const
+            {
+                T_KernelFunctor{}(acc, args...);
+            }
+        };
+    } // namespace nvidia
+} // namespace pmacc

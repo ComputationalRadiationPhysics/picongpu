@@ -28,7 +28,6 @@
 
 namespace pmacc
 {
-
     template<uint32_t areaType, class baseClass>
     class ExchangeMapping;
 
@@ -39,16 +38,12 @@ namespace pmacc
      * @tparam areaType are to map to
      * @tparam baseClass base class for mapping, should be MappingDescription
      */
-    template<
-    uint32_t areaType,
-    template<unsigned, class> class baseClass,
-    unsigned DIM,
-    class SuperCellSize_
-    >
-    class ExchangeMapping<areaType, baseClass<DIM, SuperCellSize_> > : public baseClass<DIM, SuperCellSize_>
+    template<uint32_t areaType, template<unsigned, class> class baseClass, unsigned DIM, class SuperCellSize_>
+    class ExchangeMapping<areaType, baseClass<DIM, SuperCellSize_>> : public baseClass<DIM, SuperCellSize_>
     {
     private:
         uint32_t exchangeType;
+
     public:
         typedef baseClass<DIM, SuperCellSize_> BaseClass;
 
@@ -66,9 +61,7 @@ namespace pmacc
          * @param base object of base class baseClass (see template parameters)
          * @param exchangeType exchange type for mapping
          */
-        HINLINE ExchangeMapping(BaseClass base, uint32_t exchangeType) :
-        BaseClass(base),
-        exchangeType(exchangeType)
+        HINLINE ExchangeMapping(BaseClass base, uint32_t exchangeType) : BaseClass(base), exchangeType(exchangeType)
         {
         }
 
@@ -98,12 +91,8 @@ namespace pmacc
          */
         HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx) const
         {
-            return ExchangeMappingMethods<areaType, DIM>::getBlockIndex(
-                                                                        *this,
-                                                                        realSuperCellIdx,
-                                                                        exchangeType);
+            return ExchangeMappingMethods<areaType, DIM>::getBlockIndex(*this, realSuperCellIdx, exchangeType);
         }
-
     };
 
 } // namespace pmacc

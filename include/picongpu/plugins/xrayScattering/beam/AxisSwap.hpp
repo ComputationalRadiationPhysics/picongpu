@@ -23,60 +23,49 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace xrayScattering
-{
-namespace beam
-{
-    /** Swaps vector axes and multiplies the result with an integer vector.
-     *
-     * When the integer vector contains only 1 and -1 values, this swap
-     * correspond to a vector rotation that consists only out of right angle
-     * subrotations.
-     *
-     * @tparam axis0 Which old axis (0,1 or 2) is the new first axis (0).
-     * @tparam axis1 Which old axis (0,1 or 2) is the new second axis (1).
-     * @tparam axis2 Which old axis (0,1 or 2) is the new third axis (2).
-     * @tparam a0 Integer vector first component.
-     * @tparam a1 Integer vector second component.
-     * @tparam a2 Integer vector third component.
-     */
-    template <
-        unsigned  axis0,
-        unsigned  axis1,
-        unsigned  axis2,
-        int a0,
-        int a1,
-        int a2
-    >
-    struct AxisSwap
+    namespace plugins
     {
-        //! Performs the axis swap and the multiplication.
-        static HDINLINE float3_X rotate( float3_X const & vec )
+        namespace xrayScattering
         {
-            return float3_X(
-                a0 * vec[ axis0 ],
-                a1 * vec[ axis1 ],
-                a2 * vec[ axis2 ]
-            );
-        }
+            namespace beam
+            {
+                /** Swaps vector axes and multiplies the result with an integer vector.
+                 *
+                 * When the integer vector contains only 1 and -1 values, this swap
+                 * correspond to a vector rotation that consists only out of right angle
+                 * subrotations.
+                 *
+                 * @tparam axis0 Which old axis (0,1 or 2) is the new first axis (0).
+                 * @tparam axis1 Which old axis (0,1 or 2) is the new second axis (1).
+                 * @tparam axis2 Which old axis (0,1 or 2) is the new third axis (2).
+                 * @tparam a0 Integer vector first component.
+                 * @tparam a1 Integer vector second component.
+                 * @tparam a2 Integer vector third component.
+                 */
+                template<unsigned axis0, unsigned axis1, unsigned axis2, int a0, int a1, int a2>
+                struct AxisSwap
+                {
+                    //! Performs the axis swap and the multiplication.
+                    static HDINLINE float3_X rotate(float3_X const& vec)
+                    {
+                        return float3_X(a0 * vec[axis0], a1 * vec[axis1], a2 * vec[axis2]);
+                    }
 
-        //! Performs the reversed operation (back rotation).
-        static HDINLINE float3_X reverse ( float3_X const & vec )
-        {
-            PMACC_ASSERT( a0 != 0 );
-            PMACC_ASSERT( a1 != 0 );
-            PMACC_ASSERT( a2 != 0 );
+                    //! Performs the reversed operation (back rotation).
+                    static HDINLINE float3_X reverse(float3_X const& vec)
+                    {
+                        PMACC_ASSERT(a0 != 0);
+                        PMACC_ASSERT(a1 != 0);
+                        PMACC_ASSERT(a2 != 0);
 
-            float3_X result;
-            result[ axis0 ] =  vec [ 0 ] / a0;
-            result[ axis1 ] =  vec [ 1 ] / a1;
-            result[ axis2 ] =  vec [ 2 ] / a2;
-            return result;
-        }
-    };
-} // namespace beam
-} // namespace xrayScattering
-} // namespace plugins
+                        float3_X result;
+                        result[axis0] = vec[0] / a0;
+                        result[axis1] = vec[1] / a1;
+                        result[axis2] = vec[2] / a2;
+                        return result;
+                    }
+                };
+            } // namespace beam
+        } // namespace xrayScattering
+    } // namespace plugins
 } // namespace picongpu

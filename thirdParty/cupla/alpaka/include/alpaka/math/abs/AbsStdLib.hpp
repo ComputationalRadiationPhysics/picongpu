@@ -9,13 +9,12 @@
 
 #pragma once
 
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/math/abs/Traits.hpp>
 
-#include <alpaka/core/Unused.hpp>
-
-#include <type_traits>
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -31,23 +30,18 @@ namespace alpaka
         {
             //#############################################################################
             //! The standard library abs trait specialization.
-            template<
-                typename TArg>
+            template<typename TArg>
             struct Abs<
                 AbsStdLib,
                 TArg,
-                std::enable_if_t<
-                    std::is_arithmetic<TArg>::value
-                    && std::is_signed<TArg>::value>>
+                std::enable_if_t<std::is_arithmetic<TArg>::value && std::is_signed<TArg>::value>>
             {
-                ALPAKA_FN_HOST static auto abs(
-                    AbsStdLib const & abs_ctx,
-                    TArg const & arg)
+                ALPAKA_FN_HOST static auto abs(AbsStdLib const& abs_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(abs_ctx);
                     return std::abs(arg);
                 }
             };
-        }
-    }
-}
+        } // namespace traits
+    } // namespace math
+} // namespace alpaka

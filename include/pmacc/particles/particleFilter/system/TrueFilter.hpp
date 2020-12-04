@@ -27,12 +27,9 @@
 
 namespace pmacc
 {
-
     class TrueFilter
     {
-
     public:
-
         HDINLINE TrueFilter()
         {
         }
@@ -44,4 +41,4 @@ namespace pmacc
         }
     };
 
-} //namespace Frame
+} // namespace pmacc

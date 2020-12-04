@@ -22,15 +22,15 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace functor
-{
-namespace misc
-{
-    //! Provide the cell offset of a supercell to the total domain origin
-    struct TotalCellOffset;
-} // namespace misc
-} // namespace functor
-} // namespace particles
+    namespace particles
+    {
+        namespace functor
+        {
+            namespace misc
+            {
+                //! Provide the cell offset of a supercell to the total domain origin
+                struct TotalCellOffset;
+            } // namespace misc
+        } // namespace functor
+    } // namespace particles
 } // namespace picongpu

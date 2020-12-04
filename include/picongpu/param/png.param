@@ -77,6 +77,5 @@ namespace picongpu
         {
             return -1.0_X * field_E.y();
         }
-    }
-}
-
+    } // namespace visPreview
+} // namespace picongpu

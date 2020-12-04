@@ -29,11 +29,11 @@
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include "CudaSetLimits.hpp"
+#    include "CudaSetLimits.hpp"
 
-#include <cuda_runtime_api.h>
-#include <mutex>
-#include <string>
+#    include <cuda_runtime_api.h>
+#    include <mutex>
+#    include <string>
 
 namespace mallocMC
 {
@@ -57,13 +57,13 @@ namespace mallocMC
         struct CudaSetLimits
         {
             template<typename AlpakaDev>
-            auto setMemPool(const AlpakaDev & dev, size_t memsize) -> void *
+            auto setMemPool(const AlpakaDev& dev, size_t memsize) -> void*
             {
                 cudaDeviceSetLimit(cudaLimitMallocHeapSize, memsize);
                 return nullptr;
             }
 
-            static void resetMemPool(void * p = nullptr)
+            static void resetMemPool(void* p = nullptr)
             {
                 cudaDeviceSetLimit(cudaLimitMallocHeapSize, 8192U);
                 cudaGetLastError(); // cudaDeviceSetLimit() usually fails if any

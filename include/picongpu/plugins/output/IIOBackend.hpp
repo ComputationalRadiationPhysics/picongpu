@@ -27,37 +27,32 @@
 
 namespace picongpu
 {
-
     //! Interface for IO-backends with restart capability
     class IIOBackend : public plugins::multi::ISlave
     {
     public:
-
-
         IIOBackend()
         {
-
         }
 
-         virtual ~IIOBackend()
+        virtual ~IIOBackend()
         {
-
         }
 
         //! create a checkpoint
         virtual void dumpCheckpoint(
             uint32_t currentStep,
-            std::string const & checkpointDirectory,
-            std::string const & checkpointFilename
-        ) = 0;
+            std::string const& checkpointDirectory,
+            std::string const& checkpointFilename)
+            = 0;
 
         //! restart from a checkpoint
         virtual void doRestart(
             uint32_t restartStep,
-            std::string const & restartDirectory,
-            std::string const & restartFilename,
-            uint32_t restartChunkSize
-        ) = 0;
+            std::string const& restartDirectory,
+            std::string const& restartFilename,
+            uint32_t restartChunkSize)
+            = 0;
     };
 
 } // namespace picongpu

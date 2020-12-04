@@ -23,14 +23,13 @@
 
 namespace picongpu
 {
-namespace traits
-{
-namespace frame
-{
+    namespace traits
+    {
+        namespace frame
+        {
+            template<typename T_Frame>
+            HDINLINE float_X getMass();
 
-template<typename T_Frame>
-HDINLINE float_X getMass();
-
-}// namespace frame
-}// namespace traits
-}// namespace picongpu
+        } // namespace frame
+    } // namespace traits
+} // namespace picongpu

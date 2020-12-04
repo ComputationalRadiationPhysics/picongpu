@@ -15,12 +15,40 @@ Source Style
 For contributions, *an ideal patch blends in the existing coding style around it* without being noticed as an addition when applied.
 Nevertheless, please make sure *new files* follow the styles linked above as strict as possible from the beginning.
 
-Unfortunately, we currently do not have tools available to auto-format all aspects of our style guidelines.
-Since we want to focus on the content of your contribution, we try to cover as much as possible by automated tests which you always have to pass.
-Nevertheless, we will not enforce the still uncovered, *non-semantic aspects* of style in a *pedantic* way until we find a way to automate it fully.
+clang-format-11 should be used to format the code.
+There are different ways to format the code.
 
-(That also means that we do not encourage manual style-only changes of our existing code base, since both you and us have better things to do than adding newlines and spaces manually.
-Doxygen and documentation additions are always welcome!)
+Format All Files
+^^^^^^^^^^^^^^^^
+
+To format all files in your working copy, you can run this command in bash from the root folder of PIConGPU:
+
+.. code-block:: bash
+
+   find include/ share/picongpu/ share/pmacc -iname "*.def" \
+     -o -iname "*.h" -o -iname "*.cpp" -o -iname "*.cu" \
+     -o -iname "*.hpp" -o -iname "*.tpp" -o -iname "*.kernel" \
+     -o -iname "*.loader" -o -iname "*.param" -o -iname "*.unitless" \
+     | xargs clang-format-11 -i
+
+Format Changes Using Git
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Instead of using the bash command above you can use *Git* together with *ClangFormat* to format your patched code only.
+Before applying this command, you must extend your local git configuration **once** with all file endings used in *PIConGPU*:
+
+.. code-block:: bash
+
+   git config --local clangFormat.extensions def,h,cpp,cu,hpp,tpp,kernel,loader,param,unitless
+
+.. warning::
+
+    The binary for *ClangFormat* is on some operating systems called `clang-format`.
+    If so please check that `clang-format --version` returns version `11.X.X`.
+
+For only formatting lines you added using `git add`, call `git clang-format-11` before you create a commit.
+Please be aware that un-staged changes will not be formatted.
+Formatting all changes of the previous commit can be achieved by executing the command `git clang-format-11 HEAD~1`.
 
 License Header
 --------------

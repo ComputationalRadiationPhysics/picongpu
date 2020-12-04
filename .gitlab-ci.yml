@@ -1,6 +1,6 @@
 
 stages:
-  - rebase
+  - validate
   - generate
   - compile
 
@@ -17,11 +17,35 @@ stages:
     paths:
       - compile.yml
 
-# test to rebase the PR to the destination branch
-test-rebase-to-mainline:
-  stage: rebase
+# pull request validation:
+#   - check PR destination
+#   - check python code style: flake8, pyflake
+#   - rebase the PR to the destination branch
+#   - check C++ code style
+pull-request-validation:
+  stage: validate
+  image: ubuntu:focal
   script:
+    - apt update
+    - apt install -y -q git curl wget python3 python3-pip
+    # Test if pull request can be merged into the destination branch
+    - $CI_PROJECT_DIR/test/correctBranchPR
     - source $CI_PROJECT_DIR/share/ci/git_merge.sh
+    - pip3 install -U flake8 pyflakes
+    # Test Python Files for PEP8 conformance
+    - flake8 --exclude=thirdParty .
+    # Warnings, unused code, etc.
+    - pyflakes .
+    # install clang-format-11
+    - apt install -y -q gnupg2
+    - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+    - echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | tee -a /etc/apt/sources.list
+    - apt update
+    - apt install -y clang-format-11
+    # Check C++ code style
+    - source $CI_PROJECT_DIR/share/ci/check_cpp_code_style.sh
+  tags:
+    - x86_64
 
 # generate reduced test matrix
 # required variables (space separated lists):

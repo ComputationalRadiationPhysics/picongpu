@@ -28,24 +28,19 @@
 
 namespace pmacc
 {
-
     template<uint32_t areaType, class baseClass>
     class AreaMapping;
 
-    template<
-    uint32_t areaType,
-    template<unsigned, class> class baseClass,
-    unsigned DIM,
-    class SuperCellSize_
-    >
-    class AreaMapping<areaType, baseClass<DIM, SuperCellSize_> > : public baseClass<DIM, SuperCellSize_>
+    template<uint32_t areaType, template<unsigned, class> class baseClass, unsigned DIM, class SuperCellSize_>
+    class AreaMapping<areaType, baseClass<DIM, SuperCellSize_>> : public baseClass<DIM, SuperCellSize_>
     {
     public:
         typedef baseClass<DIM, SuperCellSize_> BaseClass;
 
         enum
         {
-            AreaType = areaType, Dim = BaseClass::Dim
+            AreaType = areaType,
+            Dim = BaseClass::Dim
         };
 
 
@@ -62,8 +57,7 @@ namespace pmacc
          */
         HINLINE DataSpace<DIM> getGridDim() const
         {
-            return AreaMappingMethods<areaType, DIM>::getGridDim(*this,
-                                                                 this->getGridSuperCells());
+            return AreaMappingMethods<areaType, DIM>::getGridDim(*this, this->getGridSuperCells());
         }
 
         /**
@@ -74,11 +68,11 @@ namespace pmacc
          */
         HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx) const
         {
-            return AreaMappingMethods<areaType, DIM>::getBlockIndex(*this,
-                                                                    this->getGridSuperCells(),
-                                                                    realSuperCellIdx);
+            return AreaMappingMethods<areaType, DIM>::getBlockIndex(
+                *this,
+                this->getGridSuperCells(),
+                realSuperCellIdx);
         }
-
     };
 
 } // namespace pmacc

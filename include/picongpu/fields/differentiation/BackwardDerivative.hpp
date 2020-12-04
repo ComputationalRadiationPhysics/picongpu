@@ -31,70 +31,52 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace differentiation
-{
-
-    /** Functor for backward difference derivative along the given direction
-     *
-     * Computes (current - lower) / step, previously called DifferenceToLower.
-     *
-     * @tparam T_direction direction to take derivative in, 0 = x, 1 = y, 2 = z
-     */
-    template< uint32_t T_direction >
-    struct BackwardDerivativeFunctor
+    namespace fields
     {
-        //! Lower margin
-        using LowerMargin = typename pmacc::math::CT::make_BasisVector<
-            simDim,
-            T_direction,
-            int
-        >::type;
-
-        //! Upper margin
-        using UpperMargin = typename pmacc::math::CT::make_Int<
-            simDim,
-            0
-        >::type;
-
-        /** Return derivative value at the given point
-         *
-         * @tparam T_DataBox data box type with field data
-         * @param data position in the data box to compute derivative at
-         */
-        template< typename T_DataBox >
-        HDINLINE typename T_DataBox::ValueType operator()(
-            T_DataBox const & data) const
+        namespace differentiation
         {
-            using Index = pmacc::DataSpace< simDim >;
-            auto const lowerIndex = -pmacc::math::basisVector<
-                Index,
-                T_direction
-            >();
-            return ( data( Index{} ) - data( lowerIndex ) ) /
-                cellSize[ T_direction ];
-        }
-    };
+            /** Functor for backward difference derivative along the given direction
+             *
+             * Computes (current - lower) / step, previously called DifferenceToLower.
+             *
+             * @tparam T_direction direction to take derivative in, 0 = x, 1 = y, 2 = z
+             */
+            template<uint32_t T_direction>
+            struct BackwardDerivativeFunctor
+            {
+                //! Lower margin
+                using LowerMargin = typename pmacc::math::CT::make_BasisVector<simDim, T_direction, int>::type;
 
-namespace traits
-{
+                //! Upper margin
+                using UpperMargin = typename pmacc::math::CT::make_Int<simDim, 0>::type;
 
-    /** Functor type trait specialization for backward derivative
-     *
-     * @tparam T_direction direction to take derivative in, 0 = x, 1 = y, 2 = z
-     */
-    template< uint32_t T_direction >
-    struct DerivativeFunctor<
-        Backward,
-        T_direction
-    > : pmacc::meta::accessors::Identity<
-            BackwardDerivativeFunctor< T_direction >
-    >
-    {
-    };
+                /** Return derivative value at the given point
+                 *
+                 * @tparam T_DataBox data box type with field data
+                 * @param data position in the data box to compute derivative at
+                 */
+                template<typename T_DataBox>
+                HDINLINE typename T_DataBox::ValueType operator()(T_DataBox const& data) const
+                {
+                    using Index = pmacc::DataSpace<simDim>;
+                    auto const lowerIndex = -pmacc::math::basisVector<Index, T_direction>();
+                    return (data(Index{}) - data(lowerIndex)) / cellSize[T_direction];
+                }
+            };
 
-} // namespace traits
-} // namespace differentiation
-} // namespace fields
+            namespace traits
+            {
+                /** Functor type trait specialization for backward derivative
+                 *
+                 * @tparam T_direction direction to take derivative in, 0 = x, 1 = y, 2 = z
+                 */
+                template<uint32_t T_direction>
+                struct DerivativeFunctor<Backward, T_direction>
+                    : pmacc::meta::accessors::Identity<BackwardDerivativeFunctor<T_direction>>
+                {
+                };
+
+            } // namespace traits
+        } // namespace differentiation
+    } // namespace fields
 } // namespace picongpu

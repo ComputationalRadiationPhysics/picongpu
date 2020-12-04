@@ -29,106 +29,105 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace radiation
-{
-namespace radiation_observer
-{
-    /** Compute observation angles
-     *
-     * This function is used in the Radiation plug-in kernel to compute
-     * the observation directions given as a unit vector pointing
-     * towards a 'virtual' detector
-     *
-     * This default setup is an example of a 2D detector array. It computes
-     * observation directions for 2D virtual detector field
-     * with its center pointing toward the +y direction (for theta=0, phi=0)
-     * with observation angles ranging from
-     * theta = [angle_theta_start : angle_theta_end]
-     * phi   = [angle_phi_start   : angle_phi_end  ]
-     * Every observation_id_extern index moves the phi angle from its
-     * start value toward its end value until the observation_id_extern
-     * reaches N_split. After that the theta angle moves further from its
-     * start value towards its end value while phi is reset to its start
-     * value.
-     *
-     * The unit vector pointing towards the observing virtual detector
-     * can be described using theta and phi by:
-     * x_value = sin(theta) * cos(phi)
-     * y_value = cos(theta)
-     * z_value = sin(theta) * sin(phi)
-     * These are the standard spherical coordinates.
-     *
-     * The example setup describes an detector array of
-     * 16x16 detectors ranging from -pi/8= -22.5 degrees
-     * to +pi/8= +22.5 degrees for both angles with the center
-     * pointing toward the y-axis (laser propagation direction).
-     *
-     * @param    observation_id_extern
-     *           int index that identifies each block on the GPU
-     *           to compute the observation direction
-     *
-     * @return   unit vector pointing in observation direction
-     *           type: vector_64
-     *
-     */
-    HDINLINE vector_64 observation_direction(const int observation_id_extern)
+    namespace plugins
     {
-        /* generate two indices from single block index */
-        /** split distance of given index
-         * pseudo-code:
-         * index_a = index / split_distance
-         * index_b = index % split_distance
-         */
-        constexpr int N_angle_split = 16;
-        /** get index for computing angle theta: */
-        const int my_index_theta = observation_id_extern / N_angle_split;
-        /** get index for computing angle phi: */
-        const int my_index_phi = observation_id_extern % N_angle_split;
+        namespace radiation
+        {
+            namespace radiation_observer
+            {
+                /** Compute observation angles
+                 *
+                 * This function is used in the Radiation plug-in kernel to compute
+                 * the observation directions given as a unit vector pointing
+                 * towards a 'virtual' detector
+                 *
+                 * This default setup is an example of a 2D detector array. It computes
+                 * observation directions for 2D virtual detector field
+                 * with its center pointing toward the +y direction (for theta=0, phi=0)
+                 * with observation angles ranging from
+                 * theta = [angle_theta_start : angle_theta_end]
+                 * phi   = [angle_phi_start   : angle_phi_end  ]
+                 * Every observation_id_extern index moves the phi angle from its
+                 * start value toward its end value until the observation_id_extern
+                 * reaches N_split. After that the theta angle moves further from its
+                 * start value towards its end value while phi is reset to its start
+                 * value.
+                 *
+                 * The unit vector pointing towards the observing virtual detector
+                 * can be described using theta and phi by:
+                 * x_value = sin(theta) * cos(phi)
+                 * y_value = cos(theta)
+                 * z_value = sin(theta) * sin(phi)
+                 * These are the standard spherical coordinates.
+                 *
+                 * The example setup describes an detector array of
+                 * 16x16 detectors ranging from -pi/8= -22.5 degrees
+                 * to +pi/8= +22.5 degrees for both angles with the center
+                 * pointing toward the y-axis (laser propagation direction).
+                 *
+                 * @param    observation_id_extern
+                 *           int index that identifies each block on the GPU
+                 *           to compute the observation direction
+                 *
+                 * @return   unit vector pointing in observation direction
+                 *           type: vector_64
+                 *
+                 */
+                HDINLINE vector_64 observation_direction(const int observation_id_extern)
+                {
+                    /* generate two indices from single block index */
+                    /** split distance of given index
+                     * pseudo-code:
+                     * index_a = index / split_distance
+                     * index_b = index % split_distance
+                     */
+                    constexpr int N_angle_split = 16;
+                    /** get index for computing angle theta: */
+                    const int my_index_theta = observation_id_extern / N_angle_split;
+                    /** get index for computing angle phi: */
+                    const int my_index_phi = observation_id_extern % N_angle_split;
 
 
-        /* set up observation angle range */
-        /* angles range for theta */
-        /** minimum theta angle [rad] */
-        const picongpu::float_64 angle_theta_start = - picongpu::PI/8.0;
-        /** maximum theta angle [rad] */
-        const picongpu::float_64 angle_theta_end   = + picongpu::PI/8.0;
-        /* angles range for phi */
-        /** minimum phi angle [rad] */
-        constexpr picongpu::float_64 angle_phi_start = - picongpu::PI/8.0;
-        /** maximum phi angle [rad] */
-        constexpr picongpu::float_64 angle_phi_end   = + picongpu::PI/8.0;
+                    /* set up observation angle range */
+                    /* angles range for theta */
+                    /** minimum theta angle [rad] */
+                    const picongpu::float_64 angle_theta_start = -picongpu::PI / 8.0;
+                    /** maximum theta angle [rad] */
+                    const picongpu::float_64 angle_theta_end = +picongpu::PI / 8.0;
+                    /* angles range for phi */
+                    /** minimum phi angle [rad] */
+                    constexpr picongpu::float_64 angle_phi_start = -picongpu::PI / 8.0;
+                    /** maximum phi angle [rad] */
+                    constexpr picongpu::float_64 angle_phi_end = +picongpu::PI / 8.0;
 
 
-        /* compute step with between two angles for range [angle_??_start : angle_??_end] */
-        /** number of theta angles */
-        constexpr int N_theta = parameters::N_observer / N_angle_split;
-        /** step width angle theta */
-        const picongpu::float_64 delta_angle_theta =  (angle_theta_end -
-                                                       angle_theta_start) / (N_theta-1.0);
-        /** step width angle phi */
-        const picongpu::float_64 delta_angle_phi   =  (angle_phi_end -
-                                                       angle_phi_start)   / (N_angle_split-1.0);
+                    /* compute step with between two angles for range [angle_??_start : angle_??_end] */
+                    /** number of theta angles */
+                    constexpr int N_theta = parameters::N_observer / N_angle_split;
+                    /** step width angle theta */
+                    const picongpu::float_64 delta_angle_theta
+                        = (angle_theta_end - angle_theta_start) / (N_theta - 1.0);
+                    /** step width angle phi */
+                    const picongpu::float_64 delta_angle_phi
+                        = (angle_phi_end - angle_phi_start) / (N_angle_split - 1.0);
 
-        /** compute observation angles theta */
-        const picongpu::float_64 theta( my_index_theta * delta_angle_theta + angle_theta_start );
-        /** compute observation angles theta */
-        const picongpu::float_64 phi( my_index_phi * delta_angle_phi - angle_phi_start );
+                    /** compute observation angles theta */
+                    const picongpu::float_64 theta(my_index_theta * delta_angle_theta + angle_theta_start);
+                    /** compute observation angles theta */
+                    const picongpu::float_64 phi(my_index_phi * delta_angle_phi - angle_phi_start);
 
-        /* helper functions for efficient trigonometric calculations */
-        picongpu::float_32 sinPhi;
-        picongpu::float_32 cosPhi;
-        picongpu::float_32 sinTheta;
-        picongpu::float_32 cosTheta;
-        pmacc::math::sincos(precisionCast<picongpu::float_32>(phi), sinPhi, cosPhi);
-        pmacc::math::sincos(precisionCast<picongpu::float_32>(theta), sinTheta, cosTheta);
-        /** compute observation unit vector */
-        return vector_64( sinTheta*cosPhi , cosTheta, sinTheta*sinPhi ) ;
+                    /* helper functions for efficient trigonometric calculations */
+                    picongpu::float_32 sinPhi;
+                    picongpu::float_32 cosPhi;
+                    picongpu::float_32 sinTheta;
+                    picongpu::float_32 cosTheta;
+                    pmacc::math::sincos(precisionCast<picongpu::float_32>(phi), sinPhi, cosPhi);
+                    pmacc::math::sincos(precisionCast<picongpu::float_32>(theta), sinTheta, cosTheta);
+                    /** compute observation unit vector */
+                    return vector_64(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi);
+                }
 
-    }
-
-} // namespace radiation_observer
-} // namespace radiation
-} // namespace plugins
+            } // namespace radiation_observer
+        } // namespace radiation
+    } // namespace plugins
 } // namespace picongpu

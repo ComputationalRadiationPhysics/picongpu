@@ -36,7 +36,7 @@
 #include <alpaka/alpaka.hpp>
 
 #ifdef _MSC_VER
-#include <intrin.h>
+#    include <intrin.h>
 #endif
 
 #include <atomic>
@@ -51,7 +51,7 @@
  * Since we require devices with support for ballot we can high-jack __HIP_ARCH_HAS_WARP_BALLOT__.
  */
 #if(defined(__HIP_ARCH_HAS_WARP_BALLOT__) || defined(__CUDA_ARCH__) || __HIP_DEVICE_COMPILE__ == 1)
-#   define MALLOCMC_DEVICE_COMPILE 1
+#    define MALLOCMC_DEVICE_COMPILE 1
 #endif
 
 namespace mallocMC
@@ -77,8 +77,7 @@ namespace mallocMC
     constexpr auto warpSize = 1;
 #endif
 
-    using PointerEquivalent
-        = mallocMC::__PointerEquivalent<sizeof(char *)>::type;
+    using PointerEquivalent = mallocMC::__PointerEquivalent<sizeof(char*)>::type;
 
     ALPAKA_FN_ACC inline auto laneid()
     {
@@ -186,13 +185,11 @@ namespace mallocMC
      * @return warp id within the block
      */
     template<typename AlpakaAcc>
-    ALPAKA_FN_ACC inline auto warpid_withinblock(const AlpakaAcc & acc)
-        -> std::uint32_t
+    ALPAKA_FN_ACC inline auto warpid_withinblock(const AlpakaAcc& acc) -> std::uint32_t
     {
-        const auto localId = alpaka::idx::mapIdx<1>(
-            alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc),
-            alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(
-                acc))[0];
+        const auto localId = alpaka::mapIdx<1>(
+            alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc),
+            alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc))[0];
         return localId / warpSize;
     }
 
@@ -257,9 +254,8 @@ namespace mallocMC
     template<typename T_Acc>
     struct ThreadFence<
         T_Acc,
-        typename std::enable_if<alpaka::concepts::ImplementsConcept<
-            alpaka::acc::ConceptUniformCudaHip,
-            T_Acc>::value>::type>
+        typename std::enable_if<
+            alpaka::concepts::ImplementsConcept<alpaka::ConceptUniformCudaHip, T_Acc>::value>::type>
     {
         static ALPAKA_FN_ACC void device()
         {
@@ -278,14 +274,14 @@ namespace mallocMC
 
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename T_Acc>
-    ALPAKA_FN_ACC void threadfenceDevice(T_Acc const & acc)
+    ALPAKA_FN_ACC void threadfenceDevice(T_Acc const& acc)
     {
         ThreadFence<T_Acc>::device();
     }
 
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename T_Acc>
-    ALPAKA_FN_ACC void threadfenceBlock(T_Acc const & acc)
+    ALPAKA_FN_ACC void threadfenceBlock(T_Acc const& acc)
     {
         ThreadFence<T_Acc>::block();
     }

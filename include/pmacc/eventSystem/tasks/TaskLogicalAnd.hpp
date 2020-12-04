@@ -29,22 +29,17 @@
 
 namespace pmacc
 {
-
     /**
      * TaskLogicalAnd AND-connects tasks to a new single task
      */
     class TaskLogicalAnd : public StreamTask
     {
     public:
-
         /**
          * s1 and s1 must be a valid IStreamTask
          * constructor
          */
-        TaskLogicalAnd(ITask* s1, ITask* s2) :
-        StreamTask(),
-        task1(s1->getId()),
-        task2(s2->getId())
+        TaskLogicalAnd(ITask* s1, ITask* s2) : StreamTask(), task1(s1->getId()), task2(s2->getId())
         {
             combine(s1, s2);
         }
@@ -54,13 +49,11 @@ namespace pmacc
          */
         virtual ~TaskLogicalAnd()
         {
-
             notify(this->myId, LOGICALAND, nullptr);
         }
 
         void init()
         {
-
         }
 
         bool executeIntern()
@@ -81,7 +74,7 @@ namespace pmacc
                 if(task != nullptr)
                 {
                     ITask::TaskType type = task->getTaskType();
-                    if (type == ITask::TASK_DEVICE )
+                    if(type == ITask::TASK_DEVICE)
                     {
                         this->stream = static_cast<StreamTask*>(task)->getEventStream();
                         this->setTaskType(ITask::TASK_DEVICE);
@@ -90,7 +83,7 @@ namespace pmacc
                     }
                 }
             }
-            else if (task2 == eventId)
+            else if(task2 == eventId)
             {
                 task2 = 0;
 
@@ -98,7 +91,7 @@ namespace pmacc
                 if(task != nullptr)
                 {
                     ITask::TaskType type = task->getTaskType();
-                    if (type == ITask::TASK_DEVICE )
+                    if(type == ITask::TASK_DEVICE)
                     {
                         this->stream = static_cast<StreamTask*>(task)->getEventStream();
                         this->setTaskType(ITask::TASK_DEVICE);
@@ -118,15 +111,11 @@ namespace pmacc
 
         std::string toString()
         {
-            return std::string("TaskLogicalAnd (") +
-                EventTask(task1).toString() +
-                std::string(" - ") +
-                EventTask(task2).toString() +
-                std::string(" )");
+            return std::string("TaskLogicalAnd (") + EventTask(task1).toString() + std::string(" - ")
+                + EventTask(task2).toString() + std::string(" )");
         }
 
     private:
-
         inline void combine(ITask* s1, ITask* s2)
         {
             s1->addObserver(this);
@@ -134,9 +123,9 @@ namespace pmacc
             if(s1->getTaskType() == ITask::TASK_DEVICE && s2->getTaskType() == ITask::TASK_DEVICE)
             {
                 this->setTaskType(ITask::TASK_DEVICE);
-                this->setEventStream(static_cast<StreamTask*> (s2)->getEventStream());
-                if(static_cast<StreamTask*> (s1)->getEventStream() != static_cast<StreamTask*> (s2)->getEventStream())
-                    this->getEventStream()->waitOn(static_cast<StreamTask*> (s1)->getCudaEventHandle());
+                this->setEventStream(static_cast<StreamTask*>(s2)->getEventStream());
+                if(static_cast<StreamTask*>(s1)->getEventStream() != static_cast<StreamTask*>(s2)->getEventStream())
+                    this->getEventStream()->waitOn(static_cast<StreamTask*>(s1)->getCudaEventHandle());
                 this->activate();
             }
             else if(s1->getTaskType() == ITask::TASK_MPI && s2->getTaskType() == ITask::TASK_DEVICE)
@@ -157,5 +146,4 @@ namespace pmacc
         id_t task2;
     };
 
-} //namespace pmacc
-
+} // namespace pmacc

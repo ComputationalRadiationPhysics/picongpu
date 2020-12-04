@@ -26,8 +26,8 @@
 // in parameter pack expansion expressions is to avoid warnings from diagnostic
 // tools, and also for brevity.
 //-----------------------------------------------------------------------------
-#ifdef BOOST_COMP_INTEL
-    #define ALPAKA_DECAY_T(Type) typename std::decay<Type>::type
+#if BOOST_COMP_INTEL || BOOST_COMP_PGI
+#    define ALPAKA_DECAY_T(Type) typename std::decay<Type>::type
 #else
-    #define ALPAKA_DECAY_T(Type) std::decay_t<Type>
+#    define ALPAKA_DECAY_T(Type) std::decay_t<Type>
 #endif

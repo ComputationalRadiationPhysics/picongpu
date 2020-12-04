@@ -39,108 +39,92 @@
 
 namespace picongpu
 {
-namespace openPMD
-{
-    using namespace pmacc;
+    namespace openPMD
+    {
+        using namespace pmacc;
 
 
-    namespace po = boost::program_options;
+        namespace po = boost::program_options;
 
 
 #define MESHES_PATH "fields"
 
-    template<
-        typename T_Vec,
-        typename T_Ret =
-            std::vector< typename std::remove_reference< T_Vec >::type::type > >
-    T_Ret
-    asStandardVector( T_Vec const & );
+        template<typename T_Vec, typename T_Ret = std::vector<typename std::remove_reference<T_Vec>::type::type>>
+        T_Ret asStandardVector(T_Vec const&);
 
-    enum class WriteSpeciesStrategy
-    {
-        ADIOS,
-        HDF5
-    };
+        enum class WriteSpeciesStrategy
+        {
+            ADIOS,
+            HDF5
+        };
 
-
-    /**
-     * Writes simulation data to openPMD series.
-     * Implements the ILightweightPlugin interface.
-     */
-
-    class openPMDWriter;
-    class Help;
-
-    struct ThreadParams
-    {
-        uint32_t currentStep; /** current simulation step */
-
-
-        std::unique_ptr<::openPMD::Series >
-            openPMDSeries; /* is null iff there is no series currently open */
-
-        /** current dump is a checkpoint */
-        bool isCheckpoint;
-
-        MPI_Comm communicator; /* MPI communicator for openPMD API */
-        std::string
-            compressionMethod; /* openPMD data transform compression method */
-        std::string
-            fileName; /* Name of the openPMDSeries, excluding the extension */
-        std::string fileExtension; /* Extension of the file name */
-        std::string fileInfix;
-
-        std::string jsonConfig;
-
-        WriteSpeciesStrategy strategy = WriteSpeciesStrategy::ADIOS;
-
-        pmacc::math::UInt64< simDim > fieldsSizeDims;
-        pmacc::math::UInt64< simDim > fieldsGlobalSizeDims;
-        pmacc::math::UInt64< simDim > fieldsOffsetDims;
-
-        GridLayout< simDim > gridLayout;
-        MappingDesc * cellDescription;
-
-        std::vector< float_X > fieldBuffer; /* temp. buffer for fields */
-
-        Window window; /* window describing the volume to be dumped */
-
-        DataSpace< simDim >
-            localWindowToDomainOffset; /** offset from local moving
-                                          window to local domain */
-
-        ::openPMD::Series &
-        openSeries( ::openPMD::Access at );
-
-        void
-        closeSeries();
-
-        void
-        initFromConfig(
-            Help &,
-            size_t id,
-            std::string const & file,
-            std::string const & dir );
 
         /**
-         * Wrapper for ::openPMD::resetDataset, set dataset parameters
-         * @tparam DIM number of variable dimensions
-         * @param recordComponent Location of the dataset within the openPMD
-         * Series
-         * @param datatype Variable type
-         * @param globalDimensions Dataset global dimensions
-         * @param compression Enable compression data transform
-         * @param compressionMethod String denoting the data transform to use
-         * @return The input recordComponent
+         * Writes simulation data to openPMD series.
+         * Implements the ILightweightPlugin interface.
          */
-        template< unsigned DIM >
-        ::openPMD::RecordComponent &
-        initDataset(
-            ::openPMD::RecordComponent & recordComponent,
-            ::openPMD::Datatype datatype,
-            pmacc::math::UInt64< DIM > const & globalDimensions,
-            bool compression,
-            std::string const & compressionMethod );
-    };
-} // namespace openPMD
+
+        class openPMDWriter;
+        class Help;
+
+        struct ThreadParams
+        {
+            uint32_t currentStep; /** current simulation step */
+
+
+            std::unique_ptr<::openPMD::Series> openPMDSeries; /* is null iff there is no series currently open */
+
+            /** current dump is a checkpoint */
+            bool isCheckpoint;
+
+            MPI_Comm communicator; /* MPI communicator for openPMD API */
+            std::string compressionMethod; /* openPMD data transform compression method */
+            std::string fileName; /* Name of the openPMDSeries, excluding the extension */
+            std::string fileExtension; /* Extension of the file name */
+            std::string fileInfix;
+
+            std::string jsonConfig;
+
+            WriteSpeciesStrategy strategy = WriteSpeciesStrategy::ADIOS;
+
+            pmacc::math::UInt64<simDim> fieldsSizeDims;
+            pmacc::math::UInt64<simDim> fieldsGlobalSizeDims;
+            pmacc::math::UInt64<simDim> fieldsOffsetDims;
+
+            GridLayout<simDim> gridLayout;
+            MappingDesc* cellDescription;
+
+            std::vector<float_X> fieldBuffer; /* temp. buffer for fields */
+
+            Window window; /* window describing the volume to be dumped */
+
+            DataSpace<simDim> localWindowToDomainOffset; /** offset from local moving
+                                                            window to local domain */
+
+            ::openPMD::Series& openSeries(::openPMD::Access at);
+
+            void closeSeries();
+
+            void initFromConfig(Help&, size_t id, std::string const& file, std::string const& dir);
+
+            /**
+             * Wrapper for ::openPMD::resetDataset, set dataset parameters
+             * @tparam DIM number of variable dimensions
+             * @param recordComponent Location of the dataset within the openPMD
+             * Series
+             * @param datatype Variable type
+             * @param globalDimensions Dataset global dimensions
+             * @param compression Enable compression data transform
+             * @param compressionMethod String denoting the data transform to use
+             * @return The input recordComponent
+             */
+            template<unsigned DIM>
+            ::openPMD::RecordComponent& initDataset(
+                ::openPMD::RecordComponent& recordComponent,
+                ::openPMD::Datatype datatype,
+                pmacc::math::UInt64<DIM> const& globalDimensions,
+                bool compression,
+                std::string const& compressionMethod);
+        };
+    } // namespace openPMD
 } // namespace picongpu

@@ -42,6 +42,14 @@ set(_ALPAKA_FOUND TRUE)
 # Add module search path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${_ALPAKA_ROOT_DIR}/modules/")
 
+# parse environment variable `CMAKE_MODULE_PATH`
+if(DEFINED ENV{CMAKE_MODULE_PATH})
+    string(REPLACE ":" ";" ENV_CMAKE_MODULE_PATH $ENV{CMAKE_MODULE_PATH})
+    foreach(_PREFIX_PATH ${ENV_CMAKE_MODULE_PATH})
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${_PREFIX_PATH}")
+    endforeach()
+endif()
+
 set(_ALPAKA_INCLUDE_DIRECTORY "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@")
 
 include("${CMAKE_CURRENT_LIST_DIR}/alpakaCommon.cmake")

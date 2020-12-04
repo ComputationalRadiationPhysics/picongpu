@@ -36,73 +36,56 @@
 
 namespace pmacc
 {
-namespace pluginSystem
-{
-namespace detail
-{
-    /** check if string contains only digits
-     *
-     * @param str string to check
-     * @return true if str contains only digits else false
-     */
-    HINLINE bool is_number( std::string const & str )
+    namespace pluginSystem
     {
-        return std::all_of(
-            str.begin(),
-            str.end(),
-            ::isdigit
-        );
-    }
-} // namespace detail
-
-    /** create a TimeSlice out of an string
-     *
-     * Parse a comma separated list of time slices and creates a vector of TimeSlices.
-     * TimeSlice Syntax:
-     *   - `start:stop:period`
-     *   - a number ``N is equal to `::N`
-     */
-    HINLINE std::vector< TimeSlice > toTimeSlice( std::string const & str )
-    {
-        std::vector< TimeSlice > result;
-        auto const seqOfSlices = misc::splitString(
-            str,
-            ","
-        );
-        for( auto const & slice : seqOfSlices )
+        namespace detail
         {
-            auto const sliceComponents = misc::splitString(
-                slice,
-                ":"
-            );
-            PMACC_VERIFY_MSG(
-                !sliceComponents.empty( ),
-                std::string( "time slice without a defined element is not allowed" ) + str
-            );
-
-            // id of the component
-            size_t n = 0;
-            bool const hasOnlyPeriod = sliceComponents.size() == 1u;
-            TimeSlice timeSlice;
-            for( auto& component : sliceComponents )
+            /** check if string contains only digits
+             *
+             * @param str string to check
+             * @return true if str contains only digits else false
+             */
+            HINLINE bool is_number(std::string const& str)
             {
-                // be sure that component it is a number or empty
-                PMACC_VERIFY_MSG(
-                    component.empty() || detail::is_number( component ),
-                    std::string("value") + component +
-                        " in " + str + "is not a number"
-                );
-
-                timeSlice.setValue(
-                    hasOnlyPeriod ? 2 : n,
-                    component
-                );
-                n++;
+                return std::all_of(str.begin(), str.end(), ::isdigit);
             }
-            result.push_back( timeSlice );
+        } // namespace detail
 
+        /** create a TimeSlice out of an string
+         *
+         * Parse a comma separated list of time slices and creates a vector of TimeSlices.
+         * TimeSlice Syntax:
+         *   - `start:stop:period`
+         *   - a number ``N is equal to `::N`
+         */
+        HINLINE std::vector<TimeSlice> toTimeSlice(std::string const& str)
+        {
+            std::vector<TimeSlice> result;
+            auto const seqOfSlices = misc::splitString(str, ",");
+            for(auto const& slice : seqOfSlices)
+            {
+                auto const sliceComponents = misc::splitString(slice, ":");
+                PMACC_VERIFY_MSG(
+                    !sliceComponents.empty(),
+                    std::string("time slice without a defined element is not allowed") + str);
+
+                // id of the component
+                size_t n = 0;
+                bool const hasOnlyPeriod = sliceComponents.size() == 1u;
+                TimeSlice timeSlice;
+                for(auto& component : sliceComponents)
+                {
+                    // be sure that component it is a number or empty
+                    PMACC_VERIFY_MSG(
+                        component.empty() || detail::is_number(component),
+                        std::string("value") + component + " in " + str + "is not a number");
+
+                    timeSlice.setValue(hasOnlyPeriod ? 2 : n, component);
+                    n++;
+                }
+                result.push_back(timeSlice);
+            }
+            return result;
         }
-        return result;
-    }
-} // namespace pluginSystem
+    } // namespace pluginSystem
 } // namespace pmacc

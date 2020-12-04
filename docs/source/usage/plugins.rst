@@ -15,7 +15,6 @@ Plugin name                                                                     
 :ref:`count per supercell <usage-plugins-countPerSupercell>` [#f3]_                  count macro particles *per supercell*
 :ref:`energy fields <usage-plugins-energyFields>`                                    electromagnetic field energy per time step
 :ref:`energy particles <usage-plugins-energyParticles>` [#f7]_                       kinetic and total energies summed over all electrons and/or ions
-:ref:`HDF5 <usage-plugins-HDF5>` [#f2]_ [#f7]_                                       stores simulation data as openPMD flavoured HDF5 files [Huebl2017]_
 :ref:`ISAAC <usage-plugins-ISAAC>`                                                   interactive 3D live visualization [Matthes2016]_
 :ref:`intensity <usage-plugins-intensity>` [#f1]_ [#f5]_ [#f6]_                      maximum and integrated electric field along the y-direction
 :ref:`particle calorimeter <usage-plugins-particleCalorimeter>` [#f3]_ [#f4]_ [#f7]_ spatially resolved, particle energy detector in infinite distance

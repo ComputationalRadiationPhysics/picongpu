@@ -50,16 +50,16 @@ namespace mallocMC
         struct BadAllocException
         {
             ALPAKA_FN_ACC
-            static auto handleOOM(void * mem) -> void *
+            static auto handleOOM(void* mem) -> void*
             {
 #if BOOST_LANG_CUDA || BOOST_COMP_HIP
 //#if __CUDA_ARCH__ < 350
-#define PM_EXCEPTIONS_NOT_SUPPORTED_HERE
+#    define PM_EXCEPTIONS_NOT_SUPPORTED_HERE
 //#endif
 #endif
 
 #ifdef PM_EXCEPTIONS_NOT_SUPPORTED_HERE
-#undef PM_EXCEPTIONS_NOT_SUPPORTED_HERE
+#    undef PM_EXCEPTIONS_NOT_SUPPORTED_HERE
                 assert(false);
 #else
                 throw std::bad_alloc{};

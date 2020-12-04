@@ -18,7 +18,6 @@
  */
 
 
-
 #pragma once
 
 
@@ -26,9 +25,5 @@ namespace picongpu
 {
     namespace defaultPIConGPU
     {
-
     }
-}
-
-
-
+} // namespace picongpu

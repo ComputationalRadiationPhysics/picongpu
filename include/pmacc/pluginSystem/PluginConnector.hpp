@@ -43,15 +43,11 @@ namespace pmacc
     class PluginConnector
     {
     private:
-        using SeqOfTimeSlices = std::vector< pluginSystem::TimeSlice >;
-        using PluginPair = std::pair<
-            INotify*,
-            SeqOfTimeSlices
-        >;
-        using NotificationList = std::list< PluginPair >;
+        using SeqOfTimeSlices = std::vector<pluginSystem::TimeSlice>;
+        using PluginPair = std::pair<INotify*, SeqOfTimeSlices>;
+        using NotificationList = std::list<PluginPair>;
 
     public:
-
         /** Register a plugin for loading/unloading and notifications
          *
          * Plugins are loaded in the order they are registered and unloaded in reverse order.
@@ -60,9 +56,9 @@ namespace pmacc
          *
          * @param plugin plugin to register
          */
-        void registerPlugin(IPlugin *plugin)
+        void registerPlugin(IPlugin* plugin)
         {
-            if (plugin != nullptr)
+            if(plugin != nullptr)
             {
                 plugins.push_back(plugin);
             }
@@ -76,10 +72,9 @@ namespace pmacc
         void loadPlugins()
         {
             // load all plugins
-            for (std::list<IPlugin*>::iterator iter = plugins.begin();
-                 iter != plugins.end(); ++iter)
+            for(std::list<IPlugin*>::iterator iter = plugins.begin(); iter != plugins.end(); ++iter)
             {
-                if (!(*iter)->isLoaded())
+                if(!(*iter)->isLoaded())
                 {
                     (*iter)->load();
                 }
@@ -92,10 +87,9 @@ namespace pmacc
         void unloadPlugins()
         {
             // unload all plugins
-            for (std::list<IPlugin*>::reverse_iterator iter = plugins.rbegin();
-                 iter != plugins.rend(); ++iter)
+            for(std::list<IPlugin*>::reverse_iterator iter = plugins.rbegin(); iter != plugins.rend(); ++iter)
             {
-                if ((*iter)->isLoaded())
+                if((*iter)->isLoaded())
                 {
                     (*iter)->unload();
                 }
@@ -111,8 +105,7 @@ namespace pmacc
         {
             std::list<po::options_description> help_options;
 
-            for (std::list<IPlugin*>::iterator iter = plugins.begin();
-                 iter != plugins.end(); ++iter)
+            for(std::list<IPlugin*>::iterator iter = plugins.begin(); iter != plugins.end(); ++iter)
             {
                 // create a new help options section for this plugin,
                 // fill it and add to list of options
@@ -129,17 +122,14 @@ namespace pmacc
          * @param notifiedObj the object to notify, e.g. an IPlugin instance
          * @param period notification period
          */
-        void setNotificationPeriod(INotify* notifiedObj, std::string const & period)
+        void setNotificationPeriod(INotify* notifiedObj, std::string const& period)
         {
-            if (notifiedObj != nullptr)
+            if(notifiedObj != nullptr)
             {
-                if( !period.empty() )
+                if(!period.empty())
                 {
-                    SeqOfTimeSlices seqTimeSlices = pluginSystem::toTimeSlice( period );
-                    notificationList.push_back( std::make_pair(
-                        notifiedObj,
-                        seqTimeSlices
-                    ) );
+                    SeqOfTimeSlices seqTimeSlices = pluginSystem::toTimeSlice(period);
+                    notificationList.push_back(std::make_pair(notifiedObj, seqTimeSlices));
                 }
             }
             else
@@ -153,15 +143,9 @@ namespace pmacc
          */
         void notifyPlugins(uint32_t currentStep)
         {
-            for (NotificationList::iterator iter = notificationList.begin();
-                    iter != notificationList.end(); ++iter)
+            for(NotificationList::iterator iter = notificationList.begin(); iter != notificationList.end(); ++iter)
             {
-                if(
-                    containsStep(
-                        (*iter).second,
-                        currentStep
-                    )
-                )
+                if(containsStep((*iter).second, currentStep))
                 {
                     INotify* notifiedObj = iter->first;
                     notifiedObj->notify(currentStep);
@@ -178,8 +162,7 @@ namespace pmacc
          */
         void checkpointPlugins(uint32_t currentStep, const std::string checkpointDirectory)
         {
-            for (std::list<IPlugin*>::iterator iter = plugins.begin();
-                    iter != plugins.end(); ++iter)
+            for(std::list<IPlugin*>::iterator iter = plugins.begin(); iter != plugins.end(); ++iter)
             {
                 (*iter)->checkpoint(currentStep, checkpointDirectory);
                 (*iter)->setLastCheckpoint(currentStep);
@@ -194,8 +177,7 @@ namespace pmacc
          */
         void restartPlugins(uint32_t restartStep, const std::string restartDirectory)
         {
-            for (std::list<IPlugin*>::iterator iter = plugins.begin();
-                    iter != plugins.end(); ++iter)
+            for(std::list<IPlugin*>::iterator iter = plugins.begin(); iter != plugins.end(); ++iter)
             {
                 (*iter)->restart(restartStep, restartDirectory);
             }
@@ -211,9 +193,7 @@ namespace pmacc
         std::vector<Plugin*> getPluginsFromType()
         {
             std::vector<Plugin*> result;
-            for(std::list<IPlugin*>::iterator iter = plugins.begin();
-                iter != plugins.end();
-                iter++)
+            for(std::list<IPlugin*>::iterator iter = plugins.begin(); iter != plugins.end(); iter++)
             {
                 Plugin* plugin = dynamic_cast<Plugin*>(*iter);
                 if(plugin != nullptr)
@@ -232,7 +212,6 @@ namespace pmacc
         }
 
     private:
-
         friend struct detail::Environment;
 
         static PluginConnector& getInstance()
@@ -243,15 +222,13 @@ namespace pmacc
 
         PluginConnector()
         {
-
         }
 
         virtual ~PluginConnector()
         {
-
         }
 
         std::list<IPlugin*> plugins;
         NotificationList notificationList;
     };
-}
+} // namespace pmacc

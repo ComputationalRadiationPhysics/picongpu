@@ -34,7 +34,6 @@ namespace picongpu
         using SimStarter = ::picongpu::SimulationStarter<
             ::picongpu::InitialiserController,
             ::picongpu::PluginController,
-            ::picongpu::ThermalTestSimulation
-        >;
+            ::picongpu::ThermalTestSimulation>;
     }
-}
+} // namespace picongpu

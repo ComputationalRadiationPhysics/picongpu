@@ -34,7 +34,7 @@ inline namespace device
 
     /** synchronize threads within the block
      *
-     * @tparam T_Acc alpaka accelerator [alpaka::acc::*]
+     * @tparam T_Acc alpaka accelerator [alpaka::*]
      * @param acc alpaka accelerator
      *
      * @{
@@ -43,7 +43,7 @@ inline namespace device
     ALPAKA_FN_ACC ALPAKA_FN_INLINE
     void syncThreads( T_Acc const & acc )
     {
-        ::alpaka::block::sync::syncBlockThreads( acc );
+        ::alpaka::syncBlockThreads( acc );
     }
 
     template< typename T_Acc >

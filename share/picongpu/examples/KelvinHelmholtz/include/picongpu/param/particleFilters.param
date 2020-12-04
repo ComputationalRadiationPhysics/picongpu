@@ -41,87 +41,79 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace filter
-{
-    struct IfRelativeGlobalPositionParamLowQuarterPosition
+    namespace particles
     {
-        /* lowerBound is included in the range */
-        static constexpr float_X lowerBound = 0.0;
-        /* upperBound is excluded in the range */
-        static constexpr float_X upperBound = 0.25;
-        /* dimension for the filter
-         * x = 0; y= 1; z = 2
-         */
-        static constexpr uint32_t dimension = 1u;
+        namespace filter
+        {
+            struct IfRelativeGlobalPositionParamLowQuarterPosition
+            {
+                /* lowerBound is included in the range */
+                static constexpr float_X lowerBound = 0.0;
+                /* upperBound is excluded in the range */
+                static constexpr float_X upperBound = 0.25;
+                /* dimension for the filter
+                 * x = 0; y= 1; z = 2
+                 */
+                static constexpr uint32_t dimension = 1u;
 
-        // filter name
-        static constexpr char const * name = "lowerQuarterYPosition";
-    };
+                // filter name
+                static constexpr char const* name = "lowerQuarterYPosition";
+            };
 
-    using LowerQuarterYPosition = filter::RelativeGlobalDomainPosition<
-        IfRelativeGlobalPositionParamLowQuarterPosition
-    >;
+            using LowerQuarterYPosition
+                = filter::RelativeGlobalDomainPosition<IfRelativeGlobalPositionParamLowQuarterPosition>;
 
-    struct IfRelativeGlobalPositionParamMiddleHalf
-    {
-        /* lowerBound is included in the range */
-        static constexpr float_X lowerBound = 0.25;
-        /* upperBound is excluded in the range */
-        static constexpr float_X upperBound = 0.75;
-        /* dimension for the filter
-         * x = 0; y= 1; z = 2
-         */
-        static constexpr uint32_t dimension = 1u;
+            struct IfRelativeGlobalPositionParamMiddleHalf
+            {
+                /* lowerBound is included in the range */
+                static constexpr float_X lowerBound = 0.25;
+                /* upperBound is excluded in the range */
+                static constexpr float_X upperBound = 0.75;
+                /* dimension for the filter
+                 * x = 0; y= 1; z = 2
+                 */
+                static constexpr uint32_t dimension = 1u;
 
-        // filter name
-        static constexpr char const * name = "middleHalfYPosition";
-    };
+                // filter name
+                static constexpr char const* name = "middleHalfYPosition";
+            };
 
-    using MiddleHalfYPosition = filter::RelativeGlobalDomainPosition<
-        IfRelativeGlobalPositionParamMiddleHalf
-    >;
+            using MiddleHalfYPosition = filter::RelativeGlobalDomainPosition<IfRelativeGlobalPositionParamMiddleHalf>;
 
-    struct IfRelativeGlobalPositionParamUpperQuarter
-    {
-        /* lowerBound is included in the range */
-        static constexpr float_X lowerBound = 0.75;
-        /* upperBound is excluded in the range */
-        static constexpr float_X upperBound = 1.0;
-        /* dimension for the filter
-         * x = 0; y= 1; z = 2
-         */
-        static constexpr uint32_t dimension = 1u;
+            struct IfRelativeGlobalPositionParamUpperQuarter
+            {
+                /* lowerBound is included in the range */
+                static constexpr float_X lowerBound = 0.75;
+                /* upperBound is excluded in the range */
+                static constexpr float_X upperBound = 1.0;
+                /* dimension for the filter
+                 * x = 0; y= 1; z = 2
+                 */
+                static constexpr uint32_t dimension = 1u;
 
-        // filter name
-        static constexpr char const * name = "upperQuarterYPosition";
-    };
+                // filter name
+                static constexpr char const* name = "upperQuarterYPosition";
+            };
 
-    using UpperQuarterYPosition = filter::RelativeGlobalDomainPosition<
-        IfRelativeGlobalPositionParamUpperQuarter
-    >;
+            using UpperQuarterYPosition
+                = filter::RelativeGlobalDomainPosition<IfRelativeGlobalPositionParamUpperQuarter>;
 
-    /** Plugins: collection of all available particle filters
-     *
-     * Create a list of all filters here that you want to use in plugins.
-     *
-     * Note: filter All is defined in picongpu/particles/filter/filter.def
-     */
-    using AllParticleFilters = MakeSeq_t<
-        All,
-        LowerQuarterYPosition,
-        MiddleHalfYPosition,
-        UpperQuarterYPosition
-    >;
+            /** Plugins: collection of all available particle filters
+             *
+             * Create a list of all filters here that you want to use in plugins.
+             *
+             * Note: filter All is defined in picongpu/particles/filter/filter.def
+             */
+            using AllParticleFilters
+                = MakeSeq_t<All, LowerQuarterYPosition, MiddleHalfYPosition, UpperQuarterYPosition>;
 
-} // namespace filter
+        } // namespace filter
 
-namespace traits
-{
-    /* if needed for generic "free" filters,
-     * place `SpeciesEligibleForSolver` traits for filters here
-     */
-} // namespace traits
-} // namespace particles
+        namespace traits
+        {
+            /* if needed for generic "free" filters,
+             * place `SpeciesEligibleForSolver` traits for filters here
+             */
+        } // namespace traits
+    } // namespace particles
 } // namespace picongpu

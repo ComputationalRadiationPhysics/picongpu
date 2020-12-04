@@ -25,22 +25,20 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-
-template<typename TCursor>
-struct CursorAccessor
-{
-    typedef typename TCursor::type type;
-
-    HDINLINE type operator()(TCursor& cursor)
+    namespace cursor
     {
-        return *cursor;
-    }
+        template<typename TCursor>
+        struct CursorAccessor
+        {
+            typedef typename TCursor::type type;
 
-    ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
-};
+            HDINLINE type operator()(TCursor& cursor)
+            {
+                return *cursor;
+            }
 
-} // cursor
-} // pmacc
+            ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
+        };
 
+    } // namespace cursor
+} // namespace pmacc

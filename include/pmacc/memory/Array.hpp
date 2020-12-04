@@ -26,108 +26,101 @@
 
 namespace pmacc
 {
-namespace memory
-{
-    /** static sized array
-     *
-     * mimic the most parts of the `std::array`
-     */
-    template<
-        typename T_Type,
-        size_t T_size
-    >
-    struct Array
+    namespace memory
     {
-        using value_type = T_Type;
-        using size_type = size_t;
-        using reference = value_type &;
-        using const_reference = value_type const &;
-        using pointer = value_type *;
-        using const_pointer = value_type const *;
-
-        /** get number of elements */
-        HDINLINE
-        constexpr size_type size( ) const
-        {
-            return T_size;
-        }
-
-        /** get maximum number of elements */
-        HDINLINE
-        constexpr size_type max_size( ) const
-        {
-            return T_size;
-        }
-
-        /** get the direct access to the internal data
+        /** static sized array
          *
-         * @{
+         * mimic the most parts of the `std::array`
          */
-        HDINLINE
-        pointer data( )
+        template<typename T_Type, size_t T_size>
+        struct Array
         {
-            return reinterpret_cast< pointer >( m_data );
-        }
+            using value_type = T_Type;
+            using size_type = size_t;
+            using reference = value_type&;
+            using const_reference = value_type const&;
+            using pointer = value_type*;
+            using const_pointer = value_type const*;
 
-        HDINLINE
-        const_pointer data( ) const
-        {
-            return reinterpret_cast< const_pointer >( m_data );
-        }
-        /** @} */
+            /** get number of elements */
+            HDINLINE
+            constexpr size_type size() const
+            {
+                return T_size;
+            }
 
-        /** default constructor
-         *
-         * all members are uninitialized
-         */
-        Array() = default;
+            /** get maximum number of elements */
+            HDINLINE
+            constexpr size_type max_size() const
+            {
+                return T_size;
+            }
 
-        /** constructor
-         *
-         * initialize each member with the given value
-         *
-         * @param value element assigned to each member
-         */
-        HDINLINE Array( T_Type const & value )
-        {
-            for( size_type i = 0; i < size(); ++i )
-                reinterpret_cast< T_Type* >( m_data )[ i ] = value;
-        }
+            /** get the direct access to the internal data
+             *
+             * @{
+             */
+            HDINLINE
+            pointer data()
+            {
+                return reinterpret_cast<pointer>(m_data);
+            }
 
-        /** get N-th value
-         *
-         * @tparam T_Idx any type which can be implicit casted to an integral type
-         * @param idx index within the array
-         *
-         * @{
-         */
-        template< typename T_Idx >
-        HDINLINE
-        const_reference
-        operator[]( T_Idx const idx ) const
-        {
-            return reinterpret_cast< T_Type const * >( m_data )[ idx ];
-        }
+            HDINLINE
+            const_pointer data() const
+            {
+                return reinterpret_cast<const_pointer>(m_data);
+            }
+            /** @} */
 
-        template< typename T_Idx >
-        HDINLINE
-        reference
-        operator[]( T_Idx const idx )
-        {
-            return reinterpret_cast< T_Type* >( m_data )[ idx ];
-        }
-        /** @} */
+            /** default constructor
+             *
+             * all members are uninitialized
+             */
+            Array() = default;
 
-    private:
-        /** data storage
-         *
-         * std::array is a so-called "aggregate" which does not default-initialize
-         * its members. In order to allow arbitrary types to skip implementing
-         * a default constructur, this member is not stored as
-         * `value_type m_data[ T_size ]` but as type-size aligned Byte type.
-         */
-        uint8_t m_data alignas( alignof( T_Type ) ) [ T_size * sizeof( T_Type ) ];
-    };
+            /** constructor
+             *
+             * initialize each member with the given value
+             *
+             * @param value element assigned to each member
+             */
+            HDINLINE Array(T_Type const& value)
+            {
+                for(size_type i = 0; i < size(); ++i)
+                    reinterpret_cast<T_Type*>(m_data)[i] = value;
+            }
 
-} // namespace memory
+            /** get N-th value
+             *
+             * @tparam T_Idx any type which can be implicit casted to an integral type
+             * @param idx index within the array
+             *
+             * @{
+             */
+            template<typename T_Idx>
+            HDINLINE const_reference operator[](T_Idx const idx) const
+            {
+                return reinterpret_cast<T_Type const*>(m_data)[idx];
+            }
+
+            template<typename T_Idx>
+            HDINLINE reference operator[](T_Idx const idx)
+            {
+                return reinterpret_cast<T_Type*>(m_data)[idx];
+            }
+            /** @} */
+
+        private:
+            /** data storage
+             *
+             * std::array is a so-called "aggregate" which does not default-initialize
+             * its members. In order to allow arbitrary types to skip implementing
+             * a default constructur, this member is not stored as
+             * `value_type m_data[ T_size ]` but as type-size aligned Byte type.
+             */
+            uint8_t m_data alignas(alignof(T_Type))[T_size * sizeof(T_Type)];
+        };
+
+    } // namespace memory
 } // namespace pmacc

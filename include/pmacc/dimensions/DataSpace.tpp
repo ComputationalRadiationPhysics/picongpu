@@ -32,53 +32,50 @@
 
 namespace pmacc
 {
-
-namespace traits
-{
-
-template<unsigned DIM>
-struct GetComponentsType<DataSpace<DIM>, false >
-{
-    typedef typename DataSpace<DIM>::type type;
-};
-
-/** Trait for float_X */
-template<unsigned DIM>
-struct GetNComponents<DataSpace<DIM>,false >
-{
-    static constexpr uint32_t value=DIM;
-};
-
-}// namespace traits
-
-namespace algorithms
-{
-namespace precisionCast
-{
-
-template<unsigned T_Dim>
-struct TypeCast<int, pmacc::DataSpace<T_Dim> >
-{
-    typedef const pmacc::DataSpace<T_Dim>& result;
-
-    HDINLINE result operator( )(const pmacc::DataSpace<T_Dim>& vector ) const
+    namespace traits
     {
-        return vector;
-    }
-};
+        template<unsigned DIM>
+        struct GetComponentsType<DataSpace<DIM>, false>
+        {
+            typedef typename DataSpace<DIM>::type type;
+        };
 
-template<typename T_CastToType, unsigned T_Dim>
-struct TypeCast<T_CastToType, pmacc::DataSpace<T_Dim>  >
-{
-    typedef ::pmacc::math::Vector<T_CastToType, T_Dim> result;
+        /** Trait for float_X */
+        template<unsigned DIM>
+        struct GetNComponents<DataSpace<DIM>, false>
+        {
+            static constexpr uint32_t value = DIM;
+        };
 
-    HDINLINE result operator( )(const pmacc::DataSpace<T_Dim>& vector ) const
+    } // namespace traits
+
+    namespace algorithms
     {
-        return result( vector );
-    }
-};
+        namespace precisionCast
+        {
+            template<unsigned T_Dim>
+            struct TypeCast<int, pmacc::DataSpace<T_Dim>>
+            {
+                typedef const pmacc::DataSpace<T_Dim>& result;
 
-} //namespace typecast
-} //namespace algorithms
+                HDINLINE result operator()(const pmacc::DataSpace<T_Dim>& vector) const
+                {
+                    return vector;
+                }
+            };
 
-} //namespace pmacc
+            template<typename T_CastToType, unsigned T_Dim>
+            struct TypeCast<T_CastToType, pmacc::DataSpace<T_Dim>>
+            {
+                typedef ::pmacc::math::Vector<T_CastToType, T_Dim> result;
+
+                HDINLINE result operator()(const pmacc::DataSpace<T_Dim>& vector) const
+                {
+                    return result(vector);
+                }
+            };
+
+        } // namespace precisionCast
+    } // namespace algorithms
+
+} // namespace pmacc

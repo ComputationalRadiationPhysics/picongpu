@@ -26,27 +26,24 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-
-    HDINLINE float1_64
-    MacroCounter::getUnit() const
+    namespace particles
     {
-        return 1.0;
-    }
+        namespace particleToGrid
+        {
+            namespace derivedAttributes
+            {
+                HDINLINE float1_64 MacroCounter::getUnit() const
+                {
+                    return 1.0;
+                }
 
-    template< class T_Particle >
-    DINLINE float_X
-    MacroCounter::operator()( T_Particle& particle ) const
-    {
-        /* return attribute */
-        return 1.0;
-    }
-} // namespace derivedAttributes
-} // namespace particleToGrid
-} // namespace particles
+                template<class T_Particle>
+                DINLINE float_X MacroCounter::operator()(T_Particle& particle) const
+                {
+                    /* return attribute */
+                    return 1.0;
+                }
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
 } // namespace picongpu

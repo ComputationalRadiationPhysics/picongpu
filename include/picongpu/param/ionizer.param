@@ -23,7 +23,6 @@
  * of the periodic table. The elements here should have a matching list of
  * ionization energies in @see ionizationEnergies.param. Moreover this file
  * contains a description of how to configure an ionization model for a species.
- * Currently each species can only be assigned exactly one ionization model.
  *
  * Furthermore there are parameters for specific ionization models to be found
  * here. That includes lists of screened nuclear charges as seen by bound
@@ -40,474 +39,495 @@
 
 namespace picongpu
 {
-/** Ionization Model Configuration
- *
- * - None : no particle is ionized
- * - BSI : simple barrier suppression ionization
- * - BSIEffectiveZ : BSI taking electron shielding into account via an effective
- *                   atomic number Z_eff
- * - ADKLinPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
- *               -> linearly polarized lasers
- * - ADKCircPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
- *                -> circularly polarized lasers
- * - Keldysh : Keldysh ionization model
- * - ThomasFermi : statistical impact ionization based on Thomas-Fermi
- *                 atomic model
- *                 Attention: requires 2 FieldTmp slots @see memory.param
- *
- * Research and development:
- * - BSIStarkShifted : BSI for hydrogen-like atoms and ions considering the
- *                     Stark upshift of ionization potentials
- *
- * Usage: Add flags to the list of particle flags that has the following structure
- *
- *        ionizers< MakeSeq_t< particles::ionization::IonizationModel< Species2BCreated > > >,
- *        atomicNumbers< ionization::atomicNumbers::Element_t >,
- *        effectiveNuclearCharge< ionization::effectiveNuclearCharge::Element_t >,
- *        ionizationEnergies< ionization::energies::AU::Element_t >
- */
-namespace ionization
-{
-/*! Specify (chemical) element
- *
- * Proton and neutron numbers define the chemical element that the ion species
- * is based on. This value can be non-integer for physical models taking
- * charge shielding effects into account.
- * @see http://en.wikipedia.org/wiki/Effective_nuclear_charge
- *
- * It is wrapped into a struct because of C++ restricting floats from being
- * template arguments.
- *
- * Do not forget to set the correct mass and charge via
- * `massRatio<>` and `chargeRatio<>`!
- */
-namespace atomicNumbers
-{
-    /** H-1 99.98% NA */
-    struct Hydrogen_t
-    {
-        static constexpr float_X numberOfProtons  = 1.0;
-        static constexpr float_X numberOfNeutrons = 0.0;
-    };
-
-    /** H-2 0.02% NA */
-    struct Deuterium_t
-    {
-        static constexpr float_X numberOfProtons  = 1.0;
-        static constexpr float_X numberOfNeutrons = 1.0;
-    };
-
-    /** He-4 ~100% NA */
-    struct Helium_t
-    {
-        static constexpr float_X numberOfProtons  = 2.0;
-        static constexpr float_X numberOfNeutrons = 2.0;
-    };
-
-    /** C-12 98.9% NA */
-    struct Carbon_t
-    {
-        static constexpr float_X numberOfProtons  = 6.0;
-        static constexpr float_X numberOfNeutrons = 6.0;
-    };
-
-    /** N-14 99.6% NA */
-    struct Nitrogen_t
-    {
-        static constexpr float_X numberOfProtons  = 7.0;
-        static constexpr float_X numberOfNeutrons = 7.0;
-    };
-
-    /** O-16 99.76% NA */
-    struct Oxygen_t
-    {
-        static constexpr float_X numberOfProtons  = 8.0;
-        static constexpr float_X numberOfNeutrons = 8.0;
-    };
-
-    /** Al-27 ~100% NA */
-    struct Aluminium_t
-    {
-        static constexpr float_X numberOfProtons  = 13.0;
-        static constexpr float_X numberOfNeutrons = 14.0;
-    };
-
-    /** Si-28 ~92.23% NA */
-    struct Silicon_t
-    {
-        static constexpr float_X numberOfProtons  = 14.0;
-        static constexpr float_X numberOfNeutrons = 14.0;
-    };
-
-    /** Cu-63 69.15% NA */
-    struct Copper_t
-    {
-        static constexpr float_X numberOfProtons  = 29.0;
-        static constexpr float_X numberOfNeutrons = 34.0;
-    };
-
-    /** Au-197 ~100% NA */
-    struct Gold_t
-    {
-        static constexpr float_X numberOfProtons  = 79.0;
-        static constexpr float_X numberOfNeutrons = 118.0;
-    };
-} // namespace atomicNumbers
-
-/** Effective Nuclear Charge
- *
- * Due to the shielding effect of inner electron shells in an atom / ion
- * which makes the core charge seem smaller to valence electrons
- * new, effective, atomic core charge numbers can be defined to make the
- * crude barrier suppression ionization (BSI) model less inaccurate.
- *
- * @see https://en.wikipedia.org/wiki/Effective_nuclear_charge
- * or refer directly to the calculations by Slater or Clementi and Raimondi
- *
- * References:
- *   Clementi, E.; Raimondi, D. L. (1963)
- *     "Atomic Screening Constants from SCF Functions"
- *     J. Chem. Phys. 38 (11): 2686–2689. doi:10.1063/1.1733573
- *   Clementi, E.; Raimondi, D. L.; Reinhardt, W. P. (1967)
- *     "Atomic Screening Constants from SCF Functions. II. Atoms with 37 to 86 Electrons"
- *     Journal of Chemical Physics. 47: 1300–1307. doi:10.1063/1.1712084
- *
- * IMPORTANT NOTE:
- * You have to insert the values in REVERSE order since the lowest shell
- * corresponds to the last ionization process!
- */
-namespace effectiveNuclearCharge
-{
-    /* For hydrogen Z_eff is obviously equal to Z */
-    PMACC_CONST_VECTOR(float_X, 1, Hydrogen,
-        /* 1s^1 */
-        1.
-    );
-
-    /* Example: deuterium */
-    PMACC_CONST_VECTOR(float_X, 1, Deuterium,
-        /* 1s^1 */
-        1.
-    );
-
-    /* Example: helium */
-    PMACC_CONST_VECTOR(float_X, 2, Helium,
-        /* 1s^2 */
-        1.688,
-        1.688
-    );
-
-    /* Example: carbon */
-    PMACC_CONST_VECTOR(float_X, 6, Carbon,
-        /* 2p^2 */
-        3.136,
-        3.136,
-        /* 2s^2 */
-        3.217,
-        3.217,
-        /* 1s^2 */
-        5.673,
-        5.673
-    );
-
-    /* Example: nitrogen */
-    PMACC_CONST_VECTOR(float_X, 7, Nitrogen,
-        /* 2p^3 */
-        3.834,
-        3.834,
-        3.834,
-        /* 2s^2 */
-        3.874,
-        3.874,
-        /* 1s^2 */
-        6.665,
-        6.665
-    );
-
-    /* Example: oxygen */
-    PMACC_CONST_VECTOR(float_X, 8, Oxygen,
-        /* 2p^4 */
-        4.453,
-        4.453,
-        4.453,
-        4.453,
-        /* 2s^2 */
-        4.492,
-        4.492,
-        /* 1s^2 */
-        7.658,
-        7.658
-    );
-
-    /* Example: aluminium */
-    PMACC_CONST_VECTOR(float_X, 13, Aluminium,
-        /* 3p^1 */
-        4.066,
-        /* 3s^2 */
-        4.117,
-        4.117,
-        /* 2p^6 */
-        8.963,
-        8.963,
-        8.963,
-        8.963,
-        8.963,
-        8.963,
-        /* 2s^2 */
-        8.214,
-        8.214,
-        /* 1s^2 */
-        12.591,
-        12.591
-    );
-
-    /* Example: silicon */
-    PMACC_CONST_VECTOR(float_X, 14, Silicon,
-        /* 3p^2 */
-        4.285,
-        4.285,
-        /* 3s^2 */
-        4.903,
-        4.903,
-        /* 2p^6 */
-        9.945,
-        9.945,
-        9.945,
-        9.945,
-        9.945,
-        9.945,
-        /* 2s^2 */
-        9.020,
-        9.020,
-        /* 1s^2 */
-        13.575,
-        13.575
-    );
-
-
-    /* Example: copper
-     * Note: Copper is one of the few exceptions to the Madelung energy ordering
-     *       rule! Other exceptions: Au, Ag, Pd, Cr, Mo
-     *       predicted configuration: [Ar] 4s^2 3d^9
-     *       actual configuration:    [Ar] 4s^1 3d^10
+    /** Ionization Model Configuration
+     *
+     * - None : no particle is ionized
+     * - BSI : simple barrier suppression ionization
+     * - BSIEffectiveZ : BSI taking electron shielding into account via an effective
+     *                   atomic number Z_eff
+     * - ADKLinPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
+     *               -> linearly polarized lasers
+     * - ADKCircPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
+     *                -> circularly polarized lasers
+     * - Keldysh : Keldysh ionization model
+     * - ThomasFermi : statistical impact ionization based on Thomas-Fermi
+     *                 atomic model
+     *                 Attention: requires 2 FieldTmp slots @see memory.param
+     *
+     * Research and development:
+     * - BSIStarkShifted : BSI for hydrogen-like atoms and ions considering the
+     *                     Stark upshift of ionization potentials
+     *
+     * Usage: Add flags to the list of particle flags that has the following structure
+     *
+     *        ionizers< MakeSeq_t< particles::ionization::IonizationModel< Species2BCreated > > >,
+     *        atomicNumbers< ionization::atomicNumbers::Element_t >,
+     *        effectiveNuclearCharge< ionization::effectiveNuclearCharge::Element_t >,
+     *        ionizationEnergies< ionization::energies::AU::Element_t >
      */
-    PMACC_CONST_VECTOR(float_X, 29, Copper,
-        /* 3d^10 */
-        13.201,
-        13.201,
-        13.201,
-        13.201,
-        13.201,
-        13.201,
-        13.201,
-        13.201,
-        13.201,
-        13.201,
-        /* 4s^1 */
-        5.842,
-        /* 3p^6 */
-        14.731,
-        14.731,
-        14.731,
-        14.731,
-        14.731,
-        14.731,
-        /* 3s^2 */
-        15.594,
-        15.594,
-        /* 2p^6 */
-        25.097,
-        25.097,
-        25.097,
-        25.097,
-        25.097,
-        25.097,
-        /* 2s^2 */
-        21.020,
-        21.020,
-        /* 1s^2 */
-        28.339,
-        28.339
-    );
+    namespace ionization
+    {
+        /*! Specify (chemical) element
+         *
+         * Proton and neutron numbers define the chemical element that the ion species
+         * is based on. This value can be non-integer for physical models taking
+         * charge shielding effects into account.
+         * @see http://en.wikipedia.org/wiki/Effective_nuclear_charge
+         *
+         * It is wrapped into a struct because of C++ restricting floats from being
+         * template arguments.
+         *
+         * Do not forget to set the correct mass and charge via
+         * `massRatio<>` and `chargeRatio<>`!
+         */
+        namespace atomicNumbers
+        {
+            /** H-1 99.98% NA */
+            struct Hydrogen_t
+            {
+                static constexpr float_X numberOfProtons = 1.0;
+                static constexpr float_X numberOfNeutrons = 0.0;
+            };
 
-    /* Example: gold
-     * Note: Gold is one of the few exceptions to the Madelung energy ordering
-     *       rule! Other exceptions: Cu, Ag, Pd, Cr, Mo
-     *       predicted configuration: [Xe] 6s^2 4f^14 5d^9
-     *       actual configuration:    [Xe] 6s^1 4f^14 5d^10
-     */
-    PMACC_CONST_VECTOR(float_X, 79, Gold,
-        /* 5d^10 */
-        20.126,
-        20.126,
-        20.126,
-        20.126,
-        20.126,
-        20.126,
-        20.126,
-        20.126,
-        20.126,
-        20.126,
-        /* 4f^14 */
-        40.650,
-        40.650,
-        40.650,
-        40.650,
-        40.650,
-        40.650,
-        40.650,
-        40.650,
-        40.650,
-        40.650,
-        40.650,
-        40.650,
-        40.650,
-        40.650,
-        /* 6s^1 */
-        10.938,
-        /* 5p^6 */
-        25.170,
-        25.170,
-        25.170,
-        25.170,
-        25.170,
-        25.170,
-        /* 4d^10 */
-        41.528,
-        41.528,
-        41.528,
-        41.528,
-        41.528,
-        41.528,
-        41.528,
-        41.528,
-        41.528,
-        41.528,
-        /* 5s^2 */
-        27.327,
-        27.327,
-        /* 4p^6 */
-        43.547,
-        43.547,
-        43.547,
-        43.547,
-        43.547,
-        43.547,
-        /* 3d^10 */
-        65.508,
-        65.508,
-        65.508,
-        65.508,
-        65.508,
-        65.508,
-        65.508,
-        65.508,
-        65.508,
-        65.508,
-        /* 4s^2 */
-        44.413,
-        44.413,
-        /* 3p^6 */
-        56.703,
-        56.703,
-        56.703,
-        56.703,
-        56.703,
-        56.703,
-        /* 3s^2 */
-        55.763,
-        55.763,
-        /* 2p^6 */
-        74.513,
-        74.513,
-        74.513,
-        74.513,
-        74.513,
-        74.513,
-        /* 2s^2 */
-        58.370,
-        58.370,
-        /* 1s^2 */
-        77.476,
-        77.476
-    );
-} // namespace effectiveNuclearCharge
-} // namespace ionization
+            /** H-2 0.02% NA */
+            struct Deuterium_t
+            {
+                static constexpr float_X numberOfProtons = 1.0;
+                static constexpr float_X numberOfNeutrons = 1.0;
+            };
 
-namespace particles
-{
-namespace ionization
-{
-namespace thomasFermi
-{
+            /** He-4 ~100% NA */
+            struct Helium_t
+            {
+                static constexpr float_X numberOfProtons = 2.0;
+                static constexpr float_X numberOfNeutrons = 2.0;
+            };
 
-    /** Fitting parameters to average ionization degree Z* = 4/3*pi*R_0^3 * n(R_0)
-     * as an extension towards arbitrary atoms and temperatures
-     *
-     * See table IV of
-     * \url http://www.sciencedirect.com/science/article/pii/S0065219908601451
-     * doi:10.1016/S0065-2199(08)60145-1
-     */
-    constexpr float_X TFAlpha = 14.3139;
-    constexpr float_X TFBeta  =  0.6624;
+            /** C-12 98.9% NA */
+            struct Carbon_t
+            {
+                static constexpr float_X numberOfProtons = 6.0;
+                static constexpr float_X numberOfNeutrons = 6.0;
+            };
 
-    constexpr float_X TFA1    =  3.323e-3;
-    constexpr float_X TFA2    =  9.718e-1;
-    constexpr float_X TFA3    =  9.26148e-5;
-    constexpr float_X TFA4    =  3.10165;
+            /** N-14 99.6% NA */
+            struct Nitrogen_t
+            {
+                static constexpr float_X numberOfProtons = 7.0;
+                static constexpr float_X numberOfNeutrons = 7.0;
+            };
 
-    constexpr float_X TFB0    = -1.7630;
-    constexpr float_X TFB1    =  1.43175;
-    constexpr float_X TFB2    =  0.31546;
+            /** O-16 99.76% NA */
+            struct Oxygen_t
+            {
+                static constexpr float_X numberOfProtons = 8.0;
+                static constexpr float_X numberOfNeutrons = 8.0;
+            };
 
-    constexpr float_X TFC1    = -0.366667;
-    constexpr float_X TFC2    =  0.983333;
+            /** Al-27 ~100% NA */
+            struct Aluminium_t
+            {
+                static constexpr float_X numberOfProtons = 13.0;
+                static constexpr float_X numberOfNeutrons = 14.0;
+            };
 
-    /** cutoff energy for electron "temperature" calculation
-     *
-     * In laser produced plasmas we can have different, well-separable groups
-     * of electrons. For the Thomas-Fermi ionization model we only want the
-     * thermalized "bulk" electrons. Including the high-energy "prompt"
-     * electrons is physically questionable since they do not have a large
-     * cross section for collisional ionization.
-     *
-     * unit: keV
-     */
-    constexpr float_X CUTOFF_MAX_ENERGY_KEV = 50.0;
-    /** cutoff energy for electron "temperature" calculation in SI units*/
-    constexpr float_X CUTOFF_MAX_ENERGY = CUTOFF_MAX_ENERGY_KEV * UNITCONV_keV_to_Joule;
+            /** Si-28 ~92.23% NA */
+            struct Silicon_t
+            {
+                static constexpr float_X numberOfProtons = 14.0;
+                static constexpr float_X numberOfNeutrons = 14.0;
+            };
 
-    /** lower ion density cutoff
-     *
-     * The Thomas-Fermi model yields unphysical artifacts for low ion densities.
-     * Low ion densities imply lower collision frequency and thus less collisional ionization.
-     * The Thomas-Fermi model yields an increasing charge state for decreasing densities and electron temperatures of 10eV and above.
-     * This cutoff will be used to set the lower application threshold for charge state calculation.
-     *
-     * @note This cutoff value should be set in accordance to FLYCHK calculations,
-     *       for instance! It is not a universal value and requires some preliminary
-     *       approximations!
-     *
-     * unit: 1 / m^3
-     *
-     * example: 1.7422e27 as a hydrogen ion number density equal to the corresponding critical electron number density for an 800nm laser
-     *
-     * The choice of the default is motivated by by the following:
-     * In laser-driven plasmas all dynamics in density regions below the
-     * critical electron density will be laser-dominated. Once ions of that density
-     * are ionized once the laser will not penetrate fully anymore and the as electrons are heated
-     * the dynamics will be collision-dominated.
-     */
-    constexpr float_X CUTOFF_LOW_DENSITY = 1.7422e27;
+            /** Cu-63 69.15% NA */
+            struct Copper_t
+            {
+                static constexpr float_X numberOfProtons = 29.0;
+                static constexpr float_X numberOfNeutrons = 34.0;
+            };
 
-    /** lower electron temperature cutoff
-     *
-     * The Thomas-Fermi model predicts initial ionization for many materials of
-     * solid density even when the electron temperature is 0.
-     */
-    constexpr float_X CUTOFF_LOW_TEMPERATURE_EV = 1.0;
+            /** Au-197 ~100% NA */
+            struct Gold_t
+            {
+                static constexpr float_X numberOfProtons = 79.0;
+                static constexpr float_X numberOfNeutrons = 118.0;
+            };
+        } // namespace atomicNumbers
 
-} // namespace thomasFermi
-} // namespace ionization
-} // namespace particles
+        /** Effective Nuclear Charge
+         *
+         * Due to the shielding effect of inner electron shells in an atom / ion
+         * which makes the core charge seem smaller to valence electrons
+         * new, effective, atomic core charge numbers can be defined to make the
+         * crude barrier suppression ionization (BSI) model less inaccurate.
+         *
+         * @see https://en.wikipedia.org/wiki/Effective_nuclear_charge
+         * or refer directly to the calculations by Slater or Clementi and Raimondi
+         *
+         * References:
+         *   Clementi, E.; Raimondi, D. L. (1963)
+         *     "Atomic Screening Constants from SCF Functions"
+         *     J. Chem. Phys. 38 (11): 2686–2689. doi:10.1063/1.1733573
+         *   Clementi, E.; Raimondi, D. L.; Reinhardt, W. P. (1967)
+         *     "Atomic Screening Constants from SCF Functions. II. Atoms with 37 to 86 Electrons"
+         *     Journal of Chemical Physics. 47: 1300–1307. doi:10.1063/1.1712084
+         *
+         * IMPORTANT NOTE:
+         * You have to insert the values in REVERSE order since the lowest shell
+         * corresponds to the last ionization process!
+         */
+        namespace effectiveNuclearCharge
+        {
+            /* For hydrogen Z_eff is obviously equal to Z */
+            PMACC_CONST_VECTOR(
+                float_X,
+                1,
+                Hydrogen,
+                /* 1s^1 */
+                1.);
+
+            /* Example: deuterium */
+            PMACC_CONST_VECTOR(
+                float_X,
+                1,
+                Deuterium,
+                /* 1s^1 */
+                1.);
+
+            /* Example: helium */
+            PMACC_CONST_VECTOR(
+                float_X,
+                2,
+                Helium,
+                /* 1s^2 */
+                1.688,
+                1.688);
+
+            /* Example: carbon */
+            PMACC_CONST_VECTOR(
+                float_X,
+                6,
+                Carbon,
+                /* 2p^2 */
+                3.136,
+                3.136,
+                /* 2s^2 */
+                3.217,
+                3.217,
+                /* 1s^2 */
+                5.673,
+                5.673);
+
+            /* Example: nitrogen */
+            PMACC_CONST_VECTOR(
+                float_X,
+                7,
+                Nitrogen,
+                /* 2p^3 */
+                3.834,
+                3.834,
+                3.834,
+                /* 2s^2 */
+                3.874,
+                3.874,
+                /* 1s^2 */
+                6.665,
+                6.665);
+
+            /* Example: oxygen */
+            PMACC_CONST_VECTOR(
+                float_X,
+                8,
+                Oxygen,
+                /* 2p^4 */
+                4.453,
+                4.453,
+                4.453,
+                4.453,
+                /* 2s^2 */
+                4.492,
+                4.492,
+                /* 1s^2 */
+                7.658,
+                7.658);
+
+            /* Example: aluminium */
+            PMACC_CONST_VECTOR(
+                float_X,
+                13,
+                Aluminium,
+                /* 3p^1 */
+                4.066,
+                /* 3s^2 */
+                4.117,
+                4.117,
+                /* 2p^6 */
+                8.963,
+                8.963,
+                8.963,
+                8.963,
+                8.963,
+                8.963,
+                /* 2s^2 */
+                8.214,
+                8.214,
+                /* 1s^2 */
+                12.591,
+                12.591);
+
+            /* Example: silicon */
+            PMACC_CONST_VECTOR(
+                float_X,
+                14,
+                Silicon,
+                /* 3p^2 */
+                4.285,
+                4.285,
+                /* 3s^2 */
+                4.903,
+                4.903,
+                /* 2p^6 */
+                9.945,
+                9.945,
+                9.945,
+                9.945,
+                9.945,
+                9.945,
+                /* 2s^2 */
+                9.020,
+                9.020,
+                /* 1s^2 */
+                13.575,
+                13.575);
+
+
+            /* Example: copper
+             * Note: Copper is one of the few exceptions to the Madelung energy ordering
+             *       rule! Other exceptions: Au, Ag, Pd, Cr, Mo
+             *       predicted configuration: [Ar] 4s^2 3d^9
+             *       actual configuration:    [Ar] 4s^1 3d^10
+             */
+            PMACC_CONST_VECTOR(
+                float_X,
+                29,
+                Copper,
+                /* 3d^10 */
+                13.201,
+                13.201,
+                13.201,
+                13.201,
+                13.201,
+                13.201,
+                13.201,
+                13.201,
+                13.201,
+                13.201,
+                /* 4s^1 */
+                5.842,
+                /* 3p^6 */
+                14.731,
+                14.731,
+                14.731,
+                14.731,
+                14.731,
+                14.731,
+                /* 3s^2 */
+                15.594,
+                15.594,
+                /* 2p^6 */
+                25.097,
+                25.097,
+                25.097,
+                25.097,
+                25.097,
+                25.097,
+                /* 2s^2 */
+                21.020,
+                21.020,
+                /* 1s^2 */
+                28.339,
+                28.339);
+
+            /* Example: gold
+             * Note: Gold is one of the few exceptions to the Madelung energy ordering
+             *       rule! Other exceptions: Cu, Ag, Pd, Cr, Mo
+             *       predicted configuration: [Xe] 6s^2 4f^14 5d^9
+             *       actual configuration:    [Xe] 6s^1 4f^14 5d^10
+             */
+            PMACC_CONST_VECTOR(
+                float_X,
+                79,
+                Gold,
+                /* 5d^10 */
+                20.126,
+                20.126,
+                20.126,
+                20.126,
+                20.126,
+                20.126,
+                20.126,
+                20.126,
+                20.126,
+                20.126,
+                /* 4f^14 */
+                40.650,
+                40.650,
+                40.650,
+                40.650,
+                40.650,
+                40.650,
+                40.650,
+                40.650,
+                40.650,
+                40.650,
+                40.650,
+                40.650,
+                40.650,
+                40.650,
+                /* 6s^1 */
+                10.938,
+                /* 5p^6 */
+                25.170,
+                25.170,
+                25.170,
+                25.170,
+                25.170,
+                25.170,
+                /* 4d^10 */
+                41.528,
+                41.528,
+                41.528,
+                41.528,
+                41.528,
+                41.528,
+                41.528,
+                41.528,
+                41.528,
+                41.528,
+                /* 5s^2 */
+                27.327,
+                27.327,
+                /* 4p^6 */
+                43.547,
+                43.547,
+                43.547,
+                43.547,
+                43.547,
+                43.547,
+                /* 3d^10 */
+                65.508,
+                65.508,
+                65.508,
+                65.508,
+                65.508,
+                65.508,
+                65.508,
+                65.508,
+                65.508,
+                65.508,
+                /* 4s^2 */
+                44.413,
+                44.413,
+                /* 3p^6 */
+                56.703,
+                56.703,
+                56.703,
+                56.703,
+                56.703,
+                56.703,
+                /* 3s^2 */
+                55.763,
+                55.763,
+                /* 2p^6 */
+                74.513,
+                74.513,
+                74.513,
+                74.513,
+                74.513,
+                74.513,
+                /* 2s^2 */
+                58.370,
+                58.370,
+                /* 1s^2 */
+                77.476,
+                77.476);
+        } // namespace effectiveNuclearCharge
+    } // namespace ionization
+
+    namespace particles
+    {
+        namespace ionization
+        {
+            namespace thomasFermi
+            {
+                /** Fitting parameters to average ionization degree Z* = 4/3*pi*R_0^3 * n(R_0)
+                 * as an extension towards arbitrary atoms and temperatures
+                 *
+                 * See table IV of
+                 * \url http://www.sciencedirect.com/science/article/pii/S0065219908601451
+                 * doi:10.1016/S0065-2199(08)60145-1
+                 */
+                constexpr float_X TFAlpha = 14.3139;
+                constexpr float_X TFBeta = 0.6624;
+
+                constexpr float_X TFA1 = 3.323e-3;
+                constexpr float_X TFA2 = 9.718e-1;
+                constexpr float_X TFA3 = 9.26148e-5;
+                constexpr float_X TFA4 = 3.10165;
+
+                constexpr float_X TFB0 = -1.7630;
+                constexpr float_X TFB1 = 1.43175;
+                constexpr float_X TFB2 = 0.31546;
+
+                constexpr float_X TFC1 = -0.366667;
+                constexpr float_X TFC2 = 0.983333;
+
+                /** cutoff energy for electron "temperature" calculation
+                 *
+                 * In laser produced plasmas we can have different, well-separable groups
+                 * of electrons. For the Thomas-Fermi ionization model we only want the
+                 * thermalized "bulk" electrons. Including the high-energy "prompt"
+                 * electrons is physically questionable since they do not have a large
+                 * cross section for collisional ionization.
+                 *
+                 * unit: keV
+                 */
+                constexpr float_X CUTOFF_MAX_ENERGY_KEV = 50.0;
+                /** cutoff energy for electron "temperature" calculation in SI units*/
+                constexpr float_X CUTOFF_MAX_ENERGY = CUTOFF_MAX_ENERGY_KEV * UNITCONV_keV_to_Joule;
+
+                /** lower ion density cutoff
+                 *
+                 * The Thomas-Fermi model yields unphysical artifacts for low ion densities.
+                 * Low ion densities imply lower collision frequency and thus less collisional ionization.
+                 * The Thomas-Fermi model yields an increasing charge state for decreasing densities and electron
+                 * temperatures of 10eV and above. This cutoff will be used to set the lower application threshold for
+                 * charge state calculation.
+                 *
+                 * @note This cutoff value should be set in accordance to FLYCHK calculations,
+                 *       for instance! It is not a universal value and requires some preliminary
+                 *       approximations!
+                 *
+                 * unit: 1 / m^3
+                 *
+                 * example: 1.7422e27 as a hydrogen ion number density equal to the corresponding critical electron
+                 * number density for an 800nm laser
+                 *
+                 * The choice of the default is motivated by by the following:
+                 * In laser-driven plasmas all dynamics in density regions below the
+                 * critical electron density will be laser-dominated. Once ions of that density
+                 * are ionized once the laser will not penetrate fully anymore and the as electrons are heated
+                 * the dynamics will be collision-dominated.
+                 */
+                constexpr float_X CUTOFF_LOW_DENSITY = 1.7422e27;
+
+                /** lower electron temperature cutoff
+                 *
+                 * The Thomas-Fermi model predicts initial ionization for many materials of
+                 * solid density even when the electron temperature is 0.
+                 */
+                constexpr float_X CUTOFF_LOW_TEMPERATURE_EV = 1.0;
+
+            } // namespace thomasFermi
+        } // namespace ionization
+    } // namespace particles
 } // namespace picongpu

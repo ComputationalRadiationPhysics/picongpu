@@ -30,43 +30,36 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace traits
-{
-    /** Returns a sequence with ionizers for a species
-     *
-     * Several ionization methods can be assigned to a species which are called
-     * consecutively (in the same order as the user inputs them) within a single
-     * time step.
-     *
-     * @tparam T_SpeciesType ion species
-     */
-    template< typename T_SpeciesType >
-    struct GetIonizerList
+    namespace particles
     {
-        using SpeciesType = T_SpeciesType;
-        using FrameType = typename SpeciesType::FrameType;
+        namespace traits
+        {
+            /** Returns a sequence with ionizers for a species
+             *
+             * Several ionization methods can be assigned to a species which are called
+             * consecutively (in the same order as the user inputs them) within a single
+             * time step.
+             *
+             * @tparam T_SpeciesType ion species
+             */
+            template<typename T_SpeciesType>
+            struct GetIonizerList
+            {
+                using SpeciesType = T_SpeciesType;
+                using FrameType = typename SpeciesType::FrameType;
 
-        // the following line only fetches the alias
-        using FoundIonizersAlias = typename GetFlagType<
-            FrameType,
-            ionizers<>
-        >::type;
+                // the following line only fetches the alias
+                using FoundIonizersAlias = typename GetFlagType<FrameType, ionizers<>>::type;
 
-        // this now resolves the alias into the actual object type, a list of ionizers
-        using FoundIonizerList = typename pmacc::traits::Resolve< FoundIonizersAlias >::type;
+                // this now resolves the alias into the actual object type, a list of ionizers
+                using FoundIonizerList = typename pmacc::traits::Resolve<FoundIonizersAlias>::type;
 
-        using type = typename pmacc::OperateOnSeq<
-            FoundIonizerList,
-            bmpl::apply1<
-                bmpl::_1,
-                SpeciesType
-            >,
-            pmacc::meta::accessors::Type<>
-        >::type;
-    };
+                using type = typename pmacc::OperateOnSeq<
+                    FoundIonizerList,
+                    bmpl::apply1<bmpl::_1, SpeciesType>,
+                    pmacc::meta::accessors::Type<>>::type;
+            };
 
-} // namespace traits
-} // namespace particles
+        } // namespace traits
+    } // namespace particles
 } // namespace picongpu

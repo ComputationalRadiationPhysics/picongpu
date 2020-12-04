@@ -25,34 +25,35 @@
 
 namespace pmacc
 {
-namespace random
-{
-
-    /**
-     * Wrapper class for a state of a random number generator
-     * Can be used for aligned storing of states
-     */
-    template<class T_RNGMethod>
-    class RNGState
+    namespace random
     {
-    public:
-        typedef T_RNGMethod RNGMethod;
-        typedef typename RNGMethod::StateType StateType;
-
-        HDINLINE RNGState()
-        {}
-
-        HDINLINE RNGState(const StateType& other): state(other)
-        {}
-
-        HDINLINE StateType&
-        getState()
+        /**
+         * Wrapper class for a state of a random number generator
+         * Can be used for aligned storing of states
+         */
+        template<class T_RNGMethod>
+        class RNGState
         {
-            return state;
-        }
-    private:
-        PMACC_ALIGN8(StateType) state;
-    };
+        public:
+            typedef T_RNGMethod RNGMethod;
+            typedef typename RNGMethod::StateType StateType;
 
-}  // namespace random
-}  // namespace pmacc
+            HDINLINE RNGState()
+            {
+            }
+
+            HDINLINE RNGState(const StateType& other) : state(other)
+            {
+            }
+
+            HDINLINE StateType& getState()
+            {
+                return state;
+            }
+
+        private:
+            PMACC_ALIGN8(StateType, ) state;
+        };
+
+    } // namespace random
+} // namespace pmacc

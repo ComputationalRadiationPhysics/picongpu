@@ -16,7 +16,7 @@ Self-consistently interacting particles are usually called :ref:`tracer particle
 Workflow
 """"""""
 
-* ``speciesDefinition.param``: create a species specifically for probes and add ``fieldE`` and ``fieldB`` attributes to it for storing interpolated fields
+* ``speciesDefinition.param``: create a species specifically for probes and add ``probeE`` and ``probeB`` attributes to it for storing interpolated fields
 
 .. code-block:: cpp
 

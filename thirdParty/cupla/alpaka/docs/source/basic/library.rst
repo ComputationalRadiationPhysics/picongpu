@@ -111,18 +111,18 @@ Therefore, the ``operator()`` of the kernel function object has to be ``const`` 
 Index and Work Division
 ```````````````````````
 
-The ``alpaka::workdiv::getWorkDiv`` and the ``alpaka::idx::getIdx`` functions both return a vector of the dimensionality the accelerator has been defined with.
+The ``alpaka::getWorkDiv`` and the ``alpaka::getIdx`` functions both return a vector of the dimensionality the accelerator has been defined with.
 They are parametrized by the origin of the calculation as well as the unit in which the values are calculated.
-For example, ``alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)`` returns a vector with the extents of the grid in units of threads.
+For example, ``alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)`` returns a vector with the extents of the grid in units of threads.
 
 
 Memory Management
 `````````````````
 
-The memory allocation function of the *alpaka* library (``alpaka::mem::buf::alloc<TElem>(device, extents)``) is uniform for all devices, even for the host device.
+The memory allocation function of the *alpaka* library (``alpaka::allocBuf<TElem>(device, extents)``) is uniform for all devices, even for the host device.
 It does not return raw pointers but reference counted memory buffer objects that remove the necessity for manual freeing and the possibility of memory leaks.
 Additionally the memory buffer objects know their extents, their pitches as well as the device they reside on.
-This allows buffers that possibly reside on different devices with different pitches to be copied only by providing the buffer objects as well as the extents of the region to copy (``alpaka::mem::view::copy(bufDevA, bufDevB, copyExtents``).
+This allows buffers that possibly reside on different devices with different pitches to be copied only by providing the buffer objects as well as the extents of the region to copy (``alpaka::memcpy(bufDevA, bufDevB, copyExtents``).
 
 Kernel Execution
 ````````````````
@@ -132,25 +132,25 @@ The following source code listing shows the execution of a kernel by enqueuing t
 .. code-block:: cpp
 
    // Define the dimensionality of the task.
-   using Dim = alpaka::dim::DimInt<1u>;
+   using Dim = alpaka::DimInt<1u>;
    // Define the type of the indexes.
    using Idx = std::size_t;
    // Define the accelerator to use.
-   using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
+   using Acc = alpaka::AccCpuSerial<Dim, Idx>;
    // Select the queue type.
-   using Queue = alpaka::queue::QueueCpuNonBlocking;
+   using Queue = alpaka::QueueCpuNonBlocking;
 
    // Select a device to execute on.
-   auto devAcc(alpaka::pltf::getDevByIdx<alpaka::pltf::PltfCpu>(0));
+   auto devAcc(alpaka::getDevByIdx<alpaka::PltfCpu>(0));
    // Create a queue to enqueue the execution into.
    Queue queue(devAcc);
 
    // Create a 1-dimensional work division with 256 blocks a 16 threads.
-   auto const workDiv(alpaka::workdiv::WorkDivMembers<Dim, Idx>(256u, 16u);
+   auto const workDiv(alpaka::WorkDivMembers<Dim, Idx>(256u, 16u);
    // Create an instance of the kernel function object.
    MyKernel kernel;
    // Enqueue the execution task into the queue.
-   alpaka::kernel::exec<Acc>(queue, workDiv, kernel/*, arguments ...*/);
+   alpaka::exec<Acc>(queue, workDiv, kernel/*, arguments ...*/);
 
 The dimensionality of the task as well as the type for index and extent have to be defined explicitly.
 Following this, the type of accelerator to execute on, as well as the type of the queue have to be defined.

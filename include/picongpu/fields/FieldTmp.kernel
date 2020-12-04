@@ -48,10 +48,7 @@ namespace picongpu
      * @tparam T_numWorkers number of workers
      * @tparam T_BlockDescription stance area description of the user functor
      */
-    template<
-        uint32_t T_numWorkers,
-        typename T_BlockDescription
-    >
+    template<uint32_t T_numWorkers, typename T_BlockDescription>
     struct KernelComputeSupercells
     {
         /** derive species property
@@ -66,106 +63,63 @@ namespace picongpu
          * @param frameSolver functor to calculate the current for a frame
          * @param mapper functor to map a block to a supercell
          */
-        template<
-            typename T_TmpBox,
-            typename T_ParBox,
-            typename T_FrameSolver,
-            typename T_Mapping,
-            typename T_Acc
-        >
+        template<typename T_TmpBox, typename T_ParBox, typename T_FrameSolver, typename T_Mapping, typename T_Acc>
         DINLINE void operator()(
-            T_Acc const & acc,
+            T_Acc const& acc,
             T_TmpBox fieldTmp,
             T_ParBox boxPar,
             T_FrameSolver frameSolver,
-            T_Mapping mapper
-        ) const
+            T_Mapping mapper) const
         {
             using namespace mappings::threads;
 
             using FramePtr = typename T_ParBox::FramePtr;
             using SuperCellSize = typename T_BlockDescription::SuperCellSize;
 
-            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
+            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
 
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-            DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace< simDim > ( cupla::blockIdx(acc) ) ) );
+            DataSpace<simDim> const block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
 
             FramePtr frame;
             lcellId_t particlesInSuperCell;
 
-            frame = boxPar.getLastFrame( block );
-            particlesInSuperCell = boxPar.getSuperCell( block ).getSizeLastFrame( );
+            frame = boxPar.getLastFrame(block);
+            particlesInSuperCell = boxPar.getSuperCell(block).getSizeLastFrame();
 
-            if( !frame.isValid() )
-                return; //end kernel if we have no frames
+            if(!frame.isValid())
+                return; // end kernel if we have no frames
 
-            auto cachedVal = CachedBox::create <
-                0,
-                typename T_TmpBox::ValueType
-            > (
-                acc,
-                T_BlockDescription{ }
-            );
-            Set< typename T_TmpBox::ValueType > set( float_X( 0.0 ) );
+            auto cachedVal = CachedBox::create<0, typename T_TmpBox::ValueType>(acc, T_BlockDescription{});
+            Set<typename T_TmpBox::ValueType> set(float_X(0.0));
 
-            ThreadCollective<
-                T_BlockDescription,
-                numWorkers
-            > collective( workerIdx );
-            collective(
-                acc,
-                set,
-                cachedVal
-            );
+            ThreadCollective<T_BlockDescription, numWorkers> collective(workerIdx);
+            collective(acc, set, cachedVal);
 
-            cupla::__syncthreads( acc );
+            cupla::__syncthreads(acc);
 
-            while( frame.isValid() )
+            while(frame.isValid())
             {
-                ForEachIdx<
-                    IdxConfig<
-                        cellsPerSuperCell,
-                        numWorkers
-                    >
-                >{ workerIdx }(
-                    [&](
-                        uint32_t const linearIdx,
-                        uint32_t const
-                    )
-                    {
-                        if( linearIdx < particlesInSuperCell )
+                ForEachIdx<IdxConfig<cellsPerSuperCell, numWorkers>>{workerIdx}(
+                    [&](uint32_t const linearIdx, uint32_t const) {
+                        if(linearIdx < particlesInSuperCell)
                         {
-                            frameSolver(
-                                acc,
-                                *frame,
-                                linearIdx,
-                                SuperCellSize::toRT(),
-                                cachedVal
-                            );
+                            frameSolver(acc, *frame, linearIdx, SuperCellSize::toRT(), cachedVal);
                         }
-                    }
-                );
+                    });
 
-                frame = boxPar.getPreviousFrame( frame );
+                frame = boxPar.getPreviousFrame(frame);
                 particlesInSuperCell = cellsPerSuperCell;
-
-
             }
 
-            cupla::__syncthreads( acc );
+            cupla::__syncthreads(acc);
 
             nvidia::functors::Add add;
-            DataSpace< simDim > const blockCell = block * SuperCellSize::toRT( );
-            auto fieldTmpBlock = fieldTmp.shift( blockCell );
-            collective(
-                acc,
-                add,
-                fieldTmpBlock,
-                cachedVal
-            );
+            DataSpace<simDim> const blockCell = block * SuperCellSize::toRT();
+            auto fieldTmpBlock = fieldTmp.shift(blockCell);
+            collective(acc, add, fieldTmpBlock, cachedVal);
         }
     };
 

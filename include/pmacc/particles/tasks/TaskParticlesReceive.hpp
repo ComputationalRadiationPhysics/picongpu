@@ -28,12 +28,10 @@
 
 namespace pmacc
 {
-
     template<class T_Particles>
     class TaskParticlesReceive : public MPITask
     {
     public:
-
         typedef T_Particles Particles;
         typedef typename Particles::HandleGuardRegion HandleGuardRegion;
         typedef typename HandleGuardRegion::HandleExchanged HandleExchanged;
@@ -45,9 +43,9 @@ namespace pmacc
             Exchanges = traits::NumberOfExchanges<Dim>::value
         };
 
-        TaskParticlesReceive(Particles &parBase) :
-        parBase(parBase),
-        state(Constructor){ }
+        TaskParticlesReceive(Particles& parBase) : parBase(parBase), state(Constructor)
+        {
+        }
 
         virtual void init()
         {
@@ -56,13 +54,13 @@ namespace pmacc
             HandleExchanged handleExchanged;
             HandleNotExchanged handleNotExchanged;
 
-            for (int i = 1; i < Exchanges; ++i)
+            for(int i = 1; i < Exchanges; ++i)
             {
                 /* Start new transaction */
                 __startTransaction(serialEvent);
 
                 /* Handle particles */
-                if (parBase.getParticlesBuffer().hasReceiveExchange(i))
+                if(parBase.getParticlesBuffer().hasReceiveExchange(i))
                     handleExchanged.handleIncoming(parBase, i);
                 else
                     handleNotExchanged.handleIncoming(parBase, i);
@@ -76,27 +74,27 @@ namespace pmacc
 
         bool executeIntern()
         {
-            switch (state)
+            switch(state)
             {
-                case Init:
-                    break;
-                case WaitForReceived:
-                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
-                        state = CallFillGaps;
-                    break;
-                case CallFillGaps:
-                    state = WaitForFillGaps;
-                    __startTransaction();
-                    parBase.fillBorderGaps();
-                    tmpEvent = __endTransaction();
-                    state = Finish;
-                    break;
-                case WaitForFillGaps:
-                    break;
-                case Finish:
-                    return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
-                default:
-                    return false;
+            case Init:
+                break;
+            case WaitForReceived:
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    state = CallFillGaps;
+                break;
+            case CallFillGaps:
+                state = WaitForFillGaps;
+                __startTransaction();
+                parBase.fillBorderGaps();
+                tmpEvent = __endTransaction();
+                state = Finish;
+                break;
+            case WaitForFillGaps:
+                break;
+            case Finish:
+                return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
+            default:
+                return false;
             }
 
             return false;
@@ -107,7 +105,9 @@ namespace pmacc
             notify(this->myId, RECVFINISHED, nullptr);
         }
 
-        void event(id_t, EventType, IEventData*) { }
+        void event(id_t, EventType, IEventData*)
+        {
+        }
 
         std::string toString()
         {
@@ -115,7 +115,6 @@ namespace pmacc
         }
 
     private:
-
         enum state_t
         {
             Constructor,
@@ -131,7 +130,6 @@ namespace pmacc
         Particles& parBase;
         state_t state;
         EventTask tmpEvent;
-
     };
 
-} //namespace pmacc
+} // namespace pmacc

@@ -26,34 +26,30 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-
-    HDINLINE float1_64
-    Counter::getUnit() const
+    namespace particles
     {
-        return particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
-    }
+        namespace particleToGrid
+        {
+            namespace derivedAttributes
+            {
+                HDINLINE float1_64 Counter::getUnit() const
+                {
+                    return particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
+                }
 
-    template< class T_Particle >
-    DINLINE float_X
-    Counter::operator()( T_Particle& particle ) const
-    {
-        /* read existing attributes */
-        const float_X weighting = particle[weighting_];
+                template<class T_Particle>
+                DINLINE float_X Counter::operator()(T_Particle& particle) const
+                {
+                    /* read existing attributes */
+                    const float_X weighting = particle[weighting_];
 
-        /* calculate new attribute */
-        const float_X particleCounter = weighting /
-            particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
+                    /* calculate new attribute */
+                    const float_X particleCounter = weighting / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
 
-        /* return attribute */
-        return particleCounter;
-    }
-} // namespace derivedAttributes
-} // namespace particleToGrid
-} // namespace particles
+                    /* return attribute */
+                    return particleCounter;
+                }
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
 } // namespace picongpu

@@ -40,429 +40,309 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace creation
-{
-
-    /** Functor with main kernel for particle creation
-     *
-     * - maps the frame dimensions and gathers the particle boxes
-     * - contains / calls the Creator
-     *
-     * @tparam T_numWorkers number of workers
-     * @tparam T_ParBoxSource container of the source species
-     * @tparam T_ParBoxTarget container of the target species
-     * @tparam T_ParticleCreator type of the particle creation functor
-     */
-    template<
-        uint32_t T_numWorkers,
-        typename T_ParBoxSource,
-        typename T_ParBoxTarget,
-        typename T_ParticleCreator
-    >
-    struct CreateParticlesKernel
+    namespace particles
     {
-        using ParBoxSource = T_ParBoxSource;
-        using ParBoxTarget = T_ParBoxTarget;
-        using ParticleCreator = T_ParticleCreator;
-
-        ParBoxSource sourceBox;
-        ParBoxTarget targetBox;
-        ParticleCreator particleCreator;
-        DataSpace< simDim > const guardSuperCells;
-
-        CreateParticlesKernel(
-            ParBoxSource const & sourceBox,
-            ParBoxTarget const & targetBox,
-            ParticleCreator const & particleCreator,
-            DataSpace< simDim > const guardSuperCells
-        ) :
-            sourceBox( sourceBox ),
-            targetBox( targetBox ),
-            particleCreator( particleCreator ),
-            guardSuperCells( guardSuperCells )
-        { }
-
-        /** Goes over all frames and calls `ParticleCreator`
-         *
-         * @tparam T_Acc alpaka accelerator type
-         *
-         * @param blockCell n-dim. block offset (in cells) relative to the origin
-         *                  of the local domain plus guarding cells
-         */
-        template< typename T_Acc >
-        DINLINE void operator( )(
-            T_Acc const & acc,
-            pmacc::math::Int< simDim > const & blockCell
-        )
+        namespace creation
         {
-
-            using namespace mappings::threads;
-
-            constexpr uint32_t numWorkers = T_numWorkers;
-
-            uint32_t const workerIdx = cupla::threadIdx(acc).x;
-
-            /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
-            pmacc::math::Int< simDim > const block = blockCell / SuperCellSize::toRT( );
-
-            // relative offset to the origin of the local domain (without any guarding cells)
-            pmacc::math::Int<simDim> const supercellCellOffset = blockCell - this->guardSuperCells * SuperCellSize::toRT( );
-
-            /* "particle box" : container/iterator where the particles live in
-             * and where one can get the frame in a super cell from
+            /** Functor with main kernel for particle creation
+             *
+             * - maps the frame dimensions and gathers the particle boxes
+             * - contains / calls the Creator
+             *
+             * @tparam T_numWorkers number of workers
+             * @tparam T_ParBoxSource container of the source species
+             * @tparam T_ParBoxTarget container of the target species
+             * @tparam T_ParticleCreator type of the particle creation functor
              */
-            using SourceFramePtr = typename ParBoxSource::FramePtr;
-            using TargetFramePtr = typename ParBoxTarget::FramePtr;
-
-            /* for not mixing operations::assign up with the nvidia functor assign */
-            namespace partOp = pmacc::particles::operations;
-
-            constexpr lcellId_t maxParticlesInFrame = pmacc::math::CT::volume< SuperCellSize >::type::value;
-
-            /* use two frames to allow that all virtual workers can create new particles
-             * even if newFrameFillLvl is not zero.
-             */
-            using FrameArray = memory::Array<
-                TargetFramePtr,
-                2
-            >;
-
-            PMACC_SMEM(
-                acc,
-                targetFrames,
-                FrameArray
-            );
-
-            // find last frame in super cell
-            SourceFramePtr sourceFrame( sourceBox.getLastFrame( block ) );
-
-            // end method if we have no frames
-            if( !sourceFrame.isValid( ) )
-                return;
-
-            using ParticleDomCfg = IdxConfig<
-                maxParticlesInFrame,
-                numWorkers
-            >;
-
-            ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
-
-            // initialize the collective part of the functor (e.g. field caching)
-            particleCreator.collectiveInit(
-                acc,
-                blockCell,
-                WorkerCfg< numWorkers >{ workerIdx }
-            );
-
-            memory::CtxArray<
-                ParticleCreator,
-                ParticleDomCfg
-            >
-            particleCreatorCtx{ };
-
-            forEachParticle(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const idx
-                )
-                {
-                    // cell index within the superCell
-                    DataSpace< simDim > const cellIdx = DataSpaceOperations< simDim >::template map< SuperCellSize >( linearIdx );
-
-                    // cell offset with respect to the local domain origin (without any guarding cells
-                    pmacc::math::Int< simDim > const localCellIndex = supercellCellOffset + cellIdx;
-
-                    // create a copy of the functor for each virtual worker
-                    particleCreatorCtx[ idx ] = particleCreator;
-
-                    // init particle creator functor for each virtual worker
-                    particleCreatorCtx[ idx ].init(
-                        acc,
-                        blockCell,
-                        linearIdx,
-                        localCellIndex
-                    );
-                }
-            );
-
-            /* Declare counter in shared memory that will later tell the current fill level or
-             * occupation of the newly created target frames.
-             */
-            PMACC_SMEM(
-                acc,
-                newFrameFillLvl,
-                int
-            );
-
-            ForEachIdx<
-                IdxConfig<
-                    2,
-                    numWorkers
-                >
-            > onlyMasters{ workerIdx };
-
-            // Declare local variable oldFrameFillLvl for each thread
-            int oldFrameFillLvl;
-
-            /* Initialize local (register) counter for each thread
-             * - describes how many new macro target particles should be created
-             */
-            memory::CtxArray<
-                uint32_t,
-                ParticleDomCfg
-            >
-            numNewParticlesCtx( 0 );
-
-            // Master initializes the frame fill level with 0
-            onlyMasters(
-                [&](
-                    uint32_t const linearIdx,
-                    uint32_t const
-                )
-                {
-                    if( linearIdx == 0 )
-                        newFrameFillLvl = 0;
-                    targetFrames[ linearIdx ] = nullptr;
-                }
-            );
-
-            cupla::__syncthreads( acc );
-
-            /* move over source species frames and call particleCreator
-             * frames are worked on in backwards order to avoid asking if there is another frame
-             * --> performance
-             * Because all frames are completely filled except the last and apart from that last frame
-             * one wants to make sure that all threads are working and every frame is worked on.
-             */
-            while( sourceFrame.isValid( ) )
+            template<
+                uint32_t T_numWorkers,
+                typename T_ParBoxSource,
+                typename T_ParBoxTarget,
+                typename T_ParticleCreator>
+            struct CreateParticlesKernel
             {
+                using ParBoxSource = T_ParBoxSource;
+                using ParBoxTarget = T_ParBoxTarget;
+                using ParticleCreator = T_ParticleCreator;
 
-                memory::CtxArray<
-                    bool,
-                    ParticleDomCfg
-                >
-                isParticleCtx(
-                    workerIdx,
-                    [&](
-                        uint32_t const linearIdx,
-                        uint32_t const
-                    )
-                    {
-                        return static_cast< bool >( sourceFrame[ linearIdx ][ multiMask_ ] );
-                    }
-                );
-                forEachParticle(
-                    [&](
-                        uint32_t const linearIdx,
-                        uint32_t const idx
-                    )
-                    {
-                        bool const isParticle = static_cast< bool >( sourceFrame[ linearIdx ][ multiMask_ ] );
-                        numNewParticlesCtx[ idx ] = 0u;
-                        if( isParticle )
-                            /* ask the particle creator functor how many new particles to create. */
-                            numNewParticlesCtx[ idx ] = particleCreatorCtx[ idx ].numNewParticles(
-                                acc,
-                                *sourceFrame,
-                                linearIdx
-                            );
-                    }
-                );
+                ParBoxSource sourceBox;
+                ParBoxTarget targetBox;
+                ParticleCreator particleCreator;
+                DataSpace<simDim> const guardSuperCells;
 
-                cupla::__syncthreads( acc );
-
-                /* always true while-loop over all particles inside source frame until each thread breaks out individually
-                 *
-                 * **Attention**: Speaking of 1st and 2nd frame only may seem odd.
-                 * The question might arise what happens if more target particles are created than would fit into two frames.
-                 * Well, multi-particle creation during a time step is accounted for. The number of new target particles is
-                 * determined inside the outer loop over the valid frames while in the inner loop each thread can create only ONE
-                 * new macro target particle. But the loop repeats until each thread has created all the target particles needed in the time step.
-                 */
-                while( true )
+                CreateParticlesKernel(
+                    ParBoxSource const& sourceBox,
+                    ParBoxTarget const& targetBox,
+                    ParticleCreator const& particleCreator,
+                    DataSpace<simDim> const guardSuperCells)
+                    : sourceBox(sourceBox)
+                    , targetBox(targetBox)
+                    , particleCreator(particleCreator)
+                    , guardSuperCells(guardSuperCells)
                 {
-                    /* < INIT >
-                     * - targetParId is initialized as -1 (meaning: invalid)
-                     * - (local) oldFrameFillLvl set equal to (shared) newFrameFillLvl for each thread
-                     * --> each thread remembers the old "counter"
-                     */
-
-                    /* Declare local target particle ID
-                     * - describes at which position in the new frame the new target particle is to be created
-                     */
-                    memory::CtxArray<
-                        int,
-                        ParticleDomCfg
-                    >
-                    targetParIdCtx( -1 );
-
-                    oldFrameFillLvl = newFrameFillLvl;
-
-                    cupla::__syncthreads( acc );
-
-                    /* < CHECK & ADD >
-                     * - if a thread wants to create target particles in each cycle it can do that only once
-                     * and before that it atomically adds to the shared counter and uses the current
-                     * value as targetParId in the new frame
-                     */
-                    forEachParticle(
-                        [&](
-                            uint32_t const linearIdx,
-                            uint32_t const idx
-                        )
-                        {
-                            if( numNewParticlesCtx[ idx ] > 0u )
-                                targetParIdCtx[ idx ] = nvidia::atomicAllInc(
-                                    acc,
-                                    &newFrameFillLvl,
-                                    ::alpaka::hierarchy::Threads{}
-                                );
-                        }
-                    );
-
-                    cupla::__syncthreads( acc );
-
-                    /* < EXIT? >
-                     * - if the counter hasn't changed all threads break out of the loop
-                     */
-                    if( oldFrameFillLvl == newFrameFillLvl )
-                        break;
-
-                    cupla::__syncthreads( acc );
-
-                    /* < NEW FRAME >
-                     * - if there is no frame, yet, the master will create a new target particle frame
-                     * and attach it to the back of the frame list
-                     */
-                    onlyMasters(
-                        [&](
-                            uint32_t const linearIdx,
-                            uint32_t const
-                        )
-                        {
-                            uint32_t const numFramesNeeded = ( newFrameFillLvl + maxParticlesInFrame - 1u ) / maxParticlesInFrame;
-                            if( linearIdx < numFramesNeeded && !targetFrames[ linearIdx ].isValid( ) )
-                            {
-                                targetFrames[ linearIdx ] = targetBox.getEmptyFrame( acc );
-                                targetBox.setAsLastFrame(
-                                    acc,
-                                    targetFrames[ linearIdx ],
-                                    block
-                                );
-                            }
-                        }
-                    );
-
-                    cupla::__syncthreads( acc );
-
-                    /* < CREATE >
-                     * - all target particles were created
-                     * - internal particle creation counter is decremented by 1
-                     */
-                    forEachParticle(
-                        [&](
-                            uint32_t const linearIdx,
-                            uint32_t const idx
-                        )
-                        {
-                            uint32_t targetFrameIdx = 0;
-                            if( targetParIdCtx[ idx ] >= maxParticlesInFrame )
-                            {
-                                targetFrameIdx = 1;
-                                targetParIdCtx[ idx ] -= maxParticlesInFrame;
-                            }
-                            if( 0 <= targetParIdCtx[ idx ] )
-                            {
-                                // each virtual worker makes the attributes of its source particle accessible
-                                auto sourceParticle = sourceFrame[ linearIdx ];
-                                // each virtual worker initializes a target particle if one should be created
-                                auto targetParticle = targetFrames[ targetFrameIdx ][ targetParIdCtx[ idx ] ];
-
-                                // create a target particle in the new target particle frame:
-                                particleCreatorCtx[ idx ](
-                                    acc,
-                                    sourceParticle,
-                                    targetParticle
-                                );
-
-                                    numNewParticlesCtx[ idx ] -= 1;
-                                }
-                        }
-                    );
-
-                    cupla::__syncthreads( acc );
-
-                    onlyMasters(
-                        [&](
-                            uint32_t const linearIdx,
-                            uint32_t const
-                        )
-                        {
-                            if( linearIdx == 0  && newFrameFillLvl >= maxParticlesInFrame )
-                            {
-                                 newFrameFillLvl -= maxParticlesInFrame;
-                                 // copy the not filled frame pointer to the beginning
-                                 targetFrames[ 0 ] = targetFrames[ 1 ];
-                                 // reset second frame
-                                 targetFrames[ 1 ] = nullptr;
-                            }
-                        }
-                    );
-
-                    cupla::__syncthreads( acc );
                 }
 
-                cupla::__syncthreads( acc );
+                /** Goes over all frames and calls `ParticleCreator`
+                 *
+                 * @tparam T_Acc alpaka accelerator type
+                 *
+                 * @param blockCell n-dim. block offset (in cells) relative to the origin
+                 *                  of the local domain plus guarding cells
+                 */
+                template<typename T_Acc>
+                DINLINE void operator()(T_Acc const& acc, pmacc::math::Int<simDim> const& blockCell)
+                {
+                    using namespace mappings::threads;
 
-                sourceFrame = sourceBox.getPreviousFrame( sourceFrame );
+                    constexpr uint32_t numWorkers = T_numWorkers;
 
+                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+
+                    /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
+                    pmacc::math::Int<simDim> const block = blockCell / SuperCellSize::toRT();
+
+                    // relative offset to the origin of the local domain (without any guarding cells)
+                    pmacc::math::Int<simDim> const supercellCellOffset
+                        = blockCell - this->guardSuperCells * SuperCellSize::toRT();
+
+                    /* "particle box" : container/iterator where the particles live in
+                     * and where one can get the frame in a super cell from
+                     */
+                    using SourceFramePtr = typename ParBoxSource::FramePtr;
+                    using TargetFramePtr = typename ParBoxTarget::FramePtr;
+
+                    /* for not mixing operations::assign up with the nvidia functor assign */
+                    namespace partOp = pmacc::particles::operations;
+
+                    constexpr lcellId_t maxParticlesInFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
+
+                    /* use two frames to allow that all virtual workers can create new particles
+                     * even if newFrameFillLvl is not zero.
+                     */
+                    using FrameArray = memory::Array<TargetFramePtr, 2>;
+
+                    PMACC_SMEM(acc, targetFrames, FrameArray);
+
+                    // find last frame in super cell
+                    SourceFramePtr sourceFrame(sourceBox.getLastFrame(block));
+
+                    // end method if we have no frames
+                    if(!sourceFrame.isValid())
+                        return;
+
+                    using ParticleDomCfg = IdxConfig<maxParticlesInFrame, numWorkers>;
+
+                    ForEachIdx<ParticleDomCfg> forEachParticle(workerIdx);
+
+                    // initialize the collective part of the functor (e.g. field caching)
+                    particleCreator.collectiveInit(acc, blockCell, WorkerCfg<numWorkers>{workerIdx});
+
+                    memory::CtxArray<ParticleCreator, ParticleDomCfg> particleCreatorCtx{};
+
+                    forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                        // cell index within the superCell
+                        DataSpace<simDim> const cellIdx
+                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+
+                        // cell offset with respect to the local domain origin (without any guarding cells
+                        pmacc::math::Int<simDim> const localCellIndex = supercellCellOffset + cellIdx;
+
+                        // create a copy of the functor for each virtual worker
+                        particleCreatorCtx[idx] = particleCreator;
+
+                        // init particle creator functor for each virtual worker
+                        particleCreatorCtx[idx].init(acc, blockCell, linearIdx, localCellIndex);
+                    });
+
+                    /* Declare counter in shared memory that will later tell the current fill level or
+                     * occupation of the newly created target frames.
+                     */
+                    PMACC_SMEM(acc, newFrameFillLvl, int);
+
+                    ForEachIdx<IdxConfig<2, numWorkers>> onlyMasters{workerIdx};
+
+                    // Declare local variable oldFrameFillLvl for each thread
+                    int oldFrameFillLvl;
+
+                    /* Initialize local (register) counter for each thread
+                     * - describes how many new macro target particles should be created
+                     */
+                    memory::CtxArray<uint32_t, ParticleDomCfg> numNewParticlesCtx(0);
+
+                    // Master initializes the frame fill level with 0
+                    onlyMasters([&](uint32_t const linearIdx, uint32_t const) {
+                        if(linearIdx == 0)
+                            newFrameFillLvl = 0;
+                        targetFrames[linearIdx] = nullptr;
+                    });
+
+                    cupla::__syncthreads(acc);
+
+                    /* move over source species frames and call particleCreator
+                     * frames are worked on in backwards order to avoid asking if there is another frame
+                     * --> performance
+                     * Because all frames are completely filled except the last and apart from that last frame
+                     * one wants to make sure that all threads are working and every frame is worked on.
+                     */
+                    while(sourceFrame.isValid())
+                    {
+                        memory::CtxArray<bool, ParticleDomCfg> isParticleCtx(
+                            workerIdx,
+                            [&](uint32_t const linearIdx, uint32_t const) {
+                                return static_cast<bool>(sourceFrame[linearIdx][multiMask_]);
+                            });
+                        forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                            bool const isParticle = static_cast<bool>(sourceFrame[linearIdx][multiMask_]);
+                            numNewParticlesCtx[idx] = 0u;
+                            if(isParticle)
+                                /* ask the particle creator functor how many new particles to create. */
+                                numNewParticlesCtx[idx]
+                                    = particleCreatorCtx[idx].numNewParticles(acc, *sourceFrame, linearIdx);
+                        });
+
+                        cupla::__syncthreads(acc);
+
+                        /* always true while-loop over all particles inside source frame until each thread breaks out
+                         * individually
+                         *
+                         * **Attention**: Speaking of 1st and 2nd frame only may seem odd.
+                         * The question might arise what happens if more target particles are created than would fit
+                         * into two frames. Well, multi-particle creation during a time step is accounted for. The
+                         * number of new target particles is determined inside the outer loop over the valid frames
+                         * while in the inner loop each thread can create only ONE new macro target particle. But the
+                         * loop repeats until each thread has created all the target particles needed in the time step.
+                         */
+                        while(true)
+                        {
+                            /* < INIT >
+                             * - targetParId is initialized as -1 (meaning: invalid)
+                             * - (local) oldFrameFillLvl set equal to (shared) newFrameFillLvl for each thread
+                             * --> each thread remembers the old "counter"
+                             */
+
+                            /* Declare local target particle ID
+                             * - describes at which position in the new frame the new target particle is to be created
+                             */
+                            memory::CtxArray<int, ParticleDomCfg> targetParIdCtx(-1);
+
+                            oldFrameFillLvl = newFrameFillLvl;
+
+                            cupla::__syncthreads(acc);
+
+                            /* < CHECK & ADD >
+                             * - if a thread wants to create target particles in each cycle it can do that only once
+                             * and before that it atomically adds to the shared counter and uses the current
+                             * value as targetParId in the new frame
+                             */
+                            forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                                if(numNewParticlesCtx[idx] > 0u)
+                                    targetParIdCtx[idx]
+                                        = nvidia::atomicAllInc(acc, &newFrameFillLvl, ::alpaka::hierarchy::Threads{});
+                            });
+
+                            cupla::__syncthreads(acc);
+
+                            /* < EXIT? >
+                             * - if the counter hasn't changed all threads break out of the loop
+                             */
+                            if(oldFrameFillLvl == newFrameFillLvl)
+                                break;
+
+                            cupla::__syncthreads(acc);
+
+                            /* < NEW FRAME >
+                             * - if there is no frame, yet, the master will create a new target particle frame
+                             * and attach it to the back of the frame list
+                             */
+                            onlyMasters([&](uint32_t const linearIdx, uint32_t const) {
+                                uint32_t const numFramesNeeded
+                                    = (newFrameFillLvl + maxParticlesInFrame - 1u) / maxParticlesInFrame;
+                                if(linearIdx < numFramesNeeded && !targetFrames[linearIdx].isValid())
+                                {
+                                    targetFrames[linearIdx] = targetBox.getEmptyFrame(acc);
+                                    targetBox.setAsLastFrame(acc, targetFrames[linearIdx], block);
+                                }
+                            });
+
+                            cupla::__syncthreads(acc);
+
+                            /* < CREATE >
+                             * - all target particles were created
+                             * - internal particle creation counter is decremented by 1
+                             */
+                            forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                                uint32_t targetFrameIdx = 0;
+                                if(targetParIdCtx[idx] >= maxParticlesInFrame)
+                                {
+                                    targetFrameIdx = 1;
+                                    targetParIdCtx[idx] -= maxParticlesInFrame;
+                                }
+                                if(0 <= targetParIdCtx[idx])
+                                {
+                                    // each virtual worker makes the attributes of its source particle accessible
+                                    auto sourceParticle = sourceFrame[linearIdx];
+                                    // each virtual worker initializes a target particle if one should be created
+                                    auto targetParticle = targetFrames[targetFrameIdx][targetParIdCtx[idx]];
+
+                                    // create a target particle in the new target particle frame:
+                                    particleCreatorCtx[idx](acc, sourceParticle, targetParticle);
+
+                                    numNewParticlesCtx[idx] -= 1;
+                                }
+                            });
+
+                            cupla::__syncthreads(acc);
+
+                            onlyMasters([&](uint32_t const linearIdx, uint32_t const) {
+                                if(linearIdx == 0 && newFrameFillLvl >= maxParticlesInFrame)
+                                {
+                                    newFrameFillLvl -= maxParticlesInFrame;
+                                    // copy the not filled frame pointer to the beginning
+                                    targetFrames[0] = targetFrames[1];
+                                    // reset second frame
+                                    targetFrames[1] = nullptr;
+                                }
+                            });
+
+                            cupla::__syncthreads(acc);
+                        }
+
+                        cupla::__syncthreads(acc);
+
+                        sourceFrame = sourceBox.getPreviousFrame(sourceFrame);
+                    }
+                }
+            };
+
+            /** Convenient function to create a `CreateParticlesKernel` instance
+             *
+             * @tparam T_numWorkers number of workers
+             *
+             * @param parBoxSource particle box of the source species
+             * @param parBoxTarget particle box of the target species
+             * @param particleCreator particle creation functor
+             * @param guardSuperCells number of guard cells per dimension
+             * @return new `CreateParticlesKernel` instance
+             */
+            template<
+                uint32_t T_numWorkers,
+                typename T_ParBoxSource,
+                typename T_ParBoxTarget,
+                typename T_ParticleCreator>
+            CreateParticlesKernel<T_numWorkers, T_ParBoxSource, T_ParBoxTarget, T_ParticleCreator>
+            make_CreateParticlesKernel(
+                T_ParBoxSource const& parBoxSource,
+                T_ParBoxTarget const& parBoxTarget,
+                T_ParticleCreator const& particleCreator,
+                DataSpace<simDim> const& guardSuperCells)
+            {
+                return CreateParticlesKernel<T_numWorkers, T_ParBoxSource, T_ParBoxTarget, T_ParticleCreator>(
+                    parBoxSource,
+                    parBoxTarget,
+                    particleCreator,
+                    guardSuperCells);
             }
-        }
-    };
 
-    /** Convenient function to create a `CreateParticlesKernel` instance
-     *
-     * @tparam T_numWorkers number of workers
-     *
-     * @param parBoxSource particle box of the source species
-     * @param parBoxTarget particle box of the target species
-     * @param particleCreator particle creation functor
-     * @param guardSuperCells number of guard cells per dimension
-     * @return new `CreateParticlesKernel` instance
-     */
-    template<
-        uint32_t T_numWorkers,
-        typename T_ParBoxSource,
-        typename T_ParBoxTarget,
-        typename T_ParticleCreator
-    >
-    CreateParticlesKernel<
-        T_numWorkers,
-        T_ParBoxSource,
-        T_ParBoxTarget,
-        T_ParticleCreator
-    >
-    make_CreateParticlesKernel(
-        T_ParBoxSource const & parBoxSource,
-        T_ParBoxTarget const & parBoxTarget,
-        T_ParticleCreator const & particleCreator,
-        DataSpace< simDim > const & guardSuperCells)
-    {
-        return CreateParticlesKernel<
-            T_numWorkers,
-            T_ParBoxSource,
-            T_ParBoxTarget,
-            T_ParticleCreator
-        >(
-            parBoxSource,
-            parBoxTarget,
-            particleCreator,
-            guardSuperCells
-        );
-    }
-
-} // namespace creation
-} // namespace particles
+        } // namespace creation
+    } // namespace particles
 } // namespace picongpu

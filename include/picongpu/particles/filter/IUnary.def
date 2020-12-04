@@ -27,23 +27,17 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace filter
-{
+    namespace particles
+    {
+        namespace filter
+        {
+            /** interface for a unary particle filter
+             *
+             * @tparam T_UnaryFilter unary particle filter must contain `bool operator()(P && particle)`
+             */
+            template<typename T_UnaryFilter>
+            using IUnary = pmacc::filter::Interface<T_UnaryFilter, 1u>;
 
-    /** interface for a unary particle filter
-     *
-     * @tparam T_UnaryFilter unary particle filter must contain `bool operator()(P && particle)`
-     */
-    template<
-        typename T_UnaryFilter
-    >
-    using IUnary = pmacc::filter::Interface<
-        T_UnaryFilter,
-        1u
-    >;
-
-} // namespace filter
-} // namespace particles
+        } // namespace filter
+    } // namespace particles
 } // namespace picongpu

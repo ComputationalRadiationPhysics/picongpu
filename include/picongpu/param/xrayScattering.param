@@ -27,28 +27,27 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace xrayScattering
-{
-namespace beam
-{
-    using namespace picongpu::plugins::xrayScattering::beam;
-    /* Choose from:
-     *  - ZSide
-     *  - YSide
-     *  - XSide
-     * - ZRSide
-     * - YRSide
-     * - XRSide
-     */
-    using ProbingSide = ZSide;
+    namespace plugins
+    {
+        namespace xrayScattering
+        {
+            namespace beam
+            {
+                using namespace picongpu::plugins::xrayScattering::beam;
+                /* Choose from:
+                 *  - ZSide
+                 *  - YSide
+                 *  - XSide
+                 * - ZRSide
+                 * - YRSide
+                 * - XRSide
+                 */
+                using ProbingSide = ZSide;
 
-    PMACC_STRUCT( RotationParam,
-        ( PMACC_C_VALUE ( float_X, yawAngle, 0 ) )
-        ( PMACC_C_VALUE ( float_X, pitchAngle, 0 ) )
-    );
-}// namespace beam
-}// namespace xrayScattering
-}// namespace plugins
-}// namespace picongpu
+                PMACC_STRUCT(
+                    RotationParam,
+                    (PMACC_C_VALUE(float_X, yawAngle, 0))(PMACC_C_VALUE(float_X, pitchAngle, 0)));
+            } // namespace beam
+        } // namespace xrayScattering
+    } // namespace plugins
+} // namespace picongpu

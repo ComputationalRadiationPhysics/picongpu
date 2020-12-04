@@ -24,199 +24,193 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-/** A complex number class */
-template<typename T_Type>
-struct Complex
-{
-
-public:
-
-    typedef T_Type type;
-
-    // constructor (real, imaginary)
-    HDINLINE Complex(T_Type real, T_Type imaginary = type(0.0) ) : real(real), imaginary(imaginary) { }
-
-    // constructor (Complex<T_OtherType>)
-    template<typename T_OtherType>
-    HDINLINE explicit Complex(const Complex<T_OtherType >& other) :
-                        real( static_cast<T_Type> (other.get_real()) ),
-                        imaginary( static_cast<T_Type> (other.get_imag()) ) { }
-
-    // default constructor ( ! no initialization of data ! )
-    HDINLINE Complex(void) { }
-
-    // Conversion from scalar (assignment)
-    HDINLINE Complex& operator=(const T_Type& other)
+    namespace math
     {
-        real = other;
-        imaginary = type(0.0);
-        return *this;
-    }
+        /** A complex number class */
+        template<typename T_Type>
+        struct Complex
+        {
+        public:
+            typedef T_Type type;
 
-    // Assignment operator
-    HDINLINE Complex& operator=(const Complex& other)
-    {
-        real = other.get_real();
-        imaginary = other.get_imag();
-        return *this;
-    }
+            // constructor (real, imaginary)
+            HDINLINE Complex(T_Type real, T_Type imaginary = type(0.0)) : real(real), imaginary(imaginary)
+            {
+            }
 
-    // assign addition
-    HDINLINE Complex& operator+=(const Complex& other)
-    {
-        real += other.get_real();
-        imaginary += other.get_imag();
-        return *this;
-    }
+            // constructor (Complex<T_OtherType>)
+            template<typename T_OtherType>
+            HDINLINE explicit Complex(const Complex<T_OtherType>& other)
+                : real(static_cast<T_Type>(other.get_real()))
+                , imaginary(static_cast<T_Type>(other.get_imag()))
+            {
+            }
 
-    // assign difference
-    HDINLINE Complex& operator-=(const Complex& other)
-    {
-        real -= other.get_real();
-        imaginary -= other.get_imag();
-        return *this;
-    }
+            // default constructor ( ! no initialization of data ! )
+            HDINLINE Complex(void)
+            {
+            }
 
-    // assign multiplication
-    HDINLINE Complex& operator *=(const Complex& other)
-    {
-        *this = *this * other;
-        return *this;
-    }
+            // Conversion from scalar (assignment)
+            HDINLINE Complex& operator=(const T_Type& other)
+            {
+                real = other;
+                imaginary = type(0.0);
+                return *this;
+            }
 
-    // real part
-    HDINLINE T_Type& get_real()
-    {
-        return real;
-    }
+            // Assignment operator
+            HDINLINE Complex& operator=(const Complex& other)
+            {
+                real = other.get_real();
+                imaginary = other.get_imag();
+                return *this;
+            }
 
-    // real part
-    HDINLINE T_Type get_real(void) const
-    {
-        return real;
-    }
+            // assign addition
+            HDINLINE Complex& operator+=(const Complex& other)
+            {
+                real += other.get_real();
+                imaginary += other.get_imag();
+                return *this;
+            }
 
-    // imaginary part
-    HDINLINE T_Type& get_imag()
-    {
-        return imaginary;
-    }
+            // assign difference
+            HDINLINE Complex& operator-=(const Complex& other)
+            {
+                real -= other.get_real();
+                imaginary -= other.get_imag();
+                return *this;
+            }
 
-    // imaginary part
-    HDINLINE T_Type get_imag(void) const
-    {
-        return imaginary;
-    }
+            // assign multiplication
+            HDINLINE Complex& operator*=(const Complex& other)
+            {
+                *this = *this * other;
+                return *this;
+            }
 
-    // complex zero
-    HDINLINE static Complex<T_Type> zero(void)
-    {
-        return Complex<T_Type>( type(0.0) , type(0.0) );
-    }
+            // real part
+            HDINLINE T_Type& get_real()
+            {
+                return real;
+            }
 
-private:
-    PMACC_ALIGN(real,T_Type); // real part
-    PMACC_ALIGN(imaginary,T_Type); // imaginary part
+            // real part
+            HDINLINE T_Type get_real(void) const
+            {
+                return real;
+            }
 
-};
+            // imaginary part
+            HDINLINE T_Type& get_imag()
+            {
+                return imaginary;
+            }
 
-/** Addition operators */
+            // imaginary part
+            HDINLINE T_Type get_imag(void) const
+            {
+                return imaginary;
+            }
 
-template<typename T_Type>
-HDINLINE Complex<T_Type>
-operator+(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
-{
-    return Complex<T_Type>(lhs.get_real() + rhs.get_real(), lhs.get_imag() + rhs.get_imag());
-}
+            // complex zero
+            HDINLINE static Complex<T_Type> zero(void)
+            {
+                return Complex<T_Type>(type(0.0), type(0.0));
+            }
 
-template<typename T_Type>
-HDINLINE Complex<T_Type>
-operator+(const Complex<T_Type>& lhs, const T_Type& rhs)
-{
-    return Complex<T_Type>(lhs.get_real() + rhs, lhs.get_imag());
-}
+        private:
+            PMACC_ALIGN(real, T_Type); // real part
+            PMACC_ALIGN(imaginary, T_Type); // imaginary part
+        };
 
-template<typename T_Type>
-HDINLINE Complex<T_Type>
-operator+(const T_Type& lhs, const Complex<T_Type>& rhs)
-{
-    return Complex<T_Type>(lhs + rhs.get_real(), rhs.get_imag());
-}
+        /** Addition operators */
 
-/** Subtraction operators */
+        template<typename T_Type>
+        HDINLINE Complex<T_Type> operator+(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
+        {
+            return Complex<T_Type>(lhs.get_real() + rhs.get_real(), lhs.get_imag() + rhs.get_imag());
+        }
 
-template<typename T_Type>
-HDINLINE Complex<T_Type>
-operator-(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
-{
-    return Complex<T_Type>(lhs.get_real() - rhs.get_real(), lhs.get_imag() - rhs.get_imag());
-}
+        template<typename T_Type>
+        HDINLINE Complex<T_Type> operator+(const Complex<T_Type>& lhs, const T_Type& rhs)
+        {
+            return Complex<T_Type>(lhs.get_real() + rhs, lhs.get_imag());
+        }
 
-template<typename T_Type>
-HDINLINE Complex<T_Type>
-operator-(const Complex<T_Type>& lhs, const T_Type& rhs)
-{
-    return Complex<T_Type>(lhs.get_real() - rhs, lhs.get_imag());
-}
+        template<typename T_Type>
+        HDINLINE Complex<T_Type> operator+(const T_Type& lhs, const Complex<T_Type>& rhs)
+        {
+            return Complex<T_Type>(lhs + rhs.get_real(), rhs.get_imag());
+        }
 
-template<typename T_Type>
-HDINLINE Complex<T_Type>
-operator-(const T_Type& lhs, const Complex<T_Type>& rhs)
-{
-    return Complex<T_Type>(lhs - rhs.get_real(), -rhs.get_imag());
-}
+        /** Subtraction operators */
 
-/** Multiplication operators */
+        template<typename T_Type>
+        HDINLINE Complex<T_Type> operator-(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
+        {
+            return Complex<T_Type>(lhs.get_real() - rhs.get_real(), lhs.get_imag() - rhs.get_imag());
+        }
 
-template<typename T_Type>
-HDINLINE Complex<T_Type>
-operator*(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
-{
-    return Complex<T_Type>(lhs.get_real() * rhs.get_real() - lhs.get_imag() * rhs.get_imag(),
-                     lhs.get_imag() * rhs.get_real() + lhs.get_real() * rhs.get_imag());
-}
+        template<typename T_Type>
+        HDINLINE Complex<T_Type> operator-(const Complex<T_Type>& lhs, const T_Type& rhs)
+        {
+            return Complex<T_Type>(lhs.get_real() - rhs, lhs.get_imag());
+        }
 
-template<typename T_Type>
-HDINLINE Complex<T_Type>
-operator*(const Complex<T_Type>& lhs, const T_Type& rhs)
-{
-    return Complex<T_Type>(lhs.get_real() * rhs, lhs.get_imag() * rhs);
-}
+        template<typename T_Type>
+        HDINLINE Complex<T_Type> operator-(const T_Type& lhs, const Complex<T_Type>& rhs)
+        {
+            return Complex<T_Type>(lhs - rhs.get_real(), -rhs.get_imag());
+        }
 
-template<typename T_Type>
-HDINLINE Complex<T_Type>
-operator*(const T_Type& lhs, const Complex<T_Type>& rhs)
-{
-    return Complex<T_Type>(lhs * rhs.get_real(), lhs * rhs.get_imag());
-}
+        /** Multiplication operators */
 
-/** Division operators */
+        template<typename T_Type>
+        HDINLINE Complex<T_Type> operator*(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
+        {
+            return Complex<T_Type>(
+                lhs.get_real() * rhs.get_real() - lhs.get_imag() * rhs.get_imag(),
+                lhs.get_imag() * rhs.get_real() + lhs.get_real() * rhs.get_imag());
+        }
 
-template<typename T_Type>
-HDINLINE Complex<T_Type>
-operator/(const Complex<T_Type>& lhs, const T_Type& rhs)
-{
-    return Complex<T_Type>(lhs.get_real() / rhs, lhs.get_imag() / rhs);
-}
+        template<typename T_Type>
+        HDINLINE Complex<T_Type> operator*(const Complex<T_Type>& lhs, const T_Type& rhs)
+        {
+            return Complex<T_Type>(lhs.get_real() * rhs, lhs.get_imag() * rhs);
+        }
 
-template<typename T_Type>
-HDINLINE Complex<T_Type>
-operator/(const T_Type& lhs, const Complex<T_Type>& rhs)
-{
-    return Complex<T_Type>(lhs * rhs.get_real()/(rhs.get_real()*rhs.get_real()+rhs.get_imag()*rhs.get_imag()),
-                     -lhs * rhs.get_imag()/( rhs.get_real()*rhs.get_real()+rhs.get_imag()*rhs.get_imag() ));
-}
+        template<typename T_Type>
+        HDINLINE Complex<T_Type> operator*(const T_Type& lhs, const Complex<T_Type>& rhs)
+        {
+            return Complex<T_Type>(lhs * rhs.get_real(), lhs * rhs.get_imag());
+        }
 
-template<typename T_Type>
-HDINLINE Complex<T_Type>
-operator/(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
-{
-    return lhs*Complex<T_Type>(rhs.get_real()/(rhs.get_real()*rhs.get_real()+rhs.get_imag()*rhs.get_imag()),
-                        -rhs.get_imag()/( rhs.get_real()*rhs.get_real()+rhs.get_imag()*rhs.get_imag() ));
-}
+        /** Division operators */
 
-} //namespace math
-} //namespace pmacc
+        template<typename T_Type>
+        HDINLINE Complex<T_Type> operator/(const Complex<T_Type>& lhs, const T_Type& rhs)
+        {
+            return Complex<T_Type>(lhs.get_real() / rhs, lhs.get_imag() / rhs);
+        }
+
+        template<typename T_Type>
+        HDINLINE Complex<T_Type> operator/(const T_Type& lhs, const Complex<T_Type>& rhs)
+        {
+            return Complex<T_Type>(
+                lhs * rhs.get_real() / (rhs.get_real() * rhs.get_real() + rhs.get_imag() * rhs.get_imag()),
+                -lhs * rhs.get_imag() / (rhs.get_real() * rhs.get_real() + rhs.get_imag() * rhs.get_imag()));
+        }
+
+        template<typename T_Type>
+        HDINLINE Complex<T_Type> operator/(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
+        {
+            return lhs
+                * Complex<T_Type>(
+                       rhs.get_real() / (rhs.get_real() * rhs.get_real() + rhs.get_imag() * rhs.get_imag()),
+                       -rhs.get_imag() / (rhs.get_real() * rhs.get_real() + rhs.get_imag() * rhs.get_imag()));
+        }
+
+    } // namespace math
+} // namespace pmacc
