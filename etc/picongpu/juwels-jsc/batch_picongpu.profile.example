@@ -11,7 +11,7 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Project Information ######################################## (edit this line)
 #   - project and account for allocation
-export proj=$(groups | awk '{print $4}')
+export proj=$(groups | awk '{print $NF}')
 export account=$(jutil user projects -n | awk '{print $NF}')
 
 # Text Editor for Tools ###################################### (edit this line)
@@ -24,18 +24,17 @@ jutil env activate -p $proj -A $account
 # General modules #############################################################
 #
 module purge
-module load Intel/2019.0.117-GCC-7.3.0
-module load CMake/3.15.0
-module load IntelMPI/2018.4.274
-module load Python/3.6.6
-module load Boost/1.68.0-Python-3.6.6
+module load Intel/2020.2.254-GCC-9.3.0
+module load CMake/3.18.0
+module load IntelMPI/2019.8.254
+module load Python/3.8.5
+
+module load Boost/1.73.0 
 
 # Other Software ##############################################################
 #
-module load zlib/.1.2.11
-module load HDF5/1.10.1
-module load libpng/.1.6.35
-export CMAKE_PREFIX_PATH=$EBROOTZLIB:$EBROOTLIBPNG:$CMAKE_PREFIX_PATH
+module load HDF5/1.10.6
+#export CMAKE_PREFIX_PATH=$EBROOTZLIB:$EBROOTLIBPNG:$CMAKE_PREFIX_PATH
 
 PARTITION_LIB=$PROJECT/lib_batch
 LIBSPLASH_ROOT=$PARTITION_LIB/libSplash
