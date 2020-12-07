@@ -256,25 +256,25 @@ namespace picongpu
 
             using openPMDFrameType = Frame<OperatorCreateVectorBox, NewParticleDescription>;
 
-            void setParticleAttributes(::openPMD::Iteration& iteration)
+            void setParticleAttributes(::openPMD::ParticleSpecies& record)
             {
                 const float_64 particleShape(GetShape<ThisSpecies>::type::assignmentFunctionOrder);
-                iteration.setAttribute("particleShape", particleShape);
+                record.setAttribute("particleShape", particleShape);
 
                 traits::GetSpeciesFlagName<ThisSpecies, current<>> currentDepositionName;
                 const std::string currentDeposition(currentDepositionName());
-                iteration.setAttribute("currentDeposition", currentDeposition.c_str());
+                record.setAttribute("currentDeposition", currentDeposition.c_str());
 
                 traits::GetSpeciesFlagName<ThisSpecies, particlePusher<>> particlePushName;
                 const std::string particlePush(particlePushName());
-                iteration.setAttribute("particlePush", particlePush.c_str());
+                record.setAttribute("particlePush", particlePush.c_str());
 
                 traits::GetSpeciesFlagName<ThisSpecies, interpolation<>> particleInterpolationName;
                 const std::string particleInterpolation(particleInterpolationName());
-                iteration.setAttribute("particleInterpolation", particleInterpolation.c_str());
+                record.setAttribute("particleInterpolation", particleInterpolation.c_str());
 
                 const std::string particleSmoothing("none");
-                iteration.setAttribute("particleSmoothing", particleSmoothing.c_str());
+                record.setAttribute("particleSmoothing", particleSmoothing.c_str());
             }
 
             template<typename Space> // has operator[] -> integer type
@@ -436,7 +436,7 @@ namespace picongpu
                     }
 
                     /* openPMD ED-PIC: additional attributes */
-                    setParticleAttributes(iteration);
+                    setParticleAttributes(particleSpecies);
                     params->openPMDSeries->flush();
                 }
 
