@@ -275,6 +275,54 @@ namespace picongpu
 
                 const std::string particleSmoothing("none");
                 record.setAttribute("particleSmoothing", particleSmoothing.c_str());
+
+                // we do this once for a unit dimension output function, do not touch this code
+                std::vector<float_64> zeroUnitDimension(7, 0.0);
+                static constexpr ::openPMD::UnitDimension openPMDUnitDimensions[7]
+                    = {::openPMD::UnitDimension::L,
+                       ::openPMD::UnitDimension::M,
+                       ::openPMD::UnitDimension::T,
+                       ::openPMD::UnitDimension::I,
+                       ::openPMD::UnitDimension::theta,
+                       ::openPMD::UnitDimension::N,
+                       ::openPMD::UnitDimension::J};
+                std::map<::openPMD::UnitDimension, double> zeroUnitMap;
+                for(unsigned i = 0; i < 7; ++i)
+                {
+                    zeroUnitMap[openPMDUnitDimensions[i]] = zeroUnitDimension[i];
+                }
+                // end of do-not-touch code
+
+                // now we have a map in a writeable format with all zeroes
+                // for each record copy it and modify the copy, e.g.
+
+                // mass
+                auto& massRecord = record["mass"];
+                auto& massComponent = massRecord[::openPMD::RecordComponent::SCALAR];
+                massComponent.makeConstant(::picongpu::ELECTRON_MASS);
+
+                auto massUnitMap = zeroUnitMap;
+                massUnitMap[::openPMD::UnitDimension::M] = 1.0;
+                massRecord.setUnitDimension(massUnitMap);
+                massComponent.setUnitSI(::picongpu::UNIT_MASS);
+                massRecord.setAttribute("macroWeighted", int32_t(false));
+                massRecord.setAttribute("weightingPower", float_64(1.0));
+                massRecord.setAttribute("timeOffset", float_64(0.0));
+
+
+                // charge
+                auto& chargeRecord = record["charge"];
+                auto& chargeComponent = chargeRecord[::openPMD::RecordComponent::SCALAR];
+                chargeComponent.makeConstant(::picongpu::ELECTRON_CHARGE);
+
+                auto chargeUnitMap = zeroUnitMap;
+                chargeUnitMap[::openPMD::UnitDimension::I] = 1.0;
+                chargeUnitMap[::openPMD::UnitDimension::T] = 1.0;
+                chargeRecord.setUnitDimension(chargeUnitMap);
+                chargeComponent.setUnitSI(::picongpu::UNIT_CHARGE);
+                chargeRecord.setAttribute("macroWeighted", int32_t(false));
+                chargeRecord.setAttribute("weightingPower", float_64(1.0));
+                chargeRecord.setAttribute("timeOffset", float_64(0.0));
             }
 
             template<typename Space> // has operator[] -> integer type
