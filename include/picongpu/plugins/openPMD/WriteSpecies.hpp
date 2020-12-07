@@ -54,6 +54,45 @@
 
 namespace picongpu
 {
+    namespace detail
+    {
+        template<typename T_FrameType>
+        struct GetChargeOrZero
+        {
+            static constexpr bool hasChargeRatio = pmacc::traits::HasFlag<T_FrameType, chargeRatio<>>::type::value;
+
+            template<typename T_Defer = float_X>
+            typename std::enable_if<hasChargeRatio, T_Defer>::type operator()() const
+            {
+                return frame::getCharge<T_FrameType>();
+            }
+
+            template<typename T_Defer = float_X>
+            typename std::enable_if<!hasChargeRatio, T_Defer>::type operator()() const
+            {
+                return float_X(0.);
+            }
+        };
+
+        template<typename T_FrameType>
+        struct GetMassOrZero
+        {
+            static constexpr bool hasMassRatio = pmacc::traits::HasFlag<T_FrameType, massRatio<>>::type::value;
+
+            template<typename T_Defer = float_X>
+            typename std::enable_if<hasMassRatio, T_Defer>::type operator()() const
+            {
+                return frame::getMass<T_FrameType>();
+            }
+
+            template<typename T_Defer = float_X>
+            typename std::enable_if<!hasMassRatio, T_Defer>::type operator()() const
+            {
+                return float_X(0.);
+            }
+        };
+    } // namespace detail
+
     namespace openPMD
     {
         using namespace pmacc;
@@ -296,33 +335,51 @@ namespace picongpu
                 // now we have a map in a writeable format with all zeroes
                 // for each record copy it and modify the copy, e.g.
 
-                // mass
-                auto& massRecord = record["mass"];
-                auto& massComponent = massRecord[::openPMD::RecordComponent::SCALAR];
-                massComponent.makeConstant(::picongpu::ELECTRON_MASS);
+                // const records stuff
+                ::openPMD::Datatype dataType = ::openPMD::Datatype::DOUBLE;
+                ::openPMD::Extent extent = {0};
+                ::openPMD::Dataset dataSet = ::openPMD::Dataset(dataType, extent);
 
-                auto massUnitMap = zeroUnitMap;
-                massUnitMap[::openPMD::UnitDimension::M] = 1.0;
-                massRecord.setUnitDimension(massUnitMap);
-                massComponent.setUnitSI(::picongpu::UNIT_MASS);
-                massRecord.setAttribute("macroWeighted", int32_t(false));
-                massRecord.setAttribute("weightingPower", float_64(1.0));
-                massRecord.setAttribute("timeOffset", float_64(0.0));
+                // mass
+                ::picongpu::detail::GetMassOrZero<FrameType> const getMassOrZero;
+                if(getMassOrZero.hasMassRatio)
+                {
+                    const float_64 mass(getMassOrZero());
+                    auto& massRecord = record["mass"];
+                    auto& massComponent = massRecord[::openPMD::RecordComponent::SCALAR];
+                    massComponent.resetDataset(dataSet);
+                    massComponent.makeConstant(mass);
+
+                    auto massUnitMap = zeroUnitMap;
+                    massUnitMap[::openPMD::UnitDimension::M] = 1.0;
+                    massRecord.setUnitDimension(massUnitMap);
+                    massComponent.setUnitSI(::picongpu::UNIT_MASS);
+                    massRecord.setAttribute("macroWeighted", int32_t(false));
+                    massRecord.setAttribute("weightingPower", float_64(1.0));
+                    massRecord.setAttribute("timeOffset", float_64(0.0));
+                }
 
 
                 // charge
-                auto& chargeRecord = record["charge"];
-                auto& chargeComponent = chargeRecord[::openPMD::RecordComponent::SCALAR];
-                chargeComponent.makeConstant(::picongpu::ELECTRON_CHARGE);
+                using hasBoundElectrons = typename pmacc::traits::HasIdentifier<FrameType, boundElectrons>::type;
+                ::picongpu::detail::GetChargeOrZero<FrameType> const getChargeOrZero;
+                if(!hasBoundElectrons::value && getChargeOrZero.hasChargeRatio)
+                {
+                    const float_64 charge(getChargeOrZero());
+                    auto& chargeRecord = record["charge"];
+                    auto& chargeComponent = chargeRecord[::openPMD::RecordComponent::SCALAR];
+                    chargeComponent.resetDataset(dataSet);
+                    chargeComponent.makeConstant(charge);
 
-                auto chargeUnitMap = zeroUnitMap;
-                chargeUnitMap[::openPMD::UnitDimension::I] = 1.0;
-                chargeUnitMap[::openPMD::UnitDimension::T] = 1.0;
-                chargeRecord.setUnitDimension(chargeUnitMap);
-                chargeComponent.setUnitSI(::picongpu::UNIT_CHARGE);
-                chargeRecord.setAttribute("macroWeighted", int32_t(false));
-                chargeRecord.setAttribute("weightingPower", float_64(1.0));
-                chargeRecord.setAttribute("timeOffset", float_64(0.0));
+                    auto chargeUnitMap = zeroUnitMap;
+                    chargeUnitMap[::openPMD::UnitDimension::I] = 1.0;
+                    chargeUnitMap[::openPMD::UnitDimension::T] = 1.0;
+                    chargeRecord.setUnitDimension(chargeUnitMap);
+                    chargeComponent.setUnitSI(::picongpu::UNIT_CHARGE);
+                    chargeRecord.setAttribute("macroWeighted", int32_t(false));
+                    chargeRecord.setAttribute("weightingPower", float_64(1.0));
+                    chargeRecord.setAttribute("timeOffset", float_64(0.0));
+                }
             }
 
             template<typename Space> // has operator[] -> integer type
