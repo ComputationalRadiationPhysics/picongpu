@@ -24,7 +24,7 @@ export account=$(jutil user projects -n | awk '{print $NF}' | tail -n 1)
 
 # Set up environment, including $SCRATCH and $PROJECT
 # Handle a case where the budgeting account is not set.
-if [ "$account" = "-" ]; then 
+if [ "$account" = "-" ]; then
     jutil env activate --project $proj;
 else
     jutil env activate --project $proj --budget $account
@@ -37,6 +37,7 @@ module load GCC/9.3.0
 module load CUDA/11.0
 module load CMake/3.18.0
 module load ParaStationMPI/5.4.7-1
+#module load mpi-settings/CUDA #optional module
 module load Python/3.8.5
 
 module load Boost/1.74.0
