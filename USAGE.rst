@@ -4,6 +4,13 @@
 
    You need to have an :ref:`environment loaded <install-profile>` (``source $HOME/picongpu.profile``) that provides all :ref:`PIConGPU dependencies <install-dependencies>` to complete this chapter.
 
+.. warning::
+
+   PIConGPU source code is portable and can be compiled on all major operating systems.
+   However, helper tools like ``pic-create`` and ``pic-build`` described in this section rely on Linux utilities and thus are not expected to work on other platforms out-of-the-box.
+   Note that building and using PIConGPU on other operating systems is still possible but has to be done manually or with custom tools.
+   This case is not covered in the documentation, but we can assist users with it when needed.
+
 Basics
 ======
 
