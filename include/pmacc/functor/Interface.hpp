@@ -1,4 +1,4 @@
-/* Copyright 2017-2021 Rene Widera
+/* Copyright 2017-2021 Rene Widera, Pawel Ordyna
  *
  * This file is part of PMacc.
  *
@@ -173,17 +173,18 @@ namespace pmacc
              * @return an instance of the user functor wrapped by the accelerator
              *         functor interface
              */
-            template<typename T_OffsetType, uint32_t T_numWorkers, typename T_Acc>
+            template<typename T_OffsetType, uint32_t T_numWorkers, typename T_Acc, typename... T_Args>
             HDINLINE auto operator()(
                 T_Acc const& acc,
                 T_OffsetType const& domainOffset,
-                mappings::threads::WorkerCfg<T_numWorkers> const& workerCfg) const
+                mappings::threads::WorkerCfg<T_numWorkers> const& workerCfg,
+                T_Args... args) const
                 -> acc::Interface<
-                    decltype(alpaka::core::declval<UserFunctor>()(acc, domainOffset, workerCfg)),
+                    decltype(alpaka::core::declval<UserFunctor>()(acc, domainOffset, workerCfg, args...)),
                     T_numArguments,
                     T_ReturnType>
             {
-                return (*static_cast<UserFunctor const*>(this))(acc, domainOffset, workerCfg);
+                return (*static_cast<UserFunctor const*>(this))(acc, domainOffset, workerCfg, args...);
             }
 
             /** get name of the user functor

@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten, Finn-Ole Carstens
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten, Finn-Ole Carstens, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -54,6 +54,7 @@
 #include "picongpu/param/species.param"
 #include "picongpu/param/speciesDefinition.param"
 #include "picongpu/param/speciesInitialization.param"
+#include "picongpu/param/collision.param"
 #include "picongpu/param/laser.param"
 #include "picongpu/param/fieldSolver.param"
 #include "picongpu/param/fieldBackground.param"
