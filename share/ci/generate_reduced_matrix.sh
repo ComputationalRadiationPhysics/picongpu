@@ -28,7 +28,7 @@ fi
 
 folders=()
 for CASE in ${PIC_INPUTS}; do
-  if [ "$CASE" == "examples" ] || [  "$CASE" == "tests"  ] ; then
+  if [ "$CASE" == "examples" ] || [  "$CASE" == "tests"  ] || [  "$CASE" == "benchmarks"  ] ; then
       all_cases=$(find ${CASE}/* -maxdepth 0 -type d)
   else
       all_cases=$(find $CASE -maxdepth 0 -type d)
