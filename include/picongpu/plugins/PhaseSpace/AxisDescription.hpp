@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <string>
+
 namespace picongpu
 {
     /** 2D Phase Space Selection
@@ -47,6 +49,36 @@ namespace picongpu
             y = 1u,
             z = 2u
         };
+
+        std::string momentumAsString() const
+        {
+            switch(momentum)
+            {
+            case px:
+                return "px";
+            case py:
+                return "py";
+            case pz:
+                return "pz";
+            default:
+                throw std::runtime_error("Unreachable!");
+            }
+        }
+
+        std::string spaceAsString() const
+        {
+            switch(space)
+            {
+            case x:
+                return "x";
+            case y:
+                return "y";
+            case z:
+                return "z";
+            default:
+                throw std::runtime_error("Unreachable!");
+            }
+        }
     };
 
 } /* namespace picongpu */
