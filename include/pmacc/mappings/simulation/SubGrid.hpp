@@ -40,6 +40,8 @@ namespace pmacc
     public:
         typedef DataSpace<DIM> Size;
 
+        constexpr SubGrid& operator=(const SubGrid&) = default;
+
         /**
          * Initialize SubGrid instance
          *

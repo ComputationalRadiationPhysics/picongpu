@@ -54,6 +54,8 @@ namespace pmacc
             }
         }
 
+        constexpr HDINLINE DataSpace& operator=(const DataSpace&) = default;
+
         /**
          * constructor.
          * Sets size of all dimensions from cuda dim3.

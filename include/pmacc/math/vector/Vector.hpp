@@ -52,6 +52,8 @@ namespace pmacc
                 {
                 }
 
+                constexpr Vector_components& operator=(const Vector_components&) = default;
+
                 /*align full vector*/
                 PMACC_ALIGN(v[dim], type);
 
@@ -239,6 +241,8 @@ namespace pmacc
 
                 return invertedVector;
             }
+
+            constexpr HDINLINE Vector& operator=(const Vector&) = default;
 
             template<typename T_OtherAccessor, typename T_OtherNavigator, template<typename, int> class T_OtherStorage>
             HDINLINE This& operator=(const Vector<type, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& rhs)

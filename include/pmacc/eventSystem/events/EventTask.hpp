@@ -43,6 +43,8 @@ namespace pmacc
          */
         EventTask(id_t taskId);
 
+        constexpr EventTask(const pmacc::EventTask&) = default;
+
         /**
          * Constructor.
          */

@@ -52,12 +52,8 @@ namespace pmacc
 
         /**
          * Copy constructor
-         *
-         * @param other Selection to copy information from
          */
-        Selection(const Selection<DIM>& other) : size(other.size), offset(other.offset)
-        {
-        }
+        constexpr Selection(const Selection&) = default;
 
         /**
          * Constructor
