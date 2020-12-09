@@ -149,6 +149,8 @@ namespace picongpu
             __deleteArray(obj);
         }
 
+        MessageHeader& operator=(MessageHeader const&) = default;
+
         DataHeader data;
         SimHeader sim;
         WindowHeader window;
