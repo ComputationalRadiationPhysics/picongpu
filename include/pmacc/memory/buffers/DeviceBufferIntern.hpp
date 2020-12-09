@@ -26,6 +26,7 @@
 #include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/memory/buffers/DeviceBuffer.hpp"
 #include "pmacc/memory/boxes/DataBox.hpp"
+#include "pmacc/memory/Array.hpp"
 #include "pmacc/assert.hpp"
 
 namespace pmacc
@@ -103,15 +104,11 @@ namespace pmacc
             __startOperation(ITask::TASK_DEVICE);
             if(!preserveData)
             {
-                TYPE value;
-                /* using `uint8_t` for byte-wise looping through tmp var value of `TYPE` */
-                uint8_t* valuePtr = reinterpret_cast<uint8_t*>(&value);
-                for(size_t b = 0; b < sizeof(TYPE); ++b)
-                {
-                    valuePtr[b] = static_cast<uint8_t>(0);
-                }
-                /* set value with zero-ed `TYPE` */
-                setValue(value);
+                // Using Array is a workaround for types without default constructor
+                memory::Array<TYPE, 1> tmp;
+                memset(reinterpret_cast<void*>(tmp.data()), 0, sizeof(tmp));
+                // use first element to avoid issue because Array is aligned (sizeof can be larger than component type)
+                setValue(tmp[0]);
             }
         }
 

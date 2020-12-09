@@ -125,7 +125,7 @@ namespace picongpu
                 header.sim.size.x() * sizeof(ValueType)));
 
             MessageHeader* fakeHeader = MessageHeader::create();
-            memcpy(fakeHeader, &header, sizeof(MessageHeader));
+            *fakeHeader = header;
 
             char* recvHeader = new char[MessageHeader::bytes * numRanks];
 

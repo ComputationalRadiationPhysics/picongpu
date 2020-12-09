@@ -38,6 +38,8 @@ namespace pmacc
             {
             }
 
+            constexpr HDINLINE Complex(const Complex& other) = default;
+
             // constructor (Complex<T_OtherType>)
             template<typename T_OtherType>
             HDINLINE explicit Complex(const Complex<T_OtherType>& other)
