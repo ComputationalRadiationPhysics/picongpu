@@ -1,5 +1,5 @@
 ################################################################################
-#   [g++-X] : X = {5, 6, 7, 8, 9}
+#   [g++-X] : X = {5, 6, 7, 8, 9, 10}
 
 .base_nvcc:
   variables:
@@ -32,4 +32,8 @@
 
 .base_nvcc_cuda_10.2:
   image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.2gccPic
+  extends: .base_nvcc
+
+.base_nvcc_cuda_11.0:
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda11.0gccPic
   extends: .base_nvcc

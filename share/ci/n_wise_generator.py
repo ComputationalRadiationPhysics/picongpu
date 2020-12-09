@@ -92,23 +92,30 @@ def is_valid_combination(row):
 
         # nvcc compatibility
         if is_cuda and is_nvcc:
-            # g++-5.5 is not compatible with CUDA
-            # https://github.com/tensorflow/tensorflow/issues/10220
-            if is_gnu and v_compiler == 5:
-                return False
-            if v_cuda <= 10.1 and is_gnu and v_compiler <= 7:
-                return True
-            if v_cuda <= 10.2 and is_gnu and v_compiler <= 8:
-                return True
-            if v_cuda >= 11.0 and is_gnu and v_compiler <= 9:
-                return True
+            if is_gnu:
+                # g++-5.5 is not compatible with CUDA
+                # https://github.com/tensorflow/tensorflow/issues/10220
+                if v_compiler == 5:
+                    return False
+                if v_cuda <= 10.1 and v_compiler <= 7:
+                    return True
+                if v_cuda == 10.2 and v_compiler <= 8:
+                    return True
+                if v_cuda == 11.0 and v_compiler <= 9:
+                    return True
+                if v_cuda >= 11.1 and v_compiler <= 10:
+                    return True
 
-            if v_cuda == 9.2 and is_clang and v_compiler <= 5:
-                return True
-            if v_cuda <= 10.2 and is_clang and v_compiler <= 8:
-                return True
-            if v_cuda >= 11.0 and is_clang:
-                return False
+            if is_clang:
+                if v_cuda == 9.2 and v_compiler <= 5:
+                    return True
+                if 10.0 <= v_cuda and v_cuda <= 10.2 and v_compiler <= 8:
+                    return True
+                if v_cuda == 11.0 and v_compiler <= 9:
+                    return True
+                if v_cuda >= 11.1 and v_compiler <= 10:
+                    return True
+
             return False
 
     return True
@@ -117,8 +124,10 @@ def is_valid_combination(row):
 # compiler list
 # tuple with two components (compiler name, version)
 clang_compiers = [("clang++", 5.0), ("clang++", 6.0), ("clang++", 7),
-                  ("clang++", 8), ("clang++", 9), ("clang++", 10)]
-gnu_compilers = [("g++", 5), ("g++", 6), ("g++", 7), ("g++", 8), ("g++", 9)]
+                  ("clang++", 8), ("clang++", 9), ("clang++", 10),
+                  ("clang++", 11)]
+gnu_compilers = [("g++", 5), ("g++", 6), ("g++", 7), ("g++", 8),
+                 ("g++", 9), ("g++", 10)]
 compilers = [
     clang_compiers,
     gnu_compilers
@@ -143,9 +152,9 @@ compilers.append(cuda_nvcc_compilers)
 # tuple with two components (backend name, version)
 # version is only required for the cuda backend
 backends = [("cuda", 9.2), ("cuda", 10.0), ("cuda", 10.1),
-            ("cuda", 10.2), ("omp2b", ), ("serial", )]
+            ("cuda", 10.2), ("cuda", 11.0), ("omp2b", ), ("serial", )]
 boost_libs = ["1.65.1", "1.66.0", "1.67.0", "1.68.0", "1.69.0",
-              "1.70.0", "1.71.0", "1.72.0", "1.73.0"]
+              "1.70.0", "1.71.0", "1.72.0", "1.73.0", "1.74.0"]
 
 rounds = 1
 # activate looping over the compiler categories to minimize the test matrix
