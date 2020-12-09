@@ -17,6 +17,15 @@ echo "  - local: '/share/ci/compiler_nvcc_cuda.yml'"
 echo "  - local: '/share/ci/compiler_clang_cuda.yml'"
 echo ""
 
+# handle CI actions
+has_label=$($CI_PROJECT_DIR/share/ci/pr_has_label.sh "CI:no-compile" && echo "0" || echo "1")
+if [ "$has_label" == "0" ] ; then
+  echo "skip-compile:"
+  echo "  script:"
+  echo "    - echo \"CI action - 'CI:no-compile' -> skip compile/runtime tests\""
+  exit 0
+fi
+
 folders=()
 for CASE in ${PIC_INPUTS}; do
   if [ "$CASE" == "examples" ] || [  "$CASE" == "tests"  ] ; then
