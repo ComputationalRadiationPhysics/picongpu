@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Axel Huebl
+/* Copyright 2014-2020 Alexander Debus, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -20,6 +20,17 @@
 
 #pragma once
 
-/** Load pre-defined templates (implementation) */
-#include "picongpu/fields/background/templates/TWTS/TWTS.tpp"
-#include "picongpu/fields/background/templates/twtsfast/twtsfast.tpp"
+namespace picongpu
+{
+    namespace templates
+    {
+        namespace twtsfast
+        {
+            namespace detail
+            {
+                /** Number of field components used in the simulation. [Default: 3 for both 2D and 3D] */
+                uint32_t const numComponents = 3;
+            } /* namespace detail */
+        } /* namespace twtsfast*/
+    } /* namespace templates */
+} /* namespace picongpu */
