@@ -192,6 +192,13 @@ namespace picongpu
     private:
         SimulationDataId m_datasetID;
 
+        /** Get exchange memory size.
+         *
+         * @param ex exchange index calculated from pmacc::typ::ExchangeType, valid range: [0;27)
+         * @return exchange size in bytes
+         */
+        size_t exchangeMemorySize(uint32_t ex) const;
+
         FieldE* fieldE;
         FieldB* fieldB;
     };

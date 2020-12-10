@@ -211,6 +211,8 @@ namespace picongpu
      *     static constexpr uint32_t BYTES_EXCHANGE_Z = 5 * 1024 * 1024;
      *     static constexpr uint32_t BYTES_CORNER = 16 * 1024;
      *     static constexpr uint32_t BYTES_EDGES = 16 * 1024;
+     *     using REF_LOCAL_DOM_SIZE = mCT::Int<0, 0, 0>;
+     *     const std::array<float_X, 3> DIR_SCALING_FACTOR = {{0.0, 0.0, 0.0}};
      * };
      * @endcode
      */
