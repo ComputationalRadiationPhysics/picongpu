@@ -1,5 +1,5 @@
 ################################################################################
-#   [clang++-X] : X = {4.0, 5.0, 6.0, 7, 8, 9, 10}
+#   [clang++-X] : X = {4.0, 5.0, 6.0, 7, 8, 9, 10, 11}
 
 .base_clang:
   image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:clangPic
