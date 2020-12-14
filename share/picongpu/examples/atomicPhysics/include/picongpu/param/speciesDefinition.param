@@ -41,6 +41,7 @@
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/meta/String.hpp>
 
+// carbon + thermal electrons
 namespace picongpu
 {
 

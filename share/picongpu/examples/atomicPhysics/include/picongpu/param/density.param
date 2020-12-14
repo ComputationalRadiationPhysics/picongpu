@@ -24,6 +24,8 @@
 /* preprocessor struct generator */
 #include <pmacc/preprocessor/struct.hpp>
 
+
+// base density 1e25, 1 macro particle per cell, unifrom distribution
 namespace picongpu
 {
 namespace SI
@@ -39,7 +41,7 @@ namespace SI
 #ifndef PARAM_BASE_DENSITY_SI
 #   define PARAM_BASE_DENSITY_SI 1.e25
 #endif
-     constexpr float_64 BASE_DENSITY_SI = 1.117e29;
+     constexpr float_64 BASE_DENSITY_SI = 1e25;
 }
 
 namespace densityProfiles

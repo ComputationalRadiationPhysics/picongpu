@@ -28,6 +28,7 @@
 #include <pmacc/Environment.hpp>
 
 #include <cstdint>
+#include <stdio.h>
 
 
 namespace picongpu
@@ -62,6 +63,7 @@ namespace stage
             // temporary name
             _atomicPhysics< >
         >::type;
+
         pmacc::meta::ForEach<
             SpeciesWithAtomicPhysics,
             particles::atomicPhysics::CallAtomicPhysics< bmpl::_1 >

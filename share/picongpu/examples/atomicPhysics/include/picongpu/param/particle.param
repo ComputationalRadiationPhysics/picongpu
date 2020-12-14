@@ -27,6 +27,8 @@
 
 #include <pmacc/math/Vector.hpp>
 
+
+// particles randomly distributed, 1 macro particle per cell
 namespace picongpu
 {
 namespace particles
@@ -41,14 +43,14 @@ namespace particles
 namespace startPosition
 {
 
-    struct RandomParameter20ppc
+    struct RandomParameter1ppc
     {
         /** Count of particles per cell at initial state
          *  unit: none
          */
-        static constexpr uint32_t numParticlesPerCell = 20u;
+        static constexpr uint32_t numParticlesPerCell = 1u;
     };
-    using Random20ppc = RandomImpl< RandomParameter20ppc >;
+    using Random1ppc = RandomImpl< RandomParameter1ppc >;
 
 } // namespace startPosition
 
@@ -57,14 +59,14 @@ namespace startPosition
      *  particle attributes.
      */
     constexpr uint32_t TYPICAL_PARTICLES_PER_CELL =
-        startPosition::RandomParameter20ppc::numParticlesPerCell;
+        startPosition::RandomParameter1ppc::numParticlesPerCell;
 
 namespace manipulators
 {
 
-    struct SetIonToOnceIonized
+    struct SetIonToNotIonized
     {
-        // set ions to once ionized
+        // set ions to not ionized ground state
         template< typename T_Particle >
         DINLINE void operator()( T_Particle & particle )
         {
@@ -74,38 +76,37 @@ namespace manipulators
             float_X const protonNumber = traits::GetAtomicNumbers< T_Particle >::type::numberOfProtons;
 
             // init normal ionization
-            particle[ boundElectrons_ ] = protonNumber - 1;
+            particle[ boundElectrons_ ] = protonNumber;
 
-            /*
-            // get current Configutation number object
+            // get current Configuration number object
             auto configNumber = particle[ atomicConfigNumber_ ];
 
-            // occupation number vector
-            auto occupationNumbers = pmacc::math::Vector<
+            // create occupation number vector
+            auto occupationNumberVector = pmacc::math::Vector<
                 uint8_t,
                 configNumber.numberLevels
                 >::create( 0u );
 
-            uint8_t numberElectronsRemaining = protonNumber - 1;
 
-            // fill from bottom up until no electrons remaining
+            uint8_t numberElectronsRemaining = protonNumber;
+            // fill from bottom up until no electrons remaining -> ground state init
             for ( uint8_t level = 1u; level <= configNumber.numberlevels; i++ )
             {
                 if ( numberElectronsRemaining >= 2u * i * i)
                 {
-                    *occupationNumbers[ i - 1u ] = 2u * i * i;
+                    (*occupationNumberVector)[ i - 1u ] = 2u * i * i;
                     numberElectronsRemaining -= 2u * i * i;
                 }
                 else
                 {
-                    *occupationNumbers[ i - 1u ] = numberElectronsRemaining;
+                    (*occupationNumberVector)[ i - 1u ] = numberElectronsRemaining;
                     numberElectronsRemaining = 0;
                     break;
                 }
             }
-            */
+
             // change atomic state index
-            particle[ atomicConfigNumber_ ] = 0u;// configNumber::getAtomicStateIndex( occupationNumbers );
+            particle[ atomicConfigNumber_ ] = configNumber::getAtomicStateIndex( occupationNumberVector );
         }
     };
 
@@ -129,7 +130,7 @@ namespace manipulators
 
 
     // definition of SetDrift start
-    using OnceIonized = generic::Free< SetIonToOnceIonized >;
+    using NotIonized = generic::Free< SetIonToNotIonized >;
 
 } // namespace manipulators
 } // namespace particles

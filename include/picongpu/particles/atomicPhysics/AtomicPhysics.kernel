@@ -88,7 +88,8 @@ namespace atomicPhysics
             T_Mapping mapper,
             T_AtomicDataBox const atomicDataBox,
             float_X const initialGridWidth, // unit: ATOMIC_UNIT_ENERGY
-            float_X const relativeErrorTarget // unit: 1/s /( 1/( m^3 * ATOMIC_UNIT_ENERGY ) )
+            float_X const relativeErrorTarget, // unit: 1/s /( 1/( m^3 * ATOMIC_UNIT_ENERGY ) )
+            uint32_t const step
         ) const
         {
             // we assume 1d thread indices
@@ -172,6 +173,7 @@ namespace atomicPhysics
             cupla::__syncthreads( acc );
             // necessary since all access relativeError and histogram, but both are only valid after init
 
+
             fillHistogram< T_numWorkers >(
                 acc,
                 electronBox,
@@ -180,6 +182,12 @@ namespace atomicPhysics
                 atomicDataBox
             );
             cupla::__syncthreads( acc );
+
+            // debug code only
+            if( workerIdx == 0 )
+            {
+                printf("histogram filled");
+            }
 
             solveRateEquation< T_numWorkers, AtomicRate >(
                 acc,
@@ -192,6 +200,12 @@ namespace atomicPhysics
             );
             cupla::__syncthreads( acc );
 
+            // debug code only
+            if( workerIdx == 0 )
+            {
+                printf("rate applied");
+            }
+
             decelerateElectrons< T_numWorkers >(
                 acc,
                 mapper,
@@ -199,6 +213,12 @@ namespace atomicPhysics
                 histogram,
                 atomicDataBox
             );
+
+            // debug code only
+            if( workerIdx == 0 )
+            {
+                printf("electrons decellerated");
+            }
 
         }
     };

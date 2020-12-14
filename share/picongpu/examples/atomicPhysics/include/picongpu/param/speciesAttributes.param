@@ -45,6 +45,7 @@
 #include <pmacc/particles/IdProvider.def>
 
 
+//definition of carbon config number Object
 namespace picongpu
 {
     /** relative (to cell origin) in-cell position of a particle

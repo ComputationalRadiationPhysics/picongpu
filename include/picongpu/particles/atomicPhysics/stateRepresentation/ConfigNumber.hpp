@@ -221,8 +221,8 @@ namespace stateRepresentation
             )
         {
         /**
-        * Uses the formula in file descripton. Assumes index of vector corresponds
-        * to n-1, n ... principal quantum number.
+        * Uses the formula in file descripton. Assumes index of vector is principal
+        * quantum number shifted by -1
         */
 
             /* stepLength ... number of table entries per occupation number VALUE of

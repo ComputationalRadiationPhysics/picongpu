@@ -56,7 +56,7 @@ namespace atomicPhysics
      * so long as time is remaining
      *  1.) choose a new state by choosing a random integer in the atomic state index
      *      range.
-     *  2.) choose a random bin of energy histogram of electrons to do change with
+     *  2.) choose a random bin of energy histogram of electrons to interact with
      *  3.) calculate rate of change into this new state, with choosen electron energy
      *  3.) calculate the quasiProbability = rate * dt
      *  4.) if (quasiProbability > 1):
@@ -142,7 +142,7 @@ namespace atomicPhysics
             // get width of histogram bin with this collection index
             energyElectronBinWidth = histogram->getBinWidth(
                 acc,
-                true,   // directionPositive?
+                true,   // answer to question: directionPositive?
                 histogram->getLeftBoundaryBin( histogramIndex ), // unit: ATOMIC_UNIT_ENERGY
                 histogram->getInitialGridWidth( ), // unit: ATOMIC_UNIT_ENERGY
                 atomicDataBox
@@ -228,12 +228,14 @@ namespace atomicPhysics
             {
                 if ( quasiProbability < 0._X )
                 {
-                    // quasiProbability can only be < 0 in the case of
-                    // newState != oldState since AtomicRate::Rate( ), timeRemaining > 0
+                    // case: newState != oldState
+                    // quasiProbability can only be > 0, since AtomicRate::Rate( )>0
+                    // and timeRemaining > 0
 
-                    // case: newState == oldState and on average change from original
-                    // state into new more than once in timeRemaining
-                    // => can not remain in current state -> choose new state
+                    // case: newState == oldState
+                    // on average change from original state into new more than once
+                    // in timeRemaining
+                    // => can not remain in current state -> must choose new state
                 }
                 else if ( randomGenFloat() <= quasiProbability )
                 {

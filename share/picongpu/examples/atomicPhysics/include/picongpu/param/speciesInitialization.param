@@ -31,6 +31,7 @@
 #include "picongpu/particles/InitFunctors.hpp"
 
 
+// init of particles with 
 namespace picongpu
 {
 namespace particles
@@ -43,7 +44,7 @@ namespace particles
 
         CreateDensity<
             densityProfiles::Homogenous,
-            startPosition::Random20ppc,
+            startPosition::Random1ppc,
             CarbonIons
         >,
         ManipulateDerive<
@@ -51,9 +52,9 @@ namespace particles
             CarbonIons,
             BulkElectrons
         >,
-        // pre ionize carbon ions to 1+
+        // set ions to atomic ground state
         Manipulate<
-            manipulators::OnceIonized,
+            manipulators::NotIonized,
             CarbonIons
         >,
         // Set initial temperature of bulk electrons

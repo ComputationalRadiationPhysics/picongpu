@@ -20,6 +20,7 @@
 #pragma once
 
 
+// changed absorber size to 0 in all 3 dimensions
 namespace picongpu
 {
 
@@ -67,9 +68,9 @@ namespace picongpu
 
     //! Defines the size of the absorbing zone (in cells)
     constexpr uint32_t ABSORBER_CELLS[3][2] = {
-        {32, 32},  /*x direction [negative,positive]*/
-        {32, 32},  /*y direction [negative,positive]*/
-        {32, 32}   /*z direction [negative,positive]*/
+        {0, 0},  /*x direction [negative,positive]*/
+        {0, 0},  /*y direction [negative,positive]*/
+        {0, 0}   /*z direction [negative,positive]*/
     }; //unit: number of cells
 
     //! Define the strength of the absorber for any direction
