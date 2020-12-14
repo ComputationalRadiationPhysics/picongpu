@@ -2,12 +2,12 @@
 #   [g++-X] : X = {5, 6, 7, 8, 9 ,10}
 
 .base_gcc:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:gccPic
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-gcc-pic:1.1
   variables:
     GIT_SUBMODULE_STRATEGY: normal
   script:
     - apt update
-    - apt install -y curl
+    - apt install -y curl libjpeg-dev
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
     - $CI_PROJECT_DIR/share/ci/bash.profile
     - $CI_PROJECT_DIR/share/ci/run_pmacc_tests.sh

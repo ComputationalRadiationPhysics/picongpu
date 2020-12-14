@@ -2,13 +2,13 @@
 #   [clang++-X] : X = {4.0, 5.0, 6.0, 7, 8, 9, 10, 11}
 
 .base_clang:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:clangPic
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-clang-pic:1.1
   variables:
     GIT_SUBMODULE_STRATEGY: normal
     PIC_CMAKE_ARGS: "-DALPAKA_CUDA_COMPILER=clang"
   script:
     - apt update
-    - apt install -y curl
+    - apt install -y curl libjpeg-dev
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
     - $CI_PROJECT_DIR/share/ci/bash.profile
     - $CI_PROJECT_DIR/share/ci/run_pmacc_tests.sh

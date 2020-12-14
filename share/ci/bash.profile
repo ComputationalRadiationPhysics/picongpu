@@ -26,6 +26,11 @@ export CMAKE_PREFIX_PATH=$ADIOS1_ROOT:$CMAKE_PREFIX_PATH
 export PATH=$ADIOS1_ROOT/bin:$PATH
 export LD_LIBRARY_PATH=$ADIOS1_ROOT/lib:$LD_LIBRARY_PATH
 
+export ADIOS2_ROOT=/opt/adios/2.6.0
+export CMAKE_PREFIX_PATH=$ADIOS2_ROOT:$CMAKE_PREFIX_PATH
+export PATH=$ADIOS2_ROOT/bin:$PATH
+export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib:$LD_LIBRARY_PATH
+
 export ICET_ROOT=/opt/icet/2.9.0
 export CMAKE_PREFIX_PATH=$ICET_ROOT/lib:$CMAKE_PREFIX_PATH
 export LD_LIBRARY_PATH=$ICET_ROOT/lib:$LD_LIBRARY_PATH
@@ -34,12 +39,9 @@ export JANSSON_ROOT=/opt/jansson/2.9.0/
 export CMAKE_PREFIX_PATH=$JANSSON_ROOT/lib/cmake:$CMAKE_PREFIX_PATH
 export LD_LIBRARY_PATH=$JANSSON_ROOT/lib:$LD_LIBRARY_PATH
 
-# disabled:
-#   - test container are shipped with the wrong issac version
-#   - issac must be tested with different compilers
-#export ISAAC_ROOT=/opt/isaac/1.6.0-dev
-#export CMAKE_PREFIX_PATH=$ISAAC_ROOT:$CMAKE_PREFIX_PATH
-#export LD_LIBRARY_PATH=$ISAAC_ROOT/lib:$LD_LIBRARY_PATH
+export ISAAC_ROOT=/opt/isaac/1.6.0-dev
+export CMAKE_PREFIX_PATH=$ISAAC_ROOT:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$ISAAC_ROOT/lib:$LD_LIBRARY_PATH
 
 export OPENPMD_ROOT=/opt/openPMD-api/0.12.0
 export CMAKE_PREFIX_PATH=$OPENPMD_ROOT:$CMAKE_PREFIX_PATH
