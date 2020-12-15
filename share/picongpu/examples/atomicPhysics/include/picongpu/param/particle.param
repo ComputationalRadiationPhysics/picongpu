@@ -64,7 +64,7 @@ namespace startPosition
 namespace manipulators
 {
 
-    struct SetIonToNotIonized
+    struct SetIonToOnceIonized
     {
         // set ions to not ionized ground state
         template< typename T_Particle >
@@ -76,7 +76,7 @@ namespace manipulators
             float_X const protonNumber = traits::GetAtomicNumbers< T_Particle >::type::numberOfProtons;
 
             // init normal ionization
-            particle[ boundElectrons_ ] = protonNumber;
+            particle[ boundElectrons_ ] = protonNumber - 1;
 
             // get current Configuration number object
             auto configNumber = particle[ atomicConfigNumber_ ];
@@ -88,7 +88,7 @@ namespace manipulators
                 >::create( 0u );
 
 
-            uint8_t numberElectronsRemaining = protonNumber;
+            uint8_t numberElectronsRemaining = protonNumber - 1;
             // fill from bottom up until no electrons remaining -> ground state init
             for ( uint8_t level = 1u; level <= configNumber.numberlevels; i++ )
             {
@@ -130,7 +130,7 @@ namespace manipulators
 
 
     // definition of SetDrift start
-    using NotIonized = generic::Free< SetIonToNotIonized >;
+    using OnceIonized = generic::Free< SetIonToNotIonized >;
 
 } // namespace manipulators
 } // namespace particles

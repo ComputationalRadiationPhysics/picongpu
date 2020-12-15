@@ -54,7 +54,7 @@ namespace particles
         >,
         // set ions to atomic ground state
         Manipulate<
-            manipulators::NotIonized,
+            manipulators::OnceIonized,
             CarbonIons
         >,
         // Set initial temperature of bulk electrons

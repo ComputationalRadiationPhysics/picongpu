@@ -22,6 +22,7 @@
 
 #pragma once
 
+// actual kernel functionality
 #include <picongpu/particles/atomicPhysics/CallAtomicPhysics.hpp>
 
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -38,7 +39,8 @@ namespace simulation
 namespace stage
 {
 
-    //! Test stage for accessing PIC data from a CPU
+    //! test stage for AtomicPhysics
+    // one instance of this class is initialised and it's operator() called for every time step
     class AtomicPhysics
     {
     public:
@@ -50,6 +52,7 @@ namespace stage
 
         void operator( )( uint32_t const step ) const
         {
+            // create instance 
             callAtomicPhysics(
                 step,
                 cellDescription
@@ -58,12 +61,15 @@ namespace stage
 
     private:
 
+        // list of all species of macro particles with flag _atomicPhysics as defined in
+        // species.param, is list of types
         using SpeciesWithAtomicPhysics = typename pmacc::particles::traits::FilterByFlag<
             VectorAllSpecies,
             // temporary name
             _atomicPhysics< >
         >::type;
 
+        // kernel to be called for each species
         pmacc::meta::ForEach<
             SpeciesWithAtomicPhysics,
             particles::atomicPhysics::CallAtomicPhysics< bmpl::_1 >
