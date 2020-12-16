@@ -115,13 +115,13 @@ namespace picongpu
      *
      * @tparam DIM the dimension (2-3) for the simulation
      */
-    class MySimulation : public SimulationHelper<simDim>
+    class Simulation : public SimulationHelper<simDim>
     {
     public:
         /**
          * Constructor
          */
-        MySimulation()
+        Simulation()
             : myFieldSolver(nullptr)
             , cellDescription(nullptr)
             , initialiserController(nullptr)
