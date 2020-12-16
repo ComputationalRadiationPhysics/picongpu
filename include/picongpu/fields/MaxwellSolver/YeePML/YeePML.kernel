@@ -363,6 +363,7 @@ namespace picongpu
                      * @param curl functor to calculate the electric field, interface must be
                      *             `operator( )( T_EBox )`
                      * @param fieldE electric field iterator
+                     * @param updatePsiB whether convolutional magnetic fields need to be updated, or are up-to-date
                      * @param fieldB magnetic field iterator
                      * @param fieldPsiB PML convolutional magnetic field iterator
                      */
@@ -373,6 +374,7 @@ namespace picongpu
                         LocalParameters const parameters,
                         T_Curl const curl,
                         T_EBox const fieldE,
+                        bool const updatePsiB,
                         T_BBox fieldB,
                         FieldBox fieldPsiB) const
                     {
@@ -397,14 +399,19 @@ namespace picongpu
                         constexpr auto numCellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
                         ForEachIdx<IdxConfig<numCellsPerSuperCell, numWorkers>>{
                             workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
-                            constexpr auto halfDt = 0.5_X * DELTA_T;
+                            constexpr auto dt = DELTA_T;
+                            constexpr auto halfDt = 0.5_X * dt;
                             auto const idxInSuperCell
                                 = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
                             // grid index to process with the current thread
                             auto const idx = blockBeginIdx + idxInSuperCell;
                             // with the current Yee grid, a half cell shift is needed here
                             auto const pmlIdx = floatD_X::create(0.5_X) + precisionCast<float_X>(idx);
-                            auto const coeffs = detail::getCoefficients(pmlIdx, parameters, halfDt);
+                            /* Note that convolutional fields are updated once per dt. So the coefficients are computed
+                             * in this way, and whether the update has to be performed is controlled by a kernel caller
+                             * with updatePsiB parameter.
+                             */
+                            auto const coeffs = detail::getCoefficients(pmlIdx, parameters, dt);
 
                             if(detail::isInPML(coeffs))
                             {
@@ -419,12 +426,15 @@ namespace picongpu
                                 auto const dEdy = curl.yDerivative(localE);
                                 auto const dEdz = curl.zDerivative(localE);
                                 auto& psiB = fieldPsiB(idx);
-                                psiB.yx = coeffs.b.x() * psiB.yx + coeffs.c.x() * dEdx.z();
-                                psiB.zx = coeffs.b.x() * psiB.zx + coeffs.c.x() * dEdx.y();
-                                psiB.xy = coeffs.b.y() * psiB.xy + coeffs.c.y() * dEdy.z();
-                                psiB.zy = coeffs.b.y() * psiB.zy + coeffs.c.y() * dEdy.x();
-                                psiB.xz = coeffs.b.z() * psiB.xz + coeffs.c.z() * dEdz.y();
-                                psiB.yz = coeffs.b.z() * psiB.yz + coeffs.c.z() * dEdz.x();
+                                if(updatePsiB)
+                                {
+                                    psiB.yx = coeffs.b.x() * psiB.yx + coeffs.c.x() * dEdx.z();
+                                    psiB.zx = coeffs.b.x() * psiB.zx + coeffs.c.x() * dEdx.y();
+                                    psiB.xy = coeffs.b.y() * psiB.xy + coeffs.c.y() * dEdy.z();
+                                    psiB.zy = coeffs.b.y() * psiB.zy + coeffs.c.y() * dEdy.x();
+                                    psiB.xz = coeffs.b.z() * psiB.xz + coeffs.c.z() * dEdz.y();
+                                    psiB.yz = coeffs.b.z() * psiB.yz + coeffs.c.z() * dEdz.x();
+                                }
 
                                 /* [Taflove, Hagness], eq. (7.108) and similar for other
                                  * components. Coefficients Da, Db as given in (7.109a,b)
