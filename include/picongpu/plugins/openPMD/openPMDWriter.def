@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "picongpu/plugins/openPMD/DumpTimes.hpp"
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/openPMD/Json.hpp"
@@ -102,6 +103,11 @@ namespace picongpu
             DataSpace<simDim> localWindowToDomainOffset;
 
             std::vector<double> times;
+            DumpTimes<> m_dumpTimes{[]() {
+                static GridController<simDim>& gc = Environment<simDim>::get().GridController();
+                static std::string dumpFile = "PIC_times_" + std::to_string(gc.getGlobalRank()) + ".txt";
+                return dumpFile;
+            }()};
 
             ::openPMD::Series& openSeries(::openPMD::Access at);
 

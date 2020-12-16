@@ -329,6 +329,9 @@ namespace picongpu
                 const DataSpace<simDim> particleToTotalDomainOffset)
             {
                 log<picLog::INPUT_OUTPUT>("openPMD: (begin) write species: %1%") % T_SpeciesFilter::getName();
+                params->m_dumpTimes.now<std::chrono::milliseconds>(
+                    "Begin write species " + T_SpeciesFilter::getName());
+
                 DataConnector& dc = Environment<>::get().DataConnector();
                 GridController<simDim>& gc = Environment<simDim>::get().GridController();
                 uint64_t mpiSize = gc.getGlobalSize();
@@ -475,6 +478,12 @@ namespace picongpu
                         log<picLog::INPUT_OUTPUT>("openPMD: (begin) write particle records for %1%, dumping round %2%")
                             % T_SpeciesFilter::getName() % dumpIteration;
 
+                        std::stringstream description;
+                        description << "\tslice " << dumpIteration << " prepare";
+                        params->m_dumpTimes.now<std::chrono::milliseconds>(description.str());
+
+                        size_t writtenBytes = 0;
+
                         meta::ForEach<
                             typename NewParticleDescription::ValueTypeSeq,
                             openPMD::ParticleAttribute<boost::mpl::_1>>
@@ -486,12 +495,21 @@ namespace picongpu
                             basename,
                             chunk.numberOfParticles,
                             globalNumParticles,
-                            myParticleOffset + particleOffset);
+                            myParticleOffset + particleOffset,
+                            writtenBytes);
+
+                        description = std::stringstream();
+                        description << ": " << writtenBytes << " bytes for " << chunk.numberOfParticles
+                                    << " particles from offset " << (myParticleOffset + particleOffset);
+                        params->m_dumpTimes.append(description.str());
 
                         log<picLog::INPUT_OUTPUT>("openPMD: flush particle records for %1%, dumping round %2%")
                             % T_SpeciesFilter::getName() % dumpIteration;
 
+                        params->m_dumpTimes.now<std::chrono::milliseconds>("\tslice "+ std::to_string(dumpIteration)+" flush");
                         params->openPMDSeries->flush(PreferredFlushTarget::Disk);
+                        params->m_dumpTimes.now<std::chrono::milliseconds>("\tslice "+ std::to_string(dumpIteration) + " end");
+
 
                         log<picLog::INPUT_OUTPUT>("openPMD: (end) write particle records for %1%, dumping round %2%")
                             % T_SpeciesFilter::getName() % dumpIteration;
@@ -554,7 +572,10 @@ namespace picongpu
                         globalNumParticles,
                         *params->jsonMatcher,
                         series.particlesPath() + speciesGroup);
+                    params->m_dumpTimes.now<std::chrono::milliseconds>(
+                        "\tFlush species " + T_SpeciesFilter::getName());
                     params->openPMDSeries->flush(PreferredFlushTarget::Buffer);
+                    params->m_dumpTimes.now<std::chrono::milliseconds>("\tFinished flush species");
                 }
 
                 log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing particle patches for %1%")

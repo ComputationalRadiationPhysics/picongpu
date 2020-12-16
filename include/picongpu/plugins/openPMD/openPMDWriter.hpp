@@ -801,6 +801,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 HINLINE void operator_impl(ThreadParams* params, uint32_t const currentStep)
                 {
+                    params->m_dumpTimes.now<std::chrono::milliseconds>("Begin write field " + getName());
                     DataConnector& dc = Environment<>::get().DataConnector();
 
                     /*## update field ##*/
@@ -855,7 +856,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         FieldTmp::getUnitDimension<Solver>(),
                         std::move(inCellPosition),
                         timeOffset,
-                        isDomainBound);
+                        isDomainBound,
+                        /* logBeginWriteField = */ false);
                 }
             };
 
@@ -1485,7 +1487,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 std::vector<float_64> unitDimension,
                 std::vector<std::vector<float_X>> inCellPosition,
                 float_X timeOffset,
-                bool isDomainBound)
+                bool isDomainBound,
+                bool logBeginWriteField = true)
             {
                 auto const name_lookup_tpl = plugins::misc::getComponentNames(nComponents);
                 std::optional<std::string> pathToRecordComponentSpecifiedViaMeshName = std::nullopt;
@@ -1527,6 +1530,10 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 log<picLog::INPUT_OUTPUT>("openPMD: write field: %1% %2% %3%") % name % nComponents
                     % buffer.getHostDataBox().getPointer();
+                if(logBeginWriteField)
+                {
+                    params->m_dumpTimes.now<std::chrono::milliseconds>("Begin write field " + name);
+                }
 
                 ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[currentStep];
                 ::openPMD::Mesh mesh = iteration.meshes[name];
@@ -1596,6 +1603,13 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 auto const numDataPoints = localWindowSize.productOfComponents();
 
+                {
+                    std::stringstream description;
+                    description << ": " << (numDataPoints * sizeof(ComponentType) * nComponents) << " bytes for "
+                                << numDataPoints << " cells";
+                    params->m_dumpTimes.append(description.str());
+                }
+
                 /* write the actual field data */
                 for(uint32_t d = 0; d < nComponents; d++)
                 {
@@ -1638,6 +1652,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         params->openPMDSeries->flush(PreferredFlushTarget::Disk);
                         continue;
                     }
+
+                    params->m_dumpTimes.now<std::chrono::milliseconds>(
+                        "\tComponent " + std::to_string(d) + " prepare");
 
                     // ask openPMD to create a buffer for us
                     // in some backends (ADIOS2), this allows avoiding memcopies
@@ -1685,7 +1702,9 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         }
                     }
 
+                    params->m_dumpTimes.now<std::chrono::milliseconds>("\tComponent " + std::to_string(d) + " flush");
                     params->openPMDSeries->flush(PreferredFlushTarget::Disk);
+                    params->m_dumpTimes.now<std::chrono::milliseconds>("\tComponent " + std::to_string(d) + " end");
                 }
             }
 
@@ -1732,6 +1751,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
             void write(ThreadParams* threadParams, uint32_t const currentStep, std::string mpiTransportParams)
             {
+                threadParams->m_dumpTimes.now<std::chrono::milliseconds>(
+                    "Beginning iteration " + std::to_string(currentStep));
                 const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
                 const pmacc::Selection<simDim> localDomain = subGrid.getLocalDomain();
                 const pmacc::Selection<simDim> globalDomain = subGrid.getGlobalDomain();
@@ -1856,7 +1877,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
                 eventSystem::getTransactionEvent().waitForFinished();
+                mThreadParams.m_dumpTimes.now<std::chrono::milliseconds>(
+                    "Closing iteration " + std::to_string(currentStep));
                 mThreadParams.openPMDSeries->writeIterations()[currentStep].close();
+                mThreadParams.m_dumpTimes.now<std::chrono::milliseconds>("Done.");
+                mThreadParams.m_dumpTimes.flush();
 
                 return;
             }
