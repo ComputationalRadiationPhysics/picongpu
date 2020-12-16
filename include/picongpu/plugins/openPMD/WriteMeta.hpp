@@ -76,7 +76,7 @@ namespace picongpu
                     }
 
                     ::openPMD::Iteration iteration
-                        = threadParams->openPMDSeries->iterations[threadParams->currentStep];
+                        = threadParams->openPMDSeries->writeIterations()[threadParams->currentStep];
                     iteration.setAttribute("particleBoundary", listParticleBoundary);
                     iteration.setAttribute("particleBoundaryParameters", listParticleBoundaryParam);
                 }
@@ -134,7 +134,7 @@ namespace picongpu
                 const std::string date = helper::getDateString("%F %T %z");
                 series.setDate(date);
 
-                ::openPMD::Iteration iteration = series.iterations[threadParams->currentStep];
+                ::openPMD::Iteration iteration = series.writeIterations()[threadParams->currentStep];
                 ::openPMD::Container<::openPMD::Mesh>& meshes = iteration.meshes;
 
                 // iteration-level attributes

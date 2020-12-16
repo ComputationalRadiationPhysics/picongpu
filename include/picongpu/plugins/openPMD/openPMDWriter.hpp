@@ -36,11 +36,11 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
 
+#include <pmacc/Environment.hpp>
 #include <pmacc/assert.hpp>
 #include <pmacc/communication/manager_common.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/Environment.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/math/Vector.hpp>
@@ -48,6 +48,7 @@
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/particles/operations/CountParticles.hpp>
 #include <pmacc/pluginSystem/PluginConnector.hpp>
+#include <pmacc/simulationControl/TimeInterval.hpp>
 #include <pmacc/static_assert.hpp>
 #if(PMACC_CUDA_ENABLED == 1)
 #    include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
@@ -810,11 +811,20 @@ Please pick either of the following:
 #endif
                 }
 
+                TimeIntervall timer;
+                timer.toggleStart();
                 initWrite();
 
                 write(&mThreadParams, mpiTransportParams);
 
                 endWrite();
+                timer.toggleEnd();
+                double interval = timer.getInterval();
+                mThreadParams.times.push_back(interval);
+                double average = std::accumulate(mThreadParams.times.begin(), mThreadParams.times.end(), 0);
+                average /= mThreadParams.times.size();
+                log<picLog::INPUT_OUTPUT>("openPMD: IO plugin ran for %1% (average: %2%)") % timer.printeTime(interval)
+                    % timer.printeTime(average);
             }
 
             static void writeFieldAttributes(
@@ -908,7 +918,7 @@ Please pick either of the following:
                 const bool fieldTypeCorrect(boost::is_same<ComponentType, float_X>::value);
                 PMACC_CASSERT_MSG(Precision_mismatch_in_Field_Components__ADIOS, fieldTypeCorrect);
 
-                ::openPMD::Iteration iteration = params->openPMDSeries->iterations[params->currentStep];
+                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[params->currentStep];
                 ::openPMD::Mesh mesh = iteration.meshes[name];
 
                 // set mesh attributes
@@ -1189,7 +1199,7 @@ Please pick either of the following:
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
                 __getTransactionEvent().waitForFinished();
-                mThreadParams.openPMDSeries->iterations[mThreadParams.currentStep].close();
+                mThreadParams.openPMDSeries->writeIterations()[mThreadParams.currentStep].close();
 
                 return;
             }

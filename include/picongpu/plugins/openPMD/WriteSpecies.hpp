@@ -290,7 +290,7 @@ namespace picongpu
                 const std::string speciesGroup(T_Species::getName());
 
                 ::openPMD::Series& series = *params->openPMDSeries;
-                ::openPMD::Iteration iteration = series.iterations[params->currentStep];
+                ::openPMD::Iteration iteration = series.writeIterations()[params->currentStep];
 
                 // enforce that the filter interface is fulfilled
                 particles::filter::IUnary<typename T_SpeciesFilter::Filter> particleFilter{params->currentStep};
