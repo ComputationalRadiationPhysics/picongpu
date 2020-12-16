@@ -165,7 +165,7 @@ int main(int argc, char** argv)
     if(vm.count("help"))
     {
         std::cerr << desc << "\n";
-        return false;
+        return 0;
     }
 
     MPI_CHECK(MPI_Init(&argc, &argv));
