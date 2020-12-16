@@ -79,6 +79,7 @@
 #include <alpaka/core/Debug.hpp>
 #include <alpaka/core/Fibers.hpp>
 #include <alpaka/core/Hip.hpp>
+#include <alpaka/core/OmpSchedule.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Unroll.hpp>
 #include <alpaka/core/Unused.hpp>
@@ -167,6 +168,7 @@
 #include <alpaka/meta/NdLoop.hpp>
 #include <alpaka/meta/Set.hpp>
 #include <alpaka/meta/Transform.hpp>
+#include <alpaka/meta/Void.hpp>
 //-----------------------------------------------------------------------------
 // offset
 #include <alpaka/offset/Traits.hpp>

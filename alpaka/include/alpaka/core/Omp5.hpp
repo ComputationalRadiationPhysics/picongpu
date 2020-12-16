@@ -34,7 +34,7 @@ namespace alpaka
         namespace detail
         {
             //-----------------------------------------------------------------------------
-            //! CUDA runtime API error checking with log and exception, ignoring specific error values
+            //! OMP5 runtime API error checking with log and exception, ignoring specific error values
             ALPAKA_FN_HOST inline auto omp5Check(int const& error, char const* desc, char const* file, int const& line)
                 -> void
             {
