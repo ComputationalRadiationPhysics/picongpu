@@ -88,33 +88,38 @@ namespace picongpu
                             return *(fieldB.get());
                         }
 
-                        /** Propagate B values in the given area by half a time step
+                        /** Propagate B values in the given area by the first half of a time step
                          *
-                         * @tparam T_Area area to apply updates to, the curl must be
-                         * applicable to all points; normally CORE, BORDER, or CORE + BORDER
+                         * This operation propagates grid values of field B by dt/2 and prepares the internal state of
+                         * convolutional components so that calling updateBSecondHalf() afterwards competes the update.
+                         *
+                         * @tparam T_Area area to apply updates to, the curl must be applicable to all points;
+                         * normally CORE, BORDER, or CORE + BORDER
                          *
                          * @param currentStep index of the current time iteration
                          */
                         template<uint32_t T_Area>
-                        void updateBHalf(uint32_t const currentStep)
+                        void updateBFirstHalf(uint32_t const currentStep)
                         {
-                            constexpr auto numWorkers = getNumWorkers();
-                            using Kernel = yeePML::KernelUpdateBHalf<numWorkers, BlockDescription<CurlE>>;
-                            AreaMapper<T_Area> mapper{cellDescription};
-                            /* Note: here it is possible to first check if PML is enabled
-                             * in the local domain at all, and otherwise optimize by calling
-                             * the normal Yee update kernel. We do not do that, as this
-                             * would be fragile with respect to future separation of PML
-                             * into a plugin.
-                             */
-                            PMACC_KERNEL(Kernel{})
-                            (mapper.getGridDim(), numWorkers)(
-                                mapper,
-                                getLocalParameters(mapper, currentStep),
-                                CurlE(),
-                                fieldE->getDeviceDataBox(),
-                                fieldB->getDeviceDataBox(),
-                                psiB->getDeviceOuterLayerBox());
+                            updateBHalf<T_Area>(currentStep, true);
+                        }
+
+                        /** Propagate B values in the given area by the second half of a time step
+                         *
+                         * This operation propagates grid values of field B by dt/2 and relies on the internal state of
+                         * convolutional components set up by a prior call to updateBFirstHalf(). After this call is
+                         * completed, the convolutional components are in the state to call updateBFirstHalf() for the
+                         * next time step.
+                         *
+                         * @tparam T_Area area to apply updates to, the curl must be applicable to all points;
+                         * normally CORE, BORDER, or CORE + BORDER
+                         *
+                         * @param currentStep index of the current time iteration
+                         */
+                        template<uint32_t T_Area>
+                        void updateBSecondHalf(uint32_t const currentStep)
+                        {
+                            updateBHalf<T_Area>(currentStep, false);
                         }
 
                         /** Propagate E values in the given area by a time step.
@@ -184,6 +189,38 @@ namespace picongpu
                          */
                         Thickness globalSize;
                         Parameters parameters;
+
+                        /** Propagate B values in the given area by half a time step
+                         *
+                         * @tparam T_Area area to apply updates to, the curl must be
+                         * applicable to all points; normally CORE, BORDER, or CORE + BORDER
+                         *
+                         * @param currentStep index of the current time iteration
+                         * @param updatePsiB whether convolutional magnetic fields need to be updated, or are
+                         * up-to-date
+                         */
+                        template<uint32_t T_Area>
+                        void updateBHalf(uint32_t const currentStep, bool const updatePsiB)
+                        {
+                            constexpr auto numWorkers = getNumWorkers();
+                            using Kernel = yeePML::KernelUpdateBHalf<numWorkers, BlockDescription<CurlE>>;
+                            AreaMapper<T_Area> mapper{cellDescription};
+                            /* Note: here it is possible to first check if PML is enabled
+                             * in the local domain at all, and otherwise optimize by calling
+                             * the normal Yee update kernel. We do not do that, as this
+                             * would be fragile with respect to future separation of PML
+                             * into a plugin.
+                             */
+                            PMACC_KERNEL(Kernel{})
+                            (mapper.getGridDim(), numWorkers)(
+                                mapper,
+                                getLocalParameters(mapper, currentStep),
+                                CurlE(),
+                                fieldE->getDeviceDataBox(),
+                                updatePsiB,
+                                fieldB->getDeviceDataBox(),
+                                psiB->getDeviceOuterLayerBox());
+                        }
 
                         void initParameters()
                         {
@@ -362,11 +399,21 @@ namespace picongpu
                  */
                 void update_beforeCurrent(uint32_t const currentStep)
                 {
-                    /* These steps are the same as in the Yee solver,
-                     * PML updates are done as part of solver.updateE( ),
-                     * solver.updateBHalf( )
+                    /* These steps are the same as in the Yee solver, PML updates are done as part of methods of
+                     * solver. Note that here we do the second half of updating B, thus completing the first half
+                     * started in a call to update_afterCurrent() at the previous time step. This splitting of B update
+                     * is standard for Yee-type field solvers in PIC codes due to particle pushers normally requiring E
+                     * and B values defined at the same time while the field solver operates with time-staggered
+                     * fields. However, while the standard Yee solver in vacuum is linear in a way of two consecutive
+                     * updates by dt/2 being equal to one update by dt, this is not true for the convolutional field
+                     * updates in PML. Thus, for PML we have to distinguish between the updates by dt/2 by introducing
+                     * first and second halves of the update. This distinction only concerns the convolutional field B
+                     * data used inside the PML, and not the full fields used by the rest of the code. In the very
+                     * first time step of a simulation we start with the second half right away, but this is no
+                     * problem, since the only meaningful initial conditions in the PML area are zero for the
+                     * to-be-absorbed components.
                      */
-                    solver.template updateBHalf<CORE + BORDER>(currentStep);
+                    solver.template updateBSecondHalf<CORE + BORDER>(currentStep);
                     auto& fieldB = solver.getFieldB();
                     EventTask eRfieldB = fieldB.asyncCommunication(__getTransactionEvent());
 
@@ -383,9 +430,11 @@ namespace picongpu
                  */
                 void update_afterCurrent(uint32_t const currentStep)
                 {
-                    /* These steps are the same as in the Yee solver,
-                     * except the Fabsorber::ExponentialDamping::run( ) is not called,
-                     * PML updates are done as part of solver.updateBHalf( ).
+                    /* These steps are the same as in the Yee solver, except the Fabsorber::ExponentialDamping::run( )
+                     * is not called, PML updates are done as part of calls to methods of solver. As explained in more
+                     * detail in comments inside update_beforeCurrent(), here we start a new step of updating B in
+                     * terms of the time-staggered Yee grid. And so this is the first half of B update, to be completed
+                     * in a call to update_beforeCurrent() on the next time step.
                      */
                     if(laserProfiles::Selected::INIT_TIME > 0.0_X)
                         LaserPhysics{}(currentStep);
@@ -393,9 +442,9 @@ namespace picongpu
                     auto& fieldE = solver.getFieldE();
                     EventTask eRfieldE = fieldE.asyncCommunication(__getTransactionEvent());
 
-                    solver.template updateBHalf<CORE>(currentStep);
+                    solver.template updateBFirstHalf<CORE>(currentStep);
                     __setTransactionEvent(eRfieldE);
-                    solver.template updateBHalf<BORDER>(currentStep);
+                    solver.template updateBFirstHalf<BORDER>(currentStep);
 
                     auto& fieldB = solver.getFieldB();
                     EventTask eRfieldB = fieldB.asyncCommunication(__getTransactionEvent());
