@@ -21,7 +21,7 @@
 
 #include "picongpu/initialization/InitialiserController.hpp"
 #include "picongpu/plugins/PluginController.hpp"
-#include "picongpu/simulation/control/MySimulation.hpp"
+#include "picongpu/simulation/control/Simulation.hpp"
 #include "picongpu/simulation/control/SimulationStarter.hpp"
 
 
@@ -33,9 +33,7 @@ namespace picongpu
          *
          * etc.: using SimStarter = MyOwnStarterClass;
          */
-        using SimStarter = ::picongpu::SimulationStarter<
-            ::picongpu::InitialiserController,
-            ::picongpu::PluginController,
-            ::picongpu::MySimulation>;
+        using SimStarter = ::picongpu::
+            SimulationStarter<::picongpu::InitialiserController, ::picongpu::PluginController, ::picongpu::Simulation>;
     } // namespace defaultPIConGPU
 } // namespace picongpu

@@ -34,7 +34,7 @@ namespace picongpu
      *
      * Simulation Starter Selection:
      * This value does usually not need to be changed. Change only if you want to
-     * implement your own `SimulationHelper` (e.g. `MySimulation`) class.
+     * implement your own `SimulationHelper` (e.g. `Simulation`) class.
      *  - defaultPIConGPU         : default PIConGPU configuration
      */
     namespace simulation_starter = defaultPIConGPU;
