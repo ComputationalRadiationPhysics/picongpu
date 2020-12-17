@@ -40,6 +40,9 @@ TEST_CASE("printDefines", "[core]")
 #if BOOST_COMP_GNUC
     std::cout << "BOOST_COMP_GNUC:" << BOOST_COMP_GNUC << std::endl;
 #endif
+#if BOOST_COMP_INTEL
+    std::cout << "BOOST_COMP_INTEL:" << BOOST_COMP_INTEL << std::endl;
+#endif
 #if BOOST_COMP_MSVC
     std::cout << "BOOST_COMP_MSVC:" << BOOST_COMP_MSVC << std::endl;
 #endif
