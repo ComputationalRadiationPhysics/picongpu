@@ -271,7 +271,7 @@ endif()
 ################################################################################
 
 # find openPMD installation
-find_package(openPMD 0.13.0 CONFIG COMPONENTS MPI)
+find_package(openPMD 0.12.0 CONFIG COMPONENTS MPI)
 
 if(openPMD_FOUND)
     if(openPMD_HAVE_ADIOS2 OR openPMD_HAVE_HDF5)
