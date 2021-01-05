@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
+#include "picongpu/plugins/openPMD/openPMDVersion.def"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/types.hpp>
@@ -85,7 +86,7 @@ namespace picongpu
 
                 ::openPMD::Series& series = *params.openPMDSeries;
                 ::openPMD::MeshRecordComponent mrc
-                    = series.writeIterations()[params.currentStep].meshes[baseName + "_" + group][dataset];
+                    = series.WRITE_ITERATIONS[params.currentStep].meshes[baseName + "_" + group][dataset];
 
                 if(!attrName.empty())
                 {

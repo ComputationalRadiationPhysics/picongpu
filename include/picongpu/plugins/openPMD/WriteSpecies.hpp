@@ -24,6 +24,7 @@
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/kernel/CopySpecies.kernel"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
+#include "picongpu/plugins/openPMD/openPMDVersion.def"
 #include "picongpu/plugins/openPMD/writer/ParticleAttribute.hpp"
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 #include "picongpu/simulation_defines.hpp"
@@ -290,7 +291,7 @@ namespace picongpu
                 const std::string speciesGroup(T_Species::getName());
 
                 ::openPMD::Series& series = *params->openPMDSeries;
-                ::openPMD::Iteration iteration = series.writeIterations()[params->currentStep];
+                ::openPMD::Iteration iteration = series.WRITE_ITERATIONS[params->currentStep];
 
                 // enforce that the filter interface is fulfilled
                 particles::filter::IUnary<typename T_SpeciesFilter::Filter> particleFilter{params->currentStep};

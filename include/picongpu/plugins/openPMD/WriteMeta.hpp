@@ -22,6 +22,7 @@
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/plugins/common/stringHelpers.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
+#include "picongpu/plugins/openPMD/openPMDVersion.def"
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
 
@@ -76,7 +77,7 @@ namespace picongpu
                     }
 
                     ::openPMD::Iteration iteration
-                        = threadParams->openPMDSeries->writeIterations()[threadParams->currentStep];
+                        = threadParams->openPMDSeries->WRITE_ITERATIONS[threadParams->currentStep];
                     iteration.setAttribute("particleBoundary", listParticleBoundary);
                     iteration.setAttribute("particleBoundaryParameters", listParticleBoundaryParam);
                 }
@@ -134,7 +135,7 @@ namespace picongpu
                 const std::string date = helper::getDateString("%F %T %z");
                 series.setDate(date);
 
-                ::openPMD::Iteration iteration = series.writeIterations()[threadParams->currentStep];
+                ::openPMD::Iteration iteration = series.WRITE_ITERATIONS[threadParams->currentStep];
                 ::openPMD::Container<::openPMD::Mesh>& meshes = iteration.meshes;
 
                 // iteration-level attributes

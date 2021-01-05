@@ -1,0 +1,9 @@
+#include "openPMD/openPMD.hpp"
+
+#if OPENPMDAPI_VERSION_GE(0, 13, 0)
+// Streaming API is available, use it
+#define WRITE_ITERATIONS writeIterations()
+#else
+// Not available, don't use it
+#define WRITE_ITERATIONS iterations
+#endif 

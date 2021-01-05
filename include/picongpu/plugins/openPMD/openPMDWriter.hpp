@@ -56,6 +56,7 @@
 #include "picongpu/plugins/misc/SpeciesFilter.hpp"
 #include "picongpu/plugins/openPMD/NDScalars.hpp"
 #include "picongpu/plugins/openPMD/WriteMeta.hpp"
+#include "picongpu/plugins/openPMD/openPMDVersion.def"
 #include "picongpu/plugins/openPMD/WriteSpecies.hpp"
 #include "picongpu/plugins/openPMD/restart/LoadSpecies.hpp"
 #include "picongpu/plugins/openPMD/restart/RestartFieldLoader.hpp"
@@ -918,7 +919,7 @@ Please pick either of the following:
                 const bool fieldTypeCorrect(boost::is_same<ComponentType, float_X>::value);
                 PMACC_CASSERT_MSG(Precision_mismatch_in_Field_Components__ADIOS, fieldTypeCorrect);
 
-                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[params->currentStep];
+                ::openPMD::Iteration iteration = params->openPMDSeries->WRITE_ITERATIONS[params->currentStep];
                 ::openPMD::Mesh mesh = iteration.meshes[name];
 
                 // set mesh attributes
@@ -1199,7 +1200,7 @@ Please pick either of the following:
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
                 __getTransactionEvent().waitForFinished();
-                mThreadParams.openPMDSeries->writeIterations()[mThreadParams.currentStep].close();
+                mThreadParams.openPMDSeries->WRITE_ITERATIONS[mThreadParams.currentStep].close();
 
                 return;
             }
