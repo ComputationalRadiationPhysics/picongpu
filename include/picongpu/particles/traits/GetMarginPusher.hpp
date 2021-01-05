@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Richard Pausch, Sergei Bastrakov
+/* Copyright 2015-2021 Richard Pausch, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *

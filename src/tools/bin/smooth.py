@@ -1,5 +1,5 @@
 #
-# Copyright 2013-2020 Richard Pausch
+# Copyright 2013-2021 Richard Pausch
 #
 # This file is part of PIConGPU.
 #

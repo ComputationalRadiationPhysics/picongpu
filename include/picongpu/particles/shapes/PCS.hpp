@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera, Axel Huebl, Sergei Bastrakov, Klaus Steiniger
+/* Copyright 2015-2021 Rene Widera, Axel Huebl, Sergei Bastrakov, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *

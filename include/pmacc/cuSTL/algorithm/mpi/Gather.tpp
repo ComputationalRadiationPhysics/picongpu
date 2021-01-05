@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Benjamin Worpitz, Alexander Grund
+/* Copyright 2013-2021 Heiko Burau, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of PMacc.
  *

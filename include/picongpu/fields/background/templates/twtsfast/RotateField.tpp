@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Alexander Debus, Rene Widera
+/* Copyright 2014-2021 Alexander Debus, Rene Widera
  *
  * This file is part of PIConGPU.
  *

@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Heiko Burau, Xeinia Bastrakova, Sergei Bastrakov
+/* Copyright 2017-2021 Heiko Burau, Xeinia Bastrakova, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
