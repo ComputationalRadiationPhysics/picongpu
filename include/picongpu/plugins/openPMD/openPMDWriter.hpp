@@ -211,8 +211,10 @@ Please pick either of the following:
             plugins::multi::Option<std::string> fileNameInfix
                 = {"infix",
                    "openPMD filename infix (use to pick file- or group-based "
-                   "layout in openPMD)\nset to NULL to keep empty (e.g. to pick"
-                   " group-based iteration layout)",
+                   "layout in openPMD)\nSet to NULL to keep empty (e.g. to pick"
+                   " group-based iteration layout). Parameter will be ignored"
+                   " if a streaming backend is detected in 'ext' parameter and"
+                   " an empty string will be assumed instead.",
                    "_%06T"};
 
             plugins::multi::Option<std::string> jsonConfig
@@ -352,7 +354,10 @@ Please pick either of the following:
         {
             fileExtension = help.fileNameExtension.get(id);
             fileInfix = help.fileNameInfix.get(id);
-            if(fileInfix == "NULL")
+            /*
+             * Enforce group-based iteration layout for streaming backends
+             */
+            if(fileInfix == "NULL" || fileExtension == "sst")
             {
                 fileInfix = "";
             }
