@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014-2020 Felix Schmitt, Conrad Schumann
+# Copyright 2014-2021 Felix Schmitt, Conrad Schumann
 #
 # This file is part of PIConGPU.
 #

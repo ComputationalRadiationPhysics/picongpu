@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Marco Garten, Rene Widera, Axel Huebl
+/* Copyright 2015-2021 Marco Garten, Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *

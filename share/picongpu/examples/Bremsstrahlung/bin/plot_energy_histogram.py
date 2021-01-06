@@ -21,7 +21,7 @@ histogram of the default Bremsstrahlung example.
 There will be 5 datasets for the 5 different output iterations. The plots
 will also not contain the outliers.
 
-Copyright 2017-2020 Marco Garten, Axel Huebl
+Copyright 2017-2021 Marco Garten, Axel Huebl
 Authors: Axel Huebl
 License: GPLv3+
 """

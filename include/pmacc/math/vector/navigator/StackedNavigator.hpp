@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2014-2021 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *

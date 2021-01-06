@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2020 Axel Huebl, Ilja Goethel
+# Copyright 2017-2021 Axel Huebl, Ilja Goethel
 #
 # This file is part of PIConGPU.
 #

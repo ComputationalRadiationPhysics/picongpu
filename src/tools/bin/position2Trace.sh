@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2020 Rene Widera, Richard Pausch
+# Copyright 2013-2021 Rene Widera, Richard Pausch
 #
 # This file is part of PIConGPU.
 #

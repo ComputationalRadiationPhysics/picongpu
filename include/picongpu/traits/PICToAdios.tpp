@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Alexander Debus
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Alexander Debus
  *
  * This file is part of PIConGPU.
  *

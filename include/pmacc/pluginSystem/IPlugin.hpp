@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Felix Schmitt, Richard Pausch
+/* Copyright 2013-2021 Rene Widera, Felix Schmitt, Richard Pausch
  *
  * This file is part of PMacc.
  *

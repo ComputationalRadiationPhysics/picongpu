@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera, Sergei Bastrakov
+/* Copyright 2014-2021 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *

@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Heiko Burau, Rene Widera
+/* Copyright 2016-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
