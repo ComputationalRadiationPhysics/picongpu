@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Axel Huebl, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Benjamin Worpitz, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -45,9 +45,9 @@ namespace picongpu
     /** size of a superCell
      *
      * volume of a superCell must be <= 1024.
-     * This setup may use grid size that is multiple of 4 but not 8.
+     * This setup may use local grid size that is a multiple of 2 along x, y.
      */
-    using SuperCellSize = typename mCT::shrinkTo<mCT::Int<4, 4, 4>, simDim>::type;
+    using SuperCellSize = typename mCT::shrinkTo<mCT::Int<2, 2, 4>, simDim>::type;
 
     /** define mapper which is used for kernel call mappings */
     using MappingDesc = MappingDescription<simDim, SuperCellSize>;
@@ -65,8 +65,10 @@ namespace picongpu
      * the BORDER area it defines the "active" spatial domain on a device.
      *
      * GuardSize is defined in units of SuperCellSize per dimension.
+     * This setup may need several guard supercells along x, y for the arbitrary order field solver.
+     * Also, Esirkepov current deposition requires at least 2 supercells when supercell size is 2.
      */
-    using GuardSize = typename mCT::shrinkTo<mCT::Int<1, 1, 1>, simDim>::type;
+    using GuardSize = typename mCT::shrinkTo<mCT::Int<4, 4, 1>, simDim>::type;
 
     /** bytes reserved for species exchange buffer
      *

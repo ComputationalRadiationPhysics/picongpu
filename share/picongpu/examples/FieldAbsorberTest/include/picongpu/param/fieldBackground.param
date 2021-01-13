@@ -92,25 +92,15 @@ namespace picongpu
          *
          * Example of a rectangular conductor with a steady current.
          *
-         * The conductor is oriented along the an axis.
-         * It shall have a diameter of 32 cells.
-         * The current within the wire shall be I = 1A which corresponds to a current density
-         *     j_0 = 1 A / ( 32*32 * SI::CELL_WIDTH_SI * SI::CELL_HEIGHT_SI ).
-         *
-         * The magnetic field circles around the wire and its strength is inversely proportional to the distance s from
-         * the wire
-         *     B = B_0 * (a / s),
-         * where
-         *     B_0 = mu_0 * j_0 * a / 2
-         * is the magnetic field on the surface of the wire.
-         *
-         * The temporal increase of the current I, and therefore its density too, can be regulated similar to an RL
-         * circuit with a coil of inductance L:
-         *     I(t) = I_0 * [1 - e^(- R * t / L)]
-         * https://www.leifiphysik.de/elektrizitaetslehre/elektromagnetische-induktion/ausblick/theorie-zum-einschalten-von-rl-kreisen
+         * The conductor is oriented along the y-axis.
+         * Its edge length can be adjusted by the variable halfWidth in order to apply the test with meaningful results
+         * to higher-order solvers, too.
+         * The current in the wire ramps up over time according to a differentiated Gaussian.
+         * This defines the current density amplitude, too.
+         * Therefore, the total current through the wire scales with the wire's halfWidth.
          */
 
-        //! Conductor is oriented along y-axis with the following coordinates and size
+        //! Conductor is oriented along y-axis with the following coordinates and size, values for 60 cells in the grid
         static constexpr int32_t positionX = 30; // unit: cells
         static constexpr int32_t positionY = 30; // unit: cells
         // We support non-unit source for high order field solver
