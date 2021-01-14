@@ -20,13 +20,15 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/kernel/CopySpecies.kernel"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/plugins/openPMD/writer/ParticleAttribute.hpp"
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/plugins/output/ConstSpeciesAttributes.hpp"
+#include "picongpu/plugins/openPMD/openPMDDimension.hpp"
 
 #include <pmacc/assert.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -54,45 +56,6 @@
 
 namespace picongpu
 {
-    namespace detail
-    {
-        template<typename T_FrameType>
-        struct GetChargeOrZero
-        {
-            static constexpr bool hasChargeRatio = pmacc::traits::HasFlag<T_FrameType, chargeRatio<>>::type::value;
-
-            template<typename T_Defer = float_X>
-            typename std::enable_if<hasChargeRatio, T_Defer>::type operator()() const
-            {
-                return frame::getCharge<T_FrameType>();
-            }
-
-            template<typename T_Defer = float_X>
-            typename std::enable_if<!hasChargeRatio, T_Defer>::type operator()() const
-            {
-                return float_X(0.);
-            }
-        };
-
-        template<typename T_FrameType>
-        struct GetMassOrZero
-        {
-            static constexpr bool hasMassRatio = pmacc::traits::HasFlag<T_FrameType, massRatio<>>::type::value;
-
-            template<typename T_Defer = float_X>
-            typename std::enable_if<hasMassRatio, T_Defer>::type operator()() const
-            {
-                return frame::getMass<T_FrameType>();
-            }
-
-            template<typename T_Defer = float_X>
-            typename std::enable_if<!hasMassRatio, T_Defer>::type operator()() const
-            {
-                return float_X(0.);
-            }
-        };
-    } // namespace detail
-
     namespace openPMD
     {
         using namespace pmacc;
@@ -315,23 +278,6 @@ namespace picongpu
                 const std::string particleSmoothing("none");
                 record.setAttribute("particleSmoothing", particleSmoothing.c_str());
 
-                // we do this once for a unit dimension output function, do not touch this code
-                std::vector<float_64> zeroUnitDimension(7, 0.0);
-                static constexpr ::openPMD::UnitDimension openPMDUnitDimensions[7]
-                    = {::openPMD::UnitDimension::L,
-                       ::openPMD::UnitDimension::M,
-                       ::openPMD::UnitDimension::T,
-                       ::openPMD::UnitDimension::I,
-                       ::openPMD::UnitDimension::theta,
-                       ::openPMD::UnitDimension::N,
-                       ::openPMD::UnitDimension::J};
-                std::map<::openPMD::UnitDimension, double> zeroUnitMap;
-                for(unsigned i = 0; i < 7; ++i)
-                {
-                    zeroUnitMap[openPMDUnitDimensions[i]] = zeroUnitDimension[i];
-                }
-                // end of do-not-touch code
-
                 // now we have a map in a writeable format with all zeroes
                 // for each record copy it and modify the copy, e.g.
 
@@ -341,7 +287,7 @@ namespace picongpu
                 ::openPMD::Dataset dataSet = ::openPMD::Dataset(dataType, extent);
 
                 // mass
-                ::picongpu::detail::GetMassOrZero<FrameType> const getMassOrZero;
+                plugins::output::GetMassOrZero<FrameType> const getMassOrZero;
                 if(getMassOrZero.hasMassRatio)
                 {
                     const float_64 mass(getMassOrZero());
@@ -350,19 +296,17 @@ namespace picongpu
                     massComponent.resetDataset(dataSet);
                     massComponent.makeConstant(mass);
 
-                    auto massUnitMap = zeroUnitMap;
-                    massUnitMap[::openPMD::UnitDimension::M] = 1.0;
-                    massRecord.setUnitDimension(massUnitMap);
+                    auto unitMap = convertToUnitDimension(getMassOrZero.dimension());
+                    massRecord.setUnitDimension(unitMap);
                     massComponent.setUnitSI(::picongpu::UNIT_MASS);
                     massRecord.setAttribute("macroWeighted", int32_t(false));
                     massRecord.setAttribute("weightingPower", float_64(1.0));
                     massRecord.setAttribute("timeOffset", float_64(0.0));
                 }
 
-
                 // charge
                 using hasBoundElectrons = typename pmacc::traits::HasIdentifier<FrameType, boundElectrons>::type;
-                ::picongpu::detail::GetChargeOrZero<FrameType> const getChargeOrZero;
+                plugins::output::GetChargeOrZero<FrameType> const getChargeOrZero;
                 if(!hasBoundElectrons::value && getChargeOrZero.hasChargeRatio)
                 {
                     const float_64 charge(getChargeOrZero());
@@ -371,10 +315,8 @@ namespace picongpu
                     chargeComponent.resetDataset(dataSet);
                     chargeComponent.makeConstant(charge);
 
-                    auto chargeUnitMap = zeroUnitMap;
-                    chargeUnitMap[::openPMD::UnitDimension::I] = 1.0;
-                    chargeUnitMap[::openPMD::UnitDimension::T] = 1.0;
-                    chargeRecord.setUnitDimension(chargeUnitMap);
+                    auto unitMap = convertToUnitDimension(getChargeOrZero.dimension());
+                    chargeRecord.setUnitDimension(unitMap);
                     chargeComponent.setUnitSI(::picongpu::UNIT_CHARGE);
                     chargeRecord.setAttribute("macroWeighted", int32_t(false));
                     chargeRecord.setAttribute("weightingPower", float_64(1.0));

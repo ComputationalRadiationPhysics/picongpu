@@ -23,6 +23,7 @@
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/traits/PICToOpenPMD.tpp"
+#include "picongpu/plugins/openPMD/openPMDDimension.hpp"
 
 #include <pmacc/traits/GetComponentsType.hpp>
 #include <pmacc/traits/GetNComponents.hpp>
@@ -118,19 +119,7 @@ namespace picongpu
                     params->openPMDSeries->flush();
                 }
 
-                static constexpr ::openPMD::UnitDimension openPMDUnitDimensions[7]
-                    = {::openPMD::UnitDimension::L,
-                       ::openPMD::UnitDimension::M,
-                       ::openPMD::UnitDimension::T,
-                       ::openPMD::UnitDimension::I,
-                       ::openPMD::UnitDimension::theta,
-                       ::openPMD::UnitDimension::N,
-                       ::openPMD::UnitDimension::J};
-                std::map<::openPMD::UnitDimension, double> unitMap;
-                for(unsigned i = 0; i < 7; ++i)
-                {
-                    unitMap[openPMDUnitDimensions[i]] = unitDimension[i];
-                }
+                auto unitMap = convertToUnitDimension(unitDimension);
 
                 record.setUnitDimension(unitMap);
                 record.setAttribute("macroWeighted", macroWeighted);
