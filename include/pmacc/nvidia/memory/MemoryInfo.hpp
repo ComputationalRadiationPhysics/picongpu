@@ -75,7 +75,7 @@ namespace pmacc
                 /** Returns true if the memory pool is shared by host and device */
                 bool isSharedMemoryPool()
                 {
-#if(PMACC_CUDA_ENABLED != 1 && PMACC_HIP_ENABLED != 1)
+#if(PMACC_CUDA_ENABLED != 1 && ALPAKA_ACC_GPU_HIP_ENABLED != 1)
                     return true;
 #else
                     size_t freeInternal = 0;
