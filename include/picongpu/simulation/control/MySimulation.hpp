@@ -326,7 +326,7 @@ public:
         // create field solver
         this->myFieldSolver = new fields::Solver(*cellDescription);
 
-        // create atomic physics
+        // create atomic physics instance, stored as protected member
         this->atomicPhysics = pmacc::memory::makeUnique< simulation::stage::AtomicPhysics >(
             *cellDescription
         );

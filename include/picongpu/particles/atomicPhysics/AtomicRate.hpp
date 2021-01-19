@@ -23,7 +23,7 @@
 
 #pragma once
 
-/** rate calculation from given atomic data, extracted from flylite, based on FLYchk
+/** rate calculation from given atomic data, extracted from flylite, based on FLYCHK
  *
  *
  * References:

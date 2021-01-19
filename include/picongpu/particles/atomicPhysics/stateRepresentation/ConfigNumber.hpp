@@ -92,6 +92,37 @@ namespace stateRepresentation
     *                              this confignumber
     * @tparam T_atomicNumber ... atomic number of the ion, in units of elementary charge
     *
+    * private member:
+    *   configNumber    ... actual stored configNumber ID
+    *
+    * public members:
+    *   DataType        ... access to T_DataType
+    *   numberLevels    ... acess to T_numberLevels
+    *
+    * private methods:
+    *   uint g( uint n )
+    *       g(n) = n^2 maximum possible occupation number of the n-th shell
+    *   uint numberOfOccupationNumberValuesInShell( uint n )
+    *       number of different occupation number values possible for the n-th shell
+    *   T_DataType stepLength( uint n)
+    *       step length, number of table entries per occupation number VALUE of
+    *       the current principal quantum number n, of the n-th shell
+    *   void nextStepLength( T_DataType* currentStepLength, uint current_n )
+    *       returns current step length based on previous
+    *
+    * public methods:
+    *   T_DataType numberStates()
+    *       return number of states representable in this configNumber Object
+    *   ConfigNumber( uint x )
+    *       constructor directly setting private member configNumber,
+    *       BEWARE: no conversions and no runtime range checks, only use if you know
+    *           what you are doing
+    *   ConfigNumber( pmacc::math::Vector<uint_8, T_numberLevels > N )
+    *       constructor using occupation number vector N = ( N_1, N_2, ..., N_(n_max) )
+    *   T_DataType getAtomicStateIndex( pmacc::math::Vector<uint8_t, T_numberLevels> N )
+    *       converts occupation number vector N to configNumber index
+    *   pmacc::math::Vector<uint8_t, T_numberLevels> getLevelVector( T_DataType x )
+    *       converts configNumber ID x to occupation number vector
     */
     template<
         typename T_DataType,
@@ -170,11 +201,14 @@ namespace stateRepresentation
         }
 
     public:
+        //make template parameter available for later use
+        //{
         // make T_DataType paramtere available for later use
         using DataType = T_DataType;
 
         // number of levels, n_max, used for configNumber, made available for later use
         static constexpr uint8_t numberLevels = T_numberLevels;
+        //}
 
         // returns total number of states possible, for use in Markov chain solver as
         // range of integer random number
@@ -246,7 +280,7 @@ namespace stateRepresentation
                 );
 
                 nextStepLength( &stepLength, n );
-                atomicStateIndex += *levelVector[n] * stepLength;
+                atomicStateIndex += levelVector[n] * stepLength;
             }
 
             return atomicStateIndex;

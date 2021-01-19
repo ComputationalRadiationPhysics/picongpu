@@ -92,7 +92,7 @@ namespace atomicPhysics
         // TODO: relace with better version
         auto configNumber = ion[ atomicConfigNumber_ ];
         using ConfigNumber = decltype( configNumber );
-        using ConfigNumberDataType = decltype( ion[ atomicConfigNumber_ ].getStateIndex( ) );
+        using ConfigNumberDataType = decltype( ion[ atomicConfigNumber_ ].getStateIndex( ) ); // ? shorten
 
         using AtomicRate = T_AtomicRate;
 
@@ -120,7 +120,7 @@ namespace atomicPhysics
             oldState = configNumber.getStateIndex( );
 
 
-            // get a random new state index
+            // get a random new state index, ?checkdatentyp randomIntGen
             newStatesCollectionIndex = randomGenInt( ) % atomicDataBox.getNumStates( );
             newState = atomicDataBox.getAtomicStateConfigNumberIndex( newStatesCollectionIndex );
 
@@ -215,7 +215,10 @@ namespace atomicPhysics
                 ion[ atomicConfigNumber_ ] = newState;
 
                 // reduce time remaining
-                timeRemaining_SI -= 1.0_X / rate_SI;
+                if ( rate_SI > 0 )
+                {
+                    timeRemaining_SI -= 1.0_X / rate_SI;
+                }
 
                 // record energy removed or added to electrons
                 histogram->removeEnergyFromBin(

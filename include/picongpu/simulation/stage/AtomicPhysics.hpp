@@ -22,7 +22,7 @@
 
 #pragma once
 
-// actual kernel functionality
+// actual call to kernel found here
 #include <picongpu/particles/atomicPhysics/CallAtomicPhysics.hpp>
 
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -31,6 +31,32 @@
 #include <cstdint>
 #include <stdio.h>
 
+
+/** @file
+ *
+ * This file implements the Atomic Physics stage of the PIC-loop.
+ *
+ * One instance of this class AtomicPhysics is stored as a protected member of the
+ * MySimulation class.
+ *
+ * @private-member:
+ * - MappingDesc cellDescription 
+ *      Description of cell structure used for PIC-Simulations, ask real programmers
+ *       for more information ;)
+ *      @todo add pointer to documentation of cell description; 15.12.2020-Brian Marre
+ * - <list like> SpeciesWithAtomicPhysics
+ *      seqential, list like, of all species with flag _atomicPhysics as defined in
+ *      species.param
+ * - <functor> callAtomicPhysics
+ *      functor for actual atomic physics call for a given species of macroparticles
+ *      definded in file <include/picongpu/particles/atomicPhysics/CallAtomicPhysics.hpp>
+ *
+ * @operator:
+ * - ( step ):
+ *      calls the callatomicPhysics functor passing the cellDescription and current
+ *      time step.
+ *      this operator is called once per time step by the simulation main loop
+ */
 
 namespace picongpu
 {
