@@ -20,13 +20,15 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/kernel/CopySpecies.kernel"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/plugins/openPMD/writer/ParticleAttribute.hpp"
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/plugins/output/ConstSpeciesAttributes.hpp"
+#include "picongpu/plugins/openPMD/openPMDDimension.hpp"
 
 #include <pmacc/assert.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -256,25 +258,70 @@ namespace picongpu
 
             using openPMDFrameType = Frame<OperatorCreateVectorBox, NewParticleDescription>;
 
-            void setParticleAttributes(::openPMD::Iteration& iteration)
+            void setParticleAttributes(::openPMD::ParticleSpecies& record)
             {
                 const float_64 particleShape(GetShape<ThisSpecies>::type::assignmentFunctionOrder);
-                iteration.setAttribute("particleShape", particleShape);
+                record.setAttribute("particleShape", particleShape);
 
                 traits::GetSpeciesFlagName<ThisSpecies, current<>> currentDepositionName;
                 const std::string currentDeposition(currentDepositionName());
-                iteration.setAttribute("currentDeposition", currentDeposition.c_str());
+                record.setAttribute("currentDeposition", currentDeposition.c_str());
 
                 traits::GetSpeciesFlagName<ThisSpecies, particlePusher<>> particlePushName;
                 const std::string particlePush(particlePushName());
-                iteration.setAttribute("particlePush", particlePush.c_str());
+                record.setAttribute("particlePush", particlePush.c_str());
 
                 traits::GetSpeciesFlagName<ThisSpecies, interpolation<>> particleInterpolationName;
                 const std::string particleInterpolation(particleInterpolationName());
-                iteration.setAttribute("particleInterpolation", particleInterpolation.c_str());
+                record.setAttribute("particleInterpolation", particleInterpolation.c_str());
 
                 const std::string particleSmoothing("none");
-                iteration.setAttribute("particleSmoothing", particleSmoothing.c_str());
+                record.setAttribute("particleSmoothing", particleSmoothing.c_str());
+
+                // now we have a map in a writeable format with all zeroes
+                // for each record copy it and modify the copy, e.g.
+
+                // const records stuff
+                ::openPMD::Datatype dataType = ::openPMD::Datatype::DOUBLE;
+                ::openPMD::Extent extent = {0};
+                ::openPMD::Dataset dataSet = ::openPMD::Dataset(dataType, extent);
+
+                // mass
+                plugins::output::GetMassOrZero<FrameType> const getMassOrZero;
+                if(getMassOrZero.hasMassRatio)
+                {
+                    const float_64 mass(getMassOrZero());
+                    auto& massRecord = record["mass"];
+                    auto& massComponent = massRecord[::openPMD::RecordComponent::SCALAR];
+                    massComponent.resetDataset(dataSet);
+                    massComponent.makeConstant(mass);
+
+                    auto unitMap = convertToUnitDimension(getMassOrZero.dimension());
+                    massRecord.setUnitDimension(unitMap);
+                    massComponent.setUnitSI(::picongpu::UNIT_MASS);
+                    massRecord.setAttribute("macroWeighted", int32_t(false));
+                    massRecord.setAttribute("weightingPower", float_64(1.0));
+                    massRecord.setAttribute("timeOffset", float_64(0.0));
+                }
+
+                // charge
+                using hasBoundElectrons = typename pmacc::traits::HasIdentifier<FrameType, boundElectrons>::type;
+                plugins::output::GetChargeOrZero<FrameType> const getChargeOrZero;
+                if(!hasBoundElectrons::value && getChargeOrZero.hasChargeRatio)
+                {
+                    const float_64 charge(getChargeOrZero());
+                    auto& chargeRecord = record["charge"];
+                    auto& chargeComponent = chargeRecord[::openPMD::RecordComponent::SCALAR];
+                    chargeComponent.resetDataset(dataSet);
+                    chargeComponent.makeConstant(charge);
+
+                    auto unitMap = convertToUnitDimension(getChargeOrZero.dimension());
+                    chargeRecord.setUnitDimension(unitMap);
+                    chargeComponent.setUnitSI(::picongpu::UNIT_CHARGE);
+                    chargeRecord.setAttribute("macroWeighted", int32_t(false));
+                    chargeRecord.setAttribute("weightingPower", float_64(1.0));
+                    chargeRecord.setAttribute("timeOffset", float_64(0.0));
+                }
             }
 
             template<typename Space> // has operator[] -> integer type
@@ -436,7 +483,7 @@ namespace picongpu
                     }
 
                     /* openPMD ED-PIC: additional attributes */
-                    setParticleAttributes(iteration);
+                    setParticleAttributes(particleSpecies);
                     params->openPMDSeries->flush();
                 }
 
