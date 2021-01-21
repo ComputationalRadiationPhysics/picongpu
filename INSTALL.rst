@@ -328,7 +328,7 @@ ADIOS
 
 openPMD API
 """""""""""
-- 0.12.0+ (yet to be released, requires *MPI*)
+- 0.12.0+ (bare minimum) / 0.13.0+ (for streaming IO)
 - *Spack*: ``spack install openpmd-api``
 - *from source:*
 

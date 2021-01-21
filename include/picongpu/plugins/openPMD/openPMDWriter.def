@@ -101,6 +101,8 @@ namespace picongpu
             DataSpace<simDim> localWindowToDomainOffset; /** offset from local moving
                                                             window to local domain */
 
+            std::vector<double> times;
+
             ::openPMD::Series& openSeries(::openPMD::Access at);
 
             void closeSeries();
