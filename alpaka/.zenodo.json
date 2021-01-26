@@ -3,18 +3,50 @@
   "description": "The alpaka library is a header-only C++14 abstraction library for accelerator development. Its aim is to provide performance portability across accelerators through the abstraction (not hiding!) of the underlying levels of parallelism.",
   "creators": [
     {
-      "affiliation": "LogMeIn, Inc.",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf, TU Dresden, LogMeIn Inc.",
       "name": "Worpitz, Benjamin"
     },
     {
-      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf, TU Dresden",
-      "name": "Matthes, Alexander",
-      "orcid": "0000-0002-6702-2015"
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "name": "Widera, René",
+      "orcid": "0000-0003-1642-0459"
     },
     {
-      "affiliation": "LogMeIn, Inc.",
-      "name": "Zenker, Erik",
-      "orcid": "0000-0001-9417-8712"
+      "name": "Bastrakov, Sergei",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0003-3396-6154"
+    },
+    {
+      "name": "Colgrove, Mat",
+      "affiliation": "NVIDIA"
+    },
+    {
+      "name": "Ehrig, Simeon",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0002-8218-3116"
+    },
+    {
+      "name": "Gruber, Bernhard Manfred",
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf, CERN",
+      "orcid": "0000-0001-7848-1690"
+    },
+    {
+      "name": "Kelling, Jeffrey",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+      "orcid": "0000-0003-1761-2591"
+    },
+    {
+      "name": "Krude, Jakob",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf"
+    },
+    {
+      "affiliation": "CASUS, Helmholtz-Zentrum Dresden-Rossendorf",
+      "name": "Stephan, Jan",
+      "orcid": "0000-0001-7839-4386"
+    },
+    {
+      "name": "Gehrke, Valentin",
+      "affiliation": "TU Dresden"
     },
     {
       "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf, TU Dresden",
@@ -22,9 +54,48 @@
       "orcid": "0000-0003-1943-7141"
     },
     {
+      "name": "Knespel, Maximilian",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf"
+    },
+    {
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf, TU Dresden",
+      "name": "Matthes, Alexander",
+      "orcid": "0000-0002-6702-2015"
+    },
+    {
+      "name": "Mewes, Hauke",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf"
+    },
+    {
+      "name": "Nash, Phil"
+    },
+    {
+      "name": "Saito, Mutsuo"
+    },
+    {
+      "name": "Schenke, Jonas",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf"
+    },
+    {
+      "name": "Vollmer, Daniel",
+      "affiliation": "Deutsches Zentrum für Luft- und Raumfahrt e.V."
+    },
+    {
+      "name": "Werner, Matthias",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf"
+    },
+    {
+      "name":"Wesarg, Bert",
+      "affiliation":"TU Dresden"
+    },
+    {
+      "name": "Zacharias, Malte",
+      "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf"
+    },
+    {
       "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
-      "name": "Widera, René",
-      "orcid": "0000-0003-1642-0459"
+      "name": "Zenker, Erik",
+      "orcid": "0000-0001-9417-8712"
     }
   ],
   "access_right": "open",
