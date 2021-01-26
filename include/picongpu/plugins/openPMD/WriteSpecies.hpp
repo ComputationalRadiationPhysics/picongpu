@@ -41,9 +41,8 @@
 #include <pmacc/particles/operations/ConcatListOfFrames.hpp>
 #include <pmacc/particles/particleFilter/FilterFactory.hpp>
 #include <pmacc/particles/particleFilter/PositionFilter.hpp>
-#if(PMACC_CUDA_ENABLED == 1)
-#    include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
-#endif
+#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
+
 
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
@@ -129,16 +128,15 @@ namespace picongpu
                 log<picLog::INPUT_OUTPUT>("openPMD:   (begin) copy particle host (with hierarchy) to "
                                           "host (without hierarchy): %1%")
                     % name;
-#if(PMACC_CUDA_ENABLED == 1)
                 auto mallocMCBuffer
                     = rp.dc.template get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName(), true);
-#endif
+
                 int globalParticleOffset = 0;
                 AreaMapping<CORE + BORDER, MappingDesc> mapper(*(rp.params.cellDescription));
 
                 pmacc::particles::operations::ConcatListOfFrames<simDim> concatListOfFrames(mapper.getGridDim());
 
-#if(PMACC_CUDA_ENABLED == 1)
+#if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
                 auto particlesBox = rp.speciesTmp->getHostParticlesBox(mallocMCBuffer->getOffset());
 #else
                 /* This separate code path is only a workaround until
@@ -166,9 +164,9 @@ namespace picongpu
                     totalCellIdx_,
                     mapper,
                     rp.particleFilter);
-#if(PMACC_CUDA_ENABLED == 1)
+
                 rp.dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
-#endif
+
                 /* this costs a little bit of time but writing to external is
                  * slower in general */
                 PMACC_ASSERT((uint64_cu) globalParticleOffset == rp.globalNumParticles);

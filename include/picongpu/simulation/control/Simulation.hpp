@@ -91,9 +91,7 @@
 #include <pmacc/meta/ForEach.hpp>
 #include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/InitFunctors.hpp"
-#if(PMACC_CUDA_ENABLED == 1)
-#    include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
-#endif
+#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/FilterByIdentifier.hpp>
 #include <pmacc/particles/IdProvider.hpp>
@@ -425,10 +423,10 @@ namespace picongpu
                 nativeCudaStream,
                 heapSize);
             cuplaStreamSynchronize(0);
-#    if(PMACC_CUDA_ENABLED == 1)
+
             auto mallocMCBuffer = std::make_unique<MallocMCBuffer<DeviceHeap>>(deviceHeap);
             dc.consume(std::move(mallocMCBuffer));
-#    endif
+
 #endif
 
             meta::ForEach<VectorAllSpecies, particles::LogMemoryStatisticsForSpecies<bmpl::_1>>

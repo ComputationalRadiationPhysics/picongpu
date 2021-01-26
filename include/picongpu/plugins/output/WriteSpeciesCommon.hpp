@@ -58,6 +58,8 @@ namespace picongpu
             {
 #if(PMACC_CUDA_ENABLED == 1)
                 CUDA_CHECK((cuplaError_t) cudaHostAlloc(&ptr, size * sizeof(type), cudaHostAllocMapped));
+#elif(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+                CUDA_CHECK((cuplaError_t) hipHostMalloc((void**) &ptr, size * sizeof(type), hipHostRegisterMapped));
 #else
                 ptr = new type[size];
 #endif
@@ -121,6 +123,8 @@ namespace picongpu
             {
 #if(PMACC_CUDA_ENABLED == 1)
                 CUDA_CHECK((cuplaError_t) cudaHostGetDevicePointer(&ptr, srcPtr, 0));
+#elif(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+                CUDA_CHECK((cuplaError_t) hipHostGetDevicePointer((void**) &ptr, srcPtr, 0));
 #else
                 ptr = srcPtr;
 #endif
@@ -156,6 +160,8 @@ namespace picongpu
                 CUDA_CHECK((cuplaError_t) cudaFreeHost(ptr));
 // re-introduce the cupla macro
 #    define cudaFreeHost(...) cuplaFreeHost(__VA_ARGS__)
+#elif(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+                CUDA_CHECK((cuplaError_t) hipHostFree(ptr));
 #else
                 __deleteArray(ptr);
 #endif
