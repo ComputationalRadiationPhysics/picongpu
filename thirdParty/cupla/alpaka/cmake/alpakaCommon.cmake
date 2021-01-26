@@ -658,6 +658,10 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
                     MESSAGE(FATAL_ERROR "Could not find rocRAND (also searched in: HIP_ROOT_DIR=${HIP_ROOT_DIR}/rocrand).")
                 endif()
 
+                if(ALPAKA_HIP_FAST_MATH)
+                    list(APPEND HIP_HIPCC_FLAGS -ffast-math)
+                endif()
+
                 # possible architectures can be found https://github.com/llvm/llvm-project/blob/master/clang/lib/Basic/Cuda.cpp#L65
                 # 900 -> AMD Vega64
                 # 902 -> AMD Vega 10

@@ -4,8 +4,82 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
-## [Unreleased]
+## [0.6.0] - 2021-01-20
+### Compatibility Changes:
+- support for CUDA 11, 11.1, and 11.2 #1076 #1086 #1147 #1231
+- remove support for CUDA 11.0 with MSVC 2019 #1227
+- support for CMake 3.18.0 and 3.19.0 #1087 #1217
+- set minimal HIP version to 3.5 #1110
+- remove CMake HIP module shipped with alpaka #1189
+- set HIP-clang as default compiler for HIP #1113
+- support for NVCC + VS 2019 #1121
+- support for boost-1.74.0 #1142
+- explicitly require backends and do not enable them by default #1111
+- remove support for Xcode 11.1 #1206 
+- support Xcode 11.21 - 12.2.0 #1206
+- update to Catch 2.13.3 #1215
+
+### Bug Fixes:
+- apply some clang-tidy fixes #1044
+- fix CUDA/HIP accelerator concept usage #1064
+- fix Intel compiler detection #1070
+- CMake: build type CXX flag not passed to nvcc #1073
+- work around Intel ICE (Internal Compiler Error) when using std::decay on empty template parameter packs #1074
+- BoostPredef.hpp: Add redefinition of BOOST_COMP_PGI #1082
+- fix min/max return type deduction #1085
+- CMake: fix boost fiber linking #1088
+- fix HIP-clang compile #1107
+- fix CUDA/HIP cmake flags #1152
+- fix error handling CUDA/HIP #1108
+- ALPAKA_DECAY_T: Fix Intel detection, Add PGI #1116
+- fix how to set HIP target architecture #1112 
+- fix and improve block shared mem st member sanity checks #1128
+- HIP: remove copy device2device workaround #1188
+- pass native pointers to kernel instead of buffer objects #1193
+- fix bug in `isPinned()` and `pin()` #1196
+- fix marking of unit tests for concepts #1226
+
+### New Features:
+- add functions `alpaka::atomicAnd` et. al. as shortcuts to `alpaka::atomicOp<alpaka::AtomicAnd>` et. al. #1005
+- warp voting functions #1003 #1049 #1090 #1092
+- Sphinx Doc: Fix Doxygen integration on readthedocs #1042 #1093 #1151
+- add cheat sheet to the docs #1057 #1177
+- extend AccDevProps with shared memory size per block #1084
+- OpenMP 5 target offload backend #1126
+- OpenACC backend #1127
+- option to set OpenMP schedule for the Omp2Blocks backend #1223
+
+### Misc
+- tests for BufferSlicing #1024
+- use std::invoke_result_t instead of std::result_of_t when available #1047
+- simplify shared memory usage in tests #1075 
+- remove boost::aligned_alloc #1094
+- add unit tests for work div #1095
+- change examples (except reduce) to use getValidWorkDiv #1104
+- example monte-carlo-integration #1106 
+- invoke docker run only once instead of twice #1109
+- cpu/SysInfo.hpp: Add #else for cpuid; Add PGI #1119
+- Pgi std atomic workaround #1120
+- make BlockSharedMemDynMember::staticAllocBytes a function #1118
+- add IntrinsicFallback: basic fallback implementations #1122
+- allow ALPAKA_CXX_STANDARD to propagate to nvcc with MSVC 1920 and above #1130
+- add set kernel #1132
+- make Queue test generic to handle QueueGenericThreads* with different devices #1133
+- IdxBtOmp: Add GetIdx specialization for 1d #1140
+- test CMAKE_CXX_EXTENSIONS=OFF #1153
+- change block memory size back to be stored as 32 bit #1187
+- add comments to math function traits that explain valid argument range #1190
+- provide docker_retry #1191
+- add .clang-format file #1204
+- add CI check whether code is correctly formatted #1213
+- make test/common a CMake INTERFACE library #1228
+
 ### Breaking changes:
+
+The namespace structure of *alpaka* is now flattened. 
+The [script](https://gist.github.com/sliwowitz/0a55e1bed6350f7fcae17ef0d430040d) can help you to apply the changes to your code.
+The script only works if you used the full namespace `alpaka::*` for alpaka functions.
+
 - removed namespace `alpaka::dev`
 - removed namespace `alpaka::pltf`
 - renamed function `alpaka::vec::cast` to `alpaka::castVec`
@@ -14,7 +88,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - removed namespace `alpaka::vec`
 - removed namespace `alpaka::workdiv`
 - removed namespace `alpaka::acc`
-- renamed functors `alpaka::atomic::op::And` et. al. to `alpaka::AtomicAnd` et. al.
+- renamed functors `alpaka::atomic::op::And` et. al. to `alpaka::AtomicAnd` et. al. #1185
 - removed namespace `alpaka::atomic::op`
 - removed namespace `alpaka::atomic`
 - removed namespace `alpaka::queue`
@@ -40,15 +114,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - removed namespace `alpaka::block::shared::st`
 - removed namespace `alpaka::block::shared::dyn`
 - removed namespace `alpaka::block::sync`
-- renamed function `getMem` to `getDynSharedMem`
-- renamed function `getVar` to `declareSharedVar`
-- renamed function `freeMem` to `freeSharedVars`  
+- renamed function `getMem` to `getDynSharedMem` #1197
+- renamed function `getVar` to `declareSharedVar` #1197
+- renamed function `freeMem` to `freeSharedVars` #1197
 - renamed functors `alpaka::block::op::LogicalAnd` et. al. to `alpaka::BlockAnd` et. al.
 - removed namespace `alpaka::block::op`
 - removed namespace `alpaka::block`
 
-### New Features:
-- add functions `alpaka::atomicAnd` et. al. as shortcuts to `alpaka::atomicOp<alpaka::AtomicAnd>` et. al. #1005
 
 ## [0.5.0] - 2020-06-26
 ### Compatibility Changes:
