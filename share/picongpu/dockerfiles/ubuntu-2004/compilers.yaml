@@ -4,11 +4,11 @@ compilers:
     extra_rpaths: []
     flags: {}
     modules: []
-    operating_system: ubuntu16.04
+    operating_system: ubuntu20.04
     paths:
-      cc: /usr/bin/gcc-5
-      cxx: /usr/bin/g++-5
-      f77: /usr/bin/gfortran-5
-      fc: /usr/bin/gfortran-5
-    spec: gcc@5.4.0
+      cc: /usr/bin/gcc-9
+      cxx: /usr/bin/g++-9
+      f77: /usr/bin/gfortran-9
+      fc: /usr/bin/gfortran-9
+    spec: gcc@9.3.0
     target: x86_64
