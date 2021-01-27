@@ -124,7 +124,7 @@ namespace alpaka
                 }
                 return std::string(cpuBrandString);
 #else
-                assert(false); // if we got here there is a bug in the cpuid() function
+                return std::string("unknown");
 #endif
             }
             //-----------------------------------------------------------------------------

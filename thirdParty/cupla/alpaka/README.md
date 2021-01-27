@@ -211,13 +211,31 @@ Rules for contributions can be found in [CONTRIBUTING.md](CONTRIBUTING.md)
 Authors
 -------
 
-### Maintainers and Core Developers
+### Maintainers* and Core Developers
 
-- Benjamin Worpitz (original author)
-- Rene Widera
+- Benjamin Worpitz* (original author)
+- Dr. Sergei Bastrakov*
+- Simeon Ehrig
+- Bernhard Manfred Gruber
+- Dr. Axel Huebl*
+- Dr. Jeffrey Kelling
+- Jakob Krude
+- Jan Stephan*
+- Rene Widera*
 
 ### Former Members, Contributions and Thanks
 
 - Dr. Michael Bussmann
-- Axel Huebl
+- Mat Colgrove
+- Valentin Gehrke
+- Maximilian Knespel
+- Alexander Matthes
+- Hauke Mewes
+- Phil Nash
+- Mutsuo Saito
+- Jonas Schenke
+- Daniel Vollmer
+- Matthias Werner
+- Bert Wesarg
+- Malte Zacharias
 - Erik Zenker
