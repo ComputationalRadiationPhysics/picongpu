@@ -2,7 +2,7 @@
 #   [clang++-X] : X = {4.0, 5.0, 6.0, 7, 8, 9, 10, 11}
 
 .base_clang:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-clang-pic:1.1
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-clang-pic:1.2
   variables:
     GIT_SUBMODULE_STRATEGY: normal
     PIC_CMAKE_ARGS: "-DALPAKA_CUDA_COMPILER=clang"

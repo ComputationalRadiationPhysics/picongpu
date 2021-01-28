@@ -151,8 +151,10 @@ compilers.append(cuda_nvcc_compilers)
 # PIConGPU backend list
 # tuple with two components (backend name, version)
 # version is only required for the cuda backend
-backends = [("cuda", 9.2), ("cuda", 10.0), ("cuda", 10.1),
-            ("cuda", 10.2), ("cuda", 11.0), ("omp2b", ), ("serial", )]
+backends = [("cuda", 9.2),
+            ("cuda", 10.0), ("cuda", 10.1), ("cuda", 10.2),
+            ("cuda", 11.0), ("cuda", 11.1), ("cuda", 11.2),
+            ("omp2b", ), ("serial", )]
 boost_libs = ["1.65.1", "1.66.0", "1.67.0", "1.68.0", "1.69.0",
               "1.70.0", "1.71.0", "1.72.0", "1.73.0", "1.74.0"]
 
