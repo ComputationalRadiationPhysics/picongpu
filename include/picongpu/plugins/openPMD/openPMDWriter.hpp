@@ -781,7 +781,7 @@ Please pick either of the following:
             void dumpData(uint32_t currentStep)
             {
                 // local offset + extent
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 mThreadParams.cellDescription = m_cellDescription;
                 mThreadParams.currentStep = currentStep;
 
@@ -881,7 +881,7 @@ Please pick either of the following:
                  * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
                  */
                 DataSpace<simDim> globalSlideOffset;
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
                 globalSlideOffset.y() += numSlides * localDomain.size.y();
 
@@ -1084,7 +1084,7 @@ Please pick either of the following:
             void write(ThreadParams* threadParams, std::string mpiTransportParams)
             {
                 /* y direction can be negative for first gpu */
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 DataSpace<simDim> particleOffset(localDomain.offset);
                 particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
 

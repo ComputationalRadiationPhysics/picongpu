@@ -94,7 +94,7 @@ namespace picongpu
                     = series.iterations[params->currentStep].particles;
                 ::openPMD::ParticleSpecies particleSpecies = particles[speciesName];
 
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
                 /* load particle without copying particle data to host */
                 auto speciesTmp = dc.get<ThisSpecies>(FrameType::getName(), true);
