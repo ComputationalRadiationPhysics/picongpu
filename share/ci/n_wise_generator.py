@@ -29,19 +29,24 @@ def get_version(tuple):
 
 # lookup table with compiler name and the required base container suffix
 image_dict = {
-    "nvcc": ".base_nvcc",
     "g++": ".base_gcc",
+    "g++_nvcc": ".base_nvcc",
+    "clang++_nvcc": ".base_clangCuda",
     "clang++": ".base_clang",
-    "clangCuda": ".base_clangCuda"
+    "clang++_clangCuda": ".base_clangCuda",
+    "clang++_hipcc": ".base_hipcc"
 }
 
 
 def get_base_image(compiler, backend):
-    if len(compiler) == 3 and backend[0] == "cuda":
-        return image_dict[compiler[2]] + "_" + backend[0] + "_" \
-            + str(backend[1])
+    lookup_name = compiler[0]
+    if len(compiler) == 3:
+        lookup_name += "_" + compiler[2]
+    img_name = image_dict[lookup_name]
+    if backend[0] == "cuda":
+        img_name += "_" + backend[0] + "_" + str(backend[1])
 
-    return image_dict[compiler[0]]
+    return img_name
 
 
 # filter invalid cominations
@@ -56,13 +61,33 @@ def is_valid_combination(row):
 
         is_clang_cuda = True if len(row[0]) == 3 and \
             row[0][2] == "clangCuda" else False
-        is_clang = True if row[0][0] == "clang" or is_clang_cuda else False
+        is_clang = True if row[0][0] == "clang++" or is_clang_cuda else False
 
         is_gnu = True if row[0][0] == "g++" else False
 
         is_nvcc = True if len(row[0]) == 3 and row[0][2] == "nvcc" else False
         is_cuda = True if row[1][0] == "cuda" else False
         v_cuda = get_version(row[1])
+
+        # hipcc
+        is_hipcc = True if len(row[0]) == 3 and row[0][2] == "hipcc" else False
+        is_hip = True if row[1][0] == "hip" else False
+
+        # CI nvcc image is not shipped with clang++
+        # clang_cuda images can currently not be used because
+        # the base image is setting -DALPAKA_CUDA_COMPILER=clang
+        if is_nvcc and is_clang:
+            return False
+
+        # hipcc is only valid in one combination
+        if is_hip and is_hipcc and is_clang and v_compiler == 12:
+            return True
+        elif is_hip or is_hipcc:
+            return False
+
+        # clang 12 is currently only shipped with the HIP container
+        if is_clang and v_compiler == 12:
+            return False
 
         # docker images for clang cuda do not support clang++-7
         # together with cuda-9.2
@@ -125,7 +150,7 @@ def is_valid_combination(row):
 # tuple with two components (compiler name, version)
 clang_compiers = [("clang++", 5.0), ("clang++", 6.0), ("clang++", 7),
                   ("clang++", 8), ("clang++", 9), ("clang++", 10),
-                  ("clang++", 11)]
+                  ("clang++", 11), ("clang++", 12)]
 gnu_compilers = [("g++", 5), ("g++", 6), ("g++", 7), ("g++", 8),
                  ("g++", 9), ("g++", 10)]
 compilers = [
@@ -148,13 +173,20 @@ for i in gnu_compilers:
     cuda_nvcc_compilers.append(i + ("nvcc", ))
 compilers.append(cuda_nvcc_compilers)
 
+# hipcc compiler
+hip_clang_compilers = []
+for i in clang_compiers:
+    hip_clang_compilers.append(i + ("hipcc", ))
+compilers.append(hip_clang_compilers)
+
 # PIConGPU backend list
 # tuple with two components (backend name, version)
 # version is only required for the cuda backend
 backends = [("cuda", 9.2),
             ("cuda", 10.0), ("cuda", 10.1), ("cuda", 10.2),
             ("cuda", 11.0), ("cuda", 11.1), ("cuda", 11.2),
-            ("omp2b", ), ("serial", )]
+            ("omp2b", ), ("serial", ),
+            ("hip", )]
 boost_libs = ["1.65.1", "1.66.0", "1.67.0", "1.68.0", "1.69.0",
               "1.70.0", "1.71.0", "1.72.0", "1.73.0", "1.74.0"]
 

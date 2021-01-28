@@ -21,15 +21,6 @@ CMAKE_ARGS="${PMACC_CONST_ARGS} ${PIC_CMAKE_ARGS} -DCMAKE_CXX_COMPILER=${CXX_VER
 # allow root user to execute MPI
 CMAKE_ARGS="$CMAKE_ARGS -DUSE_MPI_AS_ROOT_USER=ON"
 
-# workaround for clang cuda
-# HDF5 from the apt sources is pulling -D_FORTIFY_SOURCE=2 into the compile flags
-# this workaround is creating a warning about the double definition of _FORTIFY_SOURCE
-#
-# Workaround will be removed after the test container are shipped with a self compiled HDF5
-if [[ $CXX_VERSION =~ ^clang && $PMACC_BACKEND =~ ^cuda ]] ; then
-    CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_FLAGS=-D_FORTIFY_SOURCE=0"
-fi
-
 ###################################################
 # translate PIConGPU backend names into CMake Flags
 ###################################################
@@ -64,6 +55,11 @@ get_backend_flags()
         fi
     elif [ "${backend_cfg[0]}" == "threads" ] ; then
         result+=" -DALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
+        fi
+    elif [ "${backend_cfg[0]}" == "hip" ] ; then
+        result+=" -DALPAKA_ACC_GPU_HIP_ENABLE=ON -DALPAKA_ACC_GPU_HIP_ONLY_MODE=ON"
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
@@ -107,7 +103,9 @@ echo -e "/////////////////////////////////////////////////// \033[0m \n\n"
 
 # disable warning if infiniband is not used
 export OMPI_MCA_btl_base_warn_component_unused=0
+export LD_LIBRARY_PATH=/opt/boost/${BOOST_VERSION}/lib:$LD_LIBRARY_PATH
 
 cmake $CMAKE_ARGS $code_DIR/include/pmacc
 make
+
 ctest -V
