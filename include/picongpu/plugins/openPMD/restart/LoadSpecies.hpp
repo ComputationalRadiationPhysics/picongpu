@@ -43,6 +43,7 @@
 
 #include <openPMD/openPMD.hpp>
 
+#include <cassert>
 
 namespace picongpu
 {
@@ -99,34 +100,34 @@ namespace picongpu
                 /* load particle without copying particle data to host */
                 auto speciesTmp = dc.get<ThisSpecies>(FrameType::getName(), true);
 
-                /* count total number of particles on the device */
-                uint64_t totalNumParticles = 0;
-
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
                 __getTransactionEvent().waitForFinished();
+
+                auto numRanks = gc.getGlobalSize();
+
+                size_t patchIdx = getPatchIdx(params, series, particleSpecies, numRanks);
+
                 std::shared_ptr<uint64_t> fullParticlesInfoShared
                     = particleSpecies.particlePatches["numParticles"][::openPMD::RecordComponent::SCALAR]
                           .load<uint64_t>();
                 series.flush();
-
-                /* Run a prefix sum over the numParticles[0] element in
-                 * particlesInfo to retreive the offset of particles before
-                 * gc.getGlobalRank() */
-                uint64_t particleOffset = 0;
-
                 uint64_t* fullParticlesInfo = fullParticlesInfoShared.get();
 
-                for(size_t i = 0; i < gc.getGlobalSize(); ++i)
+                /* Run a prefix sum over the numParticles[0] element in
+                 * particlesInfo to retreive the offset of particles
+                 */
+                uint64_t particleOffset = 0u;
+                /* count total number of particles on the device */
+                uint64_t totalNumParticles = 0u;
+
+                assert(patchIdx < numRanks);
+
+                for(size_t i = 0u; i <= patchIdx; ++i)
                 {
-                    /* this comparison is potentially harmful, since the order of
-                       ranks is not necessarily the same in subsequent MPI jobs. But
-                       due to the wrong sorting by rank in
-                       `openPMDCountParticles.hpp` while calculating the
-                       `myParticleOffset` we have to immitate that. */
-                    if(i < gc.getGlobalRank())
+                    if(i < patchIdx)
                         particleOffset += fullParticlesInfo[i];
-                    if(i == gc.getGlobalRank())
+                    if(i == patchIdx)
                         totalNumParticles = fullParticlesInfo[i];
                 }
 
@@ -166,6 +167,62 @@ namespace picongpu
                     freeMem(hostFrame);
                 }
                 log<picLog::INPUT_OUTPUT>("openPMD: ( end ) load species: %1%") % speciesName;
+            }
+
+        private:
+            /** get index for particle data within the openPMD patch data
+             *
+             * It is not possible to assume that we can use the MPI rank to load the particle data.
+             * There is no guarantee that the MPI rank is corresponding to the position within
+             * the simulation volume.
+             *
+             * Use patch information offset and extent to find the index which should be used
+             * to load openPMD particle patch data.
+             *
+             * @return index of the particle patch within the openPMD data
+             */
+            HINLINE size_t getPatchIdx(
+                ThreadParams* params,
+                ::openPMD::Series& series,
+                ::openPMD::ParticleSpecies particleSpecies,
+                size_t numRanks)
+            {
+                const std::string name_lookup[] = {"x", "y", "z"};
+
+                std::vector<DataSpace<simDim>> offsets(numRanks);
+                std::vector<DataSpace<simDim>> extents(numRanks);
+
+                // transform openPMD particle patch data into PIConGPU data objects
+                for(uint32_t d = 0; d < simDim; ++d)
+                {
+                    std::shared_ptr<uint64_t> patchOffsetsInfoShared
+                        = particleSpecies.particlePatches["offset"][name_lookup[d]].load<uint64_t>();
+                    std::shared_ptr<uint64_t> patchExtentsInfoShared
+                        = particleSpecies.particlePatches["extent"][name_lookup[d]].load<uint64_t>();
+                    series.flush();
+                    for(size_t i = 0; i < numRanks; ++i)
+                    {
+                        offsets[i][d] = patchOffsetsInfoShared.get()[i];
+                        extents[i][d] = patchExtentsInfoShared.get()[i];
+                    }
+                }
+
+                pmacc::Selection<simDim> const globalDomain = Environment<simDim>::get().SubGrid().getGlobalDomain();
+                DataSpace<simDim> const patchOffset = globalDomain.offset + params->window.globalDimensions.offset
+                    + params->window.localDimensions.offset;
+                DataSpace<simDim> const patchExtent = params->window.localDimensions.size;
+
+                size_t patchIdx = 0;
+                // search the patch index based on the offset and extents of local domain size
+                for(size_t i = 0; i < numRanks; ++i)
+                {
+                    if(patchOffset == offsets[i] && patchExtent == extents[i])
+                    {
+                        patchIdx = i;
+                        break;
+                    }
+                }
+                return patchIdx;
             }
         };
 
