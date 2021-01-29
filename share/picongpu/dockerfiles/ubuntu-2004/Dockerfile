@@ -1,12 +1,14 @@
-FROM       nvidia/cuda:9.2-base
+FROM       nvidia/cuda:11.2.0-base-ubuntu20.04
 MAINTAINER Axel Huebl <a.huebl@hzdr.de>
+LABEL      authors="Axel Huebl, René Widera"
 
 # docker and image environment
 ENV        DEBIAN_FRONTEND=noninteractive \
            FORCE_UNSAFE_CONFIGURE=1 \
            SPACK_ROOT=/usr/local \
            SPACK_EXTRA_REPO=/usr/local/share/spack-repo \
-           PIC_PACKAGE='picongpu@0.5.0+isaac backend=cuda'
+           PIC_PACKAGE='picongpu@develop+isaac backend=cuda target=x86_64' \
+           CUDA_PKG_VERSION="11-2"
 
 # install minimal spack dependencies
 #   - adds gfortran for spack's openmpi package
@@ -24,11 +26,9 @@ RUN        apt-get update && \
               coreutils \
               cuda-cupti-$CUDA_PKG_VERSION \
               cuda-command-line-tools-$CUDA_PKG_VERSION \
-              cuda-core-$CUDA_PKG_VERSION \
               cuda-cudart-dev-$CUDA_PKG_VERSION \
-              cuda-curand-dev-$CUDA_PKG_VERSION \
+              libcurand-dev-$CUDA_PKG_VERSION \
               cuda-minimal-build-$CUDA_PKG_VERSION \
-              cuda-misc-headers-$CUDA_PKG_VERSION \
               cuda-nvml-dev-$CUDA_PKG_VERSION \
               curl \
               environment-modules \
@@ -55,6 +55,7 @@ RUN        curl -s -L https://github.com/spack/spack/archive/develop.tar.gz \
            curl -s -L https://api.github.com/repos/ComputationalRadiationPhysics/spack-repo/tarball \
                 | tar xzC $SPACK_EXTRA_REPO --strip 1 && \
            spack repo add --scope=system $SPACK_EXTRA_REPO
+RUN        spack install --only dependencies $PIC_PACKAGE
 RUN        spack install $PIC_PACKAGE && \
            spack clean -a
 
@@ -81,7 +82,7 @@ RUN        /bin/echo -e '#!/bin/bash -l\n' \
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/LaserWakefield /opt/picInputs/lwfa && \
                cd /opt/picInputs/lwfa && \
-               pic-build -b "cuda:30;35;37;50;60;70" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
+               pic-build -b "cuda:35;37;50;60;70;80" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
                rm -rf .build && \
                chmod a+x /opt/picInputs/*/bin/* && \
                chmod a+r -R /opt/picInputs/* && \
@@ -90,7 +91,7 @@ RUN        /bin/bash -l -c ' \
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/KelvinHelmholtz /opt/picInputs/khi && \
                cd /opt/picInputs/khi && \
-               pic-build -b "cuda:30;35;37;50;60;70" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
+               pic-build -b "cuda:35;37;50;60;70;80" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
                rm -rf .build && \
                chmod a+x /opt/picInputs/*/bin/* && \
                chmod a+r -R /opt/picInputs/* && \
@@ -99,7 +100,7 @@ RUN        /bin/bash -l -c ' \
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/FoilLCT /opt/picInputs/foil && \
                cd /opt/picInputs/foil && \
-               pic-build -b "cuda:30;35;37;50;60;70" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
+               pic-build -b "cuda:35;37;50;60;70;80" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
                rm -rf .build && \
                chmod a+x /opt/picInputs/*/bin/* && \
                chmod a+r -R /opt/picInputs/* && \
