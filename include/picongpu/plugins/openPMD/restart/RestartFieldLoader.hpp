@@ -65,7 +65,7 @@ namespace picongpu
                 auto const name_lookup_tpl = plugins::misc::getComponentNames(numComponents);
                 const DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
 
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
                 using ValueType = typename Data::ValueType;
                 field.getHostBuffer().setValue(ValueType::create(0.0));

@@ -92,7 +92,7 @@ namespace picongpu
 
                 std::string particlePath
                     = params->adiosBasePath + std::string(ADIOS_PATH_PARTICLES) + speciesName + std::string("/");
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
                 /* load particle without copying particle data to host */
                 auto speciesTmp = dc.get<ThisSpecies>(FrameType::getName(), true);
