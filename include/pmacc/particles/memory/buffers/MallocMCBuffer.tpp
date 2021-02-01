@@ -21,11 +21,13 @@
 
 #pragma once
 
-#include "pmacc/particles/memory/buffers/MallocMCBuffer.hpp"
-#include "pmacc/types.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
+#if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
 
-#include <memory>
+#    include "pmacc/particles/memory/buffers/MallocMCBuffer.hpp"
+#    include "pmacc/types.hpp"
+#    include "pmacc/eventSystem/EventSystem.hpp"
+
+#    include <memory>
 
 
 namespace pmacc
@@ -44,9 +46,14 @@ namespace pmacc
     MallocMCBuffer<T_DeviceHeap>::~MallocMCBuffer()
     {
         if(hostPtr != nullptr)
+        {
+#    if(PMACC_CUDA_ENABLED == 1)
             cudaHostUnregister(hostPtr);
-
-        __deleteArray(hostPtr);
+            __deleteArray(hostPtr);
+#    else
+            CUDA_CHECK_NO_EXCEPT((cuplaError_t) hipFree(hostPtr));
+#    endif
+        }
     }
 
     template<typename T_DeviceHeap>
@@ -55,16 +62,21 @@ namespace pmacc
         /** \todo: we had no abstraction to create a host buffer and a pseudo
          *         device buffer (out of the mallocMC ptr) and copy both with our event
          *         system.
-         *         WORKAROUND: use native cuda calls :-(
+         *         WORKAROUND: use native CUDA/HIP calls :-(
          */
         if(hostPtr == nullptr)
         {
+#    if(PMACC_CUDA_ENABLED == 1)
             /* use `new` and than `cudaHostRegister` is faster than `cudaMallocHost`
              * but with the some result (create page-locked memory)
              */
             hostPtr = new char[deviceHeapInfo.size];
             CUDA_CHECK((cuplaError_t) cudaHostRegister(hostPtr, deviceHeapInfo.size, cudaHostRegisterDefault));
-
+#    else
+            // we do not use hipHostRegister because this would require a strict alignment
+            // https://github.com/alpaka-group/alpaka/pull/896
+            CUDA_CHECK((cuplaError_t) hipHostMalloc((void**) &hostPtr, deviceHeapInfo.size, hipHostMallocDefault));
+#    endif
 
             this->hostBufferOffset = static_cast<int64_t>(reinterpret_cast<char*>(deviceHeapInfo.p) - hostPtr);
         }
@@ -75,3 +87,5 @@ namespace pmacc
     }
 
 } // namespace pmacc
+
+#endif

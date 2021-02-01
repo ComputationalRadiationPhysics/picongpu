@@ -51,9 +51,7 @@
 #include <pmacc/pluginSystem/PluginConnector.hpp>
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include <pmacc/math/Vector.hpp>
-#if(PMACC_CUDA_ENABLED == 1)
-#    include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
-#endif
+#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 #include <pmacc/traits/Limits.hpp>
 
 #include "picongpu/plugins/output/IIOBackend.hpp"
@@ -1163,10 +1161,9 @@ namespace picongpu
                 {
                     DataConnector& dc = Environment<>::get().DataConnector();
 
-#if(PMACC_CUDA_ENABLED == 1)
                     /* synchronizes the MallocMCBuffer to the host side */
                     dc.get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName());
-#endif
+
                     /* here we are copying all species to the host side since we
                      * can not say at this point if this time step will need all of them
                      * for sure (checkpoint) or just some user-defined species (dump)
@@ -1174,9 +1171,7 @@ namespace picongpu
                     meta::ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1>> copySpeciesToHost;
                     copySpeciesToHost();
                     lastSpeciesSyncStep = currentStep;
-#if(PMACC_CUDA_ENABLED == 1)
                     dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
-#endif
                 }
 
                 beginAdios(mThreadParams.adiosFilename);

@@ -50,9 +50,8 @@
 #include <pmacc/pluginSystem/PluginConnector.hpp>
 #include <pmacc/simulationControl/TimeInterval.hpp>
 #include <pmacc/static_assert.hpp>
-#if(PMACC_CUDA_ENABLED == 1)
-#    include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
-#endif
+#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
+
 #include "picongpu/plugins/misc/SpeciesFilter.hpp"
 #include "picongpu/plugins/openPMD/NDScalars.hpp"
 #include "picongpu/plugins/openPMD/WriteMeta.hpp"
@@ -800,10 +799,9 @@ Please pick either of the following:
                 {
                     DataConnector& dc = Environment<>::get().DataConnector();
 
-#if(PMACC_CUDA_ENABLED == 1)
                     /* synchronizes the MallocMCBuffer to the host side */
                     dc.get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName());
-#endif
+
                     /* here we are copying all species to the host side since we
                      * can not say at this point if this time step will need all of
                      * them for sure (checkpoint) or just some user-defined species
@@ -812,9 +810,8 @@ Please pick either of the following:
                     meta::ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1>> copySpeciesToHost;
                     copySpeciesToHost();
                     lastSpeciesSyncStep = currentStep;
-#if(PMACC_CUDA_ENABLED == 1)
+
                     dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
-#endif
                 }
 
                 TimeIntervall timer;

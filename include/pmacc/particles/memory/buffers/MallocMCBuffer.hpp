@@ -21,13 +21,15 @@
 
 #pragma once
 
-
 #include "pmacc/dataManagement/ISimulationData.hpp"
 
-#include <mallocMC/mallocMC.hpp>
-
 #include <string>
-#include <memory>
+#include <cstdint>
+
+#if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+
+#    include <mallocMC/mallocMC.hpp>
+#    include <memory>
 
 namespace pmacc
 {
@@ -67,4 +69,39 @@ namespace pmacc
 
 } // namespace pmacc
 
-#include "pmacc/particles/memory/buffers/MallocMCBuffer.tpp"
+#    include "pmacc/particles/memory/buffers/MallocMCBuffer.tpp"
+
+#else
+
+namespace pmacc
+{
+    template<typename T_DeviceHeap>
+    class MallocMCBuffer : public ISimulationData
+    {
+    public:
+        MallocMCBuffer(const std::shared_ptr<T_DeviceHeap>&);
+
+        virtual ~MallocMCBuffer() = default;
+
+        SimulationDataId getUniqueId() override
+        {
+            return getName();
+        }
+
+        static std::string getName()
+        {
+            return std::string("MallocMCBuffer");
+        }
+
+        int64_t getOffset()
+        {
+            return 0u;
+        }
+
+        void synchronize() override
+        {
+        }
+    };
+
+} // namespace pmacc
+#endif
