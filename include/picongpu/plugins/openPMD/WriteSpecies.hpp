@@ -464,6 +464,9 @@ namespace picongpu
                     numParticles.resetDataset(ds);
                     numParticlesOffset.resetDataset(ds);
 
+                    /* It is safe to use the mpi rank to write the data even if the rank can differ between simulation
+                     * runs. During the restart the plugin is using patch information to find the corresponding data.
+                     */
                     numParticles.store<index_t>(mpiRank, myNumParticles);
                     numParticlesOffset.store<index_t>(mpiRank, myParticleOffset);
 
