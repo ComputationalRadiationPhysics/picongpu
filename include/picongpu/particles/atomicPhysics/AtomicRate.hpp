@@ -255,7 +255,7 @@ t         *      should be no problem in flychk data since largest value ~10^10
                 pmacc::algorithms::math::sqrt( 3._X) ); // uint: m^2, SI
 
             // m^2 * (J/J)^2 * unitless * J/J * unitless<-[ J, J, unitless, unitless ] = m^2
-            return c0_SI *
+            float_X crossSection_SI = c0_SI *
                 pmacc::algorithms::math::pow(
                     ( picongpu::SI::ATOMIC_UNIT_ENERGY / 2._X )
                     / energyDifference_SI,
@@ -269,6 +269,15 @@ t         *      should be no problem in flychk data since largest value ~10^10
                     indexTransition,
                     atomicDataBox
                     ); // unit: m^2, SI
+
+            // safeguard against negative cross sections due to approximations
+            if ( crossSection_SI < 0._X )
+            {
+                return 0._X;
+            }
+
+            // usual return path
+            return crossSection_SI;
         }
 
         // @param energyElectron ... kinetic energy only, unit: ATOMIC_UNIT_ENERGY

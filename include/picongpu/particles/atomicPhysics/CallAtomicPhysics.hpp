@@ -371,7 +371,7 @@ namespace atomicPhysics
             // TODO: make available as options from param file, Brian Marre 2020
             constexpr float_X initialGridWidth = 0.2_X; // unit: ATOMIC_UNIT_ENERGY
             constexpr float_X relativeErrorTarget = 0.5_X; // unit: 1/s /( 1/( m^3 * ATOMIC_UNIT_ENERGY ) )
-            constexpr uint16_t maxNumBins = 2000;
+            constexpr uint16_t maxNumBins = 1000;
 
             // renaming of Kernel, basic construct defined in
             //   <picongpu/particles/atomicPhysics/AtomicPhysics.kernel>

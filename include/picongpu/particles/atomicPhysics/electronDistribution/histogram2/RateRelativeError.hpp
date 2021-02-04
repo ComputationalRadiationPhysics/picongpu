@@ -146,7 +146,7 @@ namespace mathFunc = pmacc::algorithms::math;
             T_AtomicDataBox atomicDataBox
             ) const
         {
-            float_X result = 0; // unit: (1/s) / (m^3/J)
+            float_X result = 0._X; // unit: (1/s) / (m^3/J)
 
             // a ... order of rate approximation
             for ( uint32_t a = T_minOrderApprox; a <= T_maxOrderApprox; a++ )
@@ -168,6 +168,8 @@ namespace mathFunc = pmacc::algorithms::math;
                                 ) * 2._X; // unit: J * m^3 * 1/s
                     }
             }
+            //printf("    deltaE: %d\n", dE);
+            //printf("    relative error: %d\n", result);
             return result;
         }
 

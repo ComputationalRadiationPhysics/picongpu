@@ -57,6 +57,7 @@ namespace atomicPhysics
         T_AtomicDataBox atomicDataBox
     )
     {
+        //{ preparations
         using namespace mappings::threads;
 
         // TODO: express framesize better, not via supercell size
@@ -82,6 +83,8 @@ namespace atomicPhysics
 
         auto frame = electronBox.getLastFrame( supercellIdx );
         auto particlesInSuperCell = electronBox.getSuperCell( supercellIdx ).getSizeLastFrame( );
+        //}
+
 
         // go over frames
         while( frame.isValid( ) )
@@ -101,7 +104,6 @@ namespace atomicPhysics
                         // note: there is UNIT_ENERGY that can help with conversion
                         // note3: maybe getEnergy could become a generic algorithm
                         auto const particle = frame[ linearIdx ];
-
 
                         float_X const energy_SI = picongpu::particles::atomicPhysics::GetRealKineticEnergy::KineticEnergy( particle );
                         // unit: J, SI

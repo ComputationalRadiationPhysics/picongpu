@@ -49,6 +49,8 @@
 /**@file
  * This file implements the device atomic physics kernel
  *
+ * This kernel is called once for every super cell, for every PIC time step.
+ *
  * @tparam T_numWorkers ... number of workers used for histogram filling
  * @tparam T_maxNumBins ... maximum number of Bins of the histogram
  */
@@ -118,7 +120,7 @@ namespace atomicPhysics
                 atomicDataBox.getAtomicNumber()
             >;
 
-            // atomic rate calculation
+            // atomic rate calculation methods
             using AtomicRate = picongpu::particles::atomicPhysics::AtomicRate<
                 T_AtomicDataBox,
                 ConfigNumberDataType,
@@ -151,6 +153,11 @@ namespace atomicPhysics
                 T_AtomicDataBox
             >;
 
+            if( workerIdx == 0 )
+            {
+                printf("    start kernel\n");
+            }
+
             // get new histogram
             PMACC_SMEM(
                 acc, // mandatory first parameter
@@ -158,12 +165,22 @@ namespace atomicPhysics
                 Histogram // variable type
             );
 
+            if( workerIdx == 0 )
+            {
+                printf("    allocation histogram in SMEM\n");
+            }
+
             // get new weightings
             PMACC_SMEM(
                 acc, // mandatory first parameter
                 relativeError, // variable name
                 RelativeError // variable type
             );
+
+            if( workerIdx == 0 )
+            {
+                printf("    allocated relative error instance\n");
+            }
 
             // init histogram
             if( workerIdx == 0 )
@@ -180,6 +197,11 @@ namespace atomicPhysics
             cupla::__syncthreads( acc );
             // necessary since all access relativeError and histogram, but both are only valid after init
 
+            if( workerIdx == 0 )
+            {
+                printf("    init histogram\n");
+                printf("        initialGridWidth: %d\n", initialGridWidth);
+            }
 
             fillHistogram< T_numWorkers >(
                 acc,
@@ -193,7 +215,7 @@ namespace atomicPhysics
             // debug code only
             if( workerIdx == 0 )
             {
-                printf("histogram filled");
+                printf("    histogram filled\n");
             }
 
             /*solveRateEquation< T_numWorkers, AtomicRate >(

@@ -30,6 +30,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/attribute/FunctionSpecifier.hpp>
+#include <alpaka/alpaka.hpp>
 
 #include <utility>
 #include "picongpu/traits/attribute/GetMass.hpp"
@@ -56,6 +57,7 @@ namespace histogram2
     struct AdaptiveHistogram
     {
     private:
+        //{ members
         constexpr static uint32_t maxNumBins = T_maxNumBins;
         constexpr static uint32_t maxNumNewBins = T_maxNumNewBins;
 
@@ -89,6 +91,7 @@ namespace histogram2
 
         // defines initial global grid
         float_X initialGridWidth;       // unit: Argument
+        //}
 
         // TODO: replace linear search, by ordering bins
         /** Tries to find binLeftBoundary in the collection and return the collection
@@ -150,7 +153,6 @@ namespace histogram2
             else
                 return ( x >= boundary - binWidth ) && ( x < boundary );
         }
-
 
     public:
         /** Has to be called by one thread once before any other method
@@ -329,8 +331,18 @@ namespace histogram2
             T_AtomicDataBox atomicDataBox
             ) const
         {
+            // preparation for debug access to run time acess
+            uint32_t const workerIdx = cupla::threadIdx( acc ).x;
+
+            // debug acess
+            if( workerIdx == 1 )
+            {
+                //debug code
+                printf( "test_debug" );
+            }
+
             // is initial binWidth realtiveError below the Target?
-            bool isBelowTarget = ( this->relativeErrorTarget >=
+            bool isBelowTarget = ( this->relativeErrorTarget >= 
                 this->relativeError(
                     acc,
                     currentBinWidth,
@@ -381,7 +393,7 @@ namespace histogram2
 
                     // until first time below Target
                     isBelowTarget = (
-                        this->relativeErrorTarget > this->relativeError(
+                        this->relativeErrorTarget >= this->relativeError(
                             acc,
                             currentBinWidth,
                             AdaptiveHistogram::centerBin(
@@ -415,7 +427,6 @@ namespace histogram2
             T_AtomicDataBox atomicDataBox
             ) const
         {
-
             // wether x is in positive direction with regards to last known
             // Boundary
             bool directionPositive = ( x >= this->lastLeftBoundary );
@@ -430,11 +441,12 @@ namespace histogram2
             float_X boundary = this->lastLeftBoundary;      // unit: argument
 
             bool inBin = false;
-
             while ( !inBin )
             {
 
                 // get currentBinWidth
+                // currentBinWidth = 0.1_X;
+                // debug sinc ethis call seems to cause infinite loop
                 currentBinWidth = getBinWidth(
                     acc,
                     directionPositive,
