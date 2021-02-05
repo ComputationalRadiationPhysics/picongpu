@@ -39,8 +39,6 @@ namespace picongpu
             {
                 namespace histogram2
                 {
-                    namespace mathFunc = math;
-
                     template<
                         uint32_t T_minOrderApprox, // half of starting order of error approximation,
                                                    // in crosssection + velocity and 0th order in
@@ -155,9 +153,9 @@ namespace picongpu
                                     result += 1.0 / (fak(o) * fak(2u * a - o))
                                         * sigmaDerivative(acc, E, dE, o, atomicDataBox)
                                         * velocityDerivative(E, dE, 2u * a - o) * 1._X / (2u * a + 1u)
-                                        * mathFunc::pow(
+                                        * math::pow(
                                                   dE * picongpu::SI::ATOMIC_UNIT_ENERGY / 2._X,
-                                                  static_cast<int>(2u * a + 1u))
+                                                  static_cast<float_X>(2u * a + 1u))
                                         * 2._X; // unit: J * m^3 * 1/s
                                 }
                             }
@@ -175,15 +173,15 @@ namespace picongpu
                             constexpr float_X mass_e_SI = picongpu::SI::ELECTRON_MASS_SI;
                             constexpr float_X c_SI = picongpu::SI::SPEED_OF_LIGHT_SI;
 
-                            float_X restEnergy_SI = mass_e_SI * math::pow(c_SI, 2);
+                            float_X restEnergy_SI = mass_e_SI * math::pow(c_SI, 2.0_X);
 
                             // v = sqrt( 1 - (m^2*c^4)/(E^2) )
                             return picongpu::SI::SPEED_OF_LIGHT_SI
-                                * mathFunc::sqrt(
+                                * math::sqrt(
                                        1._X
-                                       - mathFunc::pow(
+                                       - math::pow(
                                            1._X / (1._X + (energy * picongpu::SI::ATOMIC_UNIT_ENERGY) / restEnergy_SI),
-                                           2));
+                                           2.0_X));
                         }
 
                         // return unit: m/s * 1/J^m), SI
@@ -213,9 +211,9 @@ namespace picongpu
                             }
 
                             // pow( 1/[ ATOMIC_UNIT_ENERGY * AU_To_J ] = 1/J, m )-> 1/(J^m)
-                            result /= mathFunc::pow(
+                            result /= math::pow(
                                 dE / 2._X * picongpu::SI::ATOMIC_UNIT_ENERGY,
-                                int(m)); // unit: m/s * 1/J^m, SI
+                                static_cast<float_X>(m)); // unit: m/s * 1/J^m, SI
 
                             return result;
                         }
@@ -256,7 +254,7 @@ namespace picongpu
                                 result += weight * sigmaValue; // unit: m^2, SI
                             }
                             // m^2 / (J)^m
-                            result /= mathFunc::pow(dE * picongpu::SI::ATOMIC_UNIT_ENERGY / 2._X, int(o));
+                            result /= math::pow(dE * picongpu::SI::ATOMIC_UNIT_ENERGY / 2._X, static_cast<float_X>(o));
 
                             return result; // unit: m^2/J^m, SI
                         }

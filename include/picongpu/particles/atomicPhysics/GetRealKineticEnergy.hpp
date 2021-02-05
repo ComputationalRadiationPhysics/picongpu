@@ -28,8 +28,6 @@ namespace picongpu
     {
         namespace atomicPhysics
         {
-            namespace mathFunc = math;
-
             struct GetRealKineticEnergy
             {
                 // returns the kinetic energy of a represented physical particle
@@ -56,9 +54,9 @@ namespace picongpu
 
                     // sqrt( kg^2 * m^4/s^4  + (kg * m/s * m/s)^2 )
                     return math::sqrt(
-                               mathFunc::pow(m_p_SI, 2) * mathFunc::pow(c_SI, 4)
-                               + mathFunc::pow(momentum_SI * c_SI, 2))
-                        - m_p_SI * mathFunc::pow(c_SI, 2); // - m*c^2, since kinetic energy is what we want
+                               math::pow(m_p_SI, 2.0_X) * math::pow(c_SI, 4.0_X)
+                               + math::pow(momentum_SI * c_SI, 2.0_X))
+                        - m_p_SI * math::pow(c_SI, 2.0_X); // - m*c^2, since kinetic energy is what we want
                     // unit: kg * m^2/s^2 = J, SI
                 }
             };

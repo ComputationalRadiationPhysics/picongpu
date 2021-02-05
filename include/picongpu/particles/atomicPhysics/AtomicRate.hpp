@@ -106,7 +106,7 @@ namespace picongpu
                     for(uint8_t i = 0u; i < T_numLevels; i++)
                     {
                         result *= binomialCoefficients(
-                            static_cast<uint8_t>(2u * math::pow(float(i), 2)),
+                            static_cast<uint8_t>(2u * math::pow(float(i), 2.0f)),
                             levelVector[i]); // unitless
                     }
 
@@ -139,7 +139,7 @@ namespace picongpu
                     // calculate gaunt Factor
                     float_X const U = energyElectron / energyDifference; // unit: unitless
                     float_X const g
-                        = A * math::log(U) + B + C / (U + a) + D / math::pow(U + a, 2); // unitless
+                        = A * math::log(U) + B + C / (U + a) + D / math::pow(U + a, 2.0_X); // unitless
 
                     return g * (U > 1.0); // unitless
                 }
@@ -227,14 +227,14 @@ namespace picongpu
                     // physical constants
                     // (unitless * m)^2 / unitless = m^2
                     float_X c0_SI = float_X(
-                        8._X * math::pow(picongpu::PI * picongpu::SI::BOHR_RADIUS, 2)
+                        8._X * math::pow(picongpu::PI * picongpu::SI::BOHR_RADIUS, 2.0_X)
                         / math::sqrt(3._X)); // uint: m^2, SI
 
                     // m^2 * (J/J)^2 * unitless * J/J * unitless<-[ J, J, unitless, unitless ] = m^2
                     float_X crossSection_SI = c0_SI
                         * math::pow(
                                     (picongpu::SI::ATOMIC_UNIT_ENERGY / 2._X) / energyDifference_SI,
-                                    2)
+                                    2.0_X)
                         * collisionalOscillatorStrength * (energyDifference_SI / energyElectron_SI)
                         * gauntFactor(energyDifference_SI,
                                       energyElectron_SI,
@@ -314,8 +314,6 @@ namespace picongpu
                     float_X const densityElectrons, // unit: 1/(m^3*J), SI
                     AtomicDataBox const atomicDataBox)
                 {
-                    namespace mathFunc = math;
-
                     // constants in SI
                     constexpr float_64 c_SI = picongpu::SI::SPEED_OF_LIGHT_SI; // unit: m/s, SI
                     constexpr float_64 m_e_SI = picongpu::SI::ELECTRON_MASS_SI; // unit: kg, SI
@@ -335,8 +333,8 @@ namespace picongpu
                     // J * m^2 * 1/(m^3*J) * m/s * sqrt( unitless - [ ( (kg*m^2/s^2)/J )^2 = Nm/J = J/J = unitless ] )
                     // = J/J m^3/m^3 * 1/s
                     return dE_SI * sigma_SI * densityElectrons * c_SI
-                        * mathFunc::sqrt(
-                               1 - mathFunc::pow(1._X / (1._X + E_e_SI / (m_e_SI * mathFunc::pow(c_SI, 2))), 2));
+                        * math::sqrt(
+                               1 - math::pow(1._X / (1._X + E_e_SI / (m_e_SI * math::pow(c_SI, 2.0_X))), 2.0_X));
                     // unit: 1/s; SI
                 }
 
