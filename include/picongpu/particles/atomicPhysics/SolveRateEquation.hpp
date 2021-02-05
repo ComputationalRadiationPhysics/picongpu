@@ -143,10 +143,11 @@ namespace picongpu
                         atomicDataBox);
 
                     constexpr float_64 UNIT_VOLUME = UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH;
+                    constexpr auto numCellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
                     // calculate density of electrons based on weight of electrons in this bin
                     densityElectrons = histogram->getWeightBin(histogramIndex)
-                        / (picongpu::numCellsPerSuperCell * picongpu::CELL_VOLUME * UNIT_VOLUME
-                           * energyElectronBinWidth * picongpu::SI::ATOMIC_UNIT_ENERGY);
+                        / (numCellsPerSuperCell * picongpu::CELL_VOLUME * UNIT_VOLUME * energyElectronBinWidth
+                           * picongpu::SI::ATOMIC_UNIT_ENERGY);
                     // (weighting * #/weighting) /
                     //      ( numCellsPerSuperCell * Volume * m^3/Volume * AU * J/AU )
                     // = # / (m^3 * J) => unit: 1/(m^3 * J), SI

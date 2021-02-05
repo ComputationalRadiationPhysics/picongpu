@@ -48,16 +48,7 @@ namespace picongpu
      *
      * volume of a superCell must be <= 1024
      */
-    // TODO: check dimension naming
-    constexpr uint8_t xSizeSuperCell = 8;
-    constexpr uint8_t ySizeSuperCell = 8;
-    constexpr uint8_t zSizeSuperCell = 4;
-
-    /// TODO: atomic-physics-investigate
-    using SuperCellSize = typename mCT::
-        shrinkTo<mCT::Int<xSizeSuperCell, ySizeSuperCell, zSizeSuperCell>, simDim>::type;
-
-    constexpr uint16_t numCellsPerSuperCell = xSizeSuperCell * ySizeSuperCell * zSizeSuperCell;
+    using SuperCellSize = typename mCT::shrinkTo<mCT::Int<8, 8, 4>, simDim>::type;
 
     /** define mapper which is used for kernel call mappings */
     using MappingDesc = MappingDescription<simDim, SuperCellSize>;
