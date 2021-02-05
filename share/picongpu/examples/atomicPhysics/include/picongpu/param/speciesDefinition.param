@@ -96,14 +96,9 @@ namespace picongpu
         massRatio<MassRatioCarbon>,
         chargeRatio<ChargeRatioCarbon>,
         densityRatio<DensityRatioCarbon>,
-        atomicNumbers<ionization::atomicNumbers::Carbon_t>,
-        ionizationEnergies<ionization::energies::AU::Carbon_t>,
         _atomicPhysics<BulkElectrons>,
         effectiveNuclearCharge<ionization::effectiveNuclearCharge::Carbon_t>,
-        ionizers<MakeSeq_t<
-            particles::ionization::BSIEffectiveZ<BulkElectrons>,
-            particles::ionization::ADKLinPol<BulkElectrons>,
-            particles::ionization::ThomasFermi<BulkElectrons>>>>;
+        atomicNumbers<ionization::atomicNumbers::Carbon_t>>;
 
     using CarbonAttributes
         = MakeSeq_t<DefaultParticleAttributes, atomicConfigNumber<configNumber_Carbon>, boundElectrons>;

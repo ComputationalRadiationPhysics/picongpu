@@ -60,7 +60,7 @@ namespace picongpu
 
         namespace manipulators
         {
-            struct SetIonToOnceIonized
+            struct SetIonToNotIonized
             {
                 // set ions to not ionized ground state
                 template<typename T_Particle>
@@ -72,7 +72,7 @@ namespace picongpu
                     float_X const protonNumber = traits::GetAtomicNumbers<T_Particle>::type::numberOfProtons;
 
                     // init normal ionization
-                    particle[boundElectrons_] = protonNumber - 1;
+                    particle[boundElectrons_] = protonNumber;
 
                     // get current Configuration number object
                     auto configNumber = particle[atomicConfigNumber_];
@@ -81,25 +81,25 @@ namespace picongpu
                     auto occupationNumberVector = pmacc::math::Vector<uint8_t, configNumber.numberLevels>::create(0u);
 
 
-                    uint8_t numberElectronsRemaining = protonNumber - 1;
+                    uint8_t numberElectronsRemaining = protonNumber;
                     // fill from bottom up until no electrons remaining -> ground state init
-                    for(uint8_t level = 1u; level <= configNumber.numberlevels; i++)
+                    for(uint8_t level = 1u; level <= configNumber.numberLevels; level++)
                     {
-                        if(numberElectronsRemaining >= 2u * i * i)
+                        if(numberElectronsRemaining >= 2u * level * level)
                         {
-                            (*occupationNumberVector)[i - 1u] = 2u * i * i;
-                            numberElectronsRemaining -= 2u * i * i;
+                            (occupationNumberVector)[level - 1u] = 2u * level * level;
+                            numberElectronsRemaining -= 2u * level * level;
                         }
                         else
                         {
-                            (*occupationNumberVector)[i - 1u] = numberElectronsRemaining;
+                            (occupationNumberVector)[level - 1u] = numberElectronsRemaining;
                             numberElectronsRemaining = 0;
                             break;
                         }
                     }
 
                     // change atomic state index
-                    particle[atomicConfigNumber_] = configNumber::getAtomicStateIndex(occupationNumberVector);
+                    particle[atomicConfigNumber_] = configNumber.getAtomicStateIndex(occupationNumberVector);
                 }
             };
 
@@ -123,7 +123,7 @@ namespace picongpu
 
 
             // definition of SetDrift start
-            using OnceIonized = generic::Free<SetIonToNotIonized>;
+            using NotIonized = generic::Free<SetIonToNotIonized>;
 
         } // namespace manipulators
     } // namespace particles
