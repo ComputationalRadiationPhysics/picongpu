@@ -1,0 +1,229 @@
+/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Richard Pausch, Alexander Debus, Marco Garten,
+ *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov,
+ *                     Brian Marre
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+
+// TODO: get histogram type from param files
+// histogram of electron distribution
+#include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/AdaptiveHistogram.hpp"
+
+// sub steps of atomic physics
+#include "picongpu/particles/atomicPhysics/DecelerateElectrons.hpp"
+#include "picongpu/particles/atomicPhysics/FillHistogram.hpp"
+#include "picongpu/particles/atomicPhysics/SolveRateEquation.hpp"
+
+// relativeError calculation
+#include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/RateRelativeError.hpp"
+// numerical differentiation
+#include "picongpu/particles/atomicPhysics/electronDistribution/histogram2/FornbergNumericalDifferentiation.hpp"
+// atomic rate calculation functor
+#include "picongpu/particles/atomicPhysics/AtomicRate.hpp"
+// conversion to/from atomic state index
+#include "picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp"
+
+#include <cstdint>
+
+
+/**@file
+ * This file implements the device atomic physics kernel
+ *
+ * This kernel is called once for every super cell, for every PIC time step.
+ *
+ * @tparam T_numWorkers ... number of workers used for histogram filling
+ * @tparam T_maxNumBins ... maximum number of Bins of the histogram
+ */
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace atomicPhysics
+        {
+            template<uint32_t T_numWorkers, uint16_t T_maxNumBins>
+            struct AtomicPhysicsKernel
+            {
+                // note: maybe rename variables later
+                RngFactoryInt rngFactoryInt;
+                RngFactoryFloat rngFactoryFloat;
+
+                AtomicPhysicsKernel(
+                    RngFactoryInt rngFactoryInt = RngFactoryInt{0},
+                    RngFactoryFloat rngFactoryFloat = RngFactoryFloat{0})
+                    : rngFactoryInt(rngFactoryInt)
+                    , rngFactoryFloat(rngFactoryFloat)
+                {
+                }
+
+                // template parameters are automatically deduced from input
+                template<
+                    typename T_Acc,
+                    typename T_ElectronBox,
+                    typename T_IonBox,
+                    typename T_Mapping,
+                    typename T_AtomicDataBox>
+                HDINLINE void operator()(
+                    T_Acc const& acc,
+                    T_ElectronBox electronBox,
+                    T_IonBox ionBox,
+                    T_Mapping mapper,
+                    T_AtomicDataBox const atomicDataBox,
+                    float_X const initialGridWidth, // unit: ATOMIC_UNIT_ENERGY
+                    float_X const relativeErrorTarget, // unit: 1/s /( 1/( m^3 * ATOMIC_UNIT_ENERGY ) )
+                    uint32_t const step) const
+                {
+                    // we assume 1d thread indices
+                    // thread index inside a block
+                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+
+                    // Create and initialize a histogram on shared memory
+                    constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+
+                    // TODO: get this from ion species
+                    // hard coded for now
+                    using ConfigNumberDataType = uint64_t;
+                    constexpr uint8_t numLevels = 10u;
+
+                    // conversion to/from atomic state index
+                    using ConfigNumber = picongpu::particles::atomicPhysics::stateRepresentation::
+                        ConfigNumber<ConfigNumberDataType, numLevels, atomicDataBox.getAtomicNumber()>;
+
+                    // atomic rate calculation methods
+                    using AtomicRate = picongpu::particles::atomicPhysics::
+                        AtomicRate<T_AtomicDataBox, ConfigNumberDataType, ConfigNumber, numLevels>;
+
+                    // numerical derivative werightings
+                    using WeightingGen = electronDistribution::histogram2::FornbergNumericalDifferentiation<
+                        float_X, // T_Value
+                        float_X // T_Argument
+                        >;
+
+                    // hard coded for now
+                    // TODO: get from param file
+                    using RelativeError = electronDistribution::histogram2::RateRelativeError<
+                        1u, // T_minOrderApprox
+                        1u, // T_maxOrderApprox
+                        3u, // T_numSamplePoints
+                        WeightingGen,
+                        AtomicRate,
+                        T_AtomicDataBox,
+                        ConfigNumberDataType>;
+
+                    using Histogram = electronDistribution::histogram2::
+                        AdaptiveHistogram<T_maxNumBins, frameSize, RelativeError, T_AtomicDataBox>;
+
+                    if(workerIdx == 0)
+                    {
+                        printf("    start kernel\n");
+                    }
+
+                    // get new histogram
+                    PMACC_SMEM(
+                        acc, // mandatory first parameter
+                        histogram, // variable name
+                        Histogram // variable type
+                    );
+
+                    if(workerIdx == 0)
+                    {
+                        printf("    allocation histogram in SMEM\n");
+                    }
+
+                    // get new weightings
+                    PMACC_SMEM(
+                        acc, // mandatory first parameter
+                        relativeError, // variable name
+                        RelativeError // variable type
+                    );
+
+                    if(workerIdx == 0)
+                    {
+                        printf("    allocated relative error instance\n");
+                    }
+
+                    // init histogram
+                    if(workerIdx == 0)
+                    {
+                        // pass through parameters of histogram
+                        histogram.init(relativeErrorTarget, initialGridWidth, relativeError);
+                        // calculate weightings once
+                        relativeError.init();
+                    }
+                    cupla::__syncthreads(acc);
+                    // necessary since all access relativeError and histogram, but both are only valid after init
+
+                    if(workerIdx == 0)
+                    {
+                        printf("    init histogram\n");
+                        printf("        initialGridWidth: %d\n", initialGridWidth);
+                    }
+
+                    fillHistogram<T_numWorkers>(acc, electronBox, mapper, &histogram, atomicDataBox);
+                    cupla::__syncthreads(acc);
+
+                    // debug code only
+                    if(workerIdx == 0)
+                    {
+                        printf("    histogram filled\n");
+                    }
+
+                    /*solveRateEquation< T_numWorkers, AtomicRate >(
+                        acc,
+                        mapper,
+                        rngFactoryInt,
+                        rngFactoryFloat,
+                        ionBox,
+                        atomicDataBox,
+                        &histogram
+                    );
+                    cupla::__syncthreads( acc );
+
+                    // debug code only
+                    if( workerIdx == 0 )
+                    {
+                        printf("rate applied");
+                    }
+                    */
+
+                    /*
+                    decelerateElectrons< T_numWorkers >(
+                        acc,
+                        mapper,
+                        electronBox,
+                        histogram,
+                        atomicDataBox
+                    );
+
+                    // debug code only
+                    if( workerIdx == 0 )
+                    {
+                        printf("electrons decellerated");
+                    }
+                    */
+                }
+            };
+
+        } // namespace atomicPhysics
+    } // namespace particles
+} // namespace picongpu

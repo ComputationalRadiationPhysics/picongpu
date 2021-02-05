@@ -31,17 +31,23 @@
 #include "picongpu/particles/InitFunctors.hpp"
 
 
+// init of particles with
 namespace picongpu
 {
     namespace particles
     {
-        /** InitPipeline defines in which order species are initialized
+        /** InitPipeline define in which order species are initialized
          *
          * the functors are called in order (from first to last functor)
          */
         using InitPipeline = bmpl::vector<
-            CreateDensity<densityProfiles::Gaussian, startPosition::Random2ppc, PIC_Electrons>,
-            CreateDensity<densityProfiles::Gaussian, startPosition::Random2ppc, PIC_Ions>>;
+
+            CreateDensity<densityProfiles::Homogenous, startPosition::Random1ppc, CarbonIons>,
+            ManipulateDerive<manipulators::binary::DensityWeighting, CarbonIons, BulkElectrons>,
+            // set ions to atomic ground state
+            Manipulate<manipulators::OnceIonized, CarbonIons>,
+            // Set initial temperature of bulk electrons
+            Manipulate<manipulators::AddTemperature, BulkElectrons>>;
 
     } // namespace particles
 } // namespace picongpu

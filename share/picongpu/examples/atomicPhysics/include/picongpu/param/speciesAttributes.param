@@ -45,6 +45,7 @@
 #include <pmacc/particles/IdProvider.def>
 
 
+// definition of carbon config number Object
 namespace picongpu
 {
     /** relative (to cell origin) in-cell position of a particle
@@ -113,8 +114,11 @@ namespace picongpu
      * Representations of the internal state of ions in plasmas.
      */
     // Example of number of modelled shells/levels
-    constexpr uint8_t numberLevels_Hydrogen = 10u; // model 4 shells/levels
-    constexpr uint8_t chargeNumber_Hydrogen = 1u; // hydrogen charge number=1
+    constexpr uint8_t chargeNumber_Carbon = 12u; // hydrogen charge number=12
+    constexpr uint8_t numberLevels_Carbon = 10u; // model 10 shells/levels
+    constexpr uint8_t chargeNumber_Hydrogen = 12u; // hydrogen charge number=12
+    constexpr uint8_t numberLevels_Hydrogen = 10u; // model 10 shells/levels
+
 
     /** [depreceated]flylite atomic superconfiguration from
      *
@@ -171,10 +175,10 @@ namespace picongpu
      * actual datatype must be defined seperately from value_identifier,
      * since all "," are interpreted as seperating macro arguments
      */
-    using ConfigNumber_H = particles::atomicPhysics::stateRepresentation::
-        ConfigNumber<uint64_t, numberLevels_Hydrogen, chargeNumber_Hydrogen>;
+    using ConfigNumber_C = particles::atomicPhysics::stateRepresentation::
+        ConfigNumber<uint64_t, numberLevels_Carbon, chargeNumber_Carbon>;
 
-    value_identifier(ConfigNumber_H, configNumber_Hydrogen, ConfigNumber_H(1u));
+    value_identifier(ConfigNumber_C, configNumber_Carbon, ConfigNumber_C(0u));
 
     /// temporarily rename to avoid collision with namespace picongpu::atomicPhysics
     alias(_atomicPhysics);
