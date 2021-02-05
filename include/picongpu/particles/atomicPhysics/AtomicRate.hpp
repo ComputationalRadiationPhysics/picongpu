@@ -232,9 +232,9 @@ namespace picongpu
 
                     // m^2 * (J/J)^2 * unitless * J/J * unitless<-[ J, J, unitless, unitless ] = m^2
                     float_X crossSection_SI = c0_SI
-                        * pmacc::algorithms::math::pow(
-                                                  (picongpu::SI::ATOMIC_UNIT_ENERGY / 2._X) / energyDifference_SI,
-                                                  2)
+                        * math::pow(
+                                    (picongpu::SI::ATOMIC_UNIT_ENERGY / 2._X) / energyDifference_SI,
+                                    2)
                         * collisionalOscillatorStrength * (energyDifference_SI / energyElectron_SI)
                         * gauntFactor(energyDifference_SI,
                                       energyElectron_SI,

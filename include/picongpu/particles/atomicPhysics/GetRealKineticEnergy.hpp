@@ -45,7 +45,7 @@ namespace picongpu
 
                     float3_X vectorMomentum_Scaled = particle[momentum_]; // internal units and scaled with weighting
 
-                    float_X momentum = math::abs2(vectorMomentum_Scaled) / particle[weighting_]; // internal units
+                    float_X momentum = pmacc::math::abs2(vectorMomentum_Scaled) / particle[weighting_]; // internal units
 
                     // TODO: check wheter conversion is correct
                     // unit: kg * m/s, SI

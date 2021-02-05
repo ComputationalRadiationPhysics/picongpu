@@ -208,10 +208,10 @@ namespace picongpu
     alias(ionizationEnergies);
 
     //! alias for synchrotronPhotons, see also speciesDefinition.param
-    alias(synchrotronPhotons)
+    alias(synchrotronPhotons);
 
-        //! alias for ion species used for bremsstrahlung
-        alias(bremsstrahlungIons);
+    //! alias for ion species used for bremsstrahlung
+    alias(bremsstrahlungIons);
 
     //! alias for photon species used for bremsstrahlung
     alias(bremsstrahlungPhotons);

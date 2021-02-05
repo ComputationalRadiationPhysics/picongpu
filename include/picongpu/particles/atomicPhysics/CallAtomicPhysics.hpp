@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov,
  *                     Brian Marre
@@ -32,6 +32,7 @@
 
 #include <cstdint>
 #include <fstream>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -269,7 +270,7 @@ namespace picongpu
                     this->numberTransitions = transitionDataItems.size();
 
                     // create atomic Data storage class on host and store pointer as private member
-                    atomicData = pmacc::memory::makeUnique<
+                    atomicData = std::make_unique<
                         AtomicData<maxPrincipalAtomicQuantumNumber, T_ConfigNumberDataType>>(
                         levelDataItems.size(),
                         transitionDataItems.size());
