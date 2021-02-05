@@ -676,7 +676,8 @@ private:
       hdf5DataFile.open(filename.str().c_str(), fAttr);
 
       typename PICToSplash<float_64>::type radSplashType;
-
+      typename PICToSplash<float_32>::type radDirSplashType;
+      typename PICToSplash<float_32>::type radFreqSplashType;
 
       splash::Dimensions bufferSize(Amplitude<>::numComponents,
                                     radiation_frequencies::N_omega,
@@ -690,7 +691,7 @@ private:
 
       /* get the radiation amplitude unit */
       Amplitude<> UnityAmplitude(1., 0., 0., 0., 0., 0.);
-      const picongpu::float_32 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
+      const picongpu::float_64 factor = UnityAmplitude.calc_radiation() * UNIT_ENERGY * UNIT_TIME ;
 
       typedef PICToSplash<float_X>::type SplashFloatXType;
       SplashFloatXType splashFloatXType;
@@ -756,7 +757,7 @@ private:
                                       strideDetector);
 
           hdf5DataFile.write(currentStep,
-                             radSplashType,
+                             radDirSplashType,
                              3,
                              dataSelection,
                              (meshesPathName + dataLabelsDetectorDirection(detectorDim)).c_str(),
@@ -798,7 +799,7 @@ private:
                                       strideOmega);
 
       hdf5DataFile.write(currentStep,
-                         radSplashType,
+                         radFreqSplashType,
                          3,
                          dataSelection,
                          (meshesPathName + dataLabelsDetectorFrequency(0)).c_str(),
@@ -1078,7 +1079,8 @@ private:
                                            parameters::N_observer);
 
           const int N_tmpBuffer = radiation_frequencies::N_omega * parameters::N_observer;
-          picongpu::float_64* tmpBuffer = new picongpu::float_64[N_tmpBuffer];
+          //picongpu::float_64* tmpBuffer = new picongpu::float_64[N_tmpBuffer];
+          Amplitude<>::complex_T::type* tmpBuffer = new picongpu::float_64[N_tmpBuffer];
 
           for(uint32_t ampIndex=0; ampIndex < Amplitude<>::numComponents; ++ampIndex)
           {
@@ -1090,7 +1092,7 @@ private:
               for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
               {
                   /* convert data directly because Amplitude is just 6 float_32 */
-                  ((picongpu::float_32*)values)[ampIndex + Amplitude<>::numComponents*copyIndex] = tmpBuffer[copyIndex];
+                  ((Amplitude<>::complex_T::type*)values)[ampIndex + Amplitude<>::numComponents*copyIndex] = tmpBuffer[copyIndex];
               }
 
           }

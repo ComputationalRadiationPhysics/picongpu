@@ -148,7 +148,7 @@ namespace radiation
             PMACC_SMEM( acc, real_amplitude_s, memory::Array< vector_64, blockSize > );
 
             // retarded time
-            PMACC_SMEM( acc, t_ret_s, memory::Array< picongpu::float_64, blockSize > );
+            PMACC_SMEM( acc, t_ret_s, memory::Array< picongpu::float_32, blockSize > );
 
             // storage for macro particle weighting needed if
             // the coherent and incoherent radiation of a single
@@ -165,12 +165,12 @@ namespace radiation
             int const theta_idx = cupla::blockIdx(acc).x; //cupla::blockIdx(acc).x is used to determine theta
 
             // simulation time (needed for retarded time)
-            picongpu::float_64 const t(
-                picongpu::float_64( currentStep ) * picongpu::float_64( DELTA_T)
+            picongpu::float_32 const t(
+                picongpu::float_32( currentStep ) * picongpu::float_32( DELTA_T)
             );
 
             // looking direction (needed for observer) used in the thread
-            vector_64 const look = radiation_observer::observation_direction( theta_idx );
+            vector_32 const look = radiation_observer::observation_direction( theta_idx );
 
             // get extent of guarding super cells (needed to ignore them)
             DataSpace< simDim > const guardingSuperCells = mapper.getGuardingSuperCells();
@@ -434,7 +434,7 @@ namespace radiation
                         Amplitude<> amplitude = Amplitude<>::zero();
 
                         // compute frequency "omega" using for-loop-index "o"
-                        picongpu::float_64 const omega = freqFkt( o );
+                        picongpu::float_32 const omega = freqFkt( o );
 
                         // create a form factor object
                         radFormFactor::radFormFactor const myRadFormFactor{ };

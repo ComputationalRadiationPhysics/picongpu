@@ -157,7 +157,7 @@ public:
 
     // get retarded time
 
-    HDINLINE picongpu::float_64 get_t_ret(const vector_64 look_direction) const
+    HDINLINE picongpu::float_32 get_t_ret(const vector_32 look_direction) const
     {
         TimeCalc timeC;
         return timeC(m_t_sim, look_direction, m_particle);
