@@ -39,7 +39,7 @@ namespace picongpu
             {
                 namespace histogram2
                 {
-                    namespace mathFunc = pmacc::algorithms::math;
+                    namespace mathFunc = math;
 
                     template<
                         uint32_t T_minOrderApprox, // half of starting order of error approximation,
@@ -86,7 +86,7 @@ namespace picongpu
                             if(k > T_numNodes)
                                 return 1._X;
 
-                            return pmacc::algorithms::math::cos<float_X>(
+                            return math::cos<float_X>(
                                 static_cast<float_X>(2u * k - 1u) / static_cast<float_X>(2 * T_numNodes)
                                 * picongpu::PI);
                         }
@@ -175,7 +175,7 @@ namespace picongpu
                             constexpr float_X mass_e_SI = picongpu::SI::ELECTRON_MASS_SI;
                             constexpr float_X c_SI = picongpu::SI::SPEED_OF_LIGHT_SI;
 
-                            float_X restEnergy_SI = mass_e_SI * pmacc::algorithms::math::pow(c_SI, 2);
+                            float_X restEnergy_SI = mass_e_SI * math::pow(c_SI, 2);
 
                             // v = sqrt( 1 - (m^2*c^4)/(E^2) )
                             return picongpu::SI::SPEED_OF_LIGHT_SI

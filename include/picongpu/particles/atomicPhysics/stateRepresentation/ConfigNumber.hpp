@@ -152,7 +152,7 @@ namespace picongpu
                          *@param n ... principal quantum number/level number
                          */
                         PMACC_ASSERT_MSG(n < 255, "n too large, must be < 255");
-                        return pmacc::algorithms::math::min(g(n), static_cast<uint16_t>(T_atomicNumber)) + 1;
+                        return math::min(g(n), static_cast<uint16_t>(T_atomicNumber)) + 1;
                     }
 
                     HDINLINE static T_DataType stepLength(uint8_t n)

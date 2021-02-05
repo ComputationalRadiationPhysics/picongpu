@@ -43,7 +43,7 @@ struct numericalDifferentation
         // check for bounds on k
         PMACC_ASSERT_MSG(k >= 1 and k <= N, "chebyshev nodes are defined only for 1 <= k <= N");
 
-        pmacc::algorithms::math::cos<float_X>((2 * k - 1) / (2_X * N) * pmacc::algorithms::math::Pi::value)
+        math::cos<float_X>((2 * k - 1) / (2_X * N) * math::Pi::value)
                 * static_cast<float_X>(deltaE) / 2.0
             + static_cast<float_X>(centralE);
     }

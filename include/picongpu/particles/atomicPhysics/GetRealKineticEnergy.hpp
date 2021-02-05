@@ -28,7 +28,7 @@ namespace picongpu
     {
         namespace atomicPhysics
         {
-            namespace mathFunc = pmacc::algorithms::math;
+            namespace mathFunc = math;
 
             struct GetRealKineticEnergy
             {

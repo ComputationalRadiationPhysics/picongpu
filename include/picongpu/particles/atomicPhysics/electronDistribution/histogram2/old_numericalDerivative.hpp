@@ -163,8 +163,8 @@ namespace picongpu
                             if(k > N)
                                 return 1.;
 
-                            return static_cast<T_Value>(pmacc::algorithms::math::cos<float_X>(
-                                (2 * k - 1) _X / (2 * T_numNodes) _X * pmacc::algorithms::math::Pi::value));
+                            return static_cast<T_Value>(math::cos<float_X>(
+                                (2 * k - 1) _X / (2 * T_numNodes) _X * math::Pi::value));
                         }
                     };
 

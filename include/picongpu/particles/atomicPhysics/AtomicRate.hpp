@@ -106,7 +106,7 @@ namespace picongpu
                     for(uint8_t i = 0u; i < T_numLevels; i++)
                     {
                         result *= binomialCoefficients(
-                            static_cast<uint8_t>(2u * pmacc::algorithms::math::pow(float(i), 2)),
+                            static_cast<uint8_t>(2u * math::pow(float(i), 2)),
                             levelVector[i]); // unitless
                     }
 
@@ -139,7 +139,7 @@ namespace picongpu
                     // calculate gaunt Factor
                     float_X const U = energyElectron / energyDifference; // unit: unitless
                     float_X const g
-                        = A * math::log(U) + B + C / (U + a) + D / pmacc::algorithms::math::pow(U + a, 2); // unitless
+                        = A * math::log(U) + B + C / (U + a) + D / math::pow(U + a, 2); // unitless
 
                     return g * (U > 1.0); // unitless
                 }
@@ -227,8 +227,8 @@ namespace picongpu
                     // physical constants
                     // (unitless * m)^2 / unitless = m^2
                     float_X c0_SI = float_X(
-                        8._X * pmacc::algorithms::math::pow(picongpu::PI * picongpu::SI::BOHR_RADIUS, 2)
-                        / pmacc::algorithms::math::sqrt(3._X)); // uint: m^2, SI
+                        8._X * math::pow(picongpu::PI * picongpu::SI::BOHR_RADIUS, 2)
+                        / math::sqrt(3._X)); // uint: m^2, SI
 
                     // m^2 * (J/J)^2 * unitless * J/J * unitless<-[ J, J, unitless, unitless ] = m^2
                     float_X crossSection_SI = c0_SI
@@ -314,7 +314,7 @@ namespace picongpu
                     float_X const densityElectrons, // unit: 1/(m^3*J), SI
                     AtomicDataBox const atomicDataBox)
                 {
-                    namespace mathFunc = pmacc::algorithms::math;
+                    namespace mathFunc = math;
 
                     // constants in SI
                     constexpr float_64 c_SI = picongpu::SI::SPEED_OF_LIGHT_SI; // unit: m/s, SI
