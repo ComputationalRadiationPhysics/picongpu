@@ -53,8 +53,9 @@ namespace picongpu
     constexpr uint8_t ySizeSuperCell = 8;
     constexpr uint8_t zSizeSuperCell = 4;
 
+    /// TODO: atomic-physics-investigate
     using SuperCellSize = typename mCT::
-        shrinkTo<mCT::Int<8, 8, 4>, mCT::Int<xSizeSuperCell, ySizeSuperCell, zSizeSuperCell>, simDim>::type;
+        shrinkTo<mCT::Int<xSizeSuperCell, ySizeSuperCell, zSizeSuperCell>, simDim>::type;
 
     constexpr uint16_t numCellsPerSuperCell = xSizeSuperCell * ySizeSuperCell * zSizeSuperCell;
 
