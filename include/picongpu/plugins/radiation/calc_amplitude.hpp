@@ -53,7 +53,7 @@ struct One_minus_beta_times_n
 
     //  Taylor just includes a method, When includes just enum
 
-    HDINLINE picongpu::float_32 operator()(const vector_64& n, const Particle & particle) const
+    HDINLINE picongpu::float_64 operator()(const vector_32& n, const Particle & particle) const
     {
         // 1/gamma^2:
 
@@ -74,8 +74,9 @@ struct One_minus_beta_times_n
         }
         else
         {
-            const vector_64 beta(particle.get_beta<When::now > ()); // calculate v/c=beta
-            return  (1.0 - beta * n);
+            //const vector_32 beta(particle.get_beta<When::now > ()); // calculate v/c=beta
+            const vector_32_64 beta(particle.get_beta<When::now > ()); // calculate v/c=beta
+            return  (1.0 - beta.dot( n ));
         }
 
     }
@@ -90,10 +91,9 @@ struct Retarded_time_1
     HDINLINE picongpu::float_64 operator()(const picongpu::float_32 t,
                                 const vector_32& n, const Particle & particle) const
     {
-        const vector_64 r(particle.get_location<When::now > ()); // location
+        const vector_32_64 r(particle.get_location<When::now > ()); // location
         //return (picongpu::float_64) (t - (n * r) / (picongpu::SPEED_OF_LIGHT));
         return (picongpu::float_64) (t - r.dot(n) / (picongpu::SPEED_OF_LIGHT));
-
     }
 
 };
@@ -108,13 +108,14 @@ struct Old_Method
 
     HDINLINE vector_64 operator()(const vector_64& n, const Particle& particle, const picongpu::float_64 delta_t) const
     {
-        const vector_64 beta(particle.get_beta<When::now > ()); // beta = v/c
+        const vector_64 beta( particle.get_beta<When::now > () ); // beta = v/c
         const vector_64 beta_dot((beta - particle.get_beta < When::now + 1 > ()) / delta_t); // numeric differentiation (backward difference)
         const Exponent exponent; // instance of the Exponent class // ???is a static class and no instance possible???
          //const One_minus_beta_times_n one_minus_beta_times_n;
         const picongpu::float_64 factor(exponent(1.0 / (One_minus_beta_times_n()(n, particle))));
         // factor=1/(1-beta*n)^g   g=2 for DFT and g=3 for FFT
         return (n % ((n - beta) % beta_dot)) * factor;
+
     }
 };
 

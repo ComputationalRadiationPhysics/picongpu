@@ -72,9 +72,9 @@ public:
    *
    * Arguments:
    * - 6x float: Re(x), Im(x), Re(y), Im(y), Re(z), Im(z) */
-  HDINLINE Amplitude(const picongpu::float_64 x_re, const picongpu::float_64 x_im,
-                     const picongpu::float_64 y_re, const picongpu::float_64 y_im,
-                     const picongpu::float_64 z_re, const picongpu::float_64 z_im)
+  HDINLINE Amplitude(const base_dtype x_re, const base_dtype x_im,
+                     const base_dtype y_re, const base_dtype y_im,
+                     const base_dtype z_re, const base_dtype z_im)
       : amp_x(x_re, x_im), amp_y(y_re, y_im), amp_z(z_re, z_im)
   {
 
@@ -126,11 +126,11 @@ public:
   /** calculate radiation from *this amplitude
    *
    * Returns: \f$\frac{d^2 I}{d \Omega d \omega} = const*Amplitude^2\f$ */
-  HDINLINE picongpu::float_64 calc_radiation(void)
+  HDINLINE base_dtype calc_radiation(void)
   {
       // const SI factor radiation
-      const picongpu::float_64 factor = 1.0 /
-        (16. * util::cube(pmacc::math::Pi< picongpu::float_64 >::value) * picongpu::EPS0 * picongpu::SPEED_OF_LIGHT);
+      const base_dtype factor = 1.0 /
+        (16. * util::cube(pmacc::math::Pi< base_dtype >::value) * picongpu::EPS0 * picongpu::SPEED_OF_LIGHT);
 
       return factor * (pmacc::math::abs2(amp_x) + pmacc::math::abs2(amp_y) + pmacc::math::abs2(amp_z));
   }
@@ -139,7 +139,7 @@ public:
   /** debugging method
    *
    * Returns: real-x-value */
-  HDINLINE picongpu::float_64 debug(void)
+  HDINLINE base_dtype debug(void)
   {
       return amp_x.get_real();
   }
