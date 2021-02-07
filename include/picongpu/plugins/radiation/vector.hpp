@@ -144,7 +144,7 @@ struct cuda_vec : public V
 
     HDINLINE cuda_vec<V, T> operator%(const cuda_vec<V, T>& other) const
     {
-        return cuda_vec(this->y() * other.z() - this->z() * other.y(), this->z() * other.x() - this->x() * other.z(), this->x() * other.y() - this->y() * other.x());
+return cuda_vec(this->y() * other.z() - this->z() * other.y(), this->z() * other.x() - this->x() * other.z(), this->x() * other.y() - this->y() * other.x());
     }
 
     // magnitude of vector (length of vector)
@@ -181,6 +181,18 @@ struct cuda_vec : public V
         this->z() *= scalar;
     }
 
+    // assign cross product
+
+    HDINLINE void operator%=(const cuda_vec<V, T>& other)
+    {
+        T tmpX, tmpY, tmpZ;
+        tmpX = this->y() * other.z() - this->z() * other.y();
+        tmpY = this->z() * other.x() - this->x() * other.z();
+        tmpZ = this->x() * other.y() - this->y() * other.x();
+        this->x() = tmpX;
+        this->y() = tmpY;
+        this->z() = tmpZ;
+    }
 };
 
 } // namespace radiation

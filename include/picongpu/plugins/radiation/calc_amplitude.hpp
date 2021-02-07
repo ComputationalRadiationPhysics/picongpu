@@ -122,8 +122,32 @@ struct Old_Method
 // typedef of all possible forms of Old_Method
 typedef Old_Method<util::Square<picongpu::float_64> > Old_DFT;
 
+template<typename Exponent> // divisor to the power of 'Exponent'
+struct New_Method
+{
+    /// classical method to calculate the real vector part of the radiation's amplitude
+    /// this base class includes both possible interpretations:
+    /// with Exponent=Cube the integration over t_ret will be assumed (old FFT)
+    /// with Exponent=Square the integration over t_sim will be assumed (old DFT)
 
+    HDINLINE vector_64 operator()(const vector_32& n, const Particle& particle, const picongpu::float_64 delta_t) const
+    {
+        const vector_32 beta( particle.get_beta<When::now > () ); // beta = v/c
+        const vector_64 beta_dot((beta - particle.get_beta < When::now + 1 > ()) / delta_t); // numeric differentiation (backward difference)
+        const Exponent exponent; // instance of the Exponent class // ???is a static class and no instance possible???
+         //const One_minus_beta_times_n one_minus_beta_times_n;
+        const picongpu::float_64 factor(exponent(1.0 / (One_minus_beta_times_n()(n, particle))));
+        vector_64 vectorialComponent( (n - beta) );
+        const vector_64 nTmp( n );
+        vectorialComponent %= beta_dot;
+        // factor=1/(1-beta*n)^g   g=2 for DFT and g=3 for FFT
+        return (nTmp % vectorialComponent) * factor;
 
+    }
+};
+
+// typedef of all possible forms of Old_Method
+typedef New_Method<util::Square<picongpu::float_64> > New_DFT;
 
 // ------- Calculate Amplitude class ------------- //
 
@@ -150,9 +174,9 @@ public:
 
     // get real vector part of amplitude
 
-    HDINLINE vector_64 get_vector(const vector_32& n) const
+    HDINLINE vector_32 get_vector(const vector_32& n) const
     {
-        const vector_64 look_direction(n.unit_vec()); // make sure look_direction is a unit vector
+        const vector_32 look_direction(n.unit_vec()); // make sure look_direction is a unit vector
         VecCalc vecC;
         return vecC(look_direction, m_particle, m_delta_t);
     }

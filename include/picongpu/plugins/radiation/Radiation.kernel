@@ -145,7 +145,7 @@ namespace radiation
             constexpr int blockSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
             // vectorial part of the integrand in the Jackson formula
-            PMACC_SMEM( acc, real_amplitude_s, memory::Array< vector_64, blockSize > );
+            PMACC_SMEM( acc, real_amplitude_s, memory::Array< vector_32, blockSize > );
 
             // retarded time
             PMACC_SMEM( acc, t_ret_s, memory::Array< picongpu::float_64, blockSize > );
@@ -365,7 +365,7 @@ namespace radiation
                                         // set up amplitude calculator
                                         using Calc_Amplitude_n_sim_1 = Calc_Amplitude<
                                             Retarded_time_1,
-                                            Old_DFT
+                                            New_DFT
                                         >;
 
                                         // calculate amplitude
@@ -430,7 +430,7 @@ namespace radiation
                         /* storage for amplitude (complex 3D vector)
                          * it  is initialized with zeros (  0 +  i 0 )
                          */
-			// ACCUMULATOR! Ensure double precision
+                        // ACCUMULATOR! Ensure double precision
                         Amplitude<> amplitude = Amplitude<>::zero();
 
                         // compute frequency "omega" using for-loop-index "o"
@@ -457,7 +457,7 @@ namespace radiation
                                  ****************************************************/
 
                                 // calulate the form factor's' influences to the real amplitude
-                                vector_64 const weighted_real_amp = real_amplitude_s[ j ] *
+                                vector_32 const weighted_real_amp = real_amplitude_s[ j ] *
                                     precisionCast< float_64 >(
                                         myRadFormFactor(
                                             radWeighting_s[ j ],
