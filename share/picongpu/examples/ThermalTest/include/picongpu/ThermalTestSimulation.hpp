@@ -34,9 +34,6 @@
 #include <pmacc/nvidia/memory/MemoryInfo.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include "picongpu/ArgsParser.hpp"
-
-#include <cassert>
-
 #include "picongpu/plugins/PluginController.hpp"
 
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
@@ -54,6 +51,9 @@
 #include <pmacc/nvidia/functors/Add.hpp>
 #include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
 #include <pmacc/cuSTL/algorithm/functor/Add.hpp>
+
+#include <cassert>
+#include <memory>
 
 namespace picongpu
 {
@@ -79,9 +79,9 @@ namespace picongpu
                 precisionCast<int>(GuardDim().toRT()),
                 -precisionCast<int>(GuardDim().toRT()));
 
-            this->eField_zt[0]
-                = new container::HostBuffer<float, 2>(Size_t<2>(fieldE_coreBorder.size().z(), this->collectTimesteps));
-            this->eField_zt[1] = new container::HostBuffer<float, 2>(this->eField_zt[0]->size());
+            this->eField_zt[0] = std::make_unique<container::HostBuffer<float, 2>>(
+                Size_t<2>(fieldE_coreBorder.size().z(), this->collectTimesteps));
+            this->eField_zt[1] = std::make_unique<container::HostBuffer<float, 2>>(this->eField_zt[0]->size());
 
             dc.releaseData(FieldE::getName());
         }
@@ -96,11 +96,7 @@ namespace picongpu
             Simulation::pluginLoad();
         }
 
-        virtual ~ThermalTestSimulation()
-        {
-            __delete(eField_zt[0]);
-            __delete(eField_zt[1]);
-        }
+        virtual ~ThermalTestSimulation() = default;
 
         void writeOutput()
         {
@@ -197,7 +193,7 @@ namespace picongpu
         //   you may like to let the plasma develope/thermalize a little bit
         static constexpr uint32_t firstTimestep = 1024;
 
-        container::HostBuffer<float, 2>* eField_zt[2];
+        std::array<std::unique_ptr<container::HostBuffer<float, 2>>, 2> eField_zt;
 
         using BlockDim = pmacc::math::CT::Size_t<16, 16, 1>;
         using GuardDim = SuperCellSize;
