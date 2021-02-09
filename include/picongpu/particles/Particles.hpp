@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Marco Garten, Alexander Grund
  *
  * This file is part of PIConGPU.
@@ -191,6 +191,13 @@ namespace picongpu
 
     private:
         SimulationDataId m_datasetID;
+
+        /** Get exchange memory size.
+         *
+         * @param ex exchange index calculated from pmacc::typ::ExchangeType, valid range: [0;27)
+         * @return exchange size in bytes
+         */
+        size_t exchangeMemorySize(uint32_t ex) const;
 
         FieldE* fieldE;
         FieldB* fieldB;

@@ -1,0 +1,115 @@
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Benjamin Worpitz
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Define low-level memory settings for compute devices.
+ *
+ * Settings for memory layout for supercells and particle frame-lists,
+ * data exchanges in multi-device domain-decomposition and reserved
+ * fields for temporarily derived quantities are defined here.
+ */
+
+#pragma once
+
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/mappings/kernel/MappingDescription.hpp>
+
+namespace picongpu
+{
+    /* We have to hold back 350MiB for gpu-internal operations:
+     *   - random number generator
+     *   - reduces
+     *   - ...
+     */
+    constexpr size_t reservedGpuMemorySize = 400 * 1024 * 1024;
+
+    /* short namespace*/
+    namespace mCT = pmacc::math::CT;
+    /** size of a superCell
+     *
+     * volume of a superCell must be <= 1024
+     */
+    using SuperCellSize = typename mCT::shrinkTo<mCT::Int<8, 8, 4>, simDim>::type;
+
+    /** define the object for mapping superCells to cells*/
+    using MappingDesc = MappingDescription<simDim, SuperCellSize>;
+
+    /** define the size of the core, border and guard area
+     *
+     * PIConGPU uses spatial domain-decomposition for parallelization
+     * over multiple devices with non-shared memory architecture.
+     * The global spatial domain is organized per device in three
+     * sections: the GUARD area contains copies of neighboring
+     * devices (also known as "halo"/"ghost").
+     * The BORDER area is the outermost layer of cells of a device,
+     * equally to what neighboring devices see as GUARD area.
+     * The CORE area is the innermost area of a device. In union with
+     * the BORDER area it defines the "active" spatial domain on a device.
+     *
+     * GuardSize is defined in units of SuperCellSize per dimension.
+     */
+    using GuardSize = typename mCT::shrinkTo<mCT::Int<1, 1, 1>, simDim>::type;
+
+    /** bytes reserved for species exchange buffer
+     *
+     * This is the default configuration for species exchanges buffer sizes.
+     * The default exchange buffer sizes can be changed per species by adding
+     * the alias exchangeMemCfg with similar members like in DefaultExchangeMemCfg
+     * to its flag list.
+     */
+    struct DefaultExchangeMemCfg
+    {
+        // memory used for a direction
+        static constexpr uint32_t BYTES_EXCHANGE_X = 1 * 1024 * 1024; // 4 MiB
+        static constexpr uint32_t BYTES_EXCHANGE_Y = 1 * 1024 * 1024; // 1 MiB
+        static constexpr uint32_t BYTES_EXCHANGE_Z = 6 * 1024 * 1024; // 6 MiB
+        static constexpr uint32_t BYTES_EDGES = 512 * 1024; // 512 kiB
+        static constexpr uint32_t BYTES_CORNER = 256 * 1024; // 256 kiB
+
+        /** Reference local domain size
+         *
+         * The size of the local domain for which the exchange sizes `BYTES_*` are configured for.
+         * The required size of each exchange will be calculated at runtime based on the local domain size and the
+         * reference size. The exchange size will be scaled only up and not down. Zero means that there is no reference
+         * domain size, exchanges will not be scaled.
+         */
+        using REF_LOCAL_DOM_SIZE = mCT::Int<128, 128, 128>;
+        /** Scaling rate per direction.
+         *
+         * 1.0 means it scales linear with the ratio between the local domain size at runtime and the reference local
+         * domain size.
+         */
+        const std::array<float_X, DIM3> DIR_SCALING_FACTOR = {0.5, 0.5, 1.0};
+    };
+
+    /** number of scalar fields that are reserved as temporary fields */
+    constexpr uint32_t fieldTmpNumSlots = 1;
+
+    /** can `FieldTmp` gather neighbor information
+     *
+     * If `true` it is possible to call the method `asyncCommunicationGather()`
+     * to copy data from the border of neighboring GPU into the local guard.
+     * This is also known as building up a "ghost" or "halo" region in domain
+     * decomposition and only necessary for specific algorithms that extend
+     * the basic PIC cycle, e.g. with dependence on derived density or energy fields.
+     */
+    constexpr bool fieldTmpSupportGatherCommunication = false;
+
+} // namespace picongpu

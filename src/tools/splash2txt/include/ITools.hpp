@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt
+/* Copyright 2013-2021 Felix Schmitt
  *
  * This file is part of splash2txt.
  *

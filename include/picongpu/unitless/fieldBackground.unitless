@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Axel Huebl
+/* Copyright 2014-2021 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -22,3 +22,4 @@
 
 /** Load pre-defined templates (implementation) */
 #include "picongpu/fields/background/templates/TWTS/TWTS.tpp"
+#include "picongpu/fields/background/templates/twtsfast/twtsfast.tpp"

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -42,6 +42,8 @@ namespace pmacc
          * @param taskId id for this task
          */
         EventTask(id_t taskId);
+
+        constexpr EventTask(const pmacc::EventTask&) = default;
 
         /**
          * Constructor.

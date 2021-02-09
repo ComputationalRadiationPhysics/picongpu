@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
  *
@@ -91,9 +91,7 @@
 #include <pmacc/meta/ForEach.hpp>
 #include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/InitFunctors.hpp"
-#if(PMACC_CUDA_ENABLED == 1)
-#    include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
-#endif
+#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/FilterByIdentifier.hpp>
 #include <pmacc/particles/IdProvider.hpp>
@@ -115,13 +113,13 @@ namespace picongpu
      *
      * @tparam DIM the dimension (2-3) for the simulation
      */
-    class MySimulation : public SimulationHelper<simDim>
+    class Simulation : public SimulationHelper<simDim>
     {
     public:
         /**
          * Constructor
          */
-        MySimulation()
+        Simulation()
             : myFieldSolver(nullptr)
             , cellDescription(nullptr)
             , initialiserController(nullptr)
@@ -425,10 +423,10 @@ namespace picongpu
                 nativeCudaStream,
                 heapSize);
             cuplaStreamSynchronize(0);
-#    if(PMACC_CUDA_ENABLED == 1)
+
             auto mallocMCBuffer = std::make_unique<MallocMCBuffer<DeviceHeap>>(deviceHeap);
             dc.consume(std::move(mallocMCBuffer));
-#    endif
+
 #endif
 
             meta::ForEach<VectorAllSpecies, particles::LogMemoryStatisticsForSpecies<bmpl::_1>>

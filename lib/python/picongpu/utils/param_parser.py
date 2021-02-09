@@ -2,7 +2,7 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2017-2020 PIConGPU contributors
+Copyright 2017-2021 PIConGPU contributors
 Authors: Sebastian Starke
 License: GPLv3+
 """

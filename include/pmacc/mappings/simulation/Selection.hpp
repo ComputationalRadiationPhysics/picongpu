@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Felix Schmitt
+/* Copyright 2014-2021 Felix Schmitt
  *
  * This file is part of PMacc.
  *
@@ -52,12 +52,8 @@ namespace pmacc
 
         /**
          * Copy constructor
-         *
-         * @param other Selection to copy information from
          */
-        Selection(const Selection<DIM>& other) : size(other.size), offset(other.offset)
-        {
-        }
+        constexpr Selection(const Selection&) = default;
 
         /**
          * Constructor

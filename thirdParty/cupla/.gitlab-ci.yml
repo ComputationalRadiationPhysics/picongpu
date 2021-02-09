@@ -9,25 +9,26 @@ include:
   - local: '/script/compiler_base.yml'
 
 cuda92:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda9.2
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda92-gcc:1.1
   variables:
+    CUPLA_CXX: "g++-6"
     CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
   extends: .base_cuda
 
 cuda100:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.0
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda100-gcc:1.1
   variables:
     CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
   extends: .base_cuda
 
 cuda101:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.1
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda101-gcc:1.1
   variables:
     CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
   extends: .base_cuda
 
 cuda102:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.2
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda102-gcc:1.1
   variables:
     CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
   extends: .base_cuda
@@ -57,28 +58,28 @@ clang:
   extends: .base_clang
 
 cudaClang92:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda9.2Clang
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda92-clang:1.1
   variables:
     CUPLA_CXX: "clang++-8 clang++-10 clang++-11"
     CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
   extends: .base_cuda_clang
 
 cudaClang100:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.0Clang
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda100-clang:1.1
   variables:
     CUPLA_CXX: "clang++-8 clang++-9 clang++-10 clang++-11"
     CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
   extends: .base_cuda_clang
 
 cudaClang101:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:cuda10.1Clang
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda101-clang:1.1
   variables:
     CUPLA_CXX: "clang++-9 clang++-10 clang++-11"
     CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
   extends: .base_cuda_clang
 
 hip38:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci:rocm3.8
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-rocm3.8:1.1
   variables:
     CMAKE_MODULE_PATH: "/opt/rocm-3.8.0/hip/cmake"
     CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"

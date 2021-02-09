@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Heiko Burau
+/* Copyright 2016-2021 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -164,7 +164,7 @@ namespace picongpu
             /** Creates a `ScaledSpectrum` instance for a given electron species
              * and stores it in a map<atomic number, ScaledSpectrum> object.
              *
-             * This functor is called from MySimulation::init() to generate lookup tables.
+             * This functor is called from Simulation::init() to generate lookup tables.
              *
              * @tparam T_ElectronSpecies type or name as boost::mpl::string of the electron species
              */

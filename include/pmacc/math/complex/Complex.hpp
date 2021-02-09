@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus
  *
  * This file is part of PMacc.
  *
@@ -37,6 +37,8 @@ namespace pmacc
             HDINLINE Complex(T_Type real, T_Type imaginary = type(0.0)) : real(real), imaginary(imaginary)
             {
             }
+
+            constexpr HDINLINE Complex(const Complex& other) = default;
 
             // constructor (Complex<T_OtherType>)
             template<typename T_OtherType>

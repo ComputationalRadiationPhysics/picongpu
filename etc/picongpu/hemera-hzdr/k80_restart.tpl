@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2020 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch,
+# Copyright 2013-2021 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch,
 #                     Bifeng Lei, Marco Garten
 #
 # This file is part of PIConGPU.

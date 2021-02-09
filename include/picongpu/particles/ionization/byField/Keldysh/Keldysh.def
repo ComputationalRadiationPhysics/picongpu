@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Marco Garten, Jakob Trojok
+/* Copyright 2016-2021 Marco Garten, Jakob Trojok
  *
  * This file is part of PIConGPU.
  *

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of PMacc.
@@ -26,6 +26,7 @@
 #include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/memory/boxes/DataBoxDim1Access.hpp"
+#include "pmacc/memory/Array.hpp"
 #include "pmacc/assert.hpp"
 
 namespace pmacc
@@ -102,18 +103,18 @@ namespace pmacc
                  * that the physical memory is contiguous
                  */
                 if(ownPointer)
-                    memset(pointer, 0, this->getDataSpace().productOfComponents() * sizeof(TYPE));
+                    memset(
+                        reinterpret_cast<void*>(pointer),
+                        0,
+                        this->getDataSpace().productOfComponents() * sizeof(TYPE));
                 else
                 {
-                    TYPE value;
-                    /* using `uint8_t` for byte-wise looping through tmp var value of `TYPE` */
-                    uint8_t* valuePtr = (uint8_t*) &value;
-                    for(size_t b = 0; b < sizeof(TYPE); ++b)
-                    {
-                        valuePtr[b] = static_cast<uint8_t>(0);
-                    }
-                    /* set value with zero-ed `TYPE` */
-                    setValue(value);
+                    // Using Array is a workaround for types without default constructor
+                    memory::Array<TYPE, 1> tmp;
+                    memset(reinterpret_cast<void*>(tmp.data()), 0, sizeof(tmp));
+                    // use first element to avoid issue because Array is aligned (sizeof can be larger than component
+                    // type)
+                    setValue(tmp[0]);
                 }
             }
         }

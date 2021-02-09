@@ -1,0 +1,64 @@
+/* Copyright 2016-2021 Alexander Matthes
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Definition which native fields and density fields of particles will be
+ * visualizable with ISAAC. ISAAC is an in-situ visualization library with which
+ * the PIC simulation can be observed while it is running avoiding the time
+ * consuming writing and reading of simulation data for the classical post
+ * processing of data.
+ *
+ * ISAAC can directly visualize natives fields like the E or B field, but
+ * density fields of particles need to be calculated from PIConGPU on the fly
+ * which slightly increases the runtime and the memory consumption. Every
+ * particle density field will reduce the amount of memory left for PIConGPUs
+ * particles and fields.
+ *
+ * To get best performance, ISAAC defines an exponential amount of different
+ * visualization kernels for every combination of (at runtime) activated
+ * fields. So furthermore a lot of fields will increase the compilation time.
+ *
+ */
+
+#pragma once
+
+namespace picongpu
+{
+    namespace isaacP
+    {
+        /** Intermediate list of native particle species of PIConGPU which shall be
+         *  visualized. */
+        using Particle_Seq = MakeSeq_t<>;
+
+        /** Intermediate list of native fields of PIConGPU which shall be
+         *  visualized. */
+        using Native_Seq = MakeSeq_t<>;
+
+        /** Intermediate list of particle species, from which density fields
+         *  shall be created at runtime to visualize them. */
+        using Density_Seq = MakeSeq_t<>;
+
+        /** Compile time sequence of all fields which shall be visualized. Basically
+         *  the join of Native_Seq and Density_Seq. */
+        using Fields_Seq = MakeSeq_t<>;
+
+
+    } // namespace isaacP
+} // namespace picongpu

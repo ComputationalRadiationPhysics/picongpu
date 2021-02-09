@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Axel Huebl, Alexander Debus
+/* Copyright 2014-2021 Axel Huebl, Alexander Debus, Klaus Steiniger, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -17,11 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file fieldBackground.param
+ *
+ * Load external background fields
+ */
+
 #pragma once
 
-/** Load external background fields
- *
- */
 namespace picongpu
 {
     class FieldBackgroundE
@@ -84,6 +86,29 @@ namespace picongpu
         /* Add this additional field? */
         static constexpr bool activated = true;
 
+        /* This setup is based on [Taflove, Hagness], section 7.11.1.
+         * The difference is we consider both 2D and 3D cases, and grid size may be increased due to our absorber being
+         * part of the simulation area, not located outside of it as in the book.
+         *
+         * Example of a rectangular conductor with a steady current.
+         *
+         * The conductor is oriented along the y-axis.
+         * Its edge length can be adjusted by the variable halfWidth in order to apply the test with meaningful results
+         * to higher-order solvers, too.
+         * The current in the wire ramps up over time according to a differentiated Gaussian.
+         * This defines the current density amplitude, too.
+         * Therefore, the total current through the wire scales with the wire's halfWidth.
+         */
+
+        //! Conductor is oriented along y-axis with the following coordinates and size, values for 60 cells in the grid
+        static constexpr int32_t positionX = 30; // unit: cells
+        static constexpr int32_t positionY = 30; // unit: cells
+        // We support non-unit source for high order field solver
+        static constexpr int32_t halfWidth = 1; // unit: cells
+
+        //! Amplitude in terms of current density in SI
+        float_X amplitudeSI = -2._X; // unit: A / m^2
+
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);
 
@@ -94,28 +119,26 @@ namespace picongpu
         /** Specify your background field J(r,t) here
          *
          * \param cellIdx The total cell id counted from the start at t=0
-         * \param currentStep The current time step */
+         * \param currentStep The current time step
+         */
         HDINLINE float3_X operator()(const DataSpace<simDim>& cellIdx, const uint32_t currentStep) const
         {
-            /* Source index is hard-coded, should be in the center of the global
-             * domain, so has to be changed together with the grid size.
-             */
-            DataSpace<simDim> const sourceIdx = DataSpace<simDim>::create(64u);
-            if(cellIdx != sourceIdx)
-                return float3_X(0.0, 0.0, 0.0);
+            /* specify J-Field */
+            float_X currentDensity = 0.0_X;
 
-            /* This setup is based on [Taflove, Hagness], section 7.11.1
-             * The difference is we consider both 2D and 3D cases,
-             * and grid size may be increased due to our absorber being part of
-             * the simulation area, not located outside of it as in the book.
-             */
-            constexpr float_X duration_SI = 26.53e-12; // 26.53 ps
-            constexpr float_X delay_SI = 4.0_X * duration_SI;
-            float_X const time_SI = currentStep * SI::DELTA_T_SI;
-            float_X const normalizedTime = (time_SI - delay_SI) / duration_SI;
-            float_X const value = -2.0 * normalizedTime * math::exp(-normalizedTime * normalizedTime);
-            /* specify your J-Field in A/m^2 and convert to PIConGPU units */
-            return float3_X(0.0, 0.0, value / m_unitField[1]);
+            if(math::abs(float_X(static_cast<int32_t>(cellIdx.x()) - positionX) + .5_X) < halfWidth
+               && math::abs(float_X(static_cast<int32_t>(cellIdx.y()) - positionY) + .5_X) < halfWidth)
+            {
+                float_X const duration = 26.53e-12 / SI::DELTA_T_SI; // 26.53 ps in PIC units
+                float_X const delay = 4._X * duration;
+                float_X const relativeTime = (static_cast<float_X>(currentStep) - delay) / duration;
+                currentDensity = amplitudeSI * relativeTime * math::exp(-relativeTime * relativeTime);
+            }
+
+            return float3_X(
+                0.0_X,
+                currentDensity / m_unitField[1], // unit: none
+                0.0_X);
         }
     };
 

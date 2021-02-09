@@ -3,10 +3,10 @@ Important PIConGPU Classes
 
 This is very, very small selection of classes of interest to get you started.
 
-MySimulation
-------------
+Simulation
+----------
 
-.. doxygenclass:: picongpu::MySimulation
+.. doxygenclass:: picongpu::Simulation
    :project: PIConGPU
    :members:
    :undoc-members:

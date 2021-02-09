@@ -67,7 +67,7 @@ echo "accelerator                 -> ${PIC_BACKEND}"
 echo "input set                   -> ${PIC_TEST_CASE_FOLDER}"
 echo -e "/////////////////////////////////////////////////// \033[0m \n\n"
 
-if [ "$PIC_TEST_CASE_FOLDER" == "examples/" ] || [ "$PIC_TEST_CASE_FOLDER" == "tests/" ] ; then
+if [ "$PIC_TEST_CASE_FOLDER" == "examples/" ] || [ "$PIC_TEST_CASE_FOLDER" == "tests/" ] ||  [ "$PIC_TEST_CASE_FOLDER" == "benchmarks/" ] ; then
     extended_compile_options="-l"
 fi
 

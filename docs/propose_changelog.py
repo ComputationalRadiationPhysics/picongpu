@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2017-2020 Axel Huebl
+# Copyright 2017-2021 Axel Huebl
 #
 # License: GPLv3+
 #

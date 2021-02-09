@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, René Widera
+/* Copyright 2019-2020 Axel Huebl, Benjamin Worpitz, René Widera, Sergei Bastrakov
  *
  * This file is part of alpaka.
  *
@@ -12,9 +12,11 @@
 #include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Debug.hpp>
+#include <alpaka/core/OmpSchedule.hpp>
 #include <alpaka/core/Unused.hpp>
 #include <alpaka/dim/Traits.hpp>
 #include <alpaka/idx/Traits.hpp>
+#include <alpaka/meta/Void.hpp>
 #include <alpaka/queue/Traits.hpp>
 #include <alpaka/vec/Vec.hpp>
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
@@ -83,6 +85,88 @@ namespace alpaka
                 return 0u;
             }
         };
+
+        namespace detail
+        {
+            //#############################################################################
+            //! Functor to get OpenMP schedule defined by kernel class.
+            //! When no schedule is defined, return a default one.
+            template<class TKernel, class = void>
+            struct GetOmpSchedule
+            {
+                ALPAKA_FN_HOST static auto get()
+                {
+                    return alpaka::omp::Schedule{};
+                }
+            };
+
+            //! Functor to get OpenMP schedule for kernel classes with
+            //! ompSchedule static member.
+            //! That member is never odr-used by alpaka.
+            template<class TKernel>
+            struct GetOmpSchedule<TKernel, meta::Void<decltype(TKernel::ompSchedule)>>
+            {
+                ALPAKA_FN_HOST static auto get()
+                {
+                    // Just having return TKernel::ompSchedule here would be
+                    // a non-odr use of that variable, since it would be an
+                    // argument of the copy constructor. So have to manually
+                    // create a new identical object and then return it.
+                    return alpaka::omp::Schedule{TKernel::ompSchedule.kind, TKernel::ompSchedule.chunkSize};
+                }
+            };
+        } // namespace detail
+
+        //#############################################################################
+        //! The trait for getting the schedule to use when a kernel is run using
+        //! the CpuOmp2Blocks accelerator.
+        //!
+        //! Has no effect on other accelerators or when run using OpenMP
+        //! implementation not supporting at least version 3.0.
+        //!
+        //! A user could either specialize this trait for their kernel, or define
+        //! a public static member ompSchedule of type alpaka::omp::Schedule
+        //! inside it, which would be picked up by this implementation.
+        //! In the latter case, alpaka never odr-uses that member.
+        //!
+        //! \tparam TKernelFnObj The kernel function object.
+        //! \tparam TAcc The accelerator.
+        //!
+        //! The default implementation returns 0.
+        template<typename TKernelFnObj, typename TAcc, typename TSfinae = void>
+        struct OmpSchedule
+        {
+#if BOOST_COMP_CLANG
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored                                                                                  \
+        "-Wdocumentation" // clang does not support the syntax for variadic template arguments "args,..."
+#endif
+            //-----------------------------------------------------------------------------
+            //! \param kernelFnObj The kernel object for which the schedule should be returned.
+            //! \param blockThreadExtent The block thread extent.
+            //! \param threadElemExtent The thread element extent.
+            //! \tparam TArgs The kernel invocation argument types pack.
+            //! \param args,... The kernel invocation arguments.
+            //! \return The OpenMP schedule information.
+#if BOOST_COMP_CLANG
+#    pragma clang diagnostic pop
+#endif
+            ALPAKA_NO_HOST_ACC_WARNING
+            template<typename TDim, typename... TArgs>
+            ALPAKA_FN_HOST static auto getOmpSchedule(
+                TKernelFnObj const& kernelFnObj,
+                Vec<TDim, Idx<TAcc>> const& blockThreadExtent,
+                Vec<TDim, Idx<TAcc>> const& threadElemExtent,
+                TArgs const&... args) -> alpaka::omp::Schedule
+            {
+                alpaka::ignore_unused(kernelFnObj);
+                alpaka::ignore_unused(blockThreadExtent);
+                alpaka::ignore_unused(threadElemExtent);
+                alpaka::ignore_unused(args...);
+
+                return detail::GetOmpSchedule<TKernelFnObj>::get();
+            }
+        };
     } // namespace traits
 
 #if BOOST_COMP_CLANG
@@ -110,6 +194,35 @@ namespace alpaka
         TArgs const&... args) -> std::size_t
     {
         return traits::BlockSharedMemDynSizeBytes<TKernelFnObj, TAcc>::getBlockSharedMemDynSizeBytes(
+            kernelFnObj,
+            blockThreadExtent,
+            threadElemExtent,
+            args...);
+    }
+
+#if BOOST_COMP_CLANG
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored                                                                                  \
+        "-Wdocumentation" // clang does not support the syntax for variadic template arguments "args,..."
+#endif
+    //-----------------------------------------------------------------------------
+    //! \tparam TAcc The accelerator type.
+    //! \param kernelFnObj The kernel object for which the block shared memory size should be calculated.
+    //! \param blockThreadExtent The block thread extent.
+    //! \param threadElemExtent The thread element extent.
+    //! \param args,... The kernel invocation arguments.
+    //! \return The OpenMP schedule information.
+#if BOOST_COMP_CLANG
+#    pragma clang diagnostic pop
+#endif
+    template<typename TAcc, typename TKernelFnObj, typename TDim, typename... TArgs>
+    ALPAKA_FN_HOST auto getOmpSchedule(
+        TKernelFnObj const& kernelFnObj,
+        Vec<TDim, Idx<TAcc>> const& blockThreadExtent,
+        Vec<TDim, Idx<TAcc>> const& threadElemExtent,
+        TArgs const&... args) -> omp::Schedule
+    {
+        return traits::OmpSchedule<TKernelFnObj, TAcc>::getOmpSchedule(
             kernelFnObj,
             blockThreadExtent,
             threadElemExtent,

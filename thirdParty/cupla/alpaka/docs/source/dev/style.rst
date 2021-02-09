@@ -14,13 +14,13 @@ whitespace and braces automatically. Usage:
 
 .. code-block:: bash
 
-  clang-format-11 -i --style=file <sourcefile>
+  clang-format-11 -i <sourcefile>
 
 * If you want to format the entire code base execute the following command from alpaka's top-level directory:
 
 .. code-block:: bash
 
-  find example include test -name '*.hpp' -o -name '*.cpp' | xargs clang-format-11 -i --style=file
+  find example include test -name '*.hpp' -o -name '*.cpp' | xargs clang-format-11 -i
 
 Windows users should use `Visual Studio's native clang-format integration
 <https://devblogs.microsoft.com/cppblog/clangformat-support-in-visual-studio-2017-15-7-preview-1/>`.

@@ -1,4 +1,4 @@
-/* Copyright 2020 Jakob Trojok
+/* Copyright 2020-2021 Jakob Trojok
  *
  * This file is part of PIConGPU.
  *

@@ -1,4 +1,4 @@
-/* Copyright 2014-2019 Felix Schmitt, Axel Huebl, Franz Poeschel
+/* Copyright 2014-2021 Felix Schmitt, Axel Huebl, Franz Poeschel
  *
  * This file is part of PIConGPU.
  *
@@ -100,6 +100,8 @@ namespace picongpu
 
             DataSpace<simDim> localWindowToDomainOffset; /** offset from local moving
                                                             window to local domain */
+
+            std::vector<double> times;
 
             ::openPMD::Series& openSeries(::openPMD::Access at);
 

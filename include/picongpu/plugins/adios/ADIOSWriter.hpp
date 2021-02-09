@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2014-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
@@ -51,9 +51,7 @@
 #include <pmacc/pluginSystem/PluginConnector.hpp>
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include <pmacc/math/Vector.hpp>
-#if(PMACC_CUDA_ENABLED == 1)
-#    include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
-#endif
+#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 #include <pmacc/traits/Limits.hpp>
 
 #include "picongpu/plugins/output/IIOBackend.hpp"
@@ -623,7 +621,7 @@ namespace picongpu
                  * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
                  */
                 DataSpace<simDim> globalSlideOffset;
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
                 globalSlideOffset.y() += numSlides * localDomain.size.y();
 
@@ -1144,7 +1142,7 @@ namespace picongpu
              */
             void dumpData(uint32_t currentStep)
             {
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 mThreadParams.cellDescription = m_cellDescription;
                 mThreadParams.currentStep = currentStep;
 
@@ -1163,10 +1161,9 @@ namespace picongpu
                 {
                     DataConnector& dc = Environment<>::get().DataConnector();
 
-#if(PMACC_CUDA_ENABLED == 1)
                     /* synchronizes the MallocMCBuffer to the host side */
                     dc.get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName());
-#endif
+
                     /* here we are copying all species to the host side since we
                      * can not say at this point if this time step will need all of them
                      * for sure (checkpoint) or just some user-defined species (dump)
@@ -1174,9 +1171,7 @@ namespace picongpu
                     meta::ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1>> copySpeciesToHost;
                     copySpeciesToHost();
                     lastSpeciesSyncStep = currentStep;
-#if(PMACC_CUDA_ENABLED == 1)
                     dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
-#endif
                 }
 
                 beginAdios(mThreadParams.adiosFilename);
@@ -1341,7 +1336,7 @@ namespace picongpu
                 threadParams->adiosGroupSize = 0;
 
                 /* y direction can be negative for first gpu */
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 DataSpace<simDim> particleOffset(localDomain.offset);
                 particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
 

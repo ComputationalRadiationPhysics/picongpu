@@ -1,5 +1,5 @@
 /*
- *Copyright 2014-2020 Felix Schmitt, Conrad Schumann
+ *Copyright 2014-2021 Felix Schmitt, Conrad Schumann
  *
  * This file is part of splash2txt.
  *

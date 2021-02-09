@@ -1,0 +1,101 @@
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/particles/startPosition/functors.def"
+#include "picongpu/particles/manipulators/manipulators.def"
+
+#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/nvidia/functors/Assign.hpp>
+
+
+namespace picongpu
+{
+    namespace particles
+    {
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
+         *  unit: none
+         */
+        constexpr float_X MIN_WEIGHTING = 1.0;
+
+        namespace manipulators
+        {
+            CONST_VECTOR(float_X, 3, DriftParamElectrons_direction, 0.0, 0.0, 1.0);
+            struct DriftParamElectrons
+            {
+                /** Initial particle drift velocity
+                 *  unit: none
+                 */
+                static constexpr float_64 gamma = 5.0;
+                const DriftParamElectrons_direction_t direction;
+            };
+            using AssignZDriftElectrons = unary::Drift<DriftParamElectrons, nvidia::functors::Assign>;
+
+            CONST_VECTOR(float_X, 3, DriftParamPositrons_direction, 0.0, 0.0, -1.0);
+            struct DriftParamPositrons
+            {
+                /** Initial particle drift velocity
+                 *  unit: none
+                 */
+                static constexpr float_64 gamma = 5.0;
+                const DriftParamPositrons_direction_t direction;
+            };
+            // definition of SetDrift start
+            using AssignZDriftPositrons = unary::Drift<DriftParamPositrons, nvidia::functors::Assign>;
+
+        } // namespace manipulators
+
+        namespace startPosition
+        {
+            struct QuietParamElectrons
+            {
+                /** Count of particles per cell per direction at initial state
+                 *  unit: none
+                 */
+                using numParticlesPerDimension = mCT::shrinkTo<mCT::Int<1, 2, 4>, simDim>::type;
+            };
+
+            // definition of quiet particle start
+            using QuietElectrons = QuietImpl<QuietParamElectrons>;
+
+            struct QuietParamPositrons
+            {
+                /** Count of particles per cell per direction at initial state
+                 *  unit: none
+                 */
+                using numParticlesPerDimension = mCT::shrinkTo<mCT::Int<4, 1, 2>, simDim>::type;
+            };
+
+            // definition of quiet particle start
+            using QuietPositrons = QuietImpl<QuietParamPositrons>;
+
+        } // namespace startPosition
+
+        /** During unit normalization, we assume this is a typical
+         *  number of particles per cell for normalization of weighted
+         *  particle attributes.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL
+            = mCT::volume<startPosition::QuietParamElectrons::numParticlesPerDimension>::type::value;
+
+    } // namespace particles
+} // namespace picongpu

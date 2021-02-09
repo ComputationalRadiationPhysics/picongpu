@@ -1,4 +1,4 @@
-/* Copyright 2020 Klaus Steiniger
+/* Copyright 2020-2021 Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *

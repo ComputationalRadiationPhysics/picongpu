@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Axel Huebl, Franz Poeschel
+/* Copyright 2015-2021 Axel Huebl, Franz Poeschel
  *
  * This file is part of PIConGPU.
  *

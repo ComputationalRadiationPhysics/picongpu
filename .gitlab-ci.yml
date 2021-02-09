@@ -56,7 +56,7 @@ pull-request-validation:
 #                    "examples/KelvinHelmholtz" compile all cases within one gitlab job
 generate-reduced-matrix:
   variables:
-    PIC_INPUTS: "examples tests"
+    PIC_INPUTS: "examples tests benchmarks"
     TEST_TUPLE_NUM_ELEM: 1
   extends: ".base_generate-reduced-matrix"
 

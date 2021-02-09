@@ -1,4 +1,4 @@
-/* Copyright 2019-2020 Sergei Bastrakov
+/* Copyright 2019-2021 Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -48,7 +48,7 @@ namespace picongpu
                  */
 
 #ifndef PARAM_PML_SIZE
-#    define PARAM_PML_SIZE 8
+#    define PARAM_PML_SIZE 10
 #endif
 
                 constexpr uint32_t THICKNESS = PARAM_PML_SIZE;

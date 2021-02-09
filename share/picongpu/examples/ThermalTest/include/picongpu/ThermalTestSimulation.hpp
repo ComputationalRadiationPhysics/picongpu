@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Axel Huebl
+/* Copyright 2013-2021 Heiko Burau, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/Environment.hpp>
 
-#include "picongpu/simulation/control/MySimulation.hpp"
+#include "picongpu/simulation/control/Simulation.hpp"
 
 #include <pmacc/simulationControl/SimulationHelper.hpp>
 
@@ -59,16 +59,16 @@ namespace picongpu
 {
     using namespace pmacc;
 
-    class ThermalTestSimulation : public MySimulation
+    class ThermalTestSimulation : public Simulation
     {
     public:
-        ThermalTestSimulation() : MySimulation()
+        ThermalTestSimulation() : Simulation()
         {
         }
 
         void init()
         {
-            MySimulation::init();
+            Simulation::init();
 
             using namespace ::pmacc::math;
 
@@ -88,12 +88,12 @@ namespace picongpu
 
         void pluginRegisterHelp(po::options_description& desc)
         {
-            MySimulation::pluginRegisterHelp(desc);
+            Simulation::pluginRegisterHelp(desc);
         }
 
         void pluginLoad()
         {
-            MySimulation::pluginLoad();
+            Simulation::pluginLoad();
         }
 
         virtual ~ThermalTestSimulation()
@@ -154,7 +154,7 @@ namespace picongpu
          */
         void runOneStep(uint32_t currentStep)
         {
-            MySimulation::runOneStep(currentStep);
+            Simulation::runOneStep(currentStep);
 
             if(currentStep > this->collectTimesteps + firstTimestep)
                 return;

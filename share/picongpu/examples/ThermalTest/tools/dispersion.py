@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2013-2020 Heiko Burau, Axel Huebl
+# Copyright 2013-2021 Heiko Burau, Axel Huebl
 #
 # This file is part of PIConGPU.
 #

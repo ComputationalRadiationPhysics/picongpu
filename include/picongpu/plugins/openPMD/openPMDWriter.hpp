@@ -1,4 +1,4 @@
-/* Copyright 2014-2019 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2014-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz, Alexander Grund, Franz Poeschel
  *
  * This file is part of PIConGPU.
@@ -36,11 +36,11 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
 
+#include <pmacc/Environment.hpp>
 #include <pmacc/assert.hpp>
 #include <pmacc/communication/manager_common.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/Environment.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/math/Vector.hpp>
@@ -48,13 +48,14 @@
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/particles/operations/CountParticles.hpp>
 #include <pmacc/pluginSystem/PluginConnector.hpp>
+#include <pmacc/simulationControl/TimeInterval.hpp>
 #include <pmacc/static_assert.hpp>
-#if(PMACC_CUDA_ENABLED == 1)
-#    include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
-#endif
+#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
+
 #include "picongpu/plugins/misc/SpeciesFilter.hpp"
 #include "picongpu/plugins/openPMD/NDScalars.hpp"
 #include "picongpu/plugins/openPMD/WriteMeta.hpp"
+#include "picongpu/plugins/openPMD/openPMDVersion.def"
 #include "picongpu/plugins/openPMD/WriteSpecies.hpp"
 #include "picongpu/plugins/openPMD/restart/LoadSpecies.hpp"
 #include "picongpu/plugins/openPMD/restart/RestartFieldLoader.hpp"
@@ -209,8 +210,10 @@ Please pick either of the following:
             plugins::multi::Option<std::string> fileNameInfix
                 = {"infix",
                    "openPMD filename infix (use to pick file- or group-based "
-                   "layout in openPMD)\nset to NULL to keep empty (e.g. to pick"
-                   " group-based iteration layout)",
+                   "layout in openPMD)\nSet to NULL to keep empty (e.g. to pick"
+                   " group-based iteration layout). Parameter will be ignored"
+                   " if a streaming backend is detected in 'ext' parameter and"
+                   " an empty string will be assumed instead.",
                    "_%06T"};
 
             plugins::multi::Option<std::string> jsonConfig
@@ -350,7 +353,10 @@ Please pick either of the following:
         {
             fileExtension = help.fileNameExtension.get(id);
             fileInfix = help.fileNameInfix.get(id);
-            if(fileInfix == "NULL")
+            /*
+             * Enforce group-based iteration layout for streaming backends
+             */
+            if(fileInfix == "NULL" || fileExtension == "sst")
             {
                 fileInfix = "";
             }
@@ -774,7 +780,7 @@ Please pick either of the following:
             void dumpData(uint32_t currentStep)
             {
                 // local offset + extent
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 mThreadParams.cellDescription = m_cellDescription;
                 mThreadParams.currentStep = currentStep;
 
@@ -793,10 +799,9 @@ Please pick either of the following:
                 {
                     DataConnector& dc = Environment<>::get().DataConnector();
 
-#if(PMACC_CUDA_ENABLED == 1)
                     /* synchronizes the MallocMCBuffer to the host side */
                     dc.get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName());
-#endif
+
                     /* here we are copying all species to the host side since we
                      * can not say at this point if this time step will need all of
                      * them for sure (checkpoint) or just some user-defined species
@@ -805,16 +810,24 @@ Please pick either of the following:
                     meta::ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1>> copySpeciesToHost;
                     copySpeciesToHost();
                     lastSpeciesSyncStep = currentStep;
-#if(PMACC_CUDA_ENABLED == 1)
+
                     dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
-#endif
                 }
 
+                TimeIntervall timer;
+                timer.toggleStart();
                 initWrite();
 
                 write(&mThreadParams, mpiTransportParams);
 
                 endWrite();
+                timer.toggleEnd();
+                double interval = timer.getInterval();
+                mThreadParams.times.push_back(interval);
+                double average = std::accumulate(mThreadParams.times.begin(), mThreadParams.times.end(), 0);
+                average /= mThreadParams.times.size();
+                log<picLog::INPUT_OUTPUT>("openPMD: IO plugin ran for %1% (average: %2%)") % timer.printeTime(interval)
+                    % timer.printeTime(average);
             }
 
             static void writeFieldAttributes(
@@ -865,7 +878,7 @@ Please pick either of the following:
                  * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
                  */
                 DataSpace<simDim> globalSlideOffset;
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
                 globalSlideOffset.y() += numSlides * localDomain.size.y();
 
@@ -908,7 +921,7 @@ Please pick either of the following:
                 const bool fieldTypeCorrect(boost::is_same<ComponentType, float_X>::value);
                 PMACC_CASSERT_MSG(Precision_mismatch_in_Field_Components__ADIOS, fieldTypeCorrect);
 
-                ::openPMD::Iteration iteration = params->openPMDSeries->iterations[params->currentStep];
+                ::openPMD::Iteration iteration = params->openPMDSeries->WRITE_ITERATIONS[params->currentStep];
                 ::openPMD::Mesh mesh = iteration.meshes[name];
 
                 // set mesh attributes
@@ -1068,7 +1081,7 @@ Please pick either of the following:
             void write(ThreadParams* threadParams, std::string mpiTransportParams)
             {
                 /* y direction can be negative for first gpu */
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 DataSpace<simDim> particleOffset(localDomain.offset);
                 particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
 
@@ -1189,7 +1202,7 @@ Please pick either of the following:
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
                 __getTransactionEvent().waitForFinished();
-                mThreadParams.openPMDSeries->iterations[mThreadParams.currentStep].close();
+                mThreadParams.openPMDSeries->WRITE_ITERATIONS[mThreadParams.currentStep].close();
 
                 return;
             }

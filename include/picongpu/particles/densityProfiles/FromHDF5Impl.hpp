@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -81,7 +81,7 @@ namespace picongpu
                 deviceDataBox = fieldBuffer.getDeviceBuffer().getDataBox();
 
                 GridController<simDim>& gc = Environment<simDim>::get().GridController();
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(0);
                 const uint32_t maxOpenFilesPerNode = 1;
 

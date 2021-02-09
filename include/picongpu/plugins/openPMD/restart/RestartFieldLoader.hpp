@@ -1,4 +1,4 @@
-/* Copyright 2014-2019 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2014-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *                     Benjamin Worpitz, Franz Poeschel
  *
  * This file is part of PIConGPU.
@@ -65,7 +65,7 @@ namespace picongpu
                 auto const name_lookup_tpl = plugins::misc::getComponentNames(numComponents);
                 const DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
 
-                const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
                 using ValueType = typename Data::ValueType;
                 field.getHostBuffer().setValue(ValueType::create(0.0));

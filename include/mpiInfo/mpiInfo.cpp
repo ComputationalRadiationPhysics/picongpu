@@ -1,4 +1,4 @@
-/* Copyright 2013-2020  Rene Widera
+/* Copyright 2013-2021  Rene Widera
  *
  * This file is part of mpiInfo.
  *
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
     if(vm.count("help"))
     {
         std::cerr << desc << "\n";
-        return false;
+        return 0;
     }
 
     MPI_CHECK(MPI_Init(&argc, &argv));

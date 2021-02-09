@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz, Alexander Debus
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz, Alexander Debus
  *
  * This file is part of PMacc.
  *
