@@ -83,9 +83,12 @@ namespace picongpu
         /* WARNING: if you change field solver by hand please update your CELL_WIDTH_SI
          * in `grid.param` to fulfill the convergence condition (CFL)
          */
-#    define PARAM_FIELDSOLVER Yee<CurrentInterpolation>
+#    define SELECTED_FIELD_SOLVER Yee<CurrentInterpolation>
+#else
+#    define FOURTH_ORDER 4 BOOST_PP_COMMA() CurrentInterpolation
+#    define SELECTED_FIELD_SOLVER PARAM_FIELDSOLVER
 #endif
-        using Solver = maxwellSolver::PARAM_FIELDSOLVER;
+        using Solver = maxwellSolver::SELECTED_FIELD_SOLVER;
 
     } // namespace fields
 } // namespace picongpu
