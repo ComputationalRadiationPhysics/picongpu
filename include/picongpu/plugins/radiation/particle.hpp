@@ -83,7 +83,7 @@ public:
     // get momentum at time when
 
     template<unsigned int when>
-    HDINLINE vector_64 get_beta(void) const
+    HDINLINE vector_X get_beta(void) const
     {
         return calc_beta(get_momentum<when > ());
     } // get beta at time when except:
@@ -114,7 +114,7 @@ private:
     //////////////////////////////////////////////////////////////////
     // private methods:
 
-    HDINLINE vector_64 calc_beta(const vector_X& momentum) const
+    HDINLINE vector_X calc_beta(const vector_X& momentum) const
     {
         // returns beta=v/c
         const picongpu::float_32 gamma1 = calc_gamma(momentum);

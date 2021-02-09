@@ -91,7 +91,7 @@ struct Retarded_time_1
     HDINLINE picongpu::float_64 operator()(const picongpu::float_32 t,
                                 const vector_32& n, const Particle & particle) const
     {
-        const vector_32_64 r(particle.get_location<When::now > ()); // location
+        const vector_64 r(particle.get_location<When::now > ()); // location
         //return (picongpu::float_64) (t - (n * r) / (picongpu::SPEED_OF_LIGHT));
         return (picongpu::float_64) (t - r.dot(n) / (picongpu::SPEED_OF_LIGHT));
     }
