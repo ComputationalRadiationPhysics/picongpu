@@ -82,9 +82,6 @@
 
 #include <pmacc/nvidia/reduce/Reduce.hpp>
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/functors/Sub.hpp>
-
 #include <pmacc/meta/conversion/SeqToMap.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 
@@ -134,6 +131,7 @@ namespace picongpu
         {
             SimulationHelper<simDim>::pluginRegisterHelp(desc);
             currentInterpolationAndAdditionToEMF.registerHelp(desc);
+            fieldBackground.registerHelp(desc);
             desc.add_options()(
                 "versionOnce",
                 po::value<bool>(&showVersionOnce)->zero_tokens(),
@@ -331,6 +329,10 @@ namespace picongpu
             // create field solver
             this->myFieldSolver = new fields::Solver(*cellDescription);
 
+            // initialize field background stage,
+            // this may include allocation of additional fields so has to be done before particles
+            fieldBackground.init(*cellDescription);
+
             // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung
             // Photons
             using AllSynchrotronPhotonsSpecies =
@@ -490,27 +492,7 @@ namespace picongpu
                     initialiserController->restart((uint32_t) this->restartStep, this->restartDirectory);
                     step = this->restartStep;
 
-                    /** restore background fields in GUARD
-                     *
-                     * loads the outer GUARDS of the global domain for absorbing/open boundary condtions
-                     *
-                     * @todo as soon as we add GUARD fields to the checkpoint data, e.g. for PML boundary
-                     *       conditions, this section needs to be removed
-                     */
-                    cellwiseOperation::CellwiseOperation<GUARD> guardBGField(*cellDescription);
-                    namespace nvfct = pmacc::nvidia::functors;
-                    guardBGField(
-                        fieldE,
-                        nvfct::Add(),
-                        FieldBackgroundE(fieldE->getUnit()),
-                        step,
-                        FieldBackgroundE::InfluenceParticlePusher);
-                    guardBGField(
-                        fieldB,
-                        nvfct::Add(),
-                        FieldBackgroundB(fieldB->getUnit()),
-                        step,
-                        FieldBackgroundB::InfluenceParticlePusher);
+                    fieldBackground.fillSimulation(step);
                 }
                 else
                 {
@@ -554,7 +536,7 @@ namespace picongpu
 #endif
             EventTask commEvent;
             ParticlePush{}(currentStep, commEvent);
-            FieldBackground{*cellDescription}(currentStep, nvidia::functors::Sub());
+            fieldBackground.subtract(currentStep);
             myFieldSolver->update_beforeCurrent(currentStep);
             __setTransactionEvent(commEvent);
             CurrentBackground{*cellDescription}(currentStep);
@@ -582,13 +564,13 @@ namespace picongpu
 
             if(addBgFields)
             {
-                /** add background field: the movingWindowCheck is just at the start
+                /* add background field: the movingWindowCheck is just at the start
                  * of a time step before all the plugins are called (and the step
                  * itself is performed for this time step).
                  * Hence the background field is visible for all plugins
                  * in between the time steps.
                  */
-                simulation::stage::FieldBackground{*cellDescription}(currentStep, nvidia::functors::Add());
+                fieldBackground.add(currentStep);
             }
         }
 
@@ -629,6 +611,10 @@ namespace picongpu
 
         fields::Solver* myFieldSolver;
         simulation::stage::CurrentInterpolationAndAdditionToEMF currentInterpolationAndAdditionToEMF;
+
+        // Field background stage, has to live always as it is used for registering options like a plugin.
+        // Because of it, has a special init() method that has to be called during initialization of the simulation
+        simulation::stage::FieldBackground fieldBackground;
 
 #if(PMACC_CUDA_ENABLED == 1)
         // creates lookup tables for the bremsstrahlung effect

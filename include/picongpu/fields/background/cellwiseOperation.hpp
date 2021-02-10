@@ -124,16 +124,9 @@ namespace picongpu
              * @tparam OpFunctor A manipulating functor like pmacc::nvidia::functors::add
              */
             template<typename T_Field, typename T_OpFunctor, typename T_ValFunctor>
-            void operator()(
-                T_Field field,
-                T_OpFunctor opFunctor,
-                T_ValFunctor valFunctor,
-                uint32_t const currentStep,
-                const bool enabled = true) const
+            void operator()(T_Field field, T_OpFunctor opFunctor, T_ValFunctor valFunctor, uint32_t const currentStep)
+                const
             {
-                if(!enabled)
-                    return;
-
                 SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
                 // offset to the local domain relative to the origin of the global domain
                 DataSpace<simDim> totalDomainOffset(subGrid.getLocalDomain().offset);
