@@ -24,6 +24,8 @@
  * relative binning width dependent error.
  *
  * only populated bins are stored in memory
+ *
+ *
  */
 
 #pragma once
@@ -343,8 +345,8 @@ namespace picongpu
                                                currentBinWidth,
                                                AdaptiveHistogram::centerBin(
                                                    directionPositive,
-                                                   currentBinWidth,
-                                                   boundary),
+                                                   boundary,
+                                                   currentBinWidth),
                                                atomicDataBox));
                                 }
 
@@ -368,8 +370,8 @@ namespace picongpu
                                                currentBinWidth,
                                                AdaptiveHistogram::centerBin(
                                                    directionPositive,
-                                                   currentBinWidth,
-                                                   boundary),
+                                                   boundary,
+                                                   currentBinWidth),
                                                atomicDataBox));
                                 }
                                 // no need to reset to value before
