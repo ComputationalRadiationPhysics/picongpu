@@ -690,7 +690,7 @@ namespace picongpu
 
                     hdf5DataFile.open(filename.str().c_str(), fAttr);
 
-                    typename PICToSplash<float_64>::type radSplashType;
+                    typename PICToSplash< Amplitude<>::complex_T::type >::type radSplashType;
 
 
                     splash::Dimensions bufferSize(
