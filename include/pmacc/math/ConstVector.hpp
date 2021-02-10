@@ -45,6 +45,26 @@
 #    define PMACC_STATIC_CONST_VECTOR_DIM_DEF_CUDA(id, Name, Type, ...)
 #endif
 
+#define PMACC_PRAGMA_QUOTE(x) _Pragma(#x)
+#define PMACC_PRAGMA_OACC_DECLARE_ARRAY(name, count)
+#define PMACC_PRAGMA_OMP_TARGET_BEGIN_DECLARE
+#define PMACC_PRAGMA_OMP_TARGET_END_DECLARE
+#define PMACC_TARGET_CONSTEXPR constexpr
+
+#ifdef ALPAKA_ACC_ANY_BT_OACC_ENABLED
+#    undef PMACC_PRAGMA_OACC_DECLARE_ARRAY(name, count)
+#    undef PMACC_TARGET_CONSTEXPR
+// might need to remove parentheses from macro argument count to clean up copyin clause, but works with NVHPC
+#    define PMACC_PRAGMA_OACC_DECLARE_ARRAY(name, count) PMACC_PRAGMA_QUOTE(acc declare copyin(name))
+#    define PMACC_TARGET_CONSTEXPR
+#elif defined ALPAKA_ACC_ANY_BT_OMP5_ENABLED
+#    undef PMACC_PRAGMA_OMP_TARGET_BEGIN_DECLARE
+#    undef PMACC_PRAGMA_OMP_TARGET_END_DECLARE
+// the single-pragma declare (more like the OpenACC version above) does not work with clang 11
+#    define PMACC_PRAGMA_OMP_TARGET_BEGIN_DECLARE _Pragma("omp declare target")
+#    define PMACC_PRAGMA_OMP_TARGET_END_DECLARE _Pragma("omp end declare target")
+#endif
+
 /** define a const vector
  *
  * create type definition `Name_t`
@@ -59,7 +79,10 @@
         namespace PMACC_JOIN(pmacc_static_const_vector_host, id)                                                      \
         {                                                                                                             \
             /* store all values in a const C array on host*/                                                          \
-            constexpr Type PMACC_JOIN(Name, _data)[] = {__VA_ARGS__};                                                 \
+            PMACC_PRAGMA_OMP_TARGET_BEGIN_DECLARE                                                                     \
+            PMACC_TARGET_CONSTEXPR Type PMACC_JOIN(Name, _data)[] = {__VA_ARGS__};                                    \
+            PMACC_PRAGMA_OMP_TARGET_END_DECLARE                                                                       \
+            PMACC_PRAGMA_OACC_DECLARE_ARRAY(PMACC_JOIN(Name, _data), count)                                           \
         } /* namespace pmacc_static_const_vector_host + id  */                                                        \
         /* select host or device namespace depending on __CUDA_ARCH__ compiler flag*/                                 \
         PMACC_USING_STATIC_CONST_VECTOR_NAMESPACE(id);                                                                \
