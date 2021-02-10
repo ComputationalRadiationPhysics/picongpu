@@ -46,7 +46,7 @@ namespace pmacc
                 typedef cursor::CT::BufferCursor<type, math::CT::UInt32<>> Cursor;
 
                 template<typename T_Acc>
-                DEVICEONLY static Cursor allocate(T_Acc const& acc)
+                DINLINE static Cursor allocate(T_Acc const& acc)
                 {
                     auto& shMem = pmacc::memory::shared::
                         allocate<uid, memory::Array<Type, math::CT::volume<Size>::type::value>>(acc);
@@ -63,7 +63,7 @@ namespace pmacc
                 typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
                 template<typename T_Acc>
-                DEVICEONLY static Cursor allocate(T_Acc const& acc)
+                DINLINE static Cursor allocate(T_Acc const& acc)
                 {
                     auto& shMem = pmacc::memory::shared::
                         allocate<uid, memory::Array<Type, math::CT::volume<Size>::type::value>>(acc);
@@ -81,7 +81,7 @@ namespace pmacc
                 typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
                 template<typename T_Acc>
-                DEVICEONLY static Cursor allocate(T_Acc const& acc)
+                DINLINE static Cursor allocate(T_Acc const& acc)
                 {
                     auto& shMem = pmacc::memory::shared::
                         allocate<uid, memory::Array<Type, math::CT::volume<Size>::type::value>>(acc);
