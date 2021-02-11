@@ -37,7 +37,7 @@ Format Only Changes, Using Git
 Instead of using the bash command above you can use *Git* together with *ClangFormat* to format your patched code only.
 
     *ClangFormat* is an external tool for code formating that can be called by *Git* on changed files only and
-    is included in the clang library.
+    is part of clang tools.
 
 Before applying this command, you must extend your local git configuration **once** with all file endings used in *PIConGPU*:
 
@@ -45,7 +45,7 @@ Before applying this command, you must extend your local git configuration **onc
 
    git config --local clangFormat.extensions def,h,cpp,cu,hpp,tpp,kernel,loader,param,unitless
 
-After installing, or on a cluster loading the module, clang and clangFormat can be called by git on all **staged files** using the command:
+After installing, or on a cluster loading the module(see introduction), clangFormat can be called by git on all **staged files** using the command:
 
 .. code-block:: bash
 
@@ -53,27 +53,33 @@ After installing, or on a cluster loading the module, clang and clangFormat can 
 
 .. warning::
 
-    The binary for *ClangFormat* is instead called `clang-format` on some operating systems.
-    If *clangFormat* is not recognized try *clang-format* instead, in addition please check that `clang-format --version` returns version `11.X.X` in this case.
+    The binary for *ClangFormat* is called `clang-format` on some operating systems.
+    If *clangFormat* is not recognized, try *clang-format* instead, in addition please check that `clang-format --version` returns version `11.X.X` in this case.
 
 The Typical workflow using git clangFormat is the following,
 
 1. make your patch
+
 2. stage the changed files in git
+
 .. code-block:: bash
 
     git add <files you changed>/ -A
 
 3. format them according to guidelines
+
 .. code-block:: bash
 
     git clangFormat
 
 4. stage the now changed(formated) files again
+
 .. code-block:: bash
 
     git add <files you changed>
+
 5. commit changed files
+
 .. code-block:: bash
 
     git commit -m <commit message>
