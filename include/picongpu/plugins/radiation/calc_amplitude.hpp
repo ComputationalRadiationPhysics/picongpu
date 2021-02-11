@@ -75,7 +75,7 @@ struct One_minus_beta_times_n
         else
         {
             //const vector_32 beta(particle.get_beta<When::now > ()); // calculate v/c=beta
-            const vector_32_64 beta(particle.get_beta<When::now > ()); // calculate v/c=beta
+            const vector_64 beta(particle.get_beta<When::now > ()); // calculate v/c=beta
             return  (1.0 - beta.dot( n ));
         }
 

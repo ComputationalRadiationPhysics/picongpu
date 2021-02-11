@@ -201,9 +201,9 @@ namespace precisionCast
                         picongpu::plugins::radiation::Amplitude<CastToType>
                         >
                         {
-                                using result_T = const picongpu::plugins::radiation::Amplitude<CastToType>&;
+                                using result = const picongpu::plugins::radiation::Amplitude<CastToType>&;
 
-                                HDINLINE result_T operator( )( result_T amplitude ) const
+                                HDINLINE result operator( )( result amplitude ) const
                                 {
                                         return amplitude;
                                 }
@@ -216,14 +216,14 @@ namespace precisionCast
                         picongpu::plugins::radiation::Amplitude<OldType>
                         >
                         {
-                                using result_T = picongpu::plugins::radiation::Amplitude<CastToType>;
+                                using result = picongpu::plugins::radiation::Amplitude<CastToType>;
                                 using ParamType = picongpu::plugins::radiation::Amplitude<OldType>;
-                                HDINLINE result_T operator( )( const ParamType& amplitude ) const
+                                HDINLINE result operator( )( const ParamType& amplitude ) const
                                 {       
-                                        result_T Result( 
-                                                    precisionCast<result_T::complex_T::type>(amplitude.getXcomponent()),
-                                                    precisionCast<result_T::complex_T::type>(amplitude.getYcomponent()),
-                                                    precisionCast<result_T::complex_T::type>(amplitude.getZcomponent()) );
+                                        result Result( 
+                                                    precisionCast<result::complex_T::type>(amplitude.getXcomponent()),
+                                                    precisionCast<result::complex_T::type>(amplitude.getYcomponent()),
+                                                    precisionCast<result::complex_T::type>(amplitude.getZcomponent()));
                                         return Result;
                                 }
                         };
