@@ -32,7 +32,10 @@
 #include <pmacc/nvidia/functors/Sub.hpp>
 #include <pmacc/type/Area.hpp>
 
+#include <boost/program_options.hpp>
+
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 
 
@@ -44,7 +47,7 @@ namespace picongpu
         {
             namespace detail
             {
-                /* Functor to apply the given field background to the given field
+                /* Implementation of background application to the given field
                  *
                  * @tparam T_Field field affected, e.g. picongpu::FieldE
                  * @tparam T_FieldBackground field background to apply, e.g. picongpu::FieldBackgroundE
@@ -59,15 +62,91 @@ namespace picongpu
                     //! Field background to apply
                     using FieldBackground = T_FieldBackground;
 
-                    /** Create a functor to apply the background
+                    /** Create an object to apply the background
                      *
                      * @param cellDescription mapping for kernels
+                     * @param TODO
                      */
-                    ApplyFieldBackground(MappingDesc const cellDescription)
+                    ApplyFieldBackground(MappingDesc const cellDescription, bool const duplicateField)
                         : cellDescription(cellDescription)
+                        , duplicateField(duplicateField)
                         , isEnabled(FieldBackground::InfluenceParticlePusher)
                     {
+                        if(isEnabled && duplicateField)
+                        {
+                            // Allocate a duplicate field buffer and copy the values
+                            DataConnector& dc = Environment<>::get().DataConnector();
+                            auto field = dc.get<Field>(Field::getName(), true);
+                            auto const& gridBuffer = field->getGridBuffer();
+                            duplicateBuffer = pmacc::makeDeepCopy(gridBuffer.getDeviceBuffer());
+                            dc.releaseData(Field::getName());
+                        }
                     }
+
+                    /** Add the field background in the given area
+                     *
+                     * @tparam T_area area to operate on
+                     *
+                     * @param step index of time iteration
+                     */
+                    template<uint32_t T_area>
+                    void add(uint32_t const step) const
+                    {
+                        if(!isEnabled)
+                            return;
+                        DataConnector& dc = Environment<>::get().DataConnector();
+                        auto& field = *dc.get<Field>(Field::getName(), true);
+                        // Always add, conditionally make a copy first
+                        if(duplicateField)
+                        {
+                            auto& gridBuffer = field.getGridBuffer();
+                            duplicateBuffer->copyFrom(gridBuffer.getDeviceBuffer());
+                            __getTransactionEvent().waitForFinished();
+                        }
+                        apply<T_area>(step, pmacc::nvidia::functors::Add(), field);
+                        dc.releaseData(Field::getName());
+                    }
+
+                    /** Subtract the field background in the given area
+                     *
+                     * @tparam T_area area to operate on
+                     *
+                     * @param step index of time iteration
+                     */
+                    template<uint32_t T_area>
+                    void subtract(uint32_t const step) const
+                    {
+                        if(!isEnabled)
+                            return;
+                        DataConnector& dc = Environment<>::get().DataConnector();
+                        auto& field = *dc.get<Field>(Field::getName(), true);
+                        // Either restore from the pre-made copy or subtract
+                        if(duplicateField)
+                        {
+                            auto& gridBuffer = field.getGridBuffer();
+                            gridBuffer.getDeviceBuffer().copyFrom(*duplicateBuffer);
+                            __getTransactionEvent().waitForFinished();
+                        }
+                        else
+                            apply<T_area>(step, pmacc::nvidia::functors::Sub(), field);
+                        dc.releaseData(Field::getName());
+                    }
+
+                private:
+                    //! Is the field background enabled
+                    bool isEnabled;
+
+                    //! Flag to store duplicate of field when the background is enabled
+                    bool duplicateField;
+
+                    //! Buffer type to store duplicated values
+                    using DeviceBuffer = typename Field::Buffer::DBuffer;
+
+                    //! Buffer to store duplicated values, only used when duplicateField is true
+                    std::unique_ptr<DeviceBuffer> duplicateBuffer;
+
+                    //! Mapping for kernels
+                    MappingDesc const cellDescription;
 
                     /** Apply the given functor to the field background in the given area
                      *
@@ -76,27 +155,15 @@ namespace picongpu
                      *
                      * @param step index of time iteration
                      * @param functor functor to apply
+                     * @param field field object which data is modified
                      */
                     template<uint32_t T_area, typename T_Functor>
-                    void operator()(uint32_t const step, T_Functor functor) const
+                    void apply(uint32_t const step, T_Functor functor, Field& field) const
                     {
-                        if(!isEnabled)
-                            return;
-                        using namespace pmacc;
                         using CallBackground = cellwiseOperation::CellwiseOperation<T_area>;
                         CallBackground callBackground(cellDescription);
-                        DataConnector& dc = Environment<>::get().DataConnector();
-                        auto field = dc.get<Field>(Field::getName(), true);
-                        callBackground(field, functor, FieldBackground(field->getUnit()), step);
-                        dc.releaseData(Field::getName());
+                        callBackground(&field, functor, FieldBackground(field.getUnit()), step);
                     }
-
-                private:
-                    //! Is the field background enabled
-                    bool isEnabled;
-
-                    //! Mapping for kernels
-                    MappingDesc const cellDescription;
                 };
             } // namespace detail
 
@@ -106,15 +173,16 @@ namespace picongpu
             public:
                 /** Register program options for field background
                  *
-                 * @param desc boost::program_options::options_description
+                 * @param desc program options following boost::program_options::options_description
                  */
                 void registerHelp(po::options_description& desc)
                 {
                     desc.add_options()(
-                        "fieldBackground.useExtraMemory",
-                        po::value<bool>(&useExtraMemory)->zero_tokens(),
-                        "use extra fields for field background to improve precision and potentially avoid some "
-                        "numerical noise");
+                        "fieldBackground.duplicateFields",
+                        po::value<bool>(&duplicateFields)->zero_tokens(),
+                        "duplicate E and B field storage inside field background to improve its performance "
+                        "and potentially avoid some numerical noise at cost of using more memory, "
+                        "only affects the fields with activated background");
                 }
 
                 /** Initialize field background stage
@@ -126,8 +194,8 @@ namespace picongpu
                  */
                 void init(MappingDesc const cellDescription)
                 {
-                    applyE = std::make_unique<ApplyE>(cellDescription);
-                    applyB = std::make_unique<ApplyB>(cellDescription);
+                    applyE = std::make_unique<ApplyE>(cellDescription, duplicateFields);
+                    applyB = std::make_unique<ApplyB>(cellDescription, duplicateFields);
                 }
 
                 /** Add field background to the electromagnetic field
@@ -139,7 +207,7 @@ namespace picongpu
                  */
                 void add(uint32_t const step) const
                 {
-                    apply<CORE + BORDER + GUARD>(step, pmacc::nvidia::functors::Add{});
+                    applyAdd<CORE + BORDER + GUARD>(step);
                 }
 
                 /** Subtract field background from the electromagnetic field
@@ -147,14 +215,15 @@ namespace picongpu
                  * Affects data sets named FieldE::getName(), FieldB::getName().
                  * As the result of this operation, they will have values like before calling add().
                  *
-                 * Warning: when fieldBackground.useExtraMemory is enabled, the fields are assumed to not have changed
-                 * since the call to add(). Having fieldBackground.useExtraMemory disabled does not rely on this.
+                 * Warning: when fieldBackground.duplicateFields is enabled, the fields are assumed to not have changed
+                 * since the call to add(). Having fieldBackground.duplicateFields disabled does not rely on this.
+                 * However, this assumption should generally hold true in the PIC computational loop.
                  *
                  * @param step index of time iteration
                  */
                 void subtract(uint32_t const step) const
                 {
-                    apply<CORE + BORDER + GUARD>(step, pmacc::nvidia::functors::Sub{});
+                    applySubtract<CORE + BORDER + GUARD>(step);
                 }
 
                 /** Set field background to a consistent initial state for starting or resuming a simulation
@@ -172,41 +241,59 @@ namespace picongpu
                      * @todo as soon as we add GUARD fields to the checkpoint data, e.g. for PML boundary
                      *       conditions, this section needs to be removed
                      */
-                    apply<GUARD>(step, pmacc::nvidia::functors::Add());
+                    applyAdd<GUARD>(step);
                 }
 
             private:
-                /** Apply the given functor to E and B field backgrounds in the given area
+                /** Apply adding field background to E and B in the given area
                  *
                  * @tparam T_area area to operate on
-                 * @tparam T_Functor functor type compatible to pmacc::nvidia::functors
                  *
                  * @param step index of time iteration
-                 * @param functor functor to apply
                  */
-                template<uint32_t T_area, typename T_Functor>
-                void apply(uint32_t const step, T_Functor functor) const
+                template<uint32_t T_area>
+                void applyAdd(uint32_t const step) const
+                {
+                    checkInitialization();
+                    applyE->add<T_area>(step);
+                    applyB->add<T_area>(step);
+                }
+
+                /** Apply subtracting field background from E and B in the given area
+                 *
+                 * @tparam T_area area to operate on
+                 *
+                 * @param step index of time iteration
+                 */
+                template<uint32_t T_area>
+                void applySubtract(uint32_t const step) const
+                {
+                    checkInitialization();
+                    applyE->subtract<T_area>(step);
+                    applyB->subtract<T_area>(step);
+                }
+
+                //! Check if this class was properly initialized, throws when failed
+                void checkInitialization() const
                 {
                     if(!applyE || !applyB)
                         throw std::runtime_error("simulation::stage::FieldBackground used without init() called");
-                    applyE->operator()<T_area>(step, functor);
-                    applyB->operator()<T_area>(step, functor);
                 }
 
-                //! Functor type to apply background to field E
+                //! Implememtation type to apply background to field E
                 using ApplyE = detail::ApplyFieldBackground<FieldE, FieldBackgroundE>;
 
-                //! Functor to apply background to field E
+                //! Object to apply background to field E
                 std::unique_ptr<ApplyE> applyE;
 
-                //! Functor type to apply background to field B
+                //! Implememtation type to apply background to field B
                 using ApplyB = detail::ApplyFieldBackground<FieldB, FieldBackgroundB>;
 
-                //! Functor to apply background to field B
+                //! Object to apply background to field B
                 std::unique_ptr<ApplyB> applyB;
 
-                //! Whether to use extra fields to store activated background fields
-                bool useExtraMemory = false;
+                //! Flag to store duplicates fields with enabled backgrounds
+                bool duplicateFields = false;
             };
 
         } // namespace stage
