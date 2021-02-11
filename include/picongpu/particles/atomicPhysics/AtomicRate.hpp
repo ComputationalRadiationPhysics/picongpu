@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Axel Huebl, Brian Marre, Sudhir Sharma
+/* Copyright 2017-2021 Axel Huebl, Brian Marre, Sudhir Sharma
  *
  * This file is part of PIConGPU.
  *

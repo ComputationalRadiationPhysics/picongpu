@@ -1,4 +1,4 @@
-/* Copyright 2019-2020 Brian Marre
+/* Copyright 2019-2021 Brian Marre
  *
  * This file is part of PIConGPU.
  *
