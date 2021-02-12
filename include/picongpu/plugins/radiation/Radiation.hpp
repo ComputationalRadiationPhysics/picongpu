@@ -25,32 +25,29 @@
 #endif
 
 #include "picongpu/simulation_defines.hpp"
-
-#include "picongpu/traits/SplashToPIC.hpp"
-#include "picongpu/traits/PICToSplash.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-
-#include "picongpu/plugins/radiation/Radiation.kernel"
-#include "picongpu/plugins/radiation/ExecuteParticleFilter.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/common/stringHelpers.hpp"
+#include "picongpu/plugins/radiation/ExecuteParticleFilter.hpp"
+#include "picongpu/plugins/radiation/Radiation.kernel"
+#include "picongpu/traits/PICToSplash.hpp"
+#include "picongpu/traits/SplashToPIC.hpp"
 
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/traits/HasIdentifier.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
-
-#include <splash/splash.h>
 #include <boost/filesystem.hpp>
-
-#include <string>
-#include <iostream>
-#include <fstream>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/traits/HasIdentifier.hpp>
+#include <splash/splash.h>
+#include <string>
+#include <vector>
 
 namespace picongpu
 {
@@ -80,7 +77,7 @@ namespace picongpu
             template<class ParticlesType>
             class Radiation : public ISimulationPlugin
             {
-            using Amplitude = picongpu::plugins::radiation::Amplitude<>;
+                using Amplitude = picongpu::plugins::radiation::Amplitude<>;
 
             private:
                 typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -124,10 +121,10 @@ namespace picongpu
                  * the calculated Amplitude from every host for every direction and
                  * frequency.
                  */
-                Amplitude* timeSumArray;
-                Amplitude* tmp_result;
-                vector_64* detectorPositions;
-                float_64* detectorFrequencies;
+                std::vector<Amplitude> timeSumArray;
+                std::vector<Amplitude> tmp_result;
+                std::vector<vector_64> detectorPositions;
+                std::vector<float_64> detectorFrequencies;
 
                 bool isMaster;
 
@@ -153,10 +150,6 @@ namespace picongpu
                     , dumpPeriod(0)
                     , totalRad(false)
                     , lastRad(false)
-                    , timeSumArray(nullptr)
-                    , tmp_result(nullptr)
-                    , detectorPositions(nullptr)
-                    , detectorFrequencies(nullptr)
                     , isMaster(false)
                     , currentStep(0)
                     , radPerGPU(false)
@@ -319,7 +312,7 @@ namespace picongpu
                         // allocate memory for all amplitudes for temporal data collection
 
                         // ACCUMULATOR! Should be in double precision
-                        tmp_result = new Amplitude[elements_amplitude()];
+                        tmp_result.resize(elements_amplitude(), Amplitude::zero());
 
                         /*only rank 0 create a file*/
                         isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
@@ -338,12 +331,10 @@ namespace picongpu
 
                         if(isMaster)
                         {
-                            timeSumArray = new Amplitude[elements_amplitude()];
-                            for(unsigned int i = 0; i < elements_amplitude(); ++i)
-                                timeSumArray[i] = Amplitude::zero();
+                            timeSumArray.resize(elements_amplitude(), Amplitude::zero());
 
                             /* save detector position / observation direction */
-                            detectorPositions = new vector_64[parameters::N_observer];
+                            detectorPositions.resize(parameters::N_observer);
                             for(uint32_t detectorIndex = 0; detectorIndex < parameters::N_observer; ++detectorIndex)
                             {
                                 detectorPositions[detectorIndex]
@@ -351,7 +342,7 @@ namespace picongpu
                             }
 
                             /* save detector frequencies */
-                            detectorFrequencies = new float_64[radiation_frequencies::N_omega];
+                            detectorFrequencies.resize(radiation_frequencies::N_omega);
                             for(uint32_t detectorIndex = 0; detectorIndex < radiation_frequencies::N_omega;
                                 ++detectorIndex)
                             {
@@ -407,17 +398,9 @@ namespace picongpu
                             writeAllFiles(globalOffset);
                         }
 
-                        if(isMaster)
-                        {
-                            __deleteArray(timeSumArray);
-                            delete[] detectorPositions;
-                            delete[] detectorFrequencies;
-                        }
 
                         __delete(radiation);
                         CUDA_CHECK(cuplaGetLastError());
-
-                        __deleteArray(tmp_result);
                     }
                 }
 
@@ -482,7 +465,7 @@ namespace picongpu
                 {
                     reduce(
                         nvidia::functors::Add(),
-                        tmp_result,
+                        tmp_result.data(),
                         radiation->getHostBuffer().getBasePointer(),
                         elements_amplitude(),
                         mpi::reduceMethods::Reduce());
@@ -491,7 +474,7 @@ namespace picongpu
 
                 /** add collected radiation data to previously stored data
                  *  should be called after collectRadiationOnMaster() */
-                void sumAmplitudesOverTime(Amplitude* targetArray, Amplitude* summandArray)
+                void sumAmplitudesOverTime(std::vector<Amplitude>& targetArray, std::vector<Amplitude>& summandArray)
                 {
                     if(isMaster)
                     {
@@ -517,7 +500,9 @@ namespace picongpu
                             o_step << currentStep;
 
                             // write lastRad data to txt
-                            writeFile(tmp_result, folderLastRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
+                            writeFile(
+                                tmp_result.data(),
+                                folderLastRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
                         }
                     }
                 }
@@ -538,7 +523,7 @@ namespace picongpu
 
                             // write totalRad data to txt
                             writeFile(
-                                timeSumArray,
+                                timeSumArray.data(),
                                 folderTotalRad + "/" + filename_prefix + "_" + o_step.str() + ".dat");
                         }
                     }
@@ -681,7 +666,7 @@ namespace picongpu
                  * Amplitude* values - array of complex amplitude values
                  * std::string name - path and beginning of file name to store data to
                  */
-                void writeHDF5file(Amplitude* values, std::string name)
+                void writeHDF5file(std::vector<Amplitude>& values, std::string name)
                 {
                     splash::SerialDataCollector hdf5DataFile(1);
                     splash::DataCollector::FileCreationAttr fAttr;
@@ -694,7 +679,7 @@ namespace picongpu
 
                     hdf5DataFile.open(filename.str().c_str(), fAttr);
 
-                    typename PICToSplash< Amplitude::complex_T::type >::type radSplashType;
+                    typename PICToSplash<Amplitude::complex_T::type>::type radSplashType;
 
 
                     splash::Dimensions bufferSize(
@@ -725,7 +710,7 @@ namespace picongpu
                             3,
                             dataSelection,
                             (meshesPathName + dataLabels(ampIndex)).c_str(),
-                            values);
+                            values.data());
 
                         /* save SI unit as attribute together with data set */
                         hdf5DataFile.writeAttribute(
@@ -777,7 +762,7 @@ namespace picongpu
                             3,
                             dataSelection,
                             (meshesPathName + dataLabelsDetectorDirection(detectorDim)).c_str(),
-                            detectorPositions);
+                            detectorPositions.data());
 
                         /* save SI unit as attribute together with data set */
                         const picongpu::float_64 factorDirection = 1.0;
@@ -815,7 +800,7 @@ namespace picongpu
                         3,
                         dataSelection,
                         (meshesPathName + dataLabelsDetectorFrequency(0)).c_str(),
-                        detectorFrequencies);
+                        detectorFrequencies.data());
 
                     /* save SI unit as attribute together with data set */
                     const picongpu::float_64 factorOmega = 1.0 / UNIT_TIME;
@@ -1053,7 +1038,7 @@ namespace picongpu
                  * std::string name - path and beginning of file name with data stored in
                  * const int timeStep - time step to read
                  */
-                void readHDF5file(Amplitude* values, std::string name, const int timeStep)
+                void readHDF5file(std::vector<Amplitude>& values, std::string name, const int timeStep)
                 {
                     splash::SerialDataCollector hdf5DataFile(1);
                     splash::DataCollector::FileCreationAttr fAttr;
@@ -1095,7 +1080,7 @@ namespace picongpu
                             for(int copyIndex = 0; copyIndex < N_tmpBuffer; ++copyIndex)
                             {
                                 /* convert data directly because Amplitude is just 6 float_32 */
-                                ((picongpu::float_64*) values)[ampIndex + Amplitude::numComponents * copyIndex]
+                                ((picongpu::float_64*) values.data())[ampIndex + Amplitude::numComponents * copyIndex]
                                     = tmpBuffer[copyIndex];
                             }
                         }

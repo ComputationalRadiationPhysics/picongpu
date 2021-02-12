@@ -19,9 +19,10 @@
 
 #pragma once
 
+#include "VectorTypes.hpp"
+
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/math/Complex.hpp>
-#include "VectorTypes.hpp"
 #include <pmacc/mpi/GetMPI_StructAsArray.hpp>
 
 namespace picongpu
