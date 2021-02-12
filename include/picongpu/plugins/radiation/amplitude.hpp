@@ -34,13 +34,13 @@ namespace picongpu
         {
             /** class to store 3 complex numbers for the radiated amplitude
              */
-            template<typename base_dtype = picongpu::float_64>
+            template<typename T_Float = picongpu::float_64>
             class Amplitude
             {
             public:
                 // For the intermediate amplitude values we may use single precision
                 // for the final accumulation we will have to use double precision
-                using complex_T = pmacc::math::Complex<base_dtype>;
+                using complex_T = pmacc::math::Complex<T_Float>;
                 /* number of scalar components in Amplitude = 3 (3D) * 2 (complex) = 6 */
                 static constexpr uint32_t numComponents
                     = uint32_t(3) * uint32_t(sizeof(complex_T) / sizeof(typename complex_T::type));
@@ -56,17 +56,17 @@ namespace picongpu
                     picongpu::float_X sinValue;
                     pmacc::math::sincos(phase, sinValue, cosValue);
                     amp_x = pmacc::math::euler(
-                        precisionCast<base_dtype>(vec.x()),
-                        precisionCast<base_dtype>(sinValue),
-                        precisionCast<base_dtype>(cosValue));
+                        precisionCast<T_Float>(vec.x()),
+                        precisionCast<T_Float>(sinValue),
+                        precisionCast<T_Float>(cosValue));
                     amp_y = pmacc::math::euler(
-                        precisionCast<base_dtype>(vec.y()),
-                        precisionCast<base_dtype>(sinValue),
-                        precisionCast<base_dtype>(cosValue));
+                        precisionCast<T_Float>(vec.y()),
+                        precisionCast<T_Float>(sinValue),
+                        precisionCast<T_Float>(cosValue));
                     amp_z = pmacc::math::euler(
-                        precisionCast<base_dtype>(vec.z()),
-                        precisionCast<base_dtype>(sinValue),
-                        precisionCast<base_dtype>(cosValue));
+                        precisionCast<T_Float>(vec.z()),
+                        precisionCast<T_Float>(sinValue),
+                        precisionCast<T_Float>(cosValue));
                 }
 
                 /** default constructor

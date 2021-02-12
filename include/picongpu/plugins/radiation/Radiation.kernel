@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/radiation/GetRadiationMask.hpp"
 #include "picongpu/plugins/radiation/VectorTypes.hpp"
 #include "picongpu/plugins/radiation/amplitude.hpp"
@@ -30,7 +31,6 @@
 #include "picongpu/plugins/radiation/particle.hpp"
 #include "picongpu/plugins/radiation/radFormFactor.hpp"
 #include "picongpu/plugins/radiation/windowFunctions.hpp"
-#include "picongpu/simulation_defines.hpp"
 #include "sys/stat.h"
 
 #include <cstdlib>
@@ -107,7 +107,7 @@ namespace picongpu
                 {
                     using namespace mappings::threads;
                     namespace po = boost::program_options;
-
+                    using Amplitude = picongpu::plugins::radiation::Amplitude<>;
                     constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
                     constexpr uint32_t numWorker = T_numWorkers;
 
@@ -357,7 +357,7 @@ namespace picongpu
                                  * it  is initialized with zeros (  0 +  i 0 )
                                  */
                                 // ACCUMULATOR! Ensure double precision
-                                Amplitude<> amplitude = Amplitude<>::zero();
+                                Amplitude amplitude = Amplitude::zero();
 
                                 // compute frequency "omega" using for-loop-index "o"
                                 picongpu::float_64 const omega = freqFkt(o);
@@ -386,7 +386,7 @@ namespace picongpu
 
                                         // complex amplitude for j-th particle
                                         // LOCAL can be single precision
-                                        Amplitude<> amplitude_add(weighted_real_amp, t_ret_s[j] * omega);
+                                        Amplitude amplitude_add(weighted_real_amp, t_ret_s[j] * omega);
 
                                         // add this single amplitude those previously considered
                                         amplitude += amplitude_add;
