@@ -85,7 +85,7 @@ namespace picongpu
             MPI_CHECK(MPI_Comm_size(mpiComm, &size));
 
             /** create parallel domain collector ******************************/
-            ::openPMD::Series series(openPMDFilename.str(), ::openPMD::Access::CREATE, jsonConfig);
+            ::openPMD::Series series(openPMDFilename.str(), ::openPMD::Access::CREATE, mpiComm, jsonConfig);
             ::openPMD::Iteration iteration = series.iterations[currentStep];
 
             const std::string software("PIConGPU");
@@ -152,9 +152,6 @@ namespace picongpu
 
             /** write local domain ********************************************/
 
-            // avoid deadlock between not finished pmacc tasks and mpi calls in HDF5
-            __getTransactionEvent().waitForFinished();
-
             ::openPMD::Mesh mesh = iteration.meshes[dataSetName.str()];
             ::openPMD::MeshRecordComponent dataset = mesh[::openPMD::RecordComponent::SCALAR];
 
@@ -215,6 +212,9 @@ namespace picongpu
              * Just use the center.
              */
             dataset.setPosition(std::vector<float>{0.5, 0.5});
+
+            // avoid deadlock between not finished pmacc tasks and mpi calls in openPMD
+            __getTransactionEvent().waitForFinished();
 
             /** close file ****************************************************/
             iteration.close();
