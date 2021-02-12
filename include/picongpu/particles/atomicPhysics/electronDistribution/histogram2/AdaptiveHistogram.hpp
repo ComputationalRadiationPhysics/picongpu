@@ -23,9 +23,71 @@
  * binWidths are not uniform, but indirectly definded by a target value of a
  * relative binning width dependent error.
  *
- * only populated bins are stored in memory
+ * only populated bins are stored in memory.
  *
+ * TemplateParameters:
+ * -------------------
+ *  @tparam T_RelativeError ... functor with operator() which returns relative error
+ *  @tparam T_AtomicDataBox ... type of data container for atomic input data
+ *  @tparam T_maxNumberBins ... maximum number of bins of the histogram
+ *  @tparam T_mayNumNewBins ... maximum number of new bins before updateWithNewBins
+ *                                must be called by one thread
  *
+ * private members:
+ * ----------------
+ *  float_X[T_maxNumberBins] binWeights ... histogram bin values
+ *                                          weights of particles in bin in supercell
+ *  float_X{T_maxNumberBins] binDeltaEnergy  ... secondary histogram value
+ *                                               energy change in this time step in this histogram bin
+ *  float_X{T_maxNumberBins] binLeftBoundary ... left boundary of bin in argument space
+ *
+ * storage of bins added since last call to updateWithNewBins
+ * float_X[T_maxNumNewBins] newBinsWeights      ... see regular
+ * float_X[T_maxNumNewBins] newBinsLeftBoundary ... -||-
+ *  NOTE: no <newBinsDeltaEnergy> necessary, since all electrons are already binned for this step
+ *
+ *  float_x relativeErrorTarget   ... relative error target used to choose bin size
+ *  T_RelativeError relativeError ... relative error functor
+ *  float_X initialgridWidth      ... intial binWidth used
+ *
+ *  uint numBins    ... number of bins occupied
+ *  uint numNewBins ... number of newBins occupied,
+ *
+ *  float_X lastLeftBoundary ... last left boundary of a bin used
+ *
+ * private methods:
+ * ---------------
+ *  uint findBin(float_X leftBoundary, uint startIndex=0) ... tries to finds leftBoundary in bin collection
+ *  bool hasBin(float_X leftBoundary, uint startIndex=0)  ... checks wether bin exists
+ *  float_X centerBin(bool directionPositive, float_X Boundary, float_X binWidth ) ...
+ *      return center of Bin,
+ *      direction positive indicates wether the leftBoundary(true) or the right Boundary(false) is given as argument
+ *  bool inBin(bool directionPositive, float_X boundary, float_X binWidth, float_X x) ...
+ *      is x in the given Bin?
+ *
+ * public methods:
+ * ---------------
+ *  void init(float_X relativeErrorTarget >0 , float_X initialGridWidth >0 , T_RelativeError& relativeError) ...
+ *      init method for adaptive histogram, must be called by one thread once before use
+ *      BEWARE: assumptions for input parameters
+ *
+ *  uint getMaxNumberBins()     ... returns corresponding template parameter value
+ *  uint getMaxNUmberNewBins()  ... -||-
+ *  float_X getInitialGridWidth()
+ *
+ *  uint getNumBins() ... returns current number of occupied bins
+ *  float_X getEnergyBin(T_Acc& acc, uint index, T_AtomicDataBox atomicDataBox) ...
+ *      returns central energy of bin with given collection index if it exists, otherwise returns 0._X
+ *  float_X getLeftBoundaryBin(uint index) ... return leftBoundary of bin with given collection index
+ *  float_X getWeightBin(uint index) ... returns weight of Bin with given collection index
+ *      BEWARE: does not check if the bin is occupied, or exists at all,
+ *          leave alone unless you know what you are doing
+ *  float_X getDeltaEnergyBin(uint index) ... same as above for delta energy bin, beware also applies
+ *  uint getBinIndex(T_Acc& acc, float_X energy, T_AtomicDataBox atomicDataBox) ...
+ *      returns collection index of existing bin containing this energy, or maxNumBins otherwise
+ *  float_X getBinWidth(T_Acc& acc, bool directionPositive, float_X boundary, float_X currentBinWidth,
+ *      T_AtomicDataBox atomicDataBox) ...
+ *      return binWidth of the specifed bin, for more see in code function documentation
  */
 
 #pragma once
@@ -48,7 +110,6 @@ namespace picongpu
             {
                 namespace histogram2
                 {
-                    // @tparam T_relativeError ... functor with operator which returns relative error
                     template<
                         uint32_t T_maxNumBins,
                         uint32_t T_maxNumNewBins,
@@ -81,6 +142,7 @@ namespace picongpu
                         uint32_t numNewBins;
 
                         // reference point of histogram, always boundary of a bin in the histogram
+                        // in current implementation currently not used
                         float_X lastLeftBoundary; // unit: Argument
 
                         // target value of relative Error of a histogram bin,
@@ -94,8 +156,9 @@ namespace picongpu
                         //}
 
                         // TODO: replace linear search, by ordering bins
-                        /** Tries to find binLeftBoundary in the collection and return the collection
-                         * index.
+                        /** Tries to find binLeftBoundary in the collection,
+                         * starting at the given collection index and return the collection index.
+                         *
                          * Returns index in the binIndices array when present or maxNumBin when not present
                          *
                          * maxNumBin is never a valid index of the collection
@@ -157,6 +220,9 @@ namespace picongpu
                          *
                          * @param relativeErrorTarget ... should be >0,
                          *      maximum relative Error of Histogram Bin
+                         * @param initialGridWidth ... should be >0,
+                         *      starting binwidth of algorithm
+                         * @param relativeError ... relative should be monoton rising with rising binWidth
                          */
                         DINLINE void init(
                             float_X relativeErrorTarget,
@@ -180,7 +246,7 @@ namespace picongpu
                             // TODO: make this debug mode only
                             // since we are filling memory we are never touching (if everything works)
 
-                            // start of debug init
+                            //{ start of debug init
                             for(uint16_t i = 0u; i < maxNumBins; i++)
                             {
                                 this->binWeights[i] = 0._X;
@@ -193,7 +259,7 @@ namespace picongpu
                                 this->newBinsLeftBoundary[i] = 0._X;
                                 this->newBinsWeights[i] = 0._X;
                             }
-                            // end of debug init
+                            //} end of debug init
                         }
 
 
@@ -266,8 +332,9 @@ namespace picongpu
                             return this->binDeltaEnergy[index];
                         }
 
-                        // returns collection index of existing bin containing this energy
-                        // or maxNumBins otherwise
+                        /** returns collection index of existing bin containing this energy
+                         * or maxNumBins otherwise
+                         */
                         template<typename T_Acc>
                         DINLINE uint16_t getBinIndex(
                             T_Acc& acc,
@@ -295,13 +362,13 @@ namespace picongpu
                         }
 
                         /** find z, /in Z, iteratively, such that currentBinWidth * 2^z
-                         * gives a lower realtiveError than the relativeErrorTarget and maximises the
+                         * gives a lower relativeError than the relativeErrorTarget and maximises the
                          * binWidth.
                          *
                          * @param directionPositive .. whether the bin faces in positive argument
                          *      direction from the given boundary
                          * @param boundary
-                         * @param currentBinwidth ... starting binWidth, the result may be both larger and
+                         * @param currentBinWidth ... starting binWidth, the result may be both larger and
                          *      smaller than initial value
                          */
                         template<typename T_Acc>
@@ -319,7 +386,7 @@ namespace picongpu
                             if(workerIdx == 1)
                             {
                                 // debug code
-                                printf("test_debug");
+                                printf("    initialBinWidth: %d, boundary: %d\n", currentBinWidth, boundary);
                             }
 
                             // is initial binWidth realtiveError below the Target?
@@ -330,11 +397,16 @@ namespace picongpu
                                        AdaptiveHistogram::centerBin(directionPositive, boundary, currentBinWidth),
                                        atomicDataBox));
 
+                            // debug only
+                            uint16_t loopCounter = 0u;
+
                             if(isBelowTarget)
                             {
                                 // increase until no longer below
                                 while(isBelowTarget)
                                 {
+                                    // debug only
+                                    loopCounter++;
                                     // try higher binWidth
                                     currentBinWidth *= 2._X;
 

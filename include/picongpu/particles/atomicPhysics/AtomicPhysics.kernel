@@ -176,7 +176,7 @@ namespace picongpu
                     if(workerIdx == 0)
                     {
                         printf("    init histogram\n");
-                        printf("        initialGridWidth: %f\n", initialGridWidth);
+                        printf("        initialGridWidthInit: %f\n", initialGridWidth);
                     }
 
                     fillHistogram<T_numWorkers>(acc, electronBox, mapper, &histogram, atomicDataBox);
