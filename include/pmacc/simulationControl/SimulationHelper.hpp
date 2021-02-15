@@ -463,7 +463,7 @@ namespace pmacc
         }
 
     private:
-        bool output;
+        bool output = false;
 
         uint16_t progress;
         uint32_t showProgressAnyStep;
