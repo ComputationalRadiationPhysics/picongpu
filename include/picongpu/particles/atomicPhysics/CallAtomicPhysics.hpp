@@ -79,6 +79,8 @@
  *      simulation
  *
  * void operator()
+ *      time step functor, is called once per time step by atomic physics stage
+ *      calls the atomicPhysicsKernel for every super cell
  *
  */
 
@@ -347,7 +349,7 @@ namespace picongpu
                     using Kernel = AtomicPhysicsKernel<numWorkers, maxNumBins>;
                     auto kernel = Kernel{RngFactoryInt{step}, RngFactoryFloat{step}};
 
-                    // macro for call of kernel
+                    // macro for call of kernel, once for every super cell
                     PMACC_KERNEL(kernel)
                     (mapper.getGridDim(), // how many blocks = how many supercells in local domain
                      numWorkers // how many threads per block
@@ -355,7 +357,7 @@ namespace picongpu
                        ions.getDeviceParticlesBox(),
                        mapper,
                        atomicData->getDeviceDataBox(this->numberStates, this->numberTransitions),
-                       initialGridWidth, // unit: J, SI
+                       initialGridWidth, // unit: ATOMIC_UNIT_ENERGY
                        relativeErrorTarget, // unit: 1/s /( 1/( m^3 * J ) ), SI
                        step);
 

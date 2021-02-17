@@ -229,6 +229,7 @@ namespace picongpu
                             float_X initialGridWidth,
                             T_RelativeError& relativeError)
                         {
+                            printf("     initialGridWidth_INIT %d\n", initialGridWidth);
                             // init histogram empty
                             this->numBins = 0u;
                             this->numNewBins = 0u;
@@ -239,6 +240,7 @@ namespace picongpu
                             // init adaptive bin width algorithm parameters
                             this->relativeErrorTarget = relativeErrorTarget;
                             this->initialGridWidth = initialGridWidth;
+                            printf("     this->initialGridWidth_INIT %d\n", this->initialGridWidth);
 
                             // functor of relative error
                             this->relativeError = relativeError;
@@ -301,7 +303,9 @@ namespace picongpu
                                     true,
                                     leftBoundary,
                                     this->initialGridWidth,
-                                    atomicDataBox);
+                                    atomicDataBox,
+                                    false // debug only
+                                );
 
                                 return leftBoundary + binWidth / 2._X;
                             }
@@ -352,7 +356,8 @@ namespace picongpu
                                     true,
                                     leftBoundary,
                                     this->initialGridWidth,
-                                    atomicDataBox);
+                                    atomicDataBox false // Debug only
+                                );
                                 if(this->inBin(true, leftBoundary, binWidth, energy))
                                 {
                                     return i;
@@ -377,16 +382,22 @@ namespace picongpu
                             const bool directionPositive,
                             const float_X boundary, // unit: value
                             float_X currentBinWidth,
-                            T_AtomicDataBox atomicDataBox) const
+                            T_AtomicDataBox atomicDataBox,
+                            bool debug // debug only
+                        ) const
                         {
                             // preparation for debug access to run time acess
                             uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
                             // debug acess
-                            if(workerIdx == 1)
+                            if((workerIdx == 0) && debug)
                             {
                                 // debug code
-                                printf("    initialBinWidth: %d, boundary: %d\n", currentBinWidth, boundary);
+                                printf(
+                                    "    +/-?: %s, initBinWidth: %d, boundary: %d\n",
+                                    directionPositive ? "t" : "f",
+                                    currentBinWidth,
+                                    boundary);
                             }
 
                             // is initial binWidth realtiveError below the Target?
@@ -403,7 +414,7 @@ namespace picongpu
                             if(isBelowTarget)
                             {
                                 // increase until no longer below
-                                while(isBelowTarget)
+                                while(isBelowTarget && (loopcounter <= 100))
                                 {
                                     // debug only
                                     loopCounter++;
@@ -430,8 +441,10 @@ namespace picongpu
                             else
                             {
                                 // decrease until below target for the first time
-                                while(!isBelowTarget)
+                                while((!isBelowTarget) && (loopcounter <= 100))
                                 {
+                                    // debug only
+                                    loopCounter++;
                                     // lower binWidth
                                     currentBinWidth /= 2._X;
 
@@ -449,6 +462,17 @@ namespace picongpu
                                 // no need to reset to value before
                                 // since this was first value that was below target
                             }
+                            // debug acess
+                            if((workerIdx == 0) && debug)
+                            {
+                                // debug code
+                                printf(
+                                    "    Final: +/-?: %s, initialBinWidth: %d, boundary: %d, loopN: %i\n",
+                                    directionPositive ? "t" : "f",
+                                    currentBinWidth,
+                                    boundary,
+                                    loopCounter);
+                            }
 
                             return currentBinWidth;
                         }
@@ -462,8 +486,12 @@ namespace picongpu
                          * does not change lastBinLeftBoundary
                          */
                         template<typename T_Acc>
-                        DINLINE float_X
-                        getBinLeftBoundary(T_Acc& acc, float_X const x, T_AtomicDataBox atomicDataBox) const
+                        DINLINE float_X getBinLeftBoundary(
+                            T_Acc& acc,
+                            float_X const x,
+                            T_AtomicDataBox atomicDataBox,
+                            bool debug // debug only
+                        ) const
                         {
                             // wether x is in positive direction with regards to last known
                             // Boundary
@@ -478,14 +506,28 @@ namespace picongpu
                             //  instance
                             float_X boundary = this->lastLeftBoundary; // unit: argument
 
+                            // preparation for debug access to run time acess
+                            uint32_t const workerIdx = cupla::threadIdx(acc).x;
+                            // debug acess
+                            if(workerIdx == 0)
+                            {
+                                // debug code
+                                printf("    initialBinWidth: %d, boundary: %d\n", currentBinWidth, boundary);
+                            }
+
                             bool inBin = false;
                             while(!inBin)
                             {
                                 // get currentBinWidth
                                 // currentBinWidth = 0.1_X;
                                 // debug sinc ethis call seems to cause infinite loop
-                                currentBinWidth
-                                    = getBinWidth(acc, directionPositive, boundary, currentBinWidth, atomicDataBox);
+                                currentBinWidth = getBinWidth(
+                                    acc,
+                                    directionPositive,
+                                    boundary,
+                                    currentBinWidth,
+                                    atomicDataBox,
+                                    false);
 
                                 inBin = AdaptiveHistogram::inBin(directionPositive, boundary, currentBinWidth, x);
 
@@ -538,7 +580,7 @@ namespace picongpu
                             T_AtomicDataBox atomicDataBox)
                         {
                             // compute global bin index
-                            float_X const binLeftBoundary = this->getBinLeftBoundary(acc, x, atomicDataBox);
+                            float_X const binLeftBoundary = this->getBinLeftBoundary(acc, x, atomicDataBox, true);
 
                             // search for bin in collection of existing bins
                             auto const index = findBin(binLeftBoundary);
