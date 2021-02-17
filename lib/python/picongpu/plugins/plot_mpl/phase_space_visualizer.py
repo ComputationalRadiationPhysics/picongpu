@@ -191,6 +191,9 @@ class Visualizer(BaseVisualizer):
             ps : string
                 phase space selection in order: spatial, momentum component,
                 e.g. 'ypy' or 'ypx'
+            file_ext: string
+                filename extension for openPMD backend
+                default is 'h5' for the HDF5 backend
         """
         super().visualize(**kwargs)
 

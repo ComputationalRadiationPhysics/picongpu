@@ -8,7 +8,7 @@ This plugin creates a 2D phase space image for a user-given spatial and momentum
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
-The plugin is available as soon as the :ref:`libSplash and HDF5 libraries <install-dependencies>` are compiled in.
+The plugin is available as soon as the :ref:`openPMD API <install-dependencies>` is compiled in.
 
 .cfg file
 ^^^^^^^^^
@@ -19,13 +19,13 @@ Example for *y-pz* phase space for the *electron* species (``.cfg`` file macro):
 
    # Calculate a 2D phase space
    # - momentum range in m_e c
-   TGB_ePSypz="--e_phaseSpace.period 10 --e_phaseSpace.filter all --e_phaseSpace.space y --e_phaseSpace.momentum pz --e_phaseSpace.min -1.0 --e_phaseSpace.max 1.0"
+   TGB_ePSypz="--e_phaseSpace.period 10 --e_phaseSpace.filter all --e_phaseSpace.space y --e_phaseSpace.momentum pz --e_phaseSpace.min -1.0 --e_phaseSpace.max 1.0 --e_phaseSpace.ext h5"
 
 
 The distinct options are (assuming a species ``e`` for electrons):
 
 ====================================== ======================================================== ============================
-Option                                 Usage                                     Unit
+Option                                 Usage                                                    Unit
 ====================================== ======================================================== ============================
 ``--e_phaseSpace.period <N>``          calculate each N steps                                   *none*
 ``--e_phaseSpace.filter``              Use filtered particles. Available filters are set up in  *none*
@@ -34,6 +34,7 @@ Option                                 Usage                                    
 ``--e_phaseSpace.momentum <px/py/pz>`` momentum coordinate of the 2D phase space                *none*
 ``--e_phaseSpace.min <ValL>``          minimum of the momentum range                            :math:`m_\mathrm{species} c`
 ``--e_phaseSpace.max <ValR>``          maximum of the momentum range                            :math:`m_\mathrm{species} c`
+``--e_phaseSpace.ext <ext>``           filename extension for openPMD backend                   *none*
 ====================================== ======================================================== ============================
 
 Memory Complexity
@@ -52,11 +53,23 @@ negligible.
 Output
 ^^^^^^
 
-The 2D histograms are stored in ``.hdf5`` files in the ``simOutput/phaseSpace/`` directory.
+The 2D histograms are stored in the ``simOutput/phaseSpace/`` directory, by default in ``.h5`` files.
 A file is created per species, phasespace selection and time step.
 
 Values are given as *charge density* per phase space bin.
-In order to scale to a simpler *charge of particles* per :math:`\mathrm{d}r_i` and :math:`\mathrm{d}p_i` -bin multiply by the cell volume ``dV``.
+In order to scale to a simpler *charge of particles* per :math:`\mathrm{d}r_i` and :math:`\mathrm{d}p_i` -bin multiply by the cell volume ``dV`` (written as an attribute of the openPMD Mesh).
+
+The output writes a number of non-standard custom openPMD attributes:
+
+* ``p_min`` and ``p_max``: The lower and upper bounds for the momentum axis, respectively.
+* ``dr``: The spacing of the spatial axis in PIConGPU units.
+* ``dV``: The volume of a phase space cell. Relates to ``dr`` via ``dV = dp * dr`` where ``dp`` would be the grid spacing along the momentum axis.
+* ``dr_unit``: The SI scaling for the spatial axis. Use this instead of ``gridUnitSI``.
+* ``p_unit``: The SI scaling for the momentum axis. Use this instead of ``gridUnitSI``.
+* ``globalDomainOffset``, ``globalDomainSize`` and ``globalDomainAxisLabels``: Information on the global domain.
+* ``totalDomainOffset``, ``totalDomainSize`` and ``totalDomainAxisLabels``: Information on the total domain.
+  Please consult the `PIConGPU wiki <https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions>`_ for explanations on the meaning of global and total domain.
+* ``sim_unit``: SI scaling for the charge density values. Alias for ``unitSI``.
 
 Analysis Tools
 ^^^^^^^^^^^^^^
@@ -223,7 +236,8 @@ Known Limitations
 - charge deposition uses the counter shape for now (would need one more write to neighbors to evaluate it correctly according to the shape)
 - the user has to define the momentum range in advance
 - the resolution is fixed to ``1024 bins`` in momentum and the number of cells in the selected spatial dimension
-- this plugin does not yet use :ref:`openPMD markup <pp-openPMD>`.
+- While the openPMD standard `has already been updated <https://github.com/openPMD/openPMD-standard/pull/193>`_ to support phase space data, the openPMD API does not yet implement this part.
+  The openPMD attribute ``gridUnitSI`` and ``gridUnitDimension`` can hence not be correctly written yet and should be ignored in favor of the custom attributes written by this plugin.
 
 References
 ^^^^^^^^^^
