@@ -356,7 +356,8 @@ namespace picongpu
                                     true,
                                     leftBoundary,
                                     this->initialGridWidth,
-                                    atomicDataBox false // Debug only
+                                    atomicDataBox,
+                                    false // Debug only
                                 );
                                 if(this->inBin(true, leftBoundary, binWidth, energy))
                                 {
@@ -414,7 +415,7 @@ namespace picongpu
                             if(isBelowTarget)
                             {
                                 // increase until no longer below
-                                while(isBelowTarget && (loopcounter <= 100))
+                                while(isBelowTarget && (loopCounter <= 100))
                                 {
                                     // debug only
                                     loopCounter++;
@@ -441,7 +442,7 @@ namespace picongpu
                             else
                             {
                                 // decrease until below target for the first time
-                                while((!isBelowTarget) && (loopcounter <= 100))
+                                while((!isBelowTarget) && (loopCounter <= 100))
                                 {
                                     // debug only
                                     loopCounter++;
