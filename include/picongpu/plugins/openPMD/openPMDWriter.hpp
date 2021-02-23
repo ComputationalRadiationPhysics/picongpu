@@ -776,9 +776,9 @@ Please pick either of the following:
 
             void initWrite()
             {
-                // may be zero
-                auto size = mThreadParams.window.localDimensions.size.productOfComponents();
-                mThreadParams.fieldBuffer.resize(size);
+                // fieldBuffer will only be resized if needed
+                // in some openPMD backends, it's more efficient to let the backend handle buffer creation
+                // (span-based RecordComponent::storeChunk() API)
             }
 
             /**
@@ -942,7 +942,7 @@ Please pick either of the following:
 
                 DataSpace<simDim> field_no_guard = params->window.localDimensions.size;
                 DataSpace<simDim> field_guard = field_layout.getGuard() + params->localWindowToDomainOffset;
-                std::vector<float_X>& dstBuffer = params->fieldBuffer;
+                std::vector<float_X>& fieldBuffer = params->fieldBuffer;
 
                 auto fieldsSizeDims = params->fieldsSizeDims;
                 auto fieldsGlobalSizeDims = params->fieldsGlobalSizeDims;
@@ -955,7 +955,6 @@ Please pick either of the following:
                 {
                     field_no_guard = field_layout.getDataSpaceWithoutGuarding();
                     field_guard = field_layout.getGuard();
-                    dstBuffer.resize(field_no_guard.productOfComponents());
 
                     DataConnector& dc = Environment<>::get().DataConnector();
                     fieldsSizeDims = precisionCast<uint64_t>(params->gridLayout.getDataSpaceWithoutGuarding());
@@ -998,9 +997,50 @@ Please pick either of the following:
                     fieldsOffsetDims[0] = globalOffsetFile;
                 }
 
+                auto const componentSize = field_no_guard.productOfComponents();
+
                 /* write the actual field data */
                 for(uint32_t d = 0; d < nComponents; d++)
                 {
+                    ::openPMD::MeshRecordComponent mrc
+                        = mesh[nComponents > 1 ? name_lookup_tpl[d] : ::openPMD::RecordComponent::SCALAR];
+                    std::string datasetName = nComponents > 1
+                        ? params->openPMDSeries->meshesPath() + name + "/" + name_lookup_tpl[d]
+                        : params->openPMDSeries->meshesPath() + name;
+
+                    params->initDataset<simDim>(
+                        mrc,
+                        openPMDType,
+                        fieldsGlobalSizeDims,
+                        true,
+                        params->compressionMethod,
+                        datasetName);
+
+                    // define record component level attributes
+                    mrc.setPosition(inCellPosition.at(d));
+                    mrc.setUnitSI(unit.at(d));
+
+                    if(componentSize == 0)
+                    {
+                        // technically not necessary if we write no dataset,
+                        // but let's keep things uniform
+                        params->openPMDSeries->flush();
+                        continue;
+                    }
+
+                    // ask openPMD to create a buffer for us
+                    // in some backends (ADIOS2), this allows avoiding memcopies
+                    auto span = mrc.storeChunk<float_X>(
+                        asStandardVector(fieldsOffsetDims),
+                        asStandardVector(fieldsSizeDims),
+                        [&fieldBuffer](size_t size) {
+                            // if there is no special backend support for creating buffers,
+                            // reuse the fieldBuffer
+                            fieldBuffer.resize(size);
+                            return std::shared_ptr<float_X>{fieldBuffer.data(), [](auto*) {}};
+                        });
+                    auto dstBuffer = span.currentBuffer();
+
                     const size_t plane_full_size = field_full[1] * field_full[0] * nComponents;
                     const size_t plane_no_guard_size = field_no_guard[1] * field_no_guard[0];
 
@@ -1029,30 +1069,6 @@ Please pick either of the following:
                             }
                         }
                     }
-
-                    ::openPMD::MeshRecordComponent mrc
-                        = mesh[nComponents > 1 ? name_lookup_tpl[d] : ::openPMD::RecordComponent::SCALAR];
-
-                    std::string datasetName = nComponents > 1
-                        ? params->openPMDSeries->meshesPath() + name + "/" + name_lookup_tpl[d]
-                        : params->openPMDSeries->meshesPath() + name;
-
-                    params->initDataset<simDim>(
-                        mrc,
-                        openPMDType,
-                        fieldsGlobalSizeDims,
-                        true,
-                        params->compressionMethod,
-                        datasetName);
-                    if(dstBuffer.size() > 0)
-                        mrc.storeChunk<std::vector<float_X>>(
-                            dstBuffer,
-                            asStandardVector(fieldsOffsetDims),
-                            asStandardVector(fieldsSizeDims));
-
-                    // define record component level attributes
-                    mrc.setPosition(inCellPosition.at(d));
-                    mrc.setUnitSI(unit.at(d));
 
                     params->openPMDSeries->flush();
                 }
