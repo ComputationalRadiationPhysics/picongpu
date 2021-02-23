@@ -37,8 +37,9 @@ namespace picongpu
             class Amplitude
             {
             public:
-                // For the intermediate amplitude values we may use single precision
-                // for the final accumulation we will have to use double precision
+                /* For the intermediate amplitude values we may use single precision,
+                 * for the final accumulation we will have to use double precision.
+                 */
                 using complex_T = pmacc::math::Complex<T_Float>;
                 /* number of scalar components in Amplitude = 3 (3D) * 2 (complex) = 6 */
                 static constexpr uint32_t numComponents
@@ -93,11 +94,11 @@ namespace picongpu
                 {
                 }
 
-                /** constructor
+                /** constructor with member initialization
                  *
-                 *  @param x
-                 *  @param y
-                 *  @param z
+                 *  @param x pmacc::math::complex x component of the amplitude vector.
+                 *  @param y pmacc::math::complex y component of the amplitude vector.
+                 *  @param z pmacc::math::complex z component of the amplitude vector.
                  */
                 HDINLINE Amplitude(const complex_T& x, const complex_T& y, const complex_T& z)
                     : amp_x(x)
@@ -160,7 +161,7 @@ namespace picongpu
                     return amp_x.get_real();
                 }
 
-                /* Getters for the components
+                /** Getters for the components
                  */
                 HDINLINE complex_T getXcomponent() const
                 {
@@ -209,9 +210,10 @@ namespace pmacc
         namespace precisionCast
         {
             /* We want to be able to cast a low
-             * precision amplitude to a high precision one
+             * precision amplitude to a high-precision one.
+             * The functors create temporary Amplitude objects and can
+             * be detrimental to performance.
              */
-
             template<typename CastToType>
             struct TypeCast<CastToType, picongpu::plugins::radiation::Amplitude<CastToType>>
             {
