@@ -62,7 +62,6 @@ PIConGPU command line option                  Description
 Depending on the available external dependencies (see above), the options for the ``<IO-backend>`` are:
 
 * :ref:`openPMD <usage-plugins-openPMD>`
-* :ref:`hdf5 <usage-plugins-HDF5>`
 * :ref:`adios <usage-plugins-ADIOS>` (keep in mind the :ref:`note on meta-files <usage-plugins-ADIOS-meta>` for restarts)
 
 Interacting Manually with Checkpoint Data
