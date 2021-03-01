@@ -21,10 +21,6 @@
 
 #pragma once
 
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
 
 #include "picongpu/simulation_defines.hpp"
 
@@ -55,6 +51,10 @@
 #include "picongpu/plugins/radiation/radFormFactor.hpp"
 #include "sys/stat.h"
 
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
 
 namespace picongpu
 {
@@ -114,7 +114,7 @@ namespace picongpu
                 {
                     using namespace mappings::threads;
                     namespace po = boost::program_options;
-
+                    using Amplitude = picongpu::plugins::radiation::Amplitude<>;
                     constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
                     constexpr uint32_t numWorker = T_numWorkers;
 
@@ -362,6 +362,9 @@ namespace picongpu
                             {
                                 /* storage for amplitude (complex 3D vector)
                                  * it  is initialized with zeros (  0 +  i 0 )
+                                 * Attention: This is an accumulator and should
+                                 * be in double precision to ameliorate roundoff
+                                 * errors!
                                  */
                                 Amplitude amplitude = Amplitude::zero();
 
@@ -390,7 +393,9 @@ namespace picongpu
                                         vector_64 const weighted_real_amp = real_amplitude_s[j]
                                             * precisionCast<float_64>(myRadFormFactor(radWeighting_s[j], omega, look));
 
-                                        // complex amplitude for j-th particle
+                                        /* complex amplitude increment for j-th particle
+                                         * It is local to the loop and can be single precision
+                                         */
                                         Amplitude amplitude_add(weighted_real_amp, t_ret_s[j] * omega);
 
                                         // add this single amplitude those previously considered

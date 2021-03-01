@@ -19,11 +19,11 @@
 
 #pragma once
 
+#include "VectorTypes.hpp"
+
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/math/Complex.hpp>
-#include "VectorTypes.hpp"
 #include <pmacc/mpi/GetMPI_StructAsArray.hpp>
-
 
 namespace picongpu
 {
@@ -33,14 +33,17 @@ namespace picongpu
         {
             /** class to store 3 complex numbers for the radiated amplitude
              */
+            template<typename T_Float = picongpu::float_64>
             class Amplitude
             {
             public:
-                using complex_64 = pmacc::math::Complex<picongpu::float_64>;
-
+                /* For the intermediate amplitude values we may use single precision,
+                 * for the final accumulation we will have to use double precision.
+                 */
+                using complex_T = pmacc::math::Complex<T_Float>;
                 /* number of scalar components in Amplitude = 3 (3D) * 2 (complex) = 6 */
                 static constexpr uint32_t numComponents
-                    = uint32_t(3) * uint32_t(sizeof(complex_64) / sizeof(typename complex_64::type));
+                    = uint32_t(3) * uint32_t(sizeof(complex_T) / sizeof(typename complex_T::type));
 
                 /** constructor
                  *
@@ -53,19 +56,18 @@ namespace picongpu
                     picongpu::float_X sinValue;
                     pmacc::math::sincos(phase, sinValue, cosValue);
                     amp_x = pmacc::math::euler(
-                        vec.x(),
-                        precisionCast<picongpu::float_64>(sinValue),
-                        precisionCast<picongpu::float_64>(cosValue));
+                        precisionCast<T_Float>(vec.x()),
+                        precisionCast<T_Float>(sinValue),
+                        precisionCast<T_Float>(cosValue));
                     amp_y = pmacc::math::euler(
-                        vec.y(),
-                        precisionCast<picongpu::float_64>(sinValue),
-                        precisionCast<picongpu::float_64>(cosValue));
+                        precisionCast<T_Float>(vec.y()),
+                        precisionCast<T_Float>(sinValue),
+                        precisionCast<T_Float>(cosValue));
                     amp_z = pmacc::math::euler(
-                        vec.z(),
-                        precisionCast<picongpu::float_64>(sinValue),
-                        precisionCast<picongpu::float_64>(cosValue));
+                        precisionCast<T_Float>(vec.z()),
+                        precisionCast<T_Float>(sinValue),
+                        precisionCast<T_Float>(cosValue));
                 }
-
 
                 /** default constructor
                  *
@@ -92,6 +94,18 @@ namespace picongpu
                 {
                 }
 
+                /** constructor with member initialization
+                 *
+                 *  @param x pmacc::math::complex x component of the amplitude vector.
+                 *  @param y pmacc::math::complex y component of the amplitude vector.
+                 *  @param z pmacc::math::complex z component of the amplitude vector.
+                 */
+                HDINLINE Amplitude(const complex_T& x, const complex_T& y, const complex_T& z)
+                    : amp_x(x)
+                    , amp_y(y)
+                    , amp_z(z)
+                {
+                }
 
                 /** returns a zero amplitude vector
                  *
@@ -99,9 +113,9 @@ namespace picongpu
                 HDINLINE static Amplitude zero(void)
                 {
                     Amplitude result;
-                    result.amp_x = complex_64::zero();
-                    result.amp_y = complex_64::zero();
-                    result.amp_z = complex_64::zero();
+                    result.amp_x = complex_T::zero();
+                    result.amp_y = complex_T::zero();
+                    result.amp_z = complex_T::zero();
                     return result;
                 }
 
@@ -147,11 +161,25 @@ namespace picongpu
                     return amp_x.get_real();
                 }
 
+                /** Getters for the components
+                 */
+                HDINLINE complex_T getXcomponent() const
+                {
+                    return this->amp_x;
+                }
+                HDINLINE complex_T getYcomponent() const
+                {
+                    return this->amp_y;
+                }
+                HDINLINE complex_T getZcomponent() const
+                {
+                    return this->amp_z;
+                }
 
             private:
-                complex_64 amp_x; // complex amplitude x-component
-                complex_64 amp_y; // complex amplitude y-component
-                complex_64 amp_z; // complex amplitude z-component
+                complex_T amp_x; // complex amplitude x-component
+                complex_T amp_y; // complex amplitude y-component
+                complex_T amp_z; // complex amplitude z-component
             };
         } // namespace radiation
     } // namespace plugins
@@ -163,13 +191,55 @@ namespace pmacc
     {
         /** implementation of MPI transaction on Amplitude class */
         template<>
-        HINLINE MPI_StructAsArray getMPI_StructAsArray<picongpu::plugins::radiation::Amplitude>()
+        HINLINE MPI_StructAsArray getMPI_StructAsArray<picongpu::plugins::radiation::Amplitude<>>()
         {
             MPI_StructAsArray result
-                = getMPI_StructAsArray<picongpu::plugins::radiation::Amplitude::complex_64::type>();
-            result.sizeMultiplier *= picongpu::plugins::radiation::Amplitude::numComponents;
+                = getMPI_StructAsArray<picongpu::plugins::radiation::Amplitude<>::complex_T::type>();
+            result.sizeMultiplier *= picongpu::plugins::radiation::Amplitude<>::numComponents;
             return result;
         };
 
     } // namespace mpi
+} // namespace pmacc
+
+
+namespace pmacc
+{
+    namespace algorithms
+    {
+        namespace precisionCast
+        {
+            /* We want to be able to cast a low
+             * precision amplitude to a high-precision one.
+             * The functors create temporary Amplitude objects and can
+             * be detrimental to performance.
+             */
+            template<typename CastToType>
+            struct TypeCast<CastToType, picongpu::plugins::radiation::Amplitude<CastToType>>
+            {
+                using result = const picongpu::plugins::radiation::Amplitude<CastToType>&;
+
+                HDINLINE result operator()(result amplitude) const
+                {
+                    return amplitude;
+                }
+            };
+
+            template<typename CastToType, typename OldType>
+            struct TypeCast<CastToType, picongpu::plugins::radiation::Amplitude<OldType>>
+            {
+                using result = picongpu::plugins::radiation::Amplitude<CastToType>;
+                using ParamType = picongpu::plugins::radiation::Amplitude<OldType>;
+                HDINLINE result operator()(const ParamType& amplitude) const
+                {
+                    result Result(
+                        precisionCast<result::complex_T::type>(amplitude.getXcomponent()),
+                        precisionCast<result::complex_T::type>(amplitude.getYcomponent()),
+                        precisionCast<result::complex_T::type>(amplitude.getZcomponent()));
+                    return Result;
+                }
+            };
+
+        } // namespace precisionCast
+    } // namespace algorithms
 } // namespace pmacc
