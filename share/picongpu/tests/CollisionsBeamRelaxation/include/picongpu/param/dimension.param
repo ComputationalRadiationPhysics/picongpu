@@ -1,4 +1,4 @@
-/* Copyright 2019-2021 Rene Widera, Pawel Ordyna
+/* Copyright 2014-2021 Axel Huebl, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -17,26 +17,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * The spatial dimensionality of the simulation.
+ */
+
 #pragma once
 
-#include <pmacc/functor/Interface.hpp>
+
+/** Possible values: DIM3 for 3D3V and DIM2 for 2D3V.
+ */
+#define SIMDIM DIM2
 
 namespace picongpu
 {
-    namespace particles
-    {
-        namespace collision
-        {
-            /**  interface for a binary particle functor
-             *
-             *
-             * @tparam T_BinaryFunctor binary particle acc functor, must contain
-             *         `void operator()(P1 & particle1, P2 & particle2, ...)`
-             *          and support at least two particles
-             */
-            template<typename T_BinaryFunctor>
-            using IBinary = pmacc::functor::Interface<T_BinaryFunctor, 2u, void>;
-
-        } // namespace collision
-    } // namespace particles
+    constexpr uint32_t simDim = SIMDIM;
 } // namespace picongpu

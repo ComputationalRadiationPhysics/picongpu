@@ -38,15 +38,15 @@ namespace picongpu
             template<typename T_Species0, typename T_Species1>
             using Pair = boost::mpl::pair<T_Species0, T_Species1>;
 
-            /* A set of particle filters for a pair of colliding spiecies.
+            /* A set of particle filters for a pair of colliding species.
              *
-             * @tparam T_Filter0 Filter aplied on the 1st spiecies in a pair.
-             * @tparam T_Filter1 Filter aplied on the 2nd spiecies in a pair.
+             * @tparam T_Filter0 Filter applied on the 1st species in a pair.
+             * @tparam T_Filter1 Filter applied on the 2nd species in a pair.
              */
             template<typename T_Filter0, typename T_Filter1>
             using FilterPair = boost::mpl::pair<T_Filter0, T_Filter1>;
 
-            /* Sets the same particle filter for both spiecies in a pair.
+            /* Sets the same particle filter for both species in a pair.
              *
              * @tparam T_Filter A common particle filter for both colliding species.
              */
@@ -57,10 +57,10 @@ namespace picongpu
              *
              * @tparam T_CollisionFunctor A binary particle functor defining a single
              *     macro particle collision in the binary-collision algorithm.
-             * @tparam T_SpeciesPairs A sequence of pairs of colliding spiecies.
-             * @tparam T_Params A struct definning `coulombLog` for the collisions.
+             * @tparam T_SpeciesPairs A sequence of pairs of colliding species.
+             * @tparam T_Params A struct defining `coulombLog` for the collisions.
              * @tparam T_FilterPair A pair of particle filters. Each for every species
-             *     in a pair of colliding spiecies. This pair of filters will be
+             *     in a pair of colliding species. This pair of filters will be
              *     aplied to all pairs in T_SpeciesPairs.
              */
             template<

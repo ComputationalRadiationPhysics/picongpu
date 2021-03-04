@@ -164,12 +164,14 @@ namespace pmacc
              * @tparam T_OffsetType type to describe the size of a domain
              * @tparam T_numWorkers number of workers
              * @tparam T_Acc alpaka accelerator type
+             * @tparam T_Args type of the arguments passed to the  functor
              *
              * @param alpaka accelerator
              * @param domainOffset offset to the origin of the local domain
              *                     This can be e.g a supercell or cell offset and depends
              *                     of the context where the interface is specialized.
              * @param workerCfg configuration of the worker
+             * @param args arguments passed to the functor
              * @return an instance of the user functor wrapped by the accelerator
              *         functor interface
              */

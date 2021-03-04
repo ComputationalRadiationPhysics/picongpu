@@ -1,4 +1,4 @@
-/* Copyright 2014-2021 Rene Widera, Pawel Ordyna
+/* Copyright 2019-2021 Rene Widera, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -130,7 +130,7 @@ namespace picongpu
                             /* modulo is not perfect but okish,
                              * because of the loop head mod zero is not possible
                              */
-                            int p = rng(acc) % i;
+                            uint32_t p = rng(acc) % i;
                             if(i - 1 != p)
                                 swap(ptrToIndicies[i - 1], ptrToIndicies[p]);
                         }

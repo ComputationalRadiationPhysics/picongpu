@@ -122,7 +122,6 @@ namespace picongpu
                             float3_COLL comsVelocity)
                         {
                             // (13) in [Perez 2012]
-                            // TODO: try upgrading this to 64bit as well
                             float_COLL dot = pmacc::math::dot(comsVelocity, comsMomentum);
                             float_COLL factor = (factorA * dot + coeff * gammaComs);
                             float3_COLL diff = factor * comsVelocity;
@@ -183,7 +182,7 @@ namespace picongpu
 
                         /* Calculate the cosine of the scattering angle.
                          *
-                         * The probabilty distribution  for the cosine depends on @f[ s_{12} @f]. The returned vale
+                         * The probability distribution for the cosine depends on @f[ s_{12} @f]. The returned vale
                          * is determined by a float value between 0 and 1.
                          *
                          * @param s12 @f[ s_{12} @f] parameter. See [Perez 2012]. It should be >= 0.
@@ -254,10 +253,9 @@ namespace picongpu
 
                             // (12) in [Perez 2012]
                             float3_COLL finalVec;
-                            // TODO: sqrt returns a pmacc complex number. cast to float?
                             float_COLL const pAbs = math::sqrt(pmacc::math::abs2(p));
                             float_COLL const pPerp = math::sqrt(p.x() * p.x() + p.y() * p.y());
-                            // TODO chose a better limmit?
+                            // TODO chose a better limit?
                             // limit px->0 py=0. this also covers the pPerp = pAbs = 0 case. An alternative would
                             // be to let the momentum unchanged in that case.
                             if(pPerp
@@ -317,16 +315,7 @@ namespace picongpu
                             float_COLL const gamma0 = picongpu::gamma<float_COLL>(labMomentum0, mass0);
                             float_COLL const gamma1 = picongpu::gamma<float_COLL>(labMomentum1, mass1);
 
-                            //                            PMACC_DEVICE_ASSERT_MSG(
-                            //                                math::sqrt(pmacc::math::abs2(labMomentum0)) / gamma0 /
-                            //                                mass0 < c, "labVelocity0: %e",
-                            //                                sqrt(pmacc::math::abs2(labMomentum0)) / gamma0 / mass0);
-                            //                            PMACC_DEVICE_ASSERT_MSG(
-                            //                                math::sqrt(pmacc::math::abs2(labMomentum1)) / gamma1 /
-                            //                                mass1 < c, "labVelocity1: %e",
-                            //                                sqrt(pmacc::math::abs2(labMomentum1)) / gamma1 / mass1);
                             // [Perez 2012] (1)
-                            // todo:: maybe this also with doubles?
                             float3_COLL const comsVelocity
                                 = (labMomentum0 + labMomentum1) / (mass0 * gamma0 + mass1 * gamma1);
                             float_COLL const comsVelocityAbs2 = pmacc::math::abs2(comsVelocity);
@@ -335,8 +324,8 @@ namespace picongpu
 
                             if(comsVelocityAbs2 != 0.0_COLL)
                             {
-                                // written as (1-v)(1+v) rather than (1-v^2) for better performance when v close to c
                                 float_COLL const comsVelocityAbs = math::sqrt(comsVelocityAbs2);
+                                // written as (1-v)(1+v) rather than (1-v^2) for better performance when v close to c
                                 gammaComs = 1.0_COLL
                                     / math::sqrt((1.0_COLL - comsVelocityAbs / c) * (1.0_COLL + comsVelocityAbs / c));
                                 // used later for comsToLab:
@@ -344,28 +333,23 @@ namespace picongpu
 
                                 // Stared gamma times mass, from [Perez 2012].
                                 coeff0 = coeff(labMomentum0, mass0, gamma0, gammaComs, comsVelocity);
-                                // PMACC_DEVICE_ASSERT(coeff0 > 0.0_COLL);
                                 // gamma^* . mass
-                                // if(coeff0 == 0.0_COLL) return;
                                 coeff1 = coeff(labMomentum1, mass1, gamma1, gammaComs, comsVelocity);
-                                // if(coeff1 == 0.0_COLL) return;
-                                // PMACC_DEVICE_ASSERT(coeff1 > 0.0_COLL);
                                 // (2) in [Perez 2012]
                                 comsMomentum0
                                     = labToComs(labMomentum0, mass0, gamma0, gammaComs, factorA, comsVelocity);
                             }
                             else
                             {
-                                // From smilei implementation, for v_coms^2 = 0
+                                // Lab frame is the same as the COMS frame
                                 gammaComs = 1.0_COLL;
                                 // used later for comsToLab:
-                                factorA = 0.5_COLL;
+                                // lim v_coms-->0 for (gamma_coms -1 / v_coms^2) is 1/(2c^2)
+                                factorA = 1.0_COLL / (2.0_COLL * c * c);
                                 // Stared gamma times mass, from [Perez 2012].
                                 coeff0 = mass0 * gamma0;
-                                // PMACC_DEVICE_ASSERT(coeff0 > 0.0_COLL);
                                 // gamma^* . mass
                                 coeff1 = mass1 * gamma1;
-                                // PMACC_DEVICE_ASSERT(coeff1 > 0.0_COLL);
                                 comsMomentum0 = labMomentum0;
                             }
 
@@ -389,7 +373,7 @@ namespace picongpu
                                 / static_cast<float_COLL>(duplicationCorrection) / CELL_VOLUME_COLL;
                             float_COLL s12n = s12Factor0 * s12Factor1 * s12Factor2 * s12Factor2 * s12Factor3;
 
-                            // Low Temeprature correction:
+                            // low Temeprature correction:
                             // [Perez 2012] (8)
                             // TODO: should we check for the non-relativistic condition? Which gamma should we look at?
                             float_COLL relativeComsVelocity = calcRelativeComsVelocity(
@@ -409,8 +393,7 @@ namespace picongpu
                                 / pmacc::math::max(mass0 * densitySqCbrt0, mass1 * densitySqCbrt1)
                                 * relativeComsVelocity;
                             s12Max *= s12Factor3;
-                            float_COLL s12;
-                            s12 = pmacc::math::min(s12n, s12Max);
+                            float_COLL s12 = pmacc::math::min(s12n, s12Max);
 
                             // Get a random float value from 0,1
                             auto const& acc = *ctx.m_acc;

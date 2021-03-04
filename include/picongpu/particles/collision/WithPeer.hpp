@@ -1,4 +1,4 @@
-/* Copyright 2014-2021 Rene Widera, Pawel Ordyna
+/* Copyright 2019-2021 Rene Widera, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -69,12 +69,12 @@ namespace picongpu
 
             /* Runs the binary collision algorithm for a pair of colliding species.
              *
-             * These struct choses the InterCollision algorithm if the colliding
-             * species are two different species and the IntraSCollision algorithm if
+             * These struct chooses the InterCollision algorithm if the colliding
+             * species are two different species and the IntraCollision algorithm if
              * they are identical.
              *
-             * @tparam T_CollisionFunctor A binary particle functor defining a single
-             *     macro particle collision in the binary-collision algorithm.
+             * @tparam T_CollisionFunctor A binary particle functor defining a collision
+             *    between two macro particles.
              * @tparam T_BaseSpecies First species in the collision pair.
              * @tparam T_PeerSpecies Second species in the collision pair.
              * @tparam T_Params A struct defining `coulombLog` for the collisions.

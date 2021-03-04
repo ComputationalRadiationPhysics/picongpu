@@ -86,6 +86,7 @@ Models
    models/field_ionization
    models/collisional_ionization
    models/photons
+   models/binary_collisions
 
 ***************
 Post-Processing

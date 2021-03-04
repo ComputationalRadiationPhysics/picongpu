@@ -1,4 +1,4 @@
-/* Copyright 2014-2021 Rene Widera, Pawel Ordyna
+/* Copyright 2019-2021 Rene Widera, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -40,7 +40,6 @@ namespace picongpu
                     }
                 };
 
-                // Why can't we just use the constructor?
                 template<typename T_Acc, typename T_RngHandle>
                 DINLINE CollisionContext<T_Acc, T_RngHandle> makeCollisionContext(T_Acc const& acc, T_RngHandle& hRng)
                 {

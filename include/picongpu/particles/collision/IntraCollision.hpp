@@ -1,4 +1,4 @@
-/* Copyright 2014-2021 Rene Widera, Pawel Ordyna
+/* Copyright 2019-2021 Rene Widera, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -137,7 +137,7 @@ namespace picongpu
                     cellDensity(acc, forEachFrameElem, firstFrame, pb, parCellList, densityArray, accFilter);
                     cupla::__syncthreads(acc);
 
-                    // shuffle  indices list
+                    // shuffle indices list
                     forEachFrameElem([&](uint32_t const linearIdx, uint32_t const) {
                         parCellList[linearIdx].shuffle(acc, rngHandle);
                     });
@@ -178,7 +178,7 @@ namespace picongpu
                             auto parOdd = detail::getParticle(pb, firstFrame, listAll[(i + 1) % sizeAll]);
                             // TODO: duplicationCorrection * 2 is just a quick fix. The formula for s12 in the
                             // RelativisticBinaryCollision functor has an additional 1/2 factor for intraCollisions.
-                            // we should instead let RelativisticBinaryCollision know which type of collision it is
+                            // We should instead let RelativisticBinaryCollision know which type of collision it is
                             // and multiply the 1/2 inside the functor.
                             collisionFunctorCtx[idx].duplicationCorrection = duplicationCorrection(i, sizeAll) * 2u;
                             (collisionFunctorCtx[idx])(detail::makeCollisionContext(acc, rngHandle), parEven, parOdd);
@@ -206,8 +206,8 @@ namespace picongpu
             template<typename T_CollisionFunctor, typename T_Params, typename T_FilterPair, typename T_Species>
             struct DoIntraCollision;
 
-            // A single template specialization. This ensures that the code want compile if the FilterPair contains two
-            // different filters. That wouldn't make much sense for internal collisions.
+            // A single template specialization. This ensures that the code won't compile if the FilterPair contains
+            // two different filters. That wouldn't make much sense for internal collisions.
             template<typename T_CollisionFunctor, typename T_Params, typename T_Filter, typename T_Species>
             struct DoIntraCollision<T_CollisionFunctor, T_Params, FilterPair<T_Filter, T_Filter>, T_Species>
             {

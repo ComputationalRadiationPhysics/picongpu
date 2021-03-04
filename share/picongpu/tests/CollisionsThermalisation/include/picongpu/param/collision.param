@@ -1,4 +1,4 @@
-/* Copyright 2021 Pawel Ordyna
+/* Copyright 2019-2021 Rene Widera, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "picongpu/unitless/precision.unitless"
-#include "picongpu/param/collision.param"
+#include "picongpu/particles/collision/collision.def"
+
 
 namespace picongpu
 {
@@ -30,19 +30,26 @@ namespace picongpu
         {
             namespace precision
             {
-                // literals for short-hand notations for collisions
-                constexpr float_COLL operator""_COLL(long double x)
-                {
-                    return float_COLL(x);
-                }
-
-                using float3_COLL = float3_64;
-                const float_COLL DELTA_T_COLL = static_cast<float_COLL>(DELTA_T);
-                const float_COLL EPS0_COLL = static_cast<float_COLL>(EPS0);
-                const float_COLL WEIGHT_NORM_COLL
-                    = static_cast<float_COLL>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
-                const float_COLL CELL_VOLUME_COLL = static_cast<float_COLL>(CELL_VOLUME);
+                using float_COLL = float_64;
             } // namespace precision
+            /** CollisionPipeline defines in which order species interact with each other
+             *
+             * the functors are called in order (from first to last functor)
+             */
+
+            struct Params1
+            {
+                static constexpr float_X coulombLog = 5.0_X;
+            };
+            struct Params2
+            {
+                static constexpr float_X coulombLog = 1000.0_X;
+            };
+            using Pairs1 = MakeSeq_t<Pair<Electrons, Ions>>;
+            using Pairs2 = MakeSeq_t<Pair<Electrons, Electrons>, Pair<Ions, Ions>>;
+            using CollisionPipeline = bmpl::vector<
+                Collider<binary::RelativisticBinaryCollision, Pairs1, Params1>,
+                Collider<binary::RelativisticBinaryCollision, Pairs2, Params2>>;
         } // namespace collision
     } // namespace particles
 } // namespace picongpu
