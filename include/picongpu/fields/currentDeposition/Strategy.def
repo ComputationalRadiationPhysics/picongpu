@@ -30,6 +30,25 @@ namespace picongpu
     {
         namespace strategy
         {
+            namespace detail
+            {
+                /** Validate and adjust worker multiplier
+                 *
+                 * @param multiplicator Number used as multiplier to oversubscribe the number of threads for the
+                 * compute current task/kernel.
+                 * @return valid multiplier
+                 */
+                constexpr int validateAndAdjustWorkerMultiplier(int const multiplicator)
+                {
+#if BOOST_COMP_HIP && PIC_COMPUTE_CURRENT_THREAD_LIMITER
+                    // HIP-clang creates wrong results if more threads than particles in a frame will be used
+                    return 1;
+#else
+                    return multiplicator >= 1 ? multiplicator : 1;
+#endif
+                }
+            } // namespace detail
+
             /** Work on strided supercell domains with local caching strategy
              *
              * The current for each particle will be reduced with atomic operations into a supercell
@@ -40,6 +59,8 @@ namespace picongpu
              * To utilize the device fully you should have enough supercells
              *   - 2D: minimum multiprocessor count * 9 * 4
              *   - 3D: minimum multiprocessor count * 27 * 4
+             *
+             * @{
              */
             struct StridedCachedSupercells
             {
@@ -47,7 +68,23 @@ namespace picongpu
                 static constexpr bool stridedMapping = true;
                 using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
                 using GridReductionOp = nvidia::functors::Add;
+                static constexpr int workerMultiplier = 1;
             };
+
+            /** @tparam T_workerMultiplier Oversubscribe the number of workers used to compute the current by the given
+             * multiplier. Can be used to optimize the device occupancy.
+             */
+            template<int T_workerMultiplier>
+            struct StridedCachedSupercellsScaled
+            {
+                static constexpr bool useBlockCache = true;
+                static constexpr bool stridedMapping = true;
+                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
+                using GridReductionOp = nvidia::functors::Add;
+                static constexpr int workerMultiplier = detail::validateAndAdjustWorkerMultiplier(T_workerMultiplier);
+            };
+
+            /** @} */
 
             /** Local caching strategy
              *
@@ -55,6 +92,8 @@ namespace picongpu
              * local cache. The cache will be flushed with atomic operations to the global memory.
              *
              * Suggestion: Use this strategy if block local and global atomics are fast.
+             *
+             * @{
              */
             struct CachedSupercells
             {
@@ -62,7 +101,23 @@ namespace picongpu
                 static constexpr bool stridedMapping = false;
                 using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
                 using GridReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
+                static constexpr int workerMultiplier = 1;
             };
+
+            /** @tparam T_workerMultiplier Oversubscribe the number of workers used to compute the current by the given
+             * multiplier. Can be used to optimize the device occupancy.
+             */
+            template<int T_workerMultiplier>
+            struct CachedSupercellsScaled
+            {
+                static constexpr bool useBlockCache = true;
+                static constexpr bool stridedMapping = false;
+                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
+                using GridReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
+                static constexpr int workerMultiplier = detail::validateAndAdjustWorkerMultiplier(T_workerMultiplier);
+            };
+
+            /** @} */
 
             /** Non cached strategy
              *
@@ -71,6 +126,8 @@ namespace picongpu
              *
              * Suggestion: Use this strategy if global atomics are fast and random memory access
              * to a large range in memory is not a bottle neck.
+             *
+             * @{
              */
             struct NonCachedSupercells
             {
@@ -79,7 +136,24 @@ namespace picongpu
                 using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
                 // dummy which produces a compile time error if used
                 using GridReductionOp = void;
+                static constexpr int workerMultiplier = 1;
             };
+
+            /** @tparam T_workerMultiplier Oversubscribe the number of workers used to compute the current by the given
+             * multiplier. Can be used to optimize the device occupancy.
+             */
+            template<int T_workerMultiplier>
+            struct NonCachedSupercellsScaled
+            {
+                static constexpr bool useBlockCache = false;
+                static constexpr bool stridedMapping = false;
+                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
+                // dummy which produces a compile time error if used
+                using GridReductionOp = void;
+                static constexpr int workerMultiplier = detail::validateAndAdjustWorkerMultiplier(T_workerMultiplier);
+            };
+
+            /** @} */
 
         } // namespace strategy
 
