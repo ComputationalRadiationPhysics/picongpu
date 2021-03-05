@@ -15,6 +15,7 @@ echo "  - local: '/share/ci/compiler_clang.yml'"
 echo "  - local: '/share/ci/compiler_gcc.yml'"
 echo "  - local: '/share/ci/compiler_nvcc_cuda.yml'"
 echo "  - local: '/share/ci/compiler_clang_cuda.yml'"
+echo "  - local: '/share/ci/compiler_hipcc.yml'"
 echo ""
 
 # handle CI actions

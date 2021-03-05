@@ -1,0 +1,28 @@
+################################################################################
+#   [clang-X] : X = {12}
+# clang compiler is located under /opt/rocm/llvm/bin
+
+.base_hipcc:
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-rocm4.0-pic:1.2
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+    PIC_CMAKE_ARGS: "-DALPAKA_HIP_ARCH=900 -DCMAKE_MODULE_PATH=/opt/rocm/hip/cmake"
+    # use VEGA64 GPU
+    HIP_VISIBLE_DEVICES: "2"
+    # ISAAC is not working with HIP
+    DISABLE_ISAAC: "yes"
+  script:
+    - export PATH="$PATH:/opt/rocm/llvm/bin/"
+    # rocm 4.0 container is missing a binary/symlink named `clang++-12`
+    - ln -s /opt/rocm/llvm/bin/clang++ /opt/rocm/llvm/bin/clang++-12
+    - rocm-smi
+    - hipcc --version
+    - apt update
+    - apt install -y curl libjpeg-dev
+    - $CI_PROJECT_DIR/share/ci/git_merge.sh
+    - $CI_PROJECT_DIR/share/ci/bash.profile
+    - $CI_PROJECT_DIR/share/ci/run_pmacc_tests.sh
+    - $CI_PROJECT_DIR/share/ci/run_picongpu_tests.sh
+  tags:
+    - amd
+    - rocm
