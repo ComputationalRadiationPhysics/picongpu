@@ -64,20 +64,23 @@ namespace picongpu
      */
     using UsedField2Particle = FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpolation>;
 
-/*! select current solver method
- * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
- * - currentSolver::VillaBune< SHAPE, STRATEGY > : particle shapes - CIC (1st order) only
- * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
- *
- * For development purposes:
- * - currentSolver::EsirkepovNative< SHAPE, STRATEGY > : generic version of currentSolverEsirkepov
- *   without optimization (~4x slower and needs more shared memory)
- *
- * STRATEGY (optional):
- * - currentSolver::strategy::StridedCachedSupercells
- * - currentSolver::strategy::CachedSupercells
- * - currentSolver::strategy::NonCachedSupercells
- */
+    /*! select current solver method
+     * - currentSolver::Esirkepov< SHAPE, STRATEGY > : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
+     * - currentSolver::VillaBune< SHAPE, STRATEGY > : particle shapes - CIC (1st order) only
+     * - currentSolver::EmZ< SHAPE, STRATEGY >       : particle shapes - CIC, TSC, PQS, PCS (1st to 4th order)
+     *
+     * For development purposes:
+     * - currentSolver::EsirkepovNative< SHAPE, STRATEGY > : generic version of currentSolverEsirkepov
+     *   without optimization (~4x slower and needs more shared memory)
+     *
+     * STRATEGY (optional):
+     * - currentSolver::strategy::StridedCachedSupercells
+     * - currentSolver::strategy::StridedCachedSupercellsScaled<N> with N >= 1
+     * - currentSolver::strategy::CachedSupercells
+     * - currentSolver::strategy::CachedSupercellsScaled<N> with N >= 1
+     * - currentSolver::strategy::NonCachedSupercells
+     * - currentSolver::strategy::NonCachedSupercellsScaled<N> with N >= 1
+     */
 #ifndef PARAM_CURRENTSOLVER
 #    define PARAM_CURRENTSOLVER Esirkepov<UsedParticleShape>
 #endif
