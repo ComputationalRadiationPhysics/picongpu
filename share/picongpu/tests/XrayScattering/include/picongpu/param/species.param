@@ -72,8 +72,11 @@ namespace picongpu
      *
      * STRATEGY (optional):
      * - currentSolver::strategy::StridedCachedSupercells
+     * - currentSolver::strategy::StridedCachedSupercellsScaled<N> with N >= 1
      * - currentSolver::strategy::CachedSupercells
+     * - currentSolver::strategy::CachedSupercellsScaled<N> with N >= 1
      * - currentSolver::strategy::NonCachedSupercells
+     * - currentSolver::strategy::NonCachedSupercellsScaled<N> with N >= 1
      */
     using UsedParticleCurrentSolver = currentSolver::Esirkepov<UsedParticleShape>;
 
