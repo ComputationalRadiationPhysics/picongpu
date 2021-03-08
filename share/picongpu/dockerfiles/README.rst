@@ -24,8 +24,8 @@ This exposes the ISAAC port to connect via the webclient to.
 
 .. code:: bash
 
-    docker pull ax3l/picongpu
-    docker run --runtime=nvidia -p 2459:2459 -t ax3l/picongpu:0.6.0-dev lwfa_live
+    docker pull computationalradiationphysics/picongpu
+    docker run --runtime=nvidia -p 2459:2459 -t computationalradiationphysics/picongpu:0.6.0-dev lwfa_live
     # open firefox and isaac client
 
 or
@@ -53,16 +53,16 @@ You can also push the result to dockerhub and singularity-hub (you need an accou
 
 .. code:: bash
 
-    cd ubuntu-1604
+    cd ubuntu-2004
 
     # docker image
-    docker build -t ax3l/picongpu:0.6.0-dev .
+    docker build -t computationalradiationphysics/picongpu:0.6.0-dev .
     # optional: push to dockerhub (needed for singularity bootstrap)
     docker login
-    docker push ax3l/picongpu:0.6.0-dev
+    docker push computationalradiationphysics/picongpu:0.6.0-dev
     # optional: mark as latest release
-    docker tag ax3l/picongpu:0.6.0-dev ax3l/picongpu:latest
-    docker push ax3l/picongpu:latest
+    docker tag computationalradiationphysics/picongpu:0.6.0-dev computationalradiationphysics/picongpu:latest
+    docker push computationalradiationphysics/picongpu:latest
 
     # singularity image
     singularity create -s 4096 picongpu.img
@@ -76,4 +76,4 @@ Recipes
 
 Currently, the following build recipes exist:
 
-* ``ubuntu-1604/``: Ubuntu 16.04, CUDA 9.2.148 (nvcc), GCC 5.4.0
+* ``ubuntu-2004/``: Ubuntu 20.04, CUDA 11.2 (nvcc), GCC 9.3.0
