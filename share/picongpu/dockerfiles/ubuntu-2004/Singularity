@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: ax3l/picongpu:0.6.0-dev
+From: computationalradiationphysics/picongpu:0.6.0-dev
 
 
 %labels
