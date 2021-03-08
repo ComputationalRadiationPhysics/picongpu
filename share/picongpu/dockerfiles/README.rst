@@ -25,7 +25,7 @@ This exposes the ISAAC port to connect via the webclient to.
 .. code:: bash
 
     docker pull ax3l/picongpu
-    docker run --runtime=nvidia -p 2459:2459 -t ax3l/picongpu:0.5.0 lwfa_live
+    docker run --runtime=nvidia -p 2459:2459 -t ax3l/picongpu:0.6.0-dev lwfa_live
     # open firefox and isaac client
 
 or
@@ -56,12 +56,12 @@ You can also push the result to dockerhub and singularity-hub (you need an accou
     cd ubuntu-1604
 
     # docker image
-    docker build -t ax3l/picongpu:0.5.0 .
+    docker build -t ax3l/picongpu:0.6.0-dev .
     # optional: push to dockerhub (needed for singularity bootstrap)
     docker login
-    docker push ax3l/picongpu:0.5.0
+    docker push ax3l/picongpu:0.6.0-dev
     # optional: mark as latest release
-    docker tag ax3l/picongpu:0.5.0 ax3l/picongpu:latest
+    docker tag ax3l/picongpu:0.6.0-dev ax3l/picongpu:latest
     docker push ax3l/picongpu:latest
 
     # singularity image
@@ -69,7 +69,7 @@ You can also push the result to dockerhub and singularity-hub (you need an accou
     sudo singularity bootstrap picongpu.img Singularity
     # optional: push to a singularity registry
     # setup your $HOME/.sregistry first
-    sregistry push picongpu.img --name ax3l/picongpu --tag 0.5.0
+    sregistry push picongpu.img --name ax3l/picongpu --tag 0.6.0-dev
 
 Recipes
 -------
