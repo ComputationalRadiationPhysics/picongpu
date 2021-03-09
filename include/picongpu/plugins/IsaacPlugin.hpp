@@ -104,9 +104,7 @@ namespace picongpu
             ISAAC_HOST_DEVICE_INLINE isaac_float_dim<feature_dim> operator[](const isaac_int3& nIndex) const
             {
                 auto value = shifted[nIndex.z][nIndex.y][nIndex.x];
-                isaac_float_dim<feature_dim> result
-                    = {isaac_float(value.x()), isaac_float(value.y()), isaac_float(value.z())};
-                return result;
+                return isaac_float_dim<feature_dim>(value.x(), value.y(), value.z());
             }
         };
 
@@ -178,8 +176,7 @@ namespace picongpu
             ISAAC_HOST_DEVICE_INLINE isaac_float_dim<feature_dim> operator[](const isaac_int3& nIndex) const
             {
                 auto value = shifted[nIndex.z][nIndex.y][nIndex.x];
-                isaac_float_dim<feature_dim> result = {isaac_float(value.x())};
-                return result;
+                return isaac_float_dim<feature_dim>(value.x());
             }
         };
 
@@ -209,7 +206,7 @@ namespace picongpu
             ISAAC_HOST_DEVICE_INLINE void next()
             {
                 // iterate particles look for next frame
-                i++;
+                ++i;
                 if(i >= frameSize)
                 {
                     frame = pb.getNextFrame(frame);
@@ -233,14 +230,12 @@ namespace picongpu
                 float3_X const absoluteOffset(particle[position_] + float3_X(frameCellOffset));
 
                 // calculate scaled position
-                float3_X const pos(
+                isaac_float3 const pos(
                     absoluteOffset.x() * (1._X / float_X(MappingDesc::SuperCellSize::x::value)),
                     absoluteOffset.y() * (1._X / float_X(MappingDesc::SuperCellSize::y::value)),
-                    absoluteOffset.z() * (1._X / float_X(MappingDesc::SuperCellSize::z::value))
+                    absoluteOffset.z() * (1._X / float_X(MappingDesc::SuperCellSize::z::value)));
 
-                );
-
-                return {pos[0], pos[1], pos[2]};
+                return pos;
             }
 
             // returns particle momentum as color attribute
@@ -248,7 +243,7 @@ namespace picongpu
             {
                 auto const particle = frame[i];
                 float3_X const mom = particle[momentum_];
-                return {mom[0], mom[1], mom[2]};
+                return isaac_float_dim<feature_dim>(mom[0], mom[1], mom[2]);
             }
 
 
@@ -374,8 +369,7 @@ namespace picongpu
         class IsaacPlugin : public ILightweightPlugin
         {
         public:
-            typedef boost::mpl::int_<simDim> SimDim;
-            static const size_t textureDim = 1024;
+            static const ISAAC_IDX_TYPE textureDim = 1024;
             using SourceList = bmpl::
                 transform<boost::fusion::result_of::as_list<Fields_Seq>::type, Transformoperator<bmpl::_1>>::type;
             // create compile time particle list
@@ -387,12 +381,9 @@ namespace picongpu
                 cupla::Acc,
                 cupla::AccStream,
                 cupla::KernelDim,
-                SimDim,
                 ParticleList,
                 SourceList,
-                DataSpace<simDim>,
                 textureDim,
-                float3_X,
 #if(ISAAC_STEREO == 0)
                 isaac::DefaultController,
                 isaac::DefaultCompositor
@@ -440,10 +431,20 @@ namespace picongpu
                         if(movingWindow)
                         {
                             Window window(MovingWindow::getInstance().getWindow(currentStep));
-                            visualization->updatePosition(window.localDimensions.offset);
-                            visualization->updateLocalSize(window.localDimensions.size);
-                            visualization->updateLocalParticleSize(
-                                window.localDimensions.size / MappingDesc::SuperCellSize::toRT());
+                            isaac_size3 position;
+                            isaac_size3 local_size;
+                            isaac_size3 particle_size;
+
+                            for(ISAAC_IDX_TYPE i = 0; i < 3; ++i)
+                            {
+                                position[i] = window.localDimensions.offset[i];
+                                local_size[i] = window.localDimensions.size[i];
+                                particle_size[i]
+                                    = window.localDimensions.size[i] / MappingDesc::SuperCellSize::toRT()[i];
+                            }
+                            visualization->updatePosition(position);
+                            visualization->updateLocalSize(local_size);
+                            visualization->updateLocalParticleSize(particle_size);
                             visualization->updateBounding();
                         }
                         if(rank == 0 && visualization->kernel_time)
@@ -575,8 +576,11 @@ namespace picongpu
                     MPI_Comm_size(MPI_COMM_WORLD, &numProc);
                     if(MovingWindow::getInstance().isEnabled())
                         movingWindow = true;
-                    float_X minCellSize = math::min(cellSize[0], math::min(cellSize[1], cellSize[2]));
-                    float3_X cellSizeFactor = cellSize / minCellSize;
+                    isaac_float minCellSize = math::min(cellSize[0], math::min(cellSize[1], cellSize[2]));
+                    isaac_float3 cellSizeFactor(
+                        cellSize[0] / minCellSize,
+                        cellSize[1] / minCellSize,
+                        cellSize[2] / minCellSize);
 
                     const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
@@ -585,6 +589,17 @@ namespace picongpu
                     isaac_for_each_params(sources, SourceInitIterator(), cellDescription, movingWindow);
                     isaac_for_each_params(particleSources, ParticleSourceInitIterator(), movingWindow);
 
+                    isaac_size3 global_size;
+                    isaac_size3 local_size;
+                    isaac_size3 particle_size;
+                    isaac_size3 position;
+                    for(ISAAC_IDX_TYPE i = 0; i < 3; ++i)
+                    {
+                        global_size[i] = MovingWindow::getInstance().getWindow(0).globalDimensions.size[i];
+                        local_size[i] = subGrid.getLocalDomain().size[i];
+                        particle_size[i] = subGrid.getLocalDomain().size[i] / SuperCellSize::toRT()[i];
+                        position[i] = subGrid.getLocalDomain().offset[i];
+                    }
                     visualization = new VisualizationType(
                         cupla::manager::Device<cupla::AccHost>::get().current(),
                         cupla::manager::Device<cupla::AccDev>::get().current(),
@@ -594,10 +609,10 @@ namespace picongpu
                         url,
                         port,
                         framebuffer_size,
-                        MovingWindow::getInstance().getWindow(0).globalDimensions.size,
-                        subGrid.getLocalDomain().size,
-                        subGrid.getLocalDomain().size / SuperCellSize::toRT(),
-                        subGrid.getLocalDomain().offset,
+                        global_size,
+                        local_size,
+                        particle_size,
+                        position,
                         particleSources,
                         sources,
                         cellSizeFactor);
