@@ -53,6 +53,7 @@
 #include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 
 #include "picongpu/plugins/misc/SpeciesFilter.hpp"
+#include "picongpu/plugins/openPMD/Json.hpp"
 #include "picongpu/plugins/openPMD/NDScalars.hpp"
 #include "picongpu/plugins/openPMD/WriteMeta.hpp"
 #include "picongpu/plugins/openPMD/openPMDVersion.def"
@@ -104,10 +105,12 @@ namespace picongpu
             ::openPMD::Datatype datatype,
             pmacc::math::UInt64<DIM> const& globalDimensions,
             bool compression,
-            std::string const& compressionMethod)
+            std::string const& compressionMethod,
+            std::string const& datasetName)
         {
             std::vector<uint64_t> v = asStandardVector(globalDimensions);
             ::openPMD::Dataset dataset{datatype, std::move(v)};
+            setDatasetOptions(dataset, jsonMatcher->get(datasetName));
             if(compression && compressionMethod != "none")
             {
                 dataset.compression = compressionMethod;
@@ -136,8 +139,11 @@ namespace picongpu
             {
                 std::string fullName = fileName + fileInfix + "." + fileExtension;
                 log<picLog::INPUT_OUTPUT>("openPMD: open file: %1%") % fullName;
-                openPMDSeries = std::unique_ptr<::openPMD::Series>(
-                    new ::openPMD::Series(fullName, at, communicator, jsonConfig));
+                // avoid deadlock between not finished pmacc tasks and mpi calls in
+                // openPMD
+                __getTransactionEvent().waitForFinished();
+                openPMDSeries
+                    = std::make_unique<::openPMD::Series>(fullName, at, communicator, jsonMatcher->getDefault());
                 if(openPMDSeries->backend() == "MPI_ADIOS1")
                 {
                     throw std::runtime_error(R"END(
@@ -153,6 +159,7 @@ Please pick either of the following:
                 if(at == ::openPMD::Access::CREATE)
                 {
                     openPMDSeries->setMeshesPath(MESHES_PATH);
+                    openPMDSeries->setParticlesPath(PARTICLES_PATH);
                 }
                 log<picLog::INPUT_OUTPUT>("openPMD: successfully opened file: %1%") % fullName;
                 return *openPMDSeries;
@@ -363,12 +370,19 @@ Please pick either of the following:
             /* if file name is relative, prepend with common directory */
             fileName = boost::filesystem::path(file).has_root_path() ? file : dir + "/" + file;
 
-            jsonConfig = help.jsonConfig.get(id);
+            // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+            __getTransactionEvent().waitForFinished();
 
             log<picLog::INPUT_OUTPUT>("openPMD: setting file pattern: %1%%2%.%3%") % fileName % fileInfix
                 % fileExtension;
 
-            log<picLog::INPUT_OUTPUT>("openPMD: setting JSON configuration to %1%") % jsonConfig;
+            // Avoid repeatedly parsing the JSON config
+            if(!jsonMatcher)
+            {
+                jsonMatcher = AbstractJsonMatcher::construct(help.jsonConfig.get(id), communicator);
+            }
+
+            log<picLog::INPUT_OUTPUT>("openPMD: global JSON config: %1%") % jsonMatcher->getDefault();
 
             {
                 std::string strategyString = help.dataPreparationStrategy.get(id);
@@ -1025,8 +1039,17 @@ Please pick either of the following:
                     ::openPMD::MeshRecordComponent mrc
                         = mesh[nComponents > 1 ? name_lookup_tpl[d] : ::openPMD::RecordComponent::SCALAR];
 
-                    params
-                        ->initDataset<simDim>(mrc, openPMDType, fieldsGlobalSizeDims, true, params->compressionMethod);
+                    std::string datasetName = nComponents > 1
+                        ? params->openPMDSeries->meshesPath() + name + "/" + name_lookup_tpl[d]
+                        : params->openPMDSeries->meshesPath() + name;
+
+                    params->initDataset<simDim>(
+                        mrc,
+                        openPMDType,
+                        fieldsGlobalSizeDims,
+                        true,
+                        params->compressionMethod,
+                        datasetName);
                     if(dstBuffer.size() > 0)
                         mrc.storeChunk<std::vector<float_X>>(
                             dstBuffer,
