@@ -70,6 +70,7 @@ namespace picongpu
                     ApplyFieldBackground(MappingDesc const cellDescription, bool const duplicateField)
                         : cellDescription(cellDescription)
                         , duplicateField(duplicateField)
+                        , restoreFromDuplicateField(false)
                         , isEnabled(FieldBackground::InfluenceParticlePusher)
                     {
                         if(isEnabled && duplicateField)
@@ -87,18 +88,19 @@ namespace picongpu
                      *
                      * @param step index of time iteration
                      */
-                    void add(uint32_t const step) const
+                    void add(uint32_t const step)
                     {
                         if(!isEnabled)
                             return;
                         DataConnector& dc = Environment<>::get().DataConnector();
                         auto& field = *dc.get<Field>(Field::getName(), true);
-                        // Always add, conditionally make a copy first
+                        // Always add to the field, conditionally make a copy of the old values first
                         if(duplicateField)
                         {
                             auto& gridBuffer = field.getGridBuffer();
                             duplicateBuffer->copyFrom(gridBuffer.getDeviceBuffer());
                             __getTransactionEvent().waitForFinished();
+                            restoreFromDuplicateField = true;
                         }
                         apply(step, pmacc::nvidia::functors::Add(), field);
                         dc.releaseData(Field::getName());
@@ -108,18 +110,22 @@ namespace picongpu
                      *
                      * @param step index of time iteration
                      */
-                    void subtract(uint32_t const step) const
+                    void subtract(uint32_t const step)
                     {
                         if(!isEnabled)
                             return;
                         DataConnector& dc = Environment<>::get().DataConnector();
                         auto& field = *dc.get<Field>(Field::getName(), true);
-                        // Either restore from the pre-made copy or subtract
-                        if(duplicateField)
+                        /* Either restore from the pre-made copy or subtract.
+                         * Note that here it is not sufficient to check for duplicateField as it
+                         * is not necessarily up-to-date, e.g. right after loading from a checkpoint.
+                         */
+                        if(restoreFromDuplicateField)
                         {
                             auto& gridBuffer = field.getGridBuffer();
                             gridBuffer.getDeviceBuffer().copyFrom(*duplicateBuffer);
                             __getTransactionEvent().waitForFinished();
+                            restoreFromDuplicateField = false;
                         }
                         else
                             apply(step, pmacc::nvidia::functors::Sub(), field);
@@ -132,6 +138,9 @@ namespace picongpu
 
                     //! Flag to store duplicate of field when the background is enabled
                     bool duplicateField;
+
+                    //! Flag to restore from the duplicate field: true if it is enabled and up-to-date
+                    bool restoreFromDuplicateField;
 
                     //! Buffer type to store duplicated values
                     using DeviceBuffer = typename Field::Buffer::DBuffer;
@@ -151,7 +160,7 @@ namespace picongpu
                      * @param field field object which data is modified
                      */
                     template<typename T_Functor>
-                    void apply(uint32_t const step, T_Functor functor, Field& field) const
+                    void apply(uint32_t const step, T_Functor functor, Field& field)
                     {
                         constexpr auto area = CORE + BORDER + GUARD;
                         using CallBackground = cellwiseOperation::CellwiseOperation<area>;
@@ -199,7 +208,7 @@ namespace picongpu
                  *
                  * @param step index of time iteration
                  */
-                void add(uint32_t const step) const
+                void add(uint32_t const step)
                 {
                     checkInitialization();
                     applyE->add(step);
@@ -217,7 +226,7 @@ namespace picongpu
                  *
                  * @param step index of time iteration
                  */
-                void subtract(uint32_t const step) const
+                void subtract(uint32_t const step)
                 {
                     checkInitialization();
                     applyE->subtract(step);
