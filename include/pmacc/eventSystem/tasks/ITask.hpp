@@ -26,10 +26,11 @@
 #include "pmacc/eventSystem/events/IEvent.hpp"
 #include "pmacc/types.hpp"
 #include "pmacc/assert.hpp"
+#include "pmacc/eventSystem/Perf.hpp"
 
 #include <string>
 #include <set>
-
+#include <chrono>
 
 namespace pmacc
 {
@@ -49,16 +50,33 @@ namespace pmacc
             TASK_HOST
         };
 
+	/** Flops, Bytes, and timer for this task.
+	 */
+	Performance::PerfData perfInfo;
+
+	/** Record perfInfo.t1
+	 */
+	void stopTimer()
+	{
+	     perfInfo.t1 = std::chrono::duration_cast<std::chrono::milliseconds>(
+			      std::chrono::high_resolution_clock::now().time_since_epoch()
+			    ).count();
+	}
+
         /**
          * constructor
          */
-        ITask() : myType(ITask::TASK_UNKNOWN)
+        ITask() : myType(ITask::TASK_UNKNOWN), perfInfo(
+	                      std::chrono::duration_cast<std::chrono::milliseconds>(
+			         std::chrono::high_resolution_clock::now().time_since_epoch()
+			      ).count(), 0, 0)
         {
             // task id 0 is reserved for invalid
             static id_t globalId = 1;
 
             myId = globalId++;
             PMACC_ASSERT(myId > 0);
+
         }
 
 
@@ -74,7 +92,9 @@ namespace pmacc
         bool execute()
         {
             // std::cout << "execute: " << toString() << std::endl;
-            return executeIntern();
+	    bool done = executeIntern();
+	    stopTimer(); // TODO: move into task-code (since this may lag actual stop-time)
+            return done;
         }
 
         /**

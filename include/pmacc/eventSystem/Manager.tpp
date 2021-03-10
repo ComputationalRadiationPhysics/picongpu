@@ -24,6 +24,7 @@
 #include "pmacc/eventSystem/streams/StreamController.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/Manager.hpp"
+#include "pmacc/eventSystem/Perf.hpp"
 #include "pmacc/assert.hpp"
 
 #include <cstdlib>
@@ -73,8 +74,9 @@ namespace pmacc
             if(counter == 500000)
                 std::cout << taskPtr->toString() << " " << passiveTasks.size() << std::endl;
 #endif
-            if(taskPtr->execute())
+            if(taskPtr->execute()) // Looks like the only place in code calling taskPtr->execute().
             {
+		Performance::Timers::append(taskPtr->toString(), taskPtr->perfInfo);
                 /*test if task is deleted by other stackdeep*/
                 if(getActiveITaskIfNotFinished(id) == taskPtr)
                 {
@@ -135,7 +137,7 @@ namespace pmacc
         return nullptr;
     }
 
-    inline void Manager::waitForFinished(id_t taskId)
+    inline void Manager::waitForFinished(id_t taskId) // DMR: TODO
     {
         if(taskId == 0)
             return;
