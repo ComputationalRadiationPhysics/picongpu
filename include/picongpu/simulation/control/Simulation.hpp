@@ -491,8 +491,6 @@ namespace picongpu
 
                     initialiserController->restart((uint32_t) this->restartStep, this->restartDirectory);
                     step = this->restartStep;
-
-                    fieldBackground.fillSimulation(step);
                 }
                 else
                 {

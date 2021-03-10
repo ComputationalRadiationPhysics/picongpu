@@ -83,13 +83,10 @@ namespace picongpu
                         }
                     }
 
-                    /** Add the field background in the given area
-                     *
-                     * @tparam T_area area to operate on
+                    /** Add the field background in the whole local domain
                      *
                      * @param step index of time iteration
                      */
-                    template<uint32_t T_area>
                     void add(uint32_t const step) const
                     {
                         if(!isEnabled)
@@ -103,17 +100,14 @@ namespace picongpu
                             duplicateBuffer->copyFrom(gridBuffer.getDeviceBuffer());
                             __getTransactionEvent().waitForFinished();
                         }
-                        apply<T_area>(step, pmacc::nvidia::functors::Add(), field);
+                        apply(step, pmacc::nvidia::functors::Add(), field);
                         dc.releaseData(Field::getName());
                     }
 
-                    /** Subtract the field background in the given area
-                     *
-                     * @tparam T_area area to operate on
+                    /** Subtract the field background in the whole local domain
                      *
                      * @param step index of time iteration
                      */
-                    template<uint32_t T_area>
                     void subtract(uint32_t const step) const
                     {
                         if(!isEnabled)
@@ -128,7 +122,7 @@ namespace picongpu
                             __getTransactionEvent().waitForFinished();
                         }
                         else
-                            apply<T_area>(step, pmacc::nvidia::functors::Sub(), field);
+                            apply(step, pmacc::nvidia::functors::Sub(), field);
                         dc.releaseData(Field::getName());
                     }
 
@@ -148,19 +142,19 @@ namespace picongpu
                     //! Mapping for kernels
                     MappingDesc const cellDescription;
 
-                    /** Apply the given functor to the field background in the given area
+                    /** Apply the given functor to the field background in the whole local domain
                      *
-                     * @tparam T_area area to operate on
                      * @tparam T_Functor functor type compatible to pmacc::nvidia::functors
                      *
                      * @param step index of time iteration
                      * @param functor functor to apply
                      * @param field field object which data is modified
                      */
-                    template<uint32_t T_area, typename T_Functor>
+                    template<typename T_Functor>
                     void apply(uint32_t const step, T_Functor functor, Field& field) const
                     {
-                        using CallBackground = cellwiseOperation::CellwiseOperation<T_area>;
+                        constexpr auto area = CORE + BORDER + GUARD;
+                        using CallBackground = cellwiseOperation::CellwiseOperation<area>;
                         CallBackground callBackground(cellDescription);
                         callBackground(&field, functor, FieldBackground(field.getUnit()), step);
                     }
@@ -207,13 +201,15 @@ namespace picongpu
                  */
                 void add(uint32_t const step) const
                 {
-                    applyAdd<CORE + BORDER + GUARD>(step);
+                    checkInitialization();
+                    applyE->add(step);
+                    applyB->add(step);
                 }
 
                 /** Subtract field background from the electromagnetic field
                  *
                  * Affects data sets named FieldE::getName(), FieldB::getName().
-                 * As the result of this operation, they will have values like before calling add().
+                 * As the result of this operation, they will have values like before the last call to add().
                  *
                  * Warning: when fieldBackground.duplicateFields is enabled, the fields are assumed to not have changed
                  * since the call to add(). Having fieldBackground.duplicateFields disabled does not rely on this.
@@ -223,56 +219,12 @@ namespace picongpu
                  */
                 void subtract(uint32_t const step) const
                 {
-                    applySubtract<CORE + BORDER + GUARD>(step);
-                }
-
-                /** Set field background to a consistent initial state for starting or resuming a simulation
-                 *
-                 * This method must be called during filling the simulation.
-                 *
-                 * @param step index of time iteration
-                 */
-                void fillSimulation(uint32_t const step) const
-                {
-                    /* restore background fields in GUARD
-                     *
-                     * loads the outer GUARDS of the global domain for absorbing/open boundary condtions
-                     *
-                     * @todo as soon as we add GUARD fields to the checkpoint data, e.g. for PML boundary
-                     *       conditions, this section needs to be removed
-                     */
-                    applyAdd<GUARD>(step);
+                    checkInitialization();
+                    applyE->subtract(step);
+                    applyB->subtract(step);
                 }
 
             private:
-                /** Apply adding field background to E and B in the given area
-                 *
-                 * @tparam T_area area to operate on
-                 *
-                 * @param step index of time iteration
-                 */
-                template<uint32_t T_area>
-                void applyAdd(uint32_t const step) const
-                {
-                    checkInitialization();
-                    applyE->add<T_area>(step);
-                    applyB->add<T_area>(step);
-                }
-
-                /** Apply subtracting field background from E and B in the given area
-                 *
-                 * @tparam T_area area to operate on
-                 *
-                 * @param step index of time iteration
-                 */
-                template<uint32_t T_area>
-                void applySubtract(uint32_t const step) const
-                {
-                    checkInitialization();
-                    applyE->subtract<T_area>(step);
-                    applyB->subtract<T_area>(step);
-                }
-
                 //! Check if this class was properly initialized, throws when failed
                 void checkInitialization() const
                 {
