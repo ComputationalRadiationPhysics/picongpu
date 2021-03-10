@@ -286,7 +286,6 @@ Command line option                       Description
                                           This allows for a localization of specific spectral features.
 ``--<species>_radiation.folderRadPerGPU`` Name of the folder, where the GPU specific spectra are stored.
                                           Default: ``radPerGPU``
-``--<species>_radiation.compression``     If set, the hdf5 output is compressed.
 ``--<species>_radiation.numJobs``         Number of independent jobs used for the radiation calculation.
                                           This option is used to increase the utilization of the device by producing more independent work.
                                           This option enables accumulation of data in parallel into multiple temporary arrays, thereby increasing the utilization of
