@@ -277,6 +277,29 @@ if(openPMD_FOUND)
     if(openPMD_HAVE_ADIOS2 OR openPMD_HAVE_HDF5)
         message(STATUS "Found openPMD: ${openPMD_DIR}")
         add_definitions(-DENABLE_OPENPMD=1)
+
+        # non of these should appear in cmake-gui, so make them internal
+        set(JSON_BuildTests OFF CACHE INTERNAL "")
+        set(JSON_MultipleHeaders OFF CACHE INTERNAL "")
+        set(JSON_ImplicitConversions OFF CACHE INTERNAL "")
+        set(JSON_Install OFF CACHE INTERNAL "")  # only used PRIVATE
+
+        # allow to use externally installed nlohmann_json
+        set(
+            PIC_nlohmann_json_PROVIDER "intern" CACHE
+            STRING "Use internally shipped or external nlohmann_json library.")
+        set_property(
+            CACHE PIC_nlohmann_json_PROVIDER
+            PROPERTY STRINGS "intern;extern")
+        mark_as_advanced(PIC_nlohmann_json_PROVIDER)
+        if(${PIC_nlohmann_json_PROVIDER} STREQUAL "intern")
+            add_subdirectory(
+                "${PIConGPUapp_SOURCE_DIR}/../../thirdParty/nlohmann_json"
+                "${CMAKE_CURRENT_BINARY_DIR}/build_nlohmann_json")
+        else()
+            find_package(nlohmann_json 3.9.1 CONFIG REQUIRED)
+            message(STATUS "nlohmann-json: Found version '${nlohmann_json_VERSION}'")
+        endif()
         set(LIBS ${LIBS} openPMD::openPMD)
     else()
         message(STATUS "Found openPMD at ${openPMD_DIR}, but PIConGPU requires"
@@ -440,6 +463,16 @@ cupla_add_executable(picongpu
 )
 
 target_link_libraries(picongpu PUBLIC ${LIBS} picongpu-hostonly)
+
+if(openPMD_FOUND)
+    # Including <nlohmann/json.hpp> will throw loads of warnings. Quiet them.
+    # (Doesn't work for nvcc??)
+    target_include_directories(
+        picongpu-hostonly
+        SYSTEM PRIVATE
+        $<TARGET_PROPERTY:nlohmann_json::nlohmann_json,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_link_libraries(picongpu-hostonly PRIVATE nlohmann_json::nlohmann_json)
+endif()
 
 
 ################################################################################
