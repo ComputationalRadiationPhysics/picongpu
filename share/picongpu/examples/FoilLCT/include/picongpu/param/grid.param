@@ -23,8 +23,8 @@
  * cartesian grid. Our explicit FDTD field solvers define an upper bound for
  * the time step value in relation to the cell size for convergence. Make
  * sure to resolve important wavelengths of your simulation, e.g. shortest
- * plasma wavelength and central laser wavelength both spatially and
- * temporarily.
+ * plasma wavelength, Debye length and central laser wavelength both spatially
+ * and temporarily.
  *
  * **Units in reduced dimensions**
  *

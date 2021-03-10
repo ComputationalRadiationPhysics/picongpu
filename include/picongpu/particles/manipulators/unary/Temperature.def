@@ -53,6 +53,9 @@ namespace picongpu
 
                 /** Modify particle momentum based on temperature
                  *
+                 * note: initial electron temperature should generally be chosen so that the resulting Debye length is
+                 *       resolved by the grid.
+                 *
                  * @tparam T_ParamClass param::TemperatureCfg, configuration parameter
                  * @tparam T_ValueFunctor pmacc::nvidia::functors::*, binary functor type to
                  *                        add a new momentum to an old one
