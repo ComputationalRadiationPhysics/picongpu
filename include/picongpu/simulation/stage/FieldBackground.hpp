@@ -99,7 +99,6 @@ namespace picongpu
                         {
                             auto& gridBuffer = field.getGridBuffer();
                             duplicateBuffer->copyFrom(gridBuffer.getDeviceBuffer());
-                            __getTransactionEvent().waitForFinished();
                             restoreFromDuplicateField = true;
                         }
                         apply(step, pmacc::nvidia::functors::Add(), field);
@@ -124,7 +123,6 @@ namespace picongpu
                         {
                             auto& gridBuffer = field.getGridBuffer();
                             gridBuffer.getDeviceBuffer().copyFrom(*duplicateBuffer);
-                            __getTransactionEvent().waitForFinished();
                             restoreFromDuplicateField = false;
                         }
                         else
