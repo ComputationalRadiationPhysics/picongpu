@@ -1,0 +1,35 @@
+{
+  "adios2": {
+    "engine": {
+      "usesteps": true,
+      "parameters": {
+        "InitialBufferSize": "2Gb",
+        "Profile": "On"
+      }
+    },
+    "dataset": [
+      {
+        "cfg": {
+          "operators": [
+            {
+              "type": "blosc",
+              "parameters": {
+                "clevel": "1",
+                "doshuffle": "BLOSC_BITSHUFFLE"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "select": [
+          ".*positionOffset.*",
+          ".*particlePatches.*"
+        ],
+        "cfg": {
+          "operators": []
+        }
+      }
+    ]
+  }
+}
