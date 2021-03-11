@@ -321,6 +321,9 @@ namespace picongpu
         {
             namespace nvmem = pmacc::nvidia::memory;
 
+            // This has to be called before initFields()
+            currentInterpolationAndAdditionToEMF.init();
+
             DataConnector& dc = Environment<>::get().DataConnector();
             initFields(dc);
 
@@ -555,7 +558,7 @@ namespace picongpu
             __setTransactionEvent(commEvent);
             CurrentBackground{*cellDescription}(currentStep);
             CurrentDeposition{}(currentStep);
-            CurrentInterpolationAndAdditionToEMF{}(currentStep);
+            currentInterpolationAndAdditionToEMF(currentStep);
             myFieldSolver->update_afterCurrent(currentStep);
         }
 
@@ -624,6 +627,7 @@ namespace picongpu
         std::shared_ptr<DeviceHeap> deviceHeap;
 
         fields::Solver* myFieldSolver;
+        simulation::stage::CurrentInterpolationAndAdditionToEMF currentInterpolationAndAdditionToEMF;
 
 #if(PMACC_CUDA_ENABLED == 1)
         // creates lookup tables for the bremsstrahlung effect

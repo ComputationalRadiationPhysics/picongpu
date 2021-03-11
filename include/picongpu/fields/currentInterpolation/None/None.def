@@ -24,7 +24,7 @@ namespace picongpu
 {
     namespace currentInterpolation
     {
-        /* None interpolated current assignment
+        /* None interpolated current assignment functor
          *
          * Default for staggered grids/Yee-scheme.
          * Updates field E only.

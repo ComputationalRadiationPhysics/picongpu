@@ -291,7 +291,7 @@ namespace picongpu
 
                 writeMeta::OfAllSpecies<>()(threadParams, fullMeshesPath);
 
-                GetStringProperties<typename fields::Solver::CurrentInterpolation> currentSmoothingProp;
+                GetStringProperties<currentInterpolation::CurrentInterpolationInfo> currentSmoothingProp;
                 const std::string currentSmoothing(currentSmoothingProp["name"].value);
                 ADIOS_CMD(adios_define_attribute_byvalue(
                     threadParams->adiosGroupHandle,

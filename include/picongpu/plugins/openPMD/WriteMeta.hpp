@@ -177,7 +177,7 @@ namespace picongpu
 
                 writeMeta::OfAllSpecies<>()(threadParams);
 
-                GetStringProperties<typename fields::Solver::CurrentInterpolation> currentSmoothingProp;
+                GetStringProperties<currentInterpolation::CurrentInterpolationInfo> currentSmoothingProp;
                 const std::string currentSmoothing(currentSmoothingProp["name"].value);
                 meshes.setAttribute("currentSmoothing", currentSmoothing);
 
