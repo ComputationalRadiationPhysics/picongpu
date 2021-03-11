@@ -343,6 +343,12 @@ openPMD API
 
   - ``export CMAKE_PREFIX_PATH="$HOME/lib/openPMD-api:$CMAKE_PREFIX_PATH"``
   - ``export LD_LIBRARY_PATH="$HOME/lib/openPMD-api/lib:$LD_LIBRARY_PATH"``
+- If PIConGPU is built with openPMD output enabled, the JSON library
+  nlohmann_json will automatically be used, found in the ``thirdParty/``
+  directory.
+  By setting the CMake parameter ``PIC_nlohmann_json_PROVIDER=extern``, CMake
+  can be instructed to search for an installation of nlohmann_json externally.
+  Refer to LICENSE.md for further information.
 
 ISAAC
 """""

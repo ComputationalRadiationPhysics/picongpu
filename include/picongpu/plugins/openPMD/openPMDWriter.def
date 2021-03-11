@@ -22,6 +22,8 @@
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/plugins/openPMD/Json.hpp"
+
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/types.hpp>
@@ -31,6 +33,7 @@
 #include <iostream> // std::cerr
 #include <limits>
 #include <list>
+#include <memory> // std::unique_ptr
 #include <sstream>
 #include <stdexcept> // throw std::runtime_error
 #include <string>
@@ -42,12 +45,14 @@ namespace picongpu
     namespace openPMD
     {
         using namespace pmacc;
+        using AbstractJsonMatcher = json::AbstractJsonMatcher;
 
 
         namespace po = boost::program_options;
 
 
 #define MESHES_PATH "fields"
+#define PARTICLES_PATH "particles"
 
         template<typename T_Vec, typename T_Ret = std::vector<typename std::remove_reference<T_Vec>::type::type>>
         T_Ret asStandardVector(T_Vec const&);
@@ -83,7 +88,7 @@ namespace picongpu
             std::string fileExtension; /* Extension of the file name */
             std::string fileInfix;
 
-            std::string jsonConfig;
+            std::unique_ptr<AbstractJsonMatcher> jsonMatcher;
 
             WriteSpeciesStrategy strategy = WriteSpeciesStrategy::ADIOS;
 
@@ -126,7 +131,8 @@ namespace picongpu
                 ::openPMD::Datatype datatype,
                 pmacc::math::UInt64<DIM> const& globalDimensions,
                 bool compression,
-                std::string const& compressionMethod);
+                std::string const& compressionMethod,
+                std::string const& datasetName);
         };
     } // namespace openPMD
 } // namespace picongpu

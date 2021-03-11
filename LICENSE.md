@@ -92,3 +92,11 @@ repository should *not* be made in the `thirdParty/` directory but in
    Please visit
      https://github.com/ComputationalRadiationPhysics/cupla
    for further details and contributions.
+
+- `thirdParty/nlohmann_json`:
+   nlohmann_json is a modern C++ library for working with JSON data, developed
+   by Niels Lohmann, published under the MIT License.
+   Please refer to the file `thirdParty/nlohmann_json/LICENSE.MIT` for license
+   information.
+   Please visit https://github.com/nlohmann/json for further details
+   and contributions.

@@ -55,6 +55,7 @@ namespace picongpu
                 ThreadParams* params,
                 FrameType& frame,
                 ::openPMD::Container<::openPMD::Record>& particleSpecies,
+                std::string const& basepath,
                 const size_t elements,
                 const size_t globalElements,
                 const size_t globalOffset)
@@ -66,6 +67,7 @@ namespace picongpu
 
                 OpenPMDName<T_Identifier> openPMDName;
                 ::openPMD::Record record = particleSpecies[openPMDName()];
+                std::string baseName = basepath + "/" + openPMDName();
                 ::openPMD::Datatype openPMDType = ::openPMD::determineDatatype<ComponentType>();
 
                 // get the SI scaling, dimensionality and weighting of the attribute
@@ -92,6 +94,7 @@ namespace picongpu
                 {
                     ::openPMD::RecordComponent recordComponent
                         = components > 1 ? record[name_lookup[d]] : record[::openPMD::MeshRecordComponent::SCALAR];
+                    std::string datasetName = components > 1 ? baseName + "/" + name_lookup[d] : baseName;
 
                     ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer(); // can be moved up?
                     auto storePtr = storeBfr.get();
@@ -108,7 +111,8 @@ namespace picongpu
                         openPMDType,
                         {globalElements},
                         true,
-                        params->compressionMethod);
+                        params->compressionMethod,
+                        datasetName);
                     if(storeBfr)
                         recordComponent.storeChunk(storeBfr, {globalOffset}, {elements});
 

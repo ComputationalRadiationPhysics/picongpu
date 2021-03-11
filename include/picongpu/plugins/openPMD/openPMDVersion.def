@@ -16,6 +16,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
+#pragma once
 
 #include "openPMD/openPMD.hpp"
 
@@ -26,3 +27,49 @@
 // Not available, don't use it
 #    define WRITE_ITERATIONS iterations
 #endif
+
+namespace picongpu
+{
+    namespace openPMD
+    {
+        /*
+         * Do some SFINAE tricks to detect whether the openPMD API has
+         * dataset-specific configuration or not.
+         */
+        namespace detail
+        {
+            // As std::void_t in C++17.
+            template<typename>
+            using void_t = void;
+
+            template<typename = ::openPMD::Dataset, typename = void>
+            struct SetDatasetOptions
+            {
+                static void run(::openPMD::Dataset const&, std::string const& options)
+                {
+                    if(options != "{}")
+                    {
+                        std::cerr
+                            << "[openPMD plugin] Setting dataset-specific JSON options requires openPMD API 0.13.0 "
+                               "or later."
+                            << std::endl;
+                    }
+                }
+            };
+
+            template<typename Dataset>
+            struct SetDatasetOptions<Dataset, void_t<decltype(Dataset::options)>>
+            {
+                static void run(Dataset& ds, std::string options)
+                {
+                    ds.options = std::move(options);
+                }
+            };
+        } // namespace detail
+
+        void setDatasetOptions(::openPMD::Dataset& ds, std::string options)
+        {
+            detail::SetDatasetOptions<>::run(ds, std::move(options));
+        }
+    } // namespace openPMD
+} // namespace picongpu

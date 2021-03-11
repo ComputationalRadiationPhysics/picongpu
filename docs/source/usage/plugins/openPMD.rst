@@ -64,10 +64,31 @@ openPMD backend-specific settings may be controlled via two mechanisms:
   PIConGPU exposes this via the command line option ``--openPMD.json``.
   Please refer to the openPMD API's documentation for further information.
 
+The JSON parameter may be passed directly as a string, or by filename.
+The latter case is distinguished by prepending the filename with an at-sign ``@``.
 Specifying a JSON-formatted string from within a ``.cfg`` file can be tricky due to colliding escape mechanisms.
 An example for a well-escaped JSON string as part of a ``.cfg`` file is found below.
 
 .. literalinclude:: openPMD.cfg
+
+PIConGPU further defines an **extended format for JSON options** that may alternatively used in order to pass dataset-specific configurations.
+For each backend ``<backend>``, the backend-specific dataset configuration found under ``config["<backend>"]["dataset"]`` may take the form of a JSON list of patterns: ``[<pattern_1>, <pattern_2>, …]``.
+
+Each such pattern ``<pattern_i>`` is a JSON object with key ``cfg`` and optional key ``select``: ``{"select": <pattern>, "cfg": <cfg>}``.
+
+In here, ``<pattern>`` is a regex or a list of regexes, as used by POSIX ``grep -E``.
+``<cfg>`` is a configuration that will be forwarded as-is to openPMD.
+
+The single patterns will be processed in top-down manner, selecting the first matching pattern found in the list.
+The regexes will be matched against the openPMD dataset path within the iteration (e.g. ``E/x`` or ``particles/.*/position/.*``), considering full matches only.
+
+The **default configuration** is specified by omitting the ``select`` key.
+Specifying more than one default is an error.
+If no pattern matches a dataset, the default configuration is chosen if specified, or an empty JSON object ``{}`` otherwise.
+
+A full example:
+
+.. literalinclude:: openPMD_extended_config.json
 
 Two data preparation strategies are available for downloading particle data off compute devices.
 

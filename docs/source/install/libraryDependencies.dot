@@ -35,6 +35,19 @@ digraph PIConGPU {
     hdf5 -> adios [style=dashed label="optional"];
     fileSystem -> adios [style=dashed label="extra hints"];
 
+    adios2 [label="ADIOS2"];
+    mpi -> adios2;
+    zlib -> adios2;
+    hdf5 -> adios2 [style=dashed label="optional"];
+    compiler -> libfabric;
+    libfabric -> adios2[style=dashed label="RDMA staging"];
+
+    openpmd [label="openPMD API"];
+    adios2 -> openpmd;
+    hdf5 -> openpmd;
+    nlohmann_json [label="nlohmann_json\n(header-only)\n(internall shipped\nby default)"];
+    nlohmann_json -> openpmd[style=dashed"]
+
     libpng -> PNGwriter;
 
     trace [label="VampirTrace / Score-P"];
