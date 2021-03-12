@@ -48,10 +48,15 @@ int main(int argc, char** argv)
     std::string rule; /* Game of Life Simulation Rules like 23/3 */
 
     po::options_description desc("Allowed options");
-    desc.add_options()("help,h", "produce help message")(
-        "steps,s",
-        po::value<uint32_t>(&steps)->default_value(100),
-        "simulation steps")("rule,r", po::value<std::string>(&rule)->default_value("23/3"), "simulation rule")(
+    desc.add_options()(
+        "help,h",
+        "produce help message")(
+        "steps,s", 
+        po::value<uint32_t>(&steps)->default_value(100), 
+        "simulation steps")(
+        "rule,r",
+        po::value<std::string>(&rule)->default_value("23/3"),
+        "simulation rule as stay_alive/born")(
         "devices,d",
         po::value<std::vector<uint32_t>>(&devices)->multitoken(),
         "number of devices in each dimension (only 1D or 2D). If you use more than "
@@ -108,6 +113,7 @@ int main(int argc, char** argv)
     Space grid(gridSize[0], gridSize[1]);
     Space endless(periodic[0], periodic[1]);
 
+    /* extract stay alive and born rule from rule string */
     uint32_t ruleMask = 0;
     size_t strLen = rule.length();
     size_t gPoint = rule.find('/');
