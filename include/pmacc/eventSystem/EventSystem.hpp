@@ -22,6 +22,7 @@
 #pragma once
 
 #include "pmacc/eventSystem/Manager.hpp"
+#include "pmacc/eventSystem/PerfInfo.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 #include "pmacc/eventSystem/transactions/Transaction.hpp"
 #include "pmacc/eventSystem/transactions/TransactionManager.hpp"

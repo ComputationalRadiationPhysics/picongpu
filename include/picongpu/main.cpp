@@ -24,7 +24,7 @@
 #include <pmacc/Environment.hpp>
 #include <pmacc/types.hpp>
 
-#include <pmacc/eventSystem/Perf.hpp>
+#include <pmacc/eventSystem/PerfInfo.hpp>
 #include <picongpu/simulation_defines.hpp>
 
 #include <cstdlib>
@@ -54,13 +54,13 @@ namespace
             errorCode = EXIT_FAILURE;
             break;
         case ArgsParser::Status::success:
-            { Performance::Timed timer("Load", 1, 1);
+            { pmacc::PerfTimed timer("Load", 0, 0);
               sim.load();
             }
-            { Performance::Timed start("Start", 1, 1);
+            { pmacc::PerfTimed start("Start", 0, 0);
               sim.start();
             }
-            { Performance::Timed timer("Unload", 1, 1);
+            { pmacc::PerfTimed timer("Unload", 0, 0);
               sim.unload();
             }
             PMACC_FALLTHROUGH;
@@ -70,7 +70,7 @@ namespace
         };
 
         // finalize the pmacc context */
-        Performance::Timed timer("Finalize", 1, 1);
+        pmacc::PerfTimed timer("Finalize", 0, 0);
         pmacc::Environment<>::get().finalize();
 
         return errorCode;
@@ -85,11 +85,13 @@ namespace
  */
 int main(int argc, char** argv)
 {
-    Performance::Timers::on();
+    pmacc::PerfInfo& perf = pmacc::Environment<>::get().PerfInfo();
+    perf.on();
+
     try
     {
         auto ret = runSimulation(argc, argv);
-        Performance::Timers::show(std::cout);
+        perf.show(std::cout);
         return ret;
     }
     // A last-ditch effort to report exceptions to a user
@@ -97,13 +99,13 @@ int main(int argc, char** argv)
     {
         auto const typeName = std::string(typeid(ex).name());
         std::cerr << "Unhandled exception of type '" + typeName + "' with message '" + ex.what() + "', terminating\n";
-        Performance::Timers::show(std::cout);
+        perf.show(std::cout);
         return EXIT_FAILURE;
     }
     catch(...)
     {
         std::cerr << "Unhandled exception of unknown type, terminating\n";
-        Performance::Timers::show(std::cout);
+        perf.show(std::cout);
         return EXIT_FAILURE;
     }
 }
