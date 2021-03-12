@@ -37,11 +37,10 @@ namespace picongpu
         {
             /** Forward declaration to avoid mutual including with YeePML.hpp
              *
-             * @tparam T_CurrentInterpolation current interpolation functor
              * @tparam T_CurlE functor to compute curl of E
              * @tparam T_CurlB functor to compute curl of B
              */
-            template<typename T_CurrentInterpolation, typename T_CurlE, typename T_CurlB>
+            template<typename T_CurlE, typename T_CurlB>
             class YeePML;
 
         } // namespace maxwellSolver
@@ -104,12 +103,11 @@ namespace picongpu
                  *
                  * Specialization for PML, works for both YeePML and LehePML
                  *
-                 * @tparam T_CurrentInterpolation current interpolation for YeePML
                  * @tparam T_CurlE curl E for YeePML
                  * @tparam T_CurlB curl B for YeePML
                  */
-                template<typename T_CurrentInterpolation, typename T_CurlE, typename T_CurlB>
-                struct Absorber<maxwellSolver::YeePML<T_CurrentInterpolation, T_CurlE, T_CurlB>>
+                template<typename T_CurlE, typename T_CurlB>
+                struct Absorber<maxwellSolver::YeePML<T_CurlE, T_CurlB>>
                 {
                     //! Number of absorber cells along the min x boundary
                     static constexpr uint32_t xNegativeNumCells = pml::NUM_CELLS[0][0];

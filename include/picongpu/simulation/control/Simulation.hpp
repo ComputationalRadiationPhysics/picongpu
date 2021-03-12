@@ -133,6 +133,7 @@ namespace picongpu
         virtual void pluginRegisterHelp(po::options_description& desc)
         {
             SimulationHelper<simDim>::pluginRegisterHelp(desc);
+            currentInterpolationAndAdditionToEMF.registerHelp(desc);
             desc.add_options()(
                 "versionOnce",
                 po::value<bool>(&showVersionOnce)->zero_tokens(),

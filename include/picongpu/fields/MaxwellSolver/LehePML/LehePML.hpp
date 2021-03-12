@@ -31,13 +31,12 @@ namespace pmacc
 {
     namespace traits
     {
-        template<typename T_CurrentInterpolation, uint32_t T_cherenkovFreeDir>
-        struct StringProperties<::picongpu::fields::maxwellSolver::LehePML<T_CurrentInterpolation, T_cherenkovFreeDir>>
+        template<uint32_t T_cherenkovFreeDir>
+        struct StringProperties<::picongpu::fields::maxwellSolver::LehePML<T_cherenkovFreeDir>>
         {
             static StringProperty get()
             {
-                auto propList = ::picongpu::fields::maxwellSolver::
-                    LehePML<T_CurrentInterpolation, T_cherenkovFreeDir>::getStringProperties();
+                auto propList = ::picongpu::fields::maxwellSolver::LehePML<T_cherenkovFreeDir>::getStringProperties();
                 // overwrite the name of the solver (inherit all other properties)
                 propList["name"].value = "Lehe";
                 return propList;

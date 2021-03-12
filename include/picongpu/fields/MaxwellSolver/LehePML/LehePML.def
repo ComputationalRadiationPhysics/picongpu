@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
 #include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
 #include "picongpu/fields/MaxwellSolver/YeePML/YeePML.def"
 
@@ -41,11 +40,8 @@ namespace picongpu
              * @tparam T_CherenkovFreeDir the direction (axis) which should be free of cherenkov radiation
              *                            0 = x, 1 = y, 2 = z
              */
-            template<
-                typename T_CurrentInterpolation = currentInterpolation::None,
-                uint32_t T_cherenkovFreeDir = lehe::CherenkovFreeDirection_Y>
-            using LehePML
-                = ::picongpu::fields::maxwellSolver::YeePML<T_CurrentInterpolation, lehe::CurlE<T_cherenkovFreeDir>>;
+            template<uint32_t T_cherenkovFreeDir = lehe::CherenkovFreeDirection_Y>
+            using LehePML = ::picongpu::fields::maxwellSolver::YeePML<lehe::CurlE<T_cherenkovFreeDir>>;
 
             /* We need no definition of margins, because the YeePML solver uses its curl
              * classes to define margins

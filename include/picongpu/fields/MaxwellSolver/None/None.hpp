@@ -44,8 +44,8 @@ namespace picongpu
                 {
                 };
 
-                template<typename T_CurrentInterpolation, typename T_Dummy>
-                struct ConditionCheck<None<T_CurrentInterpolation>, T_Dummy>
+                template<typename T_Dummy>
+                struct ConditionCheck<None, T_Dummy>
                 {
                     /* Courant-Friedrichs-Levy-Condition for Yee Field Solver:
                      *
@@ -59,15 +59,13 @@ namespace picongpu
                 };
             } // namespace none
 
-            template<typename T_CurrentInterpolation>
-            class None : private none::ConditionCheck<None<T_CurrentInterpolation>>
+            class None : private none::ConditionCheck<None>
             {
             private:
                 typedef MappingDesc::SuperCellSize SuperCellSize;
 
             public:
                 using CellType = cellType::Yee;
-                using CurrentInterpolation = T_CurrentInterpolation;
 
                 None(MappingDesc)
                 {
