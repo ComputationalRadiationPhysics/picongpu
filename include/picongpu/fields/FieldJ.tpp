@@ -1,5 +1,5 @@
 /* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Richard Pausch, Benjamin Worpitz
+ *                     Richard Pausch, Benjamin Worpitz, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -23,6 +23,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldJ.kernel"
+#include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/fields/currentDeposition/Deposit.hpp"
 #include "picongpu/particles/traits/GetCurrentSolver.hpp"
 #include "picongpu/traits/GetMargin.hpp"
@@ -73,14 +74,11 @@ namespace picongpu
          * additional current interpolations and current filters on FieldJ might
          * spread the dependencies on neighboring cells
          *   -> use max(shape,filter) */
-        using LowerMargin = pmacc::math::CT::
-            max<LowerMarginShapes, GetMargin<typename fields::Solver::CurrentInterpolation>::LowerMargin>::type;
-
-        using UpperMargin = pmacc::math::CT::
-            max<UpperMarginShapes, GetMargin<typename fields::Solver::CurrentInterpolation>::UpperMargin>::type;
-
-        const DataSpace<simDim> originGuard(LowerMargin().toRT());
-        const DataSpace<simDim> endGuard(UpperMargin().toRT());
+        auto const& interpolation = currentInterpolation::CurrentInterpolationInfo::get();
+        auto const interpolationLowerMargin = interpolation.getLowerMargin();
+        auto const interpolationUpperMargin = interpolation.getUpperMargin();
+        auto const originGuard = pmacc::math::max(LowerMarginShapes::toRT(), interpolationLowerMargin);
+        auto const endGuard = pmacc::math::max(UpperMarginShapes::toRT(), interpolationUpperMargin);
 
         /*go over all directions*/
         for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
@@ -109,17 +107,13 @@ namespace picongpu
                     break;
                 };
             }
-            // std::cout << "ex " << i << " x=" << guardingCells[0] << " y=" << guardingCells[1] << " z=" <<
-            // guardingCells[2] << std::endl;
             buffer.addExchangeBuffer(i, guardingCells, FIELD_J);
         }
 
         /* Receive border values in own guard for "receive" communication pattern - necessary for current
          * interpolation/filter */
-        const DataSpace<simDim> originRecvGuard(
-            GetMargin<typename fields::Solver::CurrentInterpolation>::LowerMargin().toRT());
-        const DataSpace<simDim> endRecvGuard(
-            GetMargin<typename fields::Solver::CurrentInterpolation>::UpperMargin().toRT());
+        const DataSpace<simDim> originRecvGuard = interpolationLowerMargin;
+        const DataSpace<simDim> endRecvGuard = interpolationUpperMargin;
         if(originRecvGuard != DataSpace<simDim>::create(0) || endRecvGuard != DataSpace<simDim>::create(0))
         {
             fieldJrecv = std::make_unique<GridBuffer<ValueType, simDim>>(
@@ -250,8 +244,8 @@ namespace picongpu
         deposit.template execute<T_area, numWorkers>(cellDescription, depositionKernel, solver, jBox, pBox);
     }
 
-    template<uint32_t T_area, class T_CurrentInterpolation>
-    void FieldJ::addCurrentToEMF(T_CurrentInterpolation& myCurrentInterpolation)
+    template<uint32_t T_area, class T_CurrentInterpolationFunctor>
+    void FieldJ::addCurrentToEMF(T_CurrentInterpolationFunctor myCurrentInterpolationFunctor)
     {
         DataConnector& dc = Environment<>::get().DataConnector();
         auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
@@ -267,7 +261,7 @@ namespace picongpu
             fieldE->getDeviceDataBox(),
             fieldB->getDeviceDataBox(),
             buffer.getDeviceBuffer().getDataBox(),
-            myCurrentInterpolation,
+            myCurrentInterpolationFunctor,
             mapper);
         dc.releaseData(FieldE::getName());
         dc.releaseData(FieldB::getName());

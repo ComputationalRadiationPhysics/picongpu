@@ -34,7 +34,6 @@ namespace picongpu
             template<uint32_t T_dim>
             struct Binomial;
 
-
             //! Specialization for 3D
             template<>
             struct Binomial<DIM3>

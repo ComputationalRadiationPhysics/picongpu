@@ -24,7 +24,7 @@ namespace picongpu
 {
     namespace currentInterpolation
     {
-        /** 2nd order Binomial filter
+        /** 2nd order Binomial filter functor
          *
          * Smooths the current before assignment in staggered grid.
          * Updates E & breaks local charge conservation slightly.

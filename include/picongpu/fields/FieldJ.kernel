@@ -236,13 +236,13 @@ namespace picongpu
         template<uint32_t T_numWorkers>
         struct KernelAddCurrentToEMF
         {
-            template<typename T_CurrentInterpolation, typename T_Mapping, typename T_Acc>
+            template<typename T_CurrentInterpolationFunctor, typename T_Mapping, typename T_Acc>
             DINLINE void operator()(
                 T_Acc const& acc,
                 typename FieldE::DataBoxType fieldE,
                 typename FieldB::DataBoxType fieldB,
                 typename FieldJ::DataBoxType fieldJ,
-                T_CurrentInterpolation currentInterpolation,
+                T_CurrentInterpolationFunctor currentInterpolationFunctor,
                 T_Mapping mapper) const
             {
                 using namespace mappings::threads;
@@ -250,8 +250,8 @@ namespace picongpu
                 /* Caching of fieldJ */
                 typedef SuperCellDescription<
                     SuperCellSize,
-                    typename T_CurrentInterpolation::LowerMargin,
-                    typename T_CurrentInterpolation::UpperMargin>
+                    typename T_CurrentInterpolationFunctor::LowerMargin,
+                    typename T_CurrentInterpolationFunctor::UpperMargin>
                     BlockArea;
 
                 constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
@@ -285,7 +285,7 @@ namespace picongpu
                         //   Change of the dE = - j / EPS0 * dt
                         //                        j = current density (= current per area)
                         //                          = fieldJ
-                        currentInterpolation(fieldE.shift(cell), fieldB.shift(cell), cachedJ.shift(cellIdx));
+                        currentInterpolationFunctor(fieldE.shift(cell), fieldB.shift(cell), cachedJ.shift(cellIdx));
                     });
             }
         };
