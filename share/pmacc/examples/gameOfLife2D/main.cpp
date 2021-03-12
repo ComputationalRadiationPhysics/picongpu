@@ -50,10 +50,7 @@ int main(int argc, char** argv)
     po::options_description desc("Allowed options");
     desc.add_options()(
         "help,h",
-        "produce help message")(
-        "steps,s", 
-        po::value<uint32_t>(&steps)->default_value(100), 
-        "simulation steps")(
+        "produce help message")("steps,s", po::value<uint32_t>(&steps)->default_value(100), "simulation steps")(
         "rule,r",
         po::value<std::string>(&rule)->default_value("23/3"),
         "simulation rule as stay_alive/born")(
@@ -124,17 +121,21 @@ int main(int argc, char** argv)
     for(unsigned int i = 0; i < newBornIf.length(); ++i)
     {
         std::stringstream ss; /* used for converting const char* "123" to int 123 */
-        ss << newBornIf[i];
+        ss << newBornIf[i]; /* extract every integer separately */
         int shift;
         ss >> shift;
+        /* ruleMask has 32 bits - bit 10 to 18 are reserved for born encoding
+           10th bit: born if 1 neighbor exists, 11th bit: born if 2 neighbors exist, ... */
         ruleMask = ruleMask | 1 << (shift + 9);
     }
     for(unsigned int i = 0; i < stayAliveIf.length(); ++i)
     {
         std::stringstream ss;
-        ss << stayAliveIf[i];
+        ss << stayAliveIf[i]; /* extract every integer separately */
         int shift;
         ss >> shift;
+        /* ruleMask has 32 bits - bit 1 to 9 are reserved for stay alive encoding
+           1st bit: stay alive if 1 neighbor exists, 2nd bit: stay alive if 2 neighbors exist, ... */
         ruleMask = ruleMask | 1 << (shift);
     }
     std::cout << "newborn if=" << newBornIf << " stay alive if=" << stayAliveIf << " mask=" << ruleMask << std::endl;
