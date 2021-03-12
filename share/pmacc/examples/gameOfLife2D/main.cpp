@@ -87,7 +87,8 @@ int main(int argc, char** argv)
     /* check on correct number of devices. fill with default value 1 for missing dimensions */
     if(devices.size() > DIM2)
     {
-        std::cerr << "Invalid number of devices.\nuse [-d dx=1 dy=1 dz=1]" << std::endl;
+        std::cerr << "Invalid number of devices." << std::endl;
+        std::cerr << "use [-d dx dy] with dx, dy being number of devices in each dimension" << std::endl;
     }
     else
         while(devices.size() < DIM2)
