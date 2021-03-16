@@ -36,11 +36,13 @@
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/fields/operations/CopyGuardToExchange.hpp>
 #include <pmacc/fields/operations/AddExchangeToBorder.hpp>
+#include <pmacc/traits/GetUniqueTypeId.hpp>
 #include <pmacc/traits/Resolve.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 
 #include <boost/mpl/accumulate.hpp>
 
+#include <cstdint>
 #include <iostream>
 #include <memory>
 
@@ -107,7 +109,10 @@ namespace picongpu
                     break;
                 };
             }
-            buffer.addExchangeBuffer(i, guardingCells, FIELD_J);
+            // Type to generate a unique send tag from
+            struct SendTag;
+            auto const sendCommTag = pmacc::traits::GetUniqueTypeId<SendTag, uint32_t>::uid();
+            buffer.addExchangeBuffer(i, guardingCells, sendCommTag);
         }
 
         /* Receive border values in own guard for "receive" communication pattern - necessary for current
@@ -131,7 +136,10 @@ namespace picongpu
                 DataSpace<simDim> guardingCells;
                 for(uint32_t d = 0; d < simDim; ++d)
                     guardingCells[d] = (relativMask[d] == -1 ? originRecvGuard[d] : endRecvGuard[d]);
-                fieldJrecv->addExchange(GUARD, i, guardingCells, FIELD_JRECV);
+                // Type to generate a unique receive tag from
+                struct RecvTag;
+                auto const recvCommTag = pmacc::traits::GetUniqueTypeId<RecvTag, uint32_t>::uid();
+                fieldJrecv->addExchange(GUARD, i, guardingCells, recvCommTag);
             }
         }
     }

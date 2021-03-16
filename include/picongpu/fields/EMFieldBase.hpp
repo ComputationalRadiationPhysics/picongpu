@@ -78,12 +78,14 @@ namespace picongpu
              *
              * @param cellDescription mapping for kernels
              * @param id unique id
-             * @param tag helper parameter for T_tag deduction
+             * @param commTag MPI communication tag
+             * @param tag helper parameter for T_tag deduction (not for MPI, but for field traits)
              */
             template<CommunicationTag T_tag>
             HINLINE EMFieldBase(
                 MappingDesc const& cellDescription,
                 pmacc::SimulationDataId const& id,
+                uint32_t commTag,
                 std::integral_constant<CommunicationTag, T_tag> tag);
 
             //! Get a reference to the host-device buffer for the field values
