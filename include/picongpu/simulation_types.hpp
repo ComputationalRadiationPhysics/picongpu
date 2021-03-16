@@ -46,16 +46,6 @@ namespace picongpu
         SPECIES_FIRSTTAG = 42u
     };
 
-
-    //! defines field types some various methods (e.g. Laser::manipulate)
-
-    enum FieldType
-    {
-        FIELD_TYPE_E,
-        FIELD_TYPE_B,
-        FIELD_TYPE_TMP
-    };
-
     namespace precision32Bit
     {
         using precisionType = float;
