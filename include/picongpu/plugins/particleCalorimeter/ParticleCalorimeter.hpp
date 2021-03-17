@@ -49,10 +49,12 @@
 #include <boost/mpl/and.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <memory>
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
+#include <vector>
 
 
 namespace picongpu
@@ -372,21 +374,55 @@ namespace picongpu
             filename << this->foldername << "/" << filenamePrefix << "_%T." << filenameExtension;
             ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
 
-            auto offset = this->numBinsEnergy == 1 ? ::openPMD::Offset{0, 0} : ::openPMD::Offset{0, 0, 0};
-            auto extent = this->numBinsEnergy == 1
-                ? ::openPMD::Extent{this->hBufTotalCalorimeter->size().y(), this->hBufTotalCalorimeter->size().x()}
-                : ::openPMD::Extent{
-                    this->hBufTotalCalorimeter->size().z(),
-                    this->hBufTotalCalorimeter->size().y(),
-                    this->hBufTotalCalorimeter->size().x()};
+            auto twoDimensional = [this](auto vector) -> decltype(vector) {
+                if(this->numBinsEnergy == 1)
+                {
+                    vector.erase(vector.begin());
+                }
+                return vector;
+            };
 
-            auto calorimeter
-                = series.iterations[currentStep].meshes["calorimeter"][::openPMD::RecordComponent::SCALAR];
+            auto offset = twoDimensional(::openPMD::Offset{0, 0, 0});
+
+            auto extent = twoDimensional(::openPMD::Extent{
+                this->hBufTotalCalorimeter->size().z(),
+                this->hBufTotalCalorimeter->size().y(),
+                this->hBufTotalCalorimeter->size().x()});
+
+            auto mesh = series.iterations[currentStep].meshes["calorimeter"];
+            auto calorimeter = mesh[::openPMD::RecordComponent::SCALAR];
             calorimeter.resetDataset({::openPMD::determineDatatype<float_X>(), extent});
             calorimeter.storeChunk(
                 std::shared_ptr<float_X>{&(*this->hBufTotalCalorimeter->origin()), [](auto const*) {}},
                 std::move(offset),
                 std::move(extent));
+
+            // Write attributes
+
+            constexpr float_64 unitSI = particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * UNIT_ENERGY;
+            calorimeter.setAttribute<float_X>("maxPitch[deg]", maxPitch_deg);
+            calorimeter.setAttribute<float_X>("maxYaw[deg]", maxYaw_deg);
+            calorimeter.setAttribute<float_64>("posPitch[deg]", posPitch_deg);
+            calorimeter.setAttribute<float_64>("posYaw[deg]", posYaw_deg);
+            calorimeter.setPosition(twoDimensional(std::vector<double>{0.5, 0.5, 0.5}));
+            calorimeter.setUnitSI(unitSI);
+            mesh.setAxisLabels(twoDimensional(std::vector<std::string>{"z", "y", "x"}));
+            mesh.setGridGlobalOffset(twoDimensional(std::vector<double>{0., 0., 0.})); // @todo
+            mesh.setGridSpacing(twoDimensional(std::vector<double>{1., 1., 1.})); // @todo
+            mesh.setGridUnitSI(1.); // @todo
+            mesh.setUnitDimension({/* @todo */});
+
+            if(this->numBinsEnergy > 1)
+            {
+                const float_64 minEnergy_SI = this->minEnergy * UNIT_ENERGY;
+                const float_64 maxEnergy_SI = this->maxEnergy * UNIT_ENERGY;
+                const float_64 minEnergy_keV = minEnergy_SI * UNITCONV_Joule_to_keV;
+                const float_64 maxEnergy_keV = maxEnergy_SI * UNITCONV_Joule_to_keV;
+
+                calorimeter.setAttribute<float_64>("minEnergy[keV]", minEnergy_keV);
+                calorimeter.setAttribute<float_64>("maxEnergy[keV]", maxEnergy_keV);
+                calorimeter.setAttribute<bool>("logScale", this->logScale);
+            }
 
             series.iterations[currentStep].close();
         }
