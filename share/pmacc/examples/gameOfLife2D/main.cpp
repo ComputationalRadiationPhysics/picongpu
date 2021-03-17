@@ -48,10 +48,12 @@ int main(int argc, char** argv)
     std::string rule; /* Game of Life Simulation Rules like 23/3 */
 
     po::options_description desc("Allowed options");
-    desc.add_options()("help,h", "produce help message")(
-        "steps,s",
-        po::value<uint32_t>(&steps)->default_value(100),
-        "simulation steps")("rule,r", po::value<std::string>(&rule)->default_value("23/3"), "simulation rule")(
+    desc.add_options()(
+        "help,h",
+        "produce help message")("steps,s", po::value<uint32_t>(&steps)->default_value(100), "simulation steps")(
+        "rule,r",
+        po::value<std::string>(&rule)->default_value("23/3"),
+        "simulation rule as stay_alive/born")(
         "devices,d",
         po::value<std::vector<uint32_t>>(&devices)->multitoken(),
         "number of devices in each dimension (only 1D or 2D). If you use more than "
@@ -87,7 +89,8 @@ int main(int argc, char** argv)
     /* check on correct number of devices. fill with default value 1 for missing dimensions */
     if(devices.size() > DIM2)
     {
-        std::cerr << "Invalid number of devices.\nuse [-d dx=1 dy=1 dz=1]" << std::endl;
+        std::cerr << "Invalid number of devices." << std::endl;
+        std::cerr << "use [-d dx dy] with dx, dy being number of devices in each dimension" << std::endl;
     }
     else
         while(devices.size() < DIM2)
@@ -96,7 +99,7 @@ int main(int argc, char** argv)
     /* check on correct grid size. fill with default grid size value 1 for missing 3. dimension */
     if(gridSize.size() != DIM2)
     {
-        std::cerr << "Invalid or missing grid size.\nuse -g width height [depth=1]" << std::endl;
+        std::cerr << "Invalid or missing grid size.\nuse -g width height" << std::endl;
         MPI_CHECK(MPI_Finalize());
         return 0;
     }
@@ -107,6 +110,7 @@ int main(int argc, char** argv)
     Space grid(gridSize[0], gridSize[1]);
     Space endless(periodic[0], periodic[1]);
 
+    /* extract stay alive and born rule from rule string */
     uint32_t ruleMask = 0;
     size_t strLen = rule.length();
     size_t gPoint = rule.find('/');
@@ -117,17 +121,21 @@ int main(int argc, char** argv)
     for(unsigned int i = 0; i < newBornIf.length(); ++i)
     {
         std::stringstream ss; /* used for converting const char* "123" to int 123 */
-        ss << newBornIf[i];
+        ss << newBornIf[i]; /* extract every integer separately */
         int shift;
         ss >> shift;
+        /* ruleMask has 32 bits - bit 10 to 18 are reserved for born encoding
+           10th bit: born if 1 neighbor exists, 11th bit: born if 2 neighbors exist, ... */
         ruleMask = ruleMask | 1 << (shift + 9);
     }
     for(unsigned int i = 0; i < stayAliveIf.length(); ++i)
     {
         std::stringstream ss;
-        ss << stayAliveIf[i];
+        ss << stayAliveIf[i]; /* extract every integer separately */
         int shift;
         ss >> shift;
+        /* ruleMask has 32 bits - bit 1 to 9 are reserved for stay alive encoding
+           1st bit: stay alive if 1 neighbor exists, 2nd bit: stay alive if 2 neighbors exist, ... */
         ruleMask = ruleMask | 1 << (shift);
     }
     std::cout << "newborn if=" << newBornIf << " stay alive if=" << stayAliveIf << " mask=" << ruleMask << std::endl;
