@@ -32,9 +32,8 @@ namespace pmacc
 {
     namespace traits
     {
-        template<uint32_t T_neighbors, typename T_CurrentInterpolation>
-        struct StringProperties<
-            ::picongpu::fields::maxwellSolver::ArbitraryOrderFDTD<T_neighbors, T_CurrentInterpolation>>
+        template<uint32_t T_neighbors>
+        struct StringProperties<::picongpu::fields::maxwellSolver::ArbitraryOrderFDTD<T_neighbors>>
         {
             static StringProperty get()
             {

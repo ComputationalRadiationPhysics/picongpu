@@ -30,9 +30,9 @@
 #   - increase by 1, no gaps
 
 # Yee solver is tested in the example FieldAbsorberTest
-flags[0]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=LehePML;-DPARAM_PRECISION=precision64Bit'"
-flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=LehePML;-DPARAM_DIMENSION=DIM2'"
-flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Lehe;-DPARAM_DIMENSION=DIM2'"
+flags[0]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=LehePML<>;-DPARAM_PRECISION=precision64Bit'"
+flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=LehePML<>;-DPARAM_DIMENSION=DIM2'"
+flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_FIELDSOLVER=Lehe<>;-DPARAM_DIMENSION=DIM2'"
 
 
 ################################################################################

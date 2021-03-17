@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/ArbitraryOrderFDTD.def"
 #include "picongpu/fields/MaxwellSolver/YeePML/YeePML.def"
 
@@ -48,9 +47,9 @@ namespace picongpu
              *                     Same number of neighbors is used along all directions.
              *                     Order of derivative approximation is 2 * T_neighbors.
              */
-            template<uint32_t T_neighbors, typename T_CurrentInterpolation = currentInterpolation::None>
-            using ArbitraryOrderFDTDPML = ::picongpu::fields::maxwellSolver::
-                YeePML<T_CurrentInterpolation, aoFDTD::CurlE<T_neighbors>, aoFDTD::CurlB<T_neighbors>>;
+            template<uint32_t T_neighbors>
+            using ArbitraryOrderFDTDPML
+                = ::picongpu::fields::maxwellSolver::YeePML<aoFDTD::CurlE<T_neighbors>, aoFDTD::CurlB<T_neighbors>>;
 
         } // namespace maxwellSolver
     } // namespace fields

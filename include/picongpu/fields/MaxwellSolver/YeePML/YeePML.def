@@ -21,7 +21,6 @@
 #pragma once
 
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
-#include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
 
 
 namespace picongpu
@@ -30,10 +29,7 @@ namespace picongpu
     {
         namespace maxwellSolver
         {
-            template<
-                typename T_CurrentInterpolation = currentInterpolation::None,
-                typename T_CurlE = yee::CurlRight,
-                typename T_CurlB = yee::CurlLeft>
+            template<typename T_CurlE = yee::CurlRight, typename T_CurlB = yee::CurlLeft>
             class YeePML;
 
         } // namespace maxwellSolver
@@ -41,15 +37,15 @@ namespace picongpu
 
     namespace traits
     {
-        template<typename T_CurrentInterpolation, typename T_CurlE, typename T_CurlB>
-        struct GetMargin<picongpu::fields::maxwellSolver::YeePML<T_CurrentInterpolation, T_CurlE, T_CurlB>, FIELD_B>
-            : public GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurrentInterpolation, T_CurlE, T_CurlB>, FIELD_B>
+        template<typename T_CurlE, typename T_CurlB>
+        struct GetMargin<picongpu::fields::maxwellSolver::YeePML<T_CurlE, T_CurlB>, FIELD_B>
+            : public GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurlE, T_CurlB>, FIELD_B>
         {
         };
 
-        template<typename T_CurrentInterpolation, typename T_CurlE, typename T_CurlB>
-        struct GetMargin<picongpu::fields::maxwellSolver::YeePML<T_CurrentInterpolation, T_CurlE, T_CurlB>, FIELD_E>
-            : public GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurrentInterpolation, T_CurlE, T_CurlB>, FIELD_E>
+        template<typename T_CurlE, typename T_CurlB>
+        struct GetMargin<picongpu::fields::maxwellSolver::YeePML<T_CurlE, T_CurlB>, FIELD_E>
+            : public GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurlE, T_CurlB>, FIELD_E>
         {
         };
 

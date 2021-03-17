@@ -74,7 +74,7 @@ namespace picongpu
          * additional current interpolations and current filters on FieldJ might
          * spread the dependencies on neighboring cells
          *   -> use max(shape,filter) */
-        auto const& interpolation = currentInterpolation::CurrentInterpolationInfo::get();
+        auto const& interpolation = fields::currentInterpolation::CurrentInterpolation::get();
         auto const interpolationLowerMargin = interpolation.getLowerMargin();
         auto const interpolationUpperMargin = interpolation.getUpperMargin();
         auto const originGuard = pmacc::math::max(LowerMarginShapes::toRT(), interpolationLowerMargin);
