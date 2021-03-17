@@ -65,15 +65,15 @@ namespace picongpu
                     /** Create an object to apply the background
                      *
                      * @param cellDescription mapping for kernels
-                     * @param TODO
+                     * @param useDuplicateField flag to store duplicate of the field
                      */
-                    ApplyFieldBackground(MappingDesc const cellDescription, bool const duplicateField)
+                    ApplyFieldBackground(MappingDesc const cellDescription, bool const useDuplicateField)
                         : cellDescription(cellDescription)
-                        , duplicateField(duplicateField)
+                        , useDuplicateField(useDuplicateField)
                         , restoreFromDuplicateField(false)
                         , isEnabled(FieldBackground::InfluenceParticlePusher)
                     {
-                        if(isEnabled && duplicateField)
+                        if(isEnabled && useDuplicateField)
                         {
                             // Allocate a duplicate field buffer and copy the values
                             DataConnector& dc = Environment<>::get().DataConnector();
@@ -95,7 +95,7 @@ namespace picongpu
                         DataConnector& dc = Environment<>::get().DataConnector();
                         auto& field = *dc.get<Field>(Field::getName(), true);
                         // Always add to the field, conditionally make a copy of the old values first
-                        if(duplicateField)
+                        if(useDuplicateField)
                         {
                             auto& gridBuffer = field.getGridBuffer();
                             duplicateBuffer->copyFrom(gridBuffer.getDeviceBuffer());
@@ -116,7 +116,7 @@ namespace picongpu
                         DataConnector& dc = Environment<>::get().DataConnector();
                         auto& field = *dc.get<Field>(Field::getName(), true);
                         /* Either restore from the pre-made copy or subtract.
-                         * Note that here it is not sufficient to check for duplicateField as it
+                         * Note that here it is not sufficient to check for useDuplicateField as it
                          * is not necessarily up-to-date, e.g. right after loading from a checkpoint.
                          */
                         if(restoreFromDuplicateField)
@@ -135,7 +135,7 @@ namespace picongpu
                     bool isEnabled;
 
                     //! Flag to store duplicate of field when the background is enabled
-                    bool duplicateField;
+                    bool useDuplicateField;
 
                     //! Flag to restore from the duplicate field: true if it is enabled and up-to-date
                     bool restoreFromDuplicateField;
@@ -143,7 +143,7 @@ namespace picongpu
                     //! Buffer type to store duplicated values
                     using DeviceBuffer = typename Field::Buffer::DBuffer;
 
-                    //! Buffer to store duplicated values, only used when duplicateField is true
+                    //! Buffer to store duplicated values, only used when useDuplicateField is true
                     std::unique_ptr<DeviceBuffer> duplicateBuffer;
 
                     //! Mapping for kernels
