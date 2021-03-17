@@ -207,7 +207,7 @@ namespace picongpu
             ,
             plugins::xrayScattering::XrayScattering<bmpl::_1>
 #endif
-#if(ENABLE_HDF5 == 1)
+#if(ENABLE_HDF5 * ENABLE_OPENPMD == 1)
             ,
             plugins::radiation::Radiation<bmpl::_1>,
             plugins::multi::Master<ParticleCalorimeter<bmpl::_1>>

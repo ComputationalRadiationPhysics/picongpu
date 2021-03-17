@@ -43,6 +43,7 @@
 #include <pmacc/traits/HasIdentifiers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 
+#include <openPMD/openPMD.hpp>
 #include <splash/splash.h>
 #include <boost/filesystem.hpp>
 #include <boost/mpl/and.hpp>
@@ -365,6 +366,31 @@ namespace picongpu
             hdf5DataFile.close();
         }
 
+        void writeToOpenPMDFile(uint32_t currentStep)
+        {
+            std::stringstream filename;
+            filename << this->foldername << "/" << filenamePrefix << "_%T." << filenameExtension;
+            ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
+
+            auto offset = this->numBinsEnergy == 1 ? ::openPMD::Offset{0, 0} : ::openPMD::Offset{0, 0, 0};
+            auto extent = this->numBinsEnergy == 1
+                ? ::openPMD::Extent{this->hBufTotalCalorimeter->size().y(), this->hBufTotalCalorimeter->size().x()}
+                : ::openPMD::Extent{
+                    this->hBufTotalCalorimeter->size().z(),
+                    this->hBufTotalCalorimeter->size().y(),
+                    this->hBufTotalCalorimeter->size().x()};
+
+            auto calorimeter
+                = series.iterations[currentStep].meshes["calorimeter"][::openPMD::RecordComponent::SCALAR];
+            calorimeter.resetDataset({::openPMD::determineDatatype<float_X>(), extent});
+            calorimeter.storeChunk(
+                std::shared_ptr<float_X>{&(*this->hBufTotalCalorimeter->origin()), [](auto const*) {}},
+                std::move(offset),
+                std::move(extent));
+
+            series.iterations[currentStep].close();
+        }
+
     public:
         struct Help : public plugins::multi::IHelp
         {
@@ -388,6 +414,7 @@ namespace picongpu
             plugins::multi::Option<std::string> notifyPeriod = {"period", "enable plugin [for each n-th step]"};
             plugins::multi::Option<std::string> fileName = {"file", "output filename (prefix)"};
             plugins::multi::Option<std::string> filter = {"filter", "particle filter: "};
+            plugins::multi::Option<std::string> extension = {"ext", "openPMD filename extension", "h5"};
             plugins::multi::Option<uint32_t> numBinsYaw = {"numBinsYaw", "number of bins for angle yaw.", 64};
             plugins::multi::Option<uint32_t> numBinsPitch = {"numBinsPitch", "number of bins for angle pitch.", 64};
             plugins::multi::Option<uint32_t> numBinsEnergy
@@ -420,6 +447,7 @@ namespace picongpu
 
                 notifyPeriod.registerHelp(desc, masterPrefix + prefix);
                 fileName.registerHelp(desc, masterPrefix + prefix);
+                extension.registerHelp(desc, masterPrefix + prefix);
                 filter.registerHelp(desc, masterPrefix + prefix, std::string("[") + concatenatedFilterNames + "]");
                 numBinsYaw.registerHelp(desc, masterPrefix + prefix);
                 numBinsPitch.registerHelp(desc, masterPrefix + prefix);
@@ -508,6 +536,7 @@ namespace picongpu
             foldername = m_help->getOptionPrefix() + "/" + m_help->filter.get(m_id);
             filenamePrefix
                 = m_help->getOptionPrefix() + "_" + m_help->fileName.get(m_id) + "_" + m_help->filter.get(m_id);
+            filenameExtension = m_help->extension.get(m_id);
             numBinsYaw = m_help->numBinsYaw.get(m_id);
             numBinsPitch = m_help->numBinsPitch.get(m_id);
             numBinsEnergy = m_help->numBinsEnergy.get(m_id);
@@ -576,6 +605,7 @@ namespace picongpu
                 return;
 
             this->writeToHDF5File(currentStep);
+            this->writeToOpenPMDFile(currentStep);
         }
 
         void onParticleLeave(const std::string& speciesName, int32_t direction)
@@ -618,6 +648,7 @@ namespace picongpu
         size_t m_id;
         std::string foldername;
         std::string filenamePrefix;
+        std::string filenameExtension;
         MappingDesc* m_cellDescription;
         std::ofstream outFile;
         const std::string leftParticlesDatasetName;
