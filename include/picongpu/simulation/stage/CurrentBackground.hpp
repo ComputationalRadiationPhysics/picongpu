@@ -58,17 +58,15 @@ namespace picongpu
                  */
                 void operator()(uint32_t const step) const
                 {
+                    if(!FieldBackgroundJ::activated)
+                        return;
+
                     using namespace pmacc;
                     DataConnector& dc = Environment<>::get().DataConnector();
                     auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
                     using CurrentBackground = cellwiseOperation::CellwiseOperation<type::CORE + type::BORDER>;
                     CurrentBackground currentBackground(cellDescription);
-                    currentBackground(
-                        &fieldJ,
-                        nvidia::functors::Add(),
-                        FieldBackgroundJ(fieldJ.getUnit()),
-                        step,
-                        FieldBackgroundJ::activated);
+                    currentBackground(&fieldJ, nvidia::functors::Add(), FieldBackgroundJ(fieldJ.getUnit()), step);
                     dc.releaseData(FieldJ::getName());
                 }
 
