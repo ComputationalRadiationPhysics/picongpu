@@ -39,6 +39,7 @@
 
 #include <boost/mpl/accumulate.hpp>
 
+#include <cstdint>
 #include <memory>
 #include <type_traits>
 
@@ -51,6 +52,7 @@ namespace picongpu
         EMFieldBase::EMFieldBase(
             MappingDesc const& cellDescription,
             pmacc::SimulationDataId const& id,
+            uint32_t const commTag,
             std::integral_constant<CommunicationTag, T_tag>)
             : SimulationFieldHelper<MappingDesc>(cellDescription)
             , id(id)
@@ -106,7 +108,7 @@ namespace picongpu
                 DataSpace<simDim> guardingCells;
                 for(uint32_t d = 0; d < simDim; ++d)
                     guardingCells[d] = (relativeMask[d] == -1 ? originGuard[d] : endGuard[d]);
-                buffer->addExchange(GUARD, i, guardingCells, T_tag);
+                buffer->addExchange(GUARD, i, guardingCells, commTag);
             }
         }
 

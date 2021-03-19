@@ -34,16 +34,14 @@
 
 namespace picongpu
 {
-    //! define all elements which can send and resive
-
+    /** Legacy communication tags
+     *
+     * Now only used for some field traits, to be removed soon
+     */
     enum CommunicationTag
     {
-        NO_COMMUNICATION = 0u,
         FIELD_B = 1u,
-        FIELD_E = 2u,
-        FIELD_J = 3u,
-        FIELD_JRECV = 4u,
-        SPECIES_FIRSTTAG = 42u
+        FIELD_E = 2u
     };
 
     namespace precision32Bit

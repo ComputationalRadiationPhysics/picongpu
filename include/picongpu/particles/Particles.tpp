@@ -196,7 +196,7 @@ namespace picongpu
     {
         size_t sizeOfExchanges = 0u;
 
-        const uint32_t commTag = pmacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() + SPECIES_FIRSTTAG;
+        const uint32_t commTag = pmacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid();
         log<picLog::MEMORY>("communication tag for species %1%: %2%") % FrameType::getName() % commTag;
 
         auto const numExchanges = NumberOfExchanges<simDim>::value;

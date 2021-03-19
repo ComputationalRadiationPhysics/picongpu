@@ -47,6 +47,7 @@
 #include <boost/mpl/pair.hpp>
 #include "pmacc/particles/ParticleDescription.hpp"
 #include "pmacc/particles/memory/dataTypes/ListPointer.hpp"
+#include "pmacc/traits/GetUniqueTypeId.hpp"
 
 #include <memory>
 
@@ -196,12 +197,15 @@ namespace pmacc
             framesExchanges
                 ->addExchangeBuffer(receive, DataSpace<DIM1>(numFrameTypeBorders), communicationTag, true, false);
 
-            exchangeMemoryIndexer->addExchangeBuffer(
-                receive,
-                DataSpace<DIM1>(numFrameTypeBorders),
-                communicationTag | (1u << (20 - 5)),
-                true,
-                false);
+            /* Generate a new tag from this type
+             *
+             * The tag is the same each time this method is called (per instantiation of this template).
+             * Here it is fine, as there is the only instance object, and
+             * exchangeMemoryIndexer->addExchangeBuffer() requires the same tag on each call
+             */
+            auto const newTag = traits::GetUniqueTypeId<ParticlesBuffer, uint32_t>::uid();
+            exchangeMemoryIndexer
+                ->addExchangeBuffer(receive, DataSpace<DIM1>(numFrameTypeBorders), newTag, true, false);
         }
 
         /**
