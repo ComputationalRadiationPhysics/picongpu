@@ -25,8 +25,6 @@
 #include "picongpu/simulation_types.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
 
-#include <pmacc/traits/GetUniqueTypeId.hpp>
-
 #include <string>
 #include <vector>
 #include <type_traits>
@@ -34,12 +32,7 @@
 
 namespace picongpu
 {
-    FieldE::FieldE(MappingDesc const& cellDescription)
-        : fields::EMFieldBase(
-            cellDescription,
-            getName(),
-            pmacc::traits::GetUniqueTypeId<FieldE>::uid(),
-            std::integral_constant<CommunicationTag, FIELD_E>{})
+    FieldE::FieldE(MappingDesc const& cellDescription) : fields::EMFieldBase<FieldE>(cellDescription, getName())
     {
     }
 

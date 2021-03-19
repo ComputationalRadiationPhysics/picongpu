@@ -34,20 +34,4 @@ namespace picongpu
 
         } // namespace maxwellSolver
     } // namespace fields
-
-    namespace traits
-    {
-        template<typename T_CurlE, typename T_CurlB>
-        struct GetMargin<picongpu::fields::maxwellSolver::YeePML<T_CurlE, T_CurlB>, FIELD_B>
-            : public GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurlE, T_CurlB>, FIELD_B>
-        {
-        };
-
-        template<typename T_CurlE, typename T_CurlB>
-        struct GetMargin<picongpu::fields::maxwellSolver::YeePML<T_CurlE, T_CurlB>, FIELD_E>
-            : public GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurlE, T_CurlB>, FIELD_E>
-        {
-        };
-
-    } // namespace traits
 } // namespace picongpu

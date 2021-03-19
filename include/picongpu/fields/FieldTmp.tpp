@@ -92,8 +92,8 @@ namespace picongpu
         typedef pmacc::math::CT::max<SpeciesLowerMargin, FieldTmpLowerMargin>::type SpeciesFieldTmpLowerMargin;
 
         typedef pmacc::math::CT::max<
-            GetMargin<fields::Solver, FIELD_B>::LowerMargin,
-            GetMargin<fields::Solver, FIELD_E>::LowerMargin>::type FieldSolverLowerMargin;
+            GetMargin<fields::Solver, FieldB>::LowerMargin,
+            GetMargin<fields::Solver, FieldE>::LowerMargin>::type FieldSolverLowerMargin;
 
         typedef pmacc::math::CT::max<SpeciesFieldTmpLowerMargin, FieldSolverLowerMargin>::type LowerMargin;
 
@@ -113,8 +113,8 @@ namespace picongpu
         typedef pmacc::math::CT::max<SpeciesUpperMargin, FieldTmpUpperMargin>::type SpeciesFieldTmpUpperMargin;
 
         typedef pmacc::math::CT::max<
-            GetMargin<fields::Solver, FIELD_B>::UpperMargin,
-            GetMargin<fields::Solver, FIELD_E>::UpperMargin>::type FieldSolverUpperMargin;
+            GetMargin<fields::Solver, FieldB>::UpperMargin,
+            GetMargin<fields::Solver, FieldE>::UpperMargin>::type FieldSolverUpperMargin;
 
         typedef pmacc::math::CT::max<SpeciesFieldTmpUpperMargin, FieldSolverUpperMargin>::type UpperMargin;
 

@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.def"
 #include "picongpu/fields/cellType/Yee.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/types.hpp>
 
@@ -88,4 +89,19 @@ namespace picongpu
 
         } // namespace maxwellSolver
     } // namespace fields
+
+    namespace traits
+    {
+        /** Get margin for any field access in the None solver
+         *
+         * @tparam T_Field field type
+         */
+        template<typename T_Field>
+        struct GetMargin<picongpu::fields::maxwellSolver::None, T_Field>
+        {
+            using LowerMargin = typename pmacc::math::CT::make_Int<simDim, 0>::type;
+            using UpperMargin = LowerMargin;
+        };
+    } // namespace traits
+
 } // namespace picongpu
