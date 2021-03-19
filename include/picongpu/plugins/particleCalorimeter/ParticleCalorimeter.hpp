@@ -22,6 +22,8 @@
 #include "ParticleCalorimeter.kernel"
 #include "ParticleCalorimeterFunctors.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/common/openPMDAttributes.hpp"
+#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
 #include "picongpu/plugins/misc/misc.hpp"
 #include "picongpu/plugins/multi/multi.hpp"
 #include "picongpu/traits/PICToSplash.hpp"
@@ -48,9 +50,11 @@
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
+#include <vector>
 
-#include <splash/splash.h>
+#include <openPMD/openPMD.hpp>
 #include <stdlib.h>
 
 
@@ -100,6 +104,79 @@ namespace picongpu
         typedef boost::shared_ptr<pmacc::algorithm::mpi::Reduce<simDim>> AllGPU_reduce;
         AllGPU_reduce allGPU_reduce;
 
+        template<typename T>
+        std::vector<T> twoDimensional(std::vector<T> vector)
+        {
+            if(this->numBinsEnergy == 1)
+            {
+                vector.erase(vector.begin());
+            }
+            return vector;
+        };
+
+        void writeMeta(
+            ::openPMD::Series& series,
+            ::openPMD::Mesh& mesh,
+            ::openPMD::MeshRecordComponent& dataset,
+            uint32_t currentStep)
+        {
+            dataset.setAttribute<float_X>("maxPitch[deg]", maxPitch_deg);
+            dataset.setAttribute<float_X>("maxYaw[deg]", maxYaw_deg);
+            dataset.setAttribute<float_64>("posPitch[deg]", posPitch_deg);
+            dataset.setAttribute<float_64>("posYaw[deg]", posYaw_deg);
+
+            openPMD::WriteMeta writeMeta;
+            writeMeta(
+                series,
+                series.iterations[currentStep],
+                currentStep,
+                /* writeFieldMeta =  */ false,
+                /* writeParticleMeta =  */ false,
+                /* writeToLog =  */ false);
+            openPMD::SetMeshAttributes setMeshAttributes(currentStep);
+
+            // override some attributes according to the calorimeter plugin
+            if(this->numBinsEnergy > 1)
+            {
+                const float_64 minEnergy_SI = this->minEnergy * UNIT_ENERGY;
+                const float_64 maxEnergy_SI = this->maxEnergy * UNIT_ENERGY;
+                const float_64 minEnergy_keV = minEnergy_SI * UNITCONV_Joule_to_keV;
+                const float_64 maxEnergy_keV = maxEnergy_SI * UNITCONV_Joule_to_keV;
+
+                dataset.setAttribute<float_64>("minEnergy[keV]", minEnergy_keV);
+                dataset.setAttribute<float_64>("maxEnergy[keV]", maxEnergy_keV);
+                dataset.setAttribute<bool>("logScale", this->logScale);
+
+                setMeshAttributes.m_axisLabels = {"energy bin", "posPitch", "posYaw"}; // z, y, x
+                setMeshAttributes.m_gridGlobalOffset = {minEnergy_keV, posPitch_deg, posYaw_deg};
+                setMeshAttributes.m_gridSpacing
+                    = {// no constant value for grid spacing if the energy bins are on a log scale
+                       this->logScale ? 0 : float_X(maxEnergy_keV - minEnergy_keV) / this->numBinsEnergy,
+                       float_X(maxPitch_deg - posPitch_deg) / dataset.getExtent()[1],
+                       float_X(maxYaw_deg - posYaw_deg) / dataset.getExtent()[2]};
+            }
+            else
+            {
+                setMeshAttributes.m_axisLabels = {"posPitch", "posYaw"}; // y, x
+                setMeshAttributes.m_gridGlobalOffset = {posPitch_deg, posYaw_deg};
+                setMeshAttributes.m_gridSpacing
+                    = {float_X(maxPitch_deg - posPitch_deg) / dataset.getExtent()[1],
+                       float_X(maxYaw_deg - posYaw_deg) / dataset.getExtent()[2]};
+            }
+            constexpr float_64 unitSI = particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * UNIT_ENERGY;
+            setMeshAttributes.m_unitSI = unitSI;
+            setMeshAttributes.m_unitDimension // Joule
+                = {{::openPMD::UnitDimension::M, 1},
+                   {::openPMD::UnitDimension::L, 2},
+                   {::openPMD::UnitDimension::T, -2}};
+            // gridUnitDimension coming with openPMD 2.0, until then, this is somewhat custom
+            setMeshAttributes.m_gridUnitSI = 1;
+
+            setMeshAttributes(mesh)(dataset);
+            // Custom geometries unsupported
+            // mesh.setAttribute("geometry", "Calorimeter");
+        }
+
     public:
         void restart(uint32_t restartStep, const std::string& restartDirectory)
         {
@@ -111,26 +188,23 @@ namespace picongpu
 
             if(rank == 0)
             {
-                splash::SerialDataCollector hdf5DataFile(1);
-                splash::DataCollector::FileCreationAttr fAttr;
-
-                splash::DataCollector::initFileCreationAttr(fAttr);
-                fAttr.fileAccType = splash::DataCollector::FAT_READ;
-
                 std::stringstream filename;
-                filename << restartDirectory << "/" << (this->foldername + "/" + filenamePrefix) << "_" << restartStep;
+                filename << restartDirectory << "/" << this->foldername << "/" << filenamePrefix << "_%T."
+                         << filenameExtension;
 
-                hdf5DataFile.open(filename.str().c_str(), fAttr);
+                ::openPMD::Series series(filename.str(), ::openPMD::Access::READ_ONLY);
 
-                splash::Dimensions dimensions;
+                auto dataset = series.iterations[restartStep]
+                                   .meshes[this->leftParticlesDatasetName][::openPMD::RecordComponent::SCALAR];
 
-                hdf5DataFile.read(
-                    restartStep,
-                    this->leftParticlesDatasetName.c_str(),
-                    dimensions,
-                    &(*hBufLeftParsCalorimeter.origin()));
+                ::openPMD::Extent extent = dataset.getExtent();
+                ::openPMD::Offset offset(extent.size(), 0);
+                dataset.loadChunk(
+                    std::shared_ptr<float_X>{&(*hBufLeftParsCalorimeter.origin()), [](auto const*) {}},
+                    offset,
+                    extent);
 
-                hdf5DataFile.close();
+                series.iterations[restartStep].close();
 
                 /* rank 0 divides and distributes the calorimeter to all ranks in equal parts */
                 uint32_t numRanks = gridCon.getGlobalSize();
@@ -158,7 +232,10 @@ namespace picongpu
 
         void checkpoint(uint32_t currentStep, const std::string& checkpointDirectory)
         {
-            /* create folder for hdf5 checkpoint files*/
+            /*
+             * Create folder for openPMD checkpoint files.
+             * openPMD would also do it automatically, but let's keep things explicit.
+             */
             Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(
                 checkpointDirectory + "/" + this->foldername);
             HBufCalorimeter hBufLeftParsCalorimeter(this->dBufLeftParsCalorimeter->size());
@@ -171,31 +248,26 @@ namespace picongpu
             if(!this->allGPU_reduce->root())
                 return;
 
-            splash::SerialDataCollector hdf5DataFile(1);
-            splash::DataCollector::FileCreationAttr fAttr;
-
-            splash::DataCollector::initFileCreationAttr(fAttr);
-
             std::stringstream filename;
-            filename << checkpointDirectory << "/" << (this->foldername + "/" + filenamePrefix) << "_" << currentStep;
+            filename << checkpointDirectory << "/" << this->foldername << "/" << filenamePrefix << "_%T."
+                     << filenameExtension;
+            ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
 
-            hdf5DataFile.open(filename.str().c_str(), fAttr);
+            auto bufferOffset = twoDimensional(::openPMD::Extent{0, 0, 0});
+            auto bufferExtent
+                = twoDimensional(::openPMD::Extent{hBufTotal.size().z(), hBufTotal.size().y(), hBufTotal.size().x()});
 
-            typename PICToSplash<float_X>::type SplashTypeX;
+            auto iteration = series.iterations[currentStep];
+            auto mesh = iteration.meshes[this->leftParticlesDatasetName];
+            auto dataset = mesh[::openPMD::RecordComponent::SCALAR];
 
-            splash::Dimensions bufferSize(hBufTotal.size().x(), hBufTotal.size().y(), hBufTotal.size().z());
-
-            /* if there is only one energy bin, omit the energy axis */
-            uint32_t dimension = this->numBinsEnergy == 1 ? DIM2 : DIM3;
-            hdf5DataFile.write(
-                currentStep,
-                SplashTypeX,
-                dimension,
-                splash::Selection(bufferSize),
-                this->leftParticlesDatasetName.c_str(),
-                &(*hBufTotal.origin()));
-
-            hdf5DataFile.close();
+            dataset.resetDataset({::openPMD::determineDatatype<float_X>(), bufferExtent});
+            dataset.storeChunk(
+                std::shared_ptr<float_X>{&(*hBufTotal.origin()), [](auto const*) {}},
+                bufferOffset,
+                bufferExtent);
+            writeMeta(series, mesh, dataset, currentStep);
+            iteration.close();
         }
 
     private:
@@ -305,64 +377,31 @@ namespace picongpu
             Environment<>::get().PluginConnector().setNotificationPeriod(this, m_help->notifyPeriod.get(m_id));
         }
 
-        void writeToHDF5File(uint32_t currentStep)
+        void writeToOpenPMDFile(uint32_t currentStep)
         {
-            splash::SerialDataCollector hdf5DataFile(1);
-            splash::DataCollector::FileCreationAttr fAttr;
-
-            splash::DataCollector::initFileCreationAttr(fAttr);
-
             std::stringstream filename;
-            filename << this->foldername << "/" << filenamePrefix << "_" << currentStep;
+            filename << this->foldername << "/" << filenamePrefix << "_%T." << filenameExtension;
+            ::openPMD::Series series(filename.str(), ::openPMD::Access::CREATE);
 
-            hdf5DataFile.open(filename.str().c_str(), fAttr);
+            auto offset = twoDimensional(::openPMD::Offset{0, 0, 0});
 
-            typename PICToSplash<float_X>::type SplashTypeX;
-            typename PICToSplash<float_64>::type SplashType64;
-            typename PICToSplash<bool>::type SplashTypeBool;
-
-            splash::Dimensions bufferSize(
-                this->hBufTotalCalorimeter->size().x(),
+            auto extent = twoDimensional(::openPMD::Extent{
+                this->hBufTotalCalorimeter->size().z(),
                 this->hBufTotalCalorimeter->size().y(),
-                this->hBufTotalCalorimeter->size().z());
+                this->hBufTotalCalorimeter->size().x()});
 
-            hdf5DataFile.write(
-                currentStep,
-                SplashTypeX,
-                this->numBinsEnergy == 1 ? DIM2 : DIM3,
-                splash::Selection(bufferSize),
-                "calorimeter",
-                &(*this->hBufTotalCalorimeter->origin()));
+            auto mesh = series.iterations[currentStep].meshes["calorimeter"];
+            auto calorimeter = mesh[::openPMD::RecordComponent::SCALAR];
+            calorimeter.resetDataset({::openPMD::determineDatatype<float_X>(), extent});
+            calorimeter.storeChunk(
+                std::shared_ptr<float_X>{&(*this->hBufTotalCalorimeter->origin()), [](auto const*) {}},
+                std::move(offset),
+                std::move(extent));
 
-            const float_64 unitSI = particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * UNIT_ENERGY;
+            // Write attributes
+            writeMeta(series, mesh, calorimeter, currentStep);
 
-            hdf5DataFile.writeAttribute(currentStep, SplashType64, "calorimeter", "unitSI", &unitSI);
-
-            hdf5DataFile.writeAttribute(currentStep, SplashType64, "calorimeter", "posYaw[deg]", &posYaw_deg);
-
-            hdf5DataFile.writeAttribute(currentStep, SplashType64, "calorimeter", "posPitch[deg]", &posPitch_deg);
-
-            hdf5DataFile.writeAttribute(currentStep, SplashTypeX, "calorimeter", "maxYaw[deg]", &this->maxYaw_deg);
-
-            hdf5DataFile.writeAttribute(currentStep, SplashTypeX, "calorimeter", "maxPitch[deg]", &this->maxPitch_deg);
-
-            if(this->numBinsEnergy > 1)
-            {
-                const float_64 minEnergy_SI = this->minEnergy * UNIT_ENERGY;
-                const float_64 maxEnergy_SI = this->maxEnergy * UNIT_ENERGY;
-                const float_64 minEnergy_keV = minEnergy_SI * UNITCONV_Joule_to_keV;
-                const float_64 maxEnergy_keV = maxEnergy_SI * UNITCONV_Joule_to_keV;
-
-                hdf5DataFile
-                    .writeAttribute(currentStep, SplashType64, "calorimeter", "minEnergy[keV]", &minEnergy_keV);
-
-                hdf5DataFile
-                    .writeAttribute(currentStep, SplashType64, "calorimeter", "maxEnergy[keV]", &maxEnergy_keV);
-
-                hdf5DataFile.writeAttribute(currentStep, SplashTypeBool, "calorimeter", "logScale", &this->logScale);
-            }
-
-            hdf5DataFile.close();
+            series.iterations[currentStep].close();
         }
 
     public:
@@ -388,6 +427,7 @@ namespace picongpu
             plugins::multi::Option<std::string> notifyPeriod = {"period", "enable plugin [for each n-th step]"};
             plugins::multi::Option<std::string> fileName = {"file", "output filename (prefix)"};
             plugins::multi::Option<std::string> filter = {"filter", "particle filter: "};
+            plugins::multi::Option<std::string> extension = {"ext", "openPMD filename extension", "h5"};
             plugins::multi::Option<uint32_t> numBinsYaw = {"numBinsYaw", "number of bins for angle yaw.", 64};
             plugins::multi::Option<uint32_t> numBinsPitch = {"numBinsPitch", "number of bins for angle pitch.", 64};
             plugins::multi::Option<uint32_t> numBinsEnergy
@@ -420,6 +460,7 @@ namespace picongpu
 
                 notifyPeriod.registerHelp(desc, masterPrefix + prefix);
                 fileName.registerHelp(desc, masterPrefix + prefix);
+                extension.registerHelp(desc, masterPrefix + prefix);
                 filter.registerHelp(desc, masterPrefix + prefix, std::string("[") + concatenatedFilterNames + "]");
                 numBinsYaw.registerHelp(desc, masterPrefix + prefix);
                 numBinsPitch.registerHelp(desc, masterPrefix + prefix);
@@ -508,6 +549,7 @@ namespace picongpu
             foldername = m_help->getOptionPrefix() + "/" + m_help->filter.get(m_id);
             filenamePrefix
                 = m_help->getOptionPrefix() + "_" + m_help->fileName.get(m_id) + "_" + m_help->filter.get(m_id);
+            filenameExtension = m_help->extension.get(m_id);
             numBinsYaw = m_help->numBinsYaw.get(m_id);
             numBinsPitch = m_help->numBinsPitch.get(m_id);
             numBinsEnergy = m_help->numBinsEnergy.get(m_id);
@@ -574,7 +616,7 @@ namespace picongpu
             if(!this->allGPU_reduce->root())
                 return;
 
-            this->writeToHDF5File(currentStep);
+            this->writeToOpenPMDFile(currentStep);
         }
 
         void onParticleLeave(const std::string& speciesName, int32_t direction)
@@ -615,6 +657,7 @@ namespace picongpu
         size_t m_id;
         std::string foldername;
         std::string filenamePrefix;
+        std::string filenameExtension;
         MappingDesc* m_cellDescription;
         std::ofstream outFile;
         const std::string leftParticlesDatasetName;
