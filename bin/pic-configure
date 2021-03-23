@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2021 Axel Huebl, Rene Widera
+# Copyright 2013-2021 Axel Huebl, Rene Widera, Pawel Ordyna
 #
 # This file is part of PIConGPU.
 #
@@ -165,6 +165,14 @@ if [ -f "$extension_param/cmakeFlags" ] ; then
         echo "       Is the file executable? (chmod u+x cmakeFlags)" >&2
         exit 2
     fi
+    # save the cmakeFlags setup number for future reference
+    if [ -f "$extension_param/cmakeFlagsSetup" ] ; then
+      rm $extension_param/cmakeFlagsSetup
+    fi
+    touch $extension_param/cmakeFlagsSetup
+    echo "Last configured cmakeFlags setup was the setup No.: $cmakeFlagsNr" > $extension_param/cmakeFlagsSetup
+    echo $cmake_flags >> $extension_param/cmakeFlagsSetup
+
 fi
 
 # legacy check: we removed simulation_defines/ after PIConGPU 0.3.X

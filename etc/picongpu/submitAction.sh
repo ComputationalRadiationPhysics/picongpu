@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2021 Axel Huebl, Rene Widera, Felix Schmitt
+# Copyright 2013-2021 Axel Huebl, Rene Widera, Felix Schmitt, Pawel Ordyna
 #
 # This file is part of PIConGPU.
 #
@@ -45,6 +45,10 @@ fi
 if [ -f $TBG_projectPath/cmakeFlags ]
 then
   cp -a $TBG_projectPath/cmakeFlags input
+fi
+if [ -f $TBG_projectPath/cmakeFlagsSetup ]
+then
+  cp -a $TBG_projectPath/cmakeFlagsSetup input
 fi
 cp -a $TBG_cfgPath/openib.conf tbg
 cp -a $TBG_cfgPath/cuda.filter tbg
