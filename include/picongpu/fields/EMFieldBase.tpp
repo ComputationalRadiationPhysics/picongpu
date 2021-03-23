@@ -68,10 +68,10 @@ namespace picongpu
                 pmacc::math::CT::max<bmpl::_1, GetUpperMargin<GetInterpolation<bmpl::_2>>>>::type;
 
             /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
-            using LowerMarginSolver = typename traits::GetMargin<fields::Solver, DerivedField>::LowerMargin;
+            using LowerMarginSolver = typename traits::GetLowerMargin<fields::Solver, DerivedField>::type;
             using LowerMarginInterpolationAndSolver =
                 typename pmacc::math::CT::max<LowerMarginInterpolation, LowerMarginSolver>::type;
-            using UpperMarginSolver = typename traits::GetMargin<fields::Solver, DerivedField>::UpperMargin;
+            using UpperMarginSolver = typename traits::GetUpperMargin<fields::Solver, DerivedField>::type;
             using UpperMarginInterpolationAndSolver =
                 typename pmacc::math::CT::max<UpperMarginInterpolation, UpperMarginSolver>::type;
 
