@@ -461,6 +461,33 @@ namespace picongpu
 
         } // namespace maxwellSolver
     } // namespace fields
+
+    namespace traits
+    {
+        /** Get margin for B field access in the YeePML solver
+         *
+         * @tparam T_CurlE functor to compute curl of E
+         * @tparam T_CurlB functor to compute curl of B
+         */
+        template<typename T_CurlE, typename T_CurlB>
+        struct GetMargin<picongpu::fields::maxwellSolver::YeePML<T_CurlE, T_CurlB>, FieldB>
+            : public GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurlE, T_CurlB>, FieldB>
+        {
+        };
+
+        /** Get margin for E field access in the YeePML solver
+         *
+         * @tparam T_CurlE functor to compute curl of E
+         * @tparam T_CurlB functor to compute curl of B
+         */
+        template<typename T_CurlE, typename T_CurlB>
+        struct GetMargin<picongpu::fields::maxwellSolver::YeePML<T_CurlE, T_CurlB>, FieldE>
+            : public GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurlE, T_CurlB>, FieldE>
+        {
+        };
+
+    } // namespace traits
+
 } // namespace picongpu
 
 #include "picongpu/fields/MaxwellSolver/YeePML/Field.tpp"

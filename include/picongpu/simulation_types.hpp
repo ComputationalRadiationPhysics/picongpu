@@ -34,16 +34,6 @@
 
 namespace picongpu
 {
-    /** Legacy communication tags
-     *
-     * Now only used for some field traits, to be removed soon
-     */
-    enum CommunicationTag
-    {
-        FIELD_B = 1u,
-        FIELD_E = 2u
-    };
-
     namespace precision32Bit
     {
         using precisionType = float;

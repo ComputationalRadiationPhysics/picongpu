@@ -152,18 +152,28 @@ namespace picongpu
 
     namespace traits
     {
-        template<class CurlE, class CurlB>
-        struct GetMargin<picongpu::fields::maxwellSolver::Yee<CurlE, CurlB>, FIELD_B>
+        /** Get margin for B field access in the Yee solver
+         *
+         * @tparam T_CurlE functor to compute curl of E
+         * @tparam T_CurlB functor to compute curl of B
+         */
+        template<typename T_CurlE, typename T_CurlB>
+        struct GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurlE, T_CurlB>, FieldB>
         {
-            using LowerMargin = typename CurlB::LowerMargin;
-            using UpperMargin = typename CurlB::UpperMargin;
+            using LowerMargin = typename T_CurlB::LowerMargin;
+            using UpperMargin = typename T_CurlB::UpperMargin;
         };
 
-        template<class CurlE, class CurlB>
-        struct GetMargin<picongpu::fields::maxwellSolver::Yee<CurlE, CurlB>, FIELD_E>
+        /** Get margin for E field access in the Yee solver
+         *
+         * @tparam T_CurlE functor to compute curl of E
+         * @tparam T_CurlB functor to compute curl of B
+         */
+        template<typename T_CurlE, typename T_CurlB>
+        struct GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurlE, T_CurlB>, FieldE>
         {
-            using LowerMargin = typename CurlE::LowerMargin;
-            using UpperMargin = typename CurlE::UpperMargin;
+            using LowerMargin = typename T_CurlE::LowerMargin;
+            using UpperMargin = typename T_CurlE::UpperMargin;
         };
 
     } // namespace traits

@@ -32,22 +32,4 @@ namespace picongpu
 
         } // namespace maxwellSolver
     } // namespace fields
-
-    namespace traits
-    {
-        template<>
-        struct GetMargin<picongpu::fields::maxwellSolver::None, FIELD_B>
-        {
-            using LowerMargin = typename pmacc::math::CT::make_Int<simDim, 0>::type;
-            using UpperMargin = LowerMargin;
-        };
-
-        template<>
-        struct GetMargin<picongpu::fields::maxwellSolver::None, FIELD_E>
-        {
-            using LowerMargin = typename pmacc::math::CT::make_Int<simDim, 0>::type;
-            using UpperMargin = LowerMargin;
-        };
-
-    } // namespace traits
 } // namespace picongpu

@@ -31,10 +31,10 @@ namespace picongpu
          * \tparam Solver solver which needs ghost cells for solving a problem
          *         if solver not define `LowerMargin` and `UpperMargin` this trait (GetMargin)
          *         must be specialized
-         * \tparam SubSetName a optional name (id) if solver needs different ghost cells
+         * \tparam T_Parameter an optional parameter type
          * for different objects
          */
-        template<class Solver, unsigned int SubSetName = 0>
+        template<class Solver, typename T_Parameter = void>
         struct GetMargin
         {
             using LowerMargin = typename Solver::LowerMargin;
