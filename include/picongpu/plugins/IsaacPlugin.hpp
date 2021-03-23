@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 Alexander Matthes,
+ * Copyright 2013-2021 Alexander Matthes, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -109,8 +109,8 @@ namespace picongpu
         };
 
         ISAAC_NO_HOST_DEVICE_WARNING
-        template<typename FrameSolver, typename ParticleType>
-        class TFieldSource<FieldTmpOperation<FrameSolver, ParticleType>>
+        template<typename FrameSolver, typename ParticleType, typename ParticleFilter>
+        class TFieldSource<FieldTmpOperation<FrameSolver, ParticleType, ParticleFilter>>
         {
         public:
             static const size_t feature_dim = 1;
@@ -132,7 +132,8 @@ namespace picongpu
 
             static std::string getName()
             {
-                return ParticleType::FrameType::getName() + std::string(" ") + FrameSolver().getName();
+                return ParticleType::FrameType::getName() + std::string(" ") + ParticleFilter::getName()
+                    + std::string(" ") + FrameSolver().getName();
             }
 
             void update(bool enabled, void* pointer)
@@ -148,7 +149,9 @@ namespace picongpu
                     auto particles = dc.get<ParticleType>(ParticleType::FrameType::getName(), true);
 
                     fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
-                    fieldTmp->template computeValue<CORE + BORDER, FrameSolver>(*particles, *currentStep);
+                    fieldTmp->template computeValue<CORE + BORDER, FrameSolver, ParticleFilter>(
+                        *particles,
+                        *currentStep);
                     EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
 
                     __setTransactionEvent(fieldTmpEvent);

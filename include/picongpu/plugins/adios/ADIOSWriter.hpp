@@ -1,5 +1,6 @@
 /* Copyright 2014-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
+ *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov,
+ *                     Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -353,13 +354,13 @@ namespace picongpu
                 }
             };
 
-            /** Calculate FieldTmp with given solver and particle species
+            /** Calculate FieldTmp with given solver, particle species, and filter
              * and write them to adios.
              *
              * FieldTmp is calculated on device and than dumped to adios.
              */
-            template<typename Solver, typename Species>
-            struct GetFields<FieldTmpOperation<Solver, Species>>
+            template<typename Solver, typename Species, typename Filter>
+            struct GetFields<FieldTmpOperation<Solver, Species, Filter>>
             {
                 /*
                  * This is only a wrapper function to allow disable nvcc warnings.
@@ -384,7 +385,7 @@ namespace picongpu
                  */
                 static std::string getName()
                 {
-                    return FieldTmpOperation<Solver, Species>::getName();
+                    return FieldTmpOperation<Solver, Species, Filter>::getName();
                 }
 
                 HINLINE void operator_impl(ThreadParams* params)
@@ -401,7 +402,7 @@ namespace picongpu
 
                     fieldTmp->getGridBuffer().getDeviceBuffer().setValue(ValueType::create(0.0));
                     /*run algorithm*/
-                    fieldTmp->template computeValue<CORE + BORDER, Solver>(*speciesTmp, params->currentStep);
+                    fieldTmp->template computeValue<CORE + BORDER, Solver, Filter>(*speciesTmp, params->currentStep);
 
                     EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
                     __setTransactionEvent(fieldTmpEvent);
@@ -732,8 +733,8 @@ namespace picongpu
              * Collect field sizes to set adios group size.
              * Specialization.
              */
-            template<typename Solver, typename Species>
-            struct CollectFieldsSizes<FieldTmpOperation<Solver, Species>>
+            template<typename Solver, typename Species, typename Filter>
+            struct CollectFieldsSizes<FieldTmpOperation<Solver, Species, Filter>>
             {
             public:
                 PMACC_NO_NVCC_HDWARNING
@@ -751,7 +752,7 @@ namespace picongpu
                  */
                 static std::string getName()
                 {
-                    return FieldTmpOperation<Solver, Species>::getName();
+                    return FieldTmpOperation<Solver, Species, Filter>::getName();
                 }
 
                 /** Get the unit for the result from the solver*/

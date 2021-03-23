@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Rene Widera, Axel Huebl
+/* Copyright 2013-2021 Rene Widera, Axel Huebl, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -19,21 +19,25 @@
 
 #pragma once
 
+#include "picongpu/particles/filter/filter.def"
+
 namespace picongpu
 {
     /** Define which operation is used to fill up FieldTmp
      *
-     * This is better than use of boost::mtl::pair because
-     * we can use this special struct to define functors
-     * only for FieldTmp. If we create a second FieldTmp, for example
-     * with three components, we can create a new struct (like this)
-     * and build a special functor to handle the type.
+     * It stores also the particle filter used to filter
+     * particles attributing to FieldTmp.
+     *
+     * @tparam T_Solver solver used to fill up FieldTmp
+     * @tparam T_Species particle species contributing to the FieldTmp
+     * @tparam T_Filter particle filter used to choose the contributing particles
      */
-    template<typename T_Solver, typename T_Species>
+    template<typename T_Solver, typename T_Species, typename T_Filter = particles::filter::All>
     struct FieldTmpOperation
     {
         using Solver = T_Solver;
         using Species = T_Species;
+        using Filter = T_Filter;
 
         using LowerMargin = typename Solver::LowerMargin;
         using UpperMargin = typename Solver::UpperMargin;
@@ -42,6 +46,8 @@ namespace picongpu
         {
             std::stringstream str;
             str << T_Species::FrameType::getName();
+            str << "_";
+            str << T_Filter::getName();
             str << "_";
             str << T_Solver::getName();
             return str.str();

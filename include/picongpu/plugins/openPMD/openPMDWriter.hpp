@@ -1,5 +1,6 @@
 /* Copyright 2014-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Benjamin Worpitz, Alexander Grund, Franz Poeschel
+ *                     Benjamin Worpitz, Alexander Grund, Franz Poeschel,
+ *                     Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -486,13 +487,13 @@ Please pick either of the following:
                 }
             };
 
-            /** Calculate FieldTmp with given solver and particle species
+            /** Calculate FieldTmp with given solver, particle species, and filter
              * and write them to openPMD.
              *
              * FieldTmp is calculated on device and then dumped to openPMD.
              */
-            template<typename Solver, typename Species>
-            struct GetFields<FieldTmpOperation<Solver, Species>>
+            template<typename Solver, typename Species, typename Filter>
+            struct GetFields<FieldTmpOperation<Solver, Species, Filter>>
             {
                 /*
                  * This is only a wrapper function to allow disable nvcc warnings.
@@ -526,7 +527,7 @@ Please pick either of the following:
                  */
                 static std::string getName()
                 {
-                    return FieldTmpOperation<Solver, Species>::getName();
+                    return FieldTmpOperation<Solver, Species, Filter>::getName();
                 }
 
                 HINLINE void operator_impl(ThreadParams* params)
@@ -543,7 +544,7 @@ Please pick either of the following:
 
                     fieldTmp->getGridBuffer().getDeviceBuffer().setValue(ValueType::create(0.0));
                     /*run algorithm*/
-                    fieldTmp->template computeValue<CORE + BORDER, Solver>(*speciesTmp, params->currentStep);
+                    fieldTmp->template computeValue<CORE + BORDER, Solver, Filter>(*speciesTmp, params->currentStep);
 
                     EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
                     __setTransactionEvent(fieldTmpEvent);

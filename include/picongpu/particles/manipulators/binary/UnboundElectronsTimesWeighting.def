@@ -63,7 +63,7 @@ namespace picongpu
                             T_Args&&...)
                         {
                             float_X const protonNumber
-                                = traits::GetAtomicNumbers<T_SrcParticle>::type::numberOfProtons;
+                                = picongpu::traits::GetAtomicNumbers<T_SrcParticle>::type::numberOfProtons;
                             float_X const boundElectrons = particleSrc[boundElectrons_];
                             float_X const freeElectrons = protonNumber - boundElectrons;
                             particleDest[weighting_] *= freeElectrons;

@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Axel Huebl, Rene Widera, Marco Garten
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Marco Garten, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -57,18 +57,27 @@ namespace picongpu
          * @tparam T_ParBox pmacc::ParticlesBox, particle box type
          * @tparam T_FrameSolver functor type to operate on a particle frame
          * @tparam T_Mapping mapper functor type
+         * @tparam T_ParticleFilter particle filter type
          *
          * @param fieldJ field with particle current
          * @param boxPar particle memory
          * @param frameSolver functor to calculate the current for a frame
          * @param mapper functor to map a block to a supercell
+         * @param particleFilter filter used to choose particles contributing to field value
          */
-        template<typename T_TmpBox, typename T_ParBox, typename T_FrameSolver, typename T_Mapping, typename T_Acc>
+        template<
+            typename T_TmpBox,
+            typename T_ParBox,
+            typename T_FrameSolver,
+            typename T_Mapping,
+            typename T_Acc,
+            typename T_ParticleFilter>
         DINLINE void operator()(
             T_Acc const& acc,
             T_TmpBox fieldTmp,
             T_ParBox boxPar,
             T_FrameSolver frameSolver,
+            T_ParticleFilter particleFilter,
             T_Mapping mapper) const
         {
             using namespace mappings::threads;
@@ -82,7 +91,8 @@ namespace picongpu
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             DataSpace<simDim> const block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
-
+            auto accFilter
+                = particleFilter(acc, block - mapper.getGuardingSuperCells(), WorkerCfg<numWorkers>{workerIdx});
             FramePtr frame;
             lcellId_t particlesInSuperCell;
 
@@ -106,7 +116,7 @@ namespace picongpu
                     [&](uint32_t const linearIdx, uint32_t const) {
                         if(linearIdx < particlesInSuperCell)
                         {
-                            frameSolver(acc, *frame, linearIdx, SuperCellSize::toRT(), cachedVal);
+                            frameSolver(acc, *frame, linearIdx, SuperCellSize::toRT(), accFilter, cachedVal);
                         }
                     });
 

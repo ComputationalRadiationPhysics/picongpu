@@ -1,5 +1,5 @@
 /* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
- *                     Marco Garten
+ *                     Marco Garten, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -33,9 +33,11 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
+#include "picongpu/particles/particleToGrid/FilteredDerivedAttribute.hpp"
 #include "picongpu/fields/Fields.def"
 #include "picongpu/particles/traits/GetShape.hpp"
 #include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
+#include "picongpu/particles/filter/filter.def"
 
 #include <pmacc/meta/conversion/ToSeq.hpp>
 
@@ -86,12 +88,18 @@ namespace picongpu
                  */
                 HINLINE static std::string getName();
 
-                template<typename FrameType, typename TVecSuperCell, typename BoxTmp, typename T_Acc>
+                template<
+                    typename FrameType,
+                    typename TVecSuperCell,
+                    typename BoxTmp,
+                    typename T_Acc,
+                    typename T_AccFilter>
                 DINLINE void operator()(
                     T_Acc const& acc,
                     FrameType& frame,
                     const int localIdx,
                     const TVecSuperCell superCell,
+                    T_AccFilter& accFilter,
                     BoxTmp& tmpBox);
             };
 
@@ -126,7 +134,7 @@ namespace picongpu
 
             /** Solver Operation for Particle to Grid Projections
              *
-             * Derives a scalar field from a particle species at runtime.
+             * Derives a scalar field from a (filtered) particle species at runtime.
              * Values are mapped to cells according either according to the
              * species' spatial shape or a specifically overwritten (counter) shape
              * depending on the implementation of the derived attribute
@@ -136,19 +144,22 @@ namespace picongpu
              *
              * @tparam T_DerivedAttribute a derived particle attribute from
              *         picongpu::particles::particleToGrid::derivedAttributes
+             *         @tparam T_Filter particle filter used to filter contributing particles
+             *         (default is all particles contribute)
              *
              * @typedef defines a FieldTmpOperation class
              */
-            template<typename T_Species, typename T_DerivedAttribute>
+            template<typename T_Species, typename T_DerivedAttribute, typename T_Filter = filter::All>
             struct CreateFieldTmpOperation
             {
                 using shapeType = detail::GetAttributeShape_t<T_Species, T_DerivedAttribute>;
 
                 using OperationPerFrame = ComputeGridValuePerFrame<shapeType, T_DerivedAttribute>;
-                using type = FieldTmpOperation<OperationPerFrame, T_Species>;
+                using type = FieldTmpOperation<OperationPerFrame, T_Species, T_Filter>;
             };
-            template<typename T_Species, typename T_DerivedAttribute>
-            using CreateFieldTmpOperation_t = typename CreateFieldTmpOperation<T_Species, T_DerivedAttribute>::type;
+            template<typename T_Species, typename T_DerivedAttribute, typename T_Filter = filter::All>
+            using CreateFieldTmpOperation_t =
+                typename CreateFieldTmpOperation<T_Species, T_DerivedAttribute, T_Filter>::type;
 
             /** Create a list solvers for derived fields for eligible species
              *
@@ -156,26 +167,29 @@ namespace picongpu
              *
              * @tparam T_SeqSpecies a sequence of particle species to check if they are
              *                      eligible to derive the attribute T_DerivedAttribute
+             *                      and to be filter with T_Filter
              *                      from, also allows a single type instead of a sequence
              * @tparam T_DerivedAttribute a derived attribute to map to the field grid,
              *                            see defines in
              *                            picongpu::particles::particleToGrid::derivedAttributes
+             * @tparam T_Filter  particle filter used to filter contributing particles
+             *         (default is all particles contribute)
              */
-            template<typename T_SeqSpecies, typename T_DerivedAttribute>
+            template<typename T_SeqSpecies, typename T_DerivedAttribute, typename T_Filter = filter::All>
             struct CreateEligible
             {
                 // wrap single arguments to sequence
                 using SeqSpecies = typename pmacc::ToSeq<T_SeqSpecies>::type;
-                using DerivedAttribute = T_DerivedAttribute;
+                using FilteredAttribute = FilteredDerivedAttribute<T_DerivedAttribute, T_Filter>;
 
                 using type = typename traits::GenerateSolversIfSpeciesEligible<
-                    CreateFieldTmpOperation<bmpl::_1, DerivedAttribute>,
+                    CreateFieldTmpOperation<bmpl::_1, T_DerivedAttribute, T_Filter>,
                     SeqSpecies,
-                    DerivedAttribute>::type;
+                    FilteredAttribute>::type;
             };
 
-            template<typename T_SeqSpecies, typename T_DerivedAttribute>
-            using CreateEligible_t = typename CreateEligible<T_SeqSpecies, T_DerivedAttribute>::type;
+            template<typename T_SeqSpecies, typename T_DerivedAttribute, typename T_Filter = filter::All>
+            using CreateEligible_t = typename CreateEligible<T_SeqSpecies, T_DerivedAttribute, T_Filter>::type;
 
         } // namespace particleToGrid
     } // namespace particles
