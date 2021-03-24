@@ -37,6 +37,12 @@ namespace picongpu
             //! Debye length estimate
             struct Estimate
             {
+                //! Number of supercells used for the estimate
+                uint32_t numUsedSupercells = 0u;
+
+                //! Number of supercells failing the check
+                uint32_t numFailingSupercells = 0u;
+
                 //! Total macroparticle weighting
                 float_64 sumWeighting = 0.0;
 
@@ -64,6 +70,7 @@ namespace picongpu
                  * @param acc alpaka accelerator
                  * @param electronBox electron storage
                  * @param mapper mapping
+                 * @param minMacroparticlesPerSupercell only use supercells with at least this many macroparticles
                  * @param estimateBox device box with a single element to write kernel result to
                  */
                 template<typename T_Acc, typename T_ElectronBox, typename T_Mapping, typename T_EstimateBox>
@@ -71,19 +78,19 @@ namespace picongpu
                     T_Acc const& acc,
                     T_ElectronBox const electronBox,
                     T_Mapping mapper,
+                    uint32_t const minMacroparticlesPerSupercell,
                     T_EstimateBox estimateBox) const
                 {
                     auto const supercellIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
                     auto const& supercell = electronBox.getSuperCell(supercellIdx);
-                    // Supercells with no particles do not contribute to Debye length estimate
-                    if(supercell.getNumParticles())
+                    if(supercell.getNumParticles() >= minMacroparticlesPerSupercell)
                         process(acc, electronBox, supercellIdx, estimateBox);
                 }
 
             private:
                 /** Check Debye length for electrons in the given supercell
                  *
-                 * Ths supercell is required to have macroparticles
+                 * The supercell is required to have macroparticles
                  *
                  * @tparam T_Acc alpaka accelerator type
                  * @tparam T_ElectronBox electron storage type
@@ -107,7 +114,7 @@ namespace picongpu
                     using ParticleDomCfg = IdxConfig<frameSize, numWorkers>;
                     /* Estimate variance in momentum of macroparticles in the supercell.
                      * Each thread processes its particles, then the master thread performs reduction.
-                     * Sums are weighted and operate with single- (not macro-) particle momentums.
+                     * Sums are weighted and operate with single- (not macro-) particle momenta.
                      * Use double-precision for better accuracy, this kernel is not performance-critical.
                      */
                     auto sumWeighting = float_64{0.0};
@@ -172,6 +179,10 @@ namespace picongpu
                  *
                  * This function makes an estimate for the whole provided electron box,
                  * and so must be called once per supercell.
+                 * It marks a supercell as failing the check if the locally estimated Debye length is not resolved
+                 * with a single cell.
+                 * This is according to page 32 of R.W. Hockney, J.W. Eastwood. Computer Simulation Using Particles,
+                 * CRC Press (1988).
                  *
                  * @tparam T_Acc alpaka accelerator type
                  * @tparam T_ElectronBox electron storage type
@@ -180,7 +191,7 @@ namespace picongpu
                  * @param acc alpaka accelerator
                  * @param electronBox electron storage
                  * @param supercellIdx supercell index, including guards
-                 * @param momentumVariance estimated variance in physical momentums
+                 * @param momentumVariance estimated variance in physical momenta
                  * @param result device box of type Result with a single element
                  *        to write kernel result to
                  */
@@ -208,7 +219,19 @@ namespace picongpu
                     auto const temperatureKeV = kT * UNIT_ENERGY / UNITCONV_keV_to_Joule;
                     auto const electronCharge = picongpu::traits::frame::getCharge<Frame>();
                     auto const debyeLength = sqrt(EPS0 * kT / (electronDensity * electronCharge * electronCharge));
+                    auto maxCellSize = cellSize[0];
+                    // For 2D do not use grid size along z, as it is always resolved
+                    for(uint32_t d = 1; d < simDim; d++)
+                        maxCellSize = math::max(maxCellSize, cellSize[d]);
+                    bool const isDebyeLengthUnderOneCell = (debyeLength < maxCellSize);
 
+                    cupla::atomicAdd(acc, &(estimateBox(0).numUsedSupercells), 1u, ::alpaka::hierarchy::Blocks{});
+                    if(isDebyeLengthUnderOneCell)
+                        cupla::atomicAdd(
+                            acc,
+                            &(estimateBox(0).numFailingSupercells),
+                            1u,
+                            ::alpaka::hierarchy::Blocks{});
                     cupla::atomicAdd(acc, &(estimateBox(0).sumWeighting), sumWeighting, ::alpaka::hierarchy::Blocks{});
                     cupla::atomicAdd(
                         acc,

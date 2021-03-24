@@ -124,14 +124,17 @@ namespace picongpu
                     {
                         if(!isElectronLike<T_Species>())
                             return;
-                        auto estimate = estimateGlobalDebyeLength<T_Species>(cellDescription);
+                        // Only use supercells with at least this number of macroparticles
+                        uint32_t const minMacroparticlesPerSupercell = 10u;
+                        auto estimate
+                            = estimateGlobalDebyeLength<T_Species>(cellDescription, minMacroparticlesPerSupercell);
                         if(!isPrinting)
                             return;
 
                         auto const name = pmacc::traits::GetCTName_t<T_Species>::str();
                         log<picLog::PHYSICS>("Resolving Debye length for species \"%1%\"?") % name;
 
-                        if(estimate.sumWeighting)
+                        if(estimate.numUsedSupercells)
                         {
                             auto const temperatureKeV = estimate.sumTemperatureKeV / estimate.sumWeighting;
                             auto const debyeLength = estimate.sumDebyeLength / estimate.sumWeighting;
@@ -141,14 +144,24 @@ namespace picongpu
                                 maxCellSize = std::max(maxCellSize, cellSize[d]);
                             auto const cellsPerDebyeLength = debyeLength / maxCellSize;
                             auto const debyeLengthSI = debyeLength * UNIT_LENGTH;
-                            log<picLog::PHYSICS>("Estimated temperature %1% KeV and Debye length %2% m."
-                                                 " The grid has %3% cells per Debye length\n"
-                                                 "   Estimates are based on variance in initial momentums and assume"
-                                                 " a single electron species")
+                            log<picLog::PHYSICS>("Estimate used momentum variance in %1% supercells with at least %2% "
+                                                 "macroparticles each")
+                                % estimate.numUsedSupercells % minMacroparticlesPerSupercell;
+                            auto const ratioFailingSupercells = 100.0f
+                                * static_cast<float>(estimate.numFailingSupercells)
+                                / static_cast<float>(estimate.numUsedSupercells);
+                            log<picLog::PHYSICS>(
+                                "%1% (%2% %3%) supercells had local Debye length estimate not resolved"
+                                " by a single cell")
+                                % estimate.numFailingSupercells % ratioFailingSupercells % "%";
+                            log<picLog::PHYSICS>("Estimated weighted average temperature %1% KeV and corresponding "
+                                                 "Debye length %2% m.\n"
+                                                 "   The grid has %3% cells per average Debye length")
                                 % temperatureKeV % debyeLengthSI % cellsPerDebyeLength;
                         }
                         else
-                            log<picLog::PHYSICS>("Check skipped due to no particles");
+                            log<picLog::PHYSICS>("Check skipped due to no supercells with at least %1% macroparticles")
+                                % minMacroparticlesPerSupercell;
                     }
                 };
 
@@ -156,9 +169,11 @@ namespace picongpu
 
             /** Check Debye length resolution
              *
-             * The check is currently done only for species called "e" and is supposed
-             * to be called just after the particles are initialized as start of a
-             * simulation. The results are output to log< picLog::PHYSICS >.
+             * Compute and print the weighted average Debye length for the electron species.
+             * Print in how many supercells the locally estimated Debye length is not resolved with a single cell.
+             *
+             * The check is supposed to be called just after the particles are initialized at start of a simulation.
+             * The results are output to log<picLog::PHYSICS>.
              *
              * This function must be called from all MPI ranks.
              *

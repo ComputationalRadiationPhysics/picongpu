@@ -42,9 +42,11 @@ namespace picongpu
              * @tparam T_ElectronSpecies electron species type
              *
              * @param cellDescription mapping for kernels
+             * @param minMacroparticlesPerSupercell only use supercells with at least this many macroparticles
              */
             template<typename T_ElectronSpecies>
-            HINLINE Estimate estimateLocalDebyeLength(MappingDesc const cellDescription)
+            HINLINE Estimate
+            estimateLocalDebyeLength(MappingDesc const cellDescription, uint32_t const minMacroparticlesPerSupercell)
             {
                 using Frame = typename T_ElectronSpecies::FrameType;
                 DataConnector& dc = Environment<>::get().DataConnector();
@@ -62,6 +64,7 @@ namespace picongpu
                 (mapper.getGridDim(), numWorkers)(
                     electrons.getDeviceParticlesBox(),
                     mapper,
+                    minMacroparticlesPerSupercell,
                     hostDeviceBuffer.getDeviceBuffer().getDataBox());
                 hostDeviceBuffer.deviceToHost();
 
@@ -79,13 +82,28 @@ namespace picongpu
              * @tparam T_ElectronSpecies electron species type
              *
              * @param cellDescription mapping for kernels
+             * @param minMacroparticlesPerSupercell only use supercells with at least this many macroparticles
              */
             template<typename T_ElectronSpecies>
-            HINLINE Estimate estimateGlobalDebyeLength(MappingDesc const cellDescription)
+            HINLINE Estimate
+            estimateGlobalDebyeLength(MappingDesc const cellDescription, uint32_t const minMacroparticlesPerSupercell)
             {
-                auto localEstimate = estimateLocalDebyeLength<T_ElectronSpecies>(cellDescription);
+                auto localEstimate
+                    = estimateLocalDebyeLength<T_ElectronSpecies>(cellDescription, minMacroparticlesPerSupercell);
                 auto globalEstimate = Estimate{};
                 pmacc::mpi::MPIReduce reduce;
+                reduce(
+                    pmacc::nvidia::functors::Add(),
+                    &globalEstimate.numUsedSupercells,
+                    &localEstimate.numUsedSupercells,
+                    1,
+                    pmacc::mpi::reduceMethods::AllReduce());
+                reduce(
+                    pmacc::nvidia::functors::Add(),
+                    &globalEstimate.numFailingSupercells,
+                    &localEstimate.numFailingSupercells,
+                    1,
+                    pmacc::mpi::reduceMethods::AllReduce());
                 reduce(
                     pmacc::nvidia::functors::Add(),
                     &globalEstimate.sumWeighting,
