@@ -363,8 +363,6 @@ endif(PNGwriter_FOUND)
 # ISAAC
 ################################################################################
 
-SET(ISAAC_CUDA OFF CACHE BOOL "Using CUDA")
-SET(ISAAC_ALPAKA ON CACHE BOOL "Using Alpaka")
 find_package(ISAAC 1.4.0 CONFIG QUIET)
 if(ISAAC_FOUND)
     message(STATUS "Found ISAAC: ${ISAAC_DIR}")

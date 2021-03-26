@@ -5,7 +5,6 @@
   image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-clang-pic:1.2
   variables:
     GIT_SUBMODULE_STRATEGY: normal
-    DISABLE_ISAAC: "yes"
   script:
     - apt update
     - apt install -y curl libjpeg-dev

@@ -40,7 +40,10 @@ if [ -z "$DISABLE_ISAAC" ] ; then
   export CMAKE_PREFIX_PATH=$JANSSON_ROOT/lib/cmake:$CMAKE_PREFIX_PATH
   export LD_LIBRARY_PATH=$JANSSON_ROOT/lib:$LD_LIBRARY_PATH
 
-  export ISAAC_ROOT=/opt/isaac/1.6.0-dev
+  export ISAAC_ROOT=/opt/isaac/1.6.0-dev-custom
+  # install cusom version of isaac
+  source $CI_PROJECT_DIR/share/ci/install/isaac.sh
+
   export CMAKE_PREFIX_PATH=$ISAAC_ROOT:$CMAKE_PREFIX_PATH
   export LD_LIBRARY_PATH=$ISAAC_ROOT/lib:$LD_LIBRARY_PATH
 fi
