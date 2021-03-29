@@ -4,6 +4,7 @@
 .base_nvcc:
   variables:
     GIT_SUBMODULE_STRATEGY: normal
+    DISABLE_ISAAC: "yes"
   before_script:
     - nvidia-smi
     - nvcc --version
@@ -11,7 +12,7 @@
     - apt update
     - apt install -y curl libjpeg-dev
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
-    - $CI_PROJECT_DIR/share/ci/bash.profile
+    - source $CI_PROJECT_DIR/share/ci/bash.profile
     - $CI_PROJECT_DIR/share/ci/run_pmacc_tests.sh
     - $CI_PROJECT_DIR/share/ci/run_picongpu_tests.sh
   tags:
