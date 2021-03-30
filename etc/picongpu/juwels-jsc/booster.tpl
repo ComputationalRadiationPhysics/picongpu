@@ -91,7 +91,5 @@ ln -s ../stdout output
 # cuda_memtest omitted since GPU mapping is achieved via CUDA_VISIBLE_DEVICES on the Booster
 # and cuda_memtest fails in this case.
 
-if [ $? -eq 0 ] ; then
-  # Run PIConGPU
-  srun !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
-fi
+# Run PIConGPU
+srun !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
