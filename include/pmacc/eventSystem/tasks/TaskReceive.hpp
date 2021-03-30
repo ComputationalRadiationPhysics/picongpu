@@ -43,6 +43,13 @@ namespace pmacc
         virtual void init()
         {
             state = WaitForReceived;
+            if(Environment<>::get().isMpiDirectEnabled())
+            {
+                /* Wait to be sure that all device work is finished before MPI is triggered.
+                 * MPI will not wait for work in our device streams
+                 */
+                __getTransactionEvent().waitForFinished();
+            }
             Environment<>::get().Factory().createTaskReceiveMPI(exchange, this);
         }
 
