@@ -69,7 +69,7 @@ namespace pmacc
                 }
             };
 
-#if(!defined(__CUDA__) && ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+#if(!defined(__CUDA__) && ALPAKA_ACC_GPU_HIP_ENABLED == 1 && (HIP_VERSION_MAJOR * 100 + HIP_VERSION_MINOR) < 401)
             /** HIP backend specialization for atomic add
              *
              * Uses the intrinsic atomicAddNoRet available for AMD gpus only.
