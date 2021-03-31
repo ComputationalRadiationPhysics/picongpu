@@ -32,6 +32,7 @@
 
 #include <pmacc/nvidia/functors/Assign.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
+#include <pmacc/math/vector/compile-time/Vector.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 
@@ -158,7 +159,7 @@ namespace picongpu
          * @tparam T_CurlB functor to compute curl of B
          */
         template<typename T_CurlE, typename T_CurlB>
-        struct GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurlE, T_CurlB>, FieldB>
+        struct GetMargin<fields::maxwellSolver::Yee<T_CurlE, T_CurlB>, FieldB>
         {
             using LowerMargin = typename T_CurlB::LowerMargin;
             using UpperMargin = typename T_CurlB::UpperMargin;
@@ -170,10 +171,30 @@ namespace picongpu
          * @tparam T_CurlB functor to compute curl of B
          */
         template<typename T_CurlE, typename T_CurlB>
-        struct GetMargin<picongpu::fields::maxwellSolver::Yee<T_CurlE, T_CurlB>, FieldE>
+        struct GetMargin<fields::maxwellSolver::Yee<T_CurlE, T_CurlB>, FieldE>
         {
             using LowerMargin = typename T_CurlE::LowerMargin;
             using UpperMargin = typename T_CurlE::UpperMargin;
+        };
+
+        /** Get margin for both fields access in the Yee solver
+         *
+         * @tparam T_CurlE functor to compute curl of E
+         * @tparam T_CurlB functor to compute curl of B
+         */
+        template<typename T_CurlE, typename T_CurlB>
+        struct GetMargin<fields::maxwellSolver::Yee<T_CurlE, T_CurlB>>
+        {
+        private:
+            using Solver = fields::maxwellSolver::Yee<T_CurlE, T_CurlB>;
+
+        public:
+            using LowerMargin = typename pmacc::math::CT::max<
+                typename GetLowerMargin<Solver, FieldB>::type,
+                typename GetLowerMargin<Solver, FieldE>::type>::type;
+            using UpperMargin = typename pmacc::math::CT::max<
+                typename GetUpperMargin<Solver, FieldB>::type,
+                typename GetUpperMargin<Solver, FieldE>::type>::type;
         };
 
     } // namespace traits
