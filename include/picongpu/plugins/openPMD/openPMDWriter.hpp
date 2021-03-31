@@ -52,11 +52,11 @@
 #include <pmacc/static_assert.hpp>
 #include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 
+#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
+#include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/misc/SpeciesFilter.hpp"
 #include "picongpu/plugins/openPMD/Json.hpp"
 #include "picongpu/plugins/openPMD/NDScalars.hpp"
-#include "picongpu/plugins/openPMD/WriteMeta.hpp"
-#include "picongpu/plugins/openPMD/openPMDVersion.def"
 #include "picongpu/plugins/openPMD/WriteSpecies.hpp"
 #include "picongpu/plugins/openPMD/restart/LoadSpecies.hpp"
 #include "picongpu/plugins/openPMD/restart/RestartFieldLoader.hpp"
@@ -1220,7 +1220,7 @@ Please pick either of the following:
 
                 /* attributes written here are pure meta data */
                 WriteMeta writeMetaAttributes;
-                writeMetaAttributes(threadParams);
+                writeMetaAttributes(*threadParams->openPMDSeries, threadParams->currentStep);
 
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
