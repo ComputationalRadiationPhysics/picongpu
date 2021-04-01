@@ -26,10 +26,10 @@
 #include "pmacc/eventSystem/events/IEvent.hpp"
 #include "pmacc/types.hpp"
 #include "pmacc/assert.hpp"
+#include "pmacc/eventSystem/PerfInfo.hpp"
 
 #include <string>
 #include <set>
-
 
 namespace pmacc
 {
@@ -49,16 +49,21 @@ namespace pmacc
             TASK_HOST
         };
 
+        /** Flops, Bytes, and timer for this task.
+         */
+        PerfData perfInfo;
+
         /**
          * constructor
          */
-        ITask() : myType(ITask::TASK_UNKNOWN)
+        ITask() : myType(ITask::TASK_UNKNOWN), perfInfo(0, 0)
         {
             // task id 0 is reserved for invalid
             static id_t globalId = 1;
 
             myId = globalId++;
             PMACC_ASSERT(myId > 0);
+
         }
 
 

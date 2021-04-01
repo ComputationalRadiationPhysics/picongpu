@@ -24,6 +24,7 @@
 #include <pmacc/Environment.hpp>
 #include <pmacc/types.hpp>
 
+#include <pmacc/eventSystem/PerfInfo.hpp>
 #include <picongpu/simulation_defines.hpp>
 
 #include <cstdlib>
@@ -53,9 +54,15 @@ namespace
             errorCode = EXIT_FAILURE;
             break;
         case ArgsParser::Status::success:
-            sim.load();
-            sim.start();
-            sim.unload();
+            { pmacc::PerfTimed timer("Load", 0, 0);
+              sim.load();
+            }
+            { pmacc::PerfTimed start("Start", 0, 0);
+              sim.start();
+            }
+            { pmacc::PerfTimed timer("Unload", 0, 0);
+              sim.unload();
+            }
             PMACC_FALLTHROUGH;
         case ArgsParser::Status::successExit:
             errorCode = 0;
@@ -63,6 +70,7 @@ namespace
         };
 
         // finalize the pmacc context */
+        pmacc::PerfTimed timer("Finalize", 0, 0);
         pmacc::Environment<>::get().finalize();
 
         return errorCode;
@@ -77,20 +85,27 @@ namespace
  */
 int main(int argc, char** argv)
 {
+    pmacc::PerfInfo& perf = pmacc::Environment<>::get().PerfInfo();
+    perf.on();
+
     try
     {
-        return runSimulation(argc, argv);
+        auto ret = runSimulation(argc, argv);
+        perf.show(std::cout);
+        return ret;
     }
     // A last-ditch effort to report exceptions to a user
     catch(const std::exception& ex)
     {
         auto const typeName = std::string(typeid(ex).name());
         std::cerr << "Unhandled exception of type '" + typeName + "' with message '" + ex.what() + "', terminating\n";
+        perf.show(std::cout);
         return EXIT_FAILURE;
     }
     catch(...)
     {
         std::cerr << "Unhandled exception of unknown type, terminating\n";
+        perf.show(std::cout);
         return EXIT_FAILURE;
     }
 }

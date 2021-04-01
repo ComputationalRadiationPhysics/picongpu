@@ -24,6 +24,7 @@
 #include "pmacc/eventSystem/streams/StreamController.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/Manager.hpp"
+#include "pmacc/eventSystem/PerfInfo.hpp"
 #include "pmacc/assert.hpp"
 
 #include <cstdlib>
@@ -42,6 +43,31 @@ namespace pmacc
         CUDA_CHECK_NO_EXCEPT(cuplaGetLastError());
     }
 
+    /** Re-entrant function that calls task->execute() in sequence.
+     *
+     *    1. if "iter" is at end, rewind to beginning
+     *    2. repeatedly call execute() method of "iter" (= the next task in
+     *       the `tasks` map) until hitting "end"
+     *             ~> This creates recursion indirectly when tasks await one another.
+     *      a. if the awaited task has completed:
+     *         i.  cleanup by deleting its taskPtr if necessary
+     *         ii. if this task was taskToWait, move "iter" to end, then return "true"
+     *    3. If the end is reached, return "false"
+     *
+     * counter = number of calls to execute() since the last completed task
+     * deep    = number of times execute() has been entered - 1
+     *
+     * Design notes: This system works well as a "reaper" to remove completed tasks.
+     * However, it cannot guarantee immediately returning "true" when called - even
+     * if the taskToWait has actually completed.  A callback mechanism populating a list of
+     * completed tasks would work much better for that purpose.
+     *
+     * Potentially worthwhile callback mechanisms to investigate are
+     *  a stack protected by a single lock
+     *  or zeroMQ's "local" socket type
+     *  or anything providing the equivalent of a golang channel
+     * 
+     */
     inline bool Manager::execute(id_t taskToWait)
     {
 #ifdef DEBUG_EVENTS
@@ -73,8 +99,10 @@ namespace pmacc
             if(counter == 500000)
                 std::cout << taskPtr->toString() << " " << passiveTasks.size() << std::endl;
 #endif
-            if(taskPtr->execute())
+            if(taskPtr->execute()) // Looks like the only place in code calling taskPtr->execute().
             {
+                taskPtr->perfInfo.stop();
+                Environment<>::get().PerfInfo().append(taskPtr->toString(), taskPtr->perfInfo);
                 /*test if task is deleted by other stackdeep*/
                 if(getActiveITaskIfNotFinished(id) == taskPtr)
                 {
@@ -135,7 +163,7 @@ namespace pmacc
         return nullptr;
     }
 
-    inline void Manager::waitForFinished(id_t taskId)
+    inline void Manager::waitForFinished(id_t taskId) // DMR: TODO
     {
         if(taskId == 0)
             return;

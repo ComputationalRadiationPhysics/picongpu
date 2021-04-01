@@ -189,7 +189,7 @@ namespace pmacc
     }
 
     /**
-     * Creates a new TaskGetCurrentSizeFromDevic.
+     * Creates a new TaskGetCurrentSizeFromDevice.
      * @param buffer DeviceBuffer to get current size from
      * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
      */

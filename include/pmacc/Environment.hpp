@@ -231,6 +231,15 @@ namespace pmacc
                 return EventPool::getInstance();
             }
 
+            /** get the singleton PerfInfo
+             *
+             * @return instance of PerfInfo
+             */
+            pmacc::PerfInfo& PerfInfo()
+            {
+                return PerfInfo::getInstance();
+            }
+
             /** get the singleton ParticleFactory
              *
              * @return instance of ParticleFactory
