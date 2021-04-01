@@ -93,39 +93,39 @@ namespace picongpu
                         typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
                     auto const numSpeciesWithCurrentSolver = bmpl::size<SpeciesWithCurrentSolver>::type::value;
                     auto const existsCurrent = numSpeciesWithCurrentSolver > 0;
-                    if(!existsCurrent)
-                        return;
-
-                    DataConnector& dc = Environment<>::get().DataConnector();
-                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
-                    auto eRecvCurrent = fieldJ.asyncCommunication(__getTransactionEvent());
-                    auto& interpolation = fields::currentInterpolation::CurrentInterpolation::get();
-                    auto const currentRecvLower = interpolation.getLowerMargin();
-                    auto const currentRecvUpper = interpolation.getUpperMargin();
-
-                    /* without interpolation, we do not need to access the FieldJ GUARD
-                     * and can therefore overlap communication of GUARD->(ADD)BORDER & computation of CORE
-                     */
-                    if(currentRecvLower == DataSpace<simDim>::create(0)
-                       && currentRecvUpper == DataSpace<simDim>::create(0))
+                    if(existsCurrent)
                     {
-                        addCurrentToEMF<type::CORE>(fieldJ);
-                        __setTransactionEvent(eRecvCurrent);
-                        addCurrentToEMF<type::BORDER>(fieldJ);
+                        DataConnector& dc = Environment<>::get().DataConnector();
+                        auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                        auto eRecvCurrent = fieldJ.asyncCommunication(__getTransactionEvent());
+                        auto& interpolation = fields::currentInterpolation::CurrentInterpolation::get();
+                        auto const currentRecvLower = interpolation.getLowerMargin();
+                        auto const currentRecvUpper = interpolation.getUpperMargin();
+
+                        /* without interpolation, we do not need to access the FieldJ GUARD
+                         * and can therefore overlap communication of GUARD->(ADD)BORDER & computation of CORE
+                         */
+                        if(currentRecvLower == DataSpace<simDim>::create(0)
+                           && currentRecvUpper == DataSpace<simDim>::create(0))
+                        {
+                            addCurrentToEMF<type::CORE>(fieldJ);
+                            __setTransactionEvent(eRecvCurrent);
+                            addCurrentToEMF<type::BORDER>(fieldJ);
+                        }
+                        else
+                        {
+                            /* in case we perform a current interpolation/filter, we need
+                             * to access the BORDER area from the CORE (and the GUARD area
+                             * from the BORDER)
+                             * `fieldJ->asyncCommunication` first adds the neighbors' values
+                             * to BORDER (send) and then updates the GUARD (receive)
+                             * \todo split the last `receive` part in a separate method to
+                             *       allow already a computation of CORE */
+                            __setTransactionEvent(eRecvCurrent);
+                            addCurrentToEMF<type::CORE + type::BORDER>(fieldJ);
+                        }
+                        dc.releaseData(FieldJ::getName());
                     }
-                    else
-                    {
-                        /* in case we perform a current interpolation/filter, we need
-                         * to access the BORDER area from the CORE (and the GUARD area
-                         * from the BORDER)
-                         * `fieldJ->asyncCommunication` first adds the neighbors' values
-                         * to BORDER (send) and then updates the GUARD (receive)
-                         * \todo split the last `receive` part in a separate method to
-                         *       allow already a computation of CORE */
-                        __setTransactionEvent(eRecvCurrent);
-                        addCurrentToEMF<type::CORE + type::BORDER>(fieldJ);
-                    }
-                    dc.releaseData(FieldJ::getName());
                 }
 
             private:
