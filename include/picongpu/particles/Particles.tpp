@@ -77,8 +77,15 @@ namespace picongpu
         template<typename T_ExchangeMemCfg, typename T_Sfinae = void>
         struct DirScalingFactor
         {
-            //! @return factor to scale the amount of memory for each direction
-            static floatD_64 get()
+            //! @return orthogonal contribution factor to scale the amount of memory for each direction
+            static floatD_64 getOrtho()
+            {
+                return floatD_64::create(1.0);
+            }
+
+            //! @return parallel contribution factor to scale the amount of memory for each direction
+            //! (userScalingFactor)
+            static floatD_64 getPara()
             {
                 return floatD_64::create(1.0);
             }
@@ -94,32 +101,30 @@ namespace picongpu
                 decltype(std::declval<T_ExchangeMemCfg>().DIR_SCALING_FACTOR),
                 typename T_ExchangeMemCfg::REF_LOCAL_DOM_SIZE>>
         {
-            static floatD_64 get()
+            static floatD_64 getOrtho()
             {
                 auto baseLocalCells = T_ExchangeMemCfg::REF_LOCAL_DOM_SIZE::toRT();
-                auto userScalingFactor = T_ExchangeMemCfg{}.DIR_SCALING_FACTOR;
-
                 auto localDomSize = Environment<simDim>::get().SubGrid().getLocalDomain().size;
-                // set too local domain size in case there is no base volume defined
-                for(uint32_t d = 0; d < simDim; ++d)
-                {
-                    if(baseLocalCells[d] <= 0)
-                        baseLocalCells[d] = localDomSize[d];
-                }
 
                 auto scale = floatD_64::create(1.0);
                 for(uint32_t d = 0; d < simDim; ++d)
                 {
-                    auto dir1 = (d + 1) % simDim;
-                    auto dir2 = (d + 2) % simDim;
-                    // precision: numbers are small, therefore the usage of double is fine
-                    auto scaleDirection = std::ceil(
-                        float_64(localDomSize[dir1]) / float_64(baseLocalCells[dir1]) * float_64(localDomSize[dir2])
-                        / float_64(baseLocalCells[dir2]));
-                    float_64 scalingFactor = scaleDirection * userScalingFactor[d];
-                    // do not scale down
-                    scale[d] = std::max(scalingFactor, 1.0);
+                    // set to local domain size in case there is no base volume defined
+                    if(baseLocalCells[d] <= 0)
+                        baseLocalCells[d] = localDomSize[d];
+
+                    scale[d] = std::max(float_64(localDomSize[d]) / float_64(baseLocalCells[d]), 1.0);
                 }
+
+                return scale;
+            }
+
+            static floatD_64 getPara()
+            {
+                auto userScalingFactor = T_ExchangeMemCfg{}.DIR_SCALING_FACTOR;
+                floatD_64 scale;
+                for(uint32_t d = 0; d < simDim; ++d)
+                    scale[d] = userScalingFactor[d];
 
                 return scale;
             }
@@ -127,6 +132,7 @@ namespace picongpu
 
         //! @}
     } // namespace detail
+
     template<typename T_Name, typename T_Flags, typename T_Attributes>
     size_t Particles<T_Name, T_Flags, T_Attributes>::exchangeMemorySize(uint32_t ex) const
     {
@@ -135,8 +141,9 @@ namespace picongpu
             return 0u;
 
         using ExchangeMemCfg = GetExchangeMemCfg_t<Particles>;
-        // scaling factor for each direction
-        auto dirScalingFactors = picongpu::detail::DirScalingFactor<ExchangeMemCfg>::get();
+        // scaling factors, base and local cell sizes for each direction
+        auto orthoScalingFactor = ::picongpu::detail::DirScalingFactor<ExchangeMemCfg>::getOrtho();
+        auto paraScalingFactor = ::picongpu::detail::DirScalingFactor<ExchangeMemCfg>::getPara();
 
         /* type of the exchange direction
          * 1 = plane
@@ -153,8 +160,13 @@ namespace picongpu
         {
             // calculate the exchange type
             relDirType += std::abs(relDir[d]);
-            exchangeScalingFactor *= relDir[d] != 0 ? dirScalingFactors[d] : 1.0;
+            if(relDir[d] == 0) // scale up by factors orthorgonal to exchange dir
+                exchangeScalingFactor *= orthoScalingFactor[d];
+            else // apply user scaling in exchange dir
+                exchangeScalingFactor *= paraScalingFactor[d];
         }
+        exchangeScalingFactor = std::max(exchangeScalingFactor, 1.0);
+
         size_t exchangeBytes = 0;
 
         using ExchangeMemCfg = GetExchangeMemCfg_t<Particles>;
