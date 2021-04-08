@@ -140,7 +140,6 @@ namespace picongpu
                 auto mallocMCBuffer
                     = rp.dc.template get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName(), true);
                 auto particlesBox = rp.speciesTmp->getHostParticlesBox(mallocMCBuffer->getOffset());
-                rp.dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
 #else
                 /* This separate code path is only a workaround until
                  * MallocMCBuffer is alpaka compatible.

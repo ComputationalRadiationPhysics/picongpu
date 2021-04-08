@@ -825,8 +825,6 @@ Please pick either of the following:
                     meta::ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1>> copySpeciesToHost;
                     copySpeciesToHost();
                     lastSpeciesSyncStep = currentStep;
-
-                    dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
                 }
 #endif
 
