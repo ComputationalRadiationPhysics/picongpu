@@ -808,6 +808,7 @@ Please pick either of the following:
                     }
                 }
 
+#if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
                 /* copy species only one time per timestep to the host */
                 if(mThreadParams.strategy == WriteSpeciesStrategy::ADIOS && lastSpeciesSyncStep != currentStep)
                 {
@@ -827,6 +828,7 @@ Please pick either of the following:
 
                     dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
                 }
+#endif
 
                 TimeIntervall timer;
                 timer.toggleStart();

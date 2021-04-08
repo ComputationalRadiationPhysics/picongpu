@@ -130,8 +130,6 @@ namespace picongpu
                 log<picLog::INPUT_OUTPUT>("openPMD:   (begin) copy particle host (with hierarchy) to "
                                           "host (without hierarchy): %1%")
                     % name;
-                auto mallocMCBuffer
-                    = rp.dc.template get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName(), true);
 
                 int globalParticleOffset = 0;
                 AreaMapping<CORE + BORDER, MappingDesc> mapper(*(rp.params.cellDescription));
@@ -139,7 +137,10 @@ namespace picongpu
                 pmacc::particles::operations::ConcatListOfFrames<simDim> concatListOfFrames(mapper.getGridDim());
 
 #if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+                auto mallocMCBuffer
+                    = rp.dc.template get<MallocMCBuffer<DeviceHeap>>(MallocMCBuffer<DeviceHeap>::getName(), true);
                 auto particlesBox = rp.speciesTmp->getHostParticlesBox(mallocMCBuffer->getOffset());
+                rp.dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
 #else
                 /* This separate code path is only a workaround until
                  * MallocMCBuffer is alpaka compatible.
@@ -167,7 +168,6 @@ namespace picongpu
                     mapper,
                     rp.particleFilter);
 
-                rp.dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
 
                 /* this costs a little bit of time but writing to external is
                  * slower in general */
