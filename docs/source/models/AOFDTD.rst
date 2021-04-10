@@ -3,7 +3,7 @@
 Finite-Difference Time-Domain Method
 ====================================
 
-.. sectionauthor:: Klaus Steiniger
+.. sectionauthor:: Klaus Steiniger, Jakob Trojok
 
 
 For the discretization of Maxwell's equations on a mesh in PIConGPU, only the equations
@@ -202,20 +202,18 @@ For an electromagnetic wave in vacuum,
 
    \left[ \frac{\omega}{c} \right]^2 = k_x^2 + k_y^2 + k_z^2\,.
 
-However, on a 2D mesh, with arbitrary order finite differences for the spatial derivatives, the dispersion relation
+However, on a 3D mesh, with arbitrary order finite differences for the spatial derivatives, the dispersion relation
 becomes
 
 .. math::
 
-   \left[ \frac{1}{c\Delta t} \sin\left(\frac{\omega \Delta t}{2} \right) \right]^2 =
-  \sum\limits_{l=1/2}^{M - 1/2} \sum\limits_{p=1/2}^{M - 1/2} g_l^{2M} g_p^{2M}
-    \left\lbrace
-      \frac{\sin(\tilde k_x l \Delta x)\sin(\tilde k_x p \Delta x)}{\Delta x^2}
-      + \frac{\sin(\tilde k_y l \Delta y)\sin(\tilde k_y p \Delta y)}{\Delta y^2}
-    \right\rbrace\,,
+   \left[ \frac{1}{c\Delta t} \sin\left(\frac{\omega \Delta t}{2} \right) \right]^2 =&
+  \left[\sum\limits_{l=1/2}^{M - 1/2} g_l^{2M} \frac{\sin(\tilde k_x l \Delta x)}{\Delta x} \right]^2
+  + \left[\sum\limits_{l=1/2}^{M - 1/2} g_l^{2M} \frac{\sin(\tilde k_y l \Delta y)}{\Delta y} \right]^2
+  
+  & + \left[\sum\limits_{l=1/2}^{M - 1/2} g_l^{2M} \frac{\sin(\tilde k_z l \Delta z)}{\Delta z} \right]^2
 
-
-where :math:`\tilde k_x` and :math:`\tilde k_y` are the wave vector components on the mesh in :math:`x` and :math:`y`
+where :math:`\tilde k_x`, :math:`\tilde k_y`, and :math:`\tilde k_z` are the wave vector components on the mesh in :math:`x`, :math:`y`, and :math:`z`
 direction, respectively.
 As is obvious from the relation, the numerical wave vector will be different from the real world wave vector for a given
 frequency :math:`\omega` due to discretization.
@@ -234,16 +232,20 @@ The corresponding dispersion relation reads
   \right]^2
       + \left[
       \frac{1}{\Delta y} \sin\left(\frac{\tilde k_y \Delta y}{2}\right)
+  \right]^2\,
+      + \left[
+      \frac{1}{\Delta z} \sin\left(\frac{\tilde k_z \Delta z}{2}\right)
   \right]^2\,.
 
+Obviously, this is a special case of the general dispersion relation, where :math:`M=1`.
+
 Solving for a wave's numerical frequency :math:`\omega` in dependence on its wave vector
-:math:`\vec{\tilde k} = (\tilde k\cos\phi, \tilde k\sin\phi)`, where the angle :math:`\phi` is enclosed by the mesh's
-:math:`x`-axis and the wave's propagation direction,
+:math:`\vec{\tilde k} = (\tilde k\cos\phi\sin\theta, \tilde k\sin\phi\sin\theta, \tilde k\cos\theta)` (spherical coordinates),
 
 .. math::
 
    \omega = \frac{2}{\Delta t} \arcsin \xi\,\text{, where } \xi_\mathrm{max} = c\Delta t
-     \sqrt{ \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} + \frac{1}{\Delta z^2}} \quad \text{(in 3D)}
+     \sqrt{ \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} + \frac{1}{\Delta z^2}}
 
 reveals two important properties of the field solver.
 (The 2D version is obtained by letting :math:`\Delta z \rightarrow \infty`.)
@@ -253,7 +255,7 @@ This gives the *Courant-Friedrichs-Lewy* stability condition relating time step 
 
 .. math::
 
-   c\Delta t < \frac{1}{\sqrt{ \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} + \frac{1}{\Delta z^2} }} \quad \text{(in 3D)}
+   c\Delta t < \frac{1}{\sqrt{ \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} + \frac{1}{\Delta z^2} }}
 
 Typically, :math:`\xi_\mathrm{max} = 0.995` is chosen.
 Outside this stability region, the frequency :math:`\omega` corresponding to a certain wave vector becomes imaginary,
@@ -295,7 +297,26 @@ it is resolved at least twice on the mesh.
 
 Dispersion Relation for Arbitrary Order Finite Differences
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Using higher order finite differences for the approximation of spatial derivatives significantly improves the
+Solving the higher order dispersion relation for the angular frequency yields:
+
+.. math::
+
+   \omega = \frac{2}{\Delta t} \arcsin \xi\,\text{, where } \xi_\mathrm{max} 
+     = c\Delta t \left[ \sum\limits_{l=1/2}^{M - 1/2} (-1)^{l-\frac{1}{2}} g_l^{2M} \right]
+     \sqrt{ \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} + \frac{1}{\Delta z^2}}
+
+The equation is structurally the same as for Yee's method, but contains the alternating sum of the weighting coefficients of the spatial derivative.
+Again, Yee's Formula is the special case where :math:`M=1`.
+For the solver to be stable, :math:`\xi_\mathrm{max}<1` is required as before.
+Thus the stability condition reads
+
+.. math::
+
+   c\Delta t < \frac{1}{ \left[ \sum\limits_{l=1/2}^{M - 1/2} (-1)^{l-\frac{1}{2}} g_l^{2M} \right] \sqrt{ \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} + \frac{1}{\Delta z^2} }}
+   
+As explained for Yee's Method, :math:`\xi_\mathrm{max} = 0.995` is normally chosen and not meeting the stability condition can lead to nonphysical exponential wave amplification.
+
+Regarding the numerical anisotropy of the phase velocity, using higher order finite differences for the approximation of spatial derivatives significantly improves the
 dispersion properties of the solver.
 Most notably, the velocity anisotropy reduces and the dependence of phase velocity on sampling reduces, too.
 Yet higher order solvers still feature dispersion.
