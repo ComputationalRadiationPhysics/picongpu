@@ -22,6 +22,8 @@
 #include "picongpu/unitless/precision.unitless"
 #include "picongpu/param/collision.param"
 
+#include <pmacc/math/Vector.hpp>
+
 namespace picongpu
 {
     namespace particles
@@ -36,7 +38,7 @@ namespace picongpu
                     return float_COLL(x);
                 }
 
-                using float3_COLL = float3_64;
+                using float3_COLL = pmacc::math::Vector<float_COLL, 3>;
                 const float_COLL DELTA_T_COLL = static_cast<float_COLL>(DELTA_T);
                 const float_COLL EPS0_COLL = static_cast<float_COLL>(EPS0);
                 const float_COLL WEIGHT_NORM_COLL
