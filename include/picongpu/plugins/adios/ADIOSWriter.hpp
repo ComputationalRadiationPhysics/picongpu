@@ -347,8 +347,6 @@ namespace picongpu
                         T_Field::getName(),
                         field->getHostDataBox().getPointer(),
                         isDomainBound);
-
-                    dc.releaseData(T_Field::getName());
 #endif
                 }
             };
@@ -407,7 +405,6 @@ namespace picongpu
                     __setTransactionEvent(fieldTmpEvent);
                     /* copy data to host that we can write same to disk*/
                     fieldTmp->getGridBuffer().deviceToHost();
-                    dc.releaseData(Species::FrameType::getName());
                     /*## finish update field ##*/
 
                     const uint32_t components = GetNComponents<ValueType>::value;
@@ -424,8 +421,6 @@ namespace picongpu
                         getName(),
                         fieldTmp->getHostDataBox().getPointer(),
                         isDomainBound);
-
-                    dc.releaseData(FieldTmp::getUniqueId(0));
                 }
             };
 
@@ -466,7 +461,6 @@ namespace picongpu
                     DataConnector& dc = Environment<>::get().DataConnector();
                     auto field = dc.get<T_Field>(T_Field::getName());
                     fieldsSizeDims = precisionCast<uint64_t>(field->getGridLayout().getDataSpaceWithoutGuarding());
-                    dc.releaseData(T_Field::getName());
 
                     /* Scan the PML buffer local size along all local domains
                      * This code is based on the same operation in hdf5::Field::writeField(),
@@ -690,7 +684,6 @@ namespace picongpu
                         DataConnector& dc = Environment<>::get().DataConnector();
                         auto field = dc.get<T>(T::getName());
                         localSize = field->getGridLayout().getDataSpaceWithoutGuarding();
-                        dc.releaseData(T::getName());
                     }
 
                     // adios buffer size for this dataset (all components)
@@ -777,7 +770,7 @@ namespace picongpu
                         DataConnector& dc = Environment<>::get().DataConnector();
                         auto field = dc.get<FieldTmp>(FieldTmp::getName());
                         localSize = field->getGridLayout().getDataSpaceWithoutGuarding();
-                        dc.releaseData(FieldTmp::getName());
+                        ;
                     }
 
                     // adios buffer size for this dataset (all components)
@@ -1171,7 +1164,6 @@ namespace picongpu
                     meta::ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1>> copySpeciesToHost;
                     copySpeciesToHost();
                     lastSpeciesSyncStep = currentStep;
-                    dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
                 }
 
                 beginAdios(mThreadParams.adiosFilename);

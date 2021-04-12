@@ -181,7 +181,6 @@ namespace picongpu
                     particles::particleToGrid::derivedAttributes::ChargeDensity>::Solver;
 
                 fieldTmp->computeValue<area, ChargeDensitySolver>(*speciesTmp, currentStep);
-                dc.releaseData(SpeciesType::FrameType::getName());
             }
         };
 

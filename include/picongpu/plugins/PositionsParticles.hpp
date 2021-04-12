@@ -260,7 +260,6 @@ namespace picongpu
             (mapper.getGridDim(),
              block)(particles->getDeviceParticlesBox(), gParticle->getDeviceBuffer().getBasePointer(), mapper);
 
-            dc.releaseData(ParticlesType::FrameType::getName());
             gParticle->deviceToHost();
 
             DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());

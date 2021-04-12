@@ -106,8 +106,6 @@ namespace picongpu
                 DensityFunctor densityFunctor(currentStep);
                 PositionFunctor positionFunctor(currentStep);
                 speciesPtr->initDensityProfile(densityFunctor, positionFunctor, currentStep);
-
-                dc.releaseData(FrameType::getName());
             }
         };
 
@@ -167,9 +165,6 @@ namespace picongpu
                 SrcFilterInterfaced srcFilter(currentStep);
 
                 speciesPtr->deviceDeriveFrom(*srcSpeciesPtr, filteredManipulator, srcFilter);
-
-                dc.releaseData(DestFrameType::getName());
-                dc.releaseData(SrcFrameType::getName());
             }
         };
 
@@ -219,7 +214,6 @@ namespace picongpu
                 DataConnector& dc = Environment<>::get().DataConnector();
                 auto speciesPtr = dc.get<SpeciesType>(FrameType::getName(), true);
                 speciesPtr->fillAllGaps();
-                dc.releaseData(FrameType::getName());
             }
         };
 

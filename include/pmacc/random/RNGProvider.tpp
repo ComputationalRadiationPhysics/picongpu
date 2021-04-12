@@ -97,7 +97,6 @@ namespace pmacc
         {
             auto provider = Environment<>::get().DataConnector().get<RNGProvider>(id, true);
             Handle result(provider->getDeviceDataBox());
-            Environment<>::get().DataConnector().releaseData(id);
             return result;
         }
 

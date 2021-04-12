@@ -536,8 +536,6 @@ namespace picongpu
                         *cellDescription,
                         freqFkt,
                         subGrid.getGlobalDomain().size);
-
-                    dc.releaseData(T_ParticlesType::FrameType::getName());
                 }
             };
 

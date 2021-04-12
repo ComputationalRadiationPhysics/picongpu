@@ -60,8 +60,6 @@ namespace pmacc
                     auto species = dc.get<Species>(FrameType::getName(), true);
 
                     forEach(*species, UnaryFunctor(currentStep));
-
-                    dc.releaseData(FrameType::getName());
                 }
             };
 

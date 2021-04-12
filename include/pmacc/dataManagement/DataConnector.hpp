@@ -154,8 +154,6 @@ namespace pmacc
          * Reference to data in Dataset with identifier id and type TYPE is returned.
          * If the Dataset status in invalid, it is automatically synchronized.
          * Increments the reference counter to the dataset specified by id.
-         * This reference has to be released after all read/write operations
-         * before the next synchronize()/getData() on this data are done using releaseData().
          *
          * @tparam TYPE if of the data to load
          * @param id id of the Dataset to load from
@@ -181,16 +179,6 @@ namespace pmacc
             }
 
             return std::static_pointer_cast<TYPE>(*it);
-        }
-
-        /** Indicate a data set gotten temporarily via @see getData is not used anymore
-         *
-         * @todo not implemented
-         *
-         * @param id id for the dataset previously acquired using getData()
-         */
-        void releaseData(SimulationDataId)
-        {
         }
 
     private:

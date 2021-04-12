@@ -49,7 +49,6 @@ namespace picongpu
                     auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
                     FieldJ::ValueType zeroJ(FieldJ::ValueType::create(0._X));
                     fieldJ.assign(zeroJ);
-                    dc.releaseData(FieldJ::getName());
                 }
             };
 

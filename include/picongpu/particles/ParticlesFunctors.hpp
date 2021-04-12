@@ -65,7 +65,6 @@ namespace picongpu
                 DataConnector& dc = Environment<>::get().DataConnector();
                 auto species = dc.get<SpeciesType>(FrameType::getName(), true);
                 species = nullptr;
-                dc.releaseData(FrameType::getName());
             }
         };
 
@@ -126,7 +125,6 @@ namespace picongpu
                 DataConnector& dc = Environment<>::get().DataConnector();
                 auto species = dc.get<SpeciesType>(FrameType::getName(), true);
                 species->reset(currentStep);
-                dc.releaseData(FrameType::getName());
             }
         };
 
@@ -194,7 +192,6 @@ namespace picongpu
 
                 __startTransaction(eventInt);
                 species->update(currentStep);
-                dc.releaseData(FrameType::getName());
                 EventTask ev = __endTransaction();
                 updateEvent.push_back(ev);
             }
@@ -222,8 +219,6 @@ namespace picongpu
 
                 updateEventList.pop_front();
                 commEventList.push_back(communication::asyncCommunication(*species, updateEvent));
-
-                dc.releaseData(FrameType::getName());
             }
         };
 
@@ -313,9 +308,6 @@ namespace picongpu
                  * the last frame is not completely filled but every other before is full
                  */
                 electronsPtr->fillAllGaps();
-
-                dc.releaseData(FrameType::getName());
-                dc.releaseData(DestFrameType::getName());
             }
         };
 
@@ -414,9 +406,6 @@ namespace picongpu
                     *photonSpeciesPtr,
                     bremsstrahlungFunctor,
                     cellDesc);
-
-                dc.releaseData(ElectronFrameType::getName());
-                dc.releaseData(PhotonFrameType::getName());
             }
         };
 #endif
@@ -463,9 +452,6 @@ namespace picongpu
                     synchrotronFunctions.getCursor(SynchrotronFunctions::second));
 
                 creation::createParticlesFromSpecies(*electronSpeciesPtr, *photonSpeciesPtr, photonCreator, cellDesc);
-
-                dc.releaseData(ElectronFrameType::getName());
-                dc.releaseData(PhotonFrameType::getName());
             }
         };
 

@@ -500,8 +500,6 @@ namespace picongpu
                     using ElectronDensitySolver = typename DetermineElectronDensitySolver<T_ParticlesType>::type;
                     // Calculate density.
                     tmpField->template computeValue<CORE + BORDER, ElectronDensitySolver>(*species, currentStep);
-                    // Release particle data.
-                    dc.releaseData(T_ParticlesType::FrameType::getName());
                     // Get the field data box.
                     FieldTmp::DataBoxType tmpFieldBox = tmpField->getGridBuffer().getDeviceBuffer().getDataBox();
                     return tmpFieldBox;
@@ -656,8 +654,7 @@ namespace picongpu
                     {
                         runKernelInMirrorMode(cellsGrid, fieldTmpNoGuard, globalOffset, numBlocks, fieldPos);
                     }
-                    // Release density data.
-                    dc.releaseData(FieldTmp::getUniqueId(0));
+
                     // Write to disk.
                     if(pluginSystem::containsStep(outputPeriod, currentStep))
                         writeOutput();

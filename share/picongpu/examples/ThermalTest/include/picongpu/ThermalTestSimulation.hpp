@@ -82,8 +82,6 @@ namespace picongpu
             this->eField_zt[0] = std::make_unique<container::HostBuffer<float, 2>>(
                 Size_t<2>(fieldE_coreBorder.size().z(), this->collectTimesteps));
             this->eField_zt[1] = std::make_unique<container::HostBuffer<float, 2>>(this->eField_zt[0]->size());
-
-            dc.releaseData(FieldE::getName());
         }
 
         void pluginRegisterHelp(po::options_description& desc)
@@ -179,8 +177,6 @@ namespace picongpu
                         nvidia::functors::Add());
                 }
             }
-
-            dc.releaseData(FieldE::getName());
 
             if(currentStep == this->collectTimesteps + firstTimestep)
                 writeOutput();

@@ -180,7 +180,6 @@ namespace picongpu
                 DataSpace<simDim>(),
                 localSize,
                 parFilter);
-            dc.releaseData(ParticlesType::FrameType::getName());
 
             uint64_cu reducedValueMax;
             if(picLog::log_level & picLog::CRITICAL::lvl)

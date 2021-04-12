@@ -406,8 +406,6 @@ namespace picongpu
                 currentStep,
                 binaryKernel);
 
-            dc.releaseData(ParticlesType::FrameType::getName());
-
             // get energy from GPU
             gEnergy->deviceToHost();
 

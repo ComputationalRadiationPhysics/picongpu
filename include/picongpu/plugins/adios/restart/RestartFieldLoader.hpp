@@ -244,8 +244,6 @@ namespace picongpu
                     T_Field::getName(),
                     tp,
                     isDomainBound);
-
-                dc.releaseData(T_Field::getName());
 #endif
             }
         };

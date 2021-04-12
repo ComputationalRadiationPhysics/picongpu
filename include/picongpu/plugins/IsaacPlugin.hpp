@@ -92,7 +92,6 @@ namespace picongpu
                     }
                     typename FieldType::DataBoxType dataBox = pField->getDeviceDataBox();
                     shifted = dataBox.shift(guarding);
-                    dc.releaseData(FieldType::getName());
                     /* avoid deadlock between not finished pmacc tasks and potential blocking operations
                      * within ISAAC
                      */
@@ -154,8 +153,6 @@ namespace picongpu
                     __setTransactionEvent(fieldTmpEvent);
                     __getTransactionEvent().waitForFinished();
 
-                    dc.releaseData(ParticleType::FrameType::getName());
-
                     DataSpace<simDim> guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
                     if(movingWindow)
                     {
@@ -168,7 +165,6 @@ namespace picongpu
                     }
                     typename FieldTmp::DataBoxType dataBox = fieldTmp->getDeviceDataBox();
                     shifted = dataBox.shift(guarding);
-                    dc.releaseData(FieldTmp::getUniqueId(0));
                 }
             }
 
@@ -315,7 +311,6 @@ namespace picongpu
                                     / (float) MappingDesc::SuperCellSize::toRT()[i]));
                         }
                     }
-                    dc.releaseData(ParticlesType::FrameType::getName());
                 }
             }
 

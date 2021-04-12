@@ -146,7 +146,7 @@ namespace picongpu
                     using DensitySolver = typename particleToGrid::
                         CreateFieldTmpOperation_t<SrcSpecies, particleToGrid::derivedAttributes::Density>::Solver;
                     density->template computeValue<CORE + BORDER, DensitySolver>(*srcSpecies, currentStep);
-                    dc.releaseData(SrcSpecies::FrameType::getName());
+
                     EventTask densityEvent = density->asyncCommunication(__getTransactionEvent());
                     densityEvent += density->asyncCommunicationGather(densityEvent);
 
@@ -162,7 +162,6 @@ namespace picongpu
                         DestSpecies,
                         particleToGrid::derivedAttributes::EnergyDensityCutoff<CutoffMaxEnergy>>::Solver;
                     eneKinDens->template computeValue<CORE + BORDER, EnergyDensitySolver>(*destSpecies, currentStep);
-                    dc.releaseData(DestSpecies::FrameType::getName());
                     EventTask eneKinEvent = eneKinDens->asyncCommunication(__getTransactionEvent());
                     eneKinEvent += eneKinDens->asyncCommunicationGather(eneKinEvent);
 

@@ -210,8 +210,6 @@ namespace picongpu
                 localResult->getDeviceBuffer().getDataBox(),
                 mapper);
 
-            dc.releaseData(ParticlesType::FrameType::getName());
-
             localResult->deviceToHost();
 
 

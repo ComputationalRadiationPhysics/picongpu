@@ -362,10 +362,6 @@ namespace picongpu
                         coulombLog,
                         Filter0(),
                         Filter1());
-
-                    // Release particle data:
-                    dc.releaseData(FrameType0::getName());
-                    dc.releaseData(FrameType1::getName());
                 }
             };
 

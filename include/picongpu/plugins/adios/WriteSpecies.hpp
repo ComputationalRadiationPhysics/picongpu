@@ -160,8 +160,6 @@ namespace picongpu
                         mapper,
                         particleFilter);
 
-                    dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
-
                     /* this costs a little bit of time but adios writing is slower */
                     PMACC_ASSERT((uint64_cu) globalParticleOffset == totalNumParticles);
                 }

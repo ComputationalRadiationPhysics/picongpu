@@ -361,9 +361,6 @@ namespace picongpu
             FrameSolver(),
             mapper);
 
-        dc.releaseData(FieldE::getName());
-        dc.releaseData(FieldB::getName());
-
         ParticlesBaseType::template shiftParticles<CORE + BORDER>();
     }
 
