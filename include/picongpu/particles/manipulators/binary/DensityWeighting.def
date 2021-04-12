@@ -64,8 +64,10 @@ namespace picongpu
                         template<typename T_DesParticle, typename T_SrcParticle, typename... T_Args>
                         HDINLINE void operator()(T_DesParticle& particleDes, T_SrcParticle const&, T_Args&&...)
                         {
-                            const float_X densityRatioDes = traits::GetDensityRatio<T_DesParticle>::type::getValue();
-                            const float_X densityRatioSrc = traits::GetDensityRatio<T_SrcParticle>::type::getValue();
+                            const float_X densityRatioDes
+                                = picongpu::traits::GetDensityRatio<T_DesParticle>::type::getValue();
+                            const float_X densityRatioSrc
+                                = picongpu::traits::GetDensityRatio<T_SrcParticle>::type::getValue();
 
                             particleDes[weighting_] *= densityRatioDes / densityRatioSrc;
                         }

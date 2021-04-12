@@ -1,5 +1,5 @@
 /* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Richard Pausch, Benjamin Worpitz
+ *                     Richard Pausch, Benjamin Worpitz, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -160,7 +160,7 @@ namespace picongpu
         }
     }
 
-    template<uint32_t AREA, class FrameSolver, class ParticlesClass>
+    template<uint32_t AREA, class FrameSolver, typename Filter, class ParticlesClass>
     void FieldTmp::computeValue(ParticlesClass& parClass, uint32_t)
     {
         typedef SuperCellDescription<
@@ -173,13 +173,15 @@ namespace picongpu
         typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox();
         FieldTmp::DataBoxType tmpBox = this->fieldTmp->getDeviceBuffer().getDataBox();
         FrameSolver solver;
+        using ParticleFilter = typename Filter ::template apply<ParticlesClass>::type;
+        ParticleFilter particleFilter;
         constexpr uint32_t numWorkers
             = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
         do
         {
             PMACC_KERNEL(KernelComputeSupercells<numWorkers, BlockArea>{})
-            (mapper.getGridDim(), numWorkers)(tmpBox, pBox, solver, mapper);
+            (mapper.getGridDim(), numWorkers)(tmpBox, pBox, solver, particleFilter, mapper);
         } while(mapper.next());
     }
 

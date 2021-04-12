@@ -1,5 +1,5 @@
 /* Copyright 2013-2021 Axel Huebl, Rene Widera, Felix Schmitt,
- *                     Benjamin Worpitz, Richard Pausch
+ *                     Benjamin Worpitz, Richard Pausch, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -25,6 +25,7 @@
 /* some forward declarations we need */
 #include "picongpu/fields/Fields.def"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
+#include "picongpu/particles/filter/filter.def"
 
 #include <boost/mpl/vector.hpp>
 
@@ -59,6 +60,20 @@ namespace picongpu
      *       density * charge * velocity_component
      *   - Counter: counts point like particles per cell
      *   - MacroCounter: counts point like macro particles per cell
+     *
+     * Filtering:
+     *   You can create derived fields from filtered particles. Only particles passing
+     *   the filter will contribute to the field quantity.
+     *   For that you need to define your filters in `particleFilters.param` and pass a
+     *   filter as the 3rd (optional) template argument in `CreateEligible_t`.
+     *
+     *   Example: This will create charge density field for all species that are
+     *   eligible for the this attribute and the chosen filter.
+     *   @code{.cpp}
+     *   using ChargeDensity_Seq
+         = deriveField::CreateEligible_t< VectorAllSpecies,
+         deriveField::derivedAttributes::ChargeDensity, filter::FilterOfYourChoice>;
+     *   @endcode
      */
     namespace deriveField = particles::particleToGrid;
 

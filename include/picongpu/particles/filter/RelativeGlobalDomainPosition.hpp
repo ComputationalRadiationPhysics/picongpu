@@ -22,9 +22,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/filter/RelativeGlobalDomainPosition.def"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-
-#include <pmacc/traits/HasIdentifiers.hpp>
 
 
 namespace picongpu
@@ -146,15 +143,5 @@ namespace picongpu
             };
 
         } // namespace filter
-
-        namespace traits
-        {
-            template<typename T_Species, typename T_Params>
-            struct SpeciesEligibleForSolver<T_Species, filter::RelativeGlobalDomainPosition<T_Params>>
-            {
-                using type = typename pmacc::traits::
-                    HasIdentifiers<typename T_Species::FrameType, MakeSeq_t<localCellIdx>>::type;
-            };
-        } // namespace traits
     } // namespace particles
 } // namespace picongpu

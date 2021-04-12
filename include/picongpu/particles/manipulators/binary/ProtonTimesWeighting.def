@@ -60,7 +60,7 @@ namespace picongpu
                         HDINLINE void operator()(T_DesParticle& particleDest, T_SrcParticle const&, T_Args&&...)
                         {
                             float_X const protonNumber
-                                = traits::GetAtomicNumbers<T_SrcParticle>::type::numberOfProtons;
+                                = picongpu::traits::GetAtomicNumbers<T_SrcParticle>::type::numberOfProtons;
                             particleDest[weighting_] *= protonNumber;
                         }
                     };
