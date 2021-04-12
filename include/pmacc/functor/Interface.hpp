@@ -1,4 +1,4 @@
-/* Copyright 2017-2021 Rene Widera
+/* Copyright 2017-2021 Rene Widera, Pawel Ordyna
  *
  * This file is part of PMacc.
  *
@@ -164,26 +164,29 @@ namespace pmacc
              * @tparam T_OffsetType type to describe the size of a domain
              * @tparam T_numWorkers number of workers
              * @tparam T_Acc alpaka accelerator type
+             * @tparam T_Args type of the arguments passed to the  functor
              *
              * @param alpaka accelerator
              * @param domainOffset offset to the origin of the local domain
              *                     This can be e.g a supercell or cell offset and depends
              *                     of the context where the interface is specialized.
              * @param workerCfg configuration of the worker
+             * @param args arguments passed to the functor
              * @return an instance of the user functor wrapped by the accelerator
              *         functor interface
              */
-            template<typename T_OffsetType, uint32_t T_numWorkers, typename T_Acc>
+            template<typename T_OffsetType, uint32_t T_numWorkers, typename T_Acc, typename... T_Args>
             HDINLINE auto operator()(
                 T_Acc const& acc,
                 T_OffsetType const& domainOffset,
-                mappings::threads::WorkerCfg<T_numWorkers> const& workerCfg) const
+                mappings::threads::WorkerCfg<T_numWorkers> const& workerCfg,
+                T_Args... args) const
                 -> acc::Interface<
-                    decltype(alpaka::core::declval<UserFunctor>()(acc, domainOffset, workerCfg)),
+                    decltype(alpaka::core::declval<UserFunctor>()(acc, domainOffset, workerCfg, args...)),
                     T_numArguments,
                     T_ReturnType>
             {
-                return (*static_cast<UserFunctor const*>(this))(acc, domainOffset, workerCfg);
+                return (*static_cast<UserFunctor const*>(this))(acc, domainOffset, workerCfg, args...);
             }
 
             /** get name of the user functor

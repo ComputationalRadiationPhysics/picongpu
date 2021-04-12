@@ -1,0 +1,80 @@
+/* Copyright 2019-2021 Rene Widera, Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/particles/filter/filter.def"
+
+#include <boost/mpl/pair.hpp>
+
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace collision
+        {
+            /* A pair of colliding species.
+             *
+             * @tparam T_Species0
+             * @tparam T_Species1
+             */
+            template<typename T_Species0, typename T_Species1>
+            using Pair = boost::mpl::pair<T_Species0, T_Species1>;
+
+            /* A set of particle filters for a pair of colliding species.
+             *
+             * @tparam T_Filter0 Filter applied on the 1st species in a pair.
+             * @tparam T_Filter1 Filter applied on the 2nd species in a pair.
+             */
+            template<typename T_Filter0, typename T_Filter1>
+            using FilterPair = boost::mpl::pair<T_Filter0, T_Filter1>;
+
+            /* Sets the same particle filter for both species in a pair.
+             *
+             * @tparam T_Filter A common particle filter for both colliding species.
+             */
+            template<typename T_Filter>
+            using OneFilter = boost::mpl::pair<T_Filter, T_Filter>;
+
+            /* Defines a set of binary collisions with common parameters.
+             *
+             * @tparam T_CollisionFunctor A binary particle functor defining a single
+             *     macro particle collision in the binary-collision algorithm.
+             * @tparam T_SpeciesPairs A sequence of pairs of colliding species.
+             * @tparam T_Params A struct defining `coulombLog` for the collisions.
+             * @tparam T_FilterPair A pair of particle filters. Each for every species
+             *     in a pair of colliding species. This pair of filters will be
+             *     aplied to all pairs in T_SpeciesPairs.
+             */
+            template<
+                typename T_CollisionFunctor,
+                typename T_SpeciesPairs,
+                typename T_Params,
+                typename T_FilterPair = OneFilter<filter::All>>
+            struct Collider
+            {
+                using Functor = T_CollisionFunctor;
+                using SpeciesPairs = T_SpeciesPairs;
+                using FilterPair = T_FilterPair;
+                using Params = T_Params;
+            };
+        } // namespace collision
+    } // namespace particles
+} // namespace picongpu

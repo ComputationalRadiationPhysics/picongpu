@@ -47,6 +47,13 @@ extensions = ['sphinx.ext.mathjax',
 if not on_rtd:
     extensions.append('sphinx.ext.githubpages')
 
+# enable figure and table enumeration
+numfig = True
+# When set to True equations are numbered across the whole documentation.
+# If False the numbering begins from 1 on each page.
+math_numfig = False
+
+
 # napoleon autodoc config
 napoleon_include_init_with_doc = True
 autodoc_mock_imports = [

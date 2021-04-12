@@ -50,3 +50,13 @@ flylite.param
    :project: PIConGPU
    :path: include/picongpu/param/flylite.param
    :no-link:
+
+collision.param
+^^^^^^^^^^^^^^^
+
+.. doxygenfile:: collision.param
+   :project: PIConGPU
+   :path: include/picongpu/param/collision.param
+   :no-link:
+
+:ref:`More information on collision.param <model-binaryCollisions::section::usage>`
