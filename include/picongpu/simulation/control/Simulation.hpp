@@ -511,9 +511,6 @@ namespace picongpu
             EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
             __setTransactionEvent(eRfieldB);
 
-            dc.releaseData(FieldE::getName());
-            dc.releaseData(FieldB::getName());
-
             return step;
         }
 
@@ -679,7 +676,6 @@ namespace picongpu
                     auto field = std::dynamic_pointer_cast<FieldHelper>(dc.get<ISimulationData>(name, true));
                     if(field)
                         field->reset(currentStep);
-                    dc.releaseData(name);
                 }
             };
 

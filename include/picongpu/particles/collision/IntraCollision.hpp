@@ -243,8 +243,6 @@ namespace picongpu
                         CollisionFunctor(currentStep),
                         coulombLog,
                         Filter());
-
-                    dc.releaseData(FrameType::getName());
                 }
             };
 

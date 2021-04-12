@@ -71,8 +71,6 @@ namespace picongpu
                             using Density = particleToGrid::
                                 ComputeGridValuePerFrame<ShapeType, particleToGrid::derivedAttributes::Density>;
                             fieldTmp->template computeValue<CORE + BORDER, Density>(*speciesTmp, currentStep);
-
-                            dc.releaseData(FrameType::getName());
                         }
                     };
                 } // namespace detail
@@ -134,10 +132,6 @@ namespace picongpu
                             fieldTmp->getDeviceDataBox().shift(SuperCellSize::toRT() * GuardSize::toRT()),
                             // start in border (has no GUARD area)
                             nlocal->getGridBuffer().getDeviceBuffer().getDataBox());
-
-                        // release fields
-                        dc.releaseData(FieldTmp::getUniqueId(0));
-                        dc.releaseData(helperFields::LocalDensity::getName(speciesGroup));
                     }
                 };
 

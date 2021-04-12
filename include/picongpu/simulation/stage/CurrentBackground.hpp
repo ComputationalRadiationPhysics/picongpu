@@ -66,7 +66,6 @@ namespace picongpu
                         using CurrentBackground = cellwiseOperation::CellwiseOperation<type::CORE + type::BORDER>;
                         CurrentBackground currentBackground(cellDescription);
                         currentBackground(&fieldJ, nvidia::functors::Add(), FieldBackgroundJ(fieldJ.getUnit()), step);
-                        dc.releaseData(FieldJ::getName());
                     }
                 }
 

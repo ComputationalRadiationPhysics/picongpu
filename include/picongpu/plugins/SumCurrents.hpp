@@ -181,8 +181,6 @@ namespace picongpu
             (mapper.getGridDim(),
              block)(fieldJ->getDeviceDataBox(), sumcurrents->getDeviceBuffer().getBasePointer(), mapper);
 
-            dc.releaseData(FieldJ::getName());
-
             sumcurrents->deviceToHost();
             return sumcurrents->getHostBuffer().getDataBox()[0];
         }

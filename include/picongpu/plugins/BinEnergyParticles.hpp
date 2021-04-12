@@ -485,7 +485,6 @@ namespace picongpu
                 currentStep,
                 bindKernel);
 
-            dc.releaseData(ParticlesType::FrameType::getName());
             gBins->deviceToHost();
 
             reduce(

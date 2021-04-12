@@ -51,7 +51,6 @@ namespace picongpu
                     {
                         auto species = dc.get<SpeciesType>(FrameType::getName(), true);
                         fieldJ.computeCurrent<T_Area::value, SpeciesType>(*species, currentStep);
-                        dc.releaseData(FrameType::getName());
                     }
                 };
 
@@ -77,7 +76,6 @@ namespace picongpu
                         detail::CurrentDeposition<bmpl::_1, bmpl::int_<type::CORE + type::BORDER>>>
                         depositCurrent;
                     depositCurrent(step, fieldJ, dc);
-                    dc.releaseData(FieldJ::getName());
                 }
             };
 

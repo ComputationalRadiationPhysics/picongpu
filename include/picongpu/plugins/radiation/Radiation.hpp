@@ -1218,8 +1218,6 @@ namespace picongpu
                         freqFkt,
                         subGrid.getGlobalDomain().size);
 
-                    dc.releaseData(ParticlesType::FrameType::getName());
-
                     if(dumpPeriod != 0 && currentStep % dumpPeriod == 0)
                     {
                         collectDataGPUToMaster();

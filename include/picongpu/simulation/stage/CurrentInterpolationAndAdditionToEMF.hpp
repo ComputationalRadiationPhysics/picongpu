@@ -124,7 +124,6 @@ namespace picongpu
                             __setTransactionEvent(eRecvCurrent);
                             addCurrentToEMF<type::CORE + type::BORDER>(fieldJ);
                         }
-                        dc.releaseData(FieldJ::getName());
                     }
                 }
 

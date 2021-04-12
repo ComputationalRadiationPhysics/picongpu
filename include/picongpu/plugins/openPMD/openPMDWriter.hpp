@@ -481,8 +481,6 @@ Please pick either of the following:
                         std::move(inCellPosition),
                         timeOffset,
                         isDomainBound);
-
-                    dc.releaseData(T_Field::getName());
 #endif
                 }
             };
@@ -550,7 +548,6 @@ Please pick either of the following:
                     __setTransactionEvent(fieldTmpEvent);
                     /* copy data to host that we can write same to disk*/
                     fieldTmp->getGridBuffer().deviceToHost();
-                    dc.releaseData(Species::FrameType::getName());
                     /*## finish update field ##*/
 
                     const uint32_t components = GetNComponents<ValueType>::value;
@@ -583,8 +580,6 @@ Please pick either of the following:
                         std::move(inCellPosition),
                         timeOffset,
                         isDomainBound);
-
-                    dc.releaseData(FieldTmp::getUniqueId(0));
                 }
             };
 
@@ -965,7 +960,6 @@ Please pick either of the following:
 
                     DataConnector& dc = Environment<>::get().DataConnector();
                     fieldsSizeDims = precisionCast<uint64_t>(params->gridLayout.getDataSpaceWithoutGuarding());
-                    dc.releaseData(name);
 
                     /* Scan the PML buffer local size along all local domains
                      * This code is based on the same operation in hdf5::Field::writeField(),

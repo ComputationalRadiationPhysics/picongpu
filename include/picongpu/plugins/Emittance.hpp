@@ -548,8 +548,6 @@ namespace picongpu
                 currentStep,
                 binaryKernel);
 
-            dc.releaseData(ParticlesType::FrameType::getName());
-
             // get gSum, ... from GPU
             gSumMom2->deviceToHost();
             gSumPos2->deviceToHost();

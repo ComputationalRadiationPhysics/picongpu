@@ -271,8 +271,6 @@ namespace picongpu
             buffer.getDeviceBuffer().getDataBox(),
             myCurrentInterpolationFunctor,
             mapper);
-        dc.releaseData(FieldE::getName());
-        dc.releaseData(FieldB::getName());
     }
 
     void FieldJ::bashField(uint32_t exchangeType)

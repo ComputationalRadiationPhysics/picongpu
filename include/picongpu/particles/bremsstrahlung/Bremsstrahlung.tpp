@@ -68,7 +68,6 @@ namespace picongpu
                 using DensitySolver = typename particleToGrid::
                     CreateFieldTmpOperation<T_IonSpecies, particleToGrid::derivedAttributes::Density>::type::Solver;
                 fieldIonDensity->template computeValue<CORE + BORDER, DensitySolver>(*ionSpecies, currentStep);
-                dc.releaseData(T_IonSpecies::FrameType::getName());
 
                 /* initialize device-side tmp-field databoxes */
                 this->ionDensityBox = fieldIonDensity->getDeviceDataBox();

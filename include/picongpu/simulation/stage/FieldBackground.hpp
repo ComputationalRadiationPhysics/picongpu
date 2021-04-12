@@ -80,7 +80,6 @@ namespace picongpu
                             auto field = dc.get<Field>(Field::getName(), true);
                             auto const& gridBuffer = field->getGridBuffer();
                             duplicateBuffer = pmacc::makeDeepCopy(gridBuffer.getDeviceBuffer());
-                            dc.releaseData(Field::getName());
                         }
                     }
 
@@ -102,7 +101,6 @@ namespace picongpu
                             restoreFromDuplicateField = true;
                         }
                         apply(step, pmacc::nvidia::functors::Add(), field);
-                        dc.releaseData(Field::getName());
                     }
 
                     /** Subtract the field background in the whole local domain
@@ -127,7 +125,6 @@ namespace picongpu
                         }
                         else
                             apply(step, pmacc::nvidia::functors::Sub(), field);
-                        dc.releaseData(Field::getName());
                     }
 
                 private:

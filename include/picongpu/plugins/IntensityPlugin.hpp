@@ -369,8 +369,6 @@ namespace picongpu
                 localMaxIntensity->getDeviceBuffer().getDataBox(),
                 localIntegratedIntensity->getDeviceBuffer().getDataBox());
 
-            dc.releaseData(FieldE::getName());
-
             localMaxIntensity->deviceToHost();
             localIntegratedIntensity->deviceToHost();
         }

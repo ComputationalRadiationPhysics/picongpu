@@ -562,8 +562,6 @@ namespace picongpu
                 currentStep,
                 unaryKernel);
 
-            dc.releaseData(ParticlesType::FrameType::getName());
-
             /* copy to host */
             *this->hBufCalorimeter = *this->dBufCalorimeter;
 
@@ -609,8 +607,6 @@ namespace picongpu
                 m_help->filter.get(m_id),
                 Environment<>::get().SimulationDescription().getCurrentStep(),
                 unaryKernel);
-
-            dc.releaseData(speciesName);
         }
 
     private:

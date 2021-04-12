@@ -236,8 +236,6 @@ namespace picongpu
             m_help->filter.get(m_id),
             currentStep,
             bindFunctor);
-
-        dc.releaseData(Species::FrameType::getName());
     }
 
     template<class AssignmentFunction, class Species>

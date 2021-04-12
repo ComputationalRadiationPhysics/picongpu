@@ -92,8 +92,6 @@ namespace picongpu
                                 minEnergy,
                                 maxEnergy,
                                 mapper);
-
-                            dc.releaseData(FrameType::getName());
                         }
                     };
                 } // namespace detail
@@ -143,9 +141,6 @@ namespace picongpu
                         /* note: for average != supercell the BORDER region would need to be
                          *       build up via communication accordingly
                          */
-
-                        // release fields
-                        dc.releaseData(helperFields::LocalEnergyHistogram::getName(speciesGroup));
                     }
                 };
 
