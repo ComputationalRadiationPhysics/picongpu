@@ -21,6 +21,9 @@
 
 #include "picongpu/particles/collision/collision.def"
 
+#ifndef PARAM_COLLISION_PRECISION
+#    define PARAM_COLLISION_PRECISION float_64
+#endif
 
 namespace picongpu
 {
@@ -30,7 +33,7 @@ namespace picongpu
         {
             namespace precision
             {
-                using float_COLL = float_64;
+                using float_COLL = PARAM_COLLISION_PRECISION;
             } // namespace precision
             /** CollisionPipeline defines in which order species interact with each other
              *
