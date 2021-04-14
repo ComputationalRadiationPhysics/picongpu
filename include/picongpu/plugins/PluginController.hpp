@@ -57,7 +57,7 @@
 #    include "picongpu/plugins/ChargeConservation.hpp"
 #    include "picongpu/plugins/particleMerging/ParticleMerger.hpp"
 #    include "picongpu/plugins/randomizedParticleMerger/RandomizedParticleMerger.hpp"
-#    if(ENABLE_HDF5 == 1)
+#    if(ENABLE_OPENPMD == 1)
 #        include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
 #    endif
 

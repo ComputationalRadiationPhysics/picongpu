@@ -20,9 +20,9 @@
 #pragma once
 #include "picongpu/fields/absorber/ExponentialDamping.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
+#include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
-#include "picongpu/plugins/openPMD/openPMDVersion.def"
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
 
@@ -55,7 +55,7 @@ namespace picongpu
                  * @param threadParams context of the openPMD plugin
                  * @param fullMeshesPath path to mesh entry
                  */
-                void operator()(ThreadParams* threadParams) const
+                void operator()(::openPMD::Series& series, uint32_t currentStep) const
                 {
                     /*
                      * @todo set boundary per species
@@ -76,8 +76,7 @@ namespace picongpu
                         }
                     }
 
-                    ::openPMD::Iteration iteration
-                        = threadParams->openPMDSeries->WRITE_ITERATIONS[threadParams->currentStep];
+                    ::openPMD::Iteration iteration = series.WRITE_ITERATIONS[currentStep];
                     iteration.setAttribute("particleBoundary", listParticleBoundary);
                     iteration.setAttribute("particleBoundaryParameters", listParticleBoundaryParam);
                 }
@@ -88,14 +87,10 @@ namespace picongpu
             struct OfAllSpecies<0>
             {
                 /** write meta data for species
-                 *
-                 * @param threadParams context of the openPMD plugin
-                 * @param fullMeshesPath path to mesh entry
+                 * Just accept any parameters since this is a no-op
                  */
-                void operator()(
-                    ThreadParams* /* threadParams */,
-                    const std::string& /* fullMeshesPath */
-                ) const
+                template<typename... Args>
+                void operator()(Args&&...) const
                 {
                 }
             };
@@ -104,11 +99,15 @@ namespace picongpu
 
         struct WriteMeta
         {
-            void operator()(ThreadParams* threadParams)
+            void operator()(
+                ::openPMD::Series& series,
+                uint32_t currentStep,
+                bool writeFieldMeta = true,
+                bool writeParticleMeta = true,
+                bool writeToLog = true)
             {
-                log<picLog::INPUT_OUTPUT>("openPMD: (begin) write meta attributes.");
-
-                ::openPMD::Series& series = *threadParams->openPMDSeries;
+                if(writeToLog)
+                    log<picLog::INPUT_OUTPUT>("openPMD: (begin) write meta attributes.");
 
                 /*
                  * The openPMD API will kindly write the obligatory metadata by
@@ -135,71 +134,76 @@ namespace picongpu
                 const std::string date = helper::getDateString("%F %T %z");
                 series.setDate(date);
 
-                ::openPMD::Iteration iteration = series.WRITE_ITERATIONS[threadParams->currentStep];
+                ::openPMD::Iteration iteration = series.WRITE_ITERATIONS[currentStep];
                 ::openPMD::Container<::openPMD::Mesh>& meshes = iteration.meshes;
 
                 // iteration-level attributes
                 iteration.setDt<float_X>(DELTA_T);
-                iteration.setTime(float_X(threadParams->currentStep) * DELTA_T);
+                iteration.setTime(float_X(currentStep) * DELTA_T);
                 iteration.setTimeUnitSI(UNIT_TIME);
 
-                GetStringProperties<fields::Solver> fieldSolverProps;
-                const std::string fieldSolver(fieldSolverProps["name"].value);
-                meshes.setAttribute("fieldSolver", fieldSolver);
-
-                if(fieldSolverProps.find("param") != fieldSolverProps.end())
+                if(writeFieldMeta)
                 {
-                    const std::string fieldSolverParam(fieldSolverProps["param"].value);
-                    meshes.setAttribute("fieldSolverParameters", fieldSolverParam);
-                }
+                    GetStringProperties<fields::Solver> fieldSolverProps;
+                    const std::string fieldSolver(fieldSolverProps["name"].value);
+                    meshes.setAttribute("fieldSolver", fieldSolver);
 
-                /* order as in axisLabels:
-                 *    3D: z-lower, z-upper, y-lower, y-upper, x-lower, x-upper
-                 *    2D: y-lower, y-upper, x-lower, x-upper
-                 */
-                GetStringProperties<fields::absorber::Absorber> fieldBoundaryProp;
-                std::vector<std::string> listFieldBoundary;
-                std::vector<std::string> listFieldBoundaryParam;
-                auto n = NumberOfExchanges<simDim>::value;
-                listFieldBoundary.reserve(n - 1);
-                listFieldBoundaryParam.reserve(n - 1);
-                for(uint32_t i = n - 1; i > 0; --i)
-                {
-                    if(FRONT % i == 0)
+                    if(fieldSolverProps.find("param") != fieldSolverProps.end())
                     {
-                        listFieldBoundary.push_back(fieldBoundaryProp[ExchangeTypeNames()[i]]["name"].value);
-                        listFieldBoundaryParam.push_back(fieldBoundaryProp[ExchangeTypeNames()[i]]["param"].value);
+                        const std::string fieldSolverParam(fieldSolverProps["param"].value);
+                        meshes.setAttribute("fieldSolverParameters", fieldSolverParam);
                     }
+
+                    /* order as in axisLabels:
+                     *    3D: z-lower, z-upper, y-lower, y-upper, x-lower, x-upper
+                     *    2D: y-lower, y-upper, x-lower, x-upper
+                     */
+                    GetStringProperties<fields::absorber::Absorber> fieldBoundaryProp;
+                    std::vector<std::string> listFieldBoundary;
+                    std::vector<std::string> listFieldBoundaryParam;
+                    auto n = NumberOfExchanges<simDim>::value;
+                    listFieldBoundary.reserve(n - 1);
+                    listFieldBoundaryParam.reserve(n - 1);
+                    for(uint32_t i = n - 1; i > 0; --i)
+                    {
+                        if(FRONT % i == 0)
+                        {
+                            listFieldBoundary.push_back(fieldBoundaryProp[ExchangeTypeNames()[i]]["name"].value);
+                            listFieldBoundaryParam.push_back(fieldBoundaryProp[ExchangeTypeNames()[i]]["param"].value);
+                        }
+                    }
+
+                    meshes.setAttribute("fieldBoundary", listFieldBoundary);
+                    meshes.setAttribute("fieldBoundaryParameters", listFieldBoundaryParam);
                 }
 
-                meshes.setAttribute("fieldBoundary", listFieldBoundary);
-                meshes.setAttribute("fieldBoundaryParameters", listFieldBoundaryParam);
-
-                writeMeta::OfAllSpecies<>()(threadParams);
-
-                GetStringProperties<fields::currentInterpolation::CurrentInterpolation> currentSmoothingProp;
-                const std::string currentSmoothing(currentSmoothingProp["name"].value);
-                meshes.setAttribute("currentSmoothing", currentSmoothing);
-
-                if(currentSmoothingProp.find("param") != currentSmoothingProp.end())
+                if(writeParticleMeta)
                 {
-                    const std::string currentSmoothingParam(currentSmoothingProp["param"].value);
-                    meshes.setAttribute("currentSmoothingParameters", currentSmoothingParam);
-                }
+                    writeMeta::OfAllSpecies<>()(series, currentStep);
 
-                const std::string chargeCorrection("none");
-                meshes.setAttribute("chargeCorrection", chargeCorrection);
+                    GetStringProperties<fields::currentInterpolation::CurrentInterpolation> currentSmoothingProp;
+                    const std::string currentSmoothing(currentSmoothingProp["name"].value);
+                    meshes.setAttribute("currentSmoothing", currentSmoothing);
+
+                    if(currentSmoothingProp.find("param") != currentSmoothingProp.end())
+                    {
+                        const std::string currentSmoothingParam(currentSmoothingProp["param"].value);
+                        meshes.setAttribute("currentSmoothingParameters", currentSmoothingParam);
+                    }
+
+                    const std::string chargeCorrection("none");
+                    meshes.setAttribute("chargeCorrection", chargeCorrection);
+                }
 
                 /* write current iteration */
-                log<picLog::INPUT_OUTPUT>("openPMD: meta: iteration");
-                iteration.setAttribute(
-                    "iteration",
-                    threadParams->currentStep); // openPMD API will not write this
-                                                // automatically
+                if(writeToLog)
+                    log<picLog::INPUT_OUTPUT>("openPMD: meta: iteration");
+                iteration.setAttribute("iteration", currentStep); // openPMD API will not write this automatically
 
                 /* write number of slides */
-                log<picLog::INPUT_OUTPUT>("openPMD: meta: sim_slides");
-                uint32_t slides = MovingWindow::getInstance().getSlideCounter(threadParams->currentStep);
+                if(writeToLog)
+                    log<picLog::INPUT_OUTPUT>("openPMD: meta: sim_slides");
+                uint32_t slides = MovingWindow::getInstance().getSlideCounter(currentStep);
                 iteration.setAttribute("sim_slides", slides);
 
                 /*
@@ -208,7 +212,8 @@ namespace picongpu
 
 
                 /* write normed grid parameters */
-                log<picLog::INPUT_OUTPUT>("openPMD: meta: grid");
+                if(writeToLog)
+                    log<picLog::INPUT_OUTPUT>("openPMD: meta: grid");
                 std::string names[3] = {"cell_width", "cell_height", "cell_depth"};
                 for(unsigned i = 0; i < 3; ++i)
                 {
@@ -232,7 +237,8 @@ namespace picongpu
                 iteration.setAttribute("mue0", MUE0);
                 iteration.setAttribute("eps0", EPS0);
 
-                log<picLog::INPUT_OUTPUT>("openPMD: ( end ) wite meta attributes.");
+                if(writeToLog)
+                    log<picLog::INPUT_OUTPUT>("openPMD: ( end ) wite meta attributes.");
             }
         };
     } // namespace openPMD

@@ -24,13 +24,18 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/common/openPMDAttributes.hpp"
+#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
+#include "picongpu/plugins/common/openPMDVersion.def"
+
 
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 
-#include <splash/splash.h>
+#include <openPMD/openPMD.hpp>
 
+#include <memory>
 #include <string>
 #include <iostream>
 #include <iomanip>
@@ -40,7 +45,6 @@
 namespace picongpu
 {
     using namespace pmacc;
-    using namespace splash;
 
     struct CountMakroParticle
     {
@@ -101,7 +105,8 @@ namespace picongpu
      * - store one number (size_t) per supercell in a mesh
      * - Output: - create a folder with the name of the plugin
      *           - per time step one file with the name "result_[currentStep].h5" is created
-     * - HDF5 Format: - default lib splash output for meshes
+     *             (or a different extension in case of another openPMD backend)
+     * - HDF5 Format: - default openPMD output for meshes
      *                - the attribute name in the HDF5 file is "makroParticleCount"
      *
      */
@@ -114,6 +119,8 @@ namespace picongpu
 
         MappingDesc* cellDescription;
         std::string notifyPeriod;
+        std::string m_filenameExtension = "h5";
+        std::string m_filenameInfix = "_%06T";
 
         std::string pluginName;
         std::string pluginPrefix;
@@ -122,9 +129,12 @@ namespace picongpu
 
         GridBufferType* localResult;
 
-        ParallelDomainCollector* dataCollector;
+        // @todo upon switching to C++17, use std::option instead
+        std::unique_ptr<::openPMD::Series> m_Series;
         // set attributes for datacollector files
-        DataCollector::FileCreationAttr h5_attr;
+
+        ::openPMD::Offset m_offset;
+        ::openPMD::Extent m_extent;
 
     public:
         PerSuperCell()
@@ -133,7 +143,6 @@ namespace picongpu
             , foldername(pluginPrefix)
             , cellDescription(nullptr)
             , localResult(nullptr)
-            , dataCollector(nullptr)
         {
             Environment<>::get().PluginConnector().registerPlugin(this);
         }
@@ -153,6 +162,15 @@ namespace picongpu
                 (pluginPrefix + ".period").c_str(),
                 po::value<std::string>(&notifyPeriod),
                 "enable plugin [for each n-th step]");
+            desc.add_options()(
+                (pluginPrefix + ".ext").c_str(),
+                po::value<std::string>(&m_filenameExtension),
+                "openPMD filename extension (default: 'h5')");
+            desc.add_options()(
+                (pluginPrefix + ".infix").c_str(),
+                po::value<std::string>(&m_filenameInfix),
+                "openPMD filename infix (default: '_%06T' for file-based iteration layout, pick 'NULL' for "
+                "group-based layout");
         }
 
         std::string pluginGetName() const
@@ -185,16 +203,13 @@ namespace picongpu
         {
             __delete(localResult);
 
-            if(dataCollector)
-                dataCollector->finalize();
-
-            __delete(dataCollector);
+            m_Series.reset();
         }
 
         template<uint32_t AREA>
         void countMakroParticles(uint32_t currentStep)
         {
-            openH5File();
+            openSeries();
 
             DataConnector& dc = Environment<>::get().DataConnector();
 
@@ -216,23 +231,20 @@ namespace picongpu
             /*############ dump data #############################################*/
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
-            DataSpace<simDim> localSize(subGrid.getLocalDomain().size / SuperCellSize::toRT());
-            DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset / SuperCellSize::toRT());
-            DataSpace<simDim> globalSize(subGrid.getGlobalDomain().size / SuperCellSize::toRT());
+            DataSpace<simDim> localDomainSize(subGrid.getLocalDomain().size / SuperCellSize::toRT());
+            DataSpace<simDim> localDomainOffset(subGrid.getLocalDomain().offset / SuperCellSize::toRT());
+            DataSpace<simDim> globalDomainSize(subGrid.getGlobalDomain().size / SuperCellSize::toRT());
 
+            ::openPMD::Extent openPmdGlobalDomainExtent(simDim);
 
-            Dimensions splashGlobalDomainOffset(0, 0, 0);
-            Dimensions splashGlobalOffset(0, 0, 0);
-            Dimensions splashGlobalDomainSize(1, 1, 1);
-            Dimensions splashGlobalSize(1, 1, 1);
-            Dimensions localBufferSize(1, 1, 1);
+            ::openPMD::Extent openPmdLocalDomainOffset(simDim);
+            ::openPMD::Offset openPmdLocalDomainExtent(simDim);
 
-            for(uint32_t d = 0; d < simDim; ++d)
+            for(::openPMD::Extent::value_type d = 0; d < simDim; ++d)
             {
-                splashGlobalOffset[d] = globalOffset[d];
-                splashGlobalSize[d] = globalSize[d];
-                splashGlobalDomainSize[d] = globalSize[d];
-                localBufferSize[d] = localSize[d];
+                openPmdGlobalDomainExtent[simDim - d - 1] = globalDomainSize[d];
+                openPmdLocalDomainOffset[simDim - d - 1] = localDomainOffset[d];
+                openPmdLocalDomainExtent[simDim - d - 1] = localDomainSize[d];
             }
 
             size_t* ptr = localResult->getHostBuffer().getPointer();
@@ -240,85 +252,60 @@ namespace picongpu
             // avoid deadlock between not finished pmacc tasks and mpi calls in adios
             __getTransactionEvent().waitForFinished();
 
-            dataCollector->writeDomain(
-                currentStep, /* id == time step */
-                splashGlobalSize, /* total size of dataset over all processes */
-                splashGlobalOffset, /* write offset for this process */
-                ColTypeUInt64(), /* data type */
-                simDim, /* NDims of the field data (scalar, vector, ...) */
-                splash::Selection(localBufferSize),
-                "makroParticlePerSupercell", /* data set name */
-                splash::Domain(
-                    splashGlobalDomainOffset, /* offset of the global domain */
-                    splashGlobalDomainSize /* size of the global domain */
-                    ),
-                DomainCollector::GridType,
-                ptr);
+            auto iteration = m_Series->WRITE_ITERATIONS[currentStep];
 
-            closeH5File();
-        }
+            auto mesh = iteration.meshes["makroParticlePerSupercell"];
+            auto dataset = mesh[::openPMD::RecordComponent::SCALAR];
 
-        void closeH5File()
-        {
-            if(dataCollector != nullptr)
+            openPMD::SetMeshAttributes setMeshAttributes(currentStep);
+            // gridSpacing = SuperCellSize::toRT() * cellSize
+            // m_gridSpacing is initialized by the cellSize
             {
-                std::string filename = (foldername + std::string("/makroParticlePerSupercell"));
-                log<picLog::INPUT_OUTPUT>("HDF5 close DataCollector with file: %1%") % filename;
-                dataCollector->close();
+                auto superCellSize = SuperCellSize::toRT();
+                for(uint32_t d = 0; d < simDim; ++d)
+                {
+                    setMeshAttributes.m_gridSpacing[simDim - d - 1] *= superCellSize[d];
+                }
             }
+
+            setMeshAttributes(mesh)(dataset);
+
+            dataset.resetDataset({::openPMD::determineDatatype<size_t>(), openPmdGlobalDomainExtent});
+            dataset.storeChunk(
+                std::shared_ptr<size_t>{ptr, [](auto const*) {}},
+                openPmdLocalDomainOffset,
+                openPmdLocalDomainExtent);
+
+            openPMD::WriteMeta writeMetaAttributes;
+            writeMetaAttributes(
+                *m_Series,
+                currentStep,
+                /* writeFieldMeta = */ false,
+                /* writeParticleMeta = */ false,
+                /* writeToLog = */ false);
+
+            iteration.close();
         }
 
-        void openH5File()
+        void openSeries()
         {
-            if(dataCollector == nullptr)
+            if(!m_Series)
             {
-                DataSpace<simDim> mpi_pos;
-                DataSpace<simDim> mpi_size;
-
-                Dimensions splashMpiPos;
-                Dimensions splashMpiSize;
-
                 GridController<simDim>& gc = Environment<simDim>::get().GridController();
 
-                mpi_pos = gc.getPosition();
-                mpi_size = gc.getGpuNodes();
-
-                splashMpiPos.set(0, 0, 0);
-                splashMpiSize.set(1, 1, 1);
-
-                for(uint32_t i = 0; i < simDim; ++i)
+                std::string infix = m_filenameInfix;
+                if(infix == "NULL")
                 {
-                    splashMpiPos[i] = mpi_pos[i];
-                    splashMpiSize[i] = mpi_size[i];
+                    infix = "";
                 }
+                std::string filename = foldername + std::string("/makroParticlePerSupercell") + infix
+                    + std::string(".") + m_filenameExtension;
+                log<picLog::INPUT_OUTPUT>("openPMD open Series at: %1%") % filename;
 
-
-                const uint32_t maxOpenFilesPerNode = 1;
-                dataCollector = new ParallelDomainCollector(
-                    gc.getCommunicator().getMPIComm(),
-                    gc.getCommunicator().getMPIInfo(),
-                    splashMpiSize,
-                    maxOpenFilesPerNode);
-                // set attributes for datacollector files
-                DataCollector::FileCreationAttr h5_attr;
-                h5_attr.enableCompression = false;
-                h5_attr.fileAccType = DataCollector::FAT_CREATE;
-                h5_attr.mpiPosition.set(splashMpiPos);
-                h5_attr.mpiSize.set(splashMpiSize);
-            }
-
-
-            // open datacollector
-            try
-            {
-                std::string filename = (foldername + std::string("/makroParticlePerSupercell"));
-                log<picLog::INPUT_OUTPUT>("HDF5 open DataCollector with file: %1%") % filename;
-                dataCollector->open(filename.c_str(), h5_attr);
-            }
-            catch(const DCException& e)
-            {
-                std::cerr << e.what() << std::endl;
-                throw std::runtime_error("Failed to open datacollector");
+                m_Series = std::make_unique<::openPMD::Series>(
+                    filename,
+                    ::openPMD::Access::CREATE,
+                    gc.getCommunicator().getMPIComm());
             }
         }
     };

@@ -19,8 +19,8 @@
 
 #pragma once
 
+#include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
-#include "picongpu/plugins/openPMD/openPMDVersion.def"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/types.hpp>
