@@ -51,8 +51,8 @@ namespace picongpu
         class TFieldSource
         {
         public:
-            static const size_t feature_dim = 3;
-            static const bool has_guard = bmpl::not_<boost::is_same<FieldType, FieldJ>>::value;
+            static const size_t featureDim = 3;
+            static const bool hasGuard = bmpl::not_<boost::is_same<FieldType, FieldJ>>::value;
             static const bool persistent = bmpl::not_<boost::is_same<FieldType, FieldJ>>::value;
             typename FieldType::DataBoxType shifted;
             MappingDesc* cellDescription;
@@ -100,10 +100,10 @@ namespace picongpu
             }
 
             ISAAC_NO_HOST_DEVICE_WARNING
-            ISAAC_HOST_DEVICE_INLINE isaac_float_dim<feature_dim> operator[](const isaac_int3& nIndex) const
+            ISAAC_HOST_DEVICE_INLINE isaac_float_dim<featureDim> operator[](const isaac_int3& nIndex) const
             {
                 auto value = shifted[nIndex.z][nIndex.y][nIndex.x];
-                return isaac_float_dim<feature_dim>(value.x(), value.y(), value.z());
+                return isaac_float_dim<featureDim>(value.x(), value.y(), value.z());
             }
         };
 
@@ -112,8 +112,8 @@ namespace picongpu
         class TFieldSource<FieldTmpOperation<FrameSolver, ParticleType, ParticleFilter>>
         {
         public:
-            static const size_t feature_dim = 1;
-            static const bool has_guard = false;
+            static const size_t featureDim = 1;
+            static const bool hasGuard = false;
             static const bool persistent = false;
             typename FieldTmp::DataBoxType shifted;
             MappingDesc* cellDescription;
@@ -172,15 +172,15 @@ namespace picongpu
             }
 
             ISAAC_NO_HOST_DEVICE_WARNING
-            ISAAC_HOST_DEVICE_INLINE isaac_float_dim<feature_dim> operator[](const isaac_int3& nIndex) const
+            ISAAC_HOST_DEVICE_INLINE isaac_float_dim<featureDim> operator[](const isaac_int3& nIndex) const
             {
                 auto value = shifted[nIndex.z][nIndex.y][nIndex.x];
-                return isaac_float_dim<feature_dim>(value.x());
+                return isaac_float_dim<featureDim>(value.x());
             }
         };
 
 
-        template<size_t feature_dim, typename ParticlesBoxType>
+        template<size_t featureDim, typename ParticlesBoxType>
         class ParticleIterator
         {
         public:
@@ -238,11 +238,11 @@ namespace picongpu
             }
 
             // returns particle momentum as color attribute
-            ISAAC_HOST_DEVICE_INLINE isaac_float_dim<feature_dim> getAttribute() const
+            ISAAC_HOST_DEVICE_INLINE isaac_float_dim<featureDim> getAttribute() const
             {
                 auto const particle = frame[i];
                 float3_X const mom = particle[momentum_];
-                return isaac_float_dim<feature_dim>(mom[0], mom[1], mom[2]);
+                return isaac_float_dim<featureDim>(mom[0], mom[1], mom[2]);
             }
 
 
@@ -270,7 +270,7 @@ namespace picongpu
             using FrameType = typename ParticlesBoxType::FrameType;
 
         public:
-            static const size_t feature_dim = 3;
+            static const size_t featureDim = 3;
             bool movingWindow;
             DataSpace<simDim> guarding;
             ISAAC_NO_HOST_DEVICE_WARNING
@@ -317,9 +317,9 @@ namespace picongpu
                 }
             }
 
-            // returns particleIterator with correct feature_dim and cell specific particlebox
+            // returns particleIterator with correct featureDim and cell specific particlebox
             ISAAC_NO_HOST_DEVICE_WARNING
-            ISAAC_HOST_DEVICE_INLINE ParticleIterator<feature_dim, ParticlesBoxType> getIterator(
+            ISAAC_HOST_DEVICE_INLINE ParticleIterator<featureDim, ParticlesBoxType> getIterator(
                 const isaac_uint3& local_grid_coord) const
             {
                 constexpr uint32_t frameSize = pmacc::math::CT::volume<typename FrameType::SuperCellSize>::type::value;
@@ -330,7 +330,7 @@ namespace picongpu
                 const auto& superCell = pb[0].getSuperCell(superCellIdx);
                 size_t size = superCell.getNumParticles();
                 FramePtr currentFrame = pb[0].getFirstFrame(superCellIdx);
-                return ParticleIterator<feature_dim, ParticlesBoxType>(size, pb[0], currentFrame, frameSize);
+                return ParticleIterator<featureDim, ParticlesBoxType>(size, pb[0], currentFrame, frameSize);
             }
         };
 
@@ -400,12 +400,12 @@ namespace picongpu
                 : visualization(nullptr)
                 , cellDescription(nullptr)
                 , movingWindow(false)
-                , render_interval(1)
+                , renderInterval(1)
                 , step(0)
-                , drawing_time(0)
-                , cell_count(0)
-                , particle_count(0)
-                , last_notify(0)
+                , drawingTime(0)
+                , cellCount(0)
+                , particleCount(0)
+                , lastNotify(0)
             {
                 Environment<>::get().PluginConnector().registerPlugin(this);
             }
@@ -417,9 +417,9 @@ namespace picongpu
 
             void notify(uint32_t currentStep)
             {
-                uint64_t simulation_time = visualization->getTicksUs() - last_notify;
+                uint64_t simulation_time = visualization->getTicksUs() - lastNotify;
                 step++;
-                if(step >= render_interval)
+                if(step >= renderInterval)
                 {
                     step = 0;
                     bool pause = false;
@@ -430,22 +430,22 @@ namespace picongpu
                         {
                             Window window(MovingWindow::getInstance().getWindow(currentStep));
                             isaac_size3 position;
-                            isaac_size3 local_size;
-                            isaac_size3 particle_size;
+                            isaac_size3 localSize;
+                            isaac_size3 particleSize;
 
                             for(ISAAC_IDX_TYPE i = 0; i < 3; ++i)
                             {
                                 position[i] = window.localDimensions.offset[i];
-                                local_size[i] = window.localDimensions.size[i];
-                                particle_size[i]
+                                localSize[i] = window.localDimensions.size[i];
+                                particleSize[i]
                                     = window.localDimensions.size[i] / MappingDesc::SuperCellSize::toRT()[i];
                             }
                             visualization->updatePosition(position);
-                            visualization->updateLocalSize(local_size);
-                            visualization->updateLocalParticleSize(particle_size);
+                            visualization->updateLocalSize(localSize);
+                            visualization->updateLocalParticleSize(particleSize);
                             visualization->updateBounding();
                         }
-                        if(rank == 0 && visualization->kernel_time)
+                        if(rank == 0 && visualization->kernelTime)
                         {
                             json_object_set_new(
                                 visualization->getJsonMetaRoot(),
@@ -454,7 +454,7 @@ namespace picongpu
                             json_object_set_new(
                                 visualization->getJsonMetaRoot(),
                                 "drawing_time",
-                                json_integer(drawing_time));
+                                json_integer(drawingTime));
                             json_object_set_new(
                                 visualization->getJsonMetaRoot(),
                                 "simulation_time",
@@ -463,40 +463,40 @@ namespace picongpu
                             json_object_set_new(
                                 visualization->getJsonMetaRoot(),
                                 "cell count",
-                                json_integer(cell_count));
+                                json_integer(cellCount));
                             json_object_set_new(
                                 visualization->getJsonMetaRoot(),
                                 "particle count",
-                                json_integer(particle_count));
+                                json_integer(particleCount));
                         }
                         uint64_t start = visualization->getTicksUs();
                         json_t* meta = visualization->doVisualization(META_MASTER, &currentStep, !pause);
-                        drawing_time = visualization->getTicksUs() - start;
-                        json_t* json_pause = nullptr;
-                        if(meta && (json_pause = json_object_get(meta, "pause")) && json_boolean_value(json_pause))
+                        drawingTime = visualization->getTicksUs() - start;
+                        json_t* jsonPause = nullptr;
+                        if(meta && (jsonPause = json_object_get(meta, "pause")) && json_boolean_value(jsonPause))
                             pause = !pause;
                         if(meta && json_integer_value(json_object_get(meta, "exit")))
                             exit(1);
                         json_t* js;
                         if(meta && (js = json_object_get(meta, "interval")))
                         {
-                            render_interval = math::max(int(1), int(json_integer_value(js)));
+                            renderInterval = math::max(int(1), int(json_integer_value(js)));
                             // Feedback for other clients than the changing one
                             if(rank == 0)
                                 json_object_set_new(
                                     visualization->getJsonMetaRoot(),
                                     "interval",
-                                    json_integer(render_interval));
+                                    json_integer(renderInterval));
                         }
                         json_decref(meta);
-                        if(direct_pause)
+                        if(directPause)
                         {
                             pause = true;
-                            direct_pause = false;
+                            directPause = false;
                         }
                     } while(pause);
                 }
-                last_notify = visualization->getTicksUs();
+                lastNotify = visualization->getTicksUs();
             }
 
             void pluginRegisterHelp(po::options_description& desc)
@@ -522,7 +522,7 @@ namespace picongpu
                     po::value<uint32_t>(&height)->default_value(768),
                     "The height per isaac framebuffer. Default is 768.")(
                     "isaac.directPause",
-                    po::value<bool>(&direct_pause)->default_value(false),
+                    po::value<bool>(&directPause)->default_value(false),
                     "Direct pausing after starting simulation. Default is false.")(
                     "isaac.quality",
                     po::value<uint32_t>(&jpeg_quality)->default_value(90),
@@ -557,13 +557,13 @@ namespace picongpu
              *
              * render each n-th time step within an interval defined by notifyPeriod
              */
-            uint32_t render_interval;
+            uint32_t renderInterval;
             uint32_t step;
-            int drawing_time;
-            bool direct_pause;
-            int cell_count;
-            int particle_count;
-            uint64_t last_notify;
+            int drawingTime;
+            bool directPause;
+            int cellCount;
+            int particleCount;
+            uint64_t lastNotify;
             bool reconnect;
 
             void pluginLoad()
@@ -584,18 +584,18 @@ namespace picongpu
 
                     isaac_size2 framebuffer_size = {cupla::IdxType(width), cupla::IdxType(height)};
 
-                    isaac_for_each_params(sources, SourceInitIterator(), cellDescription, movingWindow);
-                    isaac_for_each_params(particleSources, ParticleSourceInitIterator(), movingWindow);
+                    forEachParams(sources, SourceInitIterator(), cellDescription, movingWindow);
+                    forEachParams(particleSources, ParticleSourceInitIterator(), movingWindow);
 
-                    isaac_size3 global_size;
-                    isaac_size3 local_size;
-                    isaac_size3 particle_size;
+                    isaac_size3 globalSize;
+                    isaac_size3 localSize;
+                    isaac_size3 particleSize;
                     isaac_size3 position;
                     for(ISAAC_IDX_TYPE i = 0; i < 3; ++i)
                     {
-                        global_size[i] = MovingWindow::getInstance().getWindow(0).globalDimensions.size[i];
-                        local_size[i] = subGrid.getLocalDomain().size[i];
-                        particle_size[i] = subGrid.getLocalDomain().size[i] / SuperCellSize::toRT()[i];
+                        globalSize[i] = MovingWindow::getInstance().getWindow(0).globalDimensions.size[i];
+                        localSize[i] = subGrid.getLocalDomain().size[i];
+                        particleSize[i] = subGrid.getLocalDomain().size[i] / SuperCellSize::toRT()[i];
                         position[i] = subGrid.getLocalDomain().offset[i];
                     }
                     visualization = new VisualizationType(
@@ -607,9 +607,9 @@ namespace picongpu
                         url,
                         port,
                         framebuffer_size,
-                        global_size,
-                        local_size,
-                        particle_size,
+                        globalSize,
+                        localSize,
+                        particleSize,
                         position,
                         particleSources,
                         sources,
@@ -647,10 +647,10 @@ namespace picongpu
                     {
                         const int localNrOfCells
                             = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
-                        cell_count = localNrOfCells * numProc;
-                        particle_count = localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL
+                        cellCount = localNrOfCells * numProc;
+                        particleCount = localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL
                             * (bmpl::size<VectorAllSpecies>::type::value) * numProc;
-                        last_notify = visualization->getTicksUs();
+                        lastNotify = visualization->getTicksUs();
                         if(rank == 0)
                             log<picLog::INPUT_OUTPUT>("ISAAC Init succeded");
                     }

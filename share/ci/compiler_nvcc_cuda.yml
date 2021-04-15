@@ -4,7 +4,6 @@
 .base_nvcc:
   variables:
     GIT_SUBMODULE_STRATEGY: normal
-    DISABLE_ISAAC: "yes"
   before_script:
     - nvidia-smi
     - nvcc --version
