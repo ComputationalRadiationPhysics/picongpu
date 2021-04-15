@@ -221,7 +221,7 @@ namespace picongpu
             PositionsParticles<bmpl::_1>,
             plugins::particleMerging::ParticleMerger<bmpl::_1>,
             plugins::randomizedParticleMerger::RandomizedParticleMerger<bmpl::_1>
-#    if(ENABLE_HDF5 == 1)
+#    if(ENABLE_OPENPMD == 1)
             ,
             PerSuperCell<bmpl::_1>
 #    endif
