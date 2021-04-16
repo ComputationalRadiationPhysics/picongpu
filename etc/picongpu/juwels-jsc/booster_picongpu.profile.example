@@ -44,23 +44,34 @@ module load HDF5/1.10.6
 # necessary for evaluations (NumPy, SciPy, Matplotlib, SymPy, Pandas, IPython)
 module load SciPy-Stack/2020-Python-3.8.5
 
-# Other Software ##############################################################
+# Self-Build Software #########################################################
 #
-# Manually installed libraries are stored in PARTITION_LIB
-PARTITION_LIB=$PROJECT/lib_gpus
+# needs to be compiled by the user
+# Check the install script at
+# https://gist.github.com/steindev/5a2ab0c4957a1e57ed671ac198b491c6
+#
+export PIC_LIBS=$PROJECT/lib
+export ZLIB_ROOT=$PIC_LIBS/zlib-1.2.11
+export BLOSC_ROOT=$PIC_LIBS/blosc-1.21.0
+export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0
+export ADIOS_ROOT=$PIC_LIBS/adios-1.13.1
+export Splash_DIR=$PIC_LIBS/splash
+export ADIOS2_ROOT=$PIC_LIBS/adios2-2.7.1
+export OPENPMD_ROOT=$PIC_LIBS/openpmd-0.13.3
 
-
-LIBSPLASH_ROOT=$PARTITION_LIB/libSplash
-PNGWRITER_ROOT=$PARTITION_LIB/pngwriter
-export CMAKE_PREFIX_PATH=$LIBSPLASH_ROOT:$PNGWRITER_ROOT:$CMAKE_PREFIX_PATH
-
-BLOSC_ROOT=$PARTITION_LIB/c-blosc
-export CMAKE_PREFIX_PATH=$BLOSC_ROOT:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$ZLIB_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PNGwriter_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$ADIOS_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$Splash_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib64:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH
 
-ADIOS_ROOT=$PARTITION_LIB/adios
 export PATH=$ADIOS_ROOT/bin:$PATH
-export CMAKE_PREFIX_PATH=$ADIOS_ROOT:$CMAKE_PREFIX_PATH
+
+export CMAKE_PREFIX_PATH=$ZLIB_ROOT:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
+
 
 
 # Environment #################################################################
@@ -111,8 +122,7 @@ function getDevice() {
             numDevices=$1
         fi
     fi
-    echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
-    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:4 --mem=515712 -A $account -p gpus bash
+    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:$(($numDevices)) --mem=515712 -A $account -p develbooster --pty bash
 }
 
 # Load autocompletion for PIConGPU commands
