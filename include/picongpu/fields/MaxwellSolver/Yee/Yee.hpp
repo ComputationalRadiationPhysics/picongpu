@@ -29,6 +29,7 @@
 #include "picongpu/fields/absorber/ExponentialDamping.hpp"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/fields/differentiation/Curl.hpp"
+#include "picongpu/fields/incidentField/Solver.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -113,12 +114,18 @@ namespace picongpu
                     this->fieldB = dc.get<FieldB>(FieldB::getName(), true);
                 }
 
-                void update_beforeCurrent(uint32_t)
+                void update_beforeCurrent(uint32_t currentStep)
                 {
                     updateBHalf<CORE + BORDER>();
+                    auto incidentFieldSolver = fields::incidentField::Solver{this->m_cellDescription};
+                    // update B by half step, to step = currentStep + 0.5, so step for E_inc = currentStep
+                    incidentFieldSolver.updateBHalf(static_cast<float_X>(currentStep));
                     EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
 
                     updateE<CORE>();
+                    // Incident solver update does not use exchanged B, so does not have to wait for it
+                    // update E by full step, to step = currentStep + 1, so step for B_inc = currentStep + 0.5
+                    incidentFieldSolver.updateE(static_cast<float_X>(currentStep) + 0.5_X);
                     __setTransactionEvent(eRfieldB);
                     updateE<BORDER>();
                 }
@@ -129,6 +136,11 @@ namespace picongpu
                     Absorber::run(currentStep, this->m_cellDescription, this->fieldE->getDeviceDataBox());
                     if(laserProfiles::Selected::INIT_TIME > float_X(0.0))
                         LaserPhysics{}(currentStep);
+
+                    // Incident field solver update does not use exchanged E, so does not have to wait for it
+                    auto incidentFieldSolver = fields::incidentField::Solver{this->m_cellDescription};
+                    // update B by half step, to step currentStep + 1.5, so step for E_inc = currentStep + 1
+                    incidentFieldSolver.updateBHalf(static_cast<float_X>(currentStep) + 1.0_X);
 
                     EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());
 

@@ -41,6 +41,7 @@
 #include "picongpu/param/synchrotronPhotons.param"
 #include "picongpu/param/grid.param"
 #include "picongpu/param/pusher.param"
+#include "picongpu/param/incidentField.param"
 #include "picongpu/param/ionizer.param"
 #include "picongpu/param/ionizationEnergies.param"
 #include "picongpu/param/density.param"
