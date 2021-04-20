@@ -19,6 +19,13 @@ PIC_CONST_ARGS=""
 PIC_CONST_ARGS="${PIC_CONST_ARGS} -DISAAC_MAX_FUNCTORS=1 -DCMAKE_BUILD_TYPE=${PIC_BUILD_TYPE}"
 CMAKE_ARGS="${PIC_CONST_ARGS} ${PIC_CMAKE_ARGS} -DCMAKE_CXX_COMPILER=${CXX_VERSION} -DBOOST_ROOT=/opt/boost/${BOOST_VERSION}"
 
+# enforce optional dependencies
+CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_openPMD=ON -DPIC_USE_ADIOS1=ON -DPIC_USE_Splash=ON -DPIC_USE_PNGwriter=ON"
+
+if [ -z "$DISABLE_ISAAC" ] ; then
+  CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=ON"
+fi
+
 # workaround for clang cuda
 # HDF5 from the apt sources is pulling -D_FORTIFY_SOURCE=2 into the compile flags
 # this workaround is creating a warning about the double definition of _FORTIFY_SOURCE

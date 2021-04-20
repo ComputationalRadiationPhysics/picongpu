@@ -47,6 +47,60 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{OPENPMD_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 
+###############################################################################
+# Misc
+###############################################################################
+
+# Create options to configure the usage of a dependency
+#
+# The status of the dependency must be set by calling 'PIC_dependency_set_status'.
+#
+# Creates a variable named 'PIC_SEARCH_<name>' which is true if 'PIC_USE_<name>' is AUTO or ON.
+# Creates a list 'PIC_DEPENDENCY_LIST' with all dependencies to create a status report at the end of the CMake script.
+# Creates a variable 'PIC_HAVE_<name>' with the status TRUE means dependency is found else FALSE/empty.
+#
+#   name        - dependency name
+#   description - description for the created option named 'PIC_USE_<name>'
+#   default     - default value of the option: ON,OFF, or AUTO
+function(PIC_dependency name description default)
+    set(PIC_DEPENDENCY_LIST ${PIC_DEPENDENCY_LIST} ${name} PARENT_SCOPE)
+
+    set(PIC_USE_${name} ${default} CACHE STRING "${description}")
+    set_property(CACHE PIC_USE_${name} PROPERTY STRINGS "AUTO;ON;OFF")
+
+    if(PIC_USE_${name} STREQUAL AUTO OR PIC_USE_${name} STREQUAL ON)
+        set(PIC_SEARCH_${name} TRUE PARENT_SCOPE)
+    else()
+        set(PIC_SEARCH_${name} FALSE PARENT_SCOPE)
+    endif()
+    set(PIC_HAVE_${name} PARENT_SCOPE)
+endfunction()
+
+# Set status of a dependency
+#
+# If function is called twice the second call will have no effect.
+# Set the variable 'PIC_HAVE_<name>' depending on the optional parameter '...'.
+#
+#   name - dependency name
+#   ...  - TRUE/FALSE or content of a variable (can be empty)
+function(PIC_dependency_set_status name)
+    # handle optional arguments to support passing not existing <project>_FOUND variables
+    if(ARGC EQUAL 2)
+        set(value ${ARGN})
+    else()
+        set(value FALSE)
+    endif()
+    if(${value} AND NOT PIC_HAVE_${name}_LOCKED)
+        set(PIC_HAVE_${name} TRUE PARENT_SCOPE)
+    else()
+        set(PIC_HAVE_${name} FALSE PARENT_SCOPE)
+        if(PIC_USE_${name} STREQUAL ON)
+            message(FATAL_ERROR "Optional dependency '${name}' not found but explicitly requested with 'PIC_USE_${name}=ON'.")
+        endif()
+    endif()
+    # guard to set the value only once
+    set(PIC_HAVE_${name}_LOCKED TRUE PARENT_SCOPE)
+endfunction()
 
 ################################################################################
 # CMake policies
@@ -270,134 +324,164 @@ endif()
 # openPMD
 ################################################################################
 
-# find openPMD installation
-find_package(openPMD 0.12.0 CONFIG COMPONENTS MPI)
+PIC_dependency(openPMD "API for IO" AUTO)
 
-if(openPMD_FOUND)
-    if(openPMD_HAVE_ADIOS2 OR openPMD_HAVE_HDF5)
-        message(STATUS "Found openPMD: ${openPMD_DIR}")
-        add_definitions(-DENABLE_OPENPMD=1)
+if(PIC_SEARCH_openPMD)
+    # find openPMD installation
+    find_package(openPMD 0.12.0 CONFIG COMPONENTS MPI)
+    if(openPMD_FOUND)
+        if(openPMD_HAVE_ADIOS2 OR openPMD_HAVE_HDF5)
+            message(STATUS "Found openPMD: ${openPMD_DIR}")
+            add_definitions(-DENABLE_OPENPMD=1)
 
-        # non of these should appear in cmake-gui, so make them internal
-        set(JSON_BuildTests OFF CACHE INTERNAL "")
-        set(JSON_MultipleHeaders OFF CACHE INTERNAL "")
-        set(JSON_ImplicitConversions OFF CACHE INTERNAL "")
-        set(JSON_Install OFF CACHE INTERNAL "")  # only used PRIVATE
+            # none of these should appear in cmake-gui, so make them internal
+            set(JSON_BuildTests OFF CACHE INTERNAL "")
+            set(JSON_MultipleHeaders OFF CACHE INTERNAL "")
+            set(JSON_ImplicitConversions OFF CACHE INTERNAL "")
+            set(JSON_Install OFF CACHE INTERNAL "")  # only used PRIVATE
 
-        # allow to use externally installed nlohmann_json
-        set(
-            PIC_nlohmann_json_PROVIDER "intern" CACHE
-            STRING "Use internally shipped or external nlohmann_json library.")
-        set_property(
-            CACHE PIC_nlohmann_json_PROVIDER
-            PROPERTY STRINGS "intern;extern")
-        mark_as_advanced(PIC_nlohmann_json_PROVIDER)
-        if(${PIC_nlohmann_json_PROVIDER} STREQUAL "intern")
-            add_subdirectory(
-                "${PIConGPUapp_SOURCE_DIR}/../../thirdParty/nlohmann_json"
-                "${CMAKE_CURRENT_BINARY_DIR}/build_nlohmann_json")
+            # allow using externally installed nlohmann_json
+            set(
+                PIC_nlohmann_json_PROVIDER "intern" CACHE
+                STRING "Use internally shipped or external nlohmann_json library.")
+            set_property(
+                CACHE PIC_nlohmann_json_PROVIDER
+                PROPERTY STRINGS "intern;extern")
+            mark_as_advanced(PIC_nlohmann_json_PROVIDER)
+            if(${PIC_nlohmann_json_PROVIDER} STREQUAL "intern")
+                add_subdirectory(
+                    "${PIConGPUapp_SOURCE_DIR}/../../thirdParty/nlohmann_json"
+                    "${CMAKE_CURRENT_BINARY_DIR}/build_nlohmann_json")
+            else()
+                find_package(nlohmann_json 3.9.1 CONFIG REQUIRED)
+                message(STATUS "nlohmann-json: Found version '${nlohmann_json_VERSION}'")
+                PIC_dependency_set_status(openPMD FALSE)
+            endif()
+            set(LIBS ${LIBS} openPMD::openPMD)
         else()
-            find_package(nlohmann_json 3.9.1 CONFIG REQUIRED)
-            message(STATUS "nlohmann-json: Found version '${nlohmann_json_VERSION}'")
+            message(STATUS "Found openPMD at ${openPMD_DIR}, but PIConGPU requires"
+                           " availability of either its ADIOS2 or HDF5 backend - "
+                           "NOT BUILDING the openPMD plugin")
+            PIC_dependency_set_status(openPMD FALSE)
         endif()
-        set(LIBS ${LIBS} openPMD::openPMD)
-    else()
-        message(STATUS "Found openPMD at ${openPMD_DIR}, but PIConGPU requires"
-                       " availability of either its ADIOS2 or HDF5 backend - "
-                       "NOT BUILDING the openPMD plugin")
-    endif()
-else(openPMD_FOUND)
-    message(STATUS "Could NOT find openPMD - set openPMD_DIR or check your CMAKE_PREFIX_PATH")
-endif(openPMD_FOUND)
+    else(openPMD_FOUND)
+        message(STATUS "Could NOT find openPMD - set openPMD_DIR or check your CMAKE_PREFIX_PATH")
+    endif(openPMD_FOUND)
+endif()
 
+PIC_dependency_set_status(openPMD ${openPMD_FOUND})
 
 ################################################################################
 # ADIOS
 ################################################################################
 
-# find adios installation
-#   set(ADIOS_USE_STATIC_LIBS ON) # force static linking
-find_package(ADIOS 1.13.1)
+PIC_dependency(ADIOS1 "ADIOS1 API for IO" AUTO)
 
-if(ADIOS_FOUND)
-    add_definitions(-DENABLE_ADIOS=1)
-    include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})
-    set(LIBS ${LIBS} ${ADIOS_LIBRARIES})
-endif(ADIOS_FOUND)
+if(PIC_SEARCH_ADIOS1)
+    # find adios installation
+    #   set(ADIOS_USE_STATIC_LIBS ON) # force static linking
+    find_package(ADIOS 1.13.1)
 
+    if(ADIOS_FOUND)
+        add_definitions(-DENABLE_ADIOS=1)
+        include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})
+        set(LIBS ${LIBS} ${ADIOS_LIBRARIES})
+    endif(ADIOS_FOUND)
+endif()
+
+PIC_dependency_set_status(ADIOS1 ${ADIOS_FOUND})
 
 ################################################################################
 # libSplash (+ hdf5 due to required headers)
 ################################################################################
 
-find_package(Splash 1.7.0 CONFIG COMPONENTS PARALLEL)
+PIC_dependency(Splash "API for IO with HDF5" AUTO)
 
-if(TARGET Splash::Splash)
-    add_definitions(-DENABLE_HDF5=1)
-    set(LIBS ${LIBS} Splash::Splash)
-    message(STATUS "Found Splash: ${Splash_DIR}")
-else()
-    message(STATUS "Could NOT find Splash - "
-                   "set Splash_DIR or check your CMAKE_PREFIX_PATH")
+if(PIC_SEARCH_ADIOS1)
+    find_package(Splash 1.7.0 CONFIG COMPONENTS PARALLEL)
+
+    if(TARGET Splash::Splash)
+        add_definitions(-DENABLE_HDF5=1)
+        set(LIBS ${LIBS} Splash::Splash)
+        message(STATUS "Found Splash: ${Splash_DIR}")
+    else()
+        message(STATUS "Could NOT find Splash - "
+                       "set Splash_DIR or check your CMAKE_PREFIX_PATH")
+        PIC_dependency_set_status(Splash FALSE)
+    endif()
 endif()
 
+PIC_dependency_set_status(Splash ${Splash_FOUND})
 
 ################################################################################
 # PNGwriter
 ################################################################################
 
-# find PNGwriter installation
-find_package(PNGwriter 0.7.0 CONFIG)
+PIC_dependency(PNGwriter "API for IO with HDF5" AUTO)
 
-if(PNGwriter_FOUND)
-    set(LIBS ${LIBS} PNGwriter::PNGwriter)
-    add_definitions(-DPIC_ENABLE_PNG=1)
-    message(STATUS "Found PNGwriter: ${PNGwriter_DIR}")
-else()
-    message(STATUS "Could NOT find PNGwriter - "
-                   "set PNGwriter_DIR or check your CMAKE_PREFIX_PATH")
-endif(PNGwriter_FOUND)
+if(PIC_SEARCH_PNGwriter)
+    # find PNGwriter installation
+    find_package(PNGwriter 0.7.0 CONFIG)
 
+    if(PNGwriter_FOUND)
+        set(LIBS ${LIBS} PNGwriter::PNGwriter)
+        add_definitions(-DPIC_ENABLE_PNG=1)
+        message(STATUS "Found PNGwriter: ${PNGwriter_DIR}")
+    else()
+        message(STATUS "Could NOT find PNGwriter - "
+                       "set PNGwriter_DIR or check your CMAKE_PREFIX_PATH")
+        PIC_dependency_set_status(PNGwriter FALSE)
+    endif(PNGwriter_FOUND)
+endif()
+
+PIC_dependency_set_status(PNGwriter ${PNGwriter_FOUND})
 
 ################################################################################
 # ISAAC
 ################################################################################
 
-find_package(ISAAC 1.4.0 CONFIG QUIET)
-if(ISAAC_FOUND)
-    message(STATUS "Found ISAAC: ${ISAAC_DIR}")
-    SET(ISAAC_STEREO "No" CACHE STRING "Using stereoscopy")
-    SET_PROPERTY(CACHE ISAAC_STEREO PROPERTY STRINGS No SideBySide Anaglyph)
+PIC_dependency(ISAAC "Framework to in-situ visualize PIConGPU during the execution." AUTO)
 
-    if(${ISAAC_STEREO} STREQUAL "No")
-        add_definitions(-DISAAC_STEREO=0)
-    endif()
-    if(${ISAAC_STEREO} STREQUAL "SideBySide")
-        add_definitions(-DISAAC_STEREO=1)
-    endif()
-    if(${ISAAC_STEREO} STREQUAL "Anaglyph")
-        add_definitions(-DISAAC_STEREO=2)
-    endif()
+if(PIC_SEARCH_ISAAC)
+    find_package(ISAAC 1.4.0 CONFIG QUIET)
+    if(ISAAC_FOUND)
+        message(STATUS "Found ISAAC: ${ISAAC_DIR}")
+        SET(ISAAC_STEREO "No" CACHE STRING "Using stereoscopy")
+        SET_PROPERTY(CACHE ISAAC_STEREO PROPERTY STRINGS No SideBySide Anaglyph)
 
-    include_directories(SYSTEM ${ISAAC_INCLUDE_DIRS})
-    set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
+        if(${ISAAC_STEREO} STREQUAL "No")
+            add_definitions(-DISAAC_STEREO=0)
+        endif()
+        if(${ISAAC_STEREO} STREQUAL "SideBySide")
+            add_definitions(-DISAAC_STEREO=1)
+        endif()
+        if(${ISAAC_STEREO} STREQUAL "Anaglyph")
+            add_definitions(-DISAAC_STEREO=2)
+        endif()
 
-    set(ISAAC_MAX_FUNCTORS "3" CACHE STRING "Max length of the isaac functor chain" )
-    set(ISAAC_DEFAULT_WEIGHT "7" CACHE STRING "Default weight of an isaac source" )
-    add_definitions(${ISAAC_DEFINITIONS})
-    add_definitions(-DISAAC_MAX_FUNCTORS=${ISAAC_MAX_FUNCTORS})
-    add_definitions(-DISAAC_FUNCTOR_POW_ENABLED=0)
-    add_definitions(-DISAAC_DEFAULT_WEIGHT=${ISAAC_DEFAULT_WEIGHT})
+        include_directories(SYSTEM ${ISAAC_INCLUDE_DIRS})
+        set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
 
-    add_definitions(-DENABLE_ISAAC=1)
-else(ISAAC_FOUND)
-    if(DEFINED ISAAC_DEPENDENCY_HINTS)
-        message(STATUS "ISAAC was found, but detected the following "
-                       "problems:" ${ISAAC_DEPENDENCY_HINTS})
-    else()
-        message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH")
-    endif()
-endif(ISAAC_FOUND)
+        set(ISAAC_MAX_FUNCTORS "3" CACHE STRING "Max length of the isaac functor chain" )
+        set(ISAAC_DEFAULT_WEIGHT "7" CACHE STRING "Default weight of an isaac source" )
+        add_definitions(${ISAAC_DEFINITIONS})
+        add_definitions(-DISAAC_MAX_FUNCTORS=${ISAAC_MAX_FUNCTORS})
+        add_definitions(-DISAAC_FUNCTOR_POW_ENABLED=0)
+        add_definitions(-DISAAC_DEFAULT_WEIGHT=${ISAAC_DEFAULT_WEIGHT})
+
+        add_definitions(-DENABLE_ISAAC=1)
+    else(ISAAC_FOUND)
+        if(DEFINED ISAAC_DEPENDENCY_HINTS)
+            message(STATUS "ISAAC was found, but detected the following "
+                           "problems:" ${ISAAC_DEPENDENCY_HINTS})
+        else()
+            message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH")
+        endif()
+        PIC_dependency_set_status(ISAAC FALSE)
+    endif(ISAAC_FOUND)
+endif()
+
+PIC_dependency_set_status(ISAAC ${ISAAC_FOUND})
 
 ################################################################################
 # PIConGPU Workarounds
@@ -462,7 +546,7 @@ cupla_add_executable(picongpu
 
 target_link_libraries(picongpu PUBLIC ${LIBS} picongpu-hostonly)
 
-if(openPMD_FOUND)
+if(PIC_HAVE_openPMD)
     # Including <nlohmann/json.hpp> will throw loads of warnings. Quiet them.
     # (Doesn't work for nvcc??)
     target_include_directories(
@@ -572,3 +656,14 @@ if( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR
 
     endforeach()
 endif()
+
+message("")
+message("Optional Dependencies:")
+foreach(dep IN LISTS PIC_DEPENDENCY_LIST)
+    if(PIC_HAVE_${dep})
+        message("  ${dep}: ON")
+    else()
+        message("  ${dep}: OFF")
+    endif()
+endforeach()
+message("")

@@ -29,8 +29,8 @@
 #   - start with zero index
 #   - increase by 1, no gaps
 
-flags[0]="-DCMAKE_DISABLE_FIND_PACKAGE_ISAAC=True"
-flags[1]="-DCMAKE_DISABLE_FIND_PACKAGE_ISAAC=True -DPARAM_OVERWRITES:LIST='-DPARAM_ENABLE_PUSHER=1;-DPARAM_ENABLE_CURRENT=1'"
+flags[0]=""
+flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_ENABLE_PUSHER=1;-DPARAM_ENABLE_CURRENT=1'"
 
 
 ################################################################################
