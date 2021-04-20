@@ -82,7 +82,7 @@ namespace picongpu
      * - currentSolver::strategy::NonCachedSupercellsScaled<N> with N >= 1
      */
 #ifndef PARAM_CURRENTSOLVER
-#    define PARAM_CURRENTSOLVER Esirkepov<UsedParticleShape>
+#    define PARAM_CURRENTSOLVER EmZ<UsedParticleShape>
 #endif
     using UsedParticleCurrentSolver = currentSolver::PARAM_CURRENTSOLVER;
 

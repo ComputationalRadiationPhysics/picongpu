@@ -78,7 +78,7 @@ namespace picongpu
      * - currentSolver::strategy::NonCachedSupercells
      * - currentSolver::strategy::NonCachedSupercellsScaled<N> with N >= 1
      */
-    using UsedParticleCurrentSolver = currentSolver::Esirkepov<UsedParticleShape>;
+    using UsedParticleCurrentSolver = currentSolver::EmZ<UsedParticleShape>;
 
     /** particle pusher configuration
      *
