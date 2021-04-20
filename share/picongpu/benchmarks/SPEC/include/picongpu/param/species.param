@@ -43,6 +43,9 @@
 #include "picongpu/particles/flylite/NonLTE.def"
 #include "picongpu/fields/currentDeposition/Solver.def"
 
+#ifndef PARAM_PARTICLESHAPE
+#    define PARAM_PARTICLESHAPE PQS
+#endif
 
 namespace picongpu
 {
@@ -55,7 +58,7 @@ namespace picongpu
      *  - particles::shapes::PQS : Assignment function is a piecewise cubic spline
      *  - particles::shapes::PCS : Assignment function is a piecewise quartic spline
      */
-    using UsedParticleShape = particles::shapes::PQS;
+    using UsedParticleShape = particles::shapes::PARAM_PARTICLESHAPE;
 
     /** select interpolation method to be used for interpolation of grid-based field values to particle positions
      */
