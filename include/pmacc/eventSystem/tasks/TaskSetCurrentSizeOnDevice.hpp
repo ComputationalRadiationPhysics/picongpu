@@ -27,7 +27,6 @@
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 #include "pmacc/eventSystem/events/kernelEvents.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/nvidia/gpuEntryFunction.hpp"
 
 
 namespace pmacc

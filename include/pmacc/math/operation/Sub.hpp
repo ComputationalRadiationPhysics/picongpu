@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2014-2021 Axel Huebl
  *
  * This file is part of PMacc.
  *
@@ -25,24 +25,24 @@
 
 namespace pmacc
 {
-    namespace nvidia
+    namespace math
     {
-        namespace functors
+        namespace operation
         {
-            struct Assign
+            struct Sub
             {
                 template<typename Dst, typename Src>
                 HDINLINE void operator()(Dst& dst, const Src& src) const
                 {
-                    dst = src;
+                    dst -= src;
                 }
 
                 template<typename Dst, typename Src, typename T_Acc>
                 HDINLINE void operator()(const T_Acc&, Dst& dst, const Src& src) const
                 {
-                    dst = src;
+                    dst -= src;
                 }
             };
-        } // namespace functors
-    } // namespace nvidia
+        } // namespace operation
+    } // namespace math
 } // namespace pmacc

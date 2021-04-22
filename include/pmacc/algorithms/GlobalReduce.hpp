@@ -23,7 +23,7 @@
 
 #include "pmacc/types.hpp"
 
-#include "pmacc/nvidia/reduce/Reduce.hpp"
+#include "pmacc/device/Reduce.hpp"
 #include "pmacc/mpi/MPIReduce.hpp"
 #include "pmacc/traits/GetValueType.hpp"
 
@@ -73,7 +73,7 @@ namespace pmacc
             }
 
         private:
-            ::pmacc::nvidia::reduce::Reduce reduce;
+            ::pmacc::device::Reduce reduce;
             ::pmacc::mpi::MPIReduce mpi_reduce;
         };
     } // namespace algorithms

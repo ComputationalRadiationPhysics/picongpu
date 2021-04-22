@@ -23,13 +23,13 @@
 
 #include "pmacc/types.hpp"
 
-#include "pmacc/nvidia/atomic.hpp"
+#include "pmacc/kernel/atomic.hpp"
 
 namespace pmacc
 {
-    namespace nvidia
+    namespace kernel
     {
-        namespace functors
+        namespace operation
         {
             /** Addition of two values
              *
@@ -69,6 +69,6 @@ namespace pmacc
                 }
             };
 
-        } // namespace functors
-    } // namespace nvidia
+        } // namespace operation
+    } // namespace kernel
 } // namespace pmacc

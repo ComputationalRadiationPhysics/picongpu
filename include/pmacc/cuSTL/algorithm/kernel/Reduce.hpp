@@ -23,7 +23,7 @@
 
 #include "pmacc/cuSTL/cursor/Cursor.hpp"
 #include "pmacc/cuSTL/cursor/accessor/CursorAccessor.hpp"
-#include "pmacc/nvidia/reduce/Reduce.hpp"
+#include "pmacc/device/Reduce.hpp"
 #include "pmacc/cuSTL/cursor/navigator/MapTo1DNavigator.hpp"
 
 namespace pmacc
@@ -40,12 +40,14 @@ namespace pmacc
                 /* \param srcCursor Cursor located at the origin of the area of reduce
                  * \param p_zone Zone of cells spanning the area of reduce
                  * \param functor Functor with two arguments which returns the result of the reduce operation.
+                 *
+                 * \tparam T_Operation reduce operation type from pmacc::operation::*
                  */
-                template<typename SrcCursor, typename Zone, typename NVidiaFunctor>
+                template<typename SrcCursor, typename Zone, typename T_Operation>
                 typename SrcCursor::ValueType operator()(
                     const SrcCursor& srcCursor,
                     const Zone& p_zone,
-                    const NVidiaFunctor& functor)
+                    const T_Operation& functor)
                 {
                     SrcCursor srcCursor_shifted = srcCursor(p_zone.offset);
 
@@ -54,7 +56,7 @@ namespace pmacc
                     auto _srcCursor
                         = cursor::make_Cursor(cursor::CursorAccessor<SrcCursor>(), myNavi, srcCursor_shifted);
 
-                    pmacc::nvidia::reduce::Reduce reduce(1024);
+                    pmacc::device::Reduce reduce(1024);
                     return reduce(functor, _srcCursor, p_zone.size.productOfComponents());
                 }
             };

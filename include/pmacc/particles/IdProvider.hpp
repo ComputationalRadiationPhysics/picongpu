@@ -25,7 +25,7 @@
 #include "pmacc/Environment.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/algorithms/reverseBits.hpp"
-#include "pmacc/nvidia/atomic.hpp"
+#include "pmacc/kernel/atomic.hpp"
 #include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 #include "pmacc/debug/PMaccVerbose.hpp"
 
@@ -119,7 +119,7 @@ namespace pmacc
     template<unsigned T_dim>
     HDINLINE uint64_t IdProvider<T_dim>::getNewId()
     {
-        return static_cast<uint64_t>(nvidia::atomicAllInc(&idDetail::nextId));
+        return static_cast<uint64_t>(kernel::atomicAllInc(&idDetail::nextId));
     }
 
     template<unsigned T_dim>

@@ -1,4 +1,4 @@
-/* Copyright 2014-2021 Axel Huebl
+/* Copyright 2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,28 +21,9 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-
-namespace pmacc
-{
-    namespace nvidia
-    {
-        namespace functors
-        {
-            struct Sub
-            {
-                template<typename Dst, typename Src>
-                HDINLINE void operator()(Dst& dst, const Src& src) const
-                {
-                    dst -= src;
-                }
-
-                template<typename Dst, typename Src, typename T_Acc>
-                HDINLINE void operator()(const T_Acc&, Dst& dst, const Src& src) const
-                {
-                    dst -= src;
-                }
-            };
-        } // namespace functors
-    } // namespace nvidia
-} // namespace pmacc
+#include "pmacc/math/operation/Assign.hpp"
+#include "pmacc/math/operation/Add.hpp"
+#include "pmacc/math/operation/Max.hpp"
+#include "pmacc/math/operation/Min.hpp"
+#include "pmacc/math/operation/Mul.hpp"
+#include "pmacc/math/operation/Sub.hpp"

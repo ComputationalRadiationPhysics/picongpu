@@ -1,4 +1,4 @@
-/* Copyright 2014-2021 Axel Huebl
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -19,33 +19,36 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/mpi/GetMPI_Op.hpp"
+#include "pmacc/algorithms/math.hpp"
+
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {
-    namespace nvidia
+    namespace math
     {
-        namespace functors
+        namespace operation
         {
-            struct Mul
+            struct Min
             {
                 template<typename Dst, typename Src>
-                HDINLINE void operator()(Dst& dst, const Src& src) const
+                DINLINE void operator()(Dst& dst, const Src& src) const
                 {
-                    dst *= src;
+                    dst = math::min(dst, src);
                 }
 
                 template<typename Dst, typename Src, typename T_Acc>
-                HDINLINE void operator()(const T_Acc&, Dst& dst, const Src& src) const
+                DINLINE void operator()(const T_Acc&, Dst& dst, const Src& src) const
                 {
-                    dst *= src;
+                    dst = math::min(dst, src);
                 }
             };
-        } // namespace functors
-    } // namespace nvidia
+        } // namespace operation
+    } // namespace math
 } // namespace pmacc
 
 namespace pmacc
@@ -53,9 +56,9 @@ namespace pmacc
     namespace mpi
     {
         template<>
-        HINLINE MPI_Op getMPI_Op<pmacc::nvidia::functors::Mul>()
+        HINLINE MPI_Op getMPI_Op<pmacc::math::operation::Min>()
         {
-            return MPI_PROD;
+            return MPI_MIN;
         }
     } // namespace mpi
 } // namespace pmacc
