@@ -29,6 +29,7 @@
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/AllReduce.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu

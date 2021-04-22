@@ -34,7 +34,6 @@
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/kernel/atomic.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 #include <pmacc/memory/CtxArray.hpp>

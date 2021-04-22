@@ -38,11 +38,10 @@
 #include <pmacc/random/methods/methods.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/RNGProvider.hpp>
-
 #include <pmacc/traits/Resolve.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-
+#include <pmacc/math/operation.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>

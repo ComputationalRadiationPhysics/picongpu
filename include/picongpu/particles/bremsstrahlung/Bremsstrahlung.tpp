@@ -34,6 +34,7 @@
 #include <pmacc/algorithms/math/defines/cross.hpp>
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu

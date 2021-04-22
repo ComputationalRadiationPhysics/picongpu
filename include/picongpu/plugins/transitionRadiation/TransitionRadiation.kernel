@@ -34,6 +34,7 @@
 
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/kernel/atomic.hpp>
 
 
 namespace picongpu

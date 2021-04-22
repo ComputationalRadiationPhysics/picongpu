@@ -40,6 +40,7 @@
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
+#include <pmacc/math/operation.hpp>
 
 #include <boost/type_traits/integral_constant.hpp>
 

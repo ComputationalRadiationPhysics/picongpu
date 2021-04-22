@@ -24,6 +24,7 @@
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu

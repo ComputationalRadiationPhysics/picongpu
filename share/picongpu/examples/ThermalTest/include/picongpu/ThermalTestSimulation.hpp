@@ -30,8 +30,6 @@
 
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/eventSystem/EventSystem.hpp>
-
-#include <pmacc/device/MemoryInfo.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include "picongpu/ArgsParser.hpp"
 #include "picongpu/plugins/PluginController.hpp"

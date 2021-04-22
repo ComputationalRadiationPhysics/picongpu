@@ -41,6 +41,7 @@
 #include <pmacc/traits/Resolve.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu

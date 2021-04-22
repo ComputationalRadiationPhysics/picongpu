@@ -34,7 +34,6 @@
 #include <pmacc/algorithms/GlobalReduce.hpp>
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
-#include <pmacc/math/operation.hpp>
 #include <pmacc/kernel/atomic.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
