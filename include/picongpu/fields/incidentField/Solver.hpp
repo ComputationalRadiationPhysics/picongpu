@@ -112,17 +112,18 @@ namespace picongpu
                     auto updatedFieldPositions = traits::FieldPosition<cellType::Yee, T_UpdatedField>{}();
                     bool isUpdatedFieldTotal = (updatedFieldPositions[0][0] != 0.0_X);
 
-                    /* Start and end of the source area in the user global coordinates
+                    /* Start and end of the source area in the user total coordinates
                      * (the coordinate system in which a user functor is expressed, no guards)
                      */
-                    auto beginUserIdx = parameters.offsetMinBorder;
+                    auto const& subGrid = Environment<simDim>::get().SubGrid();
+                    auto const globalDomainOffset = subGrid.getGlobalDomain().offset;
+                    auto beginUserIdx = parameters.offsetMinBorder + globalDomainOffset;
                     /* Total field in positive direction needs to have the begin adjusted by one to get the first
                      * index inside the respective region
                      */
                     if(isUpdatedFieldTotal && parameters.direction > 0)
                         beginUserIdx += pmacc::DataSpace<simDim>::create(1);
-                    auto const& subGrid = Environment<simDim>::get().SubGrid();
-                    auto endUserIdx = subGrid.getGlobalDomain().size - parameters.offsetMaxBorder;
+                    auto endUserIdx = subGrid.getGlobalDomain().size - parameters.offsetMaxBorder + globalDomainOffset;
                     if(parameters.direction > 0)
                         endUserIdx[T_axis] = beginUserIdx[T_axis] + 1;
                     else
@@ -132,11 +133,11 @@ namespace picongpu
                     using Index = pmacc::DataSpace<simDim>;
                     using IntVector = pmacc::math::Vector<int, simDim>;
                     auto const localDomain = subGrid.getLocalDomain();
-                    auto const globalCellOffset = localDomain.offset;
+                    auto const totalCellOffset = globalDomainOffset + localDomain.offset;
                     auto const beginLocalUserIdx
-                        = Index{pmacc::math::max(IntVector{beginUserIdx - globalCellOffset}, IntVector::create(0))};
+                        = Index{pmacc::math::max(IntVector{beginUserIdx - totalCellOffset}, IntVector::create(0))};
                     auto const endLocalUserIdx = Index{
-                        pmacc::math::min(IntVector{endUserIdx - globalCellOffset}, IntVector{localDomain.size})};
+                        pmacc::math::min(IntVector{endUserIdx - totalCellOffset}, IntVector{localDomain.size})};
 
                     // Check if we have any active cells in the local domain
                     bool areAnyCellsInLocalDomain = true;
@@ -171,10 +172,10 @@ namespace picongpu
                     UpdateFunctor<decltype(dataBox), T_FunctorIncidentField> functor(incidentField.getUnit());
                     functor.updatedField = dataBox;
                     functor.currentStep = parameters.sourceTimeIteration;
-                    /* Shift between local grid idx and fractional global user idx:
-                     * global user idx = local grid idx + idxShift
+                    /* Shift between local grid idx and fractional total cell idx that a user functor needs:
+                     * total cell idx = local grid idx + functor.gridIdxShift.
                      */
-                    functor.gridIdxShift = globalCellOffset - numGuardCells;
+                    functor.gridIdxShift = totalCellOffset - numGuardCells;
 
                     /* Compute which components of the incident field are used,
                      * which components of the updated field they contribute to and with which coefficients.
@@ -217,7 +218,7 @@ namespace picongpu
                 /** Check preprequisites and update a field with the given incident field normally to the given axis
                  *
                  * Checks that the field solver type is supported.
-                 * After the sliding window started moving, does nothing.
+                 * After the sliding window started moving, does nothing for the y boundaries.
                  *
                  * @tparam T_UpdatedField updated field type (FieldE or FieldB)
                  * @tparam T_IncidentField incident field type (FieldB or FieldE)
@@ -246,11 +247,11 @@ namespace picongpu
                         exPosition[0] == 0.5_X,
                         "incident field source does not support the Yee grid layout");
 
-                    // Incident field generation cannot be performed once the window started moving
+                    // Incident field generation at y boundaries cannot be performed once the window started moving
                     const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(
                         static_cast<uint32_t>(parameters.sourceTimeIteration));
                     bool const boxHasSlided = (numSlides != 0);
-                    if(!boxHasSlided)
+                    if(!((T_axis == 1) && boxHasSlided))
                         updateField<T_UpdatedField, T_IncidentField, T_FunctorIncidentField>(
                             parameters,
                             curlCoefficient);

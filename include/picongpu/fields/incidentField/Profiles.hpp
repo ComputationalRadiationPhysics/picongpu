@@ -44,11 +44,12 @@ namespace picongpu
                  * Note that component matching the source boundary (e.g. the y component for YMin and YMax boundaries)
                  * will not be used, and so should be zero.
                  *
-                 * @param cellIdx cell index in the global domain, note that it is fractional
+                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
+                 *        note that it is fractional
                  * @param currentStep current time step index, note that it is fractional
                  * @return incident field value in internal units
                  */
-                HDINLINE float3_X operator()(floatD_X const& cellIdx, float_X currentStep) const;
+                HDINLINE float3_X operator()(floatD_X const& totalCellIdx, float_X currentStep) const;
             };
 
             template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>

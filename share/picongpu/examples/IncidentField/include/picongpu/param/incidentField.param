@@ -59,15 +59,15 @@ namespace picongpu
                     return AMPLITUDE_SI * math::exp(-normalizedDuration * normalizedDuration) * math::sin(sinArg);
                 }
 
-                HDINLINE float_X getTransversalXComponentSI(const floatD_X& cellIdx) const
+                HDINLINE float_X getTransversalXComponentSI(const floatD_X& totalCellIdx) const
                 {
-                    auto const normalizedX = (cellIdx[0] - CENTER_X_CELLS) / WIDTH_X_CELLS;
+                    auto const normalizedX = (totalCellIdx[0] - CENTER_X_CELLS) / WIDTH_X_CELLS;
                     return math::exp(-normalizedX * normalizedX);
                 }
 
-                HDINLINE float_X getTransversalYComponentSI(const floatD_X& cellIdx) const
+                HDINLINE float_X getTransversalYComponentSI(const floatD_X& totalCellIdx) const
                 {
-                    auto const normalizedY = (cellIdx[1] - CENTER_Y_CELLS) / WIDTH_Y_CELLS;
+                    auto const normalizedY = (totalCellIdx[1] - CENTER_Y_CELLS) / WIDTH_Y_CELLS;
                     return math::exp(-normalizedY * normalizedY);
                 }
             };
@@ -91,12 +91,13 @@ namespace picongpu
 
                 /** Calculate incident field E_inc(r, t) for a source
                  *
-                 * @param cellIdx cell index in the global domain, note that it is fractional
+                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
+                 *        note that it is fractional
                  * @param currentStep current time step index, note that it is fractional
                  */
-                HDINLINE float3_X operator()(const floatD_X& cellIdx, const float_X currentStep) const
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
-                    auto const valueSI = getTimeComponentSI(currentStep) * getTransversalYComponentSI(cellIdx);
+                    auto const valueSI = getTimeComponentSI(currentStep) * getTransversalYComponentSI(totalCellIdx);
                     auto const fieldSI = float3_X(0.0_X, valueSI, 0.0_X);
                     return fieldSI / precisionCast<float_X>(m_unitField);
                 }
@@ -121,12 +122,13 @@ namespace picongpu
 
                 /** Calculate incident field B_inc(r, t) for a source
                  *
-                 * @param cellIdx cell index in the global domain, note that it is fractional
+                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
+                 *        note that it is fractional
                  * @param currentStep current time step index, note that it is fractional
                  */
-                HDINLINE float3_X operator()(const floatD_X& cellIdx, const float_X currentStep) const
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
-                    auto const valueSI = getTimeComponentSI(currentStep) * getTransversalYComponentSI(cellIdx);
+                    auto const valueSI = getTimeComponentSI(currentStep) * getTransversalYComponentSI(totalCellIdx);
                     auto const fieldSI = float3_X(0.0_X, 0.0_X, valueSI) / SI::SPEED_OF_LIGHT_SI;
                     return fieldSI / precisionCast<float_X>(m_unitField);
                 }
@@ -151,12 +153,13 @@ namespace picongpu
 
                 /** Calculate incident field E_inc(r, t) for a source
                  *
-                 * @param cellIdx cell index in the global domain, note that it is fractional
+                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
+                 *        note that it is fractional
                  * @param currentStep current time step index, note that it is fractional
                  */
-                HDINLINE float3_X operator()(const floatD_X& cellIdx, const float_X currentStep) const
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
-                    auto const valueSI = getTimeComponentSI(currentStep) * getTransversalXComponentSI(cellIdx);
+                    auto const valueSI = getTimeComponentSI(currentStep) * getTransversalXComponentSI(totalCellIdx);
                     auto const fieldSI = float3_X(valueSI, 0.0_X, 0.0_X);
                     return fieldSI / precisionCast<float_X>(m_unitField);
                 }
@@ -181,12 +184,13 @@ namespace picongpu
 
                 /** Calculate incident field B_inc(r, t) for a source
                  *
-                 * @param cellIdx cell index in the global domain, note that it is fractional
+                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
+                 *        note that it is fractional
                  * @param currentStep current time step index, note that it is fractional
                  */
-                HDINLINE float3_X operator()(const floatD_X& cellIdx, const float_X currentStep) const
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
-                    auto const valueSI = getTimeComponentSI(currentStep) * getTransversalXComponentSI(cellIdx);
+                    auto const valueSI = getTimeComponentSI(currentStep) * getTransversalXComponentSI(totalCellIdx);
                     auto const fieldSI = float3_X(0.0_X, 0.0_X, valueSI) / SI::SPEED_OF_LIGHT_SI;
                     return fieldSI / precisionCast<float_X>(m_unitField);
                 }

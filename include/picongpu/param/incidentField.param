@@ -52,11 +52,12 @@ namespace picongpu
 
                 /** Calculate incident field E_inc(r, t) for a source
                  *
-                 * @param cellIdx cell index in the global domain, note that it is fractional
+                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
+                 *        note that it is fractional
                  * @param currentStep current time step index, note that it is fractional
                  * @return incident field value in internal units
                  */
-                HDINLINE float3_X operator()(const floatD_X& cellIdx, const float_X currentStep) const
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
                     auto const fieldSI = float3_X(0.0_X, 0.0_X, 0.0_X);
                     return fieldSI / precisionCast<float_X>(m_unitField);
@@ -82,11 +83,12 @@ namespace picongpu
 
                 /** Calculate incident field B_inc(r, t) for a source
                  *
-                 * @param cellIdx cell index in the global domain, note that it is fractional
+                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
+                 *        note that it is fractional
                  * @param currentStep current time step index, note that it is fractional
                  * @return incident field value in internal units
                  */
-                HDINLINE float3_X operator()(const floatD_X& cellIdx, const float_X currentStep) const
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
                     auto const fieldSI = float3_X(0.0_X, 0.0_X, 0.0_X);
                     return fieldSI / precisionCast<float_X>(m_unitField);
@@ -120,7 +122,7 @@ namespace picongpu
             constexpr uint32_t GAP_FROM_ABSORBER[3][2] = {
                 {0, 0}, // x direction [negative, positive]
                 {0, 0}, // y direction [negative, positive]
-                {0, 0}  // z direction [negative, positive]
+                {0, 0} // z direction [negative, positive]
             };
 
         } // namespace incidentField

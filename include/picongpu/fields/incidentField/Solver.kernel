@@ -85,7 +85,7 @@ namespace picongpu
                     //! Shifts inside the cell for two functorIncidentField invocations, in cells
                     floatD_X inCellShift1, inCellShift2;
 
-                    //! Index shift: user cell idx = gridIdx + gridIdxShirt
+                    //! Index shift: totalCellIdx (that a user functor gets) = gridIdx + gridIdxShirt
                     pmacc::DataSpace<simDim> gridIdxShift;
 
                     //! Current time step, in iterations; can be fractional
