@@ -92,7 +92,7 @@ namespace gol
 
             /* - This forwards arguments to SubGrid.init()                        *
              * - Create Singletons: EnvironmentController, DataConnector,         *
-             *                      PluginConnector, nvidia::memory::MemoryInfo   */
+             *                      PluginConnector, device::MemoryInfo           */
             Environment<DIM2>::get().initGrids(gridSize, localGridSize, gc.getPosition() * localGridSize);
         }
 
