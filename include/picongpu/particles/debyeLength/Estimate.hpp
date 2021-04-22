@@ -70,7 +70,6 @@ namespace picongpu
 
                 // Copy is asynchronous, need to wait for it to finish
                 __getTransactionEvent().waitForFinished();
-                dc.releaseData(Frame::getName());
                 return hostBox(0);
             }
 
