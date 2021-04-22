@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/collision/detail/ListEntry.hpp"
 
 namespace picongpu

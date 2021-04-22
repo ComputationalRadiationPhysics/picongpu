@@ -21,10 +21,12 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/algorithms/ShiftCoordinateSystem.hpp"
+
+#include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
 #include <pmacc/cuSTL/cursor/FunctorCursor.hpp>
 #include <pmacc/math/Vector.hpp>
-#include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
-#include "picongpu/algorithms/ShiftCoordinateSystem.hpp"
 
 namespace picongpu
 {

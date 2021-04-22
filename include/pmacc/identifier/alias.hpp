@@ -22,13 +22,15 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/identifier/identifier.hpp"
 #include "pmacc/ppFunctions.hpp"
-#include <string>
 #include "pmacc/traits/Resolve.hpp"
+#include "pmacc/types.hpp"
+
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_same.hpp>
+
+#include <string>
 
 namespace pmacc
 {

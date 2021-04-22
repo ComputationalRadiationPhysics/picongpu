@@ -22,10 +22,11 @@
 #pragma once
 
 #include "pmacc/HandleGuardRegion.hpp"
-#include "pmacc/particles/policies/ExchangeParticles.hpp"
-#include "pmacc/particles/policies/DeleteParticles.hpp"
-#include <boost/mpl/vector.hpp>
 #include "pmacc/meta/conversion/ToSeq.hpp"
+#include "pmacc/particles/policies/DeleteParticles.hpp"
+#include "pmacc/particles/policies/ExchangeParticles.hpp"
+
+#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {

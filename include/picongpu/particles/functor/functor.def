@@ -20,5 +20,5 @@
 #pragma once
 
 #include "picongpu/particles/functor/User.def"
-#include "picongpu/particles/functor/misc/TotalCellOffset.def"
 #include "picongpu/particles/functor/misc/Rng.def"
+#include "picongpu/particles/functor/misc/TotalCellOffset.def"

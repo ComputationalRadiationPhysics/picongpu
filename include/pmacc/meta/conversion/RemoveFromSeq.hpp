@@ -23,10 +23,10 @@
 
 #include "pmacc/types.hpp"
 
+#include <boost/mpl/contains.hpp>
+#include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/remove_if.hpp>
-#include <boost/mpl/is_sequence.hpp>
-#include <boost/mpl/contains.hpp>
 
 namespace pmacc
 {

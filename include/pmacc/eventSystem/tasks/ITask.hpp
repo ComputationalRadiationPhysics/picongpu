@@ -22,13 +22,13 @@
 
 #pragma once
 
+#include "pmacc/assert.hpp"
 #include "pmacc/eventSystem/events/EventNotify.hpp"
 #include "pmacc/eventSystem/events/IEvent.hpp"
 #include "pmacc/types.hpp"
-#include "pmacc/assert.hpp"
 
-#include <string>
 #include <set>
+#include <string>
 
 
 namespace pmacc

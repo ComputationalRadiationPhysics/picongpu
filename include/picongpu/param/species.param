@@ -36,12 +36,12 @@
 
 #pragma once
 
-#include "picongpu/particles/shapes.hpp"
-#include "picongpu/algorithms/FieldToParticleInterpolationNative.hpp"
-#include "picongpu/algorithms/FieldToParticleInterpolation.hpp"
 #include "picongpu/algorithms/AssignedTrilinearInterpolation.hpp"
-#include "picongpu/particles/flylite/NonLTE.def"
+#include "picongpu/algorithms/FieldToParticleInterpolation.hpp"
+#include "picongpu/algorithms/FieldToParticleInterpolationNative.hpp"
 #include "picongpu/fields/currentDeposition/Solver.def"
+#include "picongpu/particles/flylite/NonLTE.def"
+#include "picongpu/particles/shapes.hpp"
 
 
 namespace picongpu

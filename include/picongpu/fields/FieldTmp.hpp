@@ -21,15 +21,16 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/Fields.def"
 #include "picongpu/particles/filter/filter.def"
 
-#include <pmacc/fields/SimulationFieldHelper.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>
-#include <pmacc/memory/buffers/GridBuffer.hpp>
+#include <pmacc/fields/SimulationFieldHelper.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/boxes/PitchedBox.hpp>
+#include <pmacc/memory/buffers/GridBuffer.hpp>
 
 #include <cstdint>
 #include <memory>

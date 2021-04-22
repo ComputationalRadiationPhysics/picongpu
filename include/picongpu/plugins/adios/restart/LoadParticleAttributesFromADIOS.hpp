@@ -22,13 +22,15 @@
 
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/traits/PICToOpenPMD.hpp"
+
+#include <pmacc/assert.hpp>
 #include <pmacc/traits/GetComponentsType.hpp>
 #include <pmacc/traits/GetNComponents.hpp>
 #include <pmacc/traits/Resolve.hpp>
-#include <pmacc/assert.hpp>
 
 
 namespace picongpu

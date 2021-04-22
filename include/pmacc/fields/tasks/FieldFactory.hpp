@@ -21,10 +21,9 @@
 
 #pragma once
 
-#include "pmacc/memory/buffers/Exchange.hpp"
-
 #include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
+#include "pmacc/memory/buffers/Exchange.hpp"
 
 namespace pmacc
 {

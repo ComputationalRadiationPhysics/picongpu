@@ -21,14 +21,13 @@
 
 #pragma once
 
-#include "pmacc/cuSTL/container/copier/Memcopy.hpp"
-
-#include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/communication/manager_common.hpp"
+#include "pmacc/cuSTL/container/copier/Memcopy.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <utility>
-#include <algorithm>
 
 
 namespace pmacc

@@ -21,20 +21,29 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/common/openPMDVersion.def"
+#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
 #include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/plugins/misc/SpeciesFilter.hpp"
 #include "picongpu/plugins/misc/misc.hpp"
 #include "picongpu/plugins/multi/IHelp.hpp"
 #include "picongpu/plugins/multi/Option.hpp"
+#include "picongpu/plugins/openPMD/Json.hpp"
+#include "picongpu/plugins/openPMD/NDScalars.hpp"
+#include "picongpu/plugins/openPMD/WriteSpecies.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
+#include "picongpu/plugins/openPMD/restart/LoadSpecies.hpp"
+#include "picongpu/plugins/openPMD/restart/RestartFieldLoader.hpp"
+#include "picongpu/plugins/output/IIOBackend.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
-#include "picongpu/simulation_defines.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
 
 #include <pmacc/Environment.hpp>
@@ -47,22 +56,11 @@
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/particles/IdProvider.def>
 #include <pmacc/particles/frame_types.hpp>
+#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 #include <pmacc/particles/operations/CountParticles.hpp>
 #include <pmacc/pluginSystem/PluginConnector.hpp>
 #include <pmacc/simulationControl/TimeInterval.hpp>
 #include <pmacc/static_assert.hpp>
-#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
-
-#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
-#include "picongpu/plugins/common/openPMDVersion.def"
-#include "picongpu/plugins/misc/SpeciesFilter.hpp"
-#include "picongpu/plugins/openPMD/Json.hpp"
-#include "picongpu/plugins/openPMD/NDScalars.hpp"
-#include "picongpu/plugins/openPMD/WriteSpecies.hpp"
-#include "picongpu/plugins/openPMD/restart/LoadSpecies.hpp"
-#include "picongpu/plugins/openPMD/restart/RestartFieldLoader.hpp"
-#include "picongpu/plugins/output/IIOBackend.hpp"
-
 #include <pmacc/traits/Limits.hpp>
 
 #include <boost/filesystem.hpp>
@@ -85,10 +83,11 @@
 #include <cstdint>
 #include <cstdlib> // getenv
 #include <list>
-#include <pthread.h>
 #include <sstream>
 #include <string>
 #include <vector>
+
+#include <pthread.h>
 
 
 namespace picongpu

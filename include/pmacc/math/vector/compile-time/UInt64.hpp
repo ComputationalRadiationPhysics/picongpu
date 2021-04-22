@@ -21,10 +21,12 @@
 
 #pragma once
 
-#include <stdint.h>
 #include "pmacc/math/Vector.hpp"
-#include <boost/mpl/integral_c.hpp>
 #include "pmacc/traits/Limits.hpp"
+
+#include <boost/mpl/integral_c.hpp>
+
+#include <stdint.h>
 
 namespace pmacc
 {

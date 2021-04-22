@@ -21,22 +21,22 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
-#include <pmacc/particles/IdProvider.hpp>
-#include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 #include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
+#include <pmacc/particles/IdProvider.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/types.hpp>
 
-#include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/int.hpp>
+#include <boost/mpl/list.hpp>
+
+#include <algorithm>
+#include <set>
 
 #include <catch2/catch.hpp>
-
-#include <set>
-#include <algorithm>
 #include <stdint.h>
 
 

@@ -20,13 +20,14 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/Fields.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
-#include <pmacc/static_assert.hpp>
-#include <pmacc/memory/buffers/GridBuffer.hpp>
-#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
+#include <pmacc/memory/buffers/GridBuffer.hpp>
+#include <pmacc/static_assert.hpp>
 
 #include <splash/splash.h>
 

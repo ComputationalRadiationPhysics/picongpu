@@ -22,22 +22,21 @@
 
 #pragma once
 
+#include "Evolution.hpp"
+#include "GatherSlice.hpp"
+#include "PngCreator.hpp"
 #include "types.hpp"
+
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/mappings/simulation/SubGrid.hpp>
+#include <pmacc/eventSystem/EventSystem.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
+#include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/dataTypes/Mask.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-
-#include "Evolution.hpp"
-#include <pmacc/eventSystem/EventSystem.hpp>
-
-#include "GatherSlice.hpp"
 #include <pmacc/traits/NumberOfExchanges.hpp>
 
 #include <string>
-#include "PngCreator.hpp"
 
 namespace gol
 {

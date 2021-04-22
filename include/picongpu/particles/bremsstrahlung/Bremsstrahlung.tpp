@@ -20,21 +20,21 @@
 #pragma once
 
 #include "picongpu/algorithms/Gamma.hpp"
-#include "picongpu/traits/frame/GetMass.hpp"
-#include "picongpu/traits/frame/GetCharge.hpp"
 #include "picongpu/fields/CellType.hpp"
-#include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
-#include <pmacc/particles/operations/Assign.hpp>
-#include <pmacc/particles/operations/Deselect.hpp>
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
+#include "picongpu/traits/FieldPosition.hpp"
+#include "picongpu/traits/frame/GetCharge.hpp"
+#include "picongpu/traits/frame/GetMass.hpp"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/algorithms/math/defines/dot.hpp>
 #include <pmacc/algorithms/math/defines/cross.hpp>
+#include <pmacc/algorithms/math/defines/dot.hpp>
 #include <pmacc/algorithms/math/defines/pi.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
 #include <pmacc/math/operation.hpp>
+#include <pmacc/particles/operations/Assign.hpp>
+#include <pmacc/particles/operations/Deselect.hpp>
 
 
 namespace picongpu

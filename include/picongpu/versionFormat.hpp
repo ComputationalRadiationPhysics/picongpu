@@ -20,9 +20,9 @@
 
 #include "picongpu/version.hpp"
 
+#include <list>
 #include <ostream>
 #include <string>
-#include <list>
 
 
 namespace picongpu

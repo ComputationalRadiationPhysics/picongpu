@@ -41,26 +41,25 @@
 #endif
 
 
-#include <cupla.hpp>
-
-#include "pmacc/debug/PMaccVerbose.hpp"
-#include "pmacc/ppFunctions.hpp"
-
-#include "pmacc/dimensions/Definition.hpp"
-#include "pmacc/type/Area.hpp"
-#include "pmacc/type/Integral.hpp"
-#include "pmacc/type/Exchange.hpp"
-#include "pmacc/attribute/FunctionSpecifier.hpp"
 #include "pmacc/attribute/Constexpr.hpp"
 #include "pmacc/attribute/Fallthrough.hpp"
-#include "pmacc/eventSystem/EventType.hpp"
+#include "pmacc/attribute/FunctionSpecifier.hpp"
 #include "pmacc/cuplaHelper/ValidateCall.hpp"
+#include "pmacc/debug/PMaccVerbose.hpp"
+#include "pmacc/dimensions/Definition.hpp"
+#include "pmacc/eventSystem/EventType.hpp"
 #include "pmacc/memory/Align.hpp"
 #include "pmacc/memory/Delete.hpp"
+#include "pmacc/ppFunctions.hpp"
+#include "pmacc/type/Area.hpp"
+#include "pmacc/type/Exchange.hpp"
+#include "pmacc/type/Integral.hpp"
 
-#include <boost/typeof/std/utility.hpp>
-#include <boost/mpl/placeholders.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/mpl/placeholders.hpp>
+#include <boost/typeof/std/utility.hpp>
+
+#include <cupla.hpp>
 
 
 namespace pmacc

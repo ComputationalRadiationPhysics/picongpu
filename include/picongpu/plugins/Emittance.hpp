@@ -22,42 +22,43 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/algorithms/KinEnergy.hpp"
-#include "picongpu/plugins/common/txtFileHandling.hpp"
-#include "picongpu/plugins/multi/multi.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/common/txtFileHandling.hpp"
 #include "picongpu/plugins/misc/misc.hpp"
+#include "picongpu/plugins/multi/multi.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/cuSTL/algorithm/functor/Add.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/math/operation.hpp>
-#include <pmacc/cuSTL/algorithm/functor/Add.hpp>
-#include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/kernel/atomic.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
-#include <pmacc/memory/CtxArray.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
-#include <pmacc/traits/HasIdentifiers.hpp>
-#include <pmacc/traits/HasFlag.hpp>
-#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/math/operation.hpp>
+#include <pmacc/memory/CtxArray.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/meta/ForEach.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
 
 #include <boost/mpl/and.hpp>
 
-#include <vector>
 #include <algorithm>
-#include <utility>
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 
 namespace picongpu

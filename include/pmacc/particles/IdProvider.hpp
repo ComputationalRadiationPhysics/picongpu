@@ -23,11 +23,11 @@
 
 #include "IdProvider.def"
 #include "pmacc/Environment.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/algorithms/reverseBits.hpp"
+#include "pmacc/debug/PMaccVerbose.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/kernel/atomic.hpp"
 #include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
-#include "pmacc/debug/PMaccVerbose.hpp"
 
 namespace pmacc
 {

@@ -20,15 +20,16 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/fields/absorber/Absorber.hpp"
+
 #include "picongpu/fields/LaserPhysics.def"
+#include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/laserProfiles/profiles.hpp"
 
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <pmacc/mappings/threads/WorkerCfg.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/mappings/threads/WorkerCfg.hpp>
 
 #include <cmath>
 

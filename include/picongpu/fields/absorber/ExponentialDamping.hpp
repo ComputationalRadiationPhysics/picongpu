@@ -20,17 +20,18 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/fields/absorber/ExponentialDamping.kernel"
-#include "picongpu/fields/absorber/Absorber.hpp"
-#include "picongpu/simulation/control/MovingWindow.hpp"
-#include "picongpu/fields/laserProfiles/profiles.hpp"
 
-#include <pmacc/traits/GetNumWorkers.hpp>
+#include "picongpu/fields/absorber/Absorber.hpp"
+#include "picongpu/fields/absorber/ExponentialDamping.kernel"
+#include "picongpu/fields/laserProfiles/profiles.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
+
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/memory/dataTypes/Mask.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
 
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace picongpu
 {

@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/startPosition/functors.def"
 
 #include <pmacc/math/operation.hpp>
 

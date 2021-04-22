@@ -22,24 +22,22 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "common/txtFileHandling.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/math/operation.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/device/Reduce.hpp>
+#include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/memory/boxes/DataBoxUnaryTransform.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
 
-#include "common/txtFileHandling.hpp"
-
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <memory>
 
 

@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/random/distributions/Normal.hpp"
+#include "pmacc/types.hpp"
 
 #include <type_traits>
 

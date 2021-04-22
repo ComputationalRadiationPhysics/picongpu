@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/startPosition/generic/Free.def"
 
 #include <boost/mpl/integral_c.hpp>

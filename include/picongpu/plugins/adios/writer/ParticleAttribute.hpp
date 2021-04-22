@@ -20,7 +20,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/plugins/adios/ADIOSWriter.def"
+
 #include <pmacc/traits/GetComponentsType.hpp>
 #include <pmacc/traits/GetNComponents.hpp>
 #include <pmacc/traits/Resolve.hpp>

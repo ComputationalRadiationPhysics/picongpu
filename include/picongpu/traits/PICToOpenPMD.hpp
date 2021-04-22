@@ -19,11 +19,12 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/traits/Unit.hpp"
 #include "picongpu/traits/UnitDimension.hpp"
 
 #include <pmacc/types.hpp>
-#include "picongpu/simulation_defines.hpp"
 
 #include <string>
 #include <vector>

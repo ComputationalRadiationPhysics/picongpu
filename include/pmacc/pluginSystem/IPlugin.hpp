@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include <stdexcept>
-#include <string>
+#include "pmacc/pluginSystem/INotify.hpp"
 
 #include <boost/program_options/options_description.hpp>
 
-#include "pmacc/pluginSystem/INotify.hpp"
+#include <stdexcept>
+#include <string>
 
 namespace pmacc
 {

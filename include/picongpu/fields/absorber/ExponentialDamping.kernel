@@ -21,13 +21,13 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/meta/ForEach.hpp>
 
-#include <boost/mpl/range_c.hpp>
 #include <boost/mpl/integral_c.hpp>
+#include <boost/mpl/range_c.hpp>
 
 
 namespace picongpu

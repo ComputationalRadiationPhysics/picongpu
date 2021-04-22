@@ -25,12 +25,12 @@
 #include "pmacc/pluginSystem/INotify.hpp"
 #include "pmacc/pluginSystem/IPlugin.hpp"
 #include "pmacc/pluginSystem/TimeSlice.hpp"
-#include "pmacc/pluginSystem/toTimeSlice.hpp"
 #include "pmacc/pluginSystem/containsStep.hpp"
+#include "pmacc/pluginSystem/toTimeSlice.hpp"
 
-#include <vector>
 #include <list>
 #include <string>
+#include <vector>
 
 
 namespace pmacc

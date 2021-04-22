@@ -21,8 +21,9 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/random/distributions/Uniform.hpp"
+#include "pmacc/types.hpp"
+
 #include <boost/type_traits.hpp>
 
 namespace pmacc

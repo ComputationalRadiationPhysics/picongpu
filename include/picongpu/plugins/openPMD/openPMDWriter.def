@@ -19,16 +19,14 @@
 
 #pragma once
 
-#include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/openPMD/Json.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/types.hpp>
-
-#include <openPMD/openPMD.hpp>
 
 #include <iostream> // std::cerr
 #include <limits>
@@ -37,8 +35,9 @@
 #include <sstream>
 #include <stdexcept> // throw std::runtime_error
 #include <string>
-
 #include <type_traits>
+
+#include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {

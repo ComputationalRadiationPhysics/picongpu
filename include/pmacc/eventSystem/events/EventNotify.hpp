@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <set>
-
 #include "pmacc/types.hpp"
+
+#include <set>
 
 namespace pmacc
 {

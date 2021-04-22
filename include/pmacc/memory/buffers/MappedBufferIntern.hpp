@@ -22,11 +22,11 @@
 
 #pragma once
 
+#include "pmacc/assert.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/memory/buffers/Buffer.hpp"
 #include "pmacc/memory/buffers/DeviceBuffer.hpp"
-#include "pmacc/assert.hpp"
 
 namespace pmacc
 {

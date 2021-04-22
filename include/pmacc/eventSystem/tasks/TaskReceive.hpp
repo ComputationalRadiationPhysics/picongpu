@@ -22,11 +22,11 @@
 
 #pragma once
 
+#include "pmacc/eventSystem/events/EventDataReceive.hpp"
+#include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
 #include "pmacc/eventSystem/tasks/TaskCopyHostToDevice.hpp"
-#include "pmacc/eventSystem/events/EventDataReceive.hpp"
-#include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/mappings/simulation/EnvironmentController.hpp"
 #include "pmacc/memory/buffers/Exchange.hpp"
 

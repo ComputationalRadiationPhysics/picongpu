@@ -24,24 +24,23 @@
 #include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-#include "picongpu/traits/FieldPosition.hpp"
-#include "picongpu/particles/ionization/byField/Keldysh/Keldysh.def"
-#include "picongpu/particles/ionization/byField/Keldysh/AlgorithmKeldysh.hpp"
-#include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationCalc.hpp"
 #include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationAssignment.hpp"
+#include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationCalc.hpp"
+#include "picongpu/particles/ionization/byField/Keldysh/AlgorithmKeldysh.hpp"
+#include "picongpu/particles/ionization/byField/Keldysh/Keldysh.def"
+#include "picongpu/traits/FieldPosition.hpp"
 
-#include <pmacc/random/methods/methods.hpp>
-#include <pmacc/random/distributions/Uniform.hpp>
-#include <pmacc/random/RNGProvider.hpp>
-
-#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
-#include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/traits/Resolve.hpp>
-#include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
 #include <pmacc/math/operation.hpp>
+#include <pmacc/memory/boxes/DataBox.hpp>
+#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
+#include <pmacc/random/RNGProvider.hpp>
+#include <pmacc/random/distributions/Uniform.hpp>
+#include <pmacc/random/methods/methods.hpp>
+#include <pmacc/traits/Resolve.hpp>
 
 #include <boost/type_traits/integral_constant.hpp>
 

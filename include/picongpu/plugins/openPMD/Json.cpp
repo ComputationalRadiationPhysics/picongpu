@@ -20,6 +20,7 @@
 #if ENABLE_OPENPMD == 1
 
 #    include "picongpu/plugins/openPMD/Json.hpp"
+
 #    include "picongpu/plugins/openPMD/Json_private.hpp"
 
 #    include <algorithm> // std::copy_n, std::find

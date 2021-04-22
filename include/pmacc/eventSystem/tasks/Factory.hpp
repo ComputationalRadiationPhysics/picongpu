@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/streams/EventStream.hpp"
+#include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/types.hpp"
 
 #include <string>

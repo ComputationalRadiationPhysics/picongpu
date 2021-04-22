@@ -21,13 +21,14 @@
 
 #pragma once
 
-#include <stdexcept>
-#include "pmacc/verify.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
-#include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/dimensions/GridLayout.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/math/Vector.hpp"
+#include "pmacc/verify.hpp"
+
+#include <stdexcept>
 
 namespace pmacc
 {

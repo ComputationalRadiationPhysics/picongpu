@@ -22,10 +22,9 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/assert.hpp"
-
 #include "pmacc/eventSystem/events/CudaEvent.def"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

@@ -21,8 +21,9 @@
 #pragma once
 
 
-#include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/traits/PICToOpenPMD.hpp"
 
 #include <pmacc/assert.hpp>
@@ -30,9 +31,9 @@
 #include <pmacc/traits/GetNComponents.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
-#include <openPMD/openPMD.hpp>
-
 #include <memory>
+
+#include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {

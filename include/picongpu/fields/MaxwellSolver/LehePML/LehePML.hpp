@@ -21,6 +21,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/MaxwellSolver/Lehe/Lehe.hpp"
 #include "picongpu/fields/MaxwellSolver/LehePML/LehePML.def"
 

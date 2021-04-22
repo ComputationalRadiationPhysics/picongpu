@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/particles/frame_types.hpp"
 #include "pmacc/particles/memory/frames/NullFrame.hpp"
-#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

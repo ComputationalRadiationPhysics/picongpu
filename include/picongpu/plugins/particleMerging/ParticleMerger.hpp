@@ -19,17 +19,18 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/particleMerging/ParticleMerger.kernel"
 
-#include "picongpu/simulation_defines.hpp"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
-
-#include <pmacc/traits/HasIdentifier.hpp>
 #include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
+#include <pmacc/traits/HasIdentifier.hpp>
 
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
+
 #include <stdlib.h>
 
 namespace picongpu

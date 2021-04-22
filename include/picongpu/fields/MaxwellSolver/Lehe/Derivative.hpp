@@ -20,16 +20,16 @@
 
 #pragma once
 
+#include "picongpu/fields/MaxwellSolver/Lehe/Derivative.def"
 #include "picongpu/fields/differentiation/Derivative.hpp"
 #include "picongpu/fields/differentiation/ForwardDerivative.hpp"
 #include "picongpu/fields/differentiation/Traits.hpp"
-#include "picongpu/fields/MaxwellSolver/Lehe/Derivative.def"
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/meta/accessors/Identity.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/meta/accessors/Identity.hpp>
 #include <pmacc/types.hpp>
 
 

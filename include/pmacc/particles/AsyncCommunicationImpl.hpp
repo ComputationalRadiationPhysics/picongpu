@@ -21,10 +21,11 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/communication/AsyncCommunication.hpp"
 #include "pmacc/Environment.hpp"
+#include "pmacc/communication/AsyncCommunication.hpp"
 #include "pmacc/particles/ParticlesBase.hpp"
+#include "pmacc/types.hpp"
+
 #include <boost/type_traits.hpp>
 
 namespace pmacc

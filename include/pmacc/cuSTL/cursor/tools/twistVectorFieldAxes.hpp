@@ -22,8 +22,9 @@
 #pragma once
 
 #include "pmacc/cuSTL/cursor/Cursor.hpp"
-#include "pmacc/cuSTL/cursor/navigator/compile-time/TwistAxesNavigator.hpp"
 #include "pmacc/cuSTL/cursor/accessor/TwistAxesAccessor.hpp"
+
+#include "pmacc/cuSTL/cursor/navigator/compile-time/TwistAxesNavigator.hpp"
 
 namespace pmacc
 {

@@ -21,8 +21,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
+
 #include "picongpu/fields/MaxwellSolver/Lehe/Derivative.hpp"
+#include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
 
 #include <cstdint>
 

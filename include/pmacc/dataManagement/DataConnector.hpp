@@ -21,17 +21,16 @@
 
 #pragma once
 
-#include "pmacc/dataManagement/ISimulationData.hpp"
-#include "pmacc/dataManagement/AbstractInitialiser.hpp"
-
 #include "pmacc/assert.hpp"
+#include "pmacc/dataManagement/AbstractInitialiser.hpp"
+#include "pmacc/dataManagement/ISimulationData.hpp"
 
-#include <vector>
 #include <algorithm>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
-#include <memory>
 #include <utility>
+#include <vector>
 
 
 namespace pmacc

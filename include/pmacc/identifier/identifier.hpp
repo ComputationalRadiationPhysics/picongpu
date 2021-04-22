@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/ppFunctions.hpp"
+#include "pmacc/types.hpp"
 
 /** create an identifier (identifier with arbitrary code as second parameter
  * !! second parameter is optional and can be any C++ code one can add inside a class

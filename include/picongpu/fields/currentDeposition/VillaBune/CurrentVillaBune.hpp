@@ -19,12 +19,14 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
-#include "picongpu/fields/currentDeposition/VillaBune/CurrentVillaBune.def"
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/fields/currentDeposition/VillaBune/CurrentVillaBune.def"
 #include "picongpu/particles/shapes/CIC.hpp"
+
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/types.hpp>
 
 #include <type_traits>
 

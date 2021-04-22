@@ -24,12 +24,12 @@
 #include "pmacc/meta/accessors/Identity.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/vector.hpp>
+#include <boost/mpl/back_inserter.hpp>
 #include <boost/mpl/copy.hpp>
+#include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/transform.hpp>
-#include <boost/mpl/placeholders.hpp>
-#include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/vector.hpp>
 #include <boost/type_traits.hpp>
 
 namespace pmacc

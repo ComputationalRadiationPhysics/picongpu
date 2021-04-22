@@ -20,16 +20,17 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include <pmacc/assert.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/static_assert.hpp>
-#include <pmacc/mappings/simulation/GridController.hpp>
+
+#include <cstdint>
+#include <vector>
 
 #include <openPMD/openPMD.hpp>
-
-#include <vector>
-#include <cstdint>
 
 namespace picongpu
 {

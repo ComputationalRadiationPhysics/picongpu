@@ -70,5 +70,5 @@ namespace picongpu
 } // namespace picongpu
 
 #include "picongpu/plugins/transitionRadiation/frequencies/LinearFrequencies.hpp"
-#include "picongpu/plugins/transitionRadiation/frequencies/LogFrequencies.hpp"
 #include "picongpu/plugins/transitionRadiation/frequencies/ListFrequencies.hpp"
+#include "picongpu/plugins/transitionRadiation/frequencies/LogFrequencies.hpp"

@@ -21,10 +21,10 @@
 
 #pragma once
 
+#include "pmacc/assert.hpp"
+#include "pmacc/memory/buffers/Exchange.hpp"
 #include "pmacc/particles/memory/boxes/ExchangePopDataBox.hpp"
 #include "pmacc/particles/memory/boxes/ExchangePushDataBox.hpp"
-#include "pmacc/memory/buffers/Exchange.hpp"
-#include "pmacc/assert.hpp"
 
 namespace pmacc
 {

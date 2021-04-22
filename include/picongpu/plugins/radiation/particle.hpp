@@ -19,11 +19,12 @@
 
 #pragma once
 
-#include <stdint.h>
+#include "taylor.hpp"
+#include "utilities.hpp"
 
 #include <pmacc/math/Vector.hpp>
-#include "utilities.hpp"
-#include "taylor.hpp"
+
+#include <stdint.h>
 
 
 namespace picongpu

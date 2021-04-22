@@ -20,11 +20,12 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/traits/GetIonizationEnergies.hpp"
+
+#include "picongpu/particles/ionization/byField/IonizationCurrent/IonizerReturn.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 #include "picongpu/particles/traits/GetEffectiveNuclearCharge.hpp"
+#include "picongpu/particles/traits/GetIonizationEnergies.hpp"
 #include "picongpu/traits/attribute/GetChargeState.hpp"
-#include "picongpu/particles/ionization/byField/IonizationCurrent/IonizerReturn.hpp"
 
 /** @file AlgorithmBSIEffectiveZ.hpp
  *

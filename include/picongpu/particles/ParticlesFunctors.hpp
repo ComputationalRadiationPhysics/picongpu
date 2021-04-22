@@ -21,27 +21,28 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/traits/HasFlag.hpp>
+
 #include "picongpu/fields/Fields.def"
-#include <pmacc/math/MapTuple.hpp>
+#include "picongpu/particles/traits/GetIonizerList.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
+#include <pmacc/math/MapTuple.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
-
-#include "picongpu/particles/traits/GetIonizerList.hpp"
+#include <pmacc/traits/HasFlag.hpp>
 #if(PMACC_CUDA_ENABLED == 1)
 #    include "picongpu/particles/bremsstrahlung/Bremsstrahlung.hpp"
 #endif
-#include "picongpu/particles/traits/GetPhotonCreator.hpp"
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "picongpu/particles/creation/creation.hpp"
+#include "picongpu/particles/flylite/IFlyLite.hpp"
+#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+#include "picongpu/particles/traits/GetPhotonCreator.hpp"
+
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
-#include "picongpu/particles/flylite/IFlyLite.hpp"
 
-#include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
+#include <boost/mpl/plus.hpp>
 
 #include <memory>
 

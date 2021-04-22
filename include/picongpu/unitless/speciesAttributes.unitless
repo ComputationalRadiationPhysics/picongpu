@@ -20,12 +20,13 @@
 
 #pragma once
 
-#include <vector>
-#include "picongpu/traits/Unit.hpp"
-#include "picongpu/traits/UnitDimension.hpp"
-#include "picongpu/traits/SIBaseUnits.hpp"
 #include "picongpu/particles/traits/MacroWeighted.hpp"
 #include "picongpu/particles/traits/WeightingPower.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
+#include "picongpu/traits/Unit.hpp"
+#include "picongpu/traits/UnitDimension.hpp"
+
+#include <vector>
 
 
 /** \file speciesAttributes.unitless

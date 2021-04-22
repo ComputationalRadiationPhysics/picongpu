@@ -21,20 +21,21 @@
 
 #pragma once
 
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/integral_c.hpp>
-#include <boost/mpl/aux_/na.hpp>
-#include <boost/mpl/plus.hpp>
-#include <boost/mpl/min_max.hpp>
-#include <boost/mpl/times.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/apply.hpp>
-#include <boost/mpl/accumulate.hpp>
-#include <boost/mpl/less.hpp>
 #include "pmacc/math/Vector.hpp"
 #include "pmacc/types.hpp"
+
+#include <boost/mpl/accumulate.hpp>
+#include <boost/mpl/apply.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/aux_/na.hpp>
+#include <boost/mpl/int.hpp>
+#include <boost/mpl/integral_c.hpp>
+#include <boost/mpl/less.hpp>
+#include <boost/mpl/min_max.hpp>
+#include <boost/mpl/plus.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/times.hpp>
+#include <boost/mpl/vector.hpp>
 
 #include <stdint.h>
 

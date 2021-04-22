@@ -20,16 +20,17 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/flylite/helperFields/LocalEnergyHistogram.hpp"
 #include "picongpu/particles/flylite/helperFields/LocalEnergyHistogram.kernel"
 
 // pmacc
-#include <pmacc/static_assert.hpp>
 #include <pmacc/Environment.hpp>
 #include <pmacc/meta/ForEach.hpp>
+#include <pmacc/static_assert.hpp>
 
-#include <string>
 #include <memory>
+#include <string>
 
 
 namespace picongpu

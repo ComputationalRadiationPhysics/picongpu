@@ -20,13 +20,14 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/traits/SIBaseUnits.hpp"
+
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/misc/ComponentNames.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
 
-#include <pmacc/traits/HasIdentifiers.hpp>
-#include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/static_assert.hpp>
+#include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
 
 #include <boost/mpl/and.hpp>
 

@@ -20,8 +20,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/traits/FieldPosition.hpp"
+
 #include "picongpu/fields/Fields.def"
+#include "picongpu/traits/FieldPosition.hpp"
 
 #include <pmacc/math/Vector.hpp>
 

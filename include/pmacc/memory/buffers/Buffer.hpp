@@ -21,11 +21,11 @@
 
 #pragma once
 
+#include "pmacc/Environment.hpp"
+#include "pmacc/assert.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/memory/boxes/DataBox.hpp"
 #include "pmacc/memory/boxes/PitchedBox.hpp"
-#include "pmacc/Environment.hpp"
-#include "pmacc/assert.hpp"
 #include "pmacc/types.hpp"
 
 #include <limits>

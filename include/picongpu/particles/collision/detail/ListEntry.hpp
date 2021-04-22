@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include <pmacc/random/distributions/Uniform.hpp>
 
 namespace picongpu

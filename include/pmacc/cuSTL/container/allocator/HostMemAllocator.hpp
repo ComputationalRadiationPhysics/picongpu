@@ -21,10 +21,9 @@
 
 #pragma once
 
-#include "tag.hpp"
 #include "pmacc/cuSTL/cursor/BufferCursor.hpp"
-
 #include "pmacc/math/vector/Size_t.hpp"
+#include "tag.hpp"
 
 #include <stdint.h>
 

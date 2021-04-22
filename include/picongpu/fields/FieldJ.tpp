@@ -21,24 +21,25 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldJ.kernel"
-#include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/fields/currentDeposition/Deposit.hpp"
+#include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/particles/traits/GetCurrentSolver.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
 
-#include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
 #include <pmacc/Environment.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/fields/tasks/FieldFactory.hpp>
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/fields/operations/CopyGuardToExchange.hpp>
 #include <pmacc/fields/operations/AddExchangeToBorder.hpp>
+#include <pmacc/fields/operations/CopyGuardToExchange.hpp>
+#include <pmacc/fields/tasks/FieldFactory.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/GetUniqueTypeId.hpp>
 #include <pmacc/traits/Resolve.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 
 #include <boost/mpl/accumulate.hpp>
 

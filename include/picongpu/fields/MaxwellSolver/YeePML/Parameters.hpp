@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
+#include <pmacc/dimensions/DataSpace.hpp>
 
 #include <cstdint>
 #include <stdexcept>

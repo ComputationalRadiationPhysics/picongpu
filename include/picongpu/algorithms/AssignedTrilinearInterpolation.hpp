@@ -19,9 +19,10 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
-#include <boost/type_traits/remove_reference.hpp>
 #include <pmacc/result_of_Functor.hpp>
+#include <pmacc/types.hpp>
+
+#include <boost/type_traits/remove_reference.hpp>
 
 
 // forward declaration

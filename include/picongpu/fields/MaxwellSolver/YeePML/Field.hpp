@@ -21,6 +21,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/Fields.def"
 #include "picongpu/fields/MaxwellSolver/YeePML/Parameters.hpp"
 #include "picongpu/fields/cellType/Yee.hpp"
@@ -31,8 +32,8 @@
 #include <pmacc/fields/SimulationFieldHelper.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/math/Vector.hpp>
-#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
+#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/memory/boxes/PitchedBox.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 

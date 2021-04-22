@@ -22,6 +22,7 @@
 #pragma once
 
 #include "CartBuffer.hpp"
+
 #include "../allocator/compile-time/SharedMemAllocator.hpp"
 
 namespace pmacc

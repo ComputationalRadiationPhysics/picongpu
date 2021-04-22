@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "pmacc/communication/manager_common.hpp"
 #include "pmacc/communication/ICommunicator.hpp"
+#include "pmacc/communication/manager_common.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
 #include "pmacc/memory/buffers/Exchange.hpp"
 

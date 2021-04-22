@@ -24,13 +24,13 @@
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 
 // pmacc
-#include <pmacc/types.hpp>
-#include <pmacc/static_assert.hpp>
 #include <pmacc/Environment.hpp>
 #include <pmacc/meta/ForEach.hpp>
+#include <pmacc/static_assert.hpp>
+#include <pmacc/types.hpp>
 
-#include <string>
 #include <memory>
+#include <string>
 
 
 namespace picongpu

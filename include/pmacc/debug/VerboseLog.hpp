@@ -25,10 +25,10 @@
 
 #include <boost/format.hpp>
 
-#include <string>
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
+#include <string>
 
 namespace pmacc
 {

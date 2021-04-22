@@ -20,11 +20,13 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/traits/attribute/GetMass.hpp"
-#include "picongpu/traits/attribute/GetCharge.hpp"
+
 #include "picongpu/particles/interpolationMemoryPolicy/ShiftToValidRange.hpp"
-#include <pmacc/math/Vector.hpp>
+#include "picongpu/traits/attribute/GetCharge.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
+
 #include <pmacc/math/RungeKutta.hpp>
+#include <pmacc/math/Vector.hpp>
 
 
 namespace picongpu

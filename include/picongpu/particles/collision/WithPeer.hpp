@@ -21,10 +21,10 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/particles/meta/FindByNameOrType.hpp>
-
-#include "picongpu/particles/collision/IntraCollision.hpp"
 #include "picongpu/particles/collision/InterCollision.hpp"
+#include "picongpu/particles/collision/IntraCollision.hpp"
+
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 #include <boost/mpl/apply.hpp>
 

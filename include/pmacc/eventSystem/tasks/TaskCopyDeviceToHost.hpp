@@ -26,7 +26,6 @@
 #include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 
-
 #include <iomanip>
 
 namespace pmacc

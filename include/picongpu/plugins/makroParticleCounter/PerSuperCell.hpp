@@ -21,25 +21,23 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/common/openPMDAttributes.hpp"
-#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
 #include "picongpu/plugins/common/openPMDVersion.def"
+#include "picongpu/plugins/common/openPMDWriteMeta.hpp"
 
-
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
 
-#include <openPMD/openPMD.hpp>
-
+#include <fstream>
+#include <iomanip>
+#include <iostream>
 #include <memory>
 #include <string>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
+
+#include <openPMD/openPMD.hpp>
 
 
 namespace picongpu

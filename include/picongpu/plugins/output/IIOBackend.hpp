@@ -21,8 +21,8 @@
 
 #include "picongpu/plugins/multi/ISlave.hpp"
 
-#include <string>
 #include <memory>
+#include <string>
 
 
 namespace picongpu

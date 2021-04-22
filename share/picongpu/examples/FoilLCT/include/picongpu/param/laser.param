@@ -45,6 +45,7 @@
 #pragma once
 
 #include "picongpu/fields/laserProfiles/profiles.def"
+
 #include <pmacc/ppFunctions.hpp>
 
 #ifndef PARAM_LASERPROFILE

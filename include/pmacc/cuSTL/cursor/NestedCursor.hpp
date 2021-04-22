@@ -21,9 +21,9 @@
 
 #pragma once
 
+#include "Cursor.hpp"
 #include "accessor/MarkerAccessor.hpp"
 #include "navigator/CursorNavigator.hpp"
-#include "Cursor.hpp"
 
 namespace pmacc
 {

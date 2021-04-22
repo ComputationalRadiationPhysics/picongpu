@@ -23,8 +23,9 @@
 
 #include "pmacc/cuSTL/cursor/Cursor.hpp"
 #include "pmacc/cuSTL/cursor/accessor/PointerAccessor.hpp"
-#include "pmacc/cuSTL/cursor/navigator/compile-time/BufferNavigator.hpp"
 #include "pmacc/cuSTL/cursor/traits.hpp"
+
+#include "pmacc/cuSTL/cursor/navigator/compile-time/BufferNavigator.hpp"
 
 namespace pmacc
 {

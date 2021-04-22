@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include <pmacc/cuSTL/cursor/Cursor.hpp>
-#include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
-
 #include "picongpu/fields/currentDeposition/EmZ/EmZ.def"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
+
+#include <pmacc/cuSTL/cursor/Cursor.hpp>
+#include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 
 
 namespace picongpu

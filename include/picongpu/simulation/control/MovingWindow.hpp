@@ -19,10 +19,11 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/simulation/control/Window.hpp"
+
+#include <pmacc/types.hpp>
 
 namespace picongpu
 {

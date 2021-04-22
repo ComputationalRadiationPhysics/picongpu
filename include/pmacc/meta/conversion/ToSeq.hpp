@@ -22,9 +22,10 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
+#include <boost/mpl/if.hpp>
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/mpl/if.hpp>
 
 
 namespace pmacc

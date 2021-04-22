@@ -20,8 +20,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/traits/SIBaseUnits.hpp"
+
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
 
 #include <pmacc/traits/HasIdentifiers.hpp>
 

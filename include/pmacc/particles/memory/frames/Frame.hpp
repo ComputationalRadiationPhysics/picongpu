@@ -21,32 +21,26 @@
 
 #pragma once
 
+#include "pmacc/math/MapTuple.hpp"
+#include "pmacc/meta/GetKeyFromAlias.hpp"
+#include "pmacc/meta/conversion/OperateOnSeq.hpp"
+#include "pmacc/meta/conversion/SeqToMap.hpp"
+#include "pmacc/particles/ParticleDescription.hpp"
+#include "pmacc/particles/boostExtension/InheritLinearly.hpp"
+#include "pmacc/particles/frame_types.hpp"
+#include "pmacc/particles/memory/dataTypes/Particle.hpp"
+#include "pmacc/traits/GetFlagType.hpp"
+#include "pmacc/traits/HasFlag.hpp"
+#include "pmacc/traits/HasIdentifier.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/list.hpp>
-#include "pmacc/math/MapTuple.hpp"
-
-
-#include <boost/type_traits.hpp>
-
-#include "pmacc/particles/boostExtension/InheritLinearly.hpp"
-#include "pmacc/particles/memory/dataTypes/Particle.hpp"
-#include "pmacc/particles/frame_types.hpp"
-#include "pmacc/meta/conversion/SeqToMap.hpp"
-#include "pmacc/meta/conversion/OperateOnSeq.hpp"
-#include <boost/utility/result_of.hpp>
-#include <boost/mpl/find.hpp>
-#include <boost/type_traits/is_same.hpp>
-
-#include "pmacc/meta/GetKeyFromAlias.hpp"
-
-#include "pmacc/traits/HasIdentifier.hpp"
-#include "pmacc/traits/HasFlag.hpp"
-#include "pmacc/traits/GetFlagType.hpp"
 #include <boost/mpl/contains.hpp>
-
-#include "pmacc/particles/ParticleDescription.hpp"
+#include <boost/mpl/find.hpp>
+#include <boost/mpl/list.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/type_traits.hpp>
+#include <boost/type_traits/is_same.hpp>
+#include <boost/utility/result_of.hpp>
 
 namespace pmacc
 {

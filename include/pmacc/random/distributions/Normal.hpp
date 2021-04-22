@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/random/methods/RngPlaceholder.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {
@@ -54,6 +54,6 @@ namespace pmacc
     } // namespace random
 } // namespace pmacc
 
-#include "pmacc/random/distributions/normal/Normal_generic.hpp"
-#include "pmacc/random/distributions/normal/Normal_float.hpp"
 #include "pmacc/random/distributions/normal/Normal_double.hpp"
+#include "pmacc/random/distributions/normal/Normal_float.hpp"
+#include "pmacc/random/distributions/normal/Normal_generic.hpp"

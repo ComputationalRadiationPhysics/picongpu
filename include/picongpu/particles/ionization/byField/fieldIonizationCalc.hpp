@@ -19,9 +19,9 @@
 
 #pragma once
 
+#include "picongpu/particles/ionization/None/AlgorithmNone.hpp"
 #include "picongpu/particles/ionization/byField/ADK/AlgorithmADK.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSI.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
 #include "picongpu/particles/ionization/byField/Keldysh/AlgorithmKeldysh.hpp"
-#include "picongpu/particles/ionization/None/AlgorithmNone.hpp"

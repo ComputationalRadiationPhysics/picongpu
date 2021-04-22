@@ -21,23 +21,25 @@
 #pragma once
 
 // Needs to be the very first
-#include <boost/fusion/include/mpl.hpp>
-
 #include "picongpu/plugins/ILightweightPlugin.hpp"
+
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/static_assert.hpp>
 
-#define ISAAC_IDX_TYPE cupla::IdxType
-#include <isaac.hpp>
+#include <boost/fusion/include/mpl.hpp>
 
+#define ISAAC_IDX_TYPE cupla::IdxType
 #include <boost/fusion/container/list.hpp>
-#include <boost/fusion/include/list.hpp>
 #include <boost/fusion/container/list/list_fwd.hpp>
-#include <boost/fusion/include/list_fwd.hpp>
 #include <boost/fusion/include/as_list.hpp>
-#include <boost/mpl/vector.hpp>
+#include <boost/fusion/include/list.hpp>
+#include <boost/fusion/include/list_fwd.hpp>
 #include <boost/mpl/transform.hpp>
+#include <boost/mpl/vector.hpp>
+
 #include <limits>
+
+#include <isaac.hpp>
 
 namespace picongpu
 {

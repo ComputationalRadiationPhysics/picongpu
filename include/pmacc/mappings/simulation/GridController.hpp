@@ -22,10 +22,10 @@
 
 #pragma once
 
+#include "pmacc/communication/CommunicatorMPI.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/mappings/simulation/EnvironmentController.hpp"
-#include "pmacc/communication/CommunicatorMPI.hpp"
 #include "pmacc/mappings/simulation/SubGrid.hpp"
 
 namespace pmacc

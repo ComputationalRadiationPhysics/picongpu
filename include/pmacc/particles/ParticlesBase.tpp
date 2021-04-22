@@ -23,13 +23,11 @@
 
 #include "pmacc/Environment.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
-#include "pmacc/traits/GetNumWorkers.hpp"
-
 #include "pmacc/fields/SimulationFieldHelper.hpp"
 #include "pmacc/mappings/kernel/ExchangeMapping.hpp"
-
 #include "pmacc/particles/memory/boxes/ParticlesBox.hpp"
 #include "pmacc/particles/memory/buffers/ParticlesBuffer.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
 
 
 namespace pmacc

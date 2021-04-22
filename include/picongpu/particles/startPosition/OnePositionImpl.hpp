@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/startPosition/OnePositionImpl.def"
 #include "picongpu/particles/startPosition/detail/WeightMacroParticles.hpp"
 

@@ -22,12 +22,12 @@
 
 #pragma once
 
+#include "pmacc/assert.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/eventSystem/tasks/Factory.hpp"
-#include "pmacc/memory/buffers/DeviceBuffer.hpp"
-#include "pmacc/memory/boxes/DataBox.hpp"
 #include "pmacc/memory/Array.hpp"
-#include "pmacc/assert.hpp"
+#include "pmacc/memory/boxes/DataBox.hpp"
+#include "pmacc/memory/buffers/DeviceBuffer.hpp"
 
 #include <memory>
 

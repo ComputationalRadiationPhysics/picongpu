@@ -20,14 +20,14 @@
 
 #pragma once
 
-#include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/EMFieldBase.hpp"
+#include "picongpu/fields/FieldB.hpp"
 #include "picongpu/simulation_types.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
 
 #include <string>
-#include <vector>
 #include <type_traits>
+#include <vector>
 
 
 namespace picongpu

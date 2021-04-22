@@ -21,10 +21,10 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <openPMD/openPMD.hpp>
-
 #include <string>
 #include <vector>
+
+#include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {

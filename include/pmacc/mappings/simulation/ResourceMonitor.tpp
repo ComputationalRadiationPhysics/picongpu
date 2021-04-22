@@ -21,12 +21,12 @@
 
 // pmacc
 #include "pmacc/Environment.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/mappings/simulation/ResourceMonitor.hpp"
+#include "pmacc/meta/ForEach.hpp"
 #include "pmacc/particles/operations/CountParticles.hpp"
 #include "pmacc/types.hpp"
-#include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/meta/ForEach.hpp"
-#include "pmacc/dataManagement/DataConnector.hpp"
-#include "pmacc/mappings/simulation/ResourceMonitor.hpp"
 
 
 namespace pmacc

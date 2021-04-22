@@ -23,10 +23,12 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include <sstream>
-#include <string>
-#include <stdexcept>
+
 #include <boost/numeric/conversion/bounds.hpp>
+
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 namespace pmacc
 {

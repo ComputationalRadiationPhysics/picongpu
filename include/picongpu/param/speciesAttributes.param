@@ -36,13 +36,13 @@
 #include "picongpu/simulation_defines.hpp"
 
 // pmacc
-#include <pmacc/particles/Identifier.hpp>
-#include <pmacc/meta/conversion/MakeSeq.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/identifier/identifier.hpp>
 #include <pmacc/identifier/alias.hpp>
+#include <pmacc/identifier/identifier.hpp>
 #include <pmacc/identifier/value_identifier.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
 #include <pmacc/particles/IdProvider.def>
+#include <pmacc/particles/Identifier.hpp>
 
 
 namespace picongpu

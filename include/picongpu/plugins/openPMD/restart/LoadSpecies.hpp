@@ -19,11 +19,12 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/plugins/openPMD/restart/LoadParticleAttributesFromOpenPMD.hpp"
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
-#include "picongpu/simulation_defines.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -41,9 +42,9 @@
 #include <boost/type_traits.hpp>
 #include <boost/type_traits/is_same.hpp>
 
-#include <openPMD/openPMD.hpp>
-
 #include <cassert>
+
+#include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {

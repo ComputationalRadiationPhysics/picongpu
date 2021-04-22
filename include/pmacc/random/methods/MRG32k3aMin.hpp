@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/static_assert.hpp"
+#include "pmacc/types.hpp"
 
 #if(PMACC_CUDA_ENABLED != 1)
 #    include "pmacc/random/methods/AlpakaRand.hpp"

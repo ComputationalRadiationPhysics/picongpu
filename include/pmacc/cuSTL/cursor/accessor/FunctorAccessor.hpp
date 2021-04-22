@@ -21,8 +21,9 @@
 
 #pragma once
 
-#include <boost/type_traits/add_const.hpp>
 #include "pmacc/types.hpp"
+
+#include <boost/type_traits/add_const.hpp>
 
 namespace pmacc
 {

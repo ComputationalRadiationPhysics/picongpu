@@ -21,11 +21,12 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/memory/buffers/HostBuffer.hpp"
 #include "pmacc/memory/buffers/DeviceBuffer.hpp"
-#include "pmacc/memory/buffers/HostBufferIntern.hpp"
 #include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
+#include "pmacc/memory/buffers/HostBuffer.hpp"
+#include "pmacc/memory/buffers/HostBufferIntern.hpp"
+#include "pmacc/types.hpp"
+
 #include <boost/type_traits.hpp>
 
 

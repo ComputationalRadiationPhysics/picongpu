@@ -21,17 +21,18 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <boost/program_options/options_description.hpp>
-#include <iostream>
-
-#include "picongpu/simulation_defines.hpp"
 #include "picongpu/ArgsParser.hpp"
+#include "picongpu/simulation/control/ISimulationStarter.hpp"
+
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
+#include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/pluginSystem/PluginConnector.hpp>
-#include "picongpu/simulation/control/ISimulationStarter.hpp"
+
+#include <boost/program_options/options_description.hpp>
+
+#include <iostream>
 
 namespace picongpu
 {

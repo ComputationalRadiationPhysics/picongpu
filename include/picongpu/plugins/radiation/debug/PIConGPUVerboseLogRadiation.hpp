@@ -20,8 +20,9 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <pmacc/debug/VerboseLog.hpp>
+
+#include <stdint.h>
 
 namespace picongpu
 {

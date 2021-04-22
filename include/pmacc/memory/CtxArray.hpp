@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/memory/Array.hpp"
 #include "pmacc/mappings/threads/ForEachIdx.hpp"
 #include "pmacc/mappings/threads/IdxConfig.hpp"
+#include "pmacc/memory/Array.hpp"
+#include "pmacc/types.hpp"
 
 #include <type_traits>
 #include <utility>

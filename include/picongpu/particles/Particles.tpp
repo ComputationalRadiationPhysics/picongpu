@@ -21,29 +21,24 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/Particles.hpp"
-
-#include "picongpu/particles/Particles.kernel"
-#include "picongpu/particles/pusher/Traits.hpp"
-#include "picongpu/particles/traits/GetExchangeMemCfg.hpp"
-
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-
-#include <pmacc/particles/memory/buffers/ParticlesBuffer.hpp>
+#include "picongpu/particles/Particles.hpp"
+#include "picongpu/particles/Particles.kernel"
 #include "picongpu/particles/ParticlesInit.kernel"
-#include <pmacc/mappings/simulation/GridController.hpp>
-
+#include "picongpu/particles/pusher/Traits.hpp"
+#include "picongpu/particles/traits/GetExchangeMemCfg.hpp"
+#include "picongpu/particles/traits/GetMarginPusher.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
-#include "picongpu/particles/traits/GetMarginPusher.hpp"
-
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/particles/memory/buffers/ParticlesBuffer.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/GetUniqueTypeId.hpp>
 #include <pmacc/traits/Resolve.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
 
 #include <iostream>
 #include <limits>

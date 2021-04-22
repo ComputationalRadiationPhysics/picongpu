@@ -21,16 +21,15 @@
 
 #pragma once
 
+#include "pmacc/assert.hpp"
 #include "pmacc/dimensions/GridLayout.hpp"
-#include "pmacc/mappings/simulation/GridController.hpp"
-#include "pmacc/memory/buffers/Exchange.hpp"
-#include "pmacc/memory/dataTypes/Mask.hpp"
-#include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
-#include "pmacc/memory/buffers/HostBufferIntern.hpp"
-
 #include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/eventSystem/tasks/TaskReceive.hpp"
-#include "pmacc/assert.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
+#include "pmacc/memory/buffers/Exchange.hpp"
+#include "pmacc/memory/buffers/HostBufferIntern.hpp"
+#include "pmacc/memory/dataTypes/Mask.hpp"
 #include "pmacc/types.hpp"
 
 #include <memory>

@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
+#include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/Environment.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/type/Area.hpp>
 

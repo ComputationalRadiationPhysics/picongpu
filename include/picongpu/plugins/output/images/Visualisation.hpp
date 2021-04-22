@@ -20,40 +20,39 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/assert.hpp>
 
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
-
 #include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "picongpu/plugins/output/header/MessageHeader.hpp"
 #include "picongpu/plugins/output/GatherSlice.hpp"
+#include "picongpu/plugins/output/header/MessageHeader.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/algorithms/GlobalReduce.hpp>
 #include <pmacc/algorithms/math/defines/pi.hpp>
-#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
-#include <pmacc/kernel/atomic.hpp>
-#include <pmacc/memory/shared/Allocate.hpp>
-#include <pmacc/memory/boxes/DataBox.hpp>
-#include <pmacc/memory/boxes/SharedBox.hpp>
-#include <pmacc/memory/boxes/PitchedBox.hpp>
-#include <pmacc/memory/buffers/GridBuffer.hpp>
-#include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
+#include <pmacc/assert.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/kernel/atomic.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/memory/CtxArray.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/memory/CtxArray.hpp>
+#include <pmacc/memory/boxes/DataBox.hpp>
+#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
+#include <pmacc/memory/boxes/PitchedBox.hpp>
+#include <pmacc/memory/boxes/SharedBox.hpp>
+#include <pmacc/memory/buffers/GridBuffer.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 
-#include <string>
 #include <cfloat>
+#include <string>
 
 
 namespace picongpu

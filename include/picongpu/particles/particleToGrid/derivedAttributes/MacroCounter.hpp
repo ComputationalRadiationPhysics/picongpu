@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "picongpu/particles/particleToGrid/derivedAttributes/MacroCounter.def"
-
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/particleToGrid/derivedAttributes/MacroCounter.def"
 
 
 namespace picongpu

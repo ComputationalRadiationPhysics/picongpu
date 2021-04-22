@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/tasks/TaskKernel.hpp"
 #include "pmacc/Environment.hpp"
+#include "pmacc/eventSystem/tasks/TaskKernel.hpp"
 
 namespace pmacc
 {

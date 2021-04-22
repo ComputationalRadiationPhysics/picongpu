@@ -20,14 +20,15 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/collision/Collider.def"
 #include "picongpu/particles/collision/WithPeer.hpp"
 
-#include <pmacc/meta/conversion/ApplyGuard.hpp>
-#include <pmacc/meta/conversion/ToSeq.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/meta/accessors/First.hpp>
 #include <pmacc/meta/accessors/Second.hpp>
+#include <pmacc/meta/conversion/ApplyGuard.hpp>
+#include <pmacc/meta/conversion/ToSeq.hpp>
 
 
 namespace picongpu

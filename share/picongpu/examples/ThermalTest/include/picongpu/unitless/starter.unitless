@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "picongpu/plugins/PluginController.hpp"
-#include "picongpu/initialization/InitialiserController.hpp"
 #include "picongpu/ThermalTestSimulation.hpp"
+#include "picongpu/initialization/InitialiserController.hpp"
+#include "picongpu/plugins/PluginController.hpp"
 #include "picongpu/simulation/control/SimulationStarter.hpp"
 
 

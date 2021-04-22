@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/plugins/xrayScattering/beam/AxisSwap.hpp"
 
 namespace picongpu

@@ -20,13 +20,17 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/plugins/adios/ADIOSWriter.def"
-#include <pmacc/debug/VerboseLog.hpp>
 #include "picongpu/traits/PICToAdios.hpp"
-#include <adios.h>
-#include <adios_read.h>
-#include <adios_error.h>
+
+#include <pmacc/debug/VerboseLog.hpp>
+
 #include <stdexcept>
+
+#include <adios.h>
+#include <adios_error.h>
+#include <adios_read.h>
 
 namespace picongpu
 {

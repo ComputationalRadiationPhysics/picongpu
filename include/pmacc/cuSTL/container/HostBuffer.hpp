@@ -21,16 +21,16 @@
 
 #pragma once
 
-#include "pmacc/cuSTL/container/allocator/HostMemAllocator.hpp"
-#include "pmacc/cuSTL/container/copier/H2HCopier.hpp"
-#include "pmacc/cuSTL/container/assigner/HostMemAssigner.hpp"
 #include "pmacc/cuSTL/container/CartBuffer.hpp"
+#include "pmacc/cuSTL/container/allocator/HostMemAllocator.hpp"
 #include "pmacc/cuSTL/container/allocator/tag.hpp"
+#include "pmacc/cuSTL/container/assigner/HostMemAssigner.hpp"
+#include "pmacc/cuSTL/container/copier/H2HCopier.hpp"
 #include "pmacc/cuSTL/container/copier/Memcopy.hpp"
 
 #include <boost/assert.hpp>
-#include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_same.hpp>
+#include <boost/utility/enable_if.hpp>
 
 #include <exception>
 #include <sstream>

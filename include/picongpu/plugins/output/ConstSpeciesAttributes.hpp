@@ -21,8 +21,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/traits/frame/GetMass.hpp"
+
 #include "picongpu/traits/frame/GetCharge.hpp"
+#include "picongpu/traits/frame/GetMass.hpp"
 
 #include <pmacc/traits/HasFlag.hpp>
 

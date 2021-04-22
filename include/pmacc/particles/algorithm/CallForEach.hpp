@@ -22,9 +22,9 @@
 #pragma once
 
 #include "pmacc/Environment.hpp"
+#include "pmacc/functor/Interface.hpp"
 #include "pmacc/particles/algorithm/ForEach.hpp"
 #include "pmacc/particles/frame_types.hpp"
-#include "pmacc/functor/Interface.hpp"
 
 #include <utility>
 

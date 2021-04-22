@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include <mpi.h>
-
 #include <memory> // std::unique_ptr
 #include <string>
+
+#include <mpi.h>
 
 namespace picongpu
 {

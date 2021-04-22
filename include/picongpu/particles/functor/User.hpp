@@ -21,8 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <utility>
 #include <type_traits>
+#include <utility>
 
 
 namespace picongpu

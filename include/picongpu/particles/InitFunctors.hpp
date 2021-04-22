@@ -20,26 +20,26 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/Fields.def"
-#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
-#include "picongpu/particles/manipulators/manipulators.def"
-#include "picongpu/particles/densityProfiles/IProfile.def"
 #include "picongpu/particles/Manipulate.hpp"
+#include "picongpu/particles/densityProfiles/IProfile.def"
 #include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/manipulators/manipulators.def"
 
 #include <pmacc/Environment.hpp>
-#include <pmacc/traits/Resolve.hpp>
-#include <pmacc/traits/HasFlag.hpp>
-#include <pmacc/traits/GetFlagType.hpp>
 #include <pmacc/math/MapTuple.hpp>
+#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
+#include <pmacc/traits/GetFlagType.hpp>
+#include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/Resolve.hpp>
 
-#include <boost/mpl/if.hpp>
-#include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/apply_wrap.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/plus.hpp>
 
 
 namespace picongpu

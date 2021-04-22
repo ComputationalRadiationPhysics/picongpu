@@ -20,11 +20,12 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/ParticlesFunctors.hpp"
+
 #include "picongpu/fields/FieldE.hpp"
+#include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/ionization/byField/IonizationCurrent/IonizerReturn.hpp"
-#include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationCalc.hpp"
 #include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationAssignment.hpp"
+#include "picongpu/particles/ionization/byField/IonizationCurrent/JIonizationCalc.hpp"
 
 
 namespace picongpu

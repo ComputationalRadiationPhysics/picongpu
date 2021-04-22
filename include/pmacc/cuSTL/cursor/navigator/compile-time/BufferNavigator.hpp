@@ -21,8 +21,9 @@
 
 #pragma once
 
-#include <boost/type_traits/remove_pointer.hpp>
 #include "pmacc/math/vector/Int.hpp"
+
+#include <boost/type_traits/remove_pointer.hpp>
 
 namespace pmacc
 {

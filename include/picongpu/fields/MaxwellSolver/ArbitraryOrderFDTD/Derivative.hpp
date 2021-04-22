@@ -20,14 +20,16 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Derivative.def"
 #include "picongpu/fields/differentiation/Traits.hpp"
-#include <picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Weights.hpp>
 
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/meta/accessors/Identity.hpp>
 
 #include <cstdint>
+
+#include <picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Weights.hpp>
 
 
 namespace picongpu

@@ -21,14 +21,13 @@
 
 #pragma once
 
+#include "pmacc/eventSystem/tasks/Factory.hpp"
+#include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/fields/tasks/FieldFactory.hpp"
 #include "pmacc/fields/tasks/TaskFieldReceiveAndInsert.hpp"
 #include "pmacc/fields/tasks/TaskFieldReceiveAndInsertExchange.hpp"
 #include "pmacc/fields/tasks/TaskFieldSend.hpp"
 #include "pmacc/fields/tasks/TaskFieldSendExchange.hpp"
-
-#include "pmacc/eventSystem/tasks/Factory.hpp"
-#include "pmacc/eventSystem/tasks/ITask.hpp"
 
 namespace pmacc
 {

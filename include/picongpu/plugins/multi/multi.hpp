@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/plugins/multi/ISlave.hpp"
 #include "picongpu/plugins/multi/IHelp.hpp"
+#include "picongpu/plugins/multi/ISlave.hpp"
 #include "picongpu/plugins/multi/Master.hpp"
 #include "picongpu/plugins/multi/Option.hpp"

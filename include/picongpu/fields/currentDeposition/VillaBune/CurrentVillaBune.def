@@ -19,10 +19,12 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/shapes/CIC.hpp"
+
 #include "picongpu/fields/currentDeposition/Strategy.def"
+#include "picongpu/particles/shapes/CIC.hpp"
+
+#include <pmacc/types.hpp>
 
 
 namespace picongpu

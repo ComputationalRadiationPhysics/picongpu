@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/static_assert.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

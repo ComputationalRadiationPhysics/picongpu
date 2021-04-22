@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/memory/dataTypes/Mask.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

@@ -20,8 +20,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/math/Vector.hpp>
+
 #include <pmacc/math/Complex.hpp>
+#include <pmacc/math/Vector.hpp>
 #include <pmacc/memory/buffers/Buffer.hpp>
 
 #include <algorithm>

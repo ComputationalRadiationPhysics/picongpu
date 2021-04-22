@@ -21,10 +21,11 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/memory/Array.hpp"
-#include <type_traits>
+#include "pmacc/types.hpp"
+
 #include <limits>
+#include <type_traits>
 
 
 namespace pmacc

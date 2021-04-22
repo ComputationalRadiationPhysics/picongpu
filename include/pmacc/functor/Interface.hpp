@@ -21,10 +21,11 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/mappings/threads/WorkerCfg.hpp"
+#include "pmacc/types.hpp"
 
 #include <boost/core/ignore_unused.hpp>
+
 #include <string>
 #include <type_traits> // std::is_same
 

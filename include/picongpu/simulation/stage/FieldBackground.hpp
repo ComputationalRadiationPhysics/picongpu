@@ -22,12 +22,13 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/fields/background/cellwiseOperation.hpp"
+
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
+#include "picongpu/fields/background/cellwiseOperation.hpp"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/Environment.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/type/Area.hpp>
 

@@ -19,38 +19,38 @@
 
 #pragma once
 
-#include "ParticleCalorimeterFunctors.hpp"
 #include "ParticleCalorimeter.kernel"
-
-#include "picongpu/traits/PICToSplash.hpp"
+#include "ParticleCalorimeterFunctors.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/plugins/multi/multi.hpp"
 #include "picongpu/plugins/misc/misc.hpp"
+#include "picongpu/plugins/multi/multi.hpp"
+#include "picongpu/traits/PICToSplash.hpp"
 
-#include <pmacc/cuSTL/container/DeviceBuffer.hpp>
-#include <pmacc/cuSTL/container/HostBuffer.hpp>
-#include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
-#include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
-#include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
-#include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
-#include <pmacc/particles/policies/ExchangeParticles.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/math/Vector.hpp>
 #include <pmacc/algorithms/math.hpp>
 #include <pmacc/cuSTL/algorithm/functor/Add.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
+#include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
+#include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
+#include <pmacc/cuSTL/container/DeviceBuffer.hpp>
+#include <pmacc/cuSTL/container/HostBuffer.hpp>
+#include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/traits/HasIdentifiers.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/particles/policies/ExchangeParticles.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
 
-#include <splash/splash.h>
 #include <boost/filesystem.hpp>
 #include <boost/mpl/and.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
+
+#include <splash/splash.h>
 #include <stdlib.h>
 
 

@@ -20,19 +20,19 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "FieldTmp.hpp"
 #include "picongpu/algorithms/Set.hpp"
 
-#include <pmacc/particles/frame_types.hpp>
-#include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
-#include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
-#include <pmacc/math/operation.hpp>
-#include <pmacc/mappings/threads/ThreadCollective.hpp>
-#include <pmacc/particles/frame_types.hpp>
-#include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/mappings/threads/ThreadCollective.hpp>
+#include <pmacc/math/operation.hpp>
+#include <pmacc/memory/boxes/CachedBox.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/particles/frame_types.hpp>
+#include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
 
 
 namespace picongpu

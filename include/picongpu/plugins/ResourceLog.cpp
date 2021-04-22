@@ -20,15 +20,15 @@
  */
 
 // Boost
-#include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
 // STL
-#include <string> /* std::string */
-#include <sstream> /* std::stringstream */
 #include <map> /* std::map */
+#include <sstream> /* std::stringstream */
 #include <stdexcept> /* std::runtime_error */
+#include <string> /* std::string */
 
 // C LIB
 #include <stdint.h> /* uint32_t */

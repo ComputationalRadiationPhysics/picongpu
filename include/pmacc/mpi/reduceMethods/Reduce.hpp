@@ -21,9 +21,10 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include <mpi.h>
 #include "pmacc/communication/manager_common.hpp"
+#include "pmacc/types.hpp"
+
+#include <mpi.h>
 
 namespace pmacc
 {

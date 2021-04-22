@@ -23,8 +23,8 @@
 
 #include "pmacc/cuSTL/cursor/Cursor.hpp"
 #include "pmacc/cuSTL/cursor/accessor/CursorAccessor.hpp"
-#include "pmacc/device/Reduce.hpp"
 #include "pmacc/cuSTL/cursor/navigator/MapTo1DNavigator.hpp"
+#include "pmacc/device/Reduce.hpp"
 
 namespace pmacc
 {

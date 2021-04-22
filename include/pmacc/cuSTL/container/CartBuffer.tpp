@@ -22,13 +22,12 @@
 
 #pragma once
 
-#include "pmacc/cuSTL/container/allocator/tag.hpp"
-
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/Environment.hpp"
+#include "pmacc/cuSTL/container/allocator/tag.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
 
-#include <iostream>
 #include <exception>
+#include <iostream>
 #include <sstream>
 
 

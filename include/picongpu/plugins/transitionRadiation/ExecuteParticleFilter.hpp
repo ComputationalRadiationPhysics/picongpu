@@ -21,10 +21,10 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/traits/HasIdentifier.hpp>
 #include "picongpu/particles/Manipulate.hpp"
-
 #include "picongpu/plugins/transitionRadiation/GammaMask.hpp"
+
+#include <pmacc/traits/HasIdentifier.hpp>
 
 #include <memory>
 

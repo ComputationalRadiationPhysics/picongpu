@@ -19,10 +19,11 @@
 
 #include "picongpu/random/seed/Seed.hpp"
 
-#include <mpi.h>
-#include <string>
 #include <chrono>
 #include <cstdlib>
+#include <string>
+
+#include <mpi.h>
 
 
 namespace picongpu

@@ -22,12 +22,11 @@
 
 #pragma once
 
-#include "pmacc/verify.hpp"
 #include "pmacc/cuSTL/cursor/BufferCursor.hpp"
 #include "pmacc/cuSTL/zone/SphericZone.hpp"
-#include "pmacc/cuSTL/algorithm/kernel/run-time/Foreach.hpp"
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/types.hpp"
+#include "pmacc/verify.hpp"
 
 #include <pmacc/cuSTL/algorithm/functor/AssignValue.hpp>
 
@@ -35,6 +34,8 @@
 #include <boost/mpl/placeholders.hpp>
 
 #include <stdint.h>
+
+#include "pmacc/cuSTL/algorithm/kernel/run-time/Foreach.hpp"
 
 namespace pmacc
 {

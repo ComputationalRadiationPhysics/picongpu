@@ -20,8 +20,10 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 #include "picongpu/traits/frame/GetCharge.hpp"
+
 #include <pmacc/static_assert.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifier.hpp>

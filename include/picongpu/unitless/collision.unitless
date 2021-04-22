@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "picongpu/unitless/precision.unitless"
 #include "picongpu/param/collision.param"
+#include "picongpu/unitless/precision.unitless"
 
 #include <pmacc/math/Vector.hpp>
 

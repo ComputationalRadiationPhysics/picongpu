@@ -19,8 +19,9 @@
 
 #pragma once
 
-#include <iostream>
 #include <pmacc/types.hpp>
+
+#include <iostream>
 
 
 namespace picongpu

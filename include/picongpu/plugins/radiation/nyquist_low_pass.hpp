@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "calc_amplitude.hpp"
 #include "VectorTypes.hpp"
+#include "calc_amplitude.hpp"
 #include "particle.hpp"
 
 

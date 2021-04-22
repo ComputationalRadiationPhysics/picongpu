@@ -55,5 +55,5 @@
 
 #pragma once
 
-#include "picongpu/fields/background/templates/twtsfast/EField.hpp"
 #include "picongpu/fields/background/templates/twtsfast/BField.hpp"
+#include "picongpu/fields/background/templates/twtsfast/EField.hpp"

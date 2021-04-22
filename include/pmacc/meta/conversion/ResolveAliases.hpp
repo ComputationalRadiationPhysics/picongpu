@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/meta/GetKeyFromAlias.hpp"
 #include "pmacc/meta/errorHandlerPolicies/ThrowValueNotFound.hpp"
+#include "pmacc/types.hpp"
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/insert.hpp>
+#include <boost/mpl/placeholders.hpp>
+#include <boost/mpl/transform.hpp>
+#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {

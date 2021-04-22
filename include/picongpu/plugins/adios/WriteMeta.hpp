@@ -20,19 +20,18 @@
 #pragma once
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/plugins/adios/ADIOSWriter.def"
-#include "picongpu/plugins/common/stringHelpers.hpp"
-#include <pmacc/Environment.hpp>
-
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
-
-#include "picongpu/traits/SIBaseUnits.hpp"
+#include "picongpu/plugins/adios/ADIOSWriter.def"
+#include "picongpu/plugins/common/stringHelpers.hpp"
 #include "picongpu/traits/PICToAdios.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
 
-#include <string>
-#include <sstream>
+#include <pmacc/Environment.hpp>
+
 #include <list>
+#include <sstream>
+#include <string>
 
 
 namespace picongpu

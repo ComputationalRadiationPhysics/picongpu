@@ -22,8 +22,8 @@
 #pragma once
 
 #include "pmacc/eventSystem/events/EventNotify.hpp"
-#include "pmacc/eventSystem/events/IEventData.hpp"
 #include "pmacc/eventSystem/events/IEvent.hpp"
+#include "pmacc/eventSystem/events/IEventData.hpp"
 #include "pmacc/types.hpp"
 
 #include <set>

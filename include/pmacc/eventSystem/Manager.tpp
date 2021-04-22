@@ -21,15 +21,15 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/streams/StreamController.hpp"
+#include "pmacc/assert.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/Manager.hpp"
-#include "pmacc/assert.hpp"
+#include "pmacc/eventSystem/streams/StreamController.hpp"
 
-#include <cstdlib>
 #include <cstdio>
-#include <set>
+#include <cstdlib>
 #include <iostream>
+#include <set>
 
 //#define DEBUG_EVENTS
 

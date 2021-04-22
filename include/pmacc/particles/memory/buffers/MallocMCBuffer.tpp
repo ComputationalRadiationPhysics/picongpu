@@ -23,9 +23,9 @@
 
 #if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
 
+#    include "pmacc/eventSystem/EventSystem.hpp"
 #    include "pmacc/particles/memory/buffers/MallocMCBuffer.hpp"
 #    include "pmacc/types.hpp"
-#    include "pmacc/eventSystem/EventSystem.hpp"
 
 #    include <memory>
 

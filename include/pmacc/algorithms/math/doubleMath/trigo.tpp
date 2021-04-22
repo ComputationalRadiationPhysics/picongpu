@@ -22,6 +22,7 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
 #include <cfloat>
 #include <cmath>
 

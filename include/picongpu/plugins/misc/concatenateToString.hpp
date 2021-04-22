@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <string>
 #include <numeric>
+#include <string>
 
 
 namespace picongpu

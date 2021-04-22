@@ -21,31 +21,10 @@
 
 #pragma once
 
-#include <pmacc/verify.hpp>
-#include <pmacc/assert.hpp>
-
-#include <algorithm>
-#include <array>
-#include <string>
-#include <vector>
-#include <boost/lexical_cast.hpp>
-#include <boost/mpl/count.hpp>
-
-#include <pmacc/types.hpp>
-#include <pmacc/simulationControl/SimulationHelper.hpp>
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/versionFormat.hpp"
-#include "picongpu/random/seed/ISeed.hpp"
 
-#include <pmacc/eventSystem/EventSystem.hpp>
-#include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/mappings/kernel/MappingDescription.hpp>
-#include "picongpu/simulation/control/MovingWindow.hpp"
-#include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <pmacc/mappings/simulation/GridController.hpp>
-
-#include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
@@ -53,14 +32,16 @@
 #include "picongpu/fields/background/cellwiseOperation.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"
 #include "picongpu/initialization/ParserGridDistribution.hpp"
-#include "picongpu/particles/debyeLength/Check.hpp"
 #include "picongpu/particles/Manipulate.hpp"
-#include "picongpu/particles/manipulators/manipulators.hpp"
+#include "picongpu/particles/debyeLength/Check.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/flylite/NonLTE.tpp"
+#include "picongpu/particles/manipulators/manipulators.hpp"
+#include "picongpu/random/seed/ISeed.hpp"
 #include "picongpu/simulation/control/DomainAdjuster.hpp"
-#include "picongpu/simulation/stage/Collision.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/simulation/stage/Bremsstrahlung.hpp"
+#include "picongpu/simulation/stage/Collision.hpp"
 #include "picongpu/simulation/stage/CurrentBackground.hpp"
 #include "picongpu/simulation/stage/CurrentDeposition.hpp"
 #include "picongpu/simulation/stage/CurrentInterpolationAndAdditionToEMF.hpp"
@@ -71,31 +52,50 @@
 #include "picongpu/simulation/stage/ParticlePush.hpp"
 #include "picongpu/simulation/stage/PopulationKinetics.hpp"
 #include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
-#include <pmacc/random/methods/methods.hpp>
+#include "picongpu/versionFormat.hpp"
+
+#include <pmacc/assert.hpp>
+#include <pmacc/dimensions/GridLayout.hpp>
+#include <pmacc/eventSystem/EventSystem.hpp>
+#include <pmacc/mappings/kernel/MappingDescription.hpp>
+#include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/random/RNGProvider.hpp>
+#include <pmacc/random/methods/methods.hpp>
+#include <pmacc/simulationControl/SimulationHelper.hpp>
+#include <pmacc/types.hpp>
+#include <pmacc/verify.hpp>
+
+#include <boost/lexical_cast.hpp>
+#include <boost/mpl/count.hpp>
+
+#include <algorithm>
+#include <array>
+#include <string>
+#include <vector>
 
 #if(PMACC_CUDA_ENABLED == 1)
-#    include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
 #    include "picongpu/particles/bremsstrahlung/PhotonEmissionAngle.hpp"
+#    include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
 #endif
 
+#include "picongpu/particles/InitFunctors.hpp"
+#include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/meta/conversion/SeqToMap.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
-
-#include <pmacc/meta/ForEach.hpp>
-#include "picongpu/particles/ParticlesFunctors.hpp"
-#include "picongpu/particles/InitFunctors.hpp"
+#include <pmacc/particles/IdProvider.hpp>
 #include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/FilterByIdentifier.hpp>
-#include <pmacc/particles/IdProvider.hpp>
 
 #include <boost/mpl/int.hpp>
-#include <memory>
+
 #include <functional>
+#include <memory>
 
 
 namespace picongpu

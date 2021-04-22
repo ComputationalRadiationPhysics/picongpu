@@ -21,9 +21,10 @@
 
 #pragma once
 
-#include <stdint.h>
 #include "pmacc/math/vector/Int.hpp"
 #include "pmacc/math/vector/Size_t.hpp"
+
+#include <stdint.h>
 
 namespace pmacc
 {

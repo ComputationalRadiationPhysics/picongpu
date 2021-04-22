@@ -20,14 +20,15 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
 
 
 namespace picongpu

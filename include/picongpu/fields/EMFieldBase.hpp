@@ -21,22 +21,23 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/simulation_types.hpp"
-#include "picongpu/fields/Fields.def"
 
-#include <pmacc/fields/SimulationFieldHelper.hpp>
+#include "picongpu/fields/Fields.def"
+#include "picongpu/simulation_types.hpp"
+
 #include <pmacc/dataManagement/ISimulationData.hpp>
-#include <pmacc/memory/buffers/GridBuffer.hpp>
+#include <pmacc/fields/SimulationFieldHelper.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/math/Vector.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/boxes/PitchedBox.hpp>
-#include <pmacc/math/Vector.hpp>
+#include <pmacc/memory/buffers/GridBuffer.hpp>
 
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <vector>
 #include <type_traits>
+#include <vector>
 
 
 namespace picongpu

@@ -21,20 +21,21 @@
 
 #pragma once
 
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
-
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/plugins/transitionRadiation/Particle.hpp"
-#include "picongpu/plugins/transitionRadiation/Calculator.hpp"
+
 #include "picongpu/plugins/radiation/radFormFactor.hpp"
+#include "picongpu/plugins/transitionRadiation/Calculator.hpp"
 #include "picongpu/plugins/transitionRadiation/GammaMask.hpp"
+#include "picongpu/plugins/transitionRadiation/Particle.hpp"
 
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/kernel/atomic.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <string>
 
 
 namespace picongpu

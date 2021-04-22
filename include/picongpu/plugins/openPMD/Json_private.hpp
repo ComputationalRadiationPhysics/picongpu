@@ -21,12 +21,12 @@
 
 #include "picongpu/plugins/openPMD/Json.hpp"
 
-#include <mpi.h>
-#include <nlohmann/json.hpp>
-
 #include <regex>
 #include <string>
 #include <vector>
+
+#include <mpi.h>
+#include <nlohmann/json.hpp>
 
 /*
  * Note:

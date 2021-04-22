@@ -19,14 +19,16 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/math/MapTuple.hpp>
-#include <pmacc/memory/shared/Allocate.hpp>
-#include <boost/mpl/void.hpp>
-#include <pmacc/mappings/threads/WorkerCfg.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/mappings/threads/WorkerCfg.hpp>
+#include <pmacc/math/MapTuple.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
+
+#include <boost/mpl/void.hpp>
+
+#include <stdint.h>
 
 
 namespace picongpu

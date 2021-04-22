@@ -21,12 +21,13 @@
 
 #pragma once
 
-#include <boost/mpl/void.hpp>
+#include "pmacc/cuSTL/cursor/traits.hpp"
 #include "pmacc/math/vector/Int.hpp"
 #include "pmacc/types.hpp"
+
+#include <boost/mpl/void.hpp>
 #include <boost/type_traits/add_const.hpp>
 #include <boost/type_traits/remove_reference.hpp>
-#include "pmacc/cuSTL/cursor/traits.hpp"
 
 namespace mpl = boost::mpl;
 

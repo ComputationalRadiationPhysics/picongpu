@@ -22,18 +22,17 @@
 
 #pragma once
 
-#include "pmacc/particles/boostExtension/InheritGenerators.hpp"
 #include "pmacc/meta/conversion/MakeSeq.hpp"
-#include "pmacc/particles/particleFilter/system/TrueFilter.hpp"
-#include "pmacc/particles/particleFilter/system/DefaultFilter.hpp"
-
+#include "pmacc/particles/boostExtension/InheritGenerators.hpp"
 #include "pmacc/particles/memory/frames/NullFrame.hpp"
+#include "pmacc/particles/particleFilter/system/DefaultFilter.hpp"
+#include "pmacc/particles/particleFilter/system/TrueFilter.hpp"
 
+#include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/copy.hpp>
+#include <boost/mpl/front_inserter.hpp>
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/mpl/copy.hpp>
-#include <boost/mpl/back_inserter.hpp>
-#include <boost/mpl/front_inserter.hpp>
 
 namespace pmacc
 {

@@ -20,19 +20,20 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/functor/misc/Rng.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/randomizedParticleMerger/RandomizedParticleMerger.kernel"
-#include "picongpu/particles/functor/misc/Rng.hpp"
 
-#include <pmacc/traits/HasIdentifier.hpp>
 #include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
+#include <pmacc/traits/HasIdentifier.hpp>
 
 #include <cstdint>
 #include <cstdlib>
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
 
 
 namespace picongpu

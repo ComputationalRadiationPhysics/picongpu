@@ -20,20 +20,22 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
-#include "picongpu/fields/absorber/ExponentialDamping.hpp"
-#include "picongpu/fields/FieldE.hpp"
+
 #include "picongpu/fields/FieldB.hpp"
-#include "picongpu/fields/MaxwellSolver/Yee/Yee.kernel"
-#include "picongpu/fields/cellType/Yee.hpp"
+#include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/LaserPhysics.hpp"
+#include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
+#include "picongpu/fields/MaxwellSolver/Yee/Yee.kernel"
+#include "picongpu/fields/absorber/ExponentialDamping.hpp"
+#include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/fields/differentiation/Curl.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
-#include <pmacc/mappings/threads/ThreadCollective.hpp>
-#include <pmacc/math/vector/compile-time/Vector.hpp>
-#include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/mappings/threads/ThreadCollective.hpp>
+#include <pmacc/memory/boxes/CachedBox.hpp>
+
+#include <pmacc/math/vector/compile-time/Vector.hpp>
 
 
 namespace picongpu

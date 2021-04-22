@@ -21,10 +21,10 @@
 
 #include "picongpu/algorithms/Set.hpp"
 
-#include <alpaka/core/Unused.hpp>
-
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/types.hpp>
+
+#include <alpaka/core/Unused.hpp>
 
 
 namespace picongpu
