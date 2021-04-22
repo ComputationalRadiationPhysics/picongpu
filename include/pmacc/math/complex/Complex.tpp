@@ -24,7 +24,7 @@
 
 #include "pmacc/algorithms/TypeCast.hpp"
 #include "pmacc/algorithms/math.hpp"
-#include "pmacc/math/Complex.hpp"
+#include "pmacc/math/complex/Complex.hpp"
 #include "pmacc/traits/GetComponentsType.hpp"
 #include "pmacc/traits/GetNComponents.hpp"
 

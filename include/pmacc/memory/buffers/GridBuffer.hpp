@@ -21,9 +21,9 @@
 
 #pragma once
 
+#include "pmacc/Environment.hpp"
 #include "pmacc/dimensions/GridLayout.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
-#include "pmacc/mappings/simulation/EnvironmentController.hpp"
 #include "pmacc/memory/buffers/ExchangeIntern.hpp"
 #include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 #include "pmacc/memory/dataTypes/Mask.hpp"

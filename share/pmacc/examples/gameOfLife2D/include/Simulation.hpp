@@ -27,9 +27,8 @@
 #include "PngCreator.hpp"
 #include "types.hpp"
 
+#include <pmacc/Environment.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/eventSystem/EventSystem.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>

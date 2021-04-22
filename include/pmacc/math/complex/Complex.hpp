@@ -20,6 +20,7 @@
  */
 
 #pragma once
+
 #include "pmacc/types.hpp"
 
 namespace pmacc
@@ -216,3 +217,5 @@ namespace pmacc
 
     } // namespace math
 } // namespace pmacc
+
+#include "pmacc/math/complex/Complex.tpp"

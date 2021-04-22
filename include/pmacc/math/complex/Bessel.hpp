@@ -59,8 +59,6 @@
 
 #pragma once
 
-#include "pmacc/algorithms/TypeCast.hpp"
-#include "pmacc/algorithms/math.hpp"
 #include "pmacc/math/Complex.hpp"
 #include "pmacc/types.hpp"
 

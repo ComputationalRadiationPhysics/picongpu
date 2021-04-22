@@ -30,7 +30,6 @@
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/events/EventPool.hpp"
 #include "pmacc/eventSystem/streams/StreamController.hpp"
-#include "pmacc/mappings/simulation/EnvironmentController.hpp"
 #include "pmacc/mappings/simulation/Filesystem.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/mappings/simulation/SubGrid.hpp"
