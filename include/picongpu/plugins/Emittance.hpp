@@ -34,11 +34,11 @@
 #include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/cuSTL/algorithm/functor/Add.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/kernel/atomic.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 #include <pmacc/memory/CtxArray.hpp>

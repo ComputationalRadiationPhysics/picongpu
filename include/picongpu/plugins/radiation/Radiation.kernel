@@ -38,8 +38,8 @@
 
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/math/operation.hpp>
+#include <pmacc/kernel/atomic.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/memory/Array.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
@@ -248,7 +248,7 @@ namespace picongpu
                                     if(particle_momentumNow != particle_momentumOld)
                                     {
                                         if(getRadiationMask(par))
-                                            saveParticleAt = nvidia::atomicAllInc(
+                                            saveParticleAt = kernel::atomicAllInc(
                                                 acc,
                                                 &counter_s,
                                                 ::alpaka::hierarchy::Threads{});

@@ -35,8 +35,7 @@
 #    include "picongpu/particles/pusher/particlePusherAxel.hpp"
 #endif
 
-#include <pmacc/nvidia/functors/Assign.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu
@@ -81,7 +80,7 @@ namespace picongpu
             };
 
             struct Probe
-                : public particlePusherProbe::Push<pmacc::nvidia::functors::Assign, particlePusherProbe::ActualPusher>
+                : public particlePusherProbe::Push<pmacc::math::operation::Assign, particlePusherProbe::ActualPusher>
             {
             };
 

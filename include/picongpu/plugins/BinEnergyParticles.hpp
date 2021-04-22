@@ -33,7 +33,7 @@
 
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
@@ -42,7 +42,7 @@
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 #include <pmacc/math/Vector.hpp>
-#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/kernel/atomic.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 
@@ -488,7 +488,7 @@ namespace picongpu
             gBins->deviceToHost();
 
             reduce(
-                nvidia::functors::Add(),
+                pmacc::math::operation::Add(),
                 binReduced,
                 gBins->getHostBuffer().getBasePointer(),
                 realNumBins,

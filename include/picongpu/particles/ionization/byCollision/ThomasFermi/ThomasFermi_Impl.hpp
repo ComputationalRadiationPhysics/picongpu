@@ -195,7 +195,7 @@ namespace picongpu
                     cachedEne = CachedBox::create<1, ValueType_Ene>(acc, BlockArea());
 
                     /* instance of nvidia assignment operator */
-                    nvidia::functors::Assign assign;
+                    pmacc::math::operation::Assign assign;
                     /* copy fields from global to shared */
                     auto fieldRhoBlock = rhoBox.shift(blockCell);
                     ThreadCollective<BlockArea, T_WorkerCfg::numWorkers> collective(workerCfg.getWorkerIdx());

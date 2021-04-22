@@ -28,7 +28,7 @@
 #include <pmacc/particles/operations/SetAttributeToDefault.hpp>
 #include <pmacc/meta/conversion/ResolveAndRemoveFromSeq.hpp>
 #include "picongpu/particles/traits/GetDensityRatio.hpp"
-#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/kernel/atomic.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/memory/CtxArray.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
@@ -178,7 +178,7 @@ namespace picongpu
                         = positionFunctorCtx[idx].template numberOfMacroParticles<ParticleType>(realParticlesPerCell);
 
                 if(numParsPerCellCtx[idx] > 0)
-                    nvidia::atomicAllExch(
+                    kernel::atomicAllExch(
                         acc,
                         &finished,
                         0,
@@ -233,7 +233,7 @@ namespace picongpu
 
                         numParsPerCellCtx[idx]--;
                         if(numParsPerCellCtx[idx] > 0)
-                            nvidia::atomicAllExch(
+                            kernel::atomicAllExch(
                                 acc,
                                 &finished,
                                 0,

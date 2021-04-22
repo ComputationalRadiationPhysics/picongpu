@@ -31,10 +31,10 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/kernel/atomic.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 #include <pmacc/memory/CtxArray.hpp>
@@ -414,7 +414,7 @@ namespace picongpu
 
             // add energies from all GPUs using MPI
             reduce(
-                nvidia::functors::Add(),
+                pmacc::math::operation::Add(),
                 reducedEnergy,
                 gEnergy->getHostBuffer().getBasePointer(),
                 2,

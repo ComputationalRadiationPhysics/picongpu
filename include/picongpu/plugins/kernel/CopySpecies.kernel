@@ -23,7 +23,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
-#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/kernel/atomic.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
@@ -138,7 +138,7 @@ namespace picongpu
                     if(parSrc[multiMask_] == 1 && filter(*srcFramePtr, localIdx))
                         if(accParFilter(acc, parSrc))
                             storageOffsetCtx[idx]
-                                = nvidia::atomicAllInc(acc, &localCounter, ::alpaka::hierarchy::Threads{});
+                                = kernel::atomicAllInc(acc, &localCounter, ::alpaka::hierarchy::Threads{});
                 });
                 cupla::__syncthreads(acc);
 

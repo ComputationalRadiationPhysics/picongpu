@@ -40,7 +40,7 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/assert.hpp>
@@ -358,7 +358,7 @@ namespace picongpu
                     __getTransactionEvent().waitForFinished();
 
                     reduce(
-                        nvidia::functors::Add(),
+                        pmacc::math::operation::Add(),
                         amplitudeMaster.data(),
                         amplitude->getHostBuffer().getBasePointer(),
                         amplitude->getHostBuffer().getCurrentSize(),

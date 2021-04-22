@@ -30,7 +30,7 @@
 
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -336,25 +336,25 @@ namespace picongpu
                 void collectRadiationOnMaster()
                 {
                     reduce(
-                        nvidia::functors::Add(),
+                        pmacc::math::operation::Add(),
                         tmpITR,
                         incTransRad->getHostBuffer().getBasePointer(),
                         elementsTransitionRadiation(),
                         mpi::reduceMethods::Reduce());
                     reduce(
-                        nvidia::functors::Add(),
+                        pmacc::math::operation::Add(),
                         tmpCTRpara,
                         cohTransRadPara->getHostBuffer().getBasePointer(),
                         elementsTransitionRadiation(),
                         mpi::reduceMethods::Reduce());
                     reduce(
-                        nvidia::functors::Add(),
+                        pmacc::math::operation::Add(),
                         tmpCTRperp,
                         cohTransRadPerp->getHostBuffer().getBasePointer(),
                         elementsTransitionRadiation(),
                         mpi::reduceMethods::Reduce());
                     reduce(
-                        nvidia::functors::Add(),
+                        pmacc::math::operation::Add(),
                         tmpNum,
                         numParticles->getHostBuffer().getBasePointer(),
                         elementsTransitionRadiation(),

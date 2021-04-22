@@ -32,12 +32,12 @@
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
 
-#include <pmacc/nvidia/functors/Assign.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 
 #include <pmacc/particles/operations/Assign.hpp>
 #include <pmacc/particles/operations/Deselect.hpp>
-#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/kernel/atomic.hpp>
 #include "picongpu/particles/InterpolationForPusher.hpp"
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/traits/HasFlag.hpp>
@@ -244,7 +244,7 @@ namespace picongpu
             if(!frame.isValid())
                 return;
 
-            nvidia::functors::Assign assign;
+            pmacc::math::operation::Assign assign;
             ThreadCollective<T_DataDomain, numWorkers> collective{workerIdx};
 
             auto fieldBBlock = fieldB.shift(superCellOffset);
@@ -421,7 +421,7 @@ namespace picongpu
             if(direction >= 2)
             {
                 /* if we did not use atomic we would get a WAW error */
-                nvidia::atomicAllExch(acc, &mustShift, 1, ::alpaka::hierarchy::Threads{});
+                kernel::atomicAllExch(acc, &mustShift, 1, ::alpaka::hierarchy::Threads{});
             }
         }
     };

@@ -212,7 +212,7 @@ namespace picongpu
                                     if((particleMomentum * particleMomentum).sumOfComponents() > 0.0)
                                     {
                                         if(transitionRadiation::getTransitionRadiationMask(par))
-                                            saveParticleAt = nvidia::atomicAllInc(
+                                            saveParticleAt = kernel::atomicAllInc(
                                                 acc,
                                                 &counter_s,
                                                 ::alpaka::hierarchy::Threads{});

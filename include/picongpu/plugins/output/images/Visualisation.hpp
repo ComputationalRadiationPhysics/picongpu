@@ -34,8 +34,8 @@
 #include <pmacc/algorithms/GlobalReduce.hpp>
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
-#include <pmacc/nvidia/functors/Max.hpp>
-#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/math/operation.hpp>
+#include <pmacc/kernel/atomic.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/boxes/SharedBox.hpp>
@@ -48,7 +48,6 @@
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/math/Vector.hpp>
-#include <pmacc/nvidia/atomic.hpp>
 #include <pmacc/memory/CtxArray.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
@@ -409,7 +408,7 @@ namespace picongpu
                 if(isCellOnSlice)
                 {
                     // atomic avoids: WAW Error in cuda-memcheck racecheck
-                    nvidia::atomicAllExch(acc, &superCellParticipate, 1, ::alpaka::hierarchy::Threads{});
+                    kernel::atomicAllExch(acc, &superCellParticipate, 1, ::alpaka::hierarchy::Threads{});
                     isImageThreadCtx[idx] = true;
                 }
             });
@@ -753,9 +752,9 @@ namespace picongpu
 
 #if(EM_FIELD_SCALE_CHANNEL1 == -1 || EM_FIELD_SCALE_CHANNEL2 == -1 || EM_FIELD_SCALE_CHANNEL3 == -1)
             // reduce with functor max
-            float3_X max = reduce(nvidia::functors::Max(), d1access, elements);
+            float3_X max = reduce(pmacc::math::operation::Max(), d1access, elements);
             // reduce with functor min
-            // float3_X min = reduce(nvidia::functors::Min(),
+            // float3_X min = reduce(pmacc::math::operation::Min(),
             //                    d1access,
             //                    elements);
 #    if(EM_FIELD_SCALE_CHANNEL1 != -1)

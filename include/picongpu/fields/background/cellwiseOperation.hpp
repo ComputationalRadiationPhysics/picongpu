@@ -121,7 +121,7 @@ namespace picongpu
              *
              * @tparam ValFunctor A Value-Producing functor for a given cell
              *                    in time and space
-             * @tparam OpFunctor A manipulating functor like pmacc::nvidia::functors::add
+             * @tparam OpFunctor A manipulating functor like pmacc::math::operation::*
              */
             template<typename T_Field, typename T_OpFunctor, typename T_ValFunctor>
             void operator()(T_Field field, T_OpFunctor opFunctor, T_ValFunctor valFunctor, uint32_t const currentStep)

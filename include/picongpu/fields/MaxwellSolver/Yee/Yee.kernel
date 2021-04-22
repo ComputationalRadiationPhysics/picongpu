@@ -76,7 +76,7 @@ namespace picongpu
 
                         auto cachedB = CachedBox::create<0u, typename T_BBox::ValueType>(acc, T_BlockDescription());
 
-                        nvidia::functors::Assign assign;
+                        pmacc::math::operation::Assign assign;
                         DataSpace<simDim> const block(
                             mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
                         DataSpace<simDim> const blockCell = block * MappingDesc::SuperCellSize::toRT();
@@ -143,7 +143,7 @@ namespace picongpu
 
                         auto cachedE = CachedBox::create<0u, typename T_EBox::ValueType>(acc, T_BlockDescription());
 
-                        nvidia::functors::Assign assign;
+                        pmacc::math::operation::Assign assign;
                         DataSpace<simDim> const block(
                             mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
                         DataSpace<simDim> const blockCell = block * MappingDesc::SuperCellSize::toRT();

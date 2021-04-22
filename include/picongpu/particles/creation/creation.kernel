@@ -28,7 +28,7 @@
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include <pmacc/traits/Resolve.hpp>
 #include <pmacc/math/vector/Int.hpp>
-#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/kernel/atomic.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/memory/Array.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
@@ -237,7 +237,7 @@ namespace picongpu
                             forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
                                 if(numNewParticlesCtx[idx] > 0u)
                                     targetParIdCtx[idx]
-                                        = nvidia::atomicAllInc(acc, &newFrameFillLvl, ::alpaka::hierarchy::Threads{});
+                                        = kernel::atomicAllInc(acc, &newFrameFillLvl, ::alpaka::hierarchy::Threads{});
                             });
 
                             cupla::__syncthreads(acc);

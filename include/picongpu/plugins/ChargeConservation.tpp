@@ -37,7 +37,7 @@
 #include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
 #include <pmacc/cuSTL/algorithm/kernel/Reduce.hpp>
 #include <pmacc/meta/ForEach.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/meta/ForEach.hpp>
 
@@ -253,7 +253,7 @@ namespace picongpu
         typename FieldTmp::ValueType maxChargeDiff = algorithm::kernel::Reduce()(
             fieldTmp_coreBorder.origin(),
             fieldTmp_coreBorder.zone(),
-            pmacc::nvidia::functors::Max());
+            pmacc::math::operation::Max());
 
         /* reduce again across mpi cluster */
         container::HostBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff_host(1);

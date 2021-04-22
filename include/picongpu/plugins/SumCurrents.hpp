@@ -28,7 +28,7 @@
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/kernel/atomic.hpp>
 
 #include <iostream>
 

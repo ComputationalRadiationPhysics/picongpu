@@ -29,7 +29,7 @@
 #include "picongpu/algorithms/Gamma.hpp"
 
 #include <vector>
-#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/kernel/atomic.hpp>
 
 namespace picongpu
 {

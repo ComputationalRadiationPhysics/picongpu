@@ -26,9 +26,7 @@
 #include <pmacc/Environment.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/functors/Max.hpp>
-#include <pmacc/nvidia/functors/Min.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/mpi/GetMPI_StructAsArray.hpp>
 
@@ -275,7 +273,7 @@ namespace picongpu
 
                 int globalMax;
                 mpiReduce(
-                    pmacc::nvidia::functors::Max(),
+                    pmacc::math::operation::Max(),
                     &globalMax,
                     &m_localDomainSize[dim],
                     1,
@@ -283,7 +281,7 @@ namespace picongpu
 
                 int globalMin;
                 mpiReduce(
-                    pmacc::nvidia::functors::Min(),
+                    pmacc::math::operation::Min(),
                     &globalMin,
                     &m_localDomainSize[dim],
                     1,
@@ -325,7 +323,7 @@ namespace picongpu
                 uint64_t localDomainSize = static_cast<uint64_t>(m_localDomainSize[dim]);
                 pmacc::mpi::MPIReduce mpiReduce;
                 mpiReduce(
-                    pmacc::nvidia::functors::Add(),
+                    pmacc::math::operation::Add(),
                     &validGlobalGridSize,
                     &localDomainSize,
                     1,

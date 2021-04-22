@@ -84,7 +84,7 @@ namespace picongpu
                 cachedIonDensity = CachedBox::create<0, ValueTypeIonDensity>(acc, BlockArea());
 
                 /* instance of nvidia assignment operator */
-                nvidia::functors::Assign assign;
+                pmacc::math::operation::Assign assign;
                 /* copy fields from global to shared */
                 const auto fieldIonDensityBlock = ionDensityBox.shift(blockCell);
 

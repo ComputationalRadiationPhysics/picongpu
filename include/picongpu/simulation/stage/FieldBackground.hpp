@@ -28,8 +28,7 @@
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/Environment.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/functors/Sub.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/type/Area.hpp>
 
 #include <boost/program_options.hpp>
@@ -100,7 +99,7 @@ namespace picongpu
                             duplicateBuffer->copyFrom(gridBuffer.getDeviceBuffer());
                             restoreFromDuplicateField = true;
                         }
-                        apply(step, pmacc::nvidia::functors::Add(), field);
+                        apply(step, pmacc::math::operation::Add(), field);
                     }
 
                     /** Subtract the field background in the whole local domain
@@ -124,7 +123,7 @@ namespace picongpu
                             restoreFromDuplicateField = false;
                         }
                         else
-                            apply(step, pmacc::nvidia::functors::Sub(), field);
+                            apply(step, pmacc::math::operation::Sub(), field);
                     }
 
                 private:
@@ -148,7 +147,7 @@ namespace picongpu
 
                     /** Apply the given functor to the field background in the whole local domain
                      *
-                     * @tparam T_Functor functor type compatible to pmacc::nvidia::functors
+                     * @tparam T_Functor functor type compatible to pmacc::math::operation
                      *
                      * @param step index of time iteration
                      * @param functor functor to apply

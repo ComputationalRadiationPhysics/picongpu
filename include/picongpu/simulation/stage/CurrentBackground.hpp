@@ -26,7 +26,7 @@
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/Environment.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/type/Area.hpp>
 
 #include <cstdint>
@@ -65,7 +65,11 @@ namespace picongpu
                         auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
                         using CurrentBackground = cellwiseOperation::CellwiseOperation<type::CORE + type::BORDER>;
                         CurrentBackground currentBackground(cellDescription);
-                        currentBackground(&fieldJ, nvidia::functors::Add(), FieldBackgroundJ(fieldJ.getUnit()), step);
+                        currentBackground(
+                            &fieldJ,
+                            pmacc::math::operation::Add(),
+                            FieldBackgroundJ(fieldJ.getUnit()),
+                            step);
                     }
                 }
 

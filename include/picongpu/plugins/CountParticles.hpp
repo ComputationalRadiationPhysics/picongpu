@@ -28,8 +28,7 @@
 
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/functors/Max.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 
 #include <pmacc/particles/operations/CountParticles.hpp>
@@ -184,12 +183,12 @@ namespace picongpu
             uint64_cu reducedValueMax;
             if(picLog::log_level & picLog::CRITICAL::lvl)
             {
-                reduce(nvidia::functors::Max(), &reducedValueMax, &size, 1, mpi::reduceMethods::Reduce());
+                reduce(pmacc::math::operation::Max(), &reducedValueMax, &size, 1, mpi::reduceMethods::Reduce());
             }
 
 
             uint64_cu reducedValue;
-            reduce(nvidia::functors::Add(), &reducedValue, &size, 1, mpi::reduceMethods::Reduce());
+            reduce(pmacc::math::operation::Add(), &reducedValue, &size, 1, mpi::reduceMethods::Reduce());
 
             if(writeToFile)
             {

@@ -261,7 +261,7 @@ namespace picongpu
 
                 auto cachedJ = CachedBox::create<0, typename FieldJ::DataBoxType::ValueType>(acc, BlockArea());
 
-                nvidia::functors::Assign assign;
+                pmacc::math::operation::Assign assign;
                 DataSpace<simDim> const block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
                 DataSpace<simDim> const blockCell = block * MappingDesc::SuperCellSize::toRT();
 

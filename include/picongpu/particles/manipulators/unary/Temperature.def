@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include <pmacc/random/distributions/Normal.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu
@@ -57,12 +57,12 @@ namespace picongpu
                  *       resolved by the grid.
                  *
                  * @tparam T_ParamClass param::TemperatureCfg, configuration parameter
-                 * @tparam T_ValueFunctor pmacc::nvidia::functors::*, binary functor type to
+                 * @tparam T_ValueFunctor pmacc::math::operation::*, binary functor type to
                  *                        add a new momentum to an old one
                  */
                 template<
                     typename T_ParamClass = param::TemperatureCfg,
-                    typename T_ValueFunctor = pmacc::nvidia::functors::Add>
+                    typename T_ValueFunctor = pmacc::math::operation::Add>
                 using Temperature = generic::FreeRng<
                     acc::Temperature<T_ParamClass, T_ValueFunctor>,
                     pmacc::random::distributions::Normal<float_X>>;
