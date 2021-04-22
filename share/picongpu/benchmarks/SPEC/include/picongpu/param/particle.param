@@ -23,8 +23,7 @@
 #include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
 
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/functors/Assign.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu
@@ -48,7 +47,7 @@ namespace picongpu
                 static constexpr float_64 gamma = 5.0;
                 const DriftParamElectrons_direction_t direction;
             };
-            using AssignZDriftElectrons = unary::Drift<DriftParamElectrons, nvidia::functors::Assign>;
+            using AssignZDriftElectrons = unary::Drift<DriftParamElectrons, pmacc::math::operation::Assign>;
 
             CONST_VECTOR(float_X, 3, DriftParamPositrons_direction, 0.0, 0.0, -1.0);
             struct DriftParamPositrons
@@ -60,7 +59,7 @@ namespace picongpu
                 const DriftParamPositrons_direction_t direction;
             };
             // definition of SetDrift start
-            using AssignZDriftPositrons = unary::Drift<DriftParamPositrons, nvidia::functors::Assign>;
+            using AssignZDriftPositrons = unary::Drift<DriftParamPositrons, pmacc::math::operation::Assign>;
 
         } // namespace manipulators
 

@@ -22,8 +22,7 @@
 
 #include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/functors/Assign.hpp>
+#include <pmacc/math/operation.hpp>
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 
@@ -46,7 +45,7 @@ namespace picongpu
                 static constexpr float_64 gamma = 1.39139;
                 const DriftParam_direction_t direction;
             };
-            using Assign200keVDrift = unary::Drift<Drift200keVParam, nvidia::functors::Assign>;
+            using Assign200keVDrift = unary::Drift<Drift200keVParam, pmacc::math::operation::Assign>;
 
             struct TemperatureParam
             {
