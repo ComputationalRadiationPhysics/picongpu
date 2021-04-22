@@ -20,6 +20,8 @@
 
 #pragma once
 
+// clang-format off
+
 #include <stdint.h>
 #include <pmacc/types.hpp>
 #include <picongpu/simulation_types.hpp>
@@ -51,3 +53,5 @@ namespace picongpu
 #include <picongpu/extensionUnitless.loader>
 // load starter after user extensions and all params are loaded
 #include <picongpu/unitless/starter.unitless>
+
+// clang-format on

@@ -26,6 +26,8 @@
  */
 #pragma once
 
+// clang-format off
+
 #include "picongpu/unitless/physicalConstants.unitless"
 #include "picongpu/unitless/speciesConstants.unitless"
 #include "picongpu/unitless/grid.unitless"
@@ -48,3 +50,5 @@
 #include "picongpu/unitless/png.unitless"
 #include "picongpu/unitless/radiation.unitless"
 #include "picongpu/unitless/transitionRadiation.unitless"
+
+// clang-format on

@@ -25,6 +25,8 @@
  */
 #pragma once
 
+// clang-format off
+
 #include "picongpu/param/dimension.param"
 #include "picongpu/param/precision.param"
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
@@ -69,3 +71,5 @@
 #if(ENABLE_OPENPMD == 1)
 #    include "picongpu/param/xrayScattering.param"
 #endif
+
+// clang-format on
