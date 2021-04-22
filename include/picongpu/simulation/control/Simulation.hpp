@@ -54,6 +54,7 @@
 #include "picongpu/fields/background/cellwiseOperation.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"
 #include "picongpu/initialization/ParserGridDistribution.hpp"
+#include "picongpu/particles/debyeLength/Check.hpp"
 #include "picongpu/particles/Manipulate.hpp"
 #include "picongpu/particles/manipulators/manipulators.hpp"
 #include "picongpu/particles/filter/filter.hpp"
@@ -498,6 +499,7 @@ namespace picongpu
                     initialiserController->init();
                     meta::ForEach<particles::InitPipeline, particles::CallFunctor<bmpl::_1>> initSpecies;
                     initSpecies(step);
+                    particles::debyeLength::check(*cellDescription);
                 }
             }
 
