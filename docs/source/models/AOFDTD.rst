@@ -210,7 +210,7 @@ becomes
    \left[ \frac{1}{c\Delta t} \sin\left(\frac{\omega \Delta t}{2} \right) \right]^2 =&
   \left[\sum\limits_{l=1/2}^{M - 1/2} g_l^{2M} \frac{\sin(\tilde k_x l \Delta x)}{\Delta x} \right]^2
   + \left[\sum\limits_{l=1/2}^{M - 1/2} g_l^{2M} \frac{\sin(\tilde k_y l \Delta y)}{\Delta y} \right]^2
-  
+
   & + \left[\sum\limits_{l=1/2}^{M - 1/2} g_l^{2M} \frac{\sin(\tilde k_z l \Delta z)}{\Delta z} \right]^2
 
 where :math:`\tilde k_x`, :math:`\tilde k_y`, and :math:`\tilde k_z` are the wave vector components on the mesh in :math:`x`, :math:`y`, and :math:`z`
@@ -221,7 +221,7 @@ frequency :math:`\omega` due to discretization.
 
 Dispersion Relation for Yee's Method
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Yee's Method [Yee1966]_ uses second order finite differences for the approximation of spatial derivatives.
+Yee's method [Yee1966]_ uses second order finite differences for the approximation of spatial derivatives.
 The corresponding dispersion relation reads
 
 .. math::
@@ -301,7 +301,7 @@ Solving the higher order dispersion relation for the angular frequency yields:
 
 .. math::
 
-   \omega = \frac{2}{\Delta t} \arcsin \xi\,\text{, where } \xi_\mathrm{max} 
+   \omega = \frac{2}{\Delta t} \arcsin \xi\,\text{, where } \xi_\mathrm{max}
      = c\Delta t \left[ \sum\limits_{l=1/2}^{M - 1/2} (-1)^{l-\frac{1}{2}} g_l^{2M} \right]
      \sqrt{ \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} + \frac{1}{\Delta z^2}}
 
@@ -313,8 +313,30 @@ Thus the stability condition reads
 .. math::
 
    c\Delta t < \frac{1}{ \left[ \sum\limits_{l=1/2}^{M - 1/2} (-1)^{l-\frac{1}{2}} g_l^{2M} \right] \sqrt{ \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} + \frac{1}{\Delta z^2} }}
-   
-As explained for Yee's Method, :math:`\xi_\mathrm{max} = 0.995` is normally chosen and not meeting the stability condition can lead to nonphysical exponential wave amplification.
+
+As explained for Yee's method, :math:`\xi_\mathrm{max} = 0.995` is normally chosen and not meeting the stability condition can lead to nonphysical exponential wave amplification.
+
+Sample values for the additional factor :math:`\left[ \sum\limits_{l=1/2}^{M - 1/2} (-1)^{l-\frac{1}{2}} g_l^{2M} \right]` appearing in the AOFDTD stability condition compared to Yee's method, are
+
+.. table::
+    :widths: auto
+    :name: AOFDTD_relation_to_Yee
+
+    ============================= =====================================================================
+    Number of neighbors :math:`M` Value of additional factor :math:`\sum (-1)^{l-\frac{1}{2}} g_l^{2M}`
+    ============================= =====================================================================
+    1                             1.0
+    2                             1.166667
+    3                             1.241667
+    4                             1.286310
+    5                             1.316691
+    6                             1.339064
+    7                             1.356416
+    8                             1.370381
+    ============================= =====================================================================
+
+which implies a reduction of the usable time step :math:`\Delta t` by the given factor
+if more than one neighbor is used.
 
 Regarding the numerical anisotropy of the phase velocity, using higher order finite differences for the approximation of spatial derivatives significantly improves the
 dispersion properties of the solver.
