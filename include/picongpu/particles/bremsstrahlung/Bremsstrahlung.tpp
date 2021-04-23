@@ -34,6 +34,7 @@
 #include <pmacc/algorithms/math/defines/cross.hpp>
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu
@@ -84,7 +85,7 @@ namespace picongpu
                 cachedIonDensity = CachedBox::create<0, ValueTypeIonDensity>(acc, BlockArea());
 
                 /* instance of nvidia assignment operator */
-                nvidia::functors::Assign assign;
+                pmacc::math::operation::Assign assign;
                 /* copy fields from global to shared */
                 const auto fieldIonDensityBlock = ionDensityBox.shift(blockCell);
 

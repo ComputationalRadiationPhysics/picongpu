@@ -30,7 +30,6 @@
 #include "pmacc/memory/boxes/DataBox.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
-#include "pmacc/nvidia/gpuEntryFunction.hpp"
 #include "pmacc/traits/GetNumWorkers.hpp"
 
 #include <boost/type_traits/remove_pointer.hpp>

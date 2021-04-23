@@ -42,7 +42,7 @@ namespace picongpu
                      *
                      * @tparam T_ParamClass picongpu::particles::manipulators::unary::param::TemperatureCfg,
                      *                      type with compile configuration
-                     * @tparam T_ValueFunctor pmacc::nvidia::functors::*, binary functor type to
+                     * @tparam T_ValueFunctor pmacc::math::operation::*, binary functor type to
                      *                        add a new momentum to an old one
                      */
                     template<typename T_ParamClass, typename T_ValueFunctor>

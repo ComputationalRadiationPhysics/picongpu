@@ -24,8 +24,8 @@
 // pmacc
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/nvidia/reduce/Reduce.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/device/Reduce.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/memory/Array.hpp>
@@ -92,7 +92,7 @@ namespace picongpu
 
                         uint32_t const numAvgCells = pmacc::math::CT::volume<spatialAverageBox>::type::value;
 
-                        nvidia::reduce::kernel::Reduce<ValueType, numAvgCells, numWorkers> reduce{};
+                        pmacc::device::reduce::Kernel<ValueType, numAvgCells, numWorkers> reduce{};
 
 
                         reduce(
@@ -102,7 +102,7 @@ namespace picongpu
                             /* access inside local average view */
                             d1access,
                             numAvgCells,
-                            nvidia::functors::Add(),
+                            pmacc::math::operation::Add(),
                             shReduceBuffer);
 
                         /* continue with master

@@ -24,7 +24,6 @@
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/algorithms/math.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
-#include <pmacc/nvidia/atomic.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 

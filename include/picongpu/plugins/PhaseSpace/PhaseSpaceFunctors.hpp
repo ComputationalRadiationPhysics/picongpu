@@ -27,7 +27,6 @@
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/VectorOperations.hpp>
 #include <pmacc/cuSTL/algorithm/functor/AssignValue.hpp>
-#include <pmacc/nvidia/atomic.hpp>
 
 #include "picongpu/particles/access/Cell2Particle.hpp"
 #include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"

@@ -41,6 +41,7 @@
 #include <pmacc/traits/Resolve.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu
@@ -132,7 +133,7 @@ namespace picongpu
                     cachedE = CachedBox::create<1, ValueType_E>(acc, BlockArea());
 
                     /* instance of nvidia assignment operator */
-                    nvidia::functors::Assign assign;
+                    pmacc::math::operation::Assign assign;
 
                     ThreadCollective<BlockArea, T_WorkerCfg::numWorkers> collective(workerCfg.getWorkerIdx());
                     /* copy fields from global to shared */

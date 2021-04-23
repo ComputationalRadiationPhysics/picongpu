@@ -27,6 +27,7 @@
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
+#include <pmacc/math/operation.hpp>
 
 #include <cstdint>
 
@@ -275,7 +276,7 @@ namespace picongpu
                         using namespace mappings::threads;
                         constexpr auto numWorkers = T_numWorkers;
                         auto const workerIdx = cupla::threadIdx(acc).x;
-                        nvidia::functors::Assign assign;
+                        pmacc::math::operation::Assign assign;
                         auto fieldBBlock = fieldB.shift(blockBeginIdx);
                         ThreadCollective<T_BlockDescription, numWorkers> collectiveCacheB(workerIdx);
                         auto cachedB = CachedBox::create<0u, typename T_BBox::ValueType>(acc, T_BlockDescription());
@@ -388,7 +389,7 @@ namespace picongpu
                         using namespace mappings::threads;
                         constexpr auto numWorkers = T_numWorkers;
                         auto const workerIdx = cupla::threadIdx(acc).x;
-                        nvidia::functors::Assign assign;
+                        pmacc::math::operation::Assign assign;
                         auto fieldEBlock = fieldE.shift(blockBeginIdx);
                         ThreadCollective<T_BlockDescription, numWorkers> collectiveCacheE(workerIdx);
                         auto cachedE = CachedBox::create<0u, typename T_EBox::ValueType>(acc, T_BlockDescription());

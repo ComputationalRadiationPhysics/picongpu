@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/functors/Atomic.hpp>
+#include <pmacc/math/operation.hpp>
+#include <pmacc/kernel/operation/Atomic.hpp>
 #include <pmacc/types.hpp>
 
 
@@ -66,8 +66,8 @@ namespace picongpu
             {
                 static constexpr bool useBlockCache = true;
                 static constexpr bool stridedMapping = true;
-                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
-                using GridReductionOp = nvidia::functors::Add;
+                using BlockReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
+                using GridReductionOp = pmacc::math::operation::Add;
                 static constexpr int workerMultiplier = 1;
             };
 
@@ -79,8 +79,8 @@ namespace picongpu
             {
                 static constexpr bool useBlockCache = true;
                 static constexpr bool stridedMapping = true;
-                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
-                using GridReductionOp = nvidia::functors::Add;
+                using BlockReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
+                using GridReductionOp = pmacc::math::operation::Add;
                 static constexpr int workerMultiplier = detail::validateAndAdjustWorkerMultiplier(T_workerMultiplier);
             };
 
@@ -99,8 +99,8 @@ namespace picongpu
             {
                 static constexpr bool useBlockCache = true;
                 static constexpr bool stridedMapping = false;
-                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
-                using GridReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
+                using BlockReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
+                using GridReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
                 static constexpr int workerMultiplier = 1;
             };
 
@@ -112,8 +112,8 @@ namespace picongpu
             {
                 static constexpr bool useBlockCache = true;
                 static constexpr bool stridedMapping = false;
-                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
-                using GridReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
+                using BlockReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
+                using GridReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
                 static constexpr int workerMultiplier = detail::validateAndAdjustWorkerMultiplier(T_workerMultiplier);
             };
 
@@ -133,7 +133,7 @@ namespace picongpu
             {
                 static constexpr bool useBlockCache = false;
                 static constexpr bool stridedMapping = false;
-                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
+                using BlockReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
                 // dummy which produces a compile time error if used
                 using GridReductionOp = void;
                 static constexpr int workerMultiplier = 1;
@@ -147,7 +147,7 @@ namespace picongpu
             {
                 static constexpr bool useBlockCache = false;
                 static constexpr bool stridedMapping = false;
-                using BlockReductionOp = nvidia::functors::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
+                using BlockReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
                 // dummy which produces a compile time error if used
                 using GridReductionOp = void;
                 static constexpr int workerMultiplier = detail::validateAndAdjustWorkerMultiplier(T_workerMultiplier);

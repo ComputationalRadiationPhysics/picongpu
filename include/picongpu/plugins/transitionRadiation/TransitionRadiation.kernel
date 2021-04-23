@@ -34,6 +34,7 @@
 
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/kernel/atomic.hpp>
 
 
 namespace picongpu
@@ -212,7 +213,7 @@ namespace picongpu
                                     if((particleMomentum * particleMomentum).sumOfComponents() > 0.0)
                                     {
                                         if(transitionRadiation::getTransitionRadiationMask(par))
-                                            saveParticleAt = nvidia::atomicAllInc(
+                                            saveParticleAt = kernel::atomicAllInc(
                                                 acc,
                                                 &counter_s,
                                                 ::alpaka::hierarchy::Threads{});

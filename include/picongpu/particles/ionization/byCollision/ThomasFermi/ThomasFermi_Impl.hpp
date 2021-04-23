@@ -37,6 +37,7 @@
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
+#include <pmacc/math/operation.hpp>
 
 #include <boost/type_traits/integral_constant.hpp>
 
@@ -195,7 +196,7 @@ namespace picongpu
                     cachedEne = CachedBox::create<1, ValueType_Ene>(acc, BlockArea());
 
                     /* instance of nvidia assignment operator */
-                    nvidia::functors::Assign assign;
+                    pmacc::math::operation::Assign assign;
                     /* copy fields from global to shared */
                     auto fieldRhoBlock = rhoBox.shift(blockCell);
                     ThreadCollective<BlockArea, T_WorkerCfg::numWorkers> collective(workerCfg.getWorkerIdx());

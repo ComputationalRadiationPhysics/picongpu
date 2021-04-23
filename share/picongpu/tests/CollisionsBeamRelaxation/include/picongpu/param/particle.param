@@ -33,8 +33,7 @@
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 #include "picongpu/param/physicalConstants.param"
 
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/functors/Assign.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu
@@ -73,8 +72,8 @@ namespace picongpu
                 static constexpr float_64 gamma = 1.00125;
                 const DriftParam_direction_t direction;
             };
-            using AssignSlowDrift = unary::Drift<DriftSlowParam, nvidia::functors::Assign>;
-            using AssignFastDrift = unary::Drift<DriftFastParam, nvidia::functors::Assign>;
+            using AssignSlowDrift = unary::Drift<DriftSlowParam, pmacc::math::operation::Assign>;
+            using AssignFastDrift = unary::Drift<DriftFastParam, pmacc::math::operation::Assign>;
 
             struct TemperatureParamElectrons
             {

@@ -31,7 +31,7 @@
 #include "pmacc/eventSystem/streams/StreamController.hpp"
 #include "pmacc/dataManagement/DataConnector.hpp"
 #include "pmacc/pluginSystem/PluginConnector.hpp"
-#include "pmacc/nvidia/memory/MemoryInfo.hpp"
+#include "pmacc/device/MemoryInfo.hpp"
 #include "pmacc/simulationControl/SimulationDescription.hpp"
 #include "pmacc/mappings/simulation/Filesystem.hpp"
 #include "pmacc/eventSystem/events/EventPool.hpp"
@@ -262,12 +262,12 @@ namespace pmacc
              *
              * @return instance of MemoryInfo
              */
-            nvidia::memory::MemoryInfo& MemoryInfo()
+            device::MemoryInfo& MemoryInfo()
             {
                 PMACC_ASSERT_MSG(
                     EnvironmentContext::getInstance().isDeviceSelected(),
                     "Environment< DIM >::initDevices() must be called before this method!");
-                return nvidia::memory::MemoryInfo::getInstance();
+                return device::MemoryInfo::getInstance();
             }
 
             /** get the singleton SimulationDescription

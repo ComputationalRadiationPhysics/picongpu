@@ -26,7 +26,7 @@
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/math/Vector.hpp"
 #include "pmacc/particles/frame_types.hpp"
-#include "pmacc/nvidia/atomic.hpp"
+#include "pmacc/kernel/atomic.hpp"
 #include "pmacc/debug/VerboseLog.hpp"
 #include "pmacc/memory/shared/Allocate.hpp"
 #include "pmacc/memory/Array.hpp"
@@ -41,14 +41,14 @@ namespace pmacc
     {
         namespace operations
         {
-            namespace kernel
+            namespace detail
             {
                 /** transform a large frame into a list of small frames
                  *
                  * @tparam T_numWorkers number of workers
                  */
                 template<uint32_t T_numWorkers>
-                struct SplitIntoListOfFrames
+                struct KernelSplitIntoListOfFrames
                 {
                     /** Copy particles from big frame to PMacc frame structure
                      *  (Opposite to ConcatListOfFrames)
@@ -200,7 +200,7 @@ namespace pmacc
                                 if(vThreadMasterIdx == linearIdx)
                                 {
                                     /* counter[2] -> number of used frames */
-                                    nvidia::atomicAllInc(acc, &(counter[2]), ::alpaka::hierarchy::Blocks{});
+                                    kernel::atomicAllInc(acc, &(counter[2]), ::alpaka::hierarchy::Blocks{});
                                     DestFramePtr tmpFrame = destBox.getEmptyFrame(acc);
                                     destFramePtr[linearIdx] = tmpFrame;
                                     destBox.setAsFirstFrame(
@@ -226,12 +226,12 @@ namespace pmacc
                                 /* counter[1] -> number of loaded particles
                                  * this counter is evaluated on host side
                                  * (check that loaded particles by this kernel == loaded particles from HDF5 file)*/
-                                nvidia::atomicAllInc(acc, &(counter[1]), ::alpaka::hierarchy::Blocks{});
+                                kernel::atomicAllInc(acc, &(counter[1]), ::alpaka::hierarchy::Blocks{});
                             }
                         });
                     }
                 };
-            } // namespace kernel
+            } // namespace detail
 
             /** Copy particles from big frame to PMacc frame structure
              *  (Opposite to ConcatListOfFrames)
@@ -301,7 +301,7 @@ namespace pmacc
                     constexpr uint32_t numWorkers
                         = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
-                    PMACC_KERNEL(kernel::SplitIntoListOfFrames<numWorkers>{})
+                    PMACC_KERNEL(detail::KernelSplitIntoListOfFrames<numWorkers>{})
                     (math::float2int_ru(double(currentChunkSize) / double(cellsInSuperCell)), numWorkers)(
                         counterBuffer.getDeviceBuffer().getDataBox(),
                         destSpecies.getDeviceParticlesBox(),

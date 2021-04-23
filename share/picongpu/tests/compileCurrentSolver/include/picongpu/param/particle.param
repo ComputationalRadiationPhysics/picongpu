@@ -24,7 +24,7 @@
 #include "picongpu/particles/manipulators/manipulators.def"
 #include "picongpu/particles/filter/filter.def"
 
-#include <pmacc/nvidia/functors/Assign.hpp>
+#include <pmacc/math/operation.hpp>
 
 namespace picongpu
 {
@@ -69,7 +69,7 @@ namespace picongpu
                 static constexpr float_64 gamma = 1.021;
                 const DriftParamPositive_direction_t direction;
             };
-            using AssignXDriftPositive = unary::Drift<DriftParamPositive, nvidia::functors::Assign>;
+            using AssignXDriftPositive = unary::Drift<DriftParamPositive, pmacc::math::operation::Assign>;
 
             struct TemperatureParam
             {

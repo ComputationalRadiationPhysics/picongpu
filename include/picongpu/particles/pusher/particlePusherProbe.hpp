@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/nvidia/functors/Assign.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu
@@ -29,7 +29,7 @@ namespace picongpu
     {
         /** Probe electro-magnetic fields and store the result with a particle
          *
-         * @tparam T_ValueFunctor pmacc::nvidia::functors::*, binary functor
+         * @tparam T_ValueFunctor pmacc::math::operation::*, binary functor
          *         handling how to store the obtained field on the particle,
          *         default is assigning a new value
          * @tparam T_ActualPush allows to perform a real particle push after
@@ -38,7 +38,7 @@ namespace picongpu
          *         particle species that records its fields),
          *         default is void and means no push (just a static probe)
          */
-        template<typename T_ValueFunctor = pmacc::nvidia::functors::Assign, typename T_ActualPush = void>
+        template<typename T_ValueFunctor = pmacc::math::operation::Assign, typename T_ActualPush = void>
         struct Push
         {
             using ActualPush = T_ActualPush;

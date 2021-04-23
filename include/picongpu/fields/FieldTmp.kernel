@@ -27,7 +27,7 @@
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
@@ -126,7 +126,7 @@ namespace picongpu
 
             cupla::__syncthreads(acc);
 
-            nvidia::functors::Add add;
+            pmacc::math::operation::Add add;
             DataSpace<simDim> const blockCell = block * SuperCellSize::toRT();
             auto fieldTmpBlock = fieldTmp.shift(blockCell);
             collective(acc, add, fieldTmpBlock, cachedVal);

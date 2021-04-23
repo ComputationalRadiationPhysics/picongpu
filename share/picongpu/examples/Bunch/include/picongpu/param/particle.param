@@ -22,8 +22,7 @@
 #include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
 
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/functors/Assign.hpp>
+#include <pmacc/math/operation.hpp>
 
 #include <limits>
 
@@ -61,7 +60,7 @@ namespace picongpu
                 const DriftParamNegative_direction_t direction;
             };
             // definition of SetDrift start
-            using AssignYDriftNegative = unary::Drift<DriftParamNegative, nvidia::functors::Assign>;
+            using AssignYDriftNegative = unary::Drift<DriftParamNegative, pmacc::math::operation::Assign>;
 
         } // namespace manipulators
 

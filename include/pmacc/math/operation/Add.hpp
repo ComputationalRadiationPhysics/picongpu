@@ -1,4 +1,4 @@
-/* Copyright 2016-2021 Felix Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -21,32 +21,41 @@
 
 #pragma once
 
-
+#include "pmacc/mpi/GetMPI_Op.hpp"
 #include "pmacc/types.hpp"
-
-#pragma once
 
 namespace pmacc
 {
-    namespace nvidia
+    namespace math
     {
-        /**
-         *
-         * @tparam T_KernelFunctor type of the functor for device execution
-         */
-        template<typename T_KernelFunctor>
-        struct PMaccKernel
+        namespace operation
         {
-            /**
-             *
-             * @param acc functor for device execution
-             * @param args arguments for the functor
-             */
-            template<typename T_Acc, typename... T_Args>
-            DINLINE void operator()(T_Acc const acc, T_Args... args) const
+            struct Add
             {
-                T_KernelFunctor{}(acc, args...);
-            }
-        };
-    } // namespace nvidia
+                template<typename Dst, typename Src>
+                HDINLINE void operator()(Dst& dst, const Src& src) const
+                {
+                    dst += src;
+                }
+
+                template<typename Dst, typename Src, typename T_Acc>
+                HDINLINE void operator()(const T_Acc&, Dst& dst, const Src& src) const
+                {
+                    dst += src;
+                }
+            };
+        } // namespace operation
+    } // namespace math
+} // namespace pmacc
+
+namespace pmacc
+{
+    namespace mpi
+    {
+        template<>
+        HINLINE MPI_Op getMPI_Op<pmacc::math::operation::Add>()
+        {
+            return MPI_SUM;
+        }
+    } // namespace mpi
 } // namespace pmacc

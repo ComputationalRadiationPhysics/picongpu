@@ -19,46 +19,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
-
-#include "pmacc/mpi/GetMPI_Op.hpp"
-#include "pmacc/algorithms/math.hpp"
 
 #include "pmacc/types.hpp"
 
 namespace pmacc
 {
-    namespace nvidia
+    namespace math
     {
-        namespace functors
+        namespace operation
         {
-            struct Min
+            struct Assign
             {
                 template<typename Dst, typename Src>
-                DINLINE void operator()(Dst& dst, const Src& src) const
+                HDINLINE void operator()(Dst& dst, const Src& src) const
                 {
-                    dst = math::min(dst, src);
+                    dst = src;
                 }
 
                 template<typename Dst, typename Src, typename T_Acc>
-                DINLINE void operator()(const T_Acc&, Dst& dst, const Src& src) const
+                HDINLINE void operator()(const T_Acc&, Dst& dst, const Src& src) const
                 {
-                    dst = math::min(dst, src);
+                    dst = src;
                 }
             };
-        } // namespace functors
-    } // namespace nvidia
-} // namespace pmacc
-
-namespace pmacc
-{
-    namespace mpi
-    {
-        template<>
-        HINLINE MPI_Op getMPI_Op<pmacc::nvidia::functors::Min>()
-        {
-            return MPI_MIN;
-        }
-    } // namespace mpi
+        } // namespace operation
+    } // namespace math
 } // namespace pmacc

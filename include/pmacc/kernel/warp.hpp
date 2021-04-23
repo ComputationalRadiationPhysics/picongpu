@@ -28,7 +28,7 @@
 
 namespace pmacc
 {
-    namespace nvidia
+    namespace kernel
     {
 /** get lane id of a thread within a warp
  *
@@ -113,7 +113,7 @@ namespace pmacc
 //! @}
 #    endif
 
-    } // namespace nvidia
+    } // namespace kernel
 } // namespace pmacc
 
 #endif

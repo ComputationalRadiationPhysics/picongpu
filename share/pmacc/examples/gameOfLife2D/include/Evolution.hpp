@@ -23,7 +23,7 @@
 #include "types.hpp"
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
-#include <pmacc/nvidia/functors/Assign.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/memory/dataTypes/Mask.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
@@ -88,7 +88,7 @@ namespace gol
 
                 ThreadCollective<BlockArea, numWorkers> collective(workerIdx);
 
-                nvidia::functors::Assign assign;
+                math::operation::Assign assign;
                 collective(acc, assign, cache, buffRead_shifted);
 
                 cupla::__syncthreads(acc);

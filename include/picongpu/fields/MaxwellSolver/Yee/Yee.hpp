@@ -30,7 +30,6 @@
 #include "picongpu/fields/differentiation/Curl.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
-#include <pmacc/nvidia/functors/Assign.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/math/vector/compile-time/Vector.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>

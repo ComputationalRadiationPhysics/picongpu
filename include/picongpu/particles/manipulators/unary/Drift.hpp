@@ -37,7 +37,7 @@ namespace picongpu
                      *
                      * @tparam T_ParamClass picongpu::particles::manipulators::unary::param::DriftCfg,
                      *                      type with compile configuration
-                     * @tparam T_ValueFunctor pmacc::nvidia::functors, binary operator type to reduce current and new
+                     * @tparam T_ValueFunctor pmacc::math::operation, binary operator type to reduce current and new
                      * value
                      */
                     template<typename T_ParamClass, typename T_ValueFunctor>

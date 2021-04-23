@@ -30,8 +30,6 @@
 
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/eventSystem/EventSystem.hpp>
-
-#include <pmacc/nvidia/memory/MemoryInfo.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include "picongpu/ArgsParser.hpp"
 #include "picongpu/plugins/PluginController.hpp"
@@ -48,7 +46,7 @@
 
 #include <pmacc/cuSTL/container/allocator/DeviceMemEvenPitchAllocator.hpp>
 #include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
 #include <pmacc/cuSTL/algorithm/functor/Add.hpp>
 
@@ -174,7 +172,7 @@ namespace picongpu
                             cursor::tools::slice(fieldE_coreBorder.origin()(0, 0, z)),
                             pmacc::algorithm::functor::GetComponent<typename FieldE::ValueType::type>(i == 0 ? 0 : 2)),
                         reduceZone,
-                        nvidia::functors::Add());
+                        pmacc::math::operation::Add());
                 }
             }
 

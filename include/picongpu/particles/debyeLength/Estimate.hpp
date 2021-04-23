@@ -29,6 +29,7 @@
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/AllReduce.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu
@@ -92,31 +93,31 @@ namespace picongpu
                 auto globalEstimate = Estimate{};
                 pmacc::mpi::MPIReduce reduce;
                 reduce(
-                    pmacc::nvidia::functors::Add(),
+                    pmacc::math::operation::Add(),
                     &globalEstimate.numUsedSupercells,
                     &localEstimate.numUsedSupercells,
                     1,
                     pmacc::mpi::reduceMethods::AllReduce());
                 reduce(
-                    pmacc::nvidia::functors::Add(),
+                    pmacc::math::operation::Add(),
                     &globalEstimate.numFailingSupercells,
                     &localEstimate.numFailingSupercells,
                     1,
                     pmacc::mpi::reduceMethods::AllReduce());
                 reduce(
-                    pmacc::nvidia::functors::Add(),
+                    pmacc::math::operation::Add(),
                     &globalEstimate.sumWeighting,
                     &localEstimate.sumWeighting,
                     1,
                     pmacc::mpi::reduceMethods::AllReduce());
                 reduce(
-                    pmacc::nvidia::functors::Add(),
+                    pmacc::math::operation::Add(),
                     &globalEstimate.sumTemperatureKeV,
                     &localEstimate.sumTemperatureKeV,
                     1,
                     pmacc::mpi::reduceMethods::AllReduce());
                 reduce(
-                    pmacc::nvidia::functors::Add(),
+                    pmacc::math::operation::Add(),
                     &globalEstimate.sumDebyeLength,
                     &localEstimate.sumDebyeLength,
                     1,

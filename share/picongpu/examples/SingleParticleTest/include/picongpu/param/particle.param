@@ -23,8 +23,7 @@
 #include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
 
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/functors/Assign.hpp>
+#include <pmacc/math/operation.hpp>
 
 #include <limits>
 
@@ -56,7 +55,7 @@ namespace picongpu
                 static constexpr float_64 gamma = 1.1547; // beta: 0.5
                 const DriftParam_direction_t direction;
             };
-            using AssignYDrift = unary::Drift<DriftParam, nvidia::functors::Assign>;
+            using AssignYDrift = unary::Drift<DriftParam, pmacc::math::operation::Assign>;
 
         } // namespace manipulators
 

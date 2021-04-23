@@ -27,7 +27,6 @@
 #include "pmacc/traits/GetNComponents.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/Environment.hpp"
-#include "pmacc/nvidia/gpuEntryFunction.hpp"
 
 #include <string>
 

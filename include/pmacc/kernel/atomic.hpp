@@ -23,7 +23,7 @@
 
 #include "pmacc/types.hpp"
 #include "pmacc/memory/Array.hpp"
-#include "pmacc/nvidia/warp.hpp"
+#include "pmacc/kernel/warp.hpp"
 
 #include <alpaka/intrinsic/Traits.hpp>
 #include <alpaka/warp/Traits.hpp>
@@ -36,7 +36,7 @@
 
 namespace pmacc
 {
-    namespace nvidia
+    namespace kernel
     {
         namespace detail
         {
@@ -262,5 +262,5 @@ namespace pmacc
         {
             return detail::AtomicOpNoRet<T_Op, T_Acc, T_Type, T_Hierarchy>{}(acc, ptr, value, hierarchy);
         }
-    } // namespace nvidia
+    } // namespace kernel
 } // namespace pmacc

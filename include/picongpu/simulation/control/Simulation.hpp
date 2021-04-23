@@ -39,7 +39,6 @@
 
 #include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/nvidia/memory/MemoryInfo.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include <pmacc/mappings/simulation/SubGrid.hpp>
@@ -82,7 +81,6 @@
 
 #include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 
-#include <pmacc/nvidia/reduce/Reduce.hpp>
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/meta/conversion/SeqToMap.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
@@ -320,8 +318,6 @@ namespace picongpu
 
         virtual void init()
         {
-            namespace nvmem = pmacc::nvidia::memory;
-
             // This has to be called before initFields()
             currentInterpolationAndAdditionToEMF.init();
 
