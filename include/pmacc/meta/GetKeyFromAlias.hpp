@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/meta/conversion/SeqToMap.hpp"
 #include "pmacc/meta/conversion/TypeToAliasPair.hpp"
 #include "pmacc/meta/conversion/TypeToPair.hpp"
 #include "pmacc/meta/errorHandlerPolicies/ReturnType.hpp"
+#include "pmacc/types.hpp"
 
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/copy.hpp>

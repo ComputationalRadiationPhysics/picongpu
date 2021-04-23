@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/mpi/GetMPI_Op.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

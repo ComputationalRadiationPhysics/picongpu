@@ -20,9 +20,10 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/ArbitraryOrderFDTD.def"
-#include "picongpu/fields/differentiation/Curl.hpp"
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Derivative.hpp"
+#include "picongpu/fields/differentiation/Curl.hpp"
 
 #include <cstdint>
 #include <string>

@@ -22,22 +22,20 @@
 
 #pragma once
 
+#include "pmacc/Environment.def"
+#include "pmacc/assert.hpp"
+#include "pmacc/communication/manager_common.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
+#include "pmacc/device/MemoryInfo.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
-#include "pmacc/particles/tasks/ParticleFactory.hpp"
-
+#include "pmacc/eventSystem/events/EventPool.hpp"
+#include "pmacc/eventSystem/streams/StreamController.hpp"
+#include "pmacc/mappings/simulation/Filesystem.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/mappings/simulation/SubGrid.hpp"
-#include "pmacc/mappings/simulation/EnvironmentController.hpp"
-#include "pmacc/eventSystem/streams/StreamController.hpp"
-#include "pmacc/dataManagement/DataConnector.hpp"
+#include "pmacc/particles/tasks/ParticleFactory.hpp"
 #include "pmacc/pluginSystem/PluginConnector.hpp"
-#include "pmacc/device/MemoryInfo.hpp"
 #include "pmacc/simulationControl/SimulationDescription.hpp"
-#include "pmacc/mappings/simulation/Filesystem.hpp"
-#include "pmacc/eventSystem/events/EventPool.hpp"
-#include "pmacc/Environment.def"
-#include "pmacc/communication/manager_common.hpp"
-#include "pmacc/assert.hpp"
 
 #include <mpi.h>
 
@@ -585,5 +583,5 @@ namespace pmacc
 #define __setTransactionEvent(event) (pmacc::Environment<>::get().TransactionManager().setTransactionEvent((event)))
 
 #include "pmacc/eventSystem/EventSystem.tpp"
-#include "pmacc/particles/tasks/ParticleFactory.tpp"
 #include "pmacc/eventSystem/events/CudaEvent.hpp"
+#include "pmacc/particles/tasks/ParticleFactory.tpp"

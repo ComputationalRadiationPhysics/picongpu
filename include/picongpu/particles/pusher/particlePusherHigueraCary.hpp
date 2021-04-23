@@ -20,8 +20,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/traits/attribute/GetMass.hpp"
+
 #include "picongpu/traits/attribute/GetCharge.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
 
 
 namespace picongpu

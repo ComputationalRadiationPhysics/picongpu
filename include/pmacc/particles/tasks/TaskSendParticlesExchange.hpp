@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/assert.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/type/Exchange.hpp"
 
 namespace pmacc

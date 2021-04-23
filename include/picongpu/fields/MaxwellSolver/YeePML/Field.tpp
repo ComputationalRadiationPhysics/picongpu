@@ -21,6 +21,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
 
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>

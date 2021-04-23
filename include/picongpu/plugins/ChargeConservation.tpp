@@ -19,29 +19,26 @@
 
 #pragma once
 
-#include <pmacc/static_assert.hpp>
-
+#include "common/txtFileHandling.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 
-#include <pmacc/math/vector/Int.hpp>
-#include <pmacc/math/vector/Float.hpp>
-#include <pmacc/math/vector/Size_t.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/math/Vector.hpp>
+#include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
+#include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
+#include <pmacc/cuSTL/algorithm/kernel/Reduce.hpp>
+#include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
 #include <pmacc/cuSTL/container/HostBuffer.hpp>
 #include <pmacc/cuSTL/container/PseudoBuffer.hpp>
 #include <pmacc/cuSTL/cursor/NestedCursor.hpp>
-#include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
-#include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
-#include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
-#include <pmacc/cuSTL/algorithm/kernel/Reduce.hpp>
-#include <pmacc/meta/ForEach.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/math/Vector.hpp>
 #include <pmacc/math/operation.hpp>
-#include <pmacc/particles/meta/FindByNameOrType.hpp>
+#include <pmacc/math/vector/Float.hpp>
+#include <pmacc/math/vector/Int.hpp>
+#include <pmacc/math/vector/Size_t.hpp>
 #include <pmacc/meta/ForEach.hpp>
-
-#include "common/txtFileHandling.hpp"
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
+#include <pmacc/static_assert.hpp>
 
 #include <sstream>
 

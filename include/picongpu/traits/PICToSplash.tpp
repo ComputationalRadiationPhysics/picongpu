@@ -20,11 +20,12 @@
 #pragma once
 
 #if(ENABLE_HDF5 == 1)
-#    include <splash/splash.h>
-
 #    include "picongpu/simulation_defines.hpp"
+
 #    include <boost/mpl/if.hpp>
 #    include <boost/type_traits.hpp>
+
+#    include <splash/splash.h>
 
 namespace picongpu
 {

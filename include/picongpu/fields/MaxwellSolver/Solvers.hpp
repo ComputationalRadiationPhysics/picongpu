@@ -19,10 +19,10 @@
 
 #pragma once
 
+#include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/ArbitraryOrderFDTD.hpp"
+#include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTDPML/ArbitraryOrderFDTDPML.hpp"
+#include "picongpu/fields/MaxwellSolver/Lehe/Lehe.hpp"
+#include "picongpu/fields/MaxwellSolver/LehePML/LehePML.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/YeePML.hpp"
-#include "picongpu/fields/MaxwellSolver/Lehe/Lehe.hpp"
-#include "picongpu/fields/MaxwellSolver/LehePML/LehePML.hpp"
-#include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/ArbitraryOrderFDTD.hpp"
-#include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTDPML/ArbitraryOrderFDTDPML.hpp"

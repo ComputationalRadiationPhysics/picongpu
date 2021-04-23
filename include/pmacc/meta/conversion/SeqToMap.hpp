@@ -21,19 +21,16 @@
 
 #pragma once
 
+#include "pmacc/meta/accessors/Identity.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/map.hpp>
 #include <boost/mpl/copy.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/transform.hpp>
-#include <boost/mpl/placeholders.hpp>
-#include <boost/mpl/insert.hpp>
-
 #include <boost/type_traits.hpp>
-
-
-#include "pmacc/meta/accessors/Identity.hpp"
 
 namespace pmacc
 {

@@ -20,8 +20,9 @@
 
 #pragma once
 
-#include <iostream>
 #include "VectorTypes.hpp"
+
+#include <iostream>
 
 namespace picongpu
 {

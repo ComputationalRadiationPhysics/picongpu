@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "pmacc/types.hpp"
+
 namespace pmacc
 {
     namespace math
@@ -36,3 +38,6 @@ namespace pmacc
 
     } // namespace math
 } // namespace pmacc
+
+#include "pmacc/algorithms/math/doubleMath/modf.tpp"
+#include "pmacc/algorithms/math/floatMath/modf.tpp"

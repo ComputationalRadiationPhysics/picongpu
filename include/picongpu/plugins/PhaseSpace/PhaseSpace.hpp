@@ -20,30 +20,32 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
+
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
 #include "picongpu/plugins/PhaseSpace/PhaseSpaceFunctors.hpp"
 
-#include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
-#include <pmacc/cuSTL/cursor/BufferCursor.hpp>
-#include <pmacc/cuSTL/zone/SphericZone.hpp>
 #include <pmacc/communication/manager_common.hpp>
-#include <pmacc/pluginSystem/INotify.hpp>
+#include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
+#include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
 #include <pmacc/cuSTL/container/HostBuffer.hpp>
-#include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
+#include <pmacc/cuSTL/cursor/BufferCursor.hpp>
+#include <pmacc/cuSTL/zone/SphericZone.hpp>
 #include <pmacc/math/Vector.hpp>
-#include <pmacc/traits/HasIdentifiers.hpp>
-#include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/pluginSystem/INotify.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
 
-#include <boost/mpl/min_max.hpp>
-#include <boost/mpl/int.hpp>
 #include <boost/mpl/accumulate.hpp>
 #include <boost/mpl/and.hpp>
+#include <boost/mpl/int.hpp>
+#include <boost/mpl/min_max.hpp>
 
 #include <string>
 #include <utility>
+
 #include <mpi.h>
 
 

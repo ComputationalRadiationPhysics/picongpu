@@ -23,13 +23,12 @@
 #pragma once
 
 
-#include "pmacc/cuSTL/container/view/View.hpp"
 #include "pmacc/cuSTL/container/DeviceBuffer.hpp"
+#include "pmacc/cuSTL/container/view/View.hpp"
 #include "pmacc/math/vector/Int.hpp"
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/memory/buffers/Buffer.hpp"
 #include "pmacc/types.hpp"
-
 
 #include <stdexcept>
 

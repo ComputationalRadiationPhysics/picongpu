@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/algorithms/TypeCast.hpp"
-#include "pmacc/math/vector/Int.hpp"
 #include "pmacc/math/Vector.hpp"
 #include "pmacc/math/VectorOperations.hpp"
+#include "pmacc/math/vector/Int.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

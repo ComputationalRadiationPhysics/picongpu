@@ -21,21 +21,22 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/fields/currentDeposition/Strategy.def"
-#include "picongpu/fields/currentDeposition/Cache.hpp"
-#include "picongpu/fields/FieldJ.hpp"
-#include "picongpu/algorithms/Velocity.hpp"
 
-#include <pmacc/memory/boxes/CachedBox.hpp>
+#include "picongpu/algorithms/Velocity.hpp"
+#include "picongpu/fields/FieldJ.hpp"
+#include "picongpu/fields/currentDeposition/Cache.hpp"
+#include "picongpu/fields/currentDeposition/Strategy.def"
+
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
-#include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/mappings/threads/ThreadCollective.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/memory/CtxArray.hpp>
+#include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
 #include <pmacc/types.hpp>
-#include <pmacc/math/operation.hpp>
 
 #include <type_traits>
 #include <utility>

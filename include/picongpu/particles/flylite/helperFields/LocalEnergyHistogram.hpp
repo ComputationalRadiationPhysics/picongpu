@@ -24,8 +24,8 @@
 // pmacc
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/Array.hpp>
+#include <pmacc/memory/buffers/GridBuffer.hpp>
 
 #include <string>
 

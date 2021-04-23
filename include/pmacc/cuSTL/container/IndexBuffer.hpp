@@ -21,14 +21,15 @@
 
 #pragma once
 
-#include <stdint.h>
-#include "../vector/UInt32.hpp"
+#include "../cursor/Cursor.hpp"
+#include "../cursor/accessor/MarkerAccessor.hpp"
+#include "../cursor/navigator/CartNavigator.hpp"
 #include "../vector/Int.hpp"
 #include "../vector/Size_t.hpp"
-#include "../cursor/Cursor.hpp"
-#include "../cursor/navigator/CartNavigator.hpp"
-#include "../cursor/accessor/MarkerAccessor.hpp"
+#include "../vector/UInt32.hpp"
 #include "../zone/SphericZone.hpp"
+
+#include <stdint.h>
 
 namespace pmacc
 {

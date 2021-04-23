@@ -22,8 +22,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/mappings/simulation/SubGrid.hpp>
 
 
 namespace picongpu

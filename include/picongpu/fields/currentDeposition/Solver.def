@@ -18,9 +18,9 @@
  */
 
 
-#include "picongpu/fields/currentDeposition/Strategy.def"
-#include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.def"
 #include "picongpu/fields/currentDeposition/EmZ/EmZ.def"
+#include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.def"
+#include "picongpu/fields/currentDeposition/Strategy.def"
 
 #if(SIMDIM == DIM3)
 #    include "picongpu/fields/currentDeposition/VillaBune/CurrentVillaBune.def"

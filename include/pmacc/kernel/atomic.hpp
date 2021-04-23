@@ -21,17 +21,17 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/memory/Array.hpp"
 #include "pmacc/kernel/warp.hpp"
+#include "pmacc/memory/Array.hpp"
+#include "pmacc/types.hpp"
 
 #include <alpaka/intrinsic/Traits.hpp>
 #include <alpaka/warp/Traits.hpp>
 
 #include <boost/type_traits.hpp>
 
-#include <type_traits>
 #include <climits>
+#include <type_traits>
 
 
 namespace pmacc

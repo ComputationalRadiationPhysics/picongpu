@@ -22,37 +22,35 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "common/txtFileHandling.hpp"
 #include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/algorithms/KinEnergy.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/plugins/multi/multi.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/misc/misc.hpp"
+#include "picongpu/plugins/multi/multi.hpp"
 
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/math/operation.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 #include <pmacc/math/Vector.hpp>
-#include <pmacc/traits/HasIdentifiers.hpp>
+#include <pmacc/math/operation.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
-
-#include "common/txtFileHandling.hpp"
+#include <pmacc/traits/HasIdentifiers.hpp>
 
 #include <boost/mpl/and.hpp>
 
-#include <string>
-#include <iostream>
-#include <iomanip>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <string>
 
 
 namespace picongpu

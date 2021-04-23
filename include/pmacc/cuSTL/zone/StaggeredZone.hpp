@@ -21,9 +21,10 @@
 
 #pragma once
 
-#include <stdint.h>
-#include "vector/Vector.hpp"
 #include "SphericZone.hpp"
+#include "vector/Vector.hpp"
+
+#include <stdint.h>
 
 namespace pmacc
 {

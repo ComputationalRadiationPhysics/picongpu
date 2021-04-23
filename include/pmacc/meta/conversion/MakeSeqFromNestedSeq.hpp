@@ -22,10 +22,11 @@
 
 #pragma once
 
-#include <boost/mpl/vector.hpp>
-#include "pmacc/meta/conversion/ToSeq.hpp"
 #include "pmacc/meta/conversion/JoinToSeq.hpp"
+#include "pmacc/meta/conversion/ToSeq.hpp"
+
 #include <boost/mpl/fold.hpp>
+#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {

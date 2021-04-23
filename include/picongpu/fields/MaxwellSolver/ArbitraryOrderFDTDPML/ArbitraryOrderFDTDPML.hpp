@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/ArbitraryOrderFDTD.hpp"
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTDPML/ArbitraryOrderFDTDPML.def"
 

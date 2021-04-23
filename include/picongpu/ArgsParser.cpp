@@ -19,17 +19,18 @@
  */
 
 #include "picongpu/ArgsParser.hpp"
+
 #include "picongpu/debug/PIConGPUVerbose.hpp"
 #include "picongpu/versionFormat.hpp"
 
 #include <boost/program_options.hpp>
-#include <boost/program_options/options_description.hpp>
 #include <boost/program_options/cmdline.hpp>
+#include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 
 
 namespace picongpu

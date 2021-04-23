@@ -20,19 +20,20 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/plugins/output/images/PngCreator.hpp"
+
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
+#include "picongpu/plugins/output/images/PngCreator.hpp"
 
 #include <pmacc/memory/boxes/DataBox.hpp>
-#include <pmacc/verify.hpp>
 #include <pmacc/types.hpp>
+#include <pmacc/verify.hpp>
 
 #include <boost/core/ignore_unused.hpp>
 
-#include <string>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <iomanip>
+#include <string>
 
 #if(PIC_ENABLE_PNG == 1)
 #    include <pngwriter.h>

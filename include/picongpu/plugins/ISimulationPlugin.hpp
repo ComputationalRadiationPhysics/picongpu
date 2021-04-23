@@ -21,6 +21,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include <pmacc/pluginSystem/IPlugin.hpp>
 
 

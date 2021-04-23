@@ -21,11 +21,10 @@
 
 #pragma once
 
-#include "tag.hpp"
 #include "CartNavigator.hpp"
 #include "pmacc/cuSTL/cursor/traits.hpp"
-
 #include "pmacc/math/Vector.hpp"
+#include "tag.hpp"
 
 #include <boost/type_traits/remove_pointer.hpp>
 

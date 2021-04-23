@@ -21,19 +21,19 @@
 
 #pragma once
 
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/meta/conversion/MakeSeq.hpp"
+#include "pmacc/meta/conversion/MakeSeqFromNestedSeq.hpp"
 #include "pmacc/meta/conversion/SeqToMap.hpp"
 #include "pmacc/meta/conversion/TypeToAliasPair.hpp"
 #include "pmacc/meta/conversion/TypeToPair.hpp"
-#include "pmacc/meta/conversion/MakeSeqFromNestedSeq.hpp"
-#include "pmacc/meta/conversion/MakeSeq.hpp"
-#include "pmacc/math/Vector.hpp"
 #include "pmacc/types.hpp"
 
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/copy.hpp>
-#include <boost/mpl/pop_back.hpp>
-#include <boost/mpl/if.hpp>
 #include <boost/mpl/empty.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/pop_back.hpp>
 #include <boost/type_traits/is_same.hpp>
 
 namespace pmacc

@@ -24,8 +24,8 @@
 #include "pmacc/memory/dataTypes/Mask.hpp"
 #include "pmacc/types.hpp"
 
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace pmacc
 {

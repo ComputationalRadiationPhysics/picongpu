@@ -20,9 +20,10 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/plugins/output/IIOBackend.hpp"
-#include "picongpu/plugins/multi/IHelp.hpp"
+
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/multi/IHelp.hpp"
+#include "picongpu/plugins/output/IIOBackend.hpp"
 
 #if(ENABLE_ADIOS == 1)
 #    include "picongpu/plugins/adios/ADIOSWriter.hpp"
@@ -32,10 +33,10 @@
 #endif
 #include <pmacc/pluginSystem/PluginConnector.hpp>
 
-#include <string>
 #include <map>
 #include <memory>
 #include <stdexcept>
+#include <string>
 
 
 namespace picongpu

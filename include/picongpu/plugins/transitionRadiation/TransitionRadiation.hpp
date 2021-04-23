@@ -23,35 +23,33 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/plugins/transitionRadiation/TransitionRadiation.kernel"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/plugins/transitionRadiation/ExecuteParticleFilter.hpp"
 #include "picongpu/plugins/common/stringHelpers.hpp"
-
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/math/operation.hpp>
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/traits/HasIdentifier.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
-
-#include "picongpu/plugins/transitionRadiation/frequencies/LogFrequencies.hpp"
+#include "picongpu/plugins/transitionRadiation/ExecuteParticleFilter.hpp"
+#include "picongpu/plugins/transitionRadiation/TransitionRadiation.kernel"
 #include "picongpu/plugins/transitionRadiation/frequencies/LinearFrequencies.hpp"
 #include "picongpu/plugins/transitionRadiation/frequencies/ListFrequencies.hpp"
+#include "picongpu/plugins/transitionRadiation/frequencies/LogFrequencies.hpp"
+
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Complex.hpp>
+#include <pmacc/math/operation.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/traits/HasIdentifier.hpp>
 
 #include <boost/filesystem.hpp>
 
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-
-#include <string>
-#include <iostream>
-#include <fstream>
+#include <chrono>
 #include <cstdlib>
 #include <ctime>
-#include <chrono>
+#include <fstream>
+#include <iostream>
+#include <string>
 
 #include <math.h>
 

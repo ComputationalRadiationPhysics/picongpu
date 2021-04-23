@@ -21,15 +21,14 @@
 
 #pragma once
 
-#include "pmacc/traits/GetCTName.hpp"
 #include "pmacc/meta/errorHandlerPolicies/ThrowValueNotFound.hpp"
+#include "pmacc/traits/GetCTName.hpp"
 
-#include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/copy_if.hpp>
-#include <boost/type_traits/is_same.hpp>
 #include <boost/mpl/empty.hpp>
-#include <boost/mpl/or.hpp>
 #include <boost/mpl/front.hpp>
+#include <boost/mpl/or.hpp>
+#include <boost/mpl/placeholders.hpp>
 #include <boost/type_traits/is_same.hpp>
 
 

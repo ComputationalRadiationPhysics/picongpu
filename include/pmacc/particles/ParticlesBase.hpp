@@ -22,17 +22,15 @@
 
 #pragma once
 
-#include "pmacc/particles/ParticlesBase.kernel"
+#include "pmacc/assert.hpp"
 #include "pmacc/fields/SimulationFieldHelper.hpp"
 #include "pmacc/mappings/kernel/AreaMapping.hpp"
-
+#include "pmacc/mappings/kernel/StrideMapping.hpp"
+#include "pmacc/particles/ParticlesBase.kernel"
 #include "pmacc/particles/memory/boxes/ParticlesBox.hpp"
 #include "pmacc/particles/memory/buffers/ParticlesBuffer.hpp"
-
-#include "pmacc/mappings/kernel/StrideMapping.hpp"
-#include "pmacc/traits/NumberOfExchanges.hpp"
 #include "pmacc/traits/GetNumWorkers.hpp"
-#include "pmacc/assert.hpp"
+#include "pmacc/traits/NumberOfExchanges.hpp"
 
 #include <memory>
 

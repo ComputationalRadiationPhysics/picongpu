@@ -20,5 +20,5 @@
 
 #pragma once
 
-#include "picongpu/fields/background/templates/twtsfast/EField.tpp"
 #include "picongpu/fields/background/templates/twtsfast/BField.tpp"
+#include "picongpu/fields/background/templates/twtsfast/EField.tpp"

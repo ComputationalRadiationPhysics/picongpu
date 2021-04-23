@@ -19,12 +19,13 @@
 
 #pragma once
 
+#include <pmacc/algorithms/math.hpp>
 #include <pmacc/cuSTL/container/HostBuffer.hpp>
+#include <pmacc/cuSTL/cursor/BufferCursor.hpp>
 #include <pmacc/cuSTL/cursor/Cursor.hpp>
 #include <pmacc/cuSTL/cursor/navigator/PlusNavigator.hpp>
 #include <pmacc/cuSTL/cursor/tools/LinearInterp.hpp>
-#include <pmacc/cuSTL/cursor/BufferCursor.hpp>
-#include <pmacc/algorithms/math.hpp>
+
 #include <boost/array.hpp>
 #include <boost/shared_ptr.hpp>
 #if(BOOST_VERSION == 106400)
@@ -36,8 +37,9 @@
  */
 #    include <boost/serialization/array_wrapper.hpp>
 #endif
-#include <boost/numeric/odeint/integrate/integrate.hpp>
 #include <boost/math/tools/minima.hpp>
+#include <boost/numeric/odeint/integrate/integrate.hpp>
+
 #include <limits>
 #include <utility>
 

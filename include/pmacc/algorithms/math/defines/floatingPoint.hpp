@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "pmacc/types.hpp"
+
 namespace pmacc
 {
     namespace math
@@ -70,3 +72,6 @@ namespace pmacc
 
     } // namespace math
 } // namespace pmacc
+
+#include "pmacc/algorithms/math/doubleMath/floatingPoint.tpp"
+#include "pmacc/algorithms/math/floatMath/floatingPoint.tpp"

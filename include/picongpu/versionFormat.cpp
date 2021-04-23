@@ -17,8 +17,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <pmacc/boost_workaround.hpp>
 #include "picongpu/versionFormat.hpp"
+
+#include <pmacc/boost_workaround.hpp>
 
 #include <boost/version.hpp>
 // work-around: mallocMC PR #142

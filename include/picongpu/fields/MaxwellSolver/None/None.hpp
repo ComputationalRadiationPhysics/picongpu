@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/MaxwellSolver/None/None.def"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/GetMargin.hpp"

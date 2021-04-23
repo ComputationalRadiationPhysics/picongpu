@@ -19,8 +19,8 @@
 
 #include "picongpu/plugins/misc/removeSpaces.hpp"
 
-#include <string>
 #include <algorithm>
+#include <string>
 
 
 namespace picongpu

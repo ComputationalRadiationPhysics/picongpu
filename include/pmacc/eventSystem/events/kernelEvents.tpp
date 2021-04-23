@@ -22,8 +22,8 @@
 #pragma once
 
 
-#include "pmacc/types.hpp"
 #include "pmacc/eventSystem/events/kernelEvents.hpp"
+#include "pmacc/types.hpp"
 
 
 namespace pmacc

@@ -23,10 +23,10 @@
 
 #pragma once
 
-#include <cupla.hpp>
-
 #include <iostream>
 #include <stdexcept>
+
+#include <cupla.hpp>
 
 
 /**

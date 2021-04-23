@@ -20,13 +20,14 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/Particles.hpp"
 
-#include <pmacc/particles/Identifier.hpp>
-#include <pmacc/meta/conversion/MakeSeq.hpp>
 #include <pmacc/identifier/value_identifier.hpp>
-#include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/meta/String.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/particles/Identifier.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
 
 
 #ifndef PARAM_RADIATION

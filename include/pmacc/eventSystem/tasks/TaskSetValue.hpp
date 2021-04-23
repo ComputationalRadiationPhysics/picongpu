@@ -23,17 +23,17 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/tasks/StreamTask.hpp"
 #include "pmacc/mappings/simulation/EnvironmentController.hpp"
 #include "pmacc/mappings/threads/ForEachIdx.hpp"
 #include "pmacc/mappings/threads/IdxConfig.hpp"
-#include "pmacc/memory/buffers/DeviceBuffer.hpp"
 #include "pmacc/memory/boxes/DataBox.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
-#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/memory/buffers/DeviceBuffer.hpp"
 #include "pmacc/traits/GetNumWorkers.hpp"
 
-#include <boost/type_traits/remove_pointer.hpp>
 #include <boost/type_traits.hpp>
+#include <boost/type_traits/remove_pointer.hpp>
 
 
 namespace pmacc

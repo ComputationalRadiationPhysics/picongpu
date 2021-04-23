@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/math/vector/Float.hpp"
 #include "pmacc/memory/Array.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
 #include "pmacc/types.hpp"
 
 #include "pmacc/cuSTL/cursor/compile-time/BufferCursor.hpp"
-#include "pmacc/math/vector/Float.hpp"
-#include "pmacc/math/Vector.hpp"
 
 
 namespace pmacc

@@ -31,20 +31,20 @@
 
 #pragma once
 
-#include "pmacc/preprocessor/facilities.hpp"
 #include "pmacc/math/ConstVector.hpp"
 #include "pmacc/math/Vector.hpp"
+#include "pmacc/preprocessor/facilities.hpp"
 
+#include <boost/preprocessor/array/to_list.hpp>
 #include <boost/preprocessor/cat.hpp>
+#include <boost/preprocessor/comparison/equal.hpp>
+#include <boost/preprocessor/control/if.hpp>
+#include <boost/preprocessor/facilities/expand.hpp>
 #include <boost/preprocessor/punctuation.hpp>
 #include <boost/preprocessor/punctuation/comma.hpp>
-#include <boost/preprocessor/seq/to_tuple.hpp>
-#include <boost/preprocessor/array/to_list.hpp>
-#include <boost/preprocessor/control/if.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
 #include <boost/preprocessor/seq/to_array.hpp>
-#include <boost/preprocessor/comparison/equal.hpp>
-#include <boost/preprocessor/facilities/expand.hpp>
+#include <boost/preprocessor/seq/to_tuple.hpp>
 
 
 /** create static const member vector that needs no memory inside of the struct

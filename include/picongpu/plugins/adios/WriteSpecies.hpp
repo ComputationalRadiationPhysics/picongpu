@@ -21,30 +21,29 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/plugins/adios/ADIOSWriter.def"
-#include <pmacc/assert.hpp>
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"
-
-#include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
+#include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "picongpu/plugins/adios/writer/ParticleAttribute.hpp"
+#include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 
-#include <pmacc/meta/conversion/MakeSeq.hpp>
-#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
+#include <pmacc/assert.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/particles/ParticleDescription.hpp>
+#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 #include <pmacc/particles/operations/ConcatListOfFrames.hpp>
 #include <pmacc/particles/particleFilter/FilterFactory.hpp>
 #include <pmacc/particles/particleFilter/PositionFilter.hpp>
-#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/size.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/vector.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/type_traits/is_same.hpp>
 

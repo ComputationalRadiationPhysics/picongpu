@@ -24,19 +24,20 @@
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 
-#include <pmacc/math/vector/Int.hpp>
-#include <pmacc/math/vector/Float.hpp>
-#include <pmacc/math/vector/Size_t.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/math/Vector.hpp>
+#include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
 #include <pmacc/cuSTL/container/HostBuffer.hpp>
 #include <pmacc/cuSTL/cursor/tools/slice.hpp>
-#include <pmacc/cuSTL/algorithm/kernel/run-time/Foreach.hpp>
-#include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/math/vector/Float.hpp>
+#include <pmacc/math/vector/Int.hpp>
+#include <pmacc/math/vector/Size_t.hpp>
 
 #include <sstream>
+
+#include <pmacc/cuSTL/algorithm/kernel/run-time/Foreach.hpp>
 
 
 namespace picongpu

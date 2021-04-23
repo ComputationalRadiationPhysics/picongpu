@@ -22,9 +22,10 @@
 #pragma once
 
 #include "pmacc/traits/HasIdentifier.hpp"
-#include <boost/mpl/transform.hpp>
+
 #include <boost/mpl/accumulate.hpp>
 #include <boost/mpl/and.hpp>
+#include <boost/mpl/transform.hpp>
 
 
 namespace pmacc

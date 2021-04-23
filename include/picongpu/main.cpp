@@ -20,11 +20,12 @@
 
 #include <pmacc/boost_workaround.hpp>
 
+#include <picongpu/simulation_defines.hpp>
+
 #include "picongpu/ArgsParser.hpp"
+
 #include <pmacc/Environment.hpp>
 #include <pmacc/types.hpp>
-
-#include <picongpu/simulation_defines.hpp>
 
 #include <cstdlib>
 #include <iostream>

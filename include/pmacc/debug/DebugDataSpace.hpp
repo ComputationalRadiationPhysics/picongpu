@@ -24,8 +24,8 @@
 
 #include "pmacc/dimensions/DataSpace.hpp"
 
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace pmacc
 {

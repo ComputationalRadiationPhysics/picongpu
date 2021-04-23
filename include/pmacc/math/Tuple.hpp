@@ -22,18 +22,19 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/pop_front.hpp>
+
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/empty.hpp>
-#include <boost/mpl/size.hpp>
 #include <boost/mpl/front.hpp>
 #include <boost/mpl/int.hpp>
-#include <boost/mpl/minus.hpp>
 #include <boost/mpl/integral_c.hpp>
+#include <boost/mpl/minus.hpp>
+#include <boost/mpl/pop_front.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/vector.hpp>
 #include <boost/preprocessor/repetition/enum.hpp>
-#include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
+#include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/enum_shifted_params.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
 #include <boost/static_assert.hpp>

@@ -18,6 +18,7 @@
  */
 
 #include "picongpu/simulation_defines.hpp"
+
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/cuSTL/container/HostBuffer.hpp>
 

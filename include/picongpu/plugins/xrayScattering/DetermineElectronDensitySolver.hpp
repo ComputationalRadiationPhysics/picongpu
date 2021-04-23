@@ -19,8 +19,10 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/traits/HasFlag.hpp>
+
 #include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
+
+#include <pmacc/traits/HasFlag.hpp>
 
 namespace picongpu
 {

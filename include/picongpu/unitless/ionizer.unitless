@@ -19,5 +19,5 @@
 
 #pragma once
 
-#include "picongpu/particles/ionization/byField/fieldIonizationCalc.hpp"
 #include "picongpu/particles/ionization/byCollision/collisionalIonizationCalc.hpp"
+#include "picongpu/particles/ionization/byField/fieldIonizationCalc.hpp"

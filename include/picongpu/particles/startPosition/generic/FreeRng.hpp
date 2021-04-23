@@ -20,12 +20,13 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/startPosition/generic/FreeRng.def"
-#include "picongpu/particles/functor/misc/Rng.hpp"
 
-#include <utility>
-#include <type_traits>
+#include "picongpu/particles/functor/misc/Rng.hpp"
+#include "picongpu/particles/startPosition/generic/FreeRng.def"
+
 #include <string>
+#include <type_traits>
+#include <utility>
 
 
 namespace picongpu

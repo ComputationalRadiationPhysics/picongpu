@@ -20,10 +20,11 @@
 
 #pragma once
 
-#include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/traits/PICToOpenPMD.tpp"
+
 #include "picongpu/plugins/openPMD/openPMDDimension.hpp"
+#include "picongpu/plugins/openPMD/openPMDWriter.def"
+#include "picongpu/traits/PICToOpenPMD.tpp"
 
 #include <pmacc/traits/GetComponentsType.hpp>
 #include <pmacc/traits/GetNComponents.hpp>

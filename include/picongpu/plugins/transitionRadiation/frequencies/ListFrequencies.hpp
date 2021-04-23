@@ -20,9 +20,11 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <fstream>
-#include <cstdio>
+
 #include <pmacc/memory/buffers/GridBuffer.hpp>
+
+#include <cstdio>
+#include <fstream>
 
 
 namespace picongpu

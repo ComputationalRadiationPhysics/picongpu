@@ -20,12 +20,14 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/algorithms/KinEnergy.hpp"
-#include <pmacc/math/Vector.hpp>
+
 #include <pmacc/algorithms/math.hpp>
-#include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
 
 namespace picongpu
 {

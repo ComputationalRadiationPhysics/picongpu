@@ -20,11 +20,12 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/param/xrayScattering.param"
 #include "picongpu/plugins/xrayScattering/beam/CoordinateTransform.hpp"
 #include "picongpu/plugins/xrayScattering/beam/ProbingBeam.hpp"
 #include "picongpu/plugins/xrayScattering/beam/beamProfiles/profiles.hpp"
 #include "picongpu/plugins/xrayScattering/beam/beamShapes/shapes.hpp"
-#include "picongpu/param/xrayScattering.param"
 
 namespace picongpu
 {

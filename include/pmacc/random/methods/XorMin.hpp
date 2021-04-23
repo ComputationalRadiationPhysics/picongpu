@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/static_assert.hpp"
+#include "pmacc/types.hpp"
 
 #if(BOOST_LANG_CUDA)
 #    include <curand_kernel.h>

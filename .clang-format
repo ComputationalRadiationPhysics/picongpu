@@ -66,7 +66,7 @@ PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 1000
 PointerAlignment: Left
 ReflowComments: true
-SortIncludes: false
+SortIncludes: true
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: true
 SpaceAfterLogicalNot: false
@@ -93,28 +93,34 @@ UseTab: Never
 
 # Project specific options
 IncludeCategories:
+  # boost workaround must be always the first include
+  - Regex: 'pmacc/boost_workaround.hpp'
+    Priority: 1
+  # simulation_defines must be before other header except boost_workaround.hpp
+  - Regex: 'picongpu/simulation_defines.hpp'
+    Priority: 2
   # Local headers (in "") above all else
   - Regex: '"([A-Za-z0-9.\/-_])+"'
-    Priority: 1
+    Priority: 3
     # <pmacc/foo.hpp>
   - Regex: '<pmacc/([A-Za-z0-9.\/-_])+>'
-    Priority: 2
+    Priority: 4
     # <cupla/foo.hpp>
   - Regex: '<cupla/([A-Za-z0-9.\/-_])+>'
-    Priority: 3
+    Priority: 5
   # <alpaka/foo.hpp>
   - Regex: '<alpaka/([A-Za-z0-9.\/-_])+>'
-    Priority: 4
+    Priority: 6
   # <boost/foo.hpp>
   - Regex: '<boost/([A-Za-z0-9.\/-_])+>'
-    Priority: 5
+    Priority: 7
   # C++ standard library headers are the last group to be included
   - Regex: '<([A-Za-z0-9\/-_])+>'
-    Priority: 6
+    Priority: 8
   # Includes that made it this far are third-party headers and will be placed
-  # below alpaka's includes
+  # below picongpu/pmacc includes
   - Regex: '<([A-Za-z0-9.\/-_])+>'
-    Priority: 7
+    Priority: 9
 
 # Future options - not supported in clang-format 11
 # AlignConsecutiveBitFields: false

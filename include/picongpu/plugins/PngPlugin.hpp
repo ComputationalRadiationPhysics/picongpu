@@ -22,19 +22,19 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/traits/HasIdentifiers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
 
 #include <boost/mpl/and.hpp>
 
-#include <vector>
 #include <list>
 #include <stdexcept>
+#include <vector>
 
 
 namespace picongpu

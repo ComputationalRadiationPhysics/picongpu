@@ -23,6 +23,7 @@
 #pragma once
 
 #include "pmacc/ppFunctions.hpp"
+
 #include <boost/mpl/assert.hpp>
 
 namespace pmacc

@@ -21,9 +21,9 @@
 
 #pragma once
 
+#include "pmacc/cuSTL/container/CartBuffer.hpp"
 #include "pmacc/memory/buffers/DeviceBuffer.hpp"
 #include "pmacc/memory/buffers/HostBuffer.hpp"
-#include "pmacc/cuSTL/container/CartBuffer.hpp"
 
 namespace pmacc
 {

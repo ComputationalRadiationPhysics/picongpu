@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/cuSTL/cursor/traits.hpp"
-#include "pmacc/traits/GetInitializedInstance.hpp"
 #include "pmacc/algorithms/math/defines/modf.hpp"
+#include "pmacc/cuSTL/cursor/traits.hpp"
 #include "pmacc/math/vector/Int.hpp"
+#include "pmacc/traits/GetInitializedInstance.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

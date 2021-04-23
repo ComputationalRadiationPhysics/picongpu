@@ -17,14 +17,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <mpi.h>
+#include <boost/program_options.hpp>
+#include <boost/program_options/cmdline.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/variables_map.hpp>
+
 #include <cstdlib>
 #include <iostream> // std::cerr
 
-#include <boost/program_options.hpp>
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/cmdline.hpp>
-#include <boost/program_options/variables_map.hpp>
+#include <mpi.h>
 
 
 #define MPI_CHECK(cmd)                                                                                                \

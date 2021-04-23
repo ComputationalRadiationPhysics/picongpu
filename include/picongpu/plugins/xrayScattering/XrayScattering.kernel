@@ -20,10 +20,11 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/plugins/xrayScattering/XrayScattering.hpp"
 
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 

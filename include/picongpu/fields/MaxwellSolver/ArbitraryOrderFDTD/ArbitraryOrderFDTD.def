@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "picongpu/fields/differentiation/Curl.def"
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Derivative.def"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
+#include "picongpu/fields/differentiation/Curl.def"
 
 #include <cstdint>
 

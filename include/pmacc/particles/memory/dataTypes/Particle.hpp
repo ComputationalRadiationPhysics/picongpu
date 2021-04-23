@@ -21,31 +21,31 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/particles/boostExtension/InheritLinearly.hpp"
-#include "pmacc/traits/HasIdentifier.hpp"
-#include "pmacc/traits/HasFlag.hpp"
-#include "pmacc/traits/GetFlagType.hpp"
-#include "pmacc/meta/GetKeyFromAlias.hpp"
-#include "pmacc/meta/conversion/ResolveAliases.hpp"
-#include "pmacc/meta/conversion/RemoveFromSeq.hpp"
-#include "pmacc/particles/operations/CopyIdentifier.hpp"
 #include "pmacc/meta/ForEach.hpp"
-#include "pmacc/static_assert.hpp"
-
+#include "pmacc/meta/GetKeyFromAlias.hpp"
+#include "pmacc/meta/conversion/RemoveFromSeq.hpp"
+#include "pmacc/meta/conversion/ResolveAliases.hpp"
+#include "pmacc/meta/errorHandlerPolicies/ReturnValue.hpp"
+#include "pmacc/particles/boostExtension/InheritLinearly.hpp"
 #include "pmacc/particles/operations/Assign.hpp"
+#include "pmacc/particles/operations/CopyIdentifier.hpp"
 #include "pmacc/particles/operations/Deselect.hpp"
 #include "pmacc/particles/operations/SetAttributeToDefault.hpp"
-#include "pmacc/meta/errorHandlerPolicies/ReturnValue.hpp"
-#include <boost/utility/result_of.hpp>
-#include <boost/type_traits.hpp>
-#include <boost/mpl/if.hpp>
-#include <boost/mpl/remove_if.hpp>
-#include <boost/mpl/is_sequence.hpp>
-#include <boost/mpl/contains.hpp>
+#include "pmacc/static_assert.hpp"
+#include "pmacc/traits/GetFlagType.hpp"
+#include "pmacc/traits/HasFlag.hpp"
+#include "pmacc/traits/HasIdentifier.hpp"
+#include "pmacc/types.hpp"
+
 #include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/contains.hpp>
 #include <boost/mpl/copy_if.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/not.hpp>
+#include <boost/mpl/remove_if.hpp>
+#include <boost/type_traits.hpp>
+#include <boost/utility/result_of.hpp>
 
 namespace pmacc
 {

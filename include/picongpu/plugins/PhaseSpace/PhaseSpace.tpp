@@ -19,24 +19,24 @@
 
 #pragma once
 
-#include "PhaseSpace.hpp"
 #include "DumpHBufferOpenPMD.hpp"
+#include "PhaseSpace.hpp"
 
-#include <pmacc/cuSTL/container/DeviceBuffer.hpp>
-#include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
+#include <pmacc/cuSTL/algorithm/functor/Add.hpp>
+#include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
 #include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
-#include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
-#include <pmacc/math/vector/Int.hpp>
-#include <pmacc/math/vector/Size_t.hpp>
+#include <pmacc/cuSTL/container/DeviceBuffer.hpp>
+#include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/cuSTL/algorithm/functor/Add.hpp>
+#include <pmacc/math/vector/Int.hpp>
+#include <pmacc/math/vector/Size_t.hpp>
 
-#include <vector>
 #include <algorithm>
+#include <vector>
 
 
 namespace picongpu

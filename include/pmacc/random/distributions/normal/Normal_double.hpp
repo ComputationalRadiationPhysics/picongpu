@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/random/distributions/Normal.hpp"
-#include "pmacc/random/distributions/misc/MullerBox.hpp"
-#include "pmacc/random/methods/XorMin.hpp"
-#include "pmacc/random/methods/MRG32k3aMin.hpp"
-#include "pmacc/random/distributions/Uniform.hpp"
 #include "pmacc/algorithms/math.hpp"
+#include "pmacc/random/distributions/Normal.hpp"
+#include "pmacc/random/distributions/Uniform.hpp"
+#include "pmacc/random/distributions/misc/MullerBox.hpp"
+#include "pmacc/random/methods/MRG32k3aMin.hpp"
+#include "pmacc/random/methods/XorMin.hpp"
+#include "pmacc/types.hpp"
 
 #include <type_traits>
 

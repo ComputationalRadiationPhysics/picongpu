@@ -20,17 +20,17 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/dimensions/DataSpace.hpp>
 
 #include "picongpu/plugins/output/header/DataHeader.hpp"
 #include "picongpu/plugins/output/header/NodeHeader.hpp"
 #include "picongpu/plugins/output/header/SimHeader.hpp"
 #include "picongpu/plugins/output/header/WindowHeader.hpp"
-
 #include "picongpu/simulation/control/Window.hpp"
 
-#include <iostream>
+#include <pmacc/dimensions/DataSpace.hpp>
+
 #include <cstdlib>
+#include <iostream>
 
 
 namespace picongpu

@@ -21,34 +21,35 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/algorithms/KinEnergy.hpp"
-#include "picongpu/plugins/common/txtFileHandling.hpp"
-#include "picongpu/plugins/multi/multi.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
-#include "picongpu/plugins/misc/misc.hpp"
 
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/math/operation.hpp>
-#include <pmacc/memory/shared/Allocate.hpp>
+#include "picongpu/algorithms/KinEnergy.hpp"
+#include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/common/txtFileHandling.hpp"
+#include "picongpu/plugins/misc/misc.hpp"
+#include "picongpu/plugins/multi/multi.hpp"
+
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/memory/CtxArray.hpp>
-#include <pmacc/traits/GetNumWorkers.hpp>
-#include <pmacc/traits/HasIdentifiers.hpp>
-#include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/meta/ForEach.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
 
 #include <boost/mpl/and.hpp>
 
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <string>
 
 
 namespace picongpu

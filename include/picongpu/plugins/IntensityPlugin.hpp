@@ -20,25 +20,25 @@
 
 #pragma once
 
-#include <mpi.h>
-
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/fields/FieldE.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 
-#include <pmacc/memory/boxes/CachedBox.hpp>
-#include <pmacc/dimensions/SuperCellDescription.hpp>
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/memory/shared/Allocate.hpp>
-#include <pmacc/memory/Array.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/dimensions/SuperCellDescription.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/memory/Array.hpp>
+#include <pmacc/memory/boxes/CachedBox.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
 
-#include <string>
-#include <iostream>
-#include <iomanip>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <string>
+
+#include <mpi.h>
 
 
 namespace picongpu

@@ -21,20 +21,21 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/algorithms/Gamma.hpp"
-#include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
+#include "picongpu/algorithms/Gamma.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
+
+#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/traits/HasIdentifiers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
 
 #include <boost/mpl/and.hpp>
 
-#include <string>
 #include <iostream>
+#include <string>
 
 
 namespace picongpu

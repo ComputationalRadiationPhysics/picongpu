@@ -20,14 +20,15 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/plugins/multi/ISlave.hpp"
-#include "picongpu/plugins/multi/IHelp.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
-#include <vector>
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/multi/IHelp.hpp"
+#include "picongpu/plugins/multi/ISlave.hpp"
+
 #include <list>
 #include <stdexcept>
+#include <vector>
 
 
 namespace picongpu

@@ -21,17 +21,17 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/pluginSystem/TimeSlice.hpp"
 #include "pmacc/misc/splitString.hpp"
+#include "pmacc/pluginSystem/TimeSlice.hpp"
+#include "pmacc/types.hpp"
 #include "pmacc/verify.hpp"
 
-#include <string>
-#include <regex>
-#include <vector>
-#include <iostream>
 #include <algorithm>
 #include <array>
+#include <iostream>
+#include <regex>
+#include <string>
+#include <vector>
 
 
 namespace pmacc

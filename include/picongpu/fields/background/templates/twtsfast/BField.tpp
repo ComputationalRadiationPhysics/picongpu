@@ -20,19 +20,19 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/math/Vector.hpp>
+#include "picongpu/fields/CellType.hpp"
+#include "picongpu/fields/background/templates/twtsfast/BField.hpp"
+#include "picongpu/fields/background/templates/twtsfast/GetInitialTimeDelay_SI.tpp"
+#include "picongpu/fields/background/templates/twtsfast/RotateField.tpp"
+#include "picongpu/fields/background/templates/twtsfast/getFieldPositions_SI.tpp"
+
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/math/Complex.hpp>
-
-#include "picongpu/fields/background/templates/twtsfast/RotateField.tpp"
-#include "picongpu/fields/background/templates/twtsfast/GetInitialTimeDelay_SI.tpp"
-#include "picongpu/fields/background/templates/twtsfast/getFieldPositions_SI.tpp"
-#include "picongpu/fields/background/templates/twtsfast/BField.hpp"
-#include "picongpu/fields/CellType.hpp"
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/types.hpp>
 
 
 namespace picongpu

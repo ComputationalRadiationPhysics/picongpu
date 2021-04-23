@@ -20,30 +20,29 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
-
 #include "picongpu/fields/Fields.def"
 #include "picongpu/fields/Fields.hpp"
 #include "picongpu/particles/boundary/CallPluginsAndDeleteParticles.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
 
-#include <pmacc/memory/dataTypes/Mask.hpp>
-#include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/HandleGuardRegion.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>
+#include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/memory/dataTypes/Mask.hpp>
+#include <pmacc/meta/GetKeyFromAlias.hpp>
 #include <pmacc/particles/ParticleDescription.hpp>
 #include <pmacc/particles/ParticlesBase.hpp>
 #include <pmacc/particles/memory/buffers/ParticlesBuffer.hpp>
-#include <pmacc/meta/GetKeyFromAlias.hpp>
-#include <pmacc/HandleGuardRegion.hpp>
-#include <pmacc/traits/Resolve.hpp>
 #include <pmacc/traits/GetCTName.hpp>
+#include <pmacc/traits/Resolve.hpp>
+#include <pmacc/types.hpp>
 
-#include <boost/mpl/if.hpp>
 #include <boost/mpl/contains.hpp>
+#include <boost/mpl/if.hpp>
 
-#include <string>
-#include <sstream>
 #include <memory>
+#include <sstream>
+#include <string>
 
 namespace picongpu
 {

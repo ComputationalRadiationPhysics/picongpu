@@ -18,21 +18,22 @@
  */
 
 #pragma once
+#include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/absorber/ExponentialDamping.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
-#include "picongpu/simulation_defines.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
 
 #include <pmacc/Environment.hpp>
 
-#include <openPMD/openPMD.hpp>
-
 #include <list>
 #include <sstream>
 #include <string>
+
+#include <openPMD/openPMD.hpp>
 
 
 namespace picongpu

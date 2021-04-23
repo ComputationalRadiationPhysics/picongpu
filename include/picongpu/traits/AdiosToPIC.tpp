@@ -20,9 +20,9 @@
 #pragma once
 
 #if(ENABLE_ADIOS == 1)
-#    include <adios.h>
-
 #    include "picongpu/simulation_defines.hpp"
+
+#    include <adios.h>
 
 namespace picongpu
 {

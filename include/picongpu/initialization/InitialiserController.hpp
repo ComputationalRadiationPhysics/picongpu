@@ -21,19 +21,16 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/Environment.hpp>
-
-#include <pmacc/pluginSystem/PluginConnector.hpp>
-
-#include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/laserProfiles/profiles.hpp"
+#include "picongpu/initialization/IInitPlugin.hpp"
+#include "picongpu/initialization/SimStartInitialiser.hpp"
 #include "picongpu/particles/traits/GetDensityRatio.hpp"
 
-#include "picongpu/initialization/SimStartInitialiser.hpp"
-
-#include "picongpu/initialization/IInitPlugin.hpp"
+#include <pmacc/Environment.hpp>
 #include <pmacc/assert.hpp>
+#include <pmacc/pluginSystem/PluginConnector.hpp>
 
 #include <boost/mpl/find.hpp>
 

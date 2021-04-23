@@ -27,8 +27,8 @@
  */
 
 #pragma once
-#include <pmacc/math/Vector.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
+#include <pmacc/math/Vector.hpp>
 
 
 namespace picongpu

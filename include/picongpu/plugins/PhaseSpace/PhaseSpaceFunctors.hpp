@@ -19,17 +19,18 @@
 
 #pragma once
 
-#include <utility>
-
-#include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
-#include <pmacc/cuSTL/algorithm/cuplaBlock/Foreach.hpp>
-#include <pmacc/cuSTL/container/compile-time/SharedBuffer.hpp>
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/math/VectorOperations.hpp>
-#include <pmacc/cuSTL/algorithm/functor/AssignValue.hpp>
-
 #include "picongpu/particles/access/Cell2Particle.hpp"
 #include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
+
+#include <pmacc/cuSTL/algorithm/cuplaBlock/Foreach.hpp>
+#include <pmacc/cuSTL/algorithm/functor/AssignValue.hpp>
+#include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/math/VectorOperations.hpp>
+
+#include <utility>
+
+#include <pmacc/cuSTL/container/compile-time/SharedBuffer.hpp>
 
 namespace picongpu
 {

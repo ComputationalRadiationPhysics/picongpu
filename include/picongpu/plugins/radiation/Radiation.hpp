@@ -26,32 +26,32 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/traits/SplashToPIC.hpp"
-#include "picongpu/traits/PICToSplash.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-
-#include "picongpu/plugins/radiation/Radiation.kernel"
-#include "picongpu/plugins/radiation/ExecuteParticleFilter.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/common/stringHelpers.hpp"
+#include "picongpu/plugins/radiation/ExecuteParticleFilter.hpp"
+#include "picongpu/plugins/radiation/Radiation.kernel"
+#include "picongpu/traits/PICToSplash.hpp"
+#include "picongpu/traits/SplashToPIC.hpp"
 
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/math/operation.hpp>
-#include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/traits/HasIdentifier.hpp>
+#include <pmacc/math/operation.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/traits/HasIdentifier.hpp>
 
-#include <splash/splash.h>
 #include <boost/filesystem.hpp>
 
-#include <string>
-#include <iostream>
-#include <fstream>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <string>
 #include <vector>
+
+#include <splash/splash.h>
 
 namespace picongpu
 {

@@ -23,13 +23,14 @@
 
 #include "pmacc/dataManagement/ISimulationData.hpp"
 
-#include <string>
 #include <cstdint>
+#include <string>
 
 #if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
 
-#    include <mallocMC/mallocMC.hpp>
 #    include <memory>
+
+#    include <mallocMC/mallocMC.hpp>
 
 namespace pmacc
 {

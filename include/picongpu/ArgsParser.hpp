@@ -23,11 +23,12 @@
 
 #include <boost/program_options/options_description.hpp>
 
-#include <string>
-#include <stdexcept>
-#include <vector>
-#include <stdint.h>
 #include <list>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+#include <stdint.h>
 
 namespace picongpu
 {

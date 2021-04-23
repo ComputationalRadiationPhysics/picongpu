@@ -24,6 +24,7 @@
 #include "Cursor.hpp"
 #include "accessor/FunctorAccessor.hpp"
 #include "navigator/CursorNavigator.hpp"
+
 #include <boost/type_traits/remove_reference.hpp>
 
 namespace pmacc

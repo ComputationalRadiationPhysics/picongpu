@@ -22,6 +22,7 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
 #include "pmacc/math/vector/compile-time/Vector.hpp"
 
 

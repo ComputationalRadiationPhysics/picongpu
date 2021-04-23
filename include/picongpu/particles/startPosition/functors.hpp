@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "picongpu/particles/startPosition/generic/FreeRng.hpp"
-#include "picongpu/particles/startPosition/generic/Free.hpp"
 #include "picongpu/particles/startPosition/OnePositionImpl.hpp"
 #include "picongpu/particles/startPosition/QuietImpl.hpp"
 #include "picongpu/particles/startPosition/RandomImpl.hpp"
+#include "picongpu/particles/startPosition/generic/Free.hpp"
+#include "picongpu/particles/startPosition/generic/FreeRng.hpp"

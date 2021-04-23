@@ -20,6 +20,8 @@
  */
 #pragma once
 
+// clang-format off
+
 /** @file This file should be included in each `cpp`-file before any other boost include
  * to workaround compiler errors when compiling with clang-cuda and boost <1.69.0
  *
@@ -42,3 +44,5 @@
  * 'boost::in_place_factory_base' BOOST_STATIC_ASSERT(sizeof(B) != 0);
  */
 #include <boost/optional/optional.hpp>
+
+// clang-format on

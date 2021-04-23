@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include <vector>
 #include <exception>
-#include <string>
 #include <sstream>
+#include <string>
+#include <vector>
 
 
 namespace picongpu

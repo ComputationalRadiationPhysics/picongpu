@@ -20,15 +20,16 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
 
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/memory/boxes/PitchedBox.hpp>
 #include <pmacc/types.hpp>
 
-#include <mpi.h>
-
 #include <vector>
+
+#include <mpi.h>
 #include <sys/stat.h>
 
 

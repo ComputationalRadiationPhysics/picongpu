@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/random/methods/RngPlaceholder.hpp"
 #include "pmacc/random/distributions/uniform/Range.hpp"
+#include "pmacc/random/methods/RngPlaceholder.hpp"
+#include "pmacc/types.hpp"
 
 #include <type_traits>
 
@@ -67,8 +67,8 @@ namespace pmacc
     } // namespace random
 } // namespace pmacc
 
-#include "pmacc/random/distributions/uniform/Uniform_float.hpp"
-#include "pmacc/random/distributions/uniform/Uniform_double.hpp"
-#include "pmacc/random/distributions/uniform/Uniform_generic.hpp"
 #include "pmacc/random/distributions/uniform/Uniform_Integral32Bit.hpp"
 #include "pmacc/random/distributions/uniform/Uniform_Integral64Bit.hpp"
+#include "pmacc/random/distributions/uniform/Uniform_double.hpp"
+#include "pmacc/random/distributions/uniform/Uniform_float.hpp"
+#include "pmacc/random/distributions/uniform/Uniform_generic.hpp"

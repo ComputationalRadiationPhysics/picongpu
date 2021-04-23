@@ -19,8 +19,10 @@
 
 #pragma once
 
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+
 #include <boost/array.hpp>
 #if(BOOST_VERSION == 106400)
 /* `array_wrapper.hpp` must be included before `integrate.hpp` to avoid

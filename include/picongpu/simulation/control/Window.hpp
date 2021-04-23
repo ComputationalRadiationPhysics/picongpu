@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
 #include <pmacc/mappings/simulation/Selection.hpp>
+#include <pmacc/types.hpp>
 
 namespace picongpu
 {

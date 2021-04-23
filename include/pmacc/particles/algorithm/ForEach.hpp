@@ -22,11 +22,11 @@
 #pragma once
 
 #include "pmacc/Environment.hpp"
-#include "pmacc/particles/frame_types.hpp"
 #include "pmacc/mappings/kernel/AreaMapping.hpp"
 #include "pmacc/mappings/threads/ForEachIdx.hpp"
 #include "pmacc/mappings/threads/IdxConfig.hpp"
 #include "pmacc/mappings/threads/WorkerCfg.hpp"
+#include "pmacc/particles/frame_types.hpp"
 
 #include <utility>
 

@@ -22,6 +22,7 @@
 #pragma once
 
 #include "pmacc/debug/VerboseLog.hpp"
+
 #include <string>
 
 /** create a log lvl

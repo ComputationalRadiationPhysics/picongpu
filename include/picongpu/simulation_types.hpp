@@ -20,17 +20,19 @@
 
 #pragma once
 
-#include "version.hpp"
-#include <pmacc/algorithms/TypeCast.hpp>
-#include <pmacc/algorithms/PromoteType.hpp>
-#include <pmacc/meta/ForEach.hpp>
-#include <pmacc/algorithms/math.hpp>
-#include <cupla/device/math.hpp>
-#include <pmacc/traits/GetStringProperties.hpp>
-#include "picongpu/traits/GetMargin.hpp"
-#include <pmacc/traits/GetComponentsType.hpp>
-#include <pmacc/traits/NumberOfExchanges.hpp>
 #include "picongpu/traits/GetDataBoxType.hpp"
+#include "picongpu/traits/GetMargin.hpp"
+#include "version.hpp"
+
+#include <pmacc/algorithms/PromoteType.hpp>
+#include <pmacc/algorithms/TypeCast.hpp>
+#include <pmacc/algorithms/math.hpp>
+#include <pmacc/meta/ForEach.hpp>
+#include <pmacc/traits/GetComponentsType.hpp>
+#include <pmacc/traits/GetStringProperties.hpp>
+#include <pmacc/traits/NumberOfExchanges.hpp>
+
+#include <cupla/device/math.hpp>
 
 namespace picongpu
 {

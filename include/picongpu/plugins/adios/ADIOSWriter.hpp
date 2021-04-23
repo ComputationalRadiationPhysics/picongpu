@@ -21,19 +21,7 @@
 
 #pragma once
 
-#include <pmacc/static_assert.hpp>
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/plugins/adios/ADIOSWriter.def"
-#include "picongpu/plugins/misc/misc.hpp"
-#include "picongpu/plugins/multi/Option.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/plugins/misc/SpeciesFilter.hpp"
-#include "picongpu/particles/filter/filter.hpp"
-#include "picongpu/traits/IsFieldDomainBound.hpp"
-
-#include <pmacc/particles/frame_types.hpp>
-#include <pmacc/particles/IdProvider.def>
-#include <pmacc/assert.hpp>
 
 #include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
@@ -41,54 +29,62 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
-#include <pmacc/particles/operations/CountParticles.hpp>
-
-#include <pmacc/communication/manager_common.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/Environment.hpp>
-#include <pmacc/mappings/simulation/GridController.hpp>
-#include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/pluginSystem/PluginConnector.hpp>
-#include "picongpu/simulation/control/MovingWindow.hpp"
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
-#include <pmacc/traits/Limits.hpp>
-
-#include "picongpu/plugins/output/IIOBackend.hpp"
-
+#include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/adios/ADIOSCountParticles.hpp"
+#include "picongpu/plugins/adios/ADIOSWriter.def"
+#include "picongpu/plugins/adios/NDScalars.hpp"
 #include "picongpu/plugins/adios/WriteMeta.hpp"
 #include "picongpu/plugins/adios/WriteSpecies.hpp"
-#include "picongpu/plugins/adios/ADIOSCountParticles.hpp"
 #include "picongpu/plugins/adios/restart/LoadSpecies.hpp"
 #include "picongpu/plugins/adios/restart/RestartFieldLoader.hpp"
-#include "picongpu/plugins/adios/NDScalars.hpp"
 #include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/plugins/misc/SpeciesFilter.hpp"
+#include "picongpu/plugins/misc/misc.hpp"
+#include "picongpu/plugins/multi/Option.hpp"
+#include "picongpu/plugins/output/IIOBackend.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
+#include "picongpu/traits/IsFieldDomainBound.hpp"
 
-#include <adios.h>
-#include <adios_read.h>
-#include <adios_error.h>
+#include <pmacc/Environment.hpp>
+#include <pmacc/assert.hpp>
+#include <pmacc/communication/manager_common.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/dimensions/GridLayout.hpp>
+#include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/mappings/simulation/SubGrid.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/particles/IdProvider.def>
+#include <pmacc/particles/frame_types.hpp>
+#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
+#include <pmacc/particles/operations/CountParticles.hpp>
+#include <pmacc/pluginSystem/PluginConnector.hpp>
+#include <pmacc/static_assert.hpp>
+#include <pmacc/traits/Limits.hpp>
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/type_traits/is_same.hpp>
-#include <boost/mpl/size.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/vector.hpp>
 #include <boost/type_traits.hpp>
+#include <boost/type_traits/is_same.hpp>
+
+#include <adios.h>
+#include <adios_error.h>
+#include <adios_read.h>
 
 #if !defined(_WIN32)
 #    include <unistd.h>
 #endif
 
+#include <cstdint>
+#include <list>
 #include <sstream>
 #include <string>
-#include <list>
 #include <vector>
-#include <cstdint>
 
 
 namespace picongpu

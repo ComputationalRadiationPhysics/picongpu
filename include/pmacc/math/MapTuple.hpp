@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/particles/boostExtension/InheritLinearly.hpp"
+#include "pmacc/types.hpp"
 
-#include <boost/mpl/map.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/mpl/map.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/utility/result_of.hpp>
 

@@ -20,32 +20,33 @@
  */
 
 #include <pmacc/boost_workaround.hpp>
+
 #include <pmacc/test/PMaccFixture.hpp>
 
 // STL
-#include <stdint.h> /* uint8_t */
 #include <iostream> /* cout, endl */
 #include <string>
 
 #include <catch2/catch.hpp>
+#include <stdint.h> /* uint8_t */
 
 // BOOST
-#include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/int.hpp>
+#include <boost/mpl/list.hpp>
 
 // MPI
 #include <mpi.h> /* MPI_Init, MPI_Finalize */
 
 // PMacc
+#include "pmacc/types.hpp" /* DIM1,DIM2,DIM3 */
+
 #include <pmacc/Environment.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/memory/buffers/HostBufferIntern.hpp>
-#include <pmacc/memory/buffers/HostBuffer.hpp>
-#include <pmacc/memory/buffers/DeviceBufferIntern.hpp>
 #include <pmacc/memory/buffers/DeviceBuffer.hpp>
-#include <pmacc/dimensions/DataSpace.hpp>
-#include "pmacc/types.hpp" /* DIM1,DIM2,DIM3 */
+#include <pmacc/memory/buffers/DeviceBufferIntern.hpp>
+#include <pmacc/memory/buffers/HostBuffer.hpp>
+#include <pmacc/memory/buffers/HostBufferIntern.hpp>
 
 
 namespace pmacc

@@ -20,11 +20,12 @@
 #pragma once
 
 #if(ENABLE_ADIOS == 1)
-#    include <adios.h>
-
 #    include "picongpu/simulation_defines.hpp"
+
 #    include <boost/mpl/if.hpp>
 #    include <boost/type_traits.hpp>
+
+#    include <adios.h>
 
 namespace picongpu
 {

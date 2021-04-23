@@ -23,8 +23,8 @@
 
 
 #include "pmacc/cuSTL/container/HostBuffer.hpp"
-#include "pmacc/memory/buffers/Buffer.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/memory/buffers/Buffer.hpp"
 
 namespace pmacc
 {

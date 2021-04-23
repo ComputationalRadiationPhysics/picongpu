@@ -21,18 +21,18 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/particles/memory/frames/NullFrame.hpp"
+#include "pmacc/types.hpp"
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/deref.hpp>
-#include <boost/mpl/pop_front.hpp>
-#include <boost/mpl/pop_back.hpp>
-#include <boost/mpl/begin.hpp>
 #include <boost/mpl/at.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/front.hpp>
+#include <boost/mpl/begin.hpp>
+#include <boost/mpl/deref.hpp>
 #include <boost/mpl/empty.hpp>
+#include <boost/mpl/front.hpp>
+#include <boost/mpl/int.hpp>
+#include <boost/mpl/pop_back.hpp>
+#include <boost/mpl/pop_front.hpp>
+#include <boost/mpl/vector.hpp>
 
 
 namespace pmacc

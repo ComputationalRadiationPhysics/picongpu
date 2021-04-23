@@ -32,10 +32,10 @@
 
 #pragma once
 
-#include "picongpu/particles/ionization/byField/fieldIonizationCalc.def"
 #include "picongpu/particles/ionization/byCollision/collisionalIonizationCalc.def"
-#include "picongpu/particles/ionization/byField/ionizers.def"
 #include "picongpu/particles/ionization/byCollision/ionizers.def"
+#include "picongpu/particles/ionization/byField/fieldIonizationCalc.def"
+#include "picongpu/particles/ionization/byField/ionizers.def"
 
 namespace picongpu
 {

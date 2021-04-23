@@ -26,26 +26,27 @@
 #include <pmacc/mappings/simulation/ResourceMonitor.hpp>
 
 // PIConGPU
-#include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "ILightweightPlugin.hpp"
 #include "picongpu/simulation_defines.hpp"
+
+#include "ILightweightPlugin.hpp"
 #include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 
 // Boost
 #include <boost/filesystem.hpp>
 
 // STL
-#include <iostream> /* std::cout, std::ostream */
-#include <numeric> /* std::accumulate */
-#include <string> /* std::string */
-#include <sstream> /* std::stringstream */
-#include <fstream> /* std::filebuf */
-#include <map> /* std::map */
 #include <algorithm> /* std::accumulate */
+#include <fstream> /* std::filebuf */
+#include <iostream> /* std::cout, std::ostream */
+#include <map> /* std::map */
+#include <numeric> /* std::accumulate */
+#include <sstream> /* std::stringstream */
+#include <string> /* std::string */
 
 // C LIB
-#include <stdlib.h> /* itoa */
 #include <stdint.h> /* uint32_t */
+#include <stdlib.h> /* itoa */
 
 
 namespace picongpu

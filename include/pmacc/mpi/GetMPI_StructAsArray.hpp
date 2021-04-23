@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/mpi/MPI_StructAsArray.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

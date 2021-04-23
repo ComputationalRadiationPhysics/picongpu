@@ -21,13 +21,13 @@
 
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
-#include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
+#include <pmacc/algorithms/math.hpp>
+#include <pmacc/cuSTL/cursor/BufferCursor.hpp>
 #include <pmacc/cuSTL/cursor/Cursor.hpp>
 #include <pmacc/cuSTL/cursor/navigator/PlusNavigator.hpp>
 #include <pmacc/cuSTL/cursor/tools/LinearInterp.hpp>
-#include <pmacc/cuSTL/cursor/BufferCursor.hpp>
-#include <pmacc/algorithms/math.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
+#include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
 
 #include <boost/array.hpp>
 #if(BOOST_VERSION == 106400)
@@ -41,6 +41,7 @@
 #endif
 #include <boost/numeric/odeint/integrate/integrate.hpp>
 #include <boost/shared_ptr.hpp>
+
 #include <limits>
 
 namespace picongpu

@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include <vector> // std::vector
-#include <string> // std::string
 #include <cstdint>
+#include <string> // std::string
+#include <vector> // std::vector
 
 
 namespace picongpu

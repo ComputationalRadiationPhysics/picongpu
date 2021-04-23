@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "picongpu/fields/background/cellwiseOperation.hpp"
 #include "picongpu/fields/FieldJ.hpp"
+#include "picongpu/fields/background/cellwiseOperation.hpp"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/Environment.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/type/Area.hpp>
 

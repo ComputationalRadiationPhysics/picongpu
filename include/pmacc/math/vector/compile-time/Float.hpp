@@ -21,8 +21,9 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <boost/mpl/void.hpp>
+
+#include <stdint.h>
 
 namespace mpl = boost::mpl;
 

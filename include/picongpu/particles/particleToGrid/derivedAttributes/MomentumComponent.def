@@ -20,11 +20,12 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/traits/SIBaseUnits.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
-#include <pmacc/traits/HasIdentifiers.hpp>
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
+
 #include <pmacc/static_assert.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
 
 #include <vector>
 

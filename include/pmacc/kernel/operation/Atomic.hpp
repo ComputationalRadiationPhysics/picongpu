@@ -21,9 +21,8 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-
 #include "pmacc/kernel/atomic.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
 #include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
 #include <boost/mpl/and.hpp>
 

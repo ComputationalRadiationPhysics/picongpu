@@ -23,13 +23,13 @@
 
 #include "picongpu/particles/debyeLength/Estimate.kernel"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/Environment.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
 #include <pmacc/mpi/reduceMethods/AllReduce.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
-#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu

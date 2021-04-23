@@ -21,8 +21,9 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/identifier/identifier.hpp"
+#include "pmacc/types.hpp"
+
 #include <string>
 
 /* No namespace is needed because we only have defines*/

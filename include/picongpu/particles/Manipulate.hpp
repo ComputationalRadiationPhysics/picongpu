@@ -20,13 +20,15 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/manipulators/manipulators.def"
-#include "picongpu/particles/filter/filter.def"
 
-#include <pmacc/particles/algorithm/CallForEach.hpp>
-#include <pmacc/meta/conversion/ToSeq.hpp>
+#include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/manipulators/manipulators.def"
+
 #include <pmacc/meta/ForEach.hpp>
+#include <pmacc/meta/conversion/ToSeq.hpp>
+#include <pmacc/particles/algorithm/CallForEach.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
+
 #include <boost/mpl/placeholders.hpp>
 
 

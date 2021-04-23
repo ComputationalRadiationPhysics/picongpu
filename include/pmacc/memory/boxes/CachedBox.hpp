@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/memory/boxes/DataBox.hpp"
 #include "pmacc/memory/boxes/SharedBox.hpp"
+#include "pmacc/types.hpp"
 
 
 namespace pmacc

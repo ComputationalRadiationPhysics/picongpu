@@ -22,11 +22,12 @@
 
 #pragma once
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/copy.hpp>
-#include <boost/mpl/back_inserter.hpp>
-#include <boost/mpl/front_inserter.hpp>
 #include "pmacc/meta/conversion/ToSeq.hpp"
+
+#include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/copy.hpp>
+#include <boost/mpl/front_inserter.hpp>
+#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {

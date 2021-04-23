@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/particles/manipulators/generic/Free.def"
+
 #include <pmacc/particles/operations/Assign.hpp>
 
 

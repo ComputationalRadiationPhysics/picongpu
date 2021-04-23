@@ -22,18 +22,18 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/dimensions/DataSpaceOperations.hpp"
-#include "pmacc/math/Vector.hpp"
-#include "pmacc/particles/frame_types.hpp"
-#include "pmacc/kernel/atomic.hpp"
 #include "pmacc/debug/VerboseLog.hpp"
-#include "pmacc/memory/shared/Allocate.hpp"
-#include "pmacc/memory/Array.hpp"
-#include "pmacc/memory/CtxArray.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/kernel/atomic.hpp"
 #include "pmacc/mappings/threads/ForEachIdx.hpp"
 #include "pmacc/mappings/threads/IdxConfig.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/memory/Array.hpp"
+#include "pmacc/memory/CtxArray.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/particles/frame_types.hpp"
 #include "pmacc/traits/GetNumWorkers.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

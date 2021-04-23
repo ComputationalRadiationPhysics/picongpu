@@ -29,6 +29,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 #include "picongpu/traits/attribute/GetChargeState.hpp"
 

@@ -20,7 +20,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
+
 #include <pmacc/algorithms/TypeCast.hpp>
 #include <pmacc/static_assert.hpp>
 #include <pmacc/traits/HasFlag.hpp>

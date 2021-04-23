@@ -19,9 +19,10 @@
 
 #pragma once
 
-#include "picongpu/particles/flylite/NonLTE.def"
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/flylite/IFlyLite.hpp"
+#include "picongpu/particles/flylite/NonLTE.def"
 
 /* pmacc */
 #include <pmacc/dimensions/DataSpace.hpp>

@@ -24,9 +24,9 @@
 // Bremsstrahlung is available only with CUDA
 #if(PMACC_CUDA_ENABLED == 1)
 
+#    include "picongpu/particles/ParticlesFunctors.hpp"
 #    include "picongpu/particles/bremsstrahlung/PhotonEmissionAngle.hpp"
 #    include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
-#    include "picongpu/particles/ParticlesFunctors.hpp"
 
 #    include <pmacc/meta/ForEach.hpp>
 #    include <pmacc/particles/traits/FilterByFlag.hpp>

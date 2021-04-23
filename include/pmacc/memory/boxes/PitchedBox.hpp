@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/cuSTL/cursor/BufferCursor.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

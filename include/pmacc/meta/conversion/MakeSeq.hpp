@@ -23,8 +23,9 @@
 #pragma once
 
 
-#include <boost/mpl/vector.hpp>
 #include "pmacc/meta/conversion/MakeSeqFromNestedSeq.hpp"
+
+#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {

@@ -21,8 +21,9 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/traits/HasFlag.hpp"
+#include "pmacc/types.hpp"
+
 #include <boost/mpl/copy_if.hpp>
 #include <boost/mpl/placeholders.hpp>
 

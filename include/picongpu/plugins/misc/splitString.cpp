@@ -19,8 +19,8 @@
 
 #include "picongpu/plugins/misc/splitString.hpp"
 
-#include <string>
 #include <regex>
+#include <string>
 #include <vector>
 
 

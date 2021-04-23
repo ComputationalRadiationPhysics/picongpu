@@ -19,16 +19,17 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/memory/boxes/DataBox.hpp>
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
 
-#include <string>
+#include <pmacc/memory/boxes/DataBox.hpp>
+#include <pmacc/types.hpp>
+
+#include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <iomanip>
+#include <string>
 #include <thread>
 
 

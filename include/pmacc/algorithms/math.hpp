@@ -21,31 +21,13 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-
 #include "pmacc/algorithms/math/defines/abs.hpp"
-#include "pmacc/algorithms/math/defines/exp.hpp"
-#include "pmacc/algorithms/math/defines/trigo.hpp"
+#include "pmacc/algorithms/math/defines/bessel.hpp"
+#include "pmacc/algorithms/math/defines/comparison.hpp"
 #include "pmacc/algorithms/math/defines/cross.hpp"
 #include "pmacc/algorithms/math/defines/dot.hpp"
-#include "pmacc/algorithms/math/defines/comparison.hpp"
+#include "pmacc/algorithms/math/defines/exp.hpp"
 #include "pmacc/algorithms/math/defines/floatingPoint.hpp"
 #include "pmacc/algorithms/math/defines/modf.hpp"
-#include "pmacc/algorithms/math/defines/bessel.hpp"
 #include "pmacc/algorithms/math/defines/pi.hpp"
-
-#include "pmacc/algorithms/math/floatMath/abs.tpp"
-#include "pmacc/algorithms/math/floatMath/exp.tpp"
-#include "pmacc/algorithms/math/floatMath/trigo.tpp"
-#include "pmacc/algorithms/math/floatMath/comparison.tpp"
-#include "pmacc/algorithms/math/floatMath/floatingPoint.tpp"
-#include "pmacc/algorithms/math/floatMath/modf.tpp"
-#include "pmacc/algorithms/math/floatMath/bessel.tpp"
-
-#include "pmacc/algorithms/math/doubleMath/abs.tpp"
-#include "pmacc/algorithms/math/doubleMath/exp.tpp"
-#include "pmacc/algorithms/math/doubleMath/trigo.tpp"
-#include "pmacc/algorithms/math/doubleMath/comparison.tpp"
-#include "pmacc/algorithms/math/doubleMath/floatingPoint.tpp"
-#include "pmacc/algorithms/math/doubleMath/modf.tpp"
-#include "pmacc/algorithms/math/doubleMath/bessel.tpp"
+#include "pmacc/algorithms/math/defines/trigo.hpp"

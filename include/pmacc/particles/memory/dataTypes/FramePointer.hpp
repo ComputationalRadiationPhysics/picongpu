@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/particles/memory/dataTypes/Pointer.hpp"
+#include "pmacc/types.hpp"
 
 
 namespace pmacc

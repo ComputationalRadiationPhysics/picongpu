@@ -21,12 +21,13 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/EMFieldBase.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
+#include "picongpu/particles/traits/GetMarginPusher.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
-#include "picongpu/particles/traits/GetMarginPusher.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/SuperCellDescription.hpp>

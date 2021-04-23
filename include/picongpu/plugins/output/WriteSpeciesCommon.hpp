@@ -23,21 +23,20 @@
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/meta/conversion/MakeSeq.hpp>
 #include <pmacc/meta/conversion/RemoveFromSeq.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/type_traits/is_same.hpp>
-#include <boost/mpl/size.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/vector.hpp>
 #include <boost/type_traits.hpp>
+#include <boost/type_traits/is_same.hpp>
 
 
 namespace picongpu

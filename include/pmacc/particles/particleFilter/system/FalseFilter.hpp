@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc/particles/memory/frames/NullFrame.hpp"
 #include "pmacc/particles/frame_types.hpp"
+#include "pmacc/particles/memory/frames/NullFrame.hpp"
 #include "pmacc/types.hpp"
 
 namespace pmacc

@@ -23,13 +23,12 @@
 
 #pragma once
 
+#include "pmacc/Environment.def"
 #include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/types.hpp"
-#include "pmacc/Environment.def"
 
-
-#include <string>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace pmacc

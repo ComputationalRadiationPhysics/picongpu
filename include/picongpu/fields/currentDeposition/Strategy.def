@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <pmacc/math/operation.hpp>
 #include <pmacc/kernel/operation/Atomic.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/types.hpp>
 
 

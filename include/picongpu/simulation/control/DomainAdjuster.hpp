@@ -21,17 +21,15 @@
 
 #include "picongpu/fields/absorber/Absorber.hpp"
 
-#include <pmacc/dimensions/DataSpace.hpp>
-
 #include <pmacc/Environment.hpp>
-#include <pmacc/mpi/reduceMethods/Reduce.hpp>
-#include <pmacc/mpi/MPIReduce.hpp>
-#include <pmacc/math/operation.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/mpi/GetMPI_StructAsArray.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
 
-#include <stdexcept>
 #include <array>
+#include <stdexcept>
 
 
 namespace picongpu

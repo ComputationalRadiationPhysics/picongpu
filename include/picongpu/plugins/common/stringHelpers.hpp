@@ -19,14 +19,14 @@
 
 #pragma once
 
-#include <string>
-#include <sstream>
-#include <ctime>
-#include <vector>
-#include <list>
 #include <algorithm>
-#include <numeric>
+#include <ctime>
 #include <iostream>
+#include <list>
+#include <numeric>
+#include <sstream>
+#include <string>
+#include <vector>
 
 namespace picongpu
 {

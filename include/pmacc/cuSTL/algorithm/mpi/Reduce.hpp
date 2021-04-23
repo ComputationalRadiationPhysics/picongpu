@@ -22,9 +22,10 @@
 #pragma once
 
 #include "mpi.h"
-#include "pmacc/math/vector/Int.hpp"
 #include "pmacc/cuSTL/container/HostBuffer.hpp"
 #include "pmacc/cuSTL/zone/SphericZone.hpp"
+#include "pmacc/math/vector/Int.hpp"
+
 #include <vector>
 
 namespace pmacc

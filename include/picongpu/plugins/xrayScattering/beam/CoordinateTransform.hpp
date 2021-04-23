@@ -20,9 +20,10 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/plugins/xrayScattering/beam/Side.hpp"
-#include "picongpu/plugins/xrayScattering/beam/SecondaryRotation.hpp"
+
 #include "picongpu/param/xrayScattering.param"
+#include "picongpu/plugins/xrayScattering/beam/SecondaryRotation.hpp"
+#include "picongpu/plugins/xrayScattering/beam/Side.hpp"
 
 namespace picongpu
 {

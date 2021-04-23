@@ -21,11 +21,10 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-
 #include "pmacc/device/Reduce.hpp"
 #include "pmacc/mpi/MPIReduce.hpp"
 #include "pmacc/traits/GetValueType.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

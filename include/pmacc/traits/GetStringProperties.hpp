@@ -21,9 +21,9 @@
 
 #pragma once
 
+#include <iostream>
 #include <map>
 #include <string>
-#include <iostream>
 
 namespace pmacc
 {

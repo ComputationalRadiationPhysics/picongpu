@@ -19,22 +19,24 @@
 
 #pragma once
 
-#include <adios.h>
-#include <adios_read.h>
-
-#include <list>
-#include <limits>
-#include <sstream>
-#include <string>
-#include <iostream> // std::cerr
-#include <stdexcept> // throw std::runtime_error
-
-#include <pmacc/types.hpp>
-#include <pmacc/math/Vector.hpp>
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/particles/frame_types.hpp>
+
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/traits/PICToAdios.hpp"
+
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/particles/frame_types.hpp>
+#include <pmacc/types.hpp>
+
+#include <iostream> // std::cerr
+#include <limits>
+#include <list>
+#include <sstream>
+#include <stdexcept> // throw std::runtime_error
+#include <string>
+
+#include <adios.h>
+#include <adios_read.h>
 
 namespace picongpu
 {

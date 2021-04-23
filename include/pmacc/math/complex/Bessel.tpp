@@ -59,10 +59,11 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/algorithms/math.hpp"
-#include "pmacc/algorithms/TypeCast.hpp"
 #include "pmacc/math/Complex.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/math/complex/Bessel.hpp"
+#include "pmacc/types.hpp"
 
 #include <cmath>
 #include <limits>
@@ -273,3 +274,5 @@ namespace pmacc
         } // namespace bessel
     } // namespace math
 } // namespace pmacc
+
+#include "pmacc/math/complex/Bessel.tpp"

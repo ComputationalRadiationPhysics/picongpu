@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "pmacc/random/RNGProvider.hpp"
-#include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/Environment.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/mappings/threads/ForEachIdx.hpp"
 #include "pmacc/mappings/threads/IdxConfig.hpp"
+#include "pmacc/random/RNGProvider.hpp"
 #include "pmacc/traits/GetNumWorkers.hpp"
 
 #include <memory>

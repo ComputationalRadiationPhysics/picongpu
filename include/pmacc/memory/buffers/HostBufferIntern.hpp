@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include "pmacc/memory/buffers/HostBuffer.hpp"
-#include "pmacc/eventSystem/tasks/Factory.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
-#include "pmacc/memory/boxes/DataBoxDim1Access.hpp"
-#include "pmacc/memory/Array.hpp"
 #include "pmacc/assert.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/tasks/Factory.hpp"
+#include "pmacc/memory/Array.hpp"
+#include "pmacc/memory/boxes/DataBoxDim1Access.hpp"
+#include "pmacc/memory/buffers/HostBuffer.hpp"
 
 namespace pmacc
 {

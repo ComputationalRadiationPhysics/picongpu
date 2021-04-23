@@ -20,14 +20,14 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "ScaledSpectrum.hpp"
+
 #include "PhotonEmissionAngle.hpp"
+#include "ScaledSpectrum.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 
-#include <pmacc/random/methods/methods.hpp>
-#include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/RNGProvider.hpp>
-
+#include <pmacc/random/distributions/Uniform.hpp>
+#include <pmacc/random/methods/methods.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
 

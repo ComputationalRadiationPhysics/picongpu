@@ -20,9 +20,10 @@
 
 #pragma once
 
+#include "picongpu/plugins/ILightweightPlugin.hpp"
+
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
 #include <pmacc/math/vector/Float.hpp>
-#include "picongpu/plugins/ILightweightPlugin.hpp"
 
 #include <string>
 

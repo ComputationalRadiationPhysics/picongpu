@@ -22,11 +22,11 @@
 #pragma once
 
 
-#include "pmacc/types.hpp"
-#include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/traits/GetNComponents.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/Environment.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/traits/GetNComponents.hpp"
+#include "pmacc/types.hpp"
 
 #include <string>
 

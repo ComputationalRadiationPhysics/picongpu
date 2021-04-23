@@ -22,8 +22,8 @@
 #include <pmacc/types.hpp>
 
 #include <boost/preprocessor/arithmetic/inc.hpp>
-#include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/enum_trailing.hpp>
+#include <boost/preprocessor/repetition/repeat.hpp>
 
 
 namespace picongpu

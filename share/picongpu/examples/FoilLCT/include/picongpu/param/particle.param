@@ -28,8 +28,8 @@
 
 #pragma once
 
-#include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 #include <pmacc/math/operation.hpp>

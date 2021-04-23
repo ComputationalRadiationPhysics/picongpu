@@ -22,15 +22,18 @@
 
 #pragma once
 
-#include "pmacc/communication/manager_common.hpp"
+#include "pmacc/Environment.hpp"
 #include "pmacc/communication/ICommunicator.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
-#include "pmacc/memory/buffers/Exchange.hpp"
+#include "pmacc/memory/buffers/Buffer.hpp"
 
 #include <mpi.h>
 
 namespace pmacc
 {
+    template<class TYPE, unsigned DIM>
+    class Exchange;
+
     template<class TYPE, unsigned DIM>
     class TaskSendMPI : public MPITask
     {

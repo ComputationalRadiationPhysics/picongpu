@@ -21,8 +21,9 @@
 
 #pragma once
 
+// clang-format off
+
 #include "pmacc/math/complex/Complex.hpp"
 #include "pmacc/math/complex/Bessel.hpp"
 
-#include "pmacc/math/complex/Complex.tpp"
-#include "pmacc/math/complex/Bessel.tpp"
+// clang-format on

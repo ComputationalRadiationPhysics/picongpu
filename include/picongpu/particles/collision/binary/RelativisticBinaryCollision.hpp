@@ -20,15 +20,16 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/collision/binary/RelativisticBinaryCollision.def"
 #include "picongpu/unitless/collision.unitless"
 
 #include <pmacc/random/distributions/Uniform.hpp>
 
-#include <utility>
-#include <type_traits>
 #include <cmath>
 #include <cstdio>
+#include <type_traits>
+#include <utility>
 
 namespace picongpu
 {

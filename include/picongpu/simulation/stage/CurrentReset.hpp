@@ -23,8 +23,8 @@
 
 #include "picongpu/fields/FieldJ.hpp"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/Environment.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
 
 #include <cstdint>
 

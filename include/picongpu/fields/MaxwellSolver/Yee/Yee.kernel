@@ -20,11 +20,12 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
-#include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/math/operation.hpp>
+#include <pmacc/memory/boxes/CachedBox.hpp>
 
 
 namespace picongpu

@@ -21,14 +21,15 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/cuSTL/container/HostBuffer.hpp>
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
+#include <pmacc/cuSTL/container/HostBuffer.hpp>
+#include <pmacc/cuSTL/cursor/BufferCursor.hpp>
 #include <pmacc/cuSTL/cursor/Cursor.hpp>
 #include <pmacc/cuSTL/cursor/navigator/PlusNavigator.hpp>
 #include <pmacc/cuSTL/cursor/tools/LinearInterp.hpp>
-#include <pmacc/cuSTL/cursor/BufferCursor.hpp>
-#include <boost/shared_ptr.hpp>
+
 #include <boost/math/tr1.hpp> /* cyl_bessel_k */
+#include <boost/shared_ptr.hpp>
 
 namespace picongpu
 {

@@ -23,18 +23,19 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/assert.hpp>
 
-#include "picongpu/plugins/CountParticles.hpp"
-#include "picongpu/plugins/EnergyParticles.hpp"
-#include "picongpu/plugins/multi/Master.hpp"
-#include "picongpu/plugins/EnergyFields.hpp"
-#include "picongpu/plugins/SumCurrents.hpp"
 #include "picongpu/plugins/BinEnergyParticles.hpp"
+#include "picongpu/plugins/CountParticles.hpp"
 #include "picongpu/plugins/Emittance.hpp"
-#include "picongpu/plugins/transitionRadiation/TransitionRadiation.hpp"
+#include "picongpu/plugins/EnergyFields.hpp"
+#include "picongpu/plugins/EnergyParticles.hpp"
+#include "picongpu/plugins/SumCurrents.hpp"
+#include "picongpu/plugins/multi/Master.hpp"
 #include "picongpu/plugins/output/images/PngCreator.hpp"
 #include "picongpu/plugins/output/images/Visualisation.hpp"
+#include "picongpu/plugins/transitionRadiation/TransitionRadiation.hpp"
+
+#include <pmacc/assert.hpp>
 /* That's an abstract plugin for image output with the possibility
  * to store the image as png file or send it via a sockets to a server.
  *
@@ -47,14 +48,14 @@
 #endif
 
 #if(ENABLE_OPENPMD == 1)
-#    include "picongpu/plugins/openPMD/openPMDWriter.hpp"
 #    include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
+#    include "picongpu/plugins/openPMD/openPMDWriter.hpp"
 #    include "picongpu/plugins/xrayScattering/XrayScattering.hpp"
 #endif
 
 #if(PMACC_CUDA_ENABLED == 1)
-#    include "picongpu/plugins/PositionsParticles.hpp"
 #    include "picongpu/plugins/ChargeConservation.hpp"
+#    include "picongpu/plugins/PositionsParticles.hpp"
 #    include "picongpu/plugins/particleMerging/ParticleMerger.hpp"
 #    include "picongpu/plugins/randomizedParticleMerger/RandomizedParticleMerger.hpp"
 #    if(ENABLE_OPENPMD == 1)
@@ -73,18 +74,17 @@
 
 #if(ENABLE_HDF5 == 1)
 #    include "picongpu/plugins/particleCalorimeter/ParticleCalorimeter.hpp"
-#    include "picongpu/plugins/radiation/VectorTypes.hpp"
 #    include "picongpu/plugins/radiation/Radiation.hpp"
+#    include "picongpu/plugins/radiation/VectorTypes.hpp"
 #endif
 
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/Checkpoint.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/ResourceLog.hpp"
 
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
-
-#include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
 #include <list>
 

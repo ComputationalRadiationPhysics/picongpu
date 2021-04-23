@@ -19,11 +19,12 @@
 
 #pragma once
 
-#include <pmacc/functor/Filtered.hpp>
-#include <pmacc/functor/Interface.hpp>
 #include "picongpu/particles/filter/filter.def"
+
 #include <pmacc/filter/Interface.hpp>
 #include <pmacc/filter/operators/And.hpp>
+#include <pmacc/functor/Filtered.hpp>
+#include <pmacc/functor/Interface.hpp>
 
 namespace picongpu
 {

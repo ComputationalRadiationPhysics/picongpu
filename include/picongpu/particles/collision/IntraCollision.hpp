@@ -20,8 +20,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/collision/detail/ListEntry.hpp"
+
 #include "picongpu/particles/collision/detail/CollisionContext.hpp"
+#include "picongpu/particles/collision/detail/ListEntry.hpp"
 #include "picongpu/particles/collision/detail/cellDensity.hpp"
 
 #include <pmacc/mappings/threads/ForEachIdx.hpp>

@@ -24,8 +24,8 @@
 #include "pmacc/types.hpp"
 #include "pmacc/verify.hpp"
 
-#include <string>
 #include <array>
+#include <string>
 
 
 namespace pmacc

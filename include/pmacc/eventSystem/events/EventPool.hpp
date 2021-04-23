@@ -22,14 +22,14 @@
 
 #pragma once
 
+#include "pmacc/debug/VerboseLog.hpp"
 #include "pmacc/eventSystem/events/CudaEvent.def"
 #include "pmacc/eventSystem/events/CudaEventHandle.hpp"
-#include "pmacc/debug/VerboseLog.hpp"
 #include "pmacc/types.hpp"
 
-#include <vector>
 #include <list>
 #include <stdexcept>
+#include <vector>
 
 namespace pmacc
 {

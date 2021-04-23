@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/random/Random.hpp"
-#include "pmacc/random/RNGHandle.hpp"
-#include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 #include "pmacc/dataManagement/ISimulationData.hpp"
+#include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
+#include "pmacc/random/RNGHandle.hpp"
+#include "pmacc/random/Random.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

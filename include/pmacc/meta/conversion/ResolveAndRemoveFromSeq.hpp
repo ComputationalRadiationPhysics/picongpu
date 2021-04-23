@@ -21,11 +21,10 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-
 #include "pmacc/meta/conversion/RemoveFromSeq.hpp"
 #include "pmacc/meta/conversion/ResolveAliases.hpp"
 #include "pmacc/meta/errorHandlerPolicies/ReturnValue.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

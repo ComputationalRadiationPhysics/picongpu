@@ -32,12 +32,13 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
-#include "picongpu/particles/particleToGrid/FilteredDerivedAttribute.hpp"
+
 #include "picongpu/fields/Fields.def"
-#include "picongpu/particles/traits/GetShape.hpp"
-#include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
 #include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/particleToGrid/FilteredDerivedAttribute.hpp"
+#include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
+#include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
+#include "picongpu/particles/traits/GetShape.hpp"
 
 #include <pmacc/meta/conversion/ToSeq.hpp>
 

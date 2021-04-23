@@ -19,9 +19,10 @@
 
 #pragma once
 
-#include <cstdint>
-#include <cmath>
 #include "picongpu/plugins/radiation/utilities.hpp"
+
+#include <cmath>
+#include <cstdint>
 
 
 namespace picongpu

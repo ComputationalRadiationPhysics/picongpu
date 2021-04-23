@@ -21,8 +21,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/fields/Fields.def"
+
 #include "picongpu/fields/EMFieldBase.hpp"
+#include "picongpu/fields/Fields.def"
 
 #include <pmacc/algorithms/PromoteType.hpp>
 

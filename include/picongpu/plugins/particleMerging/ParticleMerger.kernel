@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "picongpu/plugins/particleMerging/VoronoiCell.hpp"
 #include "picongpu/particles/access/Cell2Particle.hpp"
 #include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/plugins/particleMerging/VoronoiCell.hpp"
 
 #include <pmacc/memory/Array.hpp>
 #include <pmacc/memory/IndexPool.hpp>

@@ -19,9 +19,10 @@
 
 #pragma once
 
-#include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/FieldJ.hpp"
+#include "picongpu/particles/ParticlesFunctors.hpp"
 
 namespace picongpu
 {

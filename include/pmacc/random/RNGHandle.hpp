@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/random/Random.hpp"
 #include "pmacc/Environment.hpp"
+#include "pmacc/random/Random.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

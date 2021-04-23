@@ -25,11 +25,11 @@
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
 #    include <mallocMC/mallocMC.hpp>
 #endif
-#include "pmacc/particles/frame_types.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/particles/memory/dataTypes/SuperCell.hpp"
 #include "pmacc/memory/boxes/PitchedBox.hpp"
+#include "pmacc/particles/frame_types.hpp"
 #include "pmacc/particles/memory/dataTypes/FramePointer.hpp"
+#include "pmacc/particles/memory/dataTypes/SuperCell.hpp"
 
 namespace pmacc
 {

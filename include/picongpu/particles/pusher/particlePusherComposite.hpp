@@ -21,10 +21,10 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/math/vector/compile-time/Vector.hpp>
-
 #include <cstdint>
 #include <string>
+
+#include <pmacc/math/vector/compile-time/Vector.hpp>
 
 
 namespace picongpu

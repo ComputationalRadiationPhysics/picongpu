@@ -20,8 +20,8 @@
  */
 
 #pragma once
-#include <vector> /* std::vector */
 #include <cstdlib> /* std::size_t */
+#include <vector> /* std::vector */
 
 namespace pmacc
 {

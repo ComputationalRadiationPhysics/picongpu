@@ -28,11 +28,11 @@
 #include "pmacc/memory/dataTypes/Mask.hpp"
 #include "pmacc/types.hpp"
 
-#include <mpi.h>
-
-#include <vector>
-#include <utility>
 #include <map>
+#include <utility>
+#include <vector>
+
+#include <mpi.h>
 
 namespace pmacc
 {

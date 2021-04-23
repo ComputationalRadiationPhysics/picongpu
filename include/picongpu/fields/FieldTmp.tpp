@@ -21,28 +21,30 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/FieldTmp.kernel"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
-#include "picongpu/traits/GetMargin.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 
-#include <pmacc/memory/buffers/GridBuffer.hpp>
-#include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/eventSystem/EventSystem.hpp>
-#include <pmacc/fields/tasks/FieldFactory.hpp>
 #include <pmacc/dimensions/SuperCellDescription.hpp>
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/fields/operations/CopyGuardToExchange.hpp>
+#include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/fields/operations/AddExchangeToBorder.hpp>
+#include <pmacc/fields/operations/CopyGuardToExchange.hpp>
+#include <pmacc/fields/tasks/FieldFactory.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
-#include <pmacc/traits/GetUniqueTypeId.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/traits/GetUniqueTypeId.hpp>
 
 #include <boost/mpl/accumulate.hpp>
-#include <string>
+
 #include <memory>
+#include <string>
 
 
 namespace picongpu

@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "pmacc/types.hpp"
+
 namespace pmacc
 {
     namespace math
@@ -167,3 +169,6 @@ namespace pmacc
         } // namespace bessel
     } // namespace math
 } // namespace pmacc
+
+#include "pmacc/algorithms/math/doubleMath/bessel.tpp"
+#include "pmacc/algorithms/math/floatMath/bessel.tpp"

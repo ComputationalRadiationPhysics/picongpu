@@ -21,5 +21,5 @@
 
 #pragma once
 
-#include "pmacc/random/distributions/Uniform.hpp"
 #include "pmacc/random/distributions/Normal.hpp"
+#include "pmacc/random/distributions/Uniform.hpp"

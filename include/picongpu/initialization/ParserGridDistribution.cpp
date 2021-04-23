@@ -20,12 +20,12 @@
 #include "picongpu/initialization/ParserGridDistribution.hpp"
 
 #include <pmacc/verify.hpp>
-#include <cstdint>
-#include <vector> // std::vector
-#include <string> // std::string
-#include <iterator> // std::distance
 
+#include <cstdint>
+#include <iterator> // std::distance
 #include <regex>
+#include <string> // std::string
+#include <vector> // std::vector
 
 
 namespace picongpu

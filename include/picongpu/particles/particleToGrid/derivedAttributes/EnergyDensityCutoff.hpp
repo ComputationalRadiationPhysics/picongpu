@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensityCutoff.def"
-
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/algorithms/KinEnergy.hpp"
+#include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensityCutoff.def"
 
 namespace picongpu
 {

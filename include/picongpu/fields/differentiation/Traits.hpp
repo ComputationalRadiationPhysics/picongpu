@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/differentiation/Derivative.def"
 
 #include <cstdint>

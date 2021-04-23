@@ -21,8 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/random/distributions/Normal.hpp>
 #include <pmacc/math/operation.hpp>
+#include <pmacc/random/distributions/Normal.hpp>
 
 
 namespace picongpu

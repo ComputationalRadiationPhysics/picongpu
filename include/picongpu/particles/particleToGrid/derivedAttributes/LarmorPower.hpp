@@ -19,10 +19,11 @@
 
 #pragma once
 
-#include <pmacc/static_assert.hpp>
+#include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/particleToGrid/derivedAttributes/LarmorPower.def"
 
-#include "picongpu/simulation_defines.hpp"
+#include <pmacc/static_assert.hpp>
 
 
 namespace picongpu

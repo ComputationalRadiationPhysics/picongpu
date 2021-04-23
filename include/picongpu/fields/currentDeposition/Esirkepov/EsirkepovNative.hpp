@@ -20,13 +20,15 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/math/Vector.hpp>
-#include <pmacc/cuSTL/cursor/Cursor.hpp>
-#include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
-#include <pmacc/cuSTL/cursor/compile-time/SafeCursor.hpp>
 
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
+
+#include <pmacc/cuSTL/cursor/Cursor.hpp>
+#include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
+#include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/math/Vector.hpp>
+
+#include <pmacc/cuSTL/cursor/compile-time/SafeCursor.hpp>
 
 
 namespace picongpu

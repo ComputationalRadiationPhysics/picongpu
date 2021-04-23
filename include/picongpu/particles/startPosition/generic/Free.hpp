@@ -20,10 +20,11 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/startPosition/generic/Free.def"
 
-#include <utility>
 #include <type_traits>
+#include <utility>
 
 namespace picongpu
 {

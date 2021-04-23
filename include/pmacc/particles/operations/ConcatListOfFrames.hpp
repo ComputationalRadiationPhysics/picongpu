@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
-#include "pmacc/math/vector/compile-time/Vector.hpp"
-
 #include "pmacc/mappings/threads/WorkerCfg.hpp"
+#include "pmacc/types.hpp"
+
+#include "pmacc/math/vector/compile-time/Vector.hpp"
 
 namespace pmacc
 {

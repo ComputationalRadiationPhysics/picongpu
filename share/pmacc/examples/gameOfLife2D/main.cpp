@@ -18,13 +18,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "types.hpp"
-#include <pmacc/Environment.hpp>
 #include "Simulation.hpp"
+#include "types.hpp"
+
+#include <pmacc/Environment.hpp>
 
 #include <boost/program_options.hpp>
-#include <boost/program_options/options_description.hpp>
 #include <boost/program_options/cmdline.hpp>
+#include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 
 #include <iostream>
