@@ -37,7 +37,8 @@ namespace picongpu
     {
         /** InitPipeline defines in which order species are initialized
          *
-         * the functors are called in order (from first to last functor)
+         * the functors are called in order (from first to last functor).
+         * The functors must be default-constructible and take the current time iteration as the only parameter.
          */
         using InitPipeline = bmpl::vector<>;
 
