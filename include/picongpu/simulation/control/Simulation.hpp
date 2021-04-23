@@ -47,6 +47,7 @@
 #include "picongpu/simulation/stage/CurrentInterpolationAndAdditionToEMF.hpp"
 #include "picongpu/simulation/stage/CurrentReset.hpp"
 #include "picongpu/simulation/stage/FieldBackground.hpp"
+#include "picongpu/simulation/stage/IterationStart.hpp"
 #include "picongpu/simulation/stage/MomentumBackup.hpp"
 #include "picongpu/simulation/stage/ParticleIonization.hpp"
 #include "picongpu/simulation/stage/ParticlePush.hpp"
@@ -521,6 +522,7 @@ namespace picongpu
         {
             using namespace simulation::stage;
 
+            IterationStart{}(currentStep);
             MomentumBackup{}(currentStep);
             CurrentReset{}(currentStep);
             Collision{deviceHeap}(currentStep);

@@ -56,6 +56,7 @@
 #include "picongpu/param/species.param"
 #include "picongpu/param/speciesDefinition.param"
 #include "picongpu/param/speciesInitialization.param"
+#include "picongpu/param/iterationStart.param"
 #include "picongpu/param/collision.param"
 #include "picongpu/param/laser.param"
 #include "picongpu/param/fieldSolver.param"
