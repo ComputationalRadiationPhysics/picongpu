@@ -20,6 +20,7 @@
  */
 
 #include <pmacc/boost_workaround.hpp>
+
 #include <pmacc/test/PMaccFixture.hpp>
 
 #include <catch2/catch.hpp>
