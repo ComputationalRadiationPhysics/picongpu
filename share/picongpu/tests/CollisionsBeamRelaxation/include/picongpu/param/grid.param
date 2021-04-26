@@ -20,11 +20,11 @@
 /** @file
  *
  * Definition of cell sizes and time step. Our cells are defining a regular,
- * cartesian grid. Our explicit FDTD field solvers define an upper bound for
+ * cartesian grid. Our explicit FDTD field solvers require an upper bound for
  * the time step value in relation to the cell size for convergence. Make
  * sure to resolve important wavelengths of your simulation, e.g. shortest
- * plasma wavelength and central laser wavelength both spatially and
- * temporarily.
+ * plasma wavelength, Debye length and central laser wavelength both spatially
+ * and temporarily.
  *
  * **Units in reduced dimensions**
  *
@@ -34,7 +34,7 @@
  * A 2D3V simulation in a cartesian PIC simulation such as
  * ours only changes the degrees of freedom in motion for
  * (macro) particles and all (field) information in z
- * travels instantaneous, making the 2D3V simulation
+ * travels instantaneously, making the 2D3V simulation
  * behave like the interaction of infinite "wire particles"
  * in fields with perfect symmetry in Z.
  *
