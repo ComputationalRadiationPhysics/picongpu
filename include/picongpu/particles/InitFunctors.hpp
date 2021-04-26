@@ -48,10 +48,8 @@ namespace picongpu
     {
         /** call a functor
          *
-         * @tparam T_Functor unary lambda functor
-         *                   operator() must take two params
-         *                      - first: storage tuple
-         *                      - second: current time step
+         * @tparam T_Functor unary lambda functor, must be default-constructible and
+         *         operator() must take the current time step as the only parameter
          */
         template<typename T_Functor = bmpl::_1>
         struct CallFunctor
