@@ -27,8 +27,8 @@
 #include "picongpu/fields/MaxwellSolver/YeePML/YeePML.kernel"
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/cellType/Yee.hpp"
-#include "picongpu/traits/GetMargin.hpp"
 #include "picongpu/fields/incidentField/Solver.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/traits/GetStringProperties.hpp>
 

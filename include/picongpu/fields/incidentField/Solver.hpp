@@ -21,12 +21,12 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/Fields.hpp"
-#include "picongpu/fields/incidentField/Solver.kernel"
-#include "picongpu/fields/incidentField/Profiles.hpp"
-#include "picongpu/fields/incidentField/Traits.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.def"
+#include "picongpu/fields/absorber/Absorber.hpp"
+#include "picongpu/fields/incidentField/Profiles.hpp"
+#include "picongpu/fields/incidentField/Solver.kernel"
+#include "picongpu/fields/incidentField/Traits.hpp"
 
 #include <pmacc/math/Vector.hpp>
 

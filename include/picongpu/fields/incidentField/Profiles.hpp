@@ -19,8 +19,9 @@
 
 #pragma once
 
-#include "picongpu/fields/incidentField/Profiles.def"
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/fields/incidentField/Profiles.def"
 
 
 namespace picongpu
