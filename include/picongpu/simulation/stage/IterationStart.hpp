@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/InitFunctors.hpp"
+#include <pmacc/functor/Call.hpp>
 
 #include <cstdint>
 
@@ -44,7 +44,7 @@ namespace picongpu
                  */
                 void operator()(uint32_t const step) const
                 {
-                    meta::ForEach<IterationStartPipeline, particles::CallFunctor<bmpl::_1>> callFunctors;
+                    meta::ForEach<IterationStartPipeline, pmacc::functor::Call<bmpl::_1>> callFunctors;
                     callFunctors(step);
                 }
             };
