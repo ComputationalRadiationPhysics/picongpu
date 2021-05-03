@@ -1030,7 +1030,8 @@ Please pick either of the following:
 
                     // ask openPMD to create a buffer for us
                     // in some backends (ADIOS2), this allows avoiding memcopies
-                    auto span = mrc.storeChunk<float_X>(
+                    auto span = storeChunkSpan<float_X>(
+                        mrc,
                         asStandardVector(fieldsOffsetDims),
                         asStandardVector(fieldsSizeDims),
                         [&fieldBuffer](size_t size) {
