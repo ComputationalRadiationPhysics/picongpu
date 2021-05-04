@@ -258,7 +258,8 @@ namespace picongpu
                  *    3D: z-lower, z-upper, y-lower, y-upper, x-lower, x-upper
                  *    2D: y-lower, y-upper, x-lower, x-upper
                  */
-                GetStringProperties<fields::absorber::Absorber> fieldBoundaryProp;
+                auto& absorber = fields::absorber::Absorber::get();
+                auto fieldBoundaryProp = absorber.getStringProperties();
                 std::list<std::string> listFieldBoundary;
                 std::list<std::string> listFieldBoundaryParam;
                 for(uint32_t i = NumberOfExchanges<simDim>::value - 1; i > 0; --i)
