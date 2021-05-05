@@ -57,6 +57,9 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 #   - "gpu" queue
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/hemera-hzdr/gpu.tpl"
+# use gpu for regular queue and gpu_low for low priority queue
+export TBG_partition="gpu"
+
 
 # allocate an interactive shell for one hour
 #   getNode 2  # allocates two interactive nodes (default: 1)
