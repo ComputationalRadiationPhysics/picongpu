@@ -19,8 +19,7 @@ module purge
 module load git
 module load gcc/7.3.0
 module load cmake/3.15.2
-module load cuda/11.2
-module load openmpi/4.0.4-cuda112
+module load openmpi/4.0.4-csk
 module load boost/1.68.0
 
 # Other Software ##############################################################
@@ -28,12 +27,11 @@ module load boost/1.68.0
 module load zlib/1.2.11
 module load c-blosc/1.14.4
 
-module load hdf5-parallel/1.12.0-cuda112
+module load hdf5-parallel/1.10.5
 module load python/3.6.5
-module load libfabric/1.11.1-co79
-module load adios/1.13.1-cuda112
-module load adios2/2.7.1-cuda112
-module load openpmd/0.13.2-cuda112-adios271
+module load libfabric/1.11.1
+module load adios2/2.7.1
+module load openpmd/0.13.2
 
 module load libpng/1.6.35
 module load pngwriter/0.7.0
