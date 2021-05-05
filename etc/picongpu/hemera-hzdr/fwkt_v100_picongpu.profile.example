@@ -57,6 +57,8 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 #   - "fwkt_v100" queue
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/hemera-hzdr/fwkt_v100.tpl"
+# use fwkt_v100 for regular queue and casus_low for low priority queue
+export TBG_partition="fwkt_v100"
 
 # allocate an interactive shell for one hour
 #   getNode 2  # allocates two interactive nodes (default: 1)
