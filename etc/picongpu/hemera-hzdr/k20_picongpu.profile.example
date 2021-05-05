@@ -57,6 +57,9 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 #   - "k20" queue
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/hemera-hzdr/k20.tpl"
+# use k20 for regular queue and k20_low for low priority queue
+export TBG_partition="k20"
+
 
 # allocate an interactive shell for one hour
 #   getNode 2  # allocates two interactive nodes (default: 1)
