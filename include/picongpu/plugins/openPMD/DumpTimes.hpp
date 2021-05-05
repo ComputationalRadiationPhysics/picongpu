@@ -140,7 +140,7 @@ namespace picongpu
             {
             }
 
-            template<typename, typename... Args>
+            template<typename... Args>
             inline void flush(Args&&...)
             {
             }
