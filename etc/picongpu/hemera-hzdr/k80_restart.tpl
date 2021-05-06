@@ -21,7 +21,8 @@
 
 
 ## calculation are done by tbg ##
-.TBG_queue="k80"
+TBG_queue=${TBG_partition:-"k80"}
+.TBG_account=`if [ $TBG_partition == "k80_low" ] ; then echo "low"; else echo "k80"; fi`
 
 # settings that can be controlled by environment variables before submit
 .TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
@@ -55,7 +56,7 @@
 
 #SBATCH --partition=!TBG_queue
 # necessary to set the account also to the queue name because otherwise access is not allowed at the moment
-#SBATCH --account=!TBG_queue
+#SBATCH --account=!TBG_account
 #SBATCH --time=!TBG_wallTime
 # Sets batch job's name
 #SBATCH --job-name=!TBG_jobName

@@ -22,6 +22,7 @@
 # PIConGPU batch script for hemera's SLURM batch system
 
 #SBATCH --partition=!TBG_queue
+#SBATCH --account=!TBG_account
 #SBATCH --time=!TBG_wallTime
 # Sets batch job's name
 #SBATCH --job-name=!TBG_jobName
@@ -41,7 +42,8 @@
 
 
 ## calculations will be performed by tbg ##
-.TBG_queue="gpu"
+.TBG_queue=${TBG_partition:-"gpu"}
+.TBG_account=`if [ $TBG_partition == "gpu_low" ] ; then echo "low"; else echo "default"; fi`
 
 # settings that can be controlled by environment variables before submit
 .TBG_mailSettings=${MY_MAILNOTIFY:-"NONE"}

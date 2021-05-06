@@ -24,7 +24,7 @@
 
 #SBATCH --partition=!TBG_queue
 # necessary to set the account also to the queue name because otherwise access is not allowed at the moment
-#SBATCH --account=!TBG_queue
+#SBATCH --account=!TBG_account
 #SBATCH --time=!TBG_wallTime
 # Sets batch job's name
 #SBATCH --job-name=!TBG_jobName
@@ -44,7 +44,8 @@
 
 
 ## calculations will be performed by tbg ##
-.TBG_queue="fwkt_v100"
+.TBG_queue=${TBG_partition:-"fwkt_v100"}
+.TBG_account=`if [ $TBG_partition == "casus_low" ] ; then echo "low"; else echo "fwkt_v100"; fi`
 
 # settings that can be controlled by environment variables before submit
 .TBG_mailSettings=${MY_MAILNOTIFY:-"NONE"}
