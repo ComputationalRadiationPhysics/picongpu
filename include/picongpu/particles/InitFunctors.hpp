@@ -46,22 +46,6 @@ namespace picongpu
 {
     namespace particles
     {
-        /** call a functor
-         *
-         * @tparam T_Functor unary lambda functor, must be default-constructible and
-         *         operator() must take the current time step as the only parameter
-         */
-        template<typename T_Functor = bmpl::_1>
-        struct CallFunctor
-        {
-            using Functor = T_Functor;
-
-            HINLINE void operator()(const uint32_t currentStep)
-            {
-                Functor()(currentStep);
-            }
-        };
-
         /** Create particle distribution from a normalized density profile
          *
          * Create particles inside a species. The created particles are macroscopically

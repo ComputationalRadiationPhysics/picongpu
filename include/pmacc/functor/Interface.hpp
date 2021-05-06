@@ -36,21 +36,6 @@ namespace pmacc
     {
         namespace acc
         {
-            namespace detail
-            {
-                /** Helper class to compare void with void
-                 *
-                 * std::is_same does not allow to use void as type. By wrapping the type before
-                 * comparing, we can workaround this limitation.
-                 *
-                 * @tparam T_Type type to be wrapped
-                 */
-                template<typename T_Type>
-                struct VoidWrapper
-                {
-                };
-            } // namespace detail
-
             /** functor interface used on the accelerator side
              *
              * The user functor of the type T_UserFunctor must contain
@@ -104,8 +89,7 @@ namespace pmacc
                     // compare user functor return type with the interface requirements
                     PMACC_CASSERT_MSG(
                         __wrong_user_functor_return_type,
-                        std::is_same<detail::VoidWrapper<UserFunctorReturnType>, detail::VoidWrapper<T_ReturnType>>::
-                            value);
+                        std::is_same<UserFunctorReturnType, T_ReturnType>::value);
                     return (*static_cast<UserFunctor*>(this))(acc, args...);
                 }
             };

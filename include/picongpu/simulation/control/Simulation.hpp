@@ -58,6 +58,7 @@
 #include <pmacc/assert.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/eventSystem/EventSystem.hpp>
+#include <pmacc/functor/Call.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
@@ -494,7 +495,7 @@ namespace picongpu
                 else
                 {
                     initialiserController->init();
-                    meta::ForEach<particles::InitPipeline, particles::CallFunctor<bmpl::_1>> initSpecies;
+                    meta::ForEach<particles::InitPipeline, pmacc::functor::Call<bmpl::_1>> initSpecies;
                     initSpecies(step);
                     particles::debyeLength::check(*cellDescription);
                 }
@@ -588,7 +589,7 @@ namespace picongpu
                 log<picLog::SIMULATION_STATE>("slide in step %1%") % currentStep;
                 resetAll(currentStep);
                 initialiserController->slide(currentStep);
-                meta::ForEach<particles::InitPipeline, particles::CallFunctor<bmpl::_1>> initSpecies;
+                meta::ForEach<particles::InitPipeline, pmacc::functor::Call<bmpl::_1>> initSpecies;
                 initSpecies(currentStep);
             }
         }
