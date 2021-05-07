@@ -125,8 +125,12 @@ namespace picongpu
 
                 void update_afterCurrent(uint32_t currentStep)
                 {
-                    using Absorber = absorber::ExponentialDamping;
-                    Absorber::run(currentStep, this->m_cellDescription, this->fieldE->getDeviceDataBox());
+                    /* Here we use exponential damping explicitly to simplify transition to runtime absorber.
+                     * It is safe since this field solver kind is only compiled with this absorber kind,
+                     * and otherwise the conversion would not compile.
+                     */
+                    auto& absorber = static_cast<absorber::ExponentialDamping&>(absorber::Absorber::get());
+                    absorber.run(currentStep, this->m_cellDescription, this->fieldE->getDeviceDataBox());
                     if(laserProfiles::Selected::INIT_TIME > float_X(0.0))
                         LaserPhysics{}(currentStep);
 
@@ -136,7 +140,7 @@ namespace picongpu
                     __setTransactionEvent(eRfieldE);
                     updateBHalf<BORDER>();
 
-                    Absorber::run(currentStep, this->m_cellDescription, fieldB->getDeviceDataBox());
+                    absorber.run(currentStep, this->m_cellDescription, fieldB->getDeviceDataBox());
 
                     EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
                     __setTransactionEvent(eRfieldB);

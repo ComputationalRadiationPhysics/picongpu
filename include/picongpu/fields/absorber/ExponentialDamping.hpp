@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Axel Huebl, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -30,8 +30,8 @@
 #include <pmacc/memory/dataTypes/Mask.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 
-#include <sstream>
-#include <string>
+#include <cstdint>
+
 
 namespace picongpu
 {
@@ -39,11 +39,33 @@ namespace picongpu
     {
         namespace absorber
         {
-            class ExponentialDamping
+            /** Exponential damping field absorber
+             *
+             * Sets instance and implements absorption.
+             */
+            class ExponentialDamping : public Absorber
             {
             public:
+                //! Create exponential damping absorber instance
+                ExponentialDamping()
+                {
+                    // Copy thickness from grid.param
+                    for(uint32_t axis = 0u; axis < 3u; axis++)
+                        for(uint32_t direction = 0u; direction < 2u; direction++)
+                            numCells[axis][direction] = ABSORBER_CELLS[axis][direction];
+                    name = "exponential damping";
+                }
+
+                /** Apply absorber to the given field
+                 *
+                 * @tparam BoxedMemory field box type
+                 *
+                 * @param currentStep current time iteration
+                 * @param cellDescription mapping description for kernels
+                 * @param deviceBox field box
+                 */
                 template<class BoxedMemory>
-                static void run(uint32_t currentStep, MappingDesc& cellDescription, BoxedMemory deviceBox)
+                void run(uint32_t currentStep, MappingDesc& cellDescription, BoxedMemory deviceBox)
                 {
                     const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
                     for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
@@ -64,7 +86,7 @@ namespace picongpu
                              */
                             uint32_t pos_or_neg = i % 2;
 
-                            uint32_t thickness = absorber::numCells[direction][pos_or_neg];
+                            uint32_t thickness = numCells[direction][pos_or_neg];
                             float_X absorber_strength = ABSORBER_STRENGTH[direction][pos_or_neg];
 
                             if(thickness == 0)

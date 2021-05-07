@@ -20,7 +20,7 @@
 #pragma once
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/absorber/ExponentialDamping.hpp"
+#include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"
@@ -159,7 +159,8 @@ namespace picongpu
                      *    3D: z-lower, z-upper, y-lower, y-upper, x-lower, x-upper
                      *    2D: y-lower, y-upper, x-lower, x-upper
                      */
-                    GetStringProperties<fields::absorber::Absorber> fieldBoundaryProp;
+                    auto& absorber = fields::absorber::Absorber::get();
+                    auto fieldBoundaryProp = absorber.getStringProperties();
                     std::vector<std::string> listFieldBoundary;
                     std::vector<std::string> listFieldBoundaryParam;
                     auto n = NumberOfExchanges<simDim>::value;
