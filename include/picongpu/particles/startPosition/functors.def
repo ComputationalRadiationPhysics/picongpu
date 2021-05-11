@@ -25,3 +25,4 @@
 #include "picongpu/particles/startPosition/RandomImpl.def"
 #include "picongpu/particles/startPosition/generic/Free.def"
 #include "picongpu/particles/startPosition/generic/FreeRng.def"
+#include "picongpu/particles/startPosition/generic/FreeBoundary.def"

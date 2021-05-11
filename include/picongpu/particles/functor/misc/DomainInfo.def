@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,12 +17,26 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "picongpu/particles/startPosition/OnePositionImpl.hpp"
-#include "picongpu/particles/startPosition/QuietImpl.hpp"
-#include "picongpu/particles/startPosition/RandomImpl.hpp"
-#include "picongpu/particles/startPosition/generic/Free.hpp"
-#include "picongpu/particles/startPosition/generic/FreeRng.hpp"
-#include "picongpu/particles/startPosition/generic/FreeBoundary.hpp"
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace functor
+        {
+            namespace misc
+            {
+                struct Domain
+                {
+                    pmacc::Selection<simDim> global;
+                    pmacc::Selection<simDim> local;
+                };
+
+                //! Provide the cell offset of a supercell to the total domain origin
+                struct DomainInfo;
+            } // namespace misc
+        } // namespace functor
+    } // namespace particles
+} // namespace picongpu
