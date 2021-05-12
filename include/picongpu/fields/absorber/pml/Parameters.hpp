@@ -31,9 +31,9 @@ namespace picongpu
 {
     namespace fields
     {
-        namespace maxwellSolver
+        namespace absorber
         {
-            namespace yeePML
+            namespace pml
             {
                 /** Parameters of PML, except thickness
                  *
@@ -79,6 +79,7 @@ namespace picongpu
                 };
 
                 //! Thickness of PML at each border, in number of cells
+                /// TODO: remove this, use absorber::Thickness
                 struct Thickness
                 {
                     //! Negative border is at the local domain sides minimum in coordinates
@@ -111,7 +112,7 @@ namespace picongpu
                     }
                 };
 
-            } // namespace yeePML
-        } // namespace maxwellSolver
+            } // namespace pml
+        } // namespace absorber
     } // namespace fields
 } // namespace picongpu

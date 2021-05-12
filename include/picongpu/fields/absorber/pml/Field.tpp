@@ -22,7 +22,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
+#include "picongpu/fields/absorber/pml/Field.hpp"
 
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
@@ -34,9 +34,9 @@ namespace picongpu
 {
     namespace fields
     {
-        namespace maxwellSolver
+        namespace absorber
         {
-            namespace yeePML
+            namespace pml
             {
                 namespace detail
                 {
@@ -291,7 +291,7 @@ namespace picongpu
                     data->deviceToHost();
                 }
 
-            } // namespace yeePML
-        } // namespace maxwellSolver
+            } // namespace pml
+        } // namespace absorber
     } // namespace fields
 } // namespace picongpu

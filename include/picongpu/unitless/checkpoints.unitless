@@ -47,7 +47,7 @@ namespace picongpu
         template<typename... T_Args>
         struct AdditionalCheckpointFields<fields::maxwellSolver::YeePML<T_Args...>>
         {
-            using type = MakeSeq_t<fields::maxwellSolver::yeePML::FieldE, fields::maxwellSolver::yeePML::FieldB>;
+            using type = MakeSeq_t<fields::absorber::pml::FieldE, fields::absorber::pml::FieldB>;
         };
 
     } // namespace detail

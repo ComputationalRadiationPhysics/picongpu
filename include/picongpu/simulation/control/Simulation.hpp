@@ -28,7 +28,7 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
-#include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
+#include "picongpu/fields/absorber/pml/Field.hpp"
 #include "picongpu/fields/background/cellwiseOperation.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"
 #include "picongpu/initialization/ParserGridDistribution.hpp"
@@ -688,8 +688,8 @@ namespace picongpu
             std::array<std::string, 4> const fieldNames{
                 {FieldE::getName(),
                  FieldB::getName(),
-                 fields::maxwellSolver::yeePML::FieldE::getName(),
-                 fields::maxwellSolver::yeePML::FieldB::getName()}};
+                 fields::absorber::pml::FieldE::getName(),
+                 fields::absorber::pml::FieldB::getName()}};
             std::for_each(fieldNames.cbegin(), fieldNames.cend(), resetField);
         }
     };

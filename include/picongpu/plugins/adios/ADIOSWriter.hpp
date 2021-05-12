@@ -28,7 +28,7 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
-#include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
+#include "picongpu/fields/absorber/pml/Field.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/adios/ADIOSCountParticles.hpp"
