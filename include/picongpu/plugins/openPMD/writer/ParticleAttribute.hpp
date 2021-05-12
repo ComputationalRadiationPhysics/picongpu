@@ -86,27 +86,13 @@ namespace picongpu
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) write species attribute: %1%") % Identifier::getName();
 
                 std::shared_ptr<ComponentType> storeBfr;
-                if(elements > 0)
-                    storeBfr = std::shared_ptr<ComponentType>{new ComponentType[elements], [](ComponentType* ptr) {
-                                                                  delete[] ptr;
-                                                              }};
 
                 for(uint32_t d = 0; d < components; d++)
                 {
                     ::openPMD::RecordComponent recordComponent
                         = components > 1 ? record[name_lookup[d]] : record[::openPMD::MeshRecordComponent::SCALAR];
+
                     std::string datasetName = components > 1 ? baseName + "/" + name_lookup[d] : baseName;
-
-                    ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer(); // can be moved up?
-                    auto storePtr = storeBfr.get();
-
-/* copy strided data from source to temporary buffer */
-#pragma omp parallel for simd
-                    for(size_t i = 0; i < elements; ++i)
-                    {
-                        storePtr[i] = reinterpret_cast<ComponentType*>(dataPtr)[d + i * components];
-                    }
-
                     params->initDataset<DIM1>(
                         recordComponent,
                         openPMDType,
@@ -114,13 +100,47 @@ namespace picongpu
                         true,
                         params->compressionMethod,
                         datasetName);
-                    if(storeBfr)
-                        recordComponent.storeChunk(storeBfr, {globalOffset}, {elements});
 
                     if(unit.size() >= (d + 1))
                     {
                         recordComponent.setUnitSI(unit[d]);
                     }
+
+                    if(elements == 0)
+                    {
+                        // technically not necessary if we write no dataset,
+                        // but let's keep things uniform
+                        params->openPMDSeries->flush();
+                        continue;
+                    }
+
+                    ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer(); // can be moved up?
+                    // ask openPMD to create a buffer for us
+                    // in some backends (ADIOS2), this allows avoiding memcopies
+                    auto span = storeChunkSpan<ComponentType>(
+                                    recordComponent,
+                                    ::openPMD::Offset{globalOffset},
+                                    ::openPMD::Extent{elements},
+                                    [&storeBfr](size_t size) {
+                                        // if there is no special backend support for creating buffers,
+                                        // reuse the storeBfr
+                                        if(!storeBfr && size > 0)
+                                        {
+                                            storeBfr = std::shared_ptr<ComponentType>{
+                                                new ComponentType[size],
+                                                [](ComponentType* ptr) { delete[] ptr; }};
+                                        }
+                                        return storeBfr;
+                                    })
+                                    .currentBuffer();
+
+/* copy strided data from source to temporary buffer */
+#pragma omp parallel for simd
+                    for(size_t i = 0; i < elements; ++i)
+                    {
+                        span[i] = reinterpret_cast<ComponentType*>(dataPtr)[d + i * components];
+                    }
+
                     params->openPMDSeries->flush();
                 }
 
