@@ -223,7 +223,8 @@ namespace picongpu
                     {
                         namespace pml = maxwellSolver::Pml;
 
-                        globalSize = getGlobalThickness();
+                        auto& absorber = absorber::Absorber::get();
+                        globalSize = absorber.getGlobalThickness();
                         parameters.sigmaKappaGradingOrder = pml::SIGMA_KAPPA_GRADING_ORDER;
                         parameters.alphaGradingOrder = pml::ALPHA_GRADING_ORDER;
                         for(uint32_t dim = 0u; dim < simDim; dim++)
@@ -232,16 +233,6 @@ namespace picongpu
                             parameters.kappaMax[dim] = pml::KAPPA_MAX[dim];
                             parameters.normalizedAlphaMax[dim] = pml::NORMALIZED_ALPHA_MAX[dim];
                         }
-                    }
-
-                    Thickness getGlobalThickness() const
-                    {
-                        Thickness globalThickness;
-                        auto& absorber = absorber::Absorber::get();
-                        for(uint32_t axis = 0u; axis < simDim; axis++)
-                            for(auto direction = 0; direction < 2; direction++)
-                                globalThickness(axis, direction) = absorber.getGlobalThickness()(axis, direction);
-                        return globalThickness;
                     }
 
                     void initFields()
@@ -329,7 +320,8 @@ namespace picongpu
                     void checkLocalThickness(Thickness const localThickness) const
                     {
                         auto const localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
-                        auto const localPMLSize = localThickness.negativeBorder + localThickness.positiveBorder;
+                        auto const localPMLSize
+                            = localThickness.getNegativeBorder() + localThickness.getPositiveBorder();
                         auto pmlFitsDomain = true;
                         for(uint32_t dim = 0u; dim < simDim; dim++)
                             if(localPMLSize[dim] > localDomain.size[dim])

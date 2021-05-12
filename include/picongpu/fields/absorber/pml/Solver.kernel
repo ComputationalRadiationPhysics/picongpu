@@ -61,8 +61,8 @@ namespace picongpu
                         DataSpace<simDim> const numLocalDomainCells,
                         DataSpace<simDim> const numGuardCells)
                         : Parameters(parameters)
-                        , negativeBorderSize(precisionCast<float_X>(localThickness.negativeBorder))
-                        , positiveBorderSize(precisionCast<float_X>(localThickness.positiveBorder))
+                        , negativeBorderSize(precisionCast<float_X>(localThickness.getNegativeBorder()))
+                        , positiveBorderSize(precisionCast<float_X>(localThickness.getPositiveBorder()))
                         , numLocalDomainCells(numLocalDomainCells)
                         , numGuardCells(numGuardCells)
                     {
