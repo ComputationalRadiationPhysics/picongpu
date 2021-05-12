@@ -1,0 +1,130 @@
+/* Copyright 2020-2021 Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file incidentField.param
+ *
+ * Load incident field parameters
+ */
+
+#pragma once
+
+#include "picongpu/fields/incidentField/Profiles.def"
+
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace incidentField
+        {
+            /** Functor to set values of incident E field
+             */
+            class FunctorIncidentE
+            {
+            public:
+                /* We use this to calculate your SI input back to our unit system */
+                PMACC_ALIGN(m_unitField, const float3_64);
+
+                /** Create a functor
+                 *
+                 * @param unitField conversion factor from SI to internal units,
+                 *                  field_internal = field_SI / unitField
+                 */
+                HDINLINE FunctorIncidentE(const float3_64 unitField) : m_unitField(unitField)
+                {
+                }
+
+                /** Calculate incident field E_inc(r, t) for a source
+                 *
+                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
+                 *        note that it is fractional
+                 * @param currentStep current time step index, note that it is fractional
+                 * @return incident field value in internal units
+                 */
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
+                {
+                    auto const fieldSI = float3_X(0.0_X, 0.0_X, 0.0_X);
+                    return fieldSI / precisionCast<float_X>(m_unitField);
+                }
+            };
+
+            /** Functor to set values of incident B field
+             */
+            class FunctorIncidentB
+            {
+            public:
+                /* We use this to calculate your SI input back to our unit system */
+                PMACC_ALIGN(m_unitField, const float3_64);
+
+                /** Create a functor
+                 *
+                 * @param unitField conversion factor from SI to internal units,
+                 *                  field_internal = field_SI / unitField
+                 */
+                HDINLINE FunctorIncidentB(const float3_64 unitField) : m_unitField(unitField)
+                {
+                }
+
+                /** Calculate incident field B_inc(r, t) for a source
+                 *
+                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
+                 *        note that it is fractional
+                 * @param currentStep current time step index, note that it is fractional
+                 * @return incident field value in internal units
+                 */
+                HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
+                {
+                    auto const fieldSI = float3_X(0.0_X, 0.0_X, 0.0_X);
+                    return fieldSI / precisionCast<float_X>(m_unitField);
+                }
+            };
+
+            /** Source of incident E and B fields.
+             *
+             * Each source type combines functors for incident field E and B, which must be consistent to each other.
+             */
+            using MySource = Source<FunctorIncidentE, FunctorIncidentB>;
+
+            /**@{*/
+            /** Incident field source types along each boundary, these 6 types (or aliases) are required.
+             *
+             * Each type has to be either Source<> or None.
+             */
+            using XMin = None;
+            using XMax = None;
+            using YMin = None;
+            using YMax = None;
+            using ZMin = None;
+            using ZMax = None;
+            /**@}*/
+
+            /** Gap of the Huygence surface from absorber
+             *
+             * The gap is in cells, counted from the corrresponding boundary in the normal direction pointing inwards.
+             * It is similar to specifying absorber cells, just this layer is further inside.
+             */
+            constexpr uint32_t GAP_FROM_ABSORBER[3][2] = {
+                {0, 0}, // x direction [negative, positive]
+                {0, 0}, // y direction [negative, positive]
+                {0, 0} // z direction [negative, positive]
+            };
+
+        } // namespace incidentField
+    } // namespace fields
+} // namespace picongpu

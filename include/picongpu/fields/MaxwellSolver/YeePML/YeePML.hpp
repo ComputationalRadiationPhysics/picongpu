@@ -1,5 +1,5 @@
 /* Copyright 2019-2021 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz,
- *                Sergei Bastrakov, Klaus Steiniger
+ *                     Sergei Bastrakov, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -27,6 +27,7 @@
 #include "picongpu/fields/MaxwellSolver/YeePML/YeePML.kernel"
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/cellType/Yee.hpp"
+#include "picongpu/fields/incidentField/Solver.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/traits/GetStringProperties.hpp>
@@ -387,7 +388,7 @@ namespace picongpu
                 using CurlE = T_CurlE;
                 using CurlB = T_CurlB;
 
-                YeePML(MappingDesc const cellDescription) : solver(cellDescription)
+                YeePML(MappingDesc const cellDescription) : cellDescription(cellDescription), solver(cellDescription)
                 {
                 }
 
@@ -414,10 +415,16 @@ namespace picongpu
                      * to-be-absorbed components.
                      */
                     solver.template updateBSecondHalf<CORE + BORDER>(currentStep);
+                    auto incidentFieldSolver = fields::incidentField::Solver{cellDescription};
+                    // update B by half step, to step = currentStep + 0.5, so step for E_inc = currentStep
+                    incidentFieldSolver.updateBHalf(static_cast<float_X>(currentStep));
                     auto& fieldB = solver.getFieldB();
                     EventTask eRfieldB = fieldB.asyncCommunication(__getTransactionEvent());
 
                     solver.template updateE<CORE>(currentStep);
+                    // Incident field solver update does not use exchanged B, so does not have to wait for it
+                    // update E by full step, to step = currentStep + 1, so step for B_inc = currentStep + 0.5
+                    incidentFieldSolver.updateE(static_cast<float_X>(currentStep) + 0.5_X);
                     __setTransactionEvent(eRfieldB);
                     solver.template updateE<BORDER>(currentStep);
                 }
@@ -439,6 +446,11 @@ namespace picongpu
                     if(laserProfiles::Selected::INIT_TIME > 0.0_X)
                         LaserPhysics{}(currentStep);
 
+                    // Incident field solver update does not use exchanged E, so does not have to wait for it
+                    auto incidentFieldSolver = fields::incidentField::Solver{cellDescription};
+                    // update B by half step, to step currentStep + 1.5, so step for E_inc = currentStep + 1
+                    incidentFieldSolver.updateBHalf(static_cast<float_X>(currentStep) + 1.0_X);
+
                     auto& fieldE = solver.getFieldE();
                     EventTask eRfieldE = fieldE.asyncCommunication(__getTransactionEvent());
 
@@ -458,6 +470,7 @@ namespace picongpu
                 }
 
             private:
+                MappingDesc const cellDescription;
                 yeePML::detail::Solver<CurlE, CurlB> solver;
             };
 
