@@ -397,7 +397,8 @@ namespace picongpu
                     /* Compute offsets from global domain borders, without guards.
                      * These can end up being outside of the local domain, it is handled later.
                      */
-                    absorber::Thickness absorberThickness = absorber::getGlobalThickness();
+                    auto const& absorber = fields::absorber::Absorber::get();
+                    absorber::Thickness absorberThickness = absorber.getGlobalThickness();
                     for(uint32_t axis = 0u; axis < simDim; ++axis)
                     {
                         offsetMinBorder[axis] = absorberThickness(axis, 0) + GAP_FROM_ABSORBER[axis][0];
