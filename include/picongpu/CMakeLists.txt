@@ -397,7 +397,7 @@ PIC_dependency_set_status(ADIOS1 ${ADIOS_FOUND})
 
 PIC_dependency(Splash "API for IO with HDF5" AUTO)
 
-if(PIC_SEARCH_ADIOS1)
+if(PIC_SEARCH_Splash)
     find_package(Splash 1.7.0 CONFIG COMPONENTS PARALLEL)
 
     if(TARGET Splash::Splash)
