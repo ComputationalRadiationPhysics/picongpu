@@ -49,8 +49,24 @@ namespace picongpu
                 //! restart the plugin from a checkpoint
                 virtual void restart(uint32_t restartStep, std::string const& restartDirectory) = 0;
 
-                //! create a check point forthe plugin
+                //! create a check point for the plugin
                 virtual void checkpoint(uint32_t currentStep, std::string const& checkpointDirectory) = 0;
+
+                /**
+                 * Called each timestep if particles are leaving the global simulation volume.
+                 *
+                 * This method is only called for species which are marked with the
+                 * `GuardHandlerCallPlugins` policy in their descpription.
+                 *
+                 * The order in which the plugins are called is undefined, so this means
+                 * read-only access to the particles.
+                 *
+                 * \param speciesName name of the particle species
+                 * \param direction the direction the particles are leaving the simulation
+                 */
+                virtual void onParticleLeave(const std::string& speciesName, const int32_t direction)
+                {
+                }
             };
 
         } // namespace multi
