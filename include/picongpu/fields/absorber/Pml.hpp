@@ -47,7 +47,6 @@ namespace picongpu
                     for(uint32_t axis = 0u; axis < 3u; axis++)
                         for(uint32_t direction = 0u; direction < 2u; direction++)
                             numCells[axis][direction] = maxwellSolver::Pml::NUM_CELLS[axis][direction];
-                    name = "convolutional PML";
                 }
             };
 

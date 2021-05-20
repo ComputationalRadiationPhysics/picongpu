@@ -46,6 +46,7 @@
 #include "picongpu/simulation/stage/CurrentDeposition.hpp"
 #include "picongpu/simulation/stage/CurrentInterpolationAndAdditionToEMF.hpp"
 #include "picongpu/simulation/stage/CurrentReset.hpp"
+#include "picongpu/simulation/stage/FieldAbsorber.hpp"
 #include "picongpu/simulation/stage/FieldBackground.hpp"
 #include "picongpu/simulation/stage/IterationStart.hpp"
 #include "picongpu/simulation/stage/MomentumBackup.hpp"
@@ -133,6 +134,7 @@ namespace picongpu
         {
             SimulationHelper<simDim>::pluginRegisterHelp(desc);
             currentInterpolationAndAdditionToEMF.registerHelp(desc);
+            fieldAbsorber.registerHelp(desc);
             fieldBackground.registerHelp(desc);
             // clang-format off
             desc.add_options()(
@@ -313,6 +315,10 @@ namespace picongpu
 
             DataConnector& dc = Environment<>::get().DataConnector();
             initFields(dc);
+
+            // initialize field absorber stage,
+            // this can affect the internals of the field solver, so has to be done before
+            fieldAbsorber.init();
 
             // create field solver
             this->myFieldSolver = new fields::Solver(*cellDescription);
@@ -611,6 +617,10 @@ namespace picongpu
 
         fields::Solver* myFieldSolver;
         simulation::stage::CurrentInterpolationAndAdditionToEMF currentInterpolationAndAdditionToEMF;
+
+        // Field absorber stage, has to live always as it is used for registering options like a plugin.
+        // Because of it, has a special init() method that has to be called during initialization of the simulation
+        simulation::stage::FieldAbsorber fieldAbsorber;
 
         // Field background stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation

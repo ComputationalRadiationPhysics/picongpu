@@ -26,7 +26,6 @@
 #include "picongpu/fields/absorber/Pml.hpp"
 
 #include <pmacc/Environment.hpp>
-#include <pmacc/traits/IsBaseTemplateOf.hpp>
 
 #include <sstream>
 #include <type_traits>
@@ -36,28 +35,20 @@ namespace picongpu
 {
     namespace fields
     {
-        namespace maxwellSolver
-        {
-            /** Forward declaration to avoid mutual including with YeePML.hpp
-             *
-             * @tparam T_CurlE functor to compute curl of E
-             * @tparam T_CurlB functor to compute curl of B
-             */
-            template<typename T_CurlE, typename T_CurlB>
-            class YeePML;
-
-        } // namespace maxwellSolver
-
         namespace absorber
         {
+            Absorber::Kind& Absorber::kind()
+            {
+                static Absorber::Kind instance = Kind::Exponential;
+                return instance;
+            }
+
             // This implementation has to go to a .tpp file as it requires definitions of Pml and ExponentialDamping
             Absorber& Absorber::get()
             {
-                // This is currently a static type, until absorbers go full runtime
-                constexpr bool isPmlSolver
-                    = pmacc::traits::IsBaseTemplateOf_t<maxwellSolver::YeePML, fields::Solver>::value;
-                using Implementation = std::conditional_t<isPmlSolver, Pml, ExponentialDamping>;
-                static Implementation instance;
+                static Absorber instance
+                    = (kind() == Kind::Exponential ? static_cast<Absorber>(ExponentialDamping{})
+                                                   : static_cast<Absorber>(Pml{}));
                 return instance;
             }
 
@@ -109,10 +100,21 @@ namespace picongpu
                 return thickness;
             }
 
+            template<class BoxedMemory>
+            void Absorber::run(uint32_t currentStep, MappingDesc& cellDescription, BoxedMemory deviceBox)
+            {
+                if(kind() == Kind::Exponential)
+                    ExponentialDamping{}.run(currentStep, cellDescription, deviceBox);
+                // PML runs as part of the field solver, nothing to be done here
+            }
+
             pmacc::traits::StringProperty Absorber::getStringProperties()
             {
                 auto& absorber = get();
                 auto const thickness = absorber.getGlobalThickness();
+                auto const name
+                    = (absorber.kind() == Kind::Exponential ? std::string{"exponential damping"}
+                                                            : std::string{"convolutional PML"});
                 pmacc::traits::StringProperty propList;
                 const DataSpace<DIM3> periodic
                     = Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
@@ -145,7 +147,7 @@ namespace picongpu
                         if(boundaryName == "open")
                         {
                             std::ostringstream boundaryParam;
-                            boundaryParam << absorber.name + " over " << thickness(axis, axisDir) << " cells";
+                            boundaryParam << name + " over " << thickness(axis, axisDir) << " cells";
                             propList[directionName]["param"] = boundaryParam.str();
                         }
                         else

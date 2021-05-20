@@ -102,6 +102,16 @@ namespace picongpu
             class Absorber
             {
             public:
+                //! Supported absorber kinds
+                enum class Kind
+                {
+                    Exponential,
+                    Pml
+                };
+
+                //! Absorber kind used in the simulation
+                static Kind& kind();
+
                 //! Get absorber instance
                 static Absorber& get();
 
@@ -126,6 +136,17 @@ namespace picongpu
                 //! Get string properties
                 static inline pmacc::traits::StringProperty getStringProperties();
 
+                /** Apply absorber to the given field
+                 *
+                 * @tparam BoxedMemory field box type
+                 *
+                 * @param currentStep current time iteration
+                 * @param cellDescription mapping description for kernels
+                 * @param deviceBox field box
+                 */
+                template<class BoxedMemory>
+                inline void run(uint32_t currentStep, MappingDesc& cellDescription, BoxedMemory deviceBox);
+
             protected:
                 /** Number of absorber cells along each boundary
                  *
@@ -139,11 +160,7 @@ namespace picongpu
                  */
                 uint32_t numCells[3][2];
 
-                //! Name for string properties
-                std::string name;
-
                 Absorber() = default;
-                Absorber(Absorber const&) = delete;
                 ~Absorber() = default;
             };
 
