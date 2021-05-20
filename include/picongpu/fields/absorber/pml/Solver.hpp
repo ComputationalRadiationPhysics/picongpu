@@ -142,15 +142,13 @@ namespace picongpu
                         constexpr auto numWorkers = getNumWorkers();
                         using Kernel = KernelUpdateE<numWorkers, BlockDescription<CurlB>>;
                         AreaMapper<T_Area> mapper{cellDescription};
+                        auto const updateFunctor = detail::UpdateEFunctor<CurlB>{
+                            psiE->getDeviceOuterLayerBox(),
+                            getLocalParameters(mapper, currentStep)};
                         // Note: optimization considerations same as in updateBHalf( ).
                         PMACC_KERNEL(Kernel{})
-                        (mapper.getGridDim(), numWorkers)(
-                            mapper,
-                            getLocalParameters(mapper, currentStep),
-                            CurlB(),
-                            fieldB->getDeviceDataBox(),
-                            fieldE->getDeviceDataBox(),
-                            psiE->getDeviceOuterLayerBox());
+                        (mapper.getGridDim(),
+                         numWorkers)(mapper, updateFunctor, fieldB->getDeviceDataBox(), fieldE->getDeviceDataBox());
                     }
 
                 private:
@@ -200,23 +198,15 @@ namespace picongpu
                     void updateBHalf(uint32_t const currentStep, bool const updatePsiB)
                     {
                         constexpr auto numWorkers = getNumWorkers();
-                        using Kernel = KernelUpdateBHalf<numWorkers, BlockDescription<CurlE>>;
+                        using Kernel = KernelUpdateB<numWorkers, BlockDescription<CurlE>>;
                         AreaMapper<T_Area> mapper{cellDescription};
-                        /* Note: here it is possible to first check if PML is enabled
-                         * in the local domain at all, and otherwise optimize by calling
-                         * the normal Yee update kernel. We do not do that, as this
-                         * would be fragile with respect to future separation of PML
-                         * into a plugin.
-                         */
-                        PMACC_KERNEL(Kernel{})
-                        (mapper.getGridDim(), numWorkers)(
-                            mapper,
+                        auto const updateFunctor = detail::UpdateBHalfFunctor<CurlE>{
+                            psiB->getDeviceOuterLayerBox(),
                             getLocalParameters(mapper, currentStep),
-                            CurlE(),
-                            fieldE->getDeviceDataBox(),
-                            updatePsiB,
-                            fieldB->getDeviceDataBox(),
-                            psiB->getDeviceOuterLayerBox());
+                            updatePsiB};
+                        PMACC_KERNEL(Kernel{})
+                        (mapper.getGridDim(),
+                         numWorkers)(mapper, updateFunctor, fieldE->getDeviceDataBox(), fieldB->getDeviceDataBox());
                     }
 
                     void initParameters()

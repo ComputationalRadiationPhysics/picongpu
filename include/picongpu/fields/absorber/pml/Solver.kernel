@@ -230,9 +230,203 @@ namespace picongpu
                         return coeffs.b.productOfComponents() != 1.0_X;
                     }
 
+                    /** Functor to update electric field by a time step using FDTD with the given curl and PML
+                     *
+                     * @tparam T_Curl curl functor type according to the Curl concept
+                     */
+                    template<typename T_Curl>
+                    class UpdateEFunctor
+                    {
+                    public:
+                        /** Create a functor instance on the host side
+                         *
+                         * @param fieldPsiE PML convolutional electric field iterator
+                         * @param parameters PML parameters for a local domain
+                         */
+                        UpdateEFunctor(FieldBox fieldPsiE, LocalParameters const parameters)
+                            : parameters(parameters)
+                            , fieldPsiE(fieldPsiE)
+                        {
+                        }
+
+                        /** Update electric field at the given position
+                         *
+                         * @tparam T_LocalBBox local magnetic field box type
+                         * @tparam T_LocalEBox local electric field box type
+                         *
+                         * @param gridIndex index of the updated field element, with guards
+                         * @param localB magnetic field box shifted to position gridIndex,
+                         *               note that it is the box, not the value
+                         * @param localE electric field box shifted to position gridIndex,
+                         *               note that it is the box, not the value
+                         *
+                         * @return update the value pointed to by localE
+                         */
+                        template<typename T_LocalBBox, typename T_LocalEBox>
+                        DINLINE void operator()(
+                            pmacc::DataSpace<simDim> const& gridIndex,
+                            T_LocalBBox const localB,
+                            T_LocalEBox localE)
+                        {
+                            constexpr auto c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                            constexpr auto dt = DELTA_T;
+                            // with the current Yee grid, no shift needed here
+                            auto const pmlIdx = precisionCast<float_X>(gridIndex);
+                            auto const coeffs = detail::getCoefficients(pmlIdx, parameters, dt);
+
+                            if(isInPML(coeffs))
+                            {
+                                /* Update convolutional fields using [Taflove, Hagness],
+                                 * eq. (7.105a,b) and similar for other components.
+                                 * For PIC the right-hand side uses B, not H.
+                                 *
+                                 * Notation: dBdx = dB / dx, dBdx.y() = dBy / dx, etc.
+                                 */
+                                auto const dBdx = curl.xDerivative(localB);
+                                auto const dBdy = curl.yDerivative(localB);
+                                auto const dBdz = curl.zDerivative(localB);
+                                auto& psiE = fieldPsiE(gridIndex);
+                                psiE.yx = coeffs.b.x() * psiE.yx + coeffs.c.x() * dBdx.z();
+                                psiE.zx = coeffs.b.x() * psiE.zx + coeffs.c.x() * dBdx.y();
+                                psiE.xy = coeffs.b.y() * psiE.xy + coeffs.c.y() * dBdy.z();
+                                psiE.zy = coeffs.b.y() * psiE.zy + coeffs.c.y() * dBdy.x();
+                                psiE.xz = coeffs.b.z() * psiE.xz + coeffs.c.z() * dBdz.y();
+                                psiE.yz = coeffs.b.z() * psiE.yz + coeffs.c.z() * dBdz.x();
+
+                                /* [Taflove, Hagness], eq. (7.106) and similar for other
+                                 * components. Coefficients Ca, Cb as given in (7.107a,b)
+                                 * are general to account for materials, in addition to
+                                 * artificial PML absorbing medium. We do not have any
+                                 * real material, so in (7.107a,b) we have to use
+                                 * sigma(i + 1/2, j, k) = 0 (it is another sigma,
+                                 * unrelated to PML), eps(i + 1/2, j, k) = EPS0. Also,
+                                 * same as the Yee scheme in PIC, adjusted to use B,
+                                 * not H, on the right-hand side.
+                                 */
+                                localE().x() += c2 * dt
+                                    * (dBdy.z() / coeffs.kappa.y() - dBdz.y() / coeffs.kappa.z() + psiE.xy - psiE.xz);
+                                localE().y() += c2 * dt
+                                    * (dBdz.x() / coeffs.kappa.z() - dBdx.z() / coeffs.kappa.x() + psiE.yz - psiE.yx);
+                                localE().z() += c2 * dt
+                                    * (dBdx.y() / coeffs.kappa.x() - dBdy.x() / coeffs.kappa.y() + psiE.zx - psiE.zy);
+                            }
+                            else
+                                // Normal Yee scheme update
+                                localE() += curl(localB) * c2 * dt;
+                        }
+
+                    private:
+                        FieldBox fieldPsiE;
+                        LocalParameters const parameters;
+                        T_Curl const curl;
+                    };
+
+                    /** Functor to update magnetic field by half a time step using FDTD with the given curl and PML
+                     *
+                     * @tparam T_Curl curl functor type according to the Curl concept
+                     */
+                    template<typename T_Curl>
+                    class UpdateBHalfFunctor
+                    {
+                    public:
+                        /** Create a functor instance on the host side
+                         *
+                         * @param fieldPsiE PML convolutional electric field iterator
+                         * @param parameters PML parameters for a local domain
+                         * @param updatePsiB whether convolutional magnetic fields need to be updated, or are
+                         * up-to-date
+                         */
+                        UpdateBHalfFunctor(FieldBox fieldPsiB, LocalParameters const parameters, bool updatePsiB)
+                            : parameters(parameters)
+                            , fieldPsiB(fieldPsiB)
+                            , updatePsiB(updatePsiB)
+                        {
+                        }
+
+                        /** Update magnetic field at the given position
+                         *
+                         * @tparam T_LocalEBox local electric field box type
+                         * @tparam T_LocalBBox local magnetic field box type
+                         *
+                         * @param gridIndex index of the updated field element, with guards
+                         * @param localE electric field box shifted to position gridIndex,
+                         *               note that it is the box, not the value
+                         * @param localB magnetic field box shifted to position gridIndex,
+                         *               note that it is the box, not the value
+                         *
+                         * @return update the value pointed to by localB
+                         */
+                        template<typename T_LocalEBox, typename T_LocalBBox>
+                        DINLINE void operator()(
+                            pmacc::DataSpace<simDim> const& gridIndex,
+                            T_LocalEBox const localE,
+                            T_LocalBBox localB)
+                        {
+                            constexpr auto dt = DELTA_T;
+                            constexpr auto halfDt = 0.5_X * dt;
+
+                            // with the current Yee grid, a half cell shift is needed here
+                            auto const pmlIdx = floatD_X::create(0.5_X) + precisionCast<float_X>(gridIndex);
+                            /* Note that convolutional fields are updated once per dt. So the coefficients are computed
+                             * in this way, and whether the update has to be performed is controlled by a kernel caller
+                             * with updatePsiB parameter.
+                             */
+                            auto const coeffs = detail::getCoefficients(pmlIdx, parameters, dt);
+
+                            if(detail::isInPML(coeffs))
+                            {
+                                /* Update convolutional fields using [Taflove, Hagness],
+                                 * eq. (7.110a,b) and similar for other components.
+                                 * For PIC the left-hand side uses B, not H.
+                                 *
+                                 * Notation: dEdx = dE / dx, dEdx.y() = dEy / dx, etc.
+                                 */
+                                auto const dEdx = curl.xDerivative(localE);
+                                auto const dEdy = curl.yDerivative(localE);
+                                auto const dEdz = curl.zDerivative(localE);
+                                auto& psiB = fieldPsiB(gridIndex);
+                                if(updatePsiB)
+                                {
+                                    psiB.yx = coeffs.b.x() * psiB.yx + coeffs.c.x() * dEdx.z();
+                                    psiB.zx = coeffs.b.x() * psiB.zx + coeffs.c.x() * dEdx.y();
+                                    psiB.xy = coeffs.b.y() * psiB.xy + coeffs.c.y() * dEdy.z();
+                                    psiB.zy = coeffs.b.y() * psiB.zy + coeffs.c.y() * dEdy.x();
+                                    psiB.xz = coeffs.b.z() * psiB.xz + coeffs.c.z() * dEdz.y();
+                                    psiB.yz = coeffs.b.z() * psiB.yz + coeffs.c.z() * dEdz.x();
+                                }
+
+                                /* [Taflove, Hagness], eq. (7.108) and similar for other
+                                 * components. Coefficients Da, Db as given in (7.109a,b)
+                                 * are general to account for materials, in addition to
+                                 * artificial PML absorbing medium. We do not have any
+                                 * real material, so in (7.109a,b) we have to use
+                                 * sigma*(i + 1/2, j, k) = 0 (it is another sigma*,
+                                 * unrelated to PML), mue(i + 1/2, j, k) = MUE0. Also,
+                                 * same as the Yee scheme in PIC, adjusted to use B,
+                                 * not H, on the left-hand side.
+                                 */
+                                localB().x() += halfDt
+                                    * (dEdz.y() / coeffs.kappa.z() - dEdy.z() / coeffs.kappa.y() + psiB.xz - psiB.xy);
+                                localB().y() += halfDt
+                                    * (dEdx.z() / coeffs.kappa.x() - dEdz.x() / coeffs.kappa.z() + psiB.yx - psiB.yz);
+                                localB().z() += halfDt
+                                    * (dEdy.x() / coeffs.kappa.y() - dEdx.y() / coeffs.kappa.x() + psiB.zy - psiB.zx);
+                            }
+                            else
+                                // Normal Yee scheme update
+                                localB() -= curl(localE) * halfDt;
+                        }
+
+                    private:
+                        FieldBox fieldPsiB;
+                        LocalParameters const parameters;
+                        bool const updatePsiB;
+                        T_Curl const curl;
+                    };
+
                 } // namespace detail
 
-                /** Functor to update the electric field by a time step
+                /** Functor to update the electric field
                  *
                  * @tparam T_numWorkers number of workers
                  * @tparam T_BlockDescription field (electric and magnetic) domain description
@@ -240,32 +434,32 @@ namespace picongpu
                 template<uint32_t T_numWorkers, typename T_BlockDescription>
                 struct KernelUpdateE
                 {
-                    /** Update the electric field by a time step
+                    /** Update the electric field using the given functor
                      *
                      * @tparam T_Acc alpaka accelerator type
                      * @tparam T_Mapping mapper functor type
-                     * @tparam T_Curl curl functor type
+                     * @tparam T_UpdateFunctor update functor type
                      * @tparam T_BBox pmacc::DataBox, magnetic field box type
                      * @tparam T_EBox pmacc::DataBox, electric field box type
                      *
                      * @param acc alpaka accelerator
                      * @param mapper functor to map a block to a supercell
-                     * @param parameters PML parameters for a local domain
-                     * @param curl functor to calculate the electric field, interface must be
-                     *             `operator( )( T_EBox )`
+                     * @param updateFunctor update functor
                      * @param fieldB magnetic field iterator
                      * @param fieldE electric field iterator
-                     * @param fieldPsiE PML convolutional electric field iterator
                      */
-                    template<typename T_Acc, typename T_Mapping, typename T_Curl, typename T_BBox, typename T_EBox>
+                    template<
+                        typename T_Acc,
+                        typename T_Mapping,
+                        typename T_UpdateFunctor,
+                        typename T_BBox,
+                        typename T_EBox>
                     DINLINE void operator()(
                         T_Acc const& acc,
                         T_Mapping const mapper,
-                        LocalParameters const parameters,
-                        T_Curl const curl,
+                        T_UpdateFunctor updateFunctor,
                         T_BBox const fieldB,
-                        T_EBox fieldE,
-                        FieldBox fieldPsiE) const
+                        T_EBox fieldE) const
                     {
                         /* Each block processes grid values in a supercell,
                          * the index includes guards, same as all indices in this kernel
@@ -287,97 +481,48 @@ namespace picongpu
                         constexpr auto numCellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
                         lockstep::makeForEach<numCellsPerSuperCell, numWorkers>(
                             workerIdx)([&](uint32_t const linearIdx) {
-                            constexpr auto c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
-                            constexpr auto dt = DELTA_T;
-
                             auto const idxInSuperCell
                                 = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
-                            // grid index to process with the current thread
-                            auto const idx = blockBeginIdx + idxInSuperCell;
-                            // with the current Yee grid, no shift needed here
-                            auto const pmlIdx = precisionCast<float_X>(idx);
-                            auto const coeffs = detail::getCoefficients(pmlIdx, parameters, dt);
-
-                            if(detail::isInPML(coeffs))
-                            {
-                                /* Update convolutional fields using [Taflove, Hagness],
-                                 * eq. (7.105a,b) and similar for other components.
-                                 * For PIC the right-hand side uses B, not H.
-                                 *
-                                 * Notation: dBdx = dB / dx, dBdx.y() = dBy / dx, etc.
-                                 */
-                                auto const localB = cachedB.shift(idxInSuperCell);
-                                auto const dBdx = curl.xDerivative(localB);
-                                auto const dBdy = curl.yDerivative(localB);
-                                auto const dBdz = curl.zDerivative(localB);
-                                auto& psiE = fieldPsiE(idx);
-                                psiE.yx = coeffs.b.x() * psiE.yx + coeffs.c.x() * dBdx.z();
-                                psiE.zx = coeffs.b.x() * psiE.zx + coeffs.c.x() * dBdx.y();
-                                psiE.xy = coeffs.b.y() * psiE.xy + coeffs.c.y() * dBdy.z();
-                                psiE.zy = coeffs.b.y() * psiE.zy + coeffs.c.y() * dBdy.x();
-                                psiE.xz = coeffs.b.z() * psiE.xz + coeffs.c.z() * dBdz.y();
-                                psiE.yz = coeffs.b.z() * psiE.yz + coeffs.c.z() * dBdz.x();
-
-                                /* [Taflove, Hagness], eq. (7.106) and similar for other
-                                 * components. Coefficients Ca, Cb as given in (7.107a,b)
-                                 * are general to account for materials, in addition to
-                                 * artificial PML absorbing medium. We do not have any
-                                 * real material, so in (7.107a,b) we have to use
-                                 * sigma(i + 1/2, j, k) = 0 (it is another sigma,
-                                 * unrelated to PML), eps(i + 1/2, j, k) = EPS0. Also,
-                                 * same as the Yee scheme in PIC, adjusted to use B,
-                                 * not H, on the right-hand side.
-                                 */
-                                fieldE(idx).x() += c2 * dt
-                                    * (dBdy.z() / coeffs.kappa.y() - dBdz.y() / coeffs.kappa.z() + psiE.xy - psiE.xz);
-                                fieldE(idx).y() += c2 * dt
-                                    * (dBdz.x() / coeffs.kappa.z() - dBdx.z() / coeffs.kappa.x() + psiE.yz - psiE.yx);
-                                fieldE(idx).z() += c2 * dt
-                                    * (dBdx.y() / coeffs.kappa.x() - dBdy.x() / coeffs.kappa.y() + psiE.zx - psiE.zy);
-                            }
-                            else
-                                // Normal Yee scheme update
-                                fieldE(idx) += curl(cachedB.shift(idxInSuperCell)) * c2 * dt;
+                            auto const gridIdx = blockBeginIdx + idxInSuperCell;
+                            updateFunctor(gridIdx, cachedB.shift(idxInSuperCell), fieldE.shift(gridIdx));
                         });
                     }
                 };
 
-                /** Functor to update the magnetic field by half a time step
+                /** Functor to update the magnetic field
                  *
                  * @tparam T_numWorkers number of workers
                  * @tparam T_BlockDescription field (electric and magnetic) domain description
                  */
                 template<uint32_t T_numWorkers, typename T_BlockDescription>
-                struct KernelUpdateBHalf
+                struct KernelUpdateB
                 {
-                    /** Update the magnetic field by half a time step
+                    /** Update the magnetic field using the given functor
                      *
                      * @tparam T_Acc alpaka accelerator type
                      * @tparam T_Mapping mapper functor type
-                     * @tparam T_Curl curl functor type
+                     * @tparam T_UpdateFunctor update functor type
                      * @tparam T_EBox pmacc::DataBox electric field box type
                      * @tparam T_BBox pmacc::DataBox magnetic field box type
                      *
                      * @param acc alpaka accelerator
                      * @param mapper functor to map a block to a supercell
-                     * @param parameters PML parameters for a local domain
-                     * @param curl functor to calculate the electric field, interface must be
-                     *             `operator( )( T_EBox )`
+                     * @param updateFunctor update functor
                      * @param fieldE electric field iterator
-                     * @param updatePsiB whether convolutional magnetic fields need to be updated, or are up-to-date
                      * @param fieldB magnetic field iterator
-                     * @param fieldPsiB PML convolutional magnetic field iterator
                      */
-                    template<typename T_Acc, typename T_Mapping, typename T_Curl, typename T_EBox, typename T_BBox>
+                    template<
+                        typename T_Acc,
+                        typename T_Mapping,
+                        typename T_UpdateFunctor,
+                        typename T_EBox,
+                        typename T_BBox>
                     DINLINE void operator()(
                         T_Acc const& acc,
                         T_Mapping const mapper,
-                        LocalParameters const parameters,
-                        T_Curl const curl,
+                        T_UpdateFunctor updateFunctor,
                         T_EBox const fieldE,
-                        bool const updatePsiB,
-                        T_BBox fieldB,
-                        FieldBox fieldPsiB) const
+                        T_BBox fieldB) const
                     {
                         /* Each block processes grid values in a supercell,
                          * the index includes guards, same as all indices in this kernel
@@ -399,63 +544,10 @@ namespace picongpu
                         constexpr auto numCellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
                         lockstep::makeForEach<numCellsPerSuperCell, numWorkers>(
                             workerIdx)([&](uint32_t const linearIdx) {
-                            constexpr auto dt = DELTA_T;
-                            constexpr auto halfDt = 0.5_X * dt;
                             auto const idxInSuperCell
                                 = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
-                            // grid index to process with the current thread
-                            auto const idx = blockBeginIdx + idxInSuperCell;
-                            // with the current Yee grid, a half cell shift is needed here
-                            auto const pmlIdx = floatD_X::create(0.5_X) + precisionCast<float_X>(idx);
-                            /* Note that convolutional fields are updated once per dt. So the coefficients are computed
-                             * in this way, and whether the update has to be performed is controlled by a kernel caller
-                             * with updatePsiB parameter.
-                             */
-                            auto const coeffs = detail::getCoefficients(pmlIdx, parameters, dt);
-
-                            if(detail::isInPML(coeffs))
-                            {
-                                /* Update convolutional fields using [Taflove, Hagness],
-                                 * eq. (7.110a,b) and similar for other components.
-                                 * For PIC the left-hand side uses B, not H.
-                                 *
-                                 * Notation: dEdx = dE / dx, dEdx.y() = dEy / dx, etc.
-                                 */
-                                auto const localE = cachedE.shift(idxInSuperCell);
-                                auto const dEdx = curl.xDerivative(localE);
-                                auto const dEdy = curl.yDerivative(localE);
-                                auto const dEdz = curl.zDerivative(localE);
-                                auto& psiB = fieldPsiB(idx);
-                                if(updatePsiB)
-                                {
-                                    psiB.yx = coeffs.b.x() * psiB.yx + coeffs.c.x() * dEdx.z();
-                                    psiB.zx = coeffs.b.x() * psiB.zx + coeffs.c.x() * dEdx.y();
-                                    psiB.xy = coeffs.b.y() * psiB.xy + coeffs.c.y() * dEdy.z();
-                                    psiB.zy = coeffs.b.y() * psiB.zy + coeffs.c.y() * dEdy.x();
-                                    psiB.xz = coeffs.b.z() * psiB.xz + coeffs.c.z() * dEdz.y();
-                                    psiB.yz = coeffs.b.z() * psiB.yz + coeffs.c.z() * dEdz.x();
-                                }
-
-                                /* [Taflove, Hagness], eq. (7.108) and similar for other
-                                 * components. Coefficients Da, Db as given in (7.109a,b)
-                                 * are general to account for materials, in addition to
-                                 * artificial PML absorbing medium. We do not have any
-                                 * real material, so in (7.109a,b) we have to use
-                                 * sigma*(i + 1/2, j, k) = 0 (it is another sigma*,
-                                 * unrelated to PML), mue(i + 1/2, j, k) = MUE0. Also,
-                                 * same as the Yee scheme in PIC, adjusted to use B,
-                                 * not H, on the left-hand side.
-                                 */
-                                fieldB(idx).x() += halfDt
-                                    * (dEdz.y() / coeffs.kappa.z() - dEdy.z() / coeffs.kappa.y() + psiB.xz - psiB.xy);
-                                fieldB(idx).y() += halfDt
-                                    * (dEdx.z() / coeffs.kappa.x() - dEdz.x() / coeffs.kappa.z() + psiB.yx - psiB.yz);
-                                fieldB(idx).z() += halfDt
-                                    * (dEdy.x() / coeffs.kappa.y() - dEdx.y() / coeffs.kappa.x() + psiB.zy - psiB.zx);
-                            }
-                            else
-                                // Normal Yee scheme update
-                                fieldB(idx) -= curl(cachedE.shift(idxInSuperCell)) * halfDt;
+                            auto const gridIdx = blockBeginIdx + idxInSuperCell;
+                            updateFunctor(gridIdx, cachedE.shift(idxInSuperCell), fieldB.shift(gridIdx));
                         });
                     }
                 };
