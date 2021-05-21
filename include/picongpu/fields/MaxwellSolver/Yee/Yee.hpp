@@ -62,8 +62,7 @@ namespace picongpu
              * it is not guaranteed and results will differ due to checkpointing).
              *
              * This class template implements the general flow of CORE and BORDER field
-             * updates and communication. The numerical schemes to perform the updates
-             * are implemented by yeePML::detail::Solver.
+             * updates and communication.
              *
              * @tparam T_CurlE functor to compute curl of E
              * @tparam T_CurlB functor to compute curl of B

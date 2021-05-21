@@ -21,7 +21,7 @@
  *
  * Configure the perfectly matched layer (PML).
  *
- * To enable PML use YeePML, LehePML or ArbitraryOrderFDTDPML field solver.
+ * To enable PML set command-line option --fieldAbsorber.kind to "pml".
  */
 
 #pragma once
@@ -35,8 +35,7 @@ namespace picongpu
         {
             namespace Pml
             {
-                /* The parameters in this file are only used if field solver is YeePML or LehePML.
-                 * The original paper on this approach is J.A. Roden, S.D. Gedney.
+                /* The original paper on this approach is J.A. Roden, S.D. Gedney.
                  * Convolution PML (CPML): An efficient FDTD implementation of the CFS - PML
                  * for arbitrary media. Microwave and optical technology letters. 27 (5),
                  * 334-339 (2000).
