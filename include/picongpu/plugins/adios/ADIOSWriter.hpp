@@ -331,6 +331,9 @@ namespace picongpu
 #ifndef __CUDA_ARCH__
                     DataConnector& dc = Environment<simDim>::get().DataConnector();
 
+                    // Skip PML fields when PML is not enabled
+                    if(!dc.hasId(T_Field::getName()))
+                        return;
                     auto field = dc.get<T_Field>(T_Field::getName());
                     params->gridLayout = field->getGridLayout();
                     const bool isDomainBound = traits::IsFieldDomainBound<T_Field>::value;
@@ -679,6 +682,9 @@ namespace picongpu
                     if(!traits::IsFieldDomainBound<T>::value)
                     {
                         DataConnector& dc = Environment<>::get().DataConnector();
+                        // Skip PML fields when PML is not enabled
+                        if(!dc.hasId(T::getName()))
+                            return;
                         auto field = dc.get<T>(T::getName());
                         localSize = field->getGridLayout().getDataSpaceWithoutGuarding();
                     }

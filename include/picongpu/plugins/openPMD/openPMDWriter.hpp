@@ -449,6 +449,9 @@ Please pick either of the following:
 #ifndef __CUDA_ARCH__
                     DataConnector& dc = Environment<simDim>::get().DataConnector();
 
+                    // Skip PML fields when PML is not enabled
+                    if(!dc.hasId(T_Field::getName()))
+                        return;
                     auto field = dc.get<T_Field>(T_Field::getName());
                     params->gridLayout = field->getGridLayout();
                     bool const isDomainBound = traits::IsFieldDomainBound<T_Field>::value;

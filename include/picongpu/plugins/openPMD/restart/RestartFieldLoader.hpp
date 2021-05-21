@@ -208,6 +208,10 @@ namespace picongpu
                 DataConnector& dc = Environment<>::get().DataConnector();
                 ThreadParams* tp = params;
 
+                // Skip PML fields when PML is not enabled
+                if(!dc.hasId(T_Field::getName()))
+                    return;
+
                 /* load field without copying data to host */
                 auto field = dc.get<T_Field>(T_Field::getName(), true);
                 tp->gridLayout = field->getGridLayout();

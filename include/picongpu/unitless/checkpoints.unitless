@@ -33,7 +33,7 @@ namespace picongpu
      */
     using NativeFileCheckpointFields = MakeSeq_t<FieldE, FieldB>;
 
-    /// TODO: check how to better do it
+    // These fields have to be always part of the list, the no-PML case is handled internally
     using AdditionalFileCheckpointFields = MakeSeq_t<fields::absorber::pml::FieldE, fields::absorber::pml::FieldB>;
 
     /* List of particle species for checkpoint/restart */
