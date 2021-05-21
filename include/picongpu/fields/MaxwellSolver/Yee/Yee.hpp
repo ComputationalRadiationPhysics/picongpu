@@ -26,7 +26,7 @@
 #include "picongpu/fields/LaserPhysics.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.kernel"
-#include "picongpu/fields/absorber/ExponentialDamping.hpp"
+#include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/fields/differentiation/Curl.hpp"
 #include "picongpu/fields/incidentField/Solver.hpp"

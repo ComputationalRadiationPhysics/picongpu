@@ -24,6 +24,7 @@
 #include "picongpu/fields/absorber/Absorber.hpp"
 
 #include <cstdint>
+#include <string>
 
 
 namespace picongpu
@@ -32,24 +33,28 @@ namespace picongpu
     {
         namespace absorber
         {
-            /** Perfectly matched layer field absorber
-             *
-             * Does not yet provide absorption itself.
-             * However this class is required, as thickness is set when it is instantiated.
-             */
-            class Pml : public Absorber
+            namespace pml
             {
-            public:
-                //! Create PML absorber instance
-                Pml()
+                /** Perfectly matched layer field absorber
+                 *
+                 * Does not yet provide absorption itself.
+                 * However this class is required, as thickness is set when it is instantiated.
+                 */
+                class Pml : public Absorber
                 {
-                    // Copy thickness from pml.param
-                    for(uint32_t axis = 0u; axis < 3u; axis++)
-                        for(uint32_t direction = 0u; direction < 2u; direction++)
-                            numCells[axis][direction] = maxwellSolver::Pml::NUM_CELLS[axis][direction];
-                }
-            };
+                public:
+                    //! Create PML absorber instance
+                    Pml()
+                    {
+                        // Copy thickness from pml.param
+                        for(uint32_t axis = 0u; axis < 3u; axis++)
+                            for(uint32_t direction = 0u; direction < 2u; direction++)
+                                numCells[axis][direction] = maxwellSolver::Pml::NUM_CELLS[axis][direction];
+                        name = std::string{"convolutional PML"};
+                    }
+                };
 
+            } // namespace pml
         } // namespace absorber
     } // namespace fields
 } // namespace picongpu

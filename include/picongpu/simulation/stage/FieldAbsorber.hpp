@@ -62,12 +62,17 @@ namespace picongpu
                 {
                     using namespace fields::absorber;
                     // So far there are only two kinds and so names are hardcoded
+                    auto kind = Absorber::Kind{};
                     if(kindName == "exponential")
-                        Absorber::kind() = Absorber::Kind::Exponential;
+                        kind = Absorber::Kind::Exponential;
                     else if(kindName == "pml")
-                        Absorber::kind() = Absorber::Kind::Pml;
+                        kind = Absorber::Kind::Pml;
                     else
                         throw std::runtime_error("Unsupported field absorber type");
+                    auto& absorberFactory = AbsorberFactory::get();
+                    absorberFactory.setKind(kind);
+                    // Get absorber instance to make sure it gets initialized
+                    auto& absorber = Absorber::get();
                 }
 
             private:

@@ -266,8 +266,7 @@ namespace picongpu
                      */
                     Thickness getLocalThickness(uint32_t const currentStep) const
                     {
-                        /* The logic of the following checks is the same as in
-                         * absorber::ExponentialDamping::run( ), to disable the absorber
+                        /* The logic of the following checks is to disable the absorber
                          * at a border we set the corresponding thickness to 0.
                          */
                         auto& movingWindow = MovingWindow::getInstance();

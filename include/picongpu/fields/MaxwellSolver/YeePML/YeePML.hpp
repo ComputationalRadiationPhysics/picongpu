@@ -121,8 +121,8 @@ namespace picongpu
                  */
                 void update_afterCurrent(uint32_t const currentStep)
                 {
-                    /* These steps are the same as in the Yee solver, except the Fabsorber::ExponentialDamping::run( )
-                     * is not called, PML updates are done as part of calls to methods of solver. As explained in more
+                    /* These steps are the same as in the Yee solver,
+                     * PML updates are done as part of calls to methods of solver. As explained in more
                      * detail in comments inside update_beforeCurrent(), here we start a new step of updating B in
                      * terms of the time-staggered Yee grid. And so this is the first half of B update, to be completed
                      * in a call to update_beforeCurrent() on the next time step.

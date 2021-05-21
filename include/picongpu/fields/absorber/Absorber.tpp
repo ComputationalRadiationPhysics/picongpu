@@ -22,11 +22,12 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/absorber/Absorber.hpp"
-#include "picongpu/fields/absorber/ExponentialDamping.hpp"
-#include "picongpu/fields/absorber/Pml.hpp"
+#include "picongpu/fields/absorber/exponential/Exponential.hpp"
+#include "picongpu/fields/absorber/pml/Pml.hpp"
 
 #include <pmacc/Environment.hpp>
 
+#include <memory>
 #include <sstream>
 #include <type_traits>
 
@@ -37,19 +38,21 @@ namespace picongpu
     {
         namespace absorber
         {
-            Absorber::Kind& Absorber::kind()
-            {
-                static Absorber::Kind instance = Kind::Exponential;
-                return instance;
-            }
-
-            // This implementation has to go to a .tpp file as it requires definitions of Pml and ExponentialDamping
             Absorber& Absorber::get()
             {
-                static Absorber instance
-                    = (kind() == Kind::Exponential ? static_cast<Absorber>(ExponentialDamping{})
-                                                   : static_cast<Absorber>(Pml{}));
-                return instance;
+                // Delay initialization till the first call since the factory has its parameters set during runtime
+                static std::unique_ptr<Absorber> pInstance = nullptr;
+                if(!pInstance)
+                {
+                    auto& factory = AbsorberFactory::get();
+                    pInstance = factory.make();
+                }
+                return *pInstance;
+            }
+
+            Absorber::Kind Absorber::getKind() const
+            {
+                return kind;
             }
 
             Thickness Absorber::getGlobalThickness() const
@@ -103,8 +106,14 @@ namespace picongpu
             template<class BoxedMemory>
             void Absorber::run(uint32_t currentStep, MappingDesc& cellDescription, BoxedMemory deviceBox)
             {
-                if(kind() == Kind::Exponential)
-                    ExponentialDamping{}.run(currentStep, cellDescription, deviceBox);
+                if(kind == Kind::Exponential)
+                {
+                    // In this case, the cast is safe
+                    auto* exponentialInstance = dynamic_cast<exponential::Exponential*>(this);
+                    if(!exponentialInstance)
+                        throw std::runtime_error("Corrupt internal state of the field absorber");
+                    exponentialInstance->run(currentStep, cellDescription, deviceBox);
+                }
                 // PML runs as part of the field solver, nothing to be done here
             }
 
@@ -112,9 +121,6 @@ namespace picongpu
             {
                 auto& absorber = get();
                 auto const thickness = absorber.getGlobalThickness();
-                auto const name
-                    = (absorber.kind() == Kind::Exponential ? std::string{"exponential damping"}
-                                                            : std::string{"convolutional PML"});
                 pmacc::traits::StringProperty propList;
                 const DataSpace<DIM3> periodic
                     = Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
@@ -147,7 +153,7 @@ namespace picongpu
                         if(boundaryName == "open")
                         {
                             std::ostringstream boundaryParam;
-                            boundaryParam << name + " over " << thickness(axis, axisDir) << " cells";
+                            boundaryParam << absorber.name + " over " << thickness(axis, axisDir) << " cells";
                             propList[directionName]["param"] = boundaryParam.str();
                         }
                         else
@@ -159,6 +165,22 @@ namespace picongpu
                     }
                 }
                 return propList;
+            }
+
+            // This implementation has to go to a .tpp file as it requires definitions of Pml and ExponentialDamping
+            std::unique_ptr<Absorber> AbsorberFactory::make() const
+            {
+                if(!isInitialized)
+                    throw std::runtime_error("Absorber factory used before being initialized");
+                switch(kind)
+                {
+                case Absorber::Kind::Exponential:
+                    return std::make_unique<exponential::Exponential>();
+                case Absorber::Kind::Pml:
+                    return std::make_unique<pml::Pml>();
+                default:
+                    throw std::runtime_error("Unsupported absorber kind requested to be made");
+                }
             }
 
         } // namespace absorber
