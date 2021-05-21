@@ -22,7 +22,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
+#include "picongpu/fields/absorber/pml/Field.hpp"
 
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
@@ -34,9 +34,9 @@ namespace picongpu
 {
     namespace fields
     {
-        namespace maxwellSolver
+        namespace absorber
         {
-            namespace yeePML
+            namespace pml
             {
                 namespace detail
                 {
@@ -62,14 +62,14 @@ namespace picongpu
                      * @param gridLayout grid layout, as for normal fields
                      * @param globalThickness global PML thickness
                      */
-                    HDINLINE int getOuterLayerBoxLinearSize(
+                    HINLINE int getOuterLayerBoxLinearSize(
                         GridLayout<simDim> const& gridLayout,
                         Thickness const& globalThickness)
                     {
                         // All sizes are without guard, since Pml is only on the internal area
                         auto const gridDataSpace = gridLayout.getDataSpaceWithoutGuarding();
-                        auto const nonPmlDataSpace
-                            = gridDataSpace - (globalThickness.positiveBorder + globalThickness.negativeBorder);
+                        auto const nonPmlDataSpace = gridDataSpace
+                            - (globalThickness.getPositiveBorder() + globalThickness.getNegativeBorder());
                         auto const numGridCells = gridDataSpace.productOfComponents();
                         auto const numNonPmlCells = nonPmlDataSpace.productOfComponents();
                         return numGridCells - numNonPmlCells;
@@ -112,8 +112,8 @@ namespace picongpu
                     : guardSize(gridLayout.getGuard())
                     , box(box)
                 {
-                    auto const negativeSize = globalThickness.negativeBorder;
-                    auto const positiveSize = globalThickness.positiveBorder;
+                    auto const negativeSize = globalThickness.getNegativeBorder();
+                    auto const positiveSize = globalThickness.getPositiveBorder();
                     /* The region of interest is grid without guard,
                      * which consists of PML and internal area
                      */
@@ -291,7 +291,7 @@ namespace picongpu
                     data->deviceToHost();
                 }
 
-            } // namespace yeePML
-        } // namespace maxwellSolver
+            } // namespace pml
+        } // namespace absorber
     } // namespace fields
 } // namespace picongpu

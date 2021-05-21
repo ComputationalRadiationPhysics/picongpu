@@ -20,7 +20,6 @@
 #pragma once
 
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
-#include <pmacc/dimensions/DataSpace.hpp>
 
 #include <cstdint>
 #include <stdexcept>
@@ -31,9 +30,9 @@ namespace picongpu
 {
     namespace fields
     {
-        namespace maxwellSolver
+        namespace absorber
         {
-            namespace yeePML
+            namespace pml
             {
                 /** Parameters of PML, except thickness
                  *
@@ -78,40 +77,7 @@ namespace picongpu
                     float_X alphaGradingOrder;
                 };
 
-                //! Thickness of PML at each border, in number of cells
-                struct Thickness
-                {
-                    //! Negative border is at the local domain sides minimum in coordinates
-                    DataSpace<simDim> negativeBorder;
-                    //! Positive border is at the local domain sides maximum in coordinates
-                    DataSpace<simDim> positiveBorder;
-
-                    /** Element access with indexing used in the .param file
-                     *
-                     * This is only for initialization convenience and so does not have
-                     * a device version. Since this is not performance-critical at all,
-                     * do range checks on parameters.
-                     *
-                     * @param axis 0 = x, 1 = y, 2 = z
-                     * @param direction 0 = negative, 1 = positive
-                     */
-                    int& operator()(uint32_t const axis, uint32_t const direction)
-                    {
-                        if(axis >= simDim)
-                            throw std::out_of_range(
-                                "In Thickness::operator() the axis = " + std::to_string(axis) + " is invalid");
-                        if(direction == 0)
-                            return negativeBorder[axis];
-                        else if(direction == 1)
-                            return positiveBorder[axis];
-                        else
-                            throw std::out_of_range(
-                                "In Thickness::operator() the direction = " + std::to_string(direction)
-                                + " is invalid");
-                    }
-                };
-
-            } // namespace yeePML
-        } // namespace maxwellSolver
+            } // namespace pml
+        } // namespace absorber
     } // namespace fields
 } // namespace picongpu

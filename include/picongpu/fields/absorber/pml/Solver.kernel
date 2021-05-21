@@ -22,7 +22,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/MaxwellSolver/YeePML/Parameters.hpp"
+#include "picongpu/fields/absorber/pml/Parameters.hpp"
 
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
@@ -38,9 +38,9 @@ namespace picongpu
 {
     namespace fields
     {
-        namespace maxwellSolver
+        namespace absorber
         {
-            namespace yeePML
+            namespace pml
             {
                 //! Parameters of PML for the local domain
                 struct LocalParameters : public Parameters
@@ -61,8 +61,8 @@ namespace picongpu
                         DataSpace<simDim> const numLocalDomainCells,
                         DataSpace<simDim> const numGuardCells)
                         : Parameters(parameters)
-                        , negativeBorderSize(precisionCast<float_X>(localThickness.negativeBorder))
-                        , positiveBorderSize(precisionCast<float_X>(localThickness.positiveBorder))
+                        , negativeBorderSize(precisionCast<float_X>(localThickness.getNegativeBorder()))
+                        , positiveBorderSize(precisionCast<float_X>(localThickness.getPositiveBorder()))
                         , numLocalDomainCells(numLocalDomainCells)
                         , numGuardCells(numGuardCells)
                     {
@@ -463,7 +463,7 @@ namespace picongpu
                     }
                 };
 
-            } // namespace yeePML
-        } // namespace maxwellSolver
+            } // namespace pml
+        } // namespace absorber
     } // namespace fields
 } // namespace picongpu

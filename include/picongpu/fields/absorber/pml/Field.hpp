@@ -23,7 +23,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/Fields.def"
-#include "picongpu/fields/MaxwellSolver/YeePML/Parameters.hpp"
+#include "picongpu/fields/absorber/pml/Parameters.hpp"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
@@ -47,9 +47,9 @@ namespace picongpu
 {
     namespace fields
     {
-        namespace maxwellSolver
+        namespace absorber
         {
-            namespace yeePML
+            namespace pml
             {
                 //! Additional node values for E or B in PML
                 struct NodeValues
@@ -409,8 +409,8 @@ namespace picongpu
                     }
                 };
 
-            } // namespace yeePML
-        } // namespace maxwellSolver
+            } // namespace pml
+        } // namespace absorber
     } // namespace fields
 
     namespace traits
@@ -421,7 +421,7 @@ namespace picongpu
          * Specialize only for Yee cell type, as this is the only one supported.
          */
         template<uint32_t T_dim>
-        struct FieldPosition<fields::cellType::Yee, fields::maxwellSolver::yeePML::FieldE, T_dim>
+        struct FieldPosition<fields::cellType::Yee, fields::absorber::pml::FieldE, T_dim>
             : FieldPosition<fields::cellType::Yee, FieldE, T_dim>
         {
         };
@@ -432,7 +432,7 @@ namespace picongpu
          * Specialize only for Yee cell type, as this is the only one supported.
          */
         template<uint32_t T_dim>
-        struct FieldPosition<fields::cellType::Yee, fields::maxwellSolver::yeePML::FieldB, T_dim>
+        struct FieldPosition<fields::cellType::Yee, fields::absorber::pml::FieldB, T_dim>
             : FieldPosition<fields::cellType::Yee, FieldB, T_dim>
         {
         };
@@ -441,7 +441,7 @@ namespace picongpu
          *  PML fields are not domain-bound
          */
         template<>
-        struct IsFieldDomainBound<fields::maxwellSolver::yeePML::FieldE> : std::false_type
+        struct IsFieldDomainBound<fields::absorber::pml::FieldE> : std::false_type
         {
         };
 
@@ -449,7 +449,7 @@ namespace picongpu
          *  PML fields are not domain-bound
          */
         template<>
-        struct IsFieldDomainBound<fields::maxwellSolver::yeePML::FieldB> : std::false_type
+        struct IsFieldDomainBound<fields::absorber::pml::FieldB> : std::false_type
         {
         };
 
@@ -462,16 +462,16 @@ namespace pmacc
     {
         //! Node value traits for checkpointing
         template<>
-        struct GetComponentsType<picongpu::fields::maxwellSolver::yeePML::NodeValues, false>
+        struct GetComponentsType<picongpu::fields::absorber::pml::NodeValues, false>
         {
             typedef picongpu::float_X type;
         };
 
         //! Node value traits for checkpointing
         template<>
-        struct GetNComponents<picongpu::fields::maxwellSolver::yeePML::NodeValues, false>
+        struct GetNComponents<picongpu::fields::absorber::pml::NodeValues, false>
         {
-            static constexpr uint32_t value = picongpu::fields::maxwellSolver::yeePML::NodeValues::numComponents;
+            static constexpr uint32_t value = picongpu::fields::absorber::pml::NodeValues::numComponents;
         };
 
     } // namespace traits

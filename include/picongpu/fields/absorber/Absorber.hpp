@@ -67,6 +67,24 @@ namespace picongpu
                     return numCells[axis][direction];
                 }
 
+                //! Get thickness for the negative border, at the local domain sides minimum in coordinates
+                pmacc::DataSpace<simDim> getNegativeBorder() const
+                {
+                    pmacc::DataSpace<simDim> result;
+                    for(uint32_t axis = 0u; axis < simDim; axis++)
+                        result[axis] = (*this)(axis, 0);
+                    return result;
+                }
+
+                //! Get thickness for the positive border, at the local domain sides maximum in coordinates
+                pmacc::DataSpace<simDim> getPositiveBorder() const
+                {
+                    pmacc::DataSpace<simDim> result;
+                    for(uint32_t axis = 0u; axis < simDim; axis++)
+                        result[axis] = (*this)(axis, 1);
+                    return result;
+                }
+
             private:
                 /** Number of absorber cells along each boundary
                  *
