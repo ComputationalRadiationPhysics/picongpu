@@ -50,6 +50,11 @@ namespace picongpu
                 return *pInstance;
             }
 
+            void Absorber::init(MappingDesc const newCellDescription)
+            {
+                cellDescription = newCellDescription;
+            }
+
             Absorber::Kind Absorber::getKind() const
             {
                 return kind;
@@ -104,16 +109,10 @@ namespace picongpu
             }
 
             template<class BoxedMemory>
-            void Absorber::run(uint32_t currentStep, MappingDesc& cellDescription, BoxedMemory deviceBox)
+            void Absorber::run(uint32_t currentStep, BoxedMemory deviceBox)
             {
                 if(kind == Kind::Exponential)
-                {
-                    // In this case, the cast is safe
-                    auto* exponentialInstance = dynamic_cast<exponential::Exponential*>(this);
-                    if(!exponentialInstance)
-                        throw std::runtime_error("Corrupt internal state of the field absorber");
-                    exponentialInstance->run(currentStep, cellDescription, deviceBox);
-                }
+                    asExponential().run(currentStep, deviceBox);
                 // PML runs as part of the field solver, nothing to be done here
             }
 
@@ -165,6 +164,22 @@ namespace picongpu
                     }
                 }
                 return propList;
+            }
+
+            exponential::Exponential& Absorber::asExponential()
+            {
+                auto* result = dynamic_cast<exponential::Exponential*>(this);
+                if(!result)
+                    throw std::runtime_error("Invalid conversion of absorber to Exponential");
+                return *result;
+            }
+
+            pml::Pml& Absorber::asPml()
+            {
+                auto* result = dynamic_cast<pml::Pml*>(this);
+                if(!result)
+                    throw std::runtime_error("Invalid conversion of absorber to Pml");
+                return *result;
             }
 
             // This implementation has to go to a .tpp file as it requires definitions of Pml and ExponentialDamping

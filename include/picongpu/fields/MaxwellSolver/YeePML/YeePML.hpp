@@ -23,7 +23,6 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/absorber/Absorber.hpp"
-#include "picongpu/fields/absorber/pml/Solver.hpp"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/fields/incidentField/Solver.hpp"
 #include "picongpu/traits/GetMargin.hpp"
@@ -72,7 +71,7 @@ namespace picongpu
                 using CurlE = T_CurlE;
                 using CurlB = T_CurlB;
 
-                YeePML(MappingDesc const cellDescription) : cellDescription(cellDescription), solver(cellDescription)
+                YeePML(MappingDesc const cellDescription) : cellDescription(cellDescription)
                 {
                 }
 
@@ -84,33 +83,6 @@ namespace picongpu
                  */
                 void update_beforeCurrent(uint32_t const currentStep)
                 {
-                    /* These steps are the same as in the Yee solver, PML updates are done as part of methods of
-                     * solver. Note that here we do the second half of updating B, thus completing the first half
-                     * started in a call to update_afterCurrent() at the previous time step. This splitting of B update
-                     * is standard for Yee-type field solvers in PIC codes due to particle pushers normally requiring E
-                     * and B values defined at the same time while the field solver operates with time-staggered
-                     * fields. However, while the standard Yee solver in vacuum is linear in a way of two consecutive
-                     * updates by dt/2 being equal to one update by dt, this is not true for the convolutional field
-                     * updates in PML. Thus, for PML we have to distinguish between the updates by dt/2 by introducing
-                     * first and second halves of the update. This distinction only concerns the convolutional field B
-                     * data used inside the PML, and not the full fields used by the rest of the code. In the very
-                     * first time step of a simulation we start with the second half right away, but this is no
-                     * problem, since the only meaningful initial conditions in the PML area are zero for the
-                     * to-be-absorbed components.
-                     */
-                    solver.template updateBSecondHalf<CORE + BORDER>(currentStep);
-                    auto incidentFieldSolver = fields::incidentField::Solver{cellDescription};
-                    // update B by half step, to step = currentStep + 0.5, so step for E_inc = currentStep
-                    incidentFieldSolver.updateBHalf(static_cast<float_X>(currentStep));
-                    auto& fieldB = solver.getFieldB();
-                    EventTask eRfieldB = fieldB.asyncCommunication(__getTransactionEvent());
-
-                    solver.template updateE<CORE>(currentStep);
-                    // Incident field solver update does not use exchanged B, so does not have to wait for it
-                    // update E by full step, to step = currentStep + 1, so step for B_inc = currentStep + 0.5
-                    incidentFieldSolver.updateE(static_cast<float_X>(currentStep) + 0.5_X);
-                    __setTransactionEvent(eRfieldB);
-                    solver.template updateE<BORDER>(currentStep);
                 }
 
                 /** Perform the last part of E and B propagation by a time step
@@ -121,30 +93,6 @@ namespace picongpu
                  */
                 void update_afterCurrent(uint32_t const currentStep)
                 {
-                    /* These steps are the same as in the Yee solver,
-                     * PML updates are done as part of calls to methods of solver. As explained in more
-                     * detail in comments inside update_beforeCurrent(), here we start a new step of updating B in
-                     * terms of the time-staggered Yee grid. And so this is the first half of B update, to be completed
-                     * in a call to update_beforeCurrent() on the next time step.
-                     */
-                    if(laserProfiles::Selected::INIT_TIME > 0.0_X)
-                        LaserPhysics{}(currentStep);
-
-                    // Incident field solver update does not use exchanged E, so does not have to wait for it
-                    auto incidentFieldSolver = fields::incidentField::Solver{cellDescription};
-                    // update B by half step, to step currentStep + 1.5, so step for E_inc = currentStep + 1
-                    incidentFieldSolver.updateBHalf(static_cast<float_X>(currentStep) + 1.0_X);
-
-                    auto& fieldE = solver.getFieldE();
-                    EventTask eRfieldE = fieldE.asyncCommunication(__getTransactionEvent());
-
-                    solver.template updateBFirstHalf<CORE>(currentStep);
-                    __setTransactionEvent(eRfieldE);
-                    solver.template updateBFirstHalf<BORDER>(currentStep);
-
-                    auto& fieldB = solver.getFieldB();
-                    EventTask eRfieldB = fieldB.asyncCommunication(__getTransactionEvent());
-                    __setTransactionEvent(eRfieldB);
                 }
 
                 static pmacc::traits::StringProperty getStringProperties()
@@ -155,7 +103,6 @@ namespace picongpu
 
             private:
                 MappingDesc const cellDescription;
-                absorber::pml::Solver<CurlE, CurlB> solver;
             };
 
         } // namespace maxwellSolver

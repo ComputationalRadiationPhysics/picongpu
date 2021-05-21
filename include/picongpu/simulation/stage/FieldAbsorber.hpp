@@ -57,8 +57,10 @@ namespace picongpu
                  *
                  * This method has to be called during initialization of the simulation.
                  * Before this method is called, the instance of fields::absorber::Absorber cannot be used safely.
+                 *
+                 * @param cellDescription mapping for kernels
                  */
-                void init()
+                void init(MappingDesc const cellDescription)
                 {
                     using namespace fields::absorber;
                     // So far there are only two kinds and so names are hardcoded
@@ -71,8 +73,8 @@ namespace picongpu
                         throw std::runtime_error("Unsupported field absorber type");
                     auto& absorberFactory = AbsorberFactory::get();
                     absorberFactory.setKind(kind);
-                    // Get absorber instance to make sure it gets initialized
                     auto& absorber = Absorber::get();
+                    absorber.init(cellDescription);
                 }
 
             private:

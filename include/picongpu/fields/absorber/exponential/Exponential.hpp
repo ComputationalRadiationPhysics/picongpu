@@ -64,11 +64,10 @@ namespace picongpu
                      * @tparam BoxedMemory field box type
                      *
                      * @param currentStep current time iteration
-                     * @param cellDescription mapping description for kernels
                      * @param deviceBox field box
                      */
                     template<class BoxedMemory>
-                    void run(uint32_t currentStep, MappingDesc& cellDescription, BoxedMemory deviceBox)
+                    void run(uint32_t currentStep, BoxedMemory deviceBox)
                     {
                         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
                         for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)

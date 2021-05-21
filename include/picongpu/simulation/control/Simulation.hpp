@@ -318,7 +318,7 @@ namespace picongpu
 
             // initialize field absorber stage,
             // this can affect the internals of the field solver, so has to be done before
-            fieldAbsorber.init();
+            fieldAbsorber.init(*cellDescription);
 
             // create field solver
             this->myFieldSolver = new fields::Solver(*cellDescription);

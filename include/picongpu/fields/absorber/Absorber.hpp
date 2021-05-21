@@ -95,6 +95,18 @@ namespace picongpu
                 uint32_t numCells[3][2];
             };
 
+            // Forward declaration for Absorber::asExponential()
+            namespace exponential
+            {
+                class Exponential;
+            }
+
+            // Forward declaration for Absorber::asPml()
+            namespace pml
+            {
+                class Pml;
+            }
+
             /** Singleton for field absorber
              *
              * Provides run-time utilities to get thickness and string properties.
@@ -115,6 +127,12 @@ namespace picongpu
 
                 //! Get absorber instance
                 static Absorber& get();
+
+                /** Initialize field absorber
+                 *
+                 * @param newCellDescription mapping for kernels
+                 */
+                inline virtual void init(MappingDesc newCellDescription);
 
                 //! Absorber kind used in the simulation
                 inline Kind getKind() const;
@@ -145,11 +163,25 @@ namespace picongpu
                  * @tparam BoxedMemory field box type
                  *
                  * @param currentStep current time iteration
-                 * @param cellDescription mapping description for kernels
                  * @param deviceBox field box
                  */
                 template<class BoxedMemory>
-                inline void run(uint32_t currentStep, MappingDesc& cellDescription, BoxedMemory deviceBox);
+                inline void run(uint32_t currentStep, BoxedMemory deviceBox);
+
+                /** Interpret this as Exponential instance
+                 *
+                 * \return reference to this object if conversion is valid,
+                 *         throws otherwise
+                 */
+                inline exponential::Exponential& asExponential();
+
+                /** Interpret this as Pml instance
+                 *
+                 * \return reference to this object if conversion is valid,
+                 *         throws otherwise
+                 */
+                inline pml::Pml& asPml();
+
 
             protected:
                 /** Number of absorber cells along each boundary
@@ -169,6 +201,9 @@ namespace picongpu
 
                 //! Text name for string properties
                 std::string name;
+
+                //! Mapping description for kernels
+                MappingDesc cellDescription = pmacc::DataSpace<simDim>(SuperCellSize::toRT());
 
                 Absorber() = default;
                 Absorber(Absorber const&) = delete;
