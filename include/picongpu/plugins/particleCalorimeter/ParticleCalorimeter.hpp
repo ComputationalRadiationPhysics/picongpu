@@ -518,6 +518,7 @@ namespace picongpu
             openingPitch_deg = m_help->openingPitch.get(m_id);
             posYaw_deg = m_help->posYaw.get(m_id);
             posPitch_deg = m_help->posPitch.get(m_id);
+            notifyPeriod = m_help->notifyPeriod.get(m_id);
 
             initPlugin();
         }
@@ -586,7 +587,7 @@ namespace picongpu
             /* data is written to dBufLeftParsCalorimeter */
             this->calorimeterFunctor->setCalorimeterCursor(this->dBufLeftParsCalorimeter->origin());
 
-            ExchangeMapping<GUARD, MappingDesc> mapper(*this->cellDescription, direction);
+            ExchangeMapping<GUARD, MappingDesc> mapper(*this->m_cellDescription, direction);
             auto grid = mapper.getGridDim();
 
             DataConnector& dc = Environment<>::get().DataConnector();
@@ -617,6 +618,7 @@ namespace picongpu
         MappingDesc* m_cellDescription;
         std::ofstream outFile;
         const std::string leftParticlesDatasetName;
+        std::string notifyPeriod;
 
         uint32_t numBinsYaw;
         uint32_t numBinsPitch;

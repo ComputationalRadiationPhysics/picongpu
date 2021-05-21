@@ -91,6 +91,19 @@ namespace picongpu
                         slave->restart(restartStep, restartDirectory);
                 }
 
+                /** Call the onParticleLeave() method for all slave instances.
+                 *
+                 * Called each timestep if particles are leaving the global simulation volume.
+                 *
+                 * \param speciesName name of the particle species
+                 * \param direction the direction the particles are leaving the simulation
+                 */
+                void onParticleLeave(const std::string& speciesName, const int32_t direction)
+                {
+                    for(auto& slave : slaveList)
+                        slave->onParticleLeave(speciesName, direction);
+                }
+
                 /** create a checkpoint
                  *
                  * Trigger the method checkpoint() for all slave instances.
