@@ -25,8 +25,7 @@
 #include "picongpu/fields/absorber/pml/Parameters.hpp"
 
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
-#include <pmacc/mappings/threads/ForEachIdx.hpp>
-#include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
@@ -275,7 +274,6 @@ namespace picongpu
                             * MappingDesc::SuperCellSize::toRT();
 
                         // Cache B values for the block
-                        using namespace mappings::threads;
                         constexpr auto numWorkers = T_numWorkers;
                         auto const workerIdx = cupla::threadIdx(acc).x;
                         pmacc::math::operation::Assign assign;
@@ -287,8 +285,8 @@ namespace picongpu
 
                         // Threads process values of the supercell in parallel
                         constexpr auto numCellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                        ForEachIdx<IdxConfig<numCellsPerSuperCell, numWorkers>>{
-                            workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
+                        lockstep::makeForEach<numCellsPerSuperCell, numWorkers>(
+                            workerIdx)([&](uint32_t const linearIdx) {
                             constexpr auto c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
                             constexpr auto dt = DELTA_T;
 
@@ -388,7 +386,6 @@ namespace picongpu
                             * MappingDesc::SuperCellSize::toRT();
 
                         // Cache E values for the block
-                        using namespace mappings::threads;
                         constexpr auto numWorkers = T_numWorkers;
                         auto const workerIdx = cupla::threadIdx(acc).x;
                         pmacc::math::operation::Assign assign;
@@ -400,8 +397,8 @@ namespace picongpu
 
                         // Threads process values of the supercell in parallel
                         constexpr auto numCellsPerSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                        ForEachIdx<IdxConfig<numCellsPerSuperCell, numWorkers>>{
-                            workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
+                        lockstep::makeForEach<numCellsPerSuperCell, numWorkers>(
+                            workerIdx)([&](uint32_t const linearIdx) {
                             constexpr auto dt = DELTA_T;
                             constexpr auto halfDt = 0.5_X * dt;
                             auto const idxInSuperCell

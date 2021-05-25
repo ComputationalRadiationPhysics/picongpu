@@ -83,7 +83,6 @@ namespace picongpu
                     transitionRadiation::frequencies::FreqFunctor freqFkt,
                     DataSpace<simDim> simBoxSize) const
                 {
-                    using namespace mappings::threads;
                     using complex_X = pmacc::math::Complex<float_X>;
                     using complex_64 = pmacc::math::Complex<float_64>;
 
@@ -177,23 +176,21 @@ namespace picongpu
                              */
                             cupla::__syncthreads(acc);
 
-                            ForEachIdx<IdxConfig<1, numWorker>> onlyMaster{workerIdx};
+                            auto onlyMaster = lockstep::makeMaster(workerIdx);
 
                             /* The Master process (thread 0) in every thread block is in
                              * charge of loading a frame from
                              * the current super cell and evaluate the total number of
                              * particles in this frame.
                              */
-                            onlyMaster([&](uint32_t const, uint32_t const) { counter_s = 0; });
+                            onlyMaster([&]() { counter_s = 0; });
 
                             cupla::__syncthreads(acc);
 
-                            using ParticleDomCfg = IdxConfig<frameSize, numWorker>;
-
                             // loop over all particles in the frame
-                            ForEachIdx<ParticleDomCfg> forEachParticle{workerIdx};
+                            auto forEachParticle = lockstep::makeForEach<frameSize, numWorker>(workerIdx);
 
-                            forEachParticle([&](uint32_t const linearIdx, uint32_t const) {
+                            forEachParticle([&](uint32_t const linearIdx) {
                                 // only threads with particles are running
                                 if(linearIdx < particlesInFrame)
                                 {

@@ -22,7 +22,7 @@
 #pragma once
 
 #include "pmacc/filter/Interface.hpp"
-#include "pmacc/mappings/threads/WorkerCfg.hpp"
+#include "pmacc/lockstep/Worker.hpp"
 #include "pmacc/types.hpp"
 
 #include <string>
@@ -145,7 +145,7 @@ namespace pmacc
             HDINLINE auto operator()(
                 T_Acc const& acc,
                 T_OffsetType const& domainOffset,
-                mappings::threads::WorkerCfg<T_numWorkers> const& workerCfg) const
+                lockstep::Worker<T_numWorkers> const& workerCfg) const
                 -> acc::Filtered<
                     T_FilterOperator,
                     decltype(alpaka::core::declval<Filter>()(acc, domainOffset, workerCfg)),

@@ -27,11 +27,9 @@
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/kernel/atomic.hpp>
+#include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
-#include <pmacc/mappings/threads/ForEachIdx.hpp>
-#include <pmacc/mappings/threads/IdxConfig.hpp>
-#include <pmacc/mappings/threads/WorkerCfg.hpp>
 #include <pmacc/math/vector/Int.hpp>
 #include <pmacc/memory/Array.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
@@ -94,8 +92,6 @@ namespace picongpu
                 template<typename T_Acc>
                 DINLINE void operator()(T_Acc const& acc, pmacc::math::Int<simDim> const& blockCell)
                 {
-                    using namespace mappings::threads;
-
                     constexpr uint32_t numWorkers = T_numWorkers;
 
                     uint32_t const workerIdx = cupla::threadIdx(acc).x;
@@ -132,19 +128,17 @@ namespace picongpu
                     if(!sourceFrame.isValid())
                         return;
 
-                    using ParticleDomCfg = IdxConfig<maxParticlesInFrame, numWorkers>;
-
-                    ForEachIdx<ParticleDomCfg> forEachParticle(workerIdx);
+                    auto forEachParticle = lockstep::makeForEach<maxParticlesInFrame, numWorkers>(workerIdx);
 
                     // initialize the collective part of the functor (e.g. field caching)
-                    particleCreator.collectiveInit(acc, blockCell, WorkerCfg<numWorkers>{workerIdx});
+                    particleCreator.collectiveInit(acc, blockCell, lockstep::Worker<numWorkers>{workerIdx});
 
-                    memory::CtxArray<ParticleCreator, ParticleDomCfg> particleCreatorCtx{};
+                    auto particleCreatorCtx = lockstep::makeVar<ParticleCreator>(forEachParticle);
 
-                    forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                    forEachParticle([&](lockstep::Idx const idx) {
                         // cell index within the superCell
                         DataSpace<simDim> const cellIdx
-                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
 
                         // cell offset with respect to the local domain origin (without any guarding cells
                         pmacc::math::Int<simDim> const localCellIndex = supercellCellOffset + cellIdx;
@@ -153,7 +147,7 @@ namespace picongpu
                         particleCreatorCtx[idx] = particleCreator;
 
                         // init particle creator functor for each virtual worker
-                        particleCreatorCtx[idx].init(acc, blockCell, linearIdx, localCellIndex);
+                        particleCreatorCtx[idx].init(acc, blockCell, idx, localCellIndex);
                     });
 
                     /* Declare counter in shared memory that will later tell the current fill level or
@@ -161,7 +155,7 @@ namespace picongpu
                      */
                     PMACC_SMEM(acc, newFrameFillLvl, int);
 
-                    ForEachIdx<IdxConfig<2, numWorkers>> onlyMasters{workerIdx};
+                    auto onlyMasters = lockstep::makeMaster(workerIdx);
 
                     // Declare local variable oldFrameFillLvl for each thread
                     int oldFrameFillLvl;
@@ -169,10 +163,10 @@ namespace picongpu
                     /* Initialize local (register) counter for each thread
                      * - describes how many new macro target particles should be created
                      */
-                    memory::CtxArray<uint32_t, ParticleDomCfg> numNewParticlesCtx(0);
+                    auto numNewParticlesCtx = lockstep::makeVar<uint32_t>(forEachParticle, 0u);
 
                     // Master initializes the frame fill level with 0
-                    onlyMasters([&](uint32_t const linearIdx, uint32_t const) {
+                    onlyMasters([&](uint32_t const linearIdx) {
                         if(linearIdx == 0)
                             newFrameFillLvl = 0;
                         targetFrames[linearIdx] = nullptr;
@@ -188,18 +182,16 @@ namespace picongpu
                      */
                     while(sourceFrame.isValid())
                     {
-                        memory::CtxArray<bool, ParticleDomCfg> isParticleCtx(
-                            workerIdx,
-                            [&](uint32_t const linearIdx, uint32_t const) {
-                                return static_cast<bool>(sourceFrame[linearIdx][multiMask_]);
-                            });
-                        forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
-                            bool const isParticle = static_cast<bool>(sourceFrame[linearIdx][multiMask_]);
+                        auto isParticleCtx = forEachParticle([&](uint32_t const linearIdx) -> bool {
+                            return static_cast<bool>(sourceFrame[linearIdx][multiMask_]);
+                        });
+                        forEachParticle([&](lockstep::Idx const idx) {
+                            bool const isParticle = static_cast<bool>(sourceFrame[idx][multiMask_]);
                             numNewParticlesCtx[idx] = 0u;
                             if(isParticle)
                                 /* ask the particle creator functor how many new particles to create. */
                                 numNewParticlesCtx[idx]
-                                    = particleCreatorCtx[idx].numNewParticles(acc, *sourceFrame, linearIdx);
+                                    = particleCreatorCtx[idx].numNewParticles(acc, *sourceFrame, idx);
                         });
 
                         cupla::__syncthreads(acc);
@@ -225,7 +217,7 @@ namespace picongpu
                             /* Declare local target particle ID
                              * - describes at which position in the new frame the new target particle is to be created
                              */
-                            memory::CtxArray<int, ParticleDomCfg> targetParIdCtx(-1);
+                            auto targetParIdCtx = lockstep::makeVar<int>(forEachParticle, -1);
 
                             oldFrameFillLvl = newFrameFillLvl;
 
@@ -236,7 +228,7 @@ namespace picongpu
                              * and before that it atomically adds to the shared counter and uses the current
                              * value as targetParId in the new frame
                              */
-                            forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                            forEachParticle([&](lockstep::Idx const idx) {
                                 if(numNewParticlesCtx[idx] > 0u)
                                     targetParIdCtx[idx]
                                         = kernel::atomicAllInc(acc, &newFrameFillLvl, ::alpaka::hierarchy::Threads{});
@@ -256,7 +248,7 @@ namespace picongpu
                              * - if there is no frame, yet, the master will create a new target particle frame
                              * and attach it to the back of the frame list
                              */
-                            onlyMasters([&](uint32_t const linearIdx, uint32_t const) {
+                            onlyMasters([&](uint32_t const linearIdx) {
                                 uint32_t const numFramesNeeded
                                     = (newFrameFillLvl + maxParticlesInFrame - 1u) / maxParticlesInFrame;
                                 if(linearIdx < numFramesNeeded && !targetFrames[linearIdx].isValid())
@@ -272,7 +264,7 @@ namespace picongpu
                              * - all target particles were created
                              * - internal particle creation counter is decremented by 1
                              */
-                            forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                            forEachParticle([&](lockstep::Idx const idx) {
                                 uint32_t targetFrameIdx = 0;
                                 if(targetParIdCtx[idx] >= maxParticlesInFrame)
                                 {
@@ -282,7 +274,7 @@ namespace picongpu
                                 if(0 <= targetParIdCtx[idx])
                                 {
                                     // each virtual worker makes the attributes of its source particle accessible
-                                    auto sourceParticle = sourceFrame[linearIdx];
+                                    auto sourceParticle = sourceFrame[idx];
                                     // each virtual worker initializes a target particle if one should be created
                                     auto targetParticle = targetFrames[targetFrameIdx][targetParIdCtx[idx]];
 
@@ -295,7 +287,7 @@ namespace picongpu
 
                             cupla::__syncthreads(acc);
 
-                            onlyMasters([&](uint32_t const linearIdx, uint32_t const) {
+                            onlyMasters([&](uint32_t const linearIdx) {
                                 if(linearIdx == 0 && newFrameFillLvl >= maxParticlesInFrame)
                                 {
                                     newFrameFillLvl -= maxParticlesInFrame;

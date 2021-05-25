@@ -24,9 +24,8 @@
 #include "picongpu/plugins/xrayScattering/XrayScattering.hpp"
 
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/mappings/threads/ForEachIdx.hpp>
-#include <pmacc/mappings/threads/IdxConfig.hpp>
 
 #include <cstdio>
 
@@ -89,8 +88,6 @@ namespace picongpu
                     uint32_t const blockIdxLin = cupla::blockIdx(acc).x;
 
                     using complex_X = pmacc::math::Complex<float_X>;
-                    using namespace pmacc::mappings::threads;
-                    using namespace pmacc;
                     // Storage for positions in the beam coordinate system.
                     PMACC_SMEM(acc, positions, memory::Array<float2_X, blockSize>);
                     // Storage for (form factor density * beam intensity factor).
@@ -98,64 +95,63 @@ namespace picongpu
 
                     uint32_t const linAccessBlockBegin = blockIdxLin * blockSize;
 
-                    ForEachIdx<IdxConfig<blockSize, numWorkers>>{workerIdx}(
-                        [&](uint32_t const linearIdx, uint32_t const) {
-                            // Each thread reads one field value and saves it together
-                            // with its position, in UNIT_LENGTH, in the global domain.
-                            DataSpace<simDim> const cellPosition(
-                                DataSpaceOperations<simDim>::map(cellsGrid, linearIdx + linAccessBlockBegin));
+                    lockstep::makeForEach<blockSize, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
+                        // Each thread reads one field value and saves it together
+                        // with its position, in UNIT_LENGTH, in the global domain.
+                        DataSpace<simDim> const cellPosition(
+                            DataSpaceOperations<simDim>::map(cellsGrid, linearIdx + linAccessBlockBegin));
 
-                            DataSpace<simDim> const cellGlobalPosition(cellPosition + globalOffset);
-                            floatD_X fieldGlobalPosition = precisionCast<float_X>(cellGlobalPosition) + fieldPos()[0];
-                            fieldGlobalPosition *= cellSize.shrink<simDim>();
+                        DataSpace<simDim> const cellGlobalPosition(cellPosition + globalOffset);
+                        floatD_X fieldGlobalPosition = precisionCast<float_X>(cellGlobalPosition) + fieldPos()[0];
+                        fieldGlobalPosition *= cellSize.shrink<simDim>();
 
-                            float_X density = densityBoxGPU(cellPosition)[0];
-                            // Save the cell position in the beam coordinate system.
-                            float3_X position_b = probingBeam.coordinateTransform(currentStep, fieldGlobalPosition);
-                            float_X beamFactor = probingBeam(position_b);
-                            // Store the cell value of the function that has to be
-                            // Fourier transformed.
-                            densities[linearIdx] = density * beamFactor / totalSimulationCells;
-                            // Store position in the beam comoving system
-                            // 3rd component is not needed anymore since q_z = 0.
-                            positions[linearIdx] = position_b.shrink<DIM2>();
+                        float_X density = densityBoxGPU(cellPosition)[0];
+                        // Save the cell position in the beam coordinate system.
+                        float3_X position_b = probingBeam.coordinateTransform(currentStep, fieldGlobalPosition);
+                        float_X beamFactor = probingBeam(position_b);
+                        // Store the cell value of the function that has to be
+                        // Fourier transformed.
+                        densities[linearIdx] = density * beamFactor / totalSimulationCells;
+                        // Store position in the beam comoving system
+                        // 3rd component is not needed anymore since q_z = 0.
+                        positions[linearIdx] = position_b.shrink<DIM2>();
 
-                            // Wait for all threads on the block to finish.
-                            cupla::__syncthreads(acc);
+                        // Wait for all threads on the block to finish.
+                        cupla::__syncthreads(acc);
 
-                            // Calculate the density fourier transform:
-                            // Loop over q-vectors in frequency space:
-                            // Each worker process every numWorkers vector.
-                            for(uint32_t qLoopIdx = workerIdx; qLoopIdx < totalNumVectors; qLoopIdx += numWorkers)
+                        // Calculate the density fourier transform:
+                        // Loop over q-vectors in frequency space:
+                        // Each worker process every numWorkers vector.
+                        for(uint32_t qLoopIdx = workerIdx; qLoopIdx < totalNumVectors; qLoopIdx += numWorkers)
+                        {
+                            float2_X q = scatteringVectors[qLoopIdx];
+                            complex_X amplitude(0.0);
+                            // Loop over all previously loaded cells:
+                            // This is a volume integral over the local domain
+                            // in the beam coordinate system.
+                            for(uint32_t rLoopIdx = 0; rLoopIdx < blockSize; rLoopIdx++)
                             {
-                                float2_X q = scatteringVectors[qLoopIdx];
-                                complex_X amplitude(0.0);
-                                // Loop over all previously loaded cells:
-                                // This is a volume integral over the local domain
-                                // in the beam coordinate system.
-                                for(uint32_t rLoopIdx = 0; rLoopIdx < blockSize; rLoopIdx++)
-                                {
-                                    float_X dotqr;
-                                    density = densities[rLoopIdx];
-                                    float2_X position = positions[rLoopIdx];
-                                    dotqr = pmacc::math::dot(position, q);
-                                    dotqr *= -1.0;
-                                    amplitude += pmacc::math::euler(density, dotqr);
-                                } // end loop over positions
-                                // Add the super cell contribution to the output.
-                                // Avoid racing conditions between blocks.
-                                cupla::atomicAdd(
-                                    acc,
-                                    &(amplitudeBox[qLoopIdx].get_real()),
-                                    amplitude.get_real(),
-                                    ::alpaka::hierarchy::Blocks{});
-                                cupla::atomicAdd(
-                                    acc,
-                                    &(amplitudeBox[qLoopIdx].get_imag()),
-                                    amplitude.get_imag(),
-                                    ::alpaka::hierarchy::Blocks{});
-                            } // end loop over scattering directions
-                        } // end lambda function body
+                                float_X dotqr;
+                                density = densities[rLoopIdx];
+                                float2_X position = positions[rLoopIdx];
+                                dotqr = pmacc::math::dot(position, q);
+                                dotqr *= -1.0;
+                                amplitude += pmacc::math::euler(density, dotqr);
+                            } // end loop over positions
+                            // Add the super cell contribution to the output.
+                            // Avoid racing conditions between blocks.
+                            cupla::atomicAdd(
+                                acc,
+                                &(amplitudeBox[qLoopIdx].get_real()),
+                                amplitude.get_real(),
+                                ::alpaka::hierarchy::Blocks{});
+                            cupla::atomicAdd(
+                                acc,
+                                &(amplitudeBox[qLoopIdx].get_imag()),
+                                amplitude.get_imag(),
+                                ::alpaka::hierarchy::Blocks{});
+                        } // end loop over scattering directions
+                    } // end lambda function body
                     );
                 }
             };

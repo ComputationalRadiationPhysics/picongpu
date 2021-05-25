@@ -23,6 +23,7 @@
 
 #include "picongpu/traits/frame/GetMass.hpp"
 
+#include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 #include <cstdint>
@@ -108,10 +109,8 @@ namespace picongpu
                     pmacc::DataSpace<simDim> const supercellIdx,
                     T_EstimateBox estimateBox) const
                 {
-                    using namespace pmacc::mappings::threads;
                     constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
                     constexpr uint32_t numWorkers = T_numWorkers;
-                    using ParticleDomCfg = IdxConfig<frameSize, numWorkers>;
                     /* Estimate variance in momentum of macroparticles in the supercell.
                      * Each thread processes its particles, then the master thread performs reduction.
                      * Sums are weighted and operate with single- (not macro-) particle momenta.
@@ -125,7 +124,7 @@ namespace picongpu
                     uint32_t const workerIdx = cupla::threadIdx(acc).x;
                     while(frame.isValid())
                     {
-                        ForEachIdx<ParticleDomCfg>{workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
+                        lockstep::makeForEach<frameSize, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
                             if(linearIdx < particlesInFrame)
                             {
                                 auto const particle = frame[linearIdx];
@@ -145,8 +144,8 @@ namespace picongpu
                     PMACC_SMEM(acc, supercellSumWeighting, float_64);
                     PMACC_SMEM(acc, supercellSumMomentum, float3_64);
                     PMACC_SMEM(acc, supercellSumMomentumSquared, float3_64);
-                    ForEachIdx<IdxConfig<1, numWorkers>> onlyMaster{workerIdx};
-                    onlyMaster([&](uint32_t const, uint32_t const) {
+                    auto onlyMaster = lockstep::makeMaster(workerIdx);
+                    onlyMaster([&]() {
                         supercellSumWeighting = float_64(0.0);
                         supercellSumMomentum = float3_64::create(0.0);
                         supercellSumMomentumSquared = float3_64::create(0.0);
@@ -167,7 +166,7 @@ namespace picongpu
                             ::alpaka::hierarchy::Threads{});
                     }
                     cupla::__syncthreads(acc);
-                    onlyMaster([&](uint32_t const, uint32_t const) {
+                    onlyMaster([&]() {
                         auto const mean = supercellSumMomentum / supercellSumWeighting;
                         // Use a simple variance estimator, the fact it is biased should not matter here
                         auto const variance = supercellSumMomentumSquared / supercellSumWeighting - mean * mean;

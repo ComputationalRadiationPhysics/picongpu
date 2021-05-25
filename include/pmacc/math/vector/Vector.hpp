@@ -25,6 +25,7 @@
 #include "pmacc/algorithms/math.hpp"
 #include "pmacc/math/vector/accessor/StandardAccessor.hpp"
 #include "pmacc/math/vector/navigator/StandardNavigator.hpp"
+#include "pmacc/memory/Array.hpp"
 #include "pmacc/result_of_Functor.hpp"
 #include "pmacc/static_assert.hpp"
 #include "pmacc/types.hpp"
@@ -53,6 +54,7 @@ namespace pmacc
                 {
                 }
 
+                HDINLINE
                 constexpr Vector_components& operator=(const Vector_components&) = default;
 
                 /*align full vector*/

@@ -36,12 +36,10 @@
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/kernel/atomic.hpp>
+#include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
-#include <pmacc/mappings/threads/ForEachIdx.hpp>
-#include <pmacc/mappings/threads/IdxConfig.hpp>
 #include <pmacc/math/Vector.hpp>
-#include <pmacc/memory/CtxArray.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/memory/boxes/PitchedBox.hpp>
@@ -247,8 +245,6 @@ namespace picongpu
             uint32_t const sliceDim,
             T_Mapping mapper) const
         {
-            using namespace mappings::threads;
-
             using SuperCellSize = typename T_Mapping::SuperCellSize;
 
             constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume<SuperCellSize>::type::value;
@@ -261,12 +257,10 @@ namespace picongpu
             DataSpace<simDim> const supercellCellOffset(
                 (suplercellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT());
 
-            using SupercellDomCfg = IdxConfig<cellsPerSupercell, numWorkers>;
-
             // each cell in a supercell is handled as a virtual worker
-            ForEachIdx<SupercellDomCfg> forEachCell(workerIdx);
+            auto forEachCell = lockstep::makeForEach<cellsPerSupercell, numWorkers>(workerIdx);
 
-            forEachCell([&](uint32_t const linearIdx, uint32_t const) {
+            forEachCell([&](uint32_t const linearIdx) {
                 // cell index within the superCell
                 DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
                 // offset to the origin of the local domain + guarding cells
@@ -356,8 +350,6 @@ namespace picongpu
             uint32_t const sliceDim,
             T_Mapping mapper) const
         {
-            using namespace mappings::threads;
-
             using SuperCellSize = typename T_Mapping::SuperCellSize;
 
             constexpr uint32_t numParticlesPerFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
@@ -366,14 +358,10 @@ namespace picongpu
 
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-            using ParticleDomCfg = IdxConfig<numParticlesPerFrame, numWorkers>;
-
-            using SupercellDomCfg = IdxConfig<numCellsPerSupercell, numWorkers>;
-
-            ForEachIdx<IdxConfig<1, numWorkers>> onlyMaster{workerIdx};
+            auto onlyMaster = lockstep::makeMaster(workerIdx);
 
             // each virtual worker works on a cell in the supercell
-            ForEachIdx<SupercellDomCfg> forEachCell(workerIdx);
+            auto forEachCell = lockstep::makeForEach<numCellsPerSupercell, numWorkers>(workerIdx);
 
             /* is 1 if a offset of a cell in the supercell is equal the slice (offset)
              * else 0
@@ -383,20 +371,20 @@ namespace picongpu
             /* true if the virtual worker is processing a pixel within the resulting image,
              * else false
              */
-            memory::CtxArray<bool, SupercellDomCfg> isImageThreadCtx(false);
+            auto isImageThreadCtx = lockstep::makeVar<bool>(forEachCell, false);
 
             DataSpace<simDim> const suplercellIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
             // offset of the supercell (in cells) to the origin of the local domain
             DataSpace<simDim> const supercellCellOffset(
                 (suplercellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT());
 
-            onlyMaster([&](uint32_t const, uint32_t const) { superCellParticipate = 0; });
+            onlyMaster([&]() { superCellParticipate = 0; });
 
             cupla::__syncthreads(acc);
 
-            forEachCell([&](uint32_t const linearIdx, uint32_t const idx) {
+            forEachCell([&](lockstep::Idx const idx) {
                 // cell index within the superCell
-                DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
 
                 // cell offset to origin of the local domain
                 DataSpace<simDim> const realCell(supercellCellOffset + cellIdx);
@@ -428,9 +416,9 @@ namespace picongpu
                 // pitch in byte
                 SuperCellSize::toRT()[transpose.x()] * sizeof(float_X)));
 
-            forEachCell([&](uint32_t const linearIdx, uint32_t const idx) {
+            forEachCell([&](lockstep::Idx const idx) {
                 /* cell index within the superCell */
-                DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
 
                 DataSpace<DIM2> const localCell(cellIdx[transpose.x()], cellIdx[transpose.y()]);
 
@@ -447,11 +435,11 @@ namespace picongpu
             FramePtr frame = pb.getFirstFrame(suplercellIdx);
 
             // each virtual worker works on a particle in the frame
-            ForEachIdx<ParticleDomCfg> forEachParticle(workerIdx);
+            auto forEachParticle = lockstep::makeForEach<numParticlesPerFrame, numWorkers>(workerIdx);
 
             while(frame.isValid())
             {
-                forEachParticle([&](uint32_t const linearIdx, uint32_t const idx) {
+                forEachParticle([&](uint32_t const linearIdx) {
                     auto particle = frame[linearIdx];
                     if(particle[multiMask_] == 1)
                     {
@@ -485,12 +473,11 @@ namespace picongpu
             // wait that all worker finsihed the reduce operation
             cupla::__syncthreads(acc);
 
-            forEachCell([&](uint32_t const linearIdx, uint32_t const idx) {
+            forEachCell([&](lockstep::Idx const idx) {
                 if(isImageThreadCtx[idx])
                 {
                     // cell index within the superCell
-                    DataSpace<simDim> const cellIdx
-                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                    DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
                     // cell offset to origin of the local domain
                     DataSpace<simDim> const realCell(supercellCellOffset + cellIdx);
                     // index in image
@@ -552,17 +539,14 @@ namespace picongpu
             template<typename T_Mem, typename T_Type, typename T_Acc>
             DINLINE void operator()(T_Acc const& acc, T_Mem mem, uint32_t n, T_Type divisor) const
             {
-                using namespace mappings::threads;
-
                 constexpr uint32_t numWorkers = T_numWorkers;
 
                 uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-                using SupercellDomCfg = IdxConfig<T_blockSize, numWorkers>;
                 // each virtual worker works on a cell
-                ForEachIdx<SupercellDomCfg> forEachCell(workerIdx);
+                auto forEachCell = lockstep::makeForEach<T_blockSize, numWorkers>(workerIdx);
 
-                forEachCell([&](uint32_t const linearIdx, uint32_t const) {
+                forEachCell([&](uint32_t const linearIdx) {
                     uint32_t tid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
                     if(tid >= n)
                         return;
@@ -595,17 +579,14 @@ namespace picongpu
             template<typename T_Mem, typename T_Acc>
             DINLINE void operator()(T_Acc const& acc, T_Mem mem, uint32_t n) const
             {
-                using namespace mappings::threads;
-
                 constexpr uint32_t numWorkers = T_numWorkers;
 
                 uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-                using SupercellDomCfg = IdxConfig<T_blockSize, numWorkers>;
                 // each virtual worker works on a cell
-                ForEachIdx<SupercellDomCfg> forEachCell(workerIdx);
+                auto forEachCell = lockstep::makeForEach<T_blockSize, numWorkers>(workerIdx);
 
-                forEachCell([&](uint32_t const linearIdx, uint32_t const) {
+                forEachCell([&](uint32_t const linearIdx) {
                     uint32_t const tid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
                     if(tid >= n)
                         return;

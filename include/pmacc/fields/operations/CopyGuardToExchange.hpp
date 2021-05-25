@@ -72,8 +72,6 @@ namespace pmacc
                     T_Extent const& direction,
                     T_Mapping const& mapper) const
                 {
-                    using namespace mappings::threads;
-
                     using SuperCellSize = typename T_Mapping::SuperCellSize;
 
                     // number of cells in a superCell
@@ -91,8 +89,7 @@ namespace pmacc
 
                     auto const numGuardSuperCells = mapper.getGuardingSuperCells();
 
-                    ForEachIdx<IdxConfig<numCells, numWorkers>>{
-                        workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
+                    lockstep::makeForEach<numCells, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
                         // cell index within the superCell
                         DataSpace<dim> const cellIdx
                             = DataSpaceOperations<dim>::template map<SuperCellSize>(linearIdx);

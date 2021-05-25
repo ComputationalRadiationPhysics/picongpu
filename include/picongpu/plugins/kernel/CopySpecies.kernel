@@ -25,9 +25,7 @@
 
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/kernel/atomic.hpp>
-#include <pmacc/mappings/threads/ForEachIdx.hpp>
-#include <pmacc/mappings/threads/IdxConfig.hpp>
-#include <pmacc/memory/CtxArray.hpp>
+#include <pmacc/lockstep.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 
 
@@ -84,7 +82,6 @@ namespace picongpu
             T_ParticleFilter parFilter) const
         {
             using namespace pmacc::particles::operations;
-            using namespace mappings::threads;
 
             using DestFrameType = T_DestFrame;
             using SrcFrameType = typename T_SrcBox::FrameType;
@@ -100,13 +97,10 @@ namespace picongpu
             PMACC_SMEM(acc, localCounter, int);
             PMACC_SMEM(acc, globalOffset, int);
 
-            using ParticlesDomCfg = IdxConfig<numParticlesPerFrame, numWorkers>;
-
             // loop over all particles in a frame
-            ForEachIdx<ParticlesDomCfg> forEachParticle(workerIdx);
+            auto forEachParticleInFrame = lockstep::makeForEach<numParticlesPerFrame, numWorkers>(workerIdx);
 
-            memory::CtxArray<int, ParticlesDomCfg> storageOffsetCtx{};
-
+            auto storageOffsetCtx = lockstep::makeVar<int>(forEachParticleInFrame);
 
             DataSpace<simDim> const supcerCellIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
             /* offset (in cells) of the supercell relative to the origin of the
@@ -117,12 +111,14 @@ namespace picongpu
 
             // each virtual worker needs only one filter
             filter.setSuperCellPosition(localSuperCellCellOffset);
-            auto accParFilter
-                = parFilter(acc, supcerCellIdx - mapper.getGuardingSuperCells(), WorkerCfg<numWorkers>{workerIdx});
+            auto accParFilter = parFilter(
+                acc,
+                supcerCellIdx - mapper.getGuardingSuperCells(),
+                lockstep::Worker<numWorkers>{workerIdx});
 
-            ForEachIdx<IdxConfig<1, numWorkers>> onlyMaster{workerIdx};
+            auto onlyMaster = lockstep::makeMaster(workerIdx);
 
-            onlyMaster([&](uint32_t const, uint32_t const) {
+            onlyMaster([&]() {
                 localCounter = 0;
                 srcFramePtr = srcBox.getFirstFrame(supcerCellIdx);
             });
@@ -132,30 +128,30 @@ namespace picongpu
             // move over all Frames in the supercell
             while(srcFramePtr.isValid())
             {
-                forEachParticle([&](uint32_t const localIdx, uint32_t const idx) {
-                    auto parSrc = (srcFramePtr[localIdx]);
+                forEachParticleInFrame([&](lockstep::Idx const idx) {
+                    auto parSrc = (srcFramePtr[idx]);
                     storageOffsetCtx[idx] = -1;
                     // count particle in frame
-                    if(parSrc[multiMask_] == 1 && filter(*srcFramePtr, localIdx))
+                    if(parSrc[multiMask_] == 1 && filter(*srcFramePtr, idx))
                         if(accParFilter(acc, parSrc))
                             storageOffsetCtx[idx]
                                 = kernel::atomicAllInc(acc, &localCounter, ::alpaka::hierarchy::Threads{});
                 });
                 cupla::__syncthreads(acc);
 
-                onlyMaster([&](uint32_t const, uint32_t const) {
+                onlyMaster([&]() {
                     // reserve host memory for particle
                     globalOffset = cupla::atomicAdd(acc, counter, localCounter, ::alpaka::hierarchy::Blocks{});
                 });
 
                 cupla::__syncthreads(acc);
 
-                forEachParticle([&](uint32_t const localIdx, uint32_t const idx) {
+                forEachParticleInFrame([&](lockstep::Idx const idx) {
                     if(storageOffsetCtx[idx] != -1)
                     {
                         auto parDest = destFrame[globalOffset + storageOffsetCtx[idx]];
                         auto parDestNoDomainIdx = deselect<T_Identifier>(parDest);
-                        auto parSrc = (srcFramePtr[localIdx]);
+                        auto parSrc = (srcFramePtr[idx]);
                         assign(parDestNoDomainIdx, parSrc);
                         // calculate cell index for user-defined domain
                         DataSpace<simDim> const localCell(
@@ -166,7 +162,7 @@ namespace picongpu
 
                 cupla::__syncthreads(acc);
 
-                onlyMaster([&](uint32_t const, uint32_t const) {
+                onlyMaster([&]() {
                     // get next frame in supercell
                     srcFramePtr = srcBox.getNextFrame(srcFramePtr);
                     localCounter = 0;

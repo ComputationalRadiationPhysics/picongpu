@@ -48,7 +48,7 @@ namespace picongpu
                     T_Array& densityArray,
                     T_Filter& filter)
                 {
-                    forEach([&](uint32_t const linearIdx, uint32_t const idx) {
+                    forEach([&](uint32_t const linearIdx) {
                         uint32_t const numParInCell = parCellList[linearIdx].size;
                         uint32_t* parListStart = parCellList[linearIdx].ptrToIndicies;
                         float_X density(0.0);

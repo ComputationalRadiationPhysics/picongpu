@@ -470,7 +470,7 @@ namespace picongpu
 
                     pmacc::math::Int<simDim> localOffset = cellIndex / SuperCellSize::toRT() - guardSuperCells;
                     constexpr uint32_t numWorkers = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                    pmacc::mappings::threads::WorkerCfg<numWorkers> workerCfg(linearThreadIdx);
+                    lockstep::Worker<numWorkers> workerCfg(linearThreadIdx);
 
                     // Thread 0 of each block creates Voronoi cells
                     if(linearThreadIdx == 0)

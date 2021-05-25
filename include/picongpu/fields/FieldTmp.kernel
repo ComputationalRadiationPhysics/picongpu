@@ -25,8 +25,7 @@
 #include "picongpu/algorithms/Set.hpp"
 
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
-#include <pmacc/mappings/threads/ForEachIdx.hpp>
-#include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
@@ -80,8 +79,6 @@ namespace picongpu
             T_ParticleFilter particleFilter,
             T_Mapping mapper) const
         {
-            using namespace mappings::threads;
-
             using FramePtr = typename T_ParBox::FramePtr;
             using SuperCellSize = typename T_BlockDescription::SuperCellSize;
 
@@ -92,7 +89,7 @@ namespace picongpu
 
             DataSpace<simDim> const block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
             auto accFilter
-                = particleFilter(acc, block - mapper.getGuardingSuperCells(), WorkerCfg<numWorkers>{workerIdx});
+                = particleFilter(acc, block - mapper.getGuardingSuperCells(), lockstep::Worker<numWorkers>{workerIdx});
             FramePtr frame;
             lcellId_t particlesInSuperCell;
 
@@ -112,13 +109,12 @@ namespace picongpu
 
             while(frame.isValid())
             {
-                ForEachIdx<IdxConfig<cellsPerSuperCell, numWorkers>>{workerIdx}(
-                    [&](uint32_t const linearIdx, uint32_t const) {
-                        if(linearIdx < particlesInSuperCell)
-                        {
-                            frameSolver(acc, *frame, linearIdx, SuperCellSize::toRT(), accFilter, cachedVal);
-                        }
-                    });
+                lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
+                    if(linearIdx < particlesInSuperCell)
+                    {
+                        frameSolver(acc, *frame, linearIdx, SuperCellSize::toRT(), accFilter, cachedVal);
+                    }
+                });
 
                 frame = boxPar.getPreviousFrame(frame);
                 particlesInSuperCell = cellsPerSuperCell;
