@@ -19,20 +19,123 @@ Code which is implemented by the *lockstep programming model* is free of any dep
 To simplify the implementation, each index within a domain can be seen as a *virtual worker* which is processing one data element (like the common workflow to programming CUDA).
 Each *worker* :math:`i` can be executed as :math:`N_i` *virtual workers* (:math:`1:N_i`).
 
+Functors passed into lockstep routines can have three different parameter signatures.
+
+* No parameter, if the work is not requiring the linear index within a domain: ``[&](){ }``
+
+
+* An unsigned 32bit integral parameter if the work depends on indices within the domain ``range [0,domain size)``: ``[&](uint32_t const linearIdx){}``
+
+
+* ``lockstep::Idx`` as parameter. lockstep::Idx is holing the linear index within the domain and meta information to access a context variables: ``[&](pmacc::mappings::threads::lockstep::Idx const idx){}``
+
+
 pmacc helpers
 -------------
 
-.. doxygenstruct:: pmacc::mappings::threads::IdxConfig
+.. doxygenstruct:: pmacc::lockstep::Config
    :project: PIConGPU
 
-.. doxygenstruct:: pmacc::memory::CtxArray
+.. doxygenstruct:: pmacc::lockstep::Idx
+  :project: PIConGPU
+
+.. doxygenstruct:: pmacc::lockstep::Worker
+  :project: PIConGPU
+
+.. doxygenstruct:: pmacc::lockstep::Variable
    :project: PIConGPU
 
-.. doxygenstruct:: pmacc::mappings::threads::ForEachIdx
+.. doxygenstruct:: pmacc::lockstep::ForEach
    :project: PIConGPU
 
 Common Patterns
 ---------------
+
+Create a Context Variable
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A context variable is used to transfer information from a subsequent lockstep to another.
+You can use a context variable ``lockstep::Variable``, similar to a temporary local variable in a function.
+A context variable must be defined outside of ``ForEach`` and should be accessed within the functor passed to ``ForEach`` only.
+
+* ... and initialize with the index of the virtual worker
+
+.. code-block:: cpp
+
+    // assume one dimensional indexing of threads within a block
+    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+    constexpr uint32_t frameSize = 256;
+    constexpr uint32_t numWorkers = 42;
+    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+    auto vIdx = forEachParticleSlotInFrame(
+        [](lockstep::Idx const idx) -> int32_t
+        {
+            return idx;
+        }
+    );
+
+    // is equal to
+
+    // assume one dimensional indexing of threads within a block
+    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+    constexpr uint32_t frameSize = 256;
+    constexpr uint32_t numWorkers = 42;
+    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+    // variable will be uninitialized
+    auto vIdx = lockstep::makeVar<int32_t>(forEachParticleSlotInFrame);
+    forEachParticleSlotInFrame(
+        [&](lockstep::Idx const idx)
+        {
+            vIdx[idx] = idx;
+        }
+    );
+
+* To default initialize a context variable you can pass the arguments directly during the creation.
+
+.. code-block:: cpp
+
+    // assume one dimensional indexing of threads within a block
+    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+    constexpr uint32_t frameSize = 256;
+    constexpr uint32_t numWorkers = 42;
+    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx, 23);
+
+
+* Data from a context variable can be accessed within independent lock steps.
+  A virtual worker has only access to there own context variable data.
+
+.. code-block:: cpp
+
+    // assume one dimensional indexing of threads within a block
+    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+    constexpr uint32_t frameSize = 256;
+    constexpr uint32_t numWorkers = 42;
+    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+    auto vIdx = forEachParticleSlotInFrame(
+        [](lockstep::Idx const idx) -> int32_t
+        {
+            return idx;
+        }
+    );
+
+    // store old linear index into oldVIdx
+    auto oldVIdx = forEachExample(
+        [&](lockstep::Idx const idx) -> int32_t
+        {
+            int32_t old = vIdx[idx];
+            printf("virtual worker linear idx: %u == %u\n", vIdx[idx], idx);
+            vIdx[idx] += 256;
+            return old;
+        }
+    );
+
+    forEachExample(
+        [&](lockstep::Idx const idx)
+        {
+            printf("nothing changed: %u == %u - 256 == %u\n", oldVIdx[idx], vIdx[idx], idx);
+        }
+    );
+
 
 Collective Loop
 ^^^^^^^^^^^^^^^
@@ -45,16 +148,20 @@ Collective Loop
     // `frame` is a list which must be traversed collectively
     while( frame.isValid() )
     {
-        uint32_t const workerIdx = cupla::threadIdx( acc ).x;
-        using ParticleDomCfg = IdxConfig<
-            frameSize,
-            numWorker
-        >;
-        ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
-        forEachParticle(
-           [&]( uint32_t const linearIdx, uint32_t const idx )
+        // assume one dimensional indexing of threads within a block
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
+        constexpr uint32_t frameSize = 256;
+        constexpr uint32_t numWorkers = 42;
+        auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+        forEachParticleSlotInFrame(
+           [&](lockstep::Idx const idx)
            {
-               // independent work
+               // independent work, idx can be used to access a context variable
+           }
+        forEachParticleSlotInFrame(
+           [&](uint32_t const linearIdx)
+           {
+               // independent work based on the linear index only
            }
        );
     }
@@ -67,50 +174,19 @@ Non-Collective Loop
 
 .. code-block:: cpp
 
-    uint32_t const workerIdx = cupla::threadIdx( acc ).x;
-    using ParticleDomCfg = IdxConfig<
-        frameSize,
-        numWorkers
-    >;
-    ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
-    memory::CtxArray< int, ParticleDomCfg > vWorkerIdx( 0 );
-    forEachParticle(
-        [&]( uint32_t const linearIdx, uint32_t const idx )
+    // assume one dimensional indexing of threads within a block
+    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+    constexpr uint32_t frameSize = 256;
+    constexpr uint32_t numWorkers = 42;
+    auto forEachParticleSlotInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+    auto vWorkerIdx = lockstep::makeVar<int32_t>(forEachParticleSlotInFrame, 0);
+    forEachParticleSlotInFrame(
+        [&](auto const idx)
         {
-            vWorkerIdx[ idx ] = linearIdx;
-            for( int i = 0; i < 100; i++ )
-                vWorkerIdx[ idx ]++;
-        }
-    );
-
-
-Create a Context Variable
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* ... and initialize with the index of the virtual worker
-
-.. code-block:: cpp
-
-    uint32_t const workerIdx = cupla::threadIdx( acc ).x;
-    using ParticleDomCfg = IdxConfig<
-        frameSize,
-        numWorkers
-    >;
-    memory::CtxArray< int, ParticleDomCfg > vIdx(
-        workerIdx,
-        [&]( uint32_t const linearIdx, uint32_t const ) -> int32_t
-        {
-            return linearIdx;
-        }
-    );
-
-    // is equal to
-
-    memory::CtxArray< int, ParticleDomCfg > vIdx;
-    ForEachIdx< ParticleDomCfg > forEachParticle{ workerIdx }(
-        [&]( uint32_t const linearIdx, uint32_t const idx )
-        {
-            vIdx[ idx ] = linearIdx;
+            // assign the linear index to the virtual worker context variable
+            vWorkerIdx[idx] = idx;
+            for(int i = 0; i < 100; i++)
+                vWorkerIdx[idx]++;
         }
     );
 
@@ -128,20 +204,13 @@ Using a Master Worker
         bool
     );
 
-    uint32_t const workerIdx = cupla::threadIdx( acc ).x;
-    ForEachIdx<
-        IdxConfig<
-            1,
-            numWorkers
-        >
-    > onlyMaster{ workerIdx };
+    // assume one dimensional indexing of threads within a block
+    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+    auto onlyMaster = lockstep::makeMaster(workerIdx);
 
     // manipulate shared memory
     onlyMaster(
-        [&](
-            uint32_t const,
-            uint32_t const
-        )
+        [&]( )
         {
             finished = true;
         }
@@ -150,4 +219,4 @@ Using a Master Worker
     /* important: synchronize now, in case upcoming operations (with
      * other workers) access that manipulated shared memory section
      */
-    cupla::__syncthreads( acc );
+    cupla::__syncthreads(acc);

@@ -25,8 +25,7 @@
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/dimensions/SuperCellDescription.hpp"
-#include "pmacc/mappings/threads/ForEachIdx.hpp"
-#include "pmacc/mappings/threads/IdxConfig.hpp"
+#include "pmacc/lockstep.hpp"
 #include "pmacc/types.hpp"
 
 namespace pmacc
@@ -82,9 +81,8 @@ namespace pmacc
         template<typename T_Functor, typename... T_Args, typename T_Acc>
         DINLINE void operator()(T_Acc const& acc, T_Functor& functor, T_Args&&... args)
         {
-            using namespace mappings::threads;
-            ForEachIdx<IdxConfig<math::CT::volume<DomainSize>::type::value, numWorkers>>{m_workerIdx}(
-                [&](uint32_t const linearIdx, uint32_t const) {
+            lockstep::makeForEach<math::CT::volume<DomainSize>::type::value, numWorkers>(m_workerIdx)(
+                [&](uint32_t const linearIdx) {
                     /* offset (in elements) of the current processed element relative
                      * to the origin of the core domain
                      */
