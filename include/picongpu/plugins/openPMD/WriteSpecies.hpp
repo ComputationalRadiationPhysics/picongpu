@@ -85,7 +85,7 @@ namespace picongpu
                 , filter(c_filter)
                 , particleFilter(c_particleFilter)
                 , particleOffset(c_particleOffset)
-                , myNumParticles(c_globalNumParticles)
+                , myNumParticles(c_myNumParticles)
                 , globalNumParticles(c_globalNumParticles)
             {
             }
@@ -131,7 +131,7 @@ namespace picongpu
                                           "host (without hierarchy): %1%")
                     % name;
 
-                int globalParticleOffset = 0;
+                int particlesProcessed = 0;
                 AreaMapping<CORE + BORDER, MappingDesc> mapper(*(rp.params.cellDescription));
 
                 pmacc::particles::operations::ConcatListOfFrames<simDim> concatListOfFrames(mapper.getGridDim());
@@ -157,7 +157,7 @@ namespace picongpu
 
 #endif
                 concatListOfFrames(
-                    globalParticleOffset,
+                    particlesProcessed,
                     hostFrame,
                     particlesBox,
                     rp.filter,
@@ -170,7 +170,7 @@ namespace picongpu
 
                 /* this costs a little bit of time but writing to external is
                  * slower in general */
-                PMACC_ASSERT((uint64_cu) globalParticleOffset == rp.globalNumParticles);
+                PMACC_VERIFY((uint64_cu) particlesProcessed == rp.myNumParticles);
             }
         };
 
@@ -229,7 +229,7 @@ namespace picongpu
                 __getTransactionEvent().waitForFinished();
                 log<picLog::INPUT_OUTPUT>("openPMD:  all events are finished: %1%") % name;
 
-                PMACC_ASSERT((uint64_t) counterBuffer.getHostBuffer().getDataBox()[0] == rp.myNumParticles);
+                PMACC_VERIFY((uint64_t) counterBuffer.getHostBuffer().getDataBox()[0] == rp.myNumParticles);
             }
         };
 
