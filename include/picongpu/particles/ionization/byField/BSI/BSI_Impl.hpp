@@ -34,8 +34,8 @@
 #include "picongpu/traits/FieldPosition.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/lockstep/Worker.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/mappings/threads/WorkerCfg.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
@@ -113,7 +113,7 @@ namespace picongpu
                  * @warning this is a collective method and calls synchronize
                  *
                  * @tparam T_Acc alpaka accelerator type
-                 * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+                 * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
                  *
                  * @param acc alpaka accelerator
                  * @param blockCell relative offset (in cells) to the local domain plus the guarding cells

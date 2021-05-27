@@ -61,7 +61,7 @@ namespace picongpu
 
                 /** create filter for the accelerator
                  *
-                 * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+                 * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
                  * @param offset (in superCells, without any guards) relative
                  *                        to the origin of the local domain
                  * @param configuration of the worker

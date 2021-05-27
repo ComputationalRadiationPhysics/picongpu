@@ -176,7 +176,7 @@ namespace picongpu
 
                     for(uint32_t i = 0; i < numParticlesInSupercell; i += frameSize)
                     {
-                        forEach([&](uint32_t const linearIdx, uint32_t const idx) {
+                        forEach([&](uint32_t const linearIdx) {
                             if(i + linearIdx < numParticlesInSupercell)
                             {
                                 auto particle = frame[linearIdx];
@@ -215,7 +215,7 @@ namespace picongpu
                     constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
                     for(uint32_t i = 0; i < numParticlesInSupercell; i += frameSize)
                     {
-                        forEach([&](uint32_t const linearIdx, uint32_t const idx) {
+                        forEach([&](uint32_t const linearIdx) {
                             uint32_t const parInSuperCellIdx = i + linearIdx;
                             if(parInSuperCellIdx < numParticlesInSupercell)
                             {
@@ -265,14 +265,14 @@ namespace picongpu
                     T_Filter filter)
                 {
                     // Initialize nppc with zeros.
-                    forEach([&](uint32_t const linearIdx, uint32_t const idx) { nppc[linearIdx] = 0u; });
+                    forEach([&](uint32_t const linearIdx) { nppc[linearIdx] = 0u; });
                     cupla::__syncthreads(acc);
                     // Count eligible
                     particlesCntHistogram(acc, forEach, parBox, firstFrame, numParticlesInSupercell, nppc, filter);
                     cupla::__syncthreads(acc);
 
                     // memory for particle indices
-                    forEach([&](uint32_t const linearIdx, uint32_t const) {
+                    forEach([&](uint32_t const linearIdx) {
                         parCellList[linearIdx].init(acc, deviceHeapHandle, nppc[linearIdx]);
                     });
                     cupla::__syncthreads(acc);

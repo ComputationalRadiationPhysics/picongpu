@@ -24,11 +24,8 @@
 
 
 #include "pmacc/device/reduce/Kernel.hpp"
-#include "pmacc/mappings/threads/ForEachIdx.hpp"
-#include "pmacc/mappings/threads/IdxConfig.hpp"
-#include "pmacc/mappings/threads/WorkerCfg.hpp"
+#include "pmacc/lockstep.hpp"
 #include "pmacc/math/operation.hpp"
-#include "pmacc/memory/CtxArray.hpp"
 #include "pmacc/memory/buffers/GridBuffer.hpp"
 #include "pmacc/traits/GetNumWorkers.hpp"
 #include "pmacc/traits/GetValueType.hpp"

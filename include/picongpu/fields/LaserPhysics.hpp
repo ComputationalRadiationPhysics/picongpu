@@ -26,10 +26,8 @@
 #include "picongpu/fields/laserProfiles/profiles.hpp"
 
 #include <pmacc/dimensions/GridLayout.hpp>
+#include <pmacc/lockstep.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <pmacc/mappings/threads/ForEachIdx.hpp>
-#include <pmacc/mappings/threads/IdxConfig.hpp>
-#include <pmacc/mappings/threads/WorkerCfg.hpp>
 
 #include <cmath>
 
@@ -72,10 +70,9 @@ namespace picongpu
                 uint32_t cellOffsetInSuperCellFromInitPlaneY
                     = LaserFunctor::Unitless::initPlaneY % SuperCellSize::y::value;
 
-                mappings::threads::ForEachIdx<mappings::threads::IdxConfig<planeSize, numWorkers>>{
-                    workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
-                    auto accLaserFunctor
-                        = laserFunctor(acc, localSuperCellOffset, mappings::threads::WorkerCfg<numWorkers>{workerIdx});
+                auto forEachCell = lockstep::makeForEach<planeSize, numWorkers>(workerIdx);
+                forEachCell([&](uint32_t const linearIdx) {
+                    auto accLaserFunctor = laserFunctor(acc, localSuperCellOffset, forEachCell.getWorkerCfg());
 
                     /* cell index within the superCell */
                     DataSpace<simDim> cellIdxInSuperCell

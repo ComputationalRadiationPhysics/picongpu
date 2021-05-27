@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc/mappings/threads/WorkerCfg.hpp"
+#include "pmacc/lockstep/Worker.hpp"
 #include "pmacc/types.hpp"
 
 #include <boost/core/ignore_unused.hpp>
@@ -164,7 +164,7 @@ namespace pmacc
             HDINLINE auto operator()(
                 T_Acc const& acc,
                 T_OffsetType const& domainOffset,
-                mappings::threads::WorkerCfg<T_numWorkers> const& workerCfg,
+                lockstep::Worker<T_numWorkers> const& workerCfg,
                 T_Args... args) const
                 -> acc::Interface<
                     decltype(alpaka::core::declval<UserFunctor>()(acc, domainOffset, workerCfg, args...)),

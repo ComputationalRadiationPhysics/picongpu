@@ -130,7 +130,7 @@ namespace picongpu
                  * @warning this is a collective method and calls synchronize
                  *
                  * @tparam T_Acc alpaka accelerator type
-                 * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+                 * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
                  *
                  * @param acc alpaka accelerator
                  * @param blockCell relative offset (in cells) to the local domain plus the guarding cells

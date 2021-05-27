@@ -25,9 +25,7 @@
 #include "picongpu/particles/collision/detail/ListEntry.hpp"
 #include "picongpu/particles/collision/detail/cellDensity.hpp"
 
-#include <pmacc/mappings/threads/ForEachIdx.hpp>
-#include <pmacc/mappings/threads/IdxConfig.hpp>
-#include <pmacc/mappings/threads/WorkerCfg.hpp>
+#include <pmacc/lockstep.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
@@ -40,8 +38,6 @@ namespace picongpu
     {
         namespace collision
         {
-            using namespace pmacc::mappings;
-
             template<uint32_t T_numWorkers>
             struct IntraCollision
             {
@@ -86,7 +82,6 @@ namespace picongpu
                     T_Filter filter) const
                 {
                     using namespace pmacc::particles::operations;
-                    using namespace mappings::threads;
 
                     using SuperCellSize = typename T_ParBox::FrameType::SuperCellSize;
                     constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
@@ -102,8 +97,6 @@ namespace picongpu
 
                     uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-                    using FrameDomCfg = IdxConfig<frameSize, numWorkers>;
-
                     DataSpace<simDim> const superCellIdx
                         = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
 
@@ -117,10 +110,10 @@ namespace picongpu
                     auto& superCell = pb.getSuperCell(superCellIdx);
                     uint32_t numParticlesInSupercell = superCell.getNumParticles();
 
-                    auto accFilter = filter(acc, localSuperCellOffset, threads::WorkerCfg<T_numWorkers>{workerIdx});
+                    auto accFilter = filter(acc, localSuperCellOffset, lockstep::Worker<T_numWorkers>{workerIdx});
 
                     /* loop over all particles in the frame */
-                    ForEachIdx<FrameDomCfg> forEachFrameElem(workerIdx);
+                    auto forEachFrameElem = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
                     FramePtr firstFrame = pb.getFirstFrame(superCellIdx);
 
                     prepareList(
@@ -139,38 +132,34 @@ namespace picongpu
                     cupla::__syncthreads(acc);
 
                     // shuffle indices list
-                    forEachFrameElem([&](uint32_t const linearIdx, uint32_t const) {
-                        parCellList[linearIdx].shuffle(acc, rngHandle);
-                    });
+                    forEachFrameElem(
+                        [&](uint32_t const linearIdx) { parCellList[linearIdx].shuffle(acc, rngHandle); });
 
-                    memory::CtxArray<
-                        decltype(collisionFunctor(
-                            acc,
-                            alpaka::core::declval<DataSpace<simDim> const>(),
-                            /*frameSize is used because each virtual worker
-                             * is creating **exactly one** functor
-                             */
-                            alpaka::core::declval<WorkerCfg<frameSize> const>(),
-                            alpaka::core::declval<float_X const>(),
-                            alpaka::core::declval<float_X const>(),
-                            alpaka::core::declval<uint32_t const>(),
-                            alpaka::core::declval<float_X const>())),
-                        FrameDomCfg>
-                        collisionFunctorCtx{};
+                    auto collisionFunctorCtx = lockstep::makeVar<decltype(collisionFunctor(
+                        acc,
+                        alpaka::core::declval<DataSpace<simDim> const>(),
+                        /*frameSize is used because each virtual worker
+                         * is creating **exactly one** functor
+                         */
+                        alpaka::core::declval<lockstep::Worker<frameSize> const>(),
+                        alpaka::core::declval<float_X const>(),
+                        alpaka::core::declval<float_X const>(),
+                        alpaka::core::declval<uint32_t const>(),
+                        alpaka::core::declval<float_X const>()))>(forEachFrameElem);
 
-                    forEachFrameElem([&](uint32_t const linearIdx, uint32_t const idx) {
-                        uint32_t const sizeAll = parCellList[linearIdx].size;
+                    forEachFrameElem([&](lockstep::Idx const idx) {
+                        uint32_t const sizeAll = parCellList[idx].size;
                         if(sizeAll < 2u)
                             return;
                         // skip particle offset counter
-                        uint32_t* listAll = parCellList[linearIdx].ptrToIndicies;
+                        uint32_t* listAll = parCellList[idx].ptrToIndicies;
                         uint32_t potentialPartners = sizeAll - 1u + sizeAll % 2u;
                         collisionFunctorCtx[idx] = collisionFunctor(
                             acc,
                             localSuperCellOffset,
-                            WorkerCfg<T_numWorkers>{workerIdx},
-                            densityArray[linearIdx],
-                            densityArray[linearIdx],
+                            lockstep::Worker<T_numWorkers>{workerIdx},
+                            densityArray[idx],
+                            densityArray[idx],
                             potentialPartners,
                             coulombLog);
                         for(uint32_t i = 0; i < sizeAll; i += 2)
@@ -188,9 +177,8 @@ namespace picongpu
 
                     cupla::__syncthreads(acc);
 
-                    forEachFrameElem([&](uint32_t const linearIdx, uint32_t const) {
-                        parCellList[linearIdx].finalize(acc, deviceHeapHandle);
-                    });
+                    forEachFrameElem(
+                        [&](uint32_t const linearIdx) { parCellList[linearIdx].finalize(acc, deviceHeapHandle); });
                 }
             };
 

@@ -31,7 +31,7 @@
 #include <pmacc/algorithms/math/defines/dot.hpp>
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/mappings/threads/WorkerCfg.hpp>
+#include <pmacc/lockstep/Worker.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/particles/operations/Assign.hpp>
 #include <pmacc/particles/operations/Deselect.hpp>

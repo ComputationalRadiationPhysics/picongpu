@@ -24,8 +24,7 @@
 // pmacc
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/mappings/threads/ForEachIdx.hpp>
-#include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/lockstep.hpp>
 #include <pmacc/memory/Array.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
@@ -84,7 +83,6 @@ namespace picongpu
                         constexpr uint16_t numBins = picongpu::flylite::energies;
                         constexpr uint32_t numWorkers = T_numWorkers;
 
-                        using namespace pmacc::mappings::threads;
                         using SuperCellSize = typename MappingDesc::SuperCellSize;
                         using FramePtr = typename T_ParBox::FramePtr;
                         constexpr uint32_t maxParticlesPerFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
@@ -114,21 +112,20 @@ namespace picongpu
                         // shared memory for local energy histogram
                         PMACC_SMEM(acc, shLocalEnergyHistogram, memory::Array<float_X, numBins>);
 
-                        using MasterOnly = IdxConfig<1, numWorkers>;
+                        auto onlyMaster = lockstep::makeMaster(workerIdx);
 
                         // get frame lists of this supercell
-                        ForEachIdx<MasterOnly>{workerIdx}([&](uint32_t const, uint32_t const) {
+                        onlyMaster([&]() {
                             frame = pb.getLastFrame(superCellIdx);
                             particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
                         });
 
                         // empty the histogram to contain only zeroes
-                        ForEachIdx<IdxConfig<numWorkers, numWorkers>>{workerIdx}(
-                            [&](uint32_t const linearIdx, uint32_t const) {
-                                /* set all bins to 0 */
-                                for(int i = linearIdx; i < numBins; i += numWorkers)
-                                    shLocalEnergyHistogram[i] = float_X(0.);
-                            });
+                        lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
+                            /* set all bins to 0 */
+                            for(int i = linearIdx; i < numBins; i += numWorkers)
+                                shLocalEnergyHistogram[i] = float_X(0.);
+                        });
 
                         cupla::__syncthreads(acc);
 
@@ -140,8 +137,8 @@ namespace picongpu
                         while(frame.isValid())
                         {
                             // move over all particles in a frame
-                            ForEachIdx<IdxConfig<maxParticlesPerFrame, numWorkers>>{
-                                workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
+                            lockstep::makeForEach<maxParticlesPerFrame, numWorkers>(
+                                workerIdx)([&](uint32_t const linearIdx) {
                                 if(linearIdx < particlesInSuperCell)
                                 {
                                     auto const particle = frame[linearIdx];
@@ -184,7 +181,7 @@ namespace picongpu
                             cupla::__syncthreads(acc);
 
                             // go to next frame
-                            ForEachIdx<MasterOnly>{workerIdx}([&](uint32_t const, uint32_t const) {
+                            onlyMaster([&]() {
                                 frame = pb.getPreviousFrame(frame);
                                 particlesInSuperCell = maxParticlesPerFrame;
                             });
@@ -192,15 +189,14 @@ namespace picongpu
                         }
 
                         // write histogram back to global memory (add)
-                        ForEachIdx<IdxConfig<numWorkers, numWorkers>>{workerIdx}(
-                            [&](uint32_t const linearIdx, uint32_t const) {
-                                for(int i = linearIdx; i < numBins; i += numWorkers)
-                                    cupla::atomicAdd(
-                                        acc,
-                                        &(localEnergyHistogram[i]),
-                                        shLocalEnergyHistogram[i],
-                                        ::alpaka::hierarchy::Blocks{});
-                            });
+                        lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
+                            for(int i = linearIdx; i < numBins; i += numWorkers)
+                                cupla::atomicAdd(
+                                    acc,
+                                    &(localEnergyHistogram[i]),
+                                    shLocalEnergyHistogram[i],
+                                    ::alpaka::hierarchy::Blocks{});
+                        });
                     }
                 };
 

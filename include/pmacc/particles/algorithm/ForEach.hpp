@@ -22,10 +22,8 @@
 #pragma once
 
 #include "pmacc/Environment.hpp"
+#include "pmacc/lockstep.hpp"
 #include "pmacc/mappings/kernel/AreaMapping.hpp"
-#include "pmacc/mappings/threads/ForEachIdx.hpp"
-#include "pmacc/mappings/threads/IdxConfig.hpp"
-#include "pmacc/mappings/threads/WorkerCfg.hpp"
 #include "pmacc/particles/frame_types.hpp"
 
 #include <utility>
@@ -68,8 +66,6 @@ namespace pmacc
                             T_Mapping const mapper,
                             T_ParBox pb) const
                         {
-                            using namespace mappings::threads;
-
                             using SuperCellSize = typename T_ParBox::FrameType::SuperCellSize;
                             constexpr uint32_t dim = SuperCellSize::dim;
                             constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
@@ -94,14 +90,15 @@ namespace pmacc
                             // offset of the superCell (in cells, without any guards) to the origin of the local domain
                             DataSpace<dim> const localSuperCellOffset = superCellIdx - mapper.getGuardingSuperCells();
 
-                            auto accFunctor = functor(acc, localSuperCellOffset, WorkerCfg<T_numWorkers>{workerIdx});
+                            auto accFunctor
+                                = functor(acc, localSuperCellOffset, lockstep::Worker<T_numWorkers>{workerIdx});
 
                             for(uint32_t parOffset = 0; parOffset < numPartcilesInSupercell; parOffset += frameSize)
                             {
-                                using ParticleDomCfg = IdxConfig<frameSize, numWorkers>;
+                                auto forEachParticle = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
 
                                 // loop over all particles in the frame
-                                ForEachIdx<ParticleDomCfg>{workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
+                                forEachParticle([&](uint32_t const linearIdx) {
                                     // particle index within the supercell
                                     uint32_t parIdx = parOffset + linearIdx;
                                     auto particle = frame[linearIdx];

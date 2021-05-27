@@ -25,7 +25,7 @@
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/device/Reduce.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/mappings/threads/WorkerCfg.hpp>
+#include <pmacc/lockstep/Worker.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/Array.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
@@ -97,7 +97,7 @@ namespace picongpu
 
                         reduce(
                             acc,
-                            mappings::threads::WorkerCfg<numWorkers>(linearThreadIdx),
+                            lockstep::Worker<numWorkers>(linearThreadIdx),
                             numAvgCells,
                             /* access inside local average view */
                             d1access,

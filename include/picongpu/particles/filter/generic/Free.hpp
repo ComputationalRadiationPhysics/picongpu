@@ -89,7 +89,7 @@ namespace picongpu
 
                     /** create device filter
                      *
-                     * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+                     * @tparam T_WorkerCfg lockstep::Worker, configuration of the worker
                      * @tparam T_Acc alpaka accelerator type
                      *
                      * @param alpaka accelerator

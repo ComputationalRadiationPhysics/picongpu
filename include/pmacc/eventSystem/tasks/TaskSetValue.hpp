@@ -25,9 +25,8 @@
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/lockstep.hpp"
 #include "pmacc/mappings/simulation/EnvironmentController.hpp"
-#include "pmacc/mappings/threads/ForEachIdx.hpp"
-#include "pmacc/mappings/threads/IdxConfig.hpp"
 #include "pmacc/memory/boxes/DataBox.hpp"
 #include "pmacc/memory/buffers/DeviceBuffer.hpp"
 #include "pmacc/traits/GetNumWorkers.hpp"
@@ -106,7 +105,6 @@ namespace pmacc
             T_ValueType const& value,
             T_SizeVecType const& size) const
         {
-            using namespace mappings::threads;
             using SizeVecType = T_SizeVecType;
 
             SizeVecType const blockIndex(cupla::blockIdx(acc));
@@ -116,7 +114,7 @@ namespace pmacc
             constexpr uint32_t numWorkers = T_numWorkers;
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-            ForEachIdx<IdxConfig<T_xChunkSize, numWorkers>>{workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
+            lockstep::makeForEach<T_xChunkSize, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
                 auto virtualWorkerIdx(SizeVecType::create(0));
                 virtualWorkerIdx.x() = linearIdx;
 

@@ -22,7 +22,7 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
-#include "pmacc/mappings/threads/WorkerCfg.hpp"
+#include "pmacc/lockstep/Worker.hpp"
 #include "pmacc/types.hpp"
 
 #include "pmacc/math/vector/compile-time/Vector.hpp"
@@ -92,7 +92,6 @@ namespace pmacc
                         DataSpace<T_dim> blockIndex(DataSpaceOperations<T_dim>::map(m_gridSize, linearBlockIdx));
 
                         using namespace pmacc::particles::operations;
-                        using namespace mappings::threads;
 
                         typedef T_DestFrame DestFrameType;
                         typedef typename T_SrcBox::FrameType SrcFrameType;
@@ -112,7 +111,7 @@ namespace pmacc
                         auto accParFilter = parFilter(
                             1, /* @todo this is a hack, please add a alpaka accelerator here*/
                             superCellIdx - mapper.getGuardingSuperCells(),
-                            WorkerCfg<1>{0} /* @todo this is a workaround because we use no alpaka*/
+                            lockstep::Worker<1>{0} /* @todo this is a workaround because we use no alpaka*/
                         );
 
                         SrcFramePtr srcFramePtr = srcBox.getFirstFrame(superCellIdx);

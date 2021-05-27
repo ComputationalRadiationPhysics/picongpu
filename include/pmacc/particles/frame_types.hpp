@@ -23,24 +23,22 @@
 
 #include "pmacc/types.hpp"
 
-// define which index means that the index is invalid
-#define INV_IDX 0xFFFFFFFF
-
-// define which index means that a local cell index is invalid
-#define INV_LOC_IDX 0xFFFF
-
 namespace pmacc
 {
     /**
      * Is used for indirect pointer layer.
      * This type is limited by atomicSub on device (in CUDA 3.2 we can use 32 Bit int only).
      */
-    typedef unsigned int vint_t;
+    using vint_t = unsigned int;
+    //! define which index means that the index is invalid
+#define INV_IDX (vint_t(0xFFFFFFFF))
 
     /**
      * Defines the local cell id type in a supercell
      */
-    typedef uint16_t lcellId_t;
+    using lcellId_t = uint16_t;
+    //! define which index means that a local cell index is invalid
+#define INV_LOC_IDX (lcellId_t(0xFFFF))
 
     /**
      * Describes type of a frame (core, border)
