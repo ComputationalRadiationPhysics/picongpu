@@ -49,15 +49,14 @@ namespace pmacc
          */
         template<typename T_Type, typename T_Config>
         struct Variable
-            : protected memory::Array<T_Type, T_Config::numCollIter * T_Config::simdSize>
+            : protected memory::Array<T_Type, T_Config::maxIndicesPerWorker>
             , T_Config
         {
             using T_Config::domainSize;
-            using T_Config::numCollIter;
             using T_Config::numWorkers;
             using T_Config::simdSize;
 
-            using BaseArray = memory::Array<T_Type, T_Config::numCollIter * T_Config::simdSize>;
+            using BaseArray = memory::Array<T_Type, T_Config::maxIndicesPerWorker>;
 
             /** default constructor
              *

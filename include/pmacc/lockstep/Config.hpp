@@ -45,9 +45,9 @@ namespace pmacc
             /** SIMD width */
             static constexpr uint32_t simdSize = T_simdSize;
 
-            /** number of collective iterations needed to address all indices */
-            static constexpr uint32_t numCollIter
-                = (domainSize + simdSize * numWorkers - 1u) / (simdSize * numWorkers);
+            /** maximum number of indices a worker must process if the domain is equally distributed over all worker */
+            static constexpr uint32_t maxIndicesPerWorker
+                = ((domainSize + simdSize * numWorkers - 1u) / (simdSize * numWorkers)) * simdSize;
         };
     } // namespace lockstep
 } // namespace pmacc

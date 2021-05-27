@@ -80,11 +80,19 @@ namespace pmacc
 #endif
             /**@}*/
 
+            /** Expression will result in a well formed type if the functor can be invoked with Idx as argument */
+            template<typename T_Functor>
+            using IsCallableWithIndex
+                = Void<decltype(alpaka::core::declval<T_Functor>()(alpaka::core::declval<Idx const>()))>;
+
+            /** Expression will result in a well formed type if the functor can be invoked without an argument */
+            template<typename T_Functor>
+            using IsCallableWithoutArguments = Void<decltype(alpaka::core::declval<T_Functor>()())>;
+
         public:
             using BaseConfig = Config<T_domainSize, T_numWorkers, T_simdSize>;
 
             using BaseConfig::domainSize;
-            using BaseConfig::numCollIter;
             using BaseConfig::numWorkers;
             using BaseConfig::simdSize;
 
@@ -120,26 +128,31 @@ namespace pmacc
              */
             template<
                 typename T_Functor,
-                // check if functor is invocable
-                typename = Void<decltype(alpaka::core::declval<T_Functor>()(alpaka::core::declval<Idx const>()))>,
+                // check if functor is invokable
+                typename = IsCallableWithIndex<T_Functor>,
                 std::
                     enable_if_t<std::is_void<InvokeResult_t<T_Functor, Idx const>>::value && domainSize != 1, int> = 0>
             HDINLINE void operator()(T_Functor&& functor) const
             {
-                for(uint32_t i = 0u; i < numCollIter; ++i)
+                static constexpr uint32_t numFullLoops = domainSize / (simdSize * numWorkers);
+                for(uint32_t i = 0u; numFullLoops != 0u && i < numFullLoops; ++i)
                 {
                     uint32_t const beginWorker = i * simdSize;
                     uint32_t const beginIdx = beginWorker * numWorkers + simdSize * this->getWorkerIdx();
-                    if(outerLoopCondition || !innerLoopCondition || beginIdx < domainSize)
-                    {
-                        for(uint32_t j = 0u; j < simdSize; ++j)
-                        {
-                            uint32_t const localIdx = beginIdx + j;
-                            if(innerLoopCondition || localIdx < domainSize)
-                                functor(Idx(localIdx, beginWorker + j));
-                        }
-                    }
+                    for(uint32_t s = 0u; s < simdSize; ++s)
+                        functor(Idx(beginIdx + s, beginWorker + s));
                 }
+
+                // process left over indices if the domainSize is not a multiple of 'simdSie * numWorkers'
+                static constexpr bool hasRemainder = (domainSize % (simdSize * numWorkers)) != 0u;
+                static constexpr uint32_t leftOverIndices = domainSize - (numFullLoops * numWorkers * simdSize);
+                for(uint32_t s = 0u; hasRemainder && s < simdSize; ++s)
+                    if(hasRemainder && this->getWorkerIdx() * simdSize + s < leftOverIndices)
+                    {
+                        constexpr uint32_t beginWorker = numFullLoops * simdSize;
+                        uint32_t const beginIdx = beginWorker * numWorkers + simdSize * this->getWorkerIdx();
+                        functor(Idx(beginIdx + s, beginWorker + s));
+                    }
             }
 
             /** The functor must fulfill the following interface:
@@ -149,8 +162,8 @@ namespace pmacc
              */
             template<
                 typename T_Functor,
-                // check if functor is invocable
-                typename = Void<decltype(alpaka::core::declval<T_Functor>()())>,
+                // check if functor is invokable
+                typename = IsCallableWithoutArguments<T_Functor>,
                 std::enable_if_t<std::is_void<InvokeResult_t<T_Functor>>::value && domainSize != 1, int> = 0>
             HDINLINE void operator()(T_Functor&& functor) const
             {
@@ -166,8 +179,8 @@ namespace pmacc
              */
             template<
                 typename T_Functor,
-                // check if functor is invocable
-                typename = Void<decltype(alpaka::core::declval<T_Functor>()(alpaka::core::declval<Idx const>()))>,
+                // check if functor is invokable
+                typename = IsCallableWithIndex<T_Functor>,
                 std::
                     enable_if_t<std::is_void<InvokeResult_t<T_Functor, Idx const>>::value && domainSize == 1, int> = 0>
             HDINLINE void operator()(T_Functor&& functor) const
@@ -183,8 +196,8 @@ namespace pmacc
              */
             template<
                 typename T_Functor,
-                // check if functor is invocable
-                typename = Void<decltype(alpaka::core::declval<T_Functor>()())>,
+                // check if functor is invokable
+                typename = IsCallableWithoutArguments<T_Functor>,
                 std::enable_if_t<std::is_void<InvokeResult_t<T_Functor>>::value && domainSize == 1, int> = 0>
             HDINLINE void operator()(T_Functor&& functor) const
             {
@@ -207,8 +220,8 @@ namespace pmacc
              */
             template<
                 typename T_Functor,
-                // check if functor is invocable
-                typename = Void<decltype(alpaka::core::declval<T_Functor>()(alpaka::core::declval<Idx const>()))>,
+                // check if functor is invokable
+                typename = IsCallableWithIndex<T_Functor>,
                 std::enable_if_t<!std::is_void<InvokeResult_t<T_Functor, Idx const>>::value, int> = 0>
             HDINLINE auto operator()(T_Functor&& functor) const
             {
@@ -229,8 +242,8 @@ namespace pmacc
              */
             template<
                 typename T_Functor,
-                // check if functor is invocable
-                typename = Void<decltype(alpaka::core::declval<T_Functor>()())>,
+                // check if functor is invokable
+                typename = IsCallableWithoutArguments<T_Functor>,
                 std::enable_if_t<!std::is_void<InvokeResult_t<T_Functor>>::value, int> = 0>
             HDINLINE auto operator()(T_Functor&& functor) const
             {
@@ -239,12 +252,6 @@ namespace pmacc
                 return tmp;
             }
             /** @} */
-
-        private:
-            static constexpr bool outerLoopCondition
-                = (domainSize % (simdSize * numWorkers)) == 0u || (simdSize * numWorkers == 1u);
-
-            static constexpr bool innerLoopCondition = (domainSize % simdSize) == 0u || (simdSize == 1u);
         };
 
         /** Execute a functor for a domain of one index. */
