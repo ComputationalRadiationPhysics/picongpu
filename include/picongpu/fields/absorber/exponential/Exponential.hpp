@@ -44,7 +44,8 @@ namespace picongpu
             {
                 /** Exponential damping field absorber
                  *
-                 * Sets instance and implements absorption.
+                 * Reads parameters from the .param file.
+                 * Does not implement the absorption itself, that is done by ExponentialImpl.
                  */
                 class Exponential : public Absorber
                 {
@@ -57,6 +58,25 @@ namespace picongpu
                             for(uint32_t direction = 0u; direction < 2u; direction++)
                                 numCells[axis][direction] = ABSORBER_CELLS[axis][direction];
                         name = std::string{"exponential damping"};
+                        kind = Kind::Exponential;
+                    }
+                };
+
+                /** Exponential damping field absorber implementation
+                 *
+                 * Implements absorption.
+                 */
+                class ExponentialImpl
+                    : public AbsorberImpl
+                    , public Exponential
+                {
+                public:
+                    /** Create exponential absorber implementation instance
+                     *
+                     * @param cellDescription mapping for kernels
+                     */
+                    ExponentialImpl(MappingDesc const cellDescription) : AbsorberImpl(cellDescription)
+                    {
                     }
 
                     /** Apply absorber to the given field

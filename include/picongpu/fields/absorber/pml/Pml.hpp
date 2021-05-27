@@ -38,18 +38,10 @@ namespace picongpu
         {
             namespace pml
             {
-                /** Implementation of Yee + PML solver updates of E and B
+                /** Perfectly Matched Layer field absorber
                  *
-                 * The original paper on this approach is J.A. Roden, S.D. Gedney.
-                 * Convolution PML (CPML): An efficient FDTD implementation of the
-                 * CFS - PML for arbitrary media. Microwave and optical technology
-                 * letters. 27 (5), 334-339 (2000).
-                 * https://doi.org/10.1002/1098-2760(20001205)27:5%3C334::AID-MOP14%3E3.0.CO;2-A
-                 * Our implementation is based on a more detailed description in section
-                 * 7.9 of the book A. Taflove, S.C. Hagness. Computational
-                 * Electrodynamics. The Finite-Difference Time-Domain Method. Third
-                 * Edition. Artech house, Boston (2005), referred to as
-                 * [Taflove, Hagness].
+                 * Reads parameters from the .param file.
+                 * Does not implement the absorption itself, that is done by PmlImpl.
                  */
                 class Pml : public Absorber
                 {
@@ -62,16 +54,35 @@ namespace picongpu
                             for(uint32_t direction = 0u; direction < 2u; direction++)
                                 numCells[axis][direction] = maxwellSolver::Pml::NUM_CELLS[axis][direction];
                         name = std::string{"convolutional PML"};
-                        initParameters();
+                        kind = Kind::Pml;
                     }
+                };
 
-                    /** Initialize PML field absorber
+                /** Implementation of Yee + PML updates of E and B
+                 *
+                 * The original paper on this approach is J.A. Roden, S.D. Gedney.
+                 * Convolution PML (CPML): An efficient FDTD implementation of the
+                 * CFS - PML for arbitrary media. Microwave and optical technology
+                 * letters. 27 (5), 334-339 (2000).
+                 * https://doi.org/10.1002/1098-2760(20001205)27:5%3C334::AID-MOP14%3E3.0.CO;2-A
+                 * Our implementation is based on a more detailed description in section
+                 * 7.9 of the book A. Taflove, S.C. Hagness. Computational
+                 * Electrodynamics. The Finite-Difference Time-Domain Method. Third
+                 * Edition. Artech house, Boston (2005), referred to as
+                 * [Taflove, Hagness].
+                 */
+                class PmlImpl
+                    : public AbsorberImpl
+                    , public Pml
+                {
+                public:
+                    /** Create PML absorber implementation instance
                      *
-                     * @param newCellDescription mapping for kernels
+                     * @param cellDescription mapping for kernels
                      */
-                    void init(MappingDesc const newCellDescription) override
+                    PmlImpl(MappingDesc const cellDescription) : Pml(), AbsorberImpl(cellDescription)
                     {
-                        Absorber::init(newCellDescription);
+                        initParameters();
                         DataConnector& dc = Environment<>::get().DataConnector();
                         psiE = std::make_shared<pml::FieldE>(cellDescription, getGlobalThickness());
                         psiB = std::make_shared<pml::FieldB>(cellDescription, getGlobalThickness());
@@ -129,7 +140,6 @@ namespace picongpu
                             parameters.normalizedAlphaMax[dim] = paramPml::NORMALIZED_ALPHA_MAX[dim];
                         }
                     }
-
 
                     template<uint32_t T_Area>
                     using AreaMapper = pmacc::AreaMapping<T_Area, MappingDesc>;
@@ -214,17 +224,7 @@ namespace picongpu
                             throw std::out_of_range("Requested PML size exceeds the local domain");
                     }
 
-                    /// TODO update the comment
-                    /** Thickness in terms of the global domain.
-                     *
-                     * We store only global thickness, as the local one can change
-                     * during the simulation and so has to be recomputed for each time
-                     * step. PML must be fully contained in a single layer of local
-                     * domains near the global simulation area boundary. (Note that
-                     * the domains of this layer might be changing, e.g. due to moving
-                     * window.) There are no other limitations on PML thickness. In
-                     * particular, it is independent of the BORDER area size.
-                     */
+                    //! Parameters
                     Parameters parameters;
 
                     /* PML convolutional field data, defined as in [Taflove, Hagness],

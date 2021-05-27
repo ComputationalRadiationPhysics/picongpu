@@ -50,11 +50,6 @@ namespace picongpu
                 return *pInstance;
             }
 
-            void Absorber::init(MappingDesc const newCellDescription)
-            {
-                cellDescription = newCellDescription;
-            }
-
             Absorber::Kind Absorber::getKind() const
             {
                 return kind;
@@ -108,14 +103,6 @@ namespace picongpu
                 return thickness;
             }
 
-            template<class BoxedMemory>
-            void Absorber::run(uint32_t currentStep, BoxedMemory deviceBox)
-            {
-                if(kind == Kind::Exponential)
-                    asExponential().run(currentStep, deviceBox);
-                // PML runs as part of the field solver, nothing to be done here
-            }
-
             pmacc::traits::StringProperty Absorber::getStringProperties()
             {
                 auto& absorber = get();
@@ -166,19 +153,23 @@ namespace picongpu
                 return propList;
             }
 
-            exponential::Exponential& Absorber::asExponential()
+            AbsorberImpl::AbsorberImpl(MappingDesc const cellDescription) : cellDescription(cellDescription)
             {
-                auto* result = dynamic_cast<exponential::Exponential*>(this);
+            }
+
+            exponential::ExponentialImpl& AbsorberImpl::asExponentialImpl()
+            {
+                auto* result = dynamic_cast<exponential::ExponentialImpl*>(this);
                 if(!result)
-                    throw std::runtime_error("Invalid conversion of absorber to Exponential");
+                    throw std::runtime_error("Invalid conversion of absorber to ExponentialImpl");
                 return *result;
             }
 
-            pml::Pml& Absorber::asPml()
+            pml::PmlImpl& AbsorberImpl::asPmlImpl()
             {
-                auto* result = dynamic_cast<pml::Pml*>(this);
+                auto* result = dynamic_cast<pml::PmlImpl*>(this);
                 if(!result)
-                    throw std::runtime_error("Invalid conversion of absorber to Pml");
+                    throw std::runtime_error("Invalid conversion of absorber to PmlImpl");
                 return *result;
             }
 
@@ -193,6 +184,22 @@ namespace picongpu
                     return std::make_unique<exponential::Exponential>();
                 case Absorber::Kind::Pml:
                     return std::make_unique<pml::Pml>();
+                default:
+                    throw std::runtime_error("Unsupported absorber kind requested to be made");
+                }
+            }
+
+            // This implementation has to go to a .tpp file as it requires definitions of Pml and ExponentialDamping
+            std::unique_ptr<AbsorberImpl> AbsorberFactory::makeImpl(MappingDesc const cellDescription) const
+            {
+                if(!isInitialized)
+                    throw std::runtime_error("Absorber factory used before being initialized");
+                switch(kind)
+                {
+                case Absorber::Kind::Exponential:
+                    return std::make_unique<exponential::ExponentialImpl>(cellDescription);
+                case Absorber::Kind::Pml:
+                    return std::make_unique<pml::PmlImpl>(cellDescription);
                 default:
                     throw std::runtime_error("Unsupported absorber kind requested to be made");
                 }

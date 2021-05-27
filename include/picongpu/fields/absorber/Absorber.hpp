@@ -95,22 +95,10 @@ namespace picongpu
                 uint32_t numCells[3][2];
             };
 
-            // Forward declaration for Absorber::asExponential()
-            namespace exponential
-            {
-                class Exponential;
-            }
-
-            // Forward declaration for Absorber::asPml()
-            namespace pml
-            {
-                class Pml;
-            }
-
             /** Singleton for field absorber
              *
              * Provides run-time utilities to get thickness and string properties.
-             * Does not yet provide absorption itself.
+             * Does not provide absorption implmenetation itself, that is done by AbsorberImpl.
              */
             class Absorber
             {
@@ -127,12 +115,6 @@ namespace picongpu
 
                 //! Get absorber instance
                 static Absorber& get();
-
-                /** Initialize field absorber
-                 *
-                 * @param newCellDescription mapping for kernels
-                 */
-                inline virtual void init(MappingDesc newCellDescription);
 
                 //! Absorber kind used in the simulation
                 inline Kind getKind() const;
@@ -158,31 +140,6 @@ namespace picongpu
                 //! Get string properties
                 static inline pmacc::traits::StringProperty getStringProperties();
 
-                /** Apply absorber to the given field
-                 *
-                 * @tparam BoxedMemory field box type
-                 *
-                 * @param currentStep current time iteration
-                 * @param deviceBox field box
-                 */
-                template<class BoxedMemory>
-                inline void run(uint32_t currentStep, BoxedMemory deviceBox);
-
-                /** Interpret this as Exponential instance
-                 *
-                 * \return reference to this object if conversion is valid,
-                 *         throws otherwise
-                 */
-                inline exponential::Exponential& asExponential();
-
-                /** Interpret this as Pml instance
-                 *
-                 * \return reference to this object if conversion is valid,
-                 *         throws otherwise
-                 */
-                inline pml::Pml& asPml();
-
-
             protected:
                 /** Number of absorber cells along each boundary
                  *
@@ -202,11 +159,59 @@ namespace picongpu
                 //! Text name for string properties
                 std::string name;
 
-                //! Mapping description for kernels
-                MappingDesc cellDescription = pmacc::DataSpace<simDim>(SuperCellSize::toRT());
-
                 Absorber() = default;
                 Absorber(Absorber const&) = delete;
+            };
+
+            // Forward declaration for AbsorberImpl::asExponentialImpl()
+            namespace exponential
+            {
+                class ExponentialImpl;
+            }
+
+            // Forward declaration for AbsorberImpl::asPmlImpl()
+            namespace pml
+            {
+                class PmlImpl;
+            }
+
+            /** Base class for implementation of absorbers
+             *
+             * It is currently in an intermediate state due to transition to run-time absorber selection and
+             * unification of field solvers.
+             * So the base class interface does not offer any common interface but type casts.
+             *
+             * The reason it is separated from the Absorber class is to better manage lifetime.
+             */
+            class AbsorberImpl
+            {
+            public:
+                /** Create absorber implementation instance
+                 *
+                 * @param cellDescription mapping for kernels
+                 */
+                AbsorberImpl(MappingDesc const cellDescription);
+
+                //! Destructor
+                virtual ~AbsorberImpl() = default;
+
+                /** Interpret this as ExponentialImpl instance
+                 *
+                 * \return reference to this object if conversion is valid,
+                 *         throws otherwise
+                 */
+                inline exponential::ExponentialImpl& asExponentialImpl();
+
+                /** Interpret this as PmlImpl instance
+                 *
+                 * \return reference to this object if conversion is valid,
+                 *         throws otherwise
+                 */
+                inline pml::PmlImpl& asPmlImpl();
+
+            protected:
+                //! Mapping description for kernels
+                MappingDesc cellDescription;
             };
 
             /** Singletone factory class to construct absorber instances according to the preset kind
@@ -225,6 +230,12 @@ namespace picongpu
 
                 //! Make an absorber instance
                 inline std::unique_ptr<Absorber> make() const;
+
+                /** Make an absorber implementation instance
+                 *
+                 * @param cellDescription mapping for kernels
+                 */
+                inline std::unique_ptr<AbsorberImpl> makeImpl(MappingDesc cellDescription) const;
 
                 /** Set absorber kind to be made
                  *

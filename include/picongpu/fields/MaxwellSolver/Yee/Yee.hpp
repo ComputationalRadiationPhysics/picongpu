@@ -82,6 +82,8 @@ namespace picongpu
                     DataConnector& dc = Environment<>::get().DataConnector();
                     fieldE = dc.get<FieldE>(FieldE::getName(), true);
                     fieldB = dc.get<FieldB>(FieldB::getName(), true);
+                    auto& absorberFactory = fields::absorber::AbsorberFactory::get();
+                    absorberImpl = absorberFactory.makeImpl(cellDescription);
                 }
 
                 /** Perform the first part of E and B propagation by a time step.
@@ -133,7 +135,11 @@ namespace picongpu
                      * update, to be complete in a call to update_beforeCurrent() on the next time step.
                      */
                     auto& absorber = absorber::Absorber::get();
-                    absorber.run(currentStep, fieldE->getDeviceDataBox());
+                    if(absorber.getKind() == absorber::Absorber::Kind::Exponential)
+                    {
+                        auto& exponentialImpl = absorberImpl->asExponentialImpl();
+                        exponentialImpl.run(currentStep, fieldE->getDeviceDataBox());
+                    }
                     if(laserProfiles::Selected::INIT_TIME > 0.0_X)
                         LaserPhysics{}(currentStep);
 
@@ -148,7 +154,11 @@ namespace picongpu
                     __setTransactionEvent(eRfieldE);
                     updateBFirstHalf<BORDER>(currentStep);
 
-                    absorber.run(currentStep, fieldB->getDeviceDataBox());
+                    if(absorber.getKind() == absorber::Absorber::Kind::Exponential)
+                    {
+                        auto& exponentialImpl = absorberImpl->asExponentialImpl();
+                        exponentialImpl.run(currentStep, fieldB->getDeviceDataBox());
+                    }
 
                     EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
                     __setTransactionEvent(eRfieldB);
@@ -224,9 +234,9 @@ namespace picongpu
                     auto& absorber = absorber::Absorber::get();
                     if(absorber.getKind() == absorber::Absorber::Kind::Pml)
                     {
-                        auto& pmlInstance = absorber.asPml();
+                        auto& pmlImpl = absorberImpl->asPmlImpl();
                         auto const updateFunctor
-                            = pmlInstance.getUpdateBHalfFunctor<CurlE, T_Area>(currentStep, updatePsiB);
+                            = pmlImpl.getUpdateBHalfFunctor<CurlE, T_Area>(currentStep, updatePsiB);
                         PMACC_KERNEL(Kernel{})
                         (mapper.getGridDim(),
                          numWorkers)(mapper, updateFunctor, fieldE->getDeviceDataBox(), fieldB->getDeviceDataBox());
@@ -268,8 +278,8 @@ namespace picongpu
                     auto& absorber = absorber::Absorber::get();
                     if(absorber.getKind() == absorber::Absorber::Kind::Pml)
                     {
-                        auto& pmlInstance = absorber.asPml();
-                        auto const updateFunctor = pmlInstance.getUpdateEFunctor<CurlB, T_Area>(currentStep);
+                        auto& pmlImpl = absorberImpl->asPmlImpl();
+                        auto const updateFunctor = pmlImpl.getUpdateEFunctor<CurlB, T_Area>(currentStep);
                         PMACC_KERNEL(Kernel{})
                         (mapper.getGridDim(),
                          numWorkers)(mapper, updateFunctor, fieldB->getDeviceDataBox(), fieldE->getDeviceDataBox());
@@ -292,6 +302,9 @@ namespace picongpu
                 MappingDesc const cellDescription;
                 std::shared_ptr<FieldE> fieldE;
                 std::shared_ptr<FieldB> fieldB;
+
+                // Absorber implementation
+                std::unique_ptr<fields::absorber::AbsorberImpl> absorberImpl;
             };
 
         } // namespace maxwellSolver

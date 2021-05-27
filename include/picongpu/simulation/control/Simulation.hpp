@@ -250,6 +250,10 @@ namespace picongpu
                 gridSizeLocal[dim] = gridSizeGlobal[dim] / gpus[dim];
             }
 
+            // Absorber has to be loaded before the domain adjuster runs.
+            // This is because domain adjuster uses absorber size
+            fieldAbsorber.load();
+
             DataSpace<simDim> gridOffset;
 
             DomainAdjuster domainAdjuster(gpus, myGPUpos, isPeriodic, slidingWindow);
@@ -315,10 +319,6 @@ namespace picongpu
 
             DataConnector& dc = Environment<>::get().DataConnector();
             initFields(dc);
-
-            // initialize field absorber stage,
-            // this can affect the internals of the field solver, so has to be done before
-            fieldAbsorber.init(*cellDescription);
 
             // create field solver
             this->myFieldSolver = new fields::Solver(*cellDescription);

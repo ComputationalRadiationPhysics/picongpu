@@ -53,14 +53,11 @@ namespace picongpu
                         (std::string("Field absorber kind [exponential, pml] default: " + kindName).c_str()));
                 }
 
-                /** Initialize the field absorber stage
+                /** Load the stage during loading of the simulation.
                  *
-                 * This method has to be called during initialization of the simulation.
-                 * Before this method is called, the instance of fields::absorber::Absorber cannot be used safely.
-                 *
-                 * @param cellDescription mapping for kernels
+                 * This has to be called before any absorber instance or implementation can be safely used.
                  */
-                void init(MappingDesc const cellDescription)
+                void load()
                 {
                     using namespace fields::absorber;
                     // So far there are only two kinds and so names are hardcoded
@@ -73,8 +70,6 @@ namespace picongpu
                         throw std::runtime_error("Unsupported field absorber type");
                     auto& absorberFactory = AbsorberFactory::get();
                     absorberFactory.setKind(kind);
-                    auto& absorber = Absorber::get();
-                    absorber.init(cellDescription);
                 }
 
             private:
