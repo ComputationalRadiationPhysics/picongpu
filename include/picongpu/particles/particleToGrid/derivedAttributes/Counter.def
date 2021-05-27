@@ -76,10 +76,10 @@ namespace picongpu
                      * This method is called on a per-thread basis (each thread of a block
                      * handles a particle of a frame).
                      *
-                     * \tparam T_Particle particle in the frame
-                     * \param particle particle in the frame
+                     * @tparam T_Particle particle in the frame
+                     * @param particle particle in the frame
                      *
-                     * \return new attribute for the particle (type \see T_AttributeType)
+                     * @return new attribute for the particle (type @see T_AttributeType)
                      */
                     template<class T_Particle>
                     DINLINE float_X operator()(T_Particle& particle) const;

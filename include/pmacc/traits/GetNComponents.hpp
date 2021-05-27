@@ -29,8 +29,8 @@ namespace pmacc
     {
         /** C
          *
-         * \tparam T_Type any type
-         * \return \p ::value as public with number of components (uint32_t)
+         * @tparam T_Type any type
+         * @return \p ::value as public with number of components (uint32_t)
          */
         template<typename T_Type, bool T_IsFundamental = boost::is_fundamental<T_Type>::value>
         struct GetNComponents

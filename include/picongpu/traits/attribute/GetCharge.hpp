@@ -42,7 +42,7 @@ namespace picongpu
                  * use attribute `boundElectrons` and the proton number from
                  * flag `atomicNumbers` to calculate the charge
                  *
-                 * \tparam T_HasBoundElectrons boolean that describes if species allows multiple charge states
+                 * @tparam T_HasBoundElectrons boolean that describes if species allows multiple charge states
                  * due to bound electrons
                  */
                 template<bool T_HasBoundElectrons>
@@ -50,9 +50,9 @@ namespace picongpu
                 {
                     /** Functor implementation
                      *
-                     * \tparam T_Particle particle type
-                     * \param weighting the particle's weighting
-                     * \param particle particle reference
+                     * @tparam T_Particle particle type
+                     * @param weighting the particle's weighting
+                     * @param particle particle reference
                      */
                     template<typename T_Particle>
                     HDINLINE float_X operator()(const float_X weighting, const T_Particle& particle)
@@ -79,9 +79,9 @@ namespace picongpu
                 {
                     /** Functor implementation
                      *
-                     * \tparam T_Particle particle type
-                     * \param weighting the particle's weighting
-                     * \param particle particle reference
+                     * @tparam T_Particle particle type
+                     * @param weighting the particle's weighting
+                     * @param particle particle reference
                      */
                     template<typename T_Particle>
                     HDINLINE float_X operator()(const float_X weighting, const T_Particle&)

@@ -46,7 +46,7 @@ namespace picongpu
                 {
                     /** Functor implementation
                      *
-                     * \return chargeState = number of electrons in neutral atom - number of currently bound electrons
+                     * @return chargeState = number of electrons in neutral atom - number of currently bound electrons
                      */
                     template<typename T_Particle>
                     HDINLINE float_X operator()(const T_Particle& particle)

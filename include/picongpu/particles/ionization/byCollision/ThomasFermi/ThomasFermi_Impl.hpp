@@ -278,10 +278,10 @@ namespace picongpu
                  *
                  * Ionization model specific particle creation
                  *
-                 * \tparam T_parentIon type of ion species that is being ionized
-                 * \tparam T_childElectron type of electron species that is created
-                 * \param parentIon ion instance that is ionized
-                 * \param childElectron electron instance that is created
+                 * @tparam T_parentIon type of ion species that is being ionized
+                 * @tparam T_childElectron type of electron species that is created
+                 * @param parentIon ion instance that is ionized
+                 * @param childElectron electron instance that is created
                  */
                 template<typename T_parentIon, typename T_childElectron, typename T_Acc>
                 DINLINE void operator()(T_Acc const& acc, T_parentIon& parentIon, T_childElectron& childElectron)

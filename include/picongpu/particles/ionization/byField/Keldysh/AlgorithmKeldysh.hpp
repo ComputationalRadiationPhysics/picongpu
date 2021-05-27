@@ -50,16 +50,16 @@ namespace picongpu
             struct AlgorithmKeldysh
             {
                 /** Functor implementation
-                 * \tparam EType type of electric field
-                 * \tparam BType type of magnetic field
-                 * \tparam ParticleType type of particle to be ionized
+                 * @tparam EType type of electric field
+                 * @tparam BType type of magnetic field
+                 * @tparam ParticleType type of particle to be ionized
                  *
-                 * \param bField magnetic field value at t=0
-                 * \param eField electric field value at t=0
-                 * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
-                 * \param randNr random number, equally distributed in range [0.:1.0]
+                 * @param bField magnetic field value at t=0
+                 * @param eField electric field value at t=0
+                 * @param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
+                 * @param randNr random number, equally distributed in range [0.:1.0]
                  *
-                 * \return ionization energy and number of new macro electrons to be created
+                 * @return ionization energy and number of new macro electrons to be created
                  */
                 template<typename EType, typename BType, typename ParticleType>
                 HDINLINE IonizerReturn

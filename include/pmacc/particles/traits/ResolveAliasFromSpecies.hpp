@@ -61,8 +61,8 @@ namespace pmacc
              * boost::static_assert(boost::is_same<PhotonsSpecies, PIC_Photons>::value);
              * \endcode
              *
-             * \tparam T_SpeciesType particle species
-             * \tparam T_Alias alias
+             * @tparam T_SpeciesType particle species
+             * @tparam T_Alias alias
              */
             template<typename T_SpeciesType, typename T_Alias>
             struct ResolveAliasFromSpecies;

@@ -34,8 +34,8 @@ namespace pmacc
         /**
          * Provider of a per cell random number generator
          *
-         * \tparam T_dim Number of dimensions of the grid
-         * \tparam T_RNGMethod Method to use for random number generation
+         * @tparam T_dim Number of dimensions of the grid
+         * @tparam T_RNGMethod Method to use for random number generation
          */
         template<uint32_t T_dim, class T_RNGMethod>
         class RNGProvider : public ISimulationData

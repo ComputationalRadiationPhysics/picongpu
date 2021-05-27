@@ -26,8 +26,8 @@ namespace picongpu
     {
         /** Get data box type of a buffer
          *
-         * \tparam T_Type type from which you need the DataBoxType
-         * \treturn ::type
+         * @tparam T_Type type from which you need the DataBoxType
+         * @treturn ::type
          */
         template<typename T_Type>
         struct GetDataBoxType;

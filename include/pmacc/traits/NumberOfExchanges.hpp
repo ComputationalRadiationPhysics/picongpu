@@ -29,8 +29,8 @@ namespace pmacc
     {
         /** Get number of possible exchanges
          *
-         * \tparam T_dim dimension of the simulation
-         * \return \p ::value number of possible exchanges
+         * @tparam T_dim dimension of the simulation
+         * @return \p ::value number of possible exchanges
          *              (is number neighbors + myself)
          */
         template<uint32_t T_dim>

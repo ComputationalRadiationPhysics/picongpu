@@ -268,7 +268,7 @@ namespace picongpu
 
         /** Call an ionization method upon an ion species
          *
-         * \tparam T_SpeciesType type or name as boost::mpl::string of particle species that is going to be ionized
+         * @tparam T_SpeciesType type or name as boost::mpl::string of particle species that is going to be ionized
          * with ionization scheme T_SelectIonizer
          */
         template<typename T_SpeciesType, typename T_SelectIonizer>
@@ -286,10 +286,10 @@ namespace picongpu
 
             /** Functor implementation
              *
-             * \tparam T_CellDescription contains the number of blocks and blocksize
+             * @tparam T_CellDescription contains the number of blocks and blocksize
              *                           that is later passed to the kernel
-             * \param cellDesc logical block information like dimension and cell sizes
-             * \param currentStep The current time step
+             * @param cellDesc logical block information like dimension and cell sizes
+             * @param currentStep The current time step
              */
             template<typename T_CellDescription>
             HINLINE void operator()(T_CellDescription cellDesc, const uint32_t currentStep) const
@@ -316,7 +316,7 @@ namespace picongpu
          *
          * Tests if species can be ionized and calls the kernels to do that
          *
-         * \tparam T_SpeciesType type or name as boost::mpl::string of particle species that is checked for ionization
+         * @tparam T_SpeciesType type or name as boost::mpl::string of particle species that is checked for ionization
          */
         template<typename T_SpeciesType>
         struct CallIonization
@@ -329,10 +329,10 @@ namespace picongpu
 
             /** Functor implementation
              *
-             * \tparam T_CellDescription contains the number of blocks and blocksize
+             * @tparam T_CellDescription contains the number of blocks and blocksize
              *                           that is later passed to the kernel
-             * \param cellDesc logical block information like dimension and cell sizes
-             * \param currentStep The current time step
+             * @param cellDesc logical block information like dimension and cell sizes
+             * @param currentStep The current time step
              */
             template<typename T_CellDescription>
             HINLINE void operator()(T_CellDescription cellDesc, const uint32_t currentStep) const
@@ -374,10 +374,10 @@ namespace picongpu
 
             /** Functor implementation
              *
-             * \tparam T_CellDescription contains the number of blocks and blocksize
+             * @tparam T_CellDescription contains the number of blocks and blocksize
              *                           that is later passed to the kernel
-             * \param cellDesc logical block information like dimension and cell sizes
-             * \param currentStep the current time step
+             * @param cellDesc logical block information like dimension and cell sizes
+             * @param currentStep the current time step
              */
             template<typename T_CellDescription, typename ScaledSpectrumMap>
             HINLINE void operator()(
@@ -428,11 +428,11 @@ namespace picongpu
 
             /** Functor implementation
              *
-             * \tparam T_CellDescription contains the number of blocks and blocksize
+             * @tparam T_CellDescription contains the number of blocks and blocksize
              *                           that is later passed to the kernel
-             * \param cellDesc logical block information like dimension and cell sizes
-             * \param currentStep The current time step
-             * \param synchrotronFunctions synchrotron functions wrapper object
+             * @param cellDesc logical block information like dimension and cell sizes
+             * @param currentStep The current time step
+             * @param synchrotronFunctions synchrotron functions wrapper object
              */
             template<typename T_CellDescription>
             HINLINE void operator()(

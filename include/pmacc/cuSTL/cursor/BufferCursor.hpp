@@ -37,14 +37,14 @@ namespace pmacc
          *
          * BufferCursor does access and jumping on a cartesian memory buffer.
          *
-         * \tparam T_Type type of a single datum
-         * \tparam T_dim dimension of the memory buffer
+         * @tparam T_Type type of a single datum
+         * @tparam T_dim dimension of the memory buffer
          */
         template<typename T_Type, int T_dim>
         struct BufferCursor : public Cursor<PointerAccessor<T_Type>, BufferNavigator<T_dim>, T_Type*>
         {
-            /* \param pointer data pointer
-             * \param pitch pitch of the memory buffer
+            /* @param pointer data pointer
+             * @param pitch pitch of the memory buffer
              * pitch is a Size_t vector with one dimension less than dim
              * pitch[0] is the distance in bytes to the incremented y-coordinate
              * pitch[1] is the distance in bytes to the incremented z-coordiante

@@ -32,7 +32,7 @@ namespace pmacc
         {
             /** Get first type of the given type
              *
-             * \tparam T type from which we return the first held type
+             * @tparam T type from which we return the first held type
              *
              * T must have defined ::first
              */

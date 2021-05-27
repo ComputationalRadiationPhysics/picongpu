@@ -46,9 +46,9 @@ namespace pmacc
 
         public:
             /**
-             * \param cursor Base cursor
-             * \param lowerExtent Top left corner of valid range, inside the range.
-             * \param upperExtent Bottom right corner of valid range, inside the range.
+             * @param cursor Base cursor
+             * @param lowerExtent Top left corner of valid range, inside the range.
+             * @param upperExtent Bottom right corner of valid range, inside the range.
              */
             HDINLINE SafeCursor(
                 const Cursor& cursor,

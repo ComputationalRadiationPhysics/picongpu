@@ -83,7 +83,7 @@ namespace picongpu
                 struct ChargeAssignmentOnSupport : public detail::Counter
                 {
                     /** form factor of this particle shape.
-                     * \param x has to be within [0, 1)
+                     * @param x has to be within [0, 1)
                      */
                     HDINLINE float_X operator()(float_X const x)
                     {

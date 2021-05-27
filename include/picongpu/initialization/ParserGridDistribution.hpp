@@ -54,8 +54,8 @@ namespace picongpu
 
         /** Get local Size of this dimension
          *
-         *  \param[in] devicePos as unsigned integer in the range [0, n-1] for this dimension
-         *  \return uint32_t with local number of cells
+         *  @param[in] devicePos as unsigned integer in the range [0, n-1] for this dimension
+         *  @return uint32_t with local number of cells
          */
         uint32_t getLocalSize(uint32_t const devicePos) const;
 
@@ -64,7 +64,7 @@ namespace picongpu
          * Check that the number of subdomains in a dimension, after we
          * expanded all regexes, matches the number of devices for it.
          *
-         * \param[in] numDevices number of devices for this dimension
+         * @param[in] numDevices number of devices for this dimension
          */
         void verifyDevices(uint32_t const numDevices) const;
 
@@ -77,8 +77,8 @@ namespace picongpu
          * to a vector of SubdomainPair with extent number (a,b,c,d,e,f) and
          * counts (1,1,n,m,e,f)
          *
-         * \param[in] s as string in the form a,b{n}
-         * \return std::vector<SubdomainPair> with 2x uint32_t (extent, count)
+         * @param[in] s as string in the form a,b{n}
+         * @return std::vector<SubdomainPair> with 2x uint32_t (extent, count)
          */
         value_type parse(std::string const s) const;
     };

@@ -64,7 +64,7 @@ namespace pmacc
 
             /** Foreach algorithm that is executed by one cupla thread block
              *
-             * \tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cupla blockDim.
+             * @tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cupla blockDim.
              *
              * BlockDim could also be obtained from cupla itself at runtime but
              * it is faster to know it at compile-time.
@@ -82,9 +82,9 @@ namespace pmacc
 
                 /* operator()(zone, cursor0, cursor1, ..., cursorN-1, functor or lambdaFun)
                  *
-                 * \param zone compile-time zone object, see zone::CT::SphericZone. (e.g. ContainerType::Zone())
-                 * \param cursorN cursor for the N-th data source (e.g. containerObj.origin())
-                 * \param functor or lambdaFun either a functor with N arguments or a N-ary lambda function (e.g. _1 =
+                 * @param zone compile-time zone object, see zone::CT::SphericZone. (e.g. ContainerType::Zone())
+                 * @param cursorN cursor for the N-th data source (e.g. containerObj.origin())
+                 * @param functor or lambdaFun either a functor with N arguments or a N-ary lambda function (e.g. _1 =
                  * _2)
                  *
                  * The functor or lambdaFun is called for each cell within the zone.

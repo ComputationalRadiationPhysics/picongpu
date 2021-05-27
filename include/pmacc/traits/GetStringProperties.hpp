@@ -53,8 +53,8 @@ namespace pmacc
              *
              * creates a property with one key value
              *
-             * \param key name of the key
-             * \param propertyValue value of the property
+             * @param key name of the key
+             * @param propertyValue value of the property
              */
             StringProperty(const std::string& key, const std::string& propertyValue) : value(propertyValue)
             {
@@ -63,8 +63,8 @@ namespace pmacc
 
             /** overwrite the value from a property
              *
-             * \param propertyValue new value
-             * \return the property itself
+             * @param propertyValue new value
+             * @return the property itself
              */
             StringProperty& operator=(const std::string& propertyValue)
             {
@@ -89,8 +89,8 @@ namespace pmacc
          * specialize this struct including the static method `StringProperty get()`
          * to define a property for an object without the method `getStringProperties()`
          *
-         * \tparam T_Type any type
-         * \return \p T_Type::getStringProperties() if trait `GetStringProperties<>` is not specialized
+         * @tparam T_Type any type
+         * @return \p T_Type::getStringProperties() if trait `GetStringProperties<>` is not specialized
          */
         template<typename T_Type>
         struct StringProperties
@@ -121,8 +121,8 @@ namespace pmacc
          *
          * same as `GetStringProperties<>` but accepts an instance instead a type
          *
-         * \param an instance that shall be queried
-         * \return StringProperty of the given instance
+         * @param an instance that shall be queried
+         * @return StringProperty of the given instance
          */
         template<typename T_Type>
         HINLINE StringProperty getStringProperties(const T_Type&)

@@ -51,7 +51,7 @@ namespace pmacc
         /** Register a plugin for loading/unloading and notifications
          *
          * Plugins are loaded in the order they are registered and unloaded in reverse order.
-         * To trigger plugin notifications, call \see setNotificationPeriod after
+         * To trigger plugin notifications, call @see setNotificationPeriod after
          * registration.
          *
          * @param plugin plugin to register
@@ -186,7 +186,7 @@ namespace pmacc
         /**
          * Get a vector of pointers of all registered plugin instances of a given type.
          *
-         * \tparam Plugin type of plugin
+         * @tparam Plugin type of plugin
          * @return vector of plugin pointers
          */
         template<typename Plugin>

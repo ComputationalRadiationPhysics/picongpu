@@ -32,7 +32,7 @@ namespace pmacc
          *
          *  The size of the space to map the index to must be know at compile time
          *
-         * \tparam T_Dim dimension of the position to map to
+         * @tparam T_Dim dimension of the position to map to
          */
         template<uint32_t T_Dim>
         struct MapToPos;
@@ -42,10 +42,10 @@ namespace pmacc
         {
             /** Functor
              *
-             *  \tparam T_ctVec math::CT::vector type like \see math::CT::Int
-             *  \param math::CT::vector with spatial size to map the index to
-             *  \param linearIndex linear index to be mapped
-             *  \return runtime math::vector of dimension T_Dim
+             *  @tparam T_ctVec math::CT::vector type like @see math::CT::Int
+             *  @param math::CT::vector with spatial size to map the index to
+             *  @param linearIndex linear index to be mapped
+             *  @return runtime math::vector of dimension T_Dim
              */
             template<typename T_ctVec>
             DINLINE typename T_ctVec::RT_type operator()(T_ctVec, const int linearIndex)

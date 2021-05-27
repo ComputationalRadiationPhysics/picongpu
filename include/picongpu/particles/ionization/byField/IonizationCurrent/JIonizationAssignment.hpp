@@ -32,7 +32,7 @@ namespace picongpu
         {
             /** defining traits for current assignment
              *
-             * \tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
+             * @tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
              */
             template<typename T_DestSpecies>
             struct JIonizationAssignmentParent
@@ -48,9 +48,9 @@ namespace picongpu
             /**@{*/
             /** implementation of current assignment
              *
-             * \tparam T_Acc alpaka accelerator type
-             * \tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
-             * \tparam T_Dim dimension of simulation
+             * @tparam T_Acc alpaka accelerator type
+             * @tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
+             * @tparam T_Dim dimension of simulation
              */
             template<typename T_Acc, typename T_DestSpecies, unsigned T_Dim>
             struct JIonizationAssignment;
@@ -63,7 +63,7 @@ namespace picongpu
             {
                 /** functor for  assigning current to databox
                  *
-                 * \tparam T_JBox type of current density data box
+                 * @tparam T_JBox type of current density data box
                  */
                 template<typename T_JBox>
                 HDINLINE void operator()(

@@ -27,8 +27,8 @@ namespace picongpu
     {
         /** Convert a PIConGPU Type to an Adios data type
          *
-         * \tparam T_Type Typename in PIConGPU
-         * \return \p ::type as public typedef of an Adios type
+         * @tparam T_Type Typename in PIConGPU
+         * @return \p ::type as public typedef of an Adios type
          */
         template<typename T_Type>
         struct PICToAdios;

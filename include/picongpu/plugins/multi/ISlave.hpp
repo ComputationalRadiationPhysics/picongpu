@@ -61,8 +61,8 @@ namespace picongpu
                  * The order in which the plugins are called is undefined, so this means
                  * read-only access to the particles.
                  *
-                 * \param speciesName name of the particle species
-                 * \param direction the direction the particles are leaving the simulation
+                 * @param speciesName name of the particle species
+                 * @param direction the direction the particles are leaving the simulation
                  */
                 virtual void onParticleLeave(const std::string& speciesName, const int32_t direction)
                 {

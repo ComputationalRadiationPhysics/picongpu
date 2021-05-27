@@ -35,8 +35,8 @@ namespace picongpu
              *
              * This functor is called by the general particle creation module.
              *
-             * \tparam T_ElectronSpecies
-             * \tparam T_PhotonSpecies
+             * @tparam T_ElectronSpecies
+             * @tparam T_PhotonSpecies
              */
             template<typename T_ElectronSpecies, typename T_PhotonSpecies>
             struct PhotonCreator;

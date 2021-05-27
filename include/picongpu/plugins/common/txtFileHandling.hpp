@@ -33,15 +33,15 @@ namespace picongpu
     /** Restore a txt file from the checkpoint dir
      *
      * Restores a txt file from the checkpoint dir and starts appending to it.
-     * Opened files in \see outFile are closed and a valid handle is opened again
+     * Opened files in @see outFile are closed and a valid handle is opened again
      * if a restart file is found. Otherwise new output file stays untouched.
      *
-     * \param outFile std::ofstream file handle to regular file that shall be restored
-     * \param filename the file's name
-     * \param restartStep the file's version in time to restore
-     * \param restartDirectory path to the checkpoint directory
+     * @param outFile std::ofstream file handle to regular file that shall be restored
+     * @param filename the file's name
+     * @param restartStep the file's version in time to restore
+     * @param restartDirectory path to the checkpoint directory
      *
-     * \return operation was successful or not
+     * @return operation was successful or not
      */
     HINLINE bool restoreTxtFile(
         std::ofstream& outFile,
@@ -88,10 +88,10 @@ namespace picongpu
      *
      * The file is flushed, copied to the checkpoint dir with extension fileName.step
      *
-     * \param outFile std::ofstream file handle to regular file that shall be checkpointed
-     * \param filename the file's name
-     * \param currentStep the current time step
-     * \param checkpointDirectory path to the checkpoint directory
+     * @param outFile std::ofstream file handle to regular file that shall be checkpointed
+     * @param filename the file's name
+     * @param currentStep the current time step
+     * @param checkpointDirectory path to the checkpoint directory
      */
     HINLINE void checkpointTxtFile(
         std::ofstream& outFile,

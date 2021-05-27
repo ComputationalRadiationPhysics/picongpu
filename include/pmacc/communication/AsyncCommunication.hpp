@@ -32,8 +32,8 @@ namespace pmacc
         struct Bool2Type;
 
         /**
-         * Implementations of \see AsyncCommunication should specialize this,
-         * but it is not intended to be called directly. Use \see AsyncCommunication
+         * Implementations of @see AsyncCommunication should specialize this,
+         * but it is not intended to be called directly. Use @see AsyncCommunication
          *
          * The 2nd template parameter can be used to check for conditions on
          * templated implementations. E.g.:
@@ -57,7 +57,7 @@ namespace pmacc
          * derived classes but want to use the possibly more derived type
          *
          * For different T_Data types you can either specialize this or the more
-         * generic \see AsyncCommunicationImpl
+         * generic @see AsyncCommunicationImpl
          */
         template<typename T_Data>
         struct AsyncCommunication : public AsyncCommunicationImpl<T_Data>

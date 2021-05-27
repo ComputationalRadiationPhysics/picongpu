@@ -57,11 +57,11 @@ namespace pmacc
 
         /*! starts sending via MPI (non-blocking)
          *
-         * \param[in] ex                direction to send (enum ExchangeType)
-         * \param[in] send_data         pointer to data; should have at least send_data_count bytes
-         * \param[in] send_data_count   message size in bytes to sent
-         * \param[in] tag               user-defined tag; only message with the same tag can be exchanged (i.e.
-         * startSend and startReceive must use the same tag) \returns an request for testing if this operation has
+         * @param[in] ex                direction to send (enum ExchangeType)
+         * @param[in] send_data         pointer to data; should have at least send_data_count bytes
+         * @param[in] send_data_count   message size in bytes to sent
+         * @param[in] tag               user-defined tag; only message with the same tag can be exchanged (i.e.
+         * startSend and startReceive must use the same tag) @returns an request for testing if this operation has
          * already finished
          */
         virtual MPI_Request* startSend(uint32_t ex, const char* send_data, size_t send_data_count, uint32_t tag) = 0;
@@ -70,11 +70,11 @@ namespace pmacc
          *
          * If recv_data_max is less then send_data_count (on other host) multiple startReceive are needed!
          *
-         * \param[in] ex                direction to send (enum ExchangeType)
-         * \param[in] recv_data         pointer to data; should have at least recv_data_max bytes
-         * \param[in] recv_data_max     maximum message size in bytes to receive
-         * \param[in] tag               user-defined tag; only message with the same tag can be exchanged (i.e.
-         * startSend and startReceive must use the same tag) \returns an request for testing if this operation has
+         * @param[in] ex                direction to send (enum ExchangeType)
+         * @param[in] recv_data         pointer to data; should have at least recv_data_max bytes
+         * @param[in] recv_data_max     maximum message size in bytes to receive
+         * @param[in] tag               user-defined tag; only message with the same tag can be exchanged (i.e.
+         * startSend and startReceive must use the same tag) @returns an request for testing if this operation has
          * already finished
          */
         virtual MPI_Request* startReceive(uint32_t ex, char* recv_data, size_t recv_data_max, uint32_t tag) = 0;
@@ -83,7 +83,7 @@ namespace pmacc
 
         /*! Return which of the three directions are periodic
          *
-         * \return for each direction a false (0) or true(1) value
+         * @return for each direction a false (0) or true(1) value
          */
         virtual DataSpace<DIM3> getPeriodic() const = 0;
     };

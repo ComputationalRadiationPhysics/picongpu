@@ -287,7 +287,7 @@ namespace picongpu
          *   During the kernels we calculate with a typical single/real
          *   momentum range. Now for the dump the meta information of units
          *   on the p-axis should be scaled to represent single/real particles.
-         *   \see PhaseSpaceMulti::pluginLoad( )
+         *   @see PhaseSpaceMulti::pluginLoad( )
          */
         float_64 const pRange_unit = UNIT_MASS * UNIT_SPEED;
 

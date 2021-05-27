@@ -340,7 +340,7 @@ namespace pmacc
             }
         }
 
-        /*! update coordinates \see getCoordinates
+        /*! update coordinates @see getCoordinates
          */
         void updateCoordinates()
         {
@@ -435,11 +435,11 @@ namespace pmacc
         DataSpace<DIM3> periodic;
         //! MPI communicator (currently MPI_COMM_WORLD)
         MPI_Comm topology;
-        //! array for exchangetype-to-rank conversion \see ExchangeTypeToRank
+        //! array for exchangetype-to-rank conversion @see ExchangeTypeToRank
         int ranks[27];
         //! size of pmacc [cx,cy,cz]
         int dims[3];
-        //! \see getCommunicationMask
+        //! @see getCommunicationMask
         Mask communicationMask;
         //! rank of this process local to its host (node)
         int hostRank;

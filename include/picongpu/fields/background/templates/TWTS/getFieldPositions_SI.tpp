@@ -37,7 +37,7 @@ namespace picongpu
             {
                 /** Calculate the SI position vectors that later enter the Ex(r, t), By(r, t)
                  *  and Bz(r ,t) calculations as r.
-                 *  \param cellIdx The total cell id counted from the start at timestep 0. */
+                 *  @param cellIdx The total cell id counted from the start at timestep 0. */
                 HDINLINE pmacc::math::Vector<floatD_64, numComponents> getFieldPositions_SI(
                     const DataSpace<simDim>& cellIdx,
                     const DataSpace<simDim>& halfSimSize,

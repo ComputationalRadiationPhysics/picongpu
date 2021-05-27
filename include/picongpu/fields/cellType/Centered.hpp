@@ -89,8 +89,8 @@ namespace picongpu
         template<>
         struct FieldPosition<fields::cellType::Centered, FieldJ, DIM2>
         {
-            /** \tparam float2_X position of the component in the cell
-             *  \tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
+            /** @tparam float2_X position of the component in the cell
+             *  @tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
              */
             using VectorVector2D3V = const ::pmacc::math::Vector<float2_X, DIM3>;
             /// boost::result_of hints
@@ -122,8 +122,8 @@ namespace picongpu
         template<>
         struct FieldPosition<fields::cellType::Centered, FieldJ, DIM3>
         {
-            /** \tparam float2_X position of the component in the cell
-             *  \tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
+            /** @tparam float2_X position of the component in the cell
+             *  @tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
              */
             using VectorVector3D3V = const ::pmacc::math::Vector<float3_X, DIM3>;
             /// boost::result_of hints

@@ -81,7 +81,7 @@ namespace pmacc
 
             /** Returns the current time step of the simulation
              *
-             * \return uint32_t current time step
+             * @return uint32_t current time step
              */
             uint32_t getCurrentStep()
             {

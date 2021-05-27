@@ -37,9 +37,9 @@ namespace pmacc
                 namespace mpl = boost::mpl;
 
                 /** The SphericMapper maps from cupla blockIdx and/or threadIdx to the cell index
-                 * \tparam dim dimension
-                 * \tparam BlockSize compile-time vector of the cupla block size (optional)
-                 * \tparam dummy neccesary to implement the optional BlockSize parameter
+                 * @tparam dim dimension
+                 * @tparam BlockSize compile-time vector of the cupla block size (optional)
+                 * @tparam dummy neccesary to implement the optional BlockSize parameter
                  *
                  * If BlockSize is given the cupla variable blockDim is not used which is faster.
                  */

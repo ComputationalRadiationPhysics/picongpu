@@ -36,9 +36,9 @@ namespace pmacc
             {
                 /** result for TwistVectorFieldAxes
                  *
-                 * \tparam T_NavigatorPerm permutation vector for navigator
-                 * \tparam T_AccessorPerm permutation vector for the accessor
-                 * \tparam T_Cursor cursor to permute
+                 * @tparam T_NavigatorPerm permutation vector for navigator
+                 * @tparam T_AccessorPerm permutation vector for the accessor
+                 * @tparam T_Cursor cursor to permute
                  */
                 template<typename T_NavigatorPerm, typename T_AccessorPerm, typename T_Cursor>
                 struct TwistVectorFieldAxes
@@ -61,7 +61,7 @@ namespace pmacc
              *
              * e.g.: new_cur = twistVectorFieldAxes<math::CT::Int<1,2,0> >(cur); // x -> y, y -> z, z -> x
              *
-             * \tparam T_Permutation compile-time vector (pmacc::math::CT::Int) that describes the mapping.
+             * @tparam T_Permutation compile-time vector (pmacc::math::CT::Int) that describes the mapping.
              * x-axis -> T_Permutation::at<0>, y-axis -> T_Permutation::at<1>, ...
              *
              */
@@ -79,10 +79,10 @@ namespace pmacc
              *
              * use same permutation for accessor and navigator
              *
-             * \tparam T_Permutation permutation vector
-             * \tparam T_Cursor permutation vector
-             * \param cursor cursor to permute
-             * \param permutation cursor to permute
+             * @tparam T_Permutation permutation vector
+             * @tparam T_Cursor permutation vector
+             * @param cursor cursor to permute
+             * @param permutation cursor to permute
              */
             template<typename T_Cursor, typename T_Permutation>
             HDINLINE typename result_of::TwistVectorFieldAxes<T_Permutation, T_Permutation, T_Cursor>::type
@@ -98,9 +98,9 @@ namespace pmacc
              *
              * different dimensions for the accessor and navigator permutation vector are allowed
              *
-             * \param cursor cursor to permute
-             * \param navigatorPermutation compile time permutation vector for the navigator
-             * \param accessorPermutation compile time permutation vector for the accessor
+             * @param cursor cursor to permute
+             * @param navigatorPermutation compile time permutation vector for the navigator
+             * @param accessorPermutation compile time permutation vector for the accessor
              */
             template<typename T_Cursor, typename T_NavigatorPerm, typename T_AccessorPerm>
             HDINLINE typename result_of::TwistVectorFieldAxes<T_NavigatorPerm, T_AccessorPerm, T_Cursor>::type

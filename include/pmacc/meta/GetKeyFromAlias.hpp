@@ -36,9 +36,9 @@ namespace pmacc
     /**
      * Returns the key type from an alias
      *
-     * \tparam T_MPLSeq Sequence of keys to search
-     * \tparam T_Key Key or alias of a key in the sequence
-     * \tparam T_KeyNotFoundPolicy Binary meta-function that is called like (T_MPLSeq, T_Key)
+     * @tparam T_MPLSeq Sequence of keys to search
+     * @tparam T_Key Key or alias of a key in the sequence
+     * @tparam T_KeyNotFoundPolicy Binary meta-function that is called like (T_MPLSeq, T_Key)
      *         when T_Key is not found in the sequence. Default is to return bmpl::void_
      */
     template<typename T_MPLSeq, typename T_Key, typename T_KeyNotFoundPolicy = errorHandlerPolicies::ReturnType<>>

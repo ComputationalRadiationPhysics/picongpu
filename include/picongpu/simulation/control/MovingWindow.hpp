@@ -366,7 +366,7 @@ namespace picongpu
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
             /* Without moving window, the selected window spans the whole global domain.
-             * \see https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions
+             * @see https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions
              *
              * The window's global offset is therefore zero inside the global domain.
              * The window's global and local size are equal to the SubGrid quantities.

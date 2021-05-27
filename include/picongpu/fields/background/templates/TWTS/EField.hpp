@@ -92,21 +92,21 @@ namespace picongpu
 
                 /** Electric field of the TWTS laser
                  *
-                 * \param focus_y_SI the distance to the laser focus in y-direction [m]
-                 * \param wavelength_SI central wavelength [m]
-                 * \param pulselength_SI sigma of std. gauss for intensity (E^2),
+                 * @param focus_y_SI the distance to the laser focus in y-direction [m]
+                 * @param wavelength_SI central wavelength [m]
+                 * @param pulselength_SI sigma of std. gauss for intensity (E^2),
                  *  pulselength_SI = FWHM_of_Intensity / 2.35482 [seconds (sigma)]
-                 * \param w_x beam waist: distance from the axis where the pulse electric field
+                 * @param w_x beam waist: distance from the axis where the pulse electric field
                  *  decreases to its 1/e^2-th part at the focus position of the laser [m]
-                 * \param w_y \see w_x
-                 * \param phi interaction angle between TWTS laser propagation vector and
+                 * @param w_y @see w_x
+                 * @param phi interaction angle between TWTS laser propagation vector and
                  *  the y-axis [rad, default = 90.*(PI/180.)]
-                 * \param beta_0 propagation speed of overlap normalized to
+                 * @param beta_0 propagation speed of overlap normalized to
                  *  the speed of light [c, default = 1.0]
-                 * \param tdelay_user manual time delay if auto_tdelay is false
-                 * \param auto_tdelay calculate the time delay such that the TWTS pulse is not
+                 * @param tdelay_user manual time delay if auto_tdelay is false
+                 * @param auto_tdelay calculate the time delay such that the TWTS pulse is not
                  *  inside the simulation volume at simulation start timestep = 0 [default = true]
-                 * \param pol dtermines the TWTS laser polarization, which is either normal or parallel
+                 * @param pol dtermines the TWTS laser polarization, which is either normal or parallel
                  *  to the laser pulse front tilt plane [ default= LINEAR_X , LINEAR_YZ ]
                  */
                 HINLINE
@@ -124,41 +124,41 @@ namespace picongpu
 
                 /** Specify your background field E(r,t) here
                  *
-                 * \param cellIdx The total cell id counted from the start at timestep 0.
-                 * \param currentStep The current time step
-                 * \return float3_X with field normalized to amplitude in range [-1.:1.]
+                 * @param cellIdx The total cell id counted from the start at timestep 0.
+                 * @param currentStep The current time step
+                 * @return float3_X with field normalized to amplitude in range [-1.:1.]
                  */
                 HDINLINE float3_X operator()(const DataSpace<simDim>& cellIdx, const uint32_t currentStep) const;
 
                 /** Calculate the Ex(r,t) field here (electric field vector normal to pulse-front-tilt plane)
                  *
-                 * \param pos Spatial position of the target field
-                 * \param time Absolute time (SI, including all offsets and transformations)
+                 * @param pos Spatial position of the target field
+                 * @param time Absolute time (SI, including all offsets and transformations)
                  *  for calculating the field
-                 * \return Ex-field component of the non-rotated TWTS field in SI units */
+                 * @return Ex-field component of the non-rotated TWTS field in SI units */
                 HDINLINE float_T calcTWTSEx(const float3_64& pos, const float_64 time) const;
 
                 /** Calculate the Ey(r,t) field here (electric field vector in pulse-front-tilt plane)
                  *
-                 * \param pos Spatial position of the target field
-                 * \param time Absolute time (SI, including all offsets and transformations)
+                 * @param pos Spatial position of the target field
+                 * @param time Absolute time (SI, including all offsets and transformations)
                  *  for calculating the field
-                 * \return Ex-field component of the non-rotated TWTS field in SI units */
+                 * @return Ex-field component of the non-rotated TWTS field in SI units */
                 HDINLINE float_T calcTWTSEy(const float3_64& pos, const float_64 time) const;
 
                 /** Calculate the E-field vector of the TWTS laser in SI units.
-                 * \tparam T_dim Specializes for the simulation dimension
-                 * \param cellIdx The total cell id counted from the start at timestep 0
-                 * \return Efield vector of the rotated TWTS field in SI units */
+                 * @tparam T_dim Specializes for the simulation dimension
+                 * @param cellIdx The total cell id counted from the start at timestep 0
+                 * @return Efield vector of the rotated TWTS field in SI units */
                 template<unsigned T_dim>
                 HDINLINE float3_X getTWTSEfield_Normalized(
                     const pmacc::math::Vector<floatD_64, detail::numComponents>& eFieldPositions_SI,
                     const float_64 time) const;
 
                 /** Calculate the E-field vector of the "in-plane polarized" TWTS laser in SI units.
-                 * \tparam T_dim Specializes for the simulation dimension
-                 * \param cellIdx The total cell id counted from the start at timestep 0
-                 * \return Efield vector of the rotated TWTS field in SI units */
+                 * @tparam T_dim Specializes for the simulation dimension
+                 * @param cellIdx The total cell id counted from the start at timestep 0
+                 * @return Efield vector of the rotated TWTS field in SI units */
                 template<unsigned T_dim>
                 HDINLINE float3_X getTWTSEfield_Normalized_Ey(
                     const pmacc::math::Vector<floatD_64, detail::numComponents>& eFieldPositions_SI,

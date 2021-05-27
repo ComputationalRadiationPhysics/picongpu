@@ -31,12 +31,12 @@ namespace picongpu
         {
             /** Keldysh model
              *
-             * \tparam T_DestSpecies electron species to be created
-             * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
-             * \tparam T_SrcSpecies ion species to be ionized
+             * @tparam T_DestSpecies electron species to be created
+             * @tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
+             * @tparam T_SrcSpecies ion species to be ionized
              *         default is boost::mpl placeholder because specialization
              *         cannot be known in list of particle species' flags
-             *         \see speciesDefinition.param
+             *         @see speciesDefinition.param
              */
             template<
                 typename T_IonizationAlgorithm,
@@ -62,7 +62,7 @@ namespace picongpu
              * wrapper class,
              * needed because the SrcSpecies cannot be known during the
              * first specialization of the ionization model in the particle definition
-             * \see speciesDefinition.param
+             * @see speciesDefinition.param
              */
             template<typename T_DestSpecies, typename T_IonizationCurrent = current::None>
             struct Keldysh

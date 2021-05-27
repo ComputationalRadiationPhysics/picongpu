@@ -105,7 +105,7 @@ namespace picongpu
 
         /** Call a functor on each cell of a field
          *
-         * \tparam T_Area Where to compute on (CORE, BORDER, GUARD)
+         * @tparam T_Area Where to compute on (CORE, BORDER, GUARD)
          */
         template<uint32_t T_Area>
         class CellwiseOperation

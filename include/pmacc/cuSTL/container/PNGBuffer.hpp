@@ -83,8 +83,8 @@ namespace pmacc
             typedef cursor::Cursor<PNGBuffer::Accessor, cursor::MultiIndexNavigator<2>, math::Int<2>> Cursor;
 
             /* constructor
-             * \param x width of png image
-             * \param y height of png image
+             * @param x width of png image
+             * @param y height of png image
              * \name name of png file
              */
             PNGBuffer(int x, int y, const std::string& name) : png(x, y, 0.0, name.data()), size(x, y)

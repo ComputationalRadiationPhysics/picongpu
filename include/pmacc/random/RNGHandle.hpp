@@ -61,7 +61,7 @@ namespace pmacc
             /**
              * Initializes this instance
              *
-             * \param cellIdx index into the underlying RNG provider
+             * @param cellIdx index into the underlying RNG provider
              */
             HDINLINE void init(const RNGSpace& cellIdx)
             {
