@@ -1,0 +1,126 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ################################# (edit the following lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
+#     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="NONE"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+
+# Project Information ######################################## (edit this line)
+#   - project for allocation and shared directories
+export PROJID=<yourProject>
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="vim"
+
+# General modules #############################################################
+#
+module purge
+module load PrgEnv-gnu # mpi, libfabric and others
+module load DefApps/alt
+module load git/2.31.1
+module load cmake/3.20.2
+module load craype-accel-amd-gfx908
+#module load rocm/4.1.0 # currently broken, thus use system installation by
+export ROCM_PATH=/opt/rocm-4.1.0
+export PATH=$ROCM_PATH/bin:$PATH
+export CMAKE_PREFIX_PATH=$ROCM_PATH:$CMAKE_PREFIX_PATH
+
+export HIP_PATH=$ROCM_PATH/hip # has to be set in order to be able to compile
+
+module load boost/1.75.0
+
+
+# Other Software ##############################################################
+#
+module load c-blosc/1.21.0
+module load cray-python/3.8.5.0
+module load hdf5/1.10.7 # dependency of openpmd-api module (no other possible)
+module load adios2/2.7.1 # dependency of openpmd-api module
+module load openpmd-api/0.13.2
+
+module load libpng/1.6.37
+
+# Self-Build Software #########################################################
+#
+# needs to be compiled by the user
+# Check the install script at
+# https://gist.github.com/steindev/a063a0a0ab61c5bed3352ef1f5e07962
+#
+export PROJECT=/ccs/proj/$PROJID/PIConGPU
+
+export PIC_LIBS=$PROJECT/lib
+export ZLIB_ROOT=$PIC_LIBS/zlib-1.2.11
+export PNGwriter_ROOT=$PIC_LIBS/pngwriter-0.7.0
+export Splash_ROOT=$PIC_LIBS/splash
+
+export LD_LIBRARY_PATH=$ZLIB_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PNGwriter_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$Splash_ROOT/lib:$LD_LIBRARY_PATH
+
+export CMAKE_PREFIX_PATH=$ZLIB_ROOT:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
+
+# Environment #################################################################
+#
+export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="hip"
+
+export PATH=$PATH:$PICSRC
+export PATH=$PATH:$PICSRC/bin
+export PATH=$PATH:$PICSRC/src/tools/bin
+
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+export CMAKE_MODULE_PATH=$HIP_PATH/cmake:$CMAKE_MODULE_PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_ROOT/lib
+export CMAKE_PREFIX_PATH=$BOOST_ROOT:$CMAKE_PREFIX_PATH
+export HIPCC_COMPILE_FLAGS_APPEND="$HIPCC_COMPILE_FLAGS_APPEND -I${MPICH_DIR}/include -L${MPICH_DIR}/lib -lmpi -L/opt/cray/pe/mpich/8.1.4/gtl/lib -lmpi_gtl_hsa"
+
+# "tbg" default options #######################################################
+#   - SLURM (sbatch)
+#   - "caar" queue
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="etc/picongpu/spock-ornl/caar.tpl"
+
+# allocate an interactive shell for one hour
+#   getNode 2  # allocates two interactive nodes (default: 1)
+function getNode() {
+    if [ -z "$1" ] ; then
+        numNodes=1
+    else
+        numNodes=$1
+    fi
+    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=16 --gres=gpu:4 --mem-per-gpu=64000 -p caar -A $PROJID --pty bash
+}
+
+# allocate an interactive shell for one hour
+#   getDevice 2  # allocates two interactive devices (default: 1)
+function getDevice() {
+    if [ -z "$1" ] ; then
+        numGPUs=1
+    else
+        if [ "$1" -gt 4 ] ; then
+            echo "The maximal number of devices per node is 4." 1>&2
+            return 1
+        else
+            numGPUs=$1
+        fi
+    fi
+    srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=16 --gres=gpu:$numGPUs --mem-per-gpu=64000 -p caar -A $PROJID --pty bash
+}
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi
+
