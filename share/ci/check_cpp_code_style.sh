@@ -56,3 +56,17 @@ test/hasExtLibIncludeBrackets share/picongpu/examples cupla
 test/hasExtLibIncludeBrackets share/picongpu/examples splash
 test/hasExtLibIncludeBrackets share/picongpu/examples mallocMC
 test/hasExtLibIncludeBrackets share/pmacc/examples pmacc
+
+#############################################################################
+# Disallow doxygen with \                                                   #
+#############################################################################
+test/hasWrongDoxygenStyle include param
+test/hasWrongDoxygenStyle include tparam
+test/hasWrongDoxygenStyle include see
+test/hasWrongDoxygenStyle include return
+test/hasWrongDoxygenStyle include treturn
+test/hasWrongDoxygenStyle share param
+test/hasWrongDoxygenStyle share tparam
+test/hasWrongDoxygenStyle share see
+test/hasWrongDoxygenStyle share return
+test/hasWrongDoxygenStyle share treturn
