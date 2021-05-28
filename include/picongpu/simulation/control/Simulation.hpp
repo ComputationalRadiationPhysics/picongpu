@@ -134,53 +134,41 @@ namespace picongpu
             SimulationHelper<simDim>::pluginRegisterHelp(desc);
             currentInterpolationAndAdditionToEMF.registerHelp(desc);
             fieldBackground.registerHelp(desc);
+            // clang-format off
             desc.add_options()(
-                "versionOnce",
-                po::value<bool>(&showVersionOnce)->zero_tokens(),
+                "versionOnce", po::value<bool>(&showVersionOnce)->zero_tokens(),
                 "print version information once and start")
-
-                ("devices,d",
-                 po::value<std::vector<uint32_t>>(&devices)->multitoken(),
+                ("devices,d", po::value<std::vector<uint32_t>>(&devices)->multitoken(),
                  "number of devices in each dimension")
-
-                    ("grid,g",
-                     po::value<std::vector<uint32_t>>(&gridSize)->multitoken(),
-                     "size of the simulation grid")
-
-                        ("gridDist",
-                         po::value<std::vector<std::string>>(&gridDistribution)->multitoken(),
-                         "Regex to describe the static distribution of the cells for each device,"
-                         "default: equal distribution over all devices\n"
-                         "  example:\n"
-                         "    -d 2 4 1\n"
-                         "    -g 128 192 12\n"
-                         "    --gridDist \"64{2}\" \"64,32{2},64\"\n")
-
-                            ("periodic",
-                             po::value<std::vector<uint32_t>>(&periodic)->multitoken(),
-                             "specifying whether the grid is periodic (1) or not (0) in each dimension, default: no "
-                             "periodic dimensions")
-
-                                ("moving,m",
-                                 po::value<bool>(&slidingWindow)->zero_tokens(),
-                                 "enable sliding/moving window")
+                ("grid,g", po::value<std::vector<uint32_t>>(&gridSize)->multitoken(),
+                 "size of the simulation grid")
+                ("gridDist",  po::value<std::vector<std::string>>(&gridDistribution)->multitoken(),
+                 "Regex to describe the static distribution of the cells for each device,"
+                 "default: equal distribution over all devices\n"
+                 "  example:\n"
+                 "    -d 2 4 1\n"
+                 "    -g 128 192 12\n"
+                 "    --gridDist \"64{2}\" \"64,32{2},64\"\n")
+                ("periodic", po::value<std::vector<uint32_t>>(&periodic)->multitoken(),
+                 "specifying whether the grid is periodic (1) or not (0) in each dimension, default: no "
+                 "periodic dimensions")
+                ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(),
+                 "enable sliding/moving window")
                 /* For now we still use the compile-time movePoint variable to set
                  * the default value and provide backward compatibility
                  */
-                ("windowMovePoint",
-                 po::value<float_64>(&windowMovePoint)->default_value(movePoint),
-                 "ratio of the global window size in y which defines when to "
-                 "start sliding the window. "
-                 "The window starts sliding at the time required to pass the "
-                 "distance of windowMovePoint * (global window size in y) "
-                 "when moving with the speed of light")(
-                    "stopWindow",
-                    po::value<int32_t>(&endSlidingOnStep)->default_value(-1),
-                    "stops the window at stimulation step, "
-                    "-1 means that window is never stopping")(
-                    "autoAdjustGrid",
-                    po::value<bool>(&autoAdjustGrid)->default_value(true),
-                    "auto adjust the grid size if PIConGPU conditions are not fulfilled");
+                ("windowMovePoint", po::value<float_64>(&windowMovePoint)->default_value(movePoint),
+                 "ratio of the global window size in y which defines when to start sliding the window. "
+                 "The window starts sliding at the time required to pass the distance of"
+                 "windowMovePoint * (global window size in y) when moving with the speed of light")
+                ("stopWindow", po::value<int32_t>(&endSlidingOnStep)->default_value(-1),
+                 "stops the window at stimulation step, "
+                 "-1 means that window is never stopping")
+                ("autoAdjustGrid", po::value<bool>(&autoAdjustGrid)->default_value(true),
+                 "auto adjust the grid size if PIConGPU conditions are not fulfilled")
+                ("numRanksPerDevice,r", po::value<uint32_t>(&numRanksPerDevice)->default_value(1u),
+                 "set the number of MPI ranks using a single device together");
+            // clang-format on
         }
 
         std::string pluginGetName() const
@@ -399,8 +387,7 @@ namespace picongpu
             meta::ForEach<VectorAllSpecies, particles::CreateSpecies<bmpl::_1>> createSpeciesMemory;
             createSpeciesMemory(deviceHeap, cellDescription);
 
-            size_t freeGpuMem(0);
-            Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
+            size_t freeGpuMem = freeDeviceMemory();
             if(freeGpuMem < reservedGpuMemorySize)
             {
                 pmacc::log<picLog::MEMORY>("%1% MiB free memory < %2% MiB required reserved memory")
@@ -413,15 +400,19 @@ namespace picongpu
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
             size_t heapSize = freeGpuMem - reservedGpuMemorySize;
-
-            if(Environment<>::get().MemoryInfo().isSharedMemoryPool())
+            // each MPI rank on the GPU gets the same amount of memory from a GPU
+            heapSize /= numRanksPerDevice;
+            GridController<simDim>& gc = Environment<simDim>::get().GridController();
+            if(Environment<>::get().MemoryInfo().isSharedMemoryPool(
+                   numRanksPerDevice,
+                   gc.getCommunicator().getMPIComm()))
             {
-                heapSize /= 2;
+                heapSize /= 2u;
                 log<picLog::MEMORY>(
                     "Shared RAM between GPU and host detected - using only half of the 'device' memory.");
             }
             else
-                log<picLog::MEMORY>("RAM is NOT shared between GPU and host.");
+                log<picLog::MEMORY>("Device RAM is NOT shared between GPU and host.");
 
             // initializing the heap for particles
             deviceHeap->destructiveResize(
@@ -439,7 +430,7 @@ namespace picongpu
                 logMemoryStatisticsForSpecies;
             logMemoryStatisticsForSpecies(deviceHeap);
 
-            Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
+            freeGpuMem = freeDeviceMemory();
             log<picLog::MEMORY>("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
 
             IdProvider<simDim>::init();
@@ -501,8 +492,7 @@ namespace picongpu
                 }
             }
 
-            size_t freeGpuMem(0u);
-            Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
+            size_t freeGpuMem = freeDeviceMemory();
             log<picLog::MEMORY>("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
 
             // generate valid GUARDS (overwrite)
@@ -645,8 +635,35 @@ namespace picongpu
         float_64 windowMovePoint;
         bool showVersionOnce;
         bool autoAdjustGrid = true;
+        uint32_t numRanksPerDevice = 1u;
 
     private:
+        /** Get available memory on device
+         *
+         * @attention This method is using MPI collectives and must be called from all MPI processes collectively.
+         *
+         * @return Available memory on device in bytes.
+         */
+        size_t freeDeviceMemory() const
+        {
+            if(numRanksPerDevice >= 2u)
+            {
+                // Synchronize to guarantee that all other MPI process on the same device allocated there memory.
+                GridController<simDim>& gc = Environment<simDim>::get().GridController();
+                MPI_CHECK(MPI_Barrier(gc.getCommunicator().getMPIComm()));
+            }
+            size_t freeDeviceMemory = 0u;
+            size_t totalAvailableMemory = 0u;
+            Environment<>::get().MemoryInfo().getMemoryInfo(&freeDeviceMemory, &totalAvailableMemory);
+            if(numRanksPerDevice >= 2u)
+            {
+                // Wait that all MPI processes checked the available memory.
+                GridController<simDim>& gc = Environment<simDim>::get().GridController();
+                MPI_CHECK(MPI_Barrier(gc.getCommunicator().getMPIComm()));
+            }
+            return freeDeviceMemory;
+        }
+
         void initFields(DataConnector& dataConnector)
         {
             auto fieldB = std::make_unique<FieldB>(*cellDescription);
