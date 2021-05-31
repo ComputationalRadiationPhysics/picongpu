@@ -31,10 +31,12 @@
 #include "pmacc/pluginSystem/IPlugin.hpp"
 #include "pmacc/pluginSystem/containsStep.hpp"
 #include "pmacc/pluginSystem/toTimeSlice.hpp"
+#include "pmacc/simulationControl/signal.hpp"
 #include "pmacc/types.hpp"
 
 #include <boost/filesystem.hpp>
 
+#include <csignal>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -136,6 +138,8 @@ namespace pmacc
          */
         virtual void dumpOneStep(uint32_t currentStep)
         {
+            checkSignals(currentStep);
+
             /* trigger notification */
             Environment<DIM>::get().PluginConnector().notifyPlugins(currentStep);
 
@@ -218,6 +222,9 @@ namespace pmacc
 
             init();
 
+            // Install a signal handler
+            signal::activate();
+
             // translate checkpointPeriod string into checkpoint intervals
             seqCheckpointPeriod = pluginSystem::toTimeSlice(checkpointPeriod);
 
@@ -296,35 +303,31 @@ namespace pmacc
 
         virtual void pluginRegisterHelp(po::options_description& desc)
         {
-            desc.add_options()("steps,s", po::value<uint32_t>(&runSteps), "Simulation steps")(
-                "checkpoint.restart.loop",
-                po::value<uint32_t>(&softRestarts)->default_value(0),
-                "Number of times to restart the simulation after simulation has finished (for presentations). "
-                "Note: does not yet work with all plugins, see issue #1305")(
-                "percent,p",
-                po::value<uint16_t>(&progress)->default_value(5),
-                "Print time statistics after p percent to stdout")(
-                "checkpoint.restart",
-                po::value<bool>(&restartRequested)->zero_tokens(),
-                "Restart simulation")(
-                "checkpoint.restart.directory",
-                po::value<std::string>(&restartDirectory)->default_value(restartDirectory),
-                "Directory containing checkpoints for a restart")(
-                "checkpoint.restart.step",
-                po::value<int32_t>(&restartStep),
-                "Checkpoint step to restart from")(
-                "checkpoint.period",
-                po::value<std::string>(&checkpointPeriod),
-                "Period for checkpoint creation")(
-                "checkpoint.directory",
-                po::value<std::string>(&checkpointDirectory)->default_value(checkpointDirectory),
-                "Directory for checkpoints")(
-                "author",
-                po::value<std::string>(&author)->default_value(std::string("")),
-                "The author that runs the simulation and is responsible for created output files")(
-                "mpiDirect",
-                po::value<bool>(&useMpiDirect)->zero_tokens(),
-                "use device direct for MPI communication e.g. GPU direct");
+            // clang-format off
+            desc.add_options()
+                ("steps,s", po::value<uint32_t>(&runSteps), "Simulation steps")
+                ("checkpoint.restart.loop", po::value<uint32_t>(&softRestarts)->default_value(0),
+                 "Number of times to restart the simulation after simulation has finished (for presentations). "
+                 "Note: does not yet work with all plugins, see issue #1305")
+                ("percent,p", po::value<uint16_t>(&progress)->default_value(5),
+                 "Print time statistics after p percent to stdout")
+                ("checkpoint.restart", po::value<bool>(&restartRequested)->zero_tokens(),
+                 "Restart simulation from a checkpoint. Requires a valid checkpoint.")
+                ("checkpoint.tryRestart", po::value<bool>(&tryRestart)->zero_tokens(),
+                 "Try to restart if a checkpoint is available else start the simulation from scratch.")
+                ("checkpoint.restart.directory", po::value<std::string>(&restartDirectory)->default_value(restartDirectory),
+                 "Directory containing checkpoints for a restart")
+                ("checkpoint.restart.step", po::value<int32_t>(&restartStep),
+                 "Checkpoint step to restart from")
+                ("checkpoint.period", po::value<std::string>(&checkpointPeriod),
+                 "Period for checkpoint creation")
+                ("checkpoint.directory", po::value<std::string>(&checkpointDirectory)->default_value(checkpointDirectory),
+                 "Directory for checkpoints")
+                ("author", po::value<std::string>(&author)->default_value(std::string("")),
+                 "The author that runs the simulation and is responsible for created output files")
+                ("mpiDirect", po::value<bool>(&useMpiDirect)->zero_tokens(),
+                 "use device direct for MPI communication e.g. GPU direct");
+            // clang-format on
         }
 
         std::string pluginGetName() const
@@ -340,6 +343,9 @@ namespace pmacc
             calcProgress();
 
             output = (getGridController().getGlobalRank() == 0);
+
+            if(tryRestart)
+                restartRequested = true;
         }
 
         void pluginUnload()
@@ -392,7 +398,48 @@ namespace pmacc
         //! enable MPI gpu direct
         bool useMpiDirect;
 
+        bool tryRestart = false;
+
     private:
+        void checkSignals(uint32_t const currentStep)
+        {
+            if(signal::received())
+            {
+                if(output)
+                    std::cout << "SIGNAL: received." << std::endl;
+
+                // avoid deadlocks with collective MPI calls
+                Environment<>::get().Manager().waitForAllTasks();
+                // wait for possible more signals
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000u));
+
+                uint32_t maxTimestep = 0u;
+
+                // find largest time step of all MPI ranks
+                MPI_CHECK(MPI_Allreduce(
+                    &currentStep,
+                    &maxTimestep,
+                    1,
+                    MPI_UINT32_T,
+                    MPI_MAX,
+                    Environment<DIM>::get().GridController().getCommunicator().getMPIComm()));
+
+                if(signal::createCheckpoint())
+                {
+                    if(output)
+                        std::cout << "SIGNAL: active checkpointing for step " << maxTimestep << std::endl;
+                    // add a new checkpoint
+                    seqCheckpointPeriod.push_back(pluginSystem::TimeSlice(maxTimestep, maxTimestep));
+                }
+                if(signal::stopSimulation())
+                {
+                    if(output)
+                        std::cout << "SIGNAL: stop simulation at step " << maxTimestep << std::endl;
+                    Environment<>::get().SimulationDescription().setRunSteps(maxTimestep);
+                }
+            }
+        }
+
         /**
          * Set how often the elapsed time is printed.
          *

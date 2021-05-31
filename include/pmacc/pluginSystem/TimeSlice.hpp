@@ -66,12 +66,19 @@ namespace pmacc
                 }
             }
 
-            //! create a time slice instance
-            TimeSlice()
+            /** Constructor
+             *
+             * Select any time step in the range [start,end].
+             *
+             * @param start first time step taken into account
+             * @param end last time step taken into account
+             * @param period select any period(st) time step between start and end
+             */
+            TimeSlice(uint32_t start = 0, uint32_t end = uint32_t(-1), uint32_t period = 1)
                 : /* default: start:end:period
                    * -1 stored as unsigned is the highest available unsigned integer
                    */
-                values({0, uint32_t(-1), 1})
+                values({start, end, period})
             {
             }
         };
