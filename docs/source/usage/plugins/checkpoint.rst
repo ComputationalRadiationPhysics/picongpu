@@ -44,7 +44,8 @@ PIConGPU command line option                  Description
 ``--checkpoint.file <string>``                Relative or absolute fileset prefix for writing checkpoints.
                                               If relative, checkpoint files are stored under ``simOutput/<checkpoint-directory>``.
                                               Default depends on the selected IO-backend.
-``--checkpoint.restart``                      Restart a simulation from the latest checkpoint.
+``--checkpoint.restart``                      Restart a simulation from the latest checkpoint (requires a valid checkpoint).
+``--checkpoint.tryRestart``                   Restart a simulation from the latest checkpoint if available else start from scratch.
 ``--checkpoint.restart.step <N>``             Select a specific restart checkpoint.
 ``--checkpoint.restart.backend <IO-backend>`` IO-backend used to load a existent checkpoint.
 ``--checkpoint.restart.directory <string>``   Directory inside ``simOutput`` containing checkpoints for a restart.
