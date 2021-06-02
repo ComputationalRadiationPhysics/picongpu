@@ -21,8 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/mappings/threads/ForEachIdx.hpp>
-#include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/lockstep.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/meta/ForEach.hpp>
 
@@ -72,8 +71,6 @@ namespace picongpu
                             T_Mapping& mapper,
                             DataSpace<simDim> const& relExchangeDir) const
                         {
-                            using namespace mappings::threads;
-
                             constexpr int axis = T_Axis::value;
 
                             // return if axis is not selected
@@ -96,9 +93,10 @@ namespace picongpu
                             DataSpace<simDim> const localDomainCells
                                 = mapper.getGridSuperCells() * SuperCellSize::toRT();
 
-                            using SuperCellDomCfg = IdxConfig<cellsPerSuperCell, numWorkers>;
+                            auto forEachParticleInFrame
+                                = lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx);
 
-                            ForEachIdx<SuperCellDomCfg>{workerIdx}([&](uint32_t const linearIdx, uint32_t const) {
+                            forEachParticleInFrame([&](uint32_t const linearIdx) {
                                 /* cell index within the superCell */
                                 DataSpace<simDim> const cellIdx
                                     = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
