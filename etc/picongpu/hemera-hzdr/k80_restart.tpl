@@ -70,6 +70,9 @@ TBG_queue=${TBG_partition:-"k80"}
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
 #SBATCH --chdir=!TBG_dstPath
+# notify the job 240 sec before the wall time ends
+#SBATCH --signal=B:SIGALRM@240
+#!TBG_keepOutputFileOpen
 
 # do not overwrite existing stderr and stdout files
 #SBATCH --open-mode=append
@@ -172,7 +175,8 @@ else
 fi
 
 if [ $? -eq 0 ] ; then
-  mpiexec -tag-output --display-map !TBG_dstPath/input/bin/picongpu $stepSetup !TBG_author $programParams
+  $(!TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec -tag-output --display-map !TBG_dstPath/input/bin/picongpu \
+    $stepSetup !TBG_author $programParams)
 fi
 
 if [ $nextStep -lt $finalStep ]

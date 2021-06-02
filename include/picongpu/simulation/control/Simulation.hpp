@@ -456,10 +456,6 @@ namespace picongpu
             GridController<simDim>& gc = Environment<simDim>::get().GridController();
             gc.setStateAfterSlides(0);
 
-            DataConnector& dc = Environment<>::get().DataConnector();
-            auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
-            auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
-
             /* fill all objects registed in DataConnector */
             if(initialiserController)
             {
@@ -473,13 +469,24 @@ namespace picongpu
 
                         if(checkpoints.empty())
                         {
-                            throw std::runtime_error("Restart failed. You must provide the "
-                                                     "'--checkpoint.restart.step' argument. See picongpu --help.");
+                            if(this->tryRestart == false)
+                            {
+                                throw std::runtime_error("Restart failed. You must provide the "
+                                                         "'--checkpoint.restart.step' argument. See picongpu --help.");
+                            }
+                            else
+                            {
+                                // no checkpoint found: start simulation from scratch
+                                this->restartRequested = false;
+                            }
                         }
                         else
                             this->restartStep = checkpoints.back();
                     }
+                }
 
+                if(this->restartRequested)
+                {
                     initialiserController->restart((uint32_t) this->restartStep, this->restartDirectory);
                     step = this->restartStep;
                 }
@@ -487,13 +494,17 @@ namespace picongpu
                 {
                     initialiserController->init();
                     meta::ForEach<particles::InitPipeline, pmacc::functor::Call<bmpl::_1>> initSpecies;
-                    initSpecies(step);
+                    initSpecies(0);
                     particles::debyeLength::check(*cellDescription);
                 }
             }
 
             size_t freeGpuMem = freeDeviceMemory();
             log<picLog::MEMORY>("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
+
+            DataConnector& dc = Environment<>::get().DataConnector();
+            auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
+            auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
 
             // generate valid GUARDS (overwrite)
             EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());

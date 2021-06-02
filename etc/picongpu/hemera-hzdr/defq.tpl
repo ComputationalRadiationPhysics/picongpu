@@ -35,6 +35,9 @@
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
 #SBATCH --chdir=!TBG_dstPath
+# notify the job 240 sec before the wall time ends
+#SBATCH --signal=B:SIGALRM@240
+#!TBG_keepOutputFileOpen
 
 #SBATCH -o stdout
 #SBATCH -e stderr
@@ -42,6 +45,11 @@
 
 ## calculations will be performed by tbg ##
 .TBG_queue="defq"
+
+.TBG_queue=${TBG_partition:-"defq"}
+.TBG_account=`if [ $TBG_partition == "defq_low" ] ; then echo "low"; else echo "defq"; fi`
+# configure if the output file should be appended or overwritten
+.TBG_keepOutputFileOpen=`if [ $TBG_partition == "defq_low" ] ; then echo "SBATCH --open-mode=append"; fi`
 
 # settings that can be controlled by environment variables before submit
 .TBG_mailSettings=${MY_MAILNOTIFY:-"NONE"}
@@ -97,5 +105,6 @@ export OMPI_MCA_io=^ompio
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  mpiexec --bind-to none !TBG_dstPath/tbg/cpuNumaStarter.sh !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
+  $(!TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec --bind-to none !TBG_dstPath/tbg/cpuNumaStarter.sh \
+    !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams)
 fi

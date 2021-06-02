@@ -109,6 +109,7 @@ Usage for Experts
    :hidden:
 
    expert/deviceOversubscription
+   expert/signals
 
 ***********
 Development

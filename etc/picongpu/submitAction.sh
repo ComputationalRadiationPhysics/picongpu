@@ -58,3 +58,4 @@ if [ -f $TBG_cfgPath/cpuNumaStarter.sh ]
 then
   cp -a $TBG_cfgPath/cpuNumaStarter.sh tbg
 fi
+cp -a $TBG_cfgPath/handleSlurmSignals.sh tbg
