@@ -36,8 +36,8 @@ namespace pmacc
          * On each access of the new cursor the result of the nested cursor access
          * is filtered through a user-defined functor.
          *
-         * \param cursor Cursor to be wrapped
-         * \param functor User functor acting as a filter.
+         * @param cursor Cursor to be wrapped
+         * @param functor User functor acting as a filter.
          */
         template<typename TCursor, typename Functor>
         HDINLINE Cursor<

@@ -34,8 +34,8 @@ namespace picongpu
     {
         /** Return the current date as string
          *
-         * \param format, \see http://www.cplusplus.com/reference/ctime/strftime/
-         * \return std::string with formatted date
+         * @param format, @see http://www.cplusplus.com/reference/ctime/strftime/
+         * @return std::string with formatted date
          */
         std::string getDateString(std::string format);
 

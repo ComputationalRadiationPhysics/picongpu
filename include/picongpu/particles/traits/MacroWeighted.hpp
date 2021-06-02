@@ -38,13 +38,13 @@ namespace picongpu
          *
          * This trait defines for each attribute if it needs to be scaled with the
          * weighting. *How* the scaling with weighting is applied can be seen in
-         * \see WeightingPower
-         *   \see http://www.openPMD.org
-         *   \see http://dx.doi.org/10.5281/zenodo.33624
-         *   \see https://git.io/vwlWa
+         * @see WeightingPower
+         *   @see http://www.openPMD.org
+         *   @see http://dx.doi.org/10.5281/zenodo.33624
+         *   @see https://git.io/vwlWa
          *
-         * \tparam T_Identifier any picongpu identifier
-         * \return \p bool ::get() as static public method
+         * @tparam T_Identifier any picongpu identifier
+         * @return \p bool ::get() as static public method
          *
          */
         template<typename T_Identifier>

@@ -109,9 +109,9 @@ namespace picongpu
 
             /**
              * deposites current in z-direction
-             * \param cursorJ cursor pointing at the current density field of the particle's cell
-             * \param line trajectory of the particle from to last to the current time step
-             * \param cellEdgeLength length of edge of the cell in z-direction
+             * @param cursorJ cursor pointing at the current density field of the particle's cell
+             * @param line trajectory of the particle from to last to the current time step
+             * @param cellEdgeLength length of edge of the cell in z-direction
              */
             template<typename CursorJ, typename T_Acc>
             DINLINE void cptCurrent1D(

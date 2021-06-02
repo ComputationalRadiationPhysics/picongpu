@@ -29,8 +29,8 @@ namespace pmacc
     {
         /** Get component type of an object
          *
-         * \tparam T_Type any type
-         * \return \p ::type get result type
+         * @tparam T_Type any type
+         * @return \p ::type get result type
          *            If T_Type is fundamental c++ type, the identity is returned
          *
          * Attention: do not defines this trait for structs with different attributes inside

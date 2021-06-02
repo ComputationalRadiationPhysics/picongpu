@@ -35,10 +35,10 @@ namespace picongpu
      * interpolate around a point from -AssignmentFunction::support/2 to
      * (AssignmentFunction::support+1)/2
      *
-     * \tparam GridShiftMethod functor which shift coordinate system that al value are
+     * @tparam GridShiftMethod functor which shift coordinate system that al value are
      * located on corner
-     * \tparam AssignmentFunction AssignmentFunction which is used for interpolation
-     * \tparam InterpolationMethod functor for interpolation method
+     * @tparam AssignmentFunction AssignmentFunction which is used for interpolation
+     * @tparam InterpolationMethod functor for interpolation method
      */
     template<class T_Shape, class InterpolationMethod>
     struct FieldToParticleInterpolation

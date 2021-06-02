@@ -32,7 +32,7 @@ namespace pmacc
         {
             /** Get second type of the given type
              *
-             * \tparam T type from which we return the second held type
+             * @tparam T type from which we return the second held type
              *
              * T must have defined ::second
              */

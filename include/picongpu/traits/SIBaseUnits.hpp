@@ -25,7 +25,7 @@ namespace picongpu
     {
         /* openPMD uses the powers of the 7 SI base measures to describe
          * the unit of a record
-         * \see http://git.io/vROmP */
+         * @see http://git.io/vROmP */
         constexpr uint32_t NUnitDimension = 7;
 
         // pre-C++11 "scoped enumerator" work-around

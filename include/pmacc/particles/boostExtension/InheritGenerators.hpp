@@ -83,7 +83,7 @@ namespace pmacc
 
 
     /** Create a data structure which inherit linearly
-     * \tparam vec_ boost mpl vector with classes
+     * @tparam vec_ boost mpl vector with classes
      *
      * class A<pmacc::NullFrame>;
      * LinearInherit<mpl::vector<A<>,B> >::type return

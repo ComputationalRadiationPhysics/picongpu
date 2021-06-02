@@ -100,17 +100,17 @@ namespace pmacc
              * shifts them to the top left (front) corner cell of their corresponding cupla block.
              * So if BlockDim is 4x4x4 it shifts 64 cursors to (0,0,0), 64 to (4,0,0), 64 to (8,0,0), ...
              *
-             * \tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cupla blockDim.
-             * \tparam ThreadBlock ignored
+             * @tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cupla blockDim.
+             * @tparam ThreadBlock ignored
              */
             template<typename BlockDim, typename ThreadBlock = BlockDim>
             struct ForeachBlock
             {
                 /* operator()(zone, cursor0, cursor1, ..., cursorN-1, functor or lambdaFun)
                  *
-                 * \param zone Accepts currently only a zone::SphericZone object (e.g. containerObj.zone())
-                 * \param cursorN cursor for the N-th data source (e.g. containerObj.origin())
-                 * \param functor or lambdaFun either a functor with N arguments or a N-ary lambda function (e.g. _1 =
+                 * @param zone Accepts currently only a zone::SphericZone object (e.g. containerObj.zone())
+                 * @param cursorN cursor for the N-th data source (e.g. containerObj.origin())
+                 * @param functor or lambdaFun either a functor with N arguments or a N-ary lambda function (e.g. _1 =
                  * _2)
                  *
                  * It is called like functor(*cursor0(cellId), ..., *cursorN(cellId))

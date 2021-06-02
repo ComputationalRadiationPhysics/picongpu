@@ -50,15 +50,15 @@ namespace picongpu
     public:
         /** Dump the PhaseSpace host Buffer
          *
-         * \tparam Type the HBuffers element type
-         * \tparam int the HBuffers dimension
-         * \param hBuffer const reference to the hBuffer, including guard cells in spatial dimension
-         * \param axis_element plot to create: e.g. py, x from momentum/spatial-coordinate
-         * \param unit sim unit of the buffer
-         * \param strSpecies unique short hand name of the species
-         * \param filenameSuffix infix + extension part of openPMD filename
-         * \param currentStep current time step
-         * \param mpiComm communicator of the participating ranks
+         * @tparam Type the HBuffers element type
+         * @tparam int the HBuffers dimension
+         * @param hBuffer const reference to the hBuffer, including guard cells in spatial dimension
+         * @param axis_element plot to create: e.g. py, x from momentum/spatial-coordinate
+         * @param unit sim unit of the buffer
+         * @param strSpecies unique short hand name of the species
+         * @param filenameSuffix infix + extension part of openPMD filename
+         * @param currentStep current time step
+         * @param mpiComm communicator of the participating ranks
          */
         template<typename T_Type, int T_bufDim>
         void operator()(

@@ -33,7 +33,7 @@ namespace pmacc
          * The main reason to use this is for templated types where it's unknown
          * if they are fundamental or vector-like.
          *
-         * \tparam T_Type type of object
+         * @tparam T_Type type of object
          */
         template<typename T_Type>
         struct GetInitializedInstance

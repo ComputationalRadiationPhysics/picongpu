@@ -39,19 +39,19 @@ namespace picongpu
                 public:
                     /** Obtain the SI time delay that later enters the Ex(r, t), By(r, t) and Bz(r, t)
                      *  calculations as t.
-                     * \tparam T_dim Specializes for the simulation dimension
-                     *  \param auto_tdelay calculate the time delay such that the TWTS pulse is not
+                     * @tparam T_dim Specializes for the simulation dimension
+                     *  @param auto_tdelay calculate the time delay such that the TWTS pulse is not
                      *                     inside the simulation volume at simulation start
                      *                     timestep = 0 [default = true]
-                     *  \param tdelay_user_SI manual time delay if auto_tdelay is false
-                     *  \param halfSimSize center of simulation volume in number of cells
-                     *  \param pulselength_SI sigma of std. gauss for intensity (E^2)
-                     *  \param focus_y_SI the distance to the laser focus in y-direction [m]
-                     *  \param phi interaction angle between TWTS laser propagation vector and
+                     *  @param tdelay_user_SI manual time delay if auto_tdelay is false
+                     *  @param halfSimSize center of simulation volume in number of cells
+                     *  @param pulselength_SI sigma of std. gauss for intensity (E^2)
+                     *  @param focus_y_SI the distance to the laser focus in y-direction [m]
+                     *  @param phi interaction angle between TWTS laser propagation vector and
                      *             the y-axis [rad, default = 90.*(PI / 180.)]
-                     *  \param beta_0 propagation speed of overlap normalized
+                     *  @param beta_0 propagation speed of overlap normalized
                      *                to the speed of light [c, default = 1.0]
-                     *  \return time delay in SI units */
+                     *  @return time delay in SI units */
                     HDINLINE float_64 operator()(
                         const bool auto_tdelay,
                         const float_64 tdelay_user_SI,

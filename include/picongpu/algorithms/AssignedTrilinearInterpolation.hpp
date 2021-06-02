@@ -51,13 +51,13 @@ namespace picongpu
         /** Does a 3D trilinear field-to-point interpolation for
          * arbitrary assignment function and arbitrary field_value types.
          *
-         * \tparam T_AssignmentFunction function for assignment
-         * \tparam T_begin lower margin for interpolation
-         * \tparam T_end upper margin for interpolation
+         * @tparam T_AssignmentFunction function for assignment
+         * @tparam T_begin lower margin for interpolation
+         * @tparam T_end upper margin for interpolation
          *
-         * \param cursor cursor pointing to the field
-         * \param pos position of the interpolation point
-         * \return sum over: field_value * assignment
+         * @param cursor cursor pointing to the field
+         * @param pos position of the interpolation point
+         * @return sum over: field_value * assignment
          *
          * interpolate on grid points in range [T_begin;T_end]
          */

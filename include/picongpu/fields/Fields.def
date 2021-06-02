@@ -59,13 +59,13 @@ namespace picongpu
      */
     class FieldTmp;
 
-    /** Electric Field, \see FieldE.hpp */
+    /** Electric Field, @see FieldE.hpp */
     class FieldE;
 
-    /** Magnetic Field, \see FieldB.hpp */
+    /** Magnetic Field, @see FieldB.hpp */
     class FieldB;
 
-    /** Current Density j, \see FieldJ.hpp */
+    /** Current Density j, @see FieldJ.hpp */
     class FieldJ;
 
 } // namespace picongpu

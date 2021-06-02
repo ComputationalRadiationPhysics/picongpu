@@ -37,11 +37,11 @@ namespace pmacc
              */
             struct Reduce
             {
-                /* \param srcCursor Cursor located at the origin of the area of reduce
-                 * \param p_zone Zone of cells spanning the area of reduce
-                 * \param functor Functor with two arguments which returns the result of the reduce operation.
+                /* @param srcCursor Cursor located at the origin of the area of reduce
+                 * @param p_zone Zone of cells spanning the area of reduce
+                 * @param functor Functor with two arguments which returns the result of the reduce operation.
                  *
-                 * \tparam T_Operation reduce operation type from pmacc::operation::*
+                 * @tparam T_Operation reduce operation type from pmacc::operation::*
                  */
                 template<typename SrcCursor, typename Zone, typename T_Operation>
                 typename SrcCursor::ValueType operator()(

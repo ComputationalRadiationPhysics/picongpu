@@ -37,9 +37,9 @@ namespace picongpu
             /**@{*/
             /** Implementation of actual ionization current
              *
-             * \tparam T_Acc alpaka accelerator type
-             * \tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
-             * \tparam T_Dim dimension of simulation
+             * @tparam T_Acc alpaka accelerator type
+             * @tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
+             * @tparam T_Dim dimension of simulation
              */
             template<typename T_Acc, typename T_DestSpecies, unsigned T_Dim>
             struct IonizationCurrent<T_Acc, T_DestSpecies, T_Dim, current::EnergyConservation>
@@ -48,7 +48,7 @@ namespace picongpu
 
                 /** Ionization current routine
                  *
-                 * \tparam T_JBox type of current density data box
+                 * @tparam T_JBox type of current density data box
                  */
                 template<typename T_JBox>
                 HDINLINE void operator()(

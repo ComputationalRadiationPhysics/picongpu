@@ -56,9 +56,9 @@ namespace picongpu
              * \brief Ammosov-Delone-Krainov
              *        Tunneling ionization for hydrogenlike atoms
              *
-             * \tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
-             * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
-             * \tparam T_SrcSpecies type or name as boost::mpl::string of the particle species that is ionized
+             * @tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
+             * @tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
+             * @tparam T_SrcSpecies type or name as boost::mpl::string of the particle species that is ionized
              */
             template<
                 typename T_IonizationAlgorithm,
@@ -182,8 +182,8 @@ namespace picongpu
 
                 /** Determine number of new macro electrons due to ionization
                  *
-                 * \param ionFrame reference to frame of the to-be-ionized particles
-                 * \param localIdx local (linear) index in super cell / frame
+                 * @param ionFrame reference to frame of the to-be-ionized particles
+                 * @param localIdx local (linear) index in super cell / frame
                  */
                 template<typename T_Acc>
                 DINLINE uint32_t numNewParticles(T_Acc const& acc, FrameType& ionFrame, int localIdx)
@@ -226,10 +226,10 @@ namespace picongpu
                  *
                  * Ionization model specific particle creation
                  *
-                 * \tparam T_parentIon type of ion species that is being ionized
-                 * \tparam T_childElectron type of electron species that is created
-                 * \param parentIon ion instance that is ionized
-                 * \param childElectron electron instance that is created
+                 * @tparam T_parentIon type of ion species that is being ionized
+                 * @tparam T_childElectron type of electron species that is created
+                 * @param parentIon ion instance that is ionized
+                 * @param childElectron electron instance that is created
                  */
                 template<typename T_parentIon, typename T_childElectron, typename T_Acc>
                 DINLINE void operator()(T_Acc const& acc, T_parentIon& parentIon, T_childElectron& childElectron)

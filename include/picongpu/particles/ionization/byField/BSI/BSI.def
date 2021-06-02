@@ -31,12 +31,12 @@ namespace picongpu
         {
             /** Barrier Suppression Ionization - Implementation
              *
-             * \tparam T_DestSpecies electron species to be created
-             * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
-             * \tparam T_SrcSpecies particle species that is ionized
+             * @tparam T_DestSpecies electron species to be created
+             * @tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
+             * @tparam T_SrcSpecies particle species that is ionized
              *         default is boost::mpl placeholder because specialization
              *         cannot be known in list of particle species' flags
-             *         \see speciesDefinition.param
+             *         @see speciesDefinition.param
              */
             template<
                 typename T_IonizationAlgorithm,
@@ -60,13 +60,13 @@ namespace picongpu
              *   `proton number - number of inner shell electrons`.
              * - This model neglects the Stark upshift of ionization energies.
              *
-             * \tparam T_DestSpecies electron species to be created
-             * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
+             * @tparam T_DestSpecies electron species to be created
+             * @tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
              *
              * wrapper class,
              * needed because the SrcSpecies cannot be known during the
              * first specialization of the ionization model in the particle definition
-             * \see speciesDefinition.param
+             * @see speciesDefinition.param
              */
             template<typename T_DestSpecies, typename T_IonizationCurrent = current::None>
             struct BSI
@@ -83,8 +83,8 @@ namespace picongpu
              *   effective atomic numbers for each filled electron shell @see ionizer.param
              * - unvalidated and still in development
              *
-             * \tparam T_DestSpecies electron species to be created
-             * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
+             * @tparam T_DestSpecies electron species to be created
+             * @tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
              */
             template<typename T_DestSpecies, typename T_IonizationCurrent = current::None>
             struct BSIEffectiveZ
@@ -102,8 +102,8 @@ namespace picongpu
              *   hydrogenlike ions originally
              * - \todo needs to be extrapolated to arbitrary ions
              *
-             * \tparam T_DestSpecies electron species to be created
-             * \tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
+             * @tparam T_DestSpecies electron species to be created
+             * @tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
              */
             template<typename T_DestSpecies, typename T_IonizationCurrent = current::None>
             struct BSIStarkShifted

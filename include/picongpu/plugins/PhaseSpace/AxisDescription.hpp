@@ -30,9 +30,9 @@ namespace picongpu
      */
     struct AxisDescription
     {
-        /** px, py or pz: \see element_momentum*/
+        /** px, py or pz: @see element_momentum*/
         uint32_t momentum;
-        /** x, y or z: \see element_coordinate */
+        /** x, y or z: @see element_coordinate */
         uint32_t space;
 
         /** short hand enums */

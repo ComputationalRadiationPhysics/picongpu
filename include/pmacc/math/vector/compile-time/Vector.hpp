@@ -148,7 +148,7 @@ namespace pmacc
                  *
                  *  Creates the corresponding runtime vector object.
                  *
-                 *  \return RT_type runtime vector with same value type
+                 *  @return RT_type runtime vector with same value type
                  */
                 static HDINLINE RT_type toRT()
                 {

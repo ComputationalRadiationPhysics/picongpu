@@ -41,8 +41,8 @@ namespace picongpu
 
         /** Specify your background field E(r,t) here
          *
-         * \param cellIdx The total cell id counted from the start at t = 0
-         * \param currentStep The current time step */
+         * @param cellIdx The total cell id counted from the start at t = 0
+         * @param currentStep The current time step */
         HDINLINE float3_X operator()(
             const DataSpace<simDim>& /*cellIdx*/,
             const uint32_t /*currentStep*/
@@ -68,8 +68,8 @@ namespace picongpu
 
         /** Specify your background field B(r,t) here
          *
-         * \param cellIdx The total cell id counted from the start at t=0
-         * \param currentStep The current time step */
+         * @param cellIdx The total cell id counted from the start at t=0
+         * @param currentStep The current time step */
         HDINLINE float3_X operator()(
             const DataSpace<simDim>& /*cellIdx*/,
             const uint32_t /*currentStep*/
@@ -118,8 +118,8 @@ namespace picongpu
 
         /** Specify your background field J(r,t) here
          *
-         * \param cellIdx The total cell id counted from the start at t=0
-         * \param currentStep The current time step
+         * @param cellIdx The total cell id counted from the start at t=0
+         * @param currentStep The current time step
          */
         HDINLINE float3_X operator()(const DataSpace<simDim>& cellIdx, const uint32_t currentStep) const
         {

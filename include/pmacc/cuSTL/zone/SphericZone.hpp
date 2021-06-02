@@ -39,7 +39,7 @@ namespace pmacc
 
         /* spheric (no holes), cartesian zone
          *
-         * \tparam T_dim dimension of the zone
+         * @tparam T_dim dimension of the zone
          *
          * This is a zone which is simply described by a size and a offset.
          *

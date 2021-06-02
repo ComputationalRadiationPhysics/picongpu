@@ -29,11 +29,11 @@ namespace picongpu
         {
             /** Thomas-Fermi impact ionization model
              *
-             * \tparam T_DestSpecies electron species to be created
-             * \tparam T_SrcSpecies particle species that is ionized
+             * @tparam T_DestSpecies electron species to be created
+             * @tparam T_SrcSpecies particle species that is ionized
              *         default is boost::mpl placeholder because specialization
              *         cannot be known in list of particle species' flags
-             *         \see speciesDefinition.param
+             *         @see speciesDefinition.param
              */
             template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
             struct ThomasFermi_Impl;
@@ -57,12 +57,12 @@ namespace picongpu
              * \url http://www.sciencedirect.com/science/article/pii/S0065219908601451
              * doi:10.1016/S0065-2199(08)60145-1
              *
-             * \tparam T_DestSpecies electron species to be created
+             * @tparam T_DestSpecies electron species to be created
              *
              * wrapper class,
              * needed because the SrcSpecies cannot be known during the
              * first specialization of the ionization model in the particle definition
-             * \see speciesDefinition.param
+             * @see speciesDefinition.param
              */
             template<typename T_DestSpecies>
             struct ThomasFermi

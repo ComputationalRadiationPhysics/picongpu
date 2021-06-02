@@ -47,12 +47,12 @@ namespace gol
         typedef Evolution<MappingDesc> Evolutiontype;
 
         Space gridSize;
-        /* holds rule mask derived from 23/3 input, \see Evolution.hpp */
+        /* holds rule mask derived from 23/3 input, @see Evolution.hpp */
         Evolutiontype evo;
         GatherSlice gather;
 
         /* for storing black (dead) and white (alive) data for gol */
-        Buffer* buff1; /* Buffer(\see types.h) for swapping between old and new world */
+        Buffer* buff1; /* Buffer(@see types.h) for swapping between old and new world */
         Buffer* buff2; /* like evolve(buff2 &, const buff1) would work internally */
         uint32_t steps;
 

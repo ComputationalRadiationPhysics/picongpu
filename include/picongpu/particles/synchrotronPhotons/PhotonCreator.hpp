@@ -63,8 +63,8 @@ namespace picongpu
              *
              * This functor is called by the general particle creation module.
              *
-             * \tparam T_ElectronSpecies
-             * \tparam T_PhotonSpecies
+             * @tparam T_ElectronSpecies
+             * @tparam T_PhotonSpecies
              */
             template<typename T_ElectronSpecies, typename T_PhotonSpecies>
             struct PhotonCreator
@@ -330,8 +330,8 @@ namespace picongpu
                  *
                  * Called once for each single particle creation.
                  *
-                 * \tparam Electron type of electron which creates the photon
-                 * \tparam Photon type of photon that is created
+                 * @tparam Electron type of electron which creates the photon
+                 * @tparam Photon type of photon that is created
                  */
                 template<typename Electron, typename Photon, typename T_Acc>
                 DINLINE void operator()(const T_Acc& acc, Electron& electron, Photon& photon) const

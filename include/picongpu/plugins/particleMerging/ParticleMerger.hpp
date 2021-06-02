@@ -48,7 +48,7 @@ namespace picongpu
              * Voronoi particle merging algorithm for PIC codes.
              * Computer Physics Communications, 202, 165-174.
              *
-             * \tparam T_ParticlesType particle species
+             * @tparam T_ParticlesType particle species
              */
             template<
                 class T_ParticlesType,

@@ -199,8 +199,8 @@ namespace picongpu
 
             /** Calculate the Ex(r,t) field here
              *
-             * \param pos Spatial position of the target field.
-             * \param time Absolute time (SI, including all offsets and transformations) for calculating
+             * @param pos Spatial position of the target field.
+             * @param time Absolute time (SI, including all offsets and transformations) for calculating
              *             the field */
             HDINLINE EField::float_T EField::calcTWTSEx(const float3_64& pos, const float_64 time) const
             {
@@ -334,8 +334,8 @@ namespace picongpu
 
             /** Calculate the Ey(r,t) field here
              *
-             * \param pos Spatial position of the target field.
-             * \param time Absolute time (SI, including all offsets and transformations) for calculating
+             * @param pos Spatial position of the target field.
+             * @param time Absolute time (SI, including all offsets and transformations) for calculating
              *             the field */
             HDINLINE EField::float_T EField::calcTWTSEy(const float3_64& pos, const float_64 time) const
             {

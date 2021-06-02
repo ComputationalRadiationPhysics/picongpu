@@ -65,7 +65,7 @@ namespace picongpu
     // 5: BlowOut: typical fields, assuming that a LWFA in the blowout
     //             regime causes a bubble with radius of approx. the laser's
     //             beam waist (use for bubble fields)
-    ///  \return float3_X( tyBField, tyEField, tyCurrent )
+    ///  @return float3_X( tyBField, tyEField, tyCurrent )
 
     template<int T>
     struct typicalFields

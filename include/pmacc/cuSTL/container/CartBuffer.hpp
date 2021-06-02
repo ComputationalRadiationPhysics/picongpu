@@ -51,11 +51,11 @@ namespace pmacc
          * Is designed to be an RAII class, but does not fully obey the RAII rules (see copy-ctor).
          * The way memory gets allocated, copied and assigned is
          * fully controlled by three policy classes.
-         * \tparam Type type of a single value
-         * \tparam T_dim dimension of the container
-         * \tparam Allocator allocates and releases memory
-         * \tparam Copier copies one memory buffer to another
-         * \tparam Assigner assigns a value to every datum of a memory buffer
+         * @tparam Type type of a single value
+         * @tparam T_dim dimension of the container
+         * @tparam Allocator allocates and releases memory
+         * @tparam Copier copies one memory buffer to another
+         * @tparam Assigner assigns a value to every datum of a memory buffer
          *
          * Assigner policy has to support `apply2`: Assigner<Dim, CartBuffer>
          *
@@ -106,9 +106,9 @@ namespace pmacc
             HDINLINE CartBuffer& operator=(CartBuffer&& rhs);
 
             /* get a view. Views represent a clipped area of the container.
-             * \param a Top left corner of the view, inside the view.
+             * @param a Top left corner of the view, inside the view.
              * Negative values are remapped, e.g. Int<2>(-1,-2) == Int<2>(width-1, height-2)
-             * \param b Bottom right corner of the view, outside the view.
+             * @param b Bottom right corner of the view, outside the view.
              * Values are remapped, so that Int<2>(0,0) == Int<2>(width, height)
              */
             HDINLINE View<CartBuffer> view(
@@ -120,7 +120,7 @@ namespace pmacc
             /* get a safe cursor at the container's origin cell */
             HDINLINE cursor::SafeCursor<cursor::BufferCursor<Type, T_dim>> originSafe() const;
             /* get a component-twisted cursor at the container's origin cell
-             * \param axes x-axis -> axes[0], y-axis -> axes[1], ...
+             * @param axes x-axis -> axes[0], y-axis -> axes[1], ...
              * */
             HDINLINE cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<T_dim>, char*>
             originCustomAxes(const math::UInt32<T_dim>& axes) const;

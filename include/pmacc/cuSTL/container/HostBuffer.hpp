@@ -43,8 +43,8 @@ namespace pmacc
     {
         /** typedef version of a CartBuffer for a CPU.
          * Additional feature: Able to copy data from a DeviceBuffer
-         * \tparam Type type of a single datum
-         * \tparam T_dim Dimension of the container
+         * @tparam Type type of a single datum
+         * @tparam T_dim Dimension of the container
          */
         template<typename Type, int T_dim>
         class HostBuffer
@@ -73,9 +73,9 @@ namespace pmacc
 
             /* constructors
              *
-             * \param _size size of the container
+             * @param _size size of the container
              *
-             * \param x,y,z convenient wrapper
+             * @param x,y,z convenient wrapper
              *
              */
             HINLINE HostBuffer(const math::Size_t<T_dim>& size) : Base(size)

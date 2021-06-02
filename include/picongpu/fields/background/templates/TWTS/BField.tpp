@@ -288,8 +288,8 @@ namespace picongpu
 
             /** Calculate the By(r,t) field here
              *
-             * \param pos Spatial position of the target field.
-             * \param time Absolute time (SI, including all offsets and transformations)
+             * @param pos Spatial position of the target field.
+             * @param time Absolute time (SI, including all offsets and transformations)
              *             for calculating the field */
             HDINLINE BField::float_T BField::calcTWTSBy(const float3_64& pos, const float_64 time) const
             {
@@ -439,8 +439,8 @@ namespace picongpu
 
             /** Calculate the Bz(r,t) field
              *
-             * \param pos Spatial position of the target field.
-             * \param time Absolute time (SI, including all offsets and transformations)
+             * @param pos Spatial position of the target field.
+             * @param time Absolute time (SI, including all offsets and transformations)
              *             for calculating the field */
             HDINLINE BField::float_T BField::calcTWTSBz_Ex(const float3_64& pos, const float_64 time) const
             {
@@ -551,8 +551,8 @@ namespace picongpu
 
             /** Calculate the Bx(r,t) field
              *
-             * \param pos Spatial position of the target field.
-             * \param time Absolute time (SI, including all offsets and transformations)
+             * @param pos Spatial position of the target field.
+             * @param time Absolute time (SI, including all offsets and transformations)
              *             for calculating the field */
             HDINLINE BField::float_T BField::calcTWTSBx(const float3_64& pos, const float_64 time) const
             {
@@ -564,8 +564,8 @@ namespace picongpu
 
             /** Calculate the Bz(r,t) field
              *
-             * \param pos Spatial position of the target field.
-             * \param time Absolute time (SI, including all offsets and transformations)
+             * @param pos Spatial position of the target field.
+             * @param time Absolute time (SI, including all offsets and transformations)
              *             for calculating the field */
             HDINLINE BField::float_T BField::calcTWTSBz_Ey(const float3_64& pos, const float_64 time) const
             {

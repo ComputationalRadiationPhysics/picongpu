@@ -58,7 +58,7 @@ namespace pmacc
             /**
              * Initializes this instance
              *
-             * \param cellIdx index into the underlying RNG Provider
+             * @param cellIdx index into the underlying RNG Provider
              */
             template<typename T_Offset>
             HDINLINE void init(const T_Offset& cellIdx)

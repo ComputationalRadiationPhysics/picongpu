@@ -246,7 +246,7 @@ namespace pmacc
 
     protected:
         /**
-         * mask which is a combination of the type \see ExchangeType
+         * mask which is a combination of the type @see ExchangeType
          */
         uint32_t bitMask;
     };

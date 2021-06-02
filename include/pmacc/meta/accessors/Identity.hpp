@@ -34,7 +34,7 @@ namespace pmacc
         {
             /** Get the type of a given type without changes
              *
-             * \tparam T in type
+             * @tparam T in type
              *
              */
             template<typename T = bmpl::_1>

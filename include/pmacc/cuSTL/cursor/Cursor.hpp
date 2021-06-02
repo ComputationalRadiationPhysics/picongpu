@@ -37,11 +37,11 @@ namespace pmacc
     {
         /** A cursor is used to access a single datum and to jump to another one.
          * It is always located at a certain datum. Think of a generalized iterator.
-         * \tparam _Accessor Policy functor class that is called inside operator*().
+         * @tparam _Accessor Policy functor class that is called inside operator*().
          * It typically returns a reference to the current selected datum.
-         * \tparam _Navigator Policy functor class that is called inside operator()().
+         * @tparam _Navigator Policy functor class that is called inside operator()().
          * It jumps to another datum.
-         * \tparam _Marker Runtime data that is used by the accessor and the navigator.
+         * @tparam _Marker Runtime data that is used by the accessor and the navigator.
          * This is typically a data pointer.
          */
         template<typename _Accessor, typename _Navigator, typename _Marker>
@@ -71,7 +71,7 @@ namespace pmacc
             }
 
             /** access
-             * \return Accessor's return type.
+             * @return Accessor's return type.
              * Typically a reference to the current selected single datum.
              */
             HDINLINE
@@ -92,9 +92,9 @@ namespace pmacc
             }
 
             /** jumping
-             * \param jump Specifies a jump relative to the current selected datum.
+             * @param jump Specifies a jump relative to the current selected datum.
              * This is usually a int vector but may be any type that navigator accepts.
-             * \return A new cursor, which has jumped according to the jump param.
+             * @return A new cursor, which has jumped according to the jump param.
              */
             template<typename Jump>
             HDINLINE This operator()(const Jump& jump) const

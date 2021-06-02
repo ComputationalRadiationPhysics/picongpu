@@ -29,8 +29,8 @@ namespace pmacc
     {
         /* Sticks two navigators together resulting in a new navigator.
          *
-         * \tparam NaviA first navigator to be called
-         * \tparam NaviB second navigator to be called
+         * @tparam NaviA first navigator to be called
+         * @tparam NaviB second navigator to be called
          */
         template<typename NaviA, typename NaviB>
         struct StackedNavigator

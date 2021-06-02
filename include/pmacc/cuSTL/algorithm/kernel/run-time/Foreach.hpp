@@ -162,7 +162,7 @@ namespace pmacc
                 {
                     math::Size_t<DIM3> _blockDim;
 
-                    /* \param _blockDim size of the cupla blockDim.
+                    /* @param _blockDim size of the cupla blockDim.
                      *
                      * blockDim has to fit into the computing volume.
                      * E.g. (8,8,4) fits into (256, 256, 256)
@@ -176,9 +176,9 @@ namespace pmacc
 
                     /* operator()(zone, cursor0, cursor1, ..., cursorN-1, functor or lambdaFun)
                      *
-                     * \param zone Accepts currently only a zone::SphericZone object (e.g. containerObj.zone())
-                     * \param cursorN cursor for the N-th data source (e.g. containerObj.origin())
-                     * \param functor or lambdaFun either a functor with N arguments or a N-ary lambda function (e.g.
+                     * @param zone Accepts currently only a zone::SphericZone object (e.g. containerObj.zone())
+                     * @param cursorN cursor for the N-th data source (e.g. containerObj.origin())
+                     * @param functor or lambdaFun either a functor with N arguments or a N-ary lambda function (e.g.
                      * _1 = _2)
                      *
                      * The functor or lambdaFun is called for each cell within the zone.

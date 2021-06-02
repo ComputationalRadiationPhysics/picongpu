@@ -37,7 +37,7 @@ namespace pmacc
         {
             /** Return a cursor that does 1D, 2D or 3D, linear interpolation on input data.
              *
-             * \tparam T_PositionComp integral type of the weighting factor
+             * @tparam T_PositionComp integral type of the weighting factor
              */
             template<typename T_PositionComp = float>
             struct LinearInterp

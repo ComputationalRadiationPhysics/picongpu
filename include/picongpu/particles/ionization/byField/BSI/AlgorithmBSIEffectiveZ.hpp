@@ -48,15 +48,15 @@ namespace picongpu
             {
                 /** Functor implementation
                  *
-                 * \tparam EType type of electric field
-                 * \tparam ParticleType type of particle to be ionized
+                 * @tparam EType type of electric field
+                 * @tparam ParticleType type of particle to be ionized
                  *
-                 * \param eField electric field value at t=0
-                 * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
+                 * @param eField electric field value at t=0
+                 * @param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
                  *
                  * and "t" being with respect to the current time step (on step/half a step backward/-""-forward)
                  *
-                 * \return ionization energy and number of new macro electrons to be created
+                 * @return ionization energy and number of new macro electrons to be created
                  * (current implementation supports only 0 or 1 per execution)
                  */
                 template<typename EType, typename ParticleType>

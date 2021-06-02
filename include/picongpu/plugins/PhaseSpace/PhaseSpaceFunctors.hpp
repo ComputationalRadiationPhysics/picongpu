@@ -38,7 +38,7 @@ namespace picongpu
 
     /** Atomic Add Functor
      *
-     * \tparam Type of the values to perform a atomicAdd on
+     * @tparam Type of the values to perform a atomicAdd on
      */
     template<typename Type>
     struct FunctorAtomicAdd
@@ -59,9 +59,9 @@ namespace picongpu
      * add the particle to the shared memory buffer for that phase
      * space snippet the super cell contributes to.
      *
-     * \tparam r_dir spatial direction of the phase space (0,1,2) \see AxisDescription
-     * \tparam num_pbins number of bins in momentum space \see PhaseSpace.hpp
-     * \tparam SuperCellSize how many cells form a super cell \see memory.param
+     * @tparam r_dir spatial direction of the phase space (0,1,2) @see AxisDescription
+     * @tparam num_pbins number of bins in momentum space @see PhaseSpace.hpp
+     * @tparam SuperCellSize how many cells form a super cell @see memory.param
      */
     template<uint32_t r_dir, uint32_t num_pbins, typename SuperCellSize>
     struct FunctorParticle
@@ -70,11 +70,11 @@ namespace picongpu
 
         /** Functor implementation
          *
-         * \param frame current frame for this block
-         * \param particleID id of the particle in the current frame
-         * \param curDBufferOriginInBlock section of the phase space, shifted to the start of the block
-         * \param el_p coordinate of the momentum \see PhaseSpace::axis_element \see AxisDescription
-         * \param axis_p_range range of the momentum coordinate \see PhaseSpace::axis_p_range
+         * @param frame current frame for this block
+         * @param particleID id of the particle in the current frame
+         * @param curDBufferOriginInBlock section of the phase space, shifted to the start of the block
+         * @param el_p coordinate of the momentum @see PhaseSpace::axis_element @see AxisDescription
+         * @param axis_p_range range of the momentum coordinate @see PhaseSpace::axis_p_range
          */
         template<typename FramePtr, typename float_PS, typename Pitch, typename T_Acc>
         DINLINE void operator()(
@@ -124,12 +124,12 @@ namespace picongpu
      * Afterwards all blocks reduce their data to a combined gpu-local (spatial)
      * snippet of the phase space in global memory.
      *
-     * \tparam Species the particle species to create the phase space for
-     * \tparam T_filter type of the particle filter
-     * \tparam SuperCellSize how many cells form a super cell \see memory.param
-     * \tparam float_PS type for each bin in the phase space
-     * \tparam num_pbins number of bins in momentum space \see PhaseSpace.hpp
-     * \tparam r_dir spatial direction of the phase space (0,1,2) \see AxisDescription
+     * @tparam Species the particle species to create the phase space for
+     * @tparam T_filter type of the particle filter
+     * @tparam SuperCellSize how many cells form a super cell @see memory.param
+     * @tparam float_PS type for each bin in the phase space
+     * @tparam num_pbins number of bins in momentum space @see PhaseSpace.hpp
+     * @tparam r_dir spatial direction of the phase space (0,1,2) @see AxisDescription
      */
     template<
         typename Species,
@@ -153,11 +153,11 @@ namespace picongpu
 
         /** Constructor to transfer params to device
          *
-         * \param pb ParticleBox for a species
-         * \param parFilter filter functor to select particles
-         * \param cur cursor to start of the local phase space in global memory
-         * \param p_dir direction of the 2D phase space in momentum \see AxisDescription
-         * \param p_range range of the momentum axis \see PhaseSpace::axis_p_range
+         * @param pb ParticleBox for a species
+         * @param parFilter filter functor to select particles
+         * @param cur cursor to start of the local phase space in global memory
+         * @param p_dir direction of the 2D phase space in momentum @see AxisDescription
+         * @param p_range range of the momentum axis @see PhaseSpace::axis_p_range
          */
         HDINLINE
         FunctorBlock(
@@ -176,9 +176,9 @@ namespace picongpu
 
         /** Called for the first cell of each block #-of-cells-in-block times
          *
-         * \param indexBlockOffset cell index in global memory, describes where
+         * @param indexBlockOffset cell index in global memory, describes where
          *                         the current block starts
-         *                         \see cuSTL/algorithm/kernel/Foreach.hpp
+         *                         @see cuSTL/algorithm/kernel/Foreach.hpp
          */
         template<typename T_Acc>
         DINLINE void operator()(const T_Acc& acc, const pmacc::math::Int<simDim>& indexBlockOffset)

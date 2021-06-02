@@ -36,7 +36,7 @@ namespace pmacc
          * This functor derives a unique seed for each MPI rank (or GPU) from
          * a given global seed in a deterministic manner.
          *
-         * \tparam T_DIM Dimensionality of the simulation (1-3 D)
+         * @tparam T_DIM Dimensionality of the simulation (1-3 D)
          */
         template<unsigned T_DIM>
         struct SeedPerRank
@@ -48,10 +48,10 @@ namespace pmacc
              * it is furthermore guaranteed that this number does not collide
              * with an other seed.
              *
-             * \param localSeed Initial seed to vary two identical simulations
+             * @param localSeed Initial seed to vary two identical simulations
              *                  can have been xor'ed with e.g. a unique species id
              *                  to get an unique seed per species
-             * \return uint32_t seed
+             * @return uint32_t seed
              */
             uint32_t operator()(uint32_t localSeed)
             {

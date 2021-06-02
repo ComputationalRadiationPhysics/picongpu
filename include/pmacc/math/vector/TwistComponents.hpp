@@ -63,10 +63,10 @@ namespace pmacc
          * a new navigator which merely consists of the old navigator plus a twisting navigator.
          * This new navigator does not use any real memory.
          *
-         * \tparam T_Axes Mapped indices
-         * \tparam T_Vector type of vector to be twisted
-         * \param vector vector to be twisted
-         * \return reference of the input vector with twisted axes.
+         * @tparam T_Axes Mapped indices
+         * @tparam T_Vector type of vector to be twisted
+         * @param vector vector to be twisted
+         * @return reference of the input vector with twisted axes.
          */
         template<typename T_Axes, typename T_Vector>
         HDINLINE typename result_of::TwistComponents<T_Axes, T_Vector>::type twistComponents(T_Vector& vector)

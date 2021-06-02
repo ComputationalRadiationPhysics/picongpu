@@ -31,7 +31,7 @@ namespace pmacc
         namespace policies
         {
             /**
-             * Policy for \see HandleGuardRegion that moves particles from guard cells to exchange buffers
+             * Policy for @see HandleGuardRegion that moves particles from guard cells to exchange buffers
              * and sends those to the correct neighbors
              */
             struct ExchangeParticles

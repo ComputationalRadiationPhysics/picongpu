@@ -192,7 +192,7 @@ namespace picongpu
 
                         /** we now initialize all attributes of the new particle to their default values
                          *   some attributes, such as the position, localCellIdx, weighting or the
-                         *   multiMask (\see AttrToIgnore) of the particle will be set individually
+                         *   multiMask (@see AttrToIgnore) of the particle will be set individually
                          *   in the following lines since they are already known at this point.
                          */
                         {

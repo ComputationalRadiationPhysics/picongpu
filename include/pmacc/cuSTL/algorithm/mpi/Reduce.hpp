@@ -36,7 +36,7 @@ namespace pmacc
         {
             /** Reduce algorithm for mpi
              *
-             * \tparam dim dimension of the mpi node volume which has to be reduced.
+             * @tparam dim dimension of the mpi node volume which has to be reduced.
              *
              * This algorithm reduces node-wise. For each node you pass a data container as source
              * and another container of the same size as destination. The result is stored in
@@ -57,8 +57,8 @@ namespace pmacc
             public:
                 /** constructor
                  *
-                 * \param zone The zone specifies which mpi-nodes participate in the reduce operation.
-                 * \param setThisAsRoot Set this node explicitly as root. May only be true for one node.
+                 * @param zone The zone specifies which mpi-nodes participate in the reduce operation.
+                 * @param setThisAsRoot Set this node explicitly as root. May only be true for one node.
                  *
                  * if setThisAsRoot is not set mpi chooses the root node.
                  *
@@ -68,9 +68,9 @@ namespace pmacc
 
                 /* execute the algorithm
                  *
-                 * \param dest destination container
-                 * \param src source container
-                 * \param ExprOrFunctor functor with two arguments which returns the result of the reduce operation.
+                 * @param dest destination container
+                 * @param src source container
+                 * @param ExprOrFunctor functor with two arguments which returns the result of the reduce operation.
                  *
                  * Since only the functor's type is given, the functor must have a standart constructor.
                  *

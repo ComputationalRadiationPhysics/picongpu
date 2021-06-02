@@ -31,7 +31,7 @@ namespace pmacc
          * Views don't take care of reference counters. So if the corresponding
          * container dies, all views become invalid.
          * Usual way to contruct a view goes with container.view(...);
-         * \tparam Buffer Corresponding container type
+         * @tparam Buffer Corresponding container type
          */
         template<typename Buffer>
         struct View : public Buffer

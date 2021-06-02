@@ -33,7 +33,7 @@ namespace pmacc
     {
         /** Performs a 1D, 2D or 3D, linear interpolation on access.
          *
-         * \tparam T_Cursor input data
+         * @tparam T_Cursor input data
          */
         template<typename T_Cursor, int dim = cursor::traits::dim<T_Cursor>::value>
         struct LinearInterpAccessor;
