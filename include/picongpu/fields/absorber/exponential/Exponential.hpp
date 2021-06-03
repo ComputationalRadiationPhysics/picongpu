@@ -54,7 +54,7 @@ namespace picongpu
                     Exponential()
                     {
                         // Copy thickness from grid.param
-                        for(uint32_t axis = 0u; axis < 3u; axis++)
+                        for(uint32_t axis = 0u; axis < simDim; axis++)
                             for(uint32_t direction = 0u; direction < 2u; direction++)
                                 numCells[axis][direction] = ABSORBER_CELLS[axis][direction];
                         name = std::string{"exponential damping"};

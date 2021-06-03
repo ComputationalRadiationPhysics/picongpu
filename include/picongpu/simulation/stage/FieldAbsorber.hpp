@@ -50,7 +50,7 @@ namespace picongpu
                     desc.add_options()(
                         "fieldAbsorber",
                         po::value<std::string>(&kindName),
-                        (std::string("Field absorber kind [exponential, pml] default: " + kindName).c_str()));
+                        std::string("Field absorber kind [exponential, pml] default: " + kindName).c_str());
                 }
 
                 /** Load the stage during loading of the simulation.

@@ -44,30 +44,14 @@ namespace picongpu
     {
         namespace maxwellSolver
         {
-            // TODO move this comment
-            /** Yee field solver with perfectly matched layer (PML) absorber
+            /** Finite-difference time-domain (FDTD) Maxwell's solver on a regular Yee grid
              *
-             * Absorption is done using convolutional perfectly matched layer (CPML),
-             * implemented according to [Taflove, Hagness].
-             *
-             * This class template is a public interface to be used, e.g. in .param
-             * files and is compatible with other field solvers. Parameters of PML
-             * are taken from pml.param, pml.unitless.
-             *
-             * Enabling this solver results in more memory being used on a device:
-             * 12 additional scalar field values per each grid cell of a local domain.
-             * Another limitation is not full persistency with checkpointing: the
-             * additional values are not saved and so set to 0 after loading a
-             * checkpoint (which in some cases still provides proper absorption, but
-             * it is not guaranteed and results will differ due to checkpointing).
-             *
-             * This class template implements the general flow of CORE and BORDER field
-             * updates and communication.
+             * This class template implements FDTD scheme for any given curl types.
+             * All supported field solvers, except placeholder None, are aliases of this template.
              *
              * @tparam T_CurlE functor to compute curl of E
              * @tparam T_CurlB functor to compute curl of B
              */
-
             template<typename T_CurlE, typename T_CurlB>
             class Yee
             {
@@ -94,19 +78,13 @@ namespace picongpu
                  */
                 void update_beforeCurrent(uint32_t const currentStep)
                 {
-                    /* These steps are the same as in the Yee solver, PML updates are done as part of methods of
-                     * solver. Note that here we do the second half of updating B, thus completing the first half
-                     * started in a call to update_afterCurrent() at the previous time step. This splitting of B update
-                     * is standard for Yee-type field solvers in PIC codes due to particle pushers normally requiring E
-                     * and B values defined at the same time while the field solver operates with time-staggered
-                     * fields. However, while the standard Yee solver in vacuum is linear in a way of two consecutive
-                     * updates by dt/2 being equal to one update by dt, this is not true for the convolutional field
-                     * updates in PML. Thus, for PML we have to distinguish between the updates by dt/2 by introducing
-                     * first and second halves of the update. This distinction only concerns the convolutional field B
-                     * data used inside the PML, and not the full fields used by the rest of the code. In the very
-                     * first time step of a simulation we start with the second half right away, but this is no
-                     * problem, since the only meaningful initial conditions in the PML area are zero for the
-                     * to-be-absorbed components.
+                    /* As typical for electrodynamic PIC codes, we split an FDTD update of B into two halves.
+                     * (This comes from commonly used particle pushers needing E and B at the same time.)
+                     * Here we do the second half of updating B.
+                     * It completes the first half in update_afterCurrent() at the previous time step.
+                     * In vacuum, the updates are linear and splitting could only influence floating-point arithmetic.
+                     * For PML there is a difference, it is treated inside the absorber implementation.
+                     * In both cases, the full E and B fields behave as expected after the update.
                      */
                     updateBSecondHalf<CORE + BORDER>(currentStep);
                     auto incidentFieldSolver = fields::incidentField::Solver{cellDescription};
@@ -130,10 +108,6 @@ namespace picongpu
                  */
                 void update_afterCurrent(uint32_t const currentStep)
                 {
-                    /* As explained in more detail in comments inside update_beforeCurrent(), here we start a new step
-                     * of updating B in terms of the time-staggered Yee grid. And so this is the first half of B
-                     * update, to be complete in a call to update_beforeCurrent() on the next time step.
-                     */
                     auto& absorber = absorber::Absorber::get();
                     if(absorber.getKind() == absorber::Absorber::Kind::Exponential)
                     {
@@ -150,6 +124,7 @@ namespace picongpu
 
                     EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());
 
+                    // First and second halves of B update are explained inside update_beforeCurrent()
                     updateBFirstHalf<CORE>(currentStep);
                     __setTransactionEvent(eRfieldE);
                     updateBFirstHalf<BORDER>(currentStep);
@@ -182,11 +157,12 @@ namespace picongpu
 
                 /** Propagate B values in the given area by the first half of a time step
                  *
-                 * This operation propagates grid values of field B by dt/2 and prepares the internal state of
-                 * convolutional components so that calling updateBSecondHalf() afterwards competes the update.
+                 * This operation propagates grid values of field B by dt/2.
+                 * If PML is used, it also prepares the internal state of convolutional components
+                 * so that calling updateBSecondHalf() afterwards competes the update.
                  *
                  * @tparam T_Area area to apply updates to, the curl must be applicable to all points;
-                 * normally CORE, BORDER, or CORE + BORDER
+                 *                normally CORE, BORDER, or CORE + BORDER
                  *
                  * @param currentStep index of the current time iteration
                  */
@@ -198,13 +174,13 @@ namespace picongpu
 
                 /** Propagate B values in the given area by the second half of a time step
                  *
-                 * This operation propagates grid values of field B by dt/2 and relies on the internal state of
-                 * convolutional components set up by a prior call to updateBFirstHalf(). After this call is
-                 * completed, the convolutional components are in the state to call updateBFirstHalf() for the
-                 * next time step.
+                 * This operation propagates grid values of field B by dt/2.
+                 * If PML is used, it relies on the internal state of convolutional components
+                 * having been set up by a prior call to updateBFirstHalf().
+                 * Then this call leaves it ready for updateBFirstHalf() called on the next time step.
                  *
                  * @tparam T_Area area to apply updates to, the curl must be applicable to all points;
-                 * normally CORE, BORDER, or CORE + BORDER
+                 *                normally CORE, BORDER, or CORE + BORDER
                  *
                  * @param currentStep index of the current time iteration
                  */
@@ -216,12 +192,11 @@ namespace picongpu
 
                 /** Propagate B values in the given area by half a time step
                  *
-                 * @tparam T_Area area to apply updates to, the curl must be
-                 * applicable to all points; normally CORE, BORDER, or CORE + BORDER
+                 * @tparam T_Area area to apply updates to, the curl must be applicable to all points;
+                 *                normally CORE, BORDER, or CORE + BORDER
                  *
                  * @param currentStep index of the current time iteration
-                 * @param updatePsiB whether convolutional magnetic fields need to be updated, or are
-                 * up-to-date
+                 * @param updatePsiB whether convolutional magnetic fields need to be updated, or are up-to-date
                  */
                 template<uint32_t T_Area>
                 void updateBHalf(uint32_t const currentStep, bool const updatePsiB)

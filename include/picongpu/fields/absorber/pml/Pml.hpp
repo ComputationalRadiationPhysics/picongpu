@@ -50,7 +50,7 @@ namespace picongpu
                     Pml()
                     {
                         // Copy thickness from pml.param
-                        for(uint32_t axis = 0u; axis < 3u; axis++)
+                        for(uint32_t axis = 0u; axis < simDim; axis++)
                             for(uint32_t direction = 0u; direction < 2u; direction++)
                                 numCells[axis][direction] = maxwellSolver::Pml::NUM_CELLS[axis][direction];
                         name = std::string{"convolutional PML"};

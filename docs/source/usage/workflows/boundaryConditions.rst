@@ -34,7 +34,7 @@ Note that particle absorption happens at the external surface of the field absor
 
 The field absorber mechanism and user-controlled parameters depend on the field absorber kind enabled.
 
-It is controlled by command-line option ``fieldAbsorber.kind``.
+It is controlled by command-line option ``--fieldAbsorber.kind``.
 For the exponential absorber (default), the parameters are controlled by :ref:`grid.param <usage-params-core>`.
 Absorber thickness of about 32 cells is recommended.
 
