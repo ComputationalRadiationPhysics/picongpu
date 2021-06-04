@@ -61,7 +61,7 @@ namespace picongpu
                     desc.add_options()(
                         "currentInterpolation",
                         po::value<std::string>(&kindName),
-                        (std::string("Current interpolation kind [None, Binomial] default: " + kindName).c_str()));
+                        std::string("Current interpolation kind [none, binomial] default: " + kindName).c_str());
                 }
 
                 /** Initialize the current interpolation stage
