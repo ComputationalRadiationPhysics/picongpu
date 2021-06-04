@@ -26,10 +26,7 @@ module load DefApps/alt
 module load git/2.31.1
 module load cmake/3.20.2
 module load craype-accel-amd-gfx908
-#module load rocm/4.1.0 # currently broken, thus use system installation by
-export ROCM_PATH=/opt/rocm-4.1.0
-export PATH=$ROCM_PATH/bin:$PATH
-export CMAKE_PREFIX_PATH=$ROCM_PATH:$CMAKE_PREFIX_PATH
+module load rocm/4.1.0
 
 export HIP_PATH=$ROCM_PATH/hip # has to be set in order to be able to compile
 
@@ -47,6 +44,7 @@ module load openpmd-api/0.13.2
 module load libpng/1.6.37
 
 # Self-Build Software #########################################################
+# Optional, not required.
 #
 # needs to be compiled by the user
 # Check the install script at
