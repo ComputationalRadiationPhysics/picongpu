@@ -68,12 +68,12 @@ namespace picongpu
                     const picongpu::float_64 phi(my_index_phi * delta_angle);
 
                     /* compute unit vector */
-                    picongpu::float_32 sinPhi;
-                    picongpu::float_32 cosPhi;
-                    picongpu::float_32 sinTheta;
-                    picongpu::float_32 cosTheta;
-                    pmacc::math::sincos(precisionCast<picongpu::float_32>(phi), sinPhi, cosPhi);
-                    pmacc::math::sincos(precisionCast<picongpu::float_32>(theta), sinTheta, cosTheta);
+                    picongpu::float_X sinPhi;
+                    picongpu::float_X cosPhi;
+                    picongpu::float_X sinTheta;
+                    picongpu::float_X cosTheta;
+                    pmacc::math::sincos(precisionCast<picongpu::float_X>(phi), sinPhi, cosPhi);
+                    pmacc::math::sincos(precisionCast<picongpu::float_X>(theta), sinTheta, cosTheta);
                     return vector_64(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
                 }
 

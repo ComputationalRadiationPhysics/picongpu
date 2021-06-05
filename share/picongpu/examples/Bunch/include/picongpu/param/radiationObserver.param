@@ -68,9 +68,9 @@ namespace picongpu
                     /* + picongpu::PI -> turn observation direction 180 degrees towards -y */
 
                     /* compute observation unit vector */
-                    picongpu::float_32 sinTheta;
-                    picongpu::float_32 cosTheta;
-                    pmacc::math::sincos(precisionCast<picongpu::float_32>(theta), sinTheta, cosTheta);
+                    picongpu::float_X sinTheta;
+                    picongpu::float_X cosTheta;
+                    pmacc::math::sincos(precisionCast<picongpu::float_X>(theta), sinTheta, cosTheta);
                     return vector_64(sinTheta, cosTheta, 0.0);
                 }
 
