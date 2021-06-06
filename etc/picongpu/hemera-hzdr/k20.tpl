@@ -115,6 +115,6 @@ fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  $(!TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec -tag-output --display-map !TBG_dstPath/input/bin/picongpu \
-    !TBG_author !TBG_programParams)
+  source !TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec -tag-output --display-map !TBG_dstPath/input/bin/picongpu \
+    !TBG_author !TBG_programParams
 fi

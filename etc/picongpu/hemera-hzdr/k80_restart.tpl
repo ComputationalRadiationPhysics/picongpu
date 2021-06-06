@@ -175,8 +175,8 @@ else
 fi
 
 if [ $? -eq 0 ] ; then
-  $(!TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec -tag-output --display-map !TBG_dstPath/input/bin/picongpu \
-    $stepSetup !TBG_author $programParams)
+  source !TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec -tag-output --display-map !TBG_dstPath/input/bin/picongpu \
+    $stepSetup !TBG_author $programParams
 fi
 
 if [ $nextStep -lt $finalStep ]
