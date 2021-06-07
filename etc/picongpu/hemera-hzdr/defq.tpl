@@ -105,6 +105,6 @@ export OMPI_MCA_io=^ompio
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  $(!TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec --bind-to none !TBG_dstPath/tbg/cpuNumaStarter.sh \
-    !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams)
+  source !TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec --bind-to none !TBG_dstPath/tbg/cpuNumaStarter.sh \
+    !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 fi
