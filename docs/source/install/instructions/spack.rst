@@ -32,6 +32,8 @@ First `install spack <http://spack.readthedocs.io/en/latest/getting_started.html
 
    # add the PIConGPU repository
    git clone https://github.com/ComputationalRadiationPhysics/spack-repo.git $HOME/src/spack-repo
+   
+   # add the new repo to spack
    spack repo add $HOME/src/spack-repo
 
 .. note::
