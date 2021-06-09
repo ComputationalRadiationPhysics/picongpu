@@ -197,14 +197,14 @@ namespace picongpu
 
                 /** Interpret this as ExponentialImpl instance
                  *
-                 * \return reference to this object if conversion is valid,
+                 * @return reference to this object if conversion is valid,
                  *         throws otherwise
                  */
                 inline exponential::ExponentialImpl& asExponentialImpl();
 
                 /** Interpret this as PmlImpl instance
                  *
-                 * \return reference to this object if conversion is valid,
+                 * @return reference to this object if conversion is valid,
                  *         throws otherwise
                  */
                 inline pml::PmlImpl& asPmlImpl();

@@ -26,6 +26,7 @@
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
+#include "picongpu/traits/IsFieldOutputOptional.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/manager_common.hpp>
@@ -208,8 +209,8 @@ namespace picongpu
                 DataConnector& dc = Environment<>::get().DataConnector();
                 ThreadParams* tp = params;
 
-                // Skip PML fields when PML is not enabled
-                if(!dc.hasId(T_Field::getName()))
+                // Skip optional fields
+                if(traits::IsFieldOutputOptional<T_Field>::value && !dc.hasId(T_Field::getName()))
                     return;
 
                 /* load field without copying data to host */

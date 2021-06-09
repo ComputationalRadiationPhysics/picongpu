@@ -27,6 +27,7 @@
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
+#include "picongpu/traits/IsFieldOutputOptional.hpp"
 
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/fields/SimulationFieldHelper.hpp>
@@ -450,6 +451,22 @@ namespace picongpu
          */
         template<>
         struct IsFieldDomainBound<fields::absorber::pml::FieldB> : std::false_type
+        {
+        };
+
+        /** Field optional output trait for output and checkpointing:
+         *  PML fields are optional, they are only instantiated for the PML absorber.
+         */
+        template<>
+        struct IsFieldOutputOptional<fields::absorber::pml::FieldE> : std::true_type
+        {
+        };
+
+        /** Field optional output trait for output and checkpointing:
+         *  PML fields are optional, they are only instantiated for the PML absorber.
+         */
+        template<>
+        struct IsFieldOutputOptional<fields::absorber::pml::FieldB> : std::true_type
         {
         };
 

@@ -217,12 +217,14 @@ namespace picongpu
                          numWorkers)(mapper, updateFunctor, fieldE->getDeviceDataBox(), fieldB->getDeviceDataBox());
                     }
                     else
+                    {
                         PMACC_KERNEL(Kernel{})
-                    (mapper.getGridDim(), numWorkers)(
-                        mapper,
-                        yee::UpdateBHalfFunctor<CurlE>{},
-                        fieldE->getDeviceDataBox(),
-                        fieldB->getDeviceDataBox());
+                        (mapper.getGridDim(), numWorkers)(
+                            mapper,
+                            yee::UpdateBHalfFunctor<CurlE>{},
+                            fieldE->getDeviceDataBox(),
+                            fieldB->getDeviceDataBox());
+                    }
                 }
 
                 /** Propagate E values in the given area by a time step.
@@ -260,12 +262,14 @@ namespace picongpu
                          numWorkers)(mapper, updateFunctor, fieldB->getDeviceDataBox(), fieldE->getDeviceDataBox());
                     }
                     else
+                    {
                         PMACC_KERNEL(Kernel{})
-                    (mapper.getGridDim(), numWorkers)(
-                        mapper,
-                        yee::UpdateEFunctor<CurlB>{},
-                        fieldB->getDeviceDataBox(),
-                        fieldE->getDeviceDataBox());
+                        (mapper.getGridDim(), numWorkers)(
+                            mapper,
+                            yee::UpdateEFunctor<CurlB>{},
+                            fieldB->getDeviceDataBox(),
+                            fieldE->getDeviceDataBox());
+                    }
                 }
 
                 //! Get number of workers for kernels
