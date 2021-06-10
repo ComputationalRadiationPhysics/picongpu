@@ -223,24 +223,27 @@ namespace picongpu
         /* definition of sphere profile with flanks */
         using SphereFlanks = SphereFlanksImpl<SphereFlanksParam>;
 
-
+        /** Density values taken from a file
+         *
+         * The file follows the openPMD standard.
+         * The density values are written as a dataset of type float_X.
+         * The dataset size equals the global grid size (in case it is larger, part will be ignored).
+         * Each value defines density in the cell with the corresponding global coordinate.
+         * Density values are in BASE_DENSITY_SI units.
+         */
         PMACC_STRUCT(
-            FromHDF5Param,
-            /* prefix of filename
-             * full file name: gas_0.h5
-             * filename = "gas"
-             * iteration = 0
-             */
-            (PMACC_C_STRING(filename, "gas"))
+            FromOpenPMDParam,
+            //! Name for the openPMD file
+            (PMACC_C_STRING(filename, "density.h5"))
 
-                (PMACC_C_STRING(datasetName, "fields/e_chargeDensity"))
+            //! Name of the dataset inside the file
+            (PMACC_C_STRING(datasetName, "density"))
 
-            /* simulation step*/
-            (PMACC_C_VALUE(uint32_t, iteration, 0))(
-                PMACC_C_VALUE(float_X, defaultDensity, 0.0))); /* struct FromHDF5Param */
+            //! Iteration inside the file (note - is not related to the current simulation time iteration)
+            (PMACC_C_VALUE(uint32_t, iteration, 0))); /* struct FromOpenPMDParam */
 
         /* definition of cloud profile */
-        using FromHDF5 = FromHDF5Impl<FromHDF5Param>;
+        using FromOpenPMD = FromOpenPMDImpl<FromOpenPMDParam>;
 
 
         struct FreeFormulaFunctor

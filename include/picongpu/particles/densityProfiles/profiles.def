@@ -21,7 +21,7 @@
 
 #include "picongpu/particles/densityProfiles/EveryNthCellImpl.def"
 #include "picongpu/particles/densityProfiles/FreeFormulaImpl.def"
-#include "picongpu/particles/densityProfiles/FromHDF5Impl.def"
+#include "picongpu/particles/densityProfiles/FromOpenPMDImpl.def"
 #include "picongpu/particles/densityProfiles/GaussianCloudImpl.def"
 #include "picongpu/particles/densityProfiles/GaussianImpl.def"
 #include "picongpu/particles/densityProfiles/HomogenousImpl.def"

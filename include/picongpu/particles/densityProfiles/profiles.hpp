@@ -28,6 +28,6 @@
 #include "picongpu/particles/densityProfiles/LinearExponentialImpl.hpp"
 #include "picongpu/particles/densityProfiles/SphereFlanksImpl.hpp"
 
-#if(ENABLE_HDF5 == 1)
-#    include "picongpu/particles/densityProfiles/FromHDF5Impl.hpp"
+#if(ENABLE_OPENPMD == 1)
+#    include "picongpu/particles/densityProfiles/FromOpenPMDImpl.hpp"
 #endif

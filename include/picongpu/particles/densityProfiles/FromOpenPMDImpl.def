@@ -25,6 +25,6 @@ namespace picongpu
     namespace densityProfiles
     {
         template<typename T_ParamClass>
-        struct FromHDF5Impl;
+        struct FromOpenPMDImpl;
     }
 } // namespace picongpu
