@@ -46,6 +46,7 @@
 #include "picongpu/simulation/stage/CurrentDeposition.hpp"
 #include "picongpu/simulation/stage/CurrentInterpolationAndAdditionToEMF.hpp"
 #include "picongpu/simulation/stage/CurrentReset.hpp"
+#include "picongpu/simulation/stage/FieldAbsorber.hpp"
 #include "picongpu/simulation/stage/FieldBackground.hpp"
 #include "picongpu/simulation/stage/IterationStart.hpp"
 #include "picongpu/simulation/stage/MomentumBackup.hpp"
@@ -133,6 +134,7 @@ namespace picongpu
         {
             SimulationHelper<simDim>::pluginRegisterHelp(desc);
             currentInterpolationAndAdditionToEMF.registerHelp(desc);
+            fieldAbsorber.registerHelp(desc);
             fieldBackground.registerHelp(desc);
             // clang-format off
             desc.add_options()(
@@ -247,6 +249,10 @@ namespace picongpu
             {
                 gridSizeLocal[dim] = gridSizeGlobal[dim] / gpus[dim];
             }
+
+            // Absorber has to be loaded before the domain adjuster runs.
+            // This is because domain adjuster uses absorber size
+            fieldAbsorber.load();
 
             DataSpace<simDim> gridOffset;
 
@@ -611,6 +617,10 @@ namespace picongpu
 
         fields::Solver* myFieldSolver;
         simulation::stage::CurrentInterpolationAndAdditionToEMF currentInterpolationAndAdditionToEMF;
+
+        // Field absorber stage, has to live always as it is used for registering options like a plugin.
+        // Because of it, has a special init() method that has to be called during initialization of the simulation
+        simulation::stage::FieldAbsorber fieldAbsorber;
 
         // Field background stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation

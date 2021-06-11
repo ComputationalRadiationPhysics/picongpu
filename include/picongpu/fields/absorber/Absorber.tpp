@@ -22,12 +22,12 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/absorber/Absorber.hpp"
-#include "picongpu/fields/absorber/ExponentialDamping.hpp"
-#include "picongpu/fields/absorber/Pml.hpp"
+#include "picongpu/fields/absorber/exponential/Exponential.hpp"
+#include "picongpu/fields/absorber/pml/Pml.hpp"
 
 #include <pmacc/Environment.hpp>
-#include <pmacc/traits/IsBaseTemplateOf.hpp>
 
+#include <memory>
 #include <sstream>
 #include <type_traits>
 
@@ -36,29 +36,23 @@ namespace picongpu
 {
     namespace fields
     {
-        namespace maxwellSolver
-        {
-            /** Forward declaration to avoid mutual including with YeePML.hpp
-             *
-             * @tparam T_CurlE functor to compute curl of E
-             * @tparam T_CurlB functor to compute curl of B
-             */
-            template<typename T_CurlE, typename T_CurlB>
-            class YeePML;
-
-        } // namespace maxwellSolver
-
         namespace absorber
         {
-            // This implementation has to go to a .tpp file as it requires definitions of Pml and ExponentialDamping
             Absorber& Absorber::get()
             {
-                // This is currently a static type, until absorbers go full runtime
-                constexpr bool isPmlSolver
-                    = pmacc::traits::IsBaseTemplateOf_t<maxwellSolver::YeePML, fields::Solver>::value;
-                using Implementation = std::conditional_t<isPmlSolver, Pml, ExponentialDamping>;
-                static Implementation instance;
-                return instance;
+                // Delay initialization till the first call since the factory has its parameters set during runtime
+                static std::unique_ptr<Absorber> pInstance = nullptr;
+                if(!pInstance)
+                {
+                    auto& factory = AbsorberFactory::get();
+                    pInstance = factory.make();
+                }
+                return *pInstance;
+            }
+
+            Absorber::Kind Absorber::getKind() const
+            {
+                return kind;
             }
 
             Thickness Absorber::getGlobalThickness() const
@@ -157,6 +151,58 @@ namespace picongpu
                     }
                 }
                 return propList;
+            }
+
+            AbsorberImpl::AbsorberImpl(MappingDesc const cellDescription) : cellDescription(cellDescription)
+            {
+            }
+
+            exponential::ExponentialImpl& AbsorberImpl::asExponentialImpl()
+            {
+                auto* result = dynamic_cast<exponential::ExponentialImpl*>(this);
+                if(!result)
+                    throw std::runtime_error("Invalid conversion of absorber to ExponentialImpl");
+                return *result;
+            }
+
+            pml::PmlImpl& AbsorberImpl::asPmlImpl()
+            {
+                auto* result = dynamic_cast<pml::PmlImpl*>(this);
+                if(!result)
+                    throw std::runtime_error("Invalid conversion of absorber to PmlImpl");
+                return *result;
+            }
+
+            // This implementation has to go to a .tpp file as it requires definitions of Pml and ExponentialDamping
+            std::unique_ptr<Absorber> AbsorberFactory::make() const
+            {
+                if(!isInitialized)
+                    throw std::runtime_error("Absorber factory used before being initialized");
+                switch(kind)
+                {
+                case Absorber::Kind::Exponential:
+                    return std::make_unique<exponential::Exponential>();
+                case Absorber::Kind::Pml:
+                    return std::make_unique<pml::Pml>();
+                default:
+                    throw std::runtime_error("Unsupported absorber kind requested to be made");
+                }
+            }
+
+            // This implementation has to go to a .tpp file as it requires definitions of Pml and ExponentialDamping
+            std::unique_ptr<AbsorberImpl> AbsorberFactory::makeImpl(MappingDesc const cellDescription) const
+            {
+                if(!isInitialized)
+                    throw std::runtime_error("Absorber factory used before being initialized");
+                switch(kind)
+                {
+                case Absorber::Kind::Exponential:
+                    return std::make_unique<exponential::ExponentialImpl>(cellDescription);
+                case Absorber::Kind::Pml:
+                    return std::make_unique<pml::PmlImpl>(cellDescription);
+                default:
+                    throw std::runtime_error("Unsupported absorber kind requested to be made");
+                }
             }
 
         } // namespace absorber

@@ -43,17 +43,11 @@ namespace picongpu
          * Field Solver Selection (note <> for some solvers):
          *  - Yee<> : Standard Yee solver approximating derivatives with respect to time and
          * space by second order finite differences.
-         *  - YeePML<>: Standard Yee solver using Perfectly Matched Layer Absorbing Boundary
-         * Conditions (PML)
          *  - Lehe<>: Num. Cherenkov free field solver in a chosen direction
-         *  - LehePML<>: Num. Cherenkov free field solver in a chosen direction
-         *               using Perfectly Matched Layer Absorbing Boundary Conditions (PML)
          *  - ArbitraryOrderFDTD<4>: Solver using 4 neighbors to each direction to approximate
          * *spatial* derivatives by finite differences. The number of neighbors can be changed from 4 to any positive,
          * integer number. The order of the solver will be twice the number of neighbors in each direction. Yee's
          * method is a special case of this using one neighbor to each direction.
-         *  - ArbitraryOrderFDTDPML<4>: ArbitraryOrderFDTD solver using Perfectly Matched Layer
-         *                              Absorbing Boundary Conditions (PML)
          *  - None: disable the vacuum update of E and B
          */
         using Solver = maxwellSolver::PARAM_FIELDSOLVER;

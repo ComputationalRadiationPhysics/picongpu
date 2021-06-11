@@ -45,6 +45,7 @@
 #include "picongpu/plugins/output/IIOBackend.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
+#include "picongpu/traits/IsFieldOutputOptional.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/assert.hpp>
@@ -449,6 +450,9 @@ Please pick either of the following:
 #ifndef __CUDA_ARCH__
                     DataConnector& dc = Environment<simDim>::get().DataConnector();
 
+                    // Skip optional fields
+                    if(traits::IsFieldOutputOptional<T_Field>::value && !dc.hasId(T_Field::getName()))
+                        return;
                     auto field = dc.get<T_Field>(T_Field::getName());
                     params->gridLayout = field->getGridLayout();
                     bool const isDomainBound = traits::IsFieldDomainBound<T_Field>::value;

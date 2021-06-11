@@ -24,6 +24,7 @@
 #include <pmacc/traits/GetStringProperties.hpp>
 
 #include <cstdint>
+#include <memory>
 #include <string>
 
 
@@ -97,13 +98,26 @@ namespace picongpu
             /** Singleton for field absorber
              *
              * Provides run-time utilities to get thickness and string properties.
-             * Does not yet provide absorption itself.
+             * Does not provide absorption implmenetation itself, that is done by AbsorberImpl.
              */
             class Absorber
             {
             public:
+                //! Supported absorber kinds
+                enum class Kind
+                {
+                    Exponential,
+                    Pml
+                };
+
+                //! Destructor needs to be public due to internal use of std::unique_ptr
+                virtual ~Absorber() = default;
+
                 //! Get absorber instance
                 static Absorber& get();
+
+                //! Absorber kind used in the simulation
+                inline Kind getKind() const;
 
                 /** Get absorber thickness in number of cells for the global domain
                  *
@@ -139,12 +153,103 @@ namespace picongpu
                  */
                 uint32_t numCells[3][2];
 
-                //! Name for string properties
+                //! Absorber kind
+                Kind kind;
+
+                //! Text name for string properties
                 std::string name;
 
                 Absorber() = default;
                 Absorber(Absorber const&) = delete;
-                ~Absorber() = default;
+            };
+
+            // Forward declaration for AbsorberImpl::asExponentialImpl()
+            namespace exponential
+            {
+                class ExponentialImpl;
+            }
+
+            // Forward declaration for AbsorberImpl::asPmlImpl()
+            namespace pml
+            {
+                class PmlImpl;
+            }
+
+            /** Base class for implementation of absorbers
+             *
+             * It is currently in an intermediate state due to transition to run-time absorber selection and
+             * unification of field solvers.
+             * So the base class interface does not offer any common interface but type casts.
+             *
+             * The reason it is separated from the Absorber class is to better manage lifetime.
+             */
+            class AbsorberImpl
+            {
+            public:
+                /** Create absorber implementation instance
+                 *
+                 * @param cellDescription mapping for kernels
+                 */
+                AbsorberImpl(MappingDesc const cellDescription);
+
+                //! Destructor
+                virtual ~AbsorberImpl() = default;
+
+                /** Interpret this as ExponentialImpl instance
+                 *
+                 * @return reference to this object if conversion is valid,
+                 *         throws otherwise
+                 */
+                inline exponential::ExponentialImpl& asExponentialImpl();
+
+                /** Interpret this as PmlImpl instance
+                 *
+                 * @return reference to this object if conversion is valid,
+                 *         throws otherwise
+                 */
+                inline pml::PmlImpl& asPmlImpl();
+
+            protected:
+                //! Mapping description for kernels
+                MappingDesc cellDescription;
+            };
+
+            /** Singletone factory class to construct absorber instances according to the preset kind
+             *
+             * This class is intended to be used only during initialization of the simulation and by Absorber itself.
+             */
+            class AbsorberFactory
+            {
+            public:
+                //! Get instance of the factory
+                static AbsorberFactory& get()
+                {
+                    static AbsorberFactory instance;
+                    return instance;
+                }
+
+                //! Make an absorber instance
+                inline std::unique_ptr<Absorber> make() const;
+
+                /** Make an absorber implementation instance
+                 *
+                 * @param cellDescription mapping for kernels
+                 */
+                inline std::unique_ptr<AbsorberImpl> makeImpl(MappingDesc cellDescription) const;
+
+                /** Set absorber kind to be made
+                 *
+                 * @param newKind new absorber kind
+                 */
+                void setKind(Absorber::Kind newKind)
+                {
+                    kind = newKind;
+                    isInitialized = true;
+                }
+
+            private:
+                Absorber::Kind kind;
+                bool isInitialized = false;
             };
 
         } // namespace absorber

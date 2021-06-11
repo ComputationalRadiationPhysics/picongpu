@@ -1,5 +1,4 @@
-/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera,
- *                     Sergei Bastrakov
+/* Copyright 2021 Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -20,18 +19,26 @@
 
 #pragma once
 
-#include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
+#include <type_traits>
 
 
 namespace picongpu
 {
-    namespace fields
+    namespace traits
     {
-        namespace maxwellSolver
+        /** Whether a field is optional for output
+         *
+         * Optional fields are skipped when they are requested for output, but do not exist.
+         * Doing the same for a non-optional field results in an error.
+         *
+         * Inherits std::true_type, std::false_type or a compatible type.
+         *
+         * @tparam T_Field field type
+         */
+        template<typename T_Field>
+        struct IsFieldOutputOptional : std::false_type
         {
-            template<typename T_CurlE = yee::CurlRight, typename T_CurlB = yee::CurlLeft>
-            class YeePML;
+        };
 
-        } // namespace maxwellSolver
-    } // namespace fields
+    } // namespace traits
 } // namespace picongpu

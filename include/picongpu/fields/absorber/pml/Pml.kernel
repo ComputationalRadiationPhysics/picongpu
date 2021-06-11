@@ -1,0 +1,430 @@
+/* Copyright 2019-2021 Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/fields/absorber/pml/Parameters.hpp"
+
+#include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
+#include <pmacc/math/operation.hpp>
+#include <pmacc/memory/boxes/CachedBox.hpp>
+
+#include <cstdint>
+
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace absorber
+        {
+            namespace pml
+            {
+                //! Parameters of PML for the local domain
+                struct LocalParameters : public Parameters
+                {
+                    /** PML size in cells, stored as floats to avoid type casts later,
+                     *  negative and positive borders defined the same way as for Thickness
+                     */
+                    floatD_X const negativeBorderSize;
+                    floatD_X const positiveBorderSize;
+
+                    //! Local domain characteristics, including guard cells
+                    DataSpace<simDim> const numLocalDomainCells;
+                    DataSpace<simDim> const numGuardCells;
+
+                    LocalParameters(
+                        Parameters const parameters,
+                        Thickness const localThickness,
+                        DataSpace<simDim> const numLocalDomainCells,
+                        DataSpace<simDim> const numGuardCells)
+                        : Parameters(parameters)
+                        , negativeBorderSize(precisionCast<float_X>(localThickness.getNegativeBorder()))
+                        , positiveBorderSize(precisionCast<float_X>(localThickness.getPositiveBorder()))
+                        , numLocalDomainCells(numLocalDomainCells)
+                        , numGuardCells(numGuardCells)
+                    {
+                    }
+                };
+
+                namespace detail
+                {
+                    /** Get relative depth of a given cell for 1D.
+                     *
+                     * This function operates with a 1D slice of domain and PML.
+                     * index == numGuardCells corresponds to the external negative PML
+                     * border, and index == numLocalDomainCells - numGuardCells - 1
+                     * corresponds to the external positive PML border.
+                     * For the internal area result is 0, for points in PML the depth
+                     * scales from 0 at the internal border to 1 at the external border.
+                     * Index and local domain size include the guard.
+                     *
+                     * @param cellIdx cell index including the guard, can be fractional,
+                     * e.g. for halves of cells
+                     * @param numPMLCellsNegative number of PML cells at the negative border
+                     * @param numPMLCellsPositive number of PML cells at the positive border
+                     * @param numLocalDomainCells number of cells of the local domain
+                     * including the guard
+                     * @param numGuardCells number of guard cells at each side
+                     * @return relative depth, value between 0 and 1
+                     */
+                    DINLINE float_X getRelativeDepth(
+                        float_X const cellIdx,
+                        float_X const numPMLCellsNegative,
+                        float_X const numPMLCellsPositive,
+                        uint32_t const numLocalDomainCells,
+                        uint32_t const numGuardCells)
+                    {
+                        auto zeroBasedIdx = cellIdx - numGuardCells;
+                        auto const isInLeftPML = (zeroBasedIdx < numPMLCellsNegative);
+                        if(isInLeftPML)
+                            return (numPMLCellsNegative - zeroBasedIdx) / numPMLCellsNegative;
+                        else
+                        {
+                            auto zeroBasedRightPMLStart
+                                = numLocalDomainCells - 2 * numGuardCells - numPMLCellsPositive;
+                            auto const isInRightPML = (zeroBasedIdx > zeroBasedRightPMLStart);
+                            if(isInRightPML)
+                                return (zeroBasedIdx - zeroBasedRightPMLStart) / numPMLCellsPositive;
+                        }
+                        return 0._X;
+                    }
+
+                    /** Get absorption parameters: sigma, kappa and alpha at a given cell
+                     *
+                     * Apply polynomial grading, as described in pml.param.
+                     *
+                     * @param cellIdx cell index including the guard, can be fractional,
+                     * e.g. for halves of cells
+                     * @param parameters parameters of PML in the local domain
+                     * @param[out] normalizedSigma value of normalized sigma at the cell
+                     * @param[out] kappa value of normalized kappa at the cell
+                     * @param[out] normalizedAlpha value of normalized alpha at the cell
+                     */
+                    DINLINE void getAbsorptionParameters(
+                        floatD_X const cellIdx,
+                        LocalParameters const parameters,
+                        float3_X& normalizedSigma,
+                        float3_X& kappa,
+                        float3_X& normalizedAlpha)
+                    {
+                        // initialize with values for non-PML area
+                        normalizedSigma = float3_X::create(0._X);
+                        kappa = float3_X::create(1._X);
+                        normalizedAlpha = float3_X::create(0._X);
+                        for(uint32_t dim = 0u; dim < simDim; dim++)
+                        {
+                            auto const relativeDepth = getRelativeDepth(
+                                cellIdx[dim],
+                                parameters.negativeBorderSize[dim],
+                                parameters.positiveBorderSize[dim],
+                                parameters.numLocalDomainCells[dim],
+                                parameters.numGuardCells[dim]);
+                            // Since normally most points are not in PML, avoid costly
+                            // computing in this case
+                            if(relativeDepth != 0._X)
+                            {
+                                /* Grading done according to [Taflove, Hagness], eq. (7.60a, b).
+                                 * Note: here we use a general expression, it is possible
+                                 * to specialize for sigmaKappaGradingOrder = 2, 3, or 4,
+                                 * but currently seems not worth it.
+                                 */
+                                auto const sigmaKappaGradingCoeff
+                                    = math::pow(relativeDepth, parameters.sigmaKappaGradingOrder);
+                                normalizedSigma[dim] = parameters.normalizedSigmaMax[dim] * sigmaKappaGradingCoeff;
+                                kappa[dim] = 1._X + (parameters.kappaMax[dim] - 1._X) * sigmaKappaGradingCoeff;
+                                /* Grading done according to [Taflove, Hagness], eq. (7.79),
+                                 * note that this code is only correct when relativeDepth != 0
+                                 */
+                                auto const alphaGradingCoeff
+                                    = math::pow(1._X - relativeDepth, parameters.alphaGradingOrder);
+                                normalizedAlpha[dim] = parameters.normalizedAlphaMax[dim] * alphaGradingCoeff;
+                            }
+                        }
+                    }
+
+                    //! Coefficients for E or B updates at a particular point
+                    struct Coefficients
+                    {
+                        //! Coordinate stretching coefficient
+                        float3_X kappa;
+
+                        //! Damping coefficient, [Taflove, Hagness], eq. (7.102)
+                        float3_X b;
+
+                        //! Spatial difference coefficient, [Taflove, Hagness], eq. (7.99)
+                        float3_X c;
+                    };
+
+                    /** Get coefficients for E or B updates at a given cell
+                     *
+                     * Apply polynomial grading, as described in pml.param.
+                     * Due to normalizations, the same way of computing coefficients applies
+                     * to E and B updates.
+                     *
+                     * @param cellIdx cell index including the guard, can be fractional,
+                     * e.g. for halves of cells
+                     * @param parameters parameters of PML in the local domain
+                     * @param dt value of time step to propagate by
+                     * @result an instance of Coefficients with computed values
+                     */
+                    DINLINE Coefficients
+                    getCoefficients(floatD_X const cellIdx, LocalParameters const parameters, float_X const dt)
+                    {
+                        Coefficients coeffs;
+                        float3_X normalizedSigma, normalizedAlpha;
+                        getAbsorptionParameters(cellIdx, parameters, normalizedSigma, coeffs.kappa, normalizedAlpha);
+
+                        /* [Taflove, Hagness], eq. (7.102), normalizedSigma and
+                         * normalizedAlpha are already divided by eps0
+                         */
+                        coeffs.b = math::exp(-(normalizedSigma / coeffs.kappa + normalizedAlpha) * dt);
+                        /* [Taflove, Hagness], eq. (7.99), in our case both the numerator
+                         * and the denominator are equally normalized
+                         */
+                        coeffs.c = float3_X::create(0._X);
+                        for(uint32_t dim = 0u; dim < 3; dim++)
+                        {
+                            auto const denominator = coeffs.kappa[dim]
+                                * (normalizedSigma[dim] + normalizedAlpha[dim] * coeffs.kappa[dim]);
+                            // Avoid the 0 / 0 uncertainty, in that case keep the value 0
+                            if(denominator)
+                                coeffs.c[dim] = normalizedSigma[dim] * (coeffs.b[dim] - 1.0_X) / denominator;
+                        }
+                        return coeffs;
+                    }
+
+                    /** Return if a point with given coefficients belongs to PML
+                     *
+                     * @param coeffs values of coefficients
+                     * @result boolean value if a point with given coefficients belongs
+                     * to PML
+                     */
+                    DINLINE bool isInPML(Coefficients const coeffs)
+                    {
+                        /* Each damping component is < 1 when absorption is enabled
+                         * along this direction and == 1 otherwise.
+                         * So a product is 1 in the internal area and < 1 in PML
+                         */
+                        return coeffs.b.productOfComponents() != 1.0_X;
+                    }
+                } // namespace detail
+
+                /** Functor to update electric field by a time step using FDTD with the given curl and PML
+                 *
+                 * @tparam T_CurlB curl functor type to be applied to magnetic field,
+                 *                 adheres to the Curl concept
+                 */
+                template<typename T_CurlB>
+                class UpdateEFunctor
+                {
+                public:
+                    /** Create a functor instance on the host side
+                     *
+                     * @param fieldPsiE PML convolutional electric field iterator
+                     * @param parameters PML parameters for a local domain
+                     */
+                    UpdateEFunctor(FieldBox fieldPsiE, LocalParameters const parameters)
+                        : parameters(parameters)
+                        , fieldPsiE(fieldPsiE)
+                    {
+                    }
+
+                    /** Update electric field at the given position
+                     *
+                     * @tparam T_LocalBBox local magnetic field box type
+                     * @tparam T_LocalEBox local electric field box type
+                     *
+                     * @param gridIndex index of the updated field element, with guards
+                     * @param localB magnetic field box shifted to position gridIndex,
+                     *               note that it is the box, not the value
+                     * @param localE electric field box shifted to position gridIndex,
+                     *               note that it is the box, not the value
+                     *
+                     * @return update the value pointed to by localE
+                     */
+                    template<typename T_LocalBBox, typename T_LocalEBox>
+                    DINLINE void operator()(
+                        pmacc::DataSpace<simDim> const& gridIndex,
+                        T_LocalBBox const localB,
+                        T_LocalEBox localE)
+                    {
+                        constexpr auto c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                        constexpr auto dt = DELTA_T;
+                        // with the current Yee grid, no shift needed here
+                        auto const pmlIdx = precisionCast<float_X>(gridIndex);
+                        auto const coeffs = detail::getCoefficients(pmlIdx, parameters, dt);
+
+                        if(isInPML(coeffs))
+                        {
+                            /* Update convolutional fields using [Taflove, Hagness],
+                             * eq. (7.105a,b) and similar for other components.
+                             * For PIC the right-hand side uses B, not H.
+                             *
+                             * Notation: dBdx = dB / dx, dBdx.y() = dBy / dx, etc.
+                             */
+                            auto const dBdx = curl.xDerivative(localB);
+                            auto const dBdy = curl.yDerivative(localB);
+                            auto const dBdz = curl.zDerivative(localB);
+                            auto& psiE = fieldPsiE(gridIndex);
+                            psiE.yx = coeffs.b.x() * psiE.yx + coeffs.c.x() * dBdx.z();
+                            psiE.zx = coeffs.b.x() * psiE.zx + coeffs.c.x() * dBdx.y();
+                            psiE.xy = coeffs.b.y() * psiE.xy + coeffs.c.y() * dBdy.z();
+                            psiE.zy = coeffs.b.y() * psiE.zy + coeffs.c.y() * dBdy.x();
+                            psiE.xz = coeffs.b.z() * psiE.xz + coeffs.c.z() * dBdz.y();
+                            psiE.yz = coeffs.b.z() * psiE.yz + coeffs.c.z() * dBdz.x();
+
+                            /* [Taflove, Hagness], eq. (7.106) and similar for other
+                             * components. Coefficients Ca, Cb as given in (7.107a,b)
+                             * are general to account for materials, in addition to
+                             * artificial PML absorbing medium. We do not have any
+                             * real material, so in (7.107a,b) we have to use
+                             * sigma(i + 1/2, j, k) = 0 (it is another sigma,
+                             * unrelated to PML), eps(i + 1/2, j, k) = EPS0. Also,
+                             * same as the Yee scheme in PIC, adjusted to use B,
+                             * not H, on the right-hand side.
+                             */
+                            localE().x() += c2 * dt
+                                * (dBdy.z() / coeffs.kappa.y() - dBdz.y() / coeffs.kappa.z() + psiE.xy - psiE.xz);
+                            localE().y() += c2 * dt
+                                * (dBdz.x() / coeffs.kappa.z() - dBdx.z() / coeffs.kappa.x() + psiE.yz - psiE.yx);
+                            localE().z() += c2 * dt
+                                * (dBdx.y() / coeffs.kappa.x() - dBdy.x() / coeffs.kappa.y() + psiE.zx - psiE.zy);
+                        }
+                        else
+                            // Normal Yee scheme update
+                            localE() += curl(localB) * c2 * dt;
+                    }
+
+                private:
+                    FieldBox fieldPsiE;
+                    LocalParameters const parameters;
+                    T_CurlB const curl;
+                };
+
+                /** Functor to update magnetic field by half a time step using FDTD with the given curl and PML
+                 *
+                 * @tparam T_CurlE curl functor type to be applied to electric field,
+                 *                 adheres to the Curl concept
+                 */
+                template<typename T_CurlE>
+                class UpdateBHalfFunctor
+                {
+                public:
+                    /** Create a functor instance on the host side
+                     *
+                     * @param fieldPsiE PML convolutional electric field iterator
+                     * @param parameters PML parameters for a local domain
+                     * @param updatePsiB whether convolutional magnetic fields need to be updated, or are
+                     * up-to-date
+                     */
+                    UpdateBHalfFunctor(FieldBox fieldPsiB, LocalParameters const parameters, bool updatePsiB)
+                        : parameters(parameters)
+                        , fieldPsiB(fieldPsiB)
+                        , updatePsiB(updatePsiB)
+                    {
+                    }
+
+                    /** Update magnetic field at the given position
+                     *
+                     * @tparam T_LocalEBox local electric field box type
+                     * @tparam T_LocalBBox local magnetic field box type
+                     *
+                     * @param gridIndex index of the updated field element, with guards
+                     * @param localE electric field box shifted to position gridIndex,
+                     *               note that it is the box, not the value
+                     * @param localB magnetic field box shifted to position gridIndex,
+                     *               note that it is the box, not the value
+                     *
+                     * @return update the value pointed to by localB
+                     */
+                    template<typename T_LocalEBox, typename T_LocalBBox>
+                    DINLINE void operator()(
+                        pmacc::DataSpace<simDim> const& gridIndex,
+                        T_LocalEBox const localE,
+                        T_LocalBBox localB)
+                    {
+                        constexpr auto dt = DELTA_T;
+                        constexpr auto halfDt = 0.5_X * dt;
+
+                        // with the current Yee grid, a half cell shift is needed here
+                        auto const pmlIdx = floatD_X::create(0.5_X) + precisionCast<float_X>(gridIndex);
+                        /* Note that convolutional fields are updated once per dt. So the coefficients are computed
+                         * in this way, and whether the update has to be performed is controlled by a kernel caller
+                         * with updatePsiB parameter.
+                         */
+                        auto const coeffs = detail::getCoefficients(pmlIdx, parameters, dt);
+
+                        if(detail::isInPML(coeffs))
+                        {
+                            /* Update convolutional fields using [Taflove, Hagness],
+                             * eq. (7.110a,b) and similar for other components.
+                             * For PIC the left-hand side uses B, not H.
+                             *
+                             * Notation: dEdx = dE / dx, dEdx.y() = dEy / dx, etc.
+                             */
+                            auto const dEdx = curl.xDerivative(localE);
+                            auto const dEdy = curl.yDerivative(localE);
+                            auto const dEdz = curl.zDerivative(localE);
+                            auto& psiB = fieldPsiB(gridIndex);
+                            if(updatePsiB)
+                            {
+                                psiB.yx = coeffs.b.x() * psiB.yx + coeffs.c.x() * dEdx.z();
+                                psiB.zx = coeffs.b.x() * psiB.zx + coeffs.c.x() * dEdx.y();
+                                psiB.xy = coeffs.b.y() * psiB.xy + coeffs.c.y() * dEdy.z();
+                                psiB.zy = coeffs.b.y() * psiB.zy + coeffs.c.y() * dEdy.x();
+                                psiB.xz = coeffs.b.z() * psiB.xz + coeffs.c.z() * dEdz.y();
+                                psiB.yz = coeffs.b.z() * psiB.yz + coeffs.c.z() * dEdz.x();
+                            }
+
+                            /* [Taflove, Hagness], eq. (7.108) and similar for other
+                             * components. Coefficients Da, Db as given in (7.109a,b)
+                             * are general to account for materials, in addition to
+                             * artificial PML absorbing medium. We do not have any
+                             * real material, so in (7.109a,b) we have to use
+                             * sigma*(i + 1/2, j, k) = 0 (it is another sigma*,
+                             * unrelated to PML), mue(i + 1/2, j, k) = MUE0. Also,
+                             * same as the Yee scheme in PIC, adjusted to use B,
+                             * not H, on the left-hand side.
+                             */
+                            localB().x() += halfDt
+                                * (dEdz.y() / coeffs.kappa.z() - dEdy.z() / coeffs.kappa.y() + psiB.xz - psiB.xy);
+                            localB().y() += halfDt
+                                * (dEdx.z() / coeffs.kappa.x() - dEdz.x() / coeffs.kappa.z() + psiB.yx - psiB.yz);
+                            localB().z() += halfDt
+                                * (dEdy.x() / coeffs.kappa.y() - dEdx.y() / coeffs.kappa.x() + psiB.zy - psiB.zx);
+                        }
+                        else
+                            // Normal Yee scheme update
+                            localB() -= curl(localE) * halfDt;
+                    }
+
+                private:
+                    FieldBox fieldPsiB;
+                    LocalParameters const parameters;
+                    bool const updatePsiB;
+                    T_CurlE const curl;
+                };
+
+            } // namespace pml
+        } // namespace absorber
+    } // namespace fields
+} // namespace picongpu

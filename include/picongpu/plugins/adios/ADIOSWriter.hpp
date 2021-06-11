@@ -28,7 +28,6 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
-#include "picongpu/fields/absorber/pml/Field.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/adios/ADIOSCountParticles.hpp"
@@ -45,6 +44,7 @@
 #include "picongpu/plugins/output/IIOBackend.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
+#include "picongpu/traits/IsFieldOutputOptional.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/assert.hpp>
@@ -331,6 +331,9 @@ namespace picongpu
 #ifndef __CUDA_ARCH__
                     DataConnector& dc = Environment<simDim>::get().DataConnector();
 
+                    // Skip optional fields
+                    if(traits::IsFieldOutputOptional<T_Field>::value && !dc.hasId(T_Field::getName()))
+                        return;
                     auto field = dc.get<T_Field>(T_Field::getName());
                     params->gridLayout = field->getGridLayout();
                     const bool isDomainBound = traits::IsFieldDomainBound<T_Field>::value;
@@ -679,6 +682,9 @@ namespace picongpu
                     if(!traits::IsFieldDomainBound<T>::value)
                     {
                         DataConnector& dc = Environment<>::get().DataConnector();
+                        // Skip optional fields
+                        if(traits::IsFieldOutputOptional<T>::value && !dc.hasId(T::getName()))
+                            return;
                         auto field = dc.get<T>(T::getName());
                         localSize = field->getGridLayout().getDataSpaceWithoutGuarding();
                     }

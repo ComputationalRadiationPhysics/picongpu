@@ -26,6 +26,7 @@
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
+#include "picongpu/traits/IsFieldOutputOptional.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/manager_common.hpp>
@@ -207,6 +208,10 @@ namespace picongpu
 #ifndef __CUDA_ARCH__
                 DataConnector& dc = Environment<>::get().DataConnector();
                 ThreadParams* tp = params;
+
+                // Skip optional fields
+                if(traits::IsFieldOutputOptional<T_Field>::value && !dc.hasId(T_Field::getName()))
+                    return;
 
                 /* load field without copying data to host */
                 auto field = dc.get<T_Field>(T_Field::getName(), true);
