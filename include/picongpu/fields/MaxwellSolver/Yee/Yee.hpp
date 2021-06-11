@@ -278,25 +278,18 @@ namespace picongpu
                 std::unique_ptr<fields::absorber::AbsorberImpl> absorberImpl;
             };
 
-            /** Specialization of the CFL condition checker for the Yee solver
-             *
-             * @tparam T_CurlE functor to compute curl of E
-             * @tparam T_CurlB functor to compute curl of B
-             */
-            template<typename T_CurlE, typename T_CurlB>
-            struct CFLChecker<Yee<T_CurlE, T_CurlB>>
+            //! Specialization of the CFL condition checker for the classic Yee solver
+            template<>
+            struct CFLChecker<Yee<>>
             {
-                /** Check the CFL condition, doesn't compile when failed
-                 *
-                 * @warning currently always checks for the basic Yee solver
-                 */
+                //! Check the CFL condition, doesn't compile when failed
                 void operator()() const
                 {
                     // Yee<T_CurlE, T_CurlB> is added to defer evaluation
                     PMACC_CASSERT_MSG(
                         Courant_Friedrichs_Lewy_condition_failure____check_your_grid_param_file,
                         (SPEED_OF_LIGHT * SPEED_OF_LIGHT * DELTA_T * DELTA_T * INV_CELL2_SUM) <= 1.0
-                            && sizeof(Yee<T_CurlE, T_CurlB>*) != 0);
+                            && sizeof(Yee<>*) != 0);
                 }
             };
 

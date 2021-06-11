@@ -69,8 +69,8 @@ namespace picongpu
             template<uint32_t T_cherenkovFreeDir = lehe::CherenkovFreeDirection_Y>
             using Lehe = ::picongpu::fields::maxwellSolver::Yee<lehe::CurlE<T_cherenkovFreeDir>>;
 
-            /* We need no definition of margins, because the Yee solver uses its curl
-             * classes to define margins
+            /* We need no definition of margins, because the Yee solver uses its curl classes to define margins.
+             * The default CFL checker is sufficient, thus it is not specialized for Lehe
              */
 
         } // namespace maxwellSolver

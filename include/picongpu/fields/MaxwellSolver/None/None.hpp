@@ -45,6 +45,7 @@ namespace picongpu
 
                 None(MappingDesc)
                 {
+                    // Note: the default CFL checker is sufficient, thus it is not specialized for None
                     CFLChecker<None>{}();
                 }
 
