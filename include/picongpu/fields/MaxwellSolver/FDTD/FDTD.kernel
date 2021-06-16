@@ -36,7 +36,7 @@ namespace picongpu
     {
         namespace maxwellSolver
         {
-            namespace yee
+            namespace fdtd
             {
                 /** Functor to update electric field by a time step using standard FDTD with the given curl
                  *
@@ -232,7 +232,7 @@ namespace picongpu
                     }
                 };
 
-            } // namespace yee
+            } // namespace fdtd
         } // namespace maxwellSolver
     } // namespace fields
 } // namespace picongpu

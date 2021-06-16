@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/Fields.hpp"
-#include "picongpu/fields/MaxwellSolver/Solvers.def"
+#include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/incidentField/Profiles.hpp"
 #include "picongpu/fields/incidentField/Solver.kernel"
@@ -235,13 +235,13 @@ namespace picongpu
                     uint32_t T_axis>
                 inline void callUpdateField(Parameters<T_axis> const& parameters, float_X const curlCoefficient)
                 {
-                    /* Only Yee and with default curls are supported so far.
+                    /* Only the classic Yee solver is supported so far.
                      * Make the condition depend on the template parameters so that it is only compile-time checked
                      * when this part is instantiated, i.e. for non-None sources.
                      */
                     PMACC_CASSERT_MSG(
                         _error_field_solver_does_not_support_incident_field,
-                        std::is_same<Solver, maxwellSolver::Yee<>>::value && (sizeof(T_UpdatedField*) != 0));
+                        std::is_same<Solver, maxwellSolver::Yee>::value && (sizeof(T_UpdatedField*) != 0));
 
                     // The implementation assumes the layout of the Yee grid where Ex is at (i + 0.5) cells in x
                     auto const exPosition = traits::FieldPosition<cellType::Yee, FieldE>{}()[0];

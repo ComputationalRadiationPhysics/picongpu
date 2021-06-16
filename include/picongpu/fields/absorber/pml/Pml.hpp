@@ -58,7 +58,7 @@ namespace picongpu
                     }
                 };
 
-                /** Implementation of Yee + PML updates of E and B
+                /** Implementation of FDTD + PML updates of E and B
                  *
                  * The original paper on this approach is J.A. Roden, S.D. Gedney.
                  * Convolution PML (CPML): An efficient FDTD implementation of the

@@ -27,6 +27,8 @@
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/differentiation/Curl.hpp"
 
+#include <pmacc/traits/GetStringProperties.hpp>
+
 #include <cstdint>
 #include <stdexcept>
 #include <string>
