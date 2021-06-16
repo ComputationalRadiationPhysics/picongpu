@@ -163,6 +163,15 @@ namespace pmacc
         }
     }
 
+    template<typename T_Functor>
+    void Manager::waitFor(T_Functor&& func)
+    {
+        while(!func())
+        {
+            this->execute();
+        }
+    }
+
     inline void Manager::waitForAllTasks()
     {
         while(tasks.size() != 0 || passiveTasks.size() != 0)

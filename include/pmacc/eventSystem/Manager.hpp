@@ -58,6 +58,17 @@ namespace pmacc
          */
         void waitForFinished(id_t taskId);
 
+        /** Blocks until func is ready.
+         *
+         * The functor is executed until it returns true. After each functor executing PMaccs event system is executed.
+         *
+         * @tparam T_Functor Type of the functor.
+         * @param func Functor to execute. signature: `bool func()`
+         *             The functor is not allowed to execute MPI collectives or any other blocking function.
+         */
+        template<typename T_Functor>
+        void waitFor(T_Functor&& func);
+
         /**
          * blocks until all tasks in the manager are finished
          */
