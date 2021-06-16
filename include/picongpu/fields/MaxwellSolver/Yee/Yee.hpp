@@ -25,6 +25,7 @@
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/LaserPhysics.hpp"
+#include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.kernel"
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/absorber/pml/Pml.hpp"
@@ -63,6 +64,7 @@ namespace picongpu
 
                 Yee(MappingDesc const cellDescription) : cellDescription(cellDescription)
                 {
+                    CFLChecker<Yee>{}();
                     DataConnector& dc = Environment<>::get().DataConnector();
                     fieldE = dc.get<FieldE>(FieldE::getName(), true);
                     fieldB = dc.get<FieldB>(FieldB::getName(), true);
@@ -237,16 +239,6 @@ namespace picongpu
                 template<uint32_t T_Area>
                 void updateE(uint32_t currentStep)
                 {
-                    /* Courant-Friedrichs-Levy-Condition for Yee Field Solver:
-                     *
-                     * A workaround is to add a template dependency to the expression.
-                     * `sizeof(ANY_TYPE*) != 0` is always true and defers the evaluation.
-                     */
-                    PMACC_CASSERT_MSG(
-                        Courant_Friedrichs_Levy_condition_failure____check_your_grid_param_file,
-                        (SPEED_OF_LIGHT * SPEED_OF_LIGHT * DELTA_T * DELTA_T * INV_CELL2_SUM) <= 1.0
-                            && sizeof(T_CurlE*) != 0);
-
                     constexpr auto numWorkers = getNumWorkers();
                     using Kernel = yee::KernelUpdateE<numWorkers, BlockDescription<CurlB>>;
                     auto mapper = AreaMapper<T_Area>{cellDescription};
@@ -284,6 +276,21 @@ namespace picongpu
 
                 // Absorber implementation
                 std::unique_ptr<fields::absorber::AbsorberImpl> absorberImpl;
+            };
+
+            //! Specialization of the CFL condition checker for the classic Yee solver
+            template<>
+            struct CFLChecker<Yee<>>
+            {
+                //! Check the CFL condition, doesn't compile when failed
+                void operator()() const
+                {
+                    // Yee<T_CurlE, T_CurlB> is added to defer evaluation
+                    PMACC_CASSERT_MSG(
+                        Courant_Friedrichs_Lewy_condition_failure____check_your_grid_param_file,
+                        (SPEED_OF_LIGHT * SPEED_OF_LIGHT * DELTA_T * DELTA_T * INV_CELL2_SUM) <= 1.0
+                            && sizeof(Yee<>*) != 0);
+                }
             };
 
         } // namespace maxwellSolver
@@ -336,5 +343,4 @@ namespace picongpu
         };
 
     } // namespace traits
-
 } // namespace picongpu

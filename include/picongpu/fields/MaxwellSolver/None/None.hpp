@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.def"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/GetMargin.hpp"
@@ -34,34 +35,7 @@ namespace picongpu
     {
         namespace maxwellSolver
         {
-            namespace none
-            {
-                /** Check Yee grid and time conditions
-                 *
-                 * This is a workaround that the condition check is only
-                 * triggered if the current used solver is `NoSolver`
-                 */
-                template<typename T_UsedSolver, typename T_Dummy = void>
-                struct ConditionCheck
-                {
-                };
-
-                template<typename T_Dummy>
-                struct ConditionCheck<None, T_Dummy>
-                {
-                    /* Courant-Friedrichs-Levy-Condition for Yee Field Solver:
-                     *
-                     * A workaround is to add a template dependency to the expression.
-                     * `sizeof(ANY_TYPE*) != 0` is always true and defers the evaluation.
-                     */
-                    PMACC_CASSERT_MSG(
-                        Courant_Friedrichs_Levy_condition_failure____check_your_grid_param_file,
-                        (SPEED_OF_LIGHT * SPEED_OF_LIGHT * DELTA_T * DELTA_T * INV_CELL2_SUM) <= 1.0
-                            && sizeof(T_Dummy*) != 0);
-                };
-            } // namespace none
-
-            class None : private none::ConditionCheck<None>
+            class None
             {
             private:
                 typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -71,6 +45,8 @@ namespace picongpu
 
                 None(MappingDesc)
                 {
+                    // Note: the default CFL checker is sufficient, thus it is not specialized for None
+                    CFLChecker<None>{}();
                 }
 
                 void update_beforeCurrent(uint32_t)
