@@ -138,10 +138,13 @@ namespace pmacc
          */
         virtual void dumpOneStep(uint32_t currentStep)
         {
-            checkSignals(currentStep);
-
             /* trigger notification */
             Environment<DIM>::get().PluginConnector().notifyPlugins(currentStep);
+
+            /* Handle signals after we executed the plugins but before checkpointing, this will result into lower
+             * response latency if we have long running plugins
+             */
+            checkSignals(currentStep);
 
             /* trigger checkpoint notification */
             if(!checkpointPeriod.empty() && pluginSystem::containsStep(seqCheckpointPeriod, currentStep))
@@ -220,10 +223,10 @@ namespace pmacc
             if(useMpiDirect)
                 Environment<>::get().enableMpiDirect();
 
-            init();
-
             // Install a signal handler
             signal::activate();
+
+            init();
 
             // translate checkpointPeriod string into checkpoint intervals
             seqCheckpointPeriod = pluginSystem::toTimeSlice(checkpointPeriod);
@@ -401,41 +404,97 @@ namespace pmacc
         bool tryRestart = false;
 
     private:
+        /** Largest time step within the simulation (all MPI ranks) */
+        uint32_t signalMaxTimestep = 0u;
+        /** Time step at which we create actions out of an signal.*/
+        uint32_t handleSignalAtStep = 0u;
+        /** MPI request to find largest time step in the simulation */
+        MPI_Request signalMPI = MPI_REQUEST_NULL;
+        bool signalCreateCheckpoint = false;
+        bool signalStopSimulation = false;
+
         void checkSignals(uint32_t const currentStep)
         {
-            if(signal::received())
+            /* Avoid signal handling if the last signal is still processed.
+             * Signal handling in the first step is always allowed.
+             */
+            bool const handleSignals = handleSignalAtStep < currentStep || currentStep == 0u;
+            if(handleSignals && signal::received())
             {
+                /* Signals will not trigger actions directly, wait until handleSignalAtStep before
+                 * a signal is translated into an explicit action. This is required to avoid dead locks
+                 * with blocking collective operations. Each MPI rank can be in different time steps and phases
+                 * of the simulation, therefore we can not assume that all MPI ranks received the signal in the same
+                 * time step
+                 */
+
                 if(output)
                     std::cout << "SIGNAL: received." << std::endl;
 
-                // avoid deadlocks with collective MPI calls
-                Environment<>::get().Manager().waitForAllTasks();
                 // wait for possible more signals
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000u));
 
-                uint32_t maxTimestep = 0u;
+                /* After a signal is received we need to perform one more time step to avoid dead-locks if a
+                 * simulation phase is using blocking MPI collectives. After the additional step we know that
+                 * all MPI ranks participated in MPI_Iallreduce.
+                 */
+                handleSignalAtStep = currentStep + 1;
 
                 // find largest time step of all MPI ranks
-                MPI_CHECK(MPI_Allreduce(
-                    &currentStep,
-                    &maxTimestep,
+                MPI_CHECK(MPI_Iallreduce(
+                    &handleSignalAtStep,
+                    &signalMaxTimestep,
                     1,
                     MPI_UINT32_T,
                     MPI_MAX,
-                    Environment<DIM>::get().GridController().getCommunicator().getMPIComm()));
+                    Environment<DIM>::get().GridController().getCommunicator().getMPISignalComm(),
+                    &signalMPI));
 
                 if(signal::createCheckpoint())
                 {
                     if(output)
-                        std::cout << "SIGNAL: active checkpointing for step " << maxTimestep << std::endl;
-                    // add a new checkpoint
-                    seqCheckpointPeriod.push_back(pluginSystem::TimeSlice(maxTimestep, maxTimestep));
+                        std::cout << "SIGNAL: Received at step " << currentStep << ". Schedule checkpointing. "
+                                  << std::endl;
+                    signalCreateCheckpoint = true;
                 }
                 if(signal::stopSimulation())
                 {
                     if(output)
-                        std::cout << "SIGNAL: stop simulation at step " << maxTimestep << std::endl;
-                    Environment<>::get().SimulationDescription().setRunSteps(maxTimestep);
+                        std::cout << "SIGNAL: Received at step " << currentStep << ". Schedule shutdown." << std::endl;
+                    signalStopSimulation = true;
+                }
+            }
+            /* We will never handle a signal at step zero.
+             * If we received a signal handleSignalAtStep will be set to currentStep + 1 (see above)
+             */
+            if(currentStep != 0u && handleSignalAtStep == currentStep)
+            {
+                // Wait for MPI without blocking the event system.
+                Environment<>::get().Manager().waitFor([&signalMPI = signalMPI]() -> bool {
+                    // wait until we know the largest time step in the simulation
+                    MPI_Status mpiReduceStatus;
+
+                    int flag = 0;
+                    MPI_CHECK(MPI_Test(&signalMPI, &flag, &mpiReduceStatus));
+                    return flag != 0;
+                });
+
+                // Translate signals into actions
+                if(signalCreateCheckpoint)
+                {
+                    if(output)
+                        std::cout << "SIGNAL: Activate checkpointing for step " << signalMaxTimestep << std::endl;
+                    signalCreateCheckpoint = false;
+
+                    // add a new checkpoint
+                    seqCheckpointPeriod.push_back(pluginSystem::TimeSlice(signalMaxTimestep, signalMaxTimestep));
+                }
+                if(signalStopSimulation)
+                {
+                    if(output)
+                        std::cout << "SIGNAL: Shutdown simulation at step " << signalMaxTimestep << std::endl;
+                    signalStopSimulation = false;
+                    Environment<>::get().SimulationDescription().setRunSteps(signalMaxTimestep);
                 }
             }
         }
