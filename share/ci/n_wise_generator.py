@@ -112,6 +112,8 @@ def is_valid_combination(row):
                 return True
             if v_cuda == 10.1 and v_compiler >= 9:
                 return True
+            if v_cuda >= 11.0 and v_compiler >= 11:
+                return True
 
             return False
 
@@ -129,7 +131,12 @@ def is_valid_combination(row):
                 if v_cuda == 11.0 and v_compiler <= 9:
                     return True
                 if v_cuda >= 11.1 and v_compiler <= 10:
-                    return True
+                    if v_compiler == 10:
+                        # nvcc + gcc 10.3 bug see:
+                        # https://github.com/alpaka-group/alpaka/issues/1297
+                        return False
+                    else:
+                        return True
 
             if is_clang:
                 if v_cuda == 9.2 and v_compiler <= 5:
@@ -182,13 +189,14 @@ compilers.append(hip_clang_compilers)
 # PIConGPU backend list
 # tuple with two components (backend name, version)
 # version is only required for the cuda backend
-backends = [("cuda", 9.2),
+backends = [("hip", ), ("cuda", 9.2),
             ("cuda", 10.0), ("cuda", 10.1), ("cuda", 10.2),
             ("cuda", 11.0), ("cuda", 11.1), ("cuda", 11.2),
-            ("omp2b", ), ("serial", ),
-            ("hip", )]
+            ("omp2b", ), ("serial", )]
+
 boost_libs = ["1.65.1", "1.66.0", "1.67.0", "1.68.0", "1.69.0",
-              "1.70.0", "1.71.0", "1.72.0", "1.73.0", "1.74.0"]
+              "1.70.0", "1.71.0", "1.72.0", "1.73.0", "1.74.0",
+              "1.75.0"]
 
 rounds = 1
 # activate looping over the compiler categories to minimize the test matrix

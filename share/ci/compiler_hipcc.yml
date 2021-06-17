@@ -3,7 +3,7 @@
 # clang compiler is located under /opt/rocm/llvm/bin
 
 .base_hipcc:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-rocm4.0-pic:1.2
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-rocm4.0-pic:1.3
   variables:
     GIT_SUBMODULE_STRATEGY: normal
     PIC_CMAKE_ARGS: "-DALPAKA_HIP_ARCH=900 -DCMAKE_MODULE_PATH=/opt/rocm/hip/cmake"
