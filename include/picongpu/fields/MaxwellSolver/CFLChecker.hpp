@@ -33,8 +33,10 @@ namespace picongpu
              * Performs either a compile-time check or a run-time check and throws if failed.
              *
              * @tparam T_FieldSolver field solver type
+             * @tparam T_Defer technical parameter to defer evaluation;
+             *                 is needed for specializations with non-template solver classes
              */
-            template<typename T_FieldSolver>
+            template<typename T_FieldSolver, typename T_Defer = void>
             struct CFLChecker
             {
                 /** Check the CFL condition, doesn't compile when failed
@@ -45,12 +47,14 @@ namespace picongpu
                  */
                 void operator()() const
                 {
-                    // T_FieldSolver is added to defer evaluation
+                    /* Dependance on T_Defer is required, otherwise this check would have been enforced for each setup
+                     * (in this case, could have depended on T_FieldSolver as well)
+                     */
                     PMACC_CASSERT_MSG(
                         Courant_Friedrichs_Lewy_condition_failure____check_your_grid_param_file,
                         (SPEED_OF_LIGHT * DELTA_T / CELL_WIDTH <= 1.0)
                             && (SPEED_OF_LIGHT * DELTA_T / CELL_HEIGHT <= 1.0)
-                            && (SPEED_OF_LIGHT * DELTA_T / CELL_DEPTH <= 1.0) && sizeof(T_FieldSolver*) != 0);
+                            && (SPEED_OF_LIGHT * DELTA_T / CELL_DEPTH <= 1.0) && sizeof(T_Defer*) != 0);
                 }
             };
 

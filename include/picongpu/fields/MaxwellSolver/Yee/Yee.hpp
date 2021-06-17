@@ -34,18 +34,21 @@ namespace picongpu
     {
         namespace maxwellSolver
         {
-            //! Specialization of the CFL condition checker for the classic Yee solver
-            template<>
-            struct CFLChecker<Yee>
+            /** Specialization of the CFL condition checker for the classic Yee solver
+             *
+             * @tparam T_Defer technical parameter to defer evaluation
+             */
+            template<typename T_Defer>
+            struct CFLChecker<Yee, T_Defer>
             {
                 //! Check the CFL condition, doesn't compile when failed
                 void operator()() const
                 {
-                    // Yee<T_CurlE, T_CurlB> is added to defer evaluation
+                    // Dependance on T_Defer is required, otherwise this check would have been enforced for each setup
                     PMACC_CASSERT_MSG(
                         Courant_Friedrichs_Lewy_condition_failure____check_your_grid_param_file,
                         (SPEED_OF_LIGHT * SPEED_OF_LIGHT * DELTA_T * DELTA_T * INV_CELL2_SUM) <= 1.0
-                            && sizeof(Yee*) != 0);
+                            && sizeof(T_Defer*) != 0);
                 }
             };
 
