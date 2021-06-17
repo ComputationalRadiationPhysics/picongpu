@@ -38,26 +38,6 @@ namespace picongpu
         {
             namespace pml
             {
-                /** Perfectly Matched Layer field absorber
-                 *
-                 * Reads parameters from the .param file.
-                 * Does not implement the absorption itself, that is done by PmlImpl.
-                 */
-                class Pml : public Absorber
-                {
-                public:
-                    //! Create PML absorber instance
-                    Pml()
-                    {
-                        // Copy thickness from pml.param
-                        for(uint32_t axis = 0u; axis < simDim; axis++)
-                            for(uint32_t direction = 0u; direction < 2u; direction++)
-                                numCells[axis][direction] = maxwellSolver::Pml::NUM_CELLS[axis][direction];
-                        name = std::string{"convolutional PML"};
-                        kind = Kind::Pml;
-                    }
-                };
-
                 /** Implementation of FDTD + PML updates of E and B
                  *
                  * The original paper on this approach is J.A. Roden, S.D. Gedney.
@@ -71,16 +51,14 @@ namespace picongpu
                  * Edition. Artech house, Boston (2005), referred to as
                  * [Taflove, Hagness].
                  */
-                class PmlImpl
-                    : public AbsorberImpl
-                    , public Pml
+                class PmlImpl : public AbsorberImpl
                 {
                 public:
                     /** Create PML absorber implementation instance
                      *
                      * @param cellDescription mapping for kernels
                      */
-                    PmlImpl(MappingDesc const cellDescription) : Pml(), AbsorberImpl(cellDescription)
+                    PmlImpl(MappingDesc const cellDescription) : AbsorberImpl(Absorber::Kind::Pml, cellDescription)
                     {
                         initParameters();
                         DataConnector& dc = Environment<>::get().DataConnector();
@@ -128,22 +106,24 @@ namespace picongpu
                     }
 
                 private:
+                    //! Read parameters from fieldAbsorber.param
                     void initParameters()
                     {
-                        namespace paramPml = maxwellSolver::Pml;
-                        parameters.sigmaKappaGradingOrder = paramPml::SIGMA_KAPPA_GRADING_ORDER;
-                        parameters.alphaGradingOrder = paramPml::ALPHA_GRADING_ORDER;
+                        parameters.sigmaKappaGradingOrder = SIGMA_KAPPA_GRADING_ORDER;
+                        parameters.alphaGradingOrder = ALPHA_GRADING_ORDER;
                         for(uint32_t dim = 0u; dim < simDim; dim++)
                         {
-                            parameters.normalizedSigmaMax[dim] = paramPml::NORMALIZED_SIGMA_MAX[dim];
-                            parameters.kappaMax[dim] = paramPml::KAPPA_MAX[dim];
-                            parameters.normalizedAlphaMax[dim] = paramPml::NORMALIZED_ALPHA_MAX[dim];
+                            parameters.normalizedSigmaMax[dim] = NORMALIZED_SIGMA_MAX[dim];
+                            parameters.kappaMax[dim] = KAPPA_MAX[dim];
+                            parameters.normalizedAlphaMax[dim] = NORMALIZED_ALPHA_MAX[dim];
                         }
                     }
 
+                    //! Helper area mapper type
                     template<uint32_t T_Area>
                     using AreaMapper = pmacc::AreaMapping<T_Area, MappingDesc>;
 
+                    //! Get parameters for the local domain
                     template<uint32_t T_Area>
                     LocalParameters getLocalParameters(AreaMapper<T_Area>& mapper, uint32_t const currentStep) const
                     {

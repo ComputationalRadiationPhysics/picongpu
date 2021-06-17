@@ -19,55 +19,74 @@
 
 /** @file
  *
- * Configure the Perfectly Matched Layer absorbing boundary conditions (PML).
- *
- * To enable PML set command-line option --fieldAbsorber.kind to "pml".
+ * Configure the field absorber parameters.
+ * Field absorber type is set by command-line option --fieldAbsorber.kind.
  */
 
 #pragma once
+
+#include <cstdint>
 
 
 namespace picongpu
 {
     namespace fields
     {
-        namespace maxwellSolver
+        namespace absorber
         {
-            namespace Pml
+#ifndef PARAM_ABSORBER_SIZE
+#    define PARAM_ABSORBER_SIZE 10
+#endif
+
+            // This variable is not required, defined for convenience
+            constexpr uint32_t THICKNESS = PARAM_ABSORBER_SIZE;
+
+            /** Thickness of the absorbing layer, in number of cells
+             *
+             * This setting applies to applies for all absorber kinds.
+             * The absorber layer is located inside the global simulation area, near the outer borders.
+             * Setting size to 0 results in disabling absorption at the corresponding boundary.
+             * Note that for non-absorbing boundaries the actual thickness will be 0 anyways.
+             * There are no requirements on thickness being a multiple of the supercell size.
+             *
+             * For PML the recommended thickness is between 6 and 16 cells.
+             * For the exponential damping it is 32.
+             *
+             * Unit: number of cells.
+             */
+            constexpr uint32_t NUM_CELLS[3][2] = {
+                {THICKNESS, THICKNESS}, // x direction [negative, positive]
+                {THICKNESS, THICKNESS}, // y direction [negative, positive]
+                {THICKNESS, THICKNESS} // z direction [negative, positive]
+            };
+
+            //! Settings for the Exponential absorber
+            namespace exponential
             {
-                /* The original paper on this approach is J.A. Roden, S.D. Gedney.
-                 * Convolution PML (CPML): An efficient FDTD implementation of the CFS - PML
-                 * for arbitrary media. Microwave and optical technology letters. 27 (5),
-                 * 334-339 (2000).
-                 * https://doi.org/10.1002/1098-2760(20001205)27:5%3C334::AID-MOP14%3E3.0.CO;2-A
-                 * Our implementation is based on a more detailed description in section
-                 * 7.9 of the book A. Taflove, S.C. Hagness. Computational Electrodynamics.
-                 * The Finite-Difference Time-Domain Method. Third Edition. Artech house,
-                 * Boston (2005), referred to as [Taflove, Hagness].
-                 */
-
-                constexpr uint32_t THICKNESS = 8;
-
-                /** Thickness of the absorbing layer, in number of cells
+                /** Define the strength of the absorber for all directions
                  *
-                 * PML is located inside the global simulation area, near the outer borders.
-                 * Setting size to 0 results in disabling absorption at the corresponding
-                 * boundary. Normally thickness is between 6 and 16 cells, with larger
-                 * values providing less reflections.
-                 * 8 cells should be good enough for most simulations. There are no
-                 * requirements on thickness being a multiple of the supercell size.
-                 * It is only required that PML is small enough to be fully contained in
-                 * a single layer of local domains near the global simulation area boundary
-                 * (Note that the domains of this layer might be changing, e.g. due to
-                 * moving window.)
-                 * Unit: number of cells.
+                 * Elements corredponding to non-absorber borders will have no effect.
+                 *
+                 * Unit: none
                  */
-                constexpr uint32_t NUM_CELLS[3][2] = {
-                    {THICKNESS, THICKNESS}, // x direction [negative, positive]
-                    {THICKNESS, THICKNESS}, // y direction [negative, positive]
-                    {THICKNESS, THICKNESS} // z direction [negative, positive]
+                constexpr float_X STRENGTH[3][2] = {
+                    {1.0e-3, 1.0e-3}, /*x direction [negative,positive]*/
+                    {1.0e-3, 1.0e-3}, /*y direction [negative,positive]*/
+                    {1.0e-3, 1.0e-3} /*z direction [negative,positive]*/
                 };
+            } // namespace exponential
 
+            /** Settings for the Pml absorber
+             *
+             * These parameters can generally be left with default values.
+             * For more details on the meaning of the parameters, refer to the following references.
+             * J.A. Roden, S.D. Gedney. Convolution PML (CPML): An efficient FDTD implementation of the CFS - PML
+             * for arbitrary media. Microwave and optical technology letters. 27 (5), 334-339 (2000).
+             * A. Taflove, S.C. Hagness. Computational Electrodynamics. The Finite-Difference Time-Domain Method.
+             * Third Edition. Artech house, Boston (2005), referred to as [Taflove, Hagness].
+             */
+            namespace pml
+            {
                 /** Order of polynomial grading for artificial electric conductivity and
                  *  stretching coefficient
                  *
@@ -82,13 +101,13 @@ namespace picongpu
                  */
                 constexpr float_64 SIGMA_KAPPA_GRADING_ORDER = 4.0;
 
-                // [Taflove, Hagness], eq. (7.66)
+                // [Taflove, Hagness], eq. (7.66). Not required, defined for convenience
                 constexpr float_64 SIGMA_OPT_SI[3]
                     = {0.8 * (SIGMA_KAPPA_GRADING_ORDER + 1.0) / (SI::Z0_SI * SI::CELL_WIDTH_SI),
                        0.8 * (SIGMA_KAPPA_GRADING_ORDER + 1.0) / (SI::Z0_SI * SI::CELL_HEIGHT_SI),
                        0.8 * (SIGMA_KAPPA_GRADING_ORDER + 1.0) / (SI::Z0_SI * SI::CELL_DEPTH_SI)};
 
-                // Muptiplier to express SIGMA_MAX_SI with SIGMA_OPT_SI
+                // Muptiplier to express SIGMA_MAX_SI with SIGMA_OPT_SI. Not required, defined for convenience
                 constexpr float_64 SIGMA_OPT_MULTIPLIER = 1.0;
 
                 /** Max value of artificial electric conductivity in PML
@@ -107,6 +126,10 @@ namespace picongpu
                        SIGMA_OPT_SI[1] * SIGMA_OPT_MULTIPLIER,
                        SIGMA_OPT_SI[2] * SIGMA_OPT_MULTIPLIER};
 
+#ifndef PARAM_PML_KAPPA_MAX
+#    define PARAM_PML_KAPPA_MAX 1.0
+#endif
+
                 /** Max value of coordinate stretching coefficient in PML
                  *
                  * Components correspond to directions: element 0 corresponds to absorption
@@ -117,7 +140,7 @@ namespace picongpu
                  * 7.0 and 20.0, for example, see section 7.11.2 in [Taflove, Hagness].
                  * Unitless.
                  */
-                constexpr float_64 KAPPA_MAX[3] = {1.0, 1.0, 1.0};
+                constexpr float_64 KAPPA_MAX[3] = {PARAM_PML_KAPPA_MAX, PARAM_PML_KAPPA_MAX, PARAM_PML_KAPPA_MAX};
 
                 /** Order of polynomial grading for complex frequency shift
                  *
@@ -130,6 +153,10 @@ namespace picongpu
                  */
                 constexpr float_64 ALPHA_GRADING_ORDER = 1.0;
 
+#ifndef PARAM_PML_ALPHA_MAX
+#    define PARAM_PML_ALPHA_MAX 0.2
+#endif
+
                 /** Complex frequency shift in PML
                  *
                  * Components correspond to directions: element 0 corresponds to absorption
@@ -140,9 +167,9 @@ namespace picongpu
                  * Must be >= 0. Normally values are 0 or between 0.15 and 0.3.
                  * Unit: siemens / m.
                  */
-                constexpr float_64 ALPHA_MAX_SI[3] = {0.2, 0.2, 0.2};
+                constexpr float_64 ALPHA_MAX_SI[3] = {PARAM_PML_ALPHA_MAX, PARAM_PML_ALPHA_MAX, PARAM_PML_ALPHA_MAX};
 
-            } // namespace Pml
-        } // namespace maxwellSolver
+            } // namespace pml
+        } // namespace absorber
     } // namespace fields
 } // namespace picongpu

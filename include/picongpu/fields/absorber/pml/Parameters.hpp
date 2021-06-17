@@ -36,8 +36,8 @@ namespace picongpu
             {
                 /** Parameters of PML, except thickness
                  *
-                 * A detailed description and recommended ranges are given in pml.param,
-                 * normalizations and unit conversions in pml.unitless.
+                 * A detailed description and recommended ranges are given in fieldAbsorber.param,
+                 * normalizations and unit conversions in fieldAbsorber.unitless.
                  */
                 struct Parameters
                 {

@@ -159,8 +159,10 @@ namespace picongpu
                 //! Text name for string properties
                 std::string name;
 
-                Absorber() = default;
-                Absorber(Absorber const&) = delete;
+                //! Create absorber with the given kind
+                Absorber(Kind kind);
+
+                friend class AbsorberFactory;
             };
 
             // Forward declaration for AbsorberImpl::asExponentialImpl()
@@ -183,14 +185,14 @@ namespace picongpu
              *
              * The reason it is separated from the Absorber class is to better manage lifetime.
              */
-            class AbsorberImpl
+            class AbsorberImpl : public Absorber
             {
             public:
                 /** Create absorber implementation instance
                  *
                  * @param cellDescription mapping for kernels
                  */
-                AbsorberImpl(MappingDesc const cellDescription);
+                AbsorberImpl(Kind kind, MappingDesc cellDescription);
 
                 //! Destructor
                 virtual ~AbsorberImpl() = default;

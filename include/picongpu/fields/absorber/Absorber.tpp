@@ -38,6 +38,25 @@ namespace picongpu
     {
         namespace absorber
         {
+            Absorber::Absorber(Kind const kind) : kind(kind)
+            {
+                switch(kind)
+                {
+                case Kind::Exponential:
+                    name = std::string{"exponential damping"};
+                    break;
+                case Kind::Pml:
+                    name = std::string{"convolutional PML"};
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported absorber kind requested to be made");
+                }
+                // Read thickness from absorber.param
+                for(uint32_t axis = 0u; axis < simDim; axis++)
+                    for(uint32_t direction = 0u; direction < 2u; direction++)
+                        numCells[axis][direction] = NUM_CELLS[axis][direction];
+            }
+
             Absorber& Absorber::get()
             {
                 // Delay initialization till the first call since the factory has its parameters set during runtime
@@ -153,7 +172,9 @@ namespace picongpu
                 return propList;
             }
 
-            AbsorberImpl::AbsorberImpl(MappingDesc const cellDescription) : cellDescription(cellDescription)
+            AbsorberImpl::AbsorberImpl(Kind const kind, MappingDesc const cellDescription)
+                : Absorber(kind)
+                , cellDescription(cellDescription)
             {
             }
 
@@ -173,20 +194,12 @@ namespace picongpu
                 return *result;
             }
 
-            // This implementation has to go to a .tpp file as it requires definitions of Pml and ExponentialDamping
             std::unique_ptr<Absorber> AbsorberFactory::make() const
             {
                 if(!isInitialized)
                     throw std::runtime_error("Absorber factory used before being initialized");
-                switch(kind)
-                {
-                case Absorber::Kind::Exponential:
-                    return std::make_unique<exponential::Exponential>();
-                case Absorber::Kind::Pml:
-                    return std::make_unique<pml::Pml>();
-                default:
-                    throw std::runtime_error("Unsupported absorber kind requested to be made");
-                }
+                auto const instance = Absorber{kind};
+                return std::make_unique<Absorber>(instance);
             }
 
             // This implementation has to go to a .tpp file as it requires definitions of Pml and ExponentialDamping

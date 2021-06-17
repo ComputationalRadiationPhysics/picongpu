@@ -110,7 +110,7 @@ namespace picongpu
 
                     /** Get absorption parameters: sigma, kappa and alpha at a given cell
                      *
-                     * Apply polynomial grading, as described in pml.param.
+                     * Apply polynomial grading, as described in fieldAbsorber.param.
                      *
                      * @param cellIdx cell index including the guard, can be fractional,
                      * e.g. for halves of cells
@@ -176,7 +176,7 @@ namespace picongpu
 
                     /** Get coefficients for E or B updates at a given cell
                      *
-                     * Apply polynomial grading, as described in pml.param.
+                     * Apply polynomial grading, as described in fieldAbsorber.param.
                      * Due to normalizations, the same way of computing coefficients applies
                      * to E and B updates.
                      *
