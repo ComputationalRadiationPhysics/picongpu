@@ -108,4 +108,7 @@ export LD_LIBRARY_PATH=/opt/boost/${BOOST_VERSION}/lib:$LD_LIBRARY_PATH
 cmake $CMAKE_ARGS $code_DIR/include/pmacc
 make
 
-ctest -V
+# runtime tests with HIP are temporary disabled due to CI issues
+if [ "${PIC_BACKEND}" != "hip" ] ; then
+  ctest -V
+fi
