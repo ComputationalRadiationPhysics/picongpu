@@ -317,6 +317,7 @@ namespace picongpu
                 private:
                     FieldBox fieldPsiE;
                     LocalParameters const parameters;
+                    // keep curl as member to support stateful types
                     T_CurlB const curl;
                 };
 
@@ -329,6 +330,11 @@ namespace picongpu
                 class UpdateBHalfFunctor
                 {
                 public:
+                    //! Stencil requirements for lower margins
+                    using LowerMargin = typename traits::GetLowerMargin<T_CurlE>::type;
+                    //! Stencil requirements for upper margins
+                    using UpperMargin = typename traits::GetUpperMargin<T_CurlE>::type;
+
                     /** Create a functor instance on the host side
                      *
                      * @param fieldPsiE PML convolutional electric field iterator
@@ -421,6 +427,7 @@ namespace picongpu
                     FieldBox fieldPsiB;
                     LocalParameters const parameters;
                     bool const updatePsiB;
+                    // keep curl as member to support stateful types
                     T_CurlE const curl;
                 };
 
