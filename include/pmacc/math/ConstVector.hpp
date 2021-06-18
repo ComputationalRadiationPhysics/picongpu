@@ -130,7 +130,10 @@
         namespace PMACC_JOIN(pmacc_static_const_vector_host, id)                                                      \
         {                                                                                                             \
             /* create const instance on host*/                                                                        \
+            PMACC_PRAGMA_OMP_TARGET_BEGIN_DECLARE                                                                     \
             constexpr PMACC_JOIN(Name, _t) Name;                                                                      \
+            PMACC_PRAGMA_OMP_TARGET_END_DECLARE                                                                       \
+            PMACC_PRAGMA_OACC_DECLARE_ARRAY(Name, 1)                                                                  \
         } /* namespace pmacc_static_const_vector_host + id  */                                                        \
     } /* namespace pmacc_static_const_storage + id */
 
