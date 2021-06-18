@@ -197,7 +197,7 @@ namespace picongpu
                 void updateBHalf(uint32_t const currentStep, bool const updatePsiB)
                 {
                     constexpr auto numWorkers = getNumWorkers();
-                    using Kernel = fdtd::KernelUpdateB<numWorkers, BlockDescription<CurlE>>;
+                    using Kernel = fdtd::KernelUpdateField<numWorkers>;
                     AreaMapper<T_Area> mapper{cellDescription};
 
                     // The ugly transition from run-time to compile-time polymorphism is contained here
@@ -233,7 +233,7 @@ namespace picongpu
                 void updateE(uint32_t currentStep)
                 {
                     constexpr auto numWorkers = getNumWorkers();
-                    using Kernel = fdtd::KernelUpdateE<numWorkers, BlockDescription<CurlB>>;
+                    using Kernel = fdtd::KernelUpdateField<numWorkers>;
                     auto mapper = AreaMapper<T_Area>{cellDescription};
 
                     // The ugly transition from run-time to compile-time polymorphism is contained here
