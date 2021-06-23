@@ -39,7 +39,7 @@ module load c-blosc/1.21.0
 module load cray-python/3.8.5.0
 module load hdf5/1.10.7 # dependency of openpmd-api module (no other possible)
 module load adios2/2.7.1 # dependency of openpmd-api module
-module load openpmd-api/0.13.2
+module load openpmd-api/0.13.4
 
 module load libpng/1.6.37
 
