@@ -17,21 +17,27 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#if(ENABLE_OPENPMD == 1)
 
-#include "picongpu/simulation_defines.hpp"
+#    pragma once
 
-#include "picongpu/fields/Fields.hpp"
-#include "picongpu/simulation/control/MovingWindow.hpp"
+#    include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
-#include <pmacc/memory/buffers/GridBuffer.hpp>
-#include <pmacc/static_assert.hpp>
+#    include "picongpu/fields/Fields.hpp"
+#    include "picongpu/simulation/control/MovingWindow.hpp"
 
-#include <memory>
+#    include <pmacc/dataManagement/DataConnector.hpp>
+#    include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
+#    include <pmacc/memory/buffers/GridBuffer.hpp>
+#    include <pmacc/static_assert.hpp>
 
-#include <openPMD/openPMD.hpp>
+#    include <algorithm>
+#    include <cstdint>
+#    include <functional>
+#    include <memory>
+#    include <numeric>
+
+#    include <openPMD/openPMD.hpp>
 
 namespace picongpu
 {
@@ -40,8 +46,10 @@ namespace picongpu
         template<typename T_ParamClass>
         struct FromOpenPMDImpl : public T_ParamClass
         {
+            //! Parameters type
             using ParamClass = T_ParamClass;
 
+            //! Hook for boost::mpl::apply
             template<typename T_SpeciesType>
             struct apply
             {
@@ -50,12 +58,14 @@ namespace picongpu
 
             /** Initialize the functor on the host side, includes loading the file
              *
+             * This is MPI collective operation, must be called by all ranks.
+             *
              * @param currentStep current time iteration
              */
             HINLINE FromOpenPMDImpl(uint32_t currentStep)
             {
                 auto const& subGrid = Environment<simDim>::get().SubGrid();
-                totalOffset = subGrid.getLocalDomain().offset;
+                totalLocalDomainOffset = subGrid.getGlobalDomain().offset + subGrid.getLocalDomain().offset;
                 loadFile();
             }
 
@@ -65,9 +75,8 @@ namespace picongpu
              */
             HDINLINE float_X operator()(DataSpace<simDim> const& totalCellOffset)
             {
-                auto const localCellIdx = totalCellOffset - totalOffset;
-                auto const offset = localCellIdx + SuperCellSize::toRT() * GuardSize::toRT();
-                return precisionCast<float_X>(deviceDataBox(offset).x());
+                auto const idx = totalCellOffset - totalLocalDomainOffset;
+                return precisionCast<float_X>(deviceDataBox(idx).x());
             }
 
         private:
@@ -78,19 +87,14 @@ namespace picongpu
                 PMACC_CASSERT_MSG(_please_allocate_at_least_one_FieldTmp_in_memory_param, fieldTmpNumSlots > 0);
                 auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0), true);
                 auto& fieldBuffer = fieldTmp->getGridBuffer();
-                deviceDataBox = fieldBuffer.getDeviceBuffer().getDataBox();
+                // Set all to zero by default (in case the data will not be in a file)
+                fieldBuffer.getHostBuffer().setValue(0.0_X);
+                auto const guards = fieldBuffer.getGridLayout().getGuard();
+                deviceDataBox = fieldBuffer.getDeviceBuffer().getDataBox().shift(guards);
 
-                // Offset of the local domain in file coordinates: global coordinates, no guards, no moving window
-                auto const& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
-                auto fileOffset = ::openPMD::Offset(simDim, 0);
-                auto fileExtent = ::openPMD::Extent(simDim, 0);
-                for(uint32_t d = 0; d < simDim; ++d)
-                {
-                    fileOffset[d] = totalOffset[d];
-                    fileExtent[d] = localDomain.size[d];
-                }
-
-                // Read the data from the file
+                /* Open a series (this does not read the dataset itself).
+                 * This is MPI collective and so has to be done by all ranks.
+                 */
                 auto& gc = Environment<simDim>::get().GridController();
                 auto series = ::openPMD::Series{
                     ParamClass::filename,
@@ -99,29 +103,69 @@ namespace picongpu
                 ::openPMD::MeshRecordComponent dataset
                     = series.iterations[ParamClass::iteration]
                           .meshes[ParamClass::datasetName][::openPMD::RecordComponent::SCALAR];
+                auto const datasetExtent = dataset.getExtent();
+
+                // Offset of the local domain in file coordinates: global coordinates, no guards, no moving window
+                auto const& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                bool readFromFile = true;
+                auto chunkOffset = ::openPMD::Offset(simDim, 0);
+                auto chunkExtent = ::openPMD::Extent(simDim, 0);
+                for(uint32_t d = 0; d < simDim; ++d)
+                {
+                    chunkOffset[d] = totalLocalDomainOffset[d] - ParamClass::offset[d];
+                    // Here we take care, as chunkExtent is unsigned type
+                    int32_t extent = std::min(
+                        static_cast<int32_t>(localDomain.size[d]),
+                        static_cast<int32_t>(datasetExtent[d] - chunkOffset[d]));
+                    if(extent <= 0)
+                        readFromFile = false;
+                    else
+                        chunkExtent[d] = extent;
+                }
+
                 using ValueType = FieldTmp::ValueType::type;
-                std::shared_ptr<ValueType> data = dataset.loadChunk<ValueType>(fileOffset, fileExtent);
+                auto data = std::shared_ptr<ValueType>{nullptr};
+                if(readFromFile)
+                    data = dataset.loadChunk<ValueType>(chunkOffset, chunkExtent);
+
+                // This is MPI collective and so has to be done by all ranks
                 series.flush();
 
-                auto const guards = fieldBuffer.getGridLayout().getGuard();
-                auto dataBox = fieldBuffer.getHostBuffer().getDataBox().shift(guards);
-                using D1Box = DataBoxDim1Access<FieldTmp::DataBoxType>;
-                auto d1RAccess = D1Box{dataBox.shift(guards), localDomain.size};
                 auto const* rawData = data.get();
-                for(int i = 0; i < localDomain.size.productOfComponents(); ++i)
-                    d1RAccess[i].x() = rawData[i];
+                auto const numElements
+                    = std::accumulate(std::begin(chunkExtent), std::end(chunkExtent), 1u, std::multiplies<uint32_t>());
+                auto hostDataBox = fieldBuffer.getHostBuffer().getDataBox().shift(guards);
+                /* This loop is a bit clunky, since we are copying one simDim-dimensional array into another,
+                 * and chunkExtent can be smaller than local domain size.
+                 * Here we rely on the loadChunk() returning data stored in x-y-z order.
+                 */
+                for(uint32_t linearIdx = 0u; linearIdx < numElements; linearIdx++)
+                {
+                    pmacc::DataSpace<simDim> idx;
+                    auto tmpLinearIdx = linearIdx;
+                    for(int32_t d = simDim - 1; d >= 0; d--)
+                    {
+                        idx[d] = tmpLinearIdx % chunkExtent[d];
+                        tmpLinearIdx /= chunkExtent[d];
+                    }
+                    hostDataBox(idx) = rawData[linearIdx];
+                }
 
                 // Copy host data to the device
                 fieldBuffer.hostToDevice();
                 __getTransactionEvent().waitForFinished();
-                return;
             }
 
-            //! Device data box with density values
+            /** Device data box with density values
+             *
+             * Is shifted to be indexed without guards
+             */
             PMACC_ALIGN(deviceDataBox, FieldTmp::DataBoxType);
 
-            //! Total offset of the local domain
-            PMACC_ALIGN(totalOffset, DataSpace<simDim>);
+            //! Total offset of the local domain in cells
+            PMACC_ALIGN(totalLocalDomainOffset, DataSpace<simDim>);
         };
     } // namespace densityProfiles
 } // namespace picongpu
+
+#endif

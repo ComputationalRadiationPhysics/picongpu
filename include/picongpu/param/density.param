@@ -227,8 +227,10 @@ namespace picongpu
          *
          * The file follows the openPMD standard.
          * The density values are written as a dataset of type float_X.
-         * The dataset size equals the global grid size (in case it is larger, part will be ignored).
-         * Each value defines density in the cell with the corresponding global coordinate.
+         * Each value defines density in the cell with the corresponding total coordinate minus the given offset.
+         * When the functor is instantiated, it will load the part matching the current domain position.
+         * If the file dataset is not large enough, it will be padded with 0.
+         * Dimensionality of the file indexing must match the simulation dimensionality.
          * Density values are in BASE_DENSITY_SI units.
          */
         PMACC_STRUCT(
@@ -239,10 +241,13 @@ namespace picongpu
             //! Name of the dataset inside the file
             (PMACC_C_STRING(datasetName, "density"))
 
-            //! Iteration inside the file (note - is not related to the current simulation time iteration)
-            (PMACC_C_VALUE(uint32_t, iteration, 0))); /* struct FromOpenPMDParam */
+            //! Iteration inside the file (only file, not related to the current simulation time iteration)
+            (PMACC_C_VALUE(uint32_t, iteration, 0))
 
-        /* definition of cloud profile */
+            //! Offset in the file in cells: each value is density at (total cell index - offset)
+            (PMACC_C_VECTOR_DIM(int, simDim, offset, 0, 0, 0))); /* struct FromOpenPMDParam */
+
+        //! Definition of density-from-file profile
         using FromOpenPMD = FromOpenPMDImpl<FromOpenPMDParam>;
 
 
