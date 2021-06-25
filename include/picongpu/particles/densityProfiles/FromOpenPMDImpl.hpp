@@ -87,8 +87,8 @@ namespace picongpu
                 PMACC_CASSERT_MSG(_please_allocate_at_least_one_FieldTmp_in_memory_param, fieldTmpNumSlots > 0);
                 auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0), true);
                 auto& fieldBuffer = fieldTmp->getGridBuffer();
-                // Set all to zero by default (in case the data will not be in a file)
-                fieldBuffer.getHostBuffer().setValue(0.0_X);
+                // Set all values to the default values, the values present in the file will be overwritten
+                fieldBuffer.getHostBuffer().setValue(ParamClass::defaultDensity);
                 auto const guards = fieldBuffer.getGridLayout().getGuard();
                 deviceDataBox = fieldBuffer.getDeviceBuffer().getDataBox().shift(guards);
 
@@ -108,14 +108,18 @@ namespace picongpu
                 // Offset of the local domain in file coordinates: global coordinates, no guards, no moving window
                 auto const& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 bool readFromFile = true;
+                // Where the fieldBuffer data is starting from (no guards)
+                auto localDataBoxStart = pmacc::DataSpace<simDim>::create(0);
+                // Start and extend of the file for the local domain
                 auto chunkOffset = ::openPMD::Offset(simDim, 0);
                 auto chunkExtent = ::openPMD::Extent(simDim, 0);
                 for(uint32_t d = 0; d < simDim; ++d)
                 {
-                    chunkOffset[d] = totalLocalDomainOffset[d] - ParamClass::offset[d];
+                    localDataBoxStart[d] = std::max(ParamClass::offset[d] - totalLocalDomainOffset[d], 0);
+                    chunkOffset[d] = std::max(-localDataBoxStart[d], 0);
                     // Here we take care, as chunkExtent is unsigned type
                     int32_t extent = std::min(
-                        static_cast<int32_t>(localDomain.size[d]),
+                        static_cast<int32_t>(localDomain.size[d] - localDataBoxStart[d]),
                         static_cast<int32_t>(datasetExtent[d] - chunkOffset[d]));
                     if(extent <= 0)
                         readFromFile = false;
@@ -131,24 +135,30 @@ namespace picongpu
                 // This is MPI collective and so has to be done by all ranks
                 series.flush();
 
-                auto const* rawData = data.get();
-                auto const numElements
-                    = std::accumulate(std::begin(chunkExtent), std::end(chunkExtent), 1u, std::multiplies<uint32_t>());
-                auto hostDataBox = fieldBuffer.getHostBuffer().getDataBox().shift(guards);
-                /* This loop is a bit clunky, since we are copying one simDim-dimensional array into another,
-                 * and chunkExtent can be smaller than local domain size.
-                 * Here we rely on the loadChunk() returning data stored in x-y-z order.
-                 */
-                for(uint32_t linearIdx = 0u; linearIdx < numElements; linearIdx++)
+                if(readFromFile)
                 {
-                    pmacc::DataSpace<simDim> idx;
-                    auto tmpLinearIdx = linearIdx;
-                    for(int32_t d = simDim - 1; d >= 0; d--)
+                    auto const* rawData = data.get();
+                    auto const numElements = std::accumulate(
+                        std::begin(chunkExtent),
+                        std::end(chunkExtent),
+                        1u,
+                        std::multiplies<uint32_t>());
+                    auto hostDataBox = fieldBuffer.getHostBuffer().getDataBox().shift(guards + localDataBoxStart);
+                    /* This loop is a bit clunky, since we are copying one simDim-dimensional array into another,
+                     * and chunkExtent can be smaller than local domain size.
+                     * Here we rely on the loadChunk() returning data stored in x-y-z order.
+                     */
+                    for(uint32_t linearIdx = 0u; linearIdx < numElements; linearIdx++)
                     {
-                        idx[d] = tmpLinearIdx % chunkExtent[d];
-                        tmpLinearIdx /= chunkExtent[d];
+                        pmacc::DataSpace<simDim> idx;
+                        auto tmpLinearIdx = linearIdx;
+                        for(int32_t d = simDim - 1; d >= 0; d--)
+                        {
+                            idx[d] = tmpLinearIdx % chunkExtent[d];
+                            tmpLinearIdx /= chunkExtent[d];
+                        }
+                        hostDataBox(idx) = rawData[linearIdx];
                     }
-                    hostDataBox(idx) = rawData[linearIdx];
                 }
 
                 // Copy host data to the device
@@ -158,7 +168,7 @@ namespace picongpu
 
             /** Device data box with density values
              *
-             * Is shifted to be indexed without guards
+             * Density at given totalCellIdx is given by element (totalCellIdx - totalLocalDomainOffset).
              */
             PMACC_ALIGN(deviceDataBox, FieldTmp::DataBoxType);
 

@@ -229,7 +229,7 @@ namespace picongpu
          * The density values are written as a dataset of type float_X.
          * Each value defines density in the cell with the corresponding total coordinate minus the given offset.
          * When the functor is instantiated, it will load the part matching the current domain position.
-         * If the file dataset is not large enough, it will be padded with 0.
+         * If the file dataset is not large enough, it will be padded with the given defaultDensity value.
          * Dimensionality of the file indexing must match the simulation dimensionality.
          * Density values are in BASE_DENSITY_SI units.
          */
@@ -245,7 +245,10 @@ namespace picongpu
             (PMACC_C_VALUE(uint32_t, iteration, 0))
 
             //! Offset in the file in cells: each value is density at (total cell index - offset)
-            (PMACC_C_VECTOR_DIM(int, simDim, offset, 0, 0, 0))); /* struct FromOpenPMDParam */
+            (PMACC_C_VECTOR_DIM(int, simDim, offset, 0, 0, 0))
+
+            //! Default value to be used for cells with no corresponding file value
+            (PMACC_C_VALUE(float_X, defaultDensity, 0.0_X))); /* struct FromOpenPMDParam */
 
         //! Definition of density-from-file profile
         using FromOpenPMD = FromOpenPMDImpl<FromOpenPMDParam>;
