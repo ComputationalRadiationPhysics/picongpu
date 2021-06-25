@@ -47,7 +47,7 @@ namespace picongpu
                 //! Total macroparticle weighting
                 float_64 sumWeighting = 0.0;
 
-                //! Total weighted sum of estimated temperatures in KeV, the sum of weights is sumWeighting
+                //! Total weighted sum of estimated temperatures in keV, the sum of weights is sumWeighting
                 float_64 sumTemperatureKeV = 0.0;
 
                 //! Total weighted sum of estimated Debye length in PIC units, the sum of weights is sumWeighting
