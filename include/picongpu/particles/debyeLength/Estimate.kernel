@@ -169,7 +169,9 @@ namespace picongpu
                     onlyMaster([&]() {
                         auto const mean = supercellSumMomentum / supercellSumWeighting;
                         // Use a simple variance estimator, the fact it is biased should not matter here
-                        auto const variance = supercellSumMomentumSquared / supercellSumWeighting - mean * mean;
+                        auto const variance = pmacc::math::max(
+                            float3_64::create(0.0),
+                            supercellSumMomentumSquared / supercellSumWeighting - mean * mean);
                         check(acc, electronBox, supercellIdx, supercellSumWeighting, variance, estimateBox);
                     });
                 }
