@@ -155,7 +155,8 @@ namespace picongpu
                      */
                     PMACC_SMEM(acc, newFrameFillLvl, int);
 
-                    auto onlyMasters = lockstep::makeMaster(workerIdx);
+                    // used to maintain the frame double buffer
+                    auto frameMasters = lockstep::makeForEach<2, numWorkers>(workerIdx);
 
                     // Declare local variable oldFrameFillLvl for each thread
                     int oldFrameFillLvl;
@@ -166,7 +167,7 @@ namespace picongpu
                     auto numNewParticlesCtx = lockstep::makeVar<uint32_t>(forEachParticle, 0u);
 
                     // Master initializes the frame fill level with 0
-                    onlyMasters([&](uint32_t const linearIdx) {
+                    frameMasters([&](uint32_t const linearIdx) {
                         if(linearIdx == 0)
                             newFrameFillLvl = 0;
                         targetFrames[linearIdx] = nullptr;
@@ -248,7 +249,7 @@ namespace picongpu
                              * - if there is no frame, yet, the master will create a new target particle frame
                              * and attach it to the back of the frame list
                              */
-                            onlyMasters([&](uint32_t const linearIdx) {
+                            frameMasters([&](uint32_t const linearIdx) {
                                 uint32_t const numFramesNeeded
                                     = (newFrameFillLvl + maxParticlesInFrame - 1u) / maxParticlesInFrame;
                                 if(linearIdx < numFramesNeeded && !targetFrames[linearIdx].isValid())
@@ -287,7 +288,7 @@ namespace picongpu
 
                             cupla::__syncthreads(acc);
 
-                            onlyMasters([&](uint32_t const linearIdx) {
+                            frameMasters([&](uint32_t const linearIdx) {
                                 if(linearIdx == 0 && newFrameFillLvl >= maxParticlesInFrame)
                                 {
                                     newFrameFillLvl -= maxParticlesInFrame;
