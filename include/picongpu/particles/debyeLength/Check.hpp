@@ -154,7 +154,7 @@ namespace picongpu
                                 "%1% (%2% %3%) supercells had local Debye length estimate not resolved"
                                 " by a single cell")
                                 % estimate.numFailingSupercells % ratioFailingSupercells % "%";
-                            log<picLog::PHYSICS>("Estimated weighted average temperature %1% KeV and corresponding "
+                            log<picLog::PHYSICS>("Estimated weighted average temperature %1% keV and corresponding "
                                                  "Debye length %2% m.\n"
                                                  "   The grid has %3% cells per average Debye length")
                                 % temperatureKeV % debyeLengthSI % cellsPerDebyeLength;

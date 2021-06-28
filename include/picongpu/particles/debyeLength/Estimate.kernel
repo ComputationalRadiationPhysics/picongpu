@@ -47,7 +47,7 @@ namespace picongpu
                 //! Total macroparticle weighting
                 float_64 sumWeighting = 0.0;
 
-                //! Total weighted sum of estimated temperatures in KeV, the sum of weights is sumWeighting
+                //! Total weighted sum of estimated temperatures in keV, the sum of weights is sumWeighting
                 float_64 sumTemperatureKeV = 0.0;
 
                 //! Total weighted sum of estimated Debye length in PIC units, the sum of weights is sumWeighting
@@ -169,7 +169,9 @@ namespace picongpu
                     onlyMaster([&]() {
                         auto const mean = supercellSumMomentum / supercellSumWeighting;
                         // Use a simple variance estimator, the fact it is biased should not matter here
-                        auto const variance = supercellSumMomentumSquared / supercellSumWeighting - mean * mean;
+                        auto const variance = pmacc::math::max(
+                            float3_64::create(0.0),
+                            supercellSumMomentumSquared / supercellSumWeighting - mean * mean);
                         check(acc, electronBox, supercellIdx, supercellSumWeighting, variance, estimateBox);
                     });
                 }
