@@ -31,7 +31,7 @@ namespace picongpu
         {
             /* None interpolated current assignment functor
              *
-             * Default for staggered grids/Yee-scheme.
+             * Default for staggered grids/FDTD field solver.
              * Updates field E only.
              */
             struct None

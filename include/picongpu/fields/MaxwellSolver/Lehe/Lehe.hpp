@@ -25,6 +25,8 @@
 #include "picongpu/fields/MaxwellSolver/Lehe/Derivative.hpp"
 #include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
 
+#include <pmacc/traits/GetStringProperties.hpp>
+
 #include <cstdint>
 
 
@@ -38,7 +40,7 @@ namespace pmacc
             static StringProperty get()
             {
                 auto propList = ::picongpu::fields::maxwellSolver::Lehe<T_cherenkovFreeDir>::getStringProperties();
-                // overwrite the name of the Yee solver (inherit all other properties)
+                // overwrite the name of the solver (inherit all other properties)
                 propList["name"].value = "Lehe";
                 return propList;
             }

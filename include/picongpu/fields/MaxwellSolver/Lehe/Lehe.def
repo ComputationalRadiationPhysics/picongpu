@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
 #include "picongpu/fields/MaxwellSolver/Lehe/Derivative.def"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
 #include "picongpu/fields/differentiation/Curl.def"
@@ -58,18 +59,20 @@ namespace picongpu
 
             } // namespace lehe
 
-            /** modified Yee solver
+            /** Lehe's modification of the FDTD solver, aims to be Cherenkov-free along one direction
              *
              * Reference: R. Lehe et al
              *            Phys. Rev. ST Accel. Beams 16, 021301 (2013)
+             *
+             * It only differs from the classic Yee solver by the curl of E, curl of B is the same.
              *
              * @tparam T_CherenkovFreeDir the direction (axis) which should be free of cherenkov radiation
              *                            0 = x, 1 = y, 2 = z
              */
             template<uint32_t T_cherenkovFreeDir = lehe::CherenkovFreeDirection_Y>
-            using Lehe = ::picongpu::fields::maxwellSolver::Yee<lehe::CurlE<T_cherenkovFreeDir>>;
+            using Lehe = ::picongpu::fields::maxwellSolver::FDTD<lehe::CurlE<T_cherenkovFreeDir>, yee::CurlB>;
 
-            /* We need no definition of margins, because the Yee solver uses its curl classes to define margins.
+            /* We need no definition of margins, because the FDTD solver uses its curl classes to define margins.
              * The default CFL checker is sufficient, thus it is not specialized for Lehe
              */
 

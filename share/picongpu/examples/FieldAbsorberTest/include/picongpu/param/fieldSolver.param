@@ -43,7 +43,7 @@ namespace picongpu
         /** FieldSolver
          *
          * Field Solver Selection (note <> for some solvers):
-         *  - Yee<> : Standard Yee solver approximating derivatives with respect to time and
+         *  - Yee : Standard Yee solver approximating derivatives with respect to time and
          * space by second order finite differences.
          *  - Lehe<>: Num. Cherenkov free field solver in a chosen direction
          *  - ArbitraryOrderFDTD<4>: Solver using 4 neighbors to each direction to approximate
@@ -57,7 +57,7 @@ namespace picongpu
         /* WARNING: if you change field solver by hand please update your CELL_WIDTH_SI
          * in `grid.param` to fulfill the convergence condition (CFL)
          */
-#    define SELECTED_FIELD_SOLVER Yee<>
+#    define SELECTED_FIELD_SOLVER Yee
 #else
 #    define SELECTED_FIELD_SOLVER PARAM_FIELDSOLVER
 #endif

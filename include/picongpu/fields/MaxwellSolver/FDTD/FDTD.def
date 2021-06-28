@@ -19,10 +19,6 @@
 
 #pragma once
 
-#include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
-#include "picongpu/fields/differentiation/Curl.def"
-#include "picongpu/fields/differentiation/Derivative.def"
-
 
 namespace picongpu
 {
@@ -30,21 +26,20 @@ namespace picongpu
     {
         namespace maxwellSolver
         {
-            namespace yee
-            {
-                //! Curl to apply to B (according to our Yee grid layout)
-                using CurlB = differentiation::Curl<differentiation::Backward>;
-
-                //! Curl to apply to E (according to our Yee grid layout)
-                using CurlE = differentiation::Curl<differentiation::Forward>;
-            } // namespace yee
-
-            /** The classic Yee field solver, second-order in time and space
+            /** Finite-difference time-domain (FDTD) Maxwell's solver on a regular Yee grid
              *
-             * Reference: K.S. Yee, Numerical solution of initial boundary value problems involving Maxwell's equations
-             *            in isotropic media, IEEE Trans. Antennas Propagat. 14, 302-307 (1966)
+             * This class template implements the general FDTD scheme for any given curl types.
+             * It is second-order in time, the order in space depends on the curls, but is at least second.
+             * All supported field solvers, except placeholder None, are aliases of this template.
+             *
+             * Reference: A. Taflove, S.C. Hagness. Computational Electrodynamics. The Finite-Difference Time-Domain
+             * Method. Third Edition. Artech house, Boston (2005).
+             *
+             * @tparam T_CurlE functor to compute curl of E
+             * @tparam T_CurlB functor to compute curl of B
              */
-            using Yee = FDTD<yee::CurlE, yee::CurlB>;
+            template<typename T_CurlE, typename T_CurlB>
+            class FDTD;
 
         } // namespace maxwellSolver
     } // namespace fields

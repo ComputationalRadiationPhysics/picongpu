@@ -299,7 +299,7 @@ namespace picongpu
                              * real material, so in (7.107a,b) we have to use
                              * sigma(i + 1/2, j, k) = 0 (it is another sigma,
                              * unrelated to PML), eps(i + 1/2, j, k) = EPS0. Also,
-                             * same as the Yee scheme in PIC, adjusted to use B,
+                             * same as the FDTD scheme in PIC, adjusted to use B,
                              * not H, on the right-hand side.
                              */
                             localE().x() += c2 * dt
@@ -310,7 +310,7 @@ namespace picongpu
                                 * (dBdx.y() / coeffs.kappa.x() - dBdy.x() / coeffs.kappa.y() + psiE.zx - psiE.zy);
                         }
                         else
-                            // Normal Yee scheme update
+                            // Normal FDTD update
                             localE() += curl(localB) * c2 * dt;
                     }
 
@@ -402,7 +402,7 @@ namespace picongpu
                              * real material, so in (7.109a,b) we have to use
                              * sigma*(i + 1/2, j, k) = 0 (it is another sigma*,
                              * unrelated to PML), mue(i + 1/2, j, k) = MUE0. Also,
-                             * same as the Yee scheme in PIC, adjusted to use B,
+                             * same as the FDTD scheme in PIC, adjusted to use B,
                              * not H, on the left-hand side.
                              */
                             localB().x() += halfDt
@@ -413,7 +413,7 @@ namespace picongpu
                                 * (dEdy.x() / coeffs.kappa.y() - dEdx.y() / coeffs.kappa.x() + psiB.zy - psiB.zx);
                         }
                         else
-                            // Normal Yee scheme update
+                            // Normal FDTD update
                             localB() -= curl(localE) * halfDt;
                     }
 
