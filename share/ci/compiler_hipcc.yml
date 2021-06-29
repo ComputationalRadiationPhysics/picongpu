@@ -3,7 +3,7 @@
 # clang compiler is located under /opt/rocm/llvm/bin
 
 .base_hipcc:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-rocm4.0-pic:1.3
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-rocm4.2-pic:1.3
   variables:
     GIT_SUBMODULE_STRATEGY: normal
     PIC_CMAKE_ARGS: "-DALPAKA_HIP_ARCH=900 -DCMAKE_MODULE_PATH=/opt/rocm/hip/cmake"
@@ -13,7 +13,7 @@
     DISABLE_ISAAC: "yes"
   script:
     - export PATH="$PATH:/opt/rocm/llvm/bin/"
-    # rocm 4.0 container is missing a binary/symlink named `clang++-12`
+    # rocm 4.2 container is missing a binary/symlink named `clang++-12`
     - ln -s /opt/rocm/llvm/bin/clang++ /opt/rocm/llvm/bin/clang++-12
     - rocm-smi
     - hipcc --version
