@@ -43,6 +43,14 @@ fieldSolver.param
    :path: include/picongpu/param/fieldSolver.param
    :no-link:
 
+fieldAbsorber.param
+^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfile:: fieldAbsorber.param
+   :project: PIConGPU
+   :path: include/picongpu/param/fieldAbsorber.param
+   :no-link:
+
 laser.param
 ^^^^^^^^^^^
 
@@ -65,14 +73,6 @@ incidentField.param
 .. doxygenfile:: incidentField.param
    :project: PIConGPU
    :path: include/picongpu/param/incidentField.param
-   :no-link:
-
-pml.param
-^^^^^^^^^
-
-.. doxygenfile:: pml.param
-   :project: PIConGPU
-   :path: include/picongpu/param/pml.param
    :no-link:
 
 pusher.param

@@ -33,12 +33,10 @@ Ideally, only particles leaving the simulation area are present there, on their 
 Note that particle absorption happens at the external surface of the field absorber layer, matching the global simulation area border.
 
 The field absorber mechanism and user-controlled parameters depend on the field absorber kind enabled.
+It is controlled by command-line option ``--fieldAbsorber``.
+For all absorber kinds, the parameters are controlled by :ref:`fieldAbsorber.param <usage-params-core>`.
 
-It is controlled by command-line option ``--fieldAbsorber.kind``.
-For the exponential absorber (default), the parameters are controlled by :ref:`grid.param <usage-params-core>`.
-Absorber thickness of about 32 cells is recommended.
-
-In case absorber kind is set to ``pml``, the Perfectly Matched Layer (PML) is used.
-PML parameters are controlled by :ref:`pml.param <usage-params-core>`.
-Absorber thickness of 8 to 12 cells is recommended, other parameters can generally be used with default values.
+For the exponential absorber (default), thickness of about 32 cells is recommended.
+For the Perfectly Matched Layer (PML) absorber, thickness of 8 to 12 cells is recommended.
+Other absorber parameters can generally be used with default values.
 PML generally provides much better absorber qualities than the exponential damping absorber.

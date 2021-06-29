@@ -41,12 +41,12 @@
 #include "picongpu/param/synchrotronPhotons.param"
 #include "picongpu/param/grid.param"
 #include "picongpu/param/pusher.param"
+#include "picongpu/param/fieldAbsorber.param"
 #include "picongpu/param/incidentField.param"
 #include "picongpu/param/ionizer.param"
 #include "picongpu/param/ionizationEnergies.param"
 #include "picongpu/param/density.param"
 #include "picongpu/param/particle.param"
-#include "picongpu/param/pml.param"
 #include "picongpu/param/unit.param"
 #include "picongpu/param/particleFilters.param"
 #if(PMACC_CUDA_ENABLED == 1)

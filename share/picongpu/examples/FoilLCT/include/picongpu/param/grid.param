@@ -65,26 +65,6 @@ namespace picongpu
 
     } // namespace SI
 
-    /** Defines the size of the absorbing zone (in cells)
-     *
-     *  unit: none
-     */
-    constexpr uint32_t ABSORBER_CELLS[3][2] = {
-        {64, 64}, /*x direction [negative,positive]*/
-        {64, 64}, /*y direction [negative,positive]*/
-        {64, 64} /*z direction [negative,positive]*/
-    };
-
-    /** Define the strength of the absorber for any direction
-     *
-     *  unit: none
-     */
-    constexpr float_X ABSORBER_STRENGTH[3][2] = {
-        {1.0e-3, 1.0e-3}, /*x direction [negative,positive]*/
-        {1.0e-3, 1.0e-3}, /*y direction [negative,positive]*/
-        {1.0e-3, 1.0e-3} /*z direction [negative,positive]*/
-    };
-
     /** When to move the co-moving window.
      *  An initial pseudo particle, flying with the speed of light,
      *  is fired at the begin of the simulation.

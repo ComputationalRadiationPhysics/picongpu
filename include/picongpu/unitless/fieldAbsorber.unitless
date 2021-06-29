@@ -26,9 +26,9 @@ namespace picongpu
 {
     namespace fields
     {
-        namespace maxwellSolver
+        namespace absorber
         {
-            namespace Pml
+            namespace pml
             {
                 // Assert parameters are in the valid ranges
                 PMACC_CASSERT_MSG(
@@ -99,7 +99,7 @@ namespace picongpu
                        NORMALIZED_ALPHA_MAX_SI[1] * UNIT_TIME,
                        NORMALIZED_ALPHA_MAX_SI[2] * UNIT_TIME};
 
-            } // namespace Pml
-        } // namespace maxwellSolver
+            } // namespace pml
+        } // namespace absorber
     } // namespace fields
 } // namespace picongpu

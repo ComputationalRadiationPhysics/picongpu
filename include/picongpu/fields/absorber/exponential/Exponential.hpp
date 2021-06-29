@@ -42,40 +42,19 @@ namespace picongpu
         {
             namespace exponential
             {
-                /** Exponential damping field absorber
-                 *
-                 * Reads parameters from the .param file.
-                 * Does not implement the absorption itself, that is done by ExponentialImpl.
-                 */
-                class Exponential : public Absorber
-                {
-                public:
-                    //! Create exponential damping absorber instance
-                    Exponential()
-                    {
-                        // Copy thickness from grid.param
-                        for(uint32_t axis = 0u; axis < simDim; axis++)
-                            for(uint32_t direction = 0u; direction < 2u; direction++)
-                                numCells[axis][direction] = ABSORBER_CELLS[axis][direction];
-                        name = std::string{"exponential damping"};
-                        kind = Kind::Exponential;
-                    }
-                };
-
                 /** Exponential damping field absorber implementation
                  *
                  * Implements absorption.
                  */
-                class ExponentialImpl
-                    : public AbsorberImpl
-                    , public Exponential
+                class ExponentialImpl : public AbsorberImpl
                 {
                 public:
                     /** Create exponential absorber implementation instance
                      *
                      * @param cellDescription mapping for kernels
                      */
-                    ExponentialImpl(MappingDesc const cellDescription) : AbsorberImpl(cellDescription)
+                    ExponentialImpl(MappingDesc const cellDescription)
+                        : AbsorberImpl(Absorber::Kind::Exponential, cellDescription)
                     {
                     }
 
@@ -109,7 +88,7 @@ namespace picongpu
                                 uint32_t pos_or_neg = i % 2;
 
                                 uint32_t thickness = numCells[direction][pos_or_neg];
-                                float_X absorber_strength = ABSORBER_STRENGTH[direction][pos_or_neg];
+                                float_X absorber_strength = STRENGTH[direction][pos_or_neg];
 
                                 if(thickness == 0)
                                     continue; /*if the absorber has no thickness we check the next side*/
