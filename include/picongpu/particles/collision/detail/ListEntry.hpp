@@ -105,7 +105,7 @@ namespace picongpu
                     {
                         if(ptrToIndicies != nullptr)
                         {
-#if(PMACC_CUDA_ENABLED == 1)
+#if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
                             deviceHeapHandle.free(acc, (void*) ptrToIndicies);
                             ptrToIndicies = nullptr;
 #else
