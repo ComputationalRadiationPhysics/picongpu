@@ -154,8 +154,7 @@ namespace pmacc
 
                 CUDA_CHECK_KERNEL_MSG(cuplaDeviceSynchronize(), std::string("Crash before kernel call ") + kernelInfo);
 
-                pmacc::TaskKernel* taskKernel
-                    = pmacc::Environment<>::get().Factory().createTaskKernel(typeid(kernelName).name());
+                pmacc::TaskKernel* taskKernel = pmacc::Environment<>::get().Factory().createTaskKernel(kernelName);
 
                 DataSpace<traits::GetNComponents<T_VectorGrid>::value> gridExtent(m_gridExtent);
 
