@@ -97,6 +97,19 @@ This will create the directory ``$SCRATCH/runs/lwfa_001`` where all simulation o
 Subfolder ``simOutput/`` has all the simulation results.
 Particularly, the simulation progress log is in ``simOutput/output``.
 
+4. Creating Own Simulation
+""""""""""""""""""""""""""
+
+For creating an own simulation, we recommend starting with the most fitting example and modifying the :ref:`compile-time options in .param files <usage-params>` and :ref:`run-time options in .cfg files <usage-plugins>`.
+Changing contents of ``.param`` files requires recompilation of the code, modifying ``.cfg`` files does not.
+Note that available run-time options generally depend on the environment used for the build, the chosen compute backend, and the contents of ``.param`` files.
+To get the list of all available options for the current configuration, after a successful ``pic-build`` run
+
+.. code-block:: bash
+   :emphasize-lines: 1
+
+   .build/picongpu --help
+
 Details on the Commands Above
 -----------------------------
 
