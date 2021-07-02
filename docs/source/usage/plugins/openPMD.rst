@@ -25,6 +25,8 @@ One can e.g. disable the output of particles by setting:
    /* disable */
    using FileOutputParticles = MakeSeq_t< >;
 
+Particle filters used for output plugins, including this one, are defined in :ref:`particleFilters.param <usage-params-core>`.
+
 .cfg file
 ^^^^^^^^^
 
@@ -52,6 +54,12 @@ In order to set defaults for these value, two further options control the filena
   If PIConGPU detects a streaming backend (e.g. by ``--openPMD.ext=sst``), it will automatically set ``--openPMD.infix=NULL``, overriding the user's choice.
   Note however that the ADIOS2 backend can also be selected via ``--openPMD.json`` and via environment variables which PIConGPU does not check.
   It is hence recommended to set ``--openPMD.infix=NULL`` explicitly.
+
+Option ``--openPMD.source`` controls which data is output.
+Its value is a comma-separated list of combinations of a data set name and a filter name.
+A user can see all possible combinations for the current setup in the command-line help for this option.
+Note that addding species and particle filters to ``.param`` files will automatically extend the number of combinations available.
+By default all particles and fields are output.
 
 For example, ``--openPMD.period 128 --openPMD.file simData --openPMD.source 'species_all'`` will write only the particle species data to files of the form ``simData_000000.bp``, ``simData_000128.bp`` in the default simulation output directory every 128 steps.
 Note that this plugin will only be available if the openPMD API is found during compile configuration.
@@ -104,7 +112,7 @@ Two data preparation strategies are available for downloading particle data off 
 PIConGPU command line option          description
 ===================================== ====================================================================================================================================================
 ``--openPMD.period``                  Period after which simulation data should be stored on disk.
-``--openPMD.source``                  Select data sources to dump. Default is ``species_all,fields_all``, which dumps all fields and particle species.
+``--openPMD.source``                  Select data sources and filters to dump. Default is ``species_all,fields_all``, which dumps all fields and particle species.
 ``--openPMD.compression``             Legacy parameter to set data transform compression method to be used for ADIOS1 backend until it implements setting compression from JSON config.
 ``--openPMD.file``                    Relative or absolute openPMD file prefix for simulation data. If relative, files are stored under ``simOutput``. 
 ``--openPMD.ext``                     openPMD filename extension (this controls thebackend picked by the openPMD API).
