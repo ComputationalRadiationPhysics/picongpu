@@ -21,7 +21,7 @@
 #include <pmacc/boost_workaround.hpp>
 
 #include <picongpu/simulation_defines.hpp>
-
+// load starter after user extensions and all params are loaded
 #include "picongpu/ArgsParser.hpp"
 
 #include <pmacc/Environment.hpp>
@@ -31,6 +31,8 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+
+#include <picongpu/unitless/starter.unitless>
 
 
 namespace
