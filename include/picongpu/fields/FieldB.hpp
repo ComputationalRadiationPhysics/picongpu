@@ -41,7 +41,7 @@ namespace picongpu
      * Implements interfaces defined by SimulationFieldHelper< MappingDesc > and
      * ISimulationData.
      */
-    class FieldB : public fields::EMFieldBase<FieldB>
+    class FieldB : public fields::EMFieldBase
     {
     public:
         /** Create a field

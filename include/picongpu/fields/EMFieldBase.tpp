@@ -51,7 +51,8 @@ namespace picongpu
     namespace fields
     {
         template<typename T_DerivedField>
-        EMFieldBase<T_DerivedField>::EMFieldBase(MappingDesc const& cellDescription, pmacc::SimulationDataId const& id)
+        EMFieldBase::EMFieldBase(MappingDesc const& cellDescription, pmacc::SimulationDataId const& id,
+            T_DerivedField const & )
             : SimulationFieldHelper<MappingDesc>(cellDescription)
             , id(id)
         {
@@ -69,10 +70,10 @@ namespace picongpu
                 pmacc::math::CT::max<bmpl::_1, GetUpperMargin<GetInterpolation<bmpl::_2>>>>::type;
 
             /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
-            using LowerMarginSolver = typename traits::GetLowerMargin<fields::Solver, DerivedField>::type;
+            using LowerMarginSolver = typename traits::GetLowerMargin<fields::Solver, T_DerivedField>::type;
             using LowerMarginInterpolationAndSolver =
                 typename pmacc::math::CT::max<LowerMarginInterpolation, LowerMarginSolver>::type;
-            using UpperMarginSolver = typename traits::GetUpperMargin<fields::Solver, DerivedField>::type;
+            using UpperMarginSolver = typename traits::GetUpperMargin<fields::Solver, T_DerivedField>::type;
             using UpperMarginInterpolationAndSolver =
                 typename pmacc::math::CT::max<UpperMarginInterpolation, UpperMarginSolver>::type;
 
@@ -106,63 +107,54 @@ namespace picongpu
                 DataSpace<simDim> guardingCells;
                 for(uint32_t d = 0; d < simDim; ++d)
                     guardingCells[d] = (relativeMask[d] == -1 ? originGuard[d] : endGuard[d]);
-                auto const commTag = pmacc::traits::GetUniqueTypeId<DerivedField>::uid();
+                auto const commTag = pmacc::traits::GetUniqueTypeId<T_DerivedField>::uid();
                 buffer->addExchange(GUARD, i, guardingCells, commTag);
             }
         }
 
-        template<typename T_DerivedField>
-        typename EMFieldBase<T_DerivedField>::Buffer& EMFieldBase<T_DerivedField>::getGridBuffer()
+        typename EMFieldBase::Buffer& EMFieldBase::getGridBuffer()
         {
             return *buffer;
         }
 
-        template<typename T_DerivedField>
-        GridLayout<simDim> EMFieldBase<T_DerivedField>::getGridLayout()
+        GridLayout<simDim> EMFieldBase::getGridLayout()
         {
             return cellDescription.getGridLayout();
         }
 
-        template<typename T_DerivedField>
-        typename EMFieldBase<T_DerivedField>::DataBoxType EMFieldBase<T_DerivedField>::getHostDataBox()
+        EMFieldBase::DataBoxType EMFieldBase::getHostDataBox()
         {
             return buffer->getHostBuffer().getDataBox();
         }
 
-        template<typename T_DerivedField>
-        typename EMFieldBase<T_DerivedField>::DataBoxType EMFieldBase<T_DerivedField>::getDeviceDataBox()
+        EMFieldBase::DataBoxType EMFieldBase::getDeviceDataBox()
         {
             return buffer->getDeviceBuffer().getDataBox();
         }
 
-        template<typename T_DerivedField>
-        EventTask EMFieldBase<T_DerivedField>::asyncCommunication(EventTask serialEvent)
+        EventTask EMFieldBase::asyncCommunication(EventTask serialEvent)
         {
             EventTask eB = buffer->asyncCommunication(serialEvent);
             return eB;
         }
 
-        template<typename T_DerivedField>
-        void EMFieldBase<T_DerivedField>::reset(uint32_t)
+        void EMFieldBase::reset(uint32_t)
         {
             buffer->getHostBuffer().reset(true);
             buffer->getDeviceBuffer().reset(false);
         }
 
-        template<typename T_DerivedField>
-        void EMFieldBase<T_DerivedField>::syncToDevice()
+        void EMFieldBase::syncToDevice()
         {
             buffer->hostToDevice();
         }
 
-        template<typename T_DerivedField>
-        void EMFieldBase<T_DerivedField>::synchronize()
+        void EMFieldBase::synchronize()
         {
             buffer->deviceToHost();
         }
 
-        template<typename T_DerivedField>
-        pmacc::SimulationDataId EMFieldBase<T_DerivedField>::getUniqueId()
+        pmacc::SimulationDataId EMFieldBase::getUniqueId()
         {
             return id;
         }

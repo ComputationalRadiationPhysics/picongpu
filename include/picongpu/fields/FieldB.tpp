@@ -32,7 +32,7 @@
 
 namespace picongpu
 {
-    FieldB::FieldB(MappingDesc const& cellDescription) : fields::EMFieldBase<FieldB>(cellDescription, getName())
+    FieldB::FieldB(MappingDesc const& cellDescription) : fields::EMFieldBase(cellDescription, getName(), *this)
     {
     }
 
