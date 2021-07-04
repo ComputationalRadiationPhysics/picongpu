@@ -114,16 +114,16 @@ namespace picongpu
                 virtual ~Absorber() = default;
 
                 //! Get absorber instance
-                static Absorber& get();
+                static HINLINE Absorber& get();
 
                 //! Absorber kind used in the simulation
-                inline Kind getKind() const;
+                HINLINE Kind getKind() const;
 
                 /** Get absorber thickness in number of cells for the global domain
                  *
                  * This function takes into account which boundaries are periodic and absorbing.
                  */
-                inline Thickness getGlobalThickness() const;
+                HINLINE Thickness getGlobalThickness() const;
 
                 /** Get absorber thickness in number of cells for the current local domain
                  *
@@ -135,10 +135,10 @@ namespace picongpu
                  * Thus, the result of this function should not be reused on another time step,
                  * but rather the function called again.
                  */
-                inline Thickness getLocalThickness() const;
+                HINLINE Thickness getLocalThickness() const;
 
                 //! Get string properties
-                static inline pmacc::traits::StringProperty getStringProperties();
+                static HINLINE pmacc::traits::StringProperty getStringProperties();
 
             protected:
                 /** Number of absorber cells along each boundary
@@ -160,7 +160,7 @@ namespace picongpu
                 std::string name;
 
                 //! Create absorber with the given kind
-                Absorber(Kind kind);
+                HINLINE Absorber(Kind kind);
 
                 friend class AbsorberFactory;
             };
@@ -192,7 +192,7 @@ namespace picongpu
                  *
                  * @param cellDescription mapping for kernels
                  */
-                AbsorberImpl(Kind kind, MappingDesc cellDescription);
+                HINLINE AbsorberImpl(Kind kind, MappingDesc cellDescription);
 
                 //! Destructor
                 virtual ~AbsorberImpl() = default;
@@ -202,14 +202,14 @@ namespace picongpu
                  * @return reference to this object if conversion is valid,
                  *         throws otherwise
                  */
-                inline exponential::ExponentialImpl& asExponentialImpl();
+                HINLINE exponential::ExponentialImpl& asExponentialImpl();
 
                 /** Interpret this as PmlImpl instance
                  *
                  * @return reference to this object if conversion is valid,
                  *         throws otherwise
                  */
-                inline pml::PmlImpl& asPmlImpl();
+                HINLINE pml::PmlImpl& asPmlImpl();
 
             protected:
                 //! Mapping description for kernels

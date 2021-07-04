@@ -281,7 +281,7 @@ namespace pmacc
 
         // Specialize complex type grid buffer for MPI
         template<>
-        MPI_StructAsArray getMPI_StructAsArray<pmacc::math::Complex<picongpu::float_X>>()
+        HINLINE MPI_StructAsArray getMPI_StructAsArray<pmacc::math::Complex<picongpu::float_X>>()
         {
             MPI_StructAsArray result = getMPI_StructAsArray<complex_X::type>();
             result.sizeMultiplier *= uint32_t(sizeof(complex_X) / sizeof(typename complex_X::type));
