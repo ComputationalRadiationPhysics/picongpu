@@ -32,11 +32,14 @@
 #include "picongpu/fields/background/cellwiseOperation.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"
 #include "picongpu/initialization/ParserGridDistribution.hpp"
+#include "picongpu/particles/InitFunctors.hpp"
 #include "picongpu/particles/Manipulate.hpp"
+#include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/debyeLength/Check.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/flylite/NonLTE.tpp"
 #include "picongpu/particles/manipulators/manipulators.hpp"
+#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "picongpu/random/seed/ISeed.hpp"
 #include "picongpu/simulation/control/DomainAdjuster.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
@@ -63,29 +66,6 @@
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <pmacc/random/RNGProvider.hpp>
-#include <pmacc/random/methods/methods.hpp>
-#include <pmacc/simulationControl/SimulationHelper.hpp>
-#include <pmacc/types.hpp>
-#include <pmacc/verify.hpp>
-
-#include <boost/lexical_cast.hpp>
-#include <boost/mpl/count.hpp>
-
-#include <algorithm>
-#include <array>
-#include <string>
-#include <vector>
-
-#if(PMACC_CUDA_ENABLED == 1)
-#    include "picongpu/particles/bremsstrahlung/PhotonEmissionAngle.hpp"
-#    include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
-#endif
-
-#include "picongpu/particles/InitFunctors.hpp"
-#include "picongpu/particles/ParticlesFunctors.hpp"
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
-
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/meta/conversion/SeqToMap.hpp>
@@ -94,11 +74,22 @@
 #include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/FilterByIdentifier.hpp>
+#include <pmacc/random/RNGProvider.hpp>
+#include <pmacc/random/methods/methods.hpp>
+#include <pmacc/simulationControl/SimulationHelper.hpp>
+#include <pmacc/types.hpp>
+#include <pmacc/verify.hpp>
 
+#include <boost/lexical_cast.hpp>
+#include <boost/mpl/count.hpp>
 #include <boost/mpl/int.hpp>
 
+#include <algorithm>
+#include <array>
 #include <functional>
 #include <memory>
+#include <string>
+#include <vector>
 
 
 namespace picongpu
@@ -327,12 +318,9 @@ namespace picongpu
             // this may include allocation of additional fields so has to be done before particles
             fieldBackground.init(*cellDescription);
 
-            // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung
-            // Photons
+            // Initialize random number generator and synchrotron functions, if there are synchrotron Photons
             using AllSynchrotronPhotonsSpecies =
                 typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, synchrotronPhotons<>>::type;
-            using AllBremsstrahlungPhotonsSpecies =
-                typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, bremsstrahlungPhotons<>>::type;
 
             // create factory for the random number generator
             const uint32_t userSeed = random::seed::ISeed<random::SeedGenerator>{}();
@@ -355,19 +343,7 @@ namespace picongpu
             {
                 this->synchrotronFunctions.init();
             }
-#if(PMACC_CUDA_ENABLED == 1)
-            // Initialize bremsstrahlung lookup tables, if there are species containing bremsstrahlung photons
-            if(!bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value)
-            {
-                meta::ForEach<
-                    AllBremsstrahlungPhotonsSpecies,
-                    particles::bremsstrahlung::FillScaledSpectrumMap<bmpl::_1>>
-                    fillScaledSpectrumMap;
-                fillScaledSpectrumMap(this->scaledBremsstrahlungSpectrumMap);
-
-                this->bremsstrahlungPhotonAngle.init();
-            }
-#endif
+            bremsstrahlung.init(*cellDescription);
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
             auto nativeCudaStream = cupla::manager::Stream<cupla::AccDev, cupla::AccStream>::get().stream(0);
@@ -537,9 +513,7 @@ namespace picongpu
             ParticleIonization{*cellDescription}(currentStep);
             PopulationKinetics{}(currentStep);
             SynchrotronRadiation{*cellDescription, synchrotronFunctions}(currentStep);
-#if(PMACC_CUDA_ENABLED == 1)
-            Bremsstrahlung{*cellDescription, scaledBremsstrahlungSpectrumMap, bremsstrahlungPhotonAngle}(currentStep);
-#endif
+            bremsstrahlung(currentStep);
             EventTask commEvent;
             ParticlePush{}(currentStep, commEvent);
             fieldBackground.subtract(currentStep);
@@ -626,12 +600,8 @@ namespace picongpu
         // Because of it, has a special init() method that has to be called during initialization of the simulation
         simulation::stage::FieldBackground fieldBackground;
 
-#if(PMACC_CUDA_ENABLED == 1)
-        // creates lookup tables for the bremsstrahlung effect
-        // map<atomic number, scaled bremsstrahlung spectrum>
-        std::map<float_X, particles::bremsstrahlung::ScaledSpectrum> scaledBremsstrahlungSpectrumMap;
-        particles::bremsstrahlung::GetPhotonAngle bremsstrahlungPhotonAngle;
-#endif
+        // Bremsstrahlung stage, has to live always due to precomputation done at initialization
+        simulation::stage::Bremsstrahlung bremsstrahlung;
 
         // Synchrotron functions (used in synchrotronPhotons module)
         particles::synchrotronPhotons::SynchrotronFunctions synchrotronFunctions;
@@ -735,8 +705,3 @@ namespace picongpu
 
 #include "picongpu/fields/Fields.tpp"
 #include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.tpp"
-
-#if(PMACC_CUDA_ENABLED == 1)
-#    include "picongpu/particles/bremsstrahlung/Bremsstrahlung.tpp"
-#    include "picongpu/particles/bremsstrahlung/ScaledSpectrum.tpp"
-#endif

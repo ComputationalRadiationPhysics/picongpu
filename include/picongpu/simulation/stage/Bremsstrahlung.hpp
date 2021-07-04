@@ -21,18 +21,10 @@
 
 #pragma once
 
-// Bremsstrahlung is available only with CUDA
-#if(PMACC_CUDA_ENABLED == 1)
+#include "picongpu/simulation_defines.hpp"
 
-#    include "picongpu/particles/ParticlesFunctors.hpp"
-#    include "picongpu/particles/bremsstrahlung/PhotonEmissionAngle.hpp"
-#    include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
-
-#    include <pmacc/meta/ForEach.hpp>
-#    include <pmacc/particles/traits/FilterByFlag.hpp>
-
-#    include <cstdint>
-#    include <map>
+#include <cstdint>
+#include <memory>
 
 
 namespace picongpu
@@ -48,53 +40,36 @@ namespace picongpu
             class Bremsstrahlung
             {
             public:
-                using ScaledSpectrumMap = std::map<float_X, particles::bremsstrahlung::ScaledSpectrum>;
+                Bremsstrahlung();
 
-                /** Create a Bremsstrahlung functor
+                //! Copy construction is forbidden
+                Bremsstrahlung(Bremsstrahlung const&) = delete;
+
+                //! Destroy Bremsstrahlung stage
+                ~Bremsstrahlung();
+
+                /** Initialize Bremsstrahlung stage
                  *
-                 * Having this in constructor is a temporary solution.
+                 * This method must be called once before calling operator().
                  *
                  * @param cellDescription mapping for kernels
-                 * @param scaledSpectrumMap initialized spectrum lookup table
-                 * @param photonAngle initialized photon angle lookup table
                  */
-                Bremsstrahlung(
-                    MappingDesc const cellDescription,
-                    ScaledSpectrumMap& scaledSpectrumMap,
-                    particles::bremsstrahlung::GetPhotonAngle& photonAngle)
-                    : cellDescription(cellDescription)
-                    , scaledSpectrumMap(scaledSpectrumMap)
-                    , photonAngle(photonAngle)
-                {
-                }
+                void init(MappingDesc const cellDescription);
 
                 /** Ionize particles
                  *
                  * @param step index of time iteration
                  */
-                void operator()(uint32_t const step) const
-                {
-                    using pmacc::particles::traits::FilterByFlag;
-                    using SpeciesWithBremsstrahlung =
-                        typename FilterByFlag<VectorAllSpecies, bremsstrahlungIons<>>::type;
-                    pmacc::meta::ForEach<SpeciesWithBremsstrahlung, particles::CallBremsstrahlung<bmpl::_1>>
-                        particleBremsstrahlung;
-                    particleBremsstrahlung(cellDescription, step, scaledSpectrumMap, photonAngle);
-                }
+                void operator()(uint32_t const step) const;
 
             private:
-                //! Mapping for kernels
-                MappingDesc cellDescription;
+                //! Implementation
+                class Impl;
 
-                //! Loopup table: atomic number -> scaled bremsstrahlung spectrum
-                ScaledSpectrumMap& scaledSpectrumMap;
-
-                //! Loopup table for photon angle
-                particles::bremsstrahlung::GetPhotonAngle& photonAngle;
+                //! Pointer to implementation
+                std::unique_ptr<const Impl> pImpl;
             };
 
         } // namespace stage
     } // namespace simulation
 } // namespace picongpu
-
-#endif // ( PMACC_CUDA_ENABLED == 1 )
