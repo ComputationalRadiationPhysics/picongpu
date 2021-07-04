@@ -21,8 +21,5 @@
 #pragma once
 
 
-#include "picongpu/fields/EMFieldBase.tpp"
-#include "picongpu/fields/FieldB.tpp"
-#include "picongpu/fields/FieldE.tpp"
 #include "picongpu/fields/FieldJ.tpp"
 #include "picongpu/fields/FieldTmp.tpp"

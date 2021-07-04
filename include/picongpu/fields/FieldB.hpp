@@ -22,10 +22,10 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/EMFieldBase.hpp"
-#include "picongpu/fields/Fields.def"
-
 #include <pmacc/algorithms/PromoteType.hpp>
+#include <pmacc/dataManagement/ISimulationData.hpp>
+#include <pmacc/fields/SimulationFieldHelper.hpp>
+#include <pmacc/memory/buffers/GridBuffer.hpp>
 
 #include <string>
 #include <vector>
@@ -41,20 +41,40 @@ namespace picongpu
      * Implements interfaces defined by SimulationFieldHelper< MappingDesc > and
      * ISimulationData.
      */
-    class FieldB : public fields::EMFieldBase
+    class FieldB
+        : public SimulationFieldHelper<MappingDesc>
+        , public ISimulationData
     {
     public:
+        //! Type of each field value
+        using ValueType = float3_X;
+
+        //! Number of components of ValueType, for serialization
+        static constexpr int numComponents = ValueType::dim;
+
+        //! Type of host-device buffer for field values
+        using Buffer = pmacc::GridBuffer<ValueType, simDim>;
+
+        //! Type of data box for field values on host and device
+        using DataBoxType = pmacc::DataBox<PitchedBox<ValueType, simDim>>;
+
+        //! Size of supercell
+        using SuperCellSize = MappingDesc::SuperCellSize;
+
         /** Create a field
          *
          * @param cellDescription mapping for kernels
          */
-        HINLINE FieldB(MappingDesc const& cellDescription);
+        FieldB(MappingDesc const& cellDescription);
 
         //! Unit type of field components
         using UnitValueType = promoteType<float_64, ValueType>::type;
 
         //! Get units of field components
-        HDINLINE static UnitValueType getUnit();
+        HDINLINE static UnitValueType getUnit()
+        {
+            return UnitValueType{UNIT_BFIELD, UNIT_BFIELD, UNIT_BFIELD};
+        }
 
         /** Get unit representation as powers of the 7 base measures
          *
@@ -63,10 +83,50 @@ namespace picongpu
          *  thermodynamic temperature theta, amount of substance N,
          *  luminous intensity J)
          */
-        HINLINE static std::vector<float_64> getUnitDimension();
+        static std::vector<float_64> getUnitDimension();
 
         //! Get text name
-        HINLINE static std::string getName();
+        static std::string getName();
+
+        //! Get a reference to the host-device buffer for the field values
+        Buffer& getGridBuffer();
+
+        //! Get the grid layout
+        GridLayout<simDim> getGridLayout();
+
+        //! Get the host data box for the field values
+        DataBoxType getHostDataBox();
+
+        //! Get the device data box for the field values
+        DataBoxType getDeviceDataBox();
+
+        /** Start asynchronous communication of field values
+         *
+         * @param serialEvent event to depend on
+         */
+        EventTask asyncCommunication(EventTask serialEvent);
+
+        /** Reset the host-device buffer for field values
+         *
+         * @param currentStep index of time iteration
+         */
+        void reset(uint32_t currentStep) override;
+
+        //! Synchronize device data with host data
+        void syncToDevice() override;
+
+        //! Synchronize host data with device data
+        void synchronize() override;
+
+        //! Get id
+        SimulationDataId getUniqueId() override;
+
+    private:
+        //! Host-device buffer for field values
+        std::unique_ptr<Buffer> buffer;
+
+        //! Unique id
+        pmacc::SimulationDataId id;
     };
 
 } // namespace picongpu

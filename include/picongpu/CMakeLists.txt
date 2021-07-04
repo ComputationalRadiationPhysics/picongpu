@@ -527,6 +527,8 @@ include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 # files with accelerator code (kernel and API calls)
 list(APPEND ACCSRCFILES
     "${PIConGPUapp_SOURCE_DIR}/main.cpp"
+    "${PIConGPUapp_SOURCE_DIR}/fields/FieldB.cpp"
+    "${PIConGPUapp_SOURCE_DIR}/fields/FieldE.cpp"
     "${PIConGPUapp_SOURCE_DIR}/simulation/stage/Bremsstrahlung.cpp"
     "${PIConGPUapp_SOURCE_DIR}/simulation/stage/SynchrotronRadiation.cpp"
     "${PIConGPUapp_SOURCE_DIR}/versionFormat.cpp"
