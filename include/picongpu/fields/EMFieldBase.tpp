@@ -51,8 +51,10 @@ namespace picongpu
     namespace fields
     {
         template<typename T_DerivedField>
-        EMFieldBase::EMFieldBase(MappingDesc const& cellDescription, pmacc::SimulationDataId const& id,
-            T_DerivedField const & )
+        EMFieldBase::EMFieldBase(
+            MappingDesc const& cellDescription,
+            pmacc::SimulationDataId const& id,
+            T_DerivedField const&)
             : SimulationFieldHelper<MappingDesc>(cellDescription)
             , id(id)
         {
