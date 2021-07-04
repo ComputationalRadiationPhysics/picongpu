@@ -141,17 +141,6 @@ namespace picongpu
          */
         HINLINE void assign(ValueType value);
 
-        /** Compute current density created by a species in an area
-         *
-         * @tparam T_area area to compute currents in
-         * @tparam T_Species particle species type
-         *
-         * @param species particle species
-         * @param currentStep index of time iteration
-         */
-        template<uint32_t T_area, class T_Species>
-        HINLINE void computeCurrent(T_Species& species, uint32_t currentStep);
-
         /** Smooth current density and add it to the electric field
          *
          * @tparam T_area area to operate on

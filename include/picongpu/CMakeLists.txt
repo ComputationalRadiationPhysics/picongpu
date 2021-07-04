@@ -530,6 +530,7 @@ list(APPEND ACCSRCFILES
     "${PIConGPUapp_SOURCE_DIR}/fields/FieldB.cpp"
     "${PIConGPUapp_SOURCE_DIR}/fields/FieldE.cpp"
     "${PIConGPUapp_SOURCE_DIR}/simulation/stage/Bremsstrahlung.cpp"
+    "${PIConGPUapp_SOURCE_DIR}/simulation/stage/CurrentDeposition.cpp"
     "${PIConGPUapp_SOURCE_DIR}/simulation/stage/SynchrotronRadiation.cpp"
     "${PIConGPUapp_SOURCE_DIR}/versionFormat.cpp"
 )
