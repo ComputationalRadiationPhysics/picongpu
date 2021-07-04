@@ -39,7 +39,6 @@
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/flylite/NonLTE.tpp"
 #include "picongpu/particles/manipulators/manipulators.hpp"
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "picongpu/random/seed/ISeed.hpp"
 #include "picongpu/simulation/control/DomainAdjuster.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
@@ -318,10 +317,6 @@ namespace picongpu
             // this may include allocation of additional fields so has to be done before particles
             fieldBackground.init(*cellDescription);
 
-            // Initialize random number generator and synchrotron functions, if there are synchrotron Photons
-            using AllSynchrotronPhotonsSpecies =
-                typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, synchrotronPhotons<>>::type;
-
             // create factory for the random number generator
             const uint32_t userSeed = random::seed::ISeed<random::SeedGenerator>{}();
             const uint32_t seed = std::hash<std::string>{}(std::to_string(userSeed));
@@ -338,12 +333,8 @@ namespace picongpu
             rngFactory->init(gridCon.getScalarPosition() ^ seed);
             dc.consume(std::move(rngFactory));
 
-            // Initialize synchrotron functions, if there are synchrotron photon species
-            if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value)
-            {
-                this->synchrotronFunctions.init();
-            }
             bremsstrahlung.init(*cellDescription);
+            synchrotronRadiation.init(*cellDescription);
 
 #if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
             auto nativeCudaStream = cupla::manager::Stream<cupla::AccDev, cupla::AccStream>::get().stream(0);
@@ -512,7 +503,7 @@ namespace picongpu
             Collision{deviceHeap}(currentStep);
             ParticleIonization{*cellDescription}(currentStep);
             PopulationKinetics{}(currentStep);
-            SynchrotronRadiation{*cellDescription, synchrotronFunctions}(currentStep);
+            synchrotronRadiation(currentStep);
             bremsstrahlung(currentStep);
             EventTask commEvent;
             ParticlePush{}(currentStep, commEvent);
@@ -603,8 +594,8 @@ namespace picongpu
         // Bremsstrahlung stage, has to live always due to precomputation done at initialization
         simulation::stage::Bremsstrahlung bremsstrahlung;
 
-        // Synchrotron functions (used in synchrotronPhotons module)
-        particles::synchrotronPhotons::SynchrotronFunctions synchrotronFunctions;
+        // Synchrotron radiation stage, has to live always due to precomputation done at initialization
+        simulation::stage::SynchrotronRadiation synchrotronRadiation;
 
         // output classes
 
@@ -704,4 +695,3 @@ namespace picongpu
 } /* namespace picongpu */
 
 #include "picongpu/fields/Fields.tpp"
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.tpp"

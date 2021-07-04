@@ -528,6 +528,7 @@ include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 list(APPEND ACCSRCFILES
     "${PIConGPUapp_SOURCE_DIR}/main.cpp"
     "${PIConGPUapp_SOURCE_DIR}/simulation/stage/Bremsstrahlung.cpp"
+    "${PIConGPUapp_SOURCE_DIR}/simulation/stage/SynchrotronRadiation.cpp"
     "${PIConGPUapp_SOURCE_DIR}/versionFormat.cpp"
 )
 

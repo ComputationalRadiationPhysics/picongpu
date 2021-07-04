@@ -21,12 +21,10 @@
 
 #pragma once
 
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
-
-#include <pmacc/meta/ForEach.hpp>
-#include <pmacc/particles/traits/FilterByFlag.hpp>
+#include "picongpu/simulation_defines.hpp"
 
 #include <cstdint>
+#include <memory>
 
 
 namespace picongpu
@@ -42,41 +40,34 @@ namespace picongpu
             class SynchrotronRadiation
             {
             public:
-                /** Create a synchrotron radiation functor
+                SynchrotronRadiation();
+
+                //! Copy construction is forbidden
+                SynchrotronRadiation(SynchrotronRadiation const&) = delete;
+
+                //! Destroy SynchrotronRadiation stage
+                ~SynchrotronRadiation();
+
+                /** Initialize SynchrotronRadiation stage
                  *
-                 * Having this in constructor is a temporary solution.
+                 * This method must be called once before calling operator().
                  *
                  * @param cellDescription mapping for kernels
-                 * @param functions initialized synchrotron functions
                  */
-                SynchrotronRadiation(
-                    MappingDesc const cellDescription,
-                    particles::synchrotronPhotons::SynchrotronFunctions& functions)
-                    : cellDescription(cellDescription)
-                    , functions(functions)
-                {
-                }
+                void init(MappingDesc const cellDescription);
 
                 /** Ionize particles
                  *
                  * @param step index of time iteration
                  */
-                void operator()(uint32_t const step) const
-                {
-                    using pmacc::particles::traits::FilterByFlag;
-                    using SynchrotronPhotonsSpecies =
-                        typename FilterByFlag<VectorAllSpecies, synchrotronPhotons<>>::type;
-                    pmacc::meta::ForEach<SynchrotronPhotonsSpecies, particles::CallSynchrotronPhotons<bmpl::_1>>
-                        synchrotronRadiation;
-                    synchrotronRadiation(cellDescription, step, functions);
-                }
+                void operator()(uint32_t const step) const;
 
             private:
-                //! Mapping for kernels
-                MappingDesc cellDescription;
+                //! Implementation
+                class Impl;
 
-                //! Initialized synchrotron functions
-                particles::synchrotronPhotons::SynchrotronFunctions& functions;
+                //! Pointer to implementation
+                std::unique_ptr<const Impl> pImpl;
             };
 
         } // namespace stage
