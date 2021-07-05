@@ -91,8 +91,13 @@ class MemoryCalculator:
             number of slots for temporary fields
             (see PIConGPU ``memory.param`` : ``fieldTmpNumSlots``)
         particle_shape_order : int
-            numerical order of the particle shape (see PIConGPU
-            ``species.param``: e.g. ``particles::shapes::PCS : 3rd order``)
+            numerical order of the assignment function of the chosen
+            particle shape
+            CIC : order 1
+            TSC : order 2
+            PQS : order 3
+            PCS : order 4
+            (see PIConGPU ``species.param``)
         sim_dim : int
             simulation dimension (available for PIConGPU: 2 and 3)
         pml_n_x : int
