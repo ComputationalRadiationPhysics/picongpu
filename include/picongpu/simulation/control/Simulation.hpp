@@ -42,6 +42,7 @@
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/simulation/stage/Bremsstrahlung.hpp"
 #include "picongpu/simulation/stage/Collision.hpp"
+#include "picongpu/simulation/stage/Scattering.hpp"
 #include "picongpu/simulation/stage/CurrentBackground.hpp"
 #include "picongpu/simulation/stage/CurrentDeposition.hpp"
 #include "picongpu/simulation/stage/CurrentInterpolationAndAdditionToEMF.hpp"
@@ -533,6 +534,7 @@ namespace picongpu
             IterationStart{}(currentStep);
             MomentumBackup{}(currentStep);
             CurrentReset{}(currentStep);
+            Scattering{}(currentStep);
             Collision{deviceHeap}(currentStep);
             ParticleIonization{*cellDescription}(currentStep);
             PopulationKinetics{}(currentStep);

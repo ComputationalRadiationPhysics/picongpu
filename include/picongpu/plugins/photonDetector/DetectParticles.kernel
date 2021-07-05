@@ -1,0 +1,93 @@
+/* Copyright 2021 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include <pmacc/lockstep.hpp>
+
+namespace picongpu
+{
+    namespace plugins
+    {
+        namespace photonDetector
+        {
+            /** Detects particles
+             *
+             * @tparam T_numWorkers  number of virtual workers
+             * @param acc            alpaka accelerator
+             * @param particleBox    data box with particles
+             * @param localOffset    offset of the current rank
+             * @param detectParticle unary particle functor with the signature:
+             *                         void(acc, particle, superCellPosition, detectorBox)
+             * @param detector       device side detector box
+             * @param mapper         kernel instance to super cell mapping
+             */
+            template<uint32_t T_numWorkers>
+            struct DetectParticles
+            {
+                template<
+                    typename T_Acc,
+                    typename T_ParticleBox,
+                    typename T_DetectParticle,
+                    typename T_DetectorBox,
+                    typename T_Mapping>
+                DINLINE void operator()(
+                    T_Acc const& acc,
+                    T_ParticleBox const particleBox,
+                    DataSpace<simDim> const localOffset,
+                    T_DetectParticle const detectParticle,
+                    T_DetectorBox detectorBox,
+                    T_Mapping const mapper) const
+                {
+                    typedef T_ParticleBox ParticleBox;
+                    using FramePtr = typename T_ParticleBox::FramePtr;
+
+                    const DataSpace<simDim> superCellIdx
+                        = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
+                    const DataSpace<simDim> superCellPosition
+                        = (superCellIdx - mapper.getGuardingSuperCells()) * SuperCellSize::toRT() + localOffset;
+                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+
+                    FramePtr frame = particleBox.getFirstFrame(superCellIdx);
+                    auto& superCell = particleBox.getSuperCell(superCellIdx);
+                    uint32_t const numParticlesInSupercell = superCell.getNumParticles();
+                    uint32_t const frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+
+                    auto forEachFrameElem = lockstep::makeForEach<frameSize, T_numWorkers>(workerIdx);
+
+                    // go over all frames containing particles
+                    for(uint32_t i = 0; i < numParticlesInSupercell; i += frameSize)
+                    {
+                        // Each virtual worker calls the detectParticle functor for one particle in the current frame
+                        forEachFrameElem([&](lockstep::Idx const idx) {
+                            if(i + idx < numParticlesInSupercell)
+                            {
+                                auto particle = frame[idx];
+                                detectParticle(acc, particle, superCellPosition, detectorBox);
+                            }
+                        });
+                        frame = particleBox.getNextFrame(frame);
+                    }
+                }
+            };
+        } // namespace photonDetector
+    } // namespace plugins
+} // namespace picongpu

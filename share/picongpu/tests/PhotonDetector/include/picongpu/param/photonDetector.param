@@ -1,0 +1,64 @@
+/* Copyright 2021 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/plugins/photonDetector/accumulation/accumulationPolicies.def"
+
+namespace picongpu
+{
+    namespace plugins
+    {
+        namespace photonDetector
+        {
+            struct PhotonDetectorConfig
+            {
+#ifndef PARAM_ACCUMULATION_POLICY
+#    define PARAM_ACCUMULATION_POLICY CountParticles
+#endif
+
+                using AccumulationPolicy =
+                    /**
+                     * Policy that defines how the detector handles incoming particles
+                     * Possible values:
+                     *  - particleHandlers::CountParticles
+                     *  - particleHandlers::AddWaveParticles
+                     */
+                    particleHandlers::PARAM_ACCUMULATION_POLICY;
+
+                /**
+                 * Distance of the detector from the right side of the volume
+                 * Unit: meter
+                 */
+                static constexpr float_64 distance = 5;
+                /**
+                 * Width and height of each detector cell
+                 * Unit: meter
+                 */
+                static constexpr float_64 cellWidth = 20.e-2;
+                static constexpr float_64 cellHeight = 20.e-2;
+            };
+            constexpr float_64 PhotonDetectorConfig::distance;
+            constexpr float_64 PhotonDetectorConfig::cellWidth;
+            constexpr float_64 PhotonDetectorConfig::cellHeight;
+        } // namespace photonDetector
+    } // namespace plugins
+} // namespace picongpu

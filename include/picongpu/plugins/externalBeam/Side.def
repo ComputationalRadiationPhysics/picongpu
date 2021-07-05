@@ -1,0 +1,75 @@
+/* Copyright 2020-2021 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+namespace picongpu
+{
+    namespace plugins
+    {
+        namespace externalBeam
+        {
+            /* This file defines the possible base beam orientations.
+             *
+             *  Example: X Side
+             *      The beam propagates along the x axis ( PIC coordinate system).
+             *      The base position of the beam coordinate system (0,0,0) point it
+             *      the beam system is placed at in the middle of the x_PIC=0 plane.
+             *      That is at (0, 0.5 * Y, 0.5 * Z), where Y and Z are the lengths of
+             *      the simulation box sides along y_PIC and z_PIC axes.
+             *      Therefore beamStartPosition= ( 0.0, 0.5, 0.5 ) for the XSide.
+             *
+             *      AxisMap defines how the 3 directions
+             *      (x, y, z) in the PIC system correspond to the ones in the beam
+             *      system. The true/false in reverse define the relative orientations. For XSide:
+             *      axisMap = { 2, 1, 0}; reverse = {true, false, false > says:
+             *          * x_beam = - z_PIC,
+             *          * y_beam = y_PIC,
+             *          * z_beam = x_PIC,
+             */
+
+            //! Probing along the PIC x basis vector.
+            struct XSide;
+
+            //! Probing against the PIC x basis vector.
+            struct XRSide;
+
+            //! Probing along the PIC y basis vector.
+            struct YSide;
+
+            //! Probing against the PIC y basis vector.
+            struct YRSide;
+
+            //! Probing along the PIC z basis vector.
+            struct ZSide;
+
+            //! Probing against the PIC z basis vector.
+            struct ZRSide;
+
+            /** Create an an AxisSwap instance for the given beam placement
+             *
+             * @tparam T_Side defines from which simulation side a beam enters the simulation
+             *  possible options are XSide, XRSide, YSide, YRSide, ZSide, ZRSide
+             */
+            template<typename T_Side>
+            struct ProbingSideCfg;
+
+        } // namespace externalBeam
+    } // namespace plugins
+} // namespace picongpu

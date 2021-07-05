@@ -73,6 +73,11 @@ namespace picongpu
     //! Voronoi cell of the macro particle
     value_identifier(int16_t, voronoiCellId, -1);
 
+    //! Photon start phase
+    value_identifier(float_X, startPhase, 0._X);
+    //! Photon start phase
+    value_identifier(float_X, phase, 0._X);
+
     //! interpolated electric field with respect to particle shape
     value_identifier(float3_X, probeE, float3_X::create(0.));
 
@@ -131,6 +136,9 @@ namespace picongpu
 
     //! alias for particle ionizers, see also ionizer.param
     alias(ionizers);
+
+    //! alias for particle scatterer
+    alias(scatterer);
 
     //! alias for ionization energy container, see also ionizationEnergies.param
     alias(ionizationEnergies);
@@ -228,5 +236,8 @@ namespace picongpu
      * `--periodic` is set.
      */
     alias(boundaryCondition);
+
+    //! photon wavelength
+    alias(wavelength);
 
 } // namespace picongpu

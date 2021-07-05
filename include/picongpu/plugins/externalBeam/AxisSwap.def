@@ -1,0 +1,44 @@
+/* Copyright 2020-2021 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+namespace picongpu
+{
+    namespace plugins
+    {
+        namespace externalBeam
+        {
+            /** Switch between coordinate systems that have axes swapped and/or reversed.
+             *
+             * Swap and reverse axes in a vector
+             *
+             * @param axis0 Which old axis (0,1 or 2) is the new first axis (0).
+             * @param axis1 Which old axis (0,1 or 2) is the new second axis (1).
+             * @param axis2 Which old axis (0,1 or 2) is the new third axis (2).
+             * @param reverse0 Should the first new axis be reversed?
+             * @param reverse1 Should the second new axis be reversed?
+             * @param reverse2 IShould the third new axis be reversed?
+             */
+            struct AxisSwap;
+        } // namespace externalBeam
+    } // namespace plugins
+} // namespace picongpu

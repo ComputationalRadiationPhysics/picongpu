@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/plugins/xrayScattering/beam/Side.hpp"
+#include "picongpu/plugins/externalBeam/Side.hpp"
 
 /* preprocessor struct generator */
 #include <pmacc/preprocessor/struct.hpp>
@@ -47,7 +47,7 @@ namespace picongpu
                  * - YRSide
                  * - XRSide
                  */
-                using ProbingSide = ZSide;
+                using ProbingSide = picongpu::plugins::externalBeam::ZSide;
 
                 PMACC_STRUCT(
                     RotationParam,

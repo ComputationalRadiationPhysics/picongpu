@@ -277,14 +277,24 @@ namespace pmacc
 
     namespace mpi
     {
-        using complex_X = pmacc::math::Complex<picongpu::float_X>;
+        using complex_32 = pmacc::math::Complex<picongpu::float_32>;
+        using complex_64 = pmacc::math::Complex<picongpu::float_64>;
 
-        // Specialize complex type grid buffer for MPI
+        // Specialize complex single precision type grid buffer for MPI
         template<>
-        MPI_StructAsArray getMPI_StructAsArray<pmacc::math::Complex<picongpu::float_X>>()
+        MPI_StructAsArray getMPI_StructAsArray<complex_32>()
         {
-            MPI_StructAsArray result = getMPI_StructAsArray<complex_X::type>();
-            result.sizeMultiplier *= uint32_t(sizeof(complex_X) / sizeof(typename complex_X::type));
+            MPI_StructAsArray result = getMPI_StructAsArray<complex_32::type>();
+            result.sizeMultiplier *= uint32_t(sizeof(complex_32) / sizeof(typename complex_32::type));
+            return result;
+        };
+
+        // Specialize complex double precision type grid buffer for MPI
+        template<>
+        MPI_StructAsArray getMPI_StructAsArray<complex_64>()
+        {
+            MPI_StructAsArray result = getMPI_StructAsArray<complex_64::type>();
+            result.sizeMultiplier *= uint32_t(sizeof(complex_64) / sizeof(typename complex_64::type));
             return result;
         };
 

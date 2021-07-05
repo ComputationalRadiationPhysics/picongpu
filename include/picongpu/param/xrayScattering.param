@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
-#include "picongpu/plugins/xrayScattering/beam/Side.hpp"
+#include "picongpu/unitless/precision.unitless"
+#include "picongpu/plugins/externalBeam/Side.def"
 
 /* preprocessor struct generator */
 #include <pmacc/preprocessor/struct.hpp>
@@ -34,7 +33,7 @@ namespace picongpu
         {
             namespace beam
             {
-                using namespace picongpu::plugins::xrayScattering::beam;
+                using namespace picongpu::plugins::externalBeam;
                 /* Choose from:
                  *  - ZSide
                  *  - YSide
@@ -43,7 +42,7 @@ namespace picongpu
                  * - YRSide
                  * - XRSide
                  */
-                using ProbingSide = ZSide;
+                using ProbingSide = picongpu::plugins::externalBeam::ZSide;
 
                 PMACC_STRUCT(
                     RotationParam,

@@ -33,6 +33,8 @@
 #include "picongpu/particles/manipulators/generic/None.def"
 #include "picongpu/particles/manipulators/unary/CopyAttribute.def"
 #include "picongpu/particles/manipulators/unary/Drift.def"
+#include "picongpu/particles/manipulators/unary/PhotonDrift.def"
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.def"
+#include "picongpu/particles/manipulators/unary/PhotonDrift.def"
 #include "picongpu/particles/manipulators/unary/RandomPosition.def"
 #include "picongpu/particles/manipulators/unary/Temperature.def"

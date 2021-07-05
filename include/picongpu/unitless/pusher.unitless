@@ -27,6 +27,7 @@
 #include "picongpu/particles/pusher/particlePusherFree.hpp"
 #include "picongpu/particles/pusher/particlePusherHigueraCary.hpp"
 #include "picongpu/particles/pusher/particlePusherPhoton.hpp"
+#include "picongpu/particles/pusher/particlePusherPhotonWithPhase.hpp"
 #include "picongpu/particles/pusher/particlePusherProbe.hpp"
 #include "picongpu/particles/pusher/particlePusherReducedLandauLifshitz.hpp"
 #include "picongpu/particles/pusher/particlePusherVay.hpp"
@@ -71,6 +72,10 @@ namespace picongpu
             };
 
             struct Photon : public particlePusherPhoton::Push<Velocity, Gamma<>>
+            {
+            };
+
+            struct PhotonWithPhase : public particlePusherPhotonWithPhase::Push<Velocity, Gamma<>>
             {
             };
 
