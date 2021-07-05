@@ -50,6 +50,7 @@
 #if(ENABLE_OPENPMD == 1)
 #    include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 #    include "picongpu/plugins/openPMD/openPMDWriter.hpp"
+#    include "picongpu/plugins/particleCalorimeter/ParticleCalorimeter.hpp"
 #    include "picongpu/plugins/xrayScattering/XrayScattering.hpp"
 #endif
 
@@ -73,7 +74,6 @@
 #endif
 
 #if(ENABLE_HDF5 == 1)
-#    include "picongpu/plugins/particleCalorimeter/ParticleCalorimeter.hpp"
 #    include "picongpu/plugins/radiation/Radiation.hpp"
 #    include "picongpu/plugins/radiation/VectorTypes.hpp"
 #endif
@@ -203,17 +203,14 @@ namespace picongpu
             CountParticles<bmpl::_1>,
             PngPlugin<Visualisation<bmpl::_1, PngCreator>>,
             plugins::transitionRadiation::TransitionRadiation<bmpl::_1>
-#if(ENABLE_OPENPMD == 1)
-            ,
-            plugins::xrayScattering::XrayScattering<bmpl::_1>
-#endif
 #if(ENABLE_HDF5 == 1)
             ,
-            plugins::radiation::Radiation<bmpl::_1>,
-            plugins::multi::Master<ParticleCalorimeter<bmpl::_1>>
+            plugins::radiation::Radiation<bmpl::_1>
 #endif
 #if(ENABLE_OPENPMD == 1)
             ,
+            plugins::xrayScattering::XrayScattering<bmpl::_1>,
+            plugins::multi::Master<ParticleCalorimeter<bmpl::_1>>,
             plugins::multi::Master<PhaseSpace<particles::shapes::Counter::ChargeAssignment, bmpl::_1>>
 #endif
 #if(PMACC_CUDA_ENABLED == 1)

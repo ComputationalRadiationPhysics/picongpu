@@ -277,6 +277,7 @@ namespace picongpu
             openPMD::WriteMeta writeMetaAttributes;
             writeMetaAttributes(
                 *m_Series,
+                iteration,
                 currentStep,
                 /* writeFieldMeta = */ false,
                 /* writeParticleMeta = */ false,

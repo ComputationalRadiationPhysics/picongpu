@@ -1235,7 +1235,10 @@ Please pick either of the following:
 
                 /* attributes written here are pure meta data */
                 WriteMeta writeMetaAttributes;
-                writeMetaAttributes(*threadParams->openPMDSeries, threadParams->currentStep);
+                writeMetaAttributes(
+                    *threadParams->openPMDSeries,
+                    (*threadParams->openPMDSeries).WRITE_ITERATIONS[threadParams->currentStep],
+                    threadParams->currentStep);
 
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD

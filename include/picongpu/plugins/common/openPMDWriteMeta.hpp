@@ -102,6 +102,13 @@ namespace picongpu
         {
             void operator()(
                 ::openPMD::Series& series,
+                /*
+                 * Sic! Callers must supply the iteration even though this method
+                 * would be able to retrieve it from the series by using currentStep.
+                 * But we don't know if callers are using the Streaming API or not,
+                 * so let's not fell that decision for them.
+                 */
+                ::openPMD::Iteration& iteration,
                 uint32_t currentStep,
                 bool writeFieldMeta = true,
                 bool writeParticleMeta = true,
@@ -135,7 +142,6 @@ namespace picongpu
                 const std::string date = helper::getDateString("%F %T %z");
                 series.setDate(date);
 
-                ::openPMD::Iteration iteration = series.WRITE_ITERATIONS[currentStep];
                 ::openPMD::Container<::openPMD::Mesh>& meshes = iteration.meshes;
 
                 // iteration-level attributes
