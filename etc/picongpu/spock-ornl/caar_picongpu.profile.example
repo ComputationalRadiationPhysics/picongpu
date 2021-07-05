@@ -68,7 +68,7 @@ export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
 #
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
-export PIC_BACKEND="hip"
+export PIC_BACKEND="hip:908"
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/bin
