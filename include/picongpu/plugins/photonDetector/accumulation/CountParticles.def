@@ -1,0 +1,161 @@
+/* Copyright 2015-2021 Alexander Grund, Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/photonDetector/DetectorParams.def"
+
+#include <pmacc/traits/HasIdentifiers.hpp>
+
+namespace picongpu
+{
+    namespace plugins
+    {
+        namespace photonDetector
+        {
+            namespace accumulation
+            {
+                namespace acc
+                {
+                    /** Accumulation device functor for simple particle counting
+                     *
+                     * @tparam T_Species type of the particle species accumulated on the detector
+                     */
+                    template<typename T_Species>
+                    struct CountParticles
+                    {
+                    public:
+                        //! type used to store detector cell values
+                        using Type = float_64;
+
+                        /** CountParticles device functor constructor
+                         *
+                         * @param currentStep current simulation time step
+                         * @param detector detector description
+                         * @param simSize simulation size (in the detector coordinate system)
+                         */
+                        HDINLINE CountParticles(
+                            uint32_t currentStep,
+                            const DetectorParams& detector,
+                            DataSpace<simDim>& simSize);
+
+                        /** accumulate particle on a detector cell
+                         *
+                         * @param acc alpaka accelerator
+                         * @param detectorBox detector data box
+                         * @param targetCellIdx the index of the detector cell hit by the particle
+                         * @param particle particle to accumulate
+                         * @param globalCellIdx the index of the cell from which the particle has left the simulation
+                         *  box (the cell in GUARD where the particle will be deleted). In the detector coordinate
+                         *  system.
+                         */
+                        template<typename T_Acc, typename T_DetectorBox, typename T_Particle>
+                        DINLINE void operator()(
+                            T_Acc const& acc,
+                            T_DetectorBox detectorBox,
+                            const DataSpace<DIM2>& targetCellIdx,
+                            const T_Particle& particle,
+                            const DataSpace<simDim>& globalCellIdx) const;
+
+                    private:
+                        PMACC_ALIGN(detector_m, const DetectorParams);
+                        PMACC_ALIGN(simSize_m, const DataSpace<simDim>);
+                    };
+                } // namespace acc
+                /** Functor factory (host side functor) for the CountParticles device accumulation functor
+                 *
+                 * @tparam T_Species type of the particle species accumulated on the detector
+                 */
+                template<typename T_Species>
+                struct CountParticles
+                {
+                public:
+                    //! type used to store detector cell values
+                    using Type = float_64;
+                    //! the value used to initialize (reset) detector storage
+                    static constexpr Type initValue = 0.0;
+                    using AccFunctorType = acc::CountParticles<T_Species>;
+
+                    //! Get unit dimension of the values accumulated on the detector
+                    HINLINE std::vector<float_64> getUnitDimension();
+
+                    //! Get the SI unit conversion for the values accumulated on the detector
+                    HDINLINE float_64 getUnit();
+
+                    //! Get a descriptive name for the openPMD mesh storing detector output
+                    HINLINE static std::string getOpenPMDMeshName();
+
+                    //! Get a descriptive name of this accumulation policy
+                    HINLINE static std::string getName();
+
+                    /** Create a device side particle accumulation functor for the CountParticles policy
+                     *
+                     * @param currentStep current simulation step
+                     * @param detector detector description
+                     * @param simSize simulation size (in the detector coordinate system)
+                     * @return device side functor
+                     */
+                    HDINLINE acc::CountParticles<T_Species> operator()(
+                        uint32_t currentStep,
+                        const DetectorParams& detector,
+                        DataSpace<simDim>& simSize) const;
+                };
+
+                template<typename T_Species>
+                constexpr typename CountParticles<T_Species>::Type CountParticles<T_Species>::initValue;
+            } // namespace accumulation
+            namespace particleHandlers
+            {
+                /** Simply count real particles hitting a detector cell.
+                 *
+                 * A particle accumulation policy for a particle detector.
+                 */
+                struct CountParticles
+                {
+                    //! Get a functor factory type for a give particle species type
+                    template<typename T_Species>
+                    struct apply
+                    {
+                        using type = picongpu::plugins::photonDetector::accumulation::CountParticles<T_Species>;
+                    };
+                };
+            } // namespace particleHandlers
+        } // namespace photonDetector
+    } // namespace plugins
+
+    namespace particles
+    {
+        namespace traits
+        {
+            //! Check if a particle species has all the required identifiers and flags for the CountParticles policy
+            template<typename T_Species>
+            struct SpeciesEligibleForSolver<
+                T_Species,
+                picongpu::plugins::photonDetector::particleHandlers::CountParticles>
+            {
+                using FrameType = typename T_Species::FrameType;
+                using RequiredIdentifiers = MakeSeq_t<weighting>;
+                using type = typename pmacc::traits::HasIdentifiers<FrameType, RequiredIdentifiers>::type;
+            };
+        } // namespace traits
+    } // namespace particles
+} // namespace picongpu

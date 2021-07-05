@@ -1,0 +1,57 @@
+/* Copyright 2020-2021 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <pmacc/preprocessor/struct.hpp>
+
+namespace picongpu
+{
+    namespace plugins
+    {
+        namespace externalBeam
+        {
+            namespace detail
+            {
+                PMACC_STRUCT(
+                    DefaultOffsetParam,
+                    (PMACC_C_VECTOR_DIM(float_X, DIM2, beamOffset_SI, 0.0_X, 0.0_X)) (PMACC_C_VALUE(
+                        float_X,
+                        beamDelay_SI,
+                        0.0_X)));
+            }
+
+            using namespace picongpu;
+            //! Get the global domain size as a 3D vector in 3D and 2D simulations.
+            template<unsigned DIM>
+            HINLINE float3_X getDomainSize();
+
+            /** Defines a coordinate transform from the PIC system into the beam system.
+             *
+             * @tparam T_Side Side from which the probing beam is shot at the target.
+             * @tparam T_SecondaryRotation Rotation of the beam propagation direction.
+             */
+            template<
+                typename T_Side,
+                typename T_SecondaryRotation,
+                typename T_OffsetParam = detail::DefaultOffsetParam>
+            struct CoordinateTransform;
+        } // namespace externalBeam
+    } // namespace plugins
+} // namespace picongpu

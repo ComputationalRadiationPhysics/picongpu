@@ -41,7 +41,7 @@ namespace pmacc
          * Constructor
          * Size and offset initialized to 0 (empty selection)
          */
-        Selection(void)
+        HDINLINE Selection(void)
         {
             for(uint32_t i = 0; i < DIM; ++i)
             {
@@ -53,7 +53,7 @@ namespace pmacc
         /**
          * Copy constructor
          */
-        constexpr Selection(const Selection&) = default;
+        constexpr HDINLINE Selection(const Selection&) = default;
 
         /**
          * Constructor
@@ -61,7 +61,7 @@ namespace pmacc
          *
          * @param size DataSpace for selection size
          */
-        Selection(DataSpace<DIM> size) : size(size)
+        HDINLINE Selection(DataSpace<DIM> size) : size(size)
         {
             for(uint32_t i = 0; i < DIM; ++i)
             {
@@ -75,7 +75,7 @@ namespace pmacc
          * @param size DataSpace for selection size
          * @param offset DataSpace for selection offset
          */
-        Selection(DataSpace<DIM> size, DataSpace<DIM> offset) : size(size), offset(offset)
+        HDINLINE Selection(DataSpace<DIM> size, DataSpace<DIM> offset) : size(size), offset(offset)
         {
         }
 

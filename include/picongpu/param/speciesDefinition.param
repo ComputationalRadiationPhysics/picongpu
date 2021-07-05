@@ -48,6 +48,10 @@ namespace picongpu
 
     /** describe attributes of a particle*/
     using DefaultParticleAttributes = MakeSeq_t<position<position_pic>, momentum, weighting>;
+    using PhotonPhaseAttributes = MakeSeq_t<DefaultParticleAttributes, phase>;
+    using PhotonWavelengthAttributes = MakeSeq_t<DefaultParticleAttributes, startPhase>;
+
+
 
     /*########################### end particle attributes ########################*/
 
@@ -65,6 +69,16 @@ namespace picongpu
         massRatio<MassRatioPhotons>,
         chargeRatio<ChargeRatioPhotons>>;
 
+    value_identifier(float_X, WavelengthPhotons, 2.0664e-10 / UNIT_LENGTH); // 6keV
+
+    using ParticleFlagsWavelengthPhotons
+    = MakeSeq_t<ParticleFlagsPhotons, wavelength<WavelengthPhotons>>;
+    using ParticleFlagsPhotonsPhase
+    = ParticleFlagsPhotons;
+    /* define species photons */
+    using PIC_PhotonsPhase = Particles<PMACC_CSTRING("php"), ParticleFlagsPhotonsPhase, PhotonPhaseAttributes>;
+    using PIC_PhotonsWavelength
+    = Particles<PMACC_CSTRING("phw"), ParticleFlagsWavelengthPhotons, PhotonWavelengthAttributes>;
     /* define species photons */
     using PIC_Photons = Particles<PMACC_CSTRING("ph"), ParticleFlagsPhotons, DefaultParticleAttributes>;
 
@@ -122,10 +136,11 @@ namespace picongpu
     using VectorAllSpecies = MakeSeq_t<
         PIC_Electrons,
         PIC_Ions
-#if(ENABLE_SYNCHROTRON_PHOTONS == 1)
-        ,
-        PIC_Photons
-#endif
+        ,PIC_PhotonsPhase
+        ,PIC_PhotonsWavelength
+//#if(ENABLE_SYNCHROTRON_PHOTONS == 1)
+        , PIC_Photons
+//#endif
         >;
 
 } // namespace picongpu

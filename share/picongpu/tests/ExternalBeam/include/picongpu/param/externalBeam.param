@@ -1,0 +1,119 @@
+/* Copyright 2020-2021 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/param/grid.param"
+#include "picongpu/particles/externalBeam/functors.def"
+#include "picongpu/plugins/externalBeam/CoordinateTransform.def"
+#include "picongpu/plugins/externalBeam/ProbingBeam.def"
+#include "picongpu/plugins/externalBeam/SecondaryRotation.def"
+#include "picongpu/plugins/externalBeam/Side.def"
+#include "picongpu/plugins/externalBeam/beamProfiles/profiles.def"
+#include "picongpu/plugins/externalBeam/beamShapes/shapes.def"
+
+#include <pmacc/preprocessor/struct.hpp>
+
+#ifndef PARAM_YAW_ANGLE
+#    define PARAM_YAW_ANGLE 0.0_X
+#endif
+#ifndef PARAM_PITCH_ANGLE
+#    define PARAM_PITCH_ANGLE 0.0_X
+#endif
+#ifndef PARAM_BEAM_OFFSET_X
+#    define PARAM_BEAM_OFFSET_X 0.0_X
+#endif
+#ifndef PARAM_BEAM_OFFSET_Y
+#    define PARAM_BEAM_OFFSET_Y 0.0_X
+#endif
+#ifndef PARAM_SIGMA_X_SI
+#    define PARAM_SIGMA_X_SI 0.1772e-5_X
+#endif
+#ifndef PARAM_SIGMA_Y_SI
+#    define PARAM_SIGMA_Y_SI 0.1772e-5_X
+#endif
+#ifndef PARAM_BEAM_DELAY_SI
+#    define PARAM_BEAM_DELAY_SI 0.0_X
+#endif
+#ifndef PARAM_BEAM_PROFILE
+#    define PARAM_BEAM_PROFILE GaussianProfile
+#endif
+#ifndef PARAM_BEAM_SHAPE
+#    define PARAM_BEAM_SHAPE ConstShape
+#endif
+#ifndef PARAM_BEAM_SIDE
+#    define PARAM_BEAM_SIDE ZSide
+#endif
+
+namespace picongpu
+{
+    namespace plugins
+    {
+        namespace externalBeam
+        {
+            using namespace picongpu::plugins::externalBeam;
+            /* Choose from:
+             *  - ZSide
+             *  - YSide
+             *  - XSide
+             * - ZRSide
+             * - YRSide
+             * - XRSide
+             */
+            using DbgProbingSide = picongpu::plugins::externalBeam::PARAM_BEAM_SIDE;
+
+            PMACC_STRUCT(
+                DbgRotationParam,
+                (PMACC_C_VALUE(float_X, yawAngle, PARAM_YAW_ANGLE / 180.0_X * pmacc::math::Pi<float_X>::value))(
+                    PMACC_C_VALUE(
+                        float_X,
+                        pitchAngle,
+                        PARAM_PITCH_ANGLE / 180.0_X * pmacc::math::Pi<float_X>::value)));
+
+            PMACC_STRUCT(
+                DbgGaussParam,
+                (PMACC_C_VALUE(float_X, sigmaX_SI, PARAM_SIGMA_X_SI)) (PMACC_C_VALUE(
+                    float_X,
+                    sigmaY_SI,
+                    PARAM_SIGMA_Y_SI)));
+            PMACC_STRUCT(
+                DbgOffsetParam,
+                (PMACC_C_VECTOR_DIM(
+                    float_32,
+                    DIM2,
+                    beamOffset_SI,
+                    PARAM_BEAM_OFFSET_X,
+                    PARAM_BEAM_OFFSET_Y)) (PMACC_C_VALUE(float_X, beamDelay_SI, PARAM_BEAM_DELAY_SI)));
+
+            using GaussianProfile = externalBeam::beamProfiles::GaussianProfile<DbgGaussParam>;
+            using ConstProfile = externalBeam::beamProfiles::ConstProfile;
+            using ConstShape = externalBeam::beamShapes::ConstShape;
+
+            using DbgBeamProfile = PARAM_BEAM_PROFILE;
+            using DbgBeamShape = PARAM_BEAM_SHAPE;
+
+            using DbgBeamCoordinates = picongpu::plugins::externalBeam::CoordinateTransform<
+                DbgProbingSide,
+                picongpu::plugins::externalBeam::SecondaryRotation<DbgRotationParam>,
+                DbgOffsetParam>;
+            using DebugBeam
+                = picongpu::plugins::externalBeam::ProbingBeam<DbgBeamProfile, DbgBeamShape, DbgBeamCoordinates>;
+        } // namespace externalBeam
+    } // namespace plugins
+} // namespace picongpu

@@ -1,0 +1,124 @@
+/* Copyright 2021 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace scattering
+        {
+            namespace acc
+            {
+                struct SumDensity
+                {
+                    float_X sum{0.0_X};
+                    template<typename T_Arg>
+                    DINLINE void operator()(T_Arg const& arg)
+                    {
+                        sum += arg;
+                    }
+                    template<typename T_Arg, typename... T_Args>
+                    DINLINE void operator()(T_Arg const& arg, T_Args const&... args)
+                    {
+                        (*this)(arg);
+                        (*this)(args...);
+                    }
+                };
+
+                template<uint32_t T_numWorkers>
+                struct ScatterParticlesKernel
+                {
+                    template<
+                        typename T_Acc,
+                        typename T_Mapper,
+                        typename T_ParticleBox,
+                        typename T_HostScattererFunctor,
+                        typename... T_FieldBoxes>
+                    DINLINE void operator()(
+                        T_Acc& acc,
+                        T_Mapper const mapper,
+                        T_ParticleBox particleBox,
+                        T_HostScattererFunctor hostScattererFunctor,
+                        T_FieldBoxes... fieldBoxes) const
+                    {
+                        // get block cell
+                        // shift fields
+                        // CtxArray with SumDensity
+                        // Write sums into shared memory
+                        constexpr uint32_t numWorkers = T_numWorkers;
+                        uint32_t const workerIdx = cupla::threadIdx(acc).x;
+                        constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                        constexpr uint32_t cellsPerSuperCell = frameSize;
+                        DataSpace<simDim> const superCellIdx
+                            = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
+                        DataSpace<simDim> const blockCell{ superCellIdx * SuperCellSize::toRT()};
+                        auto& superCell = particleBox.getSuperCell(superCellIdx);
+                        const uint32_t numParticlesInSupercell = superCell.getNumParticles();
+                        DataSpace<simDim> const localSuperCellOffset(superCellIdx - mapper.getGuardingSuperCells());
+
+
+                        PMACC_SMEM(acc, densityArray, memory::Array<float_X, frameSize>);
+
+                        auto forEachCellInSuperCell = lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx);
+                        auto forEachParticleInFrame = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+
+                        auto SumDensityCtx
+                            = forEachCellInSuperCell([&](lockstep::Idx const idx) { return SumDensity(); });
+                        forEachCellInSuperCell(
+                            [&](lockstep::Idx const idx)
+                            {
+                                auto const idxInSuperCell
+                                    = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
+                                SumDensityCtx[idx]((fieldBoxes.shift(blockCell))(idxInSuperCell)[0]...);
+                                densityArray[idx] = SumDensityCtx[idx].sum;
+                            });
+
+                        auto accScatteringFunctorCtx = forEachParticleInFrame(
+                            [&](lockstep::Idx const idx) {
+                                return hostScattererFunctor(
+                                    acc,
+                                    localSuperCellOffset,
+                                    forEachParticleInFrame.getWorkerCfg());
+                            });
+
+                        auto frame = particleBox.getFirstFrame(superCellIdx);
+                        for(uint32_t i = 0; i < numParticlesInSupercell; i += frameSize)
+                        {
+                            forEachParticleInFrame(
+                                [&](lockstep::Idx const idx)
+                                {
+                                    if(i + idx < numParticlesInSupercell)
+                                    {
+                                        auto particle = frame[idx];
+                                        const float_X cellDensity = densityArray[particle[localCellIdx_]];
+                                        accScatteringFunctorCtx[idx](acc, particle, cellDensity);
+                                    }
+                                });
+                            frame = particleBox.getNextFrame(frame);
+                        }
+                    }
+                };
+            } // namespace acc
+        } // namespace scattering
+    } // namespace particles
+} // namespace picongpu

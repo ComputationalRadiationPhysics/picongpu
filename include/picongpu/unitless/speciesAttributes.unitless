@@ -32,25 +32,25 @@
 /** \file speciesAttributes.unitless
  *
  * This file describes the particle attributes defined in
- * @see speciesAttributes.param of a particle species.
+ * \see speciesAttributes.param of a particle species.
  * Each particle attribute needs to implement the following traits
  *   - `Unit`
  *      - conversion between PIConGPU units and SI
- *      - @see traits/Unit.hpp
- *      - @see https://git.io/vriio
+ *      - \see traits/Unit.hpp
+ *      - \see https://git.io/vriio
  *   - `UnitDimension`
  *      - powers of the seven SI base units
- *      - @see traits/UnitDimension.hpp
- *      - @see https://git.io/vriio
+ *      - \see traits/UnitDimension.hpp
+ *      - \see https://git.io/vriio
  *   - `MacroWeighted`
  *      - attribute is weighted to a macro-particle?
- *      - @see particles/traits/MacroWeighted.hpp
- *      - @see https://git.io/vwlWa
+ *      - \see particles/traits/MacroWeighted.hpp
+ *      - \see https://git.io/vwlWa
  *   - `WeightingPower`
  *      - attribute is different for macro and real particles?
  *        describe how it scales with the weighting
- *      - @see particles/traits/WeightingPower.hpp
- *      - @see https://git.io/vwlWa
+ *      - \see particles/traits/WeightingPower.hpp
+ *      - \see https://git.io/vwlWa
  */
 namespace picongpu
 {
@@ -628,6 +628,85 @@ namespace picongpu
             static float_64 get()
             {
                 return 1.0;
+            }
+        };
+
+        template<>
+        struct Unit<startPhase>
+        {
+            // unitless and not scaled by a factor: 1.0
+            static std::vector<double> get()
+            {
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<startPhase>
+        {
+            static std::vector<float_64> get()
+            {
+                // startPhase is unitless
+                std::vector<float_64> unitDimension(NUnitDimension, 0.0);
+
+                return unitDimension;
+            }
+        };
+        template<>
+        struct MacroWeighted<startPhase>
+        {
+            // phase is identical for all real photons
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<startPhase>
+        {
+            // phase doesn't scale with the number of real photons
+            static float_64 get()
+            {
+                return 0.0;
+            }
+        };
+        template<>
+        struct Unit<phase>
+        {
+            // unitless and not scaled by a factor: 1.0
+            static std::vector<double> get()
+            {
+                std::vector<double> unit(1, 1.0);
+                return unit;
+            }
+        };
+        template<>
+        struct UnitDimension<phase>
+        {
+            static std::vector<float_64> get()
+            {
+                // startPhase is unitless
+                std::vector<float_64> unitDimension(NUnitDimension, 0.0);
+
+                return unitDimension;
+            }
+        };
+        template<>
+        struct MacroWeighted<phase>
+        {
+            // phase is identical for all real photons
+            static bool get()
+            {
+                return false;
+            }
+        };
+        template<>
+        struct WeightingPower<phase>
+        {
+            // phase doesn't scale with the number of real photons
+            static float_64 get()
+            {
+                return 0.0;
             }
         };
 

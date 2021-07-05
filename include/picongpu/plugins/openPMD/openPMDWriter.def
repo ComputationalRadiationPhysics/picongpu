@@ -53,8 +53,6 @@ namespace picongpu
 #define MESHES_PATH "fields"
 #define PARTICLES_PATH "particles"
 
-        template<typename T_Vec, typename T_Ret = std::vector<typename std::remove_reference<T_Vec>::type::type>>
-        T_Ret asStandardVector(T_Vec const&);
 
         enum class WriteSpeciesStrategy
         {

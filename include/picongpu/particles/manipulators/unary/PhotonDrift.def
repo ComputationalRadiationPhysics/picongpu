@@ -1,0 +1,68 @@
+/* Copyright 2014-2021 Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/param/physicalConstants.param"
+#include "picongpu/particles/manipulators/generic/Free.def"
+
+#include <pmacc/math/operation.hpp>
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace manipulators
+        {
+            namespace unary
+            {
+                namespace param
+                {
+                    CONST_VECTOR(float_X, 3, DriftExampleDirection, 0._X, 1._X, 0._X);
+
+                    //! configuration for the unary manipulator functor PhotonDrift
+                    struct PhotonDriftCfg
+                    {
+                        /** Initial particle drift for photons.
+                         */
+                        static constexpr float_64 photonEnergySI = 6._X * UNITCONV_keV_to_Joule;
+                        DriftExampleDirection_t direction;
+                    };
+                } // namespace param
+
+                namespace acc
+                {
+                    template<typename T_ParamClass, typename T_ValueFunctor>
+                    struct PhotonDrift;
+                } // namespace acc
+
+                /** Manipulate photon momentum
+                 *
+                 * @tparam T_ParamClass param::DriftCfg, configuration parameter
+                 * @tparam T_ValueFunctor  binary functor type to manipulate the momentum attribute
+                 */
+                template<
+                    typename T_ParamClass = param::PhotonDriftCfg,
+                    typename T_ValueFunctor = pmacc::math::operation::Add>
+                using PhotonDrift = generic::Free<acc::PhotonDrift<T_ParamClass, T_ValueFunctor>>;
+
+            } // namespace unary
+        } // namespace manipulators
+    } // namespace particles
+} // namespace picongpu

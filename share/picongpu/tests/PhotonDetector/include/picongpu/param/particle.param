@@ -1,0 +1,104 @@
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch, Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/startPosition/functors.def"
+
+#include <pmacc/math/operation.hpp>
+
+#include <limits>
+
+#ifndef PARAM_PHOTON_DIRECTION_X
+#    define PARAM_PHOTON_DIRECTION_X 0.0
+#endif
+#ifndef PARAM_PHOTON_DIRECTION_Y
+#    define PARAM_PHOTON_DIRECTION_Y 1.0
+#endif
+#ifndef PARAM_PHOTON_DIRECTION_Z
+#    define PARAM_PHOTON_DIRECTION_Z 0.0
+#endif
+namespace picongpu
+{
+    namespace particles
+    {
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
+         *  note: this specific setting allows all kinds of weightings > 0.0
+         *  unit: none
+         */
+        constexpr float_X MIN_WEIGHTING = std::numeric_limits<float_X>::min();
+
+        namespace manipulators
+        {
+            CONST_VECTOR(
+                float_X,
+                3,
+                PhotonDirection,
+                // each x, y, z in-cell position component in range [0.0, 1.0)
+                PARAM_PHOTON_DIRECTION_X,
+                PARAM_PHOTON_DIRECTION_Y,
+                PARAM_PHOTON_DIRECTION_Z);
+            struct PhotonDriftParam
+            {
+                /** Initial particle drift for photons.
+                 *
+                 */
+                static constexpr float_64 photonEnergySI = 6._X * UNITCONV_keV_to_Joule;
+                PhotonDirection_t direction;
+            };
+            using AssignPhotonDrift = unary::PhotonDrift<PhotonDriftParam, pmacc::math::operation::Assign>;
+
+        } // namespace manipulators
+
+
+        namespace startPosition
+        {
+            // sit directly in lower corner of the cell
+            CONST_VECTOR(
+                float_X,
+                3,
+                InCellOffset,
+                // each x, y, z in-cell position component in range [0.0, 1.0)
+                0.0,
+                0.0,
+                0.0);
+            struct OnePositionParameter
+            {
+                /** Count of particles per cell at initial state
+                 *  unit: none
+                 */
+                static constexpr uint32_t numParticlesPerCell = 1u;
+
+                const InCellOffset_t inCellOffset;
+            };
+            using OnePosition = OnePositionImpl<OnePositionParameter>;
+
+        } // namespace startPosition
+
+        /** During unit normalization, we assume this is a typical
+         *  number of particles per cell for normalization of weighted
+         *  particle attributes.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1u;
+
+    } // namespace particles
+} // namespace picongpu

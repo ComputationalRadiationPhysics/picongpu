@@ -90,6 +90,7 @@ namespace picongpu
             struct Vay;
             struct Boris;
             struct Photon;
+            struct PhotonWithPhase;
             struct Acceleration;
             struct Free;
             struct Probe;

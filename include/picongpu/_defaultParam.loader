@@ -48,6 +48,7 @@
 #include "picongpu/param/density.param"
 #include "picongpu/param/particle.param"
 #include "picongpu/param/unit.param"
+#include "picongpu/param/externalBeam.param"
 #include "picongpu/param/particleFilters.param"
 #if(PMACC_CUDA_ENABLED == 1)
 #    include "picongpu/param/bremsstrahlung.param"
@@ -55,6 +56,7 @@
 #include "picongpu/param/radiation.param"
 #include "picongpu/param/transitionRadiation.param"
 #include "picongpu/param/species.param"
+#include "picongpu/param/scattering.param"
 #include "picongpu/param/speciesDefinition.param"
 #include "picongpu/param/speciesInitialization.param"
 #include "picongpu/param/iterationStart.param"
@@ -72,6 +74,8 @@
 #include "picongpu/param/particleMerger.param"
 #if(ENABLE_OPENPMD == 1)
 #    include "picongpu/param/xrayScattering.param"
+#    include "picongpu/param/photonDetector.param"
 #endif
+
 
 // clang-format on

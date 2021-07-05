@@ -1,0 +1,126 @@
+/* Copyright 2015-2021 Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+#pragma once
+
+#include "picongpu/particles/functor/misc/DomainInfo.def"
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace startPosition
+        {
+            namespace generic
+            {
+                namespace acc
+                {
+                    /** wrapper for the user functor on the accelerator
+                     *
+                     * @tparam T_Functor user defined functor
+                     */
+                    template<typename T_Functor, typename T_RngHandle>
+                    struct FreeBoundary : private T_Functor
+                    {
+                        functor::misc::Domain domInfo;
+                        T_RngHandle rng;
+                        uint32_t m_currentStep;
+
+                        HDINLINE uint32_t getCurrentStep() const
+                        {
+                            return m_currentStep;
+                        }
+
+                        HDINLINE auto getDomainInfo() const
+                        {
+                            return domInfo;
+                        }
+
+                        HDINLINE auto& getRngHandle()
+                        {
+                            return rng;
+                        }
+
+                        //! type of the user functor
+                        using Functor = T_Functor;
+
+                        HDINLINE bool isBoundary(const uint32_t exchange = 0u) const
+                        {
+                            bool boundary = false;
+                            // check only planes, no diagonals: left, right, top, bottom, back, front
+                            for(uint32_t d = 0u, exchGroup = 1u; d < simDim; ++d, exchGroup *= 3u)
+                            {
+                                if(exchange == 0u || exchGroup == exchange)
+                                {
+                                    bool isUpperBoundary = domInfo.local.offset[d] == domInfo.global.size[d] - 1;
+                                    boundary = boundary || isUpperBoundary;
+                                }
+                                if(exchange == 0u || 2u * exchGroup == exchange)
+                                {
+                                    bool isLowerBoundary = domInfo.local.offset[d] == 0;
+                                    boundary = boundary || isLowerBoundary;
+                                }
+                            }
+                            return boundary;
+                        }
+
+
+                        //! store user functor instance
+                        HDINLINE
+                        FreeBoundary(
+                            T_Functor const& functor,
+                            functor::misc::Domain const& dom,
+                            T_RngHandle const& rngHandle,
+                            uint32_t currentStep)
+                            : Functor(functor)
+                            , domInfo(dom)
+                            , rng(rngHandle)
+                            , m_currentStep(currentStep)
+                        {
+                        }
+
+                        /** execute the user functor
+                         *
+                         * @tparam T_Args type of the arguments passed to the user functor
+                         * @tparam T_Acc alpaka accelerator type
+                         *
+                         * @param alpaka accelerator
+                         * @param args arguments passed to the user functor
+                         */
+                        template<typename... T_Args, typename T_Acc>
+                        HDINLINE void operator()(T_Acc const& acc, T_Args&&... args);
+
+                        template<typename T_Particle>
+                        HDINLINE uint32_t numberOfMacroParticles(float_X const realParticlesPerCell);
+                    };
+                } // namespace acc
+                /** call simple free user defined functor
+                 *
+                 * @tparam T_Functor user defined functor
+                 *                   **optional**: can implement **one** host side constructor
+                 *                   `T_Functor()` or `T_Functor(uint32_t currentTimeStep)`
+                 */
+                template<typename T_Functor>
+                struct FreeBoundary;
+
+            } // namespace generic
+        } // namespace startPosition
+    } // namespace particles
+} // namespace picongpu

@@ -21,7 +21,7 @@
 /** @file
  *
  * Configurations for particle manipulators. Set up and declare functors that
- * can be used in speciesInitalization.param for particle species
+ * can be used in speciesInitialization.param for particle species
  * initialization and manipulation, such as temperature distributions, drifts,
  * pre-ionization and in-cell position.
  */
