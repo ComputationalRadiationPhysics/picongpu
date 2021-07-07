@@ -32,6 +32,16 @@
 flags[0]=""
 flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision32Bit;-DPARAM_PARTICLESHAPE=TSC'"
 flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision64Bit;-DPARAM_PARTICLESHAPE=TSC'"
+# common radiation with ideal setup
+flags[3]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision32Bit;-DPARAM_PARTICLESHAPE=TSC;-DPARAM_RADIATION=1'"
+# common radiation with non-ideal form factor but ideal window function
+flags[4]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision32Bit;-DPARAM_PARTICLESHAPE=TSC;-DPARAM_RADIATION=1;-DPARAM_RADFORMFACTOR=radFormFactor_coherent'"
+# common radiation with ideal form factor but non-ideal window function
+flags[5]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision32Bit;-DPARAM_PARTICLESHAPE=TSC;-DPARAM_RADIATION=1;-DPARAM_RADWINDOWFUNCTION=radWindowFunctionNone'"
+# common radiation with both non-ideal form factor and window function
+flags[6]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision32Bit;-DPARAM_PARTICLESHAPE=TSC;-DPARAM_RADIATION=1;-DPARAM_RADFORMFACTOR=radFormFactor_coherent;-DPARAM_RADWINDOWFUNCTION=radWindowFunctionNone'"
+
+
 
 ################################################################################
 # execution

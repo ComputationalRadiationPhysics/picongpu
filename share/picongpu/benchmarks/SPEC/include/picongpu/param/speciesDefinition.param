@@ -19,6 +19,12 @@
 
 #pragma once
 
+#ifndef PARAM_RADIATION
+/* disable radiation calculation */
+#    define PARAM_RADIATION 0
+#endif
+
+
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/Particles.hpp"
@@ -35,7 +41,13 @@ namespace picongpu
     /*########################### define particle attributes #####################*/
 
     /** describe attributes of a particle */
-    using DefaultParticleAttributes = MakeSeq_t<position<position_pic>, momentum, weighting>;
+    using DefaultParticleAttributes = MakeSeq_t<
+        position<position_pic>,
+        momentum,
+#if(PARAM_RADIATION == 1)
+        momentumPrev1,
+#endif
+        weighting>;
 
     /*########################### end particle attributes ########################*/
 
