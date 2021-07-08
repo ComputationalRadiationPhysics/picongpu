@@ -20,7 +20,7 @@
 /** @file
  *
  * Configure the field absorber parameters.
- * Field absorber type is set by command-line option --fieldAbsorber.kind.
+ * Field absorber type is set by command-line option --fieldAbsorber.
  */
 
 #pragma once
