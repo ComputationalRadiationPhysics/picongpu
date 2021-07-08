@@ -21,6 +21,8 @@
 
 #include "picongpu/fields/absorber/Absorber.hpp"
 
+#include <pmacc/Environment.hpp>
+
 #include <boost/program_options/options_description.hpp>
 
 #include <cstdint>
@@ -63,9 +65,15 @@ namespace picongpu
                 void load()
                 {
                     using namespace fields::absorber;
-                    // So far there are only two kinds and so names are hardcoded
                     auto kind = Absorber::Kind{};
-                    if(kindName == "exponential")
+                    /* For the all-periodic boundaries case, we override the user's choice and use None.
+                     * This is done for two reasons:
+                     *     - easier compatibility with pre-existing checkpoints with such boundaries;
+                     *     - optimization purposes to not have empty PML fields in checkpoints.
+                     */
+                    if(areAllBoundariesPeriodic())
+                        kind = Absorber::Kind::None;
+                    else if(kindName == "exponential")
                         kind = Absorber::Kind::Exponential;
                     else if(kindName == "pml")
                         kind = Absorber::Kind::Pml;
@@ -77,7 +85,18 @@ namespace picongpu
 
             private:
                 //! Name set by program option
-                std::string kindName = "exponential";
+                std::string kindName = "pml";
+
+                //! Return whether all boudaries are periodic
+                bool areAllBoundariesPeriodic() const
+                {
+                    const DataSpace<DIM3> isPeriodicBoundary
+                        = Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
+                    for(uint32_t axis = 0u; axis < simDim; axis++)
+                        if(!isPeriodicBoundary[axis])
+                            return false;
+                    return true;
+                }
             };
 
         } // namespace stage
