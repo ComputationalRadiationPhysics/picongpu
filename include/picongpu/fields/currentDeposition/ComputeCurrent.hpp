@@ -25,6 +25,7 @@
 
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/currentDeposition/ComputeCurrent.kernel"
+#include "picongpu/fields/currentDeposition/Deposit.hpp"
 
 
 namespace picongpu
@@ -43,14 +44,17 @@ namespace picongpu
              * @param currentStep index of time iteration
              */
             template<uint32_t T_area, class T_Species>
-            HINLINE void computeCurrent(T_Species& species, FieldJ& fieldJ, uint32_t currentStep)
+            void computeCurrent(
+                T_Species& species,
+                FieldJ& fieldJ,
+                uint32_t currentStep,
+                MappingDesc const cellDescription)
             {
                 using FrameType = typename T_Species::FrameType;
                 typedef typename pmacc::traits::Resolve<typename GetFlagType<FrameType, current<>>::type>::type
                     ParticleCurrentSolver;
 
-                using FrameSolver
-                    = currentSolver::ComputePerFrame<ParticleCurrentSolver, Velocity, MappingDesc::SuperCellSize>;
+                using FrameSolver = ComputePerFrame<ParticleCurrentSolver, Velocity, MappingDesc::SuperCellSize>;
 
                 typedef SuperCellDescription<
                     typename MappingDesc::SuperCellSize,
@@ -63,7 +67,7 @@ namespace picongpu
                 constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
                     pmacc::math::CT::volume<SuperCellSize>::type::value * Strategy::workerMultiplier>::value;
 
-                auto const depositionKernel = currentSolver::KernelComputeCurrent<numWorkers, BlockArea>{};
+                auto const depositionKernel = KernelComputeCurrent<numWorkers, BlockArea>{};
 
                 typename T_Species::ParticlesBoxType pBox = species.getDeviceParticlesBox();
                 FieldJ::DataBoxType jBox = fieldJ.getGridBuffer().getDeviceBuffer().getDataBox();
@@ -71,6 +75,37 @@ namespace picongpu
 
                 auto const deposit = currentSolver::Deposit<Strategy>{};
                 deposit.template execute<T_area, numWorkers>(cellDescription, depositionKernel, solver, jBox, pBox);
+            }
+
+            /** Smooth current density and add it to the electric field
+             *
+             * @tparam T_area area to operate on
+             * @tparam T_CurrentInterpolationFunctor current interpolation functor type
+             *
+             * @param myCurrentInterpolationFunctor current interpolation functor
+             */
+            template<uint32_t T_area, class T_CurrentInterpolationFunctor>
+            void addCurrentToEMF(
+                T_CurrentInterpolationFunctor myCurrentInterpolationFunctor,
+                MappingDesc cellDescription)
+            {
+                DataConnector& dc = Environment<>::get().DataConnector();
+                auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
+                auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
+                auto fieldJ = dc.get<FieldJ>(FieldJ::getName(), true);
+
+                AreaMapping<T_area, MappingDesc> mapper(cellDescription);
+
+                constexpr uint32_t numWorkers
+                    = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+
+                PMACC_KERNEL(KernelAddCurrentToEMF<numWorkers>{})
+                (mapper.getGridDim(), numWorkers)(
+                    fieldE->getDeviceDataBox(),
+                    fieldB->getDeviceDataBox(),
+                    fieldJ->getDeviceDataBox(),
+                    myCurrentInterpolationFunctor,
+                    mapper);
             }
 
         } // namespace currentDeposition

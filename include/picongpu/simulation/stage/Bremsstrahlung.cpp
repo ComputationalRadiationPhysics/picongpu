@@ -91,7 +91,7 @@ namespace picongpu
             class Bremsstrahlung::Impl
             {
             public:
-                Impl(MappingDesc const cellDescription) = default;
+                Impl(MappingDesc const){};
                 void operator()(uint32_t const step) const
                 {
                 }

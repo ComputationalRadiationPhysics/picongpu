@@ -60,7 +60,7 @@ namespace picongpu
                 using UnitlessParam = ::picongpu::particlePusherAcceleration::UnitlessParam;
 
                 float_X const weighting = particle[weighting_];
-                float_X const mass = attribute::getMass(weighting, particle);
+                float_X const mass = traits::attribute::getMass(weighting, particle);
                 float_X const charge = attribute::getCharge(weighting, particle);
 
                 using MomType = momentum::type;

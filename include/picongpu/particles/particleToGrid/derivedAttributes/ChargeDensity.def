@@ -61,9 +61,9 @@ namespace picongpu
                          *   -> L^-3 * T * I
                          */
                         std::vector<float_64> unitDimension(7, 0.0);
-                        unitDimension.at(SIBaseUnits::length) = -3.0;
-                        unitDimension.at(SIBaseUnits::time) = 1.0;
-                        unitDimension.at(SIBaseUnits::electricCurrent) = 1.0;
+                        unitDimension.at(::picongpu::traits::SIBaseUnits::length) = -3.0;
+                        unitDimension.at(::picongpu::traits::SIBaseUnits::time) = 1.0;
+                        unitDimension.at(::picongpu::traits::SIBaseUnits::electricCurrent) = 1.0;
 
                         return unitDimension;
                     }

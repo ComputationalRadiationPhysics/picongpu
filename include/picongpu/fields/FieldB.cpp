@@ -22,7 +22,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/simulation_types.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
 
 #include <string>

@@ -21,10 +21,8 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/fields/Fields.def"
-#include "picongpu/particles/Particles.hpp"
+#include "picongpu/simulation_defines_lite.hpp"
 
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/fields/SimulationFieldHelper.hpp>
@@ -72,16 +70,16 @@ namespace picongpu
          *
          * @param cellDescription mapping for kernels
          */
-        HINLINE FieldJ(MappingDesc const& cellDescription);
+        FieldJ(MappingDesc const& cellDescription);
 
         //! Destroy a field
-        HINLINE virtual ~FieldJ() = default;
+        virtual ~FieldJ() = default;
 
         //! Get a reference to the host-device buffer for the field values
-        HINLINE GridBuffer<ValueType, simDim>& getGridBuffer();
+        GridBuffer<ValueType, simDim>& getGridBuffer();
 
         //! Get the grid layout
-        HINLINE GridLayout<simDim> getGridLayout();
+        GridLayout<simDim> getGridLayout();
 
         //! Get the host data box for the field values
         DataBoxType getHostDataBox()
@@ -99,13 +97,13 @@ namespace picongpu
          *
          * @param serialEvent event to depend on
          */
-        HINLINE virtual EventTask asyncCommunication(EventTask serialEvent);
+        virtual EventTask asyncCommunication(EventTask serialEvent);
 
         /** Reset the host-device buffer for field values
          *
          * @param currentStep index of time iteration
          */
-        HINLINE void reset(uint32_t currentStep) override;
+        void reset(uint32_t currentStep) override;
 
         //! Synchronize device data with host data
         void syncToDevice() override
@@ -115,13 +113,19 @@ namespace picongpu
         }
 
         //! Synchronize host data with device data
-        HINLINE void synchronize() override;
+        void synchronize() override;
 
         //! Get id
-        HINLINE SimulationDataId getUniqueId() override;
+        SimulationDataId getUniqueId() override;
 
         //! Get units of field components
-        HDINLINE static UnitValueType getUnit();
+        HDINLINE static UnitValueType getUnit()
+        {
+            /// TODO: put it back
+            const float_64 UNIT_CURRENT = 1.0; /*UNIT_CHARGE / UNIT_TIME / (UNIT_LENGTH * UNIT_LENGTH)*/
+            ;
+            return UnitValueType(UNIT_CURRENT, UNIT_CURRENT, UNIT_CURRENT);
+        }
 
         /** Get unit representation as powers of the 7 base measures
          *
@@ -130,26 +134,16 @@ namespace picongpu
          *  thermodynamic temperature theta, amount of substance N,
          *  luminous intensity J)
          */
-        HINLINE static std::vector<float_64> getUnitDimension();
+        static std::vector<float_64> getUnitDimension();
 
         //! Get text name
-        HINLINE static std::string getName();
+        static std::string getName();
 
         /** Assign the given value to elements
          *
          * @param value value to assign all elements to
          */
-        HINLINE void assign(ValueType value);
-
-        /** Smooth current density and add it to the electric field
-         *
-         * @tparam T_area area to operate on
-         * @tparam T_CurrentInterpolationFunctor current interpolation functor type
-         *
-         * @param myCurrentInterpolationFunctor current interpolation functor
-         */
-        template<uint32_t T_area, class T_CurrentInterpolationFunctor>
-        HINLINE void addCurrentToEMF(T_CurrentInterpolationFunctor myCurrentInterpolationFunctor);
+        void assign(ValueType value);
 
         /** Bash field in a direction.
          *
@@ -157,13 +151,13 @@ namespace picongpu
          *
          * @param exchangeType exchange type
          */
-        HINLINE void bashField(uint32_t exchangeType);
+        void bashField(uint32_t exchangeType);
 
         /** Insert all fields which are in device exchange buffer
          *
          * @param exchangeType exchange type
          */
-        HINLINE void insertField(uint32_t exchangeType);
+        void insertField(uint32_t exchangeType);
 
     private:
         //! Host-device buffer for current density values

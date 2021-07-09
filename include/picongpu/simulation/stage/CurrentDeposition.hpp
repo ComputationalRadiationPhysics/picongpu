@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines_lite.hpp"
+
 #include <cstdint>
 
 
@@ -33,12 +35,20 @@ namespace picongpu
             //! Functor for the stage of the PIC loop performing current deposition
             struct CurrentDeposition
             {
+                CurrentDeposition(MappingDesc const cellDescription) : cellDescription(cellDescription)
+                {
+                }
+
                 /** Compute the current created by particles and add it to the current
                  *  density
                  *
                  * @param step index of time iteration
                  */
                 void operator()(uint32_t const step) const;
+
+            private:
+                //! Mapping for kernels
+                MappingDesc cellDescription;
             };
 
         } // namespace stage

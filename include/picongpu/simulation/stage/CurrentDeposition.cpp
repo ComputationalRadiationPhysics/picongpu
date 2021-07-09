@@ -24,7 +24,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/FieldJ.hpp"
-//#include "picongpu/fields/currentDeposition/ComputeCurrent.hpp"
+#include "picongpu/fields/currentDeposition/ComputeCurrent.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -49,10 +49,18 @@ namespace picongpu
                     using SpeciesType = T_SpeciesType;
                     using FrameType = typename SpeciesType::FrameType;
 
-                    HINLINE void operator()(const uint32_t currentStep, FieldJ& fieldJ, pmacc::DataConnector& dc) const
+                    HINLINE void operator()(
+                        const uint32_t currentStep,
+                        FieldJ& fieldJ,
+                        pmacc::DataConnector& dc,
+                        MappingDesc const cellDescription) const
                     {
                         auto species = dc.get<SpeciesType>(FrameType::getName(), true);
-                        //computeCurrent<T_Area::value, SpeciesType>(*species, fieldJ, currentStep);
+                        fields::currentDeposition::computeCurrent<T_Area::value, SpeciesType>(
+                            *species,
+                            fieldJ,
+                            currentStep,
+                            cellDescription);
                     }
                 };
             } // namespace detail
@@ -68,7 +76,7 @@ namespace picongpu
                     SpeciesWithCurrentSolver,
                     detail::CurrentDeposition<bmpl::_1, bmpl::int_<type::CORE + type::BORDER>>>
                     depositCurrent;
-                depositCurrent(step, fieldJ, dc);
+                depositCurrent(step, fieldJ, dc, cellDescription);
             }
 
         } // namespace stage

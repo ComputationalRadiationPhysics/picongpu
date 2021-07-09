@@ -305,7 +305,7 @@ namespace picongpu
         virtual void init()
         {
             // This has to be called before initFields()
-            currentInterpolationAndAdditionToEMF.init();
+            currentInterpolationAndAdditionToEMF.init(*cellDescription);
 
             DataConnector& dc = Environment<>::get().DataConnector();
             initFields(dc);
@@ -511,7 +511,7 @@ namespace picongpu
             myFieldSolver->update_beforeCurrent(currentStep);
             __setTransactionEvent(commEvent);
             CurrentBackground{*cellDescription}(currentStep);
-            CurrentDeposition{}(currentStep);
+            CurrentDeposition{*cellDescription}(currentStep);
             currentInterpolationAndAdditionToEMF(currentStep);
             myFieldSolver->update_afterCurrent(currentStep);
         }

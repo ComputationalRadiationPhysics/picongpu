@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/simulation_defines_lite.hpp"
 
 #include <pmacc/algorithms/PromoteType.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>
@@ -73,7 +73,8 @@ namespace picongpu
         //! Get units of field components
         HDINLINE static UnitValueType getUnit()
         {
-            return UnitValueType{UNIT_BFIELD, UNIT_BFIELD, UNIT_BFIELD};
+            /// TODO: put it back
+            return UnitValueType{/*UNIT_BFIELD, UNIT_BFIELD, UNIT_BFIELD*/ 1.0, 1.0, 1.0};
         }
 
         /** Get unit representation as powers of the 7 base measures

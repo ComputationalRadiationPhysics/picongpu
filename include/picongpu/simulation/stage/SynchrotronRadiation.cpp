@@ -19,9 +19,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
+
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.tpp"
