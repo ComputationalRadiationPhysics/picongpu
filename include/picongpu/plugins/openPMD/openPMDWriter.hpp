@@ -143,8 +143,15 @@ namespace picongpu
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
                 __getTransactionEvent().waitForFinished();
-                openPMDSeries
-                    = std::make_unique<::openPMD::Series>(fullName, at, communicator, jsonMatcher->getDefault());
+                openPMDSeries = std::make_unique<::openPMD::Series>(
+                    fullName,
+                    at,
+                    communicator,
+                    /*
+                     * The openPMD plugin only supports configuring writing routines via JSON.
+                     * Reading routines get an empty JSON set.
+                     */
+                    at == ::openPMD::Access::READ_ONLY ? "{}" : jsonMatcher->getDefault());
                 if(openPMDSeries->backend() == "MPI_ADIOS1")
                 {
                     throw std::runtime_error(R"END(
