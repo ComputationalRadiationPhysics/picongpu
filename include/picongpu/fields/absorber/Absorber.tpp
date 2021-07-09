@@ -23,6 +23,7 @@
 
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/absorber/exponential/Exponential.hpp"
+#include "picongpu/fields/absorber/none/None.hpp"
 #include "picongpu/fields/absorber/pml/Pml.hpp"
 
 #include <pmacc/Environment.hpp>
@@ -44,6 +45,9 @@ namespace picongpu
                 {
                 case Kind::Exponential:
                     name = std::string{"exponential damping"};
+                    break;
+                case Kind::None:
+                    name = std::string{"none"};
                     break;
                 case Kind::Pml:
                     name = std::string{"convolutional PML"};
@@ -211,6 +215,8 @@ namespace picongpu
                 {
                 case Absorber::Kind::Exponential:
                     return std::make_unique<exponential::ExponentialImpl>(cellDescription);
+                case Absorber::Kind::None:
+                    return std::make_unique<none::NoneImpl>(cellDescription);
                 case Absorber::Kind::Pml:
                     return std::make_unique<pml::PmlImpl>(cellDescription);
                 default:

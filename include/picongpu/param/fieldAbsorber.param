@@ -20,7 +20,7 @@
 /** @file
  *
  * Configure the field absorber parameters.
- * Field absorber type is set by command-line option --fieldAbsorber.kind.
+ * Field absorber type is set by command-line option --fieldAbsorber.
  */
 
 #pragma once
@@ -35,7 +35,7 @@ namespace picongpu
         namespace absorber
         {
             // This variable is not required, defined for convenience
-            constexpr uint32_t THICKNESS = 32;
+            constexpr uint32_t THICKNESS = 12;
 
             /** Thickness of the absorbing layer, in number of cells
              *

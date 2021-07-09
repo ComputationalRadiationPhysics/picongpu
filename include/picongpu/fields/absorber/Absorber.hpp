@@ -103,10 +103,16 @@ namespace picongpu
             class Absorber
             {
             public:
-                //! Supported absorber kinds
+                /** Supported absorber kinds, same for all absorbing boundaries
+                 *
+                 * Exponential - exponential damping absorber.
+                 * None - all boundaries are periodic, no absorber.
+                 * Pml - perfectly matched layer absorber.
+                 */
                 enum class Kind
                 {
                     Exponential,
+                    None,
                     Pml
                 };
 

@@ -36,7 +36,9 @@ The field absorber mechanism and user-controlled parameters depend on the field 
 It is controlled by command-line option ``--fieldAbsorber``.
 For all absorber kinds, the parameters are controlled by :ref:`fieldAbsorber.param <usage-params-core>`.
 
-For the exponential absorber (default), thickness of about 32 cells is recommended.
-For the Perfectly Matched Layer (PML) absorber, thickness of 8 to 12 cells is recommended.
+By default, the Perfectly Matched Layer (PML) absorber is used.
+For this absorber, thickness of 8 to 12 cells is recommended.
 Other absorber parameters can generally be used with default values.
 PML generally provides much better absorber qualities than the exponential damping absorber.
+
+For the exponential absorber, thickness of about 32 cells is recommended.
