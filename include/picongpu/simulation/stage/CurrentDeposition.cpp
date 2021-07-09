@@ -24,7 +24,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/FieldJ.hpp"
-#include "picongpu/fields/currentDeposition/ComputeCurrent.hpp"
+//#include "picongpu/fields/currentDeposition/ComputeCurrent.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -52,7 +52,7 @@ namespace picongpu
                     HINLINE void operator()(const uint32_t currentStep, FieldJ& fieldJ, pmacc::DataConnector& dc) const
                     {
                         auto species = dc.get<SpeciesType>(FrameType::getName(), true);
-                        computeCurrent<T_Area::value, SpeciesType>(*species, fieldJ, currentStep);
+                        //computeCurrent<T_Area::value, SpeciesType>(*species, fieldJ, currentStep);
                     }
                 };
             } // namespace detail

@@ -22,7 +22,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/Fields.def"
+#include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/absorber/pml/Parameters.hpp"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
