@@ -693,5 +693,3 @@ namespace picongpu
         }
     };
 } /* namespace picongpu */
-
-#include "picongpu/fields/Fields.tpp"

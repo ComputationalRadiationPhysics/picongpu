@@ -24,6 +24,7 @@
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
+#include "picongpu/fields/FieldTmp.hpp"
 
 namespace picongpu
 {

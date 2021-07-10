@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include "picongpu/simulation_defines_lite.hpp"
 
 #include "picongpu/fields/Fields.def"
 #include "picongpu/particles/filter/filter.def"
@@ -71,22 +71,22 @@ namespace picongpu
          * @param cellDescription mapping for kernels
          * @param slotId index of the temporary field
          */
-        HINLINE FieldTmp(MappingDesc const& cellDescription, uint32_t slotId);
+        FieldTmp(MappingDesc const& cellDescription, uint32_t slotId);
 
         //! Destroy a field
         virtual ~FieldTmp() = default;
 
         //! Get a reference to the host-device buffer for the field values
-        HINLINE GridBuffer<ValueType, simDim>& getGridBuffer();
+        GridBuffer<ValueType, simDim>& getGridBuffer();
 
         //! Get the grid layout
-        HINLINE GridLayout<simDim> getGridLayout();
+        GridLayout<simDim> getGridLayout();
 
         //! Get the host data box for the field values
-        HINLINE DataBoxType getHostDataBox();
+        DataBoxType getHostDataBox();
 
         //! Get the device data box for the field values
-        HINLINE DataBoxType getDeviceDataBox();
+        DataBoxType getDeviceDataBox();
 
         /** Start asynchronous send of field values
          *
@@ -96,28 +96,28 @@ namespace picongpu
          *
          * @param serialEvent event to depend on
          */
-        HINLINE virtual EventTask asyncCommunication(EventTask serialEvent);
+        virtual EventTask asyncCommunication(EventTask serialEvent);
 
         /** Reset the host-device buffer for field values
          *
          * @param currentStep index of time iteration
          */
-        HINLINE void reset(uint32_t currentStep) override;
+        void reset(uint32_t currentStep) override;
 
         //! Synchronize device data with host data
-        HINLINE void syncToDevice() override;
+        void syncToDevice() override;
 
         //! Synchronize host data with device data
-        HINLINE void synchronize() override;
+        void synchronize() override;
 
         /** Get id
          *
          * @param slotId index of the temporary field
          */
-        HINLINE static SimulationDataId getUniqueId(uint32_t slotId);
+        static SimulationDataId getUniqueId(uint32_t slotId);
 
         //! Get id
-        HINLINE SimulationDataId getUniqueId() override;
+        SimulationDataId getUniqueId() override;
 
         /** Get unit representation as powers of the 7 base measures
          *
@@ -127,7 +127,10 @@ namespace picongpu
          *  luminous intensity J)
          */
         template<class FrameSolver>
-        HINLINE static std::vector<float_64> getUnitDimension();
+        HINLINE static std::vector<float_64> getUnitDimension()
+        {
+            return FrameSolver().getUnitDimension();
+        }
 
         //! Get mapping for kernels
         MappingDesc getCellDescription()
@@ -136,7 +139,7 @@ namespace picongpu
         }
 
         //! Get text name
-        HINLINE static std::string getName();
+        static std::string getName();
 
         /** Gather data from neighboring GPUs
          *
@@ -144,20 +147,20 @@ namespace picongpu
          * This method can be called before or after asyncCommunication without
          * explicit handling to avoid race conditions between both methods.
          */
-        HINLINE EventTask asyncCommunicationGather(EventTask serialEvent);
+        EventTask asyncCommunicationGather(EventTask serialEvent);
 
         /** Bash particles in a direction.
          * Copy all particles from the guard of a direction to the device exchange buffer
          *
          * @param exchangeType exchange type
          */
-        HINLINE void bashField(uint32_t exchangeType);
+        void bashField(uint32_t exchangeType);
 
         /** Insert all particles which are in device exchange buffer
          *
          * @param exchangeType exchange type
          */
-        HINLINE void insertField(uint32_t exchangeType);
+        void insertField(uint32_t exchangeType);
 
     private:
         //! Host-device buffer for current density values

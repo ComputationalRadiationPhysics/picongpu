@@ -18,9 +18,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+// clang-format off
 
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/fields/FieldTmp.hpp"
+
+// clang-format on
 
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
@@ -240,12 +244,6 @@ namespace picongpu
     {
         fieldTmp->getHostBuffer().reset(true);
         fieldTmp->getDeviceBuffer().reset(false);
-    }
-
-    template<class FrameSolver>
-    HINLINE std::vector<float_64> FieldTmp::getUnitDimension()
-    {
-        return FrameSolver().getUnitDimension();
     }
 
     std::string FieldTmp::getName()
