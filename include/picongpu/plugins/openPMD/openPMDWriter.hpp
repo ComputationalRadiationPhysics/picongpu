@@ -46,6 +46,7 @@
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/traits/IsFieldDomainBound.hpp"
 #include "picongpu/traits/IsFieldOutputOptional.hpp"
+#include "picongpu/traits/Unit.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/assert.hpp>
@@ -441,7 +442,7 @@ Please pick either of the following:
             public:
                 static std::vector<float_64> getUnit()
                 {
-                    UnitType unit = T_Field::getUnit();
+                    UnitType unit = Unit<T_Field>::get();
                     return createUnit(unit, T_Field::numComponents);
                 }
 
@@ -519,7 +520,7 @@ Please pick either of the following:
                 /** Get the unit for the result from the solver*/
                 static std::vector<float_64> getUnit()
                 {
-                    UnitType unit = FieldTmp::getUnit<Solver>();
+                    UnitType unit = traits::Unit<FieldTmp, Solver>::get();
                     const uint32_t components = GetNComponents<ValueType>::value;
                     return createUnit(unit, components);
                 }

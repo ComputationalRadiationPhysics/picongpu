@@ -23,6 +23,7 @@
 
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/background/cellwiseOperation.hpp"
+#include "picongpu/traits/Unit.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -68,7 +69,7 @@ namespace picongpu
                         currentBackground(
                             &fieldJ,
                             pmacc::math::operation::Add(),
-                            FieldBackgroundJ(fieldJ.getUnit()),
+                            FieldBackgroundJ(traits::Unit<FieldJ>::get()),
                             step);
                     }
                 }

@@ -119,10 +119,6 @@ namespace picongpu
         //! Get id
         HINLINE SimulationDataId getUniqueId() override;
 
-        //! Get unit of field components
-        template<class FrameSolver>
-        HDINLINE static UnitValueType getUnit();
-
         /** Get unit representation as powers of the 7 base measures
          *
          * Characterizing the record's unit in SI

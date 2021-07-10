@@ -26,6 +26,7 @@
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/background/cellwiseOperation.hpp"
+#include "picongpu/traits/Unit.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -160,7 +161,7 @@ namespace picongpu
                         constexpr auto area = CORE + BORDER + GUARD;
                         using CallBackground = cellwiseOperation::CellwiseOperation<area>;
                         CallBackground callBackground(cellDescription);
-                        callBackground(&field, functor, FieldBackground(field.getUnit()), step);
+                        callBackground(&field, functor, FieldBackground(traits::Unit<Field>::get()), step);
                     }
                 };
             } // namespace detail

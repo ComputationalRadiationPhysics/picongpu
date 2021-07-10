@@ -270,12 +270,6 @@ namespace picongpu
     }
 
     template<class FrameSolver>
-    HDINLINE FieldTmp::UnitValueType FieldTmp::getUnit()
-    {
-        return FrameSolver().getUnit();
-    }
-
-    template<class FrameSolver>
     HINLINE std::vector<float_64> FieldTmp::getUnitDimension()
     {
         return FrameSolver().getUnitDimension();

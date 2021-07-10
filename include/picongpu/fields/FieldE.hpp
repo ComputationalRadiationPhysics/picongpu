@@ -70,13 +70,6 @@ namespace picongpu
         //! Unit type of field components
         using UnitValueType = promoteType<float_64, ValueType>::type;
 
-        //! Get units of field components
-        HDINLINE static UnitValueType getUnit()
-        {
-            /// TODO: put it back
-            return UnitValueType{/*UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD*/ 1.0, 1.0, 1.0};
-        }
-
         /** Get unit representation as powers of the 7 base measures
          *
          * Characterizing the record's unit in SI

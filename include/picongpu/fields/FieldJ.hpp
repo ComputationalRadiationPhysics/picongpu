@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "picongpu/fields/Fields.def"
 #include "picongpu/simulation_defines_lite.hpp"
 
 #include <pmacc/dataManagement/ISimulationData.hpp>
@@ -117,15 +116,6 @@ namespace picongpu
 
         //! Get id
         SimulationDataId getUniqueId() override;
-
-        //! Get units of field components
-        HDINLINE static UnitValueType getUnit()
-        {
-            /// TODO: put it back
-            const float_64 UNIT_CURRENT = 1.0; /*UNIT_CHARGE / UNIT_TIME / (UNIT_LENGTH * UNIT_LENGTH)*/
-            ;
-            return UnitValueType(UNIT_CURRENT, UNIT_CURRENT, UNIT_CURRENT);
-        }
 
         /** Get unit representation as powers of the 7 base measures
          *

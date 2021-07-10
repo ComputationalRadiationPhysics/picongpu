@@ -21,6 +21,10 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
+#include "picongpu/fields/FieldJ.hpp"
+
 namespace picongpu
 {
     namespace traits
@@ -34,8 +38,59 @@ namespace picongpu
          * factor. If they are not scaled, implement the unit as 1.0;
          * @see unitless/speciesAttributes.unitless
          */
-        template<typename T_Identifier>
-        struct Unit;
+        template<typename T_Identifier, typename T_Parameter = void>
+        struct Unit
+        {
+            static auto get()
+            {
+                return T_Identifier::getUnit();
+            }
+        };
+
+        /// TODO: make this nicer. It works in principle, but is not pretty now.
+        /// Fields need to have a unit accessible on host and device as a pmacc vector.
+        /// So for those types we hack in the unit thing accordingly.
+
+        //! Host-device unit accessor for FieldE
+        template<>
+        struct Unit<FieldE>
+        {
+            HDINLINE static auto get()
+            {
+                return FieldE::UnitValueType{UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD};
+            }
+        };
+
+        //! Host-device unit accessor for FieldB
+        template<>
+        struct Unit<FieldB>
+        {
+            HDINLINE static auto get()
+            {
+                return FieldB::UnitValueType{UNIT_BFIELD, UNIT_BFIELD, UNIT_BFIELD};
+            }
+        };
+
+        //! Host-device unit accessor for FieldJ
+        template<>
+        struct Unit<FieldJ>
+        {
+            HDINLINE static auto get()
+            {
+                const float_64 UNIT_CURRENT = UNIT_CHARGE / UNIT_TIME / (UNIT_LENGTH * UNIT_LENGTH);
+                return FieldJ::UnitValueType{UNIT_CURRENT, UNIT_CURRENT, UNIT_CURRENT};
+            }
+        };
+
+        //! Host-device unit accessor for FieldTmp and the given frame solver type
+        template<typename T_FrameSolver>
+        struct Unit<FieldTmp, T_FrameSolver>
+        {
+            HDINLINE static auto get()
+            {
+                return T_FrameSolver{}.getUnit();
+            }
+        };
 
     } // namespace traits
 
