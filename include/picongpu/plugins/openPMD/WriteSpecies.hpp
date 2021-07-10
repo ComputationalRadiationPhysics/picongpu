@@ -260,6 +260,7 @@ namespace picongpu
 
             void setParticleAttributes(
                 ::openPMD::ParticleSpecies& record,
+                uint64_t const globalNumParticles,
                 AbstractJsonMatcher& matcher,
                 std::string const& basename)
             {
@@ -286,7 +287,7 @@ namespace picongpu
 
                 // const records stuff
                 ::openPMD::Datatype dataType = ::openPMD::Datatype::DOUBLE;
-                ::openPMD::Extent extent = {0};
+                ::openPMD::Extent extent = {globalNumParticles};
                 ::openPMD::Dataset dataSet = ::openPMD::Dataset(dataType, extent);
 
                 // mass
@@ -503,6 +504,7 @@ namespace picongpu
                     /* openPMD ED-PIC: additional attributes */
                     setParticleAttributes(
                         particleSpecies,
+                        globalNumParticles,
                         *params->jsonMatcher,
                         series.particlesPath() + speciesGroup);
                     params->openPMDSeries->flush();
