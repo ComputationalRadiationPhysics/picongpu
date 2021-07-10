@@ -25,6 +25,7 @@
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"
+#include "picongpu/particles/particleToGrid/ComputeField.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/lockstep/Worker.hpp>
@@ -145,7 +146,7 @@ namespace picongpu
                      */
                     using DensitySolver = typename particleToGrid::
                         CreateFieldTmpOperation_t<SrcSpecies, particleToGrid::derivedAttributes::Density>::Solver;
-                    density->template computeValue<CORE + BORDER, DensitySolver>(*srcSpecies, currentStep);
+                    particleToGrid::computeValue<CORE + BORDER, DensitySolver>(*srcSpecies, currentStep, *density);
 
                     EventTask densityEvent = density->asyncCommunication(__getTransactionEvent());
                     densityEvent += density->asyncCommunicationGather(densityEvent);
@@ -161,7 +162,10 @@ namespace picongpu
                     using EnergyDensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<
                         DestSpecies,
                         particleToGrid::derivedAttributes::EnergyDensityCutoff<CutoffMaxEnergy>>::Solver;
-                    eneKinDens->template computeValue<CORE + BORDER, EnergyDensitySolver>(*destSpecies, currentStep);
+                    particleToGrid::computeValue<CORE + BORDER, EnergyDensitySolver>(
+                        *destSpecies,
+                        currentStep,
+                        *eneKinDens);
                     EventTask eneKinEvent = eneKinDens->asyncCommunication(__getTransactionEvent());
                     eneKinEvent += eneKinDens->asyncCommunicationGather(eneKinEvent);
 

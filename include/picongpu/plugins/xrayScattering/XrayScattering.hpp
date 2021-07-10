@@ -24,6 +24,7 @@
 
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/param/xrayScattering.param"
+#include "picongpu/particles/particleToGrid/ComputeField.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/Density.def"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
@@ -500,7 +501,10 @@ namespace picongpu
                     // density of the particles.
                     using ElectronDensitySolver = typename DetermineElectronDensitySolver<T_ParticlesType>::type;
                     // Calculate density.
-                    tmpField->template computeValue<CORE + BORDER, ElectronDensitySolver>(*species, currentStep);
+                    particles::particleToGrid::computeValue<CORE + BORDER, ElectronDensitySolver>(
+                        *species,
+                        currentStep,
+                        *tmpField);
                     // Get the field data box.
                     FieldTmp::DataBoxType tmpFieldBox = tmpField->getGridBuffer().getDeviceBuffer().getDataBox();
                     return tmpFieldBox;

@@ -21,6 +21,7 @@
 #pragma once
 
 // Needs to be the very first
+#include "picongpu/particles/particleToGrid/ComputeField.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -150,9 +151,10 @@ namespace picongpu
                     auto particles = dc.get<ParticleType>(ParticleType::FrameType::getName(), true);
 
                     fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
-                    fieldTmp->template computeValue<CORE + BORDER, FrameSolver, ParticleFilter>(
+                    particles::particleToGrid::computeValue<CORE + BORDER, FrameSolver, ParticleFilter>(
                         *particles,
-                        *currentStep);
+                        *currentStep,
+                        *fieldTmp);
                     EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
 
                     __setTransactionEvent(fieldTmpEvent);

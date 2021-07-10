@@ -21,6 +21,7 @@
 
 #include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/fields/CellType.hpp"
+#include "picongpu/particles/particleToGrid/ComputeField.hpp"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
@@ -68,7 +69,7 @@ namespace picongpu
                 /* compute ion density */
                 using DensitySolver = typename particleToGrid::
                     CreateFieldTmpOperation<T_IonSpecies, particleToGrid::derivedAttributes::Density>::type::Solver;
-                fieldIonDensity->template computeValue<CORE + BORDER, DensitySolver>(*ionSpecies, currentStep);
+                particleToGrid::computeValue<CORE + BORDER, DensitySolver>(*ionSpecies, currentStep, *fieldIonDensity);
 
                 /* initialize device-side tmp-field databoxes */
                 this->ionDensityBox = fieldIonDensity->getDeviceDataBox();

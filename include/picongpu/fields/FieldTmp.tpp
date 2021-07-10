@@ -22,7 +22,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/FieldTmp.kernel"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
 #include "picongpu/traits/GetMargin.hpp"
@@ -161,32 +160,6 @@ namespace picongpu
             }
         }
     }
-
-    template<uint32_t AREA, class FrameSolver, typename Filter, class ParticlesClass>
-    void FieldTmp::computeValue(ParticlesClass& parClass, uint32_t)
-    {
-        typedef SuperCellDescription<
-            typename MappingDesc::SuperCellSize,
-            typename FrameSolver::LowerMargin,
-            typename FrameSolver::UpperMargin>
-            BlockArea;
-
-        StrideMapping<AREA, 3, MappingDesc> mapper(cellDescription);
-        typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox();
-        FieldTmp::DataBoxType tmpBox = this->fieldTmp->getDeviceBuffer().getDataBox();
-        FrameSolver solver;
-        using ParticleFilter = typename Filter ::template apply<ParticlesClass>::type;
-        ParticleFilter particleFilter;
-        constexpr uint32_t numWorkers
-            = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
-        do
-        {
-            PMACC_KERNEL(KernelComputeSupercells<numWorkers, BlockArea>{})
-            (mapper.getGridDim(), numWorkers)(tmpBox, pBox, solver, particleFilter, mapper);
-        } while(mapper.next());
-    }
-
 
     SimulationDataId FieldTmp::getUniqueId(uint32_t slotId)
     {

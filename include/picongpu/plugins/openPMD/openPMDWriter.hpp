@@ -28,6 +28,7 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/particles/particleToGrid/ComputeField.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/openPMDWriteMeta.hpp"
@@ -546,7 +547,10 @@ Please pick either of the following:
 
                     fieldTmp->getGridBuffer().getDeviceBuffer().setValue(ValueType::create(0.0));
                     /*run algorithm*/
-                    fieldTmp->template computeValue<CORE + BORDER, Solver, Filter>(*speciesTmp, params->currentStep);
+                    particles::particleToGrid::computeValue<CORE + BORDER, Solver, Filter>(
+                        *speciesTmp,
+                        params->currentStep,
+                        *fieldTmp);
 
                     EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
                     __setTransactionEvent(fieldTmpEvent);

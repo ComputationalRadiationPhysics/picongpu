@@ -21,6 +21,7 @@
 
 #include "common/txtFileHandling.hpp"
 #include "picongpu/fields/FieldJ.hpp"
+#include "picongpu/particles/particleToGrid/ComputeField.hpp"
 
 #include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
 #include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
@@ -177,7 +178,10 @@ namespace picongpu
                     SpeciesType,
                     particles::particleToGrid::derivedAttributes::ChargeDensity>::Solver;
 
-                fieldTmp->computeValue<area, ChargeDensitySolver>(*speciesTmp, currentStep);
+                particles::particleToGrid::computeValue<area, ChargeDensitySolver>(
+                    *speciesTmp,
+                    currentStep,
+                    *fieldTmp);
             }
         };
 

@@ -146,19 +146,6 @@ namespace picongpu
          */
         HINLINE EventTask asyncCommunicationGather(EventTask serialEvent);
 
-        /** Compute current density created by a species in an area
-         *
-         * @tparam T_area area to compute currents in
-         * @tparam T_Species particle species type
-         * @tparam Filter particle filter used to filter contributing particles
-         *         (default is all particles contribute)
-         *
-         * @param species particle species
-         * @param currentStep index of time iteration
-         */
-        template<uint32_t AREA, class FrameSolver, typename Filter = particles::filter::All, class ParticlesClass>
-        HINLINE void computeValue(ParticlesClass& parClass, uint32_t currentStep);
-
         /** Bash particles in a direction.
          * Copy all particles from the guard of a direction to the device exchange buffer
          *
