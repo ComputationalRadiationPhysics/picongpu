@@ -75,6 +75,9 @@ namespace picongpu
                  */
                 HDINLINE vector_64 observation_direction(const int observation_id_extern)
                 {
+                    /* float type used in radiation direction calculations */
+                    using float_obs = picongpu::float_X;
+
                     /* generate two indices from single block index */
                     /** split distance of given index
                      * pseudo-code:
@@ -117,12 +120,12 @@ namespace picongpu
                     const picongpu::float_64 phi(my_index_phi * delta_angle_phi - angle_phi_start);
 
                     /* helper functions for efficient trigonometric calculations */
-                    picongpu::float_X sinPhi;
-                    picongpu::float_X cosPhi;
-                    picongpu::float_X sinTheta;
-                    picongpu::float_X cosTheta;
-                    pmacc::math::sincos(precisionCast<picongpu::float_X>(phi), sinPhi, cosPhi);
-                    pmacc::math::sincos(precisionCast<picongpu::float_X>(theta), sinTheta, cosTheta);
+                    float_obs sinPhi;
+                    float_obs cosPhi;
+                    float_obs sinTheta;
+                    float_obs cosTheta;
+                    pmacc::math::sincos(precisionCast<float_obs>(phi), sinPhi, cosPhi);
+                    pmacc::math::sincos(precisionCast<float_obs>(theta), sinTheta, cosTheta);
                     /** compute observation unit vector */
                     return vector_64(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi);
                 }

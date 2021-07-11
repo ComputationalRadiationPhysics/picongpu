@@ -52,6 +52,9 @@ namespace picongpu
                      *  energy of the electrons.
                      */
 
+                    /* float type used in radiation direction calculations */
+                    using float_obs = picongpu::float_X;
+
                     /* in this case only one id is needed: an index for theta */
                     const int my_theta_id = observation_id_extern;
 
@@ -68,9 +71,9 @@ namespace picongpu
                     /* + picongpu::PI -> turn observation direction 180 degrees towards -y */
 
                     /* compute observation unit vector */
-                    picongpu::float_X sinTheta;
-                    picongpu::float_X cosTheta;
-                    pmacc::math::sincos(precisionCast<picongpu::float_X>(theta), sinTheta, cosTheta);
+                    float_obs sinTheta;
+                    float_obs cosTheta;
+                    pmacc::math::sincos(precisionCast<float_obs>(theta), sinTheta, cosTheta);
                     return vector_64(sinTheta, cosTheta, 0.0);
                 }
 
