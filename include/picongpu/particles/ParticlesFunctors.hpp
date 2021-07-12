@@ -345,50 +345,5 @@ namespace picongpu
             }
         };
 
-        /** Handles the synchrotron radiation emission of photons from electrons
-         *
-         * @tparam T_ElectronSpecies type or name as boost::mpl::string of electron particle species
-         */
-        template<typename T_ElectronSpecies>
-        struct CallSynchrotronPhotons
-        {
-            using ElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_ElectronSpecies>;
-            using ElectronFrameType = typename ElectronSpecies::FrameType;
-
-            /* SelectedPhotonCreator will be either PhotonCreator or fallback: CreatorBase */
-            using SelectedPhotonCreator = typename traits::GetPhotonCreator<ElectronSpecies>::type;
-            using PhotonSpecies = typename SelectedPhotonCreator::PhotonSpecies;
-            using PhotonFrameType = typename PhotonSpecies::FrameType;
-
-            /** Functor implementation
-             *
-             * @tparam T_CellDescription contains the number of blocks and blocksize
-             *                           that is later passed to the kernel
-             * @param cellDesc logical block information like dimension and cell sizes
-             * @param currentStep The current time step
-             * @param synchrotronFunctions synchrotron functions wrapper object
-             */
-            template<typename T_CellDescription>
-            HINLINE void operator()(
-                T_CellDescription cellDesc,
-                const uint32_t currentStep,
-                const synchrotronPhotons::SynchrotronFunctions& synchrotronFunctions) const
-            {
-                DataConnector& dc = Environment<>::get().DataConnector();
-
-                /* alias for pointer on source species */
-                auto electronSpeciesPtr = dc.get<ElectronSpecies>(ElectronFrameType::getName(), true);
-                /* alias for pointer on destination species */
-                auto photonSpeciesPtr = dc.get<PhotonSpecies>(PhotonFrameType::getName(), true);
-
-                using namespace synchrotronPhotons;
-                SelectedPhotonCreator photonCreator(
-                    synchrotronFunctions.getCursor(SynchrotronFunctions::first),
-                    synchrotronFunctions.getCursor(SynchrotronFunctions::second));
-
-                creation::createParticlesFromSpecies(*electronSpeciesPtr, *photonSpeciesPtr, photonCreator, cellDesc);
-            }
-        };
-
     } // namespace particles
 } // namespace picongpu

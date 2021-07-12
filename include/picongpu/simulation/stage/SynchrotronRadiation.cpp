@@ -23,8 +23,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.tpp"
+#include "picongpu/particles/CallSynchrotronPhotons.tpp"
 
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
