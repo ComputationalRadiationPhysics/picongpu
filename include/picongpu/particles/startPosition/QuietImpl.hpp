@@ -115,9 +115,9 @@ namespace picongpu
                     }
 
                 private:
+                    PMACC_ALIGN(m_numParDirection, DataSpace<simDim>);
                     float_X m_weighting;
                     uint32_t m_currentMacroParticles;
-                    PMACC_ALIGN(m_numParDirection, DataSpace<simDim>);
                 };
 
             } // namespace acc
