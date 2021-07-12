@@ -52,4 +52,7 @@ namespace picongpu
 #include <picongpu/_defaultUnitless.loader>
 #include <picongpu/extensionUnitless.loader>
 
+// Has to be included to all object files due to having device function definitions
+#include <pmacc/particles/IdProvider.hpp>
+
 // clang-format on
