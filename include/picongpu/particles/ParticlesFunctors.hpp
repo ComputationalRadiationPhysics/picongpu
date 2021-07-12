@@ -23,23 +23,19 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/Fields.def"
+#include "picongpu/particles/creation/creation.hpp"
+#include "picongpu/particles/flylite/IFlyLite.hpp"
+#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "picongpu/particles/traits/GetIonizerList.hpp"
+#include "picongpu/particles/traits/GetPhotonCreator.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
 #include <pmacc/math/MapTuple.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
-#include <pmacc/traits/HasFlag.hpp>
-#if(PMACC_CUDA_ENABLED == 1)
-#    include "picongpu/particles/bremsstrahlung/Bremsstrahlung.hpp"
-#endif
-#include "picongpu/particles/creation/creation.hpp"
-#include "picongpu/particles/flylite/IFlyLite.hpp"
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
-#include "picongpu/particles/traits/GetPhotonCreator.hpp"
-
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
+#include <pmacc/traits/HasFlag.hpp>
 
 #include <boost/mpl/accumulate.hpp>
 #include <boost/mpl/plus.hpp>
@@ -348,68 +344,6 @@ namespace picongpu
                 }
             }
         };
-
-#if(PMACC_CUDA_ENABLED == 1)
-
-        /** Handles the bremsstrahlung effect for electrons on ions.
-         *
-         * @tparam T_ElectronSpecies type or name as boost::mpl::string of electron particle species
-         */
-        template<typename T_ElectronSpecies>
-        struct CallBremsstrahlung
-        {
-            using ElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_ElectronSpecies>;
-            using ElectronFrameType = typename ElectronSpecies::FrameType;
-
-            using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<
-                VectorAllSpecies,
-                typename pmacc::particles::traits::ResolveAliasFromSpecies<ElectronSpecies, bremsstrahlungIons<>>::
-                    type>;
-            using PhotonSpecies = pmacc::particles::meta::FindByNameOrType_t<
-                VectorAllSpecies,
-                typename pmacc::particles::traits::ResolveAliasFromSpecies<ElectronSpecies, bremsstrahlungPhotons<>>::
-                    type>;
-            using PhotonFrameType = typename PhotonSpecies::FrameType;
-            using BremsstrahlungFunctor = bremsstrahlung::Bremsstrahlung<IonSpecies, ElectronSpecies, PhotonSpecies>;
-
-            /** Functor implementation
-             *
-             * @tparam T_CellDescription contains the number of blocks and blocksize
-             *                           that is later passed to the kernel
-             * @param cellDesc logical block information like dimension and cell sizes
-             * @param currentStep the current time step
-             */
-            template<typename T_CellDescription, typename ScaledSpectrumMap>
-            HINLINE void operator()(
-                T_CellDescription cellDesc,
-                const uint32_t currentStep,
-                const ScaledSpectrumMap& scaledSpectrumMap,
-                const bremsstrahlung::GetPhotonAngle& photonAngle) const
-            {
-                DataConnector& dc = Environment<>::get().DataConnector();
-
-                /* alias for pointer on source species */
-                auto electronSpeciesPtr = dc.get<ElectronSpecies>(ElectronFrameType::getName(), true);
-                /* alias for pointer on destination species */
-                auto photonSpeciesPtr = dc.get<PhotonSpecies>(PhotonFrameType::getName(), true);
-
-                const float_X targetZ = GetAtomicNumbers<IonSpecies>::type::numberOfProtons;
-
-                using namespace bremsstrahlung;
-                BremsstrahlungFunctor bremsstrahlungFunctor(
-                    scaledSpectrumMap.at(targetZ).getScaledSpectrumFunctor(),
-                    scaledSpectrumMap.at(targetZ).getStoppingPowerFunctor(),
-                    photonAngle.getPhotonAngleFunctor(),
-                    currentStep);
-
-                creation::createParticlesFromSpecies(
-                    *electronSpeciesPtr,
-                    *photonSpeciesPtr,
-                    bremsstrahlungFunctor,
-                    cellDesc);
-            }
-        };
-#endif
 
         /** Handles the synchrotron radiation emission of photons from electrons
          *
