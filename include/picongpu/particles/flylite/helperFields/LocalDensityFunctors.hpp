@@ -21,6 +21,7 @@
 
 #include "picongpu/particles/flylite/helperFields/LocalDensity.hpp"
 #include "picongpu/particles/flylite/helperFields/LocalDensity.kernel"
+#include "picongpu/particles/particleToGrid/ComputeField.hpp"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 
 // pmacc
@@ -70,7 +71,7 @@ namespace picongpu
 
                             using Density = particleToGrid::
                                 ComputeGridValuePerFrame<ShapeType, particleToGrid::derivedAttributes::Density>;
-                            fieldTmp->template computeValue<CORE + BORDER, Density>(*speciesTmp, currentStep);
+                            particleToGrid::computeValue<CORE + BORDER, Density>(*speciesTmp, currentStep, *fieldTmp);
                         }
                     };
                 } // namespace detail

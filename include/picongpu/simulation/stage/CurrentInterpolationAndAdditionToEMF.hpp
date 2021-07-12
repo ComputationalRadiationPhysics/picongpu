@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#include "picongpu/fields/currentDeposition/ComputeCurrent.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
@@ -69,7 +69,7 @@ namespace picongpu
                  * This method has to be called during initialization of the simulation.
                  * Before this method is called, the instance of CurrentInterpolation cannot be used safely.
                  */
-                void init()
+                void init(MappingDesc const newCellDescription)
                 {
                     using namespace fields::currentInterpolation;
                     auto& interpolation = CurrentInterpolation::get();
@@ -80,6 +80,7 @@ namespace picongpu
                         interpolation.kind = CurrentInterpolation::Kind::Binomial;
                     else
                         throw std::runtime_error("Unsupported current interpolation type");
+                    cellDescription = newCellDescription;
                 }
 
                 /** Compute the current created by particles and add it to the current density
@@ -131,6 +132,9 @@ namespace picongpu
                 //! Name set by program option
                 std::string kindName = "none";
 
+                //! Mapping for kernels
+                MappingDesc cellDescription = MappingDesc{pmacc::DataSpace<simDim>(SuperCellSize::toRT())};
+
                 /* Call addCurrentToEMF method of fieldJ for the given area
                  *
                  * This function performs a transition from the run-time realm of CurrentInterpolation into the
@@ -146,9 +150,9 @@ namespace picongpu
                     using namespace fields::currentInterpolation;
                     auto const kind = CurrentInterpolation::get().kind;
                     if(kind == CurrentInterpolation::Kind::None)
-                        fieldJ.addCurrentToEMF<T_area>(None{});
+                        fields::currentDeposition::addCurrentToEMF<T_area>(None{}, cellDescription);
                     else
-                        fieldJ.addCurrentToEMF<T_area>(Binomial{});
+                        fields::currentDeposition::addCurrentToEMF<T_area>(Binomial{}, cellDescription);
                 }
             };
 

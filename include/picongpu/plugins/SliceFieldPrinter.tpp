@@ -23,6 +23,7 @@
 #include "SliceFieldPrinter.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
+#include "picongpu/traits/Unit.hpp"
 
 #include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
@@ -53,7 +54,7 @@ namespace picongpu
             DINLINE void operator()(T_Acc const& acc, float3_64& target, const typename Field::ValueType fieldData)
                 const
             {
-                target = precisionCast<float_64>(fieldData) * float_64((Field::getUnit())[0]);
+                target = precisionCast<float_64>(fieldData) * float_64((traits::Unit<Field>::get())[0]);
             }
         };
     } // end namespace SliceFieldPrinterHelper

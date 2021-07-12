@@ -51,7 +51,8 @@ namespace picongpu
 // ##### load unitless
 #include <picongpu/_defaultUnitless.loader>
 #include <picongpu/extensionUnitless.loader>
-// load starter after user extensions and all params are loaded
-#include <picongpu/unitless/starter.unitless>
+
+// Has to be included to all object files due to having device function definitions
+#include <pmacc/particles/IdProvider.hpp>
 
 // clang-format on

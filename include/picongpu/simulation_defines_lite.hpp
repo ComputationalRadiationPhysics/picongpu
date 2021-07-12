@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -20,10 +20,7 @@
 
 #pragma once
 
-#include "picongpu/traits/GetDataBoxType.hpp"
-#include "picongpu/traits/GetMargin.hpp"
 #include "pmacc_renamings.hpp"
-#include "version.hpp"
 
 #include <pmacc/algorithms/PromoteType.hpp>
 #include <pmacc/algorithms/TypeCast.hpp>
@@ -62,3 +59,16 @@ namespace picongpu
     using namespace picongpu::traits;
 
 } // namespace picongpu
+
+// Manually chosen most important includes.
+// Those do not pull any other picongpu includes
+
+// simDim value
+#include <picongpu/param/dimension.param>
+
+// float_X and related types, is used also by memory.param
+// it also includes precision.unitless inside (but this is no problem)
+#include <picongpu/param/precision.param>
+
+// MappingDesc type
+#include <picongpu/param/memory.param>

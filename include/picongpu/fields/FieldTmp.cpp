@@ -18,11 +18,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+// clang-format off
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/FieldTmp.kernel"
+#include "picongpu/fields/FieldTmp.hpp"
+
+// clang-format on
+
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
 #include "picongpu/traits/GetMargin.hpp"
@@ -162,32 +165,6 @@ namespace picongpu
         }
     }
 
-    template<uint32_t AREA, class FrameSolver, typename Filter, class ParticlesClass>
-    void FieldTmp::computeValue(ParticlesClass& parClass, uint32_t)
-    {
-        typedef SuperCellDescription<
-            typename MappingDesc::SuperCellSize,
-            typename FrameSolver::LowerMargin,
-            typename FrameSolver::UpperMargin>
-            BlockArea;
-
-        StrideMapping<AREA, 3, MappingDesc> mapper(cellDescription);
-        typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox();
-        FieldTmp::DataBoxType tmpBox = this->fieldTmp->getDeviceBuffer().getDataBox();
-        FrameSolver solver;
-        using ParticleFilter = typename Filter ::template apply<ParticlesClass>::type;
-        ParticleFilter particleFilter;
-        constexpr uint32_t numWorkers
-            = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
-        do
-        {
-            PMACC_KERNEL(KernelComputeSupercells<numWorkers, BlockArea>{})
-            (mapper.getGridDim(), numWorkers)(tmpBox, pBox, solver, particleFilter, mapper);
-        } while(mapper.next());
-    }
-
-
     SimulationDataId FieldTmp::getUniqueId(uint32_t slotId)
     {
         return getName() + std::to_string(slotId);
@@ -267,18 +244,6 @@ namespace picongpu
     {
         fieldTmp->getHostBuffer().reset(true);
         fieldTmp->getDeviceBuffer().reset(false);
-    }
-
-    template<class FrameSolver>
-    HDINLINE FieldTmp::UnitValueType FieldTmp::getUnit()
-    {
-        return FrameSolver().getUnit();
-    }
-
-    template<class FrameSolver>
-    HINLINE std::vector<float_64> FieldTmp::getUnitDimension()
-    {
-        return FrameSolver().getUnitDimension();
     }
 
     std::string FieldTmp::getName()
