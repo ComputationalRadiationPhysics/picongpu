@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -61,10 +61,9 @@ namespace picongpu
                             m_currentMacroParticles = maxNumMacroParticles - 1u;
 
                         // spacing between particles in each direction in the cell
-                        DataSpace<simDim> const numParDirection(T_ParamClass::numParticlesPerDimension::toRT());
                         floatD_X spacing;
                         for(uint32_t i = 0; i < simDim; ++i)
-                            spacing[i] = float_X(1.0) / float_X(numParDirection[i]);
+                            spacing[i] = float_X(1.0) / float_X(m_numParDirection[i]);
 
                         /* coordinate in the local in-cell lattice
                          *   x = [0, numParsPerCell_X-1]
@@ -72,7 +71,7 @@ namespace picongpu
                          *   z = [0, numParsPerCell_Z-1]
                          */
                         DataSpace<simDim> inCellCoordinate
-                            = DataSpaceOperations<simDim>::map(numParDirection, m_currentMacroParticles);
+                            = DataSpaceOperations<simDim>::map(m_numParDirection, m_currentMacroParticles);
 
                         particle[position_]
                             = precisionCast<float_X>(inCellCoordinate) * spacing + spacing * float_X(0.5);
@@ -84,7 +83,7 @@ namespace picongpu
                     template<typename T_Particle>
                     HDINLINE uint32_t numberOfMacroParticles(float_X const realParticlesPerCell)
                     {
-                        auto numParInCell = T_ParamClass::numParticlesPerDimension::toRT();
+                        m_numParDirection = T_ParamClass::numParticlesPerDimension::toRT();
 
                         m_weighting = float_X(0.0);
                         uint32_t numMacroParticles
@@ -99,12 +98,12 @@ namespace picongpu
                             uint32_t max_component = 0u;
                             for(uint32_t i = 1; i < simDim; ++i)
                             {
-                                if(numParInCell[i] > numParInCell[max_component])
+                                if(m_numParDirection[i] > m_numParDirection[max_component])
                                     max_component = i;
                             }
-                            numParInCell[max_component] -= 1u;
+                            m_numParDirection[max_component] -= 1u;
 
-                            numMacroParticles = numParInCell.productOfComponents();
+                            numMacroParticles = m_numParDirection.productOfComponents();
 
                             if(numMacroParticles > 0u)
                                 m_weighting = realParticlesPerCell / float_X(numMacroParticles);
@@ -118,6 +117,7 @@ namespace picongpu
                 private:
                     float_X m_weighting;
                     uint32_t m_currentMacroParticles;
+                    PMACC_ALIGN(m_numParDirection, DataSpace<simDim>);
                 };
 
             } // namespace acc
