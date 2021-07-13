@@ -50,6 +50,9 @@ namespace picongpu
                      *  (+1,0,0) ; (0,+1,0) ; (0,0,-1)
                      */
 
+                    /* float type used in radiation direction calculations */
+                    using float_obs = picongpu::float_X;
+
                     /* generate two indices from single block index */
                     constexpr int N_angle_split = 16; /* index split distance */
                     /* get column index for computing angle theta: */
@@ -68,12 +71,12 @@ namespace picongpu
                     const picongpu::float_64 phi(my_index_phi * delta_angle);
 
                     /* compute unit vector */
-                    picongpu::float_32 sinPhi;
-                    picongpu::float_32 cosPhi;
-                    picongpu::float_32 sinTheta;
-                    picongpu::float_32 cosTheta;
-                    pmacc::math::sincos(precisionCast<picongpu::float_32>(phi), sinPhi, cosPhi);
-                    pmacc::math::sincos(precisionCast<picongpu::float_32>(theta), sinTheta, cosTheta);
+                    float_obs sinPhi;
+                    float_obs cosPhi;
+                    float_obs sinTheta;
+                    float_obs cosTheta;
+                    pmacc::math::sincos(precisionCast<float_obs>(phi), sinPhi, cosPhi);
+                    pmacc::math::sincos(precisionCast<float_obs>(theta), sinTheta, cosTheta);
                     return vector_64(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
                 }
 
