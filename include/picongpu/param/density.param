@@ -1,5 +1,5 @@
 /* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Richard Pausch
+ *                     Richard Pausch, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -235,11 +235,22 @@ namespace picongpu
          */
         PMACC_STRUCT(
             FromOpenPMDParam,
-            //! Name for the openPMD file
-            (PMACC_C_STRING(filename, "density.h5"))
 
-            //! Name of the dataset inside the file
-            (PMACC_C_STRING(datasetName, "density"))
+            /** Path to the openPMD input file
+             *
+             * It is recommended to use a full path to make it independent of how PIConGPU is launched.
+             *
+             * Relative paths require consistency to the current directory when PIConGPU is started.
+             * With tbg and the standard .tpl files, relative to the resulting simOutput directory.
+             */
+            (PMACC_C_STRING(filename, "/[directories]/density.h5"))
+
+            /** Name of the openPMD dataset inside the file
+             *
+             * @warning it is only the dataset itself, a simple text name and not something like
+             * "/[directories]/density/[iteration]/fields/e_density".
+             */
+            (PMACC_C_STRING(datasetName, "e_density"))
 
             //! Iteration inside the file (only file, not related to the current simulation time iteration)
             (PMACC_C_VALUE(uint32_t, iteration, 0))
