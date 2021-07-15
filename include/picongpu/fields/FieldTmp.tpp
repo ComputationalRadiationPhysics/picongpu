@@ -176,14 +176,14 @@ namespace picongpu
         FieldTmp::DataBoxType tmpBox = this->fieldTmp->getDeviceBuffer().getDataBox();
         FrameSolver solver;
         using ParticleFilter = typename Filter ::template apply<ParticlesClass>::type;
-        ParticleFilter particleFilter;
+        const uint32_t currentStep = Environment<>::get().SimulationDescription().getCurrentStep();
+        auto iFilter = particles::filter::IUnary<ParticleFilter>{currentStep};
         constexpr uint32_t numWorkers
             = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
-
         do
         {
             PMACC_KERNEL(KernelComputeSupercells<numWorkers, BlockArea>{})
-            (mapper.getGridDim(), numWorkers)(tmpBox, pBox, solver, particleFilter, mapper);
+            (mapper.getGridDim(), numWorkers)(tmpBox, pBox, solver, iFilter, mapper);
         } while(mapper.next());
     }
 

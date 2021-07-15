@@ -231,7 +231,7 @@ namespace picongpu
                         RNGFactory::createHandle(),
                         CollisionFunctor(currentStep),
                         coulombLog,
-                        Filter());
+                        particles::filter::IUnary<Filter>{currentStep});
                 }
             };
 
