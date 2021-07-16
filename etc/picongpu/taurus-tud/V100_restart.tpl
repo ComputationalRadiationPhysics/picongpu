@@ -119,7 +119,7 @@ echo "----- automated restart routine -----" | tee -a output
 
 #check whether last checkpoint is valid
 file=""
-# ADIOS restart files take precedence over HDF5 files
+# ADIOS2 restart files take precedence over HDF5 files
 fileEnding="h5"
 hasADIOS=$(ls ./checkpoints/checkpoint_*.bp 2>/dev/null | wc -w)
 if [ $hasADIOS -gt 0 ]
