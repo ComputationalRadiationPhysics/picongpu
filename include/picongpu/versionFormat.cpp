@@ -34,9 +34,6 @@
 #if(ENABLE_HDF5 == 1)
 #    include <splash/splash.h>
 #endif
-#if(ENABLE_ADIOS == 1)
-#    include <adios.h>
-#endif
 #if(PIC_ENABLE_PNG == 1)
 #    include <pngwriter.h>
 #endif
@@ -121,12 +118,6 @@ namespace picongpu
         splashFormat << versionNotFound;
 #endif
 
-        std::stringstream adios;
-#if(ENABLE_ADIOS == 1)
-        adios << ADIOS_VERSION;
-#else
-        adios << versionNotFound;
-#endif
 
 #if(ENABLE_OPENPMD == 1)
         std::string openPMD = openPMD::getVersion();
@@ -152,7 +143,6 @@ namespace picongpu
                 << "    flavor:   " << mpiFlavor.str() << " (" << mpiFlavorVersion.str() << ")" << std::endl;
         cliText << "  PNGwriter:  " << pngwriter.str() << std::endl;
         cliText << "  libSplash:  " << splash.str() << " (Format " << splashFormat.str() << ")" << std::endl;
-        cliText << "  ADIOS:      " << adios.str() << std::endl;
         cliText << "  openPMD:    " << openPMD << std::endl;
 
         // Module-like formatting of software only
@@ -172,8 +162,6 @@ namespace picongpu
             software.push_back(std::string("PNGwriter/") + pngwriter.str());
         if(splash.str().compare(versionNotFound) != 0)
             software.push_back(std::string("libSplash/") + splash.str());
-        if(adios.str().compare(versionNotFound) != 0)
-            software.push_back(std::string("ADIOS/") + adios.str());
         if(openPMD.compare(versionNotFound) != 0)
             software.push_back(std::string("openPMD/") + openPMD);
 

@@ -25,9 +25,6 @@
 #include "picongpu/plugins/multi/IHelp.hpp"
 #include "picongpu/plugins/output/IIOBackend.hpp"
 
-#if(ENABLE_ADIOS == 1)
-#    include "picongpu/plugins/adios/ADIOSWriter.hpp"
-#endif
 #if(ENABLE_OPENPMD == 1)
 #    include "picongpu/plugins/openPMD/openPMDWriter.hpp"
 #endif
@@ -53,10 +50,7 @@ namespace picongpu
 #if(ENABLE_OPENPMD == 1)
             ioBackendsHelp["openPMD"] = std::shared_ptr<plugins::multi::IHelp>(openPMD::openPMDWriter::getHelp());
 #endif
-#if(ENABLE_ADIOS == 1)
-            ioBackendsHelp["adios"] = std::shared_ptr<plugins::multi::IHelp>(adios::ADIOSWriter::getHelp());
-#endif
-            // if adios is enabled the default is adios
+            // currently we support only `openPMD` as IO checkpoint plugin
             if(!ioBackendsHelp.empty())
             {
                 checkpointBackendName = ioBackendsHelp.begin()->first;
@@ -216,7 +210,7 @@ namespace picongpu
          */
         uint32_t restartChunkSize;
 
-        // can be "adios", "hdf5" and "openPMD"
+        // can be "openPMD"
         std::map<std::string, std::shared_ptr<IIOBackend>> ioBackends;
 
         std::map<std::string, std::shared_ptr<plugins::multi::IHelp>> ioBackendsHelp;
