@@ -6,8 +6,7 @@ openPMD
 .. sectionauthor:: Axel Huebl
 .. moduleauthor:: Axel Huebl
 
-Our :ref:`HDF5 <usage-plugins-HDF5>` and :ref:`ADIOS <usage-plugins-ADIOS>` use a specific internal markup to structure physical quantities called **openPMD**.
-If you hear of it for the first time you can find a quick `online tutorial <http://www.openpmd.org>`_ on it here.
+If you hear about *openPMD** for the first time you can find a quick `online tutorial <http://www.openpmd.org>`_ on it here.
 
 As a user of PIConGPU, you will be mainly interested in our :ref:`python tools <pp-python>` and readers, that can read openPMD, e.g. into:
 

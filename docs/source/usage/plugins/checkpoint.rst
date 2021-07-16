@@ -21,18 +21,17 @@ What is the format of the created files?
 
 We write our fields and particles in an open markup called :ref:`openPMD <pp-openPMD>`.
 
-For further details, see the according sections in :ref:`the openPMD API <usage-plugins-openPMD>` and :ref:`ADIOS <usage-plugins-ADIOS>`.
+For further details, see :ref:`the openPMD API <usage-plugins-openPMD>` section.
 
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
-The plugin is available as soon as the :ref:`openPMD API or ADIOS libraries <install-dependencies>` are compiled in.
+The plugin is available as soon as the :ref:`openPMD API library <install-dependencies>` is compiled in.
 
 .cfg file
 ^^^^^^^^^
 
 You can use ``--checkpoint.period`` to specify the output period of the created checkpoints.
-Note that this plugin will only be available if the openPMD API, libSplash (HDF5) or ADIOS is found during compile configuration.
 
 ============================================= ======================================================================================
 PIConGPU command line option                  Description
@@ -63,7 +62,6 @@ PIConGPU command line option                  Description
 Depending on the available external dependencies (see above), the options for the `<IO-backend>` are:
 
 * :ref:`openPMD <usage-plugins-openPMD>`
-* :ref:`adios <usage-plugins-ADIOS>` (keep in mind the :ref:`note on meta-files <usage-plugins-ADIOS-meta>` for restarts)
 
 Interacting Manually with Checkpoint Data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

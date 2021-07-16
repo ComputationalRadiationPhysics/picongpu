@@ -50,7 +50,7 @@ Also provides an interactive GUI for fast exploration via Jupyter notebooks.
 openPMD-api
 -----------
 
-A data library that reads (and writes) data in our openPMD files (HDF5 and ADIOS) to and from Numpy data structures.
+A data library that reads (and writes) data in our openPMD files (ADIOS2, ADIOS and HDF5) to and from Numpy data structures.
 Provides an API to correctly convert units to SI, interprets iteration steps correctly, etc.
 
 * `Manual <https://openpmd-api.readthedocs.io/>`_
@@ -65,11 +65,3 @@ With yt 3.4 or newer, our HDF5 output, which uses the :ref:`openPMD markup <pp-o
 * `Project Homepage <http://yt-project.org>`_
 * `Data Loading <http://yt-project.org/doc/examining/loading_data.html#openpmd-data>`_
 * `Data Tutorial <https://gist.github.com/C0nsultant/5808d5f61b271b8f969d5c09f5ca91dc>`_
-
-pyDive (experimental)
----------------------
-
-pyDive provides numpy-style array and file processing on distributed memory systems ("numpy on MPI" for data sets that are much larger than your local RAM).
-pyDive is currently not ready to interpret :ref:`openPMD <pp-openPMD>` directly, but can work on generated raw ADIOS and HDF5 files.
-
-https://github.com/ComputationalRadiationPhysics/pyDive
