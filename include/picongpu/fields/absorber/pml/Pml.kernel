@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/MaxwellSolver/Yee/StencilFunctor.hpp"
 #include "picongpu/fields/absorber/pml/Parameters.hpp"
 
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
@@ -228,13 +229,13 @@ namespace picongpu
                     }
                 } // namespace detail
 
-                /** Functor to update electric field by a time step using FDTD with the given curl and PML
+                /** Stencil functor to update electric field by a time step using FDTD with the given curl and PML
                  *
                  * @tparam T_CurlB curl functor type to be applied to magnetic field,
                  *                 adheres to the Curl concept
                  */
                 template<typename T_CurlB>
-                class UpdateEFunctor
+                class UpdateEFunctor : public maxwellSolver::yee::StencilFunctor<T_CurlB>
                 {
                 public:
                     /** Create a functor instance on the host side
@@ -317,16 +318,17 @@ namespace picongpu
                 private:
                     FieldBox fieldPsiE;
                     LocalParameters const parameters;
-                    T_CurlB const curl;
+                    // keep curl as member to support stateful types
+                    T_CurlB const curl = T_CurlB{};
                 };
 
-                /** Functor to update magnetic field by half a time step using FDTD with the given curl and PML
+                /** Stencil functor to update magnetic field by half a time step using FDTD with the given curl and PML
                  *
                  * @tparam T_CurlE curl functor type to be applied to electric field,
                  *                 adheres to the Curl concept
                  */
                 template<typename T_CurlE>
-                class UpdateBHalfFunctor
+                class UpdateBHalfFunctor : public maxwellSolver::yee::StencilFunctor<T_CurlE>
                 {
                 public:
                     /** Create a functor instance on the host side
@@ -421,7 +423,8 @@ namespace picongpu
                     FieldBox fieldPsiB;
                     LocalParameters const parameters;
                     bool const updatePsiB;
-                    T_CurlE const curl;
+                    // keep curl as member to support stateful types
+                    T_CurlE const curl = T_CurlE{};
                 };
 
             } // namespace pml
