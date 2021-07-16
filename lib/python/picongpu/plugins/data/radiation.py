@@ -54,7 +54,7 @@ class RadiationData:
         self.h5_Az_Im = detectorAmplitude["z_Im"]
 
         # conversion factor for spectra from PIC units to SI units
-        self.convert_to_SI = detectorAmplitude.attrs['unitSI']
+        self.convert_to_SI = detectorAmplitude["x_Re"].attrs['unitSI']
 
     def get_timestep(self):
         """Returns simulation timestep of the hdf5 data."""
