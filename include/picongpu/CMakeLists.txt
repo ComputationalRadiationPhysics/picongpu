@@ -42,7 +42,6 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{MPI_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CUDA_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HDF5_ROOT}")
-list(APPEND CMAKE_PREFIX_PATH "$ENV{ADIOS_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{OPENPMD_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
@@ -370,26 +369,6 @@ if(PIC_SEARCH_openPMD)
 endif()
 
 PIC_dependency_set_status(openPMD ${openPMD_FOUND})
-
-################################################################################
-# ADIOS
-################################################################################
-
-PIC_dependency(ADIOS1 "ADIOS1 API for IO" AUTO)
-
-if(PIC_SEARCH_ADIOS1)
-    # find adios installation
-    #   set(ADIOS_USE_STATIC_LIBS ON) # force static linking
-    find_package(ADIOS 1.13.1)
-
-    if(ADIOS_FOUND)
-        add_definitions(-DENABLE_ADIOS=1)
-        include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})
-        set(LIBS ${LIBS} ${ADIOS_LIBRARIES})
-    endif(ADIOS_FOUND)
-endif()
-
-PIC_dependency_set_status(ADIOS1 ${ADIOS_FOUND})
 
 ################################################################################
 # libSplash (+ hdf5 due to required headers)

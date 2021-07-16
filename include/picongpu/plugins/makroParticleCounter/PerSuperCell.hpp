@@ -247,7 +247,7 @@ namespace picongpu
 
             size_t* ptr = localResult->getHostBuffer().getPointer();
 
-            // avoid deadlock between not finished pmacc tasks and mpi calls in adios
+            // avoid deadlock between not finished pmacc tasks and collective or blocking MPI calls in openPMD
             __getTransactionEvent().waitForFinished();
 
             auto iteration = m_Series->WRITE_ITERATIONS[currentStep];

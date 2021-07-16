@@ -26,7 +26,6 @@ module load boost/1.70.0
 
 # Other Software ##############################################################
 #
-module load adios/1.13.1
 module load cray-hdf5-parallel/1.10.2.0
 module load png/1.6.34
 

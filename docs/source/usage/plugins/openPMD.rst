@@ -43,7 +43,7 @@ The openPMD API will parse the file name to decide the chosen backend and iterat
 In order to set defaults for these value, two further options control the filename:
 
 * ``--openPMD.ext`` sets the filename extension.
-  Possible extensions include ``bp`` for the ADIOS backends (default), ``h5`` for HDF5 and ``sst`` for Streaming via ADIOS2/SST.
+  Possible extensions include ``bp`` for the ADIOS2 backends (default), ``h5`` for HDF5 and ``sst`` for Streaming via ADIOS2/SST.
   If the openPMD API has been built with support for the ADIOS1 and ADIOS2 backends, ADIOS2 will take precedence over ADIOS1.
   This behavior can be overridden by setting the environment variable ``OPENPMD_BP_BACKEND=ADIOS1``.
 * ``--openPMD.infix`` sets the filename pattern that controls the iteration layout, default is "_06T" for a six-digit number specifying the iteration.

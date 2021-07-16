@@ -206,7 +206,7 @@ namespace picongpu
                         (pluginPrefix + ".compression").c_str(),
                         po::value<std::string>(&compressionMethod)->default_value(""),
                         "Backend-specific openPMD compression method, e.g., zlib "
-                        "(see `adios_config -m` for help)")(
+                        "(see `adios_config2 -m` for help)")(
                         (pluginPrefix + ".memoryLayout").c_str(),
                         po::value<std::string>(&memoryLayout)->default_value("mirror"),
                         "Possible values: 'mirror' and 'distribute'"

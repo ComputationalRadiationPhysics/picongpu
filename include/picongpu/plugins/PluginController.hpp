@@ -43,10 +43,6 @@
  */
 #include "picongpu/plugins/PngPlugin.hpp"
 
-#if(ENABLE_ADIOS == 1)
-#    include "picongpu/plugins/adios/ADIOSWriter.hpp"
-#endif
-
 #if(ENABLE_OPENPMD == 1)
 #    include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 #    include "picongpu/plugins/openPMD/openPMDWriter.hpp"
@@ -151,10 +147,6 @@ namespace picongpu
         using StandAlonePlugins = bmpl::vector<
             Checkpoint,
             EnergyFields
-#if(ENABLE_ADIOS == 1)
-            ,
-            plugins::multi::Master<adios::ADIOSWriter>
-#endif
 
 #if(ENABLE_OPENPMD == 1)
             ,

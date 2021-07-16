@@ -6,7 +6,6 @@ Plugins
 ==================================================================================== =================================================================================
 Plugin name                                                                          short description
 ==================================================================================== =================================================================================
-:ref:`ADIOS <usage-plugins-ADIOS>` [#f2]_ [#f7]_                                     stores simulation data as openPMD flavoured ADIOS files [Huebl2017]_
 :ref:`openPMD <usage-plugins-openPMD>` [#f2]_ [#f7]_                                 outputs simulation data via the openPMD API
 :ref:`energy histogram <usage-plugins-energyHistogram>` [#f7]_                       energy histograms for electrons and ions
 :ref:`charge conservation <usage-plugins-chargeConservation>` [#f6]_                 maximum difference between electron charge density and div E
@@ -35,8 +34,7 @@ Plugin name                                                                     
 
 .. [#f1] On restart, plugins with that footnote overwrite their output of previous runs.
          Manually *save* the created files of these plugins before restarting in the same directory.
-.. [#f2] Either *ADIOS* or *HDF5* is required for simulation restarts.
-         If both are available, writing checkpoints with ADIOS is automatically preferred by the simulation.
+.. [#f2] openPMD is required for simulation restarts.
 .. [#f3] Requires *HDF5* for output.
 .. [#f4] Can remember particles that left the box at a certain time step.
 .. [#f5] Deprecated
