@@ -53,10 +53,6 @@ BLOSC_ROOT=$PARTITION_LIB/c-blosc
 export CMAKE_PREFIX_PATH=$BLOSC_ROOT:$CMAKE_PREFIX_PATH
 export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
 
-ADIOS_ROOT=$PARTITION_LIB/adios
-export PATH=$ADIOS_ROOT/bin:$PATH
-export CMAKE_PREFIX_PATH=$ADIOS_ROOT:$CMAKE_PREFIX_PATH
-
 # Environment #################################################################
 #
 #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_LIB
