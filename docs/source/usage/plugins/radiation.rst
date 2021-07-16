@@ -35,7 +35,7 @@ Not considered are emissions from ionization, Compton scattering or any bremsstr
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
-The plugin is available as soon as the :ref:`libSplash and HDF5 libraries <install-dependencies>` are compiled in.
+The plugin is available as soon as the :ref:`openPMD library <install-dependencies>` is compiled in.
 
 .param files
 ^^^^^^^^^^^^
@@ -286,7 +286,6 @@ Command line option                       Description
                                           This allows for a localization of specific spectral features.
 ``--<species>_radiation.folderRadPerGPU`` Name of the folder, where the GPU specific spectra are stored.
                                           Default: ``radPerGPU``
-``--<species>_radiation.compression``     If set, the hdf5 output is compressed.
 ``--<species>_radiation.numJobs``         Number of independent jobs used for the radiation calculation.
                                           This option is used to increase the utilization of the device by producing more independent work.
                                           This option enables accumulation of data in parallel into multiple temporary arrays, thereby increasing the utilization of
@@ -324,7 +323,7 @@ Command line flag                        Output description
                                          The spectral intensity is only summed over the last radiation ``dump`` period.
 ``--<species>_radiation.radPerGPU``      Same output as *totalRadiation* but only summed over each GPU. 
                                          Because each GPU specifies a spatial region, the origin of radiation signatures can be distinguished.
-*radiationHDF5*                          In the folder  ``radiationHDF5``, hdf5 files for each radiation dump and species are stored.
+*radiationOpenPMD*                       In the folder  ``radiationOpenPMD``, openPMD files (currently hdf5) for each radiation dump and species are stored.
                                          These are complex amplitudes in units used by *PIConGPU*.
                                          These are for restart purposes and for more complex data analysis.
 ======================================== ========================================================================================================================
@@ -387,10 +386,10 @@ In order to read and plot the text-based radiation data, a python script as foll
     plt.show()
 
 
-HDF5 output
+openPMD output
 """""""""""
 
-The hdf5 based data contains the following data structure in ``/data/{iteration}/DetectorMesh/`` according to the openPMD standard:
+The openPMD based data contains the following data structure in ``/data/{iteration}/DetectorMesh/`` according to the openPMD standard:
 
 **Amplitude (Group):**
 
@@ -431,7 +430,7 @@ Dataset    Description                                             Dimensions
 ========== ======================================================= ===============================
 
 
-Please be aware that all datasets in the hdf5 output are given in the PIConGPU-intrinsic unit system. In order to convert, for example, the frequencies :math:`\omega` to SI-units one has to multiply with the dataset-attribute `unitSI`. 
+Please be aware that all datasets in the openPMD output are given in the PIConGPU-intrinsic unit system. In order to convert, for example, the frequencies :math:`\omega` to SI-units one has to multiply with the dataset-attribute `unitSI`. 
 
 .. code:: python
 
@@ -441,7 +440,8 @@ Please be aware that all datasets in the hdf5 output are given in the PIConGPU-i
    omega = omega_handler[0, :, 0] * omega_handler.attrs['unitSI'] 
    f.close()
 
-In order to extract the radiation data from the HDF5 datasets, PIConGPU provides a python module to read the data and obtain the result in SI-units. An example python script is given below:
+In order to extract the radiation data from the openPMD datasets, PIConGPU provides a python module to read the data and obtain the result in SI-units. An example python script is given below:
+This currently assumes hdf5 output and will soon become openPMD agnostic. 
 
 .. code:: python
 
