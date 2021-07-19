@@ -69,17 +69,17 @@ class RadiationData:
 
     def get_Amplitude_x(self):
         """Returns the complex amplitudes in x-axis."""
-        return ((self.h5_Ax_Re.value + 1j * self.h5_Ax_Im.value)[:, :, 0] *
+        return ((self.h5_Ax_Re[...] + 1j * self.h5_Ax_Im[...])[:, :, 0] *
                 np.sqrt(self.convert_to_SI))
 
     def get_Amplitude_y(self):
         """Returns the complex amplitudes in y-axis."""
-        return ((self.h5_Ay_Re.value + 1j * self.h5_Ay_Im.value)[:, :, 0] *
+        return ((self.h5_Ay_Re[...] + 1j * self.h5_Ay_Im[...])[:, :, 0] *
                 np.sqrt(self.convert_to_SI))
 
     def get_Amplitude_z(self):
         """Returns the complex amplitudes in z-axis."""
-        return ((self.h5_Az_Re.value + 1j * self.h5_Az_Im.value)[:, :, 0] *
+        return ((self.h5_Az_Re[...] + 1j * self.h5_Az_Im[...])[:, :, 0] *
                 np.sqrt(self.convert_to_SI))
 
     def get_Spectra(self):
