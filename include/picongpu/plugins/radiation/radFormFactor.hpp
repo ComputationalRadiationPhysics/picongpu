@@ -142,10 +142,7 @@ namespace picongpu
                         /* currently a fixed sigma of DELTA_T * c is used to describe the distribution - might become a
                          * parameter */
                         return math::sqrt(
-                            N
-                            + (N * N - N)
-                                * util::square(
-                                    math::exp(float_X(-0.5) * util::square(omega * float_X(0.5) * DELTA_T))));
+                            N + (N * N - N) * math::exp(float_X(-1.0) * util::square(omega * float_X(0.5) * DELTA_T)));
                     }
                 };
             } // namespace radFormFactor_Gauss_spherical
