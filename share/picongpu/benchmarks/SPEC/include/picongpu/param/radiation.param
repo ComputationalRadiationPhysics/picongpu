@@ -100,6 +100,7 @@ namespace picongpu
              *  - radFormFactor_PCS_3D ... PCS charge distribution
              *  - radFormFactor_CIC_1Dy ... only CIC charge distribution in y
              *  - radFormFactor_Gauss_spherical ... symmetric Gauss charge distribution
+             *  - radFormFactor_Gauss_spherical_simple ... as above but faster
              *  - radFormFactor_Gauss_cell ... Gauss charge distribution according to cell size
              *  - radFormFactor_incoherent ... only incoherent radiation
              *  - radFormFactor_coherent ... only coherent radiation
@@ -117,6 +118,9 @@ namespace picongpu
             {
             }
             namespace radFormFactor_Gauss_spherical
+            {
+            }
+            namespace radFormFactor_Gauss_spherical_simple
             {
             }
             namespace radFormFactor_Gauss_cell
