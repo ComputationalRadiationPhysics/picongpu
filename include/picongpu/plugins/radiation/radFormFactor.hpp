@@ -151,6 +151,36 @@ namespace picongpu
             } // namespace radFormFactor_Gauss_spherical
 
 
+            namespace radFormFactor_Gauss_spherical_simple
+            {
+                struct radFormFactor
+                {
+                    /** Form Factor for point-symmetric Gauss-shaped charge distribution of N discrete electrons:
+                     * \f[ <rho(r)> = N*q_e* 1/sqrt(2*pi*sigma^2) * exp(-0.5 * r^2/sigma^2) \f]
+                     * with sigma = 0.5*c/delta_t (0.5 because sigma is defined around center)
+                     * simplified to avoid calling too often special functions to:
+                     * sqrt( N + (N^2 - N) * F(omega) )
+                     * F(omega) = ( exp(-0.5 * (x/2.0 * delta_t)^2) )^2 ~ 1/(0.03*(delta_t)^2 * x^2 + 1)^12
+                     *
+                     * @param N = macro particle weighting
+                     * @param omega = frequency at which to calculate the  form factor
+                     * @param observer_unit_vec = observation direction
+                     * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 ) \f$
+                     */
+                    HDINLINE float_X
+                    operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
+                    {
+                        /* currently a fixed sigma of DELTA_T * c is used to describe the distribution - might become a
+                         * parameter */
+                        const float_X baseValue_toThePower4
+                            = util::square(util::square(1.0 / (0.025 * DELTA_T * DELTA_T * omega * omega + 1.0)));
+                        return math::sqrt(
+                            N + (N * N - N) * baseValue_toThePower4 * baseValue_toThePower4 * baseValue_toThePower4);
+                    }
+                };
+            } // namespace radFormFactor_Gauss_spherical_simple
+
+
             namespace radFormFactor_Gauss_cell
             {
                 struct radFormFactor
