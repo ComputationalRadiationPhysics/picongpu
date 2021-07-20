@@ -157,7 +157,7 @@ namespace picongpu
                      * with sigma = 0.5*c/delta_t (0.5 because sigma is defined around center)
                      * simplified to avoid calling too often special functions to:
                      * sqrt( N + (N^2 - N) * F(omega) )
-                     * F(omega) = ( exp(-0.5 * (x/2.0 * delta_t)^2) )^2 ~ 1/(0.03*(delta_t)^2 * x^2 + 1)^12
+                     * F(omega) = ( exp(-0.5 * (x/2.0 * delta_t)^2) )^2 ~ 1/(alpha*(delta_t)^2 * x^2 + 1)^beta
                      *
                      * @param N = macro particle weighting
                      * @param omega = frequency at which to calculate the  form factor
@@ -169,10 +169,11 @@ namespace picongpu
                     {
                         /* currently a fixed sigma of DELTA_T * c is used to describe the distribution - might become a
                          * parameter */
-                        const float_X baseValue_toThePower4
-                            = util::square(util::square(1.0 / (0.025 * DELTA_T * DELTA_T * omega * omega + 1.0)));
-                        return math::sqrt(
-                            N + (N * N - N) * baseValue_toThePower4 * baseValue_toThePower4 * baseValue_toThePower4);
+                        // optimized paramter for exponent beta=16 (see picongpu PR #3696 for details):
+                        const float_X alpha = 0.0172169f;
+                        const float_X baseValue_toThePower16 = util::square(util::square(
+                            util::square(util::square(1.0 / (alpha * DELTA_T * DELTA_T * omega * omega + 1.0)))));
+                        return math::sqrt(N + (N * N - N) * baseValue_toThePower16);
                     }
                 };
             } // namespace radFormFactor_Gauss_spherical_simple
