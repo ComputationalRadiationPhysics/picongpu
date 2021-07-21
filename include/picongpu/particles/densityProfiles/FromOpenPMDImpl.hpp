@@ -32,10 +32,12 @@
 #    include <pmacc/static_assert.hpp>
 
 #    include <algorithm>
+#    include <array>
 #    include <cstdint>
 #    include <functional>
 #    include <memory>
 #    include <numeric>
+#    include <stdexcept>
 
 #    include <openPMD/openPMD.hpp>
 
@@ -100,14 +102,15 @@ namespace picongpu
                     ParamClass::filename,
                     ::openPMD::Access::READ_ONLY,
                     gc.getCommunicator().getMPIComm()};
-                ::openPMD::MeshRecordComponent dataset
-                    = series.iterations[ParamClass::iteration]
-                          .meshes[ParamClass::datasetName][::openPMD::RecordComponent::SCALAR];
-                auto const datasetExtent = dataset.getExtent();
+                auto mesh = series.iterations[ParamClass::iteration].meshes[ParamClass::datasetName];
+                ::openPMD::MeshRecordComponent dataset = mesh[::openPMD::RecordComponent::SCALAR];
+                auto const indexConverter = IndexConverter{mesh};
+                auto const datasetExtent = indexConverter.openPMDToXyz(dataset.getExtent());
 
                 // Offset of the local domain in file coordinates: global coordinates, no guards, no moving window
                 auto const& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 bool readFromFile = true;
+                // All indices are in PIConGPU x-y-z coordinates, unless explicitly stated otherwise
                 // Where the fieldBuffer data is starting from (no guards)
                 auto localDataBoxStart = pmacc::DataSpace<simDim>::create(0);
                 // Start and extend of the file for the local domain
@@ -130,8 +133,11 @@ namespace picongpu
                 using ValueType = FieldTmp::ValueType::type;
                 auto data = std::shared_ptr<ValueType>{nullptr};
                 if(readFromFile)
-                    data = dataset.loadChunk<ValueType>(chunkOffset, chunkExtent);
-
+                {
+                    data = dataset.loadChunk<ValueType>(
+                        indexConverter.xyzToOpenPMD(chunkOffset),
+                        indexConverter.xyzToOpenPMD(chunkExtent));
+                }
                 // This is MPI collective and so has to be done by all ranks
                 series.flush();
 
@@ -144,19 +150,9 @@ namespace picongpu
                         1u,
                         std::multiplies<uint32_t>());
                     auto hostDataBox = fieldBuffer.getHostBuffer().getDataBox().shift(guards + localDataBoxStart);
-                    /* This loop is a bit clunky, since we are copying one simDim-dimensional array into another,
-                     * and chunkExtent can be smaller than local domain size.
-                     * Here we rely on the loadChunk() returning data stored in x-y-z order.
-                     */
                     for(uint32_t linearIdx = 0u; linearIdx < numElements; linearIdx++)
                     {
-                        pmacc::DataSpace<simDim> idx;
-                        auto tmpLinearIdx = linearIdx;
-                        for(int32_t d = simDim - 1; d >= 0; d--)
-                        {
-                            idx[d] = tmpLinearIdx % chunkExtent[d];
-                            tmpLinearIdx /= chunkExtent[d];
-                        }
+                        auto const idx = indexConverter.linearToXyz(linearIdx, chunkExtent);
                         hostDataBox(idx) = rawData[linearIdx];
                     }
                 }
@@ -165,6 +161,103 @@ namespace picongpu
                 fieldBuffer.hostToDevice();
                 __getTransactionEvent().waitForFinished();
             }
+
+            /** Helper class to convert indices between x-y-z coordinates and a system defined by openPMD API mesh
+             *
+             * The latter is defined by a combination of axisLabels and dataOrder of the given mesh object.
+             * Thus, the transformation is bound to the mesh object given in the constructor, not to openPMD API in
+             * general. However, for brevity in this class it is called "openPMD coordinates"
+             */
+            class IndexConverter
+            {
+            public:
+                /** Create an index converter for the given mesh
+                 *
+                 * @param mesh openPMD API mesh
+                 */
+                IndexConverter(::openPMD::Mesh const& mesh)
+                {
+                    if(mesh.dataOrder() != ::openPMD::Mesh::DataOrder::C)
+                        throw std::runtime_error(
+                            "Unsupported dataOrder in FromOpenPMD density dataset, only C is supported");
+                    auto axisLabels = std::vector<std::string>{mesh.axisLabels()};
+                    // When the attribute is not set, openPMD API currently makes it a vector of single "x"
+                    if(axisLabels.size() <= 1)
+                        axisLabels = std::vector<std::string>{"x", "y", "z"};
+                    std::array<std::string, 3> supportedAxes = {"x", "y", "z"};
+                    for(auto d = 0; d < simDim; d++)
+                    {
+                        auto it = std::find(begin(supportedAxes), begin(supportedAxes) + simDim, axisLabels[d]);
+                        if(it != std::end(supportedAxes))
+                        {
+                            openPMDAxisIndex[d] = std::distance(begin(supportedAxes), it);
+                            xyzAxisIndex[openPMDAxisIndex[d]] = d;
+                        }
+                        else
+                            throw std::runtime_error(
+                                "Unsupported axis label " + axisLabels[d] + " in FromOpenPMD density dataset");
+                    }
+                }
+
+                /** Convert a multidimentional index from x-y-z to the openPMD coordinates
+                 *
+                 * @tparam T_Vector vector type, compatible to std::vector
+                 *
+                 * @param vector input vector
+                 */
+                template<typename T_Vector>
+                T_Vector xyzToOpenPMD(T_Vector const& vector) const
+                {
+                    auto result = vector;
+                    for(auto d = 0; d < simDim; d++)
+                        result[openPMDAxisIndex[d]] = vector[d];
+                    return result;
+                }
+
+                /** Convert a multidimentional index from openPMD to the x-y-z coordinates
+                 *
+                 * @tparam T_Vector vector type, compatible to std::vector
+                 *
+                 * @param vector input vector
+                 */
+                template<typename T_Vector>
+                T_Vector openPMDToXyz(T_Vector const& vector) const
+                {
+                    auto result = vector;
+                    for(int32_t d = 0; d < simDim; d++)
+                        result[xyzAxisIndex[d]] = vector[d];
+                    return result;
+                }
+
+                /** Convert a linear index in openPMD chunk to a multidimentional x-y-z index.
+                 *
+                 * @param openPMDLinearIndex linear index inside openPMD chunk
+                 * @param xyzChunkExtent multidimentional chunk extent in xyz
+                 */
+                pmacc::DataSpace<simDim> linearToXyz(uint32_t openPMDLinearIndex, ::openPMD::Extent xyzChunkExtent)
+                    const
+                {
+                    // Convert xyz extent to openPMD one
+                    auto const openPMDChunkExtent = xyzToOpenPMD(xyzChunkExtent);
+                    // This is index in the openPMD coordinate system, the calculation relies on the C data order
+                    pmacc::DataSpace<simDim> openPMDIdx;
+                    auto tmpIndex = openPMDLinearIndex;
+                    for(int32_t d = simDim - 1; d >= 0; d--)
+                    {
+                        openPMDIdx[d] = tmpIndex % openPMDChunkExtent[d];
+                        tmpIndex /= openPMDChunkExtent[d];
+                    }
+                    // Now we convert it to the xyz coordinates
+                    return openPMDToXyz(openPMDIdx);
+                }
+
+            private:
+                // openPMDAxisIndex[0] is openPMD axis index for x, [1] - for y, [2] - for z
+                pmacc::DataSpace<simDim> openPMDAxisIndex;
+
+                // xyzAxisIndex[0] is x axis index in openPMD, [1] - y, [2] - z
+                pmacc::DataSpace<simDim> xyzAxisIndex;
+            };
 
             /** Device data box with density values
              *
