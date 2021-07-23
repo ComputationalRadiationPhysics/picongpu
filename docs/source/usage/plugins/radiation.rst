@@ -410,7 +410,7 @@ Dataset  Description                                           Dimensions
 
    Please be aware, that despite the fact, that the SI-unit of each amplitude entry is :math:`\mathrm{[\sqrt{Js}]}`, the stored ``unitSI`` attribute returns :math:`\mathrm{[Js]}`.
    This inconsistency will be fixed in the future.
-   Until this inconstincy is resolved, please multiply the datasets with the square root of the ``unitSI`` attribute to convert the amplitudes to SI units.
+   Until this inconsistency is resolved, please multiply the datasets with the square root of the ``unitSI`` attribute to convert the amplitudes to SI units.
 
 
 **DetectorDirection (Group):**

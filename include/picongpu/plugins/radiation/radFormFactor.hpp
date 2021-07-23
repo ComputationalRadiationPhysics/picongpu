@@ -170,7 +170,7 @@ namespace picongpu
                         /* currently a fixed sigma of DELTA_T * c is used to describe the distribution - might become a
                          * parameter */
                         // optimized paramter for exponent beta=16 (see picongpu PR #3696 for details):
-                        const float_X alpha = 0.0172169f;
+                        constexpr float_X alpha = 0.0172169_X;
                         const float_X baseValue_toThePower16 = util::square(util::square(
                             util::square(util::square(1.0 / (alpha * DELTA_T * DELTA_T * omega * omega + 1.0)))));
                         return math::sqrt(N + (N * N - N) * baseValue_toThePower16);
