@@ -25,7 +25,7 @@
 #SBATCH -q shared
 #SBATCH --gpus=!TBG_tasks
 #SBATCH --constraint="dgx"
-#S BATCH --reservation="..."
+#!TBG_slurmReservation
 #SBATCH --time=!TBG_wallTime
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --ntasks=!TBG_tasks
@@ -52,6 +52,8 @@
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 .TBG_nameProject=${proj:-""}
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
+
+.TBG_slurmReservation=`if [ -z "$RESERVATION" ] ; then echo -n ""; else echo -n "SBATCH --reservation=!RESERVATION"; fi`
 
 # number of available/hosted GPUs per node in the system
 .TBG_numHostedGPUPerNode=8

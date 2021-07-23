@@ -12,6 +12,8 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 # Project Information ######################################## (edit this line)
 #   - project account for computing time
 export proj="<yourProject>"
+# Project reservation (can be empty if no reservation exists)
+export RESERVATION=""
 
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
@@ -59,15 +61,46 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/cori-nersc/a100.tpl"
 
-# allocate an interactive shell for one hour
+if [ -z "$RESERVATION" ] ; then
+  SLURM_RESERVATION=""
+else
+  SLURM_RESERVATION="--reservation=$RESERVATION"
+fi
+
+# allocate an interactive node for one hour to execute a mpi parallel application
 #   getNode 2  # allocates two interactive A100 GPUs (default: 1)
 function getNode() {
     if [ -z "$1" ] ; then
+        numNodes=1
+    else
+        numNodes=$1
+    fi
+    echo "Hint: please use 'srun --cpu_bind=cores <COMMAND>' for launching multiple processes in the interactive mode."
+    echo "             use 'srun -n 1 --pty bash' for launching a interactive shell for compiling."
+    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node 8 --gpus 8 --cpus-per-task=16 -A $proj -C dgx -q shared $SLURM_RESERVATION
+}
+
+# allocate an interactive device for one hour to execute a mpi parallel application
+#   getDevice 2  # allocates two interactive devices (default: 1)
+function getDevice() {
+    if [ -z "$1" ] ; then
         numGPUs=1
     else
-        numGPUs=$1
+        if [ "$1" -gt 8 ] ; then
+            echo "The maximal number of devices per node is 8." 1>&2
+            return 1
+        else
+            numGPUs=$1
+        fi
     fi
-    srun --time=1:00:00 --nodes=1 --ntasks-per-node $numGPUs --gpus $numGPUs --cpus-per-task=8 -A $proj -C dgx -q shared --pty bash
+    echo "Hint: please use 'srun --cpu_bind=cores <COMMAND>' for launching multiple processes in the interactive mode."
+    echo "             use 'srun -n 1 --pty bash' for launching a interactive shell for compiling."
+    salloc --time=1:00:00 --ntasks-per-node=$numGPUs --cpus-per-task=16 --gpus=$numGPUs --mem=$((1010000 / 8) * $numGPUs) -A $proj -C dgx -q shared $SLURM_RESERVATION
+}
+
+# allocate an interactive shell for compilation (without gpus)
+function getShell() {
+    srun --time=1:00:00 --nodes=1 --ntasks 1 --cpus-per-task=16 -A $proj -C dgx -q shared $SLURM_RESERVATION --pty bash
 }
 
 # Load autocompletion for PIConGPU commands
