@@ -279,3 +279,18 @@ Queue: gpu (2 x NVIDIA Tesla k40m GPUs)
 
 .. literalinclude:: profiles/aris-grnet/gpu_picongpu.profile.example
    :language: bash
+
+Ascent (ORNL)
+-------------
+
+**System overview and user guide:** `link <https://docs.olcf.ornl.gov/systems/ascent_user_guide.html#system-overview/>`_
+
+**Production directory:** usually ``$PROJWORK/$proj/`` (as on summit `link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#file-systems>`_).
+
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`openPMD-api, libSplash and PNGwriter <install-dependencies>` manually or use pre-installed libraries in the shared project directory.
+
+V100 GPUs (recommended)
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/ascent-ornl/gpu_picongpu.profile.example
+   :language: bash
