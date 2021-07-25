@@ -29,7 +29,7 @@ digraph PIConGPU {
     hdf5 -> libSplash;
     boost -> libSplash [style=dashed label="tools"];
 
-    adios [label="adios-parallel"];
+    adios [label="ADIOS"];
     mpi -> adios;
     zlib -> adios;
     hdf5 -> adios [style=dashed label="optional"];
@@ -44,13 +44,14 @@ digraph PIConGPU {
 
     openpmd [label="openPMD API"];
     adios2 -> openpmd;
+    adios -> openpmd [style=dashed label="optional"];
     hdf5 -> openpmd;
     nlohmann_json [label="nlohmann_json\n(header-only)\n(internall shipped\nby default)"];
     nlohmann_json -> openpmd[style=dashed"]
 
     libpng -> PNGwriter;
 
-    trace [label="VampirTrace / Score-P"];
+    trace [label="Score-P"];
     mpi -> trace;
     cuda -> trace;
 }
