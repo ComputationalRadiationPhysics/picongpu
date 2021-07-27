@@ -748,7 +748,7 @@ namespace picongpu
                     * (cspeed * om0 * tauG2 - complex_T(0, 8) * y * tanPI2_phi * cscPhi * cscPhi * sinPhi2_4
                        - complex_T(0, 2) * z * tanPhi2_2);
 
-                const complex_T result = float_T(-1.0)
+                const complex_T result = float_T(phiPositive) * float_T(-1.0)
                     * (cspeed * math::exp(helpVar3) * k * tauG * x * rho0
                        * math::pow(float_T(1.0) / helpVar2, float_T(1.5)))
                     / math::sqrt(helpVar4);
