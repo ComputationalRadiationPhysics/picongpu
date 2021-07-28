@@ -542,8 +542,9 @@ namespace picongpu
                 const complex_T helpVar7 = cspeed * om0 * tauG * tauG
                     - complex_T(0, 1) * y * cosPhi / cosPhi2 / cosPhi2 * tanPhi2
                     - complex_T(0, 2) * z * tanPhi2 * tanPhi2;
-                const complex_T result = (complex_T(0, 2) * math::exp(helpVar6) * tauG * tanPhi2
-                                          * (cspeed * t - z + y * tanPhi2) * math::sqrt((om0 * rho0) / helpVar3))
+                const complex_T result = float_T(phiPositive)
+                    * (complex_T(0, 2) * math::exp(helpVar6) * tauG * tanPhi2 * (cspeed * t - z + y * tanPhi2)
+                       * math::sqrt((om0 * rho0) / helpVar3))
                     / math::pow(helpVar7, float_T(1.5));
 
                 return result.get_real() / UNIT_SPEED;
@@ -698,7 +699,7 @@ namespace picongpu
                                                - complex_T(0, 2) * z * tanPhi2 * tanPhi2))
                     / rho0;
 
-                const complex_T result = float_T(-1.0)
+                const complex_T result = float_T(phiPositive) * float_T(-1.0)
                     * (cspeed * math::exp(helpVar3) * k * tauG * x * math::pow(helpVar2, float_T(-1.5))
                        / math::sqrt(helpVar4));
 

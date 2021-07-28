@@ -67,7 +67,13 @@ namespace picongpu
                 PMACC_ALIGN(pulselength_SI, float_64 const);
                 /** line focus height of TWTS pulse [meter] */
                 PMACC_ALIGN(w_x_SI, float_64 const);
-                /** interaction angle between TWTS laser propagation vector and the y-axis [rad] */
+                /** TWTS interaction angle
+                 *  Enclosed by the laser propagation direction and the y-axis.
+                 *  For a positive value of the interaction angle, the laser propagation direction
+                 *  points along the y-axis and against the z-axis.
+                 *  That is, for phi = 90 degree the laser propagates in the -z direction.
+                 * [rad]
+                 */
                 PMACC_ALIGN(phi, float_X const);
                 /** Takes value 1.0 for phi > 0 and -1.0 for phi < 0. */
                 PMACC_ALIGN(phiPositive, float_X);
