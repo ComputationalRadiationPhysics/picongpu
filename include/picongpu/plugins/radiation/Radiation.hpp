@@ -421,7 +421,7 @@ namespace picongpu
                     for(int resultIdx = 1; resultIdx < numJobs; ++resultIdx)
                         for(int ampIdx = 0; ampIdx < numAmp; ++ampIdx)
                         {
-                            dbox(DataSpace<2>(ampIdx, 0)) += dbox(DataSpace<2>(ampIdx, resultIdx));
+                            dbox(DataSpace<2>(0, ampIdx)) += dbox(DataSpace<2>(resultIdx, ampIdx));
                         }
                 }
 
@@ -1206,7 +1206,7 @@ namespace picongpu
 
                     // PIC-like kernel call of the radiation kernel
                     PMACC_KERNEL(KernelRadiationParticles<numWorkers>{})
-                    (DataSpace<2>(gridDim_rad, numJobs), DataSpace<2>(numWorkers, 1))(
+                    (DataSpace<2>(numJobs, gridDim_rad), DataSpace<2>(numWorkers, 1))(
                         /*Pointer to particles memory on the device*/
                         particles->getDeviceParticlesBox(),
 

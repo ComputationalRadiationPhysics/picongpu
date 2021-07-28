@@ -146,7 +146,7 @@ namespace picongpu
                     PMACC_SMEM(acc, lowpass_s, memory::Array<NyquistLowPass, blockSize>);
 
 
-                    int const theta_idx = cupla::blockIdx(acc).x; // cupla::blockIdx(acc).x is used to determine theta
+                    int const theta_idx = cupla::blockIdx(acc).y; // cupla::blockIdx(acc).y is used to determine theta
 
                     // simulation time (needed for retarded time)
                     picongpu::float_64 const t(picongpu::float_64(currentStep) * picongpu::float_64(DELTA_T));
@@ -165,8 +165,8 @@ namespace picongpu
                     // get absolute number of relevant super cells
                     int const numSuperCells = superCellsCount.productOfComponents();
 
-                    int const numJobs = cupla::gridDim(acc).y;
-                    int const jobIdx = cupla::blockIdx(acc).y;
+                    int const numJobs = cupla::gridDim(acc).x;
+                    int const jobIdx = cupla::blockIdx(acc).x;
 
                     /* go over all super cells on GPU with a stride depending on number of temporary results
                      * but ignore all guarding supercells
@@ -400,7 +400,7 @@ namespace picongpu
                                  *     - from this (one) time step
                                  *     - omega_id = theta_idx * radiation_frequencies::N_omega + o
                                  */
-                                radiation(DataSpace<2>(theta_idx * radiation_frequencies::N_omega + o, jobIdx))
+                                radiation(DataSpace<2>(jobIdx, theta_idx * radiation_frequencies::N_omega + o))
                                     += amplitude;
 
                             } // end frequency loop
