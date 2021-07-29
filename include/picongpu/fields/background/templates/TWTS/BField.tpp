@@ -365,31 +365,6 @@ namespace picongpu
                  * It is useful to compare the actual TWTS propagation distance (within the simulation volume)
                  * with the corresponding "Rayleigh length" PI * deltawy * deltawy / lambda0.
                  */
-                // float_T envelopeWy;
-                // const float_T alpha = float_T(0.05);
-                ////const float_T currentEnvelopePos = float_T(time / UNIT_TIME * cspeed); //Physical correct scenario
-                // const float_T currentEnvelopePos = float_T(time / UNIT_TIME * cspeed); //Artificially eliminate
-                // ponderomotive force from longitudinal envelope if ( ( -wy / float_T(2.0) <= currentEnvelopePos ) && (
-                // currentEnvelopePos < ( alpha - float_T(1.0) ) * wy / float_T(2.0) ) )
-                //{
-                //    envelopeWy = float_T(0.5) * ( float_T(1.0) + math::cos( PI * ( ( float_T(2.0) *
-                //    currentEnvelopePos + wy ) / ( alpha * wy ) - float_T(1.0) ) ) );
-                //}
-                // else if ( ( ( alpha - float_T(1.0) ) * wy / float_T(2.0) <= currentEnvelopePos ) &&  (
-                // currentEnvelopePos <= ( float_T(1.0) - alpha ) * wy / float_T(2.0) ) )
-                //{
-                //    envelopeWy = float_T(1.0);
-                //}
-                // else if ( ( ( float_T(1.0) - alpha ) * wy / float_T(2.0) < currentEnvelopePos ) && (
-                // currentEnvelopePos <= wy / float_T(2.0) ) )
-                //{
-                //    envelopeWy = float_T(0.5) * ( float_T(1.0) + math::cos( PI * ( ( float_T(2.0) *
-                //    currentEnvelopePos + wy ) / ( alpha * wy ) - float_T(2.0) / alpha + float_T(1.0) ) ) );
-                //}
-                // else
-                //{
-                //    envelopeWy = float_T(0.0);
-                //}
 
                 const float_T x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
                 const float_T y = float_T(phiPositive * yMod / UNIT_LENGTH);
@@ -401,10 +376,6 @@ namespace picongpu
                  * because it does not include eventual phase-evolution, due to super-gaussian focusing instead of
                  * gaussian focusing.
                  */
-                // const float_T s = y * math::cos(phiT) + z * math::sin(phiT); // Formally, this probably includes a
-                // sign-error, but this is OK, because s is later used only as s*s. const float_T wx2_s = w0 * w0 * (
-                // float_T(1.0) + s*s / ( rho0 * rho0 ) ); const float_T envelopeWx = math::exp( +(x*x/wx2_s) -
-                // math::pow( (x*x/wx2_s) , 4 ) );
 
                 /* Calculating shortcuts for speeding up field calculation */
                 const float_T sinPhi = math::sin(phiT);
@@ -476,7 +447,6 @@ namespace picongpu
                        * math::sqrt(cspeed * om0 * rho0 / helpVar2))
                     / (float_T(2.0) * cspeed * math::pow(helpVar4, float_T(1.5)));
 
-                // return envelopeWx * envelopeWy * result.get_real() / UNIT_SPEED;
                 return result.get_real() / UNIT_SPEED;
             }
 
@@ -556,31 +526,6 @@ namespace picongpu
                  * It is useful to compare the actual TWTS propagation distance (within the simulation volume)
                  * with the corresponding "Rayleigh length" PI * deltawy * deltawy / lambda0.
                  */
-                // float_T envelopeWy;
-                // const float_T alpha = float_T(0.05);
-                ////const float_T currentEnvelopePos = float_T(time / UNIT_TIME * cspeed); //Physical correct scenario
-                // const float_T currentEnvelopePos = float_T(time / UNIT_TIME * cspeed); //Artificially eliminate
-                // ponderomotive force from longitudinal envelope if ( ( -wy / float_T(2.0) <= currentEnvelopePos ) && (
-                // currentEnvelopePos < ( alpha - float_T(1.0) ) * wy / float_T(2.0) ) )
-                //{
-                //    envelopeWy = float_T(0.5) * ( float_T(1.0) + math::cos( PI * ( ( float_T(2.0) *
-                //    currentEnvelopePos + wy ) / ( alpha * wy ) - float_T(1.0) ) ) );
-                //}
-                // else if ( ( ( alpha - float_T(1.0) ) * wy / float_T(2.0) <= currentEnvelopePos ) &&  (
-                // currentEnvelopePos <= ( float_T(1.0) - alpha ) * wy / float_T(2.0) ) )
-                //{
-                //    envelopeWy = float_T(1.0);
-                //}
-                // else if ( ( ( float_T(1.0) - alpha ) * wy / float_T(2.0) < currentEnvelopePos ) && (
-                // currentEnvelopePos <= wy / float_T(2.0) ) )
-                //{
-                //    envelopeWy = float_T(0.5) * ( float_T(1.0) + math::cos( PI * ( ( float_T(2.0) *
-                //    currentEnvelopePos + wy ) / ( alpha * wy ) - float_T(2.0) / alpha + float_T(1.0) ) ) );
-                //}
-                // else
-                //{
-                //    envelopeWy = float_T(0.0);
-                //}
 
                 const float_T x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
                 const float_T y = float_T(phiPositive * yMod / UNIT_LENGTH);
@@ -592,10 +537,6 @@ namespace picongpu
                  * because it does not include eventual phase-evolution, due to super-gaussian focusing instead of
                  * gaussian focusing.
                  */
-                // const float_T s = y * math::cos(phiT) + z * math::sin(phiT); // Formally, this probably includes a
-                // sign-error, but this is OK, because s is later used only as s*s. const float_T wx2_s = w0 * w0 * (
-                // float_T(1.0) + s*s / ( rho0 * rho0 ) ); const float_T envelopeWx = math::exp( +(x*x/wx2_s) -
-                // math::pow( (x*x/wx2_s) , 4 ) );
 
                 /* Calculating shortcuts for speeding up field calculation */
                 const float_T sinPhi = math::sin(phiT);
@@ -662,7 +603,6 @@ namespace picongpu
                     / math::pow(helpVar9, float_T(1.5));
 
                 return result.get_real() / UNIT_SPEED;
-                // return envelopeWx * envelopeWy * result.get_real() / UNIT_SPEED;
             }
 
             /** Calculate the Bx(r,t) field
