@@ -171,7 +171,7 @@ namespace picongpu
                     /* go over all super cells on GPU with a stride depending on number of temporary results
                      * but ignore all guarding supercells
                      */
-                    for(int super_cell_index = jobIdx; super_cell_index <= numSuperCells; super_cell_index += numJobs)
+                    for(int super_cell_index = jobIdx; super_cell_index < numSuperCells; super_cell_index += numJobs)
                     {
                         // select SuperCell and add one sided guard again
                         DataSpace<simDim> const superCell
