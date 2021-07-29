@@ -37,10 +37,10 @@ pmacc helpers
    :project: PIConGPU
 
 .. doxygenstruct:: pmacc::lockstep::Idx
-  :project: PIConGPU
+   :project: PIConGPU
 
-.. doxygenstruct:: pmacc::lockstep::Worker
-  :project: PIConGPU
+.. doxygenclass:: pmacc::lockstep::Worker
+   :project: PIConGPU
 
 .. doxygenstruct:: pmacc::lockstep::Variable
    :project: PIConGPU
