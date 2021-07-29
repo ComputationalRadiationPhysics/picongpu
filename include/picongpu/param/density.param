@@ -263,6 +263,8 @@ namespace picongpu
             /** Offset in the file in cells: each value is density at (total cell index - offset)
              *
              * This offset is in (x, y, z) coordinates.
+             * Positive offset means the file values "start" from index == offset in the total coordinates.
+             * Negative offset is also supported.
              */
             (PMACC_C_VECTOR_DIM(int, simDim, offset, 0, 0, 0))
 

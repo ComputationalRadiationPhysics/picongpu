@@ -111,7 +111,7 @@ namespace picongpu
                 auto const& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 bool readFromFile = true;
                 // All indices are in PIConGPU x-y-z coordinates, unless explicitly stated otherwise
-                // Where the fieldBuffer data is starting from (no guards)
+                // Where the fieldBuffer data is starting from (no guards), so inside the local domain
                 auto localDataBoxStart = pmacc::DataSpace<simDim>::create(0);
                 // Start and extend of the file for the local domain
                 auto chunkOffset = ::openPMD::Offset(simDim, 0);
@@ -119,8 +119,8 @@ namespace picongpu
                 for(uint32_t d = 0; d < simDim; ++d)
                 {
                     localDataBoxStart[d] = std::max(ParamClass::offset[d] - totalLocalDomainOffset[d], 0);
-                    chunkOffset[d] = std::max(-localDataBoxStart[d], 0);
-                    // Here we take care, as chunkExtent is unsigned type
+                    chunkOffset[d] = std::max(totalLocalDomainOffset[d] - ParamClass::offset[d], 0);
+                    // Here we take care, as chunkExtent is unsigned
                     int32_t extent = std::min(
                         static_cast<int32_t>(localDomain.size[d] - localDataBoxStart[d]),
                         static_cast<int32_t>(datasetExtent[d] - chunkOffset[d]));
