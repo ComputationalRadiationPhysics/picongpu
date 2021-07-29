@@ -180,6 +180,12 @@ Queue: regular (Intel Xeon Phi - Knights Landing)
 .. literalinclude:: profiles/cori-nersc/knl_picongpu.profile.example
    :language: bash
 
+Queue: dgx (DGX - A100)
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/cori-nersc/a100_picongpu.profile.example
+   :language: bash
+
 Draco (MPCDF)
 -------------
 
