@@ -76,12 +76,12 @@ namespace picongpu
                  *  That is, for phi = 90 degree the laser propagates in the -z direction.
                  * [rad]
                  */
-                PMACC_ALIGN(phi, const float_X);
+                PMACC_ALIGN(phi, const float_T);
                 /* Takes value 1.0 for phi > 0 and -1.0 for phi < 0. */
-                PMACC_ALIGN(phiPositive, float_X);
+                PMACC_ALIGN(phiPositive, float_T);
                 /* propagation speed of TWTS laser overlap
                    normalized to the speed of light. [Default: beta0 = 1.0] */
-                PMACC_ALIGN(beta_0, const float_X);
+                PMACC_ALIGN(beta_0, const float_T);
                 /* If auto_tdelay=FALSE, then a user defined delay is used. [second] */
                 PMACC_ALIGN(tdelay_user_SI, const float_64);
                 /* Make time step constant accessible to device. */
@@ -123,8 +123,8 @@ namespace picongpu
                     const float_64 pulselength_SI,
                     const float_64 w_x_SI,
                     const float_64 w_y_SI,
-                    const float_X phi = 90. * (PI / 180.),
-                    const float_X beta_0 = 1.0,
+                    const float_T phi = 90. * (PI / 180.),
+                    const float_T beta_0 = 1.0,
                     const float_64 tdelay_user_SI = 0.0,
                     const bool auto_tdelay = true,
                     const PolarizationType pol = LINEAR_X);

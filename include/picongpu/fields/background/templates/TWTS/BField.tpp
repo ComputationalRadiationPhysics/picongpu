@@ -50,8 +50,8 @@ namespace picongpu
                 const float_64 pulselength_SI,
                 const float_64 w_x_SI,
                 const float_64 w_y_SI,
-                const float_X phi,
-                const float_X beta_0,
+                const float_T phi,
+                const float_T beta_0,
                 const float_64 tdelay_user_SI,
                 const bool auto_tdelay,
                 const PolarizationType pol)
@@ -67,7 +67,7 @@ namespace picongpu
                 , unit_length(UNIT_LENGTH)
                 , auto_tdelay(auto_tdelay)
                 , pol(pol)
-                , phiPositive(float_X(1.0))
+                , phiPositive(float_T(1.0))
             {
                 /* Note: Enviroment-objects cannot be instantiated on CUDA GPU device. Since this is done
                  * on host (see fieldBackground.param), this is no problem.
@@ -82,8 +82,8 @@ namespace picongpu
                     focus_y_SI,
                     phi,
                     beta_0);
-                if(phi < float_X(0.0))
-                    phiPositive = float_X(-1.0);
+                if(phi < float_T(0.0))
+                    phiPositive = float_T(-1.0);
             }
 
             template<>
@@ -116,8 +116,11 @@ namespace picongpu
                  *
                  * RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the field vectors.
                  */
-                const float_64 By_rot = -math::sin(+phi) * By_By + math::cos(+phi) * Bz_By;
-                const float_64 Bz_rot = -math::cos(+phi) * By_Bz - math::sin(+phi) * Bz_Bz;
+                float_T sinPhi;
+                float_T cosPhi;
+                pmacc::math::sincos(phi, sinPhi, cosPhi);
+                const float_64 By_rot = -sinPhi * By_By + cosPhi * Bz_By;
+                const float_64 Bz_rot = -cosPhi * By_Bz - sinPhi * Bz_Bz;
 
                 /* Finally, the B-field normalized to the peak amplitude. */
                 return float3_X(float_X(0.0), float_X(By_rot), float_X(Bz_rot));
@@ -146,8 +149,11 @@ namespace picongpu
                  *
                  * RotationMatrix[-(PI/2+phi)].(By,Bz) for rotating back the field-vectors.
                  */
-                const float_64 By_rot = +math::cos(+phi) * Bz_By;
-                const float_64 Bz_rot = -math::sin(+phi) * Bz_Bz;
+                float_T sinPhi;
+                float_T cosPhi;
+                pmacc::math::sincos(phi, sinPhi, cosPhi);
+                const float_64 By_rot = +cosPhi * Bz_By;
+                const float_64 Bz_rot = -sinPhi * Bz_Bz;
 
                 /* Finally, the B-field normalized to the peak amplitude. */
                 return float3_X(float_X(calcTWTSBx(pos[0], time)), float_X(By_rot), float_X(Bz_rot));
@@ -205,8 +211,11 @@ namespace picongpu
                  *
                  * RotationMatrix[-(PI / 2+phi)].(By,Bx) for rotating back the field vectors.
                  */
-                const float_64 By_rot = -math::sin(phi) * By_By + math::cos(phi) * Bx_By;
-                const float_64 Bx_rot = -math::cos(phi) * By_Bx - math::sin(phi) * Bx_Bx;
+                float_X sinPhi;
+                float_X cosPhi;
+                pmacc::math::sincos(phi, sinPhi, cosPhi);
+                const float_64 By_rot = -sinPhi * By_By + cosPhi * Bx_By;
+                const float_64 Bx_rot = -cosPhi * By_Bx - sinPhi * Bx_Bx;
 
                 /* Finally, the B-field normalized to the peak amplitude. */
                 return float3_X(float_X(Bx_rot), float_X(By_rot), float_X(0.0));
@@ -260,8 +269,11 @@ namespace picongpu
                  * RotationMatrix[-(PI / 2+phi)].(By,Bx)
                  * for rotating back the field-vectors.
                  */
-                const float_64 By_rot = +math::cos(phi) * Bx_By;
-                const float_64 Bx_rot = -math::sin(phi) * Bx_Bx;
+                float_X sinPhi;
+                float_X cosPhi;
+                pmacc::math::sincos(phi, sinPhi, cosPhi);
+                const float_64 By_rot = +cosPhi * Bx_By;
+                const float_64 Bx_rot = -sinPhi * Bx_Bx;
 
                 /* Finally, the B-field normalized to the peak amplitude. */
                 return float3_X(float_X(Bx_rot), float_X(By_rot), float_X(calcTWTSBx(pos[2], time)));
@@ -295,23 +307,16 @@ namespace picongpu
             {
                 using complex_T = pmacc::math::Complex<float_T>;
                 using complex_64 = pmacc::math::Complex<float_64>;
-                /* Unit of speed */
-                const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
-                /* Unit of time */
-                const float_64 UNIT_TIME = SI::DELTA_T_SI;
-                /* Unit of length */
-                const float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
 
-                /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-                const float_T beta0 = float_T(beta_0);
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
                  * z-axis of the coordinate system in this function.
                  */
                 const float_T phiReal = float_T(math::abs(phi));
-                const float_T alphaTilt = math::atan2(
-                    float_T(1.0) - float_T(beta_0) * math::cos(phiReal),
-                    float_T(beta_0) * math::sin(phiReal));
+                float_T sinPhiReal;
+                float_T cosPhiReal;
+                pmacc::math::sincos(phiReal, sinPhiReal, cosPhiReal);
+                const float_T alphaTilt = math::atan2(float_T(1.0) - beta_0 * cosPhiReal, beta_0 * sinPhiReal);
                 /* Definition of the laser pulse front tilt angle for the laser field below.
                  *
                  * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
@@ -347,7 +352,10 @@ namespace picongpu
                  * (i.e. from a finite coordinate range) only. All these quantities have to be calculated
                  * in double precision.
                  */
-                const float_64 tanAlpha = (float_64(1.0) - beta_0 * math::cos(phi)) / (beta_0 * math::sin(phi));
+                float_64 sinPhiVal;
+                float_64 cosPhiVal;
+                pmacc::math::sincos(precisionCast<float_64>(phi), sinPhiVal, cosPhiVal);
+                const float_64 tanAlpha = (float_64(1.0) - beta_0 * cosPhiVal) / (beta_0 * sinPhiVal);
                 const float_64 tanFocalLine = math::tan(PI / float_64(2.0) - phi);
                 const float_64 deltaT
                     = wavelength_SI / SI::SPEED_OF_LIGHT_SI * (float_64(1.0) + tanAlpha / tanFocalLine);
@@ -378,13 +386,18 @@ namespace picongpu
                  */
 
                 /* Calculating shortcuts for speeding up field calculation */
-                const float_T sinPhi = math::sin(phiT);
-                const float_T cosPhi = math::cos(phiT);
-                const float_T cscPhi = float_T(1.0) / math::sin(phiT);
-                const float_T secPhi2 = float_T(1.0) / math::cos(phiT / float_T(2.0));
-                const float_T sinPhi2 = math::sin(phiT / float_T(2.0));
+                float_T sinPhi;
+                float_T cosPhi;
+                pmacc::math::sincos(phiT, sinPhi, cosPhi);
+                const float_t phiThalf = phiT / float_T(2.0);
+                float_T sinPhi2;
+                float_T cosPhi2;
+                pmacc::math::sincos(phiThalf, sinPhi2, cosPhi2);
+
+                const float_T cscPhi = float_T(1.0) / sinPhi;
+                const float_T secPhi2 = float_T(1.0) / cosPhi2;
                 const float_T sin2Phi = math::sin(phiT * float_T(2.0));
-                const float_T tanPhi2 = math::tan(phiT / float_T(2.0));
+                const float_T tanPhi2 = math::tan(phiThalf);
 
                 const float_T sinPhi_2 = sinPhi * sinPhi;
                 const float_T sinPhi_3 = sinPhi * sinPhi_2;
@@ -458,21 +471,16 @@ namespace picongpu
             HDINLINE BField::float_T BField::calcTWTSBz_Ex(const float3_64& pos, const float_64 time) const
             {
                 using complex_T = pmacc::math::Complex<float_T>;
-                /** Unit of Speed */
-                const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
-                /** Unit of time */
-                const float_64 UNIT_TIME = SI::DELTA_T_SI;
-                /** Unit of length */
-                const float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
 
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
                  * z-axis of the coordinate system in this function.
                  */
                 const float_T phiReal = float_T(math::abs(phi));
-                const float_T alphaTilt = math::atan2(
-                    float_T(1.0) - float_T(beta_0) * math::cos(phiReal),
-                    float_T(beta_0) * math::sin(phiReal));
+                float_T sinPhiReal;
+                float_T cosPhiReal;
+                pmacc::math::sincos(phiReal, sinPhiReal, cosPhiReal);
+                const float_T alphaTilt = math::atan2(float_T(1.0) - beta_0 * cosPhiReal, beta_0 * sinPhiReal);
                 /* Definition of the laser pulse front tilt angle for the laser field below.
                  *
                  * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
@@ -508,7 +516,10 @@ namespace picongpu
                  * (i.e. from a finite coordinate range) only. All these quantities have to be calculated
                  * in double precision.
                  */
-                const float_64 tanAlpha = (float_64(1.0) - beta_0 * math::cos(phi)) / (beta_0 * math::sin(phi));
+                float_64 sinPhiVal;
+                float_64 cosPhiVal;
+                pmacc::math::sincos(precisionCast<float_64>(phi), sinPhiVal, cosPhiVal);
+                const float_64 tanAlpha = (float_64(1.0) - beta_0 * cosPhiVal) / (beta_0 * sinPhiVal);
                 const float_64 tanFocalLine = math::tan(PI / float_64(2.0) - phi);
                 const float_64 deltaT
                     = wavelength_SI / SI::SPEED_OF_LIGHT_SI * (float_64(1.0) + tanAlpha / tanFocalLine);
@@ -539,12 +550,14 @@ namespace picongpu
                  */
 
                 /* Calculating shortcuts for speeding up field calculation */
-                const float_T sinPhi = math::sin(phiT);
-                const float_T cosPhi = math::cos(phiT);
-                const float_T cscPhi = float_T(1.0) / math::sin(phiT);
+                float_T sinPhi;
+                float_T cosPhi;
+                pmacc::math::sincos(phiT, sinPhi, cosPhi);
+                const float_t phiThalf = phiT / float_T(2.0);
+                const float_T cscPhi = float_T(1.0) / sinPhi;
                 const float_T secPhi2 = float_T(1.0) / math::cos(phiT / float_T(2.0));
-                const float_T sinPhi2 = math::sin(phiT / float_T(2.0));
-                const float_T tanPhi2 = math::tan(phiT / float_T(2.0));
+                const float_T sinPhi2 = math::sin(phiThalf);
+                const float_T tanPhi2 = math::tan(phiThalf);
 
                 const float_T cscPhi_3 = cscPhi * cscPhi * cscPhi;
 
@@ -629,22 +642,16 @@ namespace picongpu
             {
                 using complex_T = pmacc::math::Complex<float_T>;
                 using complex_64 = pmacc::math::Complex<float_64>;
-                /** Unit of speed */
-                const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
-                /** Unit of time */
-                const float_64 UNIT_TIME = SI::DELTA_T_SI;
-                /** Unit of length */
-                const float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
 
-                /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-                const float_T beta0 = float_T(beta_0);
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
                  * z-axis of the coordinate system in this function.
                  */
                 const float_T phiReal = float_T(math::abs(phi));
-                const float_T alphaTilt
-                    = math::atan2(float_T(1.0) - beta0 * math::cos(phiReal), beta0 * math::sin(phiReal));
+                float_T sinPhiReal;
+                float_T cosPhiReal;
+                pmacc::math::sincos(phiReal, sinPhiReal, cosPhiReal);
+                const float_T alphaTilt = math::atan2(float_T(1.0) - beta_0 * cosPhiReal, beta_0 * sinPhiReal);
                 /* Definition of the laser pulse front tilt angle for the laser field below.
                  *
                  * For beta0=1.0, this is equivalent to our standard definition. Question: Why is the
@@ -683,11 +690,15 @@ namespace picongpu
                 const float_T t = float_T(time / UNIT_TIME);
 
                 /* Shortcuts for speeding up the field calculation. */
-                const float_T sinPhi = math::sin(phiT);
-                const float_T cosPhi = math::cos(phiT);
-                const float_T sinPhi2 = math::sin(phiT / float_T(2.0));
-                const float_T cosPhi2 = math::cos(phiT / float_T(2.0));
-                const float_T tanPhi2 = math::tan(phiT / float_T(2.0));
+                float_T sinPhi;
+                float_T cosPhi;
+                pmacc::math::sincos(phiT, sinPhi, cosPhi);
+                const float_t phiThalf = phiT / float_T(2.0);
+                float_T sinPhi2;
+                float_T cosPhi2;
+                pmacc::math::sincos(phiThalf, sinPhi2, cosPhi2);
+
+                const float_T tanPhi2 = math::tan(phiThalf);
 
                 const float_T sinPhi2_2 = sinPhi2 * sinPhi2;
                 const float_T sinPhi2_4 = sinPhi2_2 * sinPhi2_2;
