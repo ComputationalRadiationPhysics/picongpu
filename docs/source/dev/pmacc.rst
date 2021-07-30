@@ -38,7 +38,7 @@ DataSpace
 Vector
 ------
 
-.. doxygenclass:: pmacc::Vector
+.. doxygenclass:: pmacc::math::Vector
    :project: PIConGPU
    :members:
    :protected-members:
@@ -82,7 +82,7 @@ ParticlesBase
 ParticleDescription
 -------------------
 
-.. doxygenclass:: pmacc::ParticleDescription
+.. doxygenstruct:: pmacc::ParticleDescription
    :project: PIConGPU
    :members:
    :protected-members:
@@ -91,7 +91,7 @@ ParticleDescription
 ParticleBox
 -----------
 
-.. doxygenclass:: pmacc::ParticleBox
+.. doxygenstruct:: pmacc::ParticlesBox
    :project: PIConGPU
    :members:
    :protected-members:
@@ -100,7 +100,7 @@ ParticleBox
 Frame
 -----
 
-.. doxygenclass:: pmacc::Frame
+.. doxygenstruct:: pmacc::Frame
    :project: PIConGPU
    :members:
    :protected-members:
