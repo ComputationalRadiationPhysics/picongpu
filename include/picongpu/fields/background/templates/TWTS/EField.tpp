@@ -321,8 +321,8 @@ namespace picongpu
                 /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
                  * thus help with formal code verification through manual code inspection.
                  */
-                const complex_T helpVar1 = c_Om0 * tauG2 * sinPhi_4
-                    - complex_T(0, 8) * (sinPhi2_4 * sinPhi * (y * cosPhi + z_sinPhi));
+                const complex_T helpVar1
+                    = c_Om0 * tauG2 * sinPhi_4 - complex_T(0, 8) * (sinPhi2_4 * sinPhi * (y * cosPhi + z_sinPhi));
 
                 const complex_T helpVar2 = complex_T(0, 1) * rho0 - y * cosPhi - z_sinPhi;
 
@@ -338,8 +338,7 @@ namespace picongpu
                                   * z_sinPhi)
                        + float_T(2.0) * y * cosPhi * sinPhi_2
                            * (complex_T(0, 4) * (om0 * y * (c_t - z) * sinPhi2_2 * sinPhi_2)
-                              + om0 * (c_t - z)
-                                  * (complex_T(0, 1) * c_t + c_Om0 * tauG2 - complex_T(0, 1) * z)
+                              + om0 * (c_t - z) * (complex_T(0, 1) * c_t + c_Om0 * tauG2 - complex_T(0, 1) * z)
                                   * sinPhi_3
                               - complex_T(0, 4) * sinPhi2_4
                                   * (cspeed * k * x2 - om0 * (y2 - float_T(4.0) * (c_t - z) * z) * sinPhi))
