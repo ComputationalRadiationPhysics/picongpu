@@ -416,14 +416,15 @@ namespace picongpu
                 const float_T c_Om0 = cspeed * om0;
                 const float_T om0_tauG2 = om0 * tauG2;
                 const float_T z_sinPhi = z * sinPhi;
+                const float_T y_cosPhi = y * cosPhi;
 
                 /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
                  * thus help with formal code verification through manual code inspection.
                  */
                 const complex_T helpVar1
-                    = c_Om0 * tauG2 * sinPhi_4 - complex_T(0, 8) * (sinPhi2_4 * sinPhi * (y * cosPhi + z_sinPhi));
+                    = c_Om0 * tauG2 * sinPhi_4 - complex_T(0, 8) * (sinPhi2_4 * sinPhi * (y_cosPhi + z_sinPhi));
 
-                const complex_T helpVar2 = complex_T(0, 1) * rho0 - y * cosPhi - z_sinPhi;
+                const complex_T helpVar2 = complex_T(0, 1) * rho0 - y_cosPhi - z_sinPhi;
 
                 const complex_T helpVar3
                     = (complex_T(0, float_T(-0.5)) * cscPhi
@@ -581,20 +582,21 @@ namespace picongpu
                 const float_T c_t = cspeed * t;
                 const float_T c_Om0 = cspeed * om0;
                 const float_T z_sinPhi = z * sinPhi;
+                const float_T y_cosPhi = y * cosPhi;
 
                 /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
                  * thus help with formal code verification through manual code inspection.
                  */
-                const complex_T helpVar1 = c_Om0 * tauG2 - complex_T(0, 1) * (y * cosPhi * secPhi2_2 * tanPhi2)
+                const complex_T helpVar1 = c_Om0 * tauG2 - complex_T(0, 1) * (y_cosPhi * secPhi2_2 * tanPhi2)
                     - complex_T(0, 2) * (z * tanPhi2_2);
-                const complex_T helpVar2 = complex_T(0, 1) * (cspeed * rho0) - cspeed * y * cosPhi - cspeed * z_sinPhi;
+                const complex_T helpVar2 = complex_T(0, 1) * (cspeed * rho0) - cspeed * y_cosPhi - cspeed * z_sinPhi;
 
-                const complex_T helpVar3 = rho0 + complex_T(0, 1) * (y * cosPhi) + complex_T(0, 1) * z_sinPhi;
-                const complex_T helpVar4 = complex_T(0, 1) * rho0 - y * cosPhi - z_sinPhi;
+                const complex_T helpVar3 = rho0 + complex_T(0, 1) * y_cosPhi + complex_T(0, 1) * z_sinPhi;
+                const complex_T helpVar4 = complex_T(0, 1) * rho0 - y_cosPhi - z_sinPhi;
                 const complex_T helpVar5 = -z - y * tanPI2_phi + complex_T(0, 1) * rho0 * cscPhi;
                 const complex_T helpVar6
                     = -cspeed * z - cspeed * y * tanPI2_phi + complex_T(0, 1) * cspeed * rho0 * cscPhi;
-                const complex_T helpVar7 = complex_T(0, 1) * (cspeed * rho0) - cspeed * y * cosPhi - cspeed * z_sinPhi;
+                const complex_T helpVar7 = complex_T(0, 1) * (cspeed * rho0) - cspeed * y_cosPhi - cspeed * z_sinPhi;
 
                 const complex_T helpVar8
                     = (om0 * y * rho0 * secPhi2_2 * secPhi2_2 / helpVar6
@@ -615,7 +617,7 @@ namespace picongpu
                            / (cspeed * helpVar1))
                     / float_T(4.0);
 
-                const complex_T helpVar9 = c_Om0 * tauG2 - complex_T(0, 1) * (y * cosPhi * secPhi2_2 * tanPhi2)
+                const complex_T helpVar9 = c_Om0 * tauG2 - complex_T(0, 1) * (y_cosPhi * secPhi2_2 * tanPhi2)
                     - complex_T(0, 2) * (z * tanPhi2_2);
 
                 const complex_T result = float_T(phiPositive)
@@ -731,13 +733,14 @@ namespace picongpu
                 const float_T om02_wy2_sinPhi = om02 * wy2 * sinPhi;
                 const float_T om0_wy2_roh0 = om0_wy2 * rho0;
                 const float_T c2_om0_wy2_roh0 = cspeed2 * om0_wy2 * rho0;
+                const float_T y_cosPhi = y * cosPhi;
 
                 /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
                  * thus help with formal code verification through manual code inspection.
                  */
-                const complex_T helpVar1 = complex_T(0, -1) * (c_Om0 * tauG2) - y * cosPhi / cosPhi2_2 * tanPhi2
+                const complex_T helpVar1 = complex_T(0, -1) * (c_Om0 * tauG2) - y_cosPhi / cosPhi2_2 * tanPhi2
                     - float_T(2.0) * z * tanPhi2_2;
-                const complex_T helpVar2 = complex_T(0, 1) * rho0 - y * cosPhi - z * sinPhi;
+                const complex_T helpVar2 = complex_T(0, 1) * rho0 - y_cosPhi - z * sinPhi;
 
 
                 const complex_T helpVar3
@@ -768,7 +771,7 @@ namespace picongpu
                        + complex_T(0, 4) * (cspeed * y2 * z * rho0 * tanPhi2_2)
                        - float_T(4.0) * z2 * om0_wy2_roh0 * tanPhi2_2
                        - complex_T(0, 2) * (y2 * z * om0_wy2_sinPhi * tanPhi2_2)
-                       - float_T(2.0) * y * cosPhi
+                       - float_T(2.0) * y_cosPhi
                            * (om0
                                   * (cspeed2
                                          * (complex_T(0, 1) * (t2 * wy2) + om0_wy2 * t * tauG2
