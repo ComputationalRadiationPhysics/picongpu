@@ -322,40 +322,40 @@ namespace picongpu
                  * thus help with formal code verification through manual code inspection.
                  */
                 const complex_T helpVar1 = c_Om0 * tauG2 * sinPhi_4
-                    - complex_T(0, 8) * sinPhi2_4 * sinPhi * (y * cosPhi + z_sinPhi);
+                    - complex_T(0, 8) * (sinPhi2_4 * sinPhi * (y * cosPhi + z_sinPhi));
 
                 const complex_T helpVar2 = complex_T(0, 1) * rho0 - y * cosPhi - z_sinPhi;
 
                 const complex_T helpVar3 = complex_T(0, float_T(-0.5)) * cscPhi
-                    * (complex_T(0, -8) * om0 * y * (c_t - z) * sinPhi2_2 * sinPhi_4
+                    * (complex_T(0, -8) * (om0 * y * (c_t - z) * sinPhi2_2 * sinPhi_4)
                            * (complex_T(0, 1) * rho0 - z_sinPhi)
                        - om0 * sinPhi_4 * sinPhi
                            * (-float_T(2.0) * z2 * rho0
                               - cspeed * cspeed
                                   * (k * tauG2 * x2 + float_T(2.0) * t * (t - complex_T(0, 1) * om0_tauG2) * rho0)
-                              + cspeed * (float_T(4.0) * t * z * rho0 - complex_T(0, 2) * om0_tauG2 * z * rho0)
+                              + cspeed * (float_T(4.0) * t * z * rho0 - complex_T(0, 2) * (om0_tauG2 * z * rho0))
                               - complex_T(0, 2) * (c_t - z) * (cspeed * (t - complex_T(0, 1) * om0_tauG2) - z)
                                   * z_sinPhi)
                        + float_T(2.0) * y * cosPhi * sinPhi_2
-                           * (complex_T(0, 4) * om0 * y * (c_t - z) * sinPhi2_2 * sinPhi_2
+                           * (complex_T(0, 4) * (om0 * y * (c_t - z) * sinPhi2_2 * sinPhi_2)
                               + om0 * (c_t - z)
                                   * (complex_T(0, 1) * c_t + c_Om0 * tauG2 - complex_T(0, 1) * z)
                                   * sinPhi_3
                               - complex_T(0, 4) * sinPhi2_4
                                   * (cspeed * k * x2 - om0 * (y2 - float_T(4.0) * (c_t - z) * z) * sinPhi))
                        - complex_T(0, 4) * sinPhi2_4
-                           * (complex_T(0, -4) * om0 * y * (c_t - z) * rho0 * cosPhi * sinPhi_2
+                           * (complex_T(0, -4) * (om0 * y * (c_t - z) * rho0 * cosPhi * sinPhi_2)
                               + complex_T(0, 2)
                                   * (om0 * (y2 + float_T(2.0) * z2) * rho0
-                                     - cspeed * z * (complex_T(0, 1) * k * x2 + float_T(2.0) * om0 * t * rho0))
+                                     - cspeed * z * (complex_T(0, 1) * (k * x2) + float_T(2.0) * om0 * t * rho0))
                                   * sinPhi_3
                               - float_T(2.0) * om0 * z * (y2 - float_T(2.0) * (c_t - z) * z) * sinPhi_4
                               + om0 * y2 * (c_t - z) * sin2Phi * sin2Phi))
                     / (cspeed * helpVar2 * helpVar1);
 
                 const complex_T helpVar4 = c_Om0 * tauG2
-                    - complex_T(0, 8) * y * math::tan(float_T(PI / 2.0) - phiT) * cscPhi * cscPhi * sinPhi2_4
-                    - complex_T(0, 2) * z * tanPhi2_2;
+                    - complex_T(0, 8) * (y * math::tan(float_T(PI / 2.0) - phiT) * cscPhi * cscPhi * sinPhi2_4)
+                    - complex_T(0, 2) * (z * tanPhi2_2);
 
                 const complex_T result
                     = (math::exp(helpVar3) * tauG * math::sqrt(c_Om0 * rho0 / helpVar2)) / math::sqrt(helpVar4);
