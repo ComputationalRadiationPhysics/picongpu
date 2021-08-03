@@ -143,6 +143,8 @@ Start a *topic/feature branch*:
 - `git checkout -b <newFeatureName>` (start a new branch from dev and check it out)
 - *hack hack*
 - `git add <yourChangedFiles>` (add changed and new files to index)
+- `git clang-format` (format all changed files with the clang-format utility, needs to be loaded or installed seperately)
+- `git add <yourChangedFiles>` (add the formating changes) 
 - `git commit` (commit your changes to your *local* repository)
 - `git pull --rebase mainline dev` (update with our *remote dev* updates and
   avoid a [merge commit](http://kernowsoul.com/blog/2012/06/20/4-ways-to-avoid-merge-commits-in-git/))
