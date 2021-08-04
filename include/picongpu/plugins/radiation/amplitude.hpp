@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -45,37 +45,12 @@ namespace picongpu
                 static constexpr uint32_t numComponents
                     = uint32_t(3) * uint32_t(sizeof(complex_T) / sizeof(typename complex_T::type));
 
-                /** constructor
-                 *
-                 * Arguments:
-                 * - vector_64: real 3D vector
-                 * - float: complex phase */
-                DINLINE Amplitude(vector_64 vec, picongpu::float_X phase)
-                {
-                    picongpu::float_X cosValue;
-                    picongpu::float_X sinValue;
-                    pmacc::math::sincos(phase, sinValue, cosValue);
-                    amp_x = pmacc::math::euler(
-                        precisionCast<T_Float>(vec.x()),
-                        precisionCast<T_Float>(sinValue),
-                        precisionCast<T_Float>(cosValue));
-                    amp_y = pmacc::math::euler(
-                        precisionCast<T_Float>(vec.y()),
-                        precisionCast<T_Float>(sinValue),
-                        precisionCast<T_Float>(cosValue));
-                    amp_z = pmacc::math::euler(
-                        precisionCast<T_Float>(vec.z()),
-                        precisionCast<T_Float>(sinValue),
-                        precisionCast<T_Float>(cosValue));
-                }
-
                 /** default constructor
                  *
                  * \warning does not initialize values! */
                 HDINLINE Amplitude(void)
                 {
                 }
-
 
                 /** constructor
                  *
@@ -138,6 +113,41 @@ namespace picongpu
                     return *this;
                 }
 
+                /** Add contribution of a macroparticle to the current object
+                 *
+                 * This function is to be used in the hot loop of the radiation kernel.
+                 * It is optimized for this particular use case and T_Float == float_64, float_X == float_32.
+                 * In this case, the radiation kernel uses mix of 32-bit and 64-bit precision.
+                 * And this implementation minimizes the casts done inside of the hot loop.
+                 * This logic can be expressed otherwise, but that may be less performant.
+                 *
+                 * @param realAmplitude 3d vector of real amplitudes
+                 * @param phase complex phase of the contribution
+                 * @param formFactorValue form factor value of the macroparticle
+                 *
+                 * @warning this function assumes T_Float == float_64 and float_X == float_32,
+                 *          otherwise the optimization is not productive
+                 */
+                DINLINE void addContribution(
+                    vector_64 const& realAmplitude,
+                    float_X const phase,
+                    float_X const formFactorValue)
+                {
+                    // On GPUs it is performance-critical to do sincos() in single precision
+                    float_X sinValue, cosValue;
+                    pmacc::math::sincos(phase, sinValue, cosValue);
+                    /* These two are the only type casts inside the hot loop,
+                     * we multiply here and not in the amplitude part to reduce casts.
+                     */
+                    auto const factoredSinValue = float_64{sinValue * formFactorValue};
+                    auto const factoredCosValue = float_64{cosValue * formFactorValue};
+                    /* We could have called pmacc::math::euler() and it would currently work.
+                     * However, factoredSinValue and factoredCosValue are not in [-1, 1], so we don't rely on euler().
+                     */
+                    amp_x += complex_T{realAmplitude.x() * factoredCosValue, realAmplitude.x() * factoredSinValue};
+                    amp_y += complex_T{realAmplitude.y() * factoredCosValue, realAmplitude.y() * factoredSinValue};
+                    amp_z += complex_T{realAmplitude.z() * factoredCosValue, realAmplitude.z() * factoredSinValue};
+                }
 
                 /** calculate radiation from *this amplitude
                  *
