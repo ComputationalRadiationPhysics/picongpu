@@ -41,7 +41,7 @@ pull-request-validation:
     - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
     - echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | tee -a /etc/apt/sources.list
     - apt update
-    - apt install -y clang-format-11
+    - DEBIAN_FRONTEND=noninteractive apt install -y clang-format-11
     # Check C++ code style
     - source $CI_PROJECT_DIR/share/ci/check_cpp_code_style.sh
   tags:
