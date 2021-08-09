@@ -241,6 +241,10 @@ for i in range(rounds):
             print("    BOOST_VERSION: '" + boost_version + "'")
             print("    CXX_VERSION: '" + compiler + "'")
             print("  before_script:")
+            if backend == "hip":
+                print("    - wget -q -O - "
+                      "https://repo.radeon.com/rocm/rocm.gpg.key | "
+                      "sudo apt-key add -")
             print("    - apt-get update -qq")
             print("    - apt-get install -y -qq libopenmpi-dev "
                   "openmpi-bin openssh-server")
