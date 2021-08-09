@@ -73,10 +73,16 @@ namespace picongpu
     //! Voronoi cell of the macro particle
     value_identifier(int16_t, voronoiCellId, -1);
 
-    //! interpolated electric field with respect to particle shape
+    /** interpolated electric field with respect to particle shape
+     *
+     * Attribute can be added to any species.
+     */
     value_identifier(float3_X, probeE, float3_X::create(0.));
 
-    //! interpolated electric field with respect to particle shape
+    /** interpolated magnetic field with respect to particle shape
+     *
+     * Attribute can be added to any species.
+     */
     value_identifier(float3_X, probeB, float3_X::create(0.));
 
     /** masking a particle for radiation
