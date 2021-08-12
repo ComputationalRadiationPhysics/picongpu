@@ -54,7 +54,8 @@ namespace picongpu
         {
         public:
             static const size_t featureDim = 3;
-            static const bool hasGuard = bmpl::not_<boost::is_same<FieldType, FieldJ>>::value;
+            static const ISAAC_IDX_TYPE guardSize = 0;
+            // static const bool hasGuard = bmpl::not_<boost::is_same<FieldType, FieldJ>>::value;
             static const bool persistent = bmpl::not_<boost::is_same<FieldType, FieldJ>>::value;
             typename FieldType::DataBoxType shifted;
             MappingDesc* cellDescription;
@@ -115,7 +116,7 @@ namespace picongpu
         {
         public:
             static const size_t featureDim = 1;
-            static const bool hasGuard = false;
+            static const ISAAC_IDX_TYPE guardSize = 0;
             static const bool persistent = false;
             typename FieldTmp::DataBoxType shifted;
             MappingDesc* cellDescription;
@@ -178,6 +179,67 @@ namespace picongpu
             {
                 auto value = shifted[nIndex.z][nIndex.y][nIndex.x];
                 return isaac_float_dim<featureDim>(value.x());
+            }
+        };
+
+        ISAAC_NO_HOST_DEVICE_WARNING
+        template<typename FieldType>
+        class TVectorFieldSource
+        {
+        public:
+            static const size_t featureDim = 3;
+            static const ISAAC_IDX_TYPE guardSize = 0;
+            static const bool persistent = bmpl::not_<boost::is_same<FieldType, FieldJ>>::value;
+            typename FieldType::DataBoxType shifted;
+            MappingDesc* cellDescription;
+            bool movingWindow;
+            TVectorFieldSource() : cellDescription(nullptr), movingWindow(false)
+            {
+            }
+
+            void init(MappingDesc* cellDescription, bool movingWindow)
+            {
+                this->cellDescription = cellDescription;
+                this->movingWindow = movingWindow;
+            }
+
+            static std::string getName()
+            {
+                return FieldType::getName() + std::string(" vector field");
+            }
+
+            void update(bool enabled, void* pointer)
+            {
+                if(enabled)
+                {
+                    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+                    DataConnector& dc = Environment<simDim>::get().DataConnector();
+                    auto pField = dc.get<FieldType>(FieldType::getName(), true);
+                    DataSpace<simDim> guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
+                    if(movingWindow)
+                    {
+                        GridController<simDim>& gc = Environment<simDim>::get().GridController();
+                        if(gc.getPosition()[1] == 0) // first gpu
+                        {
+                            uint32_t* currentStep = (uint32_t*) pointer;
+                            Window window(MovingWindow::getInstance().getWindow(*currentStep));
+                            guarding += subGrid.getLocalDomain().size - window.localDimensions.size;
+                        }
+                    }
+                    typename FieldType::DataBoxType dataBox = pField->getDeviceDataBox();
+                    shifted = dataBox.shift(guarding);
+                    /* avoid deadlock between not finished pmacc tasks and potential blocking operations
+                     * within ISAAC
+                     */
+                    __getTransactionEvent().waitForFinished();
+                }
+            }
+
+            ISAAC_NO_HOST_DEVICE_WARNING
+            ISAAC_HOST_DEVICE_INLINE isaac_float_dim<featureDim> operator[](const isaac_int3& nIndex) const
+            {
+                auto value = shifted[nIndex.z][nIndex.y][nIndex.x];
+                return isaac_float_dim<featureDim>(value.x(), value.y(), value.z());
             }
         };
 
@@ -342,6 +404,11 @@ namespace picongpu
             typedef TFieldSource<T> type;
         };
         template<typename T>
+        struct VectorFieldTransformoperator
+        {
+            typedef TVectorFieldSource<T> type;
+        };
+        template<typename T>
         struct ParticleTransformoperator
         {
             typedef ParticleSource<T> type;
@@ -372,6 +439,9 @@ namespace picongpu
             static const ISAAC_IDX_TYPE textureDim = 1024;
             using SourceList = bmpl::
                 transform<boost::fusion::result_of::as_list<Fields_Seq>::type, Transformoperator<bmpl::_1>>::type;
+            using VectorFieldSourceList = bmpl::transform<
+                boost::fusion::result_of::as_list<VectorFields_Seq>::type,
+                VectorFieldTransformoperator<bmpl::_1>>::type;
             // create compile time particle list
             using ParticleList = bmpl::transform<
                 boost::fusion::result_of::as_list<Particle_Seq>::type,
@@ -381,8 +451,9 @@ namespace picongpu
                 cupla::Acc,
                 cupla::AccStream,
                 cupla::KernelDim,
-                ParticleList,
                 SourceList,
+                VectorFieldSourceList,
+                ParticleList,
                 textureDim,
 #if(ISAAC_STEREO == 0)
                 isaac::DefaultController,
@@ -405,9 +476,13 @@ namespace picongpu
                 , renderInterval(1)
                 , step(0)
                 , drawingTime(0)
+                , simulationTime(0)
                 , cellCount(0)
                 , particleCount(0)
                 , lastNotify(0)
+                , runSteps(-10)
+                , timingsFileExist(0)
+                , recording(false)
             {
                 Environment<>::get().PluginConnector().registerPlugin(this);
             }
@@ -417,9 +492,97 @@ namespace picongpu
                 return "IsaacPlugin";
             }
 
+            void writeTimes(int time)
+            {
+                if(rank == 0)
+                {
+                    int min = std::numeric_limits<int>::max();
+                    int max = 0;
+                    int average = 0;
+                    int times[numProc];
+                    MPI_Gather(&time, 1, MPI_INT, times, 1, MPI_INT, 0, MPI_COMM_WORLD);
+                    for(int i = 0; i < numProc; i++)
+                    {
+                        min = (times[i] < min) ? times[i] : min;
+                        max = (times[i] > max) ? times[i] : max;
+                        average += times[i];
+                    }
+                    average /= numProc;
+                    timingsFile << min << "," << max << "," << average << ",";
+                }
+                else
+                {
+                    MPI_Gather(&time, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
+                }
+            }
+
+            void benchmark(bool pause)
+            {
+                if(recording && !pause && runSteps >= 0)
+                {
+                    if(rank == 0)
+                    {
+                        json_t* feedback = json_object();
+                        json_t* array = json_array();
+                        if(runSteps < 360)
+                        {
+                            json_array_append_new(array, json_real(1.0));
+                            json_array_append_new(array, json_real(0.0));
+                            json_array_append_new(array, json_real(0.0));
+                        }
+                        else if(runSteps < 720)
+                        {
+                            json_array_append_new(array, json_real(0.0));
+                            json_array_append_new(array, json_real(1.0));
+                            json_array_append_new(array, json_real(0.0));
+                        }
+                        else if(runSteps < 1080)
+                        {
+                            json_array_append_new(array, json_real(0.0));
+                            json_array_append_new(array, json_real(0.0));
+                            json_array_append_new(array, json_real(1.0));
+                        }
+                        else
+                        {
+                            json_array_append_new(array, json_real(1.0));
+                            json_array_append_new(array, json_real(1.0));
+                            json_array_append_new(array, json_real(1.0));
+                        }
+                        json_array_append_new(array, json_real(1.0));
+                        json_object_set_new(feedback, "rotation axis", array);
+                        visualization->getCommunicator()->setMessage(feedback);
+
+                        timingsFile << runSteps << ",";
+                    }
+                    writeTimes(simulationTime);
+                    writeTimes(drawingTime);
+                    writeTimes(visualization->kernelTime);
+                    writeTimes(visualization->mergeTime);
+                    writeTimes(visualization->videoSendTime);
+                    writeTimes(visualization->copyTime);
+                    writeTimes(visualization->sortingTime);
+                    writeTimes(visualization->bufferTime);
+                    writeTimes(visualization->advectionTime);
+                    writeTimes(visualization->advectionBorderTime);
+                    writeTimes(visualization->optimizationBufferTime);
+                    timingsFile << "\n";
+
+                    if(rank == 0 && timingsFile && runSteps == 1440)
+                    {
+                        timingsFile.close();
+                        recording = false;
+                    }
+                }
+            }
+
             void notify(uint32_t currentStep)
             {
-                uint64_t simulation_time = visualization->getTicksUs() - lastNotify;
+                if(recording)
+                {
+                    // guarantee for benchmarking run that all simulation related mpi communication is finished
+                    __getTransactionEvent().waitForFinished();
+                }
+                simulationTime = getTicksUs() - lastNotify;
                 step++;
                 if(step >= renderInterval)
                 {
@@ -446,6 +609,14 @@ namespace picongpu
                             visualization->updateLocalSize(localSize);
                             visualization->updateLocalParticleSize(particleSize);
                             visualization->updateBounding();
+                            isaac::Neighbours<isaac_int> neighbourIds;
+                            auto& gc = Environment<simDim>::get().GridController();
+
+                            for(uint32_t exchange = 0u; exchange < 27; ++exchange)
+                            {
+                                neighbourIds.array[exchange] = gc.getCommunicator().ExchangeTypeToRank(exchange);
+                            }
+                            visualization->updateNeighbours(neighbourIds);
                         }
                         if(rank == 0 && visualization->kernelTime)
                         {
@@ -460,8 +631,7 @@ namespace picongpu
                             json_object_set_new(
                                 visualization->getJsonMetaRoot(),
                                 "simulation_time",
-                                json_integer(simulation_time));
-                            simulation_time = 0;
+                                json_integer(simulationTime));
                             json_object_set_new(
                                 visualization->getJsonMetaRoot(),
                                 "cell count",
@@ -471,9 +641,11 @@ namespace picongpu
                                 "particle count",
                                 json_integer(particleCount));
                         }
-                        uint64_t start = visualization->getTicksUs();
+                        uint64_t start = getTicksUs();
                         json_t* meta = visualization->doVisualization(META_MASTER, &currentStep, !pause);
-                        drawingTime = visualization->getTicksUs() - start;
+                        // json_t* meta = nullptr;
+                        drawingTime = getTicksUs() - start;
+                        benchmark(pause);
                         json_t* jsonPause = nullptr;
                         if(meta && (jsonPause = json_object_get(meta, "pause")) && json_boolean_value(jsonPause))
                             pause = !pause;
@@ -498,7 +670,8 @@ namespace picongpu
                         }
                     } while(pause);
                 }
-                lastNotify = visualization->getTicksUs();
+                runSteps++;
+                lastNotify = getTicksUs();
             }
 
             void pluginRegisterHelp(po::options_description& desc)
@@ -532,7 +705,10 @@ namespace picongpu
                     "isaac.reconnect",
                     po::value<bool>(&reconnect)->default_value(true),
                     "Trying to reconnect every time an image is rendered if the connection is lost or could never "
-                    "established at all.");
+                    "established at all.")(
+                    "isaac.timingsFilename",
+                    po::value<std::string>(&timingsFilename)->default_value(""),
+                    "Filename for dumping ISAAC timings.");
             }
 
             void setMappingDescription(MappingDesc* cellDescription)
@@ -553,8 +729,9 @@ namespace picongpu
             int rank;
             int numProc;
             bool movingWindow;
-            ParticleList particleSources;
             SourceList sources;
+            VectorFieldSourceList vecFieldSources;
+            ParticleList particleSources;
             /** render interval within the notify period
              *
              * render each n-th time step within an interval defined by notifyPeriod
@@ -562,11 +739,19 @@ namespace picongpu
             uint32_t renderInterval;
             uint32_t step;
             int drawingTime;
+            int simulationTime;
             bool directPause;
             int cellCount;
             int particleCount;
             uint64_t lastNotify;
             bool reconnect;
+
+            // storage for timings and control variables
+            bool timingsFileExist;
+            bool recording;
+            int runSteps;
+            std::ofstream timingsFile;
+            std::string timingsFilename;
 
             void pluginLoad()
             {
@@ -587,6 +772,7 @@ namespace picongpu
                     isaac_size2 framebuffer_size = {cupla::IdxType(width), cupla::IdxType(height)};
 
                     forEachParams(sources, SourceInitIterator(), cellDescription, movingWindow);
+                    forEachParams(vecFieldSources, SourceInitIterator(), cellDescription, movingWindow);
                     forEachParams(particleSources, ParticleSourceInitIterator(), movingWindow);
 
                     isaac_size3 globalSize;
@@ -613,10 +799,31 @@ namespace picongpu
                         localSize,
                         particleSize,
                         position,
-                        particleSources,
                         sources,
+                        vecFieldSources,
+                        particleSources,
                         cellSizeFactor);
                     visualization->setJpegQuality(jpeg_quality);
+
+                    if(rank == 0)
+                    {
+                        auto& gc = Environment<simDim>::get().GridController();
+
+                        for(uint32_t exchange = 1u; exchange < 27; ++exchange)
+                        {
+                            int neighborRank = gc.getCommunicator().ExchangeTypeToRank(exchange);
+                            std::cout << exchange << ": " << neighborRank << std::endl;
+                        }
+                    }
+
+                    isaac::Neighbours<isaac_int> neighbourIds;
+                    auto& gc = Environment<simDim>::get().GridController();
+
+                    for(uint32_t exchange = 0u; exchange < 27; ++exchange)
+                    {
+                        neighbourIds.array[exchange] = gc.getCommunicator().ExchangeTypeToRank(exchange);
+                    }
+                    visualization->updateNeighbours(neighbourIds);
                     // Defining the later periodicly sent meta data
                     if(rank == 0)
                     {
@@ -652,10 +859,65 @@ namespace picongpu
                         cellCount = localNrOfCells * numProc;
                         particleCount = localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL
                             * (bmpl::size<VectorAllSpecies>::type::value) * numProc;
-                        lastNotify = visualization->getTicksUs();
+                        lastNotify = getTicksUs();
                         if(rank == 0)
+                        {
                             log<picLog::INPUT_OUTPUT>("ISAAC Init succeded");
+                        }
                     }
+                    if(rank == 0)
+                    {
+                        json_t* feedback = json_object();
+                        json_t* array = json_array();
+                        json_array_append_new(array, json_real(1.0));
+                        json_array_append_new(array, json_real(1.0));
+                        json_array_append_new(array, json_real(0.0));
+                        json_array_append_new(array, json_real(1.0));
+                        json_object_set_new(feedback, "rotation axis", array);
+                        visualization->getCommunicator()->setMessage(feedback);
+
+                        if(!timingsFilename.empty())
+                        {
+                            // Initialization if benchmarking run is started
+                            timingsFile.open(timingsFilename, std::ios::out | std::ios::trunc);
+                            std::cout << "Benchmark start filename: " << timingsFilename << std::endl;
+                            if(timingsFile)
+                                std::cout << "File was opened!" << std::endl;
+                            else
+                                std::cout << "File couldn't be opened!" << std::endl;
+                            timingsFile << "Timestep,";
+                            timingsFile << "min-sim,max-sim,average-sim,"
+                                        << "min-vis,max-vis,average-vis,"
+                                        << "min-kernel,max-kernel,average-kernel,"
+                                        << "min-merge,max-merge,average-merge,"
+                                        << "min-videoSend,max-videoSend,average-videoSend,"
+                                        << "min-copy,max-copy,average-copy,"
+                                        << "min-sorting,max-sorting,average-sorting,"
+                                        << "min-buffer,max-buffer,average-buffer,"
+                                        << "min-advection,max-advection,average-advection,"
+                                        << "min-advectionBorder,max-advectionBorder,average-advectionBorder,"
+                                        << "min-optimizationBuffer,max-optimizationBuffer,average-optimizationBuffer"
+                                        << "\n";
+                            json_t* feedback = json_object();
+                            json_t* weights = json_array();
+                            json_array_append_new(weights, json_real(double(7.0)));
+                            json_array_append_new(weights, json_real(double(7.0)));
+                            json_array_append_new(weights, json_real(double(7.0)));
+                            json_array_append_new(weights, json_real(double(0.0)));
+                            json_array_append_new(weights, json_real(double(0.0)));
+                            json_object_set_new(feedback, "weight", weights);
+                            json_t* isoThresholds = json_array();
+                            json_array_append_new(isoThresholds, json_real(double(1.0)));
+                            json_array_append_new(isoThresholds, json_real(double(1.0)));
+                            json_array_append_new(isoThresholds, json_real(double(1.0)));
+                            json_object_set_new(feedback, "iso threshold", isoThresholds);
+                            json_object_set_new(feedback, "interpolation", json_boolean(true));
+                            json_object_set_new(feedback, "distance relative", json_real(2.5));
+                            visualization->getCommunicator()->setMessage(feedback);
+                        }
+                    }
+                    if(!timingsFilename.empty())
+                        recording = true;
                 }
                 Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
             }
