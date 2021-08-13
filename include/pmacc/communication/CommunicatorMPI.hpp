@@ -271,6 +271,13 @@ namespace pmacc
             return result;
         }
 
+        /*! converts an exchangeType (e.g. RIGHT) to an MPI-rank
+         */
+        int ExchangeTypeToRank(uint32_t type)
+        {
+            return ranks[type];
+        }
+
 
     protected:
         /* Set the first found non charactor or number to 0 (nullptr)
@@ -432,13 +439,6 @@ namespace pmacc
 
                 // std::cout << "rank: " << rank << " " << i << " : " << ranks[i] << std::endl;
             }
-        }
-
-        /*! converts an exchangeType (e.g. RIGHT) to an MPI-rank
-         */
-        int ExchangeTypeToRank(uint32_t type)
-        {
-            return ranks[type];
         }
 
     private:
