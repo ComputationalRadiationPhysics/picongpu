@@ -59,15 +59,13 @@ namespace picongpu
             static const bool persistent = bmpl::not_<boost::is_same<FieldType, FieldJ>>::value;
             typename FieldType::DataBoxType shifted;
             MappingDesc* cellDescription;
-            bool movingWindow;
-            TFieldSource() : cellDescription(nullptr), movingWindow(false)
+            TFieldSource() : cellDescription(nullptr)
             {
             }
 
-            void init(MappingDesc* cellDescription, bool movingWindow)
+            void init(MappingDesc* cellDescription)
             {
                 this->cellDescription = cellDescription;
-                this->movingWindow = movingWindow;
             }
 
             static std::string getName()
@@ -79,20 +77,10 @@ namespace picongpu
             {
                 if(enabled)
                 {
-                    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
                     DataConnector& dc = Environment<simDim>::get().DataConnector();
                     auto pField = dc.get<FieldType>(FieldType::getName(), true);
                     DataSpace<simDim> guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
-                    if(movingWindow)
-                    {
-                        GridController<simDim>& gc = Environment<simDim>::get().GridController();
-                        if(gc.getPosition()[1] == 0) // first gpu
-                        {
-                            uint32_t* currentStep = (uint32_t*) pointer;
-                            Window window(MovingWindow::getInstance().getWindow(*currentStep));
-                            guarding += subGrid.getLocalDomain().size - window.localDimensions.size;
-                        }
-                    }
+
                     typename FieldType::DataBoxType dataBox = pField->getDeviceDataBox();
                     shifted = dataBox.shift(guarding);
                     /* avoid deadlock between not finished pmacc tasks and potential blocking operations
@@ -120,16 +108,14 @@ namespace picongpu
             static const bool persistent = false;
             typename FieldTmp::DataBoxType shifted;
             MappingDesc* cellDescription;
-            bool movingWindow;
 
-            TFieldSource() : cellDescription(nullptr), movingWindow(false)
+            TFieldSource() : cellDescription(nullptr)
             {
             }
 
-            void init(MappingDesc* cellDescription, bool movingWindow)
+            void init(MappingDesc* cellDescription)
             {
                 this->cellDescription = cellDescription;
-                this->movingWindow = movingWindow;
             }
 
             static std::string getName()
@@ -143,7 +129,6 @@ namespace picongpu
                 if(enabled)
                 {
                     uint32_t* currentStep = (uint32_t*) pointer;
-                    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
                     DataConnector& dc = Environment<simDim>::get().DataConnector();
 
                     PMACC_CASSERT_MSG(_please_allocate_at_least_one_FieldTmp_in_memory_param, fieldTmpNumSlots > 0);
@@ -160,15 +145,6 @@ namespace picongpu
                     __getTransactionEvent().waitForFinished();
 
                     DataSpace<simDim> guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
-                    if(movingWindow)
-                    {
-                        GridController<simDim>& gc = Environment<simDim>::get().GridController();
-                        if(gc.getPosition()[1] == 0) // first gpu
-                        {
-                            Window window(MovingWindow::getInstance().getWindow(*currentStep));
-                            guarding += subGrid.getLocalDomain().size - window.localDimensions.size;
-                        }
-                    }
                     typename FieldTmp::DataBoxType dataBox = fieldTmp->getDeviceDataBox();
                     shifted = dataBox.shift(guarding);
                 }
@@ -192,15 +168,13 @@ namespace picongpu
             static const bool persistent = bmpl::not_<boost::is_same<FieldType, FieldJ>>::value;
             typename FieldType::DataBoxType shifted;
             MappingDesc* cellDescription;
-            bool movingWindow;
-            TVectorFieldSource() : cellDescription(nullptr), movingWindow(false)
+            TVectorFieldSource() : cellDescription(nullptr)
             {
             }
 
-            void init(MappingDesc* cellDescription, bool movingWindow)
+            void init(MappingDesc* cellDescription)
             {
                 this->cellDescription = cellDescription;
-                this->movingWindow = movingWindow;
             }
 
             static std::string getName()
@@ -212,20 +186,10 @@ namespace picongpu
             {
                 if(enabled)
                 {
-                    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
                     DataConnector& dc = Environment<simDim>::get().DataConnector();
                     auto pField = dc.get<FieldType>(FieldType::getName(), true);
                     DataSpace<simDim> guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
-                    if(movingWindow)
-                    {
-                        GridController<simDim>& gc = Environment<simDim>::get().GridController();
-                        if(gc.getPosition()[1] == 0) // first gpu
-                        {
-                            uint32_t* currentStep = (uint32_t*) pointer;
-                            Window window(MovingWindow::getInstance().getWindow(*currentStep));
-                            guarding += subGrid.getLocalDomain().size - window.localDimensions.size;
-                        }
-                    }
+
                     typename FieldType::DataBoxType dataBox = pField->getDeviceDataBox();
                     shifted = dataBox.shift(guarding);
                     /* avoid deadlock between not finished pmacc tasks and potential blocking operations
@@ -335,7 +299,6 @@ namespace picongpu
 
         public:
             static const size_t featureDim = 3;
-            bool movingWindow;
             DataSpace<simDim> guarding;
             ISAAC_NO_HOST_DEVICE_WARNING
             ParticleSource()
@@ -349,11 +312,6 @@ namespace picongpu
 
             pmacc::memory::Array<ParticlesBoxType, 1> pb;
 
-            void init(bool movingWindow)
-            {
-                this->movingWindow = movingWindow;
-            }
-
             void update(bool enabled, void* pointer)
             {
                 // update movingWindow cells
@@ -364,20 +322,7 @@ namespace picongpu
                     auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
                     pb[0] = particles->getDeviceParticlesBox();
 
-                    const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
                     guarding = GuardSize::toRT();
-                    if(movingWindow)
-                    {
-                        GridController<simDim>& gc = Environment<simDim>::get().GridController();
-                        if(gc.getPosition()[1] == 0) // first gpu
-                        {
-                            Window window(MovingWindow::getInstance().getWindow(*currentStep));
-                            for(uint32_t i = 0; i < simDim; i++)
-                                guarding[i] += int(math::ceil(
-                                    (subGrid.getLocalDomain().size[i] - window.localDimensions.size[i])
-                                    / (float) MappingDesc::SuperCellSize::toRT()[i]));
-                        }
-                    }
                 }
             }
 
@@ -416,22 +361,12 @@ namespace picongpu
 
         struct SourceInitIterator
         {
-            template<typename TSource, typename TCellDescription, typename TMovingWindow>
-            void operator()(const int I, TSource& s, TCellDescription& c, TMovingWindow& w) const
+            template<typename TSource, typename TCellDescription>
+            void operator()(const int I, TSource& s, TCellDescription& c) const
             {
-                s.init(c, w);
+                s.init(c);
             }
         };
-
-        struct ParticleSourceInitIterator
-        {
-            template<typename TParticleSource, typename TMovingWindow>
-            void operator()(const int I, TParticleSource& s, TMovingWindow& w) const
-            {
-                s.init(w);
-            }
-        };
-
 
         class IsaacPlugin : public ILightweightPlugin
         {
@@ -594,24 +529,27 @@ namespace picongpu
                         if(movingWindow)
                         {
                             Window window(MovingWindow::getInstance().getWindow(currentStep));
-                            isaac_size3 position;
-                            isaac_size3 localSize;
-                            isaac_size3 particleSize;
+                            isaac_int3 position;
+                            const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+                            GridController<simDim>& gc = Environment<simDim>::get().GridController();
 
                             for(ISAAC_IDX_TYPE i = 0; i < 3; ++i)
                             {
-                                position[i] = window.localDimensions.offset[i];
-                                localSize[i] = window.localDimensions.size[i];
-                                particleSize[i]
-                                    = window.localDimensions.size[i] / MappingDesc::SuperCellSize::toRT()[i];
+                                if(gc.getPosition()[1] == 0) // first gpu
+                                {
+                                    position[i] = isaac_int(window.localDimensions.offset[i])
+                                        + isaac_int(window.localDimensions.size[i])
+                                        - isaac_int(subGrid.getLocalDomain().size[i]);
+                                }
+                                else
+                                {
+                                    position[i] = isaac_int(window.localDimensions.offset[i]);
+                                }
                             }
                             visualization->updatePosition(position);
-                            visualization->updateLocalSize(localSize);
-                            visualization->updateLocalParticleSize(particleSize);
                             visualization->updateBounding();
-                            isaac::Neighbours<isaac_int> neighbourIds;
-                            auto& gc = Environment<simDim>::get().GridController();
 
+                            isaac::Neighbours<isaac_int> neighbourIds;
                             for(uint32_t exchange = 0u; exchange < 27; ++exchange)
                             {
                                 neighbourIds.array[exchange] = gc.getCommunicator().ExchangeTypeToRank(exchange);
@@ -771,9 +709,8 @@ namespace picongpu
 
                     isaac_size2 framebuffer_size = {cupla::IdxType(width), cupla::IdxType(height)};
 
-                    forEachParams(sources, SourceInitIterator(), cellDescription, movingWindow);
-                    forEachParams(vecFieldSources, SourceInitIterator(), cellDescription, movingWindow);
-                    forEachParams(particleSources, ParticleSourceInitIterator(), movingWindow);
+                    forEachParams(sources, SourceInitIterator(), cellDescription);
+                    forEachParams(vecFieldSources, SourceInitIterator(), cellDescription);
 
                     isaac_size3 globalSize;
                     isaac_size3 localSize;
