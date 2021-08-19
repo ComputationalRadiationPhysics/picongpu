@@ -139,8 +139,12 @@ namespace picongpu
                     softwareVersion << "-" << PICONGPU_VERSION_LABEL;
                 series.setSoftware(software, softwareVersion.str());
 
-                const std::string date = helper::getDateString("%F %T %z");
-                series.setDate(date);
+                // don't write this if a previous run already wrote it
+                if(!series.containsAttribute("date"))
+                {
+                    const std::string date = helper::getDateString("%F %T %z");
+                    series.setDate(date);
+                }
 
                 ::openPMD::Container<::openPMD::Mesh>& meshes = iteration.meshes;
 
