@@ -39,10 +39,14 @@
 
 #pragma once
 
+#include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
+
 namespace picongpu
 {
     namespace isaacP
     {
+        namespace deriveField = particles::particleToGrid;
+
         /** Intermediate list of native particle species of PIConGPU which shall be
          *  visualized. */
         using Particle_Seq = VectorAllSpecies;
@@ -67,6 +71,10 @@ namespace picongpu
         /** Compile time sequence of all fields which shall be visualized. Basically
          *  the join of Native_Seq and Density_Seq. */
         using Fields_Seq = MakeSeq_t<Native_Seq, Density_Seq>;
+
+        /** Compile time sequence of all fields which shall be visualized. Basically
+         *  the join of Native_Seq and Density_Seq. */
+        using VectorFields_Seq = Native_Seq;
 
 
     } // namespace isaacP
