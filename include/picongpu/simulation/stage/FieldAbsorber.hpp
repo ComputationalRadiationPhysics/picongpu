@@ -54,7 +54,7 @@ namespace picongpu
                         po::value<std::string>(&kindName),
                         std::string(
                             "Field absorber kind [exponential, pml] default: " + kindName
-                            + "Other parameters are set in fieldAbsorber.param")
+                            + ".\nWhen changing absorber, adjust parameters in fieldAbsorber.param")
                             .c_str());
                 }
 
