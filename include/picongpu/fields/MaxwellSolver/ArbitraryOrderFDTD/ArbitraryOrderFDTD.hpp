@@ -21,10 +21,12 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/LaserPhysics.hpp"
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/ArbitraryOrderFDTD.def"
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Derivative.hpp"
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Weights.hpp"
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
+#include "picongpu/fields/MaxwellSolver/LaserChecker.hpp"
 #include "picongpu/fields/differentiation/Curl.hpp"
 
 #include <pmacc/traits/GetStringProperties.hpp>
@@ -62,6 +64,24 @@ namespace picongpu
                        > 1.0_X)
                         throw std::runtime_error(
                             "Courant-Friedrichs-Lewy condition check failed, check your grid.param file");
+                }
+            };
+
+            /** Specialization of the laser compatibility checker for for the arbitrary-order FDTD
+             *
+             * @tparam T_neighbors number of neighbors used to calculate the derivatives
+             */
+            template<uint32_t T_neighbors>
+            struct LaserChecker<ArbitraryOrderFDTD<T_neighbors>>
+            {
+                //! This solver is only compatible when matching the classic Yee
+                void operator()() const
+                {
+                    if(LaserPhysics::isEnabled() && T_neighbors != 1)
+                        log<picLog::PHYSICS>(
+                            "Warning: chosen field solver is not compatible to laser\n"
+                            "   The generated laser will be less accurate.\n"
+                            "   For an accurate generation, either use field background or switch to Yee solver");
                 }
             };
         } // namespace maxwellSolver
