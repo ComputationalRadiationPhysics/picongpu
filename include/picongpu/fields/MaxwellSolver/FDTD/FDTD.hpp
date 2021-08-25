@@ -109,7 +109,7 @@ namespace picongpu
                         auto& exponentialImpl = absorberImpl->asExponentialImpl();
                         exponentialImpl.run(currentStep, fieldE->getDeviceDataBox());
                     }
-                    if(laserProfiles::Selected::INIT_TIME > 0.0_X)
+                    if(LaserPhysics::isEnabled())
                         LaserPhysics{}(currentStep);
 
                     // Incident field solver update does not use exchanged E, so does not have to wait for it

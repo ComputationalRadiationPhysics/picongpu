@@ -87,6 +87,12 @@ namespace picongpu
         /** Laser init in a single xz plane */
         struct LaserPhysics
         {
+            //! Return if a laser is enabled for this simulation (None laser counts as not enabled)
+            static bool isEnabled()
+            {
+                return laserProfiles::Selected::INIT_TIME > 0.0_X;
+            }
+
             void operator()(uint32_t currentStep) const
             {
                 /* The laser can be initialized in the plane of the first cell or
