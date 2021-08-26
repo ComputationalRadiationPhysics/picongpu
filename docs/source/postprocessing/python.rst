@@ -3,12 +3,23 @@
 Python
 ======
 
-.. sectionauthor:: Axel Huebl
+.. sectionauthor:: Axel Huebl, Klaus Steiniger
 
 If you are new to python, get your hands on the tutorials of the following important libraries to get started.
 
 - https://www.python.org/about/gettingstarted/
 - https://docs.python.org/3/tutorial/index.html
+
+An easy way to get a Python environment for analysis of PIConGPU data up and running is to download and install
+Miniconda 
+
+https://docs.conda.io/en/latest/miniconda.html
+
+and set up a conda environment with the help of this conda environment file
+
+https://gist.github.com/steindev/d19263d41b0964bcecdfb1f47e18a86e
+
+(see documentation within the file).
 
 
 Numpy
