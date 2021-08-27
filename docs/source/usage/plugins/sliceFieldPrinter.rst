@@ -74,6 +74,10 @@ Each entry is of the format ``{1.1e-1,2.2e-2,3.3e.3}`` giving each value of the 
 In order to read this data format, there is a python module in ``lib/python/picongpu/plugins/sliceFieldReader.py``.
 The function ``readFieldSlices`` needs a data file (file or filename) with data from the plugin and returns the data as numpy-array of size ``(N_y, N_x, 3)``
 
+Known Limitations
+^^^^^^^^^^^^^^^^^
+
+- this plugin is only available with the CUDA backend
 
 Known Issues
 ^^^^^^^^^^^^

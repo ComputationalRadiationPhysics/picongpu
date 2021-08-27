@@ -9,7 +9,7 @@ Only in case of constant particle weighting, where each macro particle describes
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
-The plugin is available as soon as the :ref:`libSplash and HDF5 libraries <install-dependencies>` are compiled in.
+The plugin is available as soon as the :ref:`openPMD API <install-dependencies>` is compiled in.
 
 .cfg files
 ^^^^^^^^^^

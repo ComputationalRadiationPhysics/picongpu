@@ -38,6 +38,12 @@ The volume integral is realized by a discrete sum over the simulation cells and 
 .. note::
     This calculation is based on the kinematic model of scattering. Multiple scattering CAN NOT be handled in this model.
 
+External Dependencies
+^^^^^^^^^^^^^^^^^^^^^
+
+The plugin is available as soon as the :ref:`openPMD API <install-dependencies>` is compiled in.
+
+
 .param file
 ^^^^^^^^^^^
 

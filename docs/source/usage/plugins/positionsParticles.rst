@@ -73,6 +73,11 @@ In order to extract e.g. the position from this line the following can be used:
 
    cat trajectory.dat | awk '{print $7}' | sed -e "s/{//g" | sed -e 's/}//g' | sed -e 's/,/\t/g' > position.dat
 
+Known Limitations
+^^^^^^^^^^^^^^^^^
+
+- this plugin is only available with the CUDA backend
+
 Known Issues
 ^^^^^^^^^^^^
 

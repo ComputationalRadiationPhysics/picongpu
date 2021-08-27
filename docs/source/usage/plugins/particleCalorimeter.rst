@@ -12,7 +12,7 @@ The calorimeter takes into account all existing particles as well as optionally 
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
-The plugin is available as soon as the :ref:`libSplash and HDF5 libraries <install-dependencies>` are compiled in.
+The plugin is available as soon as the :ref:`openPMD API <install-dependencies>` is compiled in.
 
 .param file
 ^^^^^^^^^^^

@@ -48,9 +48,15 @@ Both files have two header rows describing the data.
 
 The following odd rows give the time step and then describe the y-position of the slice at which the maximum electric field or integrated electric field is computed.
 The even rows give the time step again and then the data (maximum electric field or integrated electric field) at the positions given in the previews row.
- 
-Know Issues
-^^^^^^^^^^^
+
+Known Limitations
+^^^^^^^^^^^^^^^^^
+
+- this plugin is only available with the CUDA backend
+- this plugin is only available for 3D simulations
+
+Known Issues
+^^^^^^^^^^^^
 
 Currently, the output file is overwritten after restart.
 Additionally, this plugin does not work with non-regular domains, see `here <https://github.com/ComputationalRadiationPhysics/picongpu/blob/4a6d8ed0ea4a1bf54f55b4941461c6368df89b1c/src/picongpu/include/plugins/IntensityPlugin.hpp#L235>`_ .
