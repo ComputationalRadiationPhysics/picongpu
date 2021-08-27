@@ -28,6 +28,7 @@
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.kernel"
+#include "picongpu/fields/MaxwellSolver/LaserChecker.hpp"
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/absorber/pml/Pml.hpp"
 #include "picongpu/fields/cellType/Yee.hpp"
@@ -58,6 +59,7 @@ namespace picongpu
                 FDTD(MappingDesc const cellDescription) : cellDescription(cellDescription)
                 {
                     CFLChecker<FDTD>{}();
+                    LaserChecker<FDTD>{}();
                     DataConnector& dc = Environment<>::get().DataConnector();
                     fieldE = dc.get<FieldE>(FieldE::getName(), true);
                     fieldB = dc.get<FieldB>(FieldB::getName(), true);
@@ -109,7 +111,7 @@ namespace picongpu
                         auto& exponentialImpl = absorberImpl->asExponentialImpl();
                         exponentialImpl.run(currentStep, fieldE->getDeviceDataBox());
                     }
-                    if(laserProfiles::Selected::INIT_TIME > 0.0_X)
+                    if(LaserPhysics::isEnabled())
                         LaserPhysics{}(currentStep);
 
                     // Incident field solver update does not use exchanged E, so does not have to wait for it
