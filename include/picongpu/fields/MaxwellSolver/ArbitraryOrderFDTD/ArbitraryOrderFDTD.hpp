@@ -79,9 +79,10 @@ namespace picongpu
                 {
                     if(LaserPhysics::isEnabled() && T_neighbors != 1)
                         log<picLog::PHYSICS>(
-                            "Warning: chosen field solver is not compatible to laser\n"
+                            "Warning: chosen field solver is not fully compatible to chosen laser field generation\n"
                             "   The generated laser will be less accurate.\n"
-                            "   For an accurate generation, either use field background or switch to Yee solver");
+                            "   Evaluate differences between the generated laser field and your expectation.\n"
+                            "   For a fully accurate generation, either use field background or switch to Yee solver");
                 }
             };
         } // namespace maxwellSolver
