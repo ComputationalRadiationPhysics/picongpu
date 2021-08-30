@@ -1,5 +1,5 @@
 /* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
- *                     Klaus Steiniger, Felix Schmitt, Benjamin Worpitz
+ *                     Klaus Steiniger, Felix Schmitt, Benjamin Worpitz, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -132,7 +132,7 @@ namespace picongpu
                     PMACC_SMEM(acc, real_amplitude_s, memory::Array<vector_64, blockSize>);
 
                     // retarded time
-                    PMACC_SMEM(acc, t_ret_s, memory::Array<picongpu::float_64, blockSize>);
+                    PMACC_SMEM(acc, t_ret_s, memory::Array<picongpu::float_X, blockSize>);
 
                     // storage for macro particle weighting needed if
                     // the coherent and incoherent radiation of a single
@@ -318,7 +318,7 @@ namespace picongpu
                                                 * particle_charge * picongpu::float_64(DELTA_T);
 
                                             // retarded time stored in shared memory
-                                            t_ret_s[saveParticleAt] = amplitude3.get_t_ret(look);
+                                            t_ret_s[saveParticleAt] = static_cast<float_X>(amplitude3.get_t_ret(look));
 
                                             lowpass_s[saveParticleAt] = NyquistLowPass(look, particle);
 
@@ -359,41 +359,32 @@ namespace picongpu
                                 Amplitude amplitude = Amplitude::zero();
 
                                 // compute frequency "omega" using for-loop-index "o"
-                                picongpu::float_64 const omega = freqFkt(o);
+                                picongpu::float_X const omega = static_cast<float_X>(freqFkt(o));
 
-                                // create a form factor object
-                                radFormFactor::radFormFactor const myRadFormFactor{};
+                                // create a form factor functor
+                                radFormFactor::radFormFactor const myRadFormFactor{omega, look};
 
                                 /* Particle loop: thread runs through loaded particle data
                                  *
                                  * Summation of Jackson radiation formula integrand
                                  * over all electrons for fixed, thread-specific
                                  * frequency
+                                 *
+                                 * This is the hot loop of this kernel, taking ~95% of its time.
+                                 * So performance-wise the rest of this kernel does not significantly contribute.
+                                 * On the contrary, few operations done inside the loop matter a lot.
                                  */
                                 for(int j = 0; j < counter_s; ++j)
                                 {
                                     // check Nyquist-limit for each particle "j" and each frequency "omega"
                                     if(lowpass_s[j].check(omega))
                                     {
-                                        /****************************************************
-                                         **** Here happens the true physical calculation ****
-                                         ****************************************************/
-
-                                        // calulate the form factor's' influences to the real amplitude
-                                        vector_64 const weighted_real_amp = real_amplitude_s[j]
-                                            * precisionCast<float_64>(myRadFormFactor(radWeighting_s[j], omega, look));
-
-                                        /* complex amplitude increment for j-th particle
-                                         * It is local to the loop and can be single precision
-                                         */
-                                        Amplitude amplitude_add(weighted_real_amp, t_ret_s[j] * omega);
-
-                                        // add this single amplitude those previously considered
-                                        amplitude += amplitude_add;
-
-                                    } // END: check Nyquist-limit for each particle "j" and each frequency "omega"
-
-                                } // END: Particle loop
+                                        // Here happens the true physical calculation
+                                        float_X const formFactorValue = myRadFormFactor(radWeighting_s[j]);
+                                        float_X const phase = t_ret_s[j] * omega;
+                                        amplitude.addContribution(real_amplitude_s[j], phase, formFactorValue);
+                                    }
+                                }
 
                                 /* the radiation contribution of the following is added to global memory:
                                  *     - valid particles of last super cell

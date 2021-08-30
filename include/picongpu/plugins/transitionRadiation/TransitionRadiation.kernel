@@ -292,14 +292,16 @@ namespace picongpu
 
                                 // create a form factor object for physical correct coherence effects within
                                 // macro-particles
-                                macroParticleFormFactor::radFormFactor const macroParticleFormFactor{};
+                                float_X const omega = freqFkt(o);
+                                macroParticleFormFactor::radFormFactor const macroParticleFormFactor{
+                                    omega,
+                                    precisionCast<float_64>(look)};
 
                                 for(int j = 0; j < counter_s; ++j)
                                 {
-                                    float_X const omega = freqFkt(o);
                                     complex_X const formfactor
                                         = transitionRadiation::calcFormFactor(omega, formfactorExponent_s[j])
-                                        * macroParticleFormFactor(radWeighting_s[j], omega, look);
+                                        * macroParticleFormFactor(radWeighting_s[j]);
 
                                     itrSum += radWeighting_s[j]
                                         * (energyPerp_s[j] * energyPerp_s[j] + energyPara_s[j] * energyPara_s[j]);
