@@ -104,7 +104,7 @@ PIConGPU
     - \mu_0 J_x\rvert_{i+1/2, j, k}^{n+1/2}
 
    \frac{E_y\rvert_{i, j+1/2, k}^{n+1} - E_y\rvert_{i, j+1/2, k}^{n}}{c^2 \Delta t} =&
-    \frac{B_x\rvert_{i, j+1/2, k+1/2}^{n+1/2} - B_x\rvert_{i, j, k-1/2}^{n+1/2}}{\Delta z}
+    \frac{B_x\rvert_{i, j+1/2, k+1/2}^{n+1/2} - B_x\rvert_{i, j+1/2, k-1/2}^{n+1/2}}{\Delta z}
 
    & - \frac{B_z\rvert_{i+1/2, j+1/2, k}^{n+1/2} - B_z\rvert_{i-1/2, j+1/2, k}^{n+1/2}}{\Delta x}
     - \mu_0 J_y\rvert_{i, j+1/2, k}^{n+1/2}
@@ -113,7 +113,7 @@ PIConGPU
     \frac{B_y\rvert_{i+1/2, j, k+1/2}^{n+1/2} - B_y\rvert_{i-1/2, j, k+1/2}^{n+1/2}}{\Delta x}
 
    & - \frac{B_x\rvert_{i, j+1/2, k+1/2}^{n+1/2} - B_x\rvert_{i, j-1/2, k+1/2}^{n+1/2}}{\Delta y}
-    - \mu_0 J_z\rvert_{i+1/2, j+1/2, k}^{n+1/2}
+    - \mu_0 J_z\rvert_{i, j, k+1/2}^{n+1/2}
 
    \frac{B_x\rvert_{i, j+1/2, k+1/2}^{n+3/2} - B_x\rvert_{i, j+1/2, k+1/2}^{n+1/2}}{\Delta t} =&
     \frac{E_y\rvert_{i, j+1/2, k+1}^{n+1} - E_y\rvert_{i, j+1/2, k}^{n+1}}{\Delta z}
