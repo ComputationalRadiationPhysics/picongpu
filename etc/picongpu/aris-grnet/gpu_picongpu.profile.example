@@ -34,7 +34,7 @@ module load picongpu
 #
 # module load zlib/1.2.8
 # module load pngwriter/0.7.0
-# module load hdf5-parallel/1.8.20 libsplash/1.7.0
+# module load hdf5-parallel/1.8.20
 
 # Work-Arounds ################################################################
 #

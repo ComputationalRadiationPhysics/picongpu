@@ -55,14 +55,11 @@ export PROJECT=/ccs/proj/$PROJID/PIConGPU
 export PIC_LIBS=$PROJECT/lib
 export ZLIB_ROOT=$PIC_LIBS/zlib-1.2.11
 export PNGwriter_ROOT=$PIC_LIBS/pngwriter-0.7.0
-export Splash_ROOT=$PIC_LIBS/splash
 
 export LD_LIBRARY_PATH=$ZLIB_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$PNGwriter_ROOT/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$Splash_ROOT/lib:$LD_LIBRARY_PATH
 
 export CMAKE_PREFIX_PATH=$ZLIB_ROOT:$CMAKE_PREFIX_PATH
-export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
 
 # Environment #################################################################
 #

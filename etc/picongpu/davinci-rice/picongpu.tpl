@@ -58,7 +58,7 @@ echo -n "present working directory:"
 pwd
 
 # create hostfile with uniq histnames for makeParallelPictures
-export LD_LIBRARY_PATH="TBG_outDir/build_libsplash:TBG_outDir/build_simlib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="TBG_outDir/build_simlib:$LD_LIBRARY_PATH"
 
 export MODULES_NO_OUTPUT=1
 

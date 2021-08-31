@@ -39,16 +39,13 @@ export PIC_LIBS=$HOME/lib/power9
 export BOOST_ROOT=$PIC_LIBS/boost-1.68.0-Power9
 export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0-Power9
 export HDF5_ROOT=$PIC_LIBS/hdf5-1.8.20-Power9
-export Splash_DIR=$PIC_LIBS/splash-Power9
 export BLOSC_ROOT=$PIC_LIBS/blosc-1.16.2-Power9
 
 export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$PNGwriter_DIR/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$HDF5_ROOT/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$Splash_DIR/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
 export CMAKE_PREFIX_PATH=$HDF5_ROOT:$CMAKE_PREFIX_PATH
-export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
 
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples

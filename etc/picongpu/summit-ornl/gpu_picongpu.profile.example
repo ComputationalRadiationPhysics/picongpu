@@ -35,11 +35,6 @@ module load c-blosc/1.21.0 zfp/0.5.5 sz/2.1.11.1 lz4/1.9.3
 module load adios2/2.7.1
 module load openpmd-api/0.13.2
 
-# optionally download libSplash and compile it yourself from
-#   https://github.com/ComputationalRadiationPhysics/libSplash/
-# export Splash_ROOT=<your libSplash install directory>  # e.g., ${HOME}/sw/libSplash-1.7.0
-# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$Splash_ROOT/lib
-
 #export T3PIO_ROOT=$PROJWORK/$proj/lib/t3pio
 #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$T3PIO_ROOT/lib
 
