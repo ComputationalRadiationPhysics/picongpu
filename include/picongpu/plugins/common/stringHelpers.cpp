@@ -46,40 +46,5 @@ namespace picongpu
 
             return dateString.str();
         }
-
-        GetSplashArrayOfString::Result GetSplashArrayOfString::operator()(
-            std::list<std::string> listOfStrings,
-            char padding)
-        {
-            Result result;
-
-            // find length of longest string in list
-            CompStrBySize compStrBySize;
-            std::string longestString = *std::max_element(listOfStrings.begin(), listOfStrings.end(), compStrBySize);
-            result.maxLen = longestString.size();
-
-            // allocate & prepare buffer with padding
-            //   size per buffer must include terminator \0 !
-            const size_t bytesPerEntry = result.maxLen + 1;
-            const size_t lenAllBuffers = listOfStrings.size() * bytesPerEntry;
-            result.buffers.assign(lenAllBuffers, padding);
-
-            // copy buffers
-            std::list<std::string>::iterator listIt = listOfStrings.begin();
-            for(size_t i = 0; i < listOfStrings.size(); ++i, ++listIt)
-            {
-                // index points to each part of the buffer individually
-                const size_t startIdx = i * bytesPerEntry;
-                std::vector<char>::iterator startIt = result.buffers.begin() + startIdx;
-
-                // copy byte-wise onto padding
-                std::copy(listIt->begin(), listIt->end(), startIt);
-                if(padding != '\0')
-                    result.buffers.at(startIdx + result.maxLen) = '\0';
-            }
-
-            // return
-            return result;
-        }
     } // namespace helper
 } // namespace picongpu

@@ -893,7 +893,7 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 /* globalSlideOffset due to gpu slides between origin at time step 0
                  * and origin at current time step
-                 * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
+                 * ATTENTION: offset is globalSlideOffset + picongpu offsets
                  */
                 DataSpace<simDim> globalSlideOffset;
                 const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();

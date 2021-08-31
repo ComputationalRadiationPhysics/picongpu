@@ -371,28 +371,6 @@ endif()
 PIC_dependency_set_status(openPMD ${openPMD_FOUND})
 
 ################################################################################
-# libSplash (+ hdf5 due to required headers)
-################################################################################
-
-PIC_dependency(Splash "API for IO with HDF5" AUTO)
-
-if(PIC_SEARCH_Splash)
-    find_package(Splash 1.7.0 CONFIG COMPONENTS PARALLEL)
-
-    if(TARGET Splash::Splash)
-        add_definitions(-DENABLE_HDF5=1)
-        set(LIBS ${LIBS} Splash::Splash)
-        message(STATUS "Found Splash: ${Splash_DIR}")
-    else()
-        message(STATUS "Could NOT find Splash - "
-                       "set Splash_DIR or check your CMAKE_PREFIX_PATH")
-        PIC_dependency_set_status(Splash FALSE)
-    endif()
-endif()
-
-PIC_dependency_set_status(Splash ${Splash_FOUND})
-
-################################################################################
 # PNGwriter
 ################################################################################
 
