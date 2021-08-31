@@ -83,12 +83,7 @@ def deviation_charge_conservation(series, iteration):
             norm = np.max([norm, np.amax(np.abs(species_Density))])
             # add charge density to total charge density
             charge += species_Density
-            # We check the attribute _size of any/all density_[species].
-            # libSplash always keeps this as an array of length 3. It
-            # describes the size of the data in each dimension. If we are in
-            # a 2D simulation, the size of the z or [2]-component is 1, which
-            # is <2. The code changes the 2D3D flag if one Density data set is
-            # 2D.
+
             if species_Density.ndim == 2:
                 is2D = True
 
