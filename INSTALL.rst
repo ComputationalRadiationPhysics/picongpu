@@ -209,25 +209,6 @@ pngwriter
   - ``export CMAKE_PREFIX_PATH=$HOME/lib/pngwriter:$CMAKE_PREFIX_PATH``
   - ``export LD_LIBRARY_PATH=$HOME/lib/pngwriter/lib:$LD_LIBRARY_PATH``
 
-libSplash
-"""""""""
-- 1.7.0+ (requires *HDF5*, *boost program-options*)
-- *Debian/Ubuntu dependencies:* ``sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev``
-- *Arch Linux dependencies:* ``sudo pacman --sync hdf5-openmpi boost``
-- *Spack:* ``spack install libsplash ^hdf5~fortran``
-- *from source:*
-
-  - ``mkdir -p ~/src ~/build ~/lib``
-  - ``git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/``
-  - ``cd ~/build && rm -rf ../build/*``
-  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/splash -DSplash_USE_MPI=ON -DSplash_USE_PARALLEL=ON ~/src/splash``
-  - ``make install``
-
-- *environment:* (assumes install from source in ``$HOME/lib/splash``)
-
-  - ``export CMAKE_PREFIX_PATH=$HOME/lib/splash:$CMAKE_PREFIX_PATH``
-  - ``export LD_LIBRARY_PATH=$HOME/lib/splash/lib:$LD_LIBRARY_PATH``
-
 HDF5
 """"
 - 1.8.13+
@@ -253,29 +234,6 @@ HDF5
 
   - ``export HDF5_ROOT=$HOME/lib/hdf5``
   - ``export LD_LIBRARY_PATH=$HDF5_ROOT/lib:$LD_LIBRARY_PATH``
-
-splash2txt
-""""""""""
-- requires *libSplash* and *boost* ``program_options``
-- converts slices in dumped hdf5 files to plain txt matrices
-- assume you [downloaded](#requirements) PIConGPU to `PICSRC=$HOME/src/picongpu`
-- ``mkdir -p ~/build && cd ~/build``
-- ``cmake -DCMAKE_INSTALL_PREFIX=$PICSRC/src/tools/bin $PICSRC/src/tools/splash2txt``
-- ``make``
-- ``make install``
-- *environment:*
-
-  - ``export PATH=$PATH:$PICSRC/src/splash2txt/build``
-- options:
-
-  - ``splash2txt --help``
-  - list all available datasets: ``splash2txt --list <FILE_PREFIX>``
-
-png2gas
-"""""""
-- requires *libSplash*, *pngwriter* and *boost* ``program_options``)
-- converts png files to hdf5 files that can be used as an input for species initial density profiles
-- compile and install exactly as *splash2txt* above
 
 c-blosc
 """""""

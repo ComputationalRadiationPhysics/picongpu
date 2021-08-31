@@ -26,8 +26,6 @@ digraph PIConGPU {
     hdf5 [label="hdf5-parallel"];
     mpi -> hdf5;
     zlib -> hdf5;
-    hdf5 -> libSplash;
-    boost -> libSplash [style=dashed label="tools"];
 
     adios [label="ADIOS"];
     mpi -> adios;
