@@ -69,6 +69,8 @@ Summit (ORNL)
 **Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#file-systems>`_).
 Note that ``$HOME`` is mounted on compute nodes as read-only.
 
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
+
 V100 GPUs (recommended)
 ^^^^^^^^^^^^^^^^^^^^^^^
 

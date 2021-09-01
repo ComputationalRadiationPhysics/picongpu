@@ -83,7 +83,8 @@ def deviation_charge_conservation(series, iteration):
             norm = np.max([norm, np.amax(np.abs(species_Density))])
             # add charge density to total charge density
             charge += species_Density
-
+            # We check the attribute _size of any/all density_[species].
+            # openPMD always keeps this as an array of length 3. It
             if species_Density.ndim == 2:
                 is2D = True
 
