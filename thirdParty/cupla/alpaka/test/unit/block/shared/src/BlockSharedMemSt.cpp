@@ -79,7 +79,7 @@ TEMPLATE_LIST_TEST_CASE("nonNull", "[blockSharedMemSt]", alpaka::test::TestAccs)
 }
 
 //#############################################################################
-class BlockSharedMemStSameTypeDifferentAdressTestKernel
+class BlockSharedMemStSameTypeAdressVerificationTestKernel
 {
 public:
     //-----------------------------------------------------------------------------
@@ -87,9 +87,14 @@ public:
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
     {
+        // Allocations in the loop with same template signature should be equal too this allocation.
+        // 21 byte is chosen to break nice alignment for all following calls of declareSharedVar.
+        auto& baseAllocation = alpaka::declareSharedVar<alpaka::test::Array<std::uint8_t, 21>, 42>(acc);
+
         // Multiple runs to make sure it really works.
         for(std::size_t i = 0u; i < 10; ++i)
         {
+            // same type but different id should result in different pointer for each allocation
             auto& a = alpaka::declareSharedVar<std::uint32_t, __COUNTER__>(acc);
             auto& b = alpaka::declareSharedVar<std::uint32_t, __COUNTER__>(acc);
             ALPAKA_CHECK(*success, &a != &b);
@@ -108,11 +113,24 @@ public:
             ALPAKA_CHECK(*success, &c != &e[0]);
             ALPAKA_CHECK(*success, &d[0] != &e[0]);
         }
+
+        for(std::size_t i = 0u; i < 10; ++i)
+        {
+            // same type and same id should result in same pointer for each allocation
+            auto& a = alpaka::declareSharedVar<alpaka::test::Array<std::uint8_t, 21>, 42>(acc);
+            auto& b = alpaka::declareSharedVar<alpaka::test::Array<std::uint8_t, 21>, 42>(acc);
+            ALPAKA_CHECK(*success, &a == &b);
+            ALPAKA_CHECK(*success, &a == &baseAllocation);
+
+            auto& lastAllocation = alpaka::declareSharedVar<alpaka::test::Array<std::uint8_t, 23>, 23>(acc);
+            auto& c = alpaka::declareSharedVar<alpaka::test::Array<std::uint8_t, 23>, 23>(acc);
+            ALPAKA_CHECK(*success, &lastAllocation == &c);
+        }
     }
 };
 
 //-----------------------------------------------------------------------------
-TEMPLATE_LIST_TEST_CASE("sameTypeDifferentAddress", "[blockSharedMemSt]", alpaka::test::TestAccs)
+TEMPLATE_LIST_TEST_CASE("sameTypeAddressVerification", "[blockSharedMemSt]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
     using Dim = alpaka::Dim<Acc>;
@@ -121,7 +139,7 @@ TEMPLATE_LIST_TEST_CASE("sameTypeDifferentAddress", "[blockSharedMemSt]", alpaka
     // Use multiple threads to make sure the synchronization really works.
     alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(static_cast<Idx>(3u)));
 
-    BlockSharedMemStSameTypeDifferentAdressTestKernel kernel;
+    BlockSharedMemStSameTypeAdressVerificationTestKernel kernel;
 
     REQUIRE(fixture(kernel));
 }

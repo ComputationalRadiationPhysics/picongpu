@@ -20,6 +20,8 @@ TARGET_INCLUDE_DIRECTORIES(
 
 IF(ALPAKA_ACC_GPU_CUDA_ENABLE AND (ALPAKA_CUDA_COMPILER MATCHES "nvcc") AND (ALPAKA_CUDA_VERSION VERSION_GREATER_EQUAL 11.0))
     LIST(APPEND CUDA_NVCC_FLAGS -Wdefault-stream-launch -Werror=default-stream-launch)
+    # export to parent scope to be visible in all test cases
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} PARENT_SCOPE)
 ENDIF()
 
 #MSVC

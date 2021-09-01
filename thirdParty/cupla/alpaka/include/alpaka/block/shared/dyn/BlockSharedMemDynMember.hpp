@@ -53,9 +53,7 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         BlockSharedMemDynMember(std::size_t sizeBytes) : m_dynPitch(getPitch(sizeBytes))
         {
-#if(defined ALPAKA_DEBUG_OFFLOAD_ASSUME_HOST) && (!defined NDEBUG)
-            ALPAKA_ASSERT(static_cast<std::uint32_t>(sizeBytes) <= staticAllocBytes());
-#endif
+            ALPAKA_ASSERT_OFFLOAD(static_cast<std::uint32_t>(sizeBytes) <= staticAllocBytes());
         }
         //-----------------------------------------------------------------------------
         BlockSharedMemDynMember(BlockSharedMemDynMember const&) = delete;

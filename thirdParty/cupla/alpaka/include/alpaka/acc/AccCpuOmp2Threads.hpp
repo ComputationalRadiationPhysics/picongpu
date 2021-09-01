@@ -19,8 +19,8 @@
 #    include <alpaka/atomic/AtomicHierarchy.hpp>
 #    include <alpaka/atomic/AtomicOmpBuiltIn.hpp>
 #    include <alpaka/atomic/AtomicStdLibLock.hpp>
-#    include <alpaka/block/shared/dyn/BlockSharedMemDynAlignedAlloc.hpp>
-#    include <alpaka/block/shared/st/BlockSharedMemStMasterSync.hpp>
+#    include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
+#    include <alpaka/block/shared/st/BlockSharedMemStMemberMasterSync.hpp>
 #    include <alpaka/block/sync/BlockSyncBarrierOmp.hpp>
 #    include <alpaka/idx/bt/IdxBtOmp.hpp>
 #    include <alpaka/idx/gb/IdxGbRef.hpp>
@@ -72,8 +72,8 @@ namespace alpaka
             AtomicOmpBuiltIn     // thread atomics
         >,
         public math::MathStdLib,
-        public BlockSharedMemDynAlignedAlloc,
-        public BlockSharedMemStMasterSync,
+        public BlockSharedMemDynMember<>,
+        public BlockSharedMemStMemberMasterSync<>,
         public BlockSyncBarrierOmp,
         public IntrinsicCpu,
         public rand::RandStdLib,
@@ -103,8 +103,10 @@ namespace alpaka
                   AtomicOmpBuiltIn // atomics between threads
                   >()
             , math::MathStdLib()
-            , BlockSharedMemDynAlignedAlloc(blockSharedMemDynSizeBytes)
-            , BlockSharedMemStMasterSync(
+            , BlockSharedMemDynMember<>(blockSharedMemDynSizeBytes)
+            , BlockSharedMemStMemberMasterSync<>(
+                  staticMemBegin(),
+                  staticMemCapacity(),
                   [this]() { syncBlockThreads(*this); },
                   []() { return (::omp_get_thread_num() == 0); })
             , BlockSyncBarrierOmp()

@@ -105,7 +105,8 @@ OPTION(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE "Enable the fibers CPU block thread 
 OPTION(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE "Enable the TBB CPU grid block back-end" OFF)
 OPTION(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE "Enable the OpenMP 2.0 CPU grid block accelerator" OFF)
 OPTION(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE "Enable the OpenMP 2.0 CPU block thread accelerator" OFF)
-OPTION(ALPAKA_ACC_CPU_BT_OMP4_ENABLE "Enable the OpenMP 4.0 CPU block and block thread accelerator" OFF)
+OPTION(ALPAKA_ACC_ANY_BT_OMP5_ENABLE "Enable the OpenMP 5 offloading block and block thread accelerator" OFF)
+OPTION(ALPAKA_ACC_ANY_BT_OACC_ENABLE "Enable the experimental OpenACC offloading block and block thread accelerator" OFF)
 OPTION(ALPAKA_ACC_GPU_CUDA_ENABLE "Enable the CUDA GPU accelerator" OFF)
 OPTION(ALPAKA_ACC_GPU_HIP_ENABLE "Enable the HIP back-end (all other back-ends must be disabled)" OFF)
 
@@ -118,7 +119,14 @@ if(${cupla_ALPAKA_PROVIDER} STREQUAL "intern")
     set(BUILD_TESTING OFF)
     add_subdirectory(${_cupla_ROOT_DIR}/alpaka ${CMAKE_BINARY_DIR}/alpaka)
 else()
-    find_package(alpaka HINTS $ENV{ALPAKA_ROOT})
+    set(_cupla_MIN_ALPAKA_VERSION 0.6.0)
+    set(_cupla_UNSUPPORTED_ALPAKA_VERSION 0.7.0)
+    find_package(alpaka ${_cupla_MIN_ALPAKA_VERSION} HINTS $ENV{ALPAKA_ROOT})
+
+    if(alpaka_VERSION VERSION_GREATER_EQUAL _cupla_UNSUPPORTED_ALPAKA_VERSION)
+        message(WARNING "Unsupported alpaka version ${alpaka_VERSION}. "
+                "Supported versions [${_cupla_MIN_ALPAKA_VERSION},${_cupla_UNSUPPORTED_ALPAKA_VERSION}).")
+    endif()
 endif()
 
 if(NOT TARGET alpaka::alpaka)

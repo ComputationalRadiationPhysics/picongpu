@@ -1,4 +1,4 @@
-/* Copyright 2020 Sergei Bastrakov
+/* Copyright 2020-2021 Sergei Bastrakov
  *
  * This file is part of Alpaka.
  *
@@ -27,33 +27,33 @@ namespace alpaka
         //! whether OpenMP is enabled.
         struct Schedule
         {
-            //! Special schedule setting which does not change the internal control variables of OpenMP
-            constexpr static std::uint32_t NoSchedule = 0u;
-            //! Integers corresponding to the mandatory OpenMP omp_sched_t enum values as of version 5.0.
-            constexpr static std::uint32_t Static = 1u;
-            constexpr static std::uint32_t Dynamic = 2u;
-            constexpr static std::uint32_t Guided = 3u;
-            constexpr static std::uint32_t Auto = 4u;
-            //! Each schedule value can be combined with monotonic using + or |.
-            constexpr static std::uint32_t Monotonic = 0x80000000u;
+            //! Schedule kinds corresponding to arguments of OpenMP schedule clause
+            //!
+            //! Kinds also present in omp_sched_t enum have the same integer values.
+            //! It is enum, not enum class, for shorter usage as omp::Schedule::[kind] and to keep interface of 0.6.0.
+            enum Kind
+            {
+                // Corresponds to not setting schedule
+                NoSchedule,
+                Static = 1u,
+                Dynamic = 2u,
+                Guided = 3u,
+            // Auto supported since OpenMP 3.0
+#if defined _OPENMP && _OPENMP >= 200805
+                Auto = 4u,
+#endif
+                Runtime = 5u
+            };
 
             //! Schedule kind.
-            //!
-            //! We cannot simply use type omp_sched_t since this struct is agnostic of OpenMP. We also cannot create an
-            //! own mirror enum, since OpenMP implementations are allowed to extend the range of values beyond the
-            //! standard ones defined above. So we have to accept and store any uint32_t value, and for non-standard
-            //! values a user has to ensure the underlying implementation supports it.
-            std::uint32_t kind;
+            Kind kind;
 
             //! Chunk size. Same as in OpenMP, value 0 corresponds to default chunk size. Using int and not a
             //! fixed-width type to match OpenMP API.
             int chunkSize;
 
-            //! The provided value myKind has to be supported by the underlying OpenMP implementation.
-            //! It does not have to be one of the constants defined above.
-            //! A default-constructed schedule does not affect internal control variables of OpenMP.
-            //! The constructor is constexpr to simplify creation of static constexpr ompSchedule in user code.
-            ALPAKA_FN_HOST constexpr Schedule(std::uint32_t myKind = NoSchedule, int myChunkSize = 0)
+            //! Create a schedule with the given kind and chunk size
+            ALPAKA_FN_HOST constexpr Schedule(Kind myKind = NoSchedule, int myChunkSize = 0)
                 : kind(myKind)
                 , chunkSize(myChunkSize)
             {
@@ -74,7 +74,7 @@ namespace alpaka
             omp_sched_t ompKind;
             int chunkSize = 0;
             omp_get_schedule(&ompKind, &chunkSize);
-            return Schedule{static_cast<std::uint32_t>(ompKind), chunkSize};
+            return Schedule{static_cast<Schedule::Kind>(ompKind), chunkSize};
 #else
             return Schedule{};
 #endif
@@ -89,7 +89,7 @@ namespace alpaka
         //! Note that calling from inside a parallel region does not have an immediate effect.
         ALPAKA_FN_HOST inline void setSchedule(Schedule schedule)
         {
-            if(schedule.kind != Schedule::NoSchedule)
+            if((schedule.kind != Schedule::NoSchedule) && (schedule.kind != Schedule::Runtime))
             {
 #if defined _OPENMP && _OPENMP >= 200805
                 omp_set_schedule(static_cast<omp_sched_t>(schedule.kind), schedule.chunkSize);

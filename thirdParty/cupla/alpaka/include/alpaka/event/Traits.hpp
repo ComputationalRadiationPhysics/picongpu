@@ -36,6 +36,10 @@ namespace alpaka
 
     //-----------------------------------------------------------------------------
     //! Tests if the given event has already been completed.
+    //!
+    //! \warning This function is allowed to return false negatives. An already completed event can reported as
+    //! uncompleted because the status information are not fully propagated by the used alpaka backend.
+    //! \return true event is finished/complete else false.
     template<typename TEvent>
     ALPAKA_FN_HOST auto isComplete(TEvent const& event) -> bool
     {

@@ -228,10 +228,17 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             static auto declareVar(CtxBlockOacc<TDim, TIdx> const& smem) -> T&
             {
-                traits::SyncBlockThreads<CtxBlockOacc<TDim, TIdx>>::masterOpBlockThreads(smem, [&smem]() {
-                    smem.template alloc<T>();
-                });
-                return smem.template getLatestVar<T>();
+                auto* data = smem.template getVarPtr<T>(TuniqueId);
+
+                if(!data)
+                {
+                    traits::SyncBlockThreads<CtxBlockOacc<TDim, TIdx>>::masterOpBlockThreads(smem, [&data, &smem]() {
+                        smem.template alloc<T>(TuniqueId);
+                    });
+                    data = smem.template getLatestVarPtr<T>();
+                }
+                ALPAKA_ASSERT_OFFLOAD(data != nullptr);
+                return *data;
             }
         };
 

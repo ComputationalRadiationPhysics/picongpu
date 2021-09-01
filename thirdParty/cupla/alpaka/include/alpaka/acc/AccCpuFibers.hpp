@@ -15,8 +15,8 @@
 #    include <alpaka/atomic/AtomicHierarchy.hpp>
 #    include <alpaka/atomic/AtomicNoOp.hpp>
 #    include <alpaka/atomic/AtomicStdLibLock.hpp>
-#    include <alpaka/block/shared/dyn/BlockSharedMemDynAlignedAlloc.hpp>
-#    include <alpaka/block/shared/st/BlockSharedMemStMasterSync.hpp>
+#    include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
+#    include <alpaka/block/shared/st/BlockSharedMemStMemberMasterSync.hpp>
 #    include <alpaka/block/sync/BlockSyncBarrierFiber.hpp>
 #    include <alpaka/idx/bt/IdxBtRefFiberIdMap.hpp>
 #    include <alpaka/idx/gb/IdxGbRef.hpp>
@@ -70,8 +70,8 @@ namespace alpaka
             AtomicNoOp         // thread atomics
         >,
         public math::MathStdLib,
-        public BlockSharedMemDynAlignedAlloc,
-        public BlockSharedMemStMasterSync,
+        public BlockSharedMemDynMember<>,
+        public BlockSharedMemStMemberMasterSync<>,
         public BlockSyncBarrierFiber<TIdx>,
         public IntrinsicCpu,
         public rand::RandStdLib,
@@ -101,8 +101,10 @@ namespace alpaka
                   AtomicNoOp // atomics between threads
                   >()
             , math::MathStdLib()
-            , BlockSharedMemDynAlignedAlloc(blockSharedMemDynSizeBytes)
-            , BlockSharedMemStMasterSync(
+            , BlockSharedMemDynMember<>(blockSharedMemDynSizeBytes)
+            , BlockSharedMemStMemberMasterSync<>(
+                  staticMemBegin(),
+                  staticMemCapacity(),
                   [this]() { syncBlockThreads(*this); },
                   [this]() { return (m_masterFiberId == boost::this_fiber::get_id()); })
             , BlockSyncBarrierFiber<TIdx>(getWorkDiv<Block, Threads>(workDiv).prod())

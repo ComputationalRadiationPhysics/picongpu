@@ -63,8 +63,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
     defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED) ||                         \
     defined(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED) ||                            \
     defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED) ||                             \
-    defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED) ||                             \
-    defined(ALPAKA_ACC_CPU_BT_OMP4_ENABLED)
+    defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
 
     using AccDev = ::alpaka::DevCpu;
 #   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
@@ -129,15 +128,33 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
     #endif
 #endif
 
-#ifdef ALPAKA_ACC_CPU_BT_OMP4_ENABLED
-    using Acc = ::alpaka::AccCpuOmp4<
+#endif
+
+#ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
+    using AccDev = ::alpaka::DevOmp5;
+#   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
+        using AccStream = ::alpaka::QueueOmp5NonBlocking;
+#   else
+        using AccStream = ::alpaka::QueueOmp5Blocking;
+#   endif
+    using Acc = ::alpaka::AccOmp5<
         KernelDim,
         IdxType
     >;
 #endif
 
+#ifdef ALPAKA_ACC_ANY_BT_OACC_ENABLED
+    using AccDev = ::alpaka::DevOacc;
+#   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
+        using AccStream = ::alpaka::QueueOaccNonBlocking;
+#   else
+        using AccStream = ::alpaka::QueueOaccBlocking;
+#   endif
+    using Acc = ::alpaka::AccOacc<
+        KernelDim,
+        IdxType
+    >;
 #endif
-
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
     using AccDev = ::alpaka::DevCudaRt;

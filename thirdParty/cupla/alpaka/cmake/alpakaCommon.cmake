@@ -226,12 +226,15 @@ endif()
 #-------------------------------------------------------------------------------
 # Find TBB.
 if(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE)
-    find_package(TBB)
-    if(TBB_FOUND)
-        target_link_libraries(alpaka INTERFACE TBB::tbb)
-    else()
-        message(FATAL_ERROR "Optional alpaka dependency TBB could not be found!")
+    # Prefer TBB's own TBBConfig.cmake (available in more recent TBB versions)
+    find_package(TBB QUIET CONFIG)
+    
+    if(NOT TBB_FOUND)
+        message(STATUS "TBB not found in config mode. Retrying in module mode.")
+        find_package(TBB REQUIRED MODULE)
     endif()
+
+    target_link_libraries(alpaka INTERFACE TBB::tbb)
 endif()
 
 #-------------------------------------------------------------------------------
@@ -850,7 +853,8 @@ if(TARGET alpaka)
 endif()
 
 # NVCC does not incorporate the COMPILE_OPTIONS of a target but only the CMAKE_CXX_FLAGS
-if((ALPAKA_ACC_GPU_CUDA_ENABLE OR ALPAKA_ACC_GPU_HIP_ENABLE) AND ALPAKA_CUDA_COMPILER MATCHES "nvcc")
+# For hipcc we need to propagate the CMAKE_CXX_FLAGS to HIP_HIPCC_FLAGS.
+if((ALPAKA_ACC_GPU_CUDA_ENABLE AND ALPAKA_CUDA_COMPILER MATCHES "nvcc") OR ALPAKA_ACC_GPU_HIP_ENABLE)
     get_property(_ALPAKA_COMPILE_OPTIONS_PUBLIC
                  TARGET alpaka
                  PROPERTY INTERFACE_COMPILE_OPTIONS)
@@ -861,5 +865,9 @@ if((ALPAKA_ACC_GPU_CUDA_ENABLE OR ALPAKA_ACC_GPU_HIP_ENABLE) AND ALPAKA_CUDA_COM
     # because FindCUDA only propagates the latter to nvcc.
     string(TOUPPER "${CMAKE_BUILD_TYPE}" build_config)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${build_config}}")
+    if(ALPAKA_ACC_GPU_HIP_ENABLE)
+        # for hipcc we need to propagate the CMAKE_CXX_FLAGS to HIP_HIPCC_FLAGS
+        list(APPEND HIP_HIPCC_FLAGS ${CMAKE_CXX_FLAGS})
+    endif()
 endif()
 
