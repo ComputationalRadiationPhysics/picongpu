@@ -585,7 +585,7 @@ namespace picongpu
             DataConnector& dc = Environment<>::get().DataConnector();
             auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
 
-            AreaMapping<CORE + BORDER, MappingDesc> const mapper(*this->m_cellDescription);
+            auto const mapper = makeAreaMapper<CORE + BORDER>(*this->m_cellDescription);
             auto const grid = mapper.getGridDim();
 
             constexpr uint32_t numWorkers

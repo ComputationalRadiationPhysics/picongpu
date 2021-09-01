@@ -342,7 +342,7 @@ namespace picongpu
 
         using BlockArea = SuperCellDescription<typename MappingDesc::SuperCellSize, LowerMargin, UpperMargin>;
 
-        AreaMapping<CORE + BORDER, picongpu::MappingDesc> mapper(this->cellDescription);
+        auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
 
         constexpr uint32_t numWorkers
             = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
@@ -377,7 +377,7 @@ namespace picongpu
         constexpr uint32_t numWorkers
             = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
-        AreaMapping<CORE + BORDER, picongpu::MappingDesc> mapper(this->cellDescription);
+        auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
         PMACC_KERNEL(KernelFillGridWithParticles<numWorkers, Particles>{})
         (mapper.getGridDim(), numWorkers)(
             densityFunctor,
@@ -403,7 +403,7 @@ namespace picongpu
     {
         log<picLog::SIMULATION_STATE>("clone species %1%") % FrameType::getName();
 
-        AreaMapping<CORE + BORDER, picongpu::MappingDesc> mapper(this->cellDescription);
+        auto const mapper = makeAreaMapper<CORE + BORDER>(this->cellDescription);
 
         constexpr uint32_t numWorkers
             = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;

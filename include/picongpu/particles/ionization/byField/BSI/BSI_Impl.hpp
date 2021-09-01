@@ -35,7 +35,6 @@
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/lockstep/Worker.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>

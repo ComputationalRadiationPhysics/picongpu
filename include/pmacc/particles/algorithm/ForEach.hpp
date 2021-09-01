@@ -138,13 +138,11 @@ namespace pmacc
             void forEach(T_Species&& species, T_Functor functor)
             {
                 using MappingDesc = decltype(species.getCellDescription());
-                AreaMapping<T_area, MappingDesc> mapper(species.getCellDescription());
-
                 using SuperCellSize = typename MappingDesc::SuperCellSize;
-
                 constexpr uint32_t numWorkers
                     = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
+                auto const mapper = makeAreaMapper<T_area>(species.getCellDescription());
                 PMACC_KERNEL(acc::detail::ForEachParticle<numWorkers>{})
                 (mapper.getGridDim(), numWorkers)(std::move(functor), mapper, species.getDeviceParticlesBox());
             }

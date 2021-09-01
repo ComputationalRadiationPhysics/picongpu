@@ -26,6 +26,8 @@
 #include "pmacc/mappings/kernel/AreaMappingMethods.hpp"
 #include "pmacc/types.hpp"
 
+#include <cstdint>
+
 namespace pmacc
 {
     /** Mapping between block indices and supercells in the given area for alpaka kernels
@@ -48,10 +50,10 @@ namespace pmacc
      *    - for grid operations:
      *      alpaka block per supercell with this mapping, thread-level parallelism between cells of a supercell
      *
-     * @tparam areaType area, a value from type::AreaType or a sum of such values
-     * @tparam baseClass mapping description type
+     * @tparam T_area area, a value from type::AreaType or a sum of such values
+     * @tparam T_MappingDescription mapping description type
      */
-    template<uint32_t areaType, class baseClass>
+    template<uint32_t T_area, typename T_MappingDescription>
     class AreaMapping;
 
     template<uint32_t areaType, template<unsigned, class> class baseClass, unsigned DIM, class SuperCellSize_>
@@ -94,5 +96,18 @@ namespace pmacc
             return AreaMappingMethods<areaType, DIM>::getBlockIndex(*this, this->getGridSuperCells(), blockIdx);
         }
     };
+
+    /** Construct an area mapping instance for the given area and description
+     *
+     * Currently always returns AreaMapping, but in principle could return a compatible type.
+     *
+     * @tparam T_area area, a value from type::AreaType or a sum of such values
+     * @tparam T_MappingDescription mapping description type
+     */
+    template<uint32_t T_area, typename T_MappingDescription>
+    HINLINE auto makeAreaMapper(T_MappingDescription mappingDescription)
+    {
+        return AreaMapping<T_area, T_MappingDescription>{mappingDescription};
+    }
 
 } // namespace pmacc

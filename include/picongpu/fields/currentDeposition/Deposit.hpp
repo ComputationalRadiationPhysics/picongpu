@@ -115,7 +115,7 @@ namespace picongpu
                 T_JBox const& jBox,
                 T_ParticleBox const& parBox) const
             {
-                AreaMapping<T_area, MappingDesc> mapper(cellDescription);
+                auto const mapper = makeAreaMapper<T_area>(cellDescription);
 
                 PMACC_KERNEL(depositionKernel)(mapper.getGridDim(), T_numWorkers)(jBox, parBox, frameSolver, mapper);
             }

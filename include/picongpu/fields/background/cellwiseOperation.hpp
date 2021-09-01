@@ -25,6 +25,7 @@
 
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/lockstep.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
@@ -138,7 +139,7 @@ namespace picongpu
                 constexpr uint32_t numWorkers
                     = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
-                AreaMapping<T_Area, MappingDesc> mapper(m_cellDescription);
+                auto const mapper = makeAreaMapper<T_Area>(m_cellDescription);
 
                 PMACC_KERNEL(KernelCellwiseOperation<numWorkers>{})
                 (mapper.getGridDim(),

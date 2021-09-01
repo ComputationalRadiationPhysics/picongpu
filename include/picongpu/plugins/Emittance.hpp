@@ -514,7 +514,7 @@ namespace picongpu
             constexpr uint32_t numWorkers
                 = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
-            AreaMapping<AREA, MappingDesc> mapper(*m_cellDescription);
+            auto const mapper = makeAreaMapper<AREA>(*m_cellDescription);
 
             auto kernel = PMACC_KERNEL(KernelCalcEmittance<numWorkers>{})(mapper.getGridDim(), numWorkers);
 

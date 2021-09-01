@@ -215,7 +215,7 @@ namespace picongpu
 
             /*############ count particles #######################################*/
             typedef MappingDesc::SuperCellSize SuperCellSize;
-            AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
+            auto const mapper = makeAreaMapper<AREA>(*cellDescription);
 
             PMACC_KERNEL(CountMakroParticle{})
             (mapper.getGridDim(), SuperCellSize::toRT())(

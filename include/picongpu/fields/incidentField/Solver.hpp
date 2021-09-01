@@ -28,6 +28,7 @@
 #include "picongpu/fields/incidentField/Solver.kernel"
 #include "picongpu/fields/incidentField/Traits.hpp"
 
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
 
 #include <cstdint>
@@ -159,7 +160,7 @@ namespace picongpu
                         pmacc::math::CT::volume<PlaneSizeInSuperCells>::type::value>::value;
 
                     // Shift by guard size to go to the in-kernel coordinate system
-                    pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper{parameters.cellDescription};
+                    auto const mapper = pmacc::makeAreaMapper<CORE + BORDER>(parameters.cellDescription);
                     auto numGuardCells = mapper.getGuardingSuperCells() * SuperCellSize::toRT();
                     auto beginGridIdx = beginLocalUserIdx + numGuardCells;
                     auto endGridIdx = endLocalUserIdx + numGuardCells;

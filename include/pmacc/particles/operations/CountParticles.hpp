@@ -159,7 +159,7 @@ namespace pmacc
         {
             GridBuffer<uint64_cu, DIM1> counter(DataSpace<DIM1>(1));
 
-            AreaMapping<AREA, CellDesc> mapper(cellDescription);
+            auto const mapper = makeAreaMapper<AREA>(cellDescription);
             constexpr uint32_t numWorkers
                 = traits::GetNumWorkers<math::CT::volume<typename CellDesc::SuperCellSize>::type::value>::value;
 

@@ -37,6 +37,7 @@
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/kernel/atomic.hpp>
 #include <pmacc/lockstep.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/math/Vector.hpp>
@@ -707,7 +708,7 @@ namespace picongpu
 
             PMACC_ASSERT(cellDescription != nullptr);
 
-            AreaMapping<CORE + BORDER, MappingDesc> mapper(*cellDescription);
+            auto const mapper = makeAreaMapper<CORE + BORDER>(*cellDescription);
 
             // create image fields
             PMACC_KERNEL(KernelPaintFields<numWorkers>{})
