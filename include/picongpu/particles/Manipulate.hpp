@@ -31,6 +31,9 @@
 
 #include <boost/mpl/placeholders.hpp>
 
+#include <cstdint>
+#include <type_traits>
+
 
 namespace picongpu
 {
@@ -53,7 +56,7 @@ namespace picongpu
             };
         } // namespace detail
 
-        /** Run a user defined manipulation for each particle of a species
+        /** Run a user defined manipulation for each particle of a species in the given area
          *
          * Allows to manipulate attributes of existing particles in a species with
          * arbitrary unary functors ("manipulators").
@@ -69,12 +72,19 @@ namespace picongpu
          * @tparam T_Species type or name as boost::mpl::string of the used species
          * @tparam T_Filter picongpu::particles::filter, particle filter type to
          *                  select particles in `T_Species` to manipulate
+         * @tparam T_Area area to process particles in,
+         *                wrapped into std::integral_constant for boost::mpl::apply to work
          */
-        template<typename T_Manipulator, typename T_Species = bmpl::_1, typename T_Filter = filter::All>
+        template<
+            typename T_Manipulator,
+            typename T_Species = bmpl::_1,
+            typename T_Filter = filter::All,
+            typename T_Area = std::integral_constant<uint32_t, CORE + BORDER>>
         struct Manipulate
             : public pmacc::particles::algorithm::CallForEach<
                   pmacc::particles::meta::FindByNameOrType<VectorAllSpecies, T_Species>,
-                  detail::MakeUnaryFilteredFunctor<T_Manipulator, T_Species, T_Filter>>
+                  detail::MakeUnaryFilteredFunctor<T_Manipulator, T_Species, T_Filter>,
+                  T_Area::value>
         {
         };
 
@@ -102,14 +112,19 @@ namespace picongpu
          * @tparam T_Filter picongpu::particles::filter, particle filter type to
          *                  select particles in `T_Species` to manipulate via
          *                  `T_DestSpeciesType`
+         * @tparam T_area area to process particles in
          *
          * @param currentStep index of the current time iteration
          */
-        template<typename T_Manipulator, typename T_Species, typename T_Filter = filter::All>
+        template<
+            typename T_Manipulator,
+            typename T_Species,
+            typename T_Filter = filter::All,
+            uint32_t T_area = CORE + BORDER>
         inline void manipulate(uint32_t const currentStep)
         {
             using SpeciesSeq = typename pmacc::ToSeq<T_Species>::type;
-            using Functor = Manipulate<T_Manipulator, bmpl::_1, T_Filter>;
+            using Functor = Manipulate<T_Manipulator, bmpl::_1, T_Filter, std::integral_constant<uint32_t, T_area>>;
             pmacc::meta::ForEach<SpeciesSeq, Functor> forEach;
             forEach(currentStep);
         }
