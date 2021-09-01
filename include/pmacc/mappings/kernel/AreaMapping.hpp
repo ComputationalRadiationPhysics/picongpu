@@ -89,7 +89,7 @@ namespace pmacc
         /** Return index of a supercell to be processed by the given alpaka block
          *
          * @param blockIdx alpaka block index
-         * @return mapped SuperCell index
+         * @return mapped SuperCell index including guards
          */
         HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& blockIdx) const
         {
@@ -97,17 +97,61 @@ namespace pmacc
         }
     };
 
-    /** Construct an area mapping instance for the given area and description
+    /** Concept for area mapper factory
      *
-     * Currently always returns AreaMapping, but in principle could return a compatible type.
+     * Defines interface for implementations of such factories.
+     * (A user-provided implementation is needed for user-defined areas.)
+     */
+    class AreaMapperFactoryConcept
+    {
+    public:
+        /** Construct an area mapper object
+         *
+         * @tparam T_MappingDescription mapping description type
+         *
+         * @param mappingDescription mapping description
+         *
+         * @return an object adhering to the AreaMapping concept
+         */
+        template<typename T_MappingDescription>
+        HINLINE auto operator()(T_MappingDescription mappingDescription) const;
+    };
+
+    /** Construct an area mapper instance for the given standard area and description
+     *
+     * Adheres to the AreaMapperFactoryConcept.
+     *
+     * @tparam T_area area, a value from type::AreaType or a sum of such values
+     */
+    template<uint32_t T_area>
+    struct AreaMapperFactory
+    {
+        /** Construct an area mapper object
+         *
+         * @tparam T_MappingDescription mapping description type
+         *
+         * @param mappingDescription mapping description
+         *
+         * @return an object adhering to the AreaMapping concept
+         */
+        template<typename T_MappingDescription>
+        HINLINE auto operator()(T_MappingDescription mappingDescription) const
+        {
+            return AreaMapping<T_area, T_MappingDescription>{mappingDescription};
+        }
+    };
+
+    /** Construct an area mapper instance for the given area and description
      *
      * @tparam T_area area, a value from type::AreaType or a sum of such values
      * @tparam T_MappingDescription mapping description type
+     *
+     * @param mappingDescription mapping description
      */
     template<uint32_t T_area, typename T_MappingDescription>
     HINLINE auto makeAreaMapper(T_MappingDescription mappingDescription)
     {
-        return AreaMapping<T_area, T_MappingDescription>{mappingDescription};
+        return AreaMapperFactory<T_area>{}(mappingDescription);
     }
 
 } // namespace pmacc

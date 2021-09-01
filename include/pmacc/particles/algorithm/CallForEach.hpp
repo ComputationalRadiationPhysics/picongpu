@@ -1,4 +1,4 @@
-/* Copyright 2019-2021 Rene Widera
+/* Copyright 2019-2021 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -35,7 +35,11 @@ namespace pmacc
     {
         namespace algorithm
         {
-            /** Functor to execute an operation on all particles of a species in the given area
+            /** Functor to execute an operation on all particles of a species in an area
+             *
+             * There are two versions of operator() that differ in how the area is defined.
+             * One operates on the area given by the template parameter.
+             * Another one takes a user-provided mapper factory that defines the area via the produced mapper.
              *
              * @tparam T_SpeciesOperator an operator to create the used species
              *                           with the species type as ::type
@@ -43,10 +47,10 @@ namespace pmacc
              *                           with the functor type as ::type
              * @tparam T_area area to process particles in
              */
-            template<typename T_SpeciesOperator, typename T_FunctorOperator, uint32_t T_area>
+            template<typename T_SpeciesOperator, typename T_FunctorOperator, uint32_t T_area = CORE + BORDER>
             struct CallForEach
             {
-                /** Operate on the domain CORE and BORDER
+                /** Operate on T_area
                  *
                  * @param currentStep current simulation time step
                  */
@@ -54,14 +58,34 @@ namespace pmacc
                 {
                     using Species = typename T_SpeciesOperator::type;
                     using FrameType = typename Species::FrameType;
-
                     // be sure the species functor follows the pmacc functor interface
                     using UnaryFunctor = pmacc::functor::Interface<typename T_FunctorOperator::type, 1u, void>;
 
                     DataConnector& dc = Environment<>::get().DataConnector();
                     auto species = dc.get<Species>(FrameType::getName(), true);
-
                     forEach<T_area>(*species, UnaryFunctor(currentStep));
+                }
+
+                /** Operate on the area defined by mapper
+                 *
+                 * @tparam T_AreaMapperFactory factory type to construct an area mapper that defines the area to
+                 * process, adheres to the AreaMapperFactory concept
+                 *
+                 * @param currentStep current simulation time step
+                 * @param areaMapperFactory factory to construct an area mapper,
+                 *                          the area is defined by the constructed mapper object
+                 */
+                template<typename T_AreaMapperFactory>
+                HINLINE void operator()(uint32_t const currentStep, T_AreaMapperFactory const& areaMapperFactory)
+                {
+                    using Species = typename T_SpeciesOperator::type;
+                    using FrameType = typename Species::FrameType;
+                    // be sure the species functor follows the pmacc functor interface
+                    using UnaryFunctor = pmacc::functor::Interface<typename T_FunctorOperator::type, 1u, void>;
+
+                    DataConnector& dc = Environment<>::get().DataConnector();
+                    auto species = dc.get<Species>(FrameType::getName(), true);
+                    forEach(*species, UnaryFunctor(currentStep), areaMapperFactory);
                 }
             };
 
