@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Bert Wesarg, René Widera
+/* Copyright 2019-2020 Benjamin Worpitz, Bert Wesarg, René Widera, Sergei Bastrakov
  *
  * This file is part of alpaka.
  *
@@ -25,6 +25,7 @@
 // Implementation details.
 #    include <alpaka/acc/AccCpuOmp2Blocks.hpp>
 #    include <alpaka/core/Decay.hpp>
+#    include <alpaka/core/OmpSchedule.hpp>
 #    include <alpaka/dev/DevCpu.hpp>
 #    include <alpaka/idx/MapIdx.hpp>
 #    include <alpaka/kernel/Traits.hpp>
@@ -120,6 +121,44 @@ namespace alpaka
             }
             else
             {
+                //! Set the given OpenMP schedule while this object is alive.
+                //! Restore the old schedule afterwards.
+                class ScheduleGuard
+                {
+                public:
+                    ScheduleGuard(omp::Schedule const schedule) : oldSchedule(omp::getSchedule())
+                    {
+                        omp::setSchedule(schedule);
+                    }
+
+                    ScheduleGuard(ScheduleGuard const&) = default;
+
+                    ~ScheduleGuard()
+                    {
+                        omp::setSchedule(oldSchedule);
+                    }
+
+                private:
+                    omp::Schedule const oldSchedule;
+                };
+
+                // Get the OpenMP schedule.
+                // We only do it when outside of a parallel region, since
+                // otherwise the change of schedule would have no effect.
+                auto const schedule(meta::apply(
+                    [&](ALPAKA_DECAY_T(TArgs) const&... args) {
+                        return getOmpSchedule<AccCpuOmp2Blocks<TDim, TIdx>>(
+                            m_kernelFnObj,
+                            blockThreadExtent,
+                            threadElemExtent,
+                            args...);
+                    },
+                    m_args));
+
+                // Schedule change is a scoped object, so that the old schedule is
+                // also restored in case of exception.
+                auto const scheduleGuard = ScheduleGuard{schedule};
+
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 std::cout << __func__ << " opening new parallel region." << std::endl;
 #    endif
@@ -156,15 +195,14 @@ namespace alpaka
                 *static_cast<WorkDivMembers<TDim, TIdx> const*>(this),
                 blockSharedMemDynSizeBytes);
 
-            // NOTE: schedule(static) does not improve performance.
 #    if _OPENMP < 200805 // For OpenMP < 3.0 you have to declare the loop index (a signed integer) outside of the loop
                          // header.
             std::intmax_t iNumBlocksInGrid(static_cast<std::intmax_t>(numBlocksInGrid));
             std::intmax_t i;
-#        pragma omp for nowait schedule(guided)
+#        pragma omp for nowait schedule(runtime)
             for(i = 0; i < iNumBlocksInGrid; ++i)
 #    else
-#        pragma omp for nowait schedule(guided)
+#        pragma omp for nowait schedule(runtime)
             for(TIdx i = 0; i < numBlocksInGrid; ++i)
 #    endif
             {

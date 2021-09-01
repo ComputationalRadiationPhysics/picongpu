@@ -20,8 +20,8 @@ endif()
 add_subdirectory(common)
 
 if(ALPAKA_ACC_GPU_CUDA_ENABLE AND ALPAKA_CUDA_COMPILER MATCHES "nvcc")
-    # NVCC does not incorporate the COMPILE_OPTIONS of a target but only the CMAKE_CXX_FLAGS
-    get_target_property(_COMMON_COMPILE_OPTIONS common COMPILE_OPTIONS)
+    # NVCC does not incorporate the INTERFACE_COMPILE_OPTIONS of a target but only the CMAKE_CXX_FLAGS
+    get_target_property(_COMMON_COMPILE_OPTIONS common INTERFACE_COMPILE_OPTIONS)
     # If the property does not exist, the variable is set to NOTFOUND.
     if(_COMMON_COMPILE_OPTIONS)
         string(REPLACE ";" " " _COMMON_COMPILE_OPTIONS_STRING "${_COMMON_COMPILE_OPTIONS}")

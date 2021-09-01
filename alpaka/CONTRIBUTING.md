@@ -16,5 +16,5 @@ git clang-format-11 develop
 ```
 To format all code in your working copy, you can run this command in bash:
 ```
-find -iname *.cpp -o -iname *.hpp | xargs clang-format-11 -i
+find -iname '*.cpp' -o -iname '*.hpp' | xargs clang-format-11 -i
 ```

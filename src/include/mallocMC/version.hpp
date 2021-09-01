@@ -44,4 +44,4 @@
 /** the mallocMC flavor is used to differentiate the releases of the
  *  Computational Radiation Physics group (crp) from other releases
  *  This should be useful to avoid versioning conflicts */
-#define MALLOCMC_FLAVOR "crp-dev"
+#define MALLOCMC_FLAVOR "crp"

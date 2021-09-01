@@ -79,7 +79,7 @@ This library uses C++14 (or newer when available).
 | std::thread |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 | Boost.Fiber |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|:white_check_mark:|
 |TBB|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:x:|
-|CUDA (nvcc)|:white_check_mark: <br/> (CUDA 9.0-11.1)|:white_check_mark: <br/> (CUDA 9.2-11.1) |:white_check_mark: <br/> (CUDA 10.1-11.1) |:white_check_mark: <br/> (CUDA 11.0-11.1)|:white_check_mark: <br/> (CUDA 11.1)|:white_check_mark: <br/> (CUDA 9.1-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|:white_check_mark: <br/> (CUDA 11.0-11.1)|:white_check_mark: <br/> (CUDA 11.1)|:x:|:white_check_mark: <br/> (CUDA 10.0-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|
+|CUDA (nvcc)|:white_check_mark: <br/> (CUDA 9.0-11.1)|:white_check_mark: <br/> (CUDA 9.2-11.1) |:white_check_mark: <br/> (CUDA 10.1-11.1) |:white_check_mark: <br/> (CUDA 11.0-11.1)|:white_check_mark: <br/> (CUDA 11.1)|:white_check_mark: <br/> (CUDA 9.1-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|:white_check_mark: <br/> (CUDA 10.1-11.1)|:white_check_mark: <br/> (CUDA 11.0-11.1)|:white_check_mark: <br/> (CUDA 11.1)|:x:|:white_check_mark: <br/> (CUDA 10.0-11.1)|:white_check_mark: <br/> (CUDA 10.1-10.2 + 11.1)|
 |CUDA (clang) | - | - | - | - | - | - | - | :white_check_mark: <br/> (CUDA 9.0) | :white_check_mark: <br/> (CUDA 9.0-9.2) | :white_check_mark: <br/> (CUDA 9.0-10.0) | :white_check_mark: <br/> (CUDA 9.2-10.1) | :white_check_mark: <br/> (CUDA 9.2-10.1) | - | - | - |
 |[HIP](https://alpaka.readthedocs.io/en/latest/install/HIP.html) (clang)|:white_check_mark: |:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|
 
@@ -211,13 +211,31 @@ Rules for contributions can be found in [CONTRIBUTING.md](CONTRIBUTING.md)
 Authors
 -------
 
-### Maintainers and Core Developers
+### Maintainers* and Core Developers
 
-- Benjamin Worpitz (original author)
-- Rene Widera
+- Benjamin Worpitz* (original author)
+- Dr. Sergei Bastrakov*
+- Simeon Ehrig
+- Bernhard Manfred Gruber
+- Dr. Axel Huebl*
+- Dr. Jeffrey Kelling
+- Jakob Krude
+- Jan Stephan*
+- Rene Widera*
 
 ### Former Members, Contributions and Thanks
 
 - Dr. Michael Bussmann
-- Axel Huebl
+- Mat Colgrove
+- Valentin Gehrke
+- Maximilian Knespel
+- Alexander Matthes
+- Hauke Mewes
+- Phil Nash
+- Mutsuo Saito
+- Jonas Schenke
+- Daniel Vollmer
+- Matthias Werner
+- Bert Wesarg
+- Malte Zacharias
 - Erik Zenker

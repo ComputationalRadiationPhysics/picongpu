@@ -11,9 +11,9 @@
 option(ALPAKA_USE_INTERNAL_CATCH2 "Use internally shipped Catch2" ON)
 
 if(ALPAKA_USE_INTERNAL_CATCH2)
-    message(STATUS "Catch2: Using INTERNAL version 2.11.0")
+    message(STATUS "Catch2: Using INTERNAL version 2.13.3")
 else()
-    find_package(Catch2 2.11.0 CONFIG REQUIRED)
+    find_package(Catch2 2.13.3 CONFIG REQUIRED)
     set_target_properties(Catch2::Catch2 PROPERTIES IMPORTED_GLOBAL TRUE)
     message(STATUS "Catch2: Found version ${Catch2_VERSION}")
 endif()
