@@ -26,7 +26,9 @@
   THE SOFTWARE.
 */
 
+#include <algorithm>
 #include <alpaka/alpaka.hpp>
+#include <alpaka/example/ExampleDefaultAcc.hpp>
 #include <cassert>
 #include <iostream>
 #include <mallocMC/mallocMC.hpp>
@@ -35,9 +37,9 @@
 
 using Dim = alpaka::DimInt<1>;
 using Idx = std::size_t;
-// using Acc = alpaka::AccCpuThreads<Dim, Idx>;
-// using Acc = alpaka::AccCpuOmp2Threads<Dim, Idx>;
-using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
+
+// Define the device accelerator
+using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
 
 struct ScatterConfig
 {
@@ -100,13 +102,13 @@ auto main() -> int
 {
     const auto dev = alpaka::getDevByIdx<Acc>(0);
     auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
+    auto const devProps = alpaka::getAccDevProps<Acc>(dev);
+    unsigned const block = std::min(static_cast<size_t>(32u), static_cast<size_t>(devProps.m_blockThreadCountMax));
 
     ScatterAllocator scatterAlloc(dev, queue, 1U * 1024U * 1024U * 1024U); // 1GB for device-side malloc
 
-    const auto workDiv = alpaka::WorkDivMembers<Dim, Idx>{Idx{1}, Idx{32}, Idx{1}};
-    alpaka::enqueue(
-        queue,
-        alpaka::createTaskKernel<Acc>(workDiv, ExampleKernel{}, scatterAlloc.getAllocatorHandle()));
+    const auto workDiv = alpaka::WorkDivMembers<Dim, Idx>{Idx{1}, Idx{block}, Idx{1}};
+    alpaka::enqueue(queue, alpaka::createTaskKernel<Acc>(workDiv, ExampleKernel{}, scatterAlloc.getAllocatorHandle()));
 
     std::cout << "Slots from Host: " << scatterAlloc.getAvailableSlots(dev, queue, 1) << '\n';
 

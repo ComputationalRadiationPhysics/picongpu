@@ -32,6 +32,7 @@ constexpr auto ELEMS_PER_SLOT = 750;
 
 #include "verify_heap_config.hpp"
 
+#include <algorithm>
 #include <alpaka/alpaka.hpp>
 #include <cstdio>
 #include <iostream>
@@ -49,7 +50,7 @@ bool verbose = false;
 // the type of the elements to allocate
 using allocElem_t = unsigned long long;
 
-auto run_heap_verification(const size_t, const unsigned, const unsigned, const bool) -> bool;
+auto run_heap_verification(const size_t, const unsigned, unsigned, const bool) -> bool;
 void parse_cmdline(const int, char**, size_t*, unsigned*, unsigned*, bool*);
 void print_help(char**);
 
@@ -611,14 +612,14 @@ void print_machine_readable(
  * @return true if the verification was successful,
  *         false otherwise
  */
-auto run_heap_verification(
-    const size_t heapMB,
-    const unsigned blocks,
-    const unsigned threads,
-    const bool machine_readable) -> bool
+auto run_heap_verification(const size_t heapMB, const unsigned blocks, unsigned threads, const bool machine_readable)
+    -> bool
 {
     const auto dev = alpaka::getDevByIdx<Acc>(0);
     auto queue = Queue{dev};
+
+    auto const devProps = alpaka::getAccDevProps<Acc>(dev);
+    threads = std::min(static_cast<size_t>(threads), static_cast<size_t>(devProps.m_blockThreadCountMax));
 
     const size_t heapSize = size_t(1024U * 1024U) * heapMB;
     const size_t slotSize = sizeof(allocElem_t) * ELEMS_PER_SLOT;
@@ -672,10 +673,7 @@ auto run_heap_verification(
             const auto workDiv = alpaka::WorkDivMembers<Dim, Idx>{Idx{1}, Idx{1}, Idx{1}};
             alpaka::enqueue(
                 queue,
-                alpaka::createTaskKernel<Acc>(
-                    workDiv,
-                    DamageElement{},
-                    alpaka::getPtrNative(d_testData)));
+                alpaka::createTaskKernel<Acc>(workDiv, DamageElement{}, alpaka::getPtrNative(d_testData)));
         }
         dout() << "done\n";
 
