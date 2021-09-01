@@ -351,8 +351,11 @@ namespace picongpu
                 using usedFilters = bmpl::vector<typename GetPositionFilter<simDim>::type>;
                 using MyParticleFilter = typename FilterFactory<usedFilters>::FilterType;
                 MyParticleFilter filter;
-                /* activate filter pipeline if moving window is activated */
-                filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive(params->currentStep));
+                /* activate filter pipeline if moving window is used in the sumulation.
+                 * Note that it is intentionally activated even when the window is not moving currently,
+                 * as we still have to apply the position filter in this case
+                 */
+                filter.setStatus(MovingWindow::getInstance().isEnabled());
                 filter.setWindowPosition(params->localWindowToDomainOffset, params->window.localDimensions.size);
 
                 using RunParameters_T = StrategyRunParameters<
