@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -28,6 +28,29 @@
 
 namespace pmacc
 {
+    /** Mapping between block indices and supercells in the given area for alpaka kernels
+     *
+     * The mapping covers the case of supercell-level parallelism between alpaka blocks.
+     * The supercells can be processed concurrently in any order.
+     *
+     * This class makes a 1:1 mapping between supercells in the area and alpaka blocks.
+     * A kernel must be launched with exactly getGridDim() blocks.
+     * Each block must process a single supercell with index getSuperCellIndex(blockIndex).
+     * Implementation is optimized for the standard areas in AreaType.
+     *
+     * In-block parallelism is independent of this mapping and is done by a kernel.
+     * Naturally, this parallelism should also define block size, again independent of this mapping.
+     *
+     * This pattern is used in most kernels in particle-mesh codes.
+     * Two most common parallel patterns are:
+     *    - for particle or particle-grid operations:
+     *      alpaka block per supercell with this mapping, thread-level parallelism between particles of a frame
+     *    - for grid operations:
+     *      alpaka block per supercell with this mapping, thread-level parallelism between cells of a supercell
+     *
+     * @tparam areaType area, a value from type::AreaType or a sum of such values
+     * @tparam baseClass mapping description type
+     */
     template<uint32_t areaType, class baseClass>
     class AreaMapping;
 
@@ -50,28 +73,25 @@ namespace pmacc
         {
         }
 
-        /**
-         * Generate grid dimension information for kernel calls
+        /** Generate grid dimension information for alpaka kernel calls
          *
-         * @return size of the grid
+         * A kernel using this mapping must use exacly the returned number of blocks
+         *
+         * @return number of blocks in a grid
          */
         HINLINE DataSpace<DIM> getGridDim() const
         {
             return AreaMappingMethods<areaType, DIM>::getGridDim(*this, this->getGridSuperCells());
         }
 
-        /**
-         * Returns index of current logical block
+        /** Return index of a supercell to be processed by the given alpaka block
          *
-         * @param realSuperCellIdx current SuperCell index (block index)
+         * @param blockIdx alpaka block index
          * @return mapped SuperCell index
          */
-        HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx) const
+        HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& blockIdx) const
         {
-            return AreaMappingMethods<areaType, DIM>::getBlockIndex(
-                *this,
-                this->getGridSuperCells(),
-                realSuperCellIdx);
+            return AreaMappingMethods<areaType, DIM>::getBlockIndex(*this, this->getGridSuperCells(), blockIdx);
         }
     };
 
