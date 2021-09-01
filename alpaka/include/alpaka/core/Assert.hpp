@@ -18,6 +18,12 @@
 
 #define ALPAKA_ASSERT(EXPRESSION) assert(EXPRESSION)
 
+#ifdef ALPAKA_DEBUG_OFFLOAD_ASSUME_HOST
+#    define ALPAKA_ASSERT_OFFLOAD(EXPRESSION) ALPAKA_ASSERT(EXPRESSION)
+#else
+#    define ALPAKA_ASSERT_OFFLOAD(EXPRESSION)
+#endif
+
 namespace alpaka
 {
     namespace core

@@ -14,6 +14,7 @@
 
 #include <catch2/catch.hpp>
 
+#include <climits>
 #include <cstdint>
 
 //#############################################################################
@@ -45,7 +46,11 @@ public:
         std::int32_t const warpExtent = alpaka::warp::getSize(acc);
         ALPAKA_CHECK(*success, warpExtent > 1);
 
-        ALPAKA_CHECK(*success, alpaka::warp::ballot(acc, 42) == (std::uint64_t{1} << warpExtent) - 1);
+        using BallotResultType = decltype(alpaka::warp::ballot(acc, 42));
+        BallotResultType const allActive = static_cast<size_t>(warpExtent) == sizeof(BallotResultType) * CHAR_BIT
+            ? ~BallotResultType{0u}
+            : (BallotResultType{1} << warpExtent) - 1u;
+        ALPAKA_CHECK(*success, alpaka::warp::ballot(acc, 42) == allActive);
         ALPAKA_CHECK(*success, alpaka::warp::ballot(acc, 0) == 0u);
 
         // Test relies on having a single warp per thread block

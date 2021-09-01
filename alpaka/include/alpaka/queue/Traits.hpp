@@ -55,6 +55,10 @@ namespace alpaka
 
     //-----------------------------------------------------------------------------
     //! Tests if the queue is empty (all ops in the given queue have been completed).
+    //!
+    //! \warning This function is allowed to return false negatives. An empty queue can reported as
+    //! non empty because the status information are not fully propagated by the used alpaka backend.
+    //! \return true queue is empty else false.
     template<typename TQueue>
     ALPAKA_FN_HOST auto empty(TQueue const& queue) -> bool
     {

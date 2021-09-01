@@ -122,8 +122,13 @@ namespace alpaka
             auto argsD = m_args;
             auto kernelFnObj = m_kernelFnObj;
             dev.makeCurrent();
-#    pragma acc parallel num_workers(blockThreadCount)                                                                \
-        copyin(threadElemExtent, blockThreadExtent, argsD, gridBlockExtent) default(present)
+#    pragma acc parallel num_workers(blockThreadCount) copyin(                                                        \
+        threadElemExtent,                                                                                             \
+        blockThreadExtent,                                                                                            \
+        gridBlockExtent,                                                                                              \
+        argsD,                                                                                                        \
+        blockSharedMemDynSizeBytes,                                                                                   \
+        kernelFnObj) default(present)
             {
                 {
 #    pragma acc loop gang
