@@ -70,7 +70,7 @@ void test1D()
         Acc,
         mallocMC::CreationPolicies::Scatter<ScatterConfig, ScatterHashParams>,
         // mallocMC::CreationPolicies::OldMalloc,
-        mallocMC::DistributionPolicies::XMallocSIMD<DistributionConfig>,
+        mallocMC::DistributionPolicies::Noop,
         mallocMC::OOMPolicies::ReturnNull,
         mallocMC::ReservePoolPolicies::AlpakaBuf<Acc>,
         // mallocMC::ReservePoolPolicies::CudaSetLimits,
@@ -306,6 +306,7 @@ void test3D()
             scatterAlloc.getAllocatorHandle()));
 }
 
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
 TEST_CASE("1D AccGpuCudaRt")
 {
     test1D<alpaka::AccGpuCudaRt>();
@@ -320,7 +321,26 @@ TEST_CASE("3D AccGpuCudaRt")
 {
     test3D<alpaka::AccGpuCudaRt>();
 }
+#endif
 
+#if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+TEST_CASE("1D AccGpuHipRt")
+{
+    test1D<alpaka::AccGpuHipRt>();
+}
+
+TEST_CASE("2D AccGpuHipRt")
+{
+    test2D<alpaka::AccGpuHipRt>();
+}
+
+TEST_CASE("3D AccGpuHipRt")
+{
+    test3D<alpaka::AccGpuHipRt>();
+}
+#endif
+
+#if defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED)
 TEST_CASE("1D AccCpuThreads")
 {
     test1D<alpaka::AccCpuThreads>();
@@ -335,7 +355,9 @@ TEST_CASE("3D AccCpuThreads")
 {
     test3D<alpaka::AccCpuThreads>();
 }
+#endif
 
+#if defined(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED)
 TEST_CASE("1D AccCpuOmp2Threads")
 {
     test1D<alpaka::AccCpuOmp2Threads>();
@@ -350,3 +372,38 @@ TEST_CASE("3D AccCpuOmp2Threads")
 {
     test3D<alpaka::AccCpuOmp2Threads>();
 }
+#endif
+
+#if defined(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED)
+TEST_CASE("1D AccCpuOmp2Blocks")
+{
+    test1D<alpaka::AccCpuOmp2Blocks>();
+}
+
+TEST_CASE("2D AccCpuOmp2Blocks")
+{
+    test2D<alpaka::AccCpuOmp2Blocks>();
+}
+
+TEST_CASE("3D AccCpuOmp2Blocks")
+{
+    test3D<alpaka::AccCpuOmp2Blocks>();
+}
+#endif
+
+#if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
+TEST_CASE("1D AccCpuSerial")
+{
+    test1D<alpaka::AccCpuSerial>();
+}
+
+TEST_CASE("2D AccCpuSerial")
+{
+    test2D<alpaka::AccCpuSerial>();
+}
+
+TEST_CASE("3D AccCpuSerial")
+{
+    test3D<alpaka::AccCpuSerial>();
+}
+#endif

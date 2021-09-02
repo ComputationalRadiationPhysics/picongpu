@@ -1,10 +1,10 @@
 Install
 -------
 ### Dependencies
- - `gcc` 4.4 - 4.8 (depends on current CUDA version)
-  - *Debian/Ubuntu:* `sudo apt-get install gcc-4.4 build-essential`
+ - C++14 compiler (clang, gcc, hipcc, icc, nvcc)
+  - *Debian/Ubuntu:* `sudo apt-get install gcc build-essential`
   - *Arch Linux:* `sudo pacman -S base-devel`
- - `alpaka`
+ - `alpaka` 0.6.x
   - included as git submodule
  - `boost` >= 1.65.1
    - dependency of alpaka
@@ -25,7 +25,7 @@ This is an example how to compile `mallocMC` and test the example code snippets
 1. **Setup directories:**
  - `mkdir -p build`
 2. **Download the source code:**
- -  `git clone https://github.com/ComputationalRadiationPhysics/mallocMC.git`
+ -  `git clone https://github.com/alpaka-group/mallocMC.git`
 3. **Build**
  - `cd build`
  - `cmake ../mallocMC -DCMAKE_INSTALL_PREFIX=$HOME/libs`
@@ -56,14 +56,14 @@ cmake -DCMAKE_MODULE_PATH=. --help-module FindmallocMC | less
 
 and use the following lines in your `CMakeLists.txt`:
 ```cmake
-# this example will require at least CMake 2.8.12.2
-cmake_minimum_required(VERSION 2.8.12.2)
+# this example will require at least CMake 3.15
+CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
 
 # add path to FindmallocMC.cmake, e.g., in the directory in cmake/
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
 # find mallocMC installation
-find_package(mallocMC 2.0.1 REQUIRED)
+find_package(mallocMC 2.6.0 REQUIRED)
 
 alpaka_add_executable(yourBinary ${SOURCES})
 target_include_directories(yourBinary PUBLIC ${mallocMC_INCLUDE_DIRS})

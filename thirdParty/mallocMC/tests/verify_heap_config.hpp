@@ -29,13 +29,14 @@
 #pragma once
 
 #include <alpaka/alpaka.hpp>
+#include <alpaka/example/ExampleDefaultAcc.hpp>
 #include <mallocMC/mallocMC.hpp>
 
 using Dim = alpaka::DimInt<1>;
 using Idx = std::size_t;
-// using Acc = alpaka::AccCpuThreads<Dim, Idx>;
-// using Acc = alpaka::AccCpuOmp2Threads<Dim, Idx>;
-using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
+
+// Define the device accelerator
+using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
 
 // configurate the CreationPolicy "Scatter"
 struct ScatterConfig
@@ -72,7 +73,7 @@ struct AlignmentConfig
 using ScatterAllocator = mallocMC::Allocator<
     Acc,
     mallocMC::CreationPolicies::Scatter<ScatterConfig, ScatterHashParams>,
-    mallocMC::DistributionPolicies::XMallocSIMD<DistributionConfig>,
+    mallocMC::DistributionPolicies::Noop,
     mallocMC::OOMPolicies::ReturnNull,
     mallocMC::ReservePoolPolicies::AlpakaBuf<Acc>,
     mallocMC::AlignmentPolicies::Shrink<AlignmentConfig>>;

@@ -61,8 +61,8 @@ Branches
 
 | *branch*    | *state* | *description*           |
 | ----------- | ------- | ----------------------- |
-| **master**  | [![Build Status Master](https://travis-ci.org/ComputationalRadiationPhysics/mallocMC.png?branch=master)](https://travis-ci.org/ComputationalRadiationPhysics/mallocMC "master") | our latest stable release |
-| **dev**     | [![Build Status Development](https://travis-ci.org/ComputationalRadiationPhysics/mallocMC.png?branch=dev)](https://travis-ci.org/ComputationalRadiationPhysics/mallocMC "dev") | our development branch - start and merge new branches here |
+| **master**  | [![Build Status Master](https://travis-ci.org/alpaka-group/mallocMC.png?branch=master)](https://travis-ci.org/alpaka-group/mallocMC "master") | our latest stable release |
+| **dev**     | [![Build Status Development](https://travis-ci.org/alpaka-group/mallocMC.png?branch=dev)](https://travis-ci.org/alpaka-group/mallocMC "dev") | our development branch - start and merge new branches here |
 | **tugraz**  | n/a | *ScatterAlloc* "upstream" branch: not backwards compatible mirror for algorithmic changes |
 
 

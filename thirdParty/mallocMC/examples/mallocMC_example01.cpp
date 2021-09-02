@@ -26,16 +26,19 @@
   THE SOFTWARE.
 */
 
+#include <algorithm>
 #include <alpaka/alpaka.hpp>
+#include <alpaka/example/ExampleDefaultAcc.hpp>
+#include <cassert>
 #include <iostream>
 #include <mallocMC/mallocMC.hpp>
 #include <numeric>
 
 using Dim = alpaka::DimInt<1>;
 using Idx = std::size_t;
-// using Acc = alpaka::AccCpuThreads<Dim, Idx>;
-// using Acc = alpaka::AccCpuOmp2Threads<Dim, Idx>;
-using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
+
+// Define the device accelerator
+using Acc = alpaka::ExampleDefaultAcc<Dim, Idx>;
 
 struct ScatterHeapConfig
 {
@@ -67,7 +70,7 @@ struct ShrinkConfig
 using ScatterAllocator = mallocMC::Allocator<
     Acc,
     mallocMC::CreationPolicies::Scatter<ScatterHeapConfig, ScatterHashConfig>,
-    mallocMC::DistributionPolicies::XMallocSIMD<XMallocConfig>,
+    mallocMC::DistributionPolicies::Noop,
     mallocMC::OOMPolicies::ReturnNull,
     mallocMC::ReservePoolPolicies::AlpakaBuf<Acc>,
     mallocMC::AlignmentPolicies::Shrink<ShrinkConfig>>;
@@ -78,13 +81,17 @@ ALPAKA_STATIC_ACC_MEM_GLOBAL int** arC;
 
 auto main() -> int
 {
-    constexpr auto block = 32;
-    constexpr auto grid = 32;
     constexpr auto length = 100;
-    static_assert(length <= block * grid, ""); // necessary for used algorithm
 
     const auto dev = alpaka::getDevByIdx<Acc>(0);
     auto queue = alpaka::Queue<Acc, alpaka::Blocking>{dev};
+
+    auto const devProps = alpaka::getAccDevProps<Acc>(dev);
+    unsigned const block = std::min(static_cast<size_t>(32u), static_cast<size_t>(devProps.m_blockThreadCountMax));
+
+    // round up
+    auto grid = (length + block - 1u) / block;
+    assert(length <= block * grid); // necessary for used algorithm
 
     // init the heap
     std::cerr << "initHeap...";
@@ -150,11 +157,7 @@ auto main() -> int
         const auto workDiv = alpaka::WorkDivMembers<Dim, Idx>{Idx{grid}, Idx{block}, Idx{1}};
         alpaka::enqueue(
             queue,
-            alpaka::createTaskKernel<Acc>(
-                workDiv,
-                addArrays,
-                length,
-                alpaka::getPtrNative(sumsBufferAcc)));
+            alpaka::createTaskKernel<Acc>(workDiv, addArrays, length, alpaka::getPtrNative(sumsBufferAcc)));
 
         const auto hostDev = alpaka::getDevByIdx<alpaka::DevCpu>(0);
         auto sumsBufferHost = alpaka::allocBuf<int, Idx>(hostDev, Idx{block * grid});
@@ -185,9 +188,7 @@ auto main() -> int
             allocHandle.free(acc, arC[id]);
         };
         const auto workDiv = alpaka::WorkDivMembers<Dim, Idx>{Idx{grid}, Idx{block}, Idx{1}};
-        alpaka::enqueue(
-            queue,
-            alpaka::createTaskKernel<Acc>(workDiv, freeArrays, scatterAlloc.getAllocatorHandle()));
+        alpaka::enqueue(queue, alpaka::createTaskKernel<Acc>(workDiv, freeArrays, scatterAlloc.getAllocatorHandle()));
     }
 
     {
