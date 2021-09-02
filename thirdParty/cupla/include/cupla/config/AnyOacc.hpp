@@ -1,4 +1,4 @@
-/* Copyright 2018 Rene Widera
+/* Copyright 2020 Jeffrey Kelling
  *
  * This file is part of cupla.
  *
@@ -18,10 +18,26 @@
  *
  */
 
+
 #pragma once
 
-// Please also update the version in `cuplaConfig.cmake`
-#define CUPLA_VERSION_MAJOR 0
-#define CUPLA_VERSION_MINOR 3
-#define CUPLA_VERSION_PATCH 0
-#define CUPLA_VERSION_LABEL ""
+#include <alpaka/standalone/AnyOacc.hpp>
+
+#ifndef CUPLA_HEADER_ONLY
+#   define CUPLA_HEADER_ONLY 1
+#endif
+
+#if( CUPLA_HEADER_ONLY == 1 )
+#   define CUPLA_HEADER_ONLY_FUNC_SPEC inline
+#endif
+
+#if( CUPLA_HEADER_ONLY == 1 )
+#   include "cupla/../../src/manager/Driver.cpp"
+#   include "cupla/../../src/common.cpp"
+#   include "cupla/../../src/device.cpp"
+#   include "cupla/../../src/event.cpp"
+#   include "cupla/../../src/memory.cpp"
+#   include "cupla/../../src/stream.cpp"
+#endif
+
+#include "cupla.hpp"

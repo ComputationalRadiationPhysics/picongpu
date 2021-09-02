@@ -118,13 +118,13 @@ rsync
 - *Arch Linux:* ``sudo pacman --sync rsync``
 - *Spack:* ``spack install rsync``
 
-alpaka 0.4.0
+alpaka 0.6.X
 """"""""""""
-- `alpaka <https://github.com/ComputationalRadiationPhysics/alpaka>`_ is included in the PIConGPU source code
+- `alpaka <https://github.com/alpaka-group/alpaka>`_ is included in the PIConGPU source code
 
-cupla 0.2.0
+cupla 0.3.0
 """""""""""
-- `cupla <https://github.com/ComputationalRadiationPhysics/cupla>`_ is included in the PIConGPU source code
+- `cupla <https://github.com/alpaka-group/cupla>`_ is included in the PIConGPU source code
 
 mallocMC 2.3.0crp
 """""""""""""""""

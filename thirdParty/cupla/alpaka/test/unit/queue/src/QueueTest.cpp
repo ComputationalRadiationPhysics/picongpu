@@ -15,6 +15,7 @@
 
 #include <catch2/catch.hpp>
 
+#include <atomic>
 #include <future>
 #include <thread>
 
@@ -25,6 +26,28 @@ using TestQueues = alpaka::meta::Concatenate<
     std::tuple<std::tuple<alpaka::DevCpu, alpaka::QueueCpuOmp2Collective>>
 #endif
     >;
+
+//! Equivalent to CHECK but accounts for potential false negatives
+//!
+//! This is required when checking if an event or a queue is finished/empty.
+//! \warning This macro can be used on host only!
+//!
+//! \param count number of negative checks to be repeated
+//! \param msWait milli seconds to wait if cmd is returning false
+//! \param cmd command executed
+#define LOOPED_CHECK(count, msWait, cmd)                                                                              \
+    do                                                                                                                \
+    {                                                                                                                 \
+        bool ret = false;                                                                                             \
+        for(int i = 0; i < count; ++i)                                                                                \
+        {                                                                                                             \
+            ret = (cmd);                                                                                              \
+            if(ret)                                                                                                   \
+                break;                                                                                                \
+            std::this_thread::sleep_for(std::chrono::milliseconds(msWait));                                           \
+        }                                                                                                             \
+        CHECK(ret);                                                                                                   \
+    } while(0)
 
 //-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("queueIsInitiallyEmpty", "[queue]", TestQueues)
@@ -51,7 +74,7 @@ TEMPLATE_LIST_TEST_CASE("queueCallbackIsWorking", "[queue]", TestQueues)
 
     alpaka::enqueue(f.m_queue, [&]() { promise.set_value(true); });
 
-    CHECK(promise.get_future().get());
+    LOOPED_CHECK(30, 100, promise.get_future().get());
 #    endif
 }
 
@@ -62,14 +85,14 @@ TEMPLATE_LIST_TEST_CASE("queueWaitShouldWork", "[queue]", TestQueues)
     using Fixture = alpaka::test::QueueTestFixture<DevQueue>;
     Fixture f;
 
-    bool CallbackFinished = false;
-    alpaka::enqueue(f.m_queue, [&CallbackFinished]() noexcept {
+    std::atomic<bool> callbackFinished{false};
+    alpaka::enqueue(f.m_queue, [&callbackFinished]() noexcept {
         std::this_thread::sleep_for(std::chrono::milliseconds(100u));
-        CallbackFinished = true;
+        callbackFinished = true;
     });
 
     alpaka::wait(f.m_queue);
-    CHECK(CallbackFinished);
+    CHECK(callbackFinished.load() == true);
 }
 
 //-----------------------------------------------------------------------------
@@ -82,11 +105,11 @@ TEMPLATE_LIST_TEST_CASE(
     using Fixture = alpaka::test::QueueTestFixture<DevQueue>;
     Fixture f;
 
-    bool CallbackFinished = false;
-    alpaka::enqueue(f.m_queue, [&f, &CallbackFinished]() noexcept {
-        CHECK(!alpaka::empty(f.m_queue));
+    std::atomic<bool> callbackFinished{false};
+    alpaka::enqueue(f.m_queue, [&f, &callbackFinished]() noexcept {
+        LOOPED_CHECK(30, 100, !alpaka::empty(f.m_queue));
         std::this_thread::sleep_for(std::chrono::milliseconds(100u));
-        CallbackFinished = true;
+        callbackFinished = true;
     });
 
     // A non-blocking queue will always stay empty because the task has been executed immediately.
@@ -95,8 +118,8 @@ TEMPLATE_LIST_TEST_CASE(
         alpaka::wait(f.m_queue);
     }
 
-    CHECK(alpaka::empty(f.m_queue));
-    CHECK(CallbackFinished);
+    CHECK(callbackFinished.load() == true);
+    LOOPED_CHECK(30, 100, alpaka::empty(f.m_queue));
 }
 
 //-----------------------------------------------------------------------------

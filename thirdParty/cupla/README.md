@@ -1,7 +1,8 @@
-**cupla** - C++ User interface for the Platform independent Library Alpaka
+**cupla** - C++ User interface for the Platform Independent Library alpaka
 ==========================================================================
 
-[![Build Status dev](https://img.shields.io/travis/alpaka-group/cupla/dev.svg?label=dev)](https://travis-ci.org/alpaka-group/cupla/branches)
+[![Code Status master](https://gitlab.com/hzdr/crp/cupla/badges/master/pipeline.svg?key_text=master)](https://gitlab.com/hzdr/crp/cupla/pipelines/master/latest)
+[![Code Status dev](https://gitlab.com/hzdr/crp/cupla/badges/dev/pipeline.svg?key_text=dev)](https://gitlab.com/hzdr/crp/cupla/pipelines/dev/latest)
 
 ![cupla Release](doc/logo/cupla_logo_320x210.png)
 
@@ -39,7 +40,7 @@ Dependencies
 ------------
 
 - **cmake 3.15.0**
-- **[alpaka 0.5.0](https://github.com/alpaka-group/alpaka/)**
+- **[alpaka 0.6.X](https://github.com/alpaka-group/alpaka/)**
   - alpaka is loaded as `git subtree` within **cupla**, see [INSTALL.md](INSTALL.md)
 
 Usage

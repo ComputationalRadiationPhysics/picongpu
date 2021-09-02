@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <alpaka/standalone/CpuOmp4>
+#include <alpaka/standalone/AnyOmp5.hpp>
 
 #ifndef CUPLA_HEADER_ONLY
 #   define CUPLA_HEADER_ONLY 1

@@ -14,8 +14,8 @@
 // Base classes.
 #    include <alpaka/atomic/AtomicHierarchy.hpp>
 #    include <alpaka/atomic/AtomicStdLibLock.hpp>
-#    include <alpaka/block/shared/dyn/BlockSharedMemDynAlignedAlloc.hpp>
-#    include <alpaka/block/shared/st/BlockSharedMemStMasterSync.hpp>
+#    include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
+#    include <alpaka/block/shared/st/BlockSharedMemStMemberMasterSync.hpp>
 #    include <alpaka/block/sync/BlockSyncBarrierThread.hpp>
 #    include <alpaka/idx/bt/IdxBtRefThreadIdMap.hpp>
 #    include <alpaka/idx/gb/IdxGbRef.hpp>
@@ -67,8 +67,8 @@ namespace alpaka
             AtomicStdLibLock<16>  // thread atomics
         >,
         public math::MathStdLib,
-        public BlockSharedMemDynAlignedAlloc,
-        public BlockSharedMemStMasterSync,
+        public BlockSharedMemDynMember<>,
+        public BlockSharedMemStMemberMasterSync<>,
         public BlockSyncBarrierThread<TIdx>,
         public IntrinsicCpu,
         public rand::RandStdLib,
@@ -98,8 +98,10 @@ namespace alpaka
                   AtomicStdLibLock<16> // atomics between threads
                   >()
             , math::MathStdLib()
-            , BlockSharedMemDynAlignedAlloc(blockSharedMemDynSizeBytes)
-            , BlockSharedMemStMasterSync(
+            , BlockSharedMemDynMember<>(blockSharedMemDynSizeBytes)
+            , BlockSharedMemStMemberMasterSync<>(
+                  staticMemBegin(),
+                  staticMemCapacity(),
                   [this]() { syncBlockThreads(*this); },
                   [this]() { return (m_idMasterThread == std::this_thread::get_id()); })
             , BlockSyncBarrierThread<TIdx>(getWorkDiv<Block, Threads>(workDiv).prod())
