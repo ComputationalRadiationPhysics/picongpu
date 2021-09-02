@@ -20,23 +20,20 @@ export PROJID=<yourProject>
 
 # General modules #############################################################
 #
-module purge
-module load PrgEnv-gnu # mpi, libfabric and others
-module load DefApps/alt
+# There are a lot of required modules already loaded when connecting
+# such as mpi, libfabric and others.
+# The following modules just add to these.
+module load craype-accel-amd-gfx908
+module load rocm/4.3.0 # Note setting of environment variables further below
+
 module load git/2.31.1
 module load cmake/3.20.2
-module load craype-accel-amd-gfx908
-module load rocm/4.1.0
-
-export HIP_PATH=$ROCM_PATH/hip # has to be set in order to be able to compile
-
-module load boost/1.75.0
-
+module load boost/1.73.0
 
 # Other Software ##############################################################
 #
 module load c-blosc/1.21.0
-module load cray-python/3.8.5.0
+module load cray-python/3.8.5.1
 module load hdf5/1.10.7 # dependency of openpmd-api module (no other possible)
 module load adios2/2.7.1 # dependency of openpmd-api module
 module load openpmd-api/0.13.4
@@ -73,11 +70,13 @@ export PATH=$PATH:$PICSRC/src/tools/bin
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
+export HIP_PATH=$ROCM_PATH/hip # has to be set in order to be able to compile
 export CMAKE_MODULE_PATH=$HIP_PATH/cmake:$CMAKE_MODULE_PATH
+export HIPCC_COMPILE_FLAGS_APPEND="$HIPCC_COMPILE_FLAGS_APPEND -I${MPICH_DIR}/include"
+export HIPCC_LINK_FLAGS_APPEND="$HIPCC_LINK_FLAGS_APPEND -L${MPICH_DIR}/lib -lmpi -L/opt/cray/pe/mpich/8.1.7/gtl/lib -lmpi_gtl_hsa"
+
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_ROOT/lib
 export CMAKE_PREFIX_PATH=$BOOST_ROOT:$CMAKE_PREFIX_PATH
-export HIPCC_COMPILE_FLAGS_APPEND="$HIPCC_COMPILE_FLAGS_APPEND -I${MPICH_DIR}/include"
-export HIPCC_LINK_FLAGS_APPEND="$HIPCC_LINK_FLAGS_APPEND -L${MPICH_DIR}/lib -lmpi -L/opt/cray/pe/mpich/8.1.4/gtl/lib -lmpi_gtl_hsa"
 
 # "tbg" default options #######################################################
 #   - SLURM (sbatch)
