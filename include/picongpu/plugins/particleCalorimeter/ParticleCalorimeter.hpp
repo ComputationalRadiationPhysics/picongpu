@@ -26,7 +26,6 @@
 #include "picongpu/plugins/common/openPMDWriteMeta.hpp"
 #include "picongpu/plugins/misc/misc.hpp"
 #include "picongpu/plugins/multi/multi.hpp"
-#include "picongpu/traits/PICToSplash.hpp"
 
 #include <pmacc/algorithms/math.hpp>
 #include <pmacc/cuSTL/algorithm/functor/Add.hpp>

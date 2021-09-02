@@ -29,7 +29,6 @@ module load boost/1.70.0
 module load cray-hdf5-parallel/1.10.2.0
 module load png/1.6.34
 
-export Splash_ROOT=${HOME}/sw/libSplash-1.7.0-8-gb9421ba
 export PNGwriter_ROOT=${HOME}/sw/pngwriter-0.7.0-21-g9dc58ed
 
 # Environment #################################################################

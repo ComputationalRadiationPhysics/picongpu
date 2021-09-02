@@ -45,10 +45,6 @@ export PNGwriter_DIR=$ownLibs/lib/pngwriter
 export CMAKE_PREFIX_PATH=$PNGwriter_DIR:$CMAKE_PREFIX_PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGwriter_DIR/lib/
 
-export Splash_DIR=$ownLibs/lib/splash
-export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$Splash_DIR/lib/
-
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 export PIC_BACKEND="omp2b:MIC-AVX512"

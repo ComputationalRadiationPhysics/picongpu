@@ -45,10 +45,6 @@ module load nsight-compute/2021.1.0
 #export OPENPMD_ROOT=$PIC_LIBS/openPMD-api/
 #export LD_LIBRARY_PATH=$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH
 
-# libSplash
-#export CMAKE_PREFIX_PATH=$PIC_LIBS/splash:$CMAKE_PREFIX_PATH
-#export LD_LIBRARY_PATH=$PIC_LIBS/splash/lib:$LD_LIBRARY_PATH
-
 # pngWriter
 #export CMAKE_PREFIX_PATH=$PIC_LIBS/pngwriter:$CMAKE_PREFIX_PATH
 #export LD_LIBRARY_PATH=$PIC_LIBS/pngwriter/lib:$LD_LIBRARY_PATH

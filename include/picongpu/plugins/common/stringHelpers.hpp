@@ -38,42 +38,5 @@ namespace picongpu
          * @return std::string with formatted date
          */
         std::string getDateString(std::string format);
-
-        /** Create array of c-strings suitable for libSplash
-         *
-         * Convert a std::list of strings to a format that is suitable to
-         * be written into libSplash (concated and padded array of constant
-         * c-strings). Strings will be padded to longest string.
-         *
-         * Independent of the padding you chose, the strings will be '\0'
-         * separated & terminated. \0 padding is default and recommended.
-         */
-        class GetSplashArrayOfString
-        {
-        private:
-            // compare two std::string by their size
-            struct CompStrBySize
-            {
-                bool operator()(std::string i, std::string j)
-                {
-                    return i.size() < j.size();
-                }
-            };
-
-        public:
-            // resulting type containing all attributes for a libSplash write call
-            struct Result
-            {
-                size_t maxLen; // size of the longest string
-                std::vector<char> buffers; // all of same length lenMax
-
-                Result() : maxLen(0)
-                {
-                }
-            };
-
-            Result operator()(std::list<std::string> listOfStrings, char padding = '\0');
-        };
-
     } // namespace helper
 } // namespace picongpu

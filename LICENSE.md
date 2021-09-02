@@ -27,19 +27,18 @@ The **main simulation** is licensed under the **GPLv3+**. See
  - `include/picongpu`
  - `lib/python/picongpu`
  - `share/picongpu`
- - `src/tools` (without `splash2txt`)
+ - `src/tools`
  - `src/mpiInfo`
  - `test`
 
 
-### PMacc & splash2txt
+### PMacc
  
 All **libraries** are licensed under the **LGPLv3+**. See
 [COPYING.LESSER](COPYING.LESSER).
 If not stated otherwise explicitly, that affects:
  - `include/pmacc`
  - `share/pmacc`
- - `src/tools/splash2txt`
 
 
 ### Documentation

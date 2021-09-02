@@ -31,9 +31,6 @@
 #    include <mallocMC/mallocMC.hpp>
 #endif
 #include <mpi.h>
-#if(ENABLE_HDF5 == 1)
-#    include <splash/splash.h>
-#endif
 #if(PIC_ENABLE_PNG == 1)
 #    include <pngwriter.h>
 #endif
@@ -108,17 +105,6 @@ namespace picongpu
         pngwriter << versionNotFound;
 #endif
 
-        std::stringstream splash;
-        std::stringstream splashFormat;
-#if(ENABLE_HDF5 == 1)
-        splash << SPLASH_VERSION_MAJOR << "." << SPLASH_VERSION_MINOR << "." << SPLASH_VERSION_PATCH;
-        splashFormat << SPLASH_FILE_FORMAT_MAJOR << "." << SPLASH_FILE_FORMAT_MINOR;
-#else
-        splash << versionNotFound;
-        splashFormat << versionNotFound;
-#endif
-
-
 #if(ENABLE_OPENPMD == 1)
         std::string openPMD = openPMD::getVersion();
 #else
@@ -142,7 +128,6 @@ namespace picongpu
                 << "    standard: " << mpiStandard.str() << std::endl
                 << "    flavor:   " << mpiFlavor.str() << " (" << mpiFlavorVersion.str() << ")" << std::endl;
         cliText << "  PNGwriter:  " << pngwriter.str() << std::endl;
-        cliText << "  libSplash:  " << splash.str() << " (Format " << splashFormat.str() << ")" << std::endl;
         cliText << "  openPMD:    " << openPMD << std::endl;
 
         // Module-like formatting of software only
@@ -160,8 +145,6 @@ namespace picongpu
 #endif
         if(pngwriter.str().compare(versionNotFound) != 0)
             software.push_back(std::string("PNGwriter/") + pngwriter.str());
-        if(splash.str().compare(versionNotFound) != 0)
-            software.push_back(std::string("libSplash/") + splash.str());
         if(openPMD.compare(versionNotFound) != 0)
             software.push_back(std::string("openPMD/") + openPMD);
 

@@ -36,14 +36,12 @@ module load szip/2.1.1--gnu--6.4.0
 module load blosc/1.12.1--gnu--6.4.0
 
 module load hdf5/1.10.4--openmpi--3.1.0--gnu--6.4.0
-module load libsplash/1.7.0--openmpi--3.1.0--gnu--6.4.0
 
 module load libpng/1.6.35--gnu--6.4.0
 module load freetype/2.9.1--gnu--6.4.0
 module load pngwriter/0.7.0--gnu--6.4.0
 
 export CMAKE_PREFIX_PATH=$ZLIB_HOME:$SZIP_HOME:$BLOSC_HOME:$CMAKE_PREFIX_PATH
-export CMAKE_PREFIX_PATH=$HDF5_HOME:$LIBSPLASH_HOME:$CMAKE_PREFIX_PATH
 export CMAKE_PREFIX_PATH=$LIBPNG_HOME:$FREETYPE_HOME:$PNGWRITER_HOME:$CMAKE_PREFIX_PATH
 
 # Work-Arounds ################################################################

@@ -54,8 +54,7 @@ a wide range of tools and diagnostics, e.g.:
 - online, far-field radiation diagnostics for coherent and incoherent radiation
   emitted by charged particles
 - full restart and output capabilities via [openPMD](http://openPMD.org),
-  including [parallel HDF5](http://hdfgroup.org/) (via
-  [libSplash](https://github.com/ComputationalRadiationPhysics/libSplash)) and
+  including [parallel HDF5](http://hdfgroup.org/)
 - 2D and 3D live view and diagnostics tools
 - a large selection of extensible
   [online-plugins](http://picongpu.readthedocs.io/en/latest/usage/plugins.html)

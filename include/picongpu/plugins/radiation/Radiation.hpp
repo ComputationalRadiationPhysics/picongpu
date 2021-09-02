@@ -874,7 +874,7 @@ namespace picongpu
                 void readOpenPMDfile(std::vector<Amplitude>& values, std::string name, const int timeStep)
                 {
                     std::ostringstream filename;
-                    /* add to standard ending added by libSplash for SerialDataCollector */
+                    /* add to standard file ending */
                     filename << name << timeStep << ".h5";
 
                     /* check if restart file exists */
