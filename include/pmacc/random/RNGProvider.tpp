@@ -1,4 +1,4 @@
-/* Copyright 2015-2021 Alexander Grund
+/* Copyright 2015-2021 Alexander Grund, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -112,6 +112,12 @@ namespace pmacc
         }
 
         template<uint32_t T_dim, class T_RNGMethod>
+        typename RNGProvider<T_dim, T_RNGMethod>::Space RNGProvider<T_dim, T_RNGMethod>::getSize() const
+        {
+            return m_size;
+        }
+
+        template<uint32_t T_dim, class T_RNGMethod>
         typename RNGProvider<T_dim, T_RNGMethod>::DataBoxType RNGProvider<T_dim, T_RNGMethod>::getDeviceDataBox()
         {
             return buffer->getDeviceBuffer().getDataBox();
@@ -135,6 +141,12 @@ namespace pmacc
         void RNGProvider<T_dim, T_RNGMethod>::synchronize()
         {
             buffer->deviceToHost();
+        }
+
+        template<uint32_t T_dim, class T_RNGMethod>
+        void RNGProvider<T_dim, T_RNGMethod>::syncToDevice()
+        {
+            buffer->hostToDevice();
         }
 
     } // namespace random

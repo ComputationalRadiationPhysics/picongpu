@@ -1,6 +1,6 @@
 /* Copyright 2014-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz, Alexander Grund, Franz Poeschel,
- *                     Pawel Ordyna
+ *                     Pawel Ordyna, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -591,6 +591,144 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
             };
 
+            /** Write random number generator states as a unitless scalar field
+             *
+             * Note: writeField() cannot be easily used inside this function, since states are custom types.
+             * Instead, we reinterpret states as a byte (char) array and store using openPMD API directly.
+             *
+             * Only suitable for the currently implemented RNG storage: one state per cell, no guards.
+             * If this doesn't hold, the implementation can't work as is, and an exception will be thrown.
+             */
+            HINLINE void writeRngStates(ThreadParams* params)
+            {
+                DataConnector& dc = Environment<simDim>::get().DataConnector();
+                using RNGProvider = pmacc::random::RNGProvider<simDim, random::Generator>;
+                auto rngProvider = dc.get<RNGProvider>(RNGProvider::getName());
+                // Start copying data to host
+                rngProvider->synchronize();
+                auto const name = rngProvider->getName();
+
+                ::openPMD::Iteration iteration = params->openPMDSeries->WRITE_ITERATIONS[params->currentStep];
+                ::openPMD::Mesh mesh = iteration.meshes[name];
+
+                auto const unitDimension = std::vector<float_64>(7, 0.0);
+                auto const timeOffset = 0.0_X;
+                writeFieldAttributes(params, unitDimension, timeOffset, mesh);
+
+                ::openPMD::MeshRecordComponent mrc = mesh[::openPMD::RecordComponent::SCALAR];
+                std::string datasetName = params->openPMDSeries->meshesPath() + name;
+
+                auto fieldsSizeDims = params->fieldsSizeDims;
+                auto fieldsGlobalSizeDims = params->fieldsGlobalSizeDims;
+                auto fieldsOffsetDims = params->fieldsOffsetDims;
+
+                if(fieldsSizeDims != rngProvider->getSize())
+                    throw std::runtime_error("openPMD: RNG state can't be written due to not matching size");
+
+                // Reinterpret state as chars, it must be bitwise-copyable for it
+                using ReinterpretedType = char;
+                // The fast-moving axis size (x in PIConGPU) had to be adjusted accordingly
+                using ValueType = RNGProvider::Buffer::ValueType;
+                fieldsSizeDims[0] *= sizeof(ValueType);
+                fieldsGlobalSizeDims[0] *= sizeof(ValueType);
+                fieldsOffsetDims[0] *= sizeof(ValueType);
+
+                params->initDataset<simDim>(
+                    mrc,
+                    ::openPMD::determineDatatype<ReinterpretedType>(),
+                    fieldsGlobalSizeDims,
+                    true,
+                    params->compressionMethod,
+                    datasetName);
+
+                // define record component level attributes
+                auto const inCellPosition = std::vector<float_X>(simDim, 0.0_X);
+                mrc.setPosition(inCellPosition);
+                auto const unit = 1.0_X;
+                mrc.setUnitSI(unit);
+
+                auto& buffer = rngProvider->getStateBuffer();
+                // getPointer() will wait for device->host transfer
+                ValueType* nativePtr = buffer.getHostBuffer().getPointer();
+                ReinterpretedType* rawPtr = reinterpret_cast<ReinterpretedType*>(nativePtr);
+                mrc.storeChunk(
+                    ::openPMD::shareRaw(rawPtr),
+                    asStandardVector(fieldsOffsetDims),
+                    asStandardVector(fieldsSizeDims));
+                params->openPMDSeries->flush();
+            }
+
+            /** Implementation of loading random number generator states
+             *
+             * Note: LoadFields cannot be easily used inside this function, since states are custom types.
+             * Instead, we load states as a byte (char) array and reinterpret.
+             * This matches how they are written in writeRngStates().
+             *
+             * Only suitable for the currently implemented RNG storage: one state per cell, no guards.
+             * If this doesn't hold, the implementation can't work as is, and an exception will be thrown.
+             */
+            HINLINE void loadRngStatesImpl(ThreadParams* params)
+            {
+                DataConnector& dc = Environment<simDim>::get().DataConnector();
+                using RNGProvider = pmacc::random::RNGProvider<simDim, random::Generator>;
+                auto rngProvider = dc.get<RNGProvider>(RNGProvider::getName());
+                auto const name = rngProvider->getName();
+
+                ::openPMD::Iteration iteration = params->openPMDSeries->WRITE_ITERATIONS[params->currentStep];
+                ::openPMD::Mesh mesh = iteration.meshes[name];
+                ::openPMD::MeshRecordComponent mrc = mesh[::openPMD::RecordComponent::SCALAR];
+
+                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+                auto fieldsSizeDims = params->window.localDimensions.size;
+                auto fieldsOffsetDims = localDomain.offset;
+
+                if(fieldsSizeDims != rngProvider->getSize())
+                    throw std::runtime_error("openPMD: RNG state can't be loaded due to not matching size");
+
+                // Reinterpret state as chars, it must be bitwise-copyable for it
+                using ReinterpretedType = char;
+                // The fast-moving axis size (x in PIConGPU) had to be adjusted accordingly
+                using ValueType = RNGProvider::Buffer::ValueType;
+                fieldsSizeDims[0] *= sizeof(ValueType);
+                fieldsOffsetDims[0] *= sizeof(ValueType);
+
+                auto& buffer = rngProvider->getStateBuffer();
+                ValueType* nativePtr = buffer.getHostBuffer().getPointer();
+                ReinterpretedType* rawPtr = reinterpret_cast<ReinterpretedType*>(nativePtr);
+                /* Explicit template parameters to asStandardVector required
+                 * as we need to change the element type as well
+                 */
+                mrc.loadChunk(
+                    ::openPMD::shareRaw(rawPtr),
+                    asStandardVector<DataSpace<simDim>&, ::openPMD::Offset>(fieldsOffsetDims),
+                    asStandardVector<DataSpace<simDim>&, ::openPMD::Extent>(fieldsSizeDims));
+                params->openPMDSeries->flush();
+                // Copy data to device
+                rngProvider->syncToDevice();
+            }
+
+            /** Load random number generator states
+             *
+             * In case it triggers an exception in the process, swallow it and do nothing.
+             * Then the states will be re-initialized.
+             */
+            HINLINE void loadRngStates(ThreadParams* params)
+            {
+                /* Do not enforce it to support older checkpoints.
+                 * In case RNG states can't be loaded, they will be default-initialized.
+                 * This guard may be removed in the future.
+                 */
+                try
+                {
+                    loadRngStatesImpl(&mThreadParams);
+                }
+                catch(...)
+                {
+                    log<picLog::INPUT_OUTPUT>(
+                        "openPMD: loading RNG states failed, they will be re-initialized instead");
+                }
+            }
+
         public:
             /** constructor
              *
@@ -755,6 +893,8 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 /* load all particles */
                 meta::ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1>> ForEachLoadSpecies;
                 ForEachLoadSpecies(&mThreadParams, restartChunkSize);
+
+                loadRngStates(&mThreadParams);
 
                 IdProvider<simDim>::State idProvState;
                 ReadNDScalars<uint64_t, uint64_t>()(
@@ -1223,6 +1363,13 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
                 log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing particle species.");
 
+                // No need for random generator states in normal output, only in checkpoints
+                if(threadParams->isCheckpoint)
+                {
+                    log<picLog::INPUT_OUTPUT>("openPMD: ( begin ) writing RNG states.");
+                    writeRngStates(threadParams);
+                    log<picLog::INPUT_OUTPUT>("openPMD: ( end ) writing RNG states.");
+                }
 
                 auto idProviderState = IdProvider<simDim>::getState();
                 log<picLog::INPUT_OUTPUT>("openPMD: Writing IdProvider state (StartId: %1%, NextId: %2%, "
