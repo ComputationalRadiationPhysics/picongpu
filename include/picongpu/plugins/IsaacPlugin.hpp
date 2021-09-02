@@ -317,7 +317,6 @@ namespace picongpu
                 // update movingWindow cells
                 if(enabled)
                 {
-                    uint32_t* currentStep = (uint32_t*) pointer;
                     DataConnector& dc = Environment<>::get().DataConnector();
                     auto particles = dc.get<ParticlesType>(ParticlesType::FrameType::getName(), true);
                     pb[0] = particles->getDeviceParticlesBox();
