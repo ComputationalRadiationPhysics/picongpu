@@ -1044,6 +1044,12 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 auto const name_lookup_tpl = plugins::misc::getComponentNames(nComponents);
                 ::openPMD::Datatype const openPMDType = ::openPMD::determineDatatype<ComponentType>();
 
+                if(openPMDType == ::openPMD::Datatype::UNDEFINED)
+                {
+                    throw std::runtime_error(
+                        "[openPMD plugin] Trying to write a field of a datatype unknown to openPMD.");
+                }
+
                 /* parameter checking */
                 PMACC_ASSERT(unit.size() == nComponents);
                 PMACC_ASSERT(inCellPosition.size() == nComponents);
