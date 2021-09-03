@@ -97,7 +97,7 @@ namespace picongpu
             GridLayout<simDim> gridLayout;
             MappingDesc* cellDescription;
 
-            std::vector<float_X> fieldBuffer; /* temp. buffer for fields */
+            std::vector<char> fieldBuffer; /* temp. buffer for fields */
 
             Window window; /* window describing the volume to be dumped */
 
