@@ -21,6 +21,7 @@ export RESERVATION=""
 
 # General modules #############################################################
 #
+module purge
 module load dgx
 module swap PrgEnv-intel PrgEnv-gnu
 module load cuda openmpi
