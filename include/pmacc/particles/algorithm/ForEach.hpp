@@ -26,6 +26,7 @@
 #include "pmacc/mappings/kernel/AreaMapping.hpp"
 #include "pmacc/particles/frame_types.hpp"
 
+#include <cstdint>
 #include <utility>
 
 
@@ -116,7 +117,7 @@ namespace pmacc
                 } // namespace detail
             } // namespace acc
 
-            /** Run a unary functor for each particle of a species
+            /** Run a unary functor for each particle of a species in the given area
              *
              * @warning Does NOT fill gaps automatically! If the
              *          operation deactivates particles or creates "gaps" in any
@@ -125,6 +126,7 @@ namespace pmacc
              *
              * Operates on the domain CORE and BORDER
              *
+             * @tparam T_area area to process particles in
              * @tparam T_Species type of the species
              * @tparam T_Functor unary particle functor type which follows the interface of
              *                   pmacc::functor::Interface<F, 1u, void>
@@ -132,11 +134,11 @@ namespace pmacc
              * @param species species to operate on
              * @param functor operation which is applied to each particle of the species
              */
-            template<typename T_Species, typename T_Functor>
+            template<uint32_t T_area, typename T_Species, typename T_Functor>
             void forEach(T_Species&& species, T_Functor functor)
             {
                 using MappingDesc = decltype(species.getCellDescription());
-                AreaMapping<CORE + BORDER, MappingDesc> mapper(species.getCellDescription());
+                AreaMapping<T_area, MappingDesc> mapper(species.getCellDescription());
 
                 using SuperCellSize = typename MappingDesc::SuperCellSize;
 

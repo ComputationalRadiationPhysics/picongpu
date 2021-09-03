@@ -26,6 +26,7 @@
 #include "pmacc/particles/algorithm/ForEach.hpp"
 #include "pmacc/particles/frame_types.hpp"
 
+#include <cstdint>
 #include <utility>
 
 namespace pmacc
@@ -34,14 +35,15 @@ namespace pmacc
     {
         namespace algorithm
         {
-            /** Functor to execute an operation on all particles
+            /** Functor to execute an operation on all particles of a species in the given area
              *
              * @tparam T_SpeciesOperator an operator to create the used species
              *                           with the species type as ::type
              * @tparam T_FunctorOperator an operator to create a particle functor
              *                           with the functor type as ::type
+             * @tparam T_area area to process particles in
              */
-            template<typename T_SpeciesOperator, typename T_FunctorOperator>
+            template<typename T_SpeciesOperator, typename T_FunctorOperator, uint32_t T_area>
             struct CallForEach
             {
                 /** Operate on the domain CORE and BORDER
@@ -59,7 +61,7 @@ namespace pmacc
                     DataConnector& dc = Environment<>::get().DataConnector();
                     auto species = dc.get<Species>(FrameType::getName(), true);
 
-                    forEach(*species, UnaryFunctor(currentStep));
+                    forEach<T_area>(*species, UnaryFunctor(currentStep));
                 }
             };
 
