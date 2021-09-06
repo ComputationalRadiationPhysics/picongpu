@@ -13,6 +13,9 @@ parser.add_argument('-n', dest='n_pairs', default=1, action="store",
                     help='number of tuple elements')
 parser.add_argument('--compact', dest='compact', action="store_true",
                     help='print compact form of the test matrix')
+parser.add_argument('--limit_boost_versions', dest='limit_boost_versions',
+                    action="store_true",
+                    help='test only every second boost version')
 args = parser.parse_args()
 n_pairs = int(args.n_pairs)
 
@@ -44,8 +47,7 @@ def get_base_image(compiler, backend):
         lookup_name += "_" + compiler[2]
     img_name = image_dict[lookup_name]
     if backend[0] == "cuda":
-        img_name += "_" + backend[0] + "_" + str(backend[1])
-
+        img_name += "_" + backend[0]
     return img_name
 
 
@@ -189,14 +191,20 @@ compilers.append(hip_clang_compilers)
 # PIConGPU backend list
 # tuple with two components (backend name, version)
 # version is only required for the cuda backend
-backends = [("hip", ), ("cuda", 9.2),
+backends = [("hip", 4.2), ("cuda", 9.2),
             ("cuda", 10.0), ("cuda", 10.1), ("cuda", 10.2),
             ("cuda", 11.0), ("cuda", 11.1), ("cuda", 11.2),
             ("omp2b", ), ("serial", )]
 
-boost_libs = ["1.65.1", "1.66.0", "1.67.0", "1.68.0", "1.69.0",
-              "1.70.0", "1.71.0", "1.72.0", "1.73.0", "1.74.0",
-              "1.75.0"]
+boost_libs_all = ["1.65.1", "1.66.0", "1.67.0", "1.68.0",
+                  "1.69.0", "1.70.0", "1.71.0", "1.72.0",
+                  "1.73.0", "1.74.0", "1.75.0"]
+
+if args.limit_boost_versions:
+    # select each second but keep the order
+    boost_libs = boost_libs_all[-1::-2][::-1]
+else:
+    boost_libs = boost_libs_all
 
 rounds = 1
 # activate looping over the compiler categories to minimize the test matrix
@@ -230,12 +238,19 @@ for i in range(rounds):
             backend = pairs[1][0]
             boost_version = pairs[2]
             folder = pairs[3]
-            v_cuda = get_version(pairs[1])
-            v_cuda_str = "" if v_cuda == 0 else str(v_cuda)
-            job_name = compiler + "_" + backend + v_cuda_str + "_boost" + \
-                boost_version + "_" + folder.replace("/", ".")
+            v_cuda_hip = get_version(pairs[1])
+            v_cuda_hip_str = "" if v_cuda_hip == 0 else str(v_cuda_hip)
+            image_prefix = "_run" if folder == "pmacc" else "_compile"
+            job_name = compiler + "_" + backend + v_cuda_hip_str + \
+                "_boost" + boost_version + "_" + folder.replace("/", ".")
             print(job_name + ":")
             print("  variables:")
+            if backend == "cuda":
+                print("    CUDA_CONTAINER_VERSION: '" +
+                      v_cuda_hip_str.replace('.', '') + "'")
+            if backend == "hip":
+                print("    HIP_CONTAINER_VERSION: '" +
+                      v_cuda_hip_str + "'")
             print("    PIC_TEST_CASE_FOLDER: '" + folder + "'")
             print("    PIC_BACKEND: '" + backend + "'")
             print("    BOOST_VERSION: '" + boost_version + "'")
@@ -248,5 +263,6 @@ for i in range(rounds):
             print("    - apt-get update -qq")
             print("    - apt-get install -y -qq libopenmpi-dev "
                   "openmpi-bin openssh-server")
-            print("  extends: " + get_base_image(pairs[0], pairs[1]))
+            print("  extends: " + get_base_image(pairs[0], pairs[1]) +
+                  image_prefix)
             print("")

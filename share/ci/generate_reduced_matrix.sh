@@ -28,15 +28,21 @@ if [ "$has_label" == "0" ] ; then
 fi
 
 folders=()
-for CASE in ${PIC_INPUTS}; do
-  if [ "$CASE" == "examples" ] || [  "$CASE" == "tests"  ] || [  "$CASE" == "benchmarks"  ] ; then
-      all_cases=$(find ${CASE}/* -maxdepth 0 -type d)
-  else
-      all_cases=$(find $CASE -maxdepth 0 -type d)
-  fi
-  for test_case_folder in $all_cases ; do
-      folders+=($test_case_folder)
+if [ "$PIC_INPUTS" == "pmacc" ] ; then
+  # create test cases for PMacc
+  echo "pmacc" | tr " " "\n" | n_wise_generator.py $@ --limit_boost_version
+else
+  # create test cases for PIConGPU
+  for CASE in ${PIC_INPUTS}; do
+    if [ "$CASE" == "examples" ] || [  "$CASE" == "tests"  ] || [  "$CASE" == "benchmarks"  ] ; then
+        all_cases=$(find ${CASE}/* -maxdepth 0 -type d)
+    else
+        all_cases=$(find $CASE -maxdepth 0 -type d)
+    fi
+    for test_case_folder in $all_cases ; do
+        folders+=($test_case_folder)
+    done
   done
-done
 
-echo "${folders[@]}" | tr " " "\n" | n_wise_generator.py $@
+  echo "${folders[@]}" | tr " " "\n" | n_wise_generator.py $@
+fi
