@@ -38,7 +38,6 @@
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/kernel/atomic.hpp>
 #include <pmacc/lockstep.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/memory/Array.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>

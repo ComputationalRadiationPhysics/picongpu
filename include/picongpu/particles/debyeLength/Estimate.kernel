@@ -24,7 +24,6 @@
 #include "picongpu/traits/frame/GetMass.hpp"
 
 #include <pmacc/lockstep.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 #include <cstdint>
 

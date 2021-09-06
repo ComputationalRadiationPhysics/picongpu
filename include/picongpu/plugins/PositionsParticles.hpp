@@ -256,7 +256,7 @@ namespace picongpu
             gParticle->getDeviceBuffer().setValue(positionParticleTmp);
             auto block = SuperCellSize::toRT();
 
-            AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
+            auto const mapper = makeAreaMapper<AREA>(*cellDescription);
             PMACC_KERNEL(KernelPositionsParticles{})
             (mapper.getGridDim(),
              block)(particles->getDeviceParticlesBox(), gParticle->getDeviceBuffer().getBasePointer(), mapper);

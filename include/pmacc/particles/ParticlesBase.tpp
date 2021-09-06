@@ -24,6 +24,7 @@
 #include "pmacc/Environment.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/fields/SimulationFieldHelper.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
 #include "pmacc/mappings/kernel/ExchangeMapping.hpp"
 #include "pmacc/particles/memory/boxes/ParticlesBox.hpp"
 #include "pmacc/particles/memory/buffers/ParticlesBuffer.hpp"
@@ -48,7 +49,7 @@ namespace pmacc
     template<uint32_t T_area>
     void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::deleteParticlesInArea()
     {
-        AreaMapping<T_area, MappingDesc> mapper(this->cellDescription);
+        auto const mapper = makeAreaMapper<T_area>(this->cellDescription);
 
         constexpr uint32_t numWorkers
             = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;

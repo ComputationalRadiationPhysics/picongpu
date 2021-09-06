@@ -25,7 +25,6 @@
 
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/lockstep.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 #include <cstdio>
 

@@ -26,6 +26,8 @@
 #include "picongpu/fields/absorber/pml/Parameters.hpp"
 #include "picongpu/fields/absorber/pml/Pml.kernel"
 
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+
 #include <cstdint>
 #include <string>
 
@@ -78,7 +80,7 @@ namespace picongpu
                     template<typename T_CurlB, uint32_t T_Area>
                     UpdateEFunctor<T_CurlB> getUpdateEFunctor(uint32_t const currentStep)
                     {
-                        AreaMapper<T_Area> mapper{cellDescription};
+                        auto const mapper = makeAreaMapper<T_Area>(cellDescription);
                         return UpdateEFunctor<T_CurlB>{
                             psiE->getDeviceOuterLayerBox(),
                             getLocalParameters(mapper, currentStep)};
@@ -98,7 +100,7 @@ namespace picongpu
                         uint32_t const currentStep,
                         bool const updatePsiB)
                     {
-                        AreaMapper<T_Area> mapper{cellDescription};
+                        auto const mapper = makeAreaMapper<T_Area>(cellDescription);
                         return UpdateBHalfFunctor<T_CurlE>{
                             psiB->getDeviceOuterLayerBox(),
                             getLocalParameters(mapper, currentStep),
@@ -119,13 +121,9 @@ namespace picongpu
                         }
                     }
 
-                    //! Helper area mapper type
-                    template<uint32_t T_Area>
-                    using AreaMapper = pmacc::AreaMapping<T_Area, MappingDesc>;
-
                     //! Get parameters for the local domain
-                    template<uint32_t T_Area>
-                    LocalParameters getLocalParameters(AreaMapper<T_Area>& mapper, uint32_t const currentStep) const
+                    template<typename T_Mapper>
+                    LocalParameters getLocalParameters(T_Mapper mapper, uint32_t const currentStep) const
                     {
                         Thickness localThickness = getLocalThickness(currentStep);
                         checkLocalThickness(localThickness);

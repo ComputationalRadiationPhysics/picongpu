@@ -26,6 +26,7 @@
 #include "picongpu/particles/collision/detail/cellDensity.hpp"
 
 #include <pmacc/lockstep.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
@@ -215,7 +216,7 @@ namespace picongpu
                     DataConnector& dc = Environment<>::get().DataConnector();
                     auto species = dc.get<Species>(FrameType::getName(), true);
 
-                    AreaMapping<CORE + BORDER, picongpu::MappingDesc> mapper(species->getCellDescription());
+                    auto const mapper = makeAreaMapper<CORE + BORDER>(species->getCellDescription());
 
                     constexpr uint32_t numWorkers
                         = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;

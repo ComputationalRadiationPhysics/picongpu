@@ -28,7 +28,6 @@
 
 #include <pmacc/kernel/atomic.hpp>
 #include <pmacc/lockstep.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/math/vector/Int.hpp>
 #include <pmacc/memory/Array.hpp>

@@ -125,7 +125,7 @@ namespace pmacc
         template<uint32_t AREA>
         void fillGaps()
         {
-            AreaMapping<AREA, MappingDesc> mapper(this->cellDescription);
+            auto const mapper = makeAreaMapper<AREA>(this->cellDescription);
 
             constexpr uint32_t numWorkers
                 = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;

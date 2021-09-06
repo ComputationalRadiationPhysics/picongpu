@@ -27,6 +27,7 @@
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 
 #include <iostream>
@@ -175,7 +176,7 @@ namespace picongpu
             sumcurrents->getDeviceBuffer().setValue(float3_X::create(0.0));
             auto block = MappingDesc::SuperCellSize::toRT();
 
-            AreaMapping<CORE + BORDER, MappingDesc> mapper(*cellDescription);
+            auto const mapper = makeAreaMapper<CORE + BORDER>(*cellDescription);
             PMACC_KERNEL(KernelSumCurrents{})
             (mapper.getGridDim(),
              block)(fieldJ->getDeviceDataBox(), sumcurrents->getDeviceBuffer().getBasePointer(), mapper);

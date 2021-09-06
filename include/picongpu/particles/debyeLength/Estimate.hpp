@@ -25,6 +25,7 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/operation.hpp>
 #include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
@@ -53,7 +54,7 @@ namespace picongpu
                 DataConnector& dc = Environment<>::get().DataConnector();
                 auto& electrons = *(dc.get<T_ElectronSpecies>(Frame::getName(), true));
 
-                pmacc::AreaMapping<CORE + BORDER, MappingDesc> mapper(cellDescription);
+                auto const mapper = pmacc::makeAreaMapper<CORE + BORDER>(cellDescription);
                 constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
                     pmacc::math::CT::volume<MappingDesc::SuperCellSize>::type::value>::value;
 

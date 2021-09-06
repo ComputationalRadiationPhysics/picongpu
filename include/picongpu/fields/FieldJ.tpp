@@ -260,7 +260,7 @@ namespace picongpu
         auto fieldE = dc.get<FieldE>(FieldE::getName(), true);
         auto fieldB = dc.get<FieldB>(FieldB::getName(), true);
 
-        AreaMapping<T_area, MappingDesc> mapper(cellDescription);
+        auto const mapper = makeAreaMapper<T_area>(cellDescription);
 
         constexpr uint32_t numWorkers
             = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;

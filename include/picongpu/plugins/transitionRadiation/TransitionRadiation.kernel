@@ -30,7 +30,6 @@
 
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/kernel/atomic.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 #include <cstdlib>
 #include <fstream>

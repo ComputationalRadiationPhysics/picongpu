@@ -26,6 +26,7 @@
 
 // pmacc
 #include <pmacc/Environment.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/static_assert.hpp>
 
@@ -76,7 +77,7 @@ namespace picongpu
                                 speciesTmp->getParticlesBuffer().getSuperCellsLayout().getDataSpace()
                                     * SuperCellSize::toRT(),
                                 GuardSize::toRT());
-                            AreaMapping<CORE + BORDER, MappingDesc> mapper(cellDescription);
+                            auto const mapper = makeAreaMapper<CORE + BORDER>(cellDescription);
 
                             // add energy histogram on top of existing data
                             constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<

@@ -24,7 +24,6 @@
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/meta/conversion/MakeSeq.hpp>
 #include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/traits/Resolve.hpp>
