@@ -46,7 +46,7 @@ namespace pmacc
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM> getBlockIndex(
+        HDINLINE static DataSpace<DIM> getSuperCellIndex(
             const Base& base,
             const DataSpace<DIM>& _blockIdx,
             uint32_t exchangeType)
@@ -79,7 +79,7 @@ namespace pmacc
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM> getBlockIndex(
+        HDINLINE static DataSpace<DIM> getSuperCellIndex(
             const Base& base,
             const DataSpace<DIM>& _blockIdx,
             uint32_t exchangeType)
@@ -126,7 +126,7 @@ namespace pmacc
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM> getBlockIndex(
+        HDINLINE static DataSpace<DIM> getSuperCellIndex(
             const Base& base,
             const DataSpace<DIM>& _blockIdx,
             uint32_t exchangeType)

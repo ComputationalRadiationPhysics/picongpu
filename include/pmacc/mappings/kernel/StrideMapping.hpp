@@ -24,11 +24,22 @@
 
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/mappings/kernel/MapperConcept.hpp"
 #include "pmacc/mappings/kernel/StrideMappingMethods.hpp"
 #include "pmacc/types.hpp"
 
 namespace pmacc
 {
+    /** Mapping from block indices to supercells in the given strided area for alpaka kernels
+     *
+     * Adheres to the MapperConcept.
+     *
+     * The mapped area is an intersection of T_area and an integer lattice with given stride in all directions
+     *
+     * @tparam T_area area, a value from type::AreaType or a sum of such values
+     * @tparam stride stride value
+     * @tparam baseClass mapping description type
+     */
     template<uint32_t areaType, uint32_t stride, class baseClass>
     class StrideMapping;
 
@@ -58,25 +69,25 @@ namespace pmacc
         {
         }
 
-        /**
-         * Generate grid dimension information for kernel calls
+        /** Generate grid dimension information for alpaka kernel calls
          *
-         * @return size of the grid
+         * A kernel using this mapping must use exacly the returned number of blocks
+         *
+         * @return number of blocks in a grid
          */
         HINLINE DataSpace<DIM> getGridDim() const
         {
             return (StrideMappingMethods<areaType, DIM>::getGridDim(*this) - offset + (int) Stride - 1) / (int) Stride;
         }
 
-        /**
-         * Returns index of current logical block
+        /** Return index of a supercell to be processed by the given alpaka block
          *
-         * @param realSuperCellIdx current SuperCell index (block index)
-         * @return mapped SuperCell index
+         * @param blockIdx alpaka block index
+         * @return mapped SuperCell index including guards
          */
-        HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx) const
+        HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& blockIdx) const
         {
-            const DataSpace<DIM> blockId((realSuperCellIdx * (int) Stride) + offset);
+            const DataSpace<DIM> blockId((blockIdx * (int) Stride) + offset);
             return StrideMappingMethods<areaType, DIM>::shift(*this, blockId);
         }
 

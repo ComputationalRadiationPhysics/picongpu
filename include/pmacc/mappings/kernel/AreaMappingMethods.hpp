@@ -49,7 +49,7 @@ namespace pmacc
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM> getBlockIndex(
+        HDINLINE static DataSpace<DIM> getSuperCellIndex(
             const Base&,
             const DataSpace<DIM>&,
             const DataSpace<DIM>& _blockIdx)
@@ -72,7 +72,7 @@ namespace pmacc
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM> getBlockIndex(
+        HDINLINE static DataSpace<DIM> getSuperCellIndex(
             const Base& base,
             const DataSpace<DIM>& gBlocks,
             const DataSpace<DIM>& _blockIdx)
@@ -96,7 +96,7 @@ namespace pmacc
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM> getBlockIndex(
+        HDINLINE static DataSpace<DIM> getSuperCellIndex(
             const Base& base,
             const DataSpace<DIM>& gBlocks,
             const DataSpace<DIM>& _blockIdx)
@@ -128,7 +128,7 @@ namespace pmacc
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM2> getBlockIndex(
+        HDINLINE static DataSpace<DIM2> getSuperCellIndex(
             const Base& base,
             const DataSpace<DIM2>& gBlocks,
             const DataSpace<DIM2>& _blockIdx)
@@ -174,7 +174,7 @@ namespace pmacc
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM2> getBlockIndex(
+        HDINLINE static DataSpace<DIM2> getSuperCellIndex(
             const Base& base,
             const DataSpace<DIM2>& gBlocks,
             const DataSpace<DIM2>& _blockIdx)
@@ -183,7 +183,7 @@ namespace pmacc
             const DataSpace<DIM2> sizeWithoutGuard(gBlocks - 2 * base.getGuardingSuperCells());
 
             // use result of the shrinked domain and skip guarding supercells
-            return AreaMappingMethods<GUARD, DIM2>{}.getBlockIndex(base, sizeWithoutGuard, _blockIdx)
+            return AreaMappingMethods<GUARD, DIM2>{}.getSuperCellIndex(base, sizeWithoutGuard, _blockIdx)
                 + base.getGuardingSuperCells();
         }
     };
@@ -208,7 +208,7 @@ namespace pmacc
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM3> getBlockIndex(
+        HDINLINE static DataSpace<DIM3> getSuperCellIndex(
             const Base& base,
             const DataSpace<DIM3>& gBlocks,
             const DataSpace<DIM3>& _blockIdx)
@@ -276,7 +276,7 @@ namespace pmacc
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM3> getBlockIndex(
+        HDINLINE static DataSpace<DIM3> getSuperCellIndex(
             const Base& base,
             const DataSpace<DIM3>& gBlocks,
             const DataSpace<DIM3>& _blockIdx)
@@ -285,7 +285,7 @@ namespace pmacc
             const DataSpace<DIM3> sizeWithoutGuard(gBlocks - 2 * base.getGuardingSuperCells());
 
             // use result of the shrinked domain and skip guarding supercells
-            return AreaMappingMethods<GUARD, DIM3>{}.getBlockIndex(base, sizeWithoutGuard, _blockIdx)
+            return AreaMappingMethods<GUARD, DIM3>{}.getSuperCellIndex(base, sizeWithoutGuard, _blockIdx)
                 + base.getGuardingSuperCells();
         }
     };
