@@ -155,17 +155,13 @@ namespace picongpu
         /** Get boundary kinds for the species.
          *
          * For each side, both boundaries have the same kind.
+         * Must not be modified outside of the ParticleBoundaries simulation stage.
          *
          * This method is static as it is used by static getStringProperties().
          */
-        static std::array<particles::boundary::Kind, simDim> boundaryKind()
+        static std::array<particles::boundary::Kind, simDim>& boundaryKind()
         {
-            using namespace particles::boundary;
-            static std::array<particles::boundary::Kind, simDim> kinds;
-            const DataSpace<DIM3> periodic
-                = Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
-            for(uint32_t d = 0; d < simDim; d++)
-                kinds[d] = (periodic[d] ? Kind::Periodic : Kind::Absorbing);
+            static std::array<particles::boundary::Kind, simDim> kinds = getDefaultBoundaryKind();
             return kinds;
         }
 
@@ -218,6 +214,18 @@ namespace picongpu
 
         FieldE* fieldE;
         FieldB* fieldB;
+
+        //! Get default boundary kinds for the species matching the communicator topology.
+        static std::array<particles::boundary::Kind, simDim> getDefaultBoundaryKind()
+        {
+            using namespace particles::boundary;
+            std::array<particles::boundary::Kind, simDim> result;
+            const DataSpace<DIM3> periodic
+                = Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
+            for(uint32_t d = 0; d < simDim; d++)
+                result[d] = (periodic[d] ? Kind::Periodic : Kind::Absorbing);
+            return result;
+        }
     };
 
     namespace traits
