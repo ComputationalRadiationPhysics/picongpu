@@ -27,6 +27,7 @@
 #include "picongpu/particles/Particles.hpp"
 #include "picongpu/particles/Particles.kernel"
 #include "picongpu/particles/ParticlesInit.kernel"
+#include "picongpu/particles/boundary/Apply.hpp"
 #include "picongpu/particles/pusher/Traits.hpp"
 #include "picongpu/particles/traits/GetExchangeMemCfg.hpp"
 #include "picongpu/particles/traits/GetMarginPusher.hpp"
@@ -310,6 +311,8 @@ namespace picongpu
         using ParticlePush = typename pmacc::traits::Resolve<PusherAlias>::type;
         // Because of composite pushers, we have to defer using the launcher
         PushLauncher<ParticlePush>{}(*this, currentStep);
+
+        particles::boundary::apply(*this, currentStep);
     }
 
     /** Do the particle push stage using the given pusher
