@@ -18,9 +18,9 @@ By default, boundary kinds match the value of ``--periodic``.
 For species with a particle pusher, it can be overridden with option `<prefix>_boundary <x> <y> <z>`.
 However, currently we do not support options that do not match the default value.
 
-The treatment of particles crossing a boundary is controlled by the ``boundaryCondition`` flag in :ref:`speciesDefinition.param <usage-params-core>`.
-Its default value provides the conventional treatment: particles crossing an absorbing boundary are deleted, particles crossing a periodic boundary are transferred to the other side of the global simulation area.
-The behavior for both boundary kinds can be customized per species by changing the flag to a user-defined type.
+The internal treatment of particles crossing a boundary is controlled by the ``boundaryCondition`` flag in :ref:`speciesDefinition.param <usage-params-core>`.
+However, this option is for expert users and generally should not be modified.
+To set physical boundary conditions, use the command-line option described above.
 
 Fields
 """"""
