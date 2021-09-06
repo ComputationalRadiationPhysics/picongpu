@@ -17,7 +17,8 @@
   tags:
     - cuda
     - x86_64 
-    
+  interruptible: true
+
 .base_nvcc_cuda_9.2:
   image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda92-gccpic:1.3
   extends: .base_nvcc
