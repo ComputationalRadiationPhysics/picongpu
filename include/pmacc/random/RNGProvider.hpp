@@ -1,4 +1,4 @@
-/* Copyright 2015-2021 Alexander Grund
+/* Copyright 2015-2021 Alexander Grund, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -104,11 +104,17 @@ namespace pmacc
             SimulationDataId getUniqueId() override;
             void synchronize() override;
 
+            //! Synchronize device data with host data
+            void syncToDevice();
+
             /**
              * Return a reference to the buffer containing the states
              * Note: This buffer might be empty
              */
             Buffer& getStateBuffer();
+
+            //! Get size of the internal buffer
+            HINLINE Space getSize() const;
 
         private:
             /**
