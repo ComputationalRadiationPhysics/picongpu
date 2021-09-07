@@ -479,7 +479,6 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                     openPMDWriter::writeField<ComponentType>(
                         params,
-                        sizeof(ComponentType),
                         ::openPMD::determineDatatype<ComponentType>(),
                         GetNComponents<ValueType>::value,
                         T_Field::getName(),
@@ -578,7 +577,6 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     /*write data to openPMD Series*/
                     openPMDWriter::template writeField<ComponentType>(
                         params,
-                        sizeof(ComponentType),
                         ::openPMD::determineDatatype<ComponentType>(),
                         components,
                         getName(),
@@ -1054,7 +1052,6 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             template<typename ComponentType>
             static void writeField(
                 ThreadParams* params,
-                const uint32_t sizePtrType,
                 ::openPMD::Datatype openPMDType,
                 const uint32_t nComponents,
                 const std::string name,
