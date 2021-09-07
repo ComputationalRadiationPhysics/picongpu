@@ -16,6 +16,7 @@ stages:
   artifacts:
     paths:
       - compile.yml
+  interruptible: true
 
 # pull request validation:
 #   - check PR destination
@@ -46,6 +47,7 @@ pull-request-validation:
     - source $CI_PROJECT_DIR/share/ci/check_cpp_code_style.sh
   tags:
     - x86_64
+  interruptible: true
 
 # generate reduced test matrix
 # required variables (space separated lists):

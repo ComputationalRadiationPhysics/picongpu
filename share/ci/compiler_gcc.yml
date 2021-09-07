@@ -15,3 +15,4 @@
   # x86_64 tag is used to get a multi-core CPU for the tests
   tags:
     - x86_64
+  interruptible: true
