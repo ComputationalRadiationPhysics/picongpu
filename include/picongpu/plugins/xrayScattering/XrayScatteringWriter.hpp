@@ -93,7 +93,6 @@ namespace picongpu
                 //! MPI Communicator for the parallel data write
                 MPI_Comm mpiCommunicator;
                 std::string const fileName, fileExtension, dir;
-                std::string const compressionMethod;
                 //! Functioning mode
                 OutputMemoryLayout outputMemoryLayout;
                 //! Output dimensions
@@ -113,7 +112,6 @@ namespace picongpu
                  * @param fileExtension File extension, specifies the API backend.
                  * @param dir Where to save the output file.
                  * @param outputMemoryLayout  Functioning mode.
-                 * @param compressionMethod
                  * @param globalExtent Output dimensions.
                  */
                 HINLINE XrayScatteringWriter(
@@ -121,7 +119,6 @@ namespace picongpu
                     std::string const fileExtension,
                     std::string const dir,
                     OutputMemoryLayout outputMemoryLayout,
-                    std::string const compressionMethod,
                     pmacc::math::UInt64<DIM2> const globalExtent,
                     float2_X const gridSpacing,
                     float_64 const unit,
@@ -130,7 +127,6 @@ namespace picongpu
                     , dir(dir)
                     , fileExtension(fileExtension)
                     , outputMemoryLayout(outputMemoryLayout)
-                    , compressionMethod(compressionMethod)
                     , globalExtent(globalExtent)
                     , gridSpacing(gridSpacing)
                     , unit(unit)
@@ -255,15 +251,6 @@ namespace picongpu
 
                     std::vector<uint64_t> shape = asStandardVector<DIM2>(globalExtent);
                     ::openPMD::Dataset dataset{datatype, std::move(shape)};
-
-                    if(isADIOS1())
-                    {
-                        dataset.transform = compressionMethod;
-                    }
-                    else
-                    {
-                        dataset.compression = compressionMethod;
-                    }
                     mrc.resetDataset(std::move(dataset));
                     mrc.setUnitSI(unit);
                     return mrc;

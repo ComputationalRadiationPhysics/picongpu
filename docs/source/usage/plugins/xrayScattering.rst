@@ -108,8 +108,6 @@ Command line option                          Description
 
 ``--<species>_xrayScattering.ext``           `openPMD` filename extension. This controls the backend picked by the `openPMD` API. Default is `bp` for adios backend.
 
-``--<species>_xrayScattering.compression``   Backend-specific `openPMD` compression method (e.g.) zlib.
-
 ``--<species>_xrayScattering.memoryLayout``  Possible values: `mirror` and `split`. Output can be mirrored on all Host+Device pairs or uniformly split, in chunks, over all nodes.
                                              Use split when the output array is too big to store the complete computed q-space on one device.
                                              For small output grids the `mirror` setting could turn out to be more efficient.

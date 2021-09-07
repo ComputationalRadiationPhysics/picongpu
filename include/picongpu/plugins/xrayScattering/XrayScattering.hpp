@@ -109,7 +109,6 @@ namespace picongpu
                 std::string pluginPrefix;
                 std::string fileName;
                 std::string fileExtension;
-                std::string compressionMethod;
                 std::string outputPeriod_s;
                 std::string memoryLayout;
                 //! Plugin functioning mode
@@ -202,10 +201,6 @@ namespace picongpu
                         po::value<std::string>(&fileExtension)->default_value("bp"),
                         "openPMD filename extension (this controls the backend "
                         "picked by the openPMD API)")(
-                        (pluginPrefix + ".compression").c_str(),
-                        po::value<std::string>(&compressionMethod)->default_value(""),
-                        "Backend-specific openPMD compression method, e.g., zlib "
-                        "(see `adios_config2 -m` for help)")(
                         (pluginPrefix + ".memoryLayout").c_str(),
                         po::value<std::string>(&memoryLayout)->default_value("mirror"),
                         "Possible values: 'mirror' and 'distribute'"
@@ -334,7 +329,6 @@ namespace picongpu
                             fileExtension,
                             "xrayScatteringOutput",
                             outputLayout,
-                            compressionMethod,
                             precisionCast<uint64_t>(numVectors),
                             q_step,
                             amplitudeUnit,
