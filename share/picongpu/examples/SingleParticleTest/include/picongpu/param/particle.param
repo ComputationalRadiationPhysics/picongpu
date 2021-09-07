@@ -55,7 +55,7 @@ namespace picongpu
                 static constexpr float_64 gamma = 1.1547; // beta: 0.5
                 const DriftParam_direction_t direction;
             };
-            using AssignYDrift = unary::Drift<DriftParam, pmacc::math::operation::Assign>;
+            using AssignXDrift = unary::Drift<DriftParam, pmacc::math::operation::Assign>;
 
         } // namespace manipulators
 
