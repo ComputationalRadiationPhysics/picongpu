@@ -1,5 +1,5 @@
 /* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Marco Garten, Alexander Grund
+ *                     Marco Garten, Alexander Grund, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -23,6 +23,7 @@
 #include "picongpu/fields/Fields.def"
 #include "picongpu/fields/Fields.hpp"
 #include "picongpu/particles/boundary/CallPluginsAndDeleteParticles.hpp"
+#include "picongpu/particles/boundary/Kind.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
 
 #include <pmacc/HandleGuardRegion.hpp>
@@ -40,6 +41,7 @@
 #include <boost/mpl/contains.hpp>
 #include <boost/mpl/if.hpp>
 
+#include <array>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -150,36 +152,48 @@ namespace picongpu
 
         void syncToDevice() override;
 
+        /** Get boundary kinds for the species.
+         *
+         * For each side, both boundaries have the same kind.
+         * Must not be modified outside of the ParticleBoundaries simulation stage.
+         *
+         * This method is static as it is used by static getStringProperties().
+         */
+        static std::array<particles::boundary::Kind, simDim>& boundaryKind()
+        {
+            static std::array<particles::boundary::Kind, simDim> kinds = getDefaultBoundaryKind();
+            return kinds;
+        }
+
         static pmacc::traits::StringProperty getStringProperties()
         {
             pmacc::traits::StringProperty propList;
-            const DataSpace<DIM3> periodic
-                = Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
 
             for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
             {
                 // for each planar direction: left right top bottom back front
                 if(FRONT % i == 0)
                 {
-                    const std::string directionName = ExchangeTypeNames()[i];
                     const DataSpace<DIM3> relDir = Mask::getRelativeDirections<DIM3>(i);
+                    uint32_t axis = 0; // x(0) y(1) z(2)
+                    for(uint32_t d = 0; d < simDim; d++)
+                        if(relDir[d] != 0)
+                            axis = d;
 
-                    const bool isPeriodic = (relDir * periodic) != DataSpace<DIM3>::create(0);
-
-                    std::string boundaryName = "absorbing";
-                    if(isPeriodic)
-                        boundaryName = "periodic";
-
-                    if(boundaryName == "absorbing")
+                    const std::string directionName = ExchangeTypeNames()[i];
+                    propList[directionName]["param"] = std::string("none");
+                    switch(boundaryKind()[axis])
                     {
+                    case particles::boundary::Kind::Periodic:
+                        propList[directionName]["name"] = "periodic";
+                        break;
+                    case particles::boundary::Kind::Absorbing:
+                        propList[directionName]["name"] = "absorbing";
                         propList[directionName]["param"] = std::string("without field correction");
+                        break;
+                    default:
+                        propList[directionName]["name"] = "unknown";
                     }
-                    else
-                    {
-                        propList[directionName]["param"] = std::string("none");
-                    }
-
-                    propList[directionName]["name"] = boundaryName;
                 }
             }
             return propList;
@@ -200,6 +214,18 @@ namespace picongpu
 
         FieldE* fieldE;
         FieldB* fieldB;
+
+        //! Get default boundary kinds for the species matching the communicator topology.
+        static std::array<particles::boundary::Kind, simDim> getDefaultBoundaryKind()
+        {
+            using namespace particles::boundary;
+            std::array<particles::boundary::Kind, simDim> result;
+            const DataSpace<DIM3> periodic
+                = Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
+            for(uint32_t d = 0; d < simDim; d++)
+                result[d] = (periodic[d] ? Kind::Periodic : Kind::Absorbing);
+            return result;
+        }
     };
 
     namespace traits

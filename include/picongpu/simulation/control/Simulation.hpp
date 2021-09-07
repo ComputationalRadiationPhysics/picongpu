@@ -50,6 +50,7 @@
 #include "picongpu/simulation/stage/FieldBackground.hpp"
 #include "picongpu/simulation/stage/IterationStart.hpp"
 #include "picongpu/simulation/stage/MomentumBackup.hpp"
+#include "picongpu/simulation/stage/ParticleBoundaries.hpp"
 #include "picongpu/simulation/stage/ParticleIonization.hpp"
 #include "picongpu/simulation/stage/ParticlePush.hpp"
 #include "picongpu/simulation/stage/PopulationKinetics.hpp"
@@ -136,6 +137,7 @@ namespace picongpu
             currentInterpolationAndAdditionToEMF.registerHelp(desc);
             fieldAbsorber.registerHelp(desc);
             fieldBackground.registerHelp(desc);
+            particleBoundaries.registerHelp(desc);
             // clang-format off
             desc.add_options()(
                 "versionOnce", po::value<bool>(&showVersionOnce)->zero_tokens(),
@@ -326,6 +328,9 @@ namespace picongpu
             // initialize field background stage,
             // this may include allocation of additional fields so has to be done before particles
             fieldBackground.init(*cellDescription);
+
+            // initialize particle boundaries
+            particleBoundaries.init();
 
             // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung
             // Photons
@@ -625,6 +630,10 @@ namespace picongpu
         // Field background stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
         simulation::stage::FieldBackground fieldBackground;
+
+        // Particle boundaries stage, has to live always as it is used for registering options like a plugin.
+        // Because of it, has a special init() method that has to be called during initialization of the simulation
+        simulation::stage::ParticleBoundaries particleBoundaries;
 
 #if(PMACC_CUDA_ENABLED == 1)
         // creates lookup tables for the bremsstrahlung effect
