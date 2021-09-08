@@ -106,6 +106,7 @@ namespace pmacc
         {
             StrideMapping<AREA, 3, MappingDesc> mapper(this->cellDescription);
             ParticlesBoxType pBox = particlesBuffer->getDeviceParticleBox();
+            auto const numSupercellsWithGuards = particlesBuffer->getSuperCellsCount();
 
             constexpr uint32_t numWorkers
                 = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;
@@ -113,7 +114,7 @@ namespace pmacc
             do
             {
                 PMACC_KERNEL(KernelShiftParticles<numWorkers>{})
-                (mapper.getGridDim(), numWorkers)(pBox, mapper);
+                (mapper.getGridDim(), numWorkers)(pBox, mapper, numSupercellsWithGuards);
             } while(mapper.next());
 
             __setTransactionEvent(__endTransaction());
