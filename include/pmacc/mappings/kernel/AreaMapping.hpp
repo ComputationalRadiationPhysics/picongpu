@@ -24,31 +24,16 @@
 
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/mappings/kernel/AreaMappingMethods.hpp"
+#include "pmacc/mappings/kernel/MapperConcept.hpp"
 #include "pmacc/types.hpp"
 
 #include <cstdint>
 
 namespace pmacc
 {
-    /** Mapping between block indices and supercells in the given area for alpaka kernels
+    /** Mapping from block indices to supercells in the given area for alpaka kernels
      *
-     * The mapping covers the case of supercell-level parallelism between alpaka blocks.
-     * The supercells can be processed concurrently in any order.
-     *
-     * This class makes a 1:1 mapping between supercells in the area and alpaka blocks.
-     * A kernel must be launched with exactly getGridDim() blocks.
-     * Each block must process a single supercell with index getSuperCellIndex(blockIndex).
-     * Implementation is optimized for the standard areas in AreaType.
-     *
-     * In-block parallelism is independent of this mapping and is done by a kernel.
-     * Naturally, this parallelism should also define block size, again independent of this mapping.
-     *
-     * This pattern is used in most kernels in particle-mesh codes.
-     * Two most common parallel patterns are:
-     *    - for particle or particle-grid operations:
-     *      alpaka block per supercell with this mapping, thread-level parallelism between particles of a frame
-     *    - for grid operations:
-     *      alpaka block per supercell with this mapping, thread-level parallelism between cells of a supercell
+     * Adheres to the MapperConcept.
      *
      * @tparam T_area area, a value from type::AreaType or a sum of such values
      * @tparam T_MappingDescription mapping description type
@@ -93,33 +78,13 @@ namespace pmacc
          */
         HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& blockIdx) const
         {
-            return AreaMappingMethods<areaType, DIM>::getBlockIndex(*this, this->getGridSuperCells(), blockIdx);
+            return AreaMappingMethods<areaType, DIM>::getSuperCellIndex(*this, this->getGridSuperCells(), blockIdx);
         }
-    };
-
-    /** Concept for area mapper factory
-     *
-     * Defines interface for implementations of such factories.
-     * (A user-provided implementation is needed for user-defined areas.)
-     */
-    class AreaMapperFactoryConcept
-    {
-    public:
-        /** Construct an area mapper object
-         *
-         * @tparam T_MappingDescription mapping description type
-         *
-         * @param mappingDescription mapping description
-         *
-         * @return an object adhering to the AreaMapping concept
-         */
-        template<typename T_MappingDescription>
-        HINLINE auto operator()(T_MappingDescription mappingDescription) const;
     };
 
     /** Construct an area mapper instance for the given standard area and description
      *
-     * Adheres to the AreaMapperFactoryConcept.
+     * Adheres to the MapperFactoryConcept.
      *
      * @tparam T_area area, a value from type::AreaType or a sum of such values
      */

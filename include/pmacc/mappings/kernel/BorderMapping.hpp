@@ -24,13 +24,17 @@
 
 #include "pmacc/assert.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/mappings/kernel/MapperConcept.hpp"
 #include "pmacc/types.hpp"
 
 #include <stdexcept>
 
 namespace pmacc
 {
-    /**
+    /** Mapping from block indices to supercells in the given border for alpaka kernels
+     *
+     * Adheres to the MapperConcept.
+     *
      * This maps onto the border to 1 exchange direction (e.g. TOP, BOTTOM, TOP + LEFT, ...)
      * Choosing multiple directions defines an intersection [1] in mathematical set theory.
      * The area is basically the same as the surrounding guard region but on the border.
@@ -83,10 +87,11 @@ namespace pmacc
             return m_direction;
         }
 
-        /**
-         * Generate grid dimension information for kernel calls
+        /** Generate grid dimension information for alpaka kernel calls
          *
-         * @return size of the grid
+         * A kernel using this mapping must use exacly the returned number of blocks
+         *
+         * @return number of blocks in a grid
          */
         HINLINE DimDataSpace getGridDim() const
         {
@@ -103,15 +108,14 @@ namespace pmacc
             return result;
         }
 
-        /**
-         * Returns index of current logical block
+        /** Return index of a supercell to be processed by the given alpaka block
          *
-         * @param realSuperCellIdx current SuperCell index (block index)
-         * @return mapped SuperCell index
+         * @param blockIdx alpaka block index
+         * @return mapped SuperCell index including guards
          */
-        HDINLINE DimDataSpace getSuperCellIndex(const DimDataSpace& realSuperCellIdx) const
+        HDINLINE DimDataSpace getSuperCellIndex(const DimDataSpace& blockIdx) const
         {
-            DimDataSpace result = realSuperCellIdx;
+            DimDataSpace result = blockIdx;
 
             const DimDataSpace directions = Mask::getRelativeDirections<Dim>(m_direction);
 
