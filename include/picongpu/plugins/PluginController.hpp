@@ -195,11 +195,13 @@ namespace picongpu
             plugins::multi::Master<BinEnergyParticles<bmpl::_1>>,
             CountParticles<bmpl::_1>,
             PngPlugin<Visualisation<bmpl::_1, PngCreator>>,
-            plugins::transitionRadiation::TransitionRadiation<bmpl::_1>,
+            plugins::transitionRadiation::TransitionRadiation<bmpl::_1>
 #if((ENABLE_OPENPMD == 1) && (openPMD_HAVE_HDF5 == 1))
-            plugins::radiation::Radiation<bmpl::_1>,
+            ,
+            plugins::radiation::Radiation<bmpl::_1>
 #endif
 #if(ENABLE_OPENPMD == 1)
+            ,
             plugins::xrayScattering::XrayScattering<bmpl::_1>,
             plugins::multi::Master<ParticleCalorimeter<bmpl::_1>>,
             plugins::multi::Master<PhaseSpace<particles::shapes::Counter::ChargeAssignment, bmpl::_1>>
