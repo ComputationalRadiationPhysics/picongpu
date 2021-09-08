@@ -21,15 +21,9 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/boundary/ApplyImpl.hpp"
 #include "picongpu/particles/boundary/Kind.hpp"
-#include "picongpu/particles/boundary/Reflecting.hpp"
-
-#include <pmacc/Environment.hpp>
-#include <pmacc/traits/NumberOfExchanges.hpp>
 
 #include <cstdint>
-#include <stdexcept>
 
 
 namespace picongpu
@@ -51,12 +45,12 @@ namespace picongpu
              * Thus, the general implementation doing nothing is already suited for Absorbing and Periodic.
              * However, it probably needs to be specialized for other boundary types or other Absorbing zones.
              * In this case, the implementation must ensure particles are moved to correct supercells afterwards.
-             * In the general case, by calling shiftBetweenSupercells() at the end.
+             * In the general case, by calling shiftParticles() at the end.
              *
              * @param T_kind boundary kind
              */
             template<Kind T_kind>
-            struct Apply
+            struct ApplyImpl
             {
                 /** Apply boundary conditions along the given outer boundary
                  *
@@ -71,59 +65,6 @@ namespace picongpu
                 {
                 }
             };
-
-            /** Apply boundary conditions to the given species
-             *
-             * @tparam T_Species particle species type
-             *
-             * @param species particle species
-             * @param currentStep current time iteration
-             */
-            template<typename T_Species>
-            inline void apply(T_Species&& species, uint32_t currentStep)
-            {
-                auto boundaryKind = species.boundaryKind();
-                auto const numExchanges = NumberOfExchanges<simDim>::value;
-                auto const communicationMask = Environment<simDim>::get().GridController().getCommunicationMask();
-                for(uint32_t exchange = 1u; exchange < numExchanges; ++exchange)
-                {
-                    /* Here we are only interested in the positive and negative
-                     * directions for x, y, z axes and not the "diagonal" ones.
-                     * So skip other directions except left, right, top, bottom,
-                     * back, front
-                     */
-                    if(FRONT % exchange != 0)
-                        continue;
-
-                    // If this is not an outer boundary, also skip
-                    bool hasNeighbour = communicationMask.isSet(exchange);
-                    if(hasNeighbour)
-                        continue;
-
-                    // Transform exchange into axis
-                    uint32_t axis = 0;
-                    if(exchange >= BOTTOM && exchange <= TOP)
-                        axis = 1;
-                    if(exchange >= BACK)
-                        axis = 2;
-
-                    switch(boundaryKind[axis])
-                    {
-                    case Kind::Periodic:
-                        ApplyImpl<Kind::Periodic>{}(species, exchange, currentStep);
-                        break;
-                    case Kind::Absorbing:
-                        ApplyImpl<Kind::Absorbing>{}(species, exchange, currentStep);
-                        break;
-                    // Hook the new implementation here
-                    case Kind::Reflecting:
-                        ApplyImpl<Kind::Reflecting>{}(species, exchange, currentStep);
-                        break;
-                    default:
-                        throw std::runtime_error("Unsupported boundary kind when trying to apply particle boundary");
-                    }
-                }
-            }
 
         } // namespace boundary
     } // namespace particles

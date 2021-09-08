@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -94,5 +94,52 @@ namespace pmacc
             return ExchangeMappingMethods<areaType, DIM>::getBlockIndex(*this, realSuperCellIdx, exchangeType);
         }
     };
+
+    /** Construct an exchange mapper instance for the given standard area and description
+     *
+     * Adheres to the AreaMapperFactoryConcept.
+     *
+     * @tparam T_area area, a value from type::AreaType or a sum of such values
+     */
+    template<uint32_t T_area>
+    class ExchangeMapperFactory
+    {
+    public:
+        ExchangeMapperFactory(uint32_t exchangeType) : exchangeType(exchangeType)
+        {
+        }
+
+        /** Construct an exchange mapper object
+         *
+         * @tparam T_MappingDescription mapping description type
+         *
+         * @param mappingDescription mapping description
+         *
+         * @return an object adhering to the ExchangeMapping concept
+         */
+        template<typename T_MappingDescription>
+        HINLINE auto operator()(T_MappingDescription mappingDescription) const
+        {
+            return ExchangeMapping<T_area, T_MappingDescription>{mappingDescription, exchangeType};
+        }
+
+    private:
+        //! Exchange type for mapping
+        uint32_t exchangeType;
+    };
+
+    /** Construct an exchange mapper instance for the given area and description
+     *
+     * @tparam T_area area, a value from type::AreaType or a sum of such values
+     * @tparam T_MappingDescription mapping description type
+     *
+     * @param mappingDescription mapping description
+     * @param exchangeType exchange type for mapping
+     */
+    template<uint32_t T_area, typename T_MappingDescription>
+    HINLINE auto makeExchangeMapper(T_MappingDescription mappingDescription, uint32_t exchangeType)
+    {
+        return ExchangeMapperFactory<T_area>{exchangeType}(mappingDescription);
+    }
 
 } // namespace pmacc

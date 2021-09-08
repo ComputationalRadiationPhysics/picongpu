@@ -123,6 +123,10 @@ namespace picongpu
 
         void update(uint32_t const currentStep);
 
+        //! Update the supercell storage for particles in the area according to particle attributes
+        template<uint32_t T_area>
+        inline void shiftBetweenSupercells();
+
         template<typename T_DensityFunctor, typename T_PositionFunctor>
         void initDensityProfile(
             T_DensityFunctor& densityFunctor,

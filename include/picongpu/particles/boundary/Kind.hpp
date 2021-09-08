@@ -30,7 +30,8 @@ namespace picongpu
             enum class Kind
             {
                 Periodic,
-                Absorbing
+                Absorbing,
+                Reflecting
             };
 
         } // namespace boundary
