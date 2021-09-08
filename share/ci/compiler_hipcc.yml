@@ -3,7 +3,7 @@
 # clang compiler is located under /opt/rocm/llvm/bin
 
 .base_hipcc:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-rocm4.2-pic:1.3
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-rocm${HIP_CONTAINER_VERSION}-pic:${CONTAINER_TAG}
   variables:
     GIT_SUBMODULE_STRATEGY: normal
     PIC_CMAKE_ARGS: "-DALPAKA_HIP_ARCH=900 -DCMAKE_MODULE_PATH=/opt/rocm/hip/cmake"
@@ -23,9 +23,18 @@
     - apt install -y curl libjpeg-dev
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
     - source $CI_PROJECT_DIR/share/ci/bash.profile
-    - $CI_PROJECT_DIR/share/ci/run_pmacc_tests.sh
-    - $CI_PROJECT_DIR/share/ci/run_picongpu_tests.sh
+    - $CI_PROJECT_DIR/share/ci/run_tests.sh $PIC_TEST_CASE_FOLDER
+  interruptible: true
+
+
+.base_hipcc_compile:
+  extends: .base_hipcc
+  tags:
+    - cpuonly
+    - x86_64
+
+.base_hipcc_run:
+  extends: .base_hipcc
   tags:
     - amd
     - rocm
-  interruptible: true
