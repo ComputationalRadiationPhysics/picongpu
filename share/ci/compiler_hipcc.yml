@@ -30,6 +30,7 @@
 .base_hipcc_compile:
   extends: .base_hipcc
   tags:
+    - cpuonly
     - x86_64
 
 .base_hipcc_run:

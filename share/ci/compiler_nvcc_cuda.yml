@@ -19,6 +19,7 @@
 .base_nvcc_cuda_compile:
   extends: .base_nvcc
   tags:
+    - cpuonly
     - x86_64
 
 .base_nvcc_cuda_run:

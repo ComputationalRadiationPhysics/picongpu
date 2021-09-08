@@ -19,6 +19,7 @@
 .base_clangCuda_cuda_compile:
   extends: .base_cuda_clang
   tags:
+    - cpuonly
     - x86_64
 
 .base_clangCuda_cuda_run:
