@@ -105,17 +105,11 @@ namespace picongpu
             ::openPMD::RecordComponent& recordComponent,
             ::openPMD::Datatype datatype,
             pmacc::math::UInt64<DIM> const& globalDimensions,
-            bool compression,
-            std::string const& compressionMethod,
             std::string const& datasetName)
         {
             std::vector<uint64_t> v = asStandardVector(globalDimensions);
             ::openPMD::Dataset dataset{datatype, std::move(v)};
             setDatasetOptions(dataset, jsonMatcher->get(datasetName));
-            if(compression && compressionMethod != "none")
-            {
-                dataset.compression = compressionMethod;
-            }
             recordComponent.resetDataset(std::move(dataset));
             return recordComponent;
         }
@@ -239,13 +233,6 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                    "respectively.",
                    "doubleBuffer"};
 
-            plugins::multi::Option<std::string> compression
-                = {"compression",
-                   "Backend-specific openPMD compression method, e.g., zlib (see "
-                   "`adios_config -m` for help). Legacy parameter until compression"
-                   " can be fully configured via JSON in the openPMD API.",
-                   "none"};
-
             /** defines if the plugin must register itself to the PMacc plugin
              * system
              *
@@ -300,7 +287,6 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 boost::program_options::options_description& desc,
                 std::string const& masterPrefix = std::string{})
             {
-                compression.registerHelp(desc, masterPrefix + prefix);
                 fileName.registerHelp(desc, masterPrefix + prefix);
                 fileNameExtension.registerHelp(desc, masterPrefix + prefix);
                 fileNameInfix.registerHelp(desc, masterPrefix + prefix);
@@ -635,8 +621,6 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     mrc,
                     ::openPMD::determineDatatype<ReinterpretedType>(),
                     fieldsGlobalSizeDims,
-                    true,
-                    params->compressionMethod,
                     datasetName);
 
                 // define record component level attributes
@@ -742,8 +726,6 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 , outputDirectory("openPMD")
                 , lastSpeciesSyncStep(pmacc::traits::limits::Max<uint32_t>::value)
             {
-                mThreadParams.compressionMethod = m_help->compression.get(id);
-
                 GridController<simDim>& gc = Environment<simDim>::get().GridController();
                 /* It is important that we never change the mpi_pos after this point
                  * because we get problems with the restart.
@@ -1154,13 +1136,7 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         ? params->openPMDSeries->meshesPath() + name + "/" + name_lookup_tpl[d]
                         : params->openPMDSeries->meshesPath() + name;
 
-                    params->initDataset<simDim>(
-                        mrc,
-                        openPMDType,
-                        fieldsGlobalSizeDims,
-                        true,
-                        params->compressionMethod,
-                        datasetName);
+                    params->initDataset<simDim>(mrc, openPMDType, fieldsGlobalSizeDims, datasetName);
 
                     // define record component level attributes
                     mrc.setPosition(inCellPosition.at(d));

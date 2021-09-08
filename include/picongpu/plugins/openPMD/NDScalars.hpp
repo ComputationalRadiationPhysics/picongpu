@@ -97,13 +97,7 @@ namespace picongpu
                 }
 
                 std::string datasetName = series.meshesPath() + baseName + "_" + group + "/" + dataset;
-                params.initDataset<simDim>(
-                    mrc,
-                    openPMDScalarType,
-                    std::move(globalDomainSize),
-                    true,
-                    params.compressionMethod,
-                    datasetName);
+                params.initDataset<simDim>(mrc, openPMDScalarType, std::move(globalDomainSize), datasetName);
 
                 return std::make_tuple(
                     std::move(mrc),

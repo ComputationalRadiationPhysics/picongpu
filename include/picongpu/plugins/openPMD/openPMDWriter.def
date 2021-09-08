@@ -82,7 +82,6 @@ namespace picongpu
             bool isCheckpoint;
 
             MPI_Comm communicator; /* MPI communicator for openPMD API */
-            std::string compressionMethod; /* openPMD data transform compression method */
             std::string fileName; /* Name of the openPMDSeries, excluding the extension */
             std::string fileExtension; /* Extension of the file name */
             std::string fileInfix;
@@ -120,8 +119,6 @@ namespace picongpu
              * Series
              * @param datatype Variable type
              * @param globalDimensions Dataset global dimensions
-             * @param compression Enable compression data transform
-             * @param compressionMethod String denoting the data transform to use
              * @return The input recordComponent
              */
             template<unsigned DIM>
@@ -129,8 +126,6 @@ namespace picongpu
                 ::openPMD::RecordComponent& recordComponent,
                 ::openPMD::Datatype datatype,
                 pmacc::math::UInt64<DIM> const& globalDimensions,
-                bool compression,
-                std::string const& compressionMethod,
                 std::string const& datasetName);
         };
     } // namespace openPMD

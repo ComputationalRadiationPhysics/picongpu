@@ -113,7 +113,6 @@ PIConGPU command line option          description
 ===================================== ====================================================================================================================================================
 ``--openPMD.period``                  Period after which simulation data should be stored on disk.
 ``--openPMD.source``                  Select data sources and filters to dump. Default is ``species_all,fields_all``, which dumps all fields and particle species.
-``--openPMD.compression``             Legacy parameter to set data transform compression method to be used for ADIOS1 backend until it implements setting compression from JSON config.
 ``--openPMD.file``                    Relative or absolute openPMD file prefix for simulation data. If relative, files are stored under ``simOutput``. 
 ``--openPMD.ext``                     openPMD filename extension (this controls thebackend picked by the openPMD API).
 ``--openPMD.infix``                   openPMD filename infix (use to pick file- or group-based layout in openPMD). Set to NULL to keep empty (e.g. to pick group-based iteration layout).

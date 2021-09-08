@@ -93,13 +93,7 @@ namespace picongpu
                         = components > 1 ? record[name_lookup[d]] : record[::openPMD::MeshRecordComponent::SCALAR];
 
                     std::string datasetName = components > 1 ? baseName + "/" + name_lookup[d] : baseName;
-                    params->initDataset<DIM1>(
-                        recordComponent,
-                        openPMDType,
-                        {globalElements},
-                        true,
-                        params->compressionMethod,
-                        datasetName);
+                    params->initDataset<DIM1>(recordComponent, openPMDType, {globalElements}, datasetName);
 
                     if(unit.size() >= (d + 1))
                     {
