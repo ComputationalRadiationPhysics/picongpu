@@ -82,7 +82,6 @@ namespace picongpu
             template<typename T_Species>
             inline void apply(T_Species&& species, uint32_t currentStep)
             {
-                auto boundaryKind = species.boundaryKind();
                 auto const numExchanges = NumberOfExchanges<simDim>::value;
                 auto const communicationMask = Environment<simDim>::get().GridController().getCommunicationMask();
                 for(uint32_t exchange = 1u; exchange < numExchanges; ++exchange)
@@ -107,7 +106,8 @@ namespace picongpu
                     if(exchange >= BACK)
                         axis = 2;
 
-                    switch(boundaryKind[axis])
+                    auto boundaryKind = species.boundaryKind()[axis];
+                    switch(boundaryKind)
                     {
                     case Kind::Periodic:
                         ApplyImpl<Kind::Periodic>{}(species, exchange, currentStep);

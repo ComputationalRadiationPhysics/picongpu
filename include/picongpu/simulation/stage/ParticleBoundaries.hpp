@@ -69,7 +69,8 @@ namespace picongpu
                             std::string(
                                 "Boundary kinds for species '" + prefix
                                 + "' for each axis. "
-                                  "Supported values: default (matching --periodic values), periodic, absorbing"
+                                  "Supported values: default (matching --periodic values), periodic, absorbing, "
+                                  "reflecting"
                                   "\n"
                                 + example)
                                 .c_str());
@@ -95,12 +96,16 @@ namespace picongpu
                                  * So just check that the user-provided type matches the default one.
                                  */
                                 auto const kindName = kindNames()[axis];
+                                if(kindName == "reflecting")
+                                    T_Species::boundaryKind()[axis] = particles::boundary::Kind::Reflecting;
+
+                                // TODO: figure out what exactly to check
                                 bool isInvalidPeriodic
                                     = ((kindName == "periodic")
                                        && (T_Species::boundaryKind()[axis] != particles::boundary::Kind::Periodic));
                                 bool isInvalidAbsorbing
                                     = ((kindName == "absorbing")
-                                       && (T_Species::boundaryKind()[axis] != particles::boundary::Kind::Absorbing));
+                                       && (T_Species::boundaryKind()[axis] == particles::boundary::Kind::Periodic));
                                 if(isInvalidPeriodic || isInvalidAbsorbing)
                                 {
                                     throw std::runtime_error(

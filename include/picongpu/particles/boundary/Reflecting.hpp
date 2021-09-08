@@ -202,11 +202,14 @@ namespace picongpu
                     /* This has to be called to move particles between supercells (and fill gaps)
                      * according to what you set in multiMask_ of particles.
                      * It is not optimal to call it for full GUARD, but for now is tolerable.
+                     * If we didn't call it, all affected particles would stay in GUARD and be just deleted
+                     * (thus, would be same as absorbing BC)
                      */
                     /// For now this won't compile with GUARD due to some missing specializations in
                     /// StrideMappingMethods. This will be fixed soon, this is independent of particle BCs For now call
                     /// it everywhere, which is stupid but works
-                    species.template shiftBetweenSupercells<CORE + BORDER + GUARD /* GUARD */>();
+                    /// Unrelated note: shiftBetweenSupercells doesn't work with GUARD at all, will be fixed soon
+                    /// species.template shiftBetweenSupercells<CORE + BORDER + GUARD /* GUARD */>();
                 }
             };
 
