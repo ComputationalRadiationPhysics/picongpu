@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/boundary/ApplyImpl.hpp"
 #include "picongpu/particles/boundary/Kind.hpp"
 
 #include <pmacc/Environment.hpp>
@@ -36,40 +37,6 @@ namespace picongpu
     {
         namespace boundary
         {
-            /** Functor to apply the given boundary kind to particle species
-             *
-             * This functor operates on the near-boundary area where the boundary conditions are active.
-             * Currently, this is always a part of the GUARD area of the currently outer domains (wrt periodicity).
-             * The functor would only be called for the relevant exchang types of such domains.
-             * If there are particles left in this area after this functor ran, they will be removed later.
-             *
-             * So for standard Absorbing boundaries in GUARD the functor does not need to do anything.
-             * For Periodic boundaries, there are no outer domains and so again no need to do anything here.
-             *
-             * Thus, the general implementation doing nothing is already suited for Absorbing and Periodic.
-             * However, it probably needs to be specialized for other boundary types or other Absorbing zones.
-             * In this case, the implementation must ensure particles are moved to correct supercells afterwards.
-             * In the general case, by calling shiftParticles() at the end.
-             *
-             * @param T_kind boundary kind
-             */
-            template<Kind T_kind>
-            struct Apply
-            {
-                /** Apply boundary conditions along the given outer boundary
-                 *
-                 * @tparam T_Species particle species type
-                 *
-                 * @param species particle species
-                 * @param exchangeType exchange describing the active boundary
-                 * @param currentStep current time iteration
-                 */
-                template<typename T_Species>
-                void operator()(T_Species& species, uint32_t exchangeType, uint32_t currentStep)
-                {
-                }
-            };
-
             /** Apply boundary conditions to the given species
              *
              * @tparam T_Species particle species type
@@ -108,10 +75,10 @@ namespace picongpu
                     switch(boundaryKind)
                     {
                     case Kind::Periodic:
-                        Apply<Kind::Periodic>{}(species, exchange, currentStep);
+                        ApplyImpl<Kind::Periodic>{}(species, exchange, currentStep);
                         break;
                     case Kind::Absorbing:
-                        Apply<Kind::Absorbing>{}(species, exchange, currentStep);
+                        ApplyImpl<Kind::Absorbing>{}(species, exchange, currentStep);
                         break;
                     default:
                         throw std::runtime_error("Unsupported boundary kind when trying to apply particle boundary");
