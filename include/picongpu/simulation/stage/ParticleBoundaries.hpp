@@ -19,12 +19,14 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/particles/Particles.hpp"
+#include "picongpu/particles/boundary/Kind.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
-#include <pmacc/traits/NumberOfExchanges.hpp>
 
 #include <boost/program_options.hpp>
 
@@ -41,7 +43,7 @@ namespace picongpu
         {
             namespace detail
             {
-                /** Functor to set boundary kind for the given species via command-line parameters
+                /** Functor to set boundary options for the given species via command-line parameters
                  *
                  * @tparam T_Species particle species type
                  */
@@ -73,41 +75,50 @@ namespace picongpu
                                   "\n"
                                 + example)
                                 .c_str());
+                        desc.add_options()(
+                            (prefix + "_boundaryOffset").c_str(),
+                            po::value<std::vector<int32_t>>(&(offsets()))->multitoken(),
+                            std::string(
+                                "Boundary offsets inwards from global domain boundary for species '" + prefix
+                                + "' for each axis. "
+                                  "Periodic boundaries only allow 0 offsets, other kinds support non-negative offsets")
+                                .c_str());
                     }
 
-                    /** Set boundary kind of T_Species according to command-line options
+                    /** Set boundary description of T_Species according to command-line options
                      *
                      * Done as operator() to simplify invoking with pmacc::meta::ForEach
                      */
                     void operator()()
                     {
-                        for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
+                        for(uint32_t d = 0; d < simDim; d++)
                         {
-                            // for each planar direction: left right top bottom back front
-                            if(FRONT % i == 0)
+                            auto const errorString
+                                = std::string{"for species '" + prefix + "' and axis " + std::to_string(d)};
+                            auto const kindName = kindNames()[d];
+                            int32_t offset = offsets()[d];
+                            if(offset < 0)
+                                throw std::runtime_error(
+                                    "Negative boundary offset " + errorString + " is not supported");
+                            T_Species::boundaryDescription()[d].offset = offset;
+                            if(kindName == "periodic")
                             {
-                                const DataSpace<DIM3> relDir = Mask::getRelativeDirections<DIM3>(i);
-                                uint32_t axis = 0; // x(0) y(1) z(2)
-                                for(uint32_t d = 0; d < simDim; d++)
-                                    if(relDir[d] != 0)
-                                        axis = d;
-                                /* For now we do not support any type not matching --periodic values.
-                                 * So just check that the user-provided type matches the default one.
-                                 */
-                                auto const kindName = kindNames()[axis];
-                                bool isInvalidPeriodic
-                                    = ((kindName == "periodic")
-                                       && (T_Species::boundaryKind()[axis] != particles::boundary::Kind::Periodic));
-                                bool isInvalidAbsorbing
-                                    = ((kindName == "absorbing")
-                                       && (T_Species::boundaryKind()[axis] != particles::boundary::Kind::Absorbing));
-                                if(isInvalidPeriodic || isInvalidAbsorbing)
-                                {
+                                // For now it must match the default-set boundary kind
+                                if(T_Species::boundaryDescription()[d].kind != particles::boundary::Kind::Periodic)
                                     throw std::runtime_error(
-                                        "Boundary kind for species '" + prefix + "' and axis " + std::to_string(axis)
-                                        + " is not compatible with --periodic value");
-                                }
+                                        "Boundary kind " + errorString + " is not compatible with --periodic value");
                             }
+                            if(kindName == "absorbing")
+                            {
+                                // For now it must match the default-set boundary kind
+                                if(T_Species::boundaryDescription()[d].kind != particles::boundary::Kind::Absorbing)
+                                    throw std::runtime_error(
+                                        "Boundary kind " + errorString + " is not compatible with --periodic value");
+                            }
+                            if((T_Species::boundaryDescription()[d].kind == particles::boundary::Kind::Periodic)
+                               && (offset != 0))
+                                throw std::runtime_error(
+                                    "Periodic boundary kind " + errorString + " must have 0 boundaryOffset");
                         }
                     }
 
@@ -117,6 +128,13 @@ namespace picongpu
                     {
                         static auto names = std::vector<std::string>(simDim, "default");
                         return names;
+                    }
+
+                    //! Boundary offsets for all axes
+                    static std::vector<int32_t>& offsets()
+                    {
+                        static auto offsets = std::vector<int32_t>(simDim, 0);
+                        return offsets;
                     }
 
                     //! Prefix for the given species

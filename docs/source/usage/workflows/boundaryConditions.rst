@@ -18,6 +18,13 @@ By default, boundary kinds match the value of ``--periodic``.
 For species with a particle pusher, it can be overridden with option `<prefix>_boundary <x> <y> <z>`.
 However, currently we do not support options that do not match the default value.
 
+By default, the particle boundaries are applied at the global domain boundaries.
+For absorbing boundaries it means that particles will exist in the field absorbing area.
+This may be undesired for simulations with Perfectly Matched Layers (see below).
+A user can change the boundary application area by setting option `<prefix>_boundaryOffset <x> <y> <z>`.
+It sets an offset inwards from the global domain boundary.
+Periodic boundaries only allow 0 offset, other kinds support non-negative offsets.
+
 The internal treatment of particles crossing a boundary is controlled by the ``boundaryCondition`` flag in :ref:`speciesDefinition.param <usage-params-core>`.
 However, this option is for expert users and generally should not be modified.
 To set physical boundary conditions, use the command-line option described above.

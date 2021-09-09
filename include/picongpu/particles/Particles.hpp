@@ -23,7 +23,7 @@
 #include "picongpu/fields/Fields.def"
 #include "picongpu/fields/Fields.hpp"
 #include "picongpu/particles/boundary/CallPluginsAndDeleteParticles.hpp"
-#include "picongpu/particles/boundary/Kind.hpp"
+#include "picongpu/particles/boundary/Description.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
 
 #include <pmacc/HandleGuardRegion.hpp>
@@ -152,16 +152,16 @@ namespace picongpu
 
         void syncToDevice() override;
 
-        /** Get boundary kinds for the species.
+        /** Get boundary descriptions for the species.
          *
-         * For each side, both boundaries have the same kind.
+         * For both sides along the same axis, both boundaries have the same description.
          * Must not be modified outside of the ParticleBoundaries simulation stage.
          *
          * This method is static as it is used by static getStringProperties().
          */
-        static std::array<particles::boundary::Kind, simDim>& boundaryKind()
+        static std::array<particles::boundary::Description, simDim>& boundaryDescription()
         {
-            static std::array<particles::boundary::Kind, simDim> kinds = getDefaultBoundaryKind();
+            static std::array<particles::boundary::Description, simDim> kinds = getDefaultBoundaryDescription();
             return kinds;
         }
 
@@ -182,7 +182,7 @@ namespace picongpu
 
                     const std::string directionName = ExchangeTypeNames()[i];
                     propList[directionName]["param"] = std::string("none");
-                    switch(boundaryKind()[axis])
+                    switch(boundaryDescription()[axis].kind)
                     {
                     case particles::boundary::Kind::Periodic:
                         propList[directionName]["name"] = "periodic";
@@ -215,15 +215,18 @@ namespace picongpu
         FieldE* fieldE;
         FieldB* fieldB;
 
-        //! Get default boundary kinds for the species matching the communicator topology.
-        static std::array<particles::boundary::Kind, simDim> getDefaultBoundaryKind()
+        //! Get default boundary description for the species matching the communicator topology.
+        static std::array<particles::boundary::Description, simDim> getDefaultBoundaryDescription()
         {
             using namespace particles::boundary;
-            std::array<particles::boundary::Kind, simDim> result;
+            std::array<Description, simDim> result;
             const DataSpace<DIM3> periodic
                 = Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
             for(uint32_t d = 0; d < simDim; d++)
-                result[d] = (periodic[d] ? Kind::Periodic : Kind::Absorbing);
+            {
+                result[d].kind = (periodic[d] ? Kind::Periodic : Kind::Absorbing);
+                result[d].offset = 0u;
+            }
             return result;
         }
     };

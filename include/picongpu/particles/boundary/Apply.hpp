@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/boundary/ApplyImpl.hpp"
-#include "picongpu/particles/boundary/Kind.hpp"
+#include "picongpu/particles/boundary/Description.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/traits/NumberOfExchanges.hpp>
@@ -71,14 +71,14 @@ namespace picongpu
                     if(exchange >= BACK)
                         axis = 2;
 
-                    auto boundaryKind = species.boundaryKind()[axis];
-                    switch(boundaryKind)
+                    auto boundaryDescription = species.boundaryDescription()[axis];
+                    switch(boundaryDescription.kind)
                     {
                     case Kind::Periodic:
-                        ApplyImpl<Kind::Periodic>{}(species, exchange, currentStep);
+                        ApplyImpl<Kind::Periodic>{}(species, exchange, boundaryDescription.offset, currentStep);
                         break;
                     case Kind::Absorbing:
-                        ApplyImpl<Kind::Absorbing>{}(species, exchange, currentStep);
+                        ApplyImpl<Kind::Absorbing>{}(species, exchange, boundaryDescription.offset, currentStep);
                         break;
                     default:
                         throw std::runtime_error("Unsupported boundary kind when trying to apply particle boundary");
