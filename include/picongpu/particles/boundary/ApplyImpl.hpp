@@ -58,11 +58,11 @@ namespace picongpu
                  *
                  * @param species particle species
                  * @param exchangeType exchange describing the active boundary
-                 * @param offset offset of the active boundary inwards from the global domain boundary
+                 * @param offsetCells offset of the active boundary inwards from the global domain boundary, in cells
                  * @param currentStep current time iteration
                  */
                 template<typename T_Species>
-                void operator()(T_Species& species, uint32_t exchangeType, uint32_t offset, uint32_t currentStep)
+                void operator()(T_Species& species, uint32_t exchangeType, uint32_t offsetCells, uint32_t currentStep)
                 {
                 }
             };

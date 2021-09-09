@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/boundary/Absorbing.hpp"
 #include "picongpu/particles/boundary/ApplyImpl.hpp"
 #include "picongpu/particles/boundary/Description.hpp"
 

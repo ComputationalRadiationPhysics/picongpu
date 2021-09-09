@@ -36,7 +36,7 @@ namespace picongpu
                 //! Boundary kind
                 Kind kind = Kind::Absorbing;
 
-                /** Offset inwards from the global domain boundary
+                /** Offset inwards from the global domain boundary, in cells
                  *
                  * Is always non-negative and within the size of all local domains.
                  * Some boundary kinds may only support certain values of the offset.
