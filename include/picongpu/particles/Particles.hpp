@@ -121,7 +121,11 @@ namespace picongpu
 
         void createParticleBuffer();
 
+        //! Push all particles
         void update(uint32_t const currentStep);
+
+        //! Apply all boundary conditions
+        void applyBoundary(uint32_t const currentStep);
 
         template<typename T_DensityFunctor, typename T_PositionFunctor>
         void initDensityProfile(

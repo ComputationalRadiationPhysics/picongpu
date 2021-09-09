@@ -1,5 +1,5 @@
 /* Copyright 2014-2021 Rene Widera, Marco Garten, Alexander Grund,
- *                     Heiko Burau, Axel Huebl
+ *                     Heiko Burau, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -172,9 +172,9 @@ namespace picongpu
             }
         };
 
-        /** push a species
+        /** Push a species and apply boundary conditions
          *
-         * push is only triggered for species with a pusher
+         * Both operations only affect species with a pusher
          *
          * @tparam T_SpeciesType type or name as boost::mpl::string of particle species that is checked
          */
@@ -193,6 +193,34 @@ namespace picongpu
 
                 __startTransaction(eventInt);
                 species->update(currentStep);
+                // No need to wait here
+                species->applyBoundary(currentStep);
+                EventTask ev = __endTransaction();
+                updateEvent.push_back(ev);
+            }
+        };
+
+        /** Apply boundary conditions for a species
+         *
+         * Must be called only for species with a pusher
+         *
+         * @tparam T_SpeciesType type or name as boost::mpl::string of particle species that is checked
+         */
+        template<typename T_SpeciesType>
+        struct ApplyBoundary
+        {
+            using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
+            using FrameType = typename SpeciesType::FrameType;
+
+            template<typename T_EventList>
+            HINLINE void operator()(const uint32_t currentStep, const EventTask& eventInt, T_EventList& updateEvent)
+                const
+            {
+                DataConnector& dc = Environment<>::get().DataConnector();
+                auto species = dc.get<SpeciesType>(FrameType::getName(), true);
+
+                __startTransaction(eventInt);
+                species->applyBoundary(currentStep);
                 EventTask ev = __endTransaction();
                 updateEvent.push_back(ev);
             }
@@ -223,10 +251,14 @@ namespace picongpu
             }
         };
 
-        /** update momentum, move and communicate all species */
-        struct PushAllSpecies
+        /** Apply a pushlike operation (push and/or boundary) to all species with pusher flag, and comminucate
+         *
+         * @tparam T_PushlikeOperation PushSpecies<bmpl::_1> or ApplyBoundary<bmpl::_1>
+         */
+        template<typename T_PushlikeOperation>
+        struct PushlikeAllSpecies
         {
-            /** push and communicate all species
+            /** Perform operation and communicate all species
              *
              * @param currentStep current simulation step
              * @param pushEvent[out] grouped event that marks the end of the species push
@@ -245,7 +277,7 @@ namespace picongpu
                 /* push all species */
                 using VectorSpeciesWithPusher =
                     typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, particlePusher<>>::type;
-                meta::ForEach<VectorSpeciesWithPusher, particles::PushSpecies<bmpl::_1>> pushSpecies;
+                meta::ForEach<VectorSpeciesWithPusher, T_PushlikeOperation> pushSpecies;
                 pushSpecies(currentStep, eventInt, updateEventList);
 
                 /* join all push events */
@@ -265,6 +297,12 @@ namespace picongpu
                 }
             }
         };
+
+        //! Push, apply boundaries, and communicate all species with pusher
+        using PushAllSpecies = PushlikeAllSpecies<PushSpecies<bmpl::_1>>;
+
+        //! Apply boundaries and communicate all species with pusher
+        using ApplyBoundaryAllSpecies = PushlikeAllSpecies<ApplyBoundary<bmpl::_1>>;
 
         /** Call an ionization method upon an ion species
          *
