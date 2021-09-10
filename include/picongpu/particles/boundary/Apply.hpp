@@ -26,9 +26,11 @@
 #include "picongpu/particles/boundary/Description.hpp"
 
 #include <pmacc/Environment.hpp>
+#include <pmacc/pluginSystem/IPlugin.hpp>
 #include <pmacc/traits/NumberOfExchanges.hpp>
 
 #include <cstdint>
+#include <list>
 #include <stdexcept>
 
 
@@ -38,6 +40,29 @@ namespace picongpu
     {
         namespace boundary
         {
+            namespace detail
+            {
+                /** Call onParticleLeave() hooks for all plugins for the given outer boundary
+                 *
+                 * It is only called for active outer boundaries.
+                 * Hook implementations must not modify the particles.
+                 * Hook implementations must account for actual boundary positions set in
+                 * T_Species::boundaryDescription() and not assume it is in GUARD.
+                 *
+                 * @tparam T_Species particle species type
+                 *
+                 * @param exchangeType exchange describing the active boundary
+                 */
+                template<typename T_Species>
+                inline void callPluginHooks(T_Species& species, int32_t const exchangeType)
+                {
+                    using Plugins = std::list<pmacc::IPlugin*>;
+                    Plugins plugins = Environment<>::get().PluginConnector().getAllPlugins();
+                    for(Plugins::iterator iter = plugins.begin(); iter != plugins.end(); iter++)
+                        (*iter)->onParticleLeave(T_Species::FrameType::getName(), exchangeType);
+                }
+            } // namespace detail
+
             /** Apply boundary conditions to the given species
              *
              * @tparam T_Species particle species type
@@ -64,6 +89,14 @@ namespace picongpu
                     bool hasNeighbour = communicationMask.isSet(exchange);
                     if(hasNeighbour)
                         continue;
+
+                    /* Here is the only place in the computational loop where we can call hooks from plugins:
+                     *    - we know those particles crossed the active boundary
+                     *    - but we didn't yet apply the boundary conditions
+                     *      that would normally modify or delete the particles
+                     *      (this is done just afterwards in this function)
+                     */
+                    detail::callPluginHooks(species, exchange);
 
                     // Transform exchange into axis
                     uint32_t axis = 0;
