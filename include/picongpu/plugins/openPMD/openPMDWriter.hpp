@@ -465,7 +465,6 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                     openPMDWriter::writeField<ComponentType>(
                         params,
-                        ::openPMD::determineDatatype<ComponentType>(),
                         GetNComponents<ValueType>::value,
                         T_Field::getName(),
                         field->getHostDataBox().getPointer(),
@@ -563,7 +562,6 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     /*write data to openPMD Series*/
                     openPMDWriter::template writeField<ComponentType>(
                         params,
-                        ::openPMD::determineDatatype<ComponentType>(),
                         components,
                         getName(),
                         fieldTmp->getHostDataBox().getPointer(),
@@ -1034,7 +1032,6 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             template<typename ComponentType>
             static void writeField(
                 ThreadParams* params,
-                ::openPMD::Datatype openPMDType,
                 const uint32_t nComponents,
                 const std::string name,
                 void* ptr,
@@ -1045,6 +1042,13 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 bool isDomainBound)
             {
                 auto const name_lookup_tpl = plugins::misc::getComponentNames(nComponents);
+                ::openPMD::Datatype const openPMDType = ::openPMD::determineDatatype<ComponentType>();
+
+                if(openPMDType == ::openPMD::Datatype::UNDEFINED)
+                {
+                    throw std::runtime_error(
+                        "[openPMD plugin] Trying to write a field of a datatype unknown to openPMD.");
+                }
 
                 /* parameter checking */
                 PMACC_ASSERT(unit.size() == nComponents);
@@ -1054,9 +1058,6 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 PMACC_ASSERT(unitDimension.size() == 7); // seven openPMD base units
 
                 log<picLog::INPUT_OUTPUT>("openPMD: write field: %1% %2% %3%") % name % nComponents % ptr;
-
-                const bool fieldTypeCorrect(boost::is_same<ComponentType, float_X>::value);
-                PMACC_CASSERT_MSG(Precision_mismatch_in_Field_Components__ADIOS, fieldTypeCorrect);
 
                 ::openPMD::Iteration iteration = params->openPMDSeries->WRITE_ITERATIONS[params->currentStep];
                 ::openPMD::Mesh mesh = iteration.meshes[name];
@@ -1070,7 +1071,7 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 DataSpace<simDim> field_no_guard = params->window.localDimensions.size;
                 DataSpace<simDim> field_guard = field_layout.getGuard() + params->localWindowToDomainOffset;
-                std::vector<float_X>& fieldBuffer = params->fieldBuffer;
+                std::vector<char>& fieldBuffer = params->fieldBuffer;
 
                 auto fieldsSizeDims = params->fieldsSizeDims;
                 auto fieldsGlobalSizeDims = params->fieldsGlobalSizeDims;
@@ -1152,15 +1153,17 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                     // ask openPMD to create a buffer for us
                     // in some backends (ADIOS2), this allows avoiding memcopies
-                    auto span = storeChunkSpan<float_X>(
+                    auto span = storeChunkSpan<ComponentType>(
                         mrc,
                         asStandardVector(fieldsOffsetDims),
                         asStandardVector(fieldsSizeDims),
                         [&fieldBuffer](size_t size) {
                             // if there is no special backend support for creating buffers,
                             // reuse the fieldBuffer
-                            fieldBuffer.resize(size);
-                            return std::shared_ptr<float_X>{fieldBuffer.data(), [](auto*) {}};
+                            fieldBuffer.resize(sizeof(ComponentType) * size);
+                            return std::shared_ptr<ComponentType>{
+                                reinterpret_cast<ComponentType*>(fieldBuffer.data()),
+                                [](auto*) {}};
                         });
                     auto dstBuffer = span.currentBuffer();
 
@@ -1188,7 +1191,7 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                                 size_t index_src = base_index_src + (x + field_guard[0]) * nComponents + d;
                                 size_t index_dst = base_index_dst + x;
 
-                                dstBuffer[index_dst] = reinterpret_cast<float_X*>(ptr)[index_src];
+                                dstBuffer[index_dst] = reinterpret_cast<ComponentType*>(ptr)[index_src];
                             }
                         }
                     }
