@@ -26,8 +26,8 @@
 #include "picongpu/particles/boundary/Description.hpp"
 
 #include <pmacc/Environment.hpp>
+#include <pmacc/boundary/Utility.hpp>
 #include <pmacc/pluginSystem/IPlugin.hpp>
-#include <pmacc/traits/NumberOfExchanges.hpp>
 
 #include <cstdint>
 #include <list>
@@ -73,18 +73,9 @@ namespace picongpu
             template<typename T_Species>
             inline void apply(T_Species&& species, uint32_t currentStep)
             {
-                auto const numExchanges = NumberOfExchanges<simDim>::value;
                 auto const communicationMask = Environment<simDim>::get().GridController().getCommunicationMask();
-                for(uint32_t exchange = 1u; exchange < numExchanges; ++exchange)
+                for(auto exchange : getAllAxisAlignedExchanges())
                 {
-                    /* Here we are only interested in the positive and negative
-                     * directions for x, y, z axes and not the "diagonal" ones.
-                     * So skip other directions except left, right, top, bottom,
-                     * back, front
-                     */
-                    if(FRONT % exchange != 0)
-                        continue;
-
                     // If this is not an outer boundary, also skip
                     bool hasNeighbour = communicationMask.isSet(exchange);
                     if(hasNeighbour)
@@ -98,21 +89,16 @@ namespace picongpu
                      */
                     detail::callPluginHooks(species, exchange);
 
-                    // Transform exchange into axis
-                    uint32_t axis = 0;
-                    if(exchange >= BOTTOM && exchange <= TOP)
-                        axis = 1;
-                    if(exchange >= BACK)
-                        axis = 2;
-
+                    // Call boundary condition implementation
+                    auto axis = pmacc::boundary::getAxis(exchange);
                     auto boundaryDescription = species.boundaryDescription()[axis];
                     switch(boundaryDescription.kind)
                     {
                     case Kind::Periodic:
-                        ApplyImpl<Kind::Periodic>{}(species, exchange, boundaryDescription.offset, currentStep);
+                        ApplyImpl<Kind::Periodic>{}(species, exchange, currentStep);
                         break;
                     case Kind::Absorbing:
-                        ApplyImpl<Kind::Absorbing>{}(species, exchange, boundaryDescription.offset, currentStep);
+                        ApplyImpl<Kind::Absorbing>{}(species, exchange, currentStep);
                         break;
                     default:
                         throw std::runtime_error("Unsupported boundary kind when trying to apply particle boundary");

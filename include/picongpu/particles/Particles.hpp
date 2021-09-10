@@ -23,9 +23,11 @@
 #include "picongpu/fields/Fields.def"
 #include "picongpu/fields/Fields.hpp"
 #include "picongpu/particles/boundary/Description.hpp"
+#include "picongpu/particles/boundary/Utility.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
 
 #include <pmacc/HandleGuardRegion.hpp>
+#include <pmacc/boundary/Utility.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/memory/dataTypes/Mask.hpp>
@@ -174,31 +176,23 @@ namespace picongpu
         {
             pmacc::traits::StringProperty propList;
 
-            for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
+            for(auto exchange : particles::boundary::getAllAxisAlignedExchanges())
             {
-                // for each planar direction: left right top bottom back front
-                if(FRONT % i == 0)
-                {
-                    const DataSpace<DIM3> relDir = Mask::getRelativeDirections<DIM3>(i);
-                    uint32_t axis = 0; // x(0) y(1) z(2)
-                    for(uint32_t d = 0; d < simDim; d++)
-                        if(relDir[d] != 0)
-                            axis = d;
+                auto const axis = pmacc::boundary::getAxis(exchange);
 
-                    const std::string directionName = ExchangeTypeNames()[i];
-                    propList[directionName]["param"] = std::string("none");
-                    switch(boundaryDescription()[axis].kind)
-                    {
-                    case particles::boundary::Kind::Periodic:
-                        propList[directionName]["name"] = "periodic";
-                        break;
-                    case particles::boundary::Kind::Absorbing:
-                        propList[directionName]["name"] = "absorbing";
-                        propList[directionName]["param"] = std::string("without field correction");
-                        break;
-                    default:
-                        propList[directionName]["name"] = "unknown";
-                    }
+                const std::string directionName = ExchangeTypeNames()[exchange];
+                propList[directionName]["param"] = std::string("none");
+                switch(boundaryDescription()[axis].kind)
+                {
+                case particles::boundary::Kind::Periodic:
+                    propList[directionName]["name"] = "periodic";
+                    break;
+                case particles::boundary::Kind::Absorbing:
+                    propList[directionName]["name"] = "absorbing";
+                    propList[directionName]["param"] = std::string("without field correction");
+                    break;
+                default:
+                    propList[directionName]["name"] = "unknown";
                 }
             }
             return propList;

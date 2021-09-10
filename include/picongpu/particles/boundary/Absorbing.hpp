@@ -23,9 +23,8 @@
 
 #include "picongpu/particles/boundary/ApplyImpl.hpp"
 #include "picongpu/particles/boundary/Kind.hpp"
+#include "picongpu/particles/boundary/Utility.hpp"
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.hpp"
-
-#include <pmacc/Environment.hpp>
 
 #include <cstdint>
 
@@ -102,13 +101,13 @@ namespace picongpu
                  *
                  * @param species particle species
                  * @param exchangeType exchange describing the active boundary
-                 * @param offset offsetCells of the active boundary inwards from the global domain boundary, in cells
                  * @param currentStep current time iteration
                  */
                 template<typename T_Species>
-                void operator()(T_Species& species, uint32_t exchangeType, uint32_t offsetCells, uint32_t currentStep)
+                void operator()(T_Species& species, uint32_t exchangeType, uint32_t currentStep)
                 {
                     // For no offset, nothing has to be done as the particles in GUARD will be just removed later
+                    auto offsetCells = getOffsetCells(species, exchangeType);
                     if(offsetCells == 0)
                         return;
 
@@ -118,19 +117,8 @@ namespace picongpu
                      * specifically. Currently it would also go over several times if multiple boundaries are
                      * absorbing.
                      */
-
-                    // TODO: move this to a function
-                    uint32_t axis = 0u;
-                    if(exchangeType >= BOTTOM && exchangeType <= TOP)
-                        axis = 1u;
-                    if(exchangeType >= BACK)
-                        axis = 2u;
-
-                    SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
-                    auto beginInternalCellsTotal = subGrid.getGlobalDomain().offset;
-                    auto endInternalCellsTotal = beginInternalCellsTotal + subGrid.getGlobalDomain().size;
-                    beginInternalCellsTotal[axis] += offsetCells;
-                    endInternalCellsTotal[axis] -= offsetCells;
+                    pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
+                    getInternalCellsTotal(species, exchangeType, &beginInternalCellsTotal, &endInternalCellsTotal);
                     AbsorbParticleIfOutside::staticParameters().beginInternalCellsTotal = beginInternalCellsTotal;
                     AbsorbParticleIfOutside::staticParameters().endInternalCellsTotal = endInternalCellsTotal;
                     using Manipulator = manipulators::unary::FreeTotalCellOffset<AbsorbParticleIfOutside>;
