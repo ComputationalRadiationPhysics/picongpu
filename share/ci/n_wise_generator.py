@@ -6,11 +6,15 @@
 from allpairspy import AllPairs
 import argparse
 import sys
-
+import math
 
 parser = argparse.ArgumentParser(description='Generate tesing pairs')
 parser.add_argument('-n', dest='n_pairs', default=1, action="store",
                     help='number of tuple elements')
+# Note: If a stage contains to less jobs the number of jobs per stage can be
+# larger than the value configured by the user!
+parser.add_argument('-j', dest='num_jobs_per_stage', default=sys.maxsize,
+                    action="store", help='number of per stage')
 parser.add_argument('--compact', dest='compact', action="store_true",
                     help='print compact form of the test matrix')
 parser.add_argument('--limit_boost_versions', dest='limit_boost_versions',
@@ -213,6 +217,10 @@ rounds = 1
 if n_pairs == 1:
     rounds = len(compilers)
 
+
+job_list = []
+
+# generate a list with all jobs
 for i in range(rounds):
     used_compilers = []
     if n_pairs == 1:
@@ -228,9 +236,27 @@ for i in range(rounds):
         examples
     ]
 
-    for i, pairs in enumerate(
-            AllPairs(parameters,
-                     filter_func=is_valid_combination, n=n_pairs)):
+    for value in enumerate(
+        AllPairs(parameters,
+                 filter_func=is_valid_combination, n=n_pairs)):
+        job_list.append(value)
+
+num_jobs = len(job_list)
+num_jobs_per_stage = int(args.num_jobs_per_stage)
+num_stages = math.ceil(num_jobs / num_jobs_per_stage)
+
+# generate stages
+if not args.compact:
+    print("stages:")
+    for x in range(num_stages):
+        print("  - job_{}".format(x))
+    print("")
+
+# generate all jobs
+for stage in range(num_stages):
+    if args.compact:
+        print("---")
+    for i, pairs in job_list[stage::num_stages]:
         if args.compact:
             print("{:2d}: {}".format(i, pairs))
         else:
@@ -244,6 +270,7 @@ for i in range(rounds):
             job_name = compiler + "_" + backend + v_cuda_hip_str + \
                 "_boost" + boost_version + "_" + folder.replace("/", ".")
             print(job_name + ":")
+            print("  stage: job_{}".format(stage))
             print("  variables:")
             if backend == "cuda":
                 print("    CUDA_CONTAINER_VERSION: '" +

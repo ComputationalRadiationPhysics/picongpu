@@ -15,7 +15,7 @@ variables:
     - apt install -y python3-pip
     - pip3 install allpairspy
     - $CI_PROJECT_DIR/share/ci/git_merge.sh
-    - $CI_PROJECT_DIR/share/ci/generate_reduced_matrix.sh -n ${TEST_TUPLE_NUM_ELEM} > compile.yml
+    - $CI_PROJECT_DIR/share/ci/generate_reduced_matrix.sh -n ${TEST_TUPLE_NUM_ELEM} -j 15 > compile.yml
     - cat compile.yml
   artifacts:
     paths:
