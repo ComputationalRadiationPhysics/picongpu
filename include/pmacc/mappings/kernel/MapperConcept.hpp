@@ -58,7 +58,7 @@ namespace pmacc
     template<
         uint32_t T_areaType,
         template<unsigned, typename>
-        typename T_MappingDescription,
+        class T_MappingDescription,
         unsigned T_dim,
         typename T_SupercellSize>
     class MapperConcept : public T_MappingDescription<T_dim, T_SupercellSize>
