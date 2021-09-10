@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -34,6 +34,8 @@
 #include "pmacc/particles/operations/Deselect.hpp"
 #include "pmacc/traits/NumberOfExchanges.hpp"
 #include "pmacc/types.hpp"
+
+#include <cstdint>
 
 namespace pmacc
 {
@@ -328,6 +330,11 @@ namespace pmacc
      * The functor fulfills the restriction that all frames except the last
      * must be fully filled with particles as can be stored in a frame.
      *
+     * In case a supercell has no neighbors in some directions,
+     * there must be no particles moving towards those directions.
+     * So such directions would effectively be skipped.
+     * It is required in case the kernel is run in the area including GUARD supercells.
+     *
      * @tparam T_numWorkers number of workers
      */
     template<uint32_t T_numWorkers>
@@ -337,8 +344,8 @@ namespace pmacc
          *
          * @warning this kernel can only run with a double checker board
          */
-        template<typename T_ParBox, typename Mapping, typename T_Acc>
-        DINLINE void operator()(T_Acc const& acc, T_ParBox pb, Mapping mapper) const
+        template<typename T_ParBox, typename Mapping, typename T_Acc, typename T_Idx>
+        DINLINE void operator()(T_Acc const& acc, T_ParBox pb, Mapping mapper, T_Idx numSupercellsWithGuard) const
         {
             using ParBox = T_ParBox;
             using FrameType = typename ParBox::FrameType;
@@ -393,18 +400,21 @@ namespace pmacc
                  * Using a context variable results into 16bit reads.
                  */
                 auto const neighborSuperCellIdx = superCellIdx + Mask::getRelativeDirections<dim>(idx + 1);
-                /* load last frame of neighboring supercell */
-                FramePtr tmpFrame(pb.getLastFrame(neighborSuperCellIdx));
-
-                if(tmpFrame.isValid())
+                if(isValidSupercellIdx(T_Idx{neighborSuperCellIdx}, numSupercellsWithGuard))
                 {
-                    int32_t const particlesInFrame = pb.getSuperCell(neighborSuperCellIdx).getSizeLastFrame();
-                    // do not use the neighbor's last frame if it is full
-                    if(particlesInFrame < frameSize)
+                    /* load last frame of neighboring supercell */
+                    FramePtr tmpFrame(pb.getLastFrame(neighborSuperCellIdx));
+
+                    if(tmpFrame.isValid())
                     {
-                        newParticleInFrameCtx[idx] = -particlesInFrame;
-                        destFrames[linearIdx] = tmpFrame;
-                        destFramesCounter[linearIdx] = particlesInFrame;
+                        int32_t const particlesInFrame = pb.getSuperCell(neighborSuperCellIdx).getSizeLastFrame();
+                        // do not use the neighbor's last frame if it is full
+                        if(particlesInFrame < frameSize)
+                        {
+                            newParticleInFrameCtx[idx] = -particlesInFrame;
+                            destFrames[linearIdx] = tmpFrame;
+                            destFramesCounter[linearIdx] = particlesInFrame;
+                        }
                     }
                 }
             });
@@ -456,19 +466,22 @@ namespace pmacc
                          */
                         auto const neighborSuperCellIdx
                             = superCellIdx + Mask::getRelativeDirections<dim>(linearIdx + 1);
-                        /* if we had no `low frame` we load a new empty one */
-                        if(!destFrames[linearIdx].isValid())
+                        if(isValidSupercellIdx(T_Idx{neighborSuperCellIdx}, numSupercellsWithGuard))
                         {
-                            FramePtr tmpFrame(pb.getEmptyFrame(acc));
-                            destFrames[linearIdx] = tmpFrame;
-                            pb.setAsLastFrame(acc, tmpFrame, neighborSuperCellIdx);
-                        }
-                        /* check if a `high frame` is needed */
-                        if(destFramesCounter[linearIdx] > frameSize)
-                        {
-                            FramePtr tmpFrame(pb.getEmptyFrame(acc));
-                            destFrames[linearIdx + numExchanges] = tmpFrame;
-                            pb.setAsLastFrame(acc, tmpFrame, neighborSuperCellIdx);
+                            /* if we had no `low frame` we load a new empty one */
+                            if(!destFrames[linearIdx].isValid())
+                            {
+                                FramePtr tmpFrame(pb.getEmptyFrame(acc));
+                                destFrames[linearIdx] = tmpFrame;
+                                pb.setAsLastFrame(acc, tmpFrame, neighborSuperCellIdx);
+                            }
+                            /* check if a `high frame` is needed */
+                            if(destFramesCounter[linearIdx] > frameSize)
+                            {
+                                FramePtr tmpFrame(pb.getEmptyFrame(acc));
+                                destFrames[linearIdx + numExchanges] = tmpFrame;
+                                pb.setAsLastFrame(acc, tmpFrame, neighborSuperCellIdx);
+                            }
                         }
                     }
                 });
@@ -529,18 +542,31 @@ namespace pmacc
                      * Using a context variable results into 16bit reads.
                      */
                     auto const neighborSuperCellIdx = superCellIdx + Mask::getRelativeDirections<dim>(idx + 1);
-                    /* Each master thread updates the number of particles
-                     * for the neighbor frame. The number of particles in the neighbor
-                     * frame must be correct because fill gaps is only called on the
-                     * current used supercell.
-                     */
-                    auto& superCell = pb.getSuperCell(neighborSuperCellIdx);
-                    superCell.setNumParticles(superCell.getNumParticles() + newParticleInFrameCtx[idx]);
+                    if(isValidSupercellIdx(T_Idx{neighborSuperCellIdx}, numSupercellsWithGuard))
+                    {
+                        /* Each master thread updates the number of particles
+                         * for the neighbor frame. The number of particles in the neighbor
+                         * frame must be correct because fill gaps is only called on the
+                         * current used supercell.
+                         */
+                        auto& superCell = pb.getSuperCell(neighborSuperCellIdx);
+                        superCell.setNumParticles(superCell.getNumParticles() + newParticleInFrameCtx[idx]);
+                    }
                 }
             });
 
             // fill all gaps in the frame list of the supercell
             KernelFillGaps<numWorkers>{}(acc, pb, mapper);
+        }
+
+        //! Is the given supercell index valid
+        template<typename T_Idx>
+        DINLINE bool isValidSupercellIdx(T_Idx const& supercellIdx, T_Idx const& numSupercells) const
+        {
+            for(uint32_t d = 0; d < T_Idx::dim; d++)
+                if((supercellIdx[d] < 0) || (supercellIdx[d] >= numSupercells[d]))
+                    return false;
+            return true;
         }
     };
 
