@@ -26,3 +26,9 @@ docs/doxygen_sqlite3.db
 docs/html/
 # sphinx & breathe output
 docs/build/
+
+### macOS ###
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
