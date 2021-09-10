@@ -1,4 +1,4 @@
-/* Copyright 2016-2021 Heiko Burau, Rene Widera
+/* Copyright 2016-2021 Heiko Burau, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +21,7 @@
 
 #include "ParticleCalorimeter.kernel"
 #include "ParticleCalorimeterFunctors.hpp"
+#include "picongpu/particles/boundary/Utility.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/common/openPMDAttributes.hpp"
 #include "picongpu/plugins/common/openPMDWriteMeta.hpp"
@@ -588,6 +589,11 @@ namespace picongpu
             auto const mapper = makeAreaMapper<CORE + BORDER>(*this->m_cellDescription);
             auto const grid = mapper.getGridDim();
 
+            // In this version we process all particles, so internal area = total domain
+            SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
+            auto beginInternalCellsLocal = pmacc::DataSpace<simDim>::create(0);
+            auto endInternalCellsLocal = beginInternalCellsLocal + subGrid.getLocalDomain().size;
+
             constexpr uint32_t numWorkers
                 = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
@@ -597,6 +603,8 @@ namespace picongpu
                 particles->getDeviceParticlesBox(),
                 *this->calorimeterFunctor,
                 mapper,
+                beginInternalCellsLocal,
+                endInternalCellsLocal,
                 std::placeholders::_1);
 
             meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<bmpl::_1>>{}(
@@ -634,6 +642,18 @@ namespace picongpu
             DataConnector& dc = Environment<>::get().DataConnector();
             auto particles = dc.get<ParticlesType>(speciesName, true);
 
+            pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
+            particles::boundary::getInternalCellsTotal(
+                *particles,
+                direction,
+                &beginInternalCellsTotal,
+                &endInternalCellsTotal);
+            SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
+            pmacc::DataSpace<simDim> shiftTotaltoLocal
+                = subGrid.getGlobalDomain().offset + subGrid.getLocalDomain().offset;
+            auto const beginInternalCellsLocal = beginInternalCellsTotal - shiftTotaltoLocal;
+            auto const endInternalCellsLocal = endInternalCellsTotal - shiftTotaltoLocal;
+
             constexpr uint32_t numWorkers
                 = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
 
@@ -643,6 +663,8 @@ namespace picongpu
                 particles->getDeviceParticlesBox(),
                 (MyCalorimeterFunctor) * this->calorimeterFunctor,
                 mapper,
+                beginInternalCellsLocal,
+                endInternalCellsLocal,
                 std::placeholders::_1);
 
             meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<bmpl::_1>>{}(

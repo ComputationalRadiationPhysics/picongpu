@@ -44,6 +44,9 @@ namespace picongpu
          * @param alpaka accelerator
          * @param particlesBox particle memory
          * @param mapper functor to map a block to a supercell
+         * @param beginInternalCellsLocal only process particles with local domain cell index >=
+         * beginInternalCellsLocal
+         * @param endInternalCellsLocal only process particles with local domain cell index < endInternalCellsLocal
          */
         template<
             typename T_ParticlesBox,
@@ -56,6 +59,8 @@ namespace picongpu
             T_ParticlesBox particlesBox,
             T_CalorimeterFunctor calorimeterFunctor,
             T_Mapper mapper,
+            pmacc::DataSpace<simDim> beginInternalCellsLocal,
+            pmacc::DataSpace<simDim> endInternalCellsLocal,
             T_Filter filter) const
         {
             constexpr uint32_t numWorkers = T_numWorkers;
@@ -78,6 +83,7 @@ namespace picongpu
 
             auto accFilter
                 = filter(acc, block - mapper.getGuardingSuperCells(), lockstep::Worker<numWorkers>{workerIdx});
+            auto const blockStartCellLocal = (block - mapper.getGuardingSuperCells()) * SuperCellSize::toRT();
 
             // number of particles in the current frame
             auto numParticles = particlesBox.getSuperCell(block).getSizeLastFrame();
@@ -96,6 +102,14 @@ namespace picongpu
 
                     if(accFilter(acc, particle))
                     {
+                        // Check if it fits the internal cells range
+                        auto const cellInSuperCell
+                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(particle[localCellIdx_]);
+                        auto const localCell = blockStartCellLocal + cellInSuperCell;
+                        for(uint32_t d = 0; d < simDim; d++)
+                            if((localCell[d] < beginInternalCellsLocal[d])
+                               || (localCell[d] >= endInternalCellsLocal[d]))
+                                return;
                         calorimeterFunctor(acc, particlesFrame, linearIdx);
                     }
                 });
