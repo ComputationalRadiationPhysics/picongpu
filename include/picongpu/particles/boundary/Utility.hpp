@@ -65,9 +65,12 @@ namespace picongpu
                 return species.boundaryDescription()[axis].offset;
             }
 
-            /** Get a range of cells that are internal for the given species wrt given exchangeType
+            /** Get a range of cells that define internal area for the given species wrt given exchangeType
              *
-             * Note that it only considers one boundary, the returned cells may be external for other boundaries.
+             * Note that it only considers one, given, boundary.
+             * So the particles outside the returned range crossed that boundary.
+             * Particles in the returned range did not cross that boundary, but may still be outside for others.
+             *
              * The results are in the total coordinate system.
              *
              * @tparam T_Species particle species type
@@ -89,8 +92,10 @@ namespace picongpu
                 SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
                 *begin = subGrid.getGlobalDomain().offset;
                 *end = (*begin) + subGrid.getGlobalDomain().size;
-                (*begin)[axis] += offsetCells;
-                (*end)[axis] -= offsetCells;
+                if(pmacc::boundary::isMinSide(exchangeType))
+                    (*begin)[axis] += offsetCells;
+                if(pmacc::boundary::isMaxSide(exchangeType))
+                    (*end)[axis] -= offsetCells;
             }
 
         } // namespace boundary

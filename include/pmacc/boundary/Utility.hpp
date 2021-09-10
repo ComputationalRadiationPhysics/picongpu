@@ -39,6 +39,26 @@ namespace pmacc
             return (FRONT % exchangeType == 0);
         }
 
+        /** Return if the given axis alighed exchange is on the max (right) side on that axis
+         *
+         * @param exchangeType number characterizing exchange @see pmacc::type::ExchangeType
+         */
+        HINLINE bool isMaxSide(uint32_t exchangeType)
+        {
+            if(!isAxisAligned(exchangeType))
+                throw std::runtime_error("isPositive() called for not axis aligned exchangeType");
+            return (exchangeType % 2);
+        }
+
+        /** Return if the given axis alighed exchange is on the min (left) side on that axis
+         *
+         * @param exchangeType number characterizing exchange @see pmacc::type::ExchangeType
+         */
+        HINLINE bool isMinSide(uint32_t exchangeType)
+        {
+            return !isMaxSide(exchangeType);
+        }
+
         /** Get axis (0 = x, 1 = y, 2 = z) for the given axis aligned exchange
          *
          * Throws for not axis aligned exchanges.
