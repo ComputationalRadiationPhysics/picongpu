@@ -745,9 +745,9 @@ namespace picongpu
 
                 const complex_T helpVar3
                     = (-cspeed2 * k * om0_tauG2 * wy2 * x2 - float_T(2.0) * t2 * c2_om0_wy2_roh0
-                       + complex_T(0, 2) * (t * tauG2 * c2_om0_wy2_roh0)
+                       + complex_T(0, 2) * (t * om0_tauG2 * c2_om0_wy2_roh0)
                        - float_T(2.0) * cspeed2 * om0_tauG2 * y2 * rho0 + float_T(4.0) * c_t * z * om0_wy2_roh0
-                       - complex_T(0, 2) * (cspeed * tauG2 * z * om0_wy2_roh0) - float_T(2.0) * z2 * om0_wy2_roh0
+                       - complex_T(0, 2) * (cspeed * om0_tauG2 * z * om0_wy2_roh0) - float_T(2.0) * z2 * om0_wy2_roh0
                        - complex_T(0, 8) * (om0_wy2 * y * (c_t - z) * z * sinPhi2_2)
                        + complex_T(0, 8) / sinPhi
                            * (float_T(2.0) * z2 * (c_t * om0_wy2 + complex_T(0, 1) * (cspeed * y2) - om0_wy2 * z)
@@ -756,11 +756,11 @@ namespace picongpu
                                      + float_T(2.0) * cspeed * y2 * rho0 + complex_T(0, 2) * z * om0_wy2_roh0)
                                   * tan(float_T(PI) / float_T(2.0) - phiT) / sinPhi)
                            * sinPhi2_4
-                       - complex_T(0, 2) * (t2 * z * c2_om0_wy2_roh0)
-                       - float_T(2.0) * cspeed2 * om02_wy2_sinPhi * t * tauG2 * wy2 * z
+                       - complex_T(0, 2) * (cspeed2 * t2 * z * om0_wy2_sinPhi)
+                       - float_T(2.0) * cspeed2 * om02_wy2_sinPhi * t * tauG2 * z
                        - complex_T(0, 2) * (cspeed2 * om0_tauG2 * y2 * z * sinPhi)
                        + complex_T(0, 4) * (c_t * z2 * om0_wy2_sinPhi)
-                       + float_T(2.0) * cspeed * om02_wy2_sinPhi * tauG2 * wy2 * z2
+                       + float_T(2.0) * cspeed * om02_wy2_sinPhi * tauG2 * z2
                        - complex_T(0, 2) * (z2 * z * om0_wy2_sinPhi) - float_T(4.0) * c_t * y * om0_wy2_roh0 * tanPhi2
                        + float_T(4.0) * y * z * om0_wy2_roh0 * tanPhi2
                        + complex_T(0, 2) * y2 * (c_t * om0_wy2 + complex_T(0, 1) * cspeed * y2 - om0_wy2 * z)
