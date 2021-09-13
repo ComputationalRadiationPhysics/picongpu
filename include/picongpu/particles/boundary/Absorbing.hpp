@@ -23,6 +23,7 @@
 
 #include "picongpu/particles/boundary/ApplyImpl.hpp"
 #include "picongpu/particles/boundary/Kind.hpp"
+#include "picongpu/particles/boundary/Parameters.hpp"
 #include "picongpu/particles/boundary/Utility.hpp"
 #include "picongpu/particles/functor/misc/Parametrized.hpp"
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.hpp"
@@ -36,22 +37,6 @@ namespace picongpu
     {
         namespace boundary
         {
-            //! Parameters to be passed to functors from the host side
-            struct Parameters
-            {
-                /** Begin of the internal (relative to the boundary) cells in total coordinates
-                 *
-                 * Particles to the left side will be absorbed
-                 */
-                pmacc::DataSpace<simDim> beginInternalCellsTotal;
-
-                /** End of the internal (relative to the boundary) cells in total coordinates
-                 *
-                 * Particles equal or to the right side will be absorbed
-                 */
-                pmacc::DataSpace<simDim> endInternalCellsTotal;
-            };
-
             //! Functor to be applied to all particles in the active area
             struct AbsorbParticleIfOutside : public functor::misc::Parametrized<Parameters>
             {

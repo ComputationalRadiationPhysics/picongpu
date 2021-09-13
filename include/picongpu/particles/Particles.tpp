@@ -367,6 +367,13 @@ namespace picongpu
     }
 
     template<typename T_Name, typename T_Flags, typename T_Attributes>
+    template<uint32_t T_area>
+    void Particles<T_Name, T_Flags, T_Attributes>::shiftBetweenSupercells()
+    {
+        ParticlesBaseType::template shiftParticles<T_area>();
+    }
+
+    template<typename T_Name, typename T_Flags, typename T_Attributes>
     template<typename T_DensityFunctor, typename T_PositionFunctor>
     void Particles<T_Name, T_Flags, T_Attributes>::initDensityProfile(
         T_DensityFunctor& densityFunctor,

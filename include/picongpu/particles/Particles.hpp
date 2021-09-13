@@ -127,6 +127,10 @@ namespace picongpu
         //! Push all particles
         void update(uint32_t const currentStep);
 
+        //! Update the supercell storage for particles in the area according to particle attributes
+        template<uint32_t T_area>
+        inline void shiftBetweenSupercells();
+
         //! Apply all boundary conditions
         void applyBoundary(uint32_t const currentStep);
 

@@ -1,4 +1,4 @@
-/* Copyright 2021 Sergei Bastrakov
+/* Copyright 2021 Lennert Sprenger
  *
  * This file is part of PIConGPU.
  *
@@ -19,21 +19,27 @@
 
 #pragma once
 
-
 namespace picongpu
 {
     namespace particles
     {
         namespace boundary
         {
-            //! Supported particle boundary kinds
-            enum class Kind
+            //! Parameters to be passed from the host side
+            struct Parameters
             {
-                Periodic,
-                Absorbing,
-                Reflecting
-            };
+                /** Begin of the internal (not-absorbed) cells in total coordinates
+                 *
+                 * Particles to the left side will be absorbed
+                 */
+                pmacc::DataSpace<simDim> beginInternalCellsTotal;
 
-        } // namespace boundary
-    } // namespace particles
-} // namespace picongpu
+                /** End of the internal (not-absorbed) cells in total coordinates
+                 *
+                 * Particles equal or to the right side will be absorbed
+                 */
+                pmacc::DataSpace<simDim> endInternalCellsTotal;
+            };
+        }
+    }
+}
