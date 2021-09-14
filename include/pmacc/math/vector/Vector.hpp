@@ -49,14 +49,6 @@ namespace pmacc
                 static constexpr int dim = T_Dim;
                 using type = T_Type;
 
-                HDINLINE
-                constexpr Vector_components()
-                {
-                }
-
-                HDINLINE
-                constexpr Vector_components& operator=(const Vector_components&) = default;
-
                 /*align full vector*/
                 PMACC_ALIGN(v[dim], type);
 
@@ -140,19 +132,17 @@ namespace pmacc
             PMACC_CASSERT_MSG(math_Vector__with_DIM_0_is_not_allowed, dim > 0);
 
             HDINLINE
-            constexpr Vector()
-            {
-            }
+            constexpr Vector() = default;
 
             HDINLINE
-            constexpr Vector(const type x)
+            constexpr Vector(const type x) : Storage{}
             {
                 PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM1, dim == 1);
                 (*this)[0] = x;
             }
 
             HDINLINE
-            constexpr Vector(const type x, const type y)
+            constexpr Vector(const type x, const type y) : Storage{}
             {
                 PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM2, dim == 2);
                 (*this)[0] = x;
@@ -160,7 +150,7 @@ namespace pmacc
             }
 
             HDINLINE
-            constexpr Vector(const type x, const type y, const type z)
+            constexpr Vector(const type x, const type y, const type z) : Storage{}
             {
                 PMACC_CASSERT_MSG(math_Vector__constructor_is_only_allowed_for_DIM3, dim == 3);
                 (*this)[0] = x;
@@ -169,7 +159,7 @@ namespace pmacc
             }
 
             HDINLINE
-            constexpr Vector(const Vector& other)
+            constexpr Vector(const Vector& other) : Storage{}
             {
                 detail::CopyElementWise<Storage::isConst>()(*this, other);
             }
@@ -189,6 +179,7 @@ namespace pmacc
                 typename T_OtherStorage>
             HDINLINE explicit Vector(
                 const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& other)
+                : Storage{}
             {
                 for(int i = 0; i < dim; i++)
                     (*this)[i] = static_cast<type>(other[i]);
