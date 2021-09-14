@@ -29,6 +29,7 @@
 #include "pmacc/particles/ParticlesBase.kernel"
 #include "pmacc/particles/memory/boxes/ParticlesBox.hpp"
 #include "pmacc/particles/memory/buffers/ParticlesBuffer.hpp"
+#include "pmacc/static_assert.hpp"
 #include "pmacc/traits/GetNumWorkers.hpp"
 #include "pmacc/traits/NumberOfExchanges.hpp"
 
@@ -98,13 +99,34 @@ namespace pmacc
             delete this->particlesBuffer;
         }
 
-        /* Shift all particle in a AREA
-         * @tparam AREA area which is used (CORE,BORDER,GUARD or a combination)
+        /** Shift all particles in the given area
+         *
+         * @tparam T_area area which is used (CORE, BORDER, GUARD or a combination)
          */
-        template<uint32_t AREA>
+        template<uint32_t T_area>
         void shiftParticles()
         {
-            auto mapper = makeStrideAreaMapper<AREA, 3>(this->cellDescription);
+            this->template shiftParticles(StrideAreaMapperFactory<T_area, 3>{});
+        }
+
+        /** Shift all particles in the area defined by the given factory
+         *
+         * Note that the area itself is not strided, but the factory must produce stride mappers for the area.
+         *
+         * @tparam T_strideMapperFactory factory type to construct a stride mapper,
+         *                               resulting mapper must have stride of at least 3,
+         *                               adheres to the MapperFactory concept
+         *
+         * @param strideMapperFactory factory to construct a strided mapper,
+         *                            the area is defined by the constructed mapper object
+         */
+        template<typename T_strideMapperFactory>
+        void shiftParticles(T_strideMapperFactory const& strideMapperFactory)
+        {
+            auto mapper = strideMapperFactory(this->cellDescription);
+            PMACC_CASSERT_MSG(
+                shiftParticles_stride_mapper_condition_failure____stride_must_be_at_least_3,
+                decltype(mapper)::Stride >= 3);
             ParticlesBoxType pBox = particlesBuffer->getDeviceParticleBox();
             auto const numSupercellsWithGuards = particlesBuffer->getSuperCellsCount();
 
