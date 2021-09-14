@@ -786,51 +786,52 @@ namespace picongpu
 
 
                 const complex_T helpVar3
-                    = (-cspeed2 * k * om0_tauG2 * x2 - float_T(2.0) * t2 * cspeed2 * om0 * rho0
-                       + complex_T(0, 2) * (t * om0_tauG2 * cspeed2 * om0 * rho0)
-                       + float_T(4.0) * c_t * z * om0 * rho0
-                       - complex_T(0, 2) * (cspeed * om0_tauG2 * z * om0 * rho0)
-                       - float_T(2.0) * z2 * om0 * rho0
-                       - complex_T(0, 8) * (om0 * y * (c_t - z) * z * sinPhi2_2)
+                    = (-cspeed2 * k * tauG2 * x2
+                       - float_T(2.0) * t2 * cspeed2 * rho0
+                       + complex_T(0, 2) * (t * om0_tauG2 * cspeed2 * rho0)
+                       + float_T(4.0) * c_t * z * rho0
+                       - complex_T(0, 2) * (cspeed * om0_tauG2 * z * rho0)
+                       - float_T(2.0) * z2 * rho0
+                       - complex_T(0, 8) * (y * (c_t - z) * z * sinPhi2_2)
                        + complex_T(0, 8) / sinPhi * sinPhi2_4 * (
-                            float_T(2.0) * z2 * om0 * (c_t - z)
+                            float_T(2.0) * z2 * (c_t - z)
                             + y * tan(float_T(PI) / float_T(2.0) - phiT) / sinPhi * (
-                                 cspeed * k * x2
-                                 - complex_T(0, 2) * (c_t * om0 * rho0)
-                                 + complex_T(0, 2) * (z * om0 * rho0)
+                                 x2
+                                 - complex_T(0, 2) * (c_t * rho0)
+                                 + complex_T(0, 2) * (z * rho0)
                             )
                        )
-                       - complex_T(0, 2) * (cspeed2 * t2 * z * om0 * sinPhi)
-                       - float_T(2.0) * cspeed2 * om02 * sinPhi * t * tauG2 * z
-                       + complex_T(0, 4) * (c_t * z2 * om0 * sinPhi)
-                       + float_T(2.0) * cspeed * om02 * sinPhi * tauG2 * z2
-                       - complex_T(0, 2) * (z2 * z * om0 * sinPhi)
-                       - float_T(4.0) * c_t * y * om0 * rho0 * tanPhi2
-                       + float_T(4.0) * y * z * om0 * rho0 * tanPhi2
-                       + complex_T(0, 2) * y2 * (c_t * om0 - om0 * z)
+                       - complex_T(0, 2) * (cspeed2 * t2 * z * sinPhi)
+                       - float_T(2.0) * cspeed2 * sinPhi * t * om0_tauG2 * z
+                       + complex_T(0, 4) * (c_t * z2 * sinPhi)
+                       + float_T(2.0) * cspeed * sinPhi * om0_tauG2 * z2
+                       - complex_T(0, 2) * (z2 * z * sinPhi)
+                       - float_T(4.0) * c_t * y * rho0 * tanPhi2
+                       + float_T(4.0) * y * z * rho0 * tanPhi2
+                       + complex_T(0, 2) * y2 * (c_t - z)
                            * (cosPhi * cosPhi) / cosPhi2_2 * tanPhi2
-                       + complex_T(0, 2) * (cspeed * k * x2 * z * tanPhi2_2)
-                       - float_T(2.0) * y2 * om0 * rho0 * tanPhi2_2
-                       + float_T(4.0) * c_t * z * om0 * rho0 * tanPhi2_2
-                       - float_T(4.0) * z2 * om0 * rho0 * tanPhi2_2
-                       - complex_T(0, 2) * (y2 * z * om0 * sinPhi * tanPhi2_2)
+                       + complex_T(0, 2) * (x2 * z * tanPhi2_2)
+                       - float_T(2.0) * y2 * rho0 * tanPhi2_2
+                       + float_T(4.0) * c_t * z * rho0 * tanPhi2_2
+                       - float_T(4.0) * z2 * rho0 * tanPhi2_2
+                       - complex_T(0, 2) * (y2 * z * sinPhi * tanPhi2_2)
                        - float_T(2.0) * y_cosPhi * (
-                           om0 * (
+                           (
                                cspeed2 * (
                                    complex_T(0, 1) * t2
-                                   + om0 * t * tauG2
+                                   + t * om0_tauG2
                                )
                                - cspeed * (complex_T(0, 2) * t + om0_tauG2) * z
                                + complex_T(0, 1) * z2
                            )
-                           + complex_T(0, 2) * (om0 * y * (c_t - z) * tanPhi2)
-                           + complex_T(0, 1) * (om0 * (y2 - float_T(4.0) * (c_t - z) * z) * tanPhi2_2)
+                           + complex_T(0, 2) * (y * (c_t - z) * tanPhi2)
+                           + complex_T(0, 1) * ((y2 - float_T(4.0) * (c_t - z) * z) * tanPhi2_2)
                        )
                        /* The "round-trip" conversion in the line below fixes a gross accuracy bug
                         * in floating-point arithmetics, when float_T is set to float_X.
                         */
                     )
-                    * complex_T(float_64(1.0) / complex_64(float_T(2.0) * cspeed * helpVar2 * helpVar1));
+                    * complex_T(om0 / complex_64(float_T(2.0) * cspeed * helpVar2 * helpVar1));
 
                 const complex_T helpVar4
                     = (c_Om0
