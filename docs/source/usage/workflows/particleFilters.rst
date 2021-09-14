@@ -76,7 +76,7 @@ A particle only stores its relative position inside the cell.
 Thus, with a simple filter like one shown above, it is not possible to get global position of a particle.
 However, there are helper wrapper filters that provide such information in addition to the particle data.
 
-For a special case of slicing along one axis there is a simple existing filter that only needs to be parametrized:
+For a special case of slicing along one axis this is a simple existing filter that only needs to be parametrized:
 
 .. code:: cpp
 
@@ -143,7 +143,7 @@ For a more general case of filtering based on cell index (possibly combined with
                    T_Particle const & particle
                )
                {
-                   /* Here totalCellOffset is cell index of the particle in the total coordinate system.
+                   /* Here totalCellOffset is the cell index of the particle in the total coordinate system.
                     * So we can define conditions based on both cell index and other particle data.
                     */
                    return (totalCellOffset.x() >= 10) && (particle[momentum_].x() < 0.0_X);
