@@ -33,7 +33,7 @@ namespace pmacc
     /** Mapping from block indices to supercells in the given interval for alpaka kernels
      *
      * An interval is a T_dim-dimensional contiguous Cartesian range.
-     * Parameters of the inverval is defined at runtime, unlike most other mappers.
+     * Parameters of the inverval are defined at runtime, unlike most other mappers.
      *
      * Adheres to the MapperConcept.
      *
