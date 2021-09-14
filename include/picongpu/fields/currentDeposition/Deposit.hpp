@@ -79,11 +79,8 @@ namespace picongpu
                  */
                 constexpr uint32_t skipSuperCells
                     = (MaxMargin::value + SuperCellMinSize::value - 1u) / SuperCellMinSize::value;
-                StrideMapping<
-                    T_area,
-                    skipSuperCells + 1u, // stride 1u means each supercell is used
-                    MappingDesc>
-                    mapper(cellDescription);
+                // stride 1u means each supercell is used
+                auto mapper = makeStrideAreaMapper<T_area, skipSuperCells + 1u>(cellDescription);
 
                 do
                 {

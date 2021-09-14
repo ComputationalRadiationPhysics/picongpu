@@ -104,7 +104,7 @@ namespace pmacc
         template<uint32_t AREA>
         void shiftParticles()
         {
-            StrideMapping<AREA, 3, MappingDesc> mapper(this->cellDescription);
+            auto mapper = makeStrideAreaMapper<AREA, 3>(this->cellDescription);
             ParticlesBoxType pBox = particlesBuffer->getDeviceParticleBox();
             auto const numSupercellsWithGuards = particlesBuffer->getSuperCellsCount();
 
