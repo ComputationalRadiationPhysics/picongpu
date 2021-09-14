@@ -308,6 +308,16 @@ namespace picongpu
                 using complex_T = pmacc::math::Complex<float_T>;
                 using complex_64 = pmacc::math::Complex<float_64>;
 
+                /* Unit of speed */
+                const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+                /* Unit of time */
+                const float_64 UNIT_TIME = SI::DELTA_T_SI;
+                /* Unit of length */
+                const float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
+
+                /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
+                const float_T beta0 = float_T(beta_0);
+
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
                  * z-axis of the coordinate system in this function.
@@ -476,6 +486,16 @@ namespace picongpu
             HDINLINE BField::float_T BField::calcTWTSBz_Ex(const float3_64& pos, const float_64 time) const
             {
                 using complex_T = pmacc::math::Complex<float_T>;
+
+                /* Unit of speed */
+                const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+                /* Unit of time */
+                const float_64 UNIT_TIME = SI::DELTA_T_SI;
+                /* Unit of length */
+                const float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
+
+                /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
+                const float_T beta0 = float_T(beta_0);
 
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
@@ -652,6 +672,16 @@ namespace picongpu
             {
                 using complex_T = pmacc::math::Complex<float_T>;
                 using complex_64 = pmacc::math::Complex<float_64>;
+
+                /* Unit of speed */
+                const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+                /* Unit of time */
+                const float_64 UNIT_TIME = SI::DELTA_T_SI;
+                /* Unit of length */
+                const float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
+
+                /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
+                const float_T beta0 = float_T(beta_0);
 
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
