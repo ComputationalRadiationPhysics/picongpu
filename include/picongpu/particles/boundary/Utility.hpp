@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include <pmacc/Environment.hpp>
 #include <pmacc/boundary/Utility.hpp>
 #include <pmacc/mappings/kernel/IntervalMapping.hpp>
 
@@ -60,7 +61,7 @@ namespace picongpu
              * @param exchangeType exchange describing the active boundary
              */
             template<typename T_Species>
-            HINLINE uint32_t getOffsetCells(T_Species& species, uint32_t exchangeType)
+            HINLINE uint32_t getOffsetCells(T_Species const& species, uint32_t exchangeType)
             {
                 uint32_t axis = pmacc::boundary::getAxis(exchangeType);
                 return species.boundaryDescription()[axis].offset;
@@ -83,7 +84,7 @@ namespace picongpu
              */
             template<typename T_Species>
             HINLINE void getInternalCellsTotal(
-                T_Species& species,
+                T_Species const& species,
                 uint32_t exchangeType,
                 pmacc::DataSpace<simDim>* begin,
                 pmacc::DataSpace<simDim>* end)
@@ -97,6 +98,38 @@ namespace picongpu
                     (*begin)[axis] += offsetCells;
                 if(pmacc::boundary::isMaxSide(exchangeType))
                     (*end)[axis] -= offsetCells;
+            }
+
+            /** Get a range of cells that define internal area for the given species with respect to all boundaries
+             *
+             * The results are in the total coordinate system.
+             *
+             * @tparam T_Species particle species type
+             *
+             * @param species particle species
+             * @param[out] begin begin of the range, all cells such that begin <= cell < end component-wise fit
+             * @param[out] end end of the range, all cells such that begin <= cell < end component-wise fit
+             */
+            template<typename T_Species>
+            HINLINE void getInternalCellsTotal(
+                T_Species const& species,
+                pmacc::DataSpace<simDim>* begin,
+                pmacc::DataSpace<simDim>* end)
+            {
+                SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
+                *begin = subGrid.getGlobalDomain().offset;
+                *end = (*begin) + subGrid.getGlobalDomain().size;
+                auto const communicationMask = Environment<simDim>::get().GridController().getCommunicationMask();
+                for(auto exchangeType : getAllAxisAlignedExchanges())
+                {
+                    auto axis = pmacc::boundary::getAxis(exchangeType);
+                    auto offsetCells = getOffsetCells(species, exchangeType);
+                    SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
+                    if(pmacc::boundary::isMinSide(exchangeType))
+                        (*begin)[axis] += offsetCells;
+                    if(pmacc::boundary::isMaxSide(exchangeType))
+                        (*end)[axis] -= offsetCells;
+                }
             }
 
             /** Get a mapper factory that define active supercells for the given species wrt given exchangeType

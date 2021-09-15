@@ -23,6 +23,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/Fields.def"
+#include "picongpu/particles/boundary/RemoveOuterParticles.hpp"
 #include "picongpu/particles/traits/GetIonizerList.hpp"
 
 #include <pmacc/Environment.hpp>
@@ -200,29 +201,23 @@ namespace picongpu
             }
         };
 
-        /** Apply boundary conditions for a species
+        /** Remove all particles of the species that are outside the respective boundaries
          *
          * Must be called only for species with a pusher
          *
          * @tparam T_SpeciesType type or name as boost::mpl::string of particle species that is checked
          */
         template<typename T_SpeciesType>
-        struct ApplyBoundary
+        struct RemoveOuterParticles
         {
             using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_SpeciesType>;
             using FrameType = typename SpeciesType::FrameType;
 
-            template<typename T_EventList>
-            HINLINE void operator()(const uint32_t currentStep, const EventTask& eventInt, T_EventList& updateEvent)
-                const
+            HINLINE void operator()(const uint32_t currentStep) const
             {
                 DataConnector& dc = Environment<>::get().DataConnector();
                 auto species = dc.get<SpeciesType>(FrameType::getName(), true);
-
-                __startTransaction(eventInt);
-                species->applyBoundary(currentStep);
-                EventTask ev = __endTransaction();
-                updateEvent.push_back(ev);
+                boundary::removeOuterParticles(*species, currentStep);
             }
         };
 
@@ -251,14 +246,10 @@ namespace picongpu
             }
         };
 
-        /** Apply a pushlike operation (push and/or boundary) to all species with pusher flag, and comminucate
-         *
-         * @tparam T_PushlikeOperation PushSpecies<bmpl::_1> or ApplyBoundary<bmpl::_1>
-         */
-        template<typename T_PushlikeOperation>
-        struct PushlikeAllSpecies
+        //! Push, apply boundaries, and communicate all species with pusher flag
+        struct PushAllSpecies
         {
-            /** Perform operation and communicate all species
+            /** Process and communicate all species
              *
              * @param currentStep current simulation step
              * @param pushEvent[out] grouped event that marks the end of the species push
@@ -277,7 +268,7 @@ namespace picongpu
                 /* push all species */
                 using VectorSpeciesWithPusher =
                     typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, particlePusher<>>::type;
-                meta::ForEach<VectorSpeciesWithPusher, T_PushlikeOperation> pushSpecies;
+                meta::ForEach<VectorSpeciesWithPusher, PushSpecies<bmpl::_1>> pushSpecies;
                 pushSpecies(currentStep, eventInt, updateEventList);
 
                 /* join all push events */
@@ -298,11 +289,21 @@ namespace picongpu
             }
         };
 
-        //! Push, apply boundaries, and communicate all species with pusher
-        using PushAllSpecies = PushlikeAllSpecies<PushSpecies<bmpl::_1>>;
-
-        //! Apply boundaries and communicate all species with pusher
-        using ApplyBoundaryAllSpecies = PushlikeAllSpecies<ApplyBoundary<bmpl::_1>>;
+        //! Remove all particles of all species with pusher flag that are outside the respective boundaries
+        struct RemoveOuterParticlesAllSpecies
+        {
+            /** Remove all external particles
+             *
+             * @param currentStep current simulation step
+             */
+            HINLINE void operator()(const uint32_t currentStep) const
+            {
+                using VectorSpeciesWithPusher =
+                    typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, particlePusher<>>::type;
+                meta::ForEach<VectorSpeciesWithPusher, RemoveOuterParticles<bmpl::_1>> removeOuterParticles;
+                removeOuterParticles(currentStep);
+            }
+        };
 
         /** Call an ionization method upon an ion species
          *

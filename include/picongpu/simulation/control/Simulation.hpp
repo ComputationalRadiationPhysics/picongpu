@@ -506,19 +506,12 @@ namespace picongpu
                     initialiserController->init();
                     meta::ForEach<particles::InitPipeline, pmacc::functor::Call<bmpl::_1>> initSpecies;
                     initSpecies(0);
-
-                    /* Apply boundary conditions to remove particles that are outside non-periodic boundaries.
-                     * This has to be done here so that those particles make no contribution anywhere
+                    /* Remove all particles that are outside the respective boundaries
+                     * (this can happen if density functor didn't account for it).
+                     * For the rest of the simulation we can be sure the only external particles just crossed the border.
                      */
-                    pmacc::EventTask initEvent = __getTransactionEvent();
-                    pmacc::EventTask updateEvent, commEvent;
-                    /// TODO: currently this will work as boundaries will try all particles
-                    /// However, once this of optimized inside the boudaries, we need to make sure
-                    /// that here we remove all outside particles not only ones that are just outside
-                    particles::ApplyBoundaryAllSpecies applyBoundaryAllSpecies;
-                    applyBoundaryAllSpecies(step, initEvent, updateEvent, commEvent);
-                    __setTransactionEvent(updateEvent);
-                    __setTransactionEvent(commEvent);
+                    particles::RemoveOuterParticlesAllSpecies removeOuterParticlesAllSpecies;
+                    removeOuterParticlesAllSpecies(step);
 
                     // Check Debye resolution
                     particles::debyeLength::check(*cellDescription);

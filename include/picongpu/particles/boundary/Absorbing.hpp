@@ -35,10 +35,6 @@ namespace picongpu
     {
         namespace boundary
         {
-            //! Functor to apply absorbing boundary to particle species
-            template<>
-            struct ApplyImpl<Kind::Absorbing>
-            {
                 //! Functor to be applied to all particles in the active area
                 class AbsorbParticleIfOutside
                 {
@@ -95,6 +91,10 @@ namespace picongpu
                     Parameters parameters;
                 };
 
+            //! Functor to apply absorbing boundary to particle species
+            template<>
+            struct ApplyImpl<Kind::Absorbing>
+            {
                 /** Apply absorbing boundary conditions along the given outer boundary
                  *
                  * @tparam T_Species particle species type
