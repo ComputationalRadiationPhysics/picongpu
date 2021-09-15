@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include <pmacc/boundary/Utility.hpp>
+#include <pmacc/mappings/kernel/IntervalMapping.hpp>
 
 #include <algorithm>
 #include <cstdint>
@@ -96,6 +97,43 @@ namespace picongpu
                     (*begin)[axis] += offsetCells;
                 if(pmacc::boundary::isMaxSide(exchangeType))
                     (*end)[axis] -= offsetCells;
+            }
+
+            /** Get a mapper factory that define active supercells for the given species wrt given exchangeType
+             *
+             * The area only containes the supercells with the "just crossed" particles, not all external ones.
+             * It relies on the fact paricles can't pass more than 1 cell in each direction per time step.
+             *
+             * Note that it only considers one, given, boundary.
+             * So the particles outside the returned range crossed that boundary.
+             * Particles in the returned range did not cross that boundary, but may still be outside for others.
+             *
+             * @tparam T_Species particle species type
+             *
+             * @param species particle species
+             * @param exchangeType exchange describing the active boundary
+             */
+            template<typename T_Species>
+            HINLINE auto getMapperFactory(
+                T_Species& species,
+                uint32_t exchangeType)
+            {
+                // First define a supercell interval for the whole local domain with guards
+                auto mappingDescription = species.getCellDescription();
+                auto beginSupercell = pmacc::DataSpace<simDim>::create(0);
+                auto numSupercells = mappingDescription.getGridSuperCells();
+
+                // Change to a single supercell along the active axis
+                uint32_t const axis = pmacc::boundary::getAxis(exchangeType);
+                numSupercells[axis] = 1;
+                auto const offsetCells = getOffsetCells(species, exchangeType);
+                auto const offsetSupercells = offsetCells / SuperCellSize::toRT()[axis];
+                auto const guardSupercells = mappingDescription.getGuardingSuperCells()[axis];
+                if(pmacc::boundary::isMinSide(exchangeType))
+                    beginSupercell[axis] = guardSupercells - 1 + offsetSupercells;
+                else
+                    beginSupercell[axis] = mappingDescription.getGridSuperCells()[axis] - guardSupercells - offsetSupercells;
+                return pmacc::IntervalMapperFactory<simDim>{beginSupercell, numSupercells};
             }
 
         } // namespace boundary

@@ -106,23 +106,18 @@ namespace picongpu
                 template<typename T_Species>
                 void operator()(T_Species& species, uint32_t exchangeType, uint32_t currentStep)
                 {
-                    // For no offset, nothing has to be done as the particles in GUARD will be just removed later
-                    auto offsetCells = getOffsetCells(species, exchangeType);
-                    if(offsetCells == 0)
-                        return;
-
                     /* The rest of this function is not optimal performance-wise.
                      * However it is only used when a user set a positive offset, so tolerable.
-                     * It processes all particles in manipulate and fillAllGaps() instead of working on the active area
-                     * specifically. Currently it would also go over several times if multiple boundaries are
-                     * absorbing.
+                     * It processes all particles in fillAllGaps() instead of working on the active area
+                     * specifically.
                      */
                     pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
                     getInternalCellsTotal(species, exchangeType, &beginInternalCellsTotal, &endInternalCellsTotal);
                     AbsorbParticleIfOutside::staticParameters().beginInternalCellsTotal = beginInternalCellsTotal;
                     AbsorbParticleIfOutside::staticParameters().endInternalCellsTotal = endInternalCellsTotal;
+                    auto const mapperFactory = getMapperFactory(species, exchangeType);
                     using Manipulator = manipulators::unary::FreeTotalCellOffset<AbsorbParticleIfOutside>;
-                    particles::manipulate<Manipulator, T_Species>(currentStep);
+                    particles::manipulate<Manipulator, T_Species>(currentStep, mapperFactory);
                     // Fill gaps to finalize deletion
                     species.fillAllGaps();
                 }
