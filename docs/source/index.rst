@@ -126,6 +126,7 @@ Development
    dev/sphinx
    dev/doxygen
    dev/clangtools
+   dev/extending
    dev/picongpu
    dev/pmacc
    dev/py_postprocessing
