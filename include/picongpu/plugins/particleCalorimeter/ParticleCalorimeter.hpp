@@ -636,11 +636,12 @@ namespace picongpu
             /* data is written to dBufLeftParsCalorimeter */
             this->calorimeterFunctor->setCalorimeterCursor(this->dBufLeftParsCalorimeter->origin());
 
-            ExchangeMapping<GUARD, MappingDesc> mapper(*this->m_cellDescription, direction);
-            auto grid = mapper.getGridDim();
-
             DataConnector& dc = Environment<>::get().DataConnector();
             auto particles = dc.get<ParticlesType>(speciesName, true);
+
+            auto mapperFactory = particles::boundary::getMapperFactory(*particles, direction);
+            auto const mapper = mapperFactory(*this->m_cellDescription);
+            auto grid = mapper.getGridDim();
 
             pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
             particles::boundary::getInternalCellsTotal(
