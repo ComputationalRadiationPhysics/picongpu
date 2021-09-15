@@ -533,6 +533,7 @@ namespace picongpu
                 const float_T rho0 = float_T(PI * w0 * w0 / lambda0);
                 /* wy is width of TWTS pulse */
                 const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
+                const float_T k = float_T(2.0 * PI / lambda0);
 
                 /* In order to calculate in single-precision and in order to account for errors in
                  * the approximations far from the coordinate origin, we use the wavelength-periodicity and
@@ -718,7 +719,6 @@ namespace picongpu
                 const float_T rho0 = float_T(PI * w0 * w0 / lambda0);
                 /* wy is width of TWTS pulse */
                 //const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
-                const float_T k = float_T(2.0 * PI / lambda0);
 
                 /* In order to calculate in single-precision and in order to account for errors in
                  * the approximations far from the coordinate origin, we use the wavelength-periodicity and
