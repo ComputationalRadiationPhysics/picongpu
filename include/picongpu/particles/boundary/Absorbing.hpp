@@ -35,61 +35,61 @@ namespace picongpu
     {
         namespace boundary
         {
-                //! Functor to be applied to all particles in the active area
-                class AbsorbParticleIfOutside
+            //! Functor to be applied to all particles in the active area
+            class AbsorbParticleIfOutside
+            {
+            public:
+                //! Some name is required
+                static constexpr char const* name = "absorbParticleIfOutside";
+
+                //! Construct an instance, the parameters must be passed via staticParameters()
+                AbsorbParticleIfOutside() : parameters(staticParameters())
                 {
-                public:
-                    //! Some name is required
-                    static constexpr char const* name = "absorbParticleIfOutside";
+                }
 
-                    //! Construct an instance, the parameters must be passed via staticParameters()
-                    AbsorbParticleIfOutside() : parameters(staticParameters())
-                    {
-                    }
+                /** Process the current particle located in the given cell
+                 *
+                 * @param offsetToTotalOrigin offset of particle cell in the total domain
+                 * @param particle handle of particle to process (can be used to change attribute values)
+                 */
+                template<typename T_Particle>
+                HDINLINE void operator()(DataSpace<simDim> const& offsetToTotalOrigin, T_Particle& particle)
+                {
+                    for(uint32_t d = 0; d < simDim; d++)
+                        if((offsetToTotalOrigin[d] < parameters.beginInternalCellsTotal[d])
+                           || (offsetToTotalOrigin[d] >= parameters.endInternalCellsTotal[d]))
+                            particle[multiMask_] = 0;
+                }
 
-                    /** Process the current particle located in the given cell
+                //! Parameters to be passed from the host side
+                struct Parameters
+                {
+                    /** Begin of the internal (not-absorbed) cells in total coordinates
                      *
-                     * @param offsetToTotalOrigin offset of particle cell in the total domain
-                     * @param particle handle of particle to process (can be used to change attribute values)
+                     * Particles to the left side will be absorbed
                      */
-                    template<typename T_Particle>
-                    HDINLINE void operator()(DataSpace<simDim> const& offsetToTotalOrigin, T_Particle& particle)
-                    {
-                        for(uint32_t d = 0; d < simDim; d++)
-                            if((offsetToTotalOrigin[d] < parameters.beginInternalCellsTotal[d])
-                               || (offsetToTotalOrigin[d] >= parameters.endInternalCellsTotal[d]))
-                                particle[multiMask_] = 0;
-                    }
+                    pmacc::DataSpace<simDim> beginInternalCellsTotal;
 
-                    //! Parameters to be passed from the host side
-                    struct Parameters
-                    {
-                        /** Begin of the internal (not-absorbed) cells in total coordinates
-                         *
-                         * Particles to the left side will be absorbed
-                         */
-                        pmacc::DataSpace<simDim> beginInternalCellsTotal;
-
-                        /** End of the internal (not-absorbed) cells in total coordinates
-                         *
-                         * Particles equal or to the right side will be absorbed
-                         */
-                        pmacc::DataSpace<simDim> endInternalCellsTotal;
-                    };
-
-                    /** Pass the parameters from the host side by changing this value_comp
+                    /** End of the internal (not-absorbed) cells in total coordinates
                      *
-                     * It is a poor man's way to do it, but otherwise that would be awkward to implement
+                     * Particles equal or to the right side will be absorbed
                      */
-                    static Parameters& staticParameters()
-                    {
-                        static auto parametersValue = Parameters{};
-                        return parametersValue;
-                    }
-
-                private:
-                    Parameters parameters;
+                    pmacc::DataSpace<simDim> endInternalCellsTotal;
                 };
+
+                /** Pass the parameters from the host side by changing this value_comp
+                 *
+                 * It is a poor man's way to do it, but otherwise that would be awkward to implement
+                 */
+                static Parameters& staticParameters()
+                {
+                    static auto parametersValue = Parameters{};
+                    return parametersValue;
+                }
+
+            private:
+                Parameters parameters;
+            };
 
             //! Functor to apply absorbing boundary to particle species
             template<>
@@ -106,11 +106,6 @@ namespace picongpu
                 template<typename T_Species>
                 void operator()(T_Species& species, uint32_t exchangeType, uint32_t currentStep)
                 {
-                    /* The rest of this function is not optimal performance-wise.
-                     * However it is only used when a user set a positive offset, so tolerable.
-                     * It processes all particles in fillAllGaps() instead of working on the active area
-                     * specifically.
-                     */
                     pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
                     getInternalCellsTotal(species, exchangeType, &beginInternalCellsTotal, &endInternalCellsTotal);
                     AbsorbParticleIfOutside::staticParameters().beginInternalCellsTotal = beginInternalCellsTotal;
@@ -118,8 +113,7 @@ namespace picongpu
                     auto const mapperFactory = getMapperFactory(species, exchangeType);
                     using Manipulator = manipulators::unary::FreeTotalCellOffset<AbsorbParticleIfOutside>;
                     particles::manipulate<Manipulator, T_Species>(currentStep, mapperFactory);
-                    // Fill gaps to finalize deletion
-                    species.fillAllGaps();
+                    species.fillGaps(mapperFactory);
                 }
             };
 

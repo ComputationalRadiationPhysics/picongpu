@@ -508,7 +508,8 @@ namespace picongpu
                     initSpecies(0);
                     /* Remove all particles that are outside the respective boundaries
                      * (this can happen if density functor didn't account for it).
-                     * For the rest of the simulation we can be sure the only external particles just crossed the border.
+                     * For the rest of the simulation we can be sure the only external particles just crossed the
+                     * border.
                      */
                     particles::RemoveOuterParticlesAllSpecies removeOuterParticlesAllSpecies;
                     removeOuterParticlesAllSpecies(step);

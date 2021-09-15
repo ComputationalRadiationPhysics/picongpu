@@ -120,13 +120,17 @@ namespace pmacc
             __setTransactionEvent(__endTransaction());
         }
 
-        /* fill gaps in a AREA
-         * @tparam AREA area which is used (CORE,BORDER,GUARD or a combination)
+    public:
+        /** Fill gaps in an area defined by a mapper factory
+         *
+         * @tparam T_MapperFactory factory type to construct a mapper that defines the area to process
+         *
+         * @param mapperFactory factory instance
          */
-        template<uint32_t AREA>
-        void fillGaps()
+        template<typename T_MapperFactory>
+        void fillGaps(T_MapperFactory const& mapperFactory)
         {
-            auto const mapper = makeAreaMapper<AREA>(this->cellDescription);
+            auto const mapper = mapperFactory(this->cellDescription);
 
             constexpr uint32_t numWorkers
                 = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;
@@ -135,20 +139,18 @@ namespace pmacc
             (mapper.getGridDim(), numWorkers)(particlesBuffer->getDeviceParticleBox(), mapper);
         }
 
-
-    public:
         /* fill gaps in a the complete simulation area (include GUARD)
          */
         void fillAllGaps()
         {
-            this->fillGaps<CORE + BORDER + GUARD>();
+            this->fillGaps(AreaMapperFactory<CORE + BORDER + GUARD>{});
         }
 
         /* fill all gaps in the border of the simulation
          */
         void fillBorderGaps()
         {
-            this->fillGaps<BORDER>();
+            this->fillGaps(AreaMapperFactory<BORDER>{});
         }
 
         /* Delete all particles in GUARD for one direction.

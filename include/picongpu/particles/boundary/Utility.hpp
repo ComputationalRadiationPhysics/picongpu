@@ -147,9 +147,7 @@ namespace picongpu
              * @param exchangeType exchange describing the active boundary
              */
             template<typename T_Species>
-            HINLINE auto getMapperFactory(
-                T_Species& species,
-                uint32_t exchangeType)
+            HINLINE auto getMapperFactory(T_Species& species, uint32_t exchangeType)
             {
                 // First define a supercell interval for the whole local domain with guards
                 auto mappingDescription = species.getCellDescription();
@@ -165,7 +163,8 @@ namespace picongpu
                 if(pmacc::boundary::isMinSide(exchangeType))
                     beginSupercell[axis] = guardSupercells - 1 + offsetSupercells;
                 else
-                    beginSupercell[axis] = mappingDescription.getGridSuperCells()[axis] - guardSupercells - offsetSupercells;
+                    beginSupercell[axis]
+                        = mappingDescription.getGridSuperCells()[axis] - guardSupercells - offsetSupercells;
                 return pmacc::IntervalMapperFactory<simDim>{beginSupercell, numSupercells};
             }
 
