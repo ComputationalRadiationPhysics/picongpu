@@ -830,7 +830,7 @@ namespace picongpu
                         * in floating-point arithmetics, when float_T is set to float_X.
                         */
                     )
-                    * complex_T(om0 / complex_64(float_T(2.0) * cspeed * helpVar2 * helpVar1));
+                    * complex_T(float_64(om0) / complex_64(float_T(2.0) * cspeed * helpVar2 * helpVar1));
 
                 const complex_T helpVar4
                     = (c_Om0
