@@ -47,8 +47,8 @@ namespace picongpu
                 // Here we do basically same as in absorbing boundaries, but for the whole domain
                 pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
                 getInternalCellsTotal(species, &beginInternalCellsTotal, &endInternalCellsTotal);
-                AbsorbParticleIfOutside::staticParameters().beginInternalCellsTotal = beginInternalCellsTotal;
-                AbsorbParticleIfOutside::staticParameters().endInternalCellsTotal = endInternalCellsTotal;
+                AbsorbParticleIfOutside::parameters().beginInternalCellsTotal = beginInternalCellsTotal;
+                AbsorbParticleIfOutside::parameters().endInternalCellsTotal = endInternalCellsTotal;
                 using Manipulator = manipulators::unary::FreeTotalCellOffset<AbsorbParticleIfOutside>;
                 particles::manipulate<Manipulator, T_Species>(currentStep);
                 // Fill gaps to finalize deletion
