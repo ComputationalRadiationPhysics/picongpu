@@ -35,7 +35,7 @@
 #include <pmacc/particles/ParticleDescription.hpp>
 #include <pmacc/particles/ParticlesBase.hpp>
 #include <pmacc/particles/memory/buffers/ParticlesBuffer.hpp>
-#include <pmacc/particles/policies/DeleteParticles.hpp>
+#include <pmacc/particles/policies/DoNothing.hpp>
 #include <pmacc/particles/policies/ExchangeParticles.hpp>
 #include <pmacc/traits/GetCTName.hpp>
 #include <pmacc/traits/Resolve.hpp>
@@ -91,7 +91,7 @@ namespace picongpu
                       // fallback if the species has not defined the alias boundaryCondition
                       pmacc::HandleGuardRegion<
                           pmacc::particles::policies::ExchangeParticles,
-                          pmacc::particles::policies::DeleteParticles>>::type>,
+                          pmacc::particles::policies::DoNothing>>::type>,
               MappingDesc,
               DeviceHeap>
         , public ISimulationData
@@ -110,7 +110,7 @@ namespace picongpu
                 // fallback if the species has not defined the alias boundaryCondition
                 pmacc::HandleGuardRegion<
                     pmacc::particles::policies::ExchangeParticles,
-                    pmacc::particles::policies::DeleteParticles>>::type>;
+                    pmacc::particles::policies::DoNothing>>::type>;
         using ParticlesBaseType = ParticlesBase<SpeciesParticleDescription, picongpu::MappingDesc, DeviceHeap>;
         using FrameType = typename ParticlesBaseType::FrameType;
         using FrameTypeBorder = typename ParticlesBaseType::FrameTypeBorder;
