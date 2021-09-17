@@ -148,7 +148,7 @@ unset(IN_SRC_POS)
 ################################################################################
 
 find_package(PMacc REQUIRED CONFIG PATHS "${PIConGPUapp_SOURCE_DIR}/../pmacc")
-include_directories(SYSTEM ${PMacc_INCLUDE_DIRS})
+include_directories(${PMacc_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${PMacc_LIBRARIES})
 add_definitions(${PMacc_DEFINITIONS})
 
