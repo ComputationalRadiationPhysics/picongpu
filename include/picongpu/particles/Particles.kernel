@@ -157,7 +157,7 @@ namespace picongpu
      *
      * Move frame-wise over a species and call a functor for each particle.
      * This kernel is optimized for the particle push step and handles the
-     * special flag `mustShift` of the supercell to optimize the kernel shift particles
+     * special flag `hasLeavingParticle` of the supercell to optimize the kernel shift particles
      * in pmacc.
      *
      * @tparam T_numWorkers number of workers
@@ -211,7 +211,14 @@ namespace picongpu
             // relative offset (in cells) to the supercell (including the guard)
             DataSpace<simDim> const superCellOffset = block * SuperCellSize::toRT();
 
-            PMACC_SMEM(acc, mustShift, int);
+            /* worker status flag to mark that a particle is leaving the supercell
+             * 1 if at least one particle is leaving the supercell else 0
+             */
+            int hasLeavingParticle = 0;
+            /* shared memory status flag that a particle is leaving the supercell
+             * 1 if at least one particle is leaving the supercell else 0
+             */
+            PMACC_SMEM(acc, mustShiftSupercell, int);
 
             // current processed frame
             FramePtr frame;
@@ -219,7 +226,7 @@ namespace picongpu
 
             auto onlyMaster = lockstep::makeMaster(workerIdx);
 
-            onlyMaster([&]() { mustShift = 0; });
+            onlyMaster([&]() { mustShiftSupercell = 0; });
 
             frame = pb.getLastFrame(block);
             particlesInSuperCell = pb.getSuperCell(block).getSizeLastFrame();
@@ -251,7 +258,7 @@ namespace picongpu
                 lockstep::makeForEach<frameSize, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
                     if(linearIdx < particlesInSuperCell)
                     {
-                        particleFunctor(acc, *frame, linearIdx, cachedB, cachedE, currentStep, mustShift);
+                        particleFunctor(acc, *frame, linearIdx, cachedB, cachedE, currentStep, hasLeavingParticle);
                     }
                 });
                 // independent for each worker
@@ -259,13 +266,19 @@ namespace picongpu
                 particlesInSuperCell = frameSize;
             }
 
+            // update shared memory marker that particles leaving the supercell
+            if(hasLeavingParticle == 1 && mustShiftSupercell == 0)
+            {
+                kernel::atomicAllExch(acc, &mustShiftSupercell, 1, ::alpaka::hierarchy::Threads{});
+            }
+
             cupla::__syncthreads(acc);
 
             onlyMaster([&]() {
-                /* set in SuperCell the mustShift flag which is an optimization
+                /* set in SuperCell the hasLeavingParticle flag which is an optimization
                  * for shift particles (pmacc::KernelShiftParticles)
                  */
-                if(mustShift == 1)
+                if(mustShiftSupercell == 1)
                 {
                     pb.getSuperCell(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))))
                         .setMustShift(true);
@@ -285,7 +298,7 @@ namespace picongpu
             BoxB& bBox,
             BoxE& eBox,
             uint32_t const currentStep,
-            int& mustShift)
+            int& hasLeavingParticle)
         {
             using Block = TVec;
             using Field2ParticleInterpolation = T_Field2ParticleInterpolation;
@@ -409,8 +422,7 @@ namespace picongpu
              */
             if(direction >= 2)
             {
-                /* if we did not use atomic we would get a WAW error */
-                kernel::atomicAllExch(acc, &mustShift, 1, ::alpaka::hierarchy::Threads{});
+                hasLeavingParticle = 1;
             }
         }
     };
