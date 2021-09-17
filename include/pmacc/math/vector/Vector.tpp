@@ -53,13 +53,7 @@ namespace pmacc
             static constexpr uint32_t value = (uint32_t) pmacc::math::Vector<T_DataType, T_Dim>::dim;
         };
 
-        template<
-            typename T_Type,
-            int T_dim,
-            typename T_Accessor,
-            typename T_Navigator,
-            template<typename, int>
-            class T_Storage>
+        template<typename T_Type, int T_dim, typename T_Accessor, typename T_Navigator, typename T_Storage>
         struct GetInitializedInstance<math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage>>
         {
             using Type = math::Vector<T_Type, T_dim, T_Accessor, T_Navigator, T_Storage>;
@@ -259,13 +253,7 @@ namespace pmacc
     {
         namespace precisionCast
         {
-            template<
-                typename CastToType,
-                int dim,
-                typename T_Accessor,
-                typename T_Navigator,
-                template<typename, int>
-                class T_Storage>
+            template<typename CastToType, int dim, typename T_Accessor, typename T_Navigator, typename T_Storage>
             struct TypeCast<CastToType, ::pmacc::math::Vector<CastToType, dim, T_Accessor, T_Navigator, T_Storage>>
             {
                 using result = const ::pmacc::math::Vector<CastToType, dim, T_Accessor, T_Navigator, T_Storage>&;
@@ -282,8 +270,7 @@ namespace pmacc
                 int dim,
                 typename T_Accessor,
                 typename T_Navigator,
-                template<typename, int>
-                class T_Storage>
+                typename T_Storage>
             struct TypeCast<CastToType, ::pmacc::math::Vector<OldType, dim, T_Accessor, T_Navigator, T_Storage>>
             {
                 using result = ::pmacc::math::Vector<CastToType, dim>;

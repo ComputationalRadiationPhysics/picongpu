@@ -140,7 +140,7 @@ namespace pmacc
         PMACC_VERIFY(this->_blockDim.y() <= cudaSpecs::MaxNumThreadsPerBlockDim::y::value);                           \
         PMACC_VERIFY(this->_blockDim.z() <= cudaSpecs::MaxNumThreadsPerBlockDim::z::value);                           \
                                                                                                                       \
-        typename math::Size_t<3>::BaseType blockSize(this->_blockDim.x(), this->_blockDim.y(), this->_blockDim.z());  \
+        math::Size_t<3> blockSize(this->_blockDim.x(), this->_blockDim.y(), this->_blockDim.z());                     \
         uint32_t numWorkers = traits::GetNumWorkers<cudaSpecs::MaxNumThreadsPerBlockDim::x::value>::value;            \
         if(numWorkers > blockSize.productOfComponents())                                                              \
             numWorkers = blockSize.productOfComponents();                                                             \

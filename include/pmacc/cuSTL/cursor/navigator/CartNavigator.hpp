@@ -50,9 +50,7 @@ namespace pmacc
             HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
             {
                 char* result = (char*) data;
-                result += pmacc::math::dot(
-                    static_cast<typename math::Int<dim>::BaseType>(jump),
-                    static_cast<typename math::Int<dim>::BaseType>(this->factor));
+                result += pmacc::math::dot(jump, this->factor);
                 return (Data) result;
             }
 
