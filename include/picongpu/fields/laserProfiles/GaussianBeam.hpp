@@ -22,6 +22,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/laserProfiles/BaseFunctor.hpp"
+
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 
@@ -63,15 +65,14 @@ namespace picongpu
             namespace acc
             {
                 template<typename T_Unitless>
-                struct GaussianBeam : public T_Unitless
+                struct GaussianBeam
+                    : public T_Unitless
+                    , public acc::BaseFunctor<T_Unitless::initPlaneY>
                 {
                     using Unitless = T_Unitless;
+                    using BaseFunctor = acc::BaseFunctor<T_Unitless::initPlaneY>;
 
-                    float3_X m_elong;
                     float_X m_phase;
-                    typename FieldE::DataBoxType m_dataBoxE;
-                    DataSpace<simDim> m_offsetToTotalDomain;
-                    DataSpace<simDim> m_superCellToLocalOriginCellOffset;
 
                     /** Simple iteration algorithm to implement Laguerre polynomials for GPUs.
                      *
@@ -114,11 +115,8 @@ namespace picongpu
                         DataSpace<simDim> const& offsetToTotalDomain,
                         float3_X const& elong,
                         float_X const phase)
-                        : m_elong(elong)
+                        : BaseFunctor(dataBoxE, superCellToLocalOriginCellOffset, offsetToTotalDomain, elong)
                         , m_phase(phase)
-                        , m_dataBoxE(dataBoxE)
-                        , m_offsetToTotalDomain(offsetToTotalDomain)
-                        , m_superCellToLocalOriginCellOffset(superCellToLocalOriginCellOffset)
                     {
                     }
 
@@ -132,11 +130,12 @@ namespace picongpu
                     HDINLINE void operator()(T_Acc const&, DataSpace<simDim> const& cellIndexInSuperCell)
                     {
                         // coordinate system to global simulation as origin
-                        DataSpace<simDim> const localCell(cellIndexInSuperCell + m_superCellToLocalOriginCellOffset);
+                        DataSpace<simDim> const localCell(
+                            cellIndexInSuperCell + this->m_superCellToLocalOriginCellOffset);
 
                         // transform coordinate system to center of x-z plane of initialization
                         constexpr uint8_t planeNormalDir = 1u;
-                        DataSpace<simDim> offsetToCenterOfPlane(m_offsetToTotalDomain);
+                        DataSpace<simDim> offsetToCenterOfPlane(this->m_offsetToTotalDomain);
                         offsetToCenterOfPlane[planeNormalDir] = 0; // do not shift origin of plane normal
                         floatD_X const pos
                             = precisionCast<float_X>(localCell + offsetToCenterOfPlane) * cellSize.shrink<simDim>();
@@ -189,7 +188,7 @@ namespace picongpu
                                               / SPEED_OF_LIGHT / SPEED_OF_LIGHT / (2.0_X * Unitless::PULSE_LENGTH)
                                               / (2.0_X * Unitless::PULSE_LENGTH));
                             }
-                            m_elong *= etrans / etrans_norm;
+                            this->m_elong *= etrans / etrans_norm;
                         }
                         else if(Unitless::Polarisation == Unitless::CIRCULAR)
                         {
@@ -209,7 +208,7 @@ namespace picongpu
                                               / SPEED_OF_LIGHT / SPEED_OF_LIGHT / (2.0_X * Unitless::PULSE_LENGTH)
                                               / (2.0_X * Unitless::PULSE_LENGTH));
                             }
-                            m_elong.x() *= etrans / etrans_norm;
+                            this->m_elong.x() *= etrans / etrans_norm;
                             m_phase += float_X(PI / 2.0);
                             etrans = 0.0_X;
                             for(uint32_t m = 0; m <= Unitless::MODENUMBER; ++m)
@@ -228,32 +227,12 @@ namespace picongpu
                                               / SPEED_OF_LIGHT / SPEED_OF_LIGHT / (2.0_X * Unitless::PULSE_LENGTH)
                                               / (2.0_X * Unitless::PULSE_LENGTH));
                             }
-                            m_elong.z() *= etrans / etrans_norm;
+                            this->m_elong.z() *= etrans / etrans_norm;
                             // reminder: if you want to use phase below, substract pi/2
                             // m_phase -= float_X( PI / 2.0 );
                         }
 
-                        if(Unitless::initPlaneY != 0) // compile time if
-                        {
-                            /* If the laser is not initialized in the first cell we emit a
-                             * negatively and positively propagating wave. Therefore we need to multiply the
-                             * amplitude with a correction factor depending of the cell size in
-                             * propagation direction.
-                             * The negatively propagating wave is damped by the absorber.
-                             *
-                             * The `correctionFactor` assume that the wave is moving in y direction.
-                             */
-                            auto const correctionFactor = (SPEED_OF_LIGHT * DELTA_T) / CELL_HEIGHT * 2._X;
-
-                            // jump over the guard of the electric field
-                            m_dataBoxE(localCell + SuperCellSize::toRT() * GuardSize::toRT())
-                                += correctionFactor * m_elong;
-                        }
-                        else
-                        {
-                            // jump over the guard of the electric field
-                            m_dataBoxE(localCell + SuperCellSize::toRT() * GuardSize::toRT()) = m_elong;
-                        }
+                        BaseFunctor::operator()(localCell);
                     }
                 };
             } // namespace acc

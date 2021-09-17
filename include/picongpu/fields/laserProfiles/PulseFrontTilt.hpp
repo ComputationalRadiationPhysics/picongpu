@@ -22,6 +22,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/laserProfiles/BaseFunctor.hpp"
+
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 
@@ -65,15 +67,14 @@ namespace picongpu
             namespace acc
             {
                 template<typename T_Unitless>
-                struct PulseFrontTilt : public T_Unitless
+                struct PulseFrontTilt
+                    : public T_Unitless
+                    , public acc::BaseFunctor<T_Unitless::initPlaneY>
                 {
                     using Unitless = T_Unitless;
+                    using BaseFunctor = acc::BaseFunctor<T_Unitless::initPlaneY>;
 
-                    float3_X m_elong;
                     float_X m_phase;
-                    typename FieldE::DataBoxType m_dataBoxE;
-                    DataSpace<simDim> m_offsetToTotalDomain;
-                    DataSpace<simDim> m_superCellToLocalOriginCellOffset;
 
                     /** Device-Side Constructor
                      *
@@ -87,11 +88,8 @@ namespace picongpu
                         DataSpace<simDim> const& offsetToTotalDomain,
                         float3_X const& elong,
                         float_X const phase)
-                        : m_elong(elong)
+                        : BaseFunctor(dataBoxE, superCellToLocalOriginCellOffset, offsetToTotalDomain, elong)
                         , m_phase(phase)
-                        , m_dataBoxE(dataBoxE)
-                        , m_offsetToTotalDomain(offsetToTotalDomain)
-                        , m_superCellToLocalOriginCellOffset(superCellToLocalOriginCellOffset)
                     {
                     }
 
@@ -105,11 +103,12 @@ namespace picongpu
                     HDINLINE void operator()(T_Acc const&, DataSpace<simDim> const& cellIndexInSuperCell)
                     {
                         // coordinate system to global simulation as origin
-                        DataSpace<simDim> const localCell(cellIndexInSuperCell + m_superCellToLocalOriginCellOffset);
+                        DataSpace<simDim> const localCell(
+                            cellIndexInSuperCell + this->m_superCellToLocalOriginCellOffset);
 
                         // transform coordinate system to center of x-z plane of initialization
                         constexpr uint8_t planeNormalDir = 1u;
-                        DataSpace<simDim> offsetToCenterOfPlane(m_offsetToTotalDomain);
+                        DataSpace<simDim> offsetToCenterOfPlane(this->m_offsetToTotalDomain);
                         offsetToCenterOfPlane[planeNormalDir] = 0; // do not shift origin of plane normal
                         floatD_X const pos
                             = precisionCast<float_X>(localCell + offsetToCenterOfPlane) * cellSize.shrink<simDim>();
@@ -149,22 +148,20 @@ namespace picongpu
                         if(Unitless::Polarisation == Unitless::LINEAR_X
                            || Unitless::Polarisation == Unitless::LINEAR_Z)
                         {
-                            m_elong *= math::exp(-r2 / w_y / w_y)
-                                * math::cos(
-                                           2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * focusPos
-                                           - 2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + xi_y
-                                           + m_phase)
-                                * math::exp(
-                                           -(r2 / 2.0_X * R_y_inv - focusPos
-                                             - m_phase / 2.0_X / float_X(PI) * Unitless::WAVE_LENGTH)
-                                           * (r2 / 2.0_X * R_y_inv - focusPos
+                            this->m_elong *= math::exp(-r2 / w_y / w_y)
+                                * math::cos(2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * focusPos
+                                            - 2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + xi_y
+                                            + m_phase)
+                                * math::exp(-(r2 / 2.0_X * R_y_inv - focusPos
                                               - m_phase / 2.0_X / float_X(PI) * Unitless::WAVE_LENGTH)
-                                           / SPEED_OF_LIGHT / SPEED_OF_LIGHT / (2.0_X * Unitless::PULSE_LENGTH)
-                                           / (2.0_X * Unitless::PULSE_LENGTH));
+                                            * (r2 / 2.0_X * R_y_inv - focusPos
+                                               - m_phase / 2.0_X / float_X(PI) * Unitless::WAVE_LENGTH)
+                                            / SPEED_OF_LIGHT / SPEED_OF_LIGHT / (2.0_X * Unitless::PULSE_LENGTH)
+                                            / (2.0_X * Unitless::PULSE_LENGTH));
                         }
                         else if(Unitless::Polarisation == Unitless::CIRCULAR)
                         {
-                            m_elong.x() *= math::exp(-r2 / w_y / w_y)
+                            this->m_elong.x() *= math::exp(-r2 / w_y / w_y)
                                 * math::cos(2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * focusPos
                                             - 2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + xi_y
                                             + m_phase)
@@ -175,7 +172,7 @@ namespace picongpu
                                             / SPEED_OF_LIGHT / SPEED_OF_LIGHT / (2.0_X * Unitless::PULSE_LENGTH)
                                             / (2.0_X * Unitless::PULSE_LENGTH));
                             m_phase += float_X(PI) / 2.0_X;
-                            m_elong.z() *= math::exp(-r2 / w_y / w_y)
+                            this->m_elong.z() *= math::exp(-r2 / w_y / w_y)
                                 * math::cos(2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * focusPos
                                             - 2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + xi_y
                                             + m_phase)
@@ -188,28 +185,7 @@ namespace picongpu
                             // reminder: if you want to use phase below, substract pi/2
                             // m_phase -= float_X( PI ) / 2.0_X;
                         }
-
-                        if(Unitless::initPlaneY != 0) // compile time if
-                        {
-                            /* If the laser is not initialized in the first cell we emit a
-                             * negatively and positively propagating wave. Therefore we need to multiply the
-                             * amplitude with a correction factor depending of the cell size in
-                             * propagation direction.
-                             * The negatively propagating wave is damped by the absorber.
-                             *
-                             * The `correctionFactor` assume that the wave is moving in y direction.
-                             */
-                            auto const correctionFactor = (SPEED_OF_LIGHT * DELTA_T) / CELL_HEIGHT * 2._X;
-
-                            // jump over the guard of the electric field
-                            m_dataBoxE(localCell + SuperCellSize::toRT() * GuardSize::toRT())
-                                += correctionFactor * m_elong;
-                        }
-                        else
-                        {
-                            // jump over the guard of the electric field
-                            m_dataBoxE(localCell + SuperCellSize::toRT() * GuardSize::toRT()) = m_elong;
-                        }
+                        BaseFunctor::operator()(localCell);
                     }
                 };
             } // namespace acc
