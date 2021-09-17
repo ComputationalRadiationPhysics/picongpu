@@ -1,0 +1,26 @@
+Checks: '
+modernize-raw-string-literal,
+modernize-replace-disallow-copy-and-assign-macro,
+modernize-return-braced-init-list,
+modernize-unary-static-assert,
+modernize-use-auto,
+modernize-use-bool-literals,
+modernize-use-default-member-init,
+modernize-use-equals-default,
+modernize-use-equals-delete,
+modernize-use-nullptr,
+modernize-use-override,
+modernize-use-transparent-functors,
+modernize-use-using'
+CheckOptions:
+  - { key: modernize-use-auto.MinTypeNameLength, value: 0}
+  - { key: modernize-use-auto.RemoveStars, value: 0}
+  - { key: modernize-use-bool-literals.IgnoreMacros, value: 0}
+  - { key: modernize-use-default-member-init.UseAssignment, value: 0}
+  - { key: modernize-use-default-member-init.IgnoreMacros, value: 0}
+  - { key: modernize-use-equals-default.IgnoreMacros, value: 0}
+  - { key: modernize-use-equals-delete.IgnoreMacros, value: 0}
+  - { key: modernize-use-override.IgnoreDestructors, value: 0}
+  - { key: modernize-use-override.AllowOverrideAndFinal, value: 1}
+  - { key: modernize-use-transparent-functors.SafeMode, value: 1}
+  - { key: modernize-use-using.IgnoreMacros, value: 0}
