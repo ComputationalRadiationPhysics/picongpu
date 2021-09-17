@@ -24,6 +24,8 @@
 
 #include "picongpu/traits/attribute/GetMass.hpp"
 
+#include <pmacc/meta/InvokeIf.hpp>
+#include <pmacc/traits/HasIdentifier.hpp>
 
 namespace picongpu
 {
@@ -51,6 +53,17 @@ namespace picongpu
 
                 using MomType = momentum::type;
                 MomType const mom = particle[momentum_];
+
+                const auto bField = functorBField(pos);
+                const auto eField = functorEField(pos);
+
+                // update probe field if particle contains required attributes
+                pmacc::meta::invokeIf<pmacc::traits::HasIdentifier<T_Particle, probeB>::type::value>(
+                    [&bField](auto&& par) { par[probeB_] = bField; },
+                    particle);
+                pmacc::meta::invokeIf<pmacc::traits::HasIdentifier<T_Particle, probeE>::type::value>(
+                    [&eField](auto&& par) { par[probeE_] = eField; },
+                    particle);
 
                 Velocity velocity;
                 const MomType vel = velocity(mom, mass);

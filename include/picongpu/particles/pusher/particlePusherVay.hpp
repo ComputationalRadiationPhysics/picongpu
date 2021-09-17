@@ -24,6 +24,8 @@
 #include "picongpu/traits/attribute/GetCharge.hpp"
 #include "picongpu/traits/attribute/GetMass.hpp"
 
+#include <pmacc/meta/InvokeIf.hpp>
+#include <pmacc/traits/HasIdentifier.hpp>
 
 namespace picongpu
 {
@@ -53,15 +55,23 @@ namespace picongpu
                 using MomType = momentum::type;
                 MomType const mom = particle[momentum_];
 
-                auto bField = functorBField(pos);
-                auto eField = functorEField(pos);
+                const auto bField = functorBField(pos);
+                const auto eField = functorEField(pos);
+
+                // update probe field if particle contains required attributes
+                pmacc::meta::invokeIf<pmacc::traits::HasIdentifier<T_Particle, probeB>::type::value>(
+                    [&bField](auto&& par) { par[probeB_] = bField; },
+                    particle);
+                pmacc::meta::invokeIf<pmacc::traits::HasIdentifier<T_Particle, probeE>::type::value>(
+                    [&eField](auto&& par) { par[probeE_] = eField; },
+                    particle);
                 /*
                      time index in paper is reduced by a half: i=0 --> i=-1/2 so that momenta are
                      at half time steps and fields and locations are at full time steps
 
-             Here the real (PIConGPU) momentum (p) is used, not the momentum from the Vay paper (u)
-             p = m_0 * u
-                 */
+                     Here the real (PIConGPU) momentum (p) is used, not the momentum from the Vay paper (u)
+                     p = m_0 * u
+                */
                 const float_X deltaT = DELTA_T;
                 const float_X factor = 0.5 * charge * deltaT;
                 Gamma gamma;

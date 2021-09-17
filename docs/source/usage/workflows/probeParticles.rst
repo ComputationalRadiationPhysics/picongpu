@@ -16,7 +16,7 @@ Self-consistently interacting particles are usually called :ref:`tracer particle
 Workflow
 """"""""
 
-* ``speciesDefinition.param``: create a species specifically for probes and add ``probeE`` and ``probeB`` attributes to it for storing interpolated fields
+* ``speciesDefinition.param``: create a stationary probe species, add ``probeE`` and ``probeB`` attributes to it for storing interpolated fields
 
 .. code-block:: cpp
 
@@ -93,7 +93,7 @@ and add it to ``VectorAllSpecies``:
        >
    >;
 
-* ``fileOutput.param``: make sure the the tracer particles are part of ``FileOutputParticles``
+* ``fileOutput.param``: make sure the the probe particles are part of ``FileOutputParticles``
 
 .. code-block:: cpp
 
@@ -114,3 +114,4 @@ Known Limitations
 .. warning::
 
    If the probe particles are dumped in the file output, the instantaneous fields they recorded will be one time step behind the last field update (since our runOneStep pushed the particles first and then calls the field solver).
+   Adding the attributes ``probeE`` or ``probeB`` to a species will increase the particle memory footprint only for the corresponding species by ``3 * sizeof(float_X)`` byte per attribute and particle.
