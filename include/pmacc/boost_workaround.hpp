@@ -45,4 +45,12 @@
  */
 #include <boost/optional/optional.hpp>
 
+#if defined(__clang__) && defined(__CUDACC__)
+// Boost.Config wrongly detects the BOOST_CUDA_VERSION with clang as CUDA compiler and disables variadic templates.
+// See: https://github.com/boostorg/config/issues/297
+// We also need to do this after including Boost.optional, so we do not retrigger the bug the above workaround fixes.
+#    undef BOOST_NO_CXX11_VARIADIC_TEMPLATES
+#    undef BOOST_NO_VARIADIC_TEMPLATES
+#endif
+
 // clang-format on
