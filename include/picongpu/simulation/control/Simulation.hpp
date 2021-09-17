@@ -158,10 +158,7 @@ namespace picongpu
                  "periodic dimensions")
                 ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(),
                  "enable sliding/moving window")
-                /* For now we still use the compile-time movePoint variable to set
-                 * the default value and provide backward compatibility
-                 */
-                ("windowMovePoint", po::value<float_64>(&windowMovePoint)->default_value(movePoint),
+                ("windowMovePoint", po::value<float_64>(&windowMovePoint)->default_value(0.9),
                  "ratio of the global window size in y which defines when to start sliding the window. "
                  "The window starts sliding at the time required to pass the distance of"
                  "windowMovePoint * (global window size in y) when moving with the speed of light")
