@@ -313,8 +313,8 @@ namespace picongpu
                                 = precisionCast<float_COLL>(picongpu::traits::attribute::getCharge(
                                     particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE,
                                     par1));
-                            float_COLL const gamma0 = picongpu::gamma<float_COLL>(labMomentum0, mass0);
-                            float_COLL const gamma1 = picongpu::gamma<float_COLL>(labMomentum1, mass1);
+                            auto const gamma0 = picongpu::gamma<float_COLL>(labMomentum0, mass0);
+                            auto const gamma1 = picongpu::gamma<float_COLL>(labMomentum1, mass1);
 
                             // [Perez 2012] (1)
                             float3_COLL const comsVelocity
@@ -478,11 +478,11 @@ namespace picongpu
                         float_X const& coulombLog) const
                     {
                         using namespace picongpu::particles::collision::precision;
-                        return acc::RelativisticBinaryCollision(
+                        return {
                             math::pow(precisionCast<float_COLL>(density0), 2.0_COLL / 3.0_COLL),
                             math::pow(precisionCast<float_COLL>(density1), 2.0_COLL / 3.0_COLL),
                             potentialPartners,
-                            precisionCast<float_COLL>(coulombLog));
+                            precisionCast<float_COLL>(coulombLog)};
                     }
 
                     //! get the name of the functor

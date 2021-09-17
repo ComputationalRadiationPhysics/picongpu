@@ -41,9 +41,9 @@ namespace pmacc
                 class Uniform<uniform::ExcludeZero<double>, T_RNGMethod, void>
                 {
                 public:
-                    typedef T_RNGMethod RNGMethod;
-                    typedef typename RNGMethod::StateType StateType;
-                    typedef double result_type;
+                    using RNGMethod = T_RNGMethod;
+                    using StateType = typename RNGMethod::StateType;
+                    using result_type = double;
 
                     template<typename T_Acc>
                     DINLINE double operator()(T_Acc const& acc, StateType& state) const
@@ -62,9 +62,9 @@ namespace pmacc
                 class Uniform<uniform::ExcludeOne<double>::SwapOneToZero, T_RNGMethod, void>
                 {
                 public:
-                    typedef T_RNGMethod RNGMethod;
-                    typedef typename RNGMethod::StateType StateType;
-                    typedef double result_type;
+                    using RNGMethod = T_RNGMethod;
+                    using StateType = typename RNGMethod::StateType;
+                    using result_type = double;
 
                     template<typename T_Acc>
                     DINLINE double operator()(T_Acc const& acc, StateType& state) const
@@ -87,9 +87,9 @@ namespace pmacc
                 class Uniform<uniform::ExcludeOne<double>::Reduced, T_RNGMethod, void>
                 {
                 public:
-                    typedef T_RNGMethod RNGMethod;
-                    typedef typename RNGMethod::StateType StateType;
-                    typedef double result_type;
+                    using RNGMethod = T_RNGMethod;
+                    using StateType = typename RNGMethod::StateType;
+                    using result_type = double;
 
                     template<typename T_Acc>
                     DINLINE double operator()(T_Acc const& acc, StateType& state) const
@@ -109,9 +109,9 @@ namespace pmacc
                 class Uniform<typename uniform::ExcludeOne<double>::Repeat, T_RNGMethod, void>
                 {
                 public:
-                    typedef T_RNGMethod RNGMethod;
-                    typedef typename RNGMethod::StateType StateType;
-                    typedef double result_type;
+                    using RNGMethod = T_RNGMethod;
+                    using StateType = typename RNGMethod::StateType;
+                    using result_type = double;
 
                     template<typename T_Acc>
                     DINLINE result_type operator()(T_Acc const& acc, StateType& state) const

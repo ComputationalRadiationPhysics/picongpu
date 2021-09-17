@@ -38,13 +38,13 @@ namespace pmacc
     class DataBoxUnaryTransform : public T_Base
     {
     public:
-        typedef T_Base Base;
-        typedef typename Base::ValueType BaseValueType;
+        using Base = T_Base;
+        using BaseValueType = typename Base::ValueType;
 
-        typedef T_UnaryFunctor<BaseValueType> UnaryFunctor;
+        using UnaryFunctor = T_UnaryFunctor<BaseValueType>;
 
-        typedef typename UnaryFunctor::result ValueType;
-        typedef ValueType RefValueType;
+        using ValueType = typename UnaryFunctor::result;
+        using RefValueType = ValueType;
         static constexpr uint32_t Dim = Base::Dim;
 
         HDINLINE DataBoxUnaryTransform(const Base& base) : Base(base)

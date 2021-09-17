@@ -55,8 +55,8 @@ namespace pmacc
                 typename boost::result_of<detail::Deselect<typename ToSeq<T_Exclude>::type, T_Object>(T_Object)>::type
                 deselect(T_Object& object)
             {
-                typedef typename ToSeq<T_Exclude>::type DeselectSeq;
-                typedef detail::Deselect<DeselectSeq, T_Object> BaseType;
+                using DeselectSeq = typename ToSeq<T_Exclude>::type;
+                using BaseType = detail::Deselect<DeselectSeq, T_Object>;
 
                 return BaseType()(object);
             }

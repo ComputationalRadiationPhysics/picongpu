@@ -33,7 +33,7 @@ namespace pmacc
     {
     public:
         static constexpr uint32_t size = T_size::value;
-        typedef T_Type Type;
+        using Type = T_Type;
 
     private:
         Type data[size];
@@ -45,13 +45,13 @@ namespace pmacc
         template<class F, typename TKey>
         struct result<F(TKey)>
         {
-            typedef Type& type;
+            using type = Type&;
         };
 
         template<class F, typename TKey>
         struct result<const F(TKey)>
         {
-            typedef const Type& type;
+            using type = const Type&;
         };
 
         HDINLINE

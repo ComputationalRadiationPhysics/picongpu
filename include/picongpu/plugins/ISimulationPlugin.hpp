@@ -37,8 +37,6 @@ namespace picongpu
     public:
         virtual void setMappingDescription(MappingDesc* cellDescription) = 0;
 
-        virtual ~ISimulationPlugin()
-        {
-        }
+        ~ISimulationPlugin() override = default;
     };
 } // namespace picongpu

@@ -91,7 +91,7 @@ namespace picongpu
                 const pmacc::math::Vector<floatD_64, detail::numComponents>& bFieldPositions_SI,
                 const float_64 time) const
             {
-                typedef pmacc::math::Vector<float3_64, detail::numComponents> PosVecVec;
+                using PosVecVec = pmacc::math::Vector<float3_64, detail::numComponents>;
                 PosVecVec pos(PosVecVec::create(float3_64::create(0.0)));
 
                 for(uint32_t k = 0; k < detail::numComponents; ++k)
@@ -128,7 +128,7 @@ namespace picongpu
                 const pmacc::math::Vector<floatD_64, detail::numComponents>& bFieldPositions_SI,
                 const float_64 time) const
             {
-                typedef pmacc::math::Vector<float3_64, detail::numComponents> PosVecVec;
+                using PosVecVec = pmacc::math::Vector<float3_64, detail::numComponents>;
                 PosVecVec pos(PosVecVec::create(float3_64::create(0.0)));
 
                 for(uint32_t k = 0; k < detail::numComponents; ++k)
@@ -158,7 +158,7 @@ namespace picongpu
                 const pmacc::math::Vector<floatD_64, detail::numComponents>& bFieldPositions_SI,
                 const float_64 time) const
             {
-                typedef pmacc::math::Vector<float3_64, detail::numComponents> PosVecVec;
+                using PosVecVec = pmacc::math::Vector<float3_64, detail::numComponents>;
                 PosVecVec pos(PosVecVec::create(float3_64::create(0.0)));
 
                 for(uint32_t k = 0; k < detail::numComponents; ++k)
@@ -217,7 +217,7 @@ namespace picongpu
                 const pmacc::math::Vector<floatD_64, detail::numComponents>& bFieldPositions_SI,
                 const float_64 time) const
             {
-                typedef pmacc::math::Vector<float3_64, detail::numComponents> PosVecVec;
+                using PosVecVec = pmacc::math::Vector<float3_64, detail::numComponents>;
                 PosVecVec pos(PosVecVec::create(float3_64::create(0.0)));
 
                 for(uint32_t k = 0; k < detail::numComponents; ++k)
@@ -303,12 +303,12 @@ namespace picongpu
                 const float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
 
                 /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-                const float_T beta0 = float_T(beta_0);
+                const auto beta0 = float_T(beta_0);
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
                  * z-axis of the coordinate system in this function.
                  */
-                const float_T phiReal = float_T(math::abs(phi));
+                const auto phiReal = float_T(math::abs(phi));
                 const float_T alphaTilt
                     = math::atan2(float_T(1.0) - beta0 * math::cos(phiReal), beta0 * math::sin(phiReal));
                 /* Definition of the laser pulse front tilt angle for the laser field below.
@@ -328,25 +328,25 @@ namespace picongpu
                  * const float_T eta = float_T(PI/2) - (phiReal - alphaTilt);
                  */
 
-                const float_T cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
-                const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
-                const float_T om0 = float_T(2.0 * PI * cspeed / lambda0);
+                const auto cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
+                const auto lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+                const auto om0 = float_T(2.0 * PI * cspeed / lambda0);
                 /* factor 2  in tauG arises from definition convention in laser formula */
-                const float_T tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
+                const auto tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
                 /* w0 is wx here --> w0 could be replaced by wx */
-                const float_T w0 = float_T(w_x_SI / UNIT_LENGTH);
-                const float_T rho0 = float_T(PI * w0 * w0 / lambda0);
+                const auto w0 = float_T(w_x_SI / UNIT_LENGTH);
+                const auto rho0 = float_T(PI * w0 * w0 / lambda0);
                 /* wy is width of TWTS pulse */
-                const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
-                const float_T k = float_T(2.0 * PI / lambda0);
+                const auto wy = float_T(w_y_SI / UNIT_LENGTH);
+                const auto k = float_T(2.0 * PI / lambda0);
                 /* If phi < 0 the entire pulse is rotated by 180 deg around the
                  * z-axis of the coordinate system without also changing
                  * the orientation of the resulting field vectors.
                  */
-                const float_T x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
-                const float_T y = float_T(phiPositive * pos.y() / UNIT_LENGTH);
-                const float_T z = float_T(pos.z() / UNIT_LENGTH);
-                const float_T t = float_T(time / UNIT_TIME);
+                const auto x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
+                const auto y = float_T(phiPositive * pos.y() / UNIT_LENGTH);
+                const auto z = float_T(pos.z() / UNIT_LENGTH);
+                const auto t = float_T(time / UNIT_TIME);
 
                 /* Shortcuts for speeding up the field calculation. */
                 const float_T sinPhi = math::sin(phiT);
@@ -453,12 +453,12 @@ namespace picongpu
                 const float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
 
                 /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-                const float_T beta0 = float_T(beta_0);
+                const auto beta0 = float_T(beta_0);
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
                  * z-axis of the coordinate system in this function.
                  */
-                const float_T phiReal = float_T(math::abs(phi));
+                const auto phiReal = float_T(math::abs(phi));
                 const float_T alphaTilt
                     = math::atan2(float_T(1.0) - beta0 * math::cos(phiReal), beta0 * math::sin(phiReal));
 
@@ -479,25 +479,25 @@ namespace picongpu
                  * const float_T eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt);
                  */
 
-                const float_T cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
-                const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
-                const float_T om0 = float_T(2.0 * PI * cspeed / lambda0);
+                const auto cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
+                const auto lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+                const auto om0 = float_T(2.0 * PI * cspeed / lambda0);
                 /* factor 2  in tauG arises from definition convention in laser formula */
-                const float_T tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
+                const auto tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
                 /* w0 is wx here --> w0 could be replaced by wx */
-                const float_T w0 = float_T(w_x_SI / UNIT_LENGTH);
-                const float_T rho0 = float_T(PI * w0 * w0 / lambda0);
+                const auto w0 = float_T(w_x_SI / UNIT_LENGTH);
+                const auto rho0 = float_T(PI * w0 * w0 / lambda0);
                 /* wy is width of TWTS pulse */
-                const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
-                const float_T k = float_T(2.0 * PI / lambda0);
+                const auto wy = float_T(w_y_SI / UNIT_LENGTH);
+                const auto k = float_T(2.0 * PI / lambda0);
                 /* If phi < 0 the entire pulse is rotated by 180 deg around the
                  * z-axis of the coordinate system without also changing
                  * the orientation of the resulting field vectors.
                  */
-                const float_T x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
-                const float_T y = float_T(phiPositive * pos.y() / UNIT_LENGTH);
-                const float_T z = float_T(pos.z() / UNIT_LENGTH);
-                const float_T t = float_T(time / UNIT_TIME);
+                const auto x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
+                const auto y = float_T(phiPositive * pos.y() / UNIT_LENGTH);
+                const auto z = float_T(pos.z() / UNIT_LENGTH);
+                const auto t = float_T(time / UNIT_TIME);
 
                 /* Shortcuts for speeding up the field calculation. */
                 const float_T sinPhi = math::sin(phiT);
@@ -580,12 +580,12 @@ namespace picongpu
                 const float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
 
                 /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-                const float_T beta0 = float_T(beta_0);
+                const auto beta0 = float_T(beta_0);
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
                  * z-axis of the coordinate system in this function.
                  */
-                const float_T phiReal = float_T(math::abs(phi));
+                const auto phiReal = float_T(math::abs(phi));
                 const float_T alphaTilt
                     = math::atan2(float_T(1.0) - beta0 * math::cos(phiReal), beta0 * math::sin(phiReal));
                 /* Definition of the laser pulse front tilt angle for the laser field below.
@@ -605,25 +605,25 @@ namespace picongpu
                  * const float_T eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt);
                  */
 
-                const float_T cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
-                const float_T lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
-                const float_T om0 = float_T(2.0 * PI * cspeed / lambda0);
+                const auto cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
+                const auto lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+                const auto om0 = float_T(2.0 * PI * cspeed / lambda0);
                 /* factor 2  in tauG arises from definition convention in laser formula */
-                const float_T tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
+                const auto tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
                 /* w0 is wx here --> w0 could be replaced by wx */
-                const float_T w0 = float_T(w_x_SI / UNIT_LENGTH);
-                const float_T rho0 = float_T(PI * w0 * w0 / lambda0);
+                const auto w0 = float_T(w_x_SI / UNIT_LENGTH);
+                const auto rho0 = float_T(PI * w0 * w0 / lambda0);
                 /* wy is width of TWTS pulse */
-                const float_T wy = float_T(w_y_SI / UNIT_LENGTH);
-                const float_T k = float_T(2.0 * PI / lambda0);
+                const auto wy = float_T(w_y_SI / UNIT_LENGTH);
+                const auto k = float_T(2.0 * PI / lambda0);
                 /* If phi < 0 the entire pulse is rotated by 180 deg around the
                  * z-axis of the coordinate system without also changing
                  * the orientation of the resulting field vectors.
                  */
-                const float_T x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
-                const float_T y = float_T(phiPositive * pos.y() / UNIT_LENGTH);
-                const float_T z = float_T(pos.z() / UNIT_LENGTH);
-                const float_T t = float_T(time / UNIT_TIME);
+                const auto x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
+                const auto y = float_T(phiPositive * pos.y() / UNIT_LENGTH);
+                const auto z = float_T(pos.z() / UNIT_LENGTH);
+                const auto t = float_T(time / UNIT_TIME);
 
                 /* Shortcuts for speeding up the field calculation. */
                 const float_T sinPhi = math::sin(phiT);

@@ -39,9 +39,7 @@ namespace pmacc
         {
         }
 
-        virtual ~IEventData()
-        {
-        }
+        virtual ~IEventData() = default;
 
         EventNotify* getEventNotify()
         {

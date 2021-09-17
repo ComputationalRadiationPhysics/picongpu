@@ -34,7 +34,7 @@ namespace pmacc
         template<>
         struct SinCos<double, double, double>
         {
-            typedef void result;
+            using result = void;
 
             HDINLINE void operator()(double arg, double& sinValue, double& cosValue)
             {
@@ -51,7 +51,7 @@ namespace pmacc
         template<>
         struct Sinc<double>
         {
-            typedef double result;
+            using result = double;
 
             HDINLINE double operator()(const double& value)
             {

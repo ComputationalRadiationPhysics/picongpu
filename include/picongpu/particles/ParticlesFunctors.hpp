@@ -272,7 +272,7 @@ namespace picongpu
                 pushSpecies(currentStep, eventInt, updateEventList);
 
                 /* join all push events */
-                for(typename EventList::iterator iter = updateEventList.begin(); iter != updateEventList.end(); ++iter)
+                for(auto iter = updateEventList.begin(); iter != updateEventList.end(); ++iter)
                 {
                     pushEvent += *iter;
                 }
@@ -282,7 +282,7 @@ namespace picongpu
                 communicateSpecies(updateEventList, commEventList);
 
                 /* join all communication events */
-                for(typename EventList::iterator iter = commEventList.begin(); iter != commEventList.end(); ++iter)
+                for(auto iter = commEventList.begin(); iter != commEventList.end(); ++iter)
                 {
                     commEvent += *iter;
                 }

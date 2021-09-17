@@ -40,7 +40,7 @@ namespace pmacc
         {
         }
 
-        virtual void init()
+        void init() override
         {
             state = WaitForReceived;
             if(Environment<>::get().isMpiDirectEnabled())
@@ -53,7 +53,7 @@ namespace pmacc
             Environment<>::get().Factory().createTaskReceiveMPI(exchange, this);
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             switch(state)
             {
@@ -129,19 +129,19 @@ namespace pmacc
             return false;
         }
 
-        virtual ~TaskReceive()
+        ~TaskReceive() override
         {
             notify(this->myId, RECVFINISHED, nullptr);
         }
 
-        void event(id_t, EventType type, IEventData* data)
+        void event(id_t, EventType type, IEventData* data) override
         {
             switch(type)
             {
             case RECVFINISHED:
                 if(data != nullptr)
                 {
-                    EventDataReceive* rdata = static_cast<EventDataReceive*>(data);
+                    auto* rdata = static_cast<EventDataReceive*>(data);
                     // std::cout<<" data rec "<<rdata->getReceivedCount()/sizeof(TYPE)<<std::endl;
                     newBufferSize = rdata->getReceivedCount() / sizeof(TYPE);
                     state = RunCopy;
@@ -157,7 +157,7 @@ namespace pmacc
             }
         }
 
-        std::string toString()
+        std::string toString() override
         {
             std::stringstream ss;
             ss << state;

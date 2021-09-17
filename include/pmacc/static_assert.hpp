@@ -36,7 +36,7 @@ namespace pmacc
     template<typename T_Type = StaticAssertError>
     struct GetStaticAssertInfoType
     {
-        typedef T_Type type;
+        using type = T_Type;
     };
 } // namespace pmacc
 

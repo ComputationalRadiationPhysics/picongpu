@@ -53,7 +53,7 @@ namespace pmacc
         DeviceBuffer<TYPE, DIM>& dst,
         ITask* registeringTask)
     {
-        TaskCopyHostToDevice<TYPE, DIM>* task = new TaskCopyHostToDevice<TYPE, DIM>(src, dst);
+        auto* task = new TaskCopyHostToDevice<TYPE, DIM>(src, dst);
 
         return startTask(*task, registeringTask);
     }
@@ -70,7 +70,7 @@ namespace pmacc
         HostBuffer<TYPE, DIM>& dst,
         ITask* registeringTask)
     {
-        TaskCopyDeviceToHost<TYPE, DIM>* task = new TaskCopyDeviceToHost<TYPE, DIM>(src, dst);
+        auto* task = new TaskCopyDeviceToHost<TYPE, DIM>(src, dst);
 
         return startTask(*task, registeringTask);
     }
@@ -87,7 +87,7 @@ namespace pmacc
         DeviceBuffer<TYPE, DIM>& dst,
         ITask* registeringTask)
     {
-        TaskCopyDeviceToDevice<TYPE, DIM>* task = new TaskCopyDeviceToDevice<TYPE, DIM>(src, dst);
+        auto* task = new TaskCopyDeviceToDevice<TYPE, DIM>(src, dst);
 
         return startTask(*task, registeringTask);
     }
@@ -100,7 +100,7 @@ namespace pmacc
     template<class TYPE, unsigned DIM>
     inline EventTask Factory::createTaskReceive(Exchange<TYPE, DIM>& ex, ITask* registeringTask)
     {
-        TaskReceive<TYPE, DIM>* task = new TaskReceive<TYPE, DIM>(ex);
+        auto* task = new TaskReceive<TYPE, DIM>(ex);
 
         return startTask(*task, registeringTask);
     }
@@ -113,7 +113,7 @@ namespace pmacc
     template<class TYPE, unsigned DIM>
     inline EventTask Factory::createTaskSend(Exchange<TYPE, DIM>& ex, ITask* registeringTask)
     {
-        TaskSend<TYPE, DIM>* task = new TaskSend<TYPE, DIM>(ex);
+        auto* task = new TaskSend<TYPE, DIM>(ex);
 
         return startTask(*task, registeringTask);
     }
@@ -126,7 +126,7 @@ namespace pmacc
     template<class TYPE, unsigned DIM>
     inline EventTask Factory::createTaskSendMPI(Exchange<TYPE, DIM>* ex, ITask* registeringTask)
     {
-        TaskSendMPI<TYPE, DIM>* task = new TaskSendMPI<TYPE, DIM>(ex);
+        auto* task = new TaskSendMPI<TYPE, DIM>(ex);
 
         return startTask(*task, registeringTask);
     }
@@ -139,7 +139,7 @@ namespace pmacc
     template<class TYPE, unsigned DIM>
     inline EventTask Factory::createTaskReceiveMPI(Exchange<TYPE, DIM>* ex, ITask* registeringTask)
     {
-        TaskReceiveMPI<TYPE, DIM>* task = new TaskReceiveMPI<TYPE, DIM>(ex);
+        auto* task = new TaskReceiveMPI<TYPE, DIM>(ex);
 
         return startTask(*task, registeringTask);
     }
@@ -164,7 +164,7 @@ namespace pmacc
             isSmall = (sizeof(TYPE) <= 128)
         }; // if we use const variable the compiler create warnings
 
-        TaskSetValue<TYPE, DIM, isSmall>* task = new TaskSetValue<TYPE, DIM, isSmall>(dst, value);
+        auto* task = new TaskSetValue<TYPE, DIM, isSmall>(dst, value);
 
         return startTask(*task, registeringTask);
     }
@@ -181,7 +181,7 @@ namespace pmacc
         size_t size,
         ITask* registeringTask)
     {
-        TaskSetCurrentSizeOnDevice<TYPE, DIM>* task = new TaskSetCurrentSizeOnDevice<TYPE, DIM>(dst, size);
+        auto* task = new TaskSetCurrentSizeOnDevice<TYPE, DIM>(dst, size);
 
         return startTask(*task, registeringTask);
     }
@@ -196,7 +196,7 @@ namespace pmacc
         DeviceBuffer<TYPE, DIM>& buffer,
         ITask* registeringTask)
     {
-        TaskGetCurrentSizeFromDevice<TYPE, DIM>* task = new TaskGetCurrentSizeFromDevice<TYPE, DIM>(buffer);
+        auto* task = new TaskGetCurrentSizeFromDevice<TYPE, DIM>(buffer);
 
         return startTask(*task, registeringTask);
     }
@@ -209,7 +209,7 @@ namespace pmacc
      */
     inline TaskKernel* Factory::createTaskKernel(std::string kernelname, ITask* registeringTask)
     {
-        TaskKernel* task = new TaskKernel(kernelname);
+        auto* task = new TaskKernel(kernelname);
 
         if(registeringTask != nullptr)
             task->addObserver(registeringTask);

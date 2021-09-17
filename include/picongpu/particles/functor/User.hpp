@@ -64,7 +64,9 @@ namespace picongpu
                  * @param is used to enable/disable the constructor (do not pass any value to this parameter)
                  */
                 template<typename DeferFunctor = Functor>
-                HINLINE User(uint32_t, typename std::enable_if<std::is_constructible<DeferFunctor>::value>::type* = 0)
+                HINLINE User(
+                    uint32_t,
+                    typename std::enable_if<std::is_constructible<DeferFunctor>::value>::type* = nullptr)
                     : Functor()
                 {
                 }

@@ -30,7 +30,7 @@ namespace picongpu
 {
     struct NodeHeader
     {
-        typedef pmacc::DataSpace<DIM2> Size2D;
+        using Size2D = pmacc::DataSpace<2U>;
 
         Size2D maxSize;
         Size2D size;

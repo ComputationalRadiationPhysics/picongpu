@@ -32,10 +32,10 @@ namespace pmacc
     class TaskParticlesReceive : public MPITask
     {
     public:
-        typedef T_Particles Particles;
-        typedef typename Particles::HandleGuardRegion HandleGuardRegion;
-        typedef typename HandleGuardRegion::HandleExchanged HandleExchanged;
-        typedef typename HandleGuardRegion::HandleNotExchanged HandleNotExchanged;
+        using Particles = T_Particles;
+        using HandleGuardRegion = typename Particles::HandleGuardRegion;
+        using HandleExchanged = typename HandleGuardRegion::HandleExchanged;
+        using HandleNotExchanged = typename HandleGuardRegion::HandleNotExchanged;
 
         enum
         {
@@ -47,7 +47,7 @@ namespace pmacc
         {
         }
 
-        virtual void init()
+        void init() override
         {
             state = Init;
             EventTask serialEvent = __getTransactionEvent();
@@ -72,7 +72,7 @@ namespace pmacc
             state = WaitForReceived;
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             switch(state)
             {
@@ -100,16 +100,16 @@ namespace pmacc
             return false;
         }
 
-        virtual ~TaskParticlesReceive()
+        ~TaskParticlesReceive() override
         {
             notify(this->myId, RECVFINISHED, nullptr);
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        std::string toString()
+        std::string toString() override
         {
             return "TaskParticlesReceive";
         }

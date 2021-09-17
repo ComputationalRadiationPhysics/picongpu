@@ -31,14 +31,14 @@ namespace pmacc
             template<class T1, class T2>
             struct promoteType
             {
-                typedef T1 type;
+                using type = T1;
             };
 
             // special: promote float to double
             template<>
             struct promoteType<float, double>
             {
-                typedef double type;
+                using type = double;
             };
 
 

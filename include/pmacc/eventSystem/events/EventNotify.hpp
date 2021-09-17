@@ -37,9 +37,7 @@ namespace pmacc
     class EventNotify
     {
     public:
-        virtual ~EventNotify()
-        {
-        }
+        virtual ~EventNotify() = default;
 
         /**
          * Registers an observer at this observable.

@@ -31,12 +31,10 @@ namespace pmacc
     class DefaultFilter : public Base
     {
     private:
-        bool filterActive;
+        bool filterActive{false};
 
     public:
-        HDINLINE DefaultFilter() : filterActive(false)
-        {
-        }
+        HDINLINE DefaultFilter() = default;
 
         template<class FRAME>
         HDINLINE bool operator()(FRAME& frame, lcellId_t id)
@@ -63,12 +61,10 @@ namespace pmacc
     class DefaultFilter<NullFrame>
     {
     private:
-        bool alwaysTrue;
+        bool alwaysTrue{true};
 
     public:
-        HDINLINE DefaultFilter() : alwaysTrue(true)
-        {
-        }
+        HDINLINE DefaultFilter() = default;
 
         template<class FRAME>
         HDINLINE bool operator()(FRAME& frame, lcellId_t id)

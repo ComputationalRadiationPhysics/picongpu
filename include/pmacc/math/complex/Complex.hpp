@@ -32,7 +32,7 @@ namespace pmacc
         struct Complex
         {
         public:
-            typedef T_Type type;
+            using type = T_Type;
 
             // constructor (real, imaginary)
             HDINLINE Complex(T_Type real, T_Type imaginary = type(0.0)) : real(real), imaginary(imaginary)
@@ -50,9 +50,7 @@ namespace pmacc
             }
 
             // default constructor ( ! no initialization of data ! )
-            HDINLINE Complex(void)
-            {
-            }
+            HDINLINE Complex(void) = default;
 
             // Conversion from scalar (assignment)
             HDINLINE Complex& operator=(const T_Type& other)

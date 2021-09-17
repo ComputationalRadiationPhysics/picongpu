@@ -43,21 +43,21 @@ namespace pmacc
             this->destination = &dst;
         }
 
-        virtual ~TaskCopyDeviceToDeviceBase()
+        ~TaskCopyDeviceToDeviceBase() override
         {
             notify(this->myId, COPYDEVICE2DEVICE, nullptr);
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             return isFinished();
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        virtual void init()
+        void init() override
         {
             size_t current_size = source->getCurrentSize();
             destination->setCurrentSize(current_size);
@@ -70,7 +70,7 @@ namespace pmacc
             this->activate();
         }
 
-        std::string toString()
+        std::string toString() override
         {
             return "TaskCopyDeviceToDevice";
         }
@@ -102,7 +102,7 @@ namespace pmacc
         }
 
     private:
-        virtual void copy(DataSpace<DIM1>& devCurrentSize)
+        void copy(DataSpace<DIM1>& devCurrentSize) override
         {
             CUDA_CHECK(cuplaMemcpyAsync(
                 this->destination->getPointer(),
@@ -123,7 +123,7 @@ namespace pmacc
         }
 
     private:
-        virtual void copy(DataSpace<DIM2>& devCurrentSize)
+        void copy(DataSpace<DIM2>& devCurrentSize) override
         {
             CUDA_CHECK(cuplaMemcpy2DAsync(
                 this->destination->getPointer(),
@@ -147,7 +147,7 @@ namespace pmacc
         }
 
     private:
-        virtual void copy(DataSpace<DIM3>& devCurrentSize)
+        void copy(DataSpace<DIM3>& devCurrentSize) override
         {
             cuplaMemcpy3DParms params;
             params.srcArray = nullptr;

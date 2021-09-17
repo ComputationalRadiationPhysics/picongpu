@@ -31,16 +31,12 @@ namespace pmacc
     class INotify
     {
     protected:
-        uint32_t lastNotify;
+        uint32_t lastNotify{0};
 
     public:
-        INotify() : lastNotify(0)
-        {
-        }
+        INotify() = default;
 
-        virtual ~INotify()
-        {
-        }
+        virtual ~INotify() = default;
 
         /** Notification callback
          *

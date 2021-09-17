@@ -44,18 +44,14 @@ namespace picongpu
     class InitialiserController : public IInitPlugin
     {
     public:
-        InitialiserController() : cellDescription(nullptr)
-        {
-        }
+        InitialiserController() = default;
 
-        virtual ~InitialiserController()
-        {
-        }
+        ~InitialiserController() override = default;
 
         /**
          * Initialize simulation state at timestep 0
          */
-        virtual void init()
+        void init() override
         {
             // start simulation using default values
             log<picLog::SIMULATION_STATE>("Starting simulation from timestep 0");
@@ -70,7 +66,7 @@ namespace picongpu
         /**
          * Load persistent simulation state from \p restartStep
          */
-        virtual void restart(uint32_t restartStep, const std::string restartDirectory)
+        void restart(uint32_t restartStep, const std::string restartDirectory) override
         {
             // restart simulation by loading from persistent data
             // the simulation will start after restartStep
@@ -122,7 +118,7 @@ namespace picongpu
         /**
          * Print interesting initialization information
          */
-        virtual void printInformation()
+        void printInformation() override
         {
             if(Environment<simDim>::get().GridController().getGlobalRank() == 0)
             {
@@ -163,28 +159,28 @@ namespace picongpu
             }
         }
 
-        void notify(uint32_t)
+        void notify(uint32_t) override
         {
             // nothing to do here
         }
 
-        void pluginRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc) override
         {
             // nothing to do here
         }
 
-        std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return "Initializers";
         }
 
-        virtual void setMappingDescription(MappingDesc* cellDescription)
+        void setMappingDescription(MappingDesc* cellDescription) override
         {
             PMACC_ASSERT(cellDescription != nullptr);
             this->cellDescription = cellDescription;
         }
 
-        virtual void slide(uint32_t currentStep)
+        void slide(uint32_t currentStep) override
         {
             SimStartInitialiser simStartInitialiser;
             Environment<>::get().DataConnector().initialise(simStartInitialiser, currentStep);
@@ -193,7 +189,7 @@ namespace picongpu
 
     private:
         /*Descripe simulation area*/
-        MappingDesc* cellDescription;
+        MappingDesc* cellDescription{nullptr};
 
         bool restartSim;
         std::string restartFile;

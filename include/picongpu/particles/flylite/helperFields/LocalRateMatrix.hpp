@@ -64,7 +64,7 @@ namespace picongpu
                         m_rateMatrix = new GridBuffer<RateMatrix, simDim>(histSizeLocal);
                     }
 
-                    ~LocalRateMatrix()
+                    ~LocalRateMatrix() override
                     {
                         __delete(m_rateMatrix);
                     }

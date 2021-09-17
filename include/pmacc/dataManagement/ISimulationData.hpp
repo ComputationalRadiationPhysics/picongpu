@@ -26,7 +26,7 @@
 
 namespace pmacc
 {
-    typedef std::string SimulationDataId;
+    using SimulationDataId = std::string;
 
     /**
      * Interface for simulation data which should be registered at DataConnector
@@ -35,9 +35,7 @@ namespace pmacc
     class ISimulationData
     {
     public:
-        virtual ~ISimulationData()
-        {
-        }
+        virtual ~ISimulationData() = default;
         /**
          * Synchronizes simulation data, meaning accessing (host side) data
          * will return up-to-date values.

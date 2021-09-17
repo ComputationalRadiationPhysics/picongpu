@@ -200,9 +200,9 @@ namespace pmacc
                         const math::Int<2>& _blockIdx,
                         const math::Int<2>& _threadIdx) const
                     {
-                        return math::Int<2>(
+                        return {
                             _blockIdx.x() * _blockDim.x() + _threadIdx.x(),
-                            _blockIdx.y() * _blockDim.y() + _threadIdx.y());
+                            _blockIdx.y() * _blockDim.y() + _threadIdx.y()};
                     }
 
                     template<typename T_Acc>
@@ -240,10 +240,10 @@ namespace pmacc
                         const math::Int<3>& _blockIdx,
                         const math::Int<3>& _threadIdx) const
                     {
-                        return math::Int<3>(
+                        return {
                             _blockIdx.x() * _blockDim.x() + _threadIdx.x(),
                             _blockIdx.y() * _blockDim.y() + _threadIdx.y(),
-                            _blockIdx.z() * _blockDim.z() + _threadIdx.z());
+                            _blockIdx.z() * _blockDim.z() + _threadIdx.z()};
                     }
 
                     template<typename T_Acc>

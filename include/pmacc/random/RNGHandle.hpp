@@ -35,18 +35,18 @@ namespace pmacc
         template<class T_RNGProvider>
         struct RNGHandle
         {
-            typedef T_RNGProvider RNGProvider;
+            using RNGProvider = T_RNGProvider;
             static constexpr uint32_t rngDim = RNGProvider::dim;
-            typedef typename RNGProvider::DataBoxType RNGBox;
-            typedef typename RNGProvider::RNGMethod RNGMethod;
-            typedef typename RNGMethod::StateType RNGState;
-            typedef pmacc::DataSpace<rngDim> RNGSpace;
+            using RNGBox = typename RNGProvider::DataBoxType;
+            using RNGMethod = typename RNGProvider::RNGMethod;
+            using RNGState = typename RNGMethod::StateType;
+            using RNGSpace = pmacc::DataSpace<rngDim>;
 
             template<class T_Distribution>
             struct GetRandomType
             {
-                typedef typename T_Distribution::template applyMethod<RNGMethod>::type Distribution;
-                typedef Random<Distribution, RNGMethod, RNGState*> type;
+                using Distribution = typename T_Distribution::template applyMethod<RNGMethod>::type;
+                using type = Random<Distribution, RNGMethod, RNGState*>;
             };
 
             /**

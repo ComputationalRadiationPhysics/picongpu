@@ -44,21 +44,21 @@ namespace pmacc
             this->device = &dst;
         }
 
-        virtual ~TaskCopyHostToDeviceBase()
+        ~TaskCopyHostToDeviceBase() override
         {
             notify(this->myId, COPYHOST2DEVICE, nullptr);
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             return isFinished();
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        virtual void init()
+        void init() override
         {
             size_t current_size = host->getCurrentSize();
             DataSpace<DIM> hostCurrentSize = host->getCurrentDataSpace(current_size);
@@ -76,7 +76,7 @@ namespace pmacc
             this->activate();
         }
 
-        std::string toString()
+        std::string toString() override
         {
             return "TaskCopyHostToDevice";
         }
@@ -109,7 +109,7 @@ namespace pmacc
         }
 
     private:
-        virtual void copy(DataSpace<DIM1>& hostCurrentSize)
+        void copy(DataSpace<DIM1>& hostCurrentSize) override
         {
             CUDA_CHECK(cuplaMemcpyAsync(
                 this->device->getPointer(), /*pointer include X offset*/
@@ -130,7 +130,7 @@ namespace pmacc
         }
 
     private:
-        virtual void copy(DataSpace<DIM2>& hostCurrentSize)
+        void copy(DataSpace<DIM2>& hostCurrentSize) override
         {
             CUDA_CHECK(cuplaMemcpy2DAsync(
                 this->device->getPointer(),
@@ -154,7 +154,7 @@ namespace pmacc
         }
 
     private:
-        virtual void copy(DataSpace<DIM3>& hostCurrentSize)
+        void copy(DataSpace<DIM3>& hostCurrentSize) override
         {
             cuplaPitchedPtr hostPtr;
             hostPtr.pitch = this->host->getDataSpace()[0] * sizeof(TYPE);

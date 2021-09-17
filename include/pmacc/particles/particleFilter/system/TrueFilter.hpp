@@ -30,9 +30,7 @@ namespace pmacc
     class TrueFilter
     {
     public:
-        HDINLINE TrueFilter()
-        {
-        }
+        HDINLINE TrueFilter() = default;
 
         template<class FRAME>
         HDINLINE bool operator()(FRAME&, lcellId_t)

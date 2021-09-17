@@ -62,7 +62,7 @@ namespace picongpu
                     return float_X(0.0);
                 }
 
-                float_X exponent = float_X(0.0);
+                auto exponent = float_X(0.0);
                 if(globalCellPos.y() < gas_center_left)
                 {
                     exponent = math::abs((globalCellPos.y() - gas_center_left) / gas_sigma_left);

@@ -70,7 +70,8 @@ namespace pmacc
         /**
          * Destructor.
          */
-        virtual ~DeviceBuffer(){};
+        ~DeviceBuffer() override = default;
+        ;
 
         HINLINE
         container::CartBuffer<
@@ -127,7 +128,7 @@ namespace pmacc
          *
          * @param size count of elements per dimension
          */
-        virtual void setCurrentSize(const size_t size) = 0;
+        void setCurrentSize(const size_t size) override = 0;
 
         /**
          * Returns the internal pitched cupla pointer.

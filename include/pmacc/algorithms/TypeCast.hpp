@@ -30,7 +30,7 @@ namespace pmacc
             template<typename CastToType, typename Type>
             struct TypeCast
             {
-                typedef CastToType result;
+                using result = CastToType;
 
                 HDINLINE result operator()(const Type& value) const
                 {

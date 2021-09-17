@@ -33,9 +33,7 @@ namespace picongpu
                 class FreqFunctor
                 {
                 public:
-                    FreqFunctor(void)
-                    {
-                    }
+                    FreqFunctor(void) = default;
 
                     HDINLINE float_X operator()(const int ID)
                     {
@@ -51,9 +49,7 @@ namespace picongpu
                 class InitFreqFunctor
                 {
                 public:
-                    InitFreqFunctor(void)
-                    {
-                    }
+                    InitFreqFunctor(void) = default;
 
                     HINLINE void Init(const std::string path)
                     {
@@ -62,7 +58,7 @@ namespace picongpu
 
                     HINLINE FreqFunctor getFunctor(void)
                     {
-                        return FreqFunctor();
+                        return {};
                     }
                 }; // InitFreqFunctor
 

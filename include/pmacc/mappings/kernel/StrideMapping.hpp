@@ -53,7 +53,7 @@ namespace pmacc
     class StrideMapping<areaType, stride, baseClass<DIM, SuperCellSize_>> : public baseClass<DIM, SuperCellSize_>
     {
     public:
-        typedef baseClass<DIM, SuperCellSize_> BaseClass;
+        using BaseClass = baseClass<DIM, SuperCellSize_>;
 
         enum
         {
@@ -63,7 +63,7 @@ namespace pmacc
         };
 
 
-        typedef typename BaseClass::SuperCellSize SuperCellSize;
+        using SuperCellSize = typename BaseClass::SuperCellSize;
 
         HINLINE StrideMapping(BaseClass base) : BaseClass(base), offset()
         {

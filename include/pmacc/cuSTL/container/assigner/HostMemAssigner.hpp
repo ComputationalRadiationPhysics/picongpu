@@ -41,13 +41,13 @@ namespace pmacc
         struct HostMemAssigner
         {
             static constexpr int dim = T_Dim::value;
-            typedef T_CartBuffer CartBuffer;
+            using CartBuffer = T_CartBuffer;
 
             template<typename Type>
             HINLINE void assign(const Type& value)
             {
                 // "Curiously recurring template pattern"
-                CartBuffer* buffer = static_cast<CartBuffer*>(this);
+                auto* buffer = static_cast<CartBuffer*>(this);
 
                 // get a host accelerator
                 auto hostDev = cupla::manager::Device<cupla::AccHost>::get().device();

@@ -35,7 +35,7 @@ namespace pmacc
     template<typename T_Type>
     struct TypeToPair
     {
-        typedef bmpl::pair<T_Type, T_Type> type;
+        using type = bmpl::pair<T_Type, T_Type>;
     };
 
 

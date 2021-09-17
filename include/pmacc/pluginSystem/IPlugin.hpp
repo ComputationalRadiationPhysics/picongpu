@@ -54,13 +54,9 @@ namespace pmacc
     class IPlugin : public INotify
     {
     public:
-        IPlugin() : loaded(false), lastCheckpoint(0)
-        {
-        }
+        IPlugin() = default;
 
-        virtual ~IPlugin()
-        {
-        }
+        ~IPlugin() override = default;
 
         virtual void load()
         {
@@ -156,7 +152,7 @@ namespace pmacc
             /* override this function if necessary */
         }
 
-        bool loaded;
-        uint32_t lastCheckpoint;
+        bool loaded{false};
+        uint32_t lastCheckpoint{0};
     };
 } // namespace pmacc

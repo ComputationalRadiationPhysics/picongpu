@@ -43,11 +43,11 @@ namespace pmacc
                     T_RNGMethod,
                     typename bmpl::if_c<std::is_integral<T_Type>::value && sizeof(T_Type) <= 4, void, T_Type>::type>
                 {
-                    typedef T_RNGMethod RNGMethod;
-                    typedef typename RNGMethod::StateType StateType;
+                    using RNGMethod = T_RNGMethod;
+                    using StateType = typename RNGMethod::StateType;
 
                 public:
-                    typedef T_Type result_type;
+                    using result_type = T_Type;
 
                     template<typename T_Acc>
                     DINLINE result_type operator()(T_Acc const& acc, StateType& state)

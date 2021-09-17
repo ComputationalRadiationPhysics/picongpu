@@ -49,10 +49,10 @@ namespace picongpu
         PluginClass* pluginClass;
 
 
-        MappingDesc* mappingDesc;
+        MappingDesc* mappingDesc{nullptr};
 
     public:
-        SimulationStarter() : mappingDesc(nullptr)
+        SimulationStarter()
         {
             simulationClass = new SimulationClass();
             initClass = new InitClass();
@@ -60,19 +60,19 @@ namespace picongpu
             pluginClass = new PluginClass();
         }
 
-        virtual ~SimulationStarter()
+        ~SimulationStarter() override
         {
             __delete(initClass);
             __delete(pluginClass);
             __delete(simulationClass);
         }
 
-        virtual std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return "PIConGPU simulation starter";
         }
 
-        virtual void start()
+        void start() override
         {
             PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
             pluginConnector.loadPlugins();
@@ -81,15 +81,15 @@ namespace picongpu
             simulationClass->startSimulation();
         }
 
-        virtual void pluginRegisterHelp(po::options_description&)
+        void pluginRegisterHelp(po::options_description&) override
         {
         }
 
-        void notify(uint32_t)
+        void notify(uint32_t) override
         {
         }
 
-        ArgsParser::Status parseConfigs(int argc, char** argv)
+        ArgsParser::Status parseConfigs(int argc, char** argv) override
         {
             ArgsParser& ap = ArgsParser::getInstance();
             PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
@@ -119,7 +119,7 @@ namespace picongpu
         }
 
     protected:
-        void pluginLoad()
+        void pluginLoad() override
         {
             simulationClass->load();
             mappingDesc = simulationClass->getMappingDescription();
@@ -127,7 +127,7 @@ namespace picongpu
             initClass->setMappingDescription(mappingDesc);
         }
 
-        void pluginUnload()
+        void pluginUnload() override
         {
             PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
             pluginConnector.unloadPlugins();

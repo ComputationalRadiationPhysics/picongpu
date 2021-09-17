@@ -48,7 +48,7 @@ namespace pmacc
         {
         }
 
-        virtual void init()
+        void init() override
         {
             state = Init;
             lastReceiveEvent = parBase.getParticlesBuffer().asyncReceiveParticles(initDependency, exchange);
@@ -56,7 +56,7 @@ namespace pmacc
             state = WaitForReceive;
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             switch(state)
             {
@@ -106,16 +106,16 @@ namespace pmacc
             return false;
         }
 
-        virtual ~TaskReceiveParticlesExchange()
+        ~TaskReceiveParticlesExchange() override
         {
             notify(this->myId, RECVFINISHED, nullptr);
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        std::string toString()
+        std::string toString() override
         {
             return "TaskReceiveParticlesExchange";
         }

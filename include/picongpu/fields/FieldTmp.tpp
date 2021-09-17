@@ -76,44 +76,44 @@ namespace picongpu
          */
         const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout().getDataSpaceWithoutGuarding();
 
-        typedef typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, interpolation<>>::type
-            VectorSpeciesWithInterpolation;
+        using VectorSpeciesWithInterpolation =
+            typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, interpolation<>>::type;
 
         /* ------------------ lower margin  ----------------------------------*/
-        typedef bmpl::accumulate<
+        using SpeciesLowerMargin = bmpl::accumulate<
             VectorSpeciesWithInterpolation,
             typename pmacc::math::CT::make_Int<simDim, 0>::type,
-            pmacc::math::CT::max<bmpl::_1, GetLowerMargin<GetInterpolation<bmpl::_2>>>>::type SpeciesLowerMargin;
+            pmacc::math::CT::max<bmpl::_1, GetLowerMargin<GetInterpolation<bmpl::_2>>>>::type;
 
-        typedef bmpl::accumulate<
+        using FieldTmpLowerMargin = bmpl::accumulate<
             FieldTmpSolvers,
             typename pmacc::math::CT::make_Int<simDim, 0>::type,
-            pmacc::math::CT::max<bmpl::_1, GetLowerMargin<bmpl::_2>>>::type FieldTmpLowerMargin;
+            pmacc::math::CT::max<bmpl::_1, GetLowerMargin<bmpl::_2>>>::type;
 
-        typedef pmacc::math::CT::max<SpeciesLowerMargin, FieldTmpLowerMargin>::type SpeciesFieldTmpLowerMargin;
+        using SpeciesFieldTmpLowerMargin = pmacc::math::CT::max<SpeciesLowerMargin, FieldTmpLowerMargin>::type;
 
         using FieldSolverLowerMargin = GetLowerMargin<fields::Solver>::type;
 
-        typedef pmacc::math::CT::max<SpeciesFieldTmpLowerMargin, FieldSolverLowerMargin>::type LowerMargin;
+        using LowerMargin = pmacc::math::CT::max<SpeciesFieldTmpLowerMargin, FieldSolverLowerMargin>::type;
 
 
         /* ------------------ upper margin  -----------------------------------*/
 
-        typedef bmpl::accumulate<
+        using SpeciesUpperMargin = bmpl::accumulate<
             VectorSpeciesWithInterpolation,
             typename pmacc::math::CT::make_Int<simDim, 0>::type,
-            pmacc::math::CT::max<bmpl::_1, GetUpperMargin<GetInterpolation<bmpl::_2>>>>::type SpeciesUpperMargin;
+            pmacc::math::CT::max<bmpl::_1, GetUpperMargin<GetInterpolation<bmpl::_2>>>>::type;
 
-        typedef bmpl::accumulate<
+        using FieldTmpUpperMargin = bmpl::accumulate<
             FieldTmpSolvers,
             typename pmacc::math::CT::make_Int<simDim, 0>::type,
-            pmacc::math::CT::max<bmpl::_1, GetUpperMargin<bmpl::_2>>>::type FieldTmpUpperMargin;
+            pmacc::math::CT::max<bmpl::_1, GetUpperMargin<bmpl::_2>>>::type;
 
-        typedef pmacc::math::CT::max<SpeciesUpperMargin, FieldTmpUpperMargin>::type SpeciesFieldTmpUpperMargin;
+        using SpeciesFieldTmpUpperMargin = pmacc::math::CT::max<SpeciesUpperMargin, FieldTmpUpperMargin>::type;
 
         using FieldSolverUpperMargin = GetUpperMargin<fields::Solver>::type;
 
-        typedef pmacc::math::CT::max<SpeciesFieldTmpUpperMargin, FieldSolverUpperMargin>::type UpperMargin;
+        using UpperMargin = pmacc::math::CT::max<SpeciesFieldTmpUpperMargin, FieldSolverUpperMargin>::type;
 
         const DataSpace<simDim> originGuard(LowerMargin().toRT());
         const DataSpace<simDim> endGuard(UpperMargin().toRT());
@@ -164,11 +164,10 @@ namespace picongpu
     template<uint32_t AREA, class FrameSolver, typename Filter, class ParticlesClass>
     void FieldTmp::computeValue(ParticlesClass& parClass, uint32_t)
     {
-        typedef SuperCellDescription<
+        using BlockArea = SuperCellDescription<
             typename MappingDesc::SuperCellSize,
             typename FrameSolver::LowerMargin,
-            typename FrameSolver::UpperMargin>
-            BlockArea;
+            typename FrameSolver::UpperMargin>;
 
         auto mapper = makeStrideAreaMapper<AREA, 3>(cellDescription);
         typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox();

@@ -131,7 +131,7 @@ namespace pmacc
             }
 
         protected:
-            size_t reservedMem;
+            size_t reservedMem{0};
 
         private:
             friend struct detail::Environment;
@@ -142,9 +142,7 @@ namespace pmacc
                 return instance;
             }
 
-            MemoryInfo() : reservedMem(0)
-            {
-            }
+            MemoryInfo() = default;
         };
 
     } // namespace device

@@ -39,7 +39,7 @@ namespace pmacc
         template<typename T_Object>
         struct Resolve
         {
-            typedef T_Object type;
+            using type = T_Object;
         };
 
     } // namespace traits

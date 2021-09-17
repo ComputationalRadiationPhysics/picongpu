@@ -37,7 +37,7 @@ namespace pmacc
     template<typename T_Type>
     struct ToSeq
     {
-        typedef typename bmpl::if_<bmpl::is_sequence<T_Type>, T_Type, bmpl::vector1<T_Type>>::type type;
+        using type = typename bmpl::if_<bmpl::is_sequence<T_Type>, T_Type, bmpl::vector1<T_Type>>::type;
     };
 
 } // namespace pmacc

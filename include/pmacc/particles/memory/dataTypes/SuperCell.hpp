@@ -32,7 +32,7 @@ namespace pmacc
     class SuperCell
     {
     public:
-        HDINLINE SuperCell() : firstFramePtr(nullptr), lastFramePtr(nullptr), numParticles(0), mustShiftVal(false)
+        HDINLINE SuperCell() : firstFramePtr(nullptr), lastFramePtr(nullptr)
         {
         }
 
@@ -87,8 +87,8 @@ namespace pmacc
         PMACC_ALIGN(lastFramePtr, T_FrameType*);
 
     private:
-        PMACC_ALIGN(numParticles, uint32_t);
-        PMACC_ALIGN(mustShiftVal, bool);
+        PMACC_ALIGN(numParticles, uint32_t){0};
+        PMACC_ALIGN(mustShiftVal, bool){false};
     };
 
 } // namespace pmacc

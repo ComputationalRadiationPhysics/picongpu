@@ -44,14 +44,14 @@ namespace pmacc
     {
     private:
         PMACC_ALIGN(m_deviceHeapHandle, T_DeviceHeapHandle);
-        PMACC_ALIGN(hostMemoryOffset, int64_t);
+        PMACC_ALIGN(hostMemoryOffset, int64_t){0};
 
     public:
-        typedef T_Frame FrameType;
-        typedef FramePointer<FrameType> FramePtr;
-        typedef SuperCell<FrameType> SuperCellType;
-        typedef DataBox<PitchedBox<SuperCell<FrameType>, DIM>> BaseType;
-        typedef T_DeviceHeapHandle DeviceHeapHandle;
+        using FrameType = T_Frame;
+        using FramePtr = FramePointer<FrameType>;
+        using SuperCellType = SuperCell<FrameType>;
+        using BaseType = DataBox<PitchedBox<SuperCell<FrameType>, DIM>>;
+        using DeviceHeapHandle = T_DeviceHeapHandle;
 
         static constexpr uint32_t Dim = DIM;
 
@@ -60,16 +60,14 @@ namespace pmacc
          * \warning after this call the object is in a invalid state and must be
          * initialized with an assignment of a valid ParticleBox
          */
-        HDINLINE ParticlesBox() : hostMemoryOffset(0)
-        {
-        }
+        HDINLINE ParticlesBox() = default;
 
         HDINLINE ParticlesBox(
             const DataBox<PitchedBox<SuperCellType, DIM>>& superCells,
             const DeviceHeapHandle& deviceHeapHandle)
             : BaseType(superCells)
             , m_deviceHeapHandle(deviceHeapHandle)
-            , hostMemoryOffset(0)
+
         {
         }
 
@@ -148,7 +146,7 @@ namespace pmacc
 #if(CUPLA_DEVICE_COMPILE == 1)
             return devPtr;
 #else
-            int64_t useOffset = hostMemoryOffset * static_cast<int64_t>(devPtr.ptr != 0);
+            int64_t useOffset = hostMemoryOffset * static_cast<int64_t>(devPtr.ptr != nullptr);
             return FramePtr(reinterpret_cast<FrameType*>(reinterpret_cast<char*>(devPtr.ptr) - useOffset));
 #endif
         }

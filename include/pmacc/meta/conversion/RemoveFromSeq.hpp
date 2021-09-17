@@ -41,10 +41,10 @@ namespace pmacc
         template<typename T_Value>
         struct hasId
         {
-            typedef bmpl::contains<T_MPLSeqObjectsToRemove, T_Value> type;
+            using type = bmpl::contains<T_MPLSeqObjectsToRemove, T_Value>;
         };
 
-        typedef typename bmpl::remove_if<T_MPLSeqSrc, hasId<bmpl::_>>::type type;
+        using type = typename bmpl::remove_if<T_MPLSeqSrc, hasId<bmpl::_>>::type;
     };
 
 } // namespace pmacc

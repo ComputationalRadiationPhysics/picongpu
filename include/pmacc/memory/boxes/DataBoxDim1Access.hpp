@@ -32,12 +32,12 @@ namespace pmacc
     class DataBoxDim1Access : protected T_Base
     {
     public:
-        typedef T_Base Base;
+        using Base = T_Base;
         static constexpr uint32_t Dim = Base::Dim;
 
 
-        typedef typename Base::ValueType ValueType;
-        typedef typename Base::RefValueType RefValueType;
+        using ValueType = typename Base::ValueType;
+        using RefValueType = typename Base::RefValueType;
 
 
         HDINLINE RefValueType operator()(const pmacc::DataSpace<DIM1>& idx = pmacc::DataSpace<DIM1>()) const

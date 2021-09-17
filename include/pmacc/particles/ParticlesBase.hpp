@@ -44,32 +44,31 @@ namespace pmacc
     template<typename T_ParticleDescription, class T_MappingDesc, typename T_DeviceHeap>
     class ParticlesBase : public SimulationFieldHelper<T_MappingDesc>
     {
-        typedef T_ParticleDescription ParticleDescription;
-        typedef T_MappingDesc MappingDesc;
+        using ParticleDescription = T_ParticleDescription;
+        using MappingDesc = T_MappingDesc;
 
     public:
         /* Type of used particles buffer
          */
-        typedef ParticlesBuffer<
+        using BufferType = ParticlesBuffer<
             ParticleDescription,
             typename MappingDesc::SuperCellSize,
             T_DeviceHeap,
-            MappingDesc::Dim>
-            BufferType;
+            MappingDesc::Dim>;
 
         /* Type of frame in particles buffer
          */
-        typedef typename BufferType::FrameType FrameType;
+        using FrameType = typename BufferType::FrameType;
         /* Type of border frame in a particle buffer
          */
-        typedef typename BufferType::FrameTypeBorder FrameTypeBorder;
+        using FrameTypeBorder = typename BufferType::FrameTypeBorder;
 
         /* Type of the particle box which particle buffer create
          */
-        typedef typename BufferType::ParticlesBoxType ParticlesBoxType;
+        using ParticlesBoxType = typename BufferType::ParticlesBoxType;
 
         /* Policies for handling particles in guard cells */
-        typedef typename ParticleDescription::HandleGuardRegion HandleGuardRegion;
+        using HandleGuardRegion = typename ParticleDescription::HandleGuardRegion;
 
         enum
         {
@@ -79,14 +78,14 @@ namespace pmacc
         };
 
         /* Mark this simulation data as a particle type */
-        typedef ParticlesTag SimulationDataTag;
+        using SimulationDataTag = ParticlesTag;
 
     protected:
         BufferType* particlesBuffer;
 
         ParticlesBase(const std::shared_ptr<T_DeviceHeap>& deviceHeap, MappingDesc description)
             : SimulationFieldHelper<MappingDesc>(description)
-            , particlesBuffer(NULL)
+            , particlesBuffer(nullptr)
         {
             particlesBuffer = new BufferType(
                 deviceHeap,
@@ -94,7 +93,7 @@ namespace pmacc
                 MappingDesc::SuperCellSize::toRT());
         }
 
-        virtual ~ParticlesBase()
+        ~ParticlesBase() override
         {
             delete this->particlesBuffer;
         }
@@ -217,7 +216,7 @@ namespace pmacc
         }
 
         /* set all internal objects to initial state*/
-        virtual void reset(uint32_t currentStep);
+        void reset(uint32_t currentStep) override;
     };
 
 } // namespace pmacc

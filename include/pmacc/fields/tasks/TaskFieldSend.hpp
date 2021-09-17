@@ -44,7 +44,7 @@ namespace pmacc
         {
         }
 
-        virtual void init()
+        void init() override
         {
             m_state = Init;
             EventTask serialEvent = __getTransactionEvent();
@@ -61,7 +61,7 @@ namespace pmacc
             m_state = WaitForSend;
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             switch(m_state)
             {
@@ -76,16 +76,16 @@ namespace pmacc
             return false;
         }
 
-        virtual ~TaskFieldSend()
+        ~TaskFieldSend() override
         {
             notify(this->myId, SENDFINISHED, nullptr);
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        std::string toString()
+        std::string toString() override
         {
             return "TaskFieldSend";
         }

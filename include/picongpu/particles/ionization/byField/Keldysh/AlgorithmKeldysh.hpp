@@ -89,7 +89,7 @@ namespace picongpu
                             * math::sqrt(float_X(1.) / charExpArg) * math::exp(-float_X(2. / 3.) * charExpArg);
 
                         /* simulation time step in atomic units */
-                        const float_X timeStepAU = float_X(DELTA_T / ATOMIC_UNIT_TIME);
+                        const auto timeStepAU = float_X(DELTA_T / ATOMIC_UNIT_TIME);
                         /* ionization probability
                          *
                          * probability = rate * time step

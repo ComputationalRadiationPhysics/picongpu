@@ -42,12 +42,10 @@ namespace pmacc
          */
         struct StringProperty : public std::map<std::string, StringProperty>
         {
-            typedef std::map<std::string, StringProperty> StringPropertyMap;
+            using StringPropertyMap = std::map<std::string, StringProperty>;
 
             //! empty constructor
-            StringProperty()
-            {
-            }
+            StringProperty() = default;
 
             /** constructor
              *

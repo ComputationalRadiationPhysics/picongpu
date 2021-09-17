@@ -56,9 +56,7 @@ namespace picongpu
 
                     /** Device-Side Constructor
                      */
-                    HDINLINE None()
-                    {
-                    }
+                    HDINLINE None() = default;
 
                     /** device side manipulation for init plane (transversal)
                      *

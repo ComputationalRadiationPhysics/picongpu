@@ -314,7 +314,7 @@ namespace pmacc
             {
                 MPI_StructAsArray operator()() const
                 {
-                    return MPI_StructAsArray(MPI_FLOAT, T_dim);
+                    return {MPI_FLOAT, T_dim};
                 }
             };
 
@@ -323,7 +323,7 @@ namespace pmacc
             {
                 MPI_StructAsArray operator()() const
                 {
-                    return MPI_StructAsArray(MPI_FLOAT, T_dim * T_N);
+                    return {MPI_FLOAT, T_dim * T_N};
                 }
             };
 
@@ -332,7 +332,7 @@ namespace pmacc
             {
                 MPI_StructAsArray operator()() const
                 {
-                    return MPI_StructAsArray(MPI_DOUBLE, T_dim);
+                    return {MPI_DOUBLE, T_dim};
                 }
             };
 
@@ -341,7 +341,7 @@ namespace pmacc
             {
                 MPI_StructAsArray operator()() const
                 {
-                    return MPI_StructAsArray(MPI_DOUBLE, T_dim * T_N);
+                    return {MPI_DOUBLE, T_dim * T_N};
                 }
             };
 

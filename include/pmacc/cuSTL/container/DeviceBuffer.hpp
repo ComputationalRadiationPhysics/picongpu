@@ -57,21 +57,18 @@ namespace pmacc
                   assigner::DeviceMemAssigner<>>
         {
         private:
-            typedef CartBuffer<
+            using Base = CartBuffer<
                 Type,
                 T_dim,
                 allocator::DeviceMemAllocator<Type, T_dim>,
                 copier::D2DCopier<T_dim>,
-                assigner::DeviceMemAssigner<>>
-                Base;
+                assigner::DeviceMemAssigner<>>;
 
         protected:
-            HDINLINE DeviceBuffer()
-            {
-            }
+            HDINLINE DeviceBuffer() = default;
 
         public:
-            typedef typename Base::PitchType PitchType;
+            using PitchType = typename Base::PitchType;
 
             /* constructors
              *

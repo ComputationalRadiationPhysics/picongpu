@@ -33,7 +33,7 @@ namespace pmacc
     template<typename T_Attribute>
     struct SetAttributeToDefault
     {
-        typedef T_Attribute Attribute;
+        using Attribute = T_Attribute;
 
         /** set an attribute to their default value
          *
@@ -42,7 +42,7 @@ namespace pmacc
         template<typename T_Particle>
         HDINLINE void operator()(T_Particle& particle)
         {
-            typedef typename pmacc::traits::Resolve<Attribute>::type ResolvedAttr;
+            using ResolvedAttr = typename pmacc::traits::Resolve<Attribute>::type;
             /* set attribute to it's user defined default value */
             particle[Attribute()] = ResolvedAttr::getValue();
         }

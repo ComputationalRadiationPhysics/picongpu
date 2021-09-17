@@ -35,12 +35,12 @@ namespace pmacc
         {
         }
 
-        virtual ~TaskKernel()
+        ~TaskKernel() override
         {
             notify(this->myId, KERNEL, nullptr);
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             if(canBeChecked)
             {
@@ -49,18 +49,18 @@ namespace pmacc
             return false;
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
         HINLINE void activateChecks();
 
-        virtual std::string toString()
+        std::string toString() override
         {
             return std::string("TaskKernel ") + kernelName;
         }
 
-        virtual void init()
+        void init() override
         {
         }
 

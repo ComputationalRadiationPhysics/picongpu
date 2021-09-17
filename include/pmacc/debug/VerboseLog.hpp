@@ -64,7 +64,7 @@ namespace pmacc
     template<uint64_t lvl_, class membership_>
     struct LogLvl
     {
-        typedef membership_ Parent;
+        using Parent = membership_;
         static constexpr uint64_t lvl = lvl_;
 
         /* This operation is only allowed for LogLvl with the same Parent type.
@@ -83,7 +83,7 @@ namespace pmacc
         class VerboseLog
         {
         private:
-            typedef typename LogLevel::Parent LogParent;
+            using LogParent = typename LogLevel::Parent;
             static constexpr uint64_t logLvl = LogLevel::lvl;
 
         public:
@@ -93,7 +93,7 @@ namespace pmacc
 
             ~VerboseLog()
             {
-                typedef LogLvl<(logLvl & LogParent::log_level), LogParent> LogClass;
+                using LogClass = LogLvl<(logLvl & LogParent::log_level), LogParent>;
                 /* check if a bit in the mask is set
                  * If you get an linker error in the next two lines you have not used
                  * DEFINE_LOGLVL makro to define a named logLvl

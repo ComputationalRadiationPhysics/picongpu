@@ -81,9 +81,11 @@ namespace pmacc
             return instance;
         }
 
-        ParticleFactory(){};
+        ParticleFactory() = default;
+        ;
 
-        ParticleFactory(const ParticleFactory&){};
+        ParticleFactory(const ParticleFactory&) = default;
+        ;
     };
 
 } // namespace pmacc

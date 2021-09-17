@@ -61,22 +61,20 @@ namespace picongpu
                     Environment<>::get().PluginConnector().registerPlugin(this);
                 }
 
-                virtual ~Master()
-                {
-                }
+                ~Master() override = default;
 
-                std::string pluginGetName() const
+                std::string pluginGetName() const override
                 {
                     // the PMacc plugin system needs a short description instead of the plugin name
                     return slaveHelp->getName() + ": " + slaveHelp->getDescription();
                 }
 
-                void pluginRegisterHelp(boost::program_options::options_description& desc)
+                void pluginRegisterHelp(boost::program_options::options_description& desc) override
                 {
                     slaveHelp->registerHelp(desc);
                 }
 
-                void setMappingDescription(MappingDesc* cellDescription)
+                void setMappingDescription(MappingDesc* cellDescription) override
                 {
                     m_cellDescription = cellDescription;
                 }
@@ -85,7 +83,7 @@ namespace picongpu
                  *
                  * Trigger the method restart() for all slave instances.
                  */
-                void restart(uint32_t restartStep, std::string const restartDirectory)
+                void restart(uint32_t restartStep, std::string const restartDirectory) override
                 {
                     for(auto& slave : slaveList)
                         slave->restart(restartStep, restartDirectory);
@@ -98,7 +96,7 @@ namespace picongpu
                  * @param speciesName name of the particle species
                  * @param direction the direction the particles are leaving the simulation
                  */
-                void onParticleLeave(const std::string& speciesName, const int32_t direction)
+                void onParticleLeave(const std::string& speciesName, const int32_t direction) override
                 {
                     for(auto& slave : slaveList)
                         slave->onParticleLeave(speciesName, direction);
@@ -108,14 +106,14 @@ namespace picongpu
                  *
                  * Trigger the method checkpoint() for all slave instances.
                  */
-                void checkpoint(uint32_t currentStep, std::string const checkpointDirectory)
+                void checkpoint(uint32_t currentStep, std::string const checkpointDirectory) override
                 {
                     for(auto& slave : slaveList)
                         slave->checkpoint(currentStep, checkpointDirectory);
                 }
 
             private:
-                void pluginLoad()
+                void pluginLoad() override
                 {
                     size_t const numSlaves = slaveHelp->getNumPlugins();
                     if(numSlaves > 0u)
@@ -126,12 +124,12 @@ namespace picongpu
                     }
                 }
 
-                void pluginUnload()
+                void pluginUnload() override
                 {
                     slaveList.clear();
                 }
 
-                void notify(uint32_t currentStep)
+                void notify(uint32_t currentStep) override
                 {
                     // nothing to do here
                 }

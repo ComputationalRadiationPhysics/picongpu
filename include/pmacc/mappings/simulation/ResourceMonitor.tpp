@@ -54,9 +54,7 @@ namespace pmacc
     };
 
     template<unsigned T_DIM>
-    ResourceMonitor<T_DIM>::ResourceMonitor()
-    {
-    }
+    ResourceMonitor<T_DIM>::ResourceMonitor() = default;
 
     template<unsigned T_DIM>
     size_t ResourceMonitor<T_DIM>::getCellCount()
@@ -70,7 +68,7 @@ namespace pmacc
         T_MappingDesc& cellDescription,
         T_ParticleFilter& parFilter)
     {
-        typedef bmpl::integral_c<unsigned, T_DIM> dim;
+        using dim = bmpl::integral_c<unsigned int, T_DIM>;
         std::vector<size_t> particleCounts;
         meta::ForEach<T_Species, MyCountParticles<dim, bmpl::_1>> countParticles;
         countParticles(particleCounts, cellDescription, parFilter);

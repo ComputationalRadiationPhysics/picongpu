@@ -31,13 +31,9 @@ namespace picongpu
     class IIOBackend : public plugins::multi::ISlave
     {
     public:
-        IIOBackend()
-        {
-        }
+        IIOBackend() = default;
 
-        virtual ~IIOBackend()
-        {
-        }
+        ~IIOBackend() override = default;
 
         //! create a checkpoint
         virtual void dumpCheckpoint(

@@ -87,8 +87,8 @@ namespace picongpu
             using Solver = picongpu::currentSolver::Esirkepov<T_ParticleShape, T_Strategy, T_dim>;
 
         public:
-            typedef typename Solver::LowerMargin LowerMargin;
-            typedef typename Solver::UpperMargin UpperMargin;
+            using LowerMargin = typename Solver::LowerMargin;
+            using UpperMargin = typename Solver::UpperMargin;
         };
 
     } // namespace traits

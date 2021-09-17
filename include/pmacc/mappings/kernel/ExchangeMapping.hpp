@@ -49,7 +49,7 @@ namespace pmacc
         uint32_t exchangeType;
 
     public:
-        typedef baseClass<DIM, SuperCellSize_> BaseClass;
+        using BaseClass = baseClass<DIM, SuperCellSize_>;
 
         enum
         {
@@ -57,7 +57,7 @@ namespace pmacc
         };
 
 
-        typedef typename BaseClass::SuperCellSize SuperCellSize;
+        using SuperCellSize = typename BaseClass::SuperCellSize;
 
         /**
          * Constructor.

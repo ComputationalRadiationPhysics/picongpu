@@ -70,15 +70,15 @@ namespace pmacc
             template<typename T_SpeciesType, template<typename, typename> class T_Object, typename T_AnyType>
             struct ResolveAliasFromSpecies<T_SpeciesType, T_Object<T_AnyType, pmacc::pmacc_isAlias>>
             {
-                typedef T_SpeciesType SpeciesType;
-                typedef T_Object<T_AnyType, pmacc::pmacc_isAlias> Alias;
-                typedef typename SpeciesType::FrameType FrameType;
+                using SpeciesType = T_SpeciesType;
+                using Alias = T_Object<T_AnyType, pmacc::pmacc_isAlias>;
+                using FrameType = typename SpeciesType::FrameType;
 
                 /* The following line only fetches the alias */
-                typedef typename pmacc::traits::GetFlagType<FrameType, Alias>::type FoundAlias;
+                using FoundAlias = typename pmacc::traits::GetFlagType<FrameType, Alias>::type;
 
                 /* This now resolves the alias into the actual object type */
-                typedef typename pmacc::traits::Resolve<FoundAlias>::type type;
+                using type = typename pmacc::traits::Resolve<FoundAlias>::type;
             }; // struct ResolveAliasFromSpecies
 
         } // namespace traits

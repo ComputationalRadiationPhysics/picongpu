@@ -95,7 +95,8 @@ namespace pmacc
         /**
          * Destructor.
          */
-        virtual ~HostBuffer(){};
+        ~HostBuffer() override = default;
+        ;
 
         /**
          * Conversion to cuSTL HostBuffer.

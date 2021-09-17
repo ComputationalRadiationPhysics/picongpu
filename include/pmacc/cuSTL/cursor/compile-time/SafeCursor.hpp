@@ -37,7 +37,7 @@ namespace pmacc
             class SafeCursor : public Cursor
             {
             private:
-                typedef SafeCursor<Cursor, LowerExtent, UpperExtent> This;
+                using This = SafeCursor<Cursor, LowerExtent, UpperExtent>;
                 static constexpr int dim = pmacc::cursor::traits::dim<Cursor>::value;
                 math::Int<dim> offset;
 

@@ -74,7 +74,7 @@ namespace picongpu
         HINLINE FieldTmp(MappingDesc const& cellDescription, uint32_t slotId);
 
         //! Destroy a field
-        virtual ~FieldTmp() = default;
+        ~FieldTmp() override = default;
 
         //! Get a reference to the host-device buffer for the field values
         HINLINE GridBuffer<ValueType, simDim>& getGridBuffer();

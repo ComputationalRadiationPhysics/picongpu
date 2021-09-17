@@ -40,8 +40,8 @@ namespace pmacc
             {
                 Dim = DIM1
             };
-            typedef typename Base::ValueType ValueType;
-            typedef typename Base::RefValueType RefValueType;
+            using ValueType = typename Base::ValueType;
+            using RefValueType = typename Base::RefValueType;
 
             HDINLINE RefValueType operator()(const DataSpace<DIM1>& idx = DataSpace<DIM1>()) const
             {
@@ -70,8 +70,8 @@ namespace pmacc
             {
                 Dim = DIM2
             };
-            typedef typename Base::ValueType ValueType;
-            typedef typename Base::RefValueType RefValueType;
+            using ValueType = typename Base::ValueType;
+            using RefValueType = typename Base::RefValueType;
 
             HDINLINE RefValueType operator()(const DataSpace<DIM2>& idx = DataSpace<DIM2>()) const
             {
@@ -100,8 +100,8 @@ namespace pmacc
             {
                 Dim = DIM3
             };
-            typedef typename Base::ValueType ValueType;
-            typedef typename Base::RefValueType RefValueType;
+            using ValueType = typename Base::ValueType;
+            using RefValueType = typename Base::RefValueType;
 
             HDINLINE RefValueType operator()(const DataSpace<DIM3>& idx = DataSpace<DIM3>()) const
             {
@@ -129,9 +129,9 @@ namespace pmacc
     class DataBox : public private_Box::Box<Base::Dim, Base>
     {
     public:
-        typedef typename Base::ValueType ValueType;
-        typedef DataBox<Base> Type;
-        typedef typename Base::RefValueType RefValueType;
+        using ValueType = typename Base::ValueType;
+        using Type = DataBox<Base>;
+        using RefValueType = typename Base::RefValueType;
 
         HDINLINE DataBox(Base base) : private_Box::Box<Base::Dim, Base>(base)
         {

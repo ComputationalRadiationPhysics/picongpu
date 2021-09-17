@@ -35,7 +35,7 @@ namespace pmacc
         template<>
         struct Float2int_ru<float>
         {
-            typedef int result;
+            using result = int;
 
             HDINLINE result operator()(float value)
             {
@@ -50,7 +50,7 @@ namespace pmacc
         template<>
         struct Float2int_rd<float>
         {
-            typedef int result;
+            using result = int;
 
             HDINLINE result operator()(float value)
             {
@@ -65,7 +65,7 @@ namespace pmacc
         template<>
         struct Float2int_rn<float>
         {
-            typedef int result;
+            using result = int;
 
             HDINLINE result operator()(float value)
             {
@@ -76,7 +76,7 @@ namespace pmacc
                     return -(*this)(-value);
                 float intPart;
                 float fracPart = std::modf(value, &intPart);
-                result res = static_cast<int>(intPart);
+                auto res = static_cast<int>(intPart);
                 /* epsilon in the following code is used to consider values
                  * "very close" to x.5 also as x.5
                  */

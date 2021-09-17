@@ -186,7 +186,7 @@ namespace picongpu
                             return static_cast<bool>(sourceFrame[linearIdx][multiMask_]);
                         });
                         forEachParticle([&](lockstep::Idx const idx) {
-                            bool const isParticle = static_cast<bool>(sourceFrame[idx][multiMask_]);
+                            auto const isParticle = static_cast<bool>(sourceFrame[idx][multiMask_]);
                             numNewParticlesCtx[idx] = 0u;
                             if(isParticle)
                                 /* ask the particle creator functor how many new particles to create. */

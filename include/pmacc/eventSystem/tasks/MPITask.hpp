@@ -37,7 +37,7 @@ namespace pmacc
          * Constructor.
          * Starts a MPI operation on the transaction system.
          */
-        MPITask() : ITask(), finished(false)
+        MPITask() : ITask()
         {
             this->setTaskType(ITask::TASK_MPI);
         }
@@ -45,9 +45,7 @@ namespace pmacc
         /**
          * Destructor.
          */
-        virtual ~MPITask()
-        {
-        }
+        ~MPITask() override = default;
 
     protected:
         /**
@@ -69,6 +67,6 @@ namespace pmacc
         }
 
     private:
-        bool finished;
+        bool finished{false};
     };
 } // namespace pmacc

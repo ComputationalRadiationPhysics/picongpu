@@ -38,7 +38,7 @@ namespace pmacc
     class HostBufferIntern : public HostBuffer<TYPE, DIM>
     {
     public:
-        typedef typename HostBuffer<TYPE, DIM>::DataBoxType DataBoxType;
+        using DataBoxType = typename HostBuffer<TYPE, DIM>::DataBoxType;
 
         /** constructor
          *
@@ -62,7 +62,7 @@ namespace pmacc
         /**
          * destructor
          */
-        virtual ~HostBufferIntern()
+        ~HostBufferIntern() override
         {
             __startOperation(ITask::TASK_HOST);
 
@@ -75,25 +75,25 @@ namespace pmacc
         /*! Get pointer of memory
          * @return pointer to memory
          */
-        TYPE* getBasePointer()
+        TYPE* getBasePointer() override
         {
             __startOperation(ITask::TASK_HOST);
             return pointer;
         }
 
-        TYPE* getPointer()
+        TYPE* getPointer() override
         {
             __startOperation(ITask::TASK_HOST);
             return pointer;
         }
 
-        void copyFrom(DeviceBuffer<TYPE, DIM>& other)
+        void copyFrom(DeviceBuffer<TYPE, DIM>& other) override
         {
             PMACC_ASSERT(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
             Environment<>::get().Factory().createTaskCopyDeviceToHost(other, *this);
         }
 
-        void reset(bool preserveData = true)
+        void reset(bool preserveData = true) override
         {
             __startOperation(ITask::TASK_HOST);
             this->setCurrentSize(this->getDataSpace().productOfComponents());
@@ -119,12 +119,12 @@ namespace pmacc
             }
         }
 
-        void setValue(const TYPE& value)
+        void setValue(const TYPE& value) override
         {
             __startOperation(ITask::TASK_HOST);
-            int64_t current_size = static_cast<int64_t>(this->getCurrentSize());
+            auto current_size = static_cast<int64_t>(this->getCurrentSize());
             auto memBox = getDataBox();
-            typedef DataBoxDim1Access<DataBoxType> D1Box;
+            using D1Box = DataBoxDim1Access<DataBoxType>;
             D1Box d1Box(memBox, this->getDataSpace());
 #pragma omp parallel for
             for(int64_t i = 0; i < current_size; i++)
@@ -133,7 +133,7 @@ namespace pmacc
             }
         }
 
-        DataBoxType getDataBox()
+        DataBoxType getDataBox() override
         {
             __startOperation(ITask::TASK_HOST);
             return DataBoxType(PitchedBox<TYPE, DIM>(

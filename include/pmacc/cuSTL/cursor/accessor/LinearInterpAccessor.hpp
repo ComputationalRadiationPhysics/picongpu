@@ -41,8 +41,8 @@ namespace pmacc
         template<typename T_Cursor>
         struct LinearInterpAccessor<T_Cursor, DIM1>
         {
-            typedef T_Cursor Cursor;
-            typedef typename Cursor::ValueType type;
+            using Cursor = T_Cursor;
+            using type = typename Cursor::ValueType;
 
             Cursor cursor;
 
@@ -66,7 +66,7 @@ namespace pmacc
                 const math::Int<DIM1> idx1D(static_cast<int>(intPart[0]));
 
                 type result = pmacc::traits::GetInitializedInstance<type>()(0.0);
-                typedef typename T_Position::type PositionComp;
+                using PositionComp = typename T_Position::type;
                 for(int i = 0; i < 2; i++)
                 {
                     const PositionComp weighting1D = (i == 0 ? (PositionComp(1.0) - fracPart[0]) : fracPart[0]);
@@ -80,8 +80,8 @@ namespace pmacc
         template<typename T_Cursor>
         struct LinearInterpAccessor<T_Cursor, DIM2>
         {
-            typedef T_Cursor Cursor;
-            typedef typename T_Cursor::ValueType type;
+            using Cursor = T_Cursor;
+            using type = typename T_Cursor::ValueType;
 
             Cursor cursor;
 
@@ -106,7 +106,7 @@ namespace pmacc
                 const math::Int<DIM2> idx2D(static_cast<int>(intPart[0]), static_cast<int>(intPart[1]));
 
                 type result = pmacc::traits::GetInitializedInstance<type>()(0.0);
-                typedef typename T_Position::type PositionComp;
+                using PositionComp = typename T_Position::type;
                 for(int i = 0; i < 2; i++)
                 {
                     const PositionComp weighting1D = (i == 0 ? (PositionComp(1.0) - fracPart[0]) : fracPart[0]);
@@ -125,8 +125,8 @@ namespace pmacc
         template<typename T_Cursor>
         struct LinearInterpAccessor<T_Cursor, DIM3>
         {
-            typedef T_Cursor Cursor;
-            typedef typename T_Cursor::ValueType type;
+            using Cursor = T_Cursor;
+            using type = typename T_Cursor::ValueType;
 
             Cursor cursor;
 
@@ -155,7 +155,7 @@ namespace pmacc
                     static_cast<int>(intPart[2]));
 
                 type result = pmacc::traits::GetInitializedInstance<type>()(0.0);
-                typedef typename T_Position::type PositionComp;
+                using PositionComp = typename T_Position::type;
                 for(int i = 0; i < 2; i++)
                 {
                     const PositionComp weighting1D = (i == 0 ? (PositionComp(1.0) - fracPart[0]) : fracPart[0]);

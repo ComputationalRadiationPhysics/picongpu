@@ -24,11 +24,9 @@ namespace picongpu
 {
     struct DataHeader
     {
-        uint32_t byte;
+        uint32_t byte{0};
 
-        DataHeader() : byte(0)
-        {
-        }
+        DataHeader() = default;
 
         void writeToConsole(std::ostream& ocons) const
         {

@@ -55,7 +55,7 @@ namespace pmacc
             }
 
             template<typename T_Type, typename T_Config>
-            friend class Variable;
+            friend struct Variable;
 
         private:
             /** N-th element the worker is processing */

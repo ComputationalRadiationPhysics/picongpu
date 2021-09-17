@@ -50,9 +50,9 @@ namespace pmacc
         {
         };
 
-        typedef T_MPLSeq MPLSeq;
-        typedef bmpl::inserter<bmpl::map<>, bmpl::insert<bmpl::_1, bmpl::_2>> Map_inserter;
-        typedef typename bmpl::transform<MPLSeq, Op<bmpl::_1>, Map_inserter>::type type;
+        using MPLSeq = T_MPLSeq;
+        using Map_inserter = bmpl::inserter<bmpl::map<>, bmpl::insert<bmpl::_1, bmpl::_2>>;
+        using type = typename bmpl::transform<MPLSeq, Op<bmpl::_1>, Map_inserter>::type;
     };
 
 } // namespace pmacc

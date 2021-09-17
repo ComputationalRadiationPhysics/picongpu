@@ -41,16 +41,16 @@ namespace pmacc
             template<typename T_MPLSeq, typename T_Flag>
             struct FilterByFlag
             {
-                typedef T_MPLSeq MPLSeq;
-                typedef T_Flag Flag;
+                using MPLSeq = T_MPLSeq;
+                using Flag = T_Flag;
 
                 template<typename T_Species>
                 struct HasFlag
                 {
-                    typedef typename ::pmacc::traits::HasFlag<typename T_Species::FrameType, Flag>::type type;
+                    using type = typename ::pmacc::traits::HasFlag<typename T_Species::FrameType, Flag>::type;
                 };
 
-                typedef typename bmpl::copy_if<MPLSeq, HasFlag<bmpl::_>>::type type;
+                using type = typename bmpl::copy_if<MPLSeq, HasFlag<bmpl::_>>::type;
             };
 
         } // namespace traits

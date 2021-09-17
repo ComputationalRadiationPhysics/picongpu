@@ -50,7 +50,8 @@ namespace pmacc
          */
         EventTask();
 
-        virtual ~EventTask(){};
+        virtual ~EventTask() = default;
+        ;
 
         /**
          * Returns the task id.
@@ -98,7 +99,7 @@ namespace pmacc
         std::string toString();
 
     private:
-        id_t taskId;
+        id_t taskId{0};
     };
 
 } // namespace pmacc

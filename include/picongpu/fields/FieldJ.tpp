@@ -226,17 +226,16 @@ namespace picongpu
     void FieldJ::computeCurrent(T_Species& species, uint32_t)
     {
         using FrameType = typename T_Species::FrameType;
-        typedef typename pmacc::traits::Resolve<typename GetFlagType<FrameType, current<>>::type>::type
-            ParticleCurrentSolver;
+        using ParticleCurrentSolver =
+            typename pmacc::traits::Resolve<typename GetFlagType<FrameType, current<>>::type>::type;
 
         using FrameSolver
             = currentSolver::ComputePerFrame<ParticleCurrentSolver, Velocity, MappingDesc::SuperCellSize>;
 
-        typedef SuperCellDescription<
+        using BlockArea = SuperCellDescription<
             typename MappingDesc::SuperCellSize,
             typename GetMargin<ParticleCurrentSolver>::LowerMargin,
-            typename GetMargin<ParticleCurrentSolver>::UpperMargin>
-            BlockArea;
+            typename GetMargin<ParticleCurrentSolver>::UpperMargin>;
 
         using Strategy = currentSolver::traits::GetStrategy_t<FrameSolver>;
 

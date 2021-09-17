@@ -66,9 +66,7 @@ namespace picongpu
                 using LowerMargin = typename pmacc::math::CT::make_Int<simDim, lowerMargin>::type;
                 using UpperMargin = typename pmacc::math::CT::make_Int<simDim, upperMargin>::type;
 
-                HDINLINE ComputeGridValuePerFrame()
-                {
-                }
+                HDINLINE ComputeGridValuePerFrame() = default;
 
                 /** return unit for this solver
                  *

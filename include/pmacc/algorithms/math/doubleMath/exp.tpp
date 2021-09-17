@@ -34,7 +34,7 @@ namespace pmacc
         template<>
         struct Log10<double>
         {
-            typedef double result;
+            using result = double;
 
             HDINLINE double operator()(const double& value)
             {

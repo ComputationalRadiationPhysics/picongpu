@@ -62,9 +62,7 @@ namespace pmacc
 
         /*! Default constructor.
          */
-        EnvironmentController()
-        {
-        }
+        EnvironmentController() = default;
 
         static EnvironmentController& getInstance()
         {

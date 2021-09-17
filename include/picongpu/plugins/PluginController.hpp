@@ -245,37 +245,35 @@ namespace picongpu
             init();
         }
 
-        virtual ~PluginController()
-        {
-        }
+        ~PluginController() override = default;
 
-        void setMappingDescription(MappingDesc* cellDescription)
+        void setMappingDescription(MappingDesc* cellDescription) override
         {
             PMACC_ASSERT(cellDescription != nullptr);
 
-            for(std::list<ISimulationPlugin*>::iterator iter = plugins.begin(); iter != plugins.end(); ++iter)
+            for(auto iter = plugins.begin(); iter != plugins.end(); ++iter)
             {
                 (*iter)->setMappingDescription(cellDescription);
             }
         }
 
-        virtual void pluginRegisterHelp(po::options_description&)
+        void pluginRegisterHelp(po::options_description&) override
         {
             // no help required at the moment
         }
 
-        std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return "PluginController";
         }
 
-        void notify(uint32_t)
+        void notify(uint32_t) override
         {
         }
 
-        virtual void pluginUnload()
+        void pluginUnload() override
         {
-            for(std::list<ISimulationPlugin*>::iterator iter = plugins.begin(); iter != plugins.end(); ++iter)
+            for(auto iter = plugins.begin(); iter != plugins.end(); ++iter)
             {
                 __delete(*iter);
             }

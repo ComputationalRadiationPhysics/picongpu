@@ -28,7 +28,7 @@
 
 namespace pmacc
 {
-    CudaEvent::CudaEvent() : isRecorded(false), finished(true), refCounter(0u)
+    CudaEvent::CudaEvent()
     {
         log(ggLog::CUDA_RT() + ggLog::EVENT(), "create event");
         CUDA_CHECK(cuplaEventCreateWithFlags(&event, cuplaEventDisableTiming));

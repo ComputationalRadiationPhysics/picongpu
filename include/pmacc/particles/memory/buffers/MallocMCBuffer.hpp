@@ -82,7 +82,7 @@ namespace pmacc
     public:
         MallocMCBuffer(const std::shared_ptr<T_DeviceHeap>&);
 
-        virtual ~MallocMCBuffer() = default;
+        ~MallocMCBuffer() override = default;
 
         SimulationDataId getUniqueId() override
         {

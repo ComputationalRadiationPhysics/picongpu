@@ -42,7 +42,7 @@ namespace pmacc
         {
         }
 
-        virtual void init()
+        void init() override
         {
             m_state = Init;
             EventTask serialEvent = __getTransactionEvent();
@@ -59,7 +59,7 @@ namespace pmacc
             m_state = WaitForReceived;
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             switch(m_state)
             {
@@ -102,16 +102,16 @@ namespace pmacc
             return false;
         }
 
-        virtual ~TaskFieldReceiveAndInsert()
+        ~TaskFieldReceiveAndInsert() override
         {
             notify(this->myId, RECVFINISHED, nullptr);
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        std::string toString()
+        std::string toString() override
         {
             return "TaskFieldReceiveAndInsert";
         }

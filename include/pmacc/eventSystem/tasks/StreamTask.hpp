@@ -44,9 +44,7 @@ namespace pmacc
         /**
          * Destructor.
          */
-        virtual ~StreamTask()
-        {
-        }
+        ~StreamTask() override = default;
 
         /**
          * Returns the cupla event associated with this task.
@@ -99,10 +97,10 @@ namespace pmacc
         inline void activate();
 
 
-        EventStream* stream;
+        EventStream* stream{nullptr};
         CudaEventHandle cuplaEvent;
-        bool hasCudaEventHandle;
-        bool alwaysFinished;
+        bool hasCudaEventHandle{false};
+        bool alwaysFinished{false};
     };
 
 } // namespace pmacc

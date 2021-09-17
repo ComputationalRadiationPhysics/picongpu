@@ -58,7 +58,7 @@ namespace pmacc
     template<class Head, class Vec>
     struct TypelistLinearInherit<Head, Vec, false>
     {
-        typedef LinearInheritFork<Head, typename LinearInherit<Vec>::type> type;
+        using type = LinearInheritFork<Head, typename LinearInherit<Vec>::type>;
     };
 
 
@@ -67,7 +67,7 @@ namespace pmacc
     template<template<class> class Head, class Vec>
     struct TypelistLinearInherit<Head<pmacc::NullFrame>, Vec, false>
     {
-        typedef Head<typename LinearInherit<Vec>::type> type;
+        using type = Head<typename LinearInherit<Vec>::type>;
     };
 
 
@@ -78,7 +78,7 @@ namespace pmacc
     template<class Head, class Vec>
     struct TypelistLinearInherit<Head, Vec, true>
     {
-        typedef Head type;
+        using type = Head;
     };
 
 
@@ -93,9 +93,9 @@ namespace pmacc
     template<typename vec_>
     struct LinearInherit
     {
-        typedef
+        using type =
             typename TypelistLinearInherit<typename bmpl::front<vec_>::type, typename bmpl::pop_front<vec_>::type>::
-                type type;
+                type;
     };
 
 } // namespace pmacc

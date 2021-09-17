@@ -40,8 +40,8 @@ namespace pmacc
     class FilterFactory
     {
     public:
-        typedef
-            typename LinearInherit<typename MakeSeq<DefaultFilter<>, UserTypeList, TrueFilter>::type>::type FilterType;
+        using FilterType =
+            typename LinearInherit<typename MakeSeq<DefaultFilter<>, UserTypeList, TrueFilter>::type>::type;
     };
 
 } // namespace pmacc

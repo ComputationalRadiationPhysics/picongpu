@@ -64,9 +64,7 @@ namespace pmacc
                 assigner::HostMemAssigner<>>;
 
         protected:
-            HostBuffer()
-            {
-            }
+            HostBuffer() = default;
 
         public:
             using PitchType = typename Base::PitchType;

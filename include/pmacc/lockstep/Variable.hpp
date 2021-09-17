@@ -34,7 +34,7 @@ namespace pmacc
     namespace lockstep
     {
         template<typename T_Config>
-        struct ForEach;
+        class ForEach;
 
         /** Variable used by virtual worker
          *

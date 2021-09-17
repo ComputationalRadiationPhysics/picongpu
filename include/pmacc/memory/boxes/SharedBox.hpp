@@ -51,11 +51,11 @@ namespace pmacc
         {
             Dim = DIM1
         };
-        typedef T_TYPE ValueType;
-        typedef ValueType& RefValueType;
-        typedef T_Vector Size;
-        typedef SharedBox<ValueType, math::CT::Int<Size::x::value>, T_id> ReducedType;
-        typedef SharedBox<ValueType, T_Vector, T_id, DIM1> This;
+        using ValueType = T_TYPE;
+        using RefValueType = ValueType&;
+        using Size = T_Vector;
+        using ReducedType = SharedBox<ValueType, math::CT::Int<Size::x::value>, T_id>;
+        using This = SharedBox<ValueType, T_Vector, T_id, 1U>;
 
         HDINLINE RefValueType operator[](const int idx)
         {
@@ -118,11 +118,11 @@ namespace pmacc
         {
             Dim = DIM2
         };
-        typedef T_TYPE ValueType;
-        typedef ValueType& RefValueType;
-        typedef T_Vector Size;
-        typedef SharedBox<ValueType, math::CT::Int<Size::x::value>, T_id> ReducedType;
-        typedef SharedBox<ValueType, T_Vector, T_id, DIM2> This;
+        using ValueType = T_TYPE;
+        using RefValueType = ValueType&;
+        using Size = T_Vector;
+        using ReducedType = SharedBox<ValueType, math::CT::Int<Size::x::value>, T_id>;
+        using This = SharedBox<ValueType, T_Vector, T_id, 2U>;
 
         HDINLINE SharedBox(ValueType* pointer = nullptr) : fixedPointer(pointer)
         {
@@ -189,11 +189,11 @@ namespace pmacc
         {
             Dim = DIM3
         };
-        typedef T_TYPE ValueType;
-        typedef ValueType& RefValueType;
-        typedef T_Vector Size;
-        typedef SharedBox<ValueType, math::CT::Int<Size::x::value, Size::y::value>, T_id> ReducedType;
-        typedef SharedBox<ValueType, T_Vector, T_id, DIM3> This;
+        using ValueType = T_TYPE;
+        using RefValueType = ValueType&;
+        using Size = T_Vector;
+        using ReducedType = SharedBox<ValueType, math::CT::Int<Size::x::value, Size::y::value>, T_id>;
+        using This = SharedBox<ValueType, T_Vector, T_id, 3U>;
 
         HDINLINE ReducedType operator[](const int idx)
         {

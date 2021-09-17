@@ -39,9 +39,9 @@ namespace pmacc
         {
             Dim = DIM1
         };
-        typedef TYPE ValueType;
-        typedef ValueType& RefValueType;
-        typedef PitchedBox<TYPE, DIM1> ReducedType;
+        using ValueType = TYPE;
+        using RefValueType = ValueType&;
+        using ReducedType = PitchedBox<TYPE, 1U>;
 
         HDINLINE RefValueType operator[](const int idx)
         {
@@ -67,9 +67,7 @@ namespace pmacc
         }
 
         /*Object must init by copy a valid instance*/
-        HDINLINE PitchedBox()
-        {
-        }
+        HDINLINE PitchedBox() = default;
 
         /*!return the first value in the box (list)
          * @return first value
@@ -101,9 +99,9 @@ namespace pmacc
         {
             Dim = DIM2
         };
-        typedef TYPE ValueType;
-        typedef ValueType& RefValueType;
-        typedef PitchedBox<TYPE, DIM1> ReducedType;
+        using ValueType = TYPE;
+        using RefValueType = ValueType&;
+        using ReducedType = PitchedBox<TYPE, 1U>;
 
         HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM2>& offset, const DataSpace<DIM2>&, const size_t pitch)
             : pitch(pitch)
@@ -116,9 +114,7 @@ namespace pmacc
         }
 
         /*Object must init by copy a valid instance*/
-        HDINLINE PitchedBox()
-        {
-        }
+        HDINLINE PitchedBox() = default;
 
         HDINLINE ReducedType operator[](const int idx)
         {
@@ -166,9 +162,9 @@ namespace pmacc
         {
             Dim = DIM3
         };
-        typedef TYPE ValueType;
-        typedef ValueType& RefValueType;
-        typedef PitchedBox<TYPE, DIM2> ReducedType;
+        using ValueType = TYPE;
+        using RefValueType = ValueType&;
+        using ReducedType = PitchedBox<TYPE, 2U>;
 
         HDINLINE ReducedType operator[](const int idx)
         {
@@ -207,9 +203,7 @@ namespace pmacc
         }
 
         /*Object must init by copy a valid instance*/
-        HDINLINE PitchedBox()
-        {
-        }
+        HDINLINE PitchedBox() = default;
 
         /*!return the first value in the box (list)
          * @return first value

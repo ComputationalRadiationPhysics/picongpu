@@ -37,7 +37,7 @@ namespace pmacc
         class BufferNavigator
         {
         public:
-            typedef tag::BufferNavigator tag;
+            using tag = tag::BufferNavigator;
             static constexpr int dim = T_dim;
 
         private:
@@ -52,7 +52,7 @@ namespace pmacc
             template<typename Data>
             HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
             {
-                char* result = (char*) data;
+                auto* result = (char*) data;
                 result += jump.x() * sizeof(typename std::remove_pointer_t<Data>);
                 for(int i = 1; i < dim; i++)
                     result += jump[i] * this->pitch[i - 1];
@@ -70,7 +70,7 @@ namespace pmacc
         class BufferNavigator<1>
         {
         public:
-            typedef tag::BufferNavigator tag;
+            using tag = tag::BufferNavigator;
             static constexpr int dim = 1;
 
         public:
@@ -82,7 +82,7 @@ namespace pmacc
             template<typename Data>
             HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
             {
-                char* result = (char*) data;
+                auto* result = (char*) data;
                 result += jump.x() * sizeof(typename std::remove_pointer_t<Data>);
                 return (Data) result;
             }

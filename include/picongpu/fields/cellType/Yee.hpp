@@ -61,9 +61,7 @@ namespace picongpu
                 using type = VectorVector2D3V;
             };
 
-            HDINLINE FieldPosition()
-            {
-            }
+            HDINLINE FieldPosition() = default;
 
             HDINLINE VectorVector2D3V operator()() const
             {
@@ -95,9 +93,7 @@ namespace picongpu
                 using type = VectorVector3D3V;
             };
 
-            HDINLINE FieldPosition()
-            {
-            }
+            HDINLINE FieldPosition() = default;
 
             HDINLINE VectorVector3D3V operator()() const
             {
@@ -128,9 +124,7 @@ namespace picongpu
                 using type = VectorVector2D3V;
             };
 
-            HDINLINE FieldPosition()
-            {
-            }
+            HDINLINE FieldPosition() = default;
 
             HDINLINE VectorVector2D3V operator()() const
             {
@@ -162,9 +156,7 @@ namespace picongpu
                 using type = VectorVector3D3V;
             };
 
-            HDINLINE FieldPosition()
-            {
-            }
+            HDINLINE FieldPosition() = default;
 
             HDINLINE VectorVector3D3V operator()() const
             {
@@ -183,9 +175,7 @@ namespace picongpu
         struct FieldPosition<fields::cellType::Yee, FieldJ, T_simDim>
             : public FieldPosition<fields::cellType::Yee, FieldE, T_simDim>
         {
-            HDINLINE FieldPosition()
-            {
-            }
+            HDINLINE FieldPosition() = default;
         };
 
         /** position (floatD_X in case of T_simDim == simDim) in cell, wrapped in
@@ -208,9 +198,7 @@ namespace picongpu
                 using type = ReturnType;
             };
 
-            HDINLINE FieldPosition()
-            {
-            }
+            HDINLINE FieldPosition() = default;
 
             HDINLINE ReturnType operator()() const
             {

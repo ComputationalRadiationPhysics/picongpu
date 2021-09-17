@@ -94,8 +94,8 @@ namespace pmacc
         template<typename T_Type, typename T_ResultType = uint64_t>
         struct GetUniqueTypeId
         {
-            typedef T_ResultType ResultType;
-            typedef T_Type Type;
+            using ResultType = T_ResultType;
+            using Type = T_Type;
 
             /** create unique id
              *

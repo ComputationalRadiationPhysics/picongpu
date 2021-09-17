@@ -134,7 +134,7 @@ namespace picongpu
                                 * (s0i * s0j + float_X(0.5) * (dsi * s0j + s0i * dsj)
                                    + (float_X(1.0) / float_X(3.0)) * dsj * dsi);
 
-                            float_X accumulated_J = float_X(0.0);
+                            auto accumulated_J = float_X(0.0);
                             for(int k = T_begin; k < T_end - 1; ++k)
                             {
                                 /* This is the implementation of the FORTRAN W(i,j,k,3)/ C style W(i,j,k,2) version
@@ -196,7 +196,7 @@ namespace picongpu
 
                         float_X tmp = -currentSurfaceDensity * (s0j + float_X(0.5) * dsj);
 
-                        float_X accumulated_J = float_X(0.0);
+                        auto accumulated_J = float_X(0.0);
                         for(int i = T_begin; i < T_end - 1; ++i)
                         {
                             /* This is the implementation of the FORTRAN W(i,j,k,1)/ C style W(i,j,k,0) version from

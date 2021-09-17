@@ -61,7 +61,7 @@ namespace picongpu
                     velocity.y() * deltaTime / cellSize.y(),
                     velocity.z() * deltaTime / cellSize.z());
 
-                const PosType oldPos = (PosType)(precisionCast<float_X>(pos) - deltaPos);
+                const auto oldPos = (PosType)(precisionCast<float_X>(pos) - deltaPos);
 
                 addCurrentSplitX(acc, oldPos, pos, charge, boxJ_par, deltaTime);
             }

@@ -36,14 +36,14 @@ namespace pmacc
     template<typename T_Type, unsigned T_dim>
     class HostDeviceBuffer
     {
-        typedef HostBufferIntern<T_Type, T_dim> HostBufferType;
-        typedef DeviceBufferIntern<T_Type, T_dim> DeviceBufferType;
+        using HostBufferType = HostBufferIntern<T_Type, T_dim>;
+        using DeviceBufferType = DeviceBufferIntern<T_Type, T_dim>;
 
     public:
         using ValueType = T_Type;
-        typedef HostBuffer<T_Type, T_dim> HBuffer;
-        typedef DeviceBuffer<T_Type, T_dim> DBuffer;
-        typedef typename HostBufferType::DataBoxType DataBoxType;
+        using HBuffer = HostBuffer<T_Type, T_dim>;
+        using DBuffer = DeviceBuffer<T_Type, T_dim>;
+        using DataBoxType = typename HostBufferType::DataBoxType;
         PMACC_CASSERT_MSG(
             DataBoxTypes_must_match,
             std::is_same<DataBoxType, typename DeviceBufferType::DataBoxType>::value);

@@ -37,7 +37,7 @@ namespace picongpu
 
     uint32_t ParserGridDistribution::getOffset(uint32_t const devicePos, uint32_t const maxCells) const
     {
-        value_type::const_iterator iter = parsedInput.begin();
+        auto iter = parsedInput.begin();
         // go to last device of these n subdomains extent{n}
         uint32_t i = iter->count - 1u;
         uint32_t sum = 0u;
@@ -67,7 +67,7 @@ namespace picongpu
 
     uint32_t ParserGridDistribution::getLocalSize(uint32_t const devicePos) const
     {
-        value_type::const_iterator iter = parsedInput.begin();
+        auto iter = parsedInput.begin();
         // go to last device of these n subdomains extent{n}
         uint32_t i = iter->count - 1u;
 

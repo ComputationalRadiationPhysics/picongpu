@@ -34,7 +34,7 @@ namespace pmacc
             {
                 MPI_StructAsArray operator()() const
                 {
-                    return MPI_StructAsArray(MPI_INT, 1);
+                    return {MPI_INT, 1};
                 }
             };
 
@@ -43,7 +43,7 @@ namespace pmacc
             {
                 MPI_StructAsArray operator()() const
                 {
-                    return MPI_StructAsArray(MPI_UNSIGNED, 1);
+                    return {MPI_UNSIGNED, 1};
                 }
             };
 
@@ -52,7 +52,7 @@ namespace pmacc
             {
                 MPI_StructAsArray operator()() const
                 {
-                    return MPI_StructAsArray(MPI_LONG, 1);
+                    return {MPI_LONG, 1};
                 }
             };
 
@@ -61,7 +61,7 @@ namespace pmacc
             {
                 MPI_StructAsArray operator()() const
                 {
-                    return MPI_StructAsArray(MPI_UNSIGNED_LONG, 1);
+                    return {MPI_UNSIGNED_LONG, 1};
                 }
             };
 
@@ -70,7 +70,7 @@ namespace pmacc
             {
                 MPI_StructAsArray operator()() const
                 {
-                    return MPI_StructAsArray(MPI_LONG_LONG, 1);
+                    return {MPI_LONG_LONG, 1};
                 }
             };
 
@@ -79,7 +79,7 @@ namespace pmacc
             {
                 MPI_StructAsArray operator()() const
                 {
-                    return MPI_StructAsArray(MPI_UNSIGNED_LONG_LONG, 1);
+                    return {MPI_UNSIGNED_LONG_LONG, 1};
                 }
             };
 
@@ -88,7 +88,7 @@ namespace pmacc
             {
                 MPI_StructAsArray operator()() const
                 {
-                    return MPI_StructAsArray(MPI_FLOAT, 1);
+                    return {MPI_FLOAT, 1};
                 }
             };
 
@@ -97,7 +97,7 @@ namespace pmacc
             {
                 MPI_StructAsArray operator()() const
                 {
-                    return MPI_StructAsArray(MPI_DOUBLE, 1);
+                    return {MPI_DOUBLE, 1};
                 }
             };
 

@@ -612,7 +612,7 @@ namespace picongpu
     class Visualisation : public ILightweightPlugin
     {
     private:
-        typedef MappingDesc::SuperCellSize SuperCellSize;
+        using SuperCellSize = MappingDesc::SuperCellSize;
 
 
     public:
@@ -647,7 +647,7 @@ namespace picongpu
             Environment<>::get().PluginConnector().setNotificationPeriod(this, m_notifyPeriod);
         }
 
-        virtual ~Visualisation()
+        ~Visualisation() override
         {
             /* wait that shared buffers can destroyed */
             m_output.join();
@@ -658,12 +658,12 @@ namespace picongpu
             }
         }
 
-        std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return "Visualisation";
         }
 
-        void notify(uint32_t currentStep)
+        void notify(uint32_t currentStep) override
         {
             PMACC_ASSERT(cellDescription != nullptr);
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
@@ -680,7 +680,7 @@ namespace picongpu
             createImage(currentStep, window);
         }
 
-        void setMappingDescription(MappingDesc* cellDescription)
+        void setMappingDescription(MappingDesc* cellDescription) override
         {
             PMACC_ASSERT(cellDescription != nullptr);
             this->cellDescription = cellDescription;
@@ -727,7 +727,7 @@ namespace picongpu
             int elements = img->getGridLayout().getDataSpace().productOfComponents();
 
             // Add one dimension access to 2d DataBox
-            typedef DataBoxDim1Access<typename GridBuffer<float3_X, DIM2>::DataBoxType> D1Box;
+            using D1Box = DataBoxDim1Access<typename GridBuffer<float3_X, 2U>::DataBoxType>;
             D1Box d1access(img->getDeviceBuffer().getDataBox(), img->getGridLayout().getDataSpace());
 
 #if(EM_FIELD_SCALE_CHANNEL1 == -1 || EM_FIELD_SCALE_CHANNEL2 == -1 || EM_FIELD_SCALE_CHANNEL3 == -1)
@@ -832,7 +832,7 @@ namespace picongpu
             }
         }
 
-        void pluginRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc) override
         {
             // nothing to do here
         }

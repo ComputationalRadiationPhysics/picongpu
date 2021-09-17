@@ -43,7 +43,7 @@ namespace pmacc
         template<typename T_Type, bool isPointer>
         struct Value
         {
-            typedef const T_Type type;
+            using type = const T_Type;
 
             HDINLINE type& operator()(type& v) const
             {
@@ -141,7 +141,7 @@ namespace pmacc
     class TaskSetValueBase : public StreamTask
     {
     public:
-        typedef T_ValueType ValueType;
+        using ValueType = T_ValueType;
         static constexpr uint32_t dim = T_dim;
 
         TaskSetValueBase(DeviceBuffer<ValueType, dim>& dst, const ValueType& value) : StreamTask(), value(value)
@@ -149,24 +149,24 @@ namespace pmacc
             this->destination = &dst;
         }
 
-        virtual ~TaskSetValueBase()
+        ~TaskSetValueBase() override
         {
             notify(this->myId, SETVALUE, nullptr);
         }
 
-        virtual void init() = 0;
+        void init() override = 0;
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             return isFinished();
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
     protected:
-        std::string toString()
+        std::string toString() override
         {
             return "TaskSetValue";
         }
@@ -181,7 +181,7 @@ namespace pmacc
     class TaskSetValue<T_ValueType, T_dim, true> : public TaskSetValueBase<T_ValueType, T_dim>
     {
     public:
-        typedef T_ValueType ValueType;
+        using ValueType = T_ValueType;
         static constexpr uint32_t dim = T_dim;
 
         TaskSetValue(DeviceBuffer<ValueType, dim>& dst, const ValueType& value)
@@ -189,11 +189,9 @@ namespace pmacc
         {
         }
 
-        virtual ~TaskSetValue()
-        {
-        }
+        ~TaskSetValue() override = default;
 
-        virtual void init()
+        void init() override
         {
             // number of elements in destination
             size_t const current_size = this->destination->getCurrentSize();
@@ -230,7 +228,7 @@ namespace pmacc
     class TaskSetValue<T_ValueType, T_dim, false> : public TaskSetValueBase<T_ValueType, T_dim>
     {
     public:
-        typedef T_ValueType ValueType;
+        using ValueType = T_ValueType;
         static constexpr uint32_t dim = T_dim;
 
         TaskSetValue(DeviceBuffer<ValueType, dim>& dst, const ValueType& value)
@@ -239,7 +237,7 @@ namespace pmacc
         {
         }
 
-        virtual ~TaskSetValue()
+        ~TaskSetValue() override
         {
             if(valuePointer_host != nullptr)
             {
@@ -248,7 +246,7 @@ namespace pmacc
             }
         }
 
-        void init()
+        void init() override
         {
             size_t current_size = this->destination->getCurrentSize();
             const DataSpace<dim> area_size(this->destination->getCurrentDataSpace(current_size));

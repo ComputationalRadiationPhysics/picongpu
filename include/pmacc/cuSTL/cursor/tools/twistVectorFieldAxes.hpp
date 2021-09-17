@@ -43,11 +43,10 @@ namespace pmacc
                 template<typename T_NavigatorPerm, typename T_AccessorPerm, typename T_Cursor>
                 struct TwistVectorFieldAxes
                 {
-                    typedef Cursor<
+                    using type = Cursor<
                         TwistAxesAccessor<T_Cursor, T_AccessorPerm>,
                         pmacc::cursor::CT::TwistAxesNavigator<T_NavigatorPerm>,
-                        T_Cursor>
-                        type;
+                        T_Cursor>;
                 };
 
             } // namespace result_of

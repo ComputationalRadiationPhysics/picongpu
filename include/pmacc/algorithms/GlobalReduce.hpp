@@ -62,7 +62,7 @@ namespace pmacc
             template<class Functor, typename Src>
             typename traits::GetValueType<Src>::ValueType operator()(Functor func, Src src, uint32_t n)
             {
-                typedef typename traits::GetValueType<Src>::ValueType Type;
+                using Type = typename traits::GetValueType<Src>::ValueType;
 
                 Type localResult = reduce(func, src, n);
                 Type globalResult;

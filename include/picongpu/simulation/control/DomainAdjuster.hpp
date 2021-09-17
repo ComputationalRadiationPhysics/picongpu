@@ -138,7 +138,7 @@ namespace picongpu
 
             // gather local sizes in the direction we are checking
             std::vector<uint64_t> allLocalSizes(numMpiRanks);
-            uint64_t lSize = static_cast<uint64_t>(m_localDomainSize[dim]);
+            auto lSize = static_cast<uint64_t>(m_localDomainSize[dim]);
             MPI_CHECK(MPI_Allgather(
                 &lSize,
                 1,
@@ -320,7 +320,7 @@ namespace picongpu
             }
             else
             {
-                uint64_t localDomainSize = static_cast<uint64_t>(m_localDomainSize[dim]);
+                auto localDomainSize = static_cast<uint64_t>(m_localDomainSize[dim]);
                 pmacc::mpi::MPIReduce mpiReduce;
                 mpiReduce(
                     pmacc::math::operation::Add(),

@@ -72,7 +72,7 @@ namespace pmacc
         void loadPlugins()
         {
             // load all plugins
-            for(std::list<IPlugin*>::iterator iter = plugins.begin(); iter != plugins.end(); ++iter)
+            for(auto iter = plugins.begin(); iter != plugins.end(); ++iter)
             {
                 if(!(*iter)->isLoaded())
                 {
@@ -87,7 +87,7 @@ namespace pmacc
         void unloadPlugins()
         {
             // unload all plugins
-            for(std::list<IPlugin*>::reverse_iterator iter = plugins.rbegin(); iter != plugins.rend(); ++iter)
+            for(auto iter = plugins.rbegin(); iter != plugins.rend(); ++iter)
             {
                 if((*iter)->isLoaded())
                 {
@@ -105,7 +105,7 @@ namespace pmacc
         {
             std::list<po::options_description> help_options;
 
-            for(std::list<IPlugin*>::iterator iter = plugins.begin(); iter != plugins.end(); ++iter)
+            for(auto iter = plugins.begin(); iter != plugins.end(); ++iter)
             {
                 // create a new help options section for this plugin,
                 // fill it and add to list of options
@@ -143,7 +143,7 @@ namespace pmacc
          */
         void notifyPlugins(uint32_t currentStep)
         {
-            for(NotificationList::iterator iter = notificationList.begin(); iter != notificationList.end(); ++iter)
+            for(auto iter = notificationList.begin(); iter != notificationList.end(); ++iter)
             {
                 if(containsStep((*iter).second, currentStep))
                 {
@@ -162,7 +162,7 @@ namespace pmacc
          */
         void checkpointPlugins(uint32_t currentStep, const std::string checkpointDirectory)
         {
-            for(std::list<IPlugin*>::iterator iter = plugins.begin(); iter != plugins.end(); ++iter)
+            for(auto iter = plugins.begin(); iter != plugins.end(); ++iter)
             {
                 (*iter)->checkpoint(currentStep, checkpointDirectory);
                 (*iter)->setLastCheckpoint(currentStep);
@@ -177,7 +177,7 @@ namespace pmacc
          */
         void restartPlugins(uint32_t restartStep, const std::string restartDirectory)
         {
-            for(std::list<IPlugin*>::iterator iter = plugins.begin(); iter != plugins.end(); ++iter)
+            for(auto iter = plugins.begin(); iter != plugins.end(); ++iter)
             {
                 (*iter)->restart(restartStep, restartDirectory);
             }
@@ -193,9 +193,9 @@ namespace pmacc
         std::vector<Plugin*> getPluginsFromType()
         {
             std::vector<Plugin*> result;
-            for(std::list<IPlugin*>::iterator iter = plugins.begin(); iter != plugins.end(); iter++)
+            for(auto iter = plugins.begin(); iter != plugins.end(); iter++)
             {
-                Plugin* plugin = dynamic_cast<Plugin*>(*iter);
+                auto* plugin = dynamic_cast<Plugin*>(*iter);
                 if(plugin != nullptr)
                     result.push_back(plugin);
             }
@@ -220,13 +220,9 @@ namespace pmacc
             return instance;
         }
 
-        PluginConnector()
-        {
-        }
+        PluginConnector() = default;
 
-        virtual ~PluginConnector()
-        {
-        }
+        virtual ~PluginConnector() = default;
 
         std::list<IPlugin*> plugins;
         NotificationList notificationList;

@@ -33,7 +33,7 @@ namespace pmacc
         template<>
         struct Abs2<float>
         {
-            typedef float result;
+            using result = float;
 
             HDINLINE float operator()(const float& value)
             {

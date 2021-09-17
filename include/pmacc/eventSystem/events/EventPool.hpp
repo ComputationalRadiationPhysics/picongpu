@@ -77,7 +77,7 @@ namespace pmacc
         {
             for(size_t i = 0u; i < count; i++)
             {
-                CudaEvent* nativeEvent = new CudaEvent();
+                auto* nativeEvent = new CudaEvent();
                 events.push_back(nativeEvent);
                 push(nativeEvent);
             }
@@ -102,9 +102,7 @@ namespace pmacc
         }
 
         /** Constructor */
-        EventPool() : isClosed(false)
-        {
-        }
+        EventPool() = default;
 
         /** Destructor
          *
@@ -132,6 +130,6 @@ namespace pmacc
          *
          * if true no events can be added to the pool
          */
-        bool isClosed;
+        bool isClosed{false};
     };
 } // namespace pmacc

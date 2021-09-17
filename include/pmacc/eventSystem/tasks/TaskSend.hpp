@@ -39,7 +39,7 @@ namespace pmacc
         {
         }
 
-        virtual void init()
+        void init() override
         {
             state = InitDone;
             if(exchange->hasDeviceDoubleBuffer())
@@ -79,7 +79,7 @@ namespace pmacc
             }
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             switch(state)
             {
@@ -102,12 +102,12 @@ namespace pmacc
             return false;
         }
 
-        virtual ~TaskSend()
+        ~TaskSend() override
         {
             notify(this->myId, SENDFINISHED, nullptr);
         }
 
-        void event(id_t, EventType type, IEventData*)
+        void event(id_t, EventType type, IEventData*) override
         {
             if(type == COPYDEVICE2HOST || type == COPYDEVICE2DEVICE)
             {
@@ -121,7 +121,7 @@ namespace pmacc
             }
         }
 
-        std::string toString()
+        std::string toString() override
         {
             std::stringstream ss;
             ss << state;

@@ -52,7 +52,7 @@ namespace picongpu
         template<typename T_Type>
         struct cast64Bit
         {
-            typedef typename TypeCast<float_64, T_Type>::result result;
+            using result = typename TypeCast<float_64, T_Type>::result;
 
             HDINLINE result operator()(const T_Type& value) const
             {
@@ -76,7 +76,7 @@ namespace picongpu
     class EnergyFields : public ISimulationPlugin
     {
     private:
-        MappingDesc* cellDescription;
+        MappingDesc* cellDescription{nullptr};
         std::string notifyPeriod;
 
         std::string pluginName;
@@ -84,36 +84,32 @@ namespace picongpu
         std::string filename;
         std::ofstream outFile;
         /*only rank 0 create a file*/
-        bool writeToFile;
+        bool writeToFile{false};
 
         mpi::MPIReduce mpiReduce;
 
-        pmacc::device::Reduce* localReduce;
+        pmacc::device::Reduce* localReduce{nullptr};
 
-        typedef promoteType<float_64, FieldB::ValueType>::type EneVectorType;
+        using EneVectorType = promoteType<float_64, FieldB::ValueType>::type;
 
     public:
         EnergyFields()
-            : cellDescription(nullptr)
-            , pluginName("EnergyFields: calculate the energy of the fields")
+            : pluginName("EnergyFields: calculate the energy of the fields")
             , pluginPrefix(std::string("fields_energy"))
             , filename(pluginPrefix + ".dat")
-            , writeToFile(false)
-            , localReduce(nullptr)
+
         {
             Environment<>::get().PluginConnector().registerPlugin(this);
         }
 
-        virtual ~EnergyFields()
-        {
-        }
+        ~EnergyFields() override = default;
 
-        void notify(uint32_t currentStep)
+        void notify(uint32_t currentStep) override
         {
             getEnergyFields(currentStep);
         }
 
-        void pluginRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc) override
         {
             desc.add_options()(
                 (pluginPrefix + ".period").c_str(),
@@ -121,18 +117,18 @@ namespace picongpu
                 "enable plugin [for each n-th step]");
         }
 
-        std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return pluginName;
         }
 
-        void setMappingDescription(MappingDesc* cellDescription)
+        void setMappingDescription(MappingDesc* cellDescription) override
         {
             this->cellDescription = cellDescription;
         }
 
     private:
-        void pluginLoad()
+        void pluginLoad() override
         {
             if(!notifyPeriod.empty())
             {
@@ -156,7 +152,7 @@ namespace picongpu
             }
         }
 
-        void pluginUnload()
+        void pluginUnload() override
         {
             if(!notifyPeriod.empty())
             {
@@ -172,7 +168,7 @@ namespace picongpu
             }
         }
 
-        void restart(uint32_t restartStep, const std::string restartDirectory)
+        void restart(uint32_t restartStep, const std::string restartDirectory) override
         {
             if(!writeToFile)
                 return;
@@ -180,7 +176,7 @@ namespace picongpu
             writeToFile = restoreTxtFile(outFile, filename, restartStep, restartDirectory);
         }
 
-        void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
+        void checkpoint(uint32_t currentStep, const std::string checkpointDirectory) override
         {
             if(!writeToFile)
                 return;
@@ -247,9 +243,9 @@ namespace picongpu
         EneVectorType reduceField(std::shared_ptr<T_Field> field)
         {
             /*define stacked DataBox's for reduce algorithm*/
-            typedef DataBoxUnaryTransform<typename T_Field::DataBoxType, energyFields::squareComponentWise>
-                TransformedBox;
-            typedef DataBoxUnaryTransform<TransformedBox, energyFields::cast64Bit> Box64bit;
+            using TransformedBox
+                = DataBoxUnaryTransform<typename T_Field::DataBoxType, energyFields::squareComponentWise>;
+            using Box64bit = DataBoxUnaryTransform<TransformedBox, energyFields::cast64Bit>;
             using D1Box = DataBoxDim1Access<Box64bit>;
 
             /* reduce field E*/

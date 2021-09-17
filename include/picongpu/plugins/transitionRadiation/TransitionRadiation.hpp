@@ -129,9 +129,7 @@ namespace picongpu
                     Environment<>::get().PluginConnector().registerPlugin(this);
                 }
 
-                virtual ~TransitionRadiation()
-                {
-                }
+                ~TransitionRadiation() override = default;
 
                 /** Plugin management
                  *
@@ -142,7 +140,7 @@ namespace picongpu
                  *
                  * @param currentStep current step of simulation
                  */
-                void notify(uint32_t currentStep)
+                void notify(uint32_t currentStep) override
                 {
                     log<radLog::SIMULATION_STATE>("Transition Radition (%1%): calculate time step %2% ") % speciesName
                         % currentStep;
@@ -166,7 +164,7 @@ namespace picongpu
                  *
                  * @param desc boost::program_options description
                  */
-                void pluginRegisterHelp(po::options_description& desc)
+                void pluginRegisterHelp(po::options_description& desc) override
                 {
                     desc.add_options()(
                         (pluginPrefix + ".period").c_str(),
@@ -178,7 +176,7 @@ namespace picongpu
                  *
                  * @return name of plugin
                  */
-                std::string pluginGetName() const
+                std::string pluginGetName() const override
                 {
                     return pluginName;
                 }
@@ -187,7 +185,7 @@ namespace picongpu
                  *
                  * @param cellDescription
                  */
-                void setMappingDescription(MappingDesc* cellDescription)
+                void setMappingDescription(MappingDesc* cellDescription) override
                 {
                     this->cellDescription = cellDescription;
                 }
@@ -223,7 +221,7 @@ namespace picongpu
                  * transition radiation calculation and create a folder for transition
                  * radiation storage.
                  */
-                void pluginLoad()
+                void pluginLoad() override
                 {
                     if(!notifyPeriod.empty())
                     {
@@ -280,7 +278,7 @@ namespace picongpu
                 }
 
                 //! Implementation of base class function. Deletes buffers andf arrays.
-                void pluginUnload()
+                void pluginUnload() override
                 {
                     if(!notifyPeriod.empty())
                     {

@@ -58,7 +58,7 @@ namespace picongpu
                      */
                     const float_X x_m = math::pow(x, float_X(1.0 / 3.0));
 
-                    const float_X cutOff = static_cast<float_X>(SYNC_FUNCS_CUTOFF);
+                    const auto cutOff = static_cast<float_X>(SYNC_FUNCS_CUTOFF);
 
                     if(x_m >= cutOff)
                         return float_X(0.0);

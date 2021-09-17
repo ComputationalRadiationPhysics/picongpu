@@ -36,11 +36,11 @@ namespace pmacc
     template<typename T_MPLSeqSrc, typename T_MPLSeqObjectsToRemove>
     struct ResolveAndRemoveFromSeq
     {
-        typedef T_MPLSeqSrc MPLSeqSrc;
-        typedef T_MPLSeqObjectsToRemove MPLSeqObjectsToRemove;
-        typedef typename ResolveAliases<MPLSeqObjectsToRemove, MPLSeqSrc, errorHandlerPolicies::ReturnValue>::type
-            ResolvedSeqWithObjectsToRemove;
-        typedef typename RemoveFromSeq<MPLSeqSrc, ResolvedSeqWithObjectsToRemove>::type type;
+        using MPLSeqSrc = T_MPLSeqSrc;
+        using MPLSeqObjectsToRemove = T_MPLSeqObjectsToRemove;
+        using ResolvedSeqWithObjectsToRemove =
+            typename ResolveAliases<MPLSeqObjectsToRemove, MPLSeqSrc, errorHandlerPolicies::ReturnValue>::type;
+        using type = typename RemoveFromSeq<MPLSeqSrc, ResolvedSeqWithObjectsToRemove>::type;
     };
 
 } // namespace pmacc

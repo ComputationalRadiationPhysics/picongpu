@@ -41,8 +41,8 @@ namespace pmacc
     template<class T_HandleExchanged, class T_HandleNotExchanged>
     struct HandleGuardRegion
     {
-        typedef T_HandleExchanged HandleExchanged;
-        typedef T_HandleNotExchanged HandleNotExchanged;
+        using HandleExchanged = T_HandleExchanged;
+        using HandleNotExchanged = T_HandleNotExchanged;
     };
 
 } // namespace pmacc

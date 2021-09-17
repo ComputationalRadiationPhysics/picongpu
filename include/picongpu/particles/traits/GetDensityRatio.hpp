@@ -48,11 +48,11 @@ namespace picongpu
         struct GetDensityRatio
         {
             using FrameType = typename T_Species::FrameType;
-            typedef typename HasFlag<FrameType, densityRatio<>>::type hasDensityRatio;
-            typedef typename pmacc::traits::Resolve<typename GetFlagType<FrameType, densityRatio<>>::type>::type
-                DensityRatioOfSpecies;
+            using hasDensityRatio = typename HasFlag<FrameType, densityRatio<>>::type;
+            using DensityRatioOfSpecies =
+                typename pmacc::traits::Resolve<typename GetFlagType<FrameType, densityRatio<>>::type>::type;
 
-            typedef typename bmpl::if_<hasDensityRatio, DensityRatioOfSpecies, detail::DefaultDensityRatio>::type type;
+            using type = typename bmpl::if_<hasDensityRatio, DensityRatioOfSpecies, detail::DefaultDensityRatio>::type;
         };
 
     } // namespace traits

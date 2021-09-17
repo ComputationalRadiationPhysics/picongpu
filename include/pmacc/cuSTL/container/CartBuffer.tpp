@@ -51,7 +51,7 @@ namespace pmacc
 
                 HDINLINE math::Size_t<0u> operator()(const math::Size_t<1u>&)
                 {
-                    return math::Size_t<0u>();
+                    return {};
                 }
             };
             template<>
@@ -65,7 +65,7 @@ namespace pmacc
 
                 HDINLINE math::Size_t<1> operator()(const math::Size_t<2>& size)
                 {
-                    return math::Size_t<1>(size.x());
+                    return {size.x()};
                 }
             };
             template<>
@@ -74,14 +74,14 @@ namespace pmacc
                 template<typename TCursor>
                 HDINLINE math::Size_t<2> operator()(const TCursor& cursor)
                 {
-                    return math::Size_t<2>(
+                    return {
                         (size_t)((char*) cursor(0, 1, 0).getMarker() - (char*) cursor.getMarker()),
-                        (size_t)((char*) cursor(0, 0, 1).getMarker() - (char*) cursor.getMarker()));
+                        (size_t)((char*) cursor(0, 0, 1).getMarker() - (char*) cursor.getMarker())};
                 }
 
                 HDINLINE math::Size_t<2> operator()(const math::Size_t<3>& size)
                 {
-                    return math::Size_t<2>(size.x(), size.x() * size.y());
+                    return {size.x(), size.x() * size.y()};
                 }
             };
 
@@ -111,14 +111,14 @@ namespace pmacc
 
         template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
         HDINLINE CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer(const math::Size_t<T_dim>& _size)
-            : refCount(nullptr)
+
         {
             this->_size = _size;
             init();
         }
 
         template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
-        HDINLINE CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer(size_t x) : refCount(nullptr)
+        HDINLINE CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer(size_t x)
         {
             this->_size = math::Size_t<1>(x);
             init();
@@ -126,7 +126,7 @@ namespace pmacc
 
         template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
         HDINLINE CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer(size_t x, size_t y)
-            : refCount(nullptr)
+
         {
             this->_size = math::Size_t<2>(x, y);
             init();
@@ -134,7 +134,7 @@ namespace pmacc
 
         template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
         HDINLINE CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer(size_t x, size_t y, size_t z)
-            : refCount(nullptr)
+
         {
             this->_size = math::Size_t<3>(x, y, z);
             init();
@@ -143,7 +143,7 @@ namespace pmacc
         template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
         HDINLINE CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer(
             const CartBuffer<Type, T_dim, Allocator, Copier, Assigner>& other)
-            : refCount(nullptr)
+
         {
             this->dataPointer = other.dataPointer;
             this->refCount = other.refCount;
@@ -155,7 +155,7 @@ namespace pmacc
         template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
         HDINLINE CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer(
             CartBuffer<Type, T_dim, Allocator, Copier, Assigner>&& other)
-            : refCount(nullptr)
+
         {
             this->dataPointer = other.dataPointer;
             this->refCount = other.refCount;
@@ -195,7 +195,7 @@ namespace pmacc
             this->dataPointer = nullptr;
 #ifndef __CUDA_ARCH__
             delete this->refCount;
-            this->refCount = 0;
+            this->refCount = nullptr;
 #endif
         }
 

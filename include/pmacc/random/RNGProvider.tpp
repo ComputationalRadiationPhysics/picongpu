@@ -101,7 +101,7 @@ namespace pmacc
             T_dim,
             T_RNGMethod>::createRandom(const std::string& id)
         {
-            typedef typename GetRandomType<T_Distribution>::type ResultType;
+            using ResultType = typename GetRandomType<T_Distribution>::type;
             return ResultType(createHandle());
         }
 

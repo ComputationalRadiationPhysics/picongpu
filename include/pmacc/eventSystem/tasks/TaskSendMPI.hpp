@@ -42,7 +42,7 @@ namespace pmacc
         {
         }
 
-        virtual void init()
+        void init() override
         {
             Buffer<TYPE, DIM>* src = exchange->getCommunicationBuffer();
 
@@ -53,7 +53,7 @@ namespace pmacc
                 exchange->getCommunicationTag());
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             if(this->isFinished())
                 return true;
@@ -74,16 +74,16 @@ namespace pmacc
             return false;
         }
 
-        virtual ~TaskSendMPI()
+        ~TaskSendMPI() override
         {
             notify(this->myId, SENDFINISHED, nullptr);
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        std::string toString()
+        std::string toString() override
         {
             return std::string("TaskSendMPI exchange type=") + std::to_string(exchange->getExchangeType());
         }

@@ -36,9 +36,7 @@ namespace pmacc
         template<typename Buffer>
         struct View : public Buffer
         {
-            HDINLINE View()
-            {
-            }
+            HDINLINE View() = default;
 
             template<typename TBuffer>
             HDINLINE View(const View<TBuffer>& other)

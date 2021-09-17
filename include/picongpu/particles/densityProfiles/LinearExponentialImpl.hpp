@@ -53,7 +53,7 @@ namespace picongpu
                 const float_X gas_y_max = ParamClass::gasYMax_SI / UNIT_LENGTH;
 
                 const floatD_X globalCellPos(precisionCast<float_X>(totalCellOffset) * cellSize.shrink<simDim>());
-                float_X density = float_X(0.0);
+                auto density = float_X(0.0);
 
                 if(globalCellPos.y() < vacuum_y)
                     return density;

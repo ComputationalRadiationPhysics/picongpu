@@ -58,9 +58,7 @@ namespace picongpu
                 class InitFreqFunctor
                 {
                 public:
-                    InitFreqFunctor(void)
-                    {
-                    }
+                    InitFreqFunctor(void) = default;
 
                     HINLINE void Init(const std::string path)
                     {
@@ -69,7 +67,7 @@ namespace picongpu
 
                     HINLINE FreqFunctor getFunctor(void)
                     {
-                        return FreqFunctor();
+                        return {};
                     }
                 }; // InitFreqFunctor
 

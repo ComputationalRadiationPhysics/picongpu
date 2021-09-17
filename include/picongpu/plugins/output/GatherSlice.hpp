@@ -39,14 +39,8 @@ namespace picongpu
 
     struct GatherSlice
     {
-        GatherSlice()
-            : mpiRank(-1)
-            , numRanks(0)
-            , filteredData(nullptr)
-            , comm(MPI_COMM_NULL)
-            , fullData(nullptr)
-            , masterRank(0)
-            , isMPICommInitialized(false)
+        GatherSlice() : comm(MPI_COMM_NULL)
+
         {
         }
 
@@ -128,7 +122,7 @@ namespace picongpu
             MessageHeader* fakeHeader = MessageHeader::create();
             *fakeHeader = header;
 
-            char* recvHeader = new char[MessageHeader::bytes * numRanks];
+            auto* recvHeader = new char[MessageHeader::bytes * numRanks];
 
             if(fullData == nullptr && mpiRank == masterRank)
                 fullData = (char*) new ValueType[header.sim.size.productOfComponents()];
@@ -151,7 +145,7 @@ namespace picongpu
             int offset = 0;
             for(int i = 0; i < numRanks; ++i)
             {
-                MessageHeader* head = (MessageHeader*) (recvHeader + MessageHeader::bytes * i);
+                auto* head = (MessageHeader*) (recvHeader + MessageHeader::bytes * i);
                 counts[i] = head->node.maxSize.productOfComponents() * sizeof(ValueType);
                 displs[i] = offset;
                 offset += counts[i];
@@ -188,7 +182,7 @@ namespace picongpu
 
                 for(int i = 0; i < numRanks; ++i)
                 {
-                    MessageHeader* head = (MessageHeader*) (recvHeader + MessageHeader::bytes * i);
+                    auto* head = (MessageHeader*) (recvHeader + MessageHeader::bytes * i);
 
                     log<picLog::DOMAINS>("part image with offset %1%byte=%2%elements | size %3%  | offset %4%")
                         % displs[i] % (displs[i] / sizeof(ValueType)) % head->node.maxSize.toString()
@@ -248,13 +242,13 @@ namespace picongpu
             isMPICommInitialized = false;
         }
 
-        char* filteredData;
-        char* fullData;
+        char* filteredData{nullptr};
+        char* fullData{nullptr};
         MPI_Comm comm;
-        int mpiRank;
-        int numRanks;
-        int masterRank;
-        bool isMPICommInitialized;
+        int mpiRank{-1};
+        int numRanks{0};
+        int masterRank{0};
+        bool isMPICommInitialized{false};
     };
 
 } // namespace picongpu

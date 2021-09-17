@@ -41,11 +41,11 @@ namespace pmacc
     struct JoinToSeq
     {
     private:
-        typedef typename ToSeq<T_1>::type Seq1;
-        typedef typename ToSeq<T_2>::type Seq2;
+        using Seq1 = typename ToSeq<T_1>::type;
+        using Seq2 = typename ToSeq<T_2>::type;
 
     public:
-        typedef typename bmpl::copy<Seq2, bmpl::back_inserter<Seq1>>::type type;
+        using type = typename bmpl::copy<Seq2, bmpl::back_inserter<Seq1>>::type;
     };
 
 } // namespace pmacc

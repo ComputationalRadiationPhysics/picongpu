@@ -46,26 +46,26 @@ namespace pmacc
     struct GetKeyFromAlias
     {
     private:
-        typedef T_KeyNotFoundPolicy KeyNotFoundPolicy;
+        using KeyNotFoundPolicy = T_KeyNotFoundPolicy;
         /*create a map where Key is a undeclared alias and value is real type*/
-        typedef typename SeqToMap<T_MPLSeq, TypeToAliasPair<bmpl::_1>>::type AliasMap;
+        using AliasMap = typename SeqToMap<T_MPLSeq, TypeToAliasPair<bmpl::_1>>::type;
         /*create a map where Key and value is real type*/
-        typedef typename SeqToMap<T_MPLSeq, TypeToPair<bmpl::_1>>::type KeyMap;
+        using KeyMap = typename SeqToMap<T_MPLSeq, TypeToPair<bmpl::_1>>::type;
         /*combine both maps*/
-        typedef bmpl::inserter<KeyMap, bmpl::insert<bmpl::_1, bmpl::_2>> Map_inserter;
-        typedef typename bmpl::copy<AliasMap, Map_inserter>::type FullMap;
+        using Map_inserter = bmpl::inserter<KeyMap, bmpl::insert<bmpl::_1, bmpl::_2>>;
+        using FullMap = typename bmpl::copy<AliasMap, Map_inserter>::type;
         /* search for given key,
          * - we get the real type if key found
          * - else we get boost::mpl::void_
          */
-        typedef typename bmpl::at<FullMap, T_Key>::type MapType;
+        using MapType = typename bmpl::at<FullMap, T_Key>::type;
 
     public:
         /* Check for KeyNotFound and calculate final type. (Uses lazy evaluation) */
-        typedef typename bmpl::if_<
+        using type = typename bmpl::if_<
             std::is_same<MapType, bmpl::void_>,
             bmpl::apply<KeyNotFoundPolicy, T_MPLSeq, T_Key>,
-            bmpl::identity<MapType>>::type::type type;
+            bmpl::identity<MapType>>::type::type;
     };
 
 } // namespace pmacc

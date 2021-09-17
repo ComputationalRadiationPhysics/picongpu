@@ -58,7 +58,7 @@ namespace pmacc
                 {
                     math::Size_t<0> operator()(const math::Size_t<DIM1>&)
                     {
-                        return math::Size_t<0>();
+                        return {};
                     }
                 };
 
@@ -162,7 +162,7 @@ namespace pmacc
             {
                 using namespace math;
 
-                int numRanks = static_cast<int>(gather.positions.size());
+                auto numRanks = static_cast<int>(gather.positions.size());
 
                 // calculate sizes per axis in destination buffer
                 std::vector<size_t> sizesPerAxis[memDim];
@@ -174,7 +174,7 @@ namespace pmacc
                     Int<memDim> posInMem = pos.template shrink<memDim>(dir + 1);
                     for(int axis = 0; axis < memDim; axis++)
                     {
-                        size_t posOnAxis = static_cast<size_t>(posInMem[axis]);
+                        auto posOnAxis = static_cast<size_t>(posInMem[axis]);
                         if(posOnAxis >= sizesPerAxis[axis].size())
                             sizesPerAxis[axis].resize(posOnAxis + 1);
                         sizesPerAxis[axis][posOnAxis] = srcSizes[i][axis];
@@ -235,8 +235,8 @@ namespace pmacc
 
                 if(!this->m_participate)
                     return;
-                typedef container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign> DestBuffer;
-                typedef container::CartBuffer<Type, memDim, T_Alloc2, T_Copy2, T_Assign2> SrcBuffer;
+                using DestBuffer = container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign>;
+                using SrcBuffer = container::CartBuffer<Type, memDim, T_Alloc2, T_Copy2, T_Assign2>;
                 PMACC_CASSERT_MSG(
                     Can_Only_Gather_Host_Memory,
                     boost::is_same<typename DestBuffer::memoryTag, allocator::tag::host>::value

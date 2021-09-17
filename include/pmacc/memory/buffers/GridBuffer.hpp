@@ -55,9 +55,7 @@ namespace pmacc
             }
 
         private:
-            UniquTag()
-            {
-            }
+            UniquTag() = default;
 
             /**
              * Constructor
@@ -85,10 +83,10 @@ namespace pmacc
     template<class TYPE, unsigned DIM, class BORDERTYPE = TYPE>
     class GridBuffer : public HostDeviceBuffer<TYPE, DIM>
     {
-        typedef HostDeviceBuffer<TYPE, DIM> Parent;
+        using Parent = HostDeviceBuffer<TYPE, DIM>;
 
     public:
-        typedef typename Parent::DataBoxType DataBoxType;
+        using DataBoxType = typename Parent::DataBoxType;
 
         /**
          * Constructor.
@@ -171,7 +169,7 @@ namespace pmacc
         /**
          * Destructor.
          */
-        virtual ~GridBuffer()
+        ~GridBuffer() override
         {
             for(uint32_t i = 0; i < 27; ++i)
             {

@@ -42,7 +42,7 @@ namespace pmacc
     class Buffer
     {
     public:
-        typedef DataBox<PitchedBox<TYPE, DIM>> DataBoxType;
+        using DataBoxType = DataBox<PitchedBox<TYPE, DIM>>;
 
         /** constructor
          *
@@ -108,7 +108,7 @@ namespace pmacc
         virtual DataSpace<DIM> getCurrentDataSpace(size_t currentSize)
         {
             DataSpace<DIM> tmp;
-            int64_t current_size = static_cast<int64_t>(currentSize);
+            auto current_size = static_cast<int64_t>(currentSize);
 
             //!\todo: current size can be changed if it is a DeviceBuffer and current size is on device
             // call first get current size (but const not allow this)

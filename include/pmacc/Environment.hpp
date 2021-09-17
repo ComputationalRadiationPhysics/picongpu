@@ -57,24 +57,20 @@ namespace pmacc
             friend pmacc::Environment<DIM3>;
 
             EnvironmentContext()
-                : m_isMpiInitialized(false)
-                , m_isDeviceSelected(false)
-                , m_isSubGridDefined(false)
-                , m_isMpiDirectEnabled(false)
-            {
-            }
+
+                = default;
 
             /** initialization state of MPI */
-            bool m_isMpiInitialized;
+            bool m_isMpiInitialized{false};
 
             /** state if a computing device is selected */
-            bool m_isDeviceSelected;
+            bool m_isDeviceSelected{false};
 
             /** state if the SubGrid is defined */
-            bool m_isSubGridDefined;
+            bool m_isSubGridDefined{false};
 
             /** state shows if MPI direct is activated */
-            bool m_isMpiDirectEnabled;
+            bool m_isMpiDirectEnabled{false};
 
             /** get the singleton EnvironmentContext
              *
@@ -149,9 +145,7 @@ namespace pmacc
          */
         struct Environment
         {
-            Environment()
-            {
-            }
+            Environment() = default;
 
             /** cleanup the environment */
             void finalize()
@@ -400,13 +394,9 @@ namespace pmacc
         Environment& operator=(const Environment&) = delete;
 
     private:
-        Environment()
-        {
-        }
+        Environment() = default;
 
-        ~Environment()
-        {
-        }
+        ~Environment() = default;
     };
 
     namespace detail
@@ -416,7 +406,7 @@ namespace pmacc
             m_isMpiInitialized = true;
 
             // MPI_Init with NULL is allowed since MPI 2.0
-            MPI_CHECK(MPI_Init(NULL, NULL));
+            MPI_CHECK(MPI_Init(nullptr, nullptr));
         }
 
         void EnvironmentContext::finalize()
