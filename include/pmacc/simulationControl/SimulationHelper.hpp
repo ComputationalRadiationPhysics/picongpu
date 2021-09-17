@@ -1,5 +1,5 @@
 /* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Rene Widera, Alexander Debus,
- *                     Benjamin Worpitz, Alexander Grund
+ *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -129,23 +129,29 @@ namespace pmacc
          */
         virtual void movingWindowCheck(uint32_t currentStep) = 0;
 
-        /**
-         * Notifies registered output classes.
+        /** Call all plugins
          *
-         * This function is called automatically.
+         * This function is called inside the simulation loop.
+         *
+         * @param currentStep simulation step
+         */
+        void notifyPlugins(uint32_t currentStep)
+        {
+            Environment<DIM>::get().PluginConnector().notifyPlugins(currentStep);
+            /* Handle signals after we executed the plugins but before checkpointing, this will result into lower
+             * response latency if we have long running plugins
+             */
+            checkSignals(currentStep);
+        }
+
+        /** Write a checkpoint if needed for the given step
+         *
+         * This function is called inside the simulation loop.
          *
          *  @param currentStep simulation step
          */
         virtual void dumpOneStep(uint32_t currentStep)
         {
-            /* trigger notification */
-            Environment<DIM>::get().PluginConnector().notifyPlugins(currentStep);
-
-            /* Handle signals after we executed the plugins but before checkpointing, this will result into lower
-             * response latency if we have long running plugins
-             */
-            checkSignals(currentStep);
-
             /* trigger checkpoint notification */
             if(!checkpointPeriod.empty() && pluginSystem::containsStep(seqCheckpointPeriod, currentStep))
             {
@@ -256,9 +262,10 @@ namespace pmacc
                  */
                 movingWindowCheck(currentStep);
 
-                /* dump initial step if simulation starts without restart */
+                /* call plugins and dump initial step if simulation starts without restart */
                 if(!restartRequested)
                 {
+                    notifyPlugins(currentStep);
                     dumpOneStep(currentStep);
                 }
 
@@ -278,13 +285,18 @@ namespace pmacc
                     tRound.toggleEnd();
                     roundAvg += tRound.getInterval();
 
-                    /* NEXT TIMESTEP STARTS HERE */
+                    /* Next timestep starts here.
+                     * Thus, for each timestep the plugins and checkpoint are called first.
+                     * And the computational stages later on (on the next iteration of this loop).
+                     */
                     currentStep++;
                     Environment<>::get().SimulationDescription().setCurrentStep(currentStep);
                     /* output times after a round */
                     dumpTimes(tSimCalculation, tRound, roundAvg, currentStep);
 
                     movingWindowCheck(currentStep);
+                    /* call all plugins */
+                    notifyPlugins(currentStep);
                     /* dump at the beginning of the simulated step */
                     dumpOneStep(currentStep);
                 }
