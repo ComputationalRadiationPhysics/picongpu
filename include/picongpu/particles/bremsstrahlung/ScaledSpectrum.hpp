@@ -40,9 +40,9 @@
 #    include <boost/serialization/array_wrapper.hpp>
 #endif
 #include <boost/numeric/odeint/integrate/integrate.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include <limits>
+#include <memory>
 
 namespace picongpu
 {
@@ -100,7 +100,7 @@ namespace picongpu
                 using LookupTableFunctor = detail::LookupTableFunctor;
 
             private:
-                using MyBuf = boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM2>>;
+                using MyBuf = std::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM2>>;
                 MyBuf dBufScaledSpectrum;
                 MyBuf dBufStoppingPower;
 
