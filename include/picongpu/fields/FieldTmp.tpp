@@ -170,7 +170,7 @@ namespace picongpu
             typename FrameSolver::UpperMargin>
             BlockArea;
 
-        StrideMapping<AREA, 3, MappingDesc> mapper(cellDescription);
+        auto mapper = makeStrideAreaMapper<AREA, 3>(cellDescription);
         typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox();
         FieldTmp::DataBoxType tmpBox = this->fieldTmp->getDeviceBuffer().getDataBox();
         FrameSolver solver;

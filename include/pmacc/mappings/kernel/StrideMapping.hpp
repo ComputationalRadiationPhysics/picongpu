@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -30,14 +30,14 @@
 
 namespace pmacc
 {
-    /** Mapping from block indices to supercells in the given strided area for alpaka kernels
+    /** Strided mapping from block indices to supercells in the given area for alpaka kernels
      *
      * Adheres to the MapperConcept.
      *
      * The mapped area is an intersection of T_area and an integer lattice with given stride in all directions
      *
      * @tparam T_area area, a value from type::AreaType or a sum of such values
-     * @tparam stride stride value
+     * @tparam stride stride value, same for all directions
      * @tparam baseClass mapping description type
      */
     template<uint32_t areaType, uint32_t stride, class baseClass>
@@ -117,5 +117,44 @@ namespace pmacc
     private:
         PMACC_ALIGN(offset, DataSpace<DIM>);
     };
+
+    /** Construct a strided area mapper instance for the given standard area, stride, and description
+     *
+     * Adheres to the MapperFactoryConcept.
+     *
+     * @tparam T_area area, a value from type::AreaType or a sum of such values
+     * @tparam stride stride value, same for all directions
+     */
+    template<uint32_t T_area, uint32_t T_stride>
+    struct StrideAreaMapperFactory
+    {
+        /** Construct a strided area mapper object
+         *
+         * @tparam T_MappingDescription mapping description type
+         *
+         * @param mappingDescription mapping description
+         *
+         * @return an object adhering to the StridedMapping concept
+         */
+        template<typename T_MappingDescription>
+        HINLINE auto operator()(T_MappingDescription mappingDescription) const
+        {
+            return StrideMapping<T_area, T_stride, T_MappingDescription>{mappingDescription};
+        }
+    };
+
+    /** Construct a strided area mapper instance for the given area, stride, and description
+     *
+     * @tparam T_area area, a value from type::AreaType or a sum of such values
+     * @tparam stride stride value, same for all directions
+     * @tparam T_MappingDescription mapping description type
+     *
+     * @param mappingDescription mapping description
+     */
+    template<uint32_t T_area, uint32_t T_stride, typename T_MappingDescription>
+    HINLINE auto makeStrideAreaMapper(T_MappingDescription mappingDescription)
+    {
+        return StrideAreaMapperFactory<T_area, T_stride>{}(mappingDescription);
+    }
 
 } // namespace pmacc
