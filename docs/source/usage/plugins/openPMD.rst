@@ -26,6 +26,7 @@ One can e.g. disable the output of particles by setting:
    using FileOutputParticles = MakeSeq_t< >;
 
 Particle filters used for output plugins, including this one, are defined in :ref:`particleFilters.param <usage-params-core>`.
+Also see :ref:`common patterns of defining particle filters <usage-workflows-particleFilters>`.
 
 .cfg file
 ^^^^^^^^^
