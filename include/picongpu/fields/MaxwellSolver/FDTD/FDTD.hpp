@@ -95,13 +95,7 @@ namespace picongpu
                     return propList;
                 }
 
-            private:
-                // Helper types for configuring kernels
-                template<typename T_Curl>
-                using BlockDescription = pmacc::SuperCellDescription<
-                    SuperCellSize,
-                    typename traits::GetLowerMargin<T_Curl>::type,
-                    typename traits::GetUpperMargin<T_Curl>::type>;
+            protected:
 
                 /** Perform the first part of E and B propagation
                  *  from t = currentStep * DELTA_T to t = currentStep * DELTA_T + timeIncrement.
@@ -176,6 +170,14 @@ namespace picongpu
                     EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
                     __setTransactionEvent(eRfieldB);
                 }
+
+            private:
+                // Helper types for configuring kernels
+                template<typename T_Curl>
+                using BlockDescription = pmacc::SuperCellDescription<
+                    SuperCellSize,
+                    typename traits::GetLowerMargin<T_Curl>::type,
+                    typename traits::GetUpperMargin<T_Curl>::type>;
 
                 /** Propagate B values in the given area by the first half of a time step
                  *

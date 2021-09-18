@@ -23,4 +23,5 @@
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.hpp"
 #include "picongpu/fields/MaxwellSolver/Lehe/Lehe.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.hpp"
+#include "picongpu/fields/MaxwellSolver/None/Substepping.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.hpp"
