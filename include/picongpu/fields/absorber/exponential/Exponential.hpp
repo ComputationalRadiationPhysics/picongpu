@@ -66,7 +66,7 @@ namespace picongpu
                      * @param deviceBox field box
                      */
                     template<class BoxedMemory>
-                    void run(uint32_t currentStep, BoxedMemory deviceBox)
+                    void run(float_X currentStep, BoxedMemory deviceBox)
                     {
                         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
                         for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
@@ -112,7 +112,7 @@ namespace picongpu
                                 }
 
                                 /* if sliding window is active we disable absorber on bottom side*/
-                                if(MovingWindow::getInstance().isSlidingWindowActive(currentStep) && i == BOTTOM)
+                                if(MovingWindow::getInstance().isSlidingWindowActive(static_cast<uint32_t>(currentStep)) && i == BOTTOM)
                                     continue;
 
                                 ExchangeMapping<GUARD, MappingDesc> mapper(cellDescription, i);

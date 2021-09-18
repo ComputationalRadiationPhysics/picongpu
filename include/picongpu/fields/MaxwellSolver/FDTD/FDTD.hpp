@@ -67,13 +67,51 @@ namespace picongpu
                     absorberImpl = absorberFactory.makeImpl(cellDescription);
                 }
 
-                /** Perform the first part of E and B propagation by a time step.
+                /** Perform the first part of E and B propagation by a full time step.
                  *
-                 * Together with update_afterCurrent( ) forms the full propagation.
+                 * Together with update_afterCurrent( ) forms the full propagation by a time step.
                  *
                  * @param currentStep index of the current time iteration
                  */
                 void update_beforeCurrent(uint32_t const currentStep)
+                {
+                    update_beforeCurrent(static_cast<float_X>(currentStep), DELTA_T);
+                }
+
+                /** Perform the last part of E and B propagation by a time step
+                 *
+                 * Together with update_beforeCurrent( ) forms the full propagation.
+                 *
+                 * @param currentStep index of the current time iteration
+                 */
+                void update_afterCurrent(uint32_t const currentStep)
+                {
+                    update_afterCurrent(static_cast<float_X>(currentStep), DELTA_T);
+                }
+
+                static pmacc::traits::StringProperty getStringProperties()
+                {
+                    pmacc::traits::StringProperty propList("name", "FDTD");
+                    return propList;
+                }
+
+            private:
+                // Helper types for configuring kernels
+                template<typename T_Curl>
+                using BlockDescription = pmacc::SuperCellDescription<
+                    SuperCellSize,
+                    typename traits::GetLowerMargin<T_Curl>::type,
+                    typename traits::GetUpperMargin<T_Curl>::type>;
+
+                /** Perform the first part of E and B propagation
+                 *  from t = currentStep * DELTA_T to t = currentStep * DELTA_T + timeIncrement.
+                 *
+                 * Together with update_afterCurrent() forms the full propagation by timeIncrement.
+                 *
+                 * @param currentStep index of the current time iteration (always in units of DELTA_T)
+                 * @param timeIncrement time increment
+                 */
+                void update_beforeCurrent(float_X const currentStep, float_X const timeIncrement)
                 {
                     /* As typical for electrodynamic PIC codes, we split an FDTD update of B into two halves.
                      * (This comes from commonly used particle pushers needing E and B at the same time.)
@@ -85,14 +123,15 @@ namespace picongpu
                      */
                     updateBSecondHalf<CORE + BORDER>(currentStep);
                     auto incidentFieldSolver = fields::incidentField::Solver{cellDescription};
-                    // update B by half step, to step = currentStep + 0.5, so step for E_inc = currentStep
-                    incidentFieldSolver.updateBHalf(static_cast<float_X>(currentStep));
+                    // update B by half timeIncrement, so step for E_inc = currentStep
+                    incidentFieldSolver.updateBHalf(currentStep);
                     EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
 
                     updateE<CORE>(currentStep);
-                    // Incident field solver update does not use exchanged B, so does not have to wait for it
-                    // update E by full step, to step = currentStep + 1, so step for B_inc = currentStep + 0.5
-                    incidentFieldSolver.updateE(static_cast<float_X>(currentStep) + 0.5_X);
+                    /* Incident field solver update does not use exchanged B, so does not have to wait for it
+                     * update E by timeIncrement, so step for B_inc = currentStep + 0.5 * timeIncrement
+                     */
+                    incidentFieldSolver.updateE(currentStep + 0.5_X * timeIncrement);
                     __setTransactionEvent(eRfieldB);
                     updateE<BORDER>(currentStep);
                 }
@@ -101,9 +140,10 @@ namespace picongpu
                  *
                  * Together with update_beforeCurrent( ) forms the full propagation.
                  *
-                 * @param currentStep index of the current time iteration
+                 * @param currentStep index of the current time iteration (always in units of DELTA_T)
+                 * @param timeIncrement time increment
                  */
-                void update_afterCurrent(uint32_t const currentStep)
+                void update_afterCurrent(float_X const currentStep, float_X const timeIncrement)
                 {
                     auto& absorber = absorber::Absorber::get();
                     if(absorber.getKind() == absorber::Absorber::Kind::Exponential)
@@ -116,8 +156,9 @@ namespace picongpu
 
                     // Incident field solver update does not use exchanged E, so does not have to wait for it
                     auto incidentFieldSolver = fields::incidentField::Solver{cellDescription};
-                    // update B by half step, to step currentStep + 1.5, so step for E_inc = currentStep + 1
-                    incidentFieldSolver.updateBHalf(static_cast<float_X>(currentStep) + 1.0_X);
+                    // TODO: check it
+                    // update B by half step, to step currentStep + 1.5, so step for E_inc = currentStep + timeIncrement / DELTA_T
+                    incidentFieldSolver.updateBHalf(currentStep + timeIncrement / DELTA_T);
 
                     EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());
 
@@ -136,20 +177,6 @@ namespace picongpu
                     __setTransactionEvent(eRfieldB);
                 }
 
-                static pmacc::traits::StringProperty getStringProperties()
-                {
-                    pmacc::traits::StringProperty propList("name", "FDTD");
-                    return propList;
-                }
-
-            private:
-                // Helper types for configuring kernels
-                template<typename T_Curl>
-                using BlockDescription = pmacc::SuperCellDescription<
-                    SuperCellSize,
-                    typename traits::GetLowerMargin<T_Curl>::type,
-                    typename traits::GetUpperMargin<T_Curl>::type>;
-
                 /** Propagate B values in the given area by the first half of a time step
                  *
                  * This operation propagates grid values of field B by dt/2.
@@ -162,7 +189,7 @@ namespace picongpu
                  * @param currentStep index of the current time iteration
                  */
                 template<uint32_t T_Area>
-                void updateBFirstHalf(uint32_t const currentStep)
+                void updateBFirstHalf(float_X const currentStep)
                 {
                     updateBHalf<T_Area>(currentStep, true);
                 }
@@ -180,7 +207,7 @@ namespace picongpu
                  * @param currentStep index of the current time iteration
                  */
                 template<uint32_t T_Area>
-                void updateBSecondHalf(uint32_t const currentStep)
+                void updateBSecondHalf(float_X const currentStep)
                 {
                     updateBHalf<T_Area>(currentStep, false);
                 }
@@ -194,7 +221,7 @@ namespace picongpu
                  * @param updatePsiB whether convolutional magnetic fields need to be updated, or are up-to-date
                  */
                 template<uint32_t T_Area>
-                void updateBHalf(uint32_t const currentStep, bool const updatePsiB)
+                void updateBHalf(float_X const currentStep, bool const updatePsiB)
                 {
                     constexpr auto numWorkers = getNumWorkers();
                     using Kernel = fdtd::KernelUpdateField<numWorkers>;
@@ -230,7 +257,7 @@ namespace picongpu
                  * @param currentStep index of the current time iteration
                  */
                 template<uint32_t T_Area>
-                void updateE(uint32_t currentStep)
+                void updateE(float_X currentStep)
                 {
                     constexpr auto numWorkers = getNumWorkers();
                     using Kernel = fdtd::KernelUpdateField<numWorkers>;
