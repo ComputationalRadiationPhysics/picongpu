@@ -144,7 +144,7 @@ namespace picongpu
                  *
                  * @param currentStep current simulation time step
                  */
-                HINLINE Polynom(uint32_t currentStep)
+                HINLINE Polynom(float_X currentStep)
                 {
                     // get data
                     DataConnector& dc = Environment<>::get().DataConnector();

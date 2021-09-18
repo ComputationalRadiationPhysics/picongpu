@@ -95,7 +95,7 @@ namespace picongpu
                 return laserProfiles::Selected::INIT_TIME > 0.0_X;
             }
 
-            void operator()(uint32_t currentStep) const
+            void operator()(float_X currentStep) const
             {
                 /* The laser can be initialized in the plane of the first cell or
                  * any later x-z plane inside the simulation. Initializing the
@@ -105,7 +105,7 @@ namespace picongpu
                 constexpr float_X laserTimeShift
                     = laserProfiles::Selected::Unitless::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
 
-                const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
+                const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(static_cast<uint32_t>(currentStep));
 
                 /* Disable laser if
                  * - init time of laser is over or

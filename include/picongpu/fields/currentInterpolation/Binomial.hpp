@@ -21,6 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
+
 #include <pmacc/dimensions/DataSpace.hpp>
 
 
@@ -89,9 +91,7 @@ namespace picongpu
                          */
                         constexpr float_X inverseDivisor = 1._X / (M + 6._X * S + 12._X * D + 8._X * T);
                         averagedJ *= inverseDivisor;
-
-                        constexpr float_X deltaT = DELTA_T;
-                        *fieldE -= averagedJ * (1._X / EPS0) * deltaT;
+                        *fieldE -= averagedJ * (1._X / EPS0) * maxwellSolver::getTimeStep();
                     }
                 };
 
@@ -134,9 +134,7 @@ namespace picongpu
                          */
                         constexpr float_X inverseDivisor = 1._X / (M + 4._X * S + 4._X * D);
                         averagedJ *= inverseDivisor;
-
-                        constexpr float_X deltaT = DELTA_T;
-                        *fieldE -= averagedJ * (1._X / EPS0) * deltaT;
+                        *fieldE -= averagedJ * (1._X / EPS0) * maxwellSolver::getTimeStep();
                     }
                 };
 

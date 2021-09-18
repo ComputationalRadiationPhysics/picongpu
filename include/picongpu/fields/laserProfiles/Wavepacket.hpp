@@ -140,7 +140,7 @@ namespace picongpu
                  *
                  * @param currentStep current simulation time step
                  */
-                HINLINE Wavepacket(uint32_t currentStep)
+                HINLINE Wavepacket(float_X currentStep)
                 {
                     // get data
                     DataConnector& dc = Environment<>::get().DataConnector();

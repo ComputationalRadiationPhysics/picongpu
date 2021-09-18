@@ -117,7 +117,7 @@ namespace picongpu
                  *
                  * @param currentStep current simulation time step
                  */
-                HINLINE PlaneWave(uint32_t currentStep) : phase(0.0_X)
+                HINLINE PlaneWave(float_X currentStep) : phase(0.0_X)
                 {
                     // get data
                     DataConnector& dc = Environment<>::get().DataConnector();

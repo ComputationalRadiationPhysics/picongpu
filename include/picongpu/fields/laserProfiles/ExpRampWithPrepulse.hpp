@@ -274,7 +274,7 @@ namespace picongpu
                  *
                  * @param currentStep current simulation time step
                  */
-                HINLINE ExpRampWithPrepulse(uint32_t currentStep)
+                HINLINE ExpRampWithPrepulse(float_X currentStep)
                 {
                     // get data
                     DataConnector& dc = Environment<>::get().DataConnector();

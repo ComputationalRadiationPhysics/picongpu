@@ -21,6 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
+
 #include <pmacc/dimensions/DataSpace.hpp>
 
 namespace picongpu
@@ -45,9 +47,7 @@ namespace picongpu
                 HDINLINE void operator()(T_DataBoxE fieldE, T_DataBoxB const, T_DataBoxJ const fieldJ)
                 {
                     DataSpace<dim> const self;
-
-                    constexpr float_X deltaT = DELTA_T;
-                    fieldE(self) -= fieldJ(self) * (float_X(1.0) / EPS0) * deltaT;
+                    fieldE(self) -= fieldJ(self) * (1.0_X / EPS0) * maxwellSolver::getTimeStep();
                 }
 
                 static pmacc::traits::StringProperty getStringProperties()

@@ -22,6 +22,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
+
 #include <cstdint>
 
 namespace picongpu
@@ -135,7 +137,7 @@ namespace picongpu
                              * one in the paper by M. Mansourabadi & A. Pourkazemi referenced in the comment above.
                              * The meaning of this coefficient is also explained there in more detail.
                              */
-                            auto const coefficient = (SPEED_OF_LIGHT * DELTA_T) / CELL_HEIGHT * 2._X;
+                            auto const coefficient = (SPEED_OF_LIGHT * maxwellSolver::getTimeStep()) / CELL_HEIGHT * 2._X;
                             m_dataBoxE(gridIdx) += coefficient * m_elong;
                         }
                         else
