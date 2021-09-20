@@ -29,7 +29,8 @@
 #include <pmacc/traits/HasIdentifiers.hpp>
 
 #include <boost/mpl/and.hpp>
-#include <boost/shared_ptr.hpp>
+
+#include <memory>
 
 
 namespace picongpu
@@ -55,7 +56,7 @@ namespace picongpu
         MappingDesc* cellDescription;
         std::ofstream output_file;
 
-        using AllGPU_reduce = boost::shared_ptr<pmacc::algorithm::mpi::Reduce<simDim>>;
+        using AllGPU_reduce = std::shared_ptr<pmacc::algorithm::mpi::Reduce<simDim>>;
         AllGPU_reduce allGPU_reduce;
 
         HINLINE void restart(uint32_t restartStep, const std::string restartDirectory);

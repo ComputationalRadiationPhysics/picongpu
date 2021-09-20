@@ -45,7 +45,6 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/mpl/and.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include <fstream>
 #include <iostream>
@@ -97,10 +96,10 @@ namespace picongpu
         typedef CalorimeterFunctor<typename DBufCalorimeter::Cursor> MyCalorimeterFunctor;
 
     private:
-        typedef boost::shared_ptr<MyCalorimeterFunctor> MyCalorimeterFunctorPtr;
+        using MyCalorimeterFunctorPtr = std::shared_ptr<MyCalorimeterFunctor>;
         MyCalorimeterFunctorPtr calorimeterFunctor;
 
-        typedef boost::shared_ptr<pmacc::algorithm::mpi::Reduce<simDim>> AllGPU_reduce;
+        using AllGPU_reduce = std::shared_ptr<pmacc::algorithm::mpi::Reduce<simDim>>;
         AllGPU_reduce allGPU_reduce;
 
         template<typename T>

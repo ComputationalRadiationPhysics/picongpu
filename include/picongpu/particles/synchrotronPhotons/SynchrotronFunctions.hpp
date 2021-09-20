@@ -29,7 +29,8 @@
 #include <pmacc/cuSTL/cursor/tools/LinearInterp.hpp>
 
 #include <boost/math/tr1.hpp> /* cyl_bessel_k */
-#include <boost/shared_ptr.hpp>
+
+#include <memory>
 
 namespace picongpu
 {
@@ -84,7 +85,7 @@ namespace picongpu
                 using SyncFuncCursor = detail::SyncFuncCursor;
 
             private:
-                using MyBuf = boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM1>>;
+                using MyBuf = std::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM1>>;
                 MyBuf dBuf_SyncFuncs[2]; // two synchrotron functions
 
                 struct BesselK

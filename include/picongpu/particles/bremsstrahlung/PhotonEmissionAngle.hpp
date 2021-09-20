@@ -27,7 +27,6 @@
 #include <pmacc/cuSTL/cursor/tools/LinearInterp.hpp>
 
 #include <boost/array.hpp>
-#include <boost/shared_ptr.hpp>
 #if(BOOST_VERSION == 106400)
 /* `array_wrapper.hpp` must be included before `integrate.hpp` to avoid
  * the error
@@ -41,6 +40,7 @@
 #include <boost/numeric/odeint/integrate/integrate.hpp>
 
 #include <limits>
+#include <memory>
 #include <utility>
 
 namespace picongpu
@@ -111,7 +111,7 @@ namespace picongpu
                 using GetPhotonAngleFunctor = detail::GetPhotonAngleFunctor;
 
             private:
-                using MyBuf = boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM2>>;
+                using MyBuf = std::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM2>>;
                 MyBuf dBufTheta;
 
                 /** probability density at polar angle theta.
