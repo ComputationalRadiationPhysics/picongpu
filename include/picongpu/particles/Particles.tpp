@@ -311,7 +311,11 @@ namespace picongpu
         using ParticlePush = typename pmacc::traits::Resolve<PusherAlias>::type;
         // Because of composite pushers, we have to defer using the launcher
         PushLauncher<ParticlePush>{}(*this, currentStep);
+    }
 
+    template<typename T_Name, typename T_Flags, typename T_Attributes>
+    void Particles<T_Name, T_Flags, T_Attributes>::applyBoundary(uint32_t const currentStep)
+    {
         particles::boundary::apply(*this, currentStep);
     }
 

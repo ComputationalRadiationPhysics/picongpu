@@ -63,6 +63,7 @@ namespace pmacc
         typename T_SupercellSize>
     class MapperConcept : public T_MappingDescription<T_dim, T_SupercellSize>
     {
+    public:
         //! Base class
         using BaseClass = T_MappingDescription<T_dim, T_SupercellSize>;
 

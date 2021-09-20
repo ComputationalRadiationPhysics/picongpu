@@ -21,12 +21,16 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/particles/boundary/Kind.hpp"
+#include "picongpu/particles/boundary/Absorbing.hpp"
+#include "picongpu/particles/boundary/ApplyImpl.hpp"
+#include "picongpu/particles/boundary/Description.hpp"
 
 #include <pmacc/Environment.hpp>
-#include <pmacc/traits/NumberOfExchanges.hpp>
+#include <pmacc/boundary/Utility.hpp>
+#include <pmacc/pluginSystem/IPlugin.hpp>
 
 #include <cstdint>
+#include <list>
 #include <stdexcept>
 
 
@@ -36,39 +40,28 @@ namespace picongpu
     {
         namespace boundary
         {
-            /** Functor to apply the given boundary kind to particle species
-             *
-             * This functor operates on the near-boundary area where the boundary conditions are active.
-             * Currently, this is always a part of the GUARD area of the currently outer domains (wrt periodicity).
-             * The functor would only be called for the relevant exchang types of such domains.
-             * If there are particles left in this area after this functor ran, they will be removed later.
-             *
-             * So for standard Absorbing boundaries in GUARD the functor does not need to do anything.
-             * For Periodic boundaries, there are no outer domains and so again no need to do anything here.
-             *
-             * Thus, the general implementation doing nothing is already suited for Absorbing and Periodic.
-             * However, it probably needs to be specialized for other boundary types or other Absorbing zones.
-             * In this case, the implementation must ensure particles are moved to correct supercells afterwards.
-             * In the general case, by calling shiftParticles() at the end.
-             *
-             * @param T_kind boundary kind
-             */
-            template<Kind T_kind>
-            struct Apply
+            namespace detail
             {
-                /** Apply boundary conditions along the given outer boundary
+                /** Call onParticleLeave() hooks for all plugins for the given outer boundary
+                 *
+                 * It is only called for active outer boundaries.
+                 * Hook implementations must not modify the particles.
+                 * Hook implementations must account for actual boundary positions set in
+                 * T_Species::boundaryDescription() and not assume it is in GUARD.
                  *
                  * @tparam T_Species particle species type
                  *
-                 * @param species particle species
                  * @param exchangeType exchange describing the active boundary
-                 * @param currentStep current time iteration
                  */
                 template<typename T_Species>
-                void operator()(T_Species& species, uint32_t exchangeType, uint32_t currentStep)
+                inline void callPluginHooks(T_Species& species, int32_t const exchangeType)
                 {
+                    using Plugins = std::list<pmacc::IPlugin*>;
+                    Plugins plugins = Environment<>::get().PluginConnector().getAllPlugins();
+                    for(Plugins::iterator iter = plugins.begin(); iter != plugins.end(); iter++)
+                        (*iter)->onParticleLeave(T_Species::FrameType::getName(), exchangeType);
                 }
-            };
+            } // namespace detail
 
             /** Apply boundary conditions to the given species
              *
@@ -80,38 +73,32 @@ namespace picongpu
             template<typename T_Species>
             inline void apply(T_Species&& species, uint32_t currentStep)
             {
-                auto const numExchanges = NumberOfExchanges<simDim>::value;
                 auto const communicationMask = Environment<simDim>::get().GridController().getCommunicationMask();
-                for(uint32_t exchange = 1u; exchange < numExchanges; ++exchange)
+                for(auto exchange : getAllAxisAlignedExchanges())
                 {
-                    /* Here we are only interested in the positive and negative
-                     * directions for x, y, z axes and not the "diagonal" ones.
-                     * So skip other directions except left, right, top, bottom,
-                     * back, front
-                     */
-                    if(FRONT % exchange != 0)
-                        continue;
-
                     // If this is not an outer boundary, also skip
                     bool hasNeighbour = communicationMask.isSet(exchange);
                     if(hasNeighbour)
                         continue;
 
-                    // Transform exchange into axis
-                    uint32_t axis = 0;
-                    if(exchange >= BOTTOM && exchange <= TOP)
-                        axis = 1;
-                    if(exchange >= BACK)
-                        axis = 2;
+                    /* Here is the only place in the computational loop where we can call hooks from plugins:
+                     *    - we know those particles crossed the active boundary
+                     *    - but we didn't yet apply the boundary conditions
+                     *      that would normally modify or delete the particles
+                     *      (this is done just afterwards in this function)
+                     */
+                    detail::callPluginHooks(species, exchange);
 
-                    auto boundaryKind = species.boundaryKind()[axis];
-                    switch(boundaryKind)
+                    // Call boundary condition implementation
+                    auto axis = pmacc::boundary::getAxis(exchange);
+                    auto boundaryDescription = species.boundaryDescription()[axis];
+                    switch(boundaryDescription.kind)
                     {
                     case Kind::Periodic:
-                        Apply<Kind::Periodic>{}(species, exchange, currentStep);
+                        ApplyImpl<Kind::Periodic>{}(species, exchange, currentStep);
                         break;
                     case Kind::Absorbing:
-                        Apply<Kind::Absorbing>{}(species, exchange, currentStep);
+                        ApplyImpl<Kind::Absorbing>{}(species, exchange, currentStep);
                         break;
                     default:
                         throw std::runtime_error("Unsupported boundary kind when trying to apply particle boundary");

@@ -22,11 +22,12 @@
 
 #include "picongpu/fields/Fields.def"
 #include "picongpu/fields/Fields.hpp"
-#include "picongpu/particles/boundary/CallPluginsAndDeleteParticles.hpp"
-#include "picongpu/particles/boundary/Kind.hpp"
+#include "picongpu/particles/boundary/Description.hpp"
+#include "picongpu/particles/boundary/Utility.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
 
 #include <pmacc/HandleGuardRegion.hpp>
+#include <pmacc/boundary/Utility.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/memory/dataTypes/Mask.hpp>
@@ -34,6 +35,8 @@
 #include <pmacc/particles/ParticleDescription.hpp>
 #include <pmacc/particles/ParticlesBase.hpp>
 #include <pmacc/particles/memory/buffers/ParticlesBuffer.hpp>
+#include <pmacc/particles/policies/DoNothing.hpp>
+#include <pmacc/particles/policies/ExchangeParticles.hpp>
 #include <pmacc/traits/GetCTName.hpp>
 #include <pmacc/traits/Resolve.hpp>
 #include <pmacc/types.hpp>
@@ -88,7 +91,7 @@ namespace picongpu
                       // fallback if the species has not defined the alias boundaryCondition
                       pmacc::HandleGuardRegion<
                           pmacc::particles::policies::ExchangeParticles,
-                          particles::boundary::CallPluginsAndDeleteParticles>>::type>,
+                          pmacc::particles::policies::DoNothing>>::type>,
               MappingDesc,
               DeviceHeap>
         , public ISimulationData
@@ -107,7 +110,7 @@ namespace picongpu
                 // fallback if the species has not defined the alias boundaryCondition
                 pmacc::HandleGuardRegion<
                     pmacc::particles::policies::ExchangeParticles,
-                    particles::boundary::CallPluginsAndDeleteParticles>>::type>;
+                    pmacc::particles::policies::DoNothing>>::type>;
         using ParticlesBaseType = ParticlesBase<SpeciesParticleDescription, picongpu::MappingDesc, DeviceHeap>;
         using FrameType = typename ParticlesBaseType::FrameType;
         using FrameTypeBorder = typename ParticlesBaseType::FrameTypeBorder;
@@ -121,7 +124,11 @@ namespace picongpu
 
         void createParticleBuffer();
 
+        //! Push all particles
         void update(uint32_t const currentStep);
+
+        //! Apply all boundary conditions
+        void applyBoundary(uint32_t const currentStep);
 
         template<typename T_DensityFunctor, typename T_PositionFunctor>
         void initDensityProfile(
@@ -152,16 +159,16 @@ namespace picongpu
 
         void syncToDevice() override;
 
-        /** Get boundary kinds for the species.
+        /** Get boundary descriptions for the species.
          *
-         * For each side, both boundaries have the same kind.
+         * For both sides along the same axis, both boundaries have the same description.
          * Must not be modified outside of the ParticleBoundaries simulation stage.
          *
          * This method is static as it is used by static getStringProperties().
          */
-        static std::array<particles::boundary::Kind, simDim>& boundaryKind()
+        static std::array<particles::boundary::Description, simDim>& boundaryDescription()
         {
-            static std::array<particles::boundary::Kind, simDim> kinds = getDefaultBoundaryKind();
+            static std::array<particles::boundary::Description, simDim> kinds = getDefaultBoundaryDescription();
             return kinds;
         }
 
@@ -169,31 +176,23 @@ namespace picongpu
         {
             pmacc::traits::StringProperty propList;
 
-            for(uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
+            for(auto exchange : particles::boundary::getAllAxisAlignedExchanges())
             {
-                // for each planar direction: left right top bottom back front
-                if(FRONT % i == 0)
-                {
-                    const DataSpace<DIM3> relDir = Mask::getRelativeDirections<DIM3>(i);
-                    uint32_t axis = 0; // x(0) y(1) z(2)
-                    for(uint32_t d = 0; d < simDim; d++)
-                        if(relDir[d] != 0)
-                            axis = d;
+                auto const axis = pmacc::boundary::getAxis(exchange);
 
-                    const std::string directionName = ExchangeTypeNames()[i];
-                    propList[directionName]["param"] = std::string("none");
-                    switch(boundaryKind()[axis])
-                    {
-                    case particles::boundary::Kind::Periodic:
-                        propList[directionName]["name"] = "periodic";
-                        break;
-                    case particles::boundary::Kind::Absorbing:
-                        propList[directionName]["name"] = "absorbing";
-                        propList[directionName]["param"] = std::string("without field correction");
-                        break;
-                    default:
-                        propList[directionName]["name"] = "unknown";
-                    }
+                const std::string directionName = ExchangeTypeNames()[exchange];
+                propList[directionName]["param"] = std::string("none");
+                switch(boundaryDescription()[axis].kind)
+                {
+                case particles::boundary::Kind::Periodic:
+                    propList[directionName]["name"] = "periodic";
+                    break;
+                case particles::boundary::Kind::Absorbing:
+                    propList[directionName]["name"] = "absorbing";
+                    propList[directionName]["param"] = std::string("without field correction");
+                    break;
+                default:
+                    propList[directionName]["name"] = "unknown";
                 }
             }
             return propList;
@@ -215,15 +214,18 @@ namespace picongpu
         FieldE* fieldE;
         FieldB* fieldB;
 
-        //! Get default boundary kinds for the species matching the communicator topology.
-        static std::array<particles::boundary::Kind, simDim> getDefaultBoundaryKind()
+        //! Get default boundary description for the species matching the communicator topology.
+        static std::array<particles::boundary::Description, simDim> getDefaultBoundaryDescription()
         {
             using namespace particles::boundary;
-            std::array<particles::boundary::Kind, simDim> result;
+            std::array<Description, simDim> result;
             const DataSpace<DIM3> periodic
                 = Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
             for(uint32_t d = 0; d < simDim; d++)
-                result[d] = (periodic[d] ? Kind::Periodic : Kind::Absorbing);
+            {
+                result[d].kind = (periodic[d] ? Kind::Periodic : Kind::Absorbing);
+                result[d].offset = 0u;
+            }
             return result;
         }
     };
