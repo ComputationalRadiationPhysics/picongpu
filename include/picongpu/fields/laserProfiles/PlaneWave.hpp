@@ -21,6 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/laserProfiles/BaseFunctor.hpp"
+
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 
@@ -62,14 +64,12 @@ namespace picongpu
             namespace acc
             {
                 template<typename T_Unitless>
-                struct PlaneWave : public T_Unitless
+                struct PlaneWave
+                    : public T_Unitless
+                    , public acc::BaseFunctor<T_Unitless::initPlaneY>
                 {
                     using Unitless = T_Unitless;
-
-                    float3_X m_elong;
-                    typename FieldE::DataBoxType m_dataBoxE;
-                    DataSpace<simDim> m_offsetToTotalDomain;
-                    DataSpace<simDim> m_superCellToLocalOriginCellOffset;
+                    using BaseFunctor = acc::BaseFunctor<T_Unitless::initPlaneY>;
 
                     /** Device-Side Constructor
                      *
@@ -82,10 +82,7 @@ namespace picongpu
                         DataSpace<simDim> const& superCellToLocalOriginCellOffset,
                         DataSpace<simDim> const& offsetToTotalDomain,
                         float3_X const& elong)
-                        : m_elong(elong)
-                        , m_dataBoxE(dataBoxE)
-                        , m_offsetToTotalDomain(offsetToTotalDomain)
-                        , m_superCellToLocalOriginCellOffset(superCellToLocalOriginCellOffset)
+                        : BaseFunctor(dataBoxE, superCellToLocalOriginCellOffset, offsetToTotalDomain, elong)
                     {
                     }
 
@@ -99,29 +96,9 @@ namespace picongpu
                     HDINLINE void operator()(T_Acc const&, DataSpace<simDim> const& cellIndexInSuperCell)
                     {
                         // coordinate system to global simulation as origin
-                        DataSpace<simDim> const localCell(cellIndexInSuperCell + m_superCellToLocalOriginCellOffset);
-
-                        if(Unitless::initPlaneY != 0) // compile time if
-                        {
-                            /* If the laser is not initialized in the first cell we emit a
-                             * negatively and positively propagating wave. Therefore we need to multiply the
-                             * amplitude with a correction factor depending of the cell size in
-                             * propagation direction.
-                             * The negatively propagating wave is damped by the absorber.
-                             *
-                             * The `correctionFactor` assume that the wave is moving in y direction.
-                             */
-                            auto const correctionFactor = (SPEED_OF_LIGHT * DELTA_T) / CELL_HEIGHT * 2._X;
-
-                            // jump over the guard of the electric field
-                            m_dataBoxE(localCell + SuperCellSize::toRT() * GuardSize::toRT())
-                                += correctionFactor * m_elong;
-                        }
-                        else
-                        {
-                            // jump over the guard of the electric field
-                            m_dataBoxE(localCell + SuperCellSize::toRT() * GuardSize::toRT()) = m_elong;
-                        }
+                        DataSpace<simDim> const localCell(
+                            cellIndexInSuperCell + this->m_superCellToLocalOriginCellOffset);
+                        BaseFunctor::operator()(localCell);
                     }
                 };
             } // namespace acc

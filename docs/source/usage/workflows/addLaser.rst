@@ -14,3 +14,8 @@ There are several alternative ways of adding an incoming laser (or any source of
 These ways operate independently of one another, each has its features and limitations.
 All but the current background one are fully accurate only for the standard Yee field solver.
 For other field solver types, a user should evaluate the inaccuracies introduced.
+
+The functioning of the laser (the first way) is covered in more detail in the following class:
+
+.. doxygenclass:: picongpu::fields::laserProfiles::acc::BaseFunctor
+   :project: PIConGPU
