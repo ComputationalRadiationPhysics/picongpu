@@ -49,21 +49,19 @@ namespace picongpu
             /** Specialization of functor to compile-time get time step used inside a substepping field solver
              *
              * @tparam T_BaseSolver base field solver, follows requirements of field solvers
-             * @tparam T_numSubSteps number of substeps per PIC time iteration
-             */ 
-            template<typename T_BaseSolver, uint32_t T_numSubSteps>
-            struct GetTimeStep<Substepping<T_BaseSolver, T_numSubSteps>>
+             * @tparam T_numSubsteps number of substeps per PIC time iteration
+             */
+            template<typename T_BaseSolver, uint32_t T_numSubsteps>
+            struct GetTimeStep<Substepping<T_BaseSolver, T_numSubsteps>>
             {
+                //! Get the time step value
                 HDINLINE constexpr float_X operator()()
                 {
-                    return DELTA_T / static_cast<float_X>(T_numSubSteps);
+                    return DELTA_T / static_cast<float_X>(T_numSubsteps);
                 }
             };
-            
-            /** Get time step used inside the field solver
-             *
-             * For all field solvers but substepping, it is same as DELTA_T.
-             */
+
+            //! Get time step used inside the field solver
             HDINLINE constexpr float_X getTimeStep()
             {
                 return GetTimeStep<Solver>{}();

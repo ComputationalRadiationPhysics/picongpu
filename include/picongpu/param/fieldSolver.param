@@ -40,7 +40,7 @@ namespace picongpu
     {
         /** FieldSolver
          *
-         * Field Solver Selection (note <> for some solvers):
+         * Field Solver Selection (note <> for some solvers), all in namespace maxwellSolver:
          *  - Yee : Standard Yee solver approximating derivatives with respect to time and
          * space by second order finite differences.
          *  - Lehe<>: Num. Cherenkov free field solver in a chosen direction
@@ -48,6 +48,7 @@ namespace picongpu
          * *spatial* derivatives by finite differences. The number of neighbors can be changed from 4 to any positive,
          * integer number. The order of the solver will be twice the number of neighbors in each direction. Yee's
          * method is a special case of this using one neighbor to each direction.
+         *  - Substepping<Solver, 4>: use the given Solver (Yee, etc.) and substep each time step by factor 4
          *  - None: disable the vacuum update of E and B
          */
         using Solver = maxwellSolver::Yee;

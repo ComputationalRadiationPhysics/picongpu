@@ -22,13 +22,16 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
+#include "picongpu/fields/MaxwellSolver/FDTD/FDTD.hpp"
 #include "picongpu/fields/MaxwellSolver/GetTimeStep.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.def"
-#include "picongpu/fields/MaxwellSolver/FDTD/FDTD.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/traits/GetStringProperties.hpp>
 #include <pmacc/types.hpp>
+
+#include <cstdint>
+#include <functional>
 
 
 namespace picongpu
@@ -37,44 +40,97 @@ namespace picongpu
     {
         namespace maxwellSolver
         {
-            /** Substepping None solver does not make much sense, but is allowed.
+            namespace detail
+            {
+                /** Base class with common implementation details for substepping field solvers
+                 *
+                 * @tparam T_BaseSolver base field solver, follows requirements of field solvers
+                 * @tparam T_numSubsteps number of field solver steps per PIC time iteration
+                 */
+                template<typename T_BaseSolver, uint32_t T_numSubsteps>
+                class SubsteppingBase : public T_BaseSolver
+                {
+                public:
+                    //! Number of substeps
+                    static constexpr uint32_t numSubsteps = T_numSubsteps;
+
+                    //! Base field solver type
+                    using Base = T_BaseSolver;
+
+                    /** Create base substepping solver instance
+                     *
+                     * @param cellDescription mapping description for kernels
+                     */
+                    SubsteppingBase(MappingDesc const cellDescription) : Base(cellDescription)
+                    {
+                        // We still have to check the basic PIC condition c * dt < dx as particles need it
+                        CFLChecker<SubsteppingBase>{}();
+                        PMACC_CASSERT_MSG(
+                            Substepping_field_solver_wrong_number_of_substeps____must_be_at_least_1,
+                            numSubsteps >= 1);
+                    }
+
+                    //! Type-erased functor type to add current density to E for the given time iteration
+                    using CurrentAddFunctor = std::function<void(uint32_t)>;
+
+                    /** Set the functor that adds current density to E for the given time iteration
+                     *
+                     * This is a hook to be used by the main simulation object.
+                     *
+                     * @param functor functor instance
+                     */
+                    void setCurrentAddFunctor(CurrentAddFunctor functor)
+                    {
+                        currentAddFunctor = functor;
+                    }
+
+                protected:
+                    //! Functor to add current density to E field
+                    CurrentAddFunctor currentAddFunctor;
+                };
+            } // namespace detail
+
+            /** Substepping None solver does not make much sense, but is allowed and works same as None.
              *
-             * @tparam T_numSubSteps number of substeps per PIC time iteration
+             * @tparam T_numSubsteps number of substeps per PIC time iteration
              */
-            template<uint32_t T_numSubSteps>
-            class Substepping<None, T_numSubSteps> : None
+            template<uint32_t T_numSubsteps>
+            class Substepping<None, T_numSubsteps> : public detail::SubsteppingBase<None, T_numSubsteps>
             {
             public:
-                //! Base field solver type
-                using Base = None;
-            
+                //! Base type
+                using Base = detail::SubsteppingBase<None, T_numSubsteps>;
+
+                /** Create None substepping solver instance
+                 *
+                 * @param cellDescription mapping description for kernels
+                 */
                 Substepping(MappingDesc const cellDescription): Base(cellDescription)
                 {
-                    // We still have to check the basic PIC c * dt < dx as particles need it
-                    CFLChecker<Substepping>{}();
-                    PMACC_CASSERT_MSG(
-                        Substepping_field_solver_wrong_number_of_substeps____must_be_at_least_1,
-                        T_numSubSteps >= 1);
                 }
             };
 
-            template<typename T_CurlE, typename T_CurlB, uint32_t T_numSubSteps>
-            class Substepping<FDTD<T_CurlE, T_CurlB>, T_numSubSteps> : FDTD<T_CurlE, T_CurlB>
+            /** Substepping FDTD solver
+             *
+             * @tparam TArgs template parameters for the base FDTD solver
+             * @tparam T_numSubsteps number of substeps per PIC time iteration
+             */
+            template<typename... TArgs, uint32_t T_numSubsteps>
+            class Substepping<FDTD<TArgs...>, T_numSubsteps>
+                : public detail::SubsteppingBase<FDTD<TArgs...>, T_numSubsteps>
             {
             public:
-            
-                //! Base field solver type
-                using Base = FDTD<T_CurlE, T_CurlB>;
-            
+                //! Base type
+                using Base = detail::SubsteppingBase<FDTD<TArgs...>, T_numSubsteps>;
+
+                /** Create FDTD substepping solver instance
+                 *
+                 * @param cellDescription mapping description for kernels
+                 */
                 Substepping(MappingDesc const cellDescription): Base(cellDescription)
                 {
-                    // We still have to check the basic PIC c * dt < dx as particles need it
-                    CFLChecker<Substepping>{}();
-                    PMACC_CASSERT_MSG(
-                        Substepping_field_solver_wrong_number_of_substeps____must_be_at_least_1,
-                        T_numSubSteps >= 1);
                 }
-                
+
                 /** Perform the first part of E and B propagation by a full time step.
                  *
                  * Together with update_afterCurrent( ) forms the full propagation by a time step.
@@ -96,12 +152,13 @@ namespace picongpu
                 {
                     constexpr auto subStepDt = getTimeStep();
                     Base::update_afterCurrent(static_cast<float_X>(currentStep), subStepDt);
-                    // By now we made 1 substep, do the rest here
-                    for (uint32_t subStep = 1; subStep < T_numSubSteps; subStep++)
+                    // By now we made 1 full substep, do the remaining ones
+                    for(uint32_t subStep = 1; subStep < this->numSubsteps; subStep++)
                     {
-                        auto const currentStepAndSubstep = static_cast<float_X>(currentStep) + subStepDt * static_Cast<float_X>(subStep);
+                        auto const currentStepAndSubstep
+                            = static_cast<float_X>(currentStep) + subStepDt * static_cast<float_X>(subStep);
                         Base::update_beforeCurrent(currentStepAndSubstep, subStepDt);
-                        // TODO: call currentInterpolationAndAdditionToEMF() here
+                        this->currentAddFunctor(currentStep);
                         Base::update_afterCurrent(currentStepAndSubstep, subStepDt);
                     }
                 }
@@ -117,12 +174,12 @@ namespace picongpu
          * It matches the base solver.
          *
          * @tparam T_BaseSolver base field solver, follows requirements of field solvers
-         * @tparam T_numSubSteps number of substeps per PIC time iteration
+         * @tparam T_numSubsteps number of substeps per PIC time iteration
          * @tparam T_Field field type
          */
-        template<typename T_BaseSolver, uint32_t T_numSubSteps, typename T_Field>
-        struct GetMargin<picongpu::fields::maxwellSolver::Substepping<T_BaseSolver, T_numSubSteps>, T_Field>:
-            GetMargin<T_BaseSolver,  T_Field>
+        template<typename T_BaseSolver, uint32_t T_numSubsteps, typename T_Field>
+        struct GetMargin<picongpu::fields::maxwellSolver::Substepping<T_BaseSolver, T_numSubsteps>, T_Field>
+            : GetMargin<T_BaseSolver, T_Field>
         {
         };
     } // namespace traits
@@ -132,13 +189,20 @@ namespace pmacc
 {
     namespace traits
     {
-        template<typename T_BaseSolver, uint32_t T_numSubSteps>
-        struct StringProperties<picongpu::fields::maxwellSolver::Substepping<T_BaseSolver, T_numSubSteps>>
+        /** Get string properties for the substepping solver
+         *
+         * @tparam T_BaseSolver base field solver, follows requirements of field solvers
+         * @tparam T_numSubsteps number of substeps per PIC time iteration
+         */
+        template<typename T_BaseSolver, uint32_t T_numSubsteps>
+        struct StringProperties<picongpu::fields::maxwellSolver::Substepping<T_BaseSolver, T_numSubsteps>>
         {
+            //! Get string property
             static StringProperty get()
             {
                 pmacc::traits::StringProperty propList = StringProperties<T_BaseSolver>::get();
-                propList["param"] = std::string("Substepping with ") + std::to_string(T_numSubSteps) + " substeps per PIC step";
+                propList["param"]
+                    = std::string("Substepping with ") + std::to_string(T_numSubsteps) + " substeps per PIC time step";
                 return propList;
             }
         };
