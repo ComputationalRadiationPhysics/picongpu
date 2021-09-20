@@ -31,7 +31,6 @@ namespace picongpu
              *
              * This class template implements the general FDTD scheme for any given curl types.
              * It is second-order in time, the order in space depends on the curls, but is at least second.
-             * All supported field solvers, except placeholder None, are aliases of this template.
              *
              * Reference: A. Taflove, S.C. Hagness. Computational Electrodynamics. The Finite-Difference Time-Domain
              * Method. Third Edition. Artech house, Boston (2005).

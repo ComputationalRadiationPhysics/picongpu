@@ -40,7 +40,7 @@ namespace picongpu
     {
         namespace maxwellSolver
         {
-            namespace detail
+            namespace substepping
             {
                 /** Base class with common implementation details for substepping field solvers
                  *
@@ -88,18 +88,18 @@ namespace picongpu
                     //! Functor to add current density to E field
                     CurrentAddFunctor currentAddFunctor;
                 };
-            } // namespace detail
+            } // namespace substepping
 
             /** Substepping None solver does not make much sense, but is allowed and works same as None.
              *
              * @tparam T_numSubsteps number of substeps per PIC time iteration
              */
             template<uint32_t T_numSubsteps>
-            class Substepping<None, T_numSubsteps> : public detail::SubsteppingBase<None, T_numSubsteps>
+            class Substepping<None, T_numSubsteps> : public substepping::SubsteppingBase<None, T_numSubsteps>
             {
             public:
                 //! Base type
-                using Base = detail::SubsteppingBase<None, T_numSubsteps>;
+                using Base = substepping::SubsteppingBase<None, T_numSubsteps>;
 
                 /** Create None substepping solver instance
                  *
@@ -117,11 +117,11 @@ namespace picongpu
              */
             template<typename... TArgs, uint32_t T_numSubsteps>
             class Substepping<FDTD<TArgs...>, T_numSubsteps>
-                : public detail::SubsteppingBase<FDTD<TArgs...>, T_numSubsteps>
+                : public substepping::SubsteppingBase<FDTD<TArgs...>, T_numSubsteps>
             {
             public:
                 //! Base type
-                using Base = detail::SubsteppingBase<FDTD<TArgs...>, T_numSubsteps>;
+                using Base = substepping::SubsteppingBase<FDTD<TArgs...>, T_numSubsteps>;
 
                 /** Create FDTD substepping solver instance
                  *
@@ -131,35 +131,41 @@ namespace picongpu
                 {
                 }
 
-                /** Perform the first part of E and B propagation by a full time step.
+                /** Perform the first part of E and B propagation by a PIC time step.
                  *
-                 * Together with update_afterCurrent( ) forms the full propagation by a time step.
+                 * Together with update_afterCurrent() forms the full propagation by a PIC time step.
+                 *
+                 * Here we only do the update_beforeCurrent for the first substep.
+                 * However the calling side should not rely on any particular state of fields after this function.
                  *
                  * @param currentStep index of the current time iteration
                  */
                 void update_beforeCurrent(uint32_t const currentStep)
                 {
-                    Base::update_beforeCurrent(static_cast<float_X>(currentStep), getTimeStep());
+                    this->updateBeforeCurrent(static_cast<float_X>(currentStep));
                 }
 
-                /** Perform the last part of E and B propagation by a time step
+                /** Perform the last part of E and B propagation by a PIC time step
                  *
-                 * Together with update_beforeCurrent( ) forms the full propagation.
+                 * Together with update_beforeCurrent() forms the full propagation by a PIC time step.
+                 *
+                 * Here we finish the first substep and then iterate over all remaining substeps doing a full update.
+                 * However the calling side should not rely on any particular state of fields before this function.
+                 * After it is completed, the fields are properly propagated by a PIC time step.
                  *
                  * @param currentStep index of the current time iteration
                  */
                 void update_afterCurrent(uint32_t const currentStep)
                 {
-                    constexpr auto subStepDt = getTimeStep();
-                    Base::update_afterCurrent(static_cast<float_X>(currentStep), subStepDt);
+                    this->updateAfterCurrent(static_cast<float_X>(currentStep));
                     // By now we made 1 full substep, do the remaining ones
                     for(uint32_t subStep = 1; subStep < this->numSubsteps; subStep++)
                     {
                         auto const currentStepAndSubstep
-                            = static_cast<float_X>(currentStep) + subStepDt * static_cast<float_X>(subStep);
-                        Base::update_beforeCurrent(currentStepAndSubstep, subStepDt);
+                            = static_cast<float_X>(currentStep) + static_cast<float_X>(subStep) * getTimeStep();
+                        this->updateBeforeCurrent(currentStepAndSubstep);
                         this->currentAddFunctor(currentStep);
-                        Base::update_afterCurrent(currentStepAndSubstep, subStepDt);
+                        this->updateAfterCurrent(currentStepAndSubstep);
                     }
                 }
             };
