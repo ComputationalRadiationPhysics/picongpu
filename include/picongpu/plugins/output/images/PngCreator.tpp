@@ -67,7 +67,7 @@ namespace picongpu
         {
             for(int x = 0; x < size.x(); ++x)
             {
-                float3_X p = data[y][x];
+                float3_X p = data({x, y});
                 png.plot(x + 1, size.y() - y, p.x(), p.y(), p.z());
             }
         }

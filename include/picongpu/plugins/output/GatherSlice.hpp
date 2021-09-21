@@ -216,7 +216,7 @@ namespace picongpu
             {
                 for(int x = 0; x < srcSize.x(); ++x)
                 {
-                    dst[y + offsetToSimNull.y()][x + offsetToSimNull.x()] = src[y][x];
+                    dst({x + offsetToSimNull.x(), y + offsetToSimNull.y()}) = src({x, y});
                 }
             }
         }
