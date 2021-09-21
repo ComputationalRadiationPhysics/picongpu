@@ -11,8 +11,9 @@
 # Visual Studio Code configuration files
 .vscode
 
-# JetBrains project files
+# JetBrains project files and tmp's
 .idea/
+/venv/
 
 # python byte code
 *.pyc
