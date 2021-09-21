@@ -236,6 +236,7 @@ namespace pmacc
         {
             const auto mask = alpaka::warp::activemask(acc);
             const auto leader = alpaka::ffs(acc, static_cast<std::make_signed_t<decltype(mask)>>(mask)) - 1;
+            alpaka::ignore_unused(leader);
 
 #if CUPLA_DEVICE_COMPILE == 1
             if(getLaneId() == leader)
