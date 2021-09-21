@@ -50,24 +50,22 @@ namespace picongpu
                 template<typename T_Particle>
                 HDINLINE void operator()(DataSpace<simDim> const& offsetToTotalOrigin, T_Particle& particle)
                 {
-                    
                     for(uint32_t d = 0; d < simDim; d++)
                         if((offsetToTotalOrigin[d] < m_parameters.beginInternalCellsTotal[d])
                             || (offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d]))
-                            {  
-                                floatD_X pos = particle[position_];
+                            {
+                                auto pos = particle[position_];
                                 printf("old %f %f %f\n", pos.x(), pos.y(), pos.z());
                                 if (offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d])
                                     pos[d] = -pos[d];
-                                if (offsetToTotalOrigin[d] < m_parameters.beginInternalCellsTotal[d])
-                                    pos[d] = 2-pos[d];
+                                else
+                                    pos[d] = 2.0_X - pos[d];
                                 printf("new %f %f %f\n", pos.x(), pos.y(), pos.z());
-                                floatD_X newPos = pos;
-                                particle[momentum_][d] = -particle[momentum_][d];   
+                                auto newPos = pos;
+                                particle[momentum_][d] = -particle[momentum_][d];
+                                /// TODO: use moveParticle instead, delete function multi()
                                 multi(particle, newPos);
                             }
-                        
-
                 }
 
                 template<typename T_Particle>
@@ -194,12 +192,6 @@ namespace picongpu
                 template<typename T_Species>
                 void operator()(T_Species& species, uint32_t exchangeType, uint32_t currentStep)
                 {
-                    /* The rest of this function is not optimal performance-wise.
-                     * However it is only used when a user set a positive offset, so tolerable.
-                     * It processes all particles in manipulate and fillAllGaps() instead of working on the active area
-                     * specifically. Currently it would also go over several times if multiple boundaries are
-                     * absorbing.
-                     */
                     pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
                     getInternalCellsTotal(species, exchangeType, &beginInternalCellsTotal, &endInternalCellsTotal);
                     ReflectParticleIfOutside::parameters().beginInternalCellsTotal = beginInternalCellsTotal;
@@ -212,7 +204,8 @@ namespace picongpu
                      * We have not set mustShift for those supercells, so shift has to process all supercells
                      */
                     auto const onlyProcessMustShiftSupercells = false;
-                    species.template shiftBetweenSupercells<CORE + BORDER + GUARD /* GUARD */>(
+                    species.shiftBetweenSupercells(
+                        /*mapperFactory*/ pmacc::AreaMapperFactory<CORE + BORDER + GUARD>{},
                         onlyProcessMustShiftSupercells);
                 }
             };
