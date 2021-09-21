@@ -158,7 +158,8 @@ namespace picongpu
                 uint32_t const axis = pmacc::boundary::getAxis(exchangeType);
                 numSupercells[axis] = 1;
                 auto const offsetCells = getOffsetCells(species, exchangeType);
-                auto const offsetSupercells = offsetCells / SuperCellSize::toRT()[axis];
+                auto const offsetSupercells
+                    = (offsetCells + SuperCellSize::toRT()[axis] - 1) / SuperCellSize::toRT()[axis];
                 auto const guardSupercells = mappingDescription.getGuardingSuperCells()[axis];
                 if(pmacc::boundary::isMinSide(exchangeType))
                     beginSupercell[axis] = guardSupercells - 1 + offsetSupercells;
