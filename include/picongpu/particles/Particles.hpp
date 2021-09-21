@@ -127,9 +127,15 @@ namespace picongpu
         //! Push all particles
         void update(uint32_t const currentStep);
 
-        //! Update the supercell storage for particles in the area according to particle attributes
+        /** Update the supercell storage for particles in the area according to particle attributes
+         *
+         * @tparam T_area pmacc area
+         *
+         * @param onlyProcessMustShiftSupercells whether to process only supercells with mustShift set to true
+         * (optimization to be used with particle pusher) or process all supercells
+         */
         template<uint32_t T_area>
-        inline void shiftBetweenSupercells();
+        inline void shiftBetweenSupercells(bool onlyProcessMustShiftSupercells);
 
         //! Apply all boundary conditions
         void applyBoundary(uint32_t const currentStep);

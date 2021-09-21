@@ -208,9 +208,12 @@ namespace picongpu
                     using Manipulator = manipulators::unary::FreeTotalCellOffset<ReflectParticleIfOutside>;
                     particles::manipulate<Manipulator, T_Species>(currentStep, mapperFactory);
                     //particles::manipulate<Manipulator, T_Species, particles::filter::All, CORE + BORDER + GUARD>(currentStep); //, mapperFactory);
-                    
-                    species.template shiftBetweenSupercells<CORE + BORDER + GUARD /* GUARD */>();
-                    
+                    /* After reflection is applied, some particles can require movement between supercells.
+                     * We have not set mustShift for those supercells, so shift has to process all supercells
+                     */
+                    auto const onlyProcessMustShiftSupercells = false;
+                    species.template shiftBetweenSupercells<CORE + BORDER + GUARD /* GUARD */>(
+                        onlyProcessMustShiftSupercells);
                 }
             };
 

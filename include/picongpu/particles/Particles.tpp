@@ -363,14 +363,16 @@ namespace picongpu
             FrameSolver(),
             mapper);
 
-        ParticlesBaseType::template shiftParticles<CORE + BORDER>();
+        // The move-and-mark kernel sets mustShift for supercells, so we can call the optimized version of shift
+        auto const onlyProcessMustShiftSupercells = true;
+        shiftBetweenSupercells<CORE + BORDER>(onlyProcessMustShiftSupercells);
     }
 
     template<typename T_Name, typename T_Flags, typename T_Attributes>
     template<uint32_t T_area>
-    void Particles<T_Name, T_Flags, T_Attributes>::shiftBetweenSupercells()
+    void Particles<T_Name, T_Flags, T_Attributes>::shiftBetweenSupercells(bool const onlyProcessMustShiftSupercells)
     {
-        ParticlesBaseType::template shiftParticles<T_area>();
+        ParticlesBaseType::template shiftParticles<T_area>(onlyProcessMustShiftSupercells);
     }
 
     template<typename T_Name, typename T_Flags, typename T_Attributes>
