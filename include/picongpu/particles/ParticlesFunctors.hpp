@@ -28,7 +28,6 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
-#include <pmacc/math/MapTuple.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/traits/HasFlag.hpp>
 #if(PMACC_CUDA_ENABLED == 1)

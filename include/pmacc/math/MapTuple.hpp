@@ -38,72 +38,24 @@ namespace pmacc
 
         /** wrap a datum
          *
-         * align the data structure with `PMACC_ALIGN`
-         *
          * @tparam T_Pair boost mpl pair< key, type of the value >
          */
         template<typename T_Pair>
-        struct AlignedData
-        {
-            using Key = typename T_Pair::first;
-            using ValueType = typename T_Pair::second;
-
-            PMACC_ALIGN(value, ValueType);
-
-            HDINLINE AlignedData() = default;
-
-            HDINLINE AlignedData(const ValueType& value) : value(value)
-            {
-            }
-
-            HDINLINE ValueType& operator[](const Key&)
-            {
-                return value;
-            }
-
-            HDINLINE const ValueType& operator[](const Key&) const
-            {
-                return value;
-            }
-        };
-
-        /** wrap a datum
-         *
-         * @tparam T_Pair boost mpl pair< key, type of the value >
-         */
-        template<typename T_Pair>
-        struct NativeData
+        struct TaggedValue
         {
             using Key = typename T_Pair::first;
             using ValueType = typename T_Pair::second;
 
             ValueType value;
-
-            HDINLINE NativeData() = default;
-
-            HDINLINE NativeData(const ValueType& value) : value(value)
-            {
-            }
-
-            HDINLINE ValueType& operator[](const Key&)
-            {
-                return value;
-            }
-
-            HDINLINE const ValueType& operator[](const Key&) const
-            {
-                return value;
-            }
         };
 
-        template<typename T_Map, template<typename> class T_PodType = NativeData>
-        struct MapTuple : protected InheritLinearly<T_Map, T_PodType>
+        template<typename T_Map>
+        struct MapTuple : protected InheritLinearly<T_Map, TaggedValue>
         {
-            using Map = T_Map;
-            static constexpr int dim = bmpl::size<Map>::type::value;
-            using Base = InheritLinearly<T_Map, T_PodType>;
+            template<typename T_Key>
+            using TaggedValueFor = TaggedValue<bmpl::pair<T_Key, typename bmpl::at<T_Map, T_Key>::type>>;
 
-            /** access a datum with a key
+            /** access a value with a key
              *
              * @tparam T_Key key type
              *
@@ -112,33 +64,13 @@ namespace pmacc
             template<typename T_Key>
             HDINLINE auto& operator[](const T_Key& key)
             {
-                return (*(static_cast<T_PodType<bmpl::pair<T_Key, typename bmpl::at<Map, T_Key>::type>>*>(this)))[key];
+                return static_cast<TaggedValueFor<T_Key>&>(*this).value;
             }
 
             template<typename T_Key>
             HDINLINE const auto& operator[](const T_Key& key) const
             {
-                return (*(
-                    static_cast<const T_PodType<bmpl::pair<T_Key, typename bmpl::at<Map, T_Key>::type>>*>(this)))[key];
-            }
-            /** @} */
-
-            /** access a datum with an index
-             *
-             * @tparam T_i the index of tuple's i-th element
-             *
-             * @{
-             */
-            template<int T_i>
-            HDINLINE auto& at()
-            {
-                return (*this)[typename bmpl::at<Map, bmpl::int_<T_i>>::type::first()];
-            }
-
-            template<int T_i>
-            HDINLINE const auto& at() const
-            {
-                return (*this)[typename bmpl::at<Map, bmpl::int_<T_i>>::type::first()];
+                return static_cast<TaggedValueFor<T_Key>&>(*this).value;
             }
             /** @} */
         };

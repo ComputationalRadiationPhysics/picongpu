@@ -20,7 +20,6 @@
 #pragma once
 
 #include <pmacc/lockstep.hpp>
-#include <pmacc/math/MapTuple.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 
