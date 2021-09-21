@@ -34,32 +34,36 @@ namespace pmacc
      *
      * Adheres to the MapperConcept.
      *
-     * The mapped area is an intersection of T_area and an integer lattice with given stride in all directions
+     * The mapped area is subdivided into stride^dim non-intersecting subareas (some may be empty).
+     * A subarea is an intersection of the area and an integer lattice with given stride in all directions.
+     * Each subarea has a unique offset relative to area start.
      *
      * @tparam T_area area, a value from type::AreaType or a sum of such values
-     * @tparam stride stride value, same for all directions
+     * @tparam T_stride stride value, same for all directions
      * @tparam baseClass mapping description type
      */
-    template<uint32_t areaType, uint32_t stride, class baseClass>
+    template<uint32_t areaType, uint32_t T_stride, class baseClass>
     class StrideMapping;
 
     template<
         uint32_t areaType,
-        uint32_t stride,
+        uint32_t T_stride,
         template<unsigned, class>
         class baseClass,
         unsigned DIM,
         class SuperCellSize_>
-    class StrideMapping<areaType, stride, baseClass<DIM, SuperCellSize_>> : public baseClass<DIM, SuperCellSize_>
+    class StrideMapping<areaType, T_stride, baseClass<DIM, SuperCellSize_>> : public baseClass<DIM, SuperCellSize_>
     {
     public:
         using BaseClass = baseClass<DIM, SuperCellSize_>;
+
+        //! Stride value
+        static constexpr uint32_t stride = T_stride;
 
         enum
         {
             AreaType = areaType,
             Dim = BaseClass::Dim,
-            Stride = stride
         };
 
 
@@ -77,7 +81,7 @@ namespace pmacc
          */
         HINLINE DataSpace<DIM> getGridDim() const
         {
-            return (StrideMappingMethods<areaType, DIM>::getGridDim(*this) - offset + (int) Stride - 1) / (int) Stride;
+            return (StrideMappingMethods<areaType, DIM>::getGridDim(*this) - offset + stride - 1) / stride;
         }
 
         /** Return index of a supercell to be processed by the given alpaka block
@@ -87,7 +91,7 @@ namespace pmacc
          */
         HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& blockIdx) const
         {
-            const DataSpace<DIM> blockId((blockIdx * (int) Stride) + offset);
+            const DataSpace<DIM> blockId((blockIdx * stride) + offset);
             return StrideMappingMethods<areaType, DIM>::shift(*this, blockId);
         }
 
@@ -101,17 +105,23 @@ namespace pmacc
             this->offset = offset;
         }
 
-        /** set mapper to next domain
+        /** Set mapper to next non-empty subarea
          *
-         * @return true if domain is valid, else false
+         * @return whether the whole area was processed
          */
         HINLINE bool next()
         {
             int linearOffset = DataSpaceOperations<Dim>::map(DataSpace<DIM>::create(stride), offset);
-            linearOffset++;
-            offset = DataSpaceOperations<Dim>::map(DataSpace<DIM>::create(stride), linearOffset);
-
-            return linearOffset < DataSpace<DIM>::create(stride).productOfComponents();
+            offset = DataSpaceOperations<Dim>::map(DataSpace<DIM>::create(stride), linearOffset + 1);
+            /* First check if everything is processed to have a recursion stop condition.
+             * Then if the new grid dim has 0 size, immediately go to the next state.
+             * This way to guarantee that when next() returned true, a grid dim is valid.
+             */
+            if(linearOffset >= DataSpace<DIM>::create(stride).productOfComponents())
+                return false;
+            if(getGridDim().productOfComponents() == 0)
+                return next();
+            return true;
         }
 
     private:

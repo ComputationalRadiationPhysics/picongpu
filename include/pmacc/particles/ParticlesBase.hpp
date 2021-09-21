@@ -102,7 +102,6 @@ namespace pmacc
          *
          * The factory type must be such that StrideMapperFactory<T_MapperFactory, stride> is specialized
          *
-<<<<<<< HEAD
          * @param onlyProcessMustShiftSupercells whether to process only supercells with mustShift set to true
          * (optimization to be used with particle pusher) or process all supercells
          */
@@ -119,9 +118,6 @@ namespace pmacc
          * @tparam T_strideMapperFactory factory type to construct a stride mapper,
          *                               resulting mapper must have stride of at least 3,
          *                               adheres to the MapperFactory concept
-=======
-         * @tparam T_MapperFactory factory type to construct a mapper that defines the area to process
->>>>>>> Add a wrapper pmacc stride mapper factory
          *
          * @param mapperFactory factory instance
          * @param onlyProcessMustShiftSupercells whether to process only supercells with mustShift set to true
@@ -210,12 +206,7 @@ namespace pmacc
         }
 
         /* set all internal objects to initial state*/
-<<<<<<< HEAD
         void reset(uint32_t currentStep) override;
-=======
-        virtual void reset(uint32_t currentStep);
-
->>>>>>> Add a wrapper pmacc stride mapper factory
     private:
         /** Shift all particles in the area defined by the given strided factory
          *
@@ -236,11 +227,7 @@ namespace pmacc
             auto mapper = strideMapperFactory(this->cellDescription);
             PMACC_CASSERT_MSG(
                 shiftParticles_stride_mapper_condition_failure____stride_must_be_at_least_3,
-<<<<<<< HEAD
                 decltype(mapper)::stride >= 3);
-=======
-                decltype(mapper)::Stride >= 3);
->>>>>>> Add a wrapper pmacc stride mapper factory
             ParticlesBoxType pBox = particlesBuffer->getDeviceParticleBox();
             auto const numSupercellsWithGuards = particlesBuffer->getSuperCellsCount();
 

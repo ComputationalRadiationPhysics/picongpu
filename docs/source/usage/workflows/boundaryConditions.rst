@@ -3,7 +3,7 @@
 Boundary Conditions
 -------------------
 
-.. sectionauthor:: Sergei Bastrakov
+.. sectionauthor:: Sergei Bastrakov, Lennert Sprenger
 
 Two kinds of boundary conditions are supported: periodic and absorbing.
 They are set in a :ref:`.cfg file <usage-tbg>` with option ``--periodic <x> <y> <z>``.
@@ -15,14 +15,19 @@ Particles
 
 By default, boundary kinds match the value of ``--periodic``.
 For species with a particle pusher, it can be overridden with option `<prefix>_boundary <x> <y> <z>`.
-However, currently we do not support options that do not match the default value.
+The boundary kinds currently supported are periodic, absorbing and reflecting.
 
 By default, the particle boundaries are applied at the global domain boundaries.
 For absorbing boundaries it means that particles will exist in the field absorbing area.
 This may be undesired for simulations with Perfectly Matched Layers (see below).
 A user can change the boundary application area by setting option `<prefix>_boundaryOffset <x> <y> <z>`.
+The boundaryOffset is in term of whole cells, so integers are expected.
 It sets an offset inwards from the global domain boundary.
 Periodic boundaries only allow 0 offset, other kinds support non-negative offsets.
+
+For example we can use the reflecting boundary kind for species e:
+`--e_boundary reflecting reflecting reflecting`
+`--e_boundaryOffset 1 1 1`
 
 Particles are not allowed to be outside the boundaries for the respective species.
 (For the periodic case, there are no boundaries in that sense.)

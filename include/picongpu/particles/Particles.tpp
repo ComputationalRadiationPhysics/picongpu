@@ -370,7 +370,9 @@ namespace picongpu
 
     template<typename T_Name, typename T_Flags, typename T_Attributes>
     template<typename T_MapperFactory>
-    void Particles<T_Name, T_Flags, T_Attributes>::shiftBetweenSupercells(T_MapperFactory const& mapperFactory, bool const onlyProcessMustShiftSupercells)
+    void Particles<T_Name, T_Flags, T_Attributes>::shiftBetweenSupercells(
+        T_MapperFactory const& mapperFactory,
+        bool const onlyProcessMustShiftSupercells)
     {
         ParticlesBaseType::template shiftParticles(mapperFactory, onlyProcessMustShiftSupercells);
     }

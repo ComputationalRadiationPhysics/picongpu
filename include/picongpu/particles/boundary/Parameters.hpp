@@ -19,13 +19,16 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
+
 namespace picongpu
 {
     namespace particles
     {
         namespace boundary
         {
-            //! Parameters to be passed from the host side
+            //! Parameters to be passed to particle boundary conditoins
             struct Parameters
             {
                 /** Begin of the internal (not-absorbed) cells in total coordinates
@@ -40,6 +43,6 @@ namespace picongpu
                  */
                 pmacc::DataSpace<simDim> endInternalCellsTotal;
             };
-        }
-    }
-}
+        } // namespace boundary
+    } // namespace particles
+} // namespace picongpu

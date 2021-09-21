@@ -357,7 +357,11 @@ namespace pmacc
          * (optimization to be used with particle pusher) or process all supercells
          */
         template<typename T_ParBox, typename Mapping, typename T_Acc, typename T_Idx>
-        DINLINE void operator()(T_Acc const& acc, T_ParBox pb, Mapping mapper, T_Idx numSupercellsWithGuard,
+        DINLINE void operator()(
+            T_Acc const& acc,
+            T_ParBox pb,
+            Mapping mapper,
+            T_Idx numSupercellsWithGuard,
             bool onlyProcessMustShiftSupercells) const
         {
             using ParBox = T_ParBox;
