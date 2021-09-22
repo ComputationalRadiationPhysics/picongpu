@@ -42,7 +42,8 @@ namespace picongpu
             HINLINE std::vector<uint32_t> getAllAxisAlignedExchanges()
             {
                 auto const numExchanges = NumberOfExchanges<simDim>::value;
-                auto allExchanges = std::vector<uint32_t>(numExchanges);
+                // We need the range 1 <= exchange < numExchanges, so -1 here
+                auto allExchanges = std::vector<uint32_t>(numExchanges - 1);
                 std::iota(allExchanges.begin(), allExchanges.end(), 1);
                 auto result = std::vector<uint32_t>{};
                 std::copy_if(
