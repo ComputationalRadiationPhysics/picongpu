@@ -304,6 +304,7 @@ namespace picongpu
         {
             using Block = TVec;
             using Field2ParticleInterpolation = T_Field2ParticleInterpolation;
+
             using BType = typename BoxB::ValueType;
             using EType = typename BoxE::ValueType;
 
