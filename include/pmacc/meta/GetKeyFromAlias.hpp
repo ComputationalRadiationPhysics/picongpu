@@ -29,7 +29,8 @@
 
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/copy.hpp>
-#include <boost/type_traits/is_same.hpp>
+
+#include <type_traits>
 
 namespace pmacc
 {
@@ -62,7 +63,7 @@ namespace pmacc
     public:
         /* Check for KeyNotFound and calculate final type. (Uses lazy evaluation) */
         typedef typename bmpl::if_<
-            boost::is_same<MapType, bmpl::void_>,
+            std::is_same<MapType, bmpl::void_>,
             bmpl::apply<KeyNotFoundPolicy, T_MPLSeq, T_Key>,
             bmpl::identity<MapType>>::type::type type;
     };

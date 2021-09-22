@@ -27,7 +27,7 @@
 #include "pmacc/memory/buffers/HostBufferIntern.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/type_traits.hpp>
+#include <type_traits>
 
 
 namespace pmacc
@@ -46,7 +46,7 @@ namespace pmacc
         typedef typename HostBufferType::DataBoxType DataBoxType;
         PMACC_CASSERT_MSG(
             DataBoxTypes_must_match,
-            boost::is_same<DataBoxType, typename DeviceBufferType::DataBoxType>::value);
+            std::is_same<DataBoxType, typename DeviceBufferType::DataBoxType>::value);
 
         /**
          * Constructor that creates the buffers with the given size

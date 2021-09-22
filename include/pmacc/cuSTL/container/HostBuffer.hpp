@@ -29,11 +29,11 @@
 #include "pmacc/cuSTL/container/copier/Memcopy.hpp"
 
 #include <boost/assert.hpp>
-#include <boost/type_traits/is_same.hpp>
 #include <boost/utility/enable_if.hpp>
 
 #include <exception>
 #include <sstream>
+#include <type_traits>
 #include <utility>
 
 
@@ -147,10 +147,10 @@ namespace pmacc
 
             template<typename DBuffer>
             HINLINE typename boost::
-                enable_if<boost::is_same<typename DBuffer::memoryTag, allocator::tag::device>, HostBuffer&>::type
+                enable_if<std::is_same<typename DBuffer::memoryTag, allocator::tag::device>, HostBuffer&>::type
                 operator=(const DBuffer& rhs)
             {
-                BOOST_STATIC_ASSERT((boost::is_same<typename DBuffer::type, Type>::value));
+                BOOST_STATIC_ASSERT((std::is_same<typename DBuffer::type, Type>::value));
                 BOOST_STATIC_ASSERT(DBuffer::dim == T_dim);
                 if(rhs.size() != this->size())
                     throw std::invalid_argument(static_cast<std::stringstream&>(

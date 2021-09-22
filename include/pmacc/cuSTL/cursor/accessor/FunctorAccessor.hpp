@@ -23,8 +23,6 @@
 
 #include "pmacc/types.hpp"
 
-#include <boost/type_traits/add_const.hpp>
-
 namespace pmacc
 {
     namespace cursor

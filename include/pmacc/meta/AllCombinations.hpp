@@ -34,7 +34,6 @@
 #include <boost/mpl/empty.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/pop_back.hpp>
-#include <boost/type_traits/is_same.hpp>
 
 namespace pmacc
 {

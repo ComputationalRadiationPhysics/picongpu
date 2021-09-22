@@ -27,8 +27,8 @@
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/deref.hpp>
 #include <boost/mpl/transform.hpp>
-#include <boost/type_traits.hpp>
 
+#include <type_traits>
 #include <utility>
 
 
@@ -44,7 +44,7 @@ namespace pmacc
              *  @tparam itEnd iterator to the end of a mpl sequence
              *  @tparam isEnd true if itBegin == itEnd, else false
              */
-            template<typename itBegin, typename itEnd, bool isEnd = boost::is_same<itBegin, itEnd>::value>
+            template<typename itBegin, typename itEnd, bool isEnd = std::is_same<itBegin, itEnd>::value>
             struct CallFunctorOfIterator
             {
                 typedef typename boost::mpl::next<itBegin>::type nextIt;

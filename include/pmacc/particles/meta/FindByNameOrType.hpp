@@ -29,7 +29,8 @@
 #include <boost/mpl/front.hpp>
 #include <boost/mpl/or.hpp>
 #include <boost/mpl/placeholders.hpp>
-#include <boost/type_traits/is_same.hpp>
+
+#include <type_traits>
 
 
 namespace pmacc
@@ -58,8 +59,8 @@ namespace pmacc
                 struct HasTypeOrName
                 {
                     using type = bmpl::or_<
-                        boost::is_same<T_Identifier, T_Value>,
-                        boost::is_same<pmacc::traits::GetCTName_t<T_Value>, T_Identifier>>;
+                        std::is_same<T_Identifier, T_Value>,
+                        std::is_same<pmacc::traits::GetCTName_t<T_Value>, T_Identifier>>;
                 };
 
                 using FilteredSeq = typename bmpl::copy_if<T_MPLSeq, HasTypeOrName<bmpl::_1>>::type;
