@@ -666,7 +666,7 @@ namespace picongpu
                 void writeOpenPMDfile(std::vector<Amplitude>& values, std::string name)
                 {
                     std::ostringstream filename;
-                    // TODO: needs to be changed to ".h5" and also support adios
+                    // TODO: needs to be changed to ".h5" and also support adios2
                     filename << name << "%T_0_0_0.h5";
 
                     ::openPMD::Series openPMDdataFile = ::openPMD::Series(filename.str(), ::openPMD::Access::CREATE);

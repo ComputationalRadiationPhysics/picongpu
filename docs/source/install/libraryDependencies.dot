@@ -27,12 +27,6 @@ digraph PIConGPU {
     mpi -> hdf5;
     zlib -> hdf5;
 
-    adios [label="ADIOS"];
-    mpi -> adios;
-    zlib -> adios;
-    hdf5 -> adios [style=dashed label="optional"];
-    fileSystem -> adios [style=dashed label="extra hints"];
-
     adios2 [label="ADIOS2"];
     mpi -> adios2;
     zlib -> adios2;
@@ -42,7 +36,6 @@ digraph PIConGPU {
 
     openpmd [label="openPMD API"];
     adios2 -> openpmd [style=dashed label="optional"];
-    adios -> openpmd [style=dashed label="optional"];
     hdf5 -> openpmd [style=dashed label="optional"];
     nlohmann_json [label="nlohmann_json\n(header-only)\n(internall shipped\nby default)"];
     nlohmann_json -> openpmd[style=dashed"]

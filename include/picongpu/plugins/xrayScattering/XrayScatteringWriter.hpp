@@ -163,15 +163,6 @@ namespace picongpu
                 }
 
             private:
-                HINLINE bool isADIOS1() const
-                {
-#if openPMD_HAVE_ADIOS1 && !openPMD_HAVE_ADIOS2
-                    return this->fileExtension == "bp";
-#else
-                    return false;
-#endif
-                }
-
                 /** Opens an openPMD Series in a given access mode.
                  *
                  * @param at OpenPMD API access type.
