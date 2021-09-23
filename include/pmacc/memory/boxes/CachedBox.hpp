@@ -26,54 +26,22 @@
 #include "pmacc/memory/boxes/SharedBox.hpp"
 #include "pmacc/types.hpp"
 
-
 namespace pmacc
 {
-    namespace intern
-    {
-        template<typename T_ValueType, class T_BlockDescription, uint32_t T_Id>
-        class CachedBox
-        {
-        public:
-            typedef T_BlockDescription BlockDescription;
-            typedef T_ValueType ValueType;
-
-        private:
-            typedef typename BlockDescription::SuperCellSize SuperCellSize;
-            typedef typename BlockDescription::FullSuperCellSize FullSuperCellSize;
-            typedef typename BlockDescription::OffsetOrigin OffsetOrigin;
-
-        public:
-            typedef DataBox<SharedBox<ValueType, FullSuperCellSize, T_Id>> Type;
-
-            template<typename T_Acc>
-            HDINLINE static Type create(T_Acc const& acc)
-            {
-                DataSpace<OffsetOrigin::dim> offset(OffsetOrigin::toRT());
-                Type c_box(Type::init(acc));
-                return c_box.shift(offset);
-            }
-        };
-    } // namespace intern
-
-    struct CachedBox
+    namespace CachedBox
     {
         template<uint32_t Id_, typename ValueType_, class BlockDescription_, typename T_Acc>
-        DINLINE static typename intern::CachedBox<ValueType_, BlockDescription_, Id_>::Type create(
-            T_Acc const& acc,
-            const ValueType_& value,
-            const BlockDescription_ block)
+        DINLINE auto create(T_Acc const& acc, const BlockDescription_ block)
         {
-            return intern::CachedBox<ValueType_, BlockDescription_, Id_>::create(acc);
+            using OffsetOrigin = typename BlockDescription_::OffsetOrigin;
+            using Type = DataBox<SharedBox<ValueType_, typename BlockDescription_::FullSuperCellSize, Id_>>;
+            return Type{Type::init(acc)}.shift(DataSpace<OffsetOrigin::dim>{OffsetOrigin::toRT()});
         }
 
         template<uint32_t Id_, typename ValueType_, class BlockDescription_, typename T_Acc>
-        DINLINE static typename intern::CachedBox<ValueType_, BlockDescription_, Id_>::Type create(
-            T_Acc const& acc,
-            const BlockDescription_ block)
+        DINLINE auto create(T_Acc const& acc, const ValueType_& value, const BlockDescription_ block)
         {
-            return intern::CachedBox<ValueType_, BlockDescription_, Id_>::create(acc);
+            return create<Id_, ValueType_, BlockDescription_>(acc);
         }
-    };
-
+    } // namespace CachedBox
 } // namespace pmacc
