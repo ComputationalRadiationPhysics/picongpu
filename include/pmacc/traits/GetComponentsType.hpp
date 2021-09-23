@@ -21,7 +21,8 @@
 
 #pragma once
 
-#include <boost/type_traits.hpp>
+#include <cstdint>
+#include <type_traits>
 
 namespace pmacc
 {
@@ -35,7 +36,7 @@ namespace pmacc
          *
          * Attention: do not defines this trait for structs with different attributes inside
          */
-        template<typename T_Type, bool T_IsFundamental = boost::is_fundamental<T_Type>::value>
+        template<typename T_Type, bool T_IsFundamental = std::is_fundamental<T_Type>::value>
         struct GetComponentsType;
 
         template<typename T_Type>

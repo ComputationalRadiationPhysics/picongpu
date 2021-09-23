@@ -25,7 +25,7 @@
 #include "accessor/FunctorAccessor.hpp"
 #include "navigator/CursorNavigator.hpp"
 
-#include <boost/type_traits/remove_reference.hpp>
+#include <type_traits>
 
 namespace pmacc
 {
@@ -41,7 +41,7 @@ namespace pmacc
          */
         template<typename TCursor, typename Functor>
         HDINLINE Cursor<
-            FunctorAccessor<Functor, typename boost::remove_reference<typename TCursor::type>::type>,
+            FunctorAccessor<Functor, typename std::remove_reference_t<typename TCursor::type>>,
             CursorNavigator,
             TCursor>
         make_FunctorCursor(const TCursor& cursor, const Functor& functor)

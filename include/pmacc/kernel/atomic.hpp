@@ -28,8 +28,6 @@
 #include <alpaka/intrinsic/Traits.hpp>
 #include <alpaka/warp/Traits.hpp>
 
-#include <boost/type_traits.hpp>
-
 #include <climits>
 #include <type_traits>
 
@@ -109,9 +107,9 @@ namespace pmacc
             {
                 enum
                 {
-                    value = boost::is_same<T, int>::value || boost::is_same<T, unsigned int>::value
-                        || boost::is_same<T, long long int>::value || boost::is_same<T, unsigned long long int>::value
-                        || boost::is_same<T, float>::value
+                    value = std::is_same<T, int>::value || std::is_same<T, unsigned int>::value
+                        || std::is_same<T, long long int>::value || std::is_same<T, unsigned long long int>::value
+                        || std::is_same<T, float>::value
                 };
             };
 

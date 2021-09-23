@@ -31,7 +31,7 @@
 #include "pmacc/traits/GetValueType.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/type_traits.hpp>
+#include <type_traits>
 
 namespace pmacc
 {
@@ -69,8 +69,8 @@ namespace pmacc
                 /* - the result of a functor can be a reference or a const value
                  * - it is not allowed to create const or reference memory
                  *   thus we remove `references` and `const` qualifiers */
-                typedef typename boost::remove_const<
-                    typename boost::remove_reference<typename traits::GetValueType<Src>::ValueType>::type>::type Type;
+                using Type = typename std::remove_const_t<
+                    typename std::remove_reference_t<typename traits::GetValueType<Src>::ValueType>>;
 
                 uint32_t blockcount = optimalThreadsPerBlock(n, sizeof(Type));
 

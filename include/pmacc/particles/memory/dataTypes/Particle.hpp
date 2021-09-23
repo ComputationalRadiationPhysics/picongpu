@@ -44,8 +44,9 @@
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/not.hpp>
 #include <boost/mpl/remove_if.hpp>
-#include <boost/type_traits.hpp>
 #include <boost/utility/result_of.hpp>
+
+#include <type_traits>
 
 namespace pmacc
 {
@@ -128,7 +129,7 @@ namespace pmacc
          */
         template<typename T_Key>
         HDINLINE typename boost::result_of<
-            typename boost::remove_reference<typename boost::result_of<FrameType(T_Key)>::type>::type(uint32_t)>::type
+            typename std::remove_reference_t<typename boost::result_of<FrameType(T_Key)>::type>(uint32_t)>::type
         operator[](const T_Key key)
         {
             PMACC_CASSERT_MSG_TYPE(key_not_available, T_Key, traits::HasIdentifier<Particle, T_Key>::type::value);
@@ -138,8 +139,8 @@ namespace pmacc
 
         /** const version of method operator(const T_Key) */
         template<typename T_Key>
-        HDINLINE typename boost::result_of<typename boost::remove_reference<
-            typename boost::result_of<const FrameType(T_Key)>::type>::type(uint32_t)>::type
+        HDINLINE typename boost::result_of<
+            typename std::remove_reference_t<typename boost::result_of<const FrameType(T_Key)>::type>(uint32_t)>::type
         operator[](const T_Key key) const
         {
             PMACC_CASSERT_MSG_TYPE(key_not_available, T_Key, traits::HasIdentifier<Particle, T_Key>::type::value);

@@ -31,8 +31,7 @@
 #include "pmacc/memory/buffers/DeviceBuffer.hpp"
 #include "pmacc/traits/GetNumWorkers.hpp"
 
-#include <boost/type_traits.hpp>
-#include <boost/type_traits/remove_pointer.hpp>
+#include <type_traits>
 
 
 namespace pmacc
@@ -60,7 +59,7 @@ namespace pmacc
         struct Value<T_Type, true>
         {
             typedef const T_Type PtrType;
-            typedef const typename boost::remove_pointer<PtrType>::type type;
+            using type = const typename std::remove_pointer_t<PtrType>;
 
             HDINLINE type& operator()(PtrType v) const
             {
@@ -71,9 +70,9 @@ namespace pmacc
         /** Get access to a value from a pointer or reference with the same method
          */
         template<typename T_Type>
-        HDINLINE typename Value<T_Type, boost::is_pointer<T_Type>::value>::type& getValue(T_Type& value)
+        HDINLINE typename Value<T_Type, std::is_pointer<T_Type>::value>::type& getValue(T_Type& value)
         {
-            typedef Value<T_Type, boost::is_pointer<T_Type>::value> Functor;
+            typedef Value<T_Type, std::is_pointer<T_Type>::value> Functor;
             return Functor()(value);
         }
 

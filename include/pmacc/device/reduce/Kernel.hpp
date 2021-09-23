@@ -31,7 +31,6 @@
 
 #include <pmacc/math/operation.hpp>
 
-#include <boost/type_traits.hpp>
 
 namespace pmacc
 {

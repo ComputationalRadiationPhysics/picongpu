@@ -22,7 +22,7 @@
 #include <pmacc/result_of_Functor.hpp>
 #include <pmacc/types.hpp>
 
-#include <boost/type_traits/remove_reference.hpp>
+#include <type_traits>
 
 
 // forward declaration
@@ -38,7 +38,7 @@ namespace pmacc
         template<typename T_Cursor>
         struct Functor<picongpu::AssignedTrilinearInterpolation, T_Cursor>
         {
-            using type = typename boost::remove_reference<typename T_Cursor::type>::type;
+            using type = typename std::remove_reference_t<typename T_Cursor::type>;
         };
 
     } // namespace result_of

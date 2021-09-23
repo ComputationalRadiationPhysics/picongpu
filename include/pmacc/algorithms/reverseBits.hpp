@@ -24,9 +24,9 @@
 
 #include "pmacc/static_assert.hpp"
 
-#include <boost/type_traits.hpp>
-
 #include <climits>
+#include <type_traits>
+
 
 namespace pmacc
 {
@@ -44,7 +44,7 @@ namespace pmacc
     T reverseBits(T value)
     {
         PMACC_STATIC_ASSERT_MSG(
-            boost::is_integral<T>::value && boost::is_unsigned<T>::value,
+            std::is_integral<T>::value && std::is_unsigned<T>::value,
             Only_allowed_for_unsigned_integral_types, );
         /* init with value (to get LSB) */
         T result = value;

@@ -30,7 +30,6 @@
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/type_traits.hpp>
 
 namespace pmacc
 {

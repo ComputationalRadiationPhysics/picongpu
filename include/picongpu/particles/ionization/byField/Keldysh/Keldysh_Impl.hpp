@@ -41,8 +41,6 @@
 #include <pmacc/random/methods/methods.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
-#include <boost/type_traits/integral_constant.hpp>
-
 
 namespace picongpu
 {

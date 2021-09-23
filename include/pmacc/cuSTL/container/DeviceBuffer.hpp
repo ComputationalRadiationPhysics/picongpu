@@ -30,11 +30,11 @@
 #include "pmacc/cuSTL/container/copier/Memcopy.hpp"
 
 #include <boost/assert.hpp>
-#include <boost/type_traits/is_same.hpp>
 #include <boost/utility/enable_if.hpp>
 
 #include <exception>
 #include <sstream>
+#include <type_traits>
 #include <utility>
 
 
@@ -133,10 +133,10 @@ namespace pmacc
 
             template<typename HBuffer>
             HINLINE typename boost::
-                enable_if<boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>, DeviceBuffer&>::type
+                enable_if<std::is_same<typename HBuffer::memoryTag, allocator::tag::host>, DeviceBuffer&>::type
                 operator=(const HBuffer& rhs)
             {
-                BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::type, Type>::value));
+                BOOST_STATIC_ASSERT((std::is_same<typename HBuffer::type, Type>::value));
                 BOOST_STATIC_ASSERT(HBuffer::dim == T_dim);
                 if(rhs.size() != this->size())
                     throw std::invalid_argument(static_cast<std::stringstream&>(

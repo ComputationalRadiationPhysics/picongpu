@@ -26,8 +26,8 @@
 #include "pmacc/types.hpp"
 
 #include <boost/mpl/void.hpp>
-#include <boost/type_traits/add_const.hpp>
-#include <boost/type_traits/remove_reference.hpp>
+
+#include <type_traits>
 
 namespace mpl = boost::mpl;
 
@@ -51,7 +51,7 @@ namespace pmacc
         {
         public:
             typedef typename _Accessor::type type;
-            typedef typename boost::remove_reference<type>::type ValueType;
+            typedef typename std::remove_reference_t<type> ValueType;
             typedef _Accessor Accessor;
             typedef _Navigator Navigator;
             typedef _Marker Marker;

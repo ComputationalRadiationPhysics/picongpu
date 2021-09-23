@@ -24,7 +24,7 @@
 #include "pmacc/random/distributions/Uniform.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/type_traits.hpp>
+#include <type_traits>
 
 
 namespace pmacc
@@ -42,7 +42,7 @@ namespace pmacc
                 class Uniform<
                     T_Type,
                     T_RNGMethod,
-                    typename bmpl::if_c<boost::is_integral<T_Type>::value && sizeof(T_Type) == 8, void, T_Type>::type>
+                    typename bmpl::if_c<std::is_integral<T_Type>::value && sizeof(T_Type) == 8, void, T_Type>::type>
                 {
                     typedef T_RNGMethod RNGMethod;
                     typedef typename RNGMethod::StateType StateType;

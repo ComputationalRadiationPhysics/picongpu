@@ -26,7 +26,7 @@
 #include "pmacc/particles/ParticlesBase.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/type_traits.hpp>
+#include <type_traits>
 
 namespace pmacc
 {
@@ -38,7 +38,7 @@ namespace pmacc
     {
         enum
         {
-            value = boost::is_same<typename T::SimulationDataTag, ParticlesTag>::value
+            value = std::is_same<typename T::SimulationDataTag, ParticlesTag>::value
         };
     };
 
