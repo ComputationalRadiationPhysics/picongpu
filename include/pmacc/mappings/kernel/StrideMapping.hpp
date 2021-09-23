@@ -112,7 +112,8 @@ namespace pmacc
         HINLINE bool next()
         {
             int linearOffset = DataSpaceOperations<Dim>::map(DataSpace<DIM>::create(stride), offset);
-            offset = DataSpaceOperations<Dim>::map(DataSpace<DIM>::create(stride), linearOffset + 1);
+            linearOffset++;
+            offset = DataSpaceOperations<Dim>::map(DataSpace<DIM>::create(stride), linearOffset);
             /* First check if everything is processed to have a recursion stop condition.
              * Then if the new grid dim has 0 size, immediately go to the next state.
              * This way to guarantee that when next() returned true, a grid dim is valid.
