@@ -105,7 +105,7 @@ namespace pmacc
         template<uint32_t T_area>
         void shiftParticles()
         {
-            this->template shiftParticles(StrideAreaMapperFactory<T_area, 3>{});
+            this->shiftParticles(StrideAreaMapperFactory<T_area, 3>{});
         }
 
         /** Shift all particles in the area defined by the given factory
