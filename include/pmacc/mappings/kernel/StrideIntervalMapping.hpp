@@ -104,7 +104,7 @@ namespace pmacc
          */
         HDINLINE DataSpace<dim> getSuperCellIndex(DataSpace<dim> const& blockIdx) const
         {
-            return beginSupercell + offset + blockIdx;
+            return beginSupercell + offset + blockIdx * stride;
         }
 
         //! Get current offset value
