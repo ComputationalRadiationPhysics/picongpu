@@ -30,7 +30,7 @@
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.hpp"
 
 #include <cstdint>
-
+#include <limits>
 
 namespace picongpu
 {
@@ -40,7 +40,7 @@ namespace picongpu
         {
             struct ReflectParticleIfOutside : public functor::misc::Parametrized<Parameters>
             {
-                //! some name is required
+                //! Name, required to be wrapped later
                 static constexpr char const* name = "reflectParticleIfOutside";
 
                 /** Process the current particle located in the given cell
@@ -55,11 +55,26 @@ namespace picongpu
                         if((offsetToTotalOrigin[d] < m_parameters.beginInternalCellsTotal[d])
                            || (offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d]))
                         {
-                            auto pos = particle[position_];
+                            auto pos = particle[position_]; // floatD_X pos
 
                             if(offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d])
-                                pos[d] = -pos[d];
+                            {
+                                /*
+                                 * substract epsilon so we are definitly in the cell left of the current
+                                 * cell, because that could happen if pos = 0 or pos < epsilon.
+                                 * To set the position to 0.9 of the left cell relative to the current cell,
+                                 * pos needs to be set to -0.1.
+                                 */
+                                pos[d] = -pos[d] - std::numeric_limits<float_X>::epsilon();
+                            }
                             else
+                                /*
+                                 * no correction is needed here, because if the particle just barly crossed the left
+                                 * border pos[d] is about 0.9 in the current cell. In order to be very small ( <
+                                 * epsilon ) the particle needs to be on the left side of the cell and that would mean
+                                 * that the particle traveled a whole cell which should not be possible with the with
+                                 * the CFL-condition.
+                                 */
                                 pos[d] = 2.0_X - pos[d];
 
                             particle[momentum_][d] = -particle[momentum_][d];

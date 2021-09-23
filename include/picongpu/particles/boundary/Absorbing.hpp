@@ -40,7 +40,7 @@ namespace picongpu
             //! Functor to be applied to all particles in the active area
             struct AbsorbParticleIfOutside : public functor::misc::Parametrized<Parameters>
             {
-                //! Some name is required
+                //! Name, required to be wrapped later
                 static constexpr char const* name = "absorbParticleIfOutside";
 
                 /** Process the current particle located in the given cell

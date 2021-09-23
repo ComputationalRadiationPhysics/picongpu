@@ -28,18 +28,18 @@ namespace picongpu
     {
         namespace boundary
         {
-            //! Parameters to be passed to particle boundary conditoins
+            //! Parameters to be passed to particle boundary conditions
             struct Parameters
             {
-                /** Begin of the internal (not-absorbed) cells in total coordinates
+                /** Begin of the internal (relative to boundary) cells in total coordinates
                  *
-                 * Particles to the left side will be absorbed
+                 * Particles to the left side are outside
                  */
                 pmacc::DataSpace<simDim> beginInternalCellsTotal;
 
-                /** End of the internal (not-absorbed) cells in total coordinates
+                /** End of the internal (relative to boundary) cells in total coordinates
                  *
-                 * Particles equal or to the right side will be absorbed
+                 * Particles equal or to the right side are outside
                  */
                 pmacc::DataSpace<simDim> endInternalCellsTotal;
             };

@@ -207,6 +207,7 @@ namespace pmacc
 
         /* set all internal objects to initial state*/
         void reset(uint32_t currentStep) override;
+
     private:
         /** Shift all particles in the area defined by the given strided factory
          *

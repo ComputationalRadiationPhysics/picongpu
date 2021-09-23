@@ -133,7 +133,7 @@ namespace pmacc
             offset = DataSpaceOperations<dim>::map(DataSpace<dim>::create(stride), linearOffset);
             /* First check if everything is processed to have a recursion stop condition.
              * Then if the new grid dim has 0 size, immediately go to the next state.
-             * This way to guarantee that when next() returned true, a grid dim is valid.
+             * This way it guarantees a valid grid dim after next() returns true.
              */
             if(linearOffset >= DataSpace<dim>::create(stride).productOfComponents())
                 return false;

@@ -36,8 +36,8 @@ namespace picongpu
          *
          * @tparam T_Particle particle type
          * @param particle particle handle
-         * @param newPos new position from the current cell, in units of cells with e.g. 0.5
-         * for a half cell, newPos must be [-1, 2)
+         * @param newPos new position relative to the current cell, in units of cells
+         * newPos must be [-1, 2)
          * @return whether the particle has left the orignal cell
          */
         template<typename T_Particle>
