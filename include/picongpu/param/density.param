@@ -271,8 +271,10 @@ namespace picongpu
             //! Default value to be used for cells with no corresponding file value
             (PMACC_C_VALUE(float_X, defaultDensity, 0.0_X))); /* struct FromOpenPMDParam */
 
+#if(ENABLE_OPENPMD == 1)
         //! Definition of density-from-file profile
         using FromOpenPMD = FromOpenPMDImpl<FromOpenPMDParam>;
+#endif
 
 
         struct FreeFormulaFunctor
