@@ -45,7 +45,7 @@ namespace pmacc
 
                 typedef std::pair<Int<dim>, bool> PosFlag;
                 PosFlag posFlag;
-                posFlag.first = (Int<dim>) con.getPosition();
+                posFlag.first = con.getPosition();
                 posFlag.second = setThisAsRoot;
 
                 int numWorldRanks;

@@ -80,7 +80,7 @@ namespace pmacc
             }
         }
 
-        HDINLINE DataSpace(const DataSpace<T_Dim>& value) : BaseType(value)
+        HDINLINE DataSpace(const DataSpace<T_Dim>& value) : BaseType(static_cast<const BaseType&>(value))
         {
         }
 

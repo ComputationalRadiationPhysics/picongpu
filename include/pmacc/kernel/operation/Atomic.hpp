@@ -52,12 +52,10 @@ namespace pmacc
                     int T_dim,
                     typename T_DstAccessor,
                     typename T_DstNavigator,
-                    template<typename, int>
-                    class T_DstStorage,
+                    typename T_DstStorage,
                     typename T_SrcAccessor,
                     typename T_SrcNavigator,
-                    template<typename, int>
-                    class T_SrcStorage>
+                    typename T_SrcStorage>
                 HDINLINE void operator()(
                     T_Acc const& acc,
                     pmacc::math::Vector<T_Type, T_dim, T_DstAccessor, T_DstNavigator, T_DstStorage>& dst,

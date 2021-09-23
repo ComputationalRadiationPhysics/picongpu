@@ -42,8 +42,7 @@ namespace pmacc
                 int T_Dim,
                 typename T_Accessor,
                 typename T_Navigator,
-                template<typename, int>
-                class T_Storage>
+                typename T_Storage>
             struct TwistComponents<T_Axes, math::Vector<T_Type, T_Dim, T_Accessor, T_Navigator, T_Storage>>
             {
                 using type = math::Vector<
