@@ -115,7 +115,6 @@ namespace picongpu
 
             Box dstBox = Box(PitchedBox<ValueType, DIM2>(
                 (ValueType*) filteredData,
-                DataSpace<DIM2>(),
                 header.sim.size,
                 header.sim.size.x() * sizeof(ValueType)));
 
@@ -176,7 +175,6 @@ namespace picongpu
                 /*create box with valid memory*/
                 dstBox = Box(PitchedBox<ValueType, DIM2>(
                     (ValueType*) filteredData,
-                    DataSpace<DIM2>(),
                     header.sim.size,
                     header.sim.size.x() * sizeof(ValueType)));
 
@@ -189,7 +187,6 @@ namespace picongpu
                         % head->node.offset.toString();
                     Box srcBox = Box(PitchedBox<ValueType, DIM2>(
                         (ValueType*) (fullData + displs[i]),
-                        DataSpace<DIM2>(),
                         head->node.maxSize,
                         head->node.maxSize.x() * sizeof(ValueType)));
 

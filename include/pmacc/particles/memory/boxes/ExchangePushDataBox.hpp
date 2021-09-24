@@ -45,7 +45,7 @@ namespace pmacc
             TYPE* currentSizePointer,
             TYPE maxSize,
             PushDataBox<TYPE, PushType> virtualMemory)
-            : DataBox<PitchedBox<VALUE, DIM1>>(PitchedBox<VALUE, DIM1>(data, DataSpace<DIM1>()))
+            : DataBox<PitchedBox<VALUE, DIM1>>(PitchedBox<VALUE, DIM1>(data))
             , currentSizePointer(currentSizePointer)
             , maxSize(maxSize)
             , virtualMemory(virtualMemory)

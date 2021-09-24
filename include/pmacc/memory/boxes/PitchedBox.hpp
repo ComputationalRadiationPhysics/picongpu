@@ -82,13 +82,7 @@ namespace pmacc
         {
         }
 
-        ///@todo(bgruber): is this functionality not provide by DataBox::shift?
-        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM1>& offset) : Base{pointer + offset[0]}
-        {
-        }
-
-        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM1>& offset, const DataSpace<DIM1>&, const size_t)
-            : PitchedBox(pointer, offset)
+        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM1>& /*memSize*/, const size_t /*pitch*/) : Base(pointer)
         {
         }
 
@@ -113,15 +107,9 @@ namespace pmacc
         {
         }
 
-        ///@todo(bgruber): is this functionality not provide by DataBox::shift?
-        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM2>& offset, size_t pitch)
-            : Base{(TYPE*) ((char*) pointer + offset[1] * pitch) + offset[0]}
+        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM2>& /*memSize*/, const size_t pitch)
+            : Base{pointer}
             , pitch(pitch)
-        {
-        }
-
-        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM2>& offset, const DataSpace<DIM2>&, const size_t pitch)
-            : PitchedBox(pointer, offset, pitch)
         {
         }
 
@@ -160,12 +148,8 @@ namespace pmacc
          * @param pitch number of bytes in one line (first dimension)
          */
         ///@todo(bgruber): is this functionality not provide by DataBox::shift?
-        HDINLINE PitchedBox(
-            TYPE* pointer,
-            const DataSpace<DIM3>& offset,
-            const DataSpace<DIM3>& memSize,
-            const size_t pitch)
-            : Base{(TYPE*) ((char*) pointer + offset[2] * (memSize[1] * pitch) + offset[1] * pitch) + offset[0]}
+        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM3>& memSize, const size_t pitch)
+            : Base{pointer}
             , pitch(pitch)
             , pitch2D(memSize[1] * pitch)
         {
