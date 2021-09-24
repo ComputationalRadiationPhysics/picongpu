@@ -62,19 +62,19 @@ namespace pmacc
                 template<>
                 struct MaxCudaBlockDim<DIM1>
                 {
-                    typedef math::CT::Size_t<1024, 1, 1> type;
+                    using type = math::CT::Size_t<1024, 1, 1>;
                 };
 
                 template<>
                 struct MaxCudaBlockDim<DIM2>
                 {
-                    typedef math::CT::Size_t<32, 32, 1> type;
+                    using type = math::CT::Size_t<32, 32, 1>;
                 };
 
                 template<>
                 struct MaxCudaBlockDim<DIM3>
                 {
-                    typedef math::CT::Size_t<8, 8, 8> type;
+                    using type = math::CT::Size_t<8, 8, 8>;
                 };
 
                 /** Check if MaxCudaBlockDim holds the cupla specification limits

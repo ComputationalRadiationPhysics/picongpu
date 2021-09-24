@@ -36,7 +36,7 @@ namespace pmacc
         template<unsigned DIM>
         struct GetComponentsType<DataSpace<DIM>, false>
         {
-            typedef typename DataSpace<DIM>::type type;
+            using type = typename DataSpace<DIM>::type;
         };
 
         /** Trait for float_X */
@@ -55,7 +55,7 @@ namespace pmacc
             template<unsigned T_Dim>
             struct TypeCast<int, pmacc::DataSpace<T_Dim>>
             {
-                typedef const pmacc::DataSpace<T_Dim>& result;
+                using result = const pmacc::DataSpace<T_Dim>&;
 
                 HDINLINE result operator()(const pmacc::DataSpace<T_Dim>& vector) const
                 {
@@ -66,7 +66,7 @@ namespace pmacc
             template<typename T_CastToType, unsigned T_Dim>
             struct TypeCast<T_CastToType, pmacc::DataSpace<T_Dim>>
             {
-                typedef ::pmacc::math::Vector<T_CastToType, T_Dim> result;
+                using result = ::pmacc::math::Vector<T_CastToType, T_Dim>;
 
                 HDINLINE result operator()(const pmacc::DataSpace<T_Dim>& vector) const
                 {

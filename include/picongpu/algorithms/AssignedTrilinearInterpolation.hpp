@@ -67,13 +67,13 @@ namespace picongpu
         {
             using type = typename ::pmacc::result_of::Functor<AssignedTrilinearInterpolation, T_Cursor>::type;
 
-            type result_z = type(0.0);
+            auto result_z = type(0.0);
             for(int z = T_begin; z <= T_end; ++z)
             {
-                type result_y = type(0.0);
+                auto result_y = type(0.0);
                 for(int y = T_begin; y <= T_end; ++y)
                 {
-                    type result_x = type(0.0);
+                    auto result_x = type(0.0);
                     for(int x = T_begin; x <= T_end; ++x)
                         /* a form factor is the "amount of particle" that is affected by this cell
                          * so we have to sum over: cell_value * form_factor

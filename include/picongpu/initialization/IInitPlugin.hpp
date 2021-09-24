@@ -37,8 +37,6 @@ namespace picongpu
         virtual void init() = 0;
         virtual void printInformation() = 0;
 
-        virtual ~IInitPlugin()
-        {
-        }
+        ~IInitPlugin() override = default;
     };
 } // namespace picongpu

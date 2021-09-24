@@ -318,12 +318,12 @@ namespace picongpu
                 using complex_64 = pmacc::math::Complex<float_64>;
 
                 /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-                float_T const beta0 = float_T(beta_0);
+                auto const beta0 = float_T(beta_0);
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
                  * z-axis of the coordinate system in this function.
                  */
-                float_T const phiReal = float_T(math::abs(phi));
+                auto const phiReal = float_T(math::abs(phi));
                 float_T sinPhiReal;
                 float_T cosPhiReal;
                 pmacc::math::sincos(phiReal, sinPhiReal, cosPhiReal);
@@ -345,15 +345,15 @@ namespace picongpu
                  * float_T const eta = float_T(PI/2) - (phiReal - alphaTilt);
                  */
 
-                float_T const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
-                float_T const lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+                auto const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
+                auto const lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
                 float_T const om0 = float_T(2.0 * PI) * cspeed / lambda0;
                 /* factor 2  in tauG arises from definition convention in laser formula */
-                float_T const tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
+                auto const tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
                 /* w0 is wx here --> w0 could be replaced by wx */
-                float_T const w0 = float_T(w_x_SI / UNIT_LENGTH);
-                float_T const rho0 = float_T(PI * w0 * w0 / lambda0);
-                float_T const k = float_T(2.0 * PI / lambda0);
+                auto const w0 = float_T(w_x_SI / UNIT_LENGTH);
+                auto const rho0 = float_T(PI * w0 * w0 / lambda0);
+                auto const k = float_T(2.0 * PI / lambda0);
 
                 /* In order to calculate in single-precision and in order to account for errors in
                  * the approximations far from the coordinate origin, we use the wavelength-periodicity and
@@ -370,14 +370,14 @@ namespace picongpu
                 float_64 const deltaY = wavelength_SI / tanFocalLine;
                 float_64 const deltaZ = -wavelength_SI;
                 float_64 const numberOfPeriods = math::floor(time / deltaT);
-                float_T const timeMod = float_T(time - numberOfPeriods * deltaT);
-                float_T const yMod = float_T(pos.y() + numberOfPeriods * deltaY);
-                float_T const zMod = float_T(pos.z() + numberOfPeriods * deltaZ);
+                auto const timeMod = float_T(time - numberOfPeriods * deltaT);
+                auto const yMod = float_T(pos.y() + numberOfPeriods * deltaY);
+                auto const zMod = float_T(pos.z() + numberOfPeriods * deltaZ);
 
-                float_T const x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
-                float_T const y = float_T(phiPositive * yMod / UNIT_LENGTH);
-                float_T const z = float_T(zMod / UNIT_LENGTH);
-                float_T const t = float_T(timeMod / UNIT_TIME);
+                auto const x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
+                auto const y = float_T(phiPositive * yMod / UNIT_LENGTH);
+                auto const z = float_T(zMod / UNIT_LENGTH);
+                auto const t = float_T(timeMod / UNIT_TIME);
 
                 /* Calculating shortcuts for speeding up field calculation */
                 float_T sinPhi;
@@ -464,12 +464,12 @@ namespace picongpu
                 using complex_T = pmacc::math::Complex<float_T>;
 
                 /* propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-                float_T const beta0 = float_T(beta_0);
+                auto const beta0 = float_T(beta_0);
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
                  * z-axis of the coordinate system in this function.
                  */
-                float_T const phiReal = float_T(math::abs(phi));
+                auto const phiReal = float_T(math::abs(phi));
                 float_T sinPhiReal;
                 float_T cosPhiReal;
                 pmacc::math::sincos(phiReal, sinPhiReal, cosPhiReal);
@@ -492,15 +492,15 @@ namespace picongpu
                  * float_T const eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt);
                  */
 
-                float_T const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
-                float_T const lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+                auto const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
+                auto const lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
                 float_T const om0 = float_T(2.0 * PI) * cspeed / lambda0;
                 /* factor 2  in tauG arises from definition convention in laser formula */
-                float_T const tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
+                auto const tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
                 /* w0 is wx here --> w0 could be replaced by wx */
-                float_T const w0 = float_T(w_x_SI / UNIT_LENGTH);
-                float_T const rho0 = float_T(PI * w0 * w0 / lambda0);
-                float_T const k = float_T(2.0 * PI / lambda0);
+                auto const w0 = float_T(w_x_SI / UNIT_LENGTH);
+                auto const rho0 = float_T(PI * w0 * w0 / lambda0);
+                auto const k = float_T(2.0 * PI / lambda0);
 
                 /* In order to calculate in single-precision and in order to account for errors in
                  * the approximations far from the coordinate origin, we use the wavelength-periodicity and
@@ -517,14 +517,14 @@ namespace picongpu
                 float_64 const deltaY = wavelength_SI / tanFocalLine;
                 float_64 const deltaZ = -wavelength_SI;
                 float_64 const numberOfPeriods = math::floor(time / deltaT);
-                float_T const timeMod = float_T(time - numberOfPeriods * deltaT);
-                float_T const yMod = float_T(pos.y() + numberOfPeriods * deltaY);
-                float_T const zMod = float_T(pos.z() + numberOfPeriods * deltaZ);
+                auto const timeMod = float_T(time - numberOfPeriods * deltaT);
+                auto const yMod = float_T(pos.y() + numberOfPeriods * deltaY);
+                auto const zMod = float_T(pos.z() + numberOfPeriods * deltaZ);
 
-                float_T const x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
-                float_T const y = float_T(phiPositive * yMod / UNIT_LENGTH);
-                float_T const z = float_T(zMod / UNIT_LENGTH);
-                float_T const t = float_T(timeMod / UNIT_TIME);
+                auto const x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
+                auto const y = float_T(phiPositive * yMod / UNIT_LENGTH);
+                auto const z = float_T(zMod / UNIT_LENGTH);
+                auto const t = float_T(timeMod / UNIT_TIME);
 
                 /* Calculating shortcuts for speeding up field calculation */
                 float_T sinPhi;
@@ -620,12 +620,12 @@ namespace picongpu
                 using complex_64 = pmacc::math::Complex<float_64>;
 
                 /* Propagation speed of overlap normalized to the speed of light [Default: beta0=1.0] */
-                float_T const beta0 = float_T(beta_0);
+                auto const beta0 = float_T(beta_0);
                 /* If phi < 0 the formulas below are not directly applicable.
                  * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
                  * z-axis of the coordinate system in this function.
                  */
-                float_T const phiReal = float_T(math::abs(phi));
+                auto const phiReal = float_T(math::abs(phi));
                 float_T cosPhiReal;
                 float_T sinPhiReal;
                 pmacc::math::sincos(phiReal, sinPhiReal, cosPhiReal);
@@ -647,15 +647,15 @@ namespace picongpu
                  * float_T const eta = float_T(float_T(PI / 2)) - (phiReal - alphaTilt);
                  */
 
-                float_T const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
-                float_T const lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
+                auto const cspeed = float_T(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
+                auto const lambda0 = float_T(wavelength_SI / UNIT_LENGTH);
                 float_T const om0 = float_T(2.0 * PI) * cspeed / lambda0;
                 /* factor 2  in tauG arises from definition convention in laser formula */
-                float_T const tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
+                auto const tauG = float_T(pulselength_SI * 2.0 / UNIT_TIME);
                 /* w0 is wx here --> w0 could be replaced by wx */
-                float_T const w0 = float_T(w_x_SI / UNIT_LENGTH);
-                float_T const rho0 = float_T(PI * w0 * w0 / lambda0);
-                float_T const k = float_T(2.0 * PI / lambda0);
+                auto const w0 = float_T(w_x_SI / UNIT_LENGTH);
+                auto const rho0 = float_T(PI * w0 * w0 / lambda0);
+                auto const k = float_T(2.0 * PI / lambda0);
 
                 /* In order to calculate in single-precision and in order to account for errors in
                  * the approximations far from the coordinate origin, we use the wavelength-periodicity and
@@ -672,14 +672,14 @@ namespace picongpu
                 float_64 const deltaY = wavelength_SI / tanFocalLine;
                 float_64 const deltaZ = -wavelength_SI;
                 float_64 const numberOfPeriods = math::floor(time / deltaT);
-                float_T const timeMod = float_T(time - numberOfPeriods * deltaT);
-                float_T const yMod = float_T(pos.y() + numberOfPeriods * deltaY);
-                float_T const zMod = float_T(pos.z() + numberOfPeriods * deltaZ);
+                auto const timeMod = float_T(time - numberOfPeriods * deltaT);
+                auto const yMod = float_T(pos.y() + numberOfPeriods * deltaY);
+                auto const zMod = float_T(pos.z() + numberOfPeriods * deltaZ);
 
-                float_T const x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
-                float_T const y = float_T(phiPositive * yMod / UNIT_LENGTH);
-                float_T const z = float_T(zMod / UNIT_LENGTH);
-                float_T const t = float_T(timeMod / UNIT_TIME);
+                auto const x = float_T(phiPositive * pos.x() / UNIT_LENGTH);
+                auto const y = float_T(phiPositive * yMod / UNIT_LENGTH);
+                auto const z = float_T(zMod / UNIT_LENGTH);
+                auto const t = float_T(timeMod / UNIT_TIME);
 
                 /* Shortcuts for speeding up the field calculation. */
                 float_T sinPhi;

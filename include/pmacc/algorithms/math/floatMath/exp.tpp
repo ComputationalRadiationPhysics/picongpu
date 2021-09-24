@@ -34,7 +34,7 @@ namespace pmacc
         template<>
         struct Log10<float>
         {
-            typedef float result;
+            using result = float;
 
             HDINLINE float operator()(const float& value)
             {

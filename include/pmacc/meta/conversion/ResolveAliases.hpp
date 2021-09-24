@@ -46,18 +46,18 @@ namespace pmacc
         typename T_AliasNotFoundPolicy = errorHandlerPolicies::ThrowValueNotFound>
     struct ResolveAliases
     {
-        typedef T_MPLSeq MPLSeq;
-        typedef T_MPLSeqLookup MPLSeqLookup;
-        typedef T_AliasNotFoundPolicy AliasNotFoundPolicy;
-        typedef bmpl::back_inserter<bmpl::vector<>> Inserter;
+        using MPLSeq = T_MPLSeq;
+        using MPLSeqLookup = T_MPLSeqLookup;
+        using AliasNotFoundPolicy = T_AliasNotFoundPolicy;
+        using Inserter = bmpl::back_inserter<bmpl::vector<>>;
 
         template<typename T_Identifier>
         struct GetKeyFromAliasAccessor
         {
-            typedef typename GetKeyFromAlias<MPLSeqLookup, T_Identifier, AliasNotFoundPolicy>::type type;
+            using type = typename GetKeyFromAlias<MPLSeqLookup, T_Identifier, AliasNotFoundPolicy>::type;
         };
 
-        typedef typename bmpl::transform<MPLSeq, GetKeyFromAliasAccessor<bmpl::_1>>::type type;
+        using type = typename bmpl::transform<MPLSeq, GetKeyFromAliasAccessor<bmpl::_1>>::type;
     };
 
 } // namespace pmacc

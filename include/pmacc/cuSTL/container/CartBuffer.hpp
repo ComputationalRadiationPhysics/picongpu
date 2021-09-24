@@ -72,23 +72,21 @@ namespace pmacc
               bmpl::apply<Assigner, bmpl::int_<T_dim>, CartBuffer<Type, T_dim, Allocator, Copier, Assigner>>::type
         {
         public:
-            typedef Type type;
+            using type = Type;
             static constexpr int dim = T_dim;
-            typedef cursor::BufferCursor<Type, T_dim> Cursor;
-            typedef typename Allocator::tag memoryTag;
-            typedef math::Size_t<T_dim> SizeType;
-            typedef math::Size_t<T_dim - 1> PitchType;
+            using Cursor = cursor::BufferCursor<Type, T_dim>;
+            using memoryTag = typename Allocator::tag;
+            using SizeType = math::Size_t<T_dim>;
+            using PitchType = math::Size_t<T_dim - 1>;
 
         public:
             Type* dataPointer;
-            int* refCount;
+            int* refCount{nullptr};
             SizeType _size;
             PitchType pitch;
             HDINLINE void init();
             HDINLINE void exit();
-            HDINLINE CartBuffer() : refCount(nullptr)
-            {
-            }
+            HDINLINE CartBuffer() = default;
 
         public:
             HDINLINE CartBuffer(const math::Size_t<T_dim>& size);

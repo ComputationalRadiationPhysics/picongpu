@@ -28,7 +28,7 @@ namespace pmacc
         template<typename Marker>
         struct MarkerAccessor
         {
-            typedef const Marker type;
+            using type = const Marker;
             /** returns the cursor's marker.
              *
              * Here a copy of marker is returned because the cursor object

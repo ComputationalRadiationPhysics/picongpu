@@ -48,7 +48,7 @@ namespace picongpu
                 using ElectronsList = T_ElectronsList;
                 using PhotonsList = T_PhotonsList;
 
-                virtual void init(pmacc::DataSpace<simDim> const& gridSizeLocal, std::string const& ionSpeciesName);
+                void init(pmacc::DataSpace<simDim> const& gridSizeLocal, std::string const& ionSpeciesName) override;
 
                 /** Update atomic configurations
                  *

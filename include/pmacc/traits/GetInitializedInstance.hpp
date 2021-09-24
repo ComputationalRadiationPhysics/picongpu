@@ -38,7 +38,7 @@ namespace pmacc
         template<typename T_Type>
         struct GetInitializedInstance
         {
-            typedef T_Type Type;
+            using Type = T_Type;
 
             template<typename ValueType>
             HDINLINE Type operator()(const ValueType& value) const

@@ -33,7 +33,7 @@ namespace pmacc
         template<int T_dim>
         struct MultiIndexNavigator
         {
-            typedef tag::MultiIndexNavigator tag;
+            using tag = tag::MultiIndexNavigator;
             static constexpr int dim = T_dim;
 
             template<typename MultiIndex>

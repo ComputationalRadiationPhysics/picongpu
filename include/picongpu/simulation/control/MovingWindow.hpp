@@ -38,7 +38,7 @@ namespace picongpu
     private:
         MovingWindow() = default;
 
-        MovingWindow(MovingWindow& cc);
+        MovingWindow(MovingWindow& cc) = delete;
 
         void getCurrentSlideInfo(uint32_t currentStep, bool* doSlide, float_64* offsetFirstGPU)
         {
@@ -60,7 +60,7 @@ namespace picongpu
                 const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
                 /* speed of the moving window */
-                const float_64 windowMovingSpeed = float_64(SPEED_OF_LIGHT);
+                const auto windowMovingSpeed = float_64(SPEED_OF_LIGHT);
 
                 /* defines in which direction the window moves
                  *
@@ -81,7 +81,7 @@ namespace picongpu
                 const uint32_t gpuNumberOfCellsInMoveDirection = subGrid.getLocalDomain().size[moveDirection];
 
                 /* unit PIConGPU length */
-                const float_64 cellSizeInMoveDirection = float_64(cellSize[moveDirection]);
+                const auto cellSizeInMoveDirection = float_64(cellSize[moveDirection]);
 
                 const float_64 deltaWayPerStep = (windowMovingSpeed * float_64(DELTA_T));
 
@@ -251,7 +251,7 @@ namespace picongpu
         void setEndSlideOnStep(int32_t step)
         {
             // maybe we have a underflow in the cast, this is fine because it results in a very large number
-            const uint32_t maxSlideStep = static_cast<uint32_t>(step);
+            const auto maxSlideStep = static_cast<uint32_t>(step);
             if(maxSlideStep < lastSlideStep)
                 throw std::runtime_error("It is not allowed to stop the moving window in the past.");
 

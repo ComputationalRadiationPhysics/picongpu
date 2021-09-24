@@ -121,17 +121,10 @@ namespace picongpu
          * Constructor
          */
         Simulation()
-            : myFieldSolver(nullptr)
-            , cellDescription(nullptr)
-            , initialiserController(nullptr)
-            , slidingWindow(false)
-            , windowMovePoint(0.0)
-            , endSlidingOnStep(-1)
-            , showVersionOnce(false)
-        {
-        }
 
-        virtual void pluginRegisterHelp(po::options_description& desc)
+            = default;
+
+        void pluginRegisterHelp(po::options_description& desc) override
         {
             SimulationHelper<simDim>::pluginRegisterHelp(desc);
             currentInterpolationAndAdditionToEMF.registerHelp(desc);
@@ -172,12 +165,12 @@ namespace picongpu
             // clang-format on
         }
 
-        std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return "PIConGPU";
         }
 
-        virtual void pluginLoad()
+        void pluginLoad() override
         {
             // fill periodic with 0
             while(periodic.size() < 3)
@@ -289,7 +282,7 @@ namespace picongpu
             }
         }
 
-        virtual void pluginUnload()
+        void pluginUnload() override
         {
             DataConnector& dc = Environment<>::get().DataConnector();
 
@@ -307,11 +300,11 @@ namespace picongpu
             __delete(cellDescription);
         }
 
-        void notify(uint32_t)
+        void notify(uint32_t) override
         {
         }
 
-        virtual void init()
+        void init() override
         {
             // This has to be called before initFields()
             currentInterpolationAndAdditionToEMF.init();
@@ -449,7 +442,7 @@ namespace picongpu
 #endif
         }
 
-        virtual uint32_t fillSimulation()
+        uint32_t fillSimulation() override
         {
             /* assume start (restart in initialiserController might change that) */
             uint32_t step = 0;
@@ -537,7 +530,7 @@ namespace picongpu
          *
          * @param currentStep iteration number of the current step
          */
-        virtual void runOneStep(uint32_t currentStep)
+        void runOneStep(uint32_t currentStep) override
         {
             using namespace simulation::stage;
 
@@ -562,7 +555,7 @@ namespace picongpu
             myFieldSolver->update_afterCurrent(currentStep);
         }
 
-        virtual void movingWindowCheck(uint32_t currentStep)
+        void movingWindowCheck(uint32_t currentStep) override
         {
             if(MovingWindow::getInstance().slideInCurrentStep(currentStep))
             {
@@ -591,7 +584,7 @@ namespace picongpu
             }
         }
 
-        virtual void resetAll(uint32_t currentStep)
+        void resetAll(uint32_t currentStep) override
         {
             resetFields(currentStep);
             meta::ForEach<VectorAllSpecies, particles::CallReset<bmpl::_1>> resetParticles;
@@ -626,7 +619,7 @@ namespace picongpu
     protected:
         std::shared_ptr<DeviceHeap> deviceHeap;
 
-        fields::Solver* myFieldSolver;
+        fields::Solver* myFieldSolver{nullptr};
         simulation::stage::CurrentInterpolationAndAdditionToEMF currentInterpolationAndAdditionToEMF;
 
         // Field absorber stage, has to live always as it is used for registering options like a plugin.
@@ -653,9 +646,9 @@ namespace picongpu
 
         // output classes
 
-        IInitPlugin* initialiserController;
+        IInitPlugin* initialiserController{nullptr};
 
-        MappingDesc* cellDescription;
+        MappingDesc* cellDescription{nullptr};
 
         // layout parameter
         std::vector<uint32_t> devices;
@@ -666,10 +659,10 @@ namespace picongpu
 
         std::vector<std::string> gridDistribution;
 
-        bool slidingWindow;
-        int32_t endSlidingOnStep;
-        float_64 windowMovePoint;
-        bool showVersionOnce;
+        bool slidingWindow{false};
+        int32_t endSlidingOnStep{-1};
+        float_64 windowMovePoint{0.0};
+        bool showVersionOnce{false};
         bool autoAdjustGrid = true;
         uint32_t numRanksPerDevice = 1u;
 

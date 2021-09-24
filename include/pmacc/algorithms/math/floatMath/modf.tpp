@@ -32,7 +32,7 @@ namespace pmacc
         template<>
         struct Modf<float>
         {
-            typedef float result;
+            using result = float;
 
             HDINLINE float operator()(float value, float* intpart)
             {

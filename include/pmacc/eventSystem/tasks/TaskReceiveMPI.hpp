@@ -43,7 +43,7 @@ namespace pmacc
         {
         }
 
-        virtual void init()
+        void init() override
         {
             Buffer<TYPE, DIM>* dst = exchange->getCommunicationBuffer();
 
@@ -54,7 +54,7 @@ namespace pmacc
                 exchange->getCommunicationTag());
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             if(this->isFinished())
                 return true;
@@ -75,7 +75,7 @@ namespace pmacc
             return false;
         }
 
-        virtual ~TaskReceiveMPI()
+        ~TaskReceiveMPI() override
         {
             //! \todo this make problems because we send bytes and not combined types
             int recv_data_count;
@@ -88,11 +88,11 @@ namespace pmacc
             __delete(edata);
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        std::string toString()
+        std::string toString() override
         {
             return std::string("TaskReceiveMPI exchange type=") + std::to_string(exchange->getExchangeType());
         }

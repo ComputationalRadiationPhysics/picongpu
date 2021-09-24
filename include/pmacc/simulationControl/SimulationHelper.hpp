@@ -65,21 +65,17 @@ namespace pmacc
          *
          */
         SimulationHelper()
-            : runSteps(0)
-            , checkpointDirectory("checkpoints")
-            , numCheckpoints(0)
-            , restartStep(-1)
+            : checkpointDirectory("checkpoints")
             , restartDirectory("checkpoints")
-            , restartRequested(false)
             , CHECKPOINT_MASTER_FILE("checkpoints.txt")
             , author("")
-            , useMpiDirect(false)
+
         {
             tSimulation.toggleStart();
             tInit.toggleStart();
         }
 
-        virtual ~SimulationHelper()
+        ~SimulationHelper() override
         {
             tSimulation.toggleEnd();
             if(output)
@@ -316,7 +312,7 @@ namespace pmacc
             } // softRestarts loop
         }
 
-        virtual void pluginRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc) override
         {
             // clang-format off
             desc.add_options()
@@ -345,12 +341,12 @@ namespace pmacc
             // clang-format on
         }
 
-        std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return "SimulationHelper";
         }
 
-        void pluginLoad()
+        void pluginLoad() override
         {
             Environment<>::get().SimulationDescription().setRunSteps(runSteps);
             Environment<>::get().SimulationDescription().setAuthor(author);
@@ -363,21 +359,21 @@ namespace pmacc
                 restartRequested = true;
         }
 
-        void pluginUnload()
+        void pluginUnload() override
         {
         }
 
-        void restart(uint32_t, const std::string)
+        void restart(uint32_t, const std::string) override
         {
         }
 
-        void checkpoint(uint32_t, const std::string)
+        void checkpoint(uint32_t, const std::string) override
         {
         }
 
     protected:
         /* number of simulation steps to compute */
-        uint32_t runSteps;
+        uint32_t runSteps{0};
 
         /** Presentations: loop the whole simulation `softRestarts` times from
          *                 initial step to runSteps */
@@ -393,16 +389,16 @@ namespace pmacc
         std::string checkpointDirectory;
 
         /* number of checkpoints written */
-        uint32_t numCheckpoints;
+        uint32_t numCheckpoints{0};
 
         /* checkpoint step to restart from */
-        int32_t restartStep;
+        int32_t restartStep{-1};
 
         /* common directory for restarts */
         std::string restartDirectory;
 
         /* restart requested */
-        bool restartRequested;
+        bool restartRequested{false};
 
         /* filename for checkpoint master file with all checkpoint timesteps */
         const std::string CHECKPOINT_MASTER_FILE;
@@ -411,7 +407,7 @@ namespace pmacc
         std::string author;
 
         //! enable MPI gpu direct
-        bool useMpiDirect;
+        bool useMpiDirect{false};
 
         bool tryRestart = false;
 

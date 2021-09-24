@@ -35,7 +35,7 @@ namespace pmacc
             template<typename T_MPLSeq, typename T_Value>
             struct apply
             {
-                typedef T_Value type;
+                using type = T_Value;
             };
         };
 

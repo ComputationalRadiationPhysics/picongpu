@@ -38,7 +38,7 @@ namespace pmacc
          * Constructor.
          * Creates the cuplaStream_t object.
          */
-        EventStream() : stream(nullptr)
+        EventStream()
         {
             CUDA_CHECK(cuplaStreamCreate(&stream));
         }
@@ -72,7 +72,7 @@ namespace pmacc
         }
 
     private:
-        cuplaStream_t stream;
+        cuplaStream_t stream{nullptr};
     };
 
 } // namespace pmacc

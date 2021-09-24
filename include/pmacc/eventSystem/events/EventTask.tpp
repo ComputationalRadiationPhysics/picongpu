@@ -31,9 +31,7 @@ namespace pmacc
     {
     }
 
-    inline EventTask::EventTask() : taskId(0)
-    {
-    }
+    inline EventTask::EventTask() = default;
 
     inline std::string EventTask::toString()
     {
@@ -87,18 +85,13 @@ namespace pmacc
             return *this;
         }
 
-        TaskLogicalAnd* taskAnd = new TaskLogicalAnd(myTask, otherTask);
+        auto* taskAnd = new TaskLogicalAnd(myTask, otherTask);
         this->taskId = taskAnd->getId();
         manager.addPassiveTask(taskAnd);
 
         return *this;
     }
 
-    inline EventTask& EventTask::operator=(const EventTask& other)
-    {
-        // this is faster than a copy constructor
-        taskId = other.taskId;
-        return *this;
-    }
+    inline EventTask& EventTask::operator=(const EventTask& other) = default;
 
 } // namespace pmacc

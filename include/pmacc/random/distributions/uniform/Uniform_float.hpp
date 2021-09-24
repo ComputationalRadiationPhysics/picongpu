@@ -41,9 +41,9 @@ namespace pmacc
                 class Uniform<uniform::ExcludeZero<float>, T_RNGMethod, void>
                 {
                 public:
-                    typedef T_RNGMethod RNGMethod;
-                    typedef typename RNGMethod::StateType StateType;
-                    typedef float result_type;
+                    using RNGMethod = T_RNGMethod;
+                    using StateType = typename RNGMethod::StateType;
+                    using result_type = float;
 
                     template<typename T_Acc>
                     DINLINE float operator()(T_Acc const& acc, StateType& state) const
@@ -62,9 +62,9 @@ namespace pmacc
                 class Uniform<uniform::ExcludeOne<float>::SwapOneToZero, T_RNGMethod, void>
                 {
                 public:
-                    typedef T_RNGMethod RNGMethod;
-                    typedef typename RNGMethod::StateType StateType;
-                    typedef float result_type;
+                    using RNGMethod = T_RNGMethod;
+                    using StateType = typename RNGMethod::StateType;
+                    using result_type = float;
 
                     template<typename T_Acc>
                     DINLINE float operator()(T_Acc const& acc, StateType& state) const
@@ -87,9 +87,9 @@ namespace pmacc
                 class Uniform<uniform::ExcludeOne<float>::Reduced, T_RNGMethod, void>
                 {
                 public:
-                    typedef T_RNGMethod RNGMethod;
-                    typedef typename RNGMethod::StateType StateType;
-                    typedef float result_type;
+                    using RNGMethod = T_RNGMethod;
+                    using StateType = typename RNGMethod::StateType;
+                    using result_type = float;
 
                     template<typename T_Acc>
                     DINLINE float operator()(T_Acc const& acc, StateType& state) const
@@ -109,9 +109,9 @@ namespace pmacc
                 class Uniform<typename uniform::ExcludeOne<float>::Repeat, T_RNGMethod, void>
                 {
                 public:
-                    typedef T_RNGMethod RNGMethod;
-                    typedef typename RNGMethod::StateType StateType;
-                    typedef float result_type;
+                    using RNGMethod = T_RNGMethod;
+                    using StateType = typename RNGMethod::StateType;
+                    using result_type = float;
 
                     template<typename T_Acc>
                     DINLINE float operator()(T_Acc const& acc, StateType& state) const

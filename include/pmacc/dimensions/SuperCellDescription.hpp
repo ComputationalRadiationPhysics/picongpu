@@ -47,13 +47,13 @@ namespace pmacc
         {
             Dim = T_SuperCellSize::dim
         };
-        typedef T_SuperCellSize SuperCellSize;
-        typedef T_OffsetOrigin OffsetOrigin;
-        typedef T_OffsetEnd OffsetEnd;
-        typedef SuperCellDescription<SuperCellSize, OffsetOrigin, OffsetEnd> Type;
+        using SuperCellSize = T_SuperCellSize;
+        using OffsetOrigin = T_OffsetOrigin;
+        using OffsetEnd = T_OffsetEnd;
+        using Type = SuperCellDescription<SuperCellSize, OffsetOrigin, OffsetEnd>;
 
-        typedef typename ct::add<OffsetOrigin, SuperCellSize>::type AddFirst;
-        typedef typename ct::add<AddFirst, OffsetEnd>::type FullSuperCellSize;
+        using AddFirst = typename ct::add<OffsetOrigin, SuperCellSize>::type;
+        using FullSuperCellSize = typename ct::add<AddFirst, OffsetEnd>::type;
     };
 
 } // namespace pmacc

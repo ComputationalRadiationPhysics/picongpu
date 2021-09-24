@@ -67,9 +67,8 @@ namespace pmacc
             template<typename X>
             struct apply
             {
-                typedef bmpl::
-                    pair<X, StaticArray<typename traits::Resolve<X>::type::type, bmpl::integral_c<uint32_t, T_size>>>
-                        type;
+                using type = bmpl::
+                    pair<X, StaticArray<typename traits::Resolve<X>::type::type, bmpl::integral_c<uint32_t, T_size>>>;
             };
         };
 
@@ -80,50 +79,49 @@ namespace pmacc
          *   - start position inside the exchange stack for frames
          *   - number of frames corresponding to the superCell position
          */
-        typedef ExchangeMemoryIndex<vint_t, DIM - 1> BorderFrameIndex;
+        using BorderFrameIndex = ExchangeMemoryIndex<vint_t, DIM - 1>;
 
-        typedef SuperCellSize_ SuperCellSize;
+        using SuperCellSize = SuperCellSize_;
 
-        typedef typename MakeSeq<typename T_ParticleDescription::ValueTypeSeq, localCellIdx, multiMask>::type
-            ParticleAttributeList;
+        using ParticleAttributeList =
+            typename MakeSeq<typename T_ParticleDescription::ValueTypeSeq, localCellIdx, multiMask>::type;
 
-        typedef typename MakeSeq<typename T_ParticleDescription::ValueTypeSeq, localCellIdx>::type
-            ParticleAttributeListBorder;
+        using ParticleAttributeListBorder =
+            typename MakeSeq<typename T_ParticleDescription::ValueTypeSeq, localCellIdx>::type;
 
-        typedef typename ReplaceValueTypeSeq<T_ParticleDescription, ParticleAttributeList>::type
-            FrameDescriptionWithManagementAttributes;
+        using FrameDescriptionWithManagementAttributes =
+            typename ReplaceValueTypeSeq<T_ParticleDescription, ParticleAttributeList>::type;
 
         /** double linked list pointer */
-        typedef typename MakeSeq<PreviousFramePtr<>, NextFramePtr<>>::type LinkedListPointer;
+        using LinkedListPointer = typename MakeSeq<PreviousFramePtr<>, NextFramePtr<>>::type;
 
         /* extent particle description with pointer to a frame*/
-        typedef typename ReplaceFrameExtensionSeq<FrameDescriptionWithManagementAttributes, LinkedListPointer>::type
-            FrameDescription;
+        using FrameDescription =
+            typename ReplaceFrameExtensionSeq<FrameDescriptionWithManagementAttributes, LinkedListPointer>::type;
 
         /** frame definition
          *
          * a group of particles is stored as frame
          */
-        typedef Frame<
+        using FrameType = Frame<
             OperatorCreatePairStaticArray<pmacc::math::CT::volume<SuperCellSize>::type::value>,
-            FrameDescription>
-            FrameType;
+            FrameDescription>;
 
-        typedef typename ReplaceValueTypeSeq<T_ParticleDescription, ParticleAttributeListBorder>::type
-            FrameDescriptionBorder;
+        using FrameDescriptionBorder =
+            typename ReplaceValueTypeSeq<T_ParticleDescription, ParticleAttributeListBorder>::type;
 
         /** frame which is used to communicate particles to neighbors
          *
          * - each frame contains only one particle
          * - local administration attributes of a particle are removed
          */
-        typedef Frame<OperatorCreatePairStaticArray<1u>, FrameDescriptionBorder> FrameTypeBorder;
+        using FrameTypeBorder = Frame<OperatorCreatePairStaticArray<1U>, FrameDescriptionBorder>;
 
-        typedef SuperCell<FrameType> SuperCellType;
+        using SuperCellType = SuperCell<FrameType>;
 
-        typedef T_DeviceHeap DeviceHeap;
+        using DeviceHeap = T_DeviceHeap;
         /* Type of the particle box which particle buffer create */
-        typedef ParticlesBox<FrameType, typename DeviceHeap::AllocatorHandle, DIM> ParticlesBoxType;
+        using ParticlesBoxType = ParticlesBox<FrameType, typename DeviceHeap::AllocatorHandle, DIM>;
 
     private:
         /* this enum is used only for internal calculations */

@@ -30,7 +30,7 @@ namespace pmacc
         template<typename TCursor>
         struct CursorAccessor
         {
-            typedef typename TCursor::type type;
+            using type = typename TCursor::type;
 
             HDINLINE type operator()(TCursor& cursor)
             {

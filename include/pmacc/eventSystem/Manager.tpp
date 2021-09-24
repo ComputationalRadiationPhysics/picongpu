@@ -57,7 +57,7 @@ namespace pmacc
         }
 #endif
 
-        static TaskMap::iterator iter = tasks.begin();
+        static auto iter = tasks.begin();
 
         if(iter == tasks.end())
             iter = tasks.begin();
@@ -121,7 +121,7 @@ namespace pmacc
 
     inline ITask* Manager::getPassiveITaskIfNotFinished(id_t taskId) const
     {
-        TaskMap::const_iterator itPassive = passiveTasks.find(taskId);
+        auto itPassive = passiveTasks.find(taskId);
         if(itPassive != passiveTasks.end())
             return itPassive->second;
         return nullptr;
@@ -129,7 +129,7 @@ namespace pmacc
 
     inline ITask* Manager::getActiveITaskIfNotFinished(id_t taskId) const
     {
-        TaskMap::const_iterator it = tasks.find(taskId);
+        auto it = tasks.find(taskId);
         if(it != tasks.end())
             return it->second;
         return nullptr;
@@ -195,9 +195,7 @@ namespace pmacc
         passiveTasks[task->getId()] = task;
     }
 
-    inline Manager::Manager()
-    {
-    }
+    inline Manager::Manager() = default;
 
     inline Manager::Manager(const Manager&)
     {
@@ -206,7 +204,7 @@ namespace pmacc
 
     inline std::size_t Manager::getCount()
     {
-        for(TaskMap::iterator iter = tasks.begin(); iter != tasks.end(); ++iter)
+        for(auto iter = tasks.begin(); iter != tasks.end(); ++iter)
         {
             if(iter->second != nullptr)
             {

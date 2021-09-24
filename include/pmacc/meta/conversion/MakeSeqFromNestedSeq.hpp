@@ -41,10 +41,10 @@ namespace pmacc
     struct MakeSeqFromNestedSeq
     {
     private:
-        typedef typename ToSeq<T_In>::type Seq;
+        using Seq = typename ToSeq<T_In>::type;
 
     public:
-        typedef typename bmpl::fold<Seq, bmpl::vector0<>, JoinToSeq<bmpl::_1, bmpl::_2>>::type type;
+        using type = typename bmpl::fold<Seq, bmpl::vector0<>, JoinToSeq<bmpl::_1, bmpl::_2>>::type;
     };
 
 } // namespace pmacc

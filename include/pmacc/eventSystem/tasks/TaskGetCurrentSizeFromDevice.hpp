@@ -43,21 +43,21 @@ namespace pmacc
             this->buffer = &buffer;
         }
 
-        virtual ~TaskGetCurrentSizeFromDevice()
+        ~TaskGetCurrentSizeFromDevice() override
         {
             notify(this->myId, GETVALUE, nullptr);
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             return isFinished();
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        virtual void init()
+        void init() override
         {
             CUDA_CHECK(cuplaMemcpyAsync(
                 (void*) buffer->getCurrentSizeHostSidePointer(),
@@ -68,7 +68,7 @@ namespace pmacc
             this->activate();
         }
 
-        virtual std::string toString()
+        std::string toString() override
         {
             return "TaskGetCurrentSizeFromDevice";
         }

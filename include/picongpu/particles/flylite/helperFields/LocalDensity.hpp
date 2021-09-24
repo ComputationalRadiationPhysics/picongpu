@@ -63,7 +63,7 @@ namespace picongpu
                         m_density = new GridBuffer<ValueType, simDim>(sizeLocal);
                     }
 
-                    ~LocalDensity()
+                    ~LocalDensity() override
                     {
                         __delete(m_density);
                     }

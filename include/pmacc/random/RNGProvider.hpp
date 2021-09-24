@@ -42,22 +42,22 @@ namespace pmacc
         {
         public:
             static constexpr uint32_t dim = T_dim;
-            typedef T_RNGMethod RNGMethod;
-            typedef DataSpace<dim> Space;
+            using RNGMethod = T_RNGMethod;
+            using Space = DataSpace<dim>;
 
         private:
-            typedef typename RNGMethod::StateType RNGState;
+            using RNGState = typename RNGMethod::StateType;
 
         public:
-            typedef HostDeviceBuffer<RNGState, dim> Buffer;
-            typedef typename Buffer::DataBoxType DataBoxType;
-            typedef RNGHandle<RNGProvider> Handle;
+            using Buffer = HostDeviceBuffer<RNGState, dim>;
+            using DataBoxType = typename Buffer::DataBoxType;
+            using Handle = RNGHandle<RNGProvider>;
 
             template<class T_Distribution>
             struct GetRandomType
             {
-                typedef typename T_Distribution::template applyMethod<RNGMethod>::type Distribution;
-                typedef Random<Distribution, RNGMethod, Handle> type;
+                using Distribution = typename T_Distribution::template applyMethod<RNGMethod>::type;
+                using type = Random<Distribution, RNGMethod, Handle>;
             };
 
             /**
@@ -68,7 +68,7 @@ namespace pmacc
              *          (as returned by \ref getName()) is used
              */
             RNGProvider(const Space& size, const std::string& uniqueId = "");
-            virtual ~RNGProvider()
+            ~RNGProvider() override
             {
                 __delete(buffer)
             }

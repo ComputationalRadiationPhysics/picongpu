@@ -181,9 +181,11 @@ namespace pmacc
     private:
         friend struct detail::Environment;
 
-        Factory(){};
+        Factory() = default;
+        ;
 
-        Factory(const Factory&){};
+        Factory(const Factory&) = default;
+        ;
 
         static Factory& getInstance()
         {

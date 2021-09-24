@@ -191,7 +191,8 @@ namespace pmacc
 
         std::list<std::shared_ptr<ISimulationData>> datasets;
 
-        DataConnector(){};
+        DataConnector() = default;
+        ;
 
         virtual ~DataConnector()
         {

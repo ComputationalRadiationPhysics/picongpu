@@ -42,7 +42,7 @@ namespace pmacc
                 template<typename Data>
                 HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
                 {
-                    char* result = (char*) data;
+                    auto* result = (char*) data;
                     result += jump.x() * sizeof(typename std::remove_pointer_t<Data>);
                     return (Data) result;
                 }
@@ -56,7 +56,7 @@ namespace pmacc
                 template<typename Data>
                 HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
                 {
-                    char* result = (char*) data;
+                    auto* result = (char*) data;
                     result += jump.x() * sizeof(typename std::remove_pointer_t<Data>) + jump.y() * Pitch::x::value;
                     return (Data) result;
                 }
@@ -70,7 +70,7 @@ namespace pmacc
                 template<typename Data>
                 HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
                 {
-                    char* result = (char*) data;
+                    auto* result = (char*) data;
                     result += jump.x() * sizeof(typename std::remove_pointer_t<Data>) + jump.y() * Pitch::x::value
                         + jump.z() * Pitch::y::value;
                     return (Data) result;

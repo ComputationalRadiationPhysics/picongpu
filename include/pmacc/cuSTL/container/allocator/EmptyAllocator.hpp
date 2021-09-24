@@ -31,7 +31,7 @@ namespace pmacc
     {
         struct EmptyAllocator
         {
-            typedef allocator::tag::unspecified tag;
+            using tag = allocator::tag::unspecified;
 
             template<typename TCursor>
             HDINLINE static void deallocate(const TCursor&)

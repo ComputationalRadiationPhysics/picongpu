@@ -80,7 +80,7 @@ namespace pmacc
             using SuperCellSize = typename T_Mapping::SuperCellSize;
 
             DataSpace<dim> const threadIndex(cupla::threadIdx(acc));
-            uint32_t const workerIdx
+            auto const workerIdx
                 = static_cast<uint32_t>(DataSpaceOperations<dim>::template map<SuperCellSize>(threadIndex));
 
             DataSpace<dim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc))));
@@ -218,8 +218,8 @@ namespace pmacc
             const Space& size,
             T_ParticleFilter& parFilter)
         {
-            typedef bmpl::vector<typename GetPositionFilter<Space::Dim>::type> usedFilters;
-            typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
+            using usedFilters = bmpl::vector<typename GetPositionFilter<Space::Dim>::type>;
+            using MyParticleFilter = typename FilterFactory<usedFilters>::FilterType;
             MyParticleFilter filter;
             filter.setStatus(true); /*activeate filter pipline*/
             filter.setWindowPosition(origin, size);

@@ -39,8 +39,8 @@ namespace picongpu
 
             static constexpr int currentLowerMargin = supp / 2 + 1 - (supp + 1) % 2;
             static constexpr int currentUpperMargin = (supp + 1) / 2 + 1;
-            typedef typename pmacc::math::CT::make_Int<simDim, currentLowerMargin>::type LowerMargin;
-            typedef typename pmacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
+            using LowerMargin = typename pmacc::math::CT::make_Int<simDim, currentLowerMargin>::type;
+            using UpperMargin = typename pmacc::math::CT::make_Int<simDim, currentUpperMargin>::type;
 
             PMACC_CASSERT_MSG(
                 __EmZ_supercell_or_number_of_guard_supercells_is_too_small_for_stencil,

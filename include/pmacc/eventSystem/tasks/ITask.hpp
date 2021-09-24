@@ -52,7 +52,7 @@ namespace pmacc
         /**
          * constructor
          */
-        ITask() : myType(ITask::TASK_UNKNOWN)
+        ITask()
         {
             // task id 0 is reserved for invalid
             static id_t globalId = 1;
@@ -62,9 +62,7 @@ namespace pmacc
         }
 
 
-        virtual ~ITask()
-        {
-        }
+        ~ITask() override = default;
 
         /**
          * Executes this task.
@@ -125,7 +123,7 @@ namespace pmacc
         virtual bool executeIntern() = 0;
 
         id_t myId;
-        TaskType myType;
+        TaskType myType{ITask::TASK_UNKNOWN};
     };
 
 } // namespace pmacc

@@ -43,7 +43,7 @@ namespace pmacc
 
                 auto& con = Environment<dim>::get().GridController();
 
-                typedef std::pair<Int<dim>, bool> PosFlag;
+                using PosFlag = std::pair<Int<dim>, bool>;
                 PosFlag posFlag;
                 posFlag.first = con.getPosition();
                 posFlag.second = setThisAsRoot;
@@ -142,8 +142,8 @@ namespace pmacc
                     static void callback(void* invec, void* inoutvec, int* len, MPI_Datatype*)
                     {
                         Functor functor;
-                        type* inoutvec_t = (type*) inoutvec;
-                        type* invec_t = (type*) invec;
+                        auto* inoutvec_t = (type*) inoutvec;
+                        auto* invec_t = (type*) invec;
 
                         int size = (*len) / sizeof(type);
                         for(int i = 0; i < size; i++)

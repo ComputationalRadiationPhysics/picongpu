@@ -28,7 +28,7 @@ namespace pmacc
         template<typename Type>
         struct GetValueType<Type*>
         {
-            typedef Type ValueType;
+            using ValueType = Type;
         };
     } // namespace traits
 } // namespace pmacc

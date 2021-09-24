@@ -39,7 +39,7 @@ namespace pmacc
         constexpr uint32_t maxNumThreadsPerBlock = 1024;
 
         /** maximum number of threads per axis of a block */
-        typedef math::CT::Size_t<1024, 1024, 64> MaxNumThreadsPerBlockDim;
+        using MaxNumThreadsPerBlockDim = math::CT::Size_t<1024, 1024, 64>;
 
     } // namespace cudaSpecs
 } // namespace pmacc

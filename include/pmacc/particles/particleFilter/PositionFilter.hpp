@@ -43,9 +43,7 @@ namespace pmacc
             DataSpace<dim> superCellIdx;
 
         public:
-            HDINLINE PositionFilter()
-            {
-            }
+            HDINLINE PositionFilter() = default;
 
             HDINLINE void setWindowPosition(DataSpace<dim> offset, DataSpace<dim> size)
             {
@@ -97,13 +95,13 @@ namespace pmacc
     template<>
     struct GetPositionFilter<DIM3>
     {
-        typedef PositionFilter3D<> type;
+        using type = PositionFilter3D<>;
     };
 
     template<>
     struct GetPositionFilter<DIM2>
     {
-        typedef PositionFilter2D<> type;
+        using type = PositionFilter2D<>;
     };
 
 

@@ -43,11 +43,11 @@ namespace pmacc
             : private T_Distribution
             , private T_RNGStatePtrOrHandle
         {
-            typedef T_RNGMethod RNGMethod;
+            using RNGMethod = T_RNGMethod;
             /* RNGHandle assumed */
-            typedef T_RNGStatePtrOrHandle RNGHandle;
-            typedef T_Distribution Distribution;
-            typedef typename boost::result_of<Distribution(typename RNGHandle::RNGState&)>::type result_type;
+            using RNGHandle = T_RNGStatePtrOrHandle;
+            using Distribution = T_Distribution;
+            using result_type = typename boost::result_of<Distribution(typename RNGHandle::RNGState&)>::type;
 
             /** This can be constructed with either the RNGBox (like the RNGHandle) or from an RNGHandle instance */
             template<class T_RNGBoxOrHandle>
@@ -80,10 +80,10 @@ namespace pmacc
         template<class T_Distribution, class T_RNGMethod, class T_RNGState>
         struct Random<T_Distribution, T_RNGMethod, T_RNGState*> : private T_Distribution
         {
-            typedef T_RNGMethod RNGMethod;
-            typedef T_RNGState RNGState;
-            typedef T_Distribution Distribution;
-            typedef typename boost::result_of<Distribution(RNGState&)>::type result_type;
+            using RNGMethod = T_RNGMethod;
+            using RNGState = T_RNGState;
+            using Distribution = T_Distribution;
+            using result_type = typename boost::result_of<Distribution(RNGState&)>::type;
 
             HDINLINE Random() : m_rngState(nullptr)
             {

@@ -35,12 +35,10 @@ namespace pmacc
         class RNGState
         {
         public:
-            typedef T_RNGMethod RNGMethod;
-            typedef typename RNGMethod::StateType StateType;
+            using RNGMethod = T_RNGMethod;
+            using StateType = typename RNGMethod::StateType;
 
-            HDINLINE RNGState()
-            {
-            }
+            HDINLINE RNGState() = default;
 
             HDINLINE RNGState(const StateType& other) : state(other)
             {

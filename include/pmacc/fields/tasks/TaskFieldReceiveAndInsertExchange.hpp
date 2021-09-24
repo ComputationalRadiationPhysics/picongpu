@@ -42,14 +42,14 @@ namespace pmacc
         {
         }
 
-        virtual void init()
+        void init() override
         {
             m_state = Init;
             initDependency = m_buffer.getGridBuffer().asyncReceive(initDependency, m_exchange);
             m_state = WaitForReceive;
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             switch(m_state)
             {
@@ -71,16 +71,16 @@ namespace pmacc
             return false;
         }
 
-        virtual ~TaskFieldReceiveAndInsertExchange()
+        ~TaskFieldReceiveAndInsertExchange() override
         {
             notify(this->myId, RECVFINISHED, nullptr);
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        std::string toString()
+        std::string toString() override
         {
             std::ostringstream stateNumber;
             stateNumber << m_state;

@@ -44,8 +44,8 @@ namespace picongpu
 
             static constexpr int currentLowerMargin = supp / 2 + 1 - (supp + 1) % 2;
             static constexpr int currentUpperMargin = (supp + 1) / 2 + 1;
-            typedef pmacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin> LowerMargin;
-            typedef pmacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
+            using LowerMargin = pmacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin>;
+            using UpperMargin = pmacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin>;
 
             PMACC_CASSERT_MSG(
                 __Esirkepov_supercell_or_number_of_guard_supercells_is_too_small_for_stencil,
@@ -180,7 +180,7 @@ namespace picongpu
                                     * (s0i * s0j + float_X(0.5) * (dsi * s0j + s0i * dsj)
                                        + (float_X(1.0) / float_X(3.0)) * dsj * dsi);
 
-                                float_X accumulated_J = float_X(0.0);
+                                auto accumulated_J = float_X(0.0);
 
                                 /* attention: inner loop has no upper bound `end + 1` because
                                  * the current for the point `end` is always zero,

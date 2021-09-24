@@ -53,9 +53,7 @@ namespace picongpu
 
     } // anonymous namespace
 
-    ArgsParser::ArgsParser()
-    {
-    }
+    ArgsParser::ArgsParser() = default;
 
     ArgsParser::ArgsParser(ArgsParser&)
     {
@@ -100,7 +98,7 @@ namespace picongpu
                 "Config file(s)");
 
             // add all options from plugins
-            for(std::list<po::options_description>::iterator iter = options.begin(); iter != options.end(); ++iter)
+            for(auto iter = options.begin(); iter != options.end(); ++iter)
                 desc.add(*iter);
 
             // parse command line options and config file and store values in vm
@@ -112,8 +110,7 @@ namespace picongpu
             {
                 std::vector<std::string> conf_files = vm["config"].as<std::vector<std::string>>();
 
-                for(std::vector<std::string>::const_iterator iter = conf_files.begin(); iter != conf_files.end();
-                    ++iter)
+                for(auto iter = conf_files.begin(); iter != conf_files.end(); ++iter)
                 {
                     // log<picLog::SIMULATION_STATE > ("parsing config file '%1%'") % (*iter);
                     std::ifstream config_file_stream(iter->c_str());

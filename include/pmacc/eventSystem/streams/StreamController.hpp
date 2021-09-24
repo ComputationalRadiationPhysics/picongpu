@@ -112,9 +112,7 @@ namespace pmacc
         /**
          * Constructor.
          */
-        StreamController() : isActivated(false), currentStreamIndex(0)
-        {
-        }
+        StreamController() = default;
 
         /**
          * Get instance of this class.
@@ -128,8 +126,8 @@ namespace pmacc
         }
 
         std::vector<EventStream*> streams;
-        size_t currentStreamIndex;
-        bool isActivated;
+        size_t currentStreamIndex{0};
+        bool isActivated{false};
     };
 
 } // namespace pmacc

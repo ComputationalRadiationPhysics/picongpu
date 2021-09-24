@@ -48,7 +48,7 @@ namespace pmacc
             Dim = DIM
         };
 
-        typedef SuperCellSize_ SuperCellSize;
+        using SuperCellSize = SuperCellSize_;
 
         /** constructor
          *

@@ -103,7 +103,7 @@ namespace picongpu
             HDINLINE float_X getCharge(const float_X weighting, const T_Particle& particle)
             {
                 using ParticleType = T_Particle;
-                typedef typename pmacc::traits::HasIdentifier<ParticleType, boundElectrons>::type hasBoundElectrons;
+                using hasBoundElectrons = typename pmacc::traits::HasIdentifier<ParticleType, boundElectrons>::type;
                 return detail::LoadBoundElectrons<hasBoundElectrons::value>()(weighting, particle);
             }
 

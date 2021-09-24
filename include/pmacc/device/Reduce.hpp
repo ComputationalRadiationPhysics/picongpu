@@ -82,7 +82,7 @@ namespace pmacc
 
                 if(threads > n)
                     threads = n;
-                Type* dest = (Type*) reduceBuffer->getDeviceBuffer().getBasePointer();
+                auto* dest = (Type*) reduceBuffer->getDeviceBuffer().getBasePointer();
 
                 uint32_t blocks = threads / 2 / blockcount;
                 if(blocks == 0)

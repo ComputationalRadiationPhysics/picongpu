@@ -41,7 +41,7 @@ namespace pmacc
     class DeviceBufferIntern : public DeviceBuffer<TYPE, DIM>
     {
     public:
-        typedef typename DeviceBuffer<TYPE, DIM>::DataBoxType DataBoxType;
+        using DataBoxType = typename DeviceBuffer<TYPE, DIM>::DataBoxType;
 
         /*! create device buffer
          * @param size extent for each dimension (in elements)
@@ -86,7 +86,7 @@ namespace pmacc
             this->data1D = false;
         }
 
-        virtual ~DeviceBufferIntern()
+        ~DeviceBufferIntern() override
         {
             __startOperation(ITask::TASK_DEVICE);
 
@@ -100,7 +100,7 @@ namespace pmacc
             }
         }
 
-        void reset(bool preserveData = true)
+        void reset(bool preserveData = true) override
         {
             this->setCurrentSize(Buffer<TYPE, DIM>::getDataSpace().productOfComponents());
 
@@ -115,14 +115,14 @@ namespace pmacc
             }
         }
 
-        DataBoxType getDataBox()
+        DataBoxType getDataBox() override
         {
             __startOperation(ITask::TASK_DEVICE);
             return DataBoxType(
                 PitchedBox<TYPE, DIM>((TYPE*) data.ptr, offset, this->getPhysicalMemorySize(), data.pitch));
         }
 
-        TYPE* getPointer()
+        TYPE* getPointer() override
         {
             __startOperation(ITask::TASK_DEVICE);
 
@@ -142,17 +142,17 @@ namespace pmacc
             }
         }
 
-        DataSpace<DIM> getOffset() const
+        DataSpace<DIM> getOffset() const override
         {
             return offset;
         }
 
-        bool hasCurrentSizeOnDevice() const
+        bool hasCurrentSizeOnDevice() const override
         {
             return sizeOnDevice;
         }
 
-        size_t* getCurrentSizeOnDevicePointer()
+        size_t* getCurrentSizeOnDevicePointer() override
         {
             __startOperation(ITask::TASK_DEVICE);
             if(!sizeOnDevice)
@@ -162,13 +162,13 @@ namespace pmacc
             return sizeOnDevicePtr;
         }
 
-        size_t* getCurrentSizeHostSidePointer()
+        size_t* getCurrentSizeHostSidePointer() override
         {
             __startOperation(ITask::TASK_HOST);
             return this->current_size;
         }
 
-        TYPE* getBasePointer()
+        TYPE* getBasePointer() override
         {
             __startOperation(ITask::TASK_DEVICE);
             return (TYPE*) data.ptr;
@@ -177,7 +177,7 @@ namespace pmacc
         /*! Get current size of any dimension
          * @return count of current elements per dimension
          */
-        virtual size_t getCurrentSize()
+        size_t getCurrentSize() override
         {
             if(sizeOnDevice)
             {
@@ -189,7 +189,7 @@ namespace pmacc
             return DeviceBuffer<TYPE, DIM>::getCurrentSize();
         }
 
-        virtual void setCurrentSize(const size_t size)
+        void setCurrentSize(const size_t size) override
         {
             Buffer<TYPE, DIM>::setCurrentSize(size);
 
@@ -199,30 +199,30 @@ namespace pmacc
             }
         }
 
-        void copyFrom(HostBuffer<TYPE, DIM>& other)
+        void copyFrom(HostBuffer<TYPE, DIM>& other) override
         {
             PMACC_ASSERT(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
             Environment<>::get().Factory().createTaskCopyHostToDevice(other, *this);
         }
 
-        void copyFrom(DeviceBuffer<TYPE, DIM>& other)
+        void copyFrom(DeviceBuffer<TYPE, DIM>& other) override
         {
             PMACC_ASSERT(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
             Environment<>::get().Factory().createTaskCopyDeviceToDevice(other, *this);
         }
 
-        const cuplaPitchedPtr getCudaPitched() const
+        const cuplaPitchedPtr getCudaPitched() const override
         {
             __startOperation(ITask::TASK_DEVICE);
             return data;
         }
 
-        size_t getPitch() const
+        size_t getPitch() const override
         {
             return data.pitch;
         }
 
-        virtual void setValue(const TYPE& value)
+        void setValue(const TYPE& value) override
         {
             Environment<>::get().Factory().createTaskSetValue(*this, value);
         };

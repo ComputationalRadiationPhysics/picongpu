@@ -33,10 +33,10 @@ namespace pmacc
         template<typename Type, int T_dim>
         struct DeviceMemAllocator
         {
-            typedef Type type;
+            using type = Type;
             static constexpr int dim = T_dim;
-            typedef cursor::BufferCursor<type, dim> Cursor;
-            typedef allocator::tag::device tag;
+            using Cursor = cursor::BufferCursor<type, dim>;
+            using tag = allocator::tag::device;
 
             HDINLINE
             static cursor::BufferCursor<type, T_dim> allocate(const math::Size_t<T_dim>& size);
@@ -47,10 +47,10 @@ namespace pmacc
         template<typename Type>
         struct DeviceMemAllocator<Type, 1>
         {
-            typedef Type type;
+            using type = Type;
             static constexpr int dim = 1;
-            typedef cursor::BufferCursor<type, 1> Cursor;
-            typedef allocator::tag::device tag;
+            using Cursor = cursor::BufferCursor<type, 1>;
+            using tag = allocator::tag::device;
 
             HDINLINE
             static cursor::BufferCursor<type, 1> allocate(const math::Size_t<1>& size);

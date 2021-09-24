@@ -40,9 +40,7 @@ namespace pmacc
          *
          * Sets this mask to 0 (nothing).
          */
-        Mask() : bitMask(0u)
-        {
-        }
+        Mask() = default;
 
         /**
          * Constructor.
@@ -69,9 +67,7 @@ namespace pmacc
         /**
          * Destructor.
          */
-        virtual ~Mask()
-        {
-        }
+        virtual ~Mask() = default;
 
         /**
          * Gives uint32_t value of this mask.
@@ -248,7 +244,7 @@ namespace pmacc
         /**
          * mask which is a combination of the type @see ExchangeType
          */
-        uint32_t bitMask;
+        uint32_t bitMask{0u};
     };
 
     /** special implementation for `DIM1`

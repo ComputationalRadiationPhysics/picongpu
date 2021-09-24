@@ -49,7 +49,7 @@ namespace pmacc
         {
         }
 
-        virtual void init()
+        void init() override
         {
             state = Init;
             __startTransaction(initDependency);
@@ -58,7 +58,7 @@ namespace pmacc
             state = WaitForBash;
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             switch(state)
             {
@@ -113,7 +113,7 @@ namespace pmacc
             return false;
         }
 
-        virtual ~TaskSendParticlesExchange()
+        ~TaskSendParticlesExchange() override
         {
             notify(this->myId, RECVFINISHED, nullptr);
             if(retryCounter != 0)
@@ -125,11 +125,11 @@ namespace pmacc
             }
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        std::string toString()
+        std::string toString() override
         {
             return "TaskSendParticlesExchange";
         }

@@ -45,14 +45,12 @@ namespace pmacc
         template<typename T_Pair>
         struct AlignedData
         {
-            typedef typename T_Pair::first Key;
-            typedef typename T_Pair::second ValueType;
+            using Key = typename T_Pair::first;
+            using ValueType = typename T_Pair::second;
 
             PMACC_ALIGN(value, ValueType);
 
-            HDINLINE AlignedData()
-            {
-            }
+            HDINLINE AlignedData() = default;
 
             HDINLINE AlignedData(const ValueType& value) : value(value)
             {
@@ -76,14 +74,12 @@ namespace pmacc
         template<typename T_Pair>
         struct NativeData
         {
-            typedef typename T_Pair::first Key;
-            typedef typename T_Pair::second ValueType;
+            using Key = typename T_Pair::first;
+            using ValueType = typename T_Pair::second;
 
             ValueType value;
 
-            HDINLINE NativeData()
-            {
-            }
+            HDINLINE NativeData() = default;
 
             HDINLINE NativeData(const ValueType& value) : value(value)
             {
@@ -103,9 +99,9 @@ namespace pmacc
         template<typename T_Map, template<typename> class T_PodType = NativeData>
         struct MapTuple : protected InheritLinearly<T_Map, T_PodType>
         {
-            typedef T_Map Map;
+            using Map = T_Map;
             static constexpr int dim = bmpl::size<Map>::type::value;
-            typedef InheritLinearly<T_Map, T_PodType> Base;
+            using Base = InheritLinearly<T_Map, T_PodType>;
 
             template<class>
             struct result;
@@ -113,13 +109,13 @@ namespace pmacc
             template<class T_F, class T_Key>
             struct result<T_F(T_Key)>
             {
-                typedef typename bmpl::at<Map, T_Key>::type& type;
+                using type = typename bmpl::at<Map, T_Key>::type&;
             };
 
             template<class T_F, class T_Key>
             struct result<const T_F(T_Key)>
             {
-                typedef const typename bmpl::at<Map, T_Key>::type& type;
+                using type = const typename bmpl::at<Map, T_Key>::type&;
             };
 
             /** access a datum with a key

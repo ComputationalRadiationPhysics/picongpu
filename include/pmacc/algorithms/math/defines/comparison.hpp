@@ -36,7 +36,7 @@ namespace pmacc
         template<typename T>
         struct Max<T, T>
         {
-            typedef T result;
+            using result = T;
 
             HDINLINE T operator()(T value1, T value2)
             {
@@ -47,7 +47,7 @@ namespace pmacc
         template<typename T>
         struct Min<T, T>
         {
-            typedef T result;
+            using result = T;
 
             HDINLINE T operator()(T value1, T value2)
             {

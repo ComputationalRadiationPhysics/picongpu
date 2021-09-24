@@ -37,9 +37,7 @@ namespace pmacc
         using PtrType = type*;
         using ConstPtrType = const type*;
 
-        HDINLINE Pointer() : ptr{nullptr}
-        {
-        }
+        HDINLINE Pointer() = default;
 
         HDINLINE Pointer(PtrType const ptrIn) : ptr(ptrIn)
         {
@@ -99,7 +97,7 @@ namespace pmacc
             return ptr != nullptr;
         }
 
-        PMACC_ALIGN(ptr, PtrType);
+        PMACC_ALIGN(ptr, PtrType){nullptr};
     };
 
 } // namespace pmacc

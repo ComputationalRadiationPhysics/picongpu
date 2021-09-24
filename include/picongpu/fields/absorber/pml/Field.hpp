@@ -481,7 +481,7 @@ namespace pmacc
         template<>
         struct GetComponentsType<picongpu::fields::absorber::pml::NodeValues, false>
         {
-            typedef picongpu::float_X type;
+            using type = picongpu::float_X;
         };
 
         //! Node value traits for checkpointing

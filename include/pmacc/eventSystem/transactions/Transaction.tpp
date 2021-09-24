@@ -74,7 +74,7 @@ namespace pmacc
                 /* `StreamTask` from previous task must be reused to guarantee
                  * that the dependency chain not brake
                  */
-                StreamTask* task = static_cast<StreamTask*>(baseTask);
+                auto* task = static_cast<StreamTask*>(baseTask);
                 return task->getEventStream();
             }
             baseEvent.waitForFinished();

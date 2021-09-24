@@ -47,16 +47,16 @@ namespace pmacc
         /*
          * destructor
          */
-        virtual ~TaskLogicalAnd()
+        ~TaskLogicalAnd() override
         {
             notify(this->myId, LOGICALAND, nullptr);
         }
 
-        void init()
+        void init() override
         {
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             /*  TaskLogicalAnd is finished if all subtasks are
              *  finished (removed) and there is no current work
@@ -64,7 +64,7 @@ namespace pmacc
             return (task1 == 0) && (task2 == 0);
         }
 
-        void event(id_t eventId, EventType, IEventData*)
+        void event(id_t eventId, EventType, IEventData*) override
         {
             if(task1 == eventId)
             {
@@ -109,7 +109,7 @@ namespace pmacc
             }
         }
 
-        std::string toString()
+        std::string toString() override
         {
             return std::string("TaskLogicalAnd (") + EventTask(task1).toString() + std::string(" - ")
                 + EventTask(task2).toString() + std::string(" )");

@@ -42,7 +42,7 @@ namespace pmacc
         template<typename T_Type>
         struct GetComponentsType<T_Type, true>
         {
-            typedef T_Type type;
+            using type = T_Type;
         };
 
     } // namespace traits

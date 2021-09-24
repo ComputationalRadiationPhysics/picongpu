@@ -34,9 +34,7 @@ namespace picongpu
     class ISimulationStarter : public IPlugin
     {
     public:
-        virtual ~ISimulationStarter()
-        {
-        }
+        ~ISimulationStarter() override = default;
         /**Pars progarm parameters
          *             *
          * @param argc number of arguments in argv
@@ -51,12 +49,12 @@ namespace picongpu
          */
         virtual void start() = 0;
 
-        virtual void restart(uint32_t, const std::string)
+        void restart(uint32_t, const std::string) override
         {
             // nothing to do here
         }
 
-        virtual void checkpoint(uint32_t, const std::string)
+        void checkpoint(uint32_t, const std::string) override
         {
             // nothing to do here
         }

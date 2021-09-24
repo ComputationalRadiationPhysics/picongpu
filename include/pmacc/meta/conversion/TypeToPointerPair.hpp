@@ -36,7 +36,7 @@ namespace pmacc
     template<typename T_Type>
     struct TypeAsIdentifier
     {
-        typedef T_Type type;
+        using type = T_Type;
     };
 
     /** Unary functor to wrap any type with TypeAsIdentifier
@@ -46,7 +46,7 @@ namespace pmacc
     template<typename T_Type>
     struct MakeIdentifier
     {
-        typedef TypeAsIdentifier<T_Type> type;
+        using type = TypeAsIdentifier<T_Type>;
     };
 
     /** Pass through of an already existing Identifier
@@ -56,7 +56,7 @@ namespace pmacc
     template<typename T_Type>
     struct MakeIdentifier<TypeAsIdentifier<T_Type>>
     {
-        typedef TypeAsIdentifier<T_Type> type;
+        using type = TypeAsIdentifier<T_Type>;
     };
 
     /** create boost mpl pair <TypeAsIdentifier<Type>,PointerOfType>
@@ -67,8 +67,8 @@ namespace pmacc
     template<typename T_Type>
     struct TypeToPointerPair
     {
-        typedef T_Type* TypePtr;
-        typedef bmpl::pair<typename MakeIdentifier<T_Type>::type, TypePtr> type;
+        using TypePtr = T_Type*;
+        using type = bmpl::pair<typename MakeIdentifier<T_Type>::type, TypePtr>;
     };
 
 } // namespace pmacc

@@ -38,7 +38,7 @@ namespace pmacc
     class ExchangePushDataBox : public DataBox<PitchedBox<VALUE, DIM1>>
     {
     public:
-        typedef ExchangeMemoryIndex<TYPE, DIM> PushType;
+        using PushType = ExchangeMemoryIndex<TYPE, DIM>;
 
         HDINLINE ExchangePushDataBox(
             VALUE* data,

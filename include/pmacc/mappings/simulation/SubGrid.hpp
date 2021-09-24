@@ -38,7 +38,7 @@ namespace pmacc
     class SubGrid
     {
     public:
-        typedef DataSpace<DIM> Size;
+        using Size = DataSpace<DIM>;
 
         constexpr SubGrid& operator=(const SubGrid&) = default;
 
@@ -127,9 +127,7 @@ namespace pmacc
         /**
          * Constructor
          */
-        SubGrid()
-        {
-        }
+        SubGrid() = default;
 
         static SubGrid<DIM>& getInstance()
         {
@@ -137,9 +135,7 @@ namespace pmacc
             return instance;
         }
 
-        virtual ~SubGrid()
-        {
-        }
+        virtual ~SubGrid() = default;
 
         /**
          * Constructor

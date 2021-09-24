@@ -50,13 +50,13 @@ namespace pmacc
             , _Navigator
         {
         public:
-            typedef typename _Accessor::type type;
+            using type = typename _Accessor::type;
             typedef typename std::remove_reference_t<type> ValueType;
-            typedef _Accessor Accessor;
-            typedef _Navigator Navigator;
-            typedef _Marker Marker;
-            typedef Cursor<Accessor, Navigator, Marker> This;
-            typedef This result_type;
+            using Accessor = _Accessor;
+            using Navigator = _Navigator;
+            using Marker = _Marker;
+            using This = Cursor<Accessor, Navigator, Marker>;
+            using result_type = This;
 
         protected:
             Marker marker;

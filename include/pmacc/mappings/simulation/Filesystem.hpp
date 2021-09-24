@@ -95,16 +95,12 @@ namespace pmacc
         /**
          * Constructor
          */
-        Filesystem()
-        {
-        }
+        Filesystem() = default;
 
         /**
          * Constructor
          */
-        Filesystem(const Filesystem& fs)
-        {
-        }
+        Filesystem(const Filesystem& fs) = default;
 
         /**
          * Returns the instance of the filesystem class.

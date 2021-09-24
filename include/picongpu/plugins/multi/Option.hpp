@@ -69,7 +69,7 @@ namespace picongpu
                 Option(std::string const& name, std::string const& description)
                     : m_name(name)
                     , m_description(description)
-                    , m_hasDefaultValue(false)
+
                 {
                 }
 

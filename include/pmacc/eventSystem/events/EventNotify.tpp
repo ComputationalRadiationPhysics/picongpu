@@ -32,7 +32,7 @@ namespace pmacc
 {
     inline void EventNotify::notify(id_t eventId, EventType type, IEventData* data)
     {
-        std::set<IEvent*>::iterator iter = observers.begin();
+        auto iter = observers.begin();
         for(; iter != observers.end(); iter++)
         {
             if(*iter != nullptr)

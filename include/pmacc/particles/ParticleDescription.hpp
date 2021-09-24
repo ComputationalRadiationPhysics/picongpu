@@ -62,22 +62,21 @@ namespace pmacc
         typename T_FrameExtensionList = bmpl::vector0<>>
     struct ParticleDescription
     {
-        typedef T_Name Name;
-        typedef T_SuperCellSize SuperCellSize;
-        typedef typename ToSeq<T_ValueTypeSeq>::type ValueTypeSeq;
-        typedef typename ToSeq<T_Flags>::type FlagsList;
-        typedef T_HandleGuardRegion HandleGuardRegion;
-        typedef typename ToSeq<T_MethodsList>::type MethodsList;
-        typedef typename ToSeq<T_FrameExtensionList>::type FrameExtensionList;
-        typedef ParticleDescription<
+        using Name = T_Name;
+        using SuperCellSize = T_SuperCellSize;
+        using ValueTypeSeq = typename ToSeq<T_ValueTypeSeq>::type;
+        using FlagsList = typename ToSeq<T_Flags>::type;
+        using HandleGuardRegion = T_HandleGuardRegion;
+        using MethodsList = typename ToSeq<T_MethodsList>::type;
+        using FrameExtensionList = typename ToSeq<T_FrameExtensionList>::type;
+        using ThisType = ParticleDescription<
             Name,
             SuperCellSize,
             ValueTypeSeq,
             FlagsList,
             HandleGuardRegion,
             MethodsList,
-            FrameExtensionList>
-            ThisType;
+            FrameExtensionList>;
     };
 
 
@@ -90,16 +89,15 @@ namespace pmacc
     template<typename T_OldParticleDescription, typename T_NewValueTypeSeq>
     struct ReplaceValueTypeSeq
     {
-        typedef T_OldParticleDescription OldParticleDescription;
-        typedef ParticleDescription<
+        using OldParticleDescription = T_OldParticleDescription;
+        using type = ParticleDescription<
             typename OldParticleDescription::Name,
             typename OldParticleDescription::SuperCellSize,
             typename ToSeq<T_NewValueTypeSeq>::type,
             typename OldParticleDescription::FlagsList,
             typename OldParticleDescription::HandleGuardRegion,
             typename OldParticleDescription::MethodsList,
-            typename OldParticleDescription::FrameExtensionList>
-            type;
+            typename OldParticleDescription::FrameExtensionList>;
     };
 
     /** Get ParticleDescription with a new FrameExtensionSeq
@@ -111,16 +109,15 @@ namespace pmacc
     template<typename T_OldParticleDescription, typename T_FrameExtensionSeq>
     struct ReplaceFrameExtensionSeq
     {
-        typedef T_OldParticleDescription OldParticleDescription;
-        typedef ParticleDescription<
+        using OldParticleDescription = T_OldParticleDescription;
+        using type = ParticleDescription<
             typename OldParticleDescription::Name,
             typename OldParticleDescription::SuperCellSize,
             typename OldParticleDescription::ValueTypeSeq,
             typename OldParticleDescription::FlagsList,
             typename OldParticleDescription::HandleGuardRegion,
             typename OldParticleDescription::MethodsList,
-            typename ToSeq<T_FrameExtensionSeq>::type>
-            type;
+            typename ToSeq<T_FrameExtensionSeq>::type>;
     };
 
 } // namespace pmacc

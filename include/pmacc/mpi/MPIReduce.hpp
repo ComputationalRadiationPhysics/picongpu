@@ -38,7 +38,7 @@ namespace pmacc
         /** reduce data over selected mpi ranks */
         struct MPIReduce
         {
-            MPIReduce() : mpiRank(-1), numRanks(0), comm(MPI_COMM_NULL), isMPICommInitialized(false)
+            MPIReduce() : comm(MPI_COMM_NULL)
             {
             }
 
@@ -147,7 +147,7 @@ namespace pmacc
             {
                 if(!isMPICommInitialized)
                     participate(true);
-                typedef Type ValueType;
+                using ValueType = Type;
 
                 method(
                     func,
@@ -182,9 +182,9 @@ namespace pmacc
 
         private:
             MPI_Comm comm;
-            int mpiRank;
-            int numRanks;
-            bool isMPICommInitialized;
+            int mpiRank{-1};
+            int numRanks{0};
+            bool isMPICommInitialized{false};
         };
     } // namespace mpi
 } // namespace pmacc

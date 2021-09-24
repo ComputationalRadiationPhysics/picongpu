@@ -114,7 +114,7 @@ namespace picongpu
                     template<typename DeferFunctor = Functor>
                     HINLINE Free(
                         uint32_t,
-                        typename std::enable_if<std::is_constructible<DeferFunctor>::value>::type* = 0)
+                        typename std::enable_if<std::is_constructible<DeferFunctor>::value>::type* = nullptr)
                         : Functor()
                     {
                     }

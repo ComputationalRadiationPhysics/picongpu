@@ -39,12 +39,12 @@ namespace pmacc
     class Manager : public IEvent
     {
     public:
-        typedef std::map<id_t, ITask*> TaskMap;
-        typedef std::set<id_t> TaskSet;
+        using TaskMap = std::map<id_t, ITask*>;
+        using TaskSet = std::set<id_t>;
 
         bool execute(id_t taskToWait = 0);
 
-        void event(id_t eventId, EventType type, IEventData* data);
+        void event(id_t eventId, EventType type, IEventData* data) override;
 
 
         /*! Return a ITask pointer if ITask is not finished
@@ -96,7 +96,7 @@ namespace pmacc
 
         Manager(const Manager& cc);
 
-        virtual ~Manager();
+        ~Manager() override;
 
         static Manager& getInstance()
         {

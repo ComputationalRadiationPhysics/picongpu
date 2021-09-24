@@ -32,7 +32,7 @@ namespace pmacc
         template<>
         struct Modf<double>
         {
-            typedef double result;
+            using result = double;
 
             HDINLINE double operator()(double value, double* intpart)
             {

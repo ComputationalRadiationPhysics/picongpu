@@ -39,7 +39,7 @@ namespace picongpu
             class None
             {
             private:
-                typedef MappingDesc::SuperCellSize SuperCellSize;
+                using SuperCellSize = MappingDesc::SuperCellSize;
 
             public:
                 using CellType = cellType::Yee;

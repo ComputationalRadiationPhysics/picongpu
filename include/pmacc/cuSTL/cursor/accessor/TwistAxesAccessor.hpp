@@ -31,7 +31,7 @@ namespace pmacc
         template<typename TCursor, typename Axes>
         struct TwistAxesAccessor
         {
-            typedef typename math::result_of::TwistComponents<Axes, typename TCursor::ValueType>::type type;
+            using type = typename math::result_of::TwistComponents<Axes, typename TCursor::ValueType>::type;
 
             /** Returns a reference to the result of '*cursor' (with twisted axes).
              *

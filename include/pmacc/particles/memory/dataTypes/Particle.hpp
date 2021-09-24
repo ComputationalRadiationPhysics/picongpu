@@ -64,12 +64,12 @@ namespace pmacc
     template<typename T_FrameType, typename T_ValueTypeSeq = typename T_FrameType::ValueTypeSeq>
     struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     {
-        typedef T_FrameType FrameType;
-        typedef T_ValueTypeSeq ValueTypeSeq;
-        typedef typename FrameType::Name Name;
-        typedef typename FrameType::SuperCellSize SuperCellSize;
-        typedef Particle<FrameType, ValueTypeSeq> ThisType;
-        typedef typename FrameType::MethodsList MethodsList;
+        using FrameType = T_FrameType;
+        using ValueTypeSeq = T_ValueTypeSeq;
+        using Name = typename FrameType::Name;
+        using SuperCellSize = typename FrameType::SuperCellSize;
+        using ThisType = Particle<FrameType, ValueTypeSeq>;
+        using MethodsList = typename FrameType::MethodsList;
 
         /** index of particle inside the Frame*/
         PMACC_ALIGN(idx, uint32_t);
@@ -163,17 +163,17 @@ namespace pmacc
         struct HasIdentifier<pmacc::Particle<T_FrameType, T_ValueTypeSeq>, T_Key>
         {
         private:
-            typedef pmacc::Particle<T_FrameType, T_ValueTypeSeq> ParticleType;
-            typedef typename ParticleType::ValueTypeSeq ValueTypeSeq;
+            using ParticleType = pmacc::Particle<T_FrameType, T_ValueTypeSeq>;
+            using ValueTypeSeq = typename ParticleType::ValueTypeSeq;
 
         public:
             /* If T_Key can not be found in the T_ValueTypeSeq of this Particle class,
              * SolvedAliasName will be void_.
              * Look-up is also valid if T_Key is an alias.
              */
-            typedef typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type SolvedAliasName;
+            using SolvedAliasName = typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type;
 
-            typedef bmpl::contains<ValueTypeSeq, SolvedAliasName> type;
+            using type = bmpl::contains<ValueTypeSeq, SolvedAliasName>;
         };
 
         template<typename T_Key, typename T_FrameType, typename T_ValueTypeSeq>
@@ -209,26 +209,26 @@ namespace pmacc
                     pmacc::Particle<T_FrameType1, T_ValueTypeSeq1>,
                     pmacc::Particle<T_FrameType2, T_ValueTypeSeq2>>
                 {
-                    typedef pmacc::Particle<T_FrameType1, T_ValueTypeSeq1> Dest;
-                    typedef pmacc::Particle<T_FrameType2, T_ValueTypeSeq2> Src;
+                    using Dest = pmacc::Particle<T_FrameType1, T_ValueTypeSeq1>;
+                    using Src = pmacc::Particle<T_FrameType2, T_ValueTypeSeq2>;
 
-                    typedef typename Dest::ValueTypeSeq DestTypeSeq;
-                    typedef typename Src::ValueTypeSeq SrcTypeSeq;
+                    using DestTypeSeq = typename Dest::ValueTypeSeq;
+                    using SrcTypeSeq = typename Src::ValueTypeSeq;
 
                     /* create attribute list with a subset of common attributes in two sequences
                      * bmpl::contains has lower complexity than traits::HasIdentifier
                      * and was used for this reason
                      */
-                    typedef typename bmpl::copy_if<
+                    using CommonTypeSeq = typename bmpl::copy_if<
                         DestTypeSeq,
                         bmpl::contains<SrcTypeSeq, bmpl::_1>,
-                        bmpl::back_inserter<bmpl::vector0<>>>::type CommonTypeSeq;
+                        bmpl::back_inserter<bmpl::vector0<>>>::type;
 
                     /* create sequences with disjunct attributes from `DestTypeSeq` */
-                    typedef typename bmpl::copy_if<
+                    using UniqueInDestTypeSeq = typename bmpl::copy_if<
                         DestTypeSeq,
                         bmpl::not_<bmpl::contains<SrcTypeSeq, bmpl::_1>>,
-                        bmpl::back_inserter<bmpl::vector0<>>>::type UniqueInDestTypeSeq;
+                        bmpl::back_inserter<bmpl::vector0<>>>::type;
 
                     /** Assign particle attributes
                      *
@@ -257,20 +257,20 @@ namespace pmacc
                 template<typename T_MPLSeqWithObjectsToRemove, typename T_FrameType, typename T_ValueTypeSeq>
                 struct Deselect<T_MPLSeqWithObjectsToRemove, pmacc::Particle<T_FrameType, T_ValueTypeSeq>>
                 {
-                    typedef T_FrameType FrameType;
-                    typedef T_ValueTypeSeq ValueTypeSeq;
-                    typedef pmacc::Particle<FrameType, ValueTypeSeq> ParticleType;
-                    typedef T_MPLSeqWithObjectsToRemove MPLSeqWithObjectsToRemove;
+                    using FrameType = T_FrameType;
+                    using ValueTypeSeq = T_ValueTypeSeq;
+                    using ParticleType = pmacc::Particle<FrameType, ValueTypeSeq>;
+                    using MPLSeqWithObjectsToRemove = T_MPLSeqWithObjectsToRemove;
 
                     /* translate aliases to full specialized identifier*/
-                    typedef typename ResolveAliases<
+                    using ResolvedSeqWithObjectsToRemove = typename ResolveAliases<
                         MPLSeqWithObjectsToRemove,
                         ValueTypeSeq,
-                        errorHandlerPolicies::ReturnValue>::type ResolvedSeqWithObjectsToRemove;
+                        errorHandlerPolicies::ReturnValue>::type;
                     /* remove types from original particle attribute list*/
-                    typedef typename RemoveFromSeq<ValueTypeSeq, ResolvedSeqWithObjectsToRemove>::type NewValueTypeSeq;
+                    using NewValueTypeSeq = typename RemoveFromSeq<ValueTypeSeq, ResolvedSeqWithObjectsToRemove>::type;
                     /* new particle type*/
-                    typedef pmacc::Particle<FrameType, NewValueTypeSeq> ResultType;
+                    using ResultType = pmacc::Particle<FrameType, NewValueTypeSeq>;
 
                     template<class>
                     struct result;
@@ -278,7 +278,7 @@ namespace pmacc
                     template<class F, class T_Obj>
                     struct result<F(T_Obj)>
                     {
-                        typedef ResultType type;
+                        using type = ResultType;
                     };
 
                     HDINLINE

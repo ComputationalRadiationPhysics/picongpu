@@ -47,7 +47,7 @@ namespace pmacc
             typename dummy = mpl::void_>
         struct Functor
         {
-            typedef typename _Functor::result_type type;
+            using type = typename _Functor::result_type;
         };
 
     } // namespace result_of

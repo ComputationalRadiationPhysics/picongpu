@@ -29,7 +29,7 @@
 
 namespace pmacc
 {
-    inline StreamTask::StreamTask() : ITask(), stream(nullptr), hasCudaEventHandle(false), alwaysFinished(false)
+    inline StreamTask::StreamTask() : ITask()
     {
         this->setTaskType(ITask::TASK_DEVICE);
     }

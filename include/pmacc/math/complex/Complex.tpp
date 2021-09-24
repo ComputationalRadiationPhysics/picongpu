@@ -58,7 +58,7 @@ namespace pmacc
         template<typename T_Type>
         struct Euler
         {
-            typedef typename ::pmacc::math::Complex<T_Type> result;
+            using result = typename ::pmacc::math::Complex<T_Type>;
 
             HDINLINE result operator()(const T_Type& magnitude, const T_Type& phase)
             {
@@ -86,8 +86,8 @@ namespace pmacc
         template<typename T_Type>
         struct Arg<::pmacc::math::Complex<T_Type>>
         {
-            typedef typename ::pmacc::math::Complex<T_Type>::type result;
-            typedef T_Type type;
+            using result = typename ::pmacc::math::Complex<T_Type>::type;
+            using type = T_Type;
 
             HDINLINE result operator()(const ::pmacc::math::Complex<T_Type>& other)
             {
@@ -111,7 +111,7 @@ namespace pmacc
         template<typename T_Type>
         struct Abs2<::pmacc::math::Complex<T_Type>>
         {
-            typedef typename ::pmacc::math::Complex<T_Type>::type result;
+            using result = typename ::pmacc::math::Complex<T_Type>::type;
 
             HDINLINE result operator()(const ::pmacc::math::Complex<T_Type>& other)
             {
@@ -253,7 +253,7 @@ namespace pmacc
             template<typename T_CastToType>
             struct TypeCast<T_CastToType, ::pmacc::math::Complex<T_CastToType>>
             {
-                typedef const ::pmacc::math::Complex<T_CastToType>& result;
+                using result = const ::pmacc::math::Complex<T_CastToType>&;
 
                 HDINLINE result operator()(const ::pmacc::math::Complex<T_CastToType>& complexNumber) const
                 {
@@ -264,7 +264,7 @@ namespace pmacc
             template<typename T_CastToType, typename T_OldType>
             struct TypeCast<T_CastToType, ::pmacc::math::Complex<T_OldType>>
             {
-                typedef ::pmacc::math::Complex<T_CastToType> result;
+                using result = ::pmacc::math::Complex<T_CastToType>;
 
                 HDINLINE result operator()(const ::pmacc::math::Complex<T_OldType>& complexNumber) const
                 {

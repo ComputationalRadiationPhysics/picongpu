@@ -33,7 +33,7 @@ namespace pmacc
         template<>
         struct Min<float, float>
         {
-            typedef float result;
+            using result = float;
 
             HDINLINE float operator()(float value1, float value2)
             {
@@ -44,7 +44,7 @@ namespace pmacc
         template<>
         struct Max<float, float>
         {
-            typedef float result;
+            using result = float;
 
             HDINLINE float operator()(float value1, float value2)
             {

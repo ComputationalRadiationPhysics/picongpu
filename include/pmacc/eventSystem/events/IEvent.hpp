@@ -37,9 +37,7 @@ namespace pmacc
         /**
          * Destructor.
          */
-        virtual ~IEvent()
-        {
-        }
+        virtual ~IEvent() = default;
 
         // IEventData *should* be small; using a pointer here will result in memory leaks...
         /**

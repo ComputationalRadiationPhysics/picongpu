@@ -61,7 +61,7 @@ namespace picongpu
     class ResourceLog : public ILightweightPlugin
     {
     private:
-        MappingDesc* cellDescription;
+        MappingDesc* cellDescription{nullptr};
         ResourceMonitor<simDim> resourceMonitor;
 
         // programm options
@@ -74,17 +74,17 @@ namespace picongpu
         std::map<std::string, bool> propertyMap;
 
     public:
-        ResourceLog() : cellDescription(NULL)
+        ResourceLog()
         {
             Environment<>::get().PluginConnector().registerPlugin(this);
         }
 
-        std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return "ResourceLog";
         }
 
-        void notify(uint32_t currentStep)
+        void notify(uint32_t currentStep) override
         {
             std::map<std::string, size_t> valueMap;
 
@@ -143,7 +143,7 @@ namespace picongpu
             }
         }
 
-        void pluginRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc) override
         {
             /* register command line parameters for your plugin */
             desc.add_options()(
@@ -164,7 +164,7 @@ namespace picongpu
                 "Output format of log (pp for pretty print) [json, jsonpp, xml, xmlpp]");
         }
 
-        void setMappingDescription(MappingDesc* cellDescription)
+        void setMappingDescription(MappingDesc* cellDescription) override
         {
             this->cellDescription = cellDescription;
         }
@@ -172,7 +172,7 @@ namespace picongpu
     private:
         std::string notifyPeriod;
 
-        void pluginLoad()
+        void pluginLoad() override
         {
             if(!notifyPeriod.empty())
             {
@@ -203,7 +203,7 @@ namespace picongpu
                 // Prepare file for output stream
                 if(streamType == "file")
                 {
-                    size_t rank = static_cast<size_t>(Environment<simDim>::get().GridController().getGlobalRank());
+                    auto rank = static_cast<size_t>(Environment<simDim>::get().GridController().getGlobalRank());
                     std::stringstream ss;
                     ss << outputFilePrefix << rank;
                     boost::filesystem::path resourceLogPath(ss.str());
@@ -213,7 +213,7 @@ namespace picongpu
             }
         }
 
-        void pluginUnload()
+        void pluginUnload() override
         {
             if(fileBuf.is_open())
             {

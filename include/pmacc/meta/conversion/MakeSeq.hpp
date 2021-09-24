@@ -45,7 +45,7 @@ namespace pmacc
     template<typename... T_Args>
     struct MakeSeq
     {
-        typedef typename MakeSeqFromNestedSeq<bmpl::vector<T_Args...>>::type type;
+        using type = typename MakeSeqFromNestedSeq<bmpl::vector<T_Args...>>::type;
     };
 
     /** short hand definition for @see MakeSeq<> */

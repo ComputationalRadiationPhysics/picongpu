@@ -32,7 +32,7 @@ namespace pmacc
         {
             _Functor functor;
 
-            typedef typename ::pmacc::result_of::Functor<_Functor, ArgType>::type type;
+            using type = typename ::pmacc::result_of::Functor<_Functor, ArgType>::type;
 
             HDINLINE FunctorAccessor(const _Functor& functor) : functor(functor)
             {

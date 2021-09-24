@@ -33,13 +33,11 @@ namespace pmacc
     {
     private:
         /** pointer to the CudaEvent */
-        CudaEvent* event;
+        CudaEvent* event{nullptr};
 
     public:
         /** create invalid handle  */
-        CudaEventHandle() : event(nullptr)
-        {
-        }
+        CudaEventHandle() = default;
 
         /** create a handle to a valid CudaEvent
          *
@@ -50,7 +48,7 @@ namespace pmacc
             event->registerHandle();
         }
 
-        CudaEventHandle(const CudaEventHandle& other) : event(nullptr)
+        CudaEventHandle(const CudaEventHandle& other)
         {
             /* register and release handle is done by the assign operator */
             *this = other;

@@ -170,7 +170,7 @@ namespace picongpu
          *
          * it is only allowed to create Message header with @see create()
          */
-        MessageHeader();
+        MessageHeader() = delete;
     };
 
 } // namespace picongpu

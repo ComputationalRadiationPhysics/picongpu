@@ -52,26 +52,26 @@ namespace pmacc
             this->destination = &dst;
         }
 
-        virtual ~TaskSetCurrentSizeOnDevice()
+        ~TaskSetCurrentSizeOnDevice() override
         {
             notify(this->myId, SETVALUE, nullptr);
         }
 
-        virtual void init()
+        void init() override
         {
             setSize();
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             return isFinished();
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        std::string toString()
+        std::string toString() override
         {
             return "TaskSetCurrentSizeOnDevice";
         }

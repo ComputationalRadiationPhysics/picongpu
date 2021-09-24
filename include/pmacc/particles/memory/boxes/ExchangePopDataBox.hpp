@@ -32,7 +32,7 @@ namespace pmacc
     class ExchangePopDataBox : public DataBox<PitchedBox<VALUE, DIM1>>
     {
     public:
-        typedef ExchangeMemoryIndex<TYPE, DIM> PopType;
+        using PopType = ExchangeMemoryIndex<TYPE, DIM>;
 
         HDINLINE ExchangePopDataBox(
             DataBox<PitchedBox<VALUE, DIM1>> data,

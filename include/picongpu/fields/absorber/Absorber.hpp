@@ -201,7 +201,7 @@ namespace picongpu
                 AbsorberImpl(Kind kind, MappingDesc cellDescription);
 
                 //! Destructor
-                virtual ~AbsorberImpl() = default;
+                ~AbsorberImpl() override = default;
 
                 /** Interpret this as ExponentialImpl instance
                  *

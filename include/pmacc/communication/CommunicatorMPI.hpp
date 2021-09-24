@@ -76,7 +76,7 @@ namespace pmacc
     public:
         /*! ctor
          */
-        CommunicatorMPI() : hostRank(0)
+        CommunicatorMPI()
         {
             // MPI_Init(nullptr, nullptr);
         }
@@ -85,11 +85,9 @@ namespace pmacc
          *
          * calls MPI_Finalize
          */
-        virtual ~CommunicatorMPI()
-        {
-        }
+        virtual ~CommunicatorMPI() = default;
 
-        virtual int getRank()
+        int getRank() override
         {
             return mpiRank;
         }
@@ -120,7 +118,7 @@ namespace pmacc
             return MPI_INFO_NULL;
         }
 
-        DataSpace<DIM3> getPeriodic() const
+        DataSpace<DIM3> getPeriodic() const override
         {
             return this->periodic;
         }
@@ -183,7 +181,7 @@ namespace pmacc
 
         // description in ICommunicator
 
-        virtual const Mask& getCommunicationMask() const
+        const Mask& getCommunicationMask() const override
         {
             return communicationMask;
         }
@@ -200,9 +198,9 @@ namespace pmacc
 
         // description in ICommunicator
 
-        MPI_Request* startSend(uint32_t ex, const char* send_data, size_t send_data_count, uint32_t tag)
+        MPI_Request* startSend(uint32_t ex, const char* send_data, size_t send_data_count, uint32_t tag) override
         {
-            MPI_Request* request = new MPI_Request;
+            auto* request = new MPI_Request;
 
             MPI_CHECK(MPI_Isend(
                 (void*) send_data,
@@ -218,9 +216,9 @@ namespace pmacc
 
         // description in ICommunicator
 
-        MPI_Request* startReceive(uint32_t ex, char* recv_data, size_t recv_data_max, uint32_t tag)
+        MPI_Request* startReceive(uint32_t ex, char* recv_data, size_t recv_data_max, uint32_t tag) override
         {
-            MPI_Request* request = new MPI_Request;
+            auto* request = new MPI_Request;
 
             MPI_CHECK(MPI_Irecv(
                 recv_data,
@@ -236,7 +234,7 @@ namespace pmacc
 
         // description in ICommunicator
 
-        bool slide()
+        bool slide() override
         {
             // we can only slide in y direction right now
             if(DIM < DIM2)
@@ -252,7 +250,7 @@ namespace pmacc
             return coordinates[1] == dims[1] - 1;
         }
 
-        bool setStateAfterSlides(size_t numSlides)
+        bool setStateAfterSlides(size_t numSlides) override
         {
             // nothing happens
             if(numSlides == 0)
@@ -457,7 +455,7 @@ namespace pmacc
         //! @see getCommunicationMask
         Mask communicationMask;
         //! rank of this process local to its host (node)
-        int hostRank;
+        int hostRank{0};
         //! offset for sliding window
         int yoffset;
 

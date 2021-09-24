@@ -43,9 +43,9 @@ namespace pmacc
             operator()(const T_Functor diffEq, const T_Variable var, const T_Time time, const T_Time deltaTime)
             {
                 // use typenames instead of template types
-                typedef T_Functor FunctorType;
-                typedef T_Variable VariableType;
-                typedef T_Time TimeType;
+                using FunctorType = T_Functor;
+                using VariableType = T_Variable;
+                using TimeType = T_Time;
 
                 // calculate all 4 steps of the Runge Kutta 4th order
                 const VariableType k_1 = diffEq(time, var);

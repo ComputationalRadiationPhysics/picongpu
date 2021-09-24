@@ -39,7 +39,7 @@ namespace pmacc
             template<typename T>
             struct First
             {
-                typedef typename T::first type;
+                using type = typename T::first;
             };
 
         } // namespace accessors

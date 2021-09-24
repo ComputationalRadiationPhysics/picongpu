@@ -28,7 +28,7 @@ namespace pmacc
         template<typename Type>
         struct PointerAccessor
         {
-            typedef Type& type;
+            using type = Type&;
 
             /** Returns the dereferenced pointer of type 'Type'
              *

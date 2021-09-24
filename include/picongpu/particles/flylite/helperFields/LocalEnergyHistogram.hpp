@@ -61,7 +61,7 @@ namespace picongpu
                         m_energyHistogram = new GridBuffer<EnergyHistogram, simDim>(histSizeLocal);
                     }
 
-                    ~LocalEnergyHistogram()
+                    ~LocalEnergyHistogram() override
                     {
                         __delete(m_energyHistogram);
                     }

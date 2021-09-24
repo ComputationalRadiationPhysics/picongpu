@@ -45,9 +45,9 @@ namespace picongpu
     class CountParticles : public ISimulationPlugin
     {
     private:
-        typedef MappingDesc::SuperCellSize SuperCellSize;
+        using SuperCellSize = MappingDesc::SuperCellSize;
 
-        MappingDesc* cellDescription;
+        MappingDesc* cellDescription{nullptr};
         std::string notifyPeriod;
 
         std::string pluginName;
@@ -56,7 +56,7 @@ namespace picongpu
 
         std::ofstream outFile;
         /*only rank 0 create a file*/
-        bool writeToFile;
+        bool writeToFile{false};
 
         mpi::MPIReduce reduce;
 
@@ -65,22 +65,19 @@ namespace picongpu
             : pluginName("CountParticles: count macro particles of a species")
             , pluginPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesCount"))
             , filename(pluginPrefix + ".dat")
-            , cellDescription(nullptr)
-            , writeToFile(false)
+
         {
             Environment<>::get().PluginConnector().registerPlugin(this);
         }
 
-        virtual ~CountParticles()
-        {
-        }
+        ~CountParticles() override = default;
 
-        void notify(uint32_t currentStep)
+        void notify(uint32_t currentStep) override
         {
             countParticles<CORE + BORDER>(currentStep);
         }
 
-        void pluginRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc) override
         {
             desc.add_options()(
                 (pluginPrefix + ".period").c_str(),
@@ -88,18 +85,18 @@ namespace picongpu
                 "enable plugin [for each n-th step]");
         }
 
-        std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return pluginName;
         }
 
-        void setMappingDescription(MappingDesc* cellDescription)
+        void setMappingDescription(MappingDesc* cellDescription) override
         {
             this->cellDescription = cellDescription;
         }
 
     private:
-        void pluginLoad()
+        void pluginLoad() override
         {
             if(!notifyPeriod.empty())
             {
@@ -123,7 +120,7 @@ namespace picongpu
             }
         }
 
-        void pluginUnload()
+        void pluginUnload() override
         {
             if(!notifyPeriod.empty())
             {
@@ -138,7 +135,7 @@ namespace picongpu
             }
         }
 
-        void restart(uint32_t restartStep, const std::string restartDirectory)
+        void restart(uint32_t restartStep, const std::string restartDirectory) override
         {
             if(!writeToFile)
                 return;
@@ -146,7 +143,7 @@ namespace picongpu
             writeToFile = restoreTxtFile(outFile, filename, restartStep, restartDirectory);
         }
 
-        void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
+        void checkpoint(uint32_t currentStep, const std::string checkpointDirectory) override
         {
             if(!writeToFile)
                 return;

@@ -104,10 +104,10 @@ namespace pmacc
             std::string author;
 
             /** maximum step to run this simulation to */
-            uint32_t runSteps;
+            uint32_t runSteps{0};
 
             /** current time step of simulation */
-            uint32_t currentStep;
+            uint32_t currentStep{0};
 
         private:
             friend struct detail::Environment;
@@ -118,7 +118,7 @@ namespace pmacc
                 return instance;
             }
 
-            SimulationDescription() : author(""), runSteps(0), currentStep(0)
+            SimulationDescription() : author("")
             {
             }
         };

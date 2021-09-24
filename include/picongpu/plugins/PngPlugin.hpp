@@ -48,27 +48,25 @@ namespace picongpu
     class PngPlugin : public ILightweightPlugin
     {
     public:
-        typedef VisClass VisType;
-        typedef std::list<VisType*> VisPointerList;
+        using VisType = VisClass;
+        using VisPointerList = std::list<VisType*>;
 
         PngPlugin()
             : pluginName("PngPlugin: create png's of a species and fields")
             , pluginPrefix(VisType::FrameType::getName() + "_" + VisClass::CreatorType::getName())
-            , cellDescription(nullptr)
+
         {
             Environment<>::get().PluginConnector().registerPlugin(this);
         }
 
-        virtual ~PngPlugin()
-        {
-        }
+        ~PngPlugin() override = default;
 
-        std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return pluginName;
         }
 
-        void pluginRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc) override
         {
 #if(PIC_ENABLE_PNG == 1)
             desc.add_options()(
@@ -89,14 +87,14 @@ namespace picongpu
 #endif
         }
 
-        void setMappingDescription(MappingDesc* cellDescription)
+        void setMappingDescription(MappingDesc* cellDescription) override
         {
             this->cellDescription = cellDescription;
         }
 
 
     private:
-        void pluginLoad()
+        void pluginLoad() override
         {
             if(0 != notifyPeriod.size())
             {
@@ -139,7 +137,7 @@ namespace picongpu
                                     = !isSlidingWindowEnabled || (transpose.x() == 1 || transpose.y() == 1);
                                 if(isAllowed2DSlice && isAllowedMovingWindowSlice)
                                 {
-                                    VisType* tmp = new VisType(
+                                    auto* tmp = new VisType(
                                         pluginName,
                                         pngCreator,
                                         period,
@@ -175,16 +173,16 @@ namespace picongpu
             }
         }
 
-        void pluginUnload()
+        void pluginUnload() override
         {
-            for(typename VisPointerList::iterator iter = visIO.begin(); iter != visIO.end(); ++iter)
+            for(auto iter = visIO.begin(); iter != visIO.end(); ++iter)
             {
                 __delete(*iter);
             }
             visIO.clear();
         }
 
-        void notify(uint32_t currentStep)
+        void notify(uint32_t currentStep) override
         {
             // nothing to do here
         }
@@ -224,7 +222,7 @@ namespace picongpu
         std::vector<std::string> axis;
         VisPointerList visIO;
 
-        MappingDesc* cellDescription;
+        MappingDesc* cellDescription{nullptr};
     };
 
     namespace particles

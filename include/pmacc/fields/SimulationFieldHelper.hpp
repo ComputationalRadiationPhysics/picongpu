@@ -32,15 +32,13 @@ namespace pmacc
     class SimulationFieldHelper
     {
     public:
-        typedef CellDescription MappingDesc;
+        using MappingDesc = CellDescription;
 
         SimulationFieldHelper(CellDescription description) : cellDescription(description)
         {
         }
 
-        virtual ~SimulationFieldHelper()
-        {
-        }
+        virtual ~SimulationFieldHelper() = default;
 
         /**
          * Reset is as well used for init.

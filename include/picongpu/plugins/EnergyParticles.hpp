@@ -201,6 +201,7 @@ namespace picongpu
              * @param id index of the plugin, range: [0;help->getNumPlugins())
              */
             std::shared_ptr<ISlave> create(std::shared_ptr<IHelp>& help, size_t const id, MappingDesc* cellDescription)
+                override
             {
                 return std::shared_ptr<ISlave>(new EnergyParticles<ParticlesType>(help, id, cellDescription));
             }
@@ -223,7 +224,7 @@ namespace picongpu
             ///! method used by plugin controller to get --help description
             void registerHelp(
                 boost::program_options::options_description& desc,
-                std::string const& masterPrefix = std::string{})
+                std::string const& masterPrefix = std::string{}) override
             {
                 meta::ForEach<EligibleFilters, plugins::misc::AppendName<bmpl::_1>> getEligibleFilterNames;
                 getEligibleFilterNames(allowedFilters);
@@ -236,12 +237,12 @@ namespace picongpu
 
             void expandHelp(
                 boost::program_options::options_description& desc,
-                std::string const& masterPrefix = std::string{})
+                std::string const& masterPrefix = std::string{}) override
             {
             }
 
 
-            void validateOptions()
+            void validateOptions() override
             {
                 if(notifyPeriod.size() != filter.size())
                     throw std::runtime_error(
@@ -257,12 +258,12 @@ namespace picongpu
                 }
             }
 
-            size_t getNumPlugins() const
+            size_t getNumPlugins() const override
             {
                 return notifyPeriod.size();
             }
 
-            std::string getDescription() const
+            std::string getDescription() const override
             {
                 return description;
             }
@@ -272,7 +273,7 @@ namespace picongpu
                 return prefix;
             }
 
-            std::string getName() const
+            std::string getName() const override
             {
                 return name;
             }
@@ -326,7 +327,7 @@ namespace picongpu
             Environment<>::get().PluginConnector().setNotificationPeriod(this, m_help->notifyPeriod.get(id));
         }
 
-        virtual ~EnergyParticles()
+        ~EnergyParticles() override
         {
             if(writeToFile)
             {
@@ -345,14 +346,14 @@ namespace picongpu
         /** this code is executed if the current time step is supposed to compute
          * the energy
          */
-        void notify(uint32_t currentStep)
+        void notify(uint32_t currentStep) override
         {
             // call the method that calls the plugin kernel
             calculateEnergyParticles<CORE + BORDER>(currentStep);
         }
 
 
-        void restart(uint32_t restartStep, std::string const& restartDirectory)
+        void restart(uint32_t restartStep, std::string const& restartDirectory) override
         {
             if(!writeToFile)
                 return;
@@ -360,7 +361,7 @@ namespace picongpu
             writeToFile = restoreTxtFile(outFile, filename, restartStep, restartDirectory);
         }
 
-        void checkpoint(uint32_t currentStep, std::string const& checkpointDirectory)
+        void checkpoint(uint32_t currentStep, std::string const& checkpointDirectory) override
         {
             if(!writeToFile)
                 return;

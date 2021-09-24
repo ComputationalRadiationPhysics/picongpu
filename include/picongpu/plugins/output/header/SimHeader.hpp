@@ -30,17 +30,17 @@ namespace picongpu
 {
     struct SimHeader
     {
-        typedef pmacc::DataSpace<DIM2> Size2D;
+        using Size2D = pmacc::DataSpace<2U>;
 
         Size2D size;
         Size2D nodes;
         Size2D simOffsetToNull;
-        uint32_t step;
+        uint32_t step{0};
         picongpu::float_32 scale[2];
         picongpu::float_32 cellSizeArr[2];
 
 
-        SimHeader() : step(0)
+        SimHeader()
         {
             scale[0] = 1.f;
             scale[1] = 1.f;

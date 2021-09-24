@@ -64,11 +64,10 @@ namespace pmacc
         template<typename T_Cursor, typename T_PositionComp>
         struct Functor<cursor::tools::LinearInterp<T_PositionComp>, T_Cursor>
         {
-            typedef pmacc::cursor::Cursor<
+            using type = pmacc::cursor::Cursor<
                 cursor::LinearInterpAccessor<T_Cursor>,
                 cursor::PlusNavigator,
-                pmacc::math::Vector<T_PositionComp, pmacc::cursor::traits::dim<T_Cursor>::value>>
-                type;
+                pmacc::math::Vector<T_PositionComp, pmacc::cursor::traits::dim<T_Cursor>::value>>;
         };
 
     } // namespace result_of

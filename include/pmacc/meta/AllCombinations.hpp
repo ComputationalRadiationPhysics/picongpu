@@ -62,19 +62,19 @@ namespace pmacc
         template<typename T_MplSeq, typename T_TmpResult>
         struct AllCombinations<T_MplSeq, T_TmpResult, false>
         {
-            typedef T_MplSeq MplSeq;
-            typedef T_TmpResult TmpResult;
+            using MplSeq = T_MplSeq;
+            using TmpResult = T_TmpResult;
 
             static constexpr uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
-            typedef typename bmpl::at<MplSeq, bmpl::integral_c<uint32_t, rangeVectorSize - 1>>::type LastElement;
-            typedef bmpl::empty<LastElement> IsLastElementEmpty;
-            typedef typename MakeSeq<LastElement>::type LastElementAsSequence;
-            typedef typename bmpl::pop_back<MplSeq>::type ShrinkedRangeVector;
+            using LastElement = typename bmpl::at<MplSeq, bmpl::integral_c<uint32_t, rangeVectorSize - 1>>::type;
+            using IsLastElementEmpty = bmpl::empty<LastElement>;
+            using LastElementAsSequence = typename MakeSeq<LastElement>::type;
+            using ShrinkedRangeVector = typename bmpl::pop_back<MplSeq>::type;
 
             /* copy last given sequence to a mpl::vector to be sure that we can later on
              * call mpl::transform even if the input sequence is mpl::range_c
              */
-            typedef typename bmpl::copy<LastElementAsSequence, bmpl::back_inserter<bmpl::vector0<>>>::type TmpVector;
+            using TmpVector = typename bmpl::copy<LastElementAsSequence, bmpl::back_inserter<bmpl::vector0<>>>::type;
 
             /** Assign to each element in a sequence of CT::Vector(s) a type at a given
              *  component position
@@ -87,21 +87,21 @@ namespace pmacc
             template<typename T_ComponentPos, typename T_Element>
             struct AssignToAnyElementInVector
             {
-                typedef TmpResult InVector;
-                typedef T_Element Element;
+                using InVector = TmpResult;
+                using Element = T_Element;
 
-                typedef typename bmpl::
-                    transform<InVector, pmacc::math::CT::Assign<bmpl::_1, T_ComponentPos, Element>>::type type;
+                using type = typename bmpl::
+                    transform<InVector, pmacc::math::CT::Assign<bmpl::_1, T_ComponentPos, Element>>::type;
             };
 
-            typedef typename bmpl::transform<
+            using NestedSeq = typename bmpl::transform<
                 TmpVector,
-                AssignToAnyElementInVector<bmpl::integral_c<uint32_t, rangeVectorSize - 1>, bmpl::_1>>::type NestedSeq;
+                AssignToAnyElementInVector<bmpl::integral_c<uint32_t, rangeVectorSize - 1>, bmpl::_1>>::type;
 
-            typedef typename MakeSeqFromNestedSeq<NestedSeq>::type OneSeq;
+            using OneSeq = typename MakeSeqFromNestedSeq<NestedSeq>::type;
 
-            typedef typename detail::AllCombinations<ShrinkedRangeVector, OneSeq>::type ResultIfNotEmpty;
-            typedef typename bmpl::if_<IsLastElementEmpty, bmpl::vector0<>, ResultIfNotEmpty>::type type;
+            using ResultIfNotEmpty = typename detail::AllCombinations<ShrinkedRangeVector, OneSeq>::type;
+            using type = typename bmpl::if_<IsLastElementEmpty, bmpl::vector0<>, ResultIfNotEmpty>::type;
         };
 
         /** recursive end implementation
@@ -109,7 +109,7 @@ namespace pmacc
         template<typename T_MplSeq, typename T_TmpResult>
         struct AllCombinations<T_MplSeq, T_TmpResult, true>
         {
-            typedef T_TmpResult type;
+            using type = T_TmpResult;
         };
 
     } // namespace detail
@@ -141,30 +141,29 @@ namespace pmacc
     {
         /* if T_MplSeq is no sequence it is a single type, we put this type in
          * a sequence because all next algorithms can only work with sequences */
-        typedef typename MakeSeq<T_MplSeq>::type MplSeq;
+        using MplSeq = typename MakeSeq<T_MplSeq>::type;
 
         static constexpr uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
-        typedef typename bmpl::at<MplSeq, bmpl::integral_c<uint32_t, rangeVectorSize - 1>>::type LastElement;
-        typedef bmpl::empty<LastElement> IsLastElementEmpty;
-        typedef typename MakeSeq<LastElement>::type LastElementAsSequence;
+        using LastElement = typename bmpl::at<MplSeq, bmpl::integral_c<uint32_t, rangeVectorSize - 1>>::type;
+        using IsLastElementEmpty = bmpl::empty<LastElement>;
+        using LastElementAsSequence = typename MakeSeq<LastElement>::type;
 
-        typedef typename bmpl::pop_back<MplSeq>::type ShrinkedRangeVector;
+        using ShrinkedRangeVector = typename bmpl::pop_back<MplSeq>::type;
         /* copy last given sequence to a mpl::vector to be sure that we can later on
          * call mpl::transform even if the input sequence is mpl::range_c
          */
-        typedef typename bmpl::copy<LastElementAsSequence, bmpl::back_inserter<bmpl::vector0<>>>::type TmpVector;
+        using TmpVector = typename bmpl::copy<LastElementAsSequence, bmpl::back_inserter<bmpl::vector0<>>>::type;
 
 
         /* transform all elements in the vector to math::CT::vector<> */
-        typedef math::CT::Vector<> EmptyVector;
-        typedef typename bmpl::transform<
+        using EmptyVector = math::CT::Vector<>;
+        using FirstList = typename bmpl::transform<
             TmpVector,
-            pmacc::math::CT::Assign<EmptyVector, bmpl::integral_c<uint32_t, rangeVectorSize - 1>, bmpl::_1>>::type
-            FirstList;
+            pmacc::math::CT::Assign<EmptyVector, bmpl::integral_c<uint32_t, rangeVectorSize - 1>, bmpl::_1>>::type;
 
         /* result type: MplSequence of N-tuples */
-        typedef typename detail::AllCombinations<ShrinkedRangeVector, FirstList>::type ResultIfNotEmpty;
-        typedef typename bmpl::if_<IsLastElementEmpty, bmpl::vector0<>, ResultIfNotEmpty>::type type;
+        using ResultIfNotEmpty = typename detail::AllCombinations<ShrinkedRangeVector, FirstList>::type;
+        using type = typename bmpl::if_<IsLastElementEmpty, bmpl::vector0<>, ResultIfNotEmpty>::type;
     };
 
 
