@@ -70,7 +70,7 @@
 #endif
 
 #if((ENABLE_OPENPMD == 1) && (openPMD_HAVE_HDF5 == 1))
-// needs to be openPMD-api only in the future to support adios2
+// Radiation postprocessing is still native hdf5, so only enable the plugin for this backend
 #    include "picongpu/plugins/radiation/Radiation.hpp"
 #    include "picongpu/plugins/radiation/VectorTypes.hpp"
 #endif
