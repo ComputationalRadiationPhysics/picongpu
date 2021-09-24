@@ -125,7 +125,6 @@ namespace picongpu
                 {
                     auto axis = pmacc::boundary::getAxis(exchangeType);
                     auto offsetCells = getOffsetCells(species, exchangeType);
-                    SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
                     if(pmacc::boundary::isMinSide(exchangeType))
                         (*begin)[axis] += offsetCells;
                     if(pmacc::boundary::isMaxSide(exchangeType))
