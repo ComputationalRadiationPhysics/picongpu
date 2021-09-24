@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/plugins/multi/ISlave.hpp"
+#include "picongpu/plugins/multi/IInstance.hpp"
 
 
 namespace picongpu
@@ -33,8 +33,8 @@ namespace picongpu
             //! Interface to expose a help of a plugin
             struct IHelp
             {
-                //! creates a ISlave instance
-                virtual std::shared_ptr<ISlave> create(
+                //! creates an instance
+                virtual std::shared_ptr<IInstance> create(
                     std::shared_ptr<IHelp>& help,
                     size_t const id,
                     MappingDesc* cellDescription)
@@ -42,7 +42,7 @@ namespace picongpu
 
                 /** register help options
                  *
-                 * The options are used if the plugin is a ISlave and is handling
+                 * The options are used if the plugin is a IInstance and is handling
                  * there own notification period.
                  */
                 virtual void registerHelp(

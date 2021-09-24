@@ -187,12 +187,12 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
         struct Help : public plugins::multi::IHelp
         {
-            /** creates a instance of ISlave
+            /** creates an instance
              *
              * @param help plugin defined help
              * @param id index of the plugin, range: [0;help->getNumPlugins())
              */
-            std::shared_ptr<plugins::multi::ISlave> create(
+            std::shared_ptr<plugins::multi::IInstance> create(
                 std::shared_ptr<IHelp>& help,
                 size_t const id,
                 MappingDesc* cellDescription);
@@ -781,14 +781,14 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
             virtual void restart(uint32_t restartStep, std::string const& restartDirectory)
             {
-                /* ISlave restart interface is not needed becase IIOBackend
+                /* IInstance restart interface is not needed becase IIOBackend
                  * restart interface is used
                  */
             }
 
             virtual void checkpoint(uint32_t currentStep, std::string const& checkpointDirectory)
             {
-                /* ISlave checkpoint interface is not needed becase IIOBackend
+                /* IInstance checkpoint interface is not needed becase IIOBackend
                  * checkpoint interface is used
                  */
             }
@@ -1392,12 +1392,12 @@ Make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             DataSpace<simDim> mpi_size;
         };
 
-        std::shared_ptr<plugins::multi::ISlave> Help::create(
+        std::shared_ptr<plugins::multi::IInstance> Help::create(
             std::shared_ptr<plugins::multi::IHelp>& help,
             size_t const id,
             MappingDesc* cellDescription)
         {
-            return std::shared_ptr<plugins::multi::ISlave>(new openPMDWriter(help, id, cellDescription));
+            return std::shared_ptr<plugins::multi::IInstance>(new openPMDWriter(help, id, cellDescription));
         }
 
     } // namespace openPMD

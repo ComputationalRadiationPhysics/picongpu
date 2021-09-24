@@ -147,8 +147,8 @@ namespace picongpu
                 if(backendHelp.second->getNumPlugins() > 0u)
                     backendHelp.second->validateOptions();
 
-                size_t const numSlaves = backendHelp.second->getNumPlugins();
-                if(numSlaves > 1u)
+                size_t const numInstances = backendHelp.second->getNumPlugins();
+                if(numInstances > 1u)
                     throw std::runtime_error(
                         pluginGetName() + ": is no a multi plugin, each option can only be selected once.");
             }

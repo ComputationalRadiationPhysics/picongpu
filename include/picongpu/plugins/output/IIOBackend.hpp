@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/plugins/multi/ISlave.hpp"
+#include "picongpu/plugins/multi/IInstance.hpp"
 
 #include <memory>
 #include <string>
@@ -28,7 +28,7 @@
 namespace picongpu
 {
     //! Interface for IO-backends with restart capability
-    class IIOBackend : public plugins::multi::ISlave
+    class IIOBackend : public plugins::multi::IInstance
     {
     public:
         IIOBackend() = default;

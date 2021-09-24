@@ -34,14 +34,13 @@ namespace picongpu
         {
             struct IHelp;
 
-            /** Interface for a slave plugin
+            /** Interface for a single instance of a plugin
              *
-             * A plugin which fulfil l this interface can be used as slave plugin for
-             * multi::Master.
+             * A plugin which fulfills this interface can be used an instance plugin for multi::Master.
              *
-             * A slave must register itself to the PluginConnector to receive the notify calls.
+             * An instance must register itself to the PluginConnector to receive the notify calls.
              */
-            struct ISlave : public pmacc::INotify
+            struct IInstance : public pmacc::INotify
             {
                 //! must be implemented by the user
                 static std::shared_ptr<IHelp> getHelp();
@@ -54,9 +53,6 @@ namespace picongpu
 
                 /**
                  * Called each timestep if particles are leaving the global simulation volume.
-                 *
-                 * This method is only called for species which are marked with the
-                 * `GuardHandlerCallPlugins` policy in their descpription.
                  *
                  * The order in which the plugins are called is undefined, so this means
                  * read-only access to the particles.

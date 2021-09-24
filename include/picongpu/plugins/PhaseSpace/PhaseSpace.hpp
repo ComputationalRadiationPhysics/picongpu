@@ -55,7 +55,7 @@ namespace picongpu
     namespace po = boost::program_options;
 
     template<class T_AssignmentFunction, class T_Species>
-    class PhaseSpace : public plugins::multi::ISlave
+    class PhaseSpace : public plugins::multi::IInstance
     {
     public:
         typedef T_AssignmentFunction AssignmentFunction;
@@ -63,15 +63,17 @@ namespace picongpu
 
         struct Help : public plugins::multi::IHelp
         {
-            /** creates an instance of ISlave
+            /** creates an instance
              *
-             * @tparam T_Slave type of the interface implementation (must inherit from ISlave)
              * @param help plugin defined help
              * @param id index of the plugin, range: [0;help->getNumPlugins())
              */
-            std::shared_ptr<ISlave> create(std::shared_ptr<IHelp>& help, size_t const id, MappingDesc* cellDescription)
+            std::shared_ptr<IInstance> create(
+                std::shared_ptr<IHelp>& help,
+                size_t const id,
+                MappingDesc* cellDescription) override
             {
-                return std::shared_ptr<ISlave>(
+                return std::shared_ptr<IInstance>(
                     new PhaseSpace<T_AssignmentFunction, Species>(help, id, cellDescription));
             }
 
