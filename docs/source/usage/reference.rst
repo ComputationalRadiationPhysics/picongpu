@@ -85,6 +85,7 @@ Laser plasma light sources and diagnostics
 """"""""""""""""""""""""""""""""""""""""""
  - PhD thesis on radiation from LWFA [Pausch2019]_
  - Laser-driven x-ray and proton sources [Ostermayr2020]_
+ - Betatron x-ray diagnostic for beam decoherence [Koehler2019]_, [Koehler2021]_
 
 
 Astrophysics
@@ -392,6 +393,12 @@ List of PIConGPU references in chronological order
 	*Demonstration of a compact plasma accelerator powered by laser-accelerated electron beams*,
 	Nature Communications volume 12, Article number: 2895 (2021),
 	https://doi.org/10.1038/s41467-021-23000-7
+
+.. [Koehler2021]
+        Koehler, A., Pausch, R., Bussmann, M., et al.,
+	*Restoring betatron phase coherence in a beam-loaded laser-wakefield accelerator*,
+	Phys. Rev. Accel. Beams 24, 091302 – 20 September 2021,
+	https://doi.org/10.1103/PhysRevAccelBeams.24.091302
 
 List of other references in chronological order
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
