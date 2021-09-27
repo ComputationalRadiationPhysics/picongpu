@@ -48,7 +48,7 @@ In this case, ``Environment<>::get().PluginConnector().setNotificationPeriod(thi
 Then ``notify()`` will only be called for the active time steps.
 
 For plugins (and most PIConGPU code) dealing with particles, it is common to template-parametrize based on species.
-Such plugins should use base class ``plugins::multi::ISlave``.
+Such plugins should use base class ``plugins::multi::IInstance``.
 There is also a helper class ``plugins::multi::IHelp`` for command-line parameters prefixed for species.
 To match a plugin to applicable species, partially specialize trait ``particles::traits::SpeciesEligibleForSolver``.
 
