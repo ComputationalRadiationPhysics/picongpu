@@ -23,6 +23,7 @@
 
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
+#include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/laserProfiles/profiles.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"
 #include "picongpu/initialization/SimStartInitialiser.hpp"
@@ -110,8 +111,9 @@ namespace picongpu
                 const float_32 mass = frame::getMass<FrameType>();
                 const auto densityRatio = traits::GetDensityRatio<T_Species>::type::getValue();
                 const auto density = BASE_DENSITY * densityRatio;
-                log<picLog::PHYSICS>("species %2%: omega_p * dt <= 0.1 ? %1%")
-                    % (sqrt(density * charge / mass * charge / EPS0) * DELTA_T) % FrameType::getName();
+                const auto omegaP_dt = sqrt(density * charge / mass * charge / EPS0) * DELTA_T;
+                log<picLog::PHYSICS>("species %2%: omega_p * dt <= 0.1 ? (omega_p * dt = %1%)") % omegaP_dt
+                    % FrameType::getName();
             }
         };
 
@@ -122,7 +124,9 @@ namespace picongpu
         {
             if(Environment<simDim>::get().GridController().getGlobalRank() == 0)
             {
-                log<picLog::PHYSICS>("Courant c*dt <= %1% ? %2%") % (1. / math::sqrt(INV_CELL2_SUM))
+                auto maxC_DT = fields::maxwellSolver::CFLChecker<fields::Solver>{}();
+
+                log<picLog::PHYSICS>("Field solver condition: c * dt <= %1% ? (c * dt = %2%)") % maxC_DT
                     % (SPEED_OF_LIGHT * DELTA_T);
 
                 using SpeciesWithMass =

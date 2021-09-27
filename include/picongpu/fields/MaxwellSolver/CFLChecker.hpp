@@ -44,17 +44,20 @@ namespace picongpu
                  * The default implementation checks the basic explicit PIC assumption c * dt <= min(dx, dy, dz).
                  * Note that generally FDTD-type field solvers have a more strict condition, and have to provide a
                  * specialization.
+                 *
+                 * @return value of 'X' to fulfill the condition 'c * dt <= X`
                  */
-                void operator()() const
+                float_X operator()() const
                 {
+                    constexpr auto minCellSize = std::min({CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH});
                     /* Dependance on T_Defer is required, otherwise this check would have been enforced for each setup
                      * (in this case, could have depended on T_FieldSolver as well)
                      */
                     PMACC_CASSERT_MSG(
                         Courant_Friedrichs_Lewy_condition_failure____check_your_grid_param_file,
-                        (SPEED_OF_LIGHT * DELTA_T / CELL_WIDTH <= 1.0)
-                            && (SPEED_OF_LIGHT * DELTA_T / CELL_HEIGHT <= 1.0)
-                            && (SPEED_OF_LIGHT * DELTA_T / CELL_DEPTH <= 1.0) && sizeof(T_Defer*) != 0);
+                        (SPEED_OF_LIGHT * DELTA_T / minCellSize <= 1.0) && sizeof(T_Defer*) != 0);
+
+                    return minCellSize;
                 }
             };
 

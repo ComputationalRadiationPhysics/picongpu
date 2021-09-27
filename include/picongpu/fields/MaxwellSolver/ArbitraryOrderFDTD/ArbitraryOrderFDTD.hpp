@@ -48,8 +48,11 @@ namespace picongpu
             template<uint32_t T_neighbors>
             struct CFLChecker<ArbitraryOrderFDTD<T_neighbors>>
             {
-                //! Check the CFL condition, throws when failed
-                void operator()() const
+                /** Check the CFL condition, throws when failed
+                 *
+                 * * @return value of 'X' to fulfill the condition 'c * dt <= X`
+                 */
+                float_X operator()() const
                 {
                     // The equations are given at https://picongpu.readthedocs.io/en/latest/models/AOFDTD.html
                     auto weights = aoFDTD::AOFDTDWeights<T_neighbors>{};
@@ -59,11 +62,17 @@ namespace picongpu
                         auto const term = (i % 2) ? -weights[i] : weights[i];
                         additionalFactor += term;
                     }
-                    if(SPEED_OF_LIGHT * SPEED_OF_LIGHT * DELTA_T * DELTA_T * INV_CELL2_SUM * additionalFactor
-                           * additionalFactor
-                       > 1.0_X)
+                    auto const invCorrectedCell2Sum = INV_CELL2_SUM * additionalFactor * additionalFactor;
+                    auto const maxC_DT = 1.0_X / math::sqrt(invCorrectedCell2Sum);
+                    if(SPEED_OF_LIGHT * SPEED_OF_LIGHT * DELTA_T * DELTA_T * invCorrectedCell2Sum > 1.0_X)
+                    {
                         throw std::runtime_error(
-                            "Courant-Friedrichs-Lewy condition check failed, check your grid.param file");
+                            std::string("Courant-Friedrichs-Lewy condition check failed, check your grid.param file\n")
+                            + "Courant Friedrichs Lewy condition: c * dt <= " + std::to_string(maxC_DT)
+                            + " ? (c * dt = " + std::to_string(SPEED_OF_LIGHT * DELTA_T) + ")");
+                    }
+
+                    return maxC_DT;
                 }
             };
 

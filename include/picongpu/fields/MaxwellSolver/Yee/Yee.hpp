@@ -41,14 +41,19 @@ namespace picongpu
             template<typename T_Defer>
             struct CFLChecker<Yee, T_Defer>
             {
-                //! Check the CFL condition, doesn't compile when failed
-                void operator()() const
+                /** Check the CFL condition, doesn't compile when failed
+                 *
+                 * @return value of 'X' to fulfill the condition 'c * dt <= X`
+                 */
+                float_X operator()() const
                 {
                     // Dependance on T_Defer is required, otherwise this check would have been enforced for each setup
                     PMACC_CASSERT_MSG(
                         Courant_Friedrichs_Lewy_condition_failure____check_your_grid_param_file,
                         (SPEED_OF_LIGHT * SPEED_OF_LIGHT * DELTA_T * DELTA_T * INV_CELL2_SUM) <= 1.0
                             && sizeof(T_Defer*) != 0);
+
+                    return 1.0_X / math::sqrt(INV_CELL2_SUM);
                 }
             };
 
