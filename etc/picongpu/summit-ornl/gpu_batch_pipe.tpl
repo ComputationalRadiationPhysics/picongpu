@@ -90,7 +90,10 @@ mkdir simOutput 2> /dev/null
 cd simOutput
 mkdir -p openPMD
 
-#if [ $? -eq 0 ] ; then
+# fix MPI collectives by disabling IBM's optimized barriers
+# https://github.com/ComputationalRadiationPhysics/picongpu/issues/3814
+export OMPI_MCA_coll_ibm_skip_barrier=true
+
 export OMP_NUM_THREADS=!TBG_coresPerGPU
 
 # Note: chunk distribution strategies are not yet mainlined in openPMD
@@ -118,4 +121,3 @@ jsrun --nrs !TBG_pipeInstances --tasks_per_rs 1 --cpu_per_rs !TBG_coresPerPipeIn
 wait
 
 # note: instead of the PIConGPU binary, one can also debug starting "js_task_info | sort"
-#fi
