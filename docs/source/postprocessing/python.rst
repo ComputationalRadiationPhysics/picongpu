@@ -61,7 +61,7 @@ Also provides an interactive GUI for fast exploration via Jupyter notebooks.
 openPMD-api
 -----------
 
-A data library that reads (and writes) data in our openPMD files (ADIOS2, ADIOS and HDF5) to and from Numpy data structures.
+A data library that reads (and writes) data in our openPMD files (ADIOS2 and HDF5) to and from Numpy data structures.
 Provides an API to correctly convert units to SI, interprets iteration steps correctly, etc.
 
 * `Manual <https://openpmd-api.readthedocs.io/>`_

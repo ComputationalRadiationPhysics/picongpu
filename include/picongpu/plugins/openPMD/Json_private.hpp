@@ -268,6 +268,6 @@ namespace picongpu
             std::string getDefault() const override;
         };
 
-        std::vector<std::string> const JsonMatcher::m_recognizedBackends = {"adios1", "adios2", "hdf5", "json"};
+        std::vector<std::string> const JsonMatcher::m_recognizedBackends = {"adios2", "hdf5", "json"};
     } // namespace json
 } // namespace picongpu

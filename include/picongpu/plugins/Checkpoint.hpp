@@ -75,7 +75,7 @@ namespace picongpu
         {
             namespace po = boost::program_options;
             if(ioBackendsHelp.empty())
-                desc.add_options()("checkpoint", "plugin disabled [compiled without dependency HDF5 or Adios]");
+                desc.add_options()("checkpoint", "plugin disabled [compiled without dependency openPMD-api]");
             else
                 desc.add_options()(
                     "checkpoint.backend",
