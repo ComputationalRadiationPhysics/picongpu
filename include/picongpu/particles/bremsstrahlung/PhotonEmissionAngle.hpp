@@ -26,19 +26,10 @@
 #include <pmacc/cuSTL/cursor/navigator/PlusNavigator.hpp>
 #include <pmacc/cuSTL/cursor/tools/LinearInterp.hpp>
 
-#include <boost/array.hpp>
-#if(BOOST_VERSION == 106400)
-/* `array_wrapper.hpp` must be included before `integrate.hpp` to avoid
- * the error
- * `boost/numeric/ublas/matrix.hpp(5977): error: namespace "boost::serialization" has no member "make_array"`
- * in boost 1.64.0
- * see boost issue https://svn.boost.org/trac/boost/ticket/12516
- */
-#    include <boost/serialization/array_wrapper.hpp>
-#endif
 #include <boost/math/tools/minima.hpp>
 #include <boost/numeric/odeint/integrate/integrate.hpp>
 
+#include <array>
 #include <limits>
 #include <memory>
 #include <utility>
@@ -160,7 +151,7 @@ namespace picongpu
                     {
                         namespace odeint = boost::numeric::odeint;
 
-                        using state_type = boost::array<float_64, 1>;
+                        using state_type = std::array<float_64, 1>;
 
                         state_type integral_result = {0.0};
                         const float_64 lowerLimit = 0.0;

@@ -57,7 +57,6 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/mpl/placeholders.hpp>
-#include <boost/typeof/std/utility.hpp>
 
 #include <cupla.hpp>
 

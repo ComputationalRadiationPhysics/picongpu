@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "pmacc/static_assert.hpp"
 #include "pmacc/types.hpp"
 
 #include <boost/mpl/at.hpp>
@@ -37,7 +38,6 @@
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/enum_shifted_params.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
-#include <boost/static_assert.hpp>
 
 namespace pmacc
 {
@@ -53,7 +53,7 @@ namespace pmacc
         : value(arg0)                                                                                                 \
         , base(BOOST_PP_ENUM_SHIFTED_PARAMS(N, arg))                                                                  \
     {                                                                                                                 \
-        BOOST_STATIC_ASSERT(dim == N);                                                                                \
+        PMACC_CASSERT(dim == N);                                                                                      \
     }
 
         namespace mpl = boost::mpl;
@@ -88,7 +88,7 @@ namespace pmacc
 
             HDINLINE Tuple(Value arg0) : value(arg0)
             {
-                BOOST_STATIC_ASSERT(dim == 1);
+                PMACC_CASSERT(dim == 1);
             }
 
             BOOST_PP_REPEAT_FROM_TO(2, BOOST_PP_INC(TUPLE_MAX_DIM), CONSTRUCTOR, _)

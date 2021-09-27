@@ -24,8 +24,7 @@
 
 #include "pmacc/types.hpp"
 
-#include <boost/numeric/conversion/bounds.hpp>
-
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -101,7 +100,7 @@ namespace pmacc
              *
              * @param maxValue largest allowed id
              */
-            static const ResultType uid(uint64_t maxValue = boost::numeric::bounds<ResultType>::highest())
+            static const ResultType uid(uint64_t maxValue = std::numeric_limits<ResultType>::max())
             {
                 const uint64_t id = detail::TypeId<Type>::id;
 
