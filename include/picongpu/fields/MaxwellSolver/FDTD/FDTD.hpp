@@ -25,7 +25,6 @@
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/LaserPhysics.hpp"
-#include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
 #include "picongpu/fields/MaxwellSolver/FDTD/FDTD.kernel"
 #include "picongpu/fields/MaxwellSolver/LaserChecker.hpp"
@@ -59,7 +58,6 @@ namespace picongpu
 
                 FDTD(MappingDesc const cellDescription) : cellDescription(cellDescription)
                 {
-                    CFLChecker<FDTD>{}();
                     LaserChecker<FDTD>{}();
                     DataConnector& dc = Environment<>::get().DataConnector();
                     fieldE = dc.get<FieldE>(FieldE::getName(), true);

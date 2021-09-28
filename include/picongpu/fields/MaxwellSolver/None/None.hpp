@@ -21,7 +21,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/MaxwellSolver/CFLChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/LaserChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.def"
 #include "picongpu/fields/cellType/Yee.hpp"
@@ -46,8 +45,6 @@ namespace picongpu
 
                 None(MappingDesc)
                 {
-                    // Note: the default CFL checker is sufficient, thus it is not specialized for None
-                    CFLChecker<None>{}();
                     LaserChecker<None>{}();
                 }
 
