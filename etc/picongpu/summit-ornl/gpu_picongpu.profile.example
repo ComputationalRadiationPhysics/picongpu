@@ -56,6 +56,10 @@ export PATH=$PATH:$PICSRC/src/tools/bin
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
+# fix MPI collectives by disabling IBM's optimized barriers
+# https://github.com/ComputationalRadiationPhysics/picongpu/issues/3814
+export OMPI_MCA_coll_ibm_skip_barrier=true
+
 alias getNode="bsub -P $proj -W 2:00 -nnodes 1 -Is /bin/bash"
 
 # "tbg" default options #######################################################

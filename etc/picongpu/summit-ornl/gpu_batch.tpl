@@ -82,6 +82,10 @@ fi
 mkdir simOutput 2> /dev/null
 cd simOutput
 
+# fix MPI collectives by disabling IBM's optimized barriers
+# https://github.com/ComputationalRadiationPhysics/picongpu/issues/3814
+export OMPI_MCA_coll_ibm_skip_barrier=true
+
 #jsrun  -N 1 -n !TBG_nodes !TBG_dstPath/input/bin/cuda_memtest.sh
 
 #if [ $? -eq 0 ] ; then
