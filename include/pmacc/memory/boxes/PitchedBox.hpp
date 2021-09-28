@@ -31,149 +31,125 @@ namespace pmacc
     template<typename TYPE, unsigned DIM>
     class PitchedBox;
 
-    template<typename TYPE>
-    class PitchedBox<TYPE, DIM1>
+    namespace detail
     {
-    public:
-        enum
+        template<typename TYPE, unsigned DIM>
+        struct PitchedBoxCommon
         {
-            Dim = DIM1
-        };
-        using ValueType = TYPE;
-        using RefValueType = ValueType&;
-        using ReducedType = PitchedBox<TYPE, 1U>;
+            static constexpr std::uint32_t Dim = DIM;
+            using ValueType = TYPE;
+            using RefValueType = ValueType&;
 
-        HDINLINE RefValueType operator[](const int idx)
+            HDINLINE PitchedBoxCommon(TYPE* p = nullptr) : fixedPointer(p)
+            {
+            }
+
+            /*!return the first value in the box (list)
+             * @return first value
+             */
+            HDINLINE RefValueType operator*()
+            {
+                return *fixedPointer;
+            }
+
+            HDINLINE TYPE const* getPointer() const
+            {
+                return fixedPointer;
+            }
+
+            HDINLINE TYPE* getPointer()
+            {
+                return fixedPointer;
+            }
+
+        protected:
+            PMACC_ALIGN(fixedPointer, TYPE*);
+        };
+    } // namespace detail
+
+    template<typename TYPE>
+    class PitchedBox<TYPE, DIM1> : public detail::PitchedBoxCommon<TYPE, DIM1>
+    {
+        using Base = detail::PitchedBoxCommon<TYPE, DIM1>;
+
+    public:
+        using ReducedType = PitchedBox<TYPE, DIM1>;
+
+        /*Object must init by copy a valid instance*/
+        HDINLINE PitchedBox() = default;
+
+        HDINLINE PitchedBox(TYPE* pointer) : Base{pointer}
         {
-            return fixedPointer[idx];
         }
 
-        HDINLINE RefValueType operator[](const int idx) const
+        ///@todo(bgruber): is this functionality not provide by DataBox::shift?
+        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM1>& offset) : Base{pointer + offset[0]}
         {
-            return fixedPointer[idx];
         }
 
         HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM1>& offset, const DataSpace<DIM1>&, const size_t)
-            : fixedPointer(pointer + offset[0])
+            : PitchedBox(pointer, offset)
         {
         }
 
-        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM1>& offset) : fixedPointer(pointer + offset[0])
+        HDINLINE TYPE& operator[](const int idx) const
         {
+            return this->fixedPointer[idx];
         }
-
-        HDINLINE PitchedBox(TYPE* pointer) : fixedPointer(pointer)
-        {
-        }
-
-        /*Object must init by copy a valid instance*/
-        HDINLINE PitchedBox() = default;
-
-        /*!return the first value in the box (list)
-         * @return first value
-         */
-        HDINLINE RefValueType operator*()
-        {
-            return *(fixedPointer);
-        }
-
-        HDINLINE TYPE const* getPointer() const
-        {
-            return fixedPointer;
-        }
-        HDINLINE TYPE* getPointer()
-        {
-            return fixedPointer;
-        }
-
-
-    protected:
-        PMACC_ALIGN(fixedPointer, TYPE*);
     };
 
     template<typename TYPE>
-    class PitchedBox<TYPE, DIM2>
+    class PitchedBox<TYPE, DIM2> : public detail::PitchedBoxCommon<TYPE, DIM2>
     {
+        using Base = detail::PitchedBoxCommon<TYPE, DIM2>;
+
     public:
-        enum
-        {
-            Dim = DIM2
-        };
-        using ValueType = TYPE;
-        using RefValueType = ValueType&;
-        using ReducedType = PitchedBox<TYPE, 1U>;
-
-        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM2>& offset, const DataSpace<DIM2>&, const size_t pitch)
-            : pitch(pitch)
-            , fixedPointer((TYPE*) ((char*) pointer + offset[1] * pitch) + offset[0])
-        {
-        }
-
-        HDINLINE PitchedBox(TYPE* pointer, size_t pitch) : pitch(pitch), fixedPointer(pointer)
-        {
-        }
+        using ReducedType = PitchedBox<TYPE, DIM1>;
 
         /*Object must init by copy a valid instance*/
         HDINLINE PitchedBox() = default;
 
-        HDINLINE ReducedType operator[](const int idx)
+        HDINLINE PitchedBox(TYPE* pointer, size_t pitch) : Base{pointer}, pitch(pitch)
         {
-            return ReducedType((TYPE*) ((char*) this->fixedPointer + idx * pitch));
+        }
+
+        ///@todo(bgruber): is this functionality not provide by DataBox::shift?
+        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM2>& offset, size_t pitch)
+            : Base{(TYPE*) ((char*) pointer + offset[1] * pitch) + offset[0]}
+            , pitch(pitch)
+        {
+        }
+
+        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM2>& offset, const DataSpace<DIM2>&, const size_t pitch)
+            : PitchedBox(pointer, offset, pitch)
+        {
         }
 
         HDINLINE ReducedType operator[](const int idx) const
         {
             return ReducedType((TYPE*) ((char*) this->fixedPointer + idx * pitch));
-        }
-
-        HDINLINE PitchedBox(TYPE* pointer, const DataSpace<DIM2>& offset, size_t pitch)
-            : pitch(pitch)
-            , fixedPointer((TYPE*) ((char*) pointer + offset[1] * pitch) + offset[0])
-        {
-        }
-
-        /*!return the first value in the box (list)
-         * @return first value
-         */
-        HDINLINE RefValueType operator*()
-        {
-            return *((TYPE*) fixedPointer);
-        }
-
-        HDINLINE TYPE const* getPointer() const
-        {
-            return fixedPointer;
-        }
-        HDINLINE TYPE* getPointer()
-        {
-            return fixedPointer;
         }
 
     protected:
         PMACC_ALIGN(pitch, size_t);
-        PMACC_ALIGN(fixedPointer, TYPE*);
     };
 
     template<typename TYPE>
-    class PitchedBox<TYPE, DIM3>
+    class PitchedBox<TYPE, DIM3> : public detail::PitchedBoxCommon<TYPE, DIM3>
     {
+        using Base = detail::PitchedBoxCommon<TYPE, DIM3>;
+
     public:
-        enum
-        {
-            Dim = DIM3
-        };
-        using ValueType = TYPE;
-        using RefValueType = ValueType&;
-        using ReducedType = PitchedBox<TYPE, 2U>;
+        using ReducedType = PitchedBox<TYPE, DIM2>;
 
-        HDINLINE ReducedType operator[](const int idx)
-        {
-            return ReducedType((TYPE*) ((char*) (this->fixedPointer) + idx * pitch2D), pitch);
-        }
+        /*Object must init by copy a valid instance*/
+        HDINLINE PitchedBox() = default;
 
-        HDINLINE ReducedType operator[](const int idx) const
+        HDINLINE PitchedBox(TYPE* pointer, const size_t pitch, const size_t pitch2D)
+            : Base{pointer}
+            , pitch(pitch)
+            , pitch2D(pitch2D)
         {
-            return ReducedType((TYPE*) ((char*) (this->fixedPointer) + idx * pitch2D), pitch);
         }
 
         /** constructor
@@ -183,62 +159,36 @@ namespace pmacc
          * @param memSize size of the physical memory (in elements)
          * @param pitch number of bytes in one line (first dimension)
          */
+        ///@todo(bgruber): is this functionality not provide by DataBox::shift?
         HDINLINE PitchedBox(
             TYPE* pointer,
             const DataSpace<DIM3>& offset,
             const DataSpace<DIM3>& memSize,
             const size_t pitch)
-            : pitch(pitch)
+            : Base{(TYPE*) ((char*) pointer + offset[2] * (memSize[1] * pitch) + offset[1] * pitch) + offset[0]}
+            , pitch(pitch)
             , pitch2D(memSize[1] * pitch)
-            , fixedPointer(
-                  (TYPE*) ((char*) pointer + offset[2] * (memSize[1] * pitch) + offset[1] * pitch) + offset[0])
         {
         }
 
-        HDINLINE PitchedBox(TYPE* pointer, const size_t pitch, const size_t pitch2D)
-            : pitch(pitch)
-            , pitch2D(pitch2D)
-            , fixedPointer(pointer)
+        HDINLINE ReducedType operator[](const int idx) const
         {
-        }
-
-        /*Object must init by copy a valid instance*/
-        HDINLINE PitchedBox() = default;
-
-        /*!return the first value in the box (list)
-         * @return first value
-         */
-        HDINLINE RefValueType operator*()
-        {
-            return *(fixedPointer);
-        }
-
-        HDINLINE TYPE const* getPointer() const
-        {
-            return fixedPointer;
-        }
-        HDINLINE TYPE* getPointer()
-        {
-            return fixedPointer;
+            return ReducedType((TYPE*) ((char*) (this->fixedPointer) + idx * pitch2D), pitch);
         }
 
         HDINLINE pmacc::cursor::BufferCursor<TYPE, DIM3> toCursor() const
         {
-            return pmacc::cursor::BufferCursor<TYPE, DIM3>(
-                (TYPE*) fixedPointer,
-                ::pmacc::math::Size_t<2>(pitch, pitch2D));
+            return {(TYPE*) this->fixedPointer, ::pmacc::math::Size_t<2>(pitch, pitch2D)};
         }
 
     protected:
         HDINLINE PitchedBox<TYPE, DIM2> reduceZ(const int zOffset) const
         {
-            return PitchedBox<TYPE, DIM2>((TYPE*) ((char*) (this->fixedPointer) + pitch2D * zOffset), pitch);
+            return {(TYPE*) ((char*) (this->fixedPointer) + pitch2D * zOffset), pitch};
         }
-
 
         PMACC_ALIGN(pitch, size_t);
         PMACC_ALIGN(pitch2D, size_t);
-        PMACC_ALIGN(fixedPointer, TYPE*);
     };
 
 
