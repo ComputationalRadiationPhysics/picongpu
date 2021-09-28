@@ -28,7 +28,7 @@ namespace pmacc
         template<typename Marker>
         struct MarkerAccessor
         {
-            using type = const Marker;
+            using Reference = const Marker;
             /** returns the cursor's marker.
              *
              * Here a copy of marker is returned because the cursor object
@@ -37,7 +37,7 @@ namespace pmacc
              * FunctorAccessor or Cursor::getMarker().
              */
             HDINLINE
-            type operator()(const Marker& marker) const
+            Reference operator()(const Marker& marker) const
             {
                 return marker;
             }
