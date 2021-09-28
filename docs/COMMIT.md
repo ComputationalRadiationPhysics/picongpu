@@ -6,7 +6,7 @@ We agree on the following simple rules to make our lives easier :)
 - Stick to the **style** below for **commit messages**
 - **Commit compiling patches** for the *main* branches (`master` and `dev`),
   you can be less strict for (unshared) *topic branches*
-- Commits should be formated with clang-format-11
+- Commits should be formated with clang-format-12 (version 12.0.1)
 
 Format Code
 -----------
@@ -18,7 +18,7 @@ Format Code
   -o -iname "*.h" -o -iname "*.cpp" -o -iname "*.cu" \
   -o -iname "*.hpp" -o -iname "*.tpp" -o -iname "*.kernel" \
   -o -iname "*.loader" -o -iname "*.param" -o -iname "*.unitless" \
-  | xargs clang-format-11 -i
+  | xargs clang-format-12 -i
   ```
  
 Instead of using the bash command above you can use *Git* together with *ClangFormat* to format your patched code only. 
@@ -28,7 +28,7 @@ Before applying this command, you must extend your local git configuration **onc
 git config --local clangFormat.extensions def,h,cpp,cu,hpp,tpp,kernel,loader,param,unitless
 ```
 
-For only formatting lines you added using `git add`, call `git clang-format-11` before you create a commit.
+For only formatting lines you added using `git add`, call `git clang-format-12` before you create a commit.
 Please be aware that un-staged changes will not be formatted.
 
 Commit Messages
