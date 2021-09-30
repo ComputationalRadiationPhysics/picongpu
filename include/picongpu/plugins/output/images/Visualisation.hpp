@@ -789,10 +789,10 @@ namespace picongpu
 
             if(picongpu::white_box_per_GPU)
             {
-                hostBox[0][0] = float3_X(1.0, 1.0, 1.0);
-                hostBox[size.y() - 1][0] = float3_X(1.0, 1.0, 1.0);
-                hostBox[0][size.x() - 1] = float3_X(1.0, 1.0, 1.0);
-                hostBox[size.y() - 1][size.x() - 1] = float3_X(1.0, 1.0, 1.0);
+                hostBox({0, 0}) = float3_X(1.0, 1.0, 1.0);
+                hostBox({0, size.y() - 1}) = float3_X(1.0, 1.0, 1.0);
+                hostBox({size.x() - 1, 0}) = float3_X(1.0, 1.0, 1.0);
+                hostBox({size.x() - 1, size.y() - 1}) = float3_X(1.0, 1.0, 1.0);
             }
             auto resultBox = gather(hostBox, *header);
             if(isMaster)
