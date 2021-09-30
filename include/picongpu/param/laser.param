@@ -599,6 +599,97 @@ namespace picongpu
                 static constexpr PolarisationType Polarisation = LINEAR_X;
             };
 
+            struct PulseFromSpectrumParam
+            {
+                /** unit: meter */
+                static constexpr float_X WAVE_LENGTH_SI = 800.0e-9;
+
+                /** beam waist: distance from the axis where the pulse intensity (E^2)
+                 *              decreases to its 1/e^2-th part,
+                 *              at the focus position of the laser
+                 * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+                 *                             [   1.17741    ]
+                 *
+                 *  unit: meter */
+	            // -> 32 cells
+                static constexpr float_X W0_SI = 3.0e-6;
+
+                /** the distance to the laser focus in y-direction
+                 *  unit: meter */
+                static constexpr float_X FOCUS_POS_SI = 0.0e-6;
+
+	            /* unit: second^2 */
+	            static constexpr float_64 GDD_SI = 0.0 * 1.0e-15 * 1.0e-15;
+
+	            /* unit: second^3 */
+	            static constexpr float_64 TOD_SI = 0.0 * 1.0e-15 * 1.0e-15 * 1.0e-15;
+
+                 /** Convert the normalized laser strength parameter a0 to Volt per meter */
+                static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                    * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
+                    * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+
+                /** unit: W / m^2 */
+                // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
+
+                /** unit: none */
+                static constexpr float_64 _A0  = 1.5;
+
+                /** unit: Volt / meter */
+                static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                /** unit: Volt / meter */
+                // static constexpr float_64 AMPLITUDE_SI = 1.738e13;
+
+                /** Pulse length: sigma of std. gauss for intensity (E^2)
+                 *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                 *                                          [    2.354820045     ]
+                 *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                 *                      = what a experimentalist calls "pulse duration"
+                 *  unit: seconds (1 sigma) */
+                static constexpr float_64 PULSE_LENGTH_SI = 30.0e-15;
+
+                /** cell number in y direction where the laser is initialized
+                 *
+                 * if `initPlaneY == 0` than the absorber are disabled.
+                 * if `initPlaneY > absorbercells negative Y` the negative absorber in y
+                 * direction is enabled
+                 *
+                 * valid ranges:
+                 *   - initPlaneY == 0
+                 *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
+                 */
+                static constexpr uint32_t initPlaneY = 0;
+
+                /** laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+                 * the actual length of a laserPulse depends on the shape of the spectrum
+                 * PULSE_INIT have to be high enough to calculate the time dependent field
+                 * of the laser pulse correctly
+                 * as there is no analytical expression to calculate the actual length with
+                 * given GDD/TOD, one has to check if the laserPulse was represented correctly
+                 *  unit: none */
+                static constexpr float_64 PULSE_INIT = 32.0;
+
+                /** laser phase shift (no shift: 0.0)
+                 *
+                 * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
+                 *
+                 * unit: rad, periodic in 2*pi
+                 */
+                static constexpr float_X LASER_PHASE = 0.0;
+
+                /** Available polarization types
+                 */
+                enum PolarisationType
+                {
+                    LINEAR_X = 1u,
+                    LINEAR_Z = 2u,
+                };
+                /** Polarization selection
+                 */
+                static constexpr PolarisationType Polarisation = LINEAR_X;
+            };
+
             //! currently selected laser profile
             using Selected = None<>;
 
