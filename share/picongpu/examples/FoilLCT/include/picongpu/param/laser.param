@@ -32,6 +32,8 @@
  *                          focusing)
  *  - Polynom             : a polynomial laser envelope
  *  - ExpRampWithPrepulse : wavepacket with exponential upramps and prepulse
+ *  - PulseFromSpectrum   : Gaussian pulse allowing to set 2nd and 3rd order
+ *                          dispersion by spectral phase (GDD and TOD)
  *
  * In the end, this file needs to define a `Selected` class in namespace
  * `picongpu::fields::laserProfiles`. A typical profile consists of a
