@@ -83,29 +83,6 @@ namespace pmacc
         /* type of a single particle*/
         using ParticleType = pmacc::Particle<ThisType>;
 
-        /* define boost result_of results
-         * normaly result_of defines operator() result, in this case we define the result for
-         * operator[]
-         */
-        template<class>
-        struct result;
-
-        /* const operator[]*/
-        template<class F, class TKey>
-        struct result<const F(TKey)>
-        {
-            using Key = typename GetKeyFromAlias<ValueTypeSeq, TKey, errorHandlerPolicies::ThrowValueNotFound>::type;
-            using type = typename boost::result_of<const BaseType(Key)>::type;
-        };
-
-        /* non const operator[]*/
-        template<class F, class TKey>
-        struct result<F(TKey)>
-        {
-            using Key = typename GetKeyFromAlias<ValueTypeSeq, TKey, errorHandlerPolicies::ThrowValueNotFound>::type;
-            using type = typename boost::result_of<BaseType(Key)>::type;
-        };
-
         /** access the Nth particle*/
         HDINLINE ParticleType operator[](const uint32_t idx)
         {
@@ -125,17 +102,17 @@ namespace pmacc
          * @return result of operator[] of MapTupel
          */
         template<typename T_Key>
-        HDINLINE typename boost::result_of<ThisType(T_Key)>::type getIdentifier(const T_Key)
+        HDINLINE auto& getIdentifier(const T_Key)
         {
-            using Key = typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type;
+            using Key = typename GetKeyFromAlias<ValueTypeSeq, T_Key, errorHandlerPolicies::ThrowValueNotFound>::type;
             return BaseType::operator[](Key());
         }
 
         /** const version of method getIdentifier(const T_Key) */
         template<typename T_Key>
-        HDINLINE typename boost::result_of<const ThisType(T_Key)>::type getIdentifier(const T_Key) const
+        HDINLINE const auto& getIdentifier(const T_Key) const
         {
-            using Key = typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type;
+            using Key = typename GetKeyFromAlias<ValueTypeSeq, T_Key, errorHandlerPolicies::ThrowValueNotFound>::type;
             return BaseType::operator[](Key());
         }
 

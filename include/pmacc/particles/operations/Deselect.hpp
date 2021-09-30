@@ -39,7 +39,6 @@ namespace pmacc
             {
                 /* functor for deselect attributes of an object
                  *
-                 * - must be boost result_of compatible
                  * - must define a operator()(T_Object)
                  *
                  * @tparam T_Sequence any boost mpl sequence
@@ -51,9 +50,7 @@ namespace pmacc
             } // namespace detail
 
             template<typename T_Exclude, typename T_Object>
-            HDINLINE
-                typename boost::result_of<detail::Deselect<typename ToSeq<T_Exclude>::type, T_Object>(T_Object)>::type
-                deselect(T_Object& object)
+            HDINLINE decltype(auto) deselect(T_Object& object)
             {
                 using DeselectSeq = typename ToSeq<T_Exclude>::type;
                 using BaseType = detail::Deselect<DeselectSeq, T_Object>;

@@ -128,9 +128,7 @@ namespace pmacc
          * @return result of operator[] of the Frame
          */
         template<typename T_Key>
-        HDINLINE typename boost::result_of<
-            typename std::remove_reference_t<typename boost::result_of<FrameType(T_Key)>::type>(uint32_t)>::type
-        operator[](const T_Key key)
+        HDINLINE auto& operator[](const T_Key key)
         {
             PMACC_CASSERT_MSG_TYPE(key_not_available, T_Key, traits::HasIdentifier<Particle, T_Key>::type::value);
 
@@ -139,9 +137,7 @@ namespace pmacc
 
         /** const version of method operator(const T_Key) */
         template<typename T_Key>
-        HDINLINE typename boost::result_of<
-            typename std::remove_reference_t<typename boost::result_of<const FrameType(T_Key)>::type>(uint32_t)>::type
-        operator[](const T_Key key) const
+        HDINLINE const auto& operator[](const T_Key key) const
         {
             PMACC_CASSERT_MSG_TYPE(key_not_available, T_Key, traits::HasIdentifier<Particle, T_Key>::type::value);
 
@@ -271,15 +267,6 @@ namespace pmacc
                     using NewValueTypeSeq = typename RemoveFromSeq<ValueTypeSeq, ResolvedSeqWithObjectsToRemove>::type;
                     /* new particle type*/
                     using ResultType = pmacc::Particle<FrameType, NewValueTypeSeq>;
-
-                    template<class>
-                    struct result;
-
-                    template<class F, class T_Obj>
-                    struct result<F(T_Obj)>
-                    {
-                        using type = ResultType;
-                    };
 
                     HDINLINE
                     ResultType operator()(const ParticleType& particle)

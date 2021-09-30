@@ -103,21 +103,6 @@ namespace pmacc
             static constexpr int dim = bmpl::size<Map>::type::value;
             using Base = InheritLinearly<T_Map, T_PodType>;
 
-            template<class>
-            struct result;
-
-            template<class T_F, class T_Key>
-            struct result<T_F(T_Key)>
-            {
-                using type = typename bmpl::at<Map, T_Key>::type&;
-            };
-
-            template<class T_F, class T_Key>
-            struct result<const T_F(T_Key)>
-            {
-                using type = const typename bmpl::at<Map, T_Key>::type&;
-            };
-
             /** access a datum with a key
              *
              * @tparam T_Key key type
@@ -125,13 +110,13 @@ namespace pmacc
              * @{
              */
             template<typename T_Key>
-            HDINLINE typename boost::result_of<MapTuple(T_Key)>::type operator[](const T_Key& key)
+            HDINLINE auto& operator[](const T_Key& key)
             {
                 return (*(static_cast<T_PodType<bmpl::pair<T_Key, typename bmpl::at<Map, T_Key>::type>>*>(this)))[key];
             }
 
             template<typename T_Key>
-            HDINLINE typename boost::result_of<const MapTuple(T_Key)>::type operator[](const T_Key& key) const
+            HDINLINE const auto& operator[](const T_Key& key) const
             {
                 return (*(
                     static_cast<const T_PodType<bmpl::pair<T_Key, typename bmpl::at<Map, T_Key>::type>>*>(this)))[key];
@@ -145,16 +130,13 @@ namespace pmacc
              * @{
              */
             template<int T_i>
-            HDINLINE typename boost::result_of<MapTuple(typename bmpl::at<Map, bmpl::int_<T_i>>::type::first)>::type
-            at()
+            HDINLINE auto& at()
             {
                 return (*this)[typename bmpl::at<Map, bmpl::int_<T_i>>::type::first()];
             }
 
             template<int T_i>
-            HDINLINE
-                typename boost::result_of<const MapTuple(typename bmpl::at<Map, bmpl::int_<T_i>>::type::first)>::type
-                at() const
+            HDINLINE const auto& at() const
             {
                 return (*this)[typename bmpl::at<Map, bmpl::int_<T_i>>::type::first()];
             }

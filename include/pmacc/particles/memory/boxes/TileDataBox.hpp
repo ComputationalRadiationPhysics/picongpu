@@ -35,21 +35,6 @@ namespace pmacc
         using BaseType = DataBox<PitchedBox<TYPE, 1U>>;
         using type = TYPE;
 
-        template<class>
-        struct result;
-
-        template<class F, typename T>
-        struct result<F(T)>
-        {
-            using type = TYPE&;
-        };
-
-        template<class F, typename T>
-        struct result<const F(T)>
-        {
-            using type = const TYPE&;
-        };
-
         HDINLINE VectorDataBox(TYPE* pointer, const DataSpace<DIM1>& offset = {})
             : BaseType(BaseType(PitchedBox<TYPE, DIM1>(pointer)).shift(offset))
         {

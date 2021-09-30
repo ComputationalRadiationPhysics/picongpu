@@ -51,16 +51,6 @@ namespace picongpu
             using PosType = pmacc::math::Vector<float_X, T_simDim>;
             using ReturnType = const pmacc::math::Vector<PosType, DIM3>;
 
-            /// boost::result_of hints
-            template<class>
-            struct result;
-
-            template<class F>
-            struct result<F()>
-            {
-                using type = ReturnType;
-            };
-
             HDINLINE FieldPosition()
             {
             }
@@ -93,15 +83,6 @@ namespace picongpu
              *  @tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
              */
             using VectorVector2D3V = const ::pmacc::math::Vector<float2_X, DIM3>;
-            /// boost::result_of hints
-            template<class>
-            struct result;
-
-            template<class F>
-            struct result<F()>
-            {
-                using type = VectorVector2D3V;
-            };
 
             HDINLINE FieldPosition()
             {
@@ -126,15 +107,6 @@ namespace picongpu
              *  @tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
              */
             using VectorVector3D3V = const ::pmacc::math::Vector<float3_X, DIM3>;
-            /// boost::result_of hints
-            template<class>
-            struct result;
-
-            template<class F>
-            struct result<F()>
-            {
-                using type = VectorVector3D3V;
-            };
 
             HDINLINE FieldPosition()
             {
@@ -159,16 +131,6 @@ namespace picongpu
         {
             using FieldPos = pmacc::math::Vector<float_X, T_simDim>;
             using ReturnType = pmacc::math::Vector<FieldPos, DIM1>;
-
-            /// boost::result_of hints
-            template<class>
-            struct result;
-
-            template<class F>
-            struct result<F()>
-            {
-                using type = ReturnType;
-            };
 
             HDINLINE FieldPosition()
             {
