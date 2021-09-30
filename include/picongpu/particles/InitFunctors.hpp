@@ -1,4 +1,4 @@
-/* Copyright 2014-2021 Rene Widera
+/* Copyright 2014-2021 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -46,21 +46,46 @@ namespace picongpu
 {
     namespace particles
     {
-        /** Create particle distribution from a normalized density profile
+        /** Sample macroparticles according to the given spatial density profile
          *
-         * Create particles inside a species. The created particles are macroscopically
-         * distributed according to a given normalized density profile
-         * (`T_DensityFunctor`). Their microscopic position inside individual cells is
-         * determined by the `T_PositionFunctor`.
+         * Create macroparticles inside a species.
+         *
+         * This function only concerns the number of macroparticles, positions, and weighting.
+         * So it basically performs sampling in the coordinate space, while not initializing other attributes.
+         * When needed, those should be set (for then-existing macroparticles) by subsequently calling Manipulate.
+         *
+         * User input to this functor is two-fold.
+         * T_DensityFunctor represents spatial density of real particles, normalized according to our requirements.
+         * It describes the physical setup being simulated and only deals with real, not macro-, particles.
+         * T_PositionFunctor is more of a PIC simulation parameter.
+         * It defines how real particles in each cell will be represented with macroparticles.
+         * This concerns the count, weighting, and in-cell positions of the created macroparticles.
+         *
+         * The sampling process operates independently for each cell, as follows:
+         *    - Evaluate the amount of real particles in the cell, Nr, using T_DensityFunctor.
+         *    - If Nr > 0, decide how to represent it with macroparticles using T_PositionFunctor:
+         *        - (For simplicity we describe how all currently used functors operate, see below for customization)
+         *        - Try to have exactly T_PositionFunctor::numParticlesPerCell macroparticles
+         *          with same weighting w = Nr / T_PositionFunctor::numParticlesPerCell.
+         *        - If such w < MIN_WEIGHTING, instead use fewer macroparticles and higher weighting.
+         *        - In any case the combined weighting of all new macroparticles will match Nr.
+         *    - Create the selected number of macroparticles with selected weighting.
+         *    - Set in-cell positions according to T_PositionFunctor.
+         *
+         * In principle, one could override the logic inside the (If Nr > 0) block by implementing a custom functor.
+         * Then one could have an arbitrary number of macroparticles and weight distribution between them.
+         * The only requirement is that together it matches Nr.
+         * However, the description above holds for all preset position functors provided by PIConGPU.
+         * Note that in this scheme almost all non-vacuum cells will start with the same number of macroparticles.
+         * Having a higher density in a cell would mean larger weighting, but not more macroparticles.
          *
          * @note FillAllGaps is automatically called after creation.
          *
          * @tparam T_DensityFunctor unary lambda functor with profile description,
          *                          see density.param,
          *                          example: picongpu::particles::densityProfiles::Homogenous
-         * @tparam T_PositionFunctor unary lambda functor with position description,
-         *                           see particle.param,
-         *                           examples: picongpu::particles::startPosition::Quiet,
+         * @tparam T_PositionFunctor unary lambda functor with position description and number of macroparticles per
+         * cell, see particle.param, examples: picongpu::particles::startPosition::Quiet,
          *                                     picongpu::particles::startPosition::Random
          * @tparam T_SpeciesType type or name as boost::mpl::string of the used species,
          *                       see speciesDefinition.param
