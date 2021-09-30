@@ -644,17 +644,20 @@ namespace picongpu
             auto const mapper = mapperFactory(*this->m_cellDescription);
             auto grid = mapper.getGridDim();
 
-            pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
-            particles::boundary::getInternalCellsTotal(
+            /* Here we only process the particles that just crossed the boundary,
+             * so the active area for the kernel is the outside area wrt the boundary
+             */
+            pmacc::DataSpace<simDim> beginExternalCellsTotal, endExternalCellsTotal;
+            particles::boundary::getExternalCellsTotal(
                 *particles,
                 direction,
-                &beginInternalCellsTotal,
-                &endInternalCellsTotal);
+                &beginExternalCellsTotal,
+                &endExternalCellsTotal);
             SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
             pmacc::DataSpace<simDim> shiftTotaltoLocal
                 = subGrid.getGlobalDomain().offset + subGrid.getLocalDomain().offset;
-            auto const beginInternalCellsLocal = beginInternalCellsTotal - shiftTotaltoLocal;
-            auto const endInternalCellsLocal = endInternalCellsTotal - shiftTotaltoLocal;
+            auto const beginExternalCellsLocal = beginExternalCellsTotal - shiftTotaltoLocal;
+            auto const endExternalCellsLocal = endExternalCellsTotal - shiftTotaltoLocal;
 
             constexpr uint32_t numWorkers
                 = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
@@ -665,8 +668,8 @@ namespace picongpu
                 particles->getDeviceParticlesBox(),
                 (MyCalorimeterFunctor) * this->calorimeterFunctor,
                 mapper,
-                beginInternalCellsLocal,
-                endInternalCellsLocal,
+                beginExternalCellsLocal,
+                endExternalCellsLocal,
                 std::placeholders::_1);
 
             meta::ForEach<typename Help::EligibleFilters, plugins::misc::ExecuteIfNameIsEqual<bmpl::_1>>{}(

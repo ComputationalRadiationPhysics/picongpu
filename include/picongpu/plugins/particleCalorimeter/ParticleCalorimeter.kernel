@@ -44,9 +44,9 @@ namespace picongpu
          * @param alpaka accelerator
          * @param particlesBox particle memory
          * @param mapper functor to map a block to a supercell
-         * @param beginInternalCellsLocal only process particles with local domain cell index >=
-         * beginInternalCellsLocal
-         * @param endInternalCellsLocal only process particles with local domain cell index < endInternalCellsLocal
+         * @param beginCellIdxLocal only process particles with local domain cell index >=
+         * beginCellIdxLocal
+         * @param endCellIdxLocal only process particles with local domain cell index < endCellIdxLocal
          */
         template<
             typename T_ParticlesBox,
@@ -59,8 +59,8 @@ namespace picongpu
             T_ParticlesBox particlesBox,
             T_CalorimeterFunctor calorimeterFunctor,
             T_Mapper mapper,
-            pmacc::DataSpace<simDim> beginInternalCellsLocal,
-            pmacc::DataSpace<simDim> endInternalCellsLocal,
+            pmacc::DataSpace<simDim> beginCellIdxLocal,
+            pmacc::DataSpace<simDim> endCellIdxLocal,
             T_Filter filter) const
         {
             constexpr uint32_t numWorkers = T_numWorkers;
@@ -107,8 +107,7 @@ namespace picongpu
                             = DataSpaceOperations<simDim>::template map<SuperCellSize>(particle[localCellIdx_]);
                         auto const localCell = blockStartCellLocal + cellInSuperCell;
                         for(uint32_t d = 0; d < simDim; d++)
-                            if((localCell[d] < beginInternalCellsLocal[d])
-                               || (localCell[d] >= endInternalCellsLocal[d]))
+                            if((localCell[d] < beginCellIdxLocal[d]) || (localCell[d] >= endCellIdxLocal[d]))
                                 return;
                         calorimeterFunctor(acc, particlesFrame, linearIdx);
                     }
