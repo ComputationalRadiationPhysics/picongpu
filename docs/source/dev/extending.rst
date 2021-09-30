@@ -35,9 +35,9 @@ These classes define the interface of all PIConGPU plugins.
 The methods that most plugins want to override are:
 
 * ``pluginRegisterHelp()`` adds command-line options for the plugin. In case a plugin introduces some new compile-time parameters, they are normally put to a new ``.param`` file.
-* ``pluginGetName()`` sets a text name for the plugin.
-* ``pluginLoad()`` initializes internal data of the plugin after the command-line arguments are submitted. Note that a constructor of the plugin class would be called before that and so often cannot do a full initialization.
-* ``pluginUnload()`` finalizes internal data if necessary
+* ``pluginGetName()`` sets a text name for the plugin, used to report errors currently. 
+* ``pluginLoad()`` initializes internal data of the plugin after the command-line arguments are submitted. Note that a constructor of the plugin class would be called before that and so often cannot do a full initialization. Is called once upon simulation start.
+* ``pluginUnload()`` finalizes internal data if necessary, is called once at the end of the simulation.
 * ``setMappingDescription()`` is used to pass simulation data to be used in kernels
 * ``notify()`` runs the plugin for the given time iteration. This method implements the computational logic of the plugin. It often involves calling an internal algorithm or writing an own kernel. Those are described in the following sections.
 * ``checkpoint()`` saves plugin internal data for checkpointing if necessary
