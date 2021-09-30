@@ -118,8 +118,8 @@ namespace pmacc
         DataBoxType getDataBox() override
         {
             __startOperation(ITask::TASK_DEVICE);
-            return DataBoxType(
-                PitchedBox<TYPE, DIM>((TYPE*) data.ptr, offset, this->getPhysicalMemorySize(), data.pitch));
+            return DataBoxType(PitchedBox<TYPE, DIM>((TYPE*) data.ptr, this->getPhysicalMemorySize(), data.pitch))
+                .shift(offset);
         }
 
         TYPE* getPointer() override

@@ -138,7 +138,6 @@ namespace pmacc
             __startOperation(ITask::TASK_HOST);
             return DataBoxType(PitchedBox<TYPE, DIM>(
                 pointer,
-                DataSpace<DIM>(),
                 this->getPhysicalMemorySize(),
                 this->getPhysicalMemorySize()[0] * sizeof(TYPE)));
         }

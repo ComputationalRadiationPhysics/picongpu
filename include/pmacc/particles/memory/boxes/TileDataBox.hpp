@@ -50,8 +50,8 @@ namespace pmacc
             using type = const TYPE&;
         };
 
-        HDINLINE VectorDataBox(TYPE* pointer, const DataSpace<DIM1>& offset = DataSpace<DIM1>(0))
-            : BaseType(PitchedBox<TYPE, DIM1>(pointer, offset))
+        HDINLINE VectorDataBox(TYPE* pointer, const DataSpace<DIM1>& offset = {})
+            : BaseType(BaseType(PitchedBox<TYPE, DIM1>(pointer)).shift(offset))
         {
         }
 

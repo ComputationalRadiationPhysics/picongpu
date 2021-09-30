@@ -47,8 +47,9 @@ namespace pmacc
          * @param offset relative offset to pointer start address
          * @param currentSize size of the buffer data points to
          */
-        HDINLINE PushDataBox(VALUE* data, TYPE* currentSize, DataSpace<DIM1> offset = DataSpace<DIM1>(0))
-            : DataBox<PitchedBox<VALUE, DIM1>>(PitchedBox<VALUE, DIM1>(data, offset))
+        HDINLINE PushDataBox(VALUE* data, TYPE* currentSize, DataSpace<DIM1> offset = {})
+            : DataBox<PitchedBox<VALUE, DIM1>>(
+                DataBox<PitchedBox<VALUE, DIM1>>{PitchedBox<VALUE, DIM1>(data)}.shift(offset))
             , currentSize(currentSize)
             , maxSize(0) /*\todo implement max size*/
         {
