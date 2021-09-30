@@ -100,7 +100,9 @@ namespace picongpu
                             if(offset < 0)
                                 throw std::runtime_error(
                                     "Negative boundary offset " + errorString + " is not supported");
+                            
                             T_Species::boundaryDescription()[d].offset = offset;
+                            
                             if(kindName == "reflecting")
                             {
                                 if(T_Species::boundaryDescription()[d].kind == particles::boundary::Kind::Periodic)
@@ -108,7 +110,13 @@ namespace picongpu
                                         "Boundary kind " + errorString + " is not compatible with --periodic value");
                                 T_Species::boundaryDescription()[d].kind = particles::boundary::Kind::Reflecting;
                             }
-
+                            if(kindName == "thermal")
+                            {
+                                if(T_Species::boundaryDescription()[d].kind == particles::boundary::Kind::Periodic)
+                                    throw std::runtime_error(
+                                        "Boundary kind " + errorString + " is not compatible with --thermal value");
+                                T_Species::boundaryDescription()[d].kind = particles::boundary::Kind::Thermal;
+                            }
                             if(kindName == "periodic")
                             {
                                 // For now it must match the default-set boundary kind
