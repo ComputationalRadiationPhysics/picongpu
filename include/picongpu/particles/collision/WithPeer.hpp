@@ -106,7 +106,8 @@ namespace picongpu
 
                     using PeerSpecies = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_PeerSpecies>;
 
-                    using CollisionFunctor = typename bmpl::apply2<T_CollisionFunctor, BaseSpecies, PeerSpecies>::type;
+                    using CollisionFunctor =
+                        typename boost::mpl::apply2<T_CollisionFunctor, BaseSpecies, PeerSpecies>::type;
 
                     detail::WithPeer<CollisionFunctor, T_FilterPair, BaseSpecies, PeerSpecies, colliderId, pairId>{}(
                         deviceHeap,

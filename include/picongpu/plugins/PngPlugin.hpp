@@ -30,8 +30,6 @@
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
-#include <boost/mpl/and.hpp>
-
 #include <list>
 #include <memory>
 #include <stdexcept>

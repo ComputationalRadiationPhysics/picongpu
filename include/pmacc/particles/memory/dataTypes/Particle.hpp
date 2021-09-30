@@ -37,13 +37,7 @@
 #include "pmacc/traits/HasIdentifier.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/back_inserter.hpp>
-#include <boost/mpl/contains.hpp>
-#include <boost/mpl/copy_if.hpp>
-#include <boost/mpl/if.hpp>
-#include <boost/mpl/is_sequence.hpp>
-#include <boost/mpl/not.hpp>
-#include <boost/mpl/remove_if.hpp>
+#include <boost/mpl/placeholders.hpp>
 
 #include <type_traits>
 
@@ -166,7 +160,7 @@ namespace pmacc
              */
             using SolvedAliasName = typename GetKeyFromAlias<ValueTypeSeq, T_Key>::type;
 
-            using type = bmpl::contains<ValueTypeSeq, SolvedAliasName>;
+            using type = mp_contains<ValueTypeSeq, SolvedAliasName>;
         };
 
         template<typename T_Key, typename T_FrameType, typename T_ValueTypeSeq>
@@ -208,20 +202,14 @@ namespace pmacc
                     using DestTypeSeq = typename Dest::ValueTypeSeq;
                     using SrcTypeSeq = typename Src::ValueTypeSeq;
 
+                    /* create sequences with disjunct attributes from `DestTypeSeq` */
+                    using UniqueInDestTypeSeq = mp_set_difference<DestTypeSeq, SrcTypeSeq>;
+
                     /* create attribute list with a subset of common attributes in two sequences
-                     * bmpl::contains has lower complexity than traits::HasIdentifier
+                     * mp_contains has lower complexity than traits::HasIdentifier
                      * and was used for this reason
                      */
-                    using CommonTypeSeq = typename bmpl::copy_if<
-                        DestTypeSeq,
-                        bmpl::contains<SrcTypeSeq, bmpl::_1>,
-                        bmpl::back_inserter<bmpl::vector0<>>>::type;
-
-                    /* create sequences with disjunct attributes from `DestTypeSeq` */
-                    using UniqueInDestTypeSeq = typename bmpl::copy_if<
-                        DestTypeSeq,
-                        bmpl::not_<bmpl::contains<SrcTypeSeq, bmpl::_1>>,
-                        bmpl::back_inserter<bmpl::vector0<>>>::type;
+                    using CommonTypeSeq = mp_set_difference<DestTypeSeq, UniqueInDestTypeSeq>;
 
                     /** Assign particle attributes
                      *
@@ -238,11 +226,11 @@ namespace pmacc
                     {
                         using pmacc::meta::ForEach;
                         /* assign attributes from src to dest*/
-                        ForEach<CommonTypeSeq, CopyIdentifier<bmpl::_1>> copy;
+                        ForEach<CommonTypeSeq, CopyIdentifier<boost::mpl::_1>> copy;
                         copy(dest, src);
 
                         /* set all attributes which are not in src to their default value*/
-                        ForEach<UniqueInDestTypeSeq, SetAttributeToDefault<bmpl::_1>> setAttributeToDefault;
+                        ForEach<UniqueInDestTypeSeq, SetAttributeToDefault<boost::mpl::_1>> setAttributeToDefault;
                         setAttributeToDefault(dest);
                     };
                 };

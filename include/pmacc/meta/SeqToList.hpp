@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Rene Widera
+/* Copyright 2013-2022 Rene Widera, Bernhard Manfred Gruber
  *
  * This file is part of PMacc.
  *
@@ -19,33 +19,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "pmacc/meta/conversion/ToSeq.hpp"
+#include "Mp11.hpp"
 
-#include <boost/mpl/back_inserter.hpp>
 #include <boost/mpl/copy.hpp>
-#include <boost/mpl/front_inserter.hpp>
-#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {
-    /** Join both input types to one boost mpl sequence
-     *
-     * @tparam T_1 a boost mpl sequence or single type
-     * @tparam T_2 a boost mpl sequence or single type
-     */
-
-    template<typename T_1, typename T_2 = bmpl::vector0<>>
-    struct JoinToSeq
+    namespace meta
     {
-    private:
-        using Seq1 = typename ToSeq<T_1>::type;
-        using Seq2 = typename ToSeq<T_2>::type;
-
-    public:
-        using type = typename bmpl::copy<Seq2, bmpl::back_inserter<Seq1>>::type;
-    };
-
+        namespace detail
+        {
+            template<typename Seq>
+            using SeqToList = typename boost::mpl::copy<Seq, boost::mpl::back_inserter<mp_list<>>>::type;
+        } // namespace detail
+    } // namespace meta
 } // namespace pmacc

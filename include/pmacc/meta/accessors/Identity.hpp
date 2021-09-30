@@ -24,7 +24,7 @@
 
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/identity.hpp>
+#include <boost/mpl/placeholders.hpp>
 
 namespace pmacc
 {
@@ -37,9 +37,10 @@ namespace pmacc
              * @tparam T in type
              *
              */
-            template<typename T = bmpl::_1>
-            struct Identity : bmpl::identity<T>
+            template<typename T = boost::mpl::_1>
+            struct Identity
             {
+                using type = T;
             };
 
         } // namespace accessors

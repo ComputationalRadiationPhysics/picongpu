@@ -37,17 +37,25 @@
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/traits/GetUniqueTypeId.hpp>
 
-#include <boost/mpl/accumulate.hpp>
-
 #include <cstdint>
 #include <memory>
 #include <type_traits>
-
 
 namespace picongpu
 {
     namespace fields
     {
+        template<typename A, typename B>
+        using LowerMarginInterpolationOp =
+            typename pmacc::math::CT::max<A, typename GetLowerMargin<typename GetInterpolation<B>::type>::type>::type;
+        template<typename A, typename B>
+        using UpperMarginInterpolationOp =
+            typename pmacc::math::CT::max<A, typename GetUpperMargin<typename GetInterpolation<B>::type>::type>::type;
+        template<typename A, typename B>
+        using LowerMarginOp = typename pmacc::math::CT::max<A, typename GetLowerMarginPusher<B>::type>::type;
+        template<typename A, typename B>
+        using UpperMarginOp = typename pmacc::math::CT::max<A, typename GetUpperMarginPusher<B>::type>::type;
+
         template<typename T_DerivedField>
         EMFieldBase<T_DerivedField>::EMFieldBase(MappingDesc const& cellDescription, pmacc::SimulationDataId const& id)
             : SimulationFieldHelper<MappingDesc>(cellDescription)
@@ -57,14 +65,15 @@ namespace picongpu
 
             using VectorSpeciesWithInterpolation =
                 typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, interpolation<>>::type;
-            using LowerMarginInterpolation = bmpl::accumulate<
+
+            using LowerMarginInterpolation = pmacc::mp_fold<
                 VectorSpeciesWithInterpolation,
                 typename pmacc::math::CT::make_Int<simDim, 0>::type,
-                pmacc::math::CT::max<bmpl::_1, GetLowerMargin<GetInterpolation<bmpl::_2>>>>::type;
-            using UpperMarginInterpolation = bmpl::accumulate<
+                LowerMarginInterpolationOp>;
+            using UpperMarginInterpolation = pmacc::mp_fold<
                 VectorSpeciesWithInterpolation,
                 typename pmacc::math::CT::make_Int<simDim, 0>::type,
-                pmacc::math::CT::max<bmpl::_1, GetUpperMargin<GetInterpolation<bmpl::_2>>>>::type;
+                UpperMarginInterpolationOp>;
 
             /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
             using LowerMarginSolver = typename traits::GetLowerMargin<fields::Solver, DerivedField>::type;
@@ -80,15 +89,11 @@ namespace picongpu
             */
             using VectorSpeciesWithPusherAndInterpolation = typename pmacc::particles::traits::
                 FilterByFlag<VectorSpeciesWithInterpolation, particlePusher<>>::type;
-            using LowerMargin = typename bmpl::accumulate<
-                VectorSpeciesWithPusherAndInterpolation,
-                LowerMarginInterpolationAndSolver,
-                pmacc::math::CT::max<bmpl::_1, GetLowerMarginPusher<bmpl::_2>>>::type;
 
-            using UpperMargin = typename bmpl::accumulate<
-                VectorSpeciesWithPusherAndInterpolation,
-                UpperMarginInterpolationAndSolver,
-                pmacc::math::CT::max<bmpl::_1, GetUpperMarginPusher<bmpl::_2>>>::type;
+            using LowerMargin = pmacc::
+                mp_fold<VectorSpeciesWithPusherAndInterpolation, LowerMarginInterpolationAndSolver, LowerMarginOp>;
+            using UpperMargin = pmacc::
+                mp_fold<VectorSpeciesWithPusherAndInterpolation, UpperMarginInterpolationAndSolver, UpperMarginOp>;
 
             const DataSpace<simDim> originGuard(LowerMargin().toRT());
             const DataSpace<simDim> endGuard(UpperMargin().toRT());

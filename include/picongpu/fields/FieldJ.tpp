@@ -39,8 +39,6 @@
 #include <pmacc/traits/GetUniqueTypeId.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
-#include <boost/mpl/accumulate.hpp>
-
 #include <algorithm>
 #include <cstdint>
 #include <iostream>
@@ -51,6 +49,13 @@
 namespace picongpu
 {
     using namespace pmacc;
+
+    template<typename A, typename B>
+    using LowerMarginShapesOp =
+        typename pmacc::math::CT::max<A, typename GetLowerMargin<typename GetCurrentSolver<B>::type>::type>::type;
+    template<typename A, typename B>
+    using UpperMarginShapesOp =
+        typename pmacc::math::CT::max<A, typename GetUpperMargin<typename GetCurrentSolver<B>::type>::type>::type;
 
     FieldJ::FieldJ(MappingDesc const& cellDescription)
         : SimulationFieldHelper<MappingDesc>(cellDescription)
@@ -63,15 +68,10 @@ namespace picongpu
         using AllSpeciesWithCurrent =
             typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
 
-        using LowerMarginShapes = bmpl::accumulate<
-            AllSpeciesWithCurrent,
-            typename pmacc::math::CT::make_Int<simDim, 0>::type,
-            pmacc::math::CT::max<bmpl::_1, GetLowerMargin<GetCurrentSolver<bmpl::_2>>>>::type;
-
-        using UpperMarginShapes = bmpl::accumulate<
-            AllSpeciesWithCurrent,
-            typename pmacc::math::CT::make_Int<simDim, 0>::type,
-            pmacc::math::CT::max<bmpl::_1, GetUpperMargin<GetCurrentSolver<bmpl::_2>>>>::type;
+        using LowerMarginShapes = pmacc::
+            mp_fold<AllSpeciesWithCurrent, typename pmacc::math::CT::make_Int<simDim, 0>::type, LowerMarginShapesOp>;
+        using UpperMarginShapes = pmacc::
+            mp_fold<AllSpeciesWithCurrent, typename pmacc::math::CT::make_Int<simDim, 0>::type, UpperMarginShapesOp>;
 
         /* margins are always positive, also for lower margins
          * additional current interpolations and current filters on FieldJ might

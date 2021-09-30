@@ -45,7 +45,7 @@ namespace picongpu
          *
          * the functors are called in order (from first to last functor)
          */
-        using InitPipeline = bmpl::vector<
+        using InitPipeline = pmacc::mp_list<
             // Generate Densities
             CreateDensity<densityProfiles::Homogenous, startPosition::Center100ppc, ElectronsLess>,
             CreateDensity<densityProfiles::Homogenous, startPosition::Center1000ppc, ElectronsMore>,

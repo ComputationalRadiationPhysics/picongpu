@@ -21,21 +21,17 @@
 
 #pragma once
 
+#include "pmacc/meta/SeqToList.hpp"
 #include "pmacc/meta/accessors/Identity.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/copy.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/placeholders.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/transform.hpp>
+#include <boost/mpl/apply.hpp>
 
 namespace pmacc
 {
-    /** convert boost mpl sequence to a mpl map
+    /** convert boost mp11 list to a map
      *
-     * @tparam T_MPLSeq any boost mpl sequence
+     * @tparam T_MPLSeq any boost mp11 list
      * @tparam T_UnaryOperator unary operator to translate type from the sequence
      * to a mpl pair
      * @tparam T_Accessor An unary lambda operator which is used before the type
@@ -46,13 +42,10 @@ namespace pmacc
     struct SeqToMap
     {
         template<typename X>
-        struct Op : bmpl::apply1<T_UnaryOperator, typename bmpl::apply1<T_Accessor, X>::type>
-        {
-        };
+        using Op =
+            typename boost::mpl::apply1<T_UnaryOperator, typename boost::mpl::apply1<T_Accessor, X>::type>::type;
 
-        using MPLSeq = T_MPLSeq;
-        using Map_inserter = bmpl::inserter<bmpl::map<>, bmpl::insert<bmpl::_1, bmpl::_2>>;
-        using type = typename bmpl::transform<MPLSeq, Op<bmpl::_1>, Map_inserter>::type;
+        using ListOfTuples = mp_transform<Op, meta::detail::SeqToList<T_MPLSeq>>;
+        using type = mp_fold<ListOfTuples, mp_list<>, mp_map_insert>;
     };
-
 } // namespace pmacc

@@ -744,7 +744,7 @@ The operations result in this ``speciesInitialization.param``:
 
 .. code:: c++
 
-    using InitPipeline = bmpl::vector<
+    using InitPipeline = boost::mp11::mp_list<
         /**********************************/
         /* phase 1: create macroparticles */
         /**********************************/

@@ -30,7 +30,7 @@ namespace pmacc
         /** Returns the given type
          *  Binary meta function that takes any boost mpl sequence and a type
          */
-        template<typename T_ReturnType = bmpl::void_>
+        template<typename T_ReturnType = void>
         struct ReturnType
         {
             template<typename T_MPLSeq, typename T_Value>

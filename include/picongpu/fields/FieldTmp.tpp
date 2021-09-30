@@ -39,15 +39,24 @@
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/traits/GetUniqueTypeId.hpp>
 
-#include <boost/mpl/accumulate.hpp>
-
 #include <memory>
 #include <string>
-
 
 namespace picongpu
 {
     using namespace pmacc;
+
+    template<typename A, typename B>
+    using SpeciesLowerMarginOp =
+        typename pmacc::math::CT::max<A, typename GetLowerMargin<typename GetInterpolation<B>::type>::type>::type;
+    template<typename A, typename B>
+    using SpeciesUpperMarginOp =
+        typename pmacc::math::CT::max<A, typename GetUpperMargin<typename GetInterpolation<B>::type>::type>::type;
+
+    template<typename A, typename B>
+    using FieldTmpLowerMarginOp = typename pmacc::math::CT::max<A, typename GetLowerMargin<B>::type>::type;
+    template<typename A, typename B>
+    using FieldTmpUpperMarginOp = typename pmacc::math::CT::max<A, typename GetUpperMargin<B>::type>::type;
 
     FieldTmp::FieldTmp(MappingDesc const& cellDescription, uint32_t slotId)
         : SimulationFieldHelper<MappingDesc>(cellDescription)
@@ -79,15 +88,13 @@ namespace picongpu
             typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, interpolation<>>::type;
 
         /* ------------------ lower margin  ----------------------------------*/
-        using SpeciesLowerMargin = bmpl::accumulate<
+        using SpeciesLowerMargin = pmacc::mp_fold<
             VectorSpeciesWithInterpolation,
             typename pmacc::math::CT::make_Int<simDim, 0>::type,
-            pmacc::math::CT::max<bmpl::_1, GetLowerMargin<GetInterpolation<bmpl::_2>>>>::type;
+            SpeciesLowerMarginOp>;
 
-        using FieldTmpLowerMargin = bmpl::accumulate<
-            FieldTmpSolvers,
-            typename pmacc::math::CT::make_Int<simDim, 0>::type,
-            pmacc::math::CT::max<bmpl::_1, GetLowerMargin<bmpl::_2>>>::type;
+        using FieldTmpLowerMargin = pmacc::
+            mp_fold<FieldTmpSolvers, typename pmacc::math::CT::make_Int<simDim, 0>::type, FieldTmpLowerMarginOp>;
 
         using SpeciesFieldTmpLowerMargin = pmacc::math::CT::max<SpeciesLowerMargin, FieldTmpLowerMargin>::type;
 
@@ -98,15 +105,13 @@ namespace picongpu
 
         /* ------------------ upper margin  -----------------------------------*/
 
-        using SpeciesUpperMargin = bmpl::accumulate<
+        using SpeciesUpperMargin = pmacc::mp_fold<
             VectorSpeciesWithInterpolation,
             typename pmacc::math::CT::make_Int<simDim, 0>::type,
-            pmacc::math::CT::max<bmpl::_1, GetUpperMargin<GetInterpolation<bmpl::_2>>>>::type;
+            SpeciesUpperMarginOp>;
 
-        using FieldTmpUpperMargin = bmpl::accumulate<
-            FieldTmpSolvers,
-            typename pmacc::math::CT::make_Int<simDim, 0>::type,
-            pmacc::math::CT::max<bmpl::_1, GetUpperMargin<bmpl::_2>>>::type;
+        using FieldTmpUpperMargin = pmacc::
+            mp_fold<FieldTmpSolvers, typename pmacc::math::CT::make_Int<simDim, 0>::type, FieldTmpUpperMarginOp>;
 
         using SpeciesFieldTmpUpperMargin = pmacc::math::CT::max<SpeciesUpperMargin, FieldTmpUpperMargin>::type;
 

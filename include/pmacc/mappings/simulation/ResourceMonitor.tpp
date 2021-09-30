@@ -68,9 +68,9 @@ namespace pmacc
         T_MappingDesc& cellDescription,
         T_ParticleFilter& parFilter)
     {
-        using dim = bmpl::integral_c<unsigned int, T_DIM>;
+        using dim = std::integral_constant<unsigned int, T_DIM>;
         std::vector<size_t> particleCounts;
-        meta::ForEach<T_Species, MyCountParticles<dim, bmpl::_1>> countParticles;
+        meta::ForEach<T_Species, MyCountParticles<dim, boost::mpl::_1>> countParticles;
         countParticles(particleCounts, cellDescription, parFilter);
         return particleCounts;
     }

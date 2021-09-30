@@ -22,11 +22,8 @@
 
 #pragma once
 
-#include "pmacc/meta/conversion/JoinToSeq.hpp"
+#include "pmacc/meta/Mp11.hpp"
 #include "pmacc/meta/conversion/ToSeq.hpp"
-
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {
@@ -40,11 +37,7 @@ namespace pmacc
     template<typename T_In>
     struct MakeSeqFromNestedSeq
     {
-    private:
-        using Seq = typename ToSeq<T_In>::type;
-
-    public:
-        using type = typename bmpl::fold<Seq, bmpl::vector0<>, JoinToSeq<bmpl::_1, bmpl::_2>>::type;
+        using type = mp_flatten<typename ToSeq<T_In>::type>;
     };
 
 } // namespace pmacc

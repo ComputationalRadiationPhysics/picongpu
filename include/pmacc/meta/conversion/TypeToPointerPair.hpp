@@ -21,10 +21,8 @@
 
 #pragma once
 
+#include "pmacc/meta/Pair.hpp"
 #include "pmacc/types.hpp"
-
-#include <boost/mpl/pair.hpp>
-
 
 namespace pmacc
 {
@@ -59,16 +57,16 @@ namespace pmacc
         using type = TypeAsIdentifier<T_Type>;
     };
 
-    /** create boost mpl pair <TypeAsIdentifier<Type>,PointerOfType>
+    /** create pmacc::meta::Pair<TypeAsIdentifier<Type>,PointerOfType>
      *
      * @tparam T_Type any type
-     * @return ::type boost::mpl::pair<TypeAsIdentifier<Type>,PointerOfType>
+     * @return ::type pmacc::meta::Pair<TypeAsIdentifier<Type>,PointerOfType>
      */
     template<typename T_Type>
     struct TypeToPointerPair
     {
         using TypePtr = T_Type*;
-        using type = bmpl::pair<typename MakeIdentifier<T_Type>::type, TypePtr>;
+        using type = pmacc::meta::Pair<typename MakeIdentifier<T_Type>::type, TypePtr>;
     };
 
 } // namespace pmacc

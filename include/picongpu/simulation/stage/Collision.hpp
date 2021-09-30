@@ -54,7 +54,7 @@ namespace picongpu
                         uint32_t const& currentStep)
                     {
                         (particles::collision::CallCollider<
-                             typename bmpl::at_c<particles::collision::CollisionPipeline, I>::type,
+                             pmacc::mp_at_c<particles::collision::CollisionPipeline, I>,
                              I>{}(deviceHeap, currentStep),
                          ...);
                     }
@@ -161,11 +161,10 @@ namespace picongpu
                     // Calculate squared Debye length using the formula form [Perez 2012].
                     // A species temperature is assumed to be (2/3)<E_kin>
                     constexpr auto numScreeningSpecies
-                        = picongpu::particles::collision::CollisionScreeningSpecies::size::value;
+                        = pmacc::mp_size<picongpu::particles::collision::CollisionScreeningSpecies>::value;
                     if constexpr(numScreeningSpecies > 0u)
                     {
-                        constexpr size_t requiredSlots = bmpl::
-                            if_<bmpl::bool_<(numScreeningSpecies == 1u)>, bmpl::int_<2>, bmpl::int_<3>>::type::value;
+                        constexpr size_t requiredSlots = numScreeningSpecies == 1u ? 2 : 3;
 
                         PMACC_CASSERT_MSG(
                             _please_allocate_enough_FieldTmp_in_memory_param,
@@ -207,7 +206,7 @@ namespace picongpu
                         debug(currentStep, screeningLengthSquared);
                     }
                     // Call all colliders
-                    constexpr size_t numColliders = bmpl::size<particles::collision::CollisionPipeline>::type::value;
+                    constexpr size_t numColliders = pmacc::mp_size<particles::collision::CollisionPipeline>::value;
                     std::make_index_sequence<numColliders> indexColliders{};
                     collision::CallColliders{}(indexColliders, m_heap, currentStep);
                 }

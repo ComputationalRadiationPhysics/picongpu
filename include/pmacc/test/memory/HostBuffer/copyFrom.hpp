@@ -93,5 +93,5 @@ namespace pmacc
 TEST_CASE("HostBuffer::copyFrom", "[copyFrom]")
 {
     using namespace pmacc::test::memory::HostBuffer;
-    ::boost::mpl::for_each<Dims>(CopyFromTest());
+    ::pmacc::mp_for_each<Dims>(CopyFromTest());
 }

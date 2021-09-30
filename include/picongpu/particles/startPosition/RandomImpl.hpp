@@ -25,9 +25,6 @@
 #include "picongpu/particles/startPosition/detail/WeightMacroParticles.hpp"
 #include "picongpu/particles/startPosition/generic/FreeRng.def"
 
-#include <boost/mpl/integral_c.hpp>
-
-
 namespace picongpu
 {
     namespace particles

@@ -44,24 +44,20 @@ namespace picongpu
 
         namespace writeMeta
         {
-            /** write openPMD species meta data
+            /** write meta data for species
              *
-             * @tparam numSpecies count of defined species
+             * @param threadParams context of the openPMD plugin
+             * @param fullMeshesPath path to mesh entry
              */
-            template<uint32_t numSpecies = bmpl::size<VectorAllSpecies>::type::value>
-            struct OfAllSpecies
+            inline void ofAllSpecies(::openPMD::Series& series, uint32_t currentStep)
             {
-                /** write meta data for species
-                 *
-                 * @param threadParams context of the openPMD plugin
-                 * @param fullMeshesPath path to mesh entry
-                 */
-                void operator()(::openPMD::Series& series, uint32_t currentStep) const
+                if constexpr(!pmacc::mp_empty<VectorAllSpecies>::value)
                 {
                     /*
                      * @todo set boundary per species
                      */
-                    GetStringProperties<bmpl::at_c<VectorAllSpecies, 0>::type> particleBoundaryProp;
+                    GetStringProperties<pmacc::mp_front<pmacc::mp_push_back<VectorAllSpecies, void>>>
+                        particleBoundaryProp; // add `void` so mp_front will compile with empty VectorAllSpecies
                     std::vector<std::string> listParticleBoundary;
                     std::vector<std::string> listParticleBoundaryParam;
                     auto n = NumberOfExchanges<simDim>::value;
@@ -81,21 +77,7 @@ namespace picongpu
                     iteration.setAttribute("particleBoundary", listParticleBoundary);
                     iteration.setAttribute("particleBoundaryParameters", listParticleBoundaryParam);
                 }
-            };
-
-            /** specialization if no species are defined */
-            template<>
-            struct OfAllSpecies<0>
-            {
-                /** write meta data for species
-                 * Just accept any parameters since this is a no-op
-                 */
-                template<typename... Args>
-                void operator()(Args&&...) const
-                {
-                }
-            };
-
+            }
         } // namespace writeMeta
 
         struct WriteMeta
@@ -195,7 +177,7 @@ namespace picongpu
 
                 if(writeParticleMeta)
                 {
-                    writeMeta::OfAllSpecies<>()(series, currentStep);
+                    writeMeta::ofAllSpecies(series, currentStep);
 
                     GetStringProperties<fields::currentInterpolation::CurrentInterpolation> currentSmoothingProp;
                     const std::string currentSmoothing(currentSmoothingProp["name"].value);

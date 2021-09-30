@@ -69,6 +69,8 @@
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
+#include <pmacc/meta/AllCombinations.hpp>
+#include <pmacc/meta/SeqToList.hpp>
 
 #include <list>
 #include <memory>
@@ -111,12 +113,8 @@ namespace picongpu
              *                       with two components
              */
             template<typename T_TupleVector>
-            struct Apply
-                : bmpl::apply1<
-                      typename pmacc::math::CT::At<T_TupleVector, bmpl::int_<plugin>>::type,
-                      typename pmacc::math::CT::At<T_TupleVector, bmpl::int_<species>>::type>
-            {
-            };
+            using Apply = typename boost::mpl::
+                apply1<pmacc::mp_at_c<T_TupleVector, plugin>, pmacc::mp_at_c<T_TupleVector, species>>::type;
 
             /** Check the combination Species+Plugin in the Tuple
              *
@@ -125,15 +123,16 @@ namespace picongpu
             template<typename T_TupleVector>
             struct IsEligible
             {
-                using Species = typename pmacc::math::CT::At<T_TupleVector, bmpl::int_<species>>::type;
-                using Solver = typename pmacc::math::CT::At<T_TupleVector, bmpl::int_<plugin>>::type;
+                using Species = pmacc::mp_at_c<T_TupleVector, species>;
+                using Solver = pmacc::mp_at_c<T_TupleVector, plugin>;
 
-                using type = typename particles::traits::SpeciesEligibleForSolver<Species, Solver>::type;
+                static constexpr bool value
+                    = particles::traits::SpeciesEligibleForSolver<Species, Solver>::type::value;
             };
         };
 
         /* define stand alone plugins */
-        using StandAlonePlugins = bmpl::vector<
+        using StandAlonePlugins = pmacc::mp_list<
             Checkpoint,
             EnergyFields,
             ChargeConservation
@@ -154,39 +153,39 @@ namespace picongpu
 #endif
             >;
 
-        using AllFields = bmpl::vector<FieldB, FieldE, FieldJ>;
+        using AllFields = pmacc::mp_list<FieldB, FieldE, FieldJ>;
 
         /* define species plugins */
-        using UnspecializedSpeciesPlugins = bmpl::vector<
-            plugins::multi::Master<EnergyParticles<bmpl::_1>>,
-            plugins::multi::Master<CalcEmittance<bmpl::_1>>,
-            plugins::multi::Master<BinEnergyParticles<bmpl::_1>>,
-            CountParticles<bmpl::_1>,
-            PngPlugin<Visualisation<bmpl::_1, PngCreator>>,
-            plugins::transitionRadiation::TransitionRadiation<bmpl::_1>
+        using UnspecializedSpeciesPlugins = pmacc::mp_list<
+            plugins::multi::Master<EnergyParticles<boost::mpl::_1>>,
+            plugins::multi::Master<CalcEmittance<boost::mpl::_1>>,
+            plugins::multi::Master<BinEnergyParticles<boost::mpl::_1>>,
+            CountParticles<boost::mpl::_1>,
+            PngPlugin<Visualisation<boost::mpl::_1, PngCreator>>,
+            plugins::transitionRadiation::TransitionRadiation<boost::mpl::_1>
 #if ENABLE_OPENPMD
             ,
-            plugins::radiation::Radiation<bmpl::_1>
+            plugins::radiation::Radiation<boost::mpl::_1>
 #endif
 #if(ENABLE_OPENPMD == 1)
             ,
-            plugins::multi::Master<ParticleCalorimeter<bmpl::_1>>,
-            plugins::multi::Master<PhaseSpace<particles::shapes::Counter::ChargeAssignment, bmpl::_1>>
+            plugins::multi::Master<ParticleCalorimeter<boost::mpl::_1>>,
+            plugins::multi::Master<PhaseSpace<particles::shapes::Counter::ChargeAssignment, boost::mpl::_1>>
 #endif
 #if(ENABLE_OPENPMD == 1)
             ,
-            PerSuperCell<bmpl::_1>
+            PerSuperCell<boost::mpl::_1>
 #endif
             >;
 
-        using CombinedUnspecializedSpeciesPlugins =
-            typename AllCombinations<bmpl::vector<VectorAllSpecies, UnspecializedSpeciesPlugins>>::type;
+        using CombinedUnspecializedSpeciesPlugins
+            = pmacc::AllCombinations<VectorAllSpecies, UnspecializedSpeciesPlugins>;
 
-        using CombinedUnspecializedSpeciesPluginsEligible = typename bmpl::
-            copy_if<CombinedUnspecializedSpeciesPlugins, typename TupleSpeciesPlugin::IsEligible<bmpl::_1>>::type;
+        using CombinedUnspecializedSpeciesPluginsEligible
+            = pmacc::mp_copy_if<CombinedUnspecializedSpeciesPlugins, TupleSpeciesPlugin::IsEligible>;
 
-        using SpeciesPlugins = typename bmpl::
-            transform<CombinedUnspecializedSpeciesPluginsEligible, typename TupleSpeciesPlugin::Apply<bmpl::_1>>::type;
+        using SpeciesPlugins
+            = pmacc::mp_transform<TupleSpeciesPlugin::Apply, CombinedUnspecializedSpeciesPluginsEligible>;
 
         /* create sequence with all fully specialized plugins */
         using AllPlugins = MakeSeq_t<StandAlonePlugins, SpeciesPlugins>;
@@ -196,7 +195,7 @@ namespace picongpu
          */
         virtual void init()
         {
-            meta::ForEach<AllPlugins, PushBack<bmpl::_1>> pushBack;
+            meta::ForEach<AllPlugins, PushBack<boost::mpl::_1>> pushBack;
             pushBack(plugins);
         }
 

@@ -24,9 +24,11 @@
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/meta/Mp11.hpp>
 #include <pmacc/static_assert.hpp>
 
 #include <boost/fusion/include/mpl.hpp>
+#include <boost/mpl/vector.hpp>
 
 #define ISAAC_IDX_TYPE cupla::IdxType
 #include <boost/fusion/container/list.hpp>
@@ -34,8 +36,6 @@
 #include <boost/fusion/include/as_list.hpp>
 #include <boost/fusion/include/list.hpp>
 #include <boost/fusion/include/list_fwd.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/vector.hpp>
 
 #include <limits>
 
@@ -56,8 +56,7 @@ namespace picongpu
         public:
             static const size_t featureDim = 3;
             static const ISAAC_IDX_TYPE guardSize = 0;
-            // static const bool hasGuard = bmpl::not_<boost::is_same<FieldType, FieldJ>>::value;
-            static const bool persistent = bmpl::not_<boost::is_same<FieldType, FieldJ>>::value;
+            static const bool persistent = !std::is_same_v<FieldType, FieldJ>;
             typename FieldType::DataBoxType shifted;
             MappingDesc* cellDescription;
             TFieldSource() : cellDescription(nullptr)
@@ -174,7 +173,7 @@ namespace picongpu
         public:
             static const size_t featureDim = 3;
             static const ISAAC_IDX_TYPE guardSize = 0;
-            static const bool persistent = bmpl::not_<boost::is_same<FieldType, FieldJ>>::value;
+            static const bool persistent = !std::is_same_v<FieldType, FieldJ>;
             typename FieldType::DataBoxType shifted;
             MappingDesc* cellDescription;
             TVectorFieldSource() : cellDescription(nullptr)
@@ -349,21 +348,6 @@ namespace picongpu
             }
         };
 
-        template<typename T>
-        struct Transformoperator
-        {
-            typedef TFieldSource<T> type;
-        };
-        template<typename T>
-        struct VectorFieldTransformoperator
-        {
-            typedef TVectorFieldSource<T> type;
-        };
-        template<typename T>
-        struct ParticleTransformoperator
-        {
-            typedef ParticleSource<T> type;
-        };
 
         struct SourceInitIterator
         {
@@ -374,19 +358,19 @@ namespace picongpu
             }
         };
 
+        // Converts any variadic type list (e.g. mp11's mp_list<>) back to an MPL sequence and then to a fusion list,
+        // which is needed by isaac
+        template<typename L>
+        using ListForIsaac = typename boost::fusion::result_of::as_list<pmacc::mp_rename<L, boost::mpl::vector>>::type;
+
         class IsaacPlugin : public ILightweightPlugin
         {
         public:
             static const ISAAC_IDX_TYPE textureDim = 1024;
-            using SourceList = bmpl::
-                transform<boost::fusion::result_of::as_list<Fields_Seq>::type, Transformoperator<bmpl::_1>>::type;
-            using VectorFieldSourceList = bmpl::transform<
-                boost::fusion::result_of::as_list<VectorFields_Seq>::type,
-                VectorFieldTransformoperator<bmpl::_1>>::type;
-            // create compile time particle list
-            using ParticleList = bmpl::transform<
-                boost::fusion::result_of::as_list<Particle_Seq>::type,
-                ParticleTransformoperator<bmpl::_1>>::type;
+            using SourceList = ListForIsaac<pmacc::mp_transform<TFieldSource, Fields_Seq>>;
+            using VectorFieldSourceList = ListForIsaac<pmacc::mp_transform<TVectorFieldSource, VectorFields_Seq>>;
+            using ParticleList = ListForIsaac<pmacc::mp_transform<ParticleSource, Particle_Seq>>;
+
             using VisualizationType = IsaacVisualization<
                 cupla::AccHost,
                 cupla::Acc,
@@ -408,6 +392,7 @@ namespace picongpu
 #    endif
 #endif
                 >;
+
             std::unique_ptr<VisualizationType> visualization;
 
             static_assert(std::is_trivially_copyable<std::decay_t<VectorFieldSourceList>>::value);
@@ -790,7 +775,7 @@ namespace picongpu
                             = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
                         cellCount = localNrOfCells * numProc;
                         particleCount = localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL
-                            * (bmpl::size<VectorAllSpecies>::type::value) * numProc;
+                            * (pmacc::mp_size<VectorAllSpecies>::type::value) * numProc;
                         lastNotify = getTicksUs();
                         if(rank == 0)
                         {

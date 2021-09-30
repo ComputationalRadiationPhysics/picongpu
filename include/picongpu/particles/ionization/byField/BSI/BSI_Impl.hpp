@@ -53,9 +53,9 @@ namespace picongpu
              *
              * \brief Barrier Suppression Ionization - Implementation
              *
-             * @tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
+             * @tparam T_DestSpecies type or name as PMACC_CSTRING of the electron species to be created
              * @tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
-             * @tparam T_SrcSpecies type or name as boost::mpl::string of the particle species that is ionized
+             * @tparam T_SrcSpecies type or name as PMACC_CSTRING of the particle species that is ionized
              */
             template<
                 typename T_IonizationAlgorithm,
@@ -223,7 +223,7 @@ namespace picongpu
                      * - boundElectrons: because species other than ions or atoms do not have them
                      * (gets AUTOMATICALLY deselected because electrons do not have this attribute)
                      */
-                    auto targetElectronClone = partOp::deselect<bmpl::vector2<multiMask, momentum>>(childElectron);
+                    auto targetElectronClone = partOp::deselect<pmacc::mp_list<multiMask, momentum>>(childElectron);
 
                     partOp::assign(targetElectronClone, partOp::deselect<particleId>(parentIon));
 

@@ -201,11 +201,12 @@ namespace picongpu
                              */
                             {
                                 using ParticleAttrList = typename FrameType::ValueTypeSeq;
-                                using AttrToIgnore = bmpl::vector4<position<>, multiMask, localCellIdx, weighting>;
+                                using AttrToIgnore = pmacc::mp_list<position<>, multiMask, localCellIdx, weighting>;
                                 using ParticleCleanedAttrList =
                                     typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type;
 
-                                meta::ForEach<ParticleCleanedAttrList, SetAttributeToDefault<bmpl::_1>> setToDefault;
+                                meta::ForEach<ParticleCleanedAttrList, SetAttributeToDefault<boost::mpl::_1>>
+                                    setToDefault;
                                 setToDefault(particle);
                             }
                             particle[multiMask_] = 1;

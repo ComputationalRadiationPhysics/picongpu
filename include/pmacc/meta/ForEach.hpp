@@ -21,57 +21,15 @@
 
 #pragma once
 
+#include "pmacc/meta/SeqToList.hpp"
 #include "pmacc/meta/accessors/Identity.hpp"
 
 #include <boost/mpl/apply.hpp>
-#include <boost/mpl/begin_end.hpp>
-#include <boost/mpl/deref.hpp>
-#include <boost/mpl/transform.hpp>
 
 #include <type_traits>
-#include <utility>
-
 
 namespace pmacc::meta
 {
-    namespace detail
-    {
-        /** call the functor were itBegin points to
-         *
-         *  @tparam itBegin iterator to an element in a mpl sequence
-         *  @tparam itEnd iterator to the end of a mpl sequence
-         */
-        template<typename itBegin, typename itEnd>
-        struct CallFunctorOfIterator
-        {
-            using Functor = typename boost::mpl::deref<itBegin>::type;
-
-            PMACC_NO_NVCC_HDWARNING
-            template<typename... T_Types>
-            HDINLINE void operator()(T_Types&&... ts) const
-            {
-                if constexpr(!std::is_same_v<itBegin, itEnd>)
-                {
-                    Functor()(std::forward<T_Types>(ts)...);
-                    using NextCall = CallFunctorOfIterator<typename boost::mpl::next<itBegin>::type, itEnd>;
-                    NextCall()(ts...);
-                }
-            }
-
-            PMACC_NO_NVCC_HDWARNING
-            template<typename... T_Types>
-            HDINLINE void operator()(T_Types&&... ts)
-            {
-                if constexpr(!std::is_same_v<itBegin, itEnd>)
-                {
-                    Functor()(std::forward<T_Types>(ts)...);
-                    using NextCall = CallFunctorOfIterator<typename boost::mpl::next<itBegin>::type, itEnd>;
-                    NextCall()(ts...);
-                }
-            }
-        };
-    } // namespace detail
-
     /** Compile-Time for each for Boost::MPL Type Lists
      *
      *  @tparam T_MPLSeq A mpl sequence that can be accessed by mpl::begin, mpl::end, mpl::next
@@ -82,7 +40,7 @@ namespace pmacc::meta
      *  @tparam T_Accessor An unary lambda operation
      *
      * Example:
-     *      MPLSeq = boost::mpl::vector<int,float>
+     *      MPLSeq = pmacc::mp_list<int,float>
      *      Functor = any unary lambda functor
      *      Accessor = lambda operation identity
      *
@@ -95,37 +53,26 @@ namespace pmacc::meta
     template<typename T_MPLSeq, typename T_Functor, typename T_Accessor = meta::accessors::Identity<>>
     struct ForEach
     {
+        using List = detail::SeqToList<T_MPLSeq>;
+
         template<typename X>
-        struct ReplacePlaceholder : bmpl::apply1<T_Functor, typename bmpl::apply1<T_Accessor, X>::type>
-        {
-        };
+        using ReplacePlaceholder =
+            typename boost::mpl::apply1<T_Functor, typename boost::mpl::apply1<T_Accessor, X>::type>::type;
 
-        using SolvedFunctors = typename bmpl::transform<T_MPLSeq, ReplacePlaceholder<bmpl::_1>>::type;
+        using SolvedFunctors = mp_transform<ReplacePlaceholder, List>;
 
-        using begin = typename boost::mpl::begin<SolvedFunctors>::type;
-        using end = typename boost::mpl::end<SolvedFunctors>::type;
-
-
-        using NextCall = detail::CallFunctorOfIterator<begin, end>;
-
-        /* this functor does nothing */
-        using Functor = detail::CallFunctorOfIterator<end, end>;
-
-        PMACC_NO_NVCC_HDWARNING
         template<typename... T_Types>
         HDINLINE void operator()(T_Types&&... ts) const
         {
-            Functor()(std::forward<T_Types>(ts)...);
-            NextCall()(ts...);
+            callEachFunctorWithArgs(SolvedFunctors{}, std::forward<T_Types>(ts)...);
         }
 
+    private:
         PMACC_NO_NVCC_HDWARNING
-        template<typename... T_Types>
-        HDINLINE void operator()(T_Types&&... ts)
+        template<typename... TFunctors, typename... TArgs>
+        HDINLINE void callEachFunctorWithArgs(mp_list<TFunctors...>, TArgs&&... args) const
         {
-            Functor()(std::forward<T_Types>(ts)...);
-            NextCall()(ts...);
+            (TFunctors{}(std::forward<TArgs>(args)...), ...);
         }
     };
-
 } // namespace pmacc::meta

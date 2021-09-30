@@ -40,7 +40,7 @@ namespace picongpu
          *
          * the functors are called in order (from first to last functor)
          */
-        using InitPipeline = bmpl::vector<
+        using InitPipeline = boost::mp11::mp_list<
             CreateDensity<densityProfiles::Homogenous, startPosition::Random10ppc, ArgonIons>,
             // debug one particle per super cell only
             // CreateDensity<densityProfiles::FreeFormula, startPosition::OnePosition, CarbonIons>,

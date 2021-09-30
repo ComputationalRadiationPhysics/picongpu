@@ -24,9 +24,6 @@
 #include "pmacc/traits/HasFlag.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/copy_if.hpp>
-#include <boost/mpl/placeholders.hpp>
-
 namespace pmacc
 {
     namespace particles
@@ -41,16 +38,10 @@ namespace pmacc
             template<typename T_MPLSeq, typename T_Flag>
             struct FilterByFlag
             {
-                using MPLSeq = T_MPLSeq;
-                using Flag = T_Flag;
-
                 template<typename T_Species>
-                struct HasFlag
-                {
-                    using type = typename ::pmacc::traits::HasFlag<typename T_Species::FrameType, Flag>::type;
-                };
+                using HasFlag = typename ::pmacc::traits::HasFlag<typename T_Species::FrameType, T_Flag>::type;
 
-                using type = typename bmpl::copy_if<MPLSeq, HasFlag<bmpl::_>>::type;
+                using type = mp_copy_if<T_MPLSeq, HasFlag>;
             };
 
         } // namespace traits

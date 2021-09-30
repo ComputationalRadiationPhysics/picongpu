@@ -79,5 +79,5 @@ namespace pmacc
 TEST_CASE("HostBuffer::reset", "[reset]")
 {
     using namespace pmacc::test::memory::HostBuffer;
-    ::boost::mpl::for_each<Dims>(ResetTest());
+    ::pmacc::mp_for_each<Dims>(ResetTest());
 }

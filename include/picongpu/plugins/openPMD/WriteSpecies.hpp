@@ -43,16 +43,10 @@
 #include <pmacc/particles/particleFilter/FilterFactory.hpp>
 #include <pmacc/particles/particleFilter/PositionFilter.hpp>
 
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/begin_end.hpp>
-#include <boost/mpl/find.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/vector.hpp>
+#include <boost/mpl/placeholders.hpp>
 
 #include <algorithm>
 #include <type_traits> // std::remove_reference_t
-
 
 namespace picongpu
 {
@@ -113,14 +107,14 @@ namespace picongpu
             {
                 /* malloc host memory */
                 log<picLog::INPUT_OUTPUT>("openPMD:   (begin) malloc host memory: %1%") % name;
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocHostMemory<bmpl::_1>> mallocMem;
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocHostMemory<boost::mpl::_1>> mallocMem;
                 mallocMem(hostFrame, myNumParticles);
                 log<picLog::INPUT_OUTPUT>("openPMD:   ( end ) malloc host memory: %1%") % name;
             }
 
             void free(openPMDFrameType& hostFrame) override
             {
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeHostMemory<bmpl::_1>> freeMem;
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeHostMemory<boost::mpl::_1>> freeMem;
                 freeMem(hostFrame);
             }
 
@@ -183,14 +177,14 @@ namespace picongpu
             {
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) malloc mapped memory: %1%") % name;
                 /*malloc mapped memory*/
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMappedMemory<bmpl::_1>> mallocMem;
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, MallocMappedMemory<boost::mpl::_1>> mallocMem;
                 mallocMem(mappedFrame, myNumParticles);
                 log<picLog::INPUT_OUTPUT>("openPMD:  ( end ) malloc mapped memory: %1%") % name;
             }
 
             void free(openPMDFrameType& mappedFrame) override
             {
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMappedMemory<bmpl::_1>> freeMem;
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, FreeMappedMemory<boost::mpl::_1>> freeMem;
                 freeMem(mappedFrame);
             }
 
@@ -238,11 +232,11 @@ namespace picongpu
             using ParticleAttributeList = typename FrameType::ValueTypeSeq;
 
             /* delete multiMask and localCellIdx in openPMD particle*/
-            using TypesToDelete = bmpl::vector<multiMask, localCellIdx>;
+            using TypesToDelete = pmacc::mp_list<multiMask, localCellIdx>;
             using ParticleCleanedAttributeList = typename RemoveFromSeq<ParticleAttributeList, TypesToDelete>::type;
 
             /* add totalCellIdx for openPMD particle*/
-            using ParticleNewAttributeList = typename MakeSeq<ParticleCleanedAttributeList, totalCellIdx>::type;
+            using ParticleNewAttributeList = MakeSeq_t<ParticleCleanedAttributeList, totalCellIdx>;
 
             using NewParticleDescription =
                 typename ReplaceValueTypeSeq<ParticleDescription, ParticleNewAttributeList>::type;
@@ -338,7 +332,7 @@ namespace picongpu
 
                 // enforce that the filter interface is fulfilled
                 particles::filter::IUnary<typename T_SpeciesFilter::Filter> particleFilter{params->currentStep};
-                using usedFilters = bmpl::vector<typename GetPositionFilter<simDim>::type>;
+                using usedFilters = pmacc::mp_list<typename GetPositionFilter<simDim>::type>;
                 using MyParticleFilter = typename FilterFactory<usedFilters>::FilterType;
                 MyParticleFilter filter;
                 filter.setWindowPosition(params->localWindowToDomainOffset, params->window.localDimensions.size);
@@ -424,7 +418,7 @@ namespace picongpu
                 log<picLog::INPUT_OUTPUT>("openPMD:  (begin) write particle records for %1%")
                     % T_SpeciesFilter::getName();
 
-                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, openPMD::ParticleAttribute<bmpl::_1>>
+                meta::ForEach<typename openPMDFrameType::ValueTypeSeq, openPMD::ParticleAttribute<boost::mpl::_1>>
                     writeToOpenPMD;
                 writeToOpenPMD(
                     params,

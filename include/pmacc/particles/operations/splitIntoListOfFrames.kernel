@@ -229,7 +229,7 @@ namespace pmacc
                                 {
                                     /* copy attributes and activate particle*/
                                     auto parDest = destFramePtr[masterVirtualThreadIdx][idx];
-                                    auto parDestDeselect = deselect<bmpl::vector2<localCellIdx, multiMask>>(parDest);
+                                    auto parDestDeselect = deselect<mp_list<localCellIdx, multiMask>>(parDest);
 
                                     assign(parDestDeselect, srcFrame[srcParticleIdx]);
                                     parDest[localCellIdx_] = lCellIdx;

@@ -68,8 +68,8 @@ To enable collisions between the Ions and Electrons with a constant coulomb loga
                 *
                 * the functors are called in order (from first to last functor)
                 */
-               using CollisionPipeline = bmpl::
-                   vector<Collider<relativistic::RelativisticCollisionConstLog<Params>, Pairs> >;
+               using CollisionPipeline = boost::mp11::
+                   mp_list<Collider<relativistic::RelativisticCollisionConstLog<Params>, Pairs> >;
            } // namespace collision
        } // namespace particles
    } // namespace picongpu
@@ -100,7 +100,7 @@ Here is an example with :math:`\Lambda = 5` for electron-ion collisions and :mat
     using Pairs1 = MakeSeq_t<Pair<Electrons, Ions>>;
     using Pairs2 = MakeSeq_t<Pair<Electrons, Electrons>, Pair<Ions, Ions>>;
     using CollisionPipeline =
-        bmpl::vector<
+        boost::mp11::mp_list<
             Collider<relativistic::RelativisticCollisionConstLog<Params1>, Pairs1>,
             Collider<relativistic::RelativisticCollisionConstLog<Params2>, Pairs2>
         >;
@@ -112,7 +112,7 @@ For example the previous setup with automatic calculation for the inter-species 
 .. code:: c++
 
     using CollisionPipeline =
-        bmpl::vector<
+        boost::mp11::mp_list<
             Collider<relativistic::RelativisticCollisionDynamicLog<>, Pairs1>,
             Collider<relativistic::RelativisticCollisionConstLog<Params2>, Pairs2>
         >;
@@ -137,7 +137,7 @@ You need to define your filters in ``particleFilters.param`` and than you can us
     using Pairs1 = MakeSeq_t<Pair<Electrons, Ions>>;
     using Pairs2 = MakeSeq_t<Pair<Electrons, Electrons>, Pair<Ions, Ions>>;
     using CollisionPipeline =
-        bmpl::vector<
+        boost::mp11::mp_list<
             Collider<
                 relativistic::RelativisticCollisionConstLog<Params1>,
                 Pairs1,
@@ -190,7 +190,7 @@ This debug output can be enabled per collider by setting the optional template p
 .. code:: c++
 
     using CollisionPipeline =
-        bmpl::vector<
+        boost::mp11::mp_list<
             Collider<relativistic::RelativisticCollisionDynamicLog<true>, Pairs1>,
             Collider<relativistic::RelativisticCollisionConstLog<Params2, true>, Pairs2>
         >;

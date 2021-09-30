@@ -27,8 +27,6 @@
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
-#include <boost/mpl/and.hpp>
-
 #include <vector>
 
 
@@ -105,7 +103,7 @@ namespace picongpu
 
                 using SpeciesHasFlags = typename pmacc::traits::HasFlag<FrameType, chargeRatio<>>::type;
 
-                using type = typename bmpl::and_<SpeciesHasIdentifiers, SpeciesHasFlags>;
+                using type = pmacc::mp_and<SpeciesHasIdentifiers, SpeciesHasFlags>;
             };
         } // namespace traits
     } // namespace particles

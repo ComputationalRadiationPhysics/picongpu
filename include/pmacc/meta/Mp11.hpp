@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Rene Widera
+/* Copyright 2021 Bernhard Manfred Gruber
  *
  * This file is part of PMacc.
  *
@@ -19,20 +19,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "pmacc/meta/conversion/MakeSeq.hpp"
-#include "pmacc/particles/boostExtension/InheritGenerators.hpp"
-#include "pmacc/particles/memory/frames/NullFrame.hpp"
-#include "pmacc/particles/particleFilter/system/TrueFilter.hpp"
+#include <boost/mp11.hpp>
+#include <boost/mp11/mpl.hpp>
 
 namespace pmacc
 {
-    template<typename UserTypeList = mp_list<NullFrame>>
-    class FilterFactory
-    {
-    public:
-        using FilterType = typename LinearInherit<MakeSeq_t<UserTypeList, TrueFilter>>::type;
-    };
+    using namespace boost::mp11;
 } // namespace pmacc

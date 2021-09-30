@@ -37,7 +37,7 @@ namespace pmacc
          * @tparam T_Functor stateless unary functor type, must be default-constructible and
          *         operator() must take the current time step as the only parameter
          */
-        template<typename T_Functor = bmpl::_1>
+        template<typename T_Functor = boost::mpl::_1>
         struct Call
         {
             //! Functor type

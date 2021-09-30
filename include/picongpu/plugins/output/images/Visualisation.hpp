@@ -164,7 +164,7 @@ namespace picongpu
         HDINLINE static float_X getAmplitude()
         {
             using Profiles = fields::incidentField::UniqueEnabledProfiles;
-            meta::ForEach<Profiles, CalculateMaxAmplitude<bmpl::_1>> calculateMaxAmplitude;
+            meta::ForEach<Profiles, CalculateMaxAmplitude<boost::mpl::_1>> calculateMaxAmplitude;
             auto maxAmplitude = 0.0_X;
             calculateMaxAmplitude(maxAmplitude);
             return maxAmplitude;

@@ -50,18 +50,17 @@
 #include "pmacc/dimensions/Definition.hpp"
 #include "pmacc/eventSystem/EventType.hpp"
 #include "pmacc/memory/Align.hpp"
+#include "pmacc/meta/Mp11.hpp"
 #include "pmacc/ppFunctions.hpp"
 #include "pmacc/type/Area.hpp"
 #include "pmacc/type/Exchange.hpp"
 #include "pmacc/type/Integral.hpp"
 
 #include <boost/filesystem.hpp>
-#include <boost/mpl/placeholders.hpp>
 
 #include <cupla.hpp>
 
 
 namespace pmacc
 {
-    namespace bmpl = boost::mpl;
 } // namespace pmacc

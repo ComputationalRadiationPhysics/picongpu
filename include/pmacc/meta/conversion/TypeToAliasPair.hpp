@@ -22,14 +22,13 @@
 #pragma once
 
 #include "pmacc/identifier/alias.hpp"
+#include "pmacc/meta/Pair.hpp"
 #include "pmacc/meta/conversion/TypeToPair.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/pair.hpp>
-
 namespace pmacc
 {
-    /** create boost mpl pair
+    /** create pmacc::meta::Pair
      *
      * If T_Type is a pmacc alias than first is set to anonym alias name
      * and second is set to T_Type.
@@ -48,7 +47,8 @@ namespace pmacc
     template<template<typename, typename> class T_Alias, typename T_Type>
     struct TypeToAliasPair<T_Alias<T_Type, pmacc::pmacc_isAlias>>
     {
-        using type = bmpl::pair<T_Alias<pmacc_void, pmacc::pmacc_isAlias>, T_Alias<T_Type, pmacc::pmacc_isAlias>>;
+        using type
+            = pmacc::meta::Pair<T_Alias<pmacc_void, pmacc::pmacc_isAlias>, T_Alias<T_Type, pmacc::pmacc_isAlias>>;
     };
 
 

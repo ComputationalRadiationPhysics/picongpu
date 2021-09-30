@@ -25,6 +25,7 @@
 #include "pmacc/math/Vector.hpp"
 #include "pmacc/memory/buffers/GridBuffer.hpp"
 #include "pmacc/memory/dataTypes/Mask.hpp"
+#include "pmacc/meta/Pair.hpp"
 #include "pmacc/meta/conversion/MakeSeq.hpp"
 #include "pmacc/particles/Identifier.hpp"
 #include "pmacc/particles/ParticleDescription.hpp"
@@ -38,15 +39,27 @@
 #include "pmacc/particles/memory/frames/Frame.hpp"
 #include "pmacc/traits/GetUniqueTypeId.hpp"
 
-#include <boost/mpl/back_inserter.hpp>
-#include <boost/mpl/copy.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/vector.hpp>
-
 #include <memory>
 
 namespace pmacc
 {
+    namespace detail
+    {
+        /** create static array
+         */
+        template<uint32_t T_size>
+        struct OperatorCreatePairStaticArray
+        {
+            template<typename X>
+            struct apply
+            {
+                using type = meta::Pair<
+                    X,
+                    StaticArray<typename traits::Resolve<X>::type::type, std::integral_constant<uint32_t, T_size>>>;
+            };
+        };
+    } // namespace detail
+
     /**
      * Describes DIM-dimensional buffer for particles data on the host.
      *
@@ -58,19 +71,6 @@ namespace pmacc
     class ParticlesBuffer
     {
     public:
-        /** create static array
-         */
-        template<uint32_t T_size>
-        struct OperatorCreatePairStaticArray
-        {
-            template<typename X>
-            struct apply
-            {
-                using type = bmpl::
-                    pair<X, StaticArray<typename traits::Resolve<X>::type::type, bmpl::integral_c<uint32_t, T_size>>>;
-            };
-        };
-
         /** type of the border frame management object
          *
          * contains:
@@ -82,17 +82,15 @@ namespace pmacc
 
         using SuperCellSize = SuperCellSize_;
 
-        using ParticleAttributeList =
-            typename MakeSeq<typename T_ParticleDescription::ValueTypeSeq, localCellIdx, multiMask>::type;
+        using ParticleAttributeList = MakeSeq_t<typename T_ParticleDescription::ValueTypeSeq, localCellIdx, multiMask>;
 
-        using ParticleAttributeListBorder =
-            typename MakeSeq<typename T_ParticleDescription::ValueTypeSeq, localCellIdx>::type;
+        using ParticleAttributeListBorder = MakeSeq_t<typename T_ParticleDescription::ValueTypeSeq, localCellIdx>;
 
         using FrameDescriptionWithManagementAttributes =
             typename ReplaceValueTypeSeq<T_ParticleDescription, ParticleAttributeList>::type;
 
         /** double linked list pointer */
-        using LinkedListPointer = typename MakeSeq<PreviousFramePtr<>, NextFramePtr<>>::type;
+        using LinkedListPointer = MakeSeq_t<PreviousFramePtr<>, NextFramePtr<>>;
 
         /* extent particle description with pointer to a frame*/
         using FrameDescription =
@@ -103,7 +101,7 @@ namespace pmacc
          * a group of particles is stored as frame
          */
         using FrameType = Frame<
-            OperatorCreatePairStaticArray<pmacc::math::CT::volume<SuperCellSize>::type::value>,
+            detail::OperatorCreatePairStaticArray<pmacc::math::CT::volume<SuperCellSize>::type::value>,
             FrameDescription>;
 
         using FrameDescriptionBorder =
@@ -114,7 +112,7 @@ namespace pmacc
          * - each frame contains only one particle
          * - local administration attributes of a particle are removed
          */
-        using FrameTypeBorder = Frame<OperatorCreatePairStaticArray<1U>, FrameDescriptionBorder>;
+        using FrameTypeBorder = Frame<detail::OperatorCreatePairStaticArray<1U>, FrameDescriptionBorder>;
 
         using SuperCellType = SuperCell<FrameType>;
 

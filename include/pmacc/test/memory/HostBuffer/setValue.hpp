@@ -80,5 +80,5 @@ namespace pmacc
 TEST_CASE("HostBuffer::setValue", "[setValue]")
 {
     using namespace pmacc::test::memory::HostBuffer;
-    ::boost::mpl::for_each<Dims>(setValueTest());
+    ::pmacc::mp_for_each<Dims>(setValueTest());
 }

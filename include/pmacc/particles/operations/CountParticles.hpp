@@ -190,7 +190,7 @@ namespace pmacc
             const Space& size,
             T_ParticleFilter& parFilter)
         {
-            using usedFilters = bmpl::vector<typename GetPositionFilter<Space::Dim>::type>;
+            using usedFilters = mp_list<typename GetPositionFilter<Space::Dim>::type>;
             using MyParticleFilter = typename FilterFactory<usedFilters>::FilterType;
             MyParticleFilter filter;
             filter.setWindowPosition(origin, size);

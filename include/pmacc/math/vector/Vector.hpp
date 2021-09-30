@@ -30,7 +30,6 @@
 #include "pmacc/types.hpp"
 
 #include <boost/call_traits.hpp>
-#include <boost/mpl/size.hpp>
 
 #include <iostream>
 #include <type_traits>

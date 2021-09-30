@@ -50,11 +50,11 @@ namespace pmacc
      * Take the front element, remove its other instances from the rest of the sequence,
      * recursively repeat for the remaining elements.
      */
-    template<typename T_Seq, bool T_isEmpty = bmpl::empty<T_Seq>::value>
+    template<typename T_Seq, bool T_isEmpty = mp_empty<T_Seq>::value>
     struct Unique
     {
-        using Front = typename bmpl::front<T_Seq>::type;
-        using Tail = typename bmpl::remove<T_Seq, Front>::type;
+        using Front = mp_front<T_Seq>;
+        using Tail = mp_remove<T_Seq, Front>;
         using UniqueTail = typename Unique<Tail>::type;
         using type = MakeSeq_t<Front, UniqueTail>;
     };
@@ -77,6 +77,6 @@ namespace pmacc
      * @tparam T_Seq sequence
      */
     template<typename T_Seq>
-    static constexpr bool isUnique = (bmpl::size<T_Seq>::value == bmpl::size<Unique_t<T_Seq>>::value);
+    static constexpr bool isUnique = (mp_size<T_Seq>::value == mp_size<Unique_t<T_Seq>>::value);
 
 } // namespace pmacc

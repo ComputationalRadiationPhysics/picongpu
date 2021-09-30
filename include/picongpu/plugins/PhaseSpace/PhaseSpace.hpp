@@ -33,11 +33,6 @@
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 
-#include <boost/mpl/accumulate.hpp>
-#include <boost/mpl/and.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/min_max.hpp>
-
 #include <memory>
 #include <string>
 #include <utility>
@@ -74,9 +69,10 @@ namespace picongpu
             }
 
             // find all valid filter for the current used species
-            using EligibleFilters = typename MakeSeqFromNestedSeq<typename bmpl::transform<
-                particles::filter::AllParticleFilters,
-                particles::traits::GenerateSolversIfSpeciesEligible<bmpl::_1, Species>>::type>::type;
+            template<typename T>
+            using Op = typename particles::traits::GenerateSolversIfSpeciesEligible<T, Species>::type;
+            using EligibleFilters =
+                typename MakeSeqFromNestedSeq<pmacc::mp_transform<Op, particles::filter::AllParticleFilters>>::type;
 
             //! periodicity of computing the particle energy
             plugins::multi::Option<std::string> notifyPeriod = {"period", "notify period"};
@@ -105,7 +101,7 @@ namespace picongpu
                 boost::program_options::options_description& desc,
                 std::string const& masterPrefix = std::string{}) override
             {
-                meta::ForEach<EligibleFilters, plugins::misc::AppendName<bmpl::_1>> getEligibleFilterNames;
+                meta::ForEach<EligibleFilters, plugins::misc::AppendName<boost::mpl::_1>> getEligibleFilterNames;
                 getEligibleFilterNames(allowedFilters);
 
                 concatenatedFilterNames = plugins::misc::concatenateToString(allowedFilters, ", ");
@@ -201,9 +197,8 @@ namespace picongpu
          *  we use not more than 32KB shared memory
          *  Note: checking the longest edge for all phase space configurations
          *        is a conservative work around until #469 is implemented */
-        typedef typename bmpl::
-            accumulate<typename SuperCellSize::mplVector, bmpl::int_<0>, bmpl::max<bmpl::_1, bmpl::_2>>::type
-                SuperCellsLongestEdge;
+        using SuperCellsLongestEdge = typename pmacc::math::CT::max<SuperCellSize>::type;
+
         /* Note: the previously used 32 KB shared memory size is not correct
          * for CPUs, as discovered in #3329. As a quick patch, slightly reduce
          * it so that the buffer plus a few small shared memory variables
@@ -307,7 +302,7 @@ namespace picongpu
                 using SpeciesHasMass = typename pmacc::traits::HasFlag<FrameType, massRatio<>>::type;
                 using SpeciesHasCharge = typename pmacc::traits::HasFlag<FrameType, chargeRatio<>>::type;
 
-                using type = typename bmpl::and_<SpeciesHasIdentifiers, SpeciesHasMass, SpeciesHasCharge>;
+                using type = pmacc::mp_and<SpeciesHasIdentifiers, SpeciesHasMass, SpeciesHasCharge>;
             };
         } // namespace traits
     } // namespace particles

@@ -58,7 +58,8 @@ namespace picongpu
                 {
                     using pmacc::particles::traits::FilterByFlag;
                     using SpeciesWithIonizers = typename FilterByFlag<VectorAllSpecies, ionizers<>>::type;
-                    pmacc::meta::ForEach<SpeciesWithIonizers, particles::CallIonization<bmpl::_1>> particleIonization;
+                    pmacc::meta::ForEach<SpeciesWithIonizers, particles::CallIonization<boost::mpl::_1>>
+                        particleIonization;
                     particleIonization(cellDescription, step);
                 }
 

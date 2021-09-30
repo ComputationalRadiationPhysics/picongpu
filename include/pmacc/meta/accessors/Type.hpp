@@ -38,7 +38,7 @@ namespace pmacc
              *
              * T must have defined ::type
              */
-            template<typename T = bmpl::_1>
+            template<typename T = boost::mpl::_1>
             struct Type
             {
                 using type = typename T::type;

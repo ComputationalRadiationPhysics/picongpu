@@ -58,6 +58,7 @@
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/meta/AllCombinations.hpp>
 #include <pmacc/particles/IdProvider.def>
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
@@ -68,12 +69,7 @@
 #include <pmacc/static_assert.hpp>
 #include <pmacc/traits/Limits.hpp>
 
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/begin_end.hpp>
-#include <boost/mpl/find.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/vector.hpp>
+#include <boost/mpl/placeholders.hpp>
 
 #include <filesystem>
 
@@ -259,21 +255,18 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             bool selfRegister = false;
 
             template<typename T_TupleVector>
-            struct CreateSpeciesFilter
-            {
-                using type = plugins::misc::SpeciesFilter<
-                    typename pmacc::math::CT::At<T_TupleVector, bmpl::int_<0>>::type,
-                    typename pmacc::math::CT::At<T_TupleVector, bmpl::int_<1>>::type>;
-            };
+            using CreateSpeciesFilter = plugins::misc::SpeciesFilter<
+                pmacc::mp_at<T_TupleVector, pmacc::mp_int<0>>,
+                pmacc::mp_at<T_TupleVector, pmacc::mp_int<1>>>;
 
-            using AllParticlesTimesAllFilters = typename AllCombinations<
-                bmpl::vector<FileOutputParticles, particles::filter::AllParticleFilters>>::type;
+            using AllParticlesTimesAllFilters
+                = pmacc::AllCombinations<FileOutputParticles, particles::filter::AllParticleFilters>;
 
-            using AllSpeciesFilter =
-                typename bmpl::transform<AllParticlesTimesAllFilters, CreateSpeciesFilter<bmpl::_1>>::type;
+            using AllSpeciesFilter = pmacc::mp_transform<CreateSpeciesFilter, AllParticlesTimesAllFilters>;
 
-            using AllEligibleSpeciesSources =
-                typename bmpl::copy_if<AllSpeciesFilter, plugins::misc::speciesFilter::IsEligible<bmpl::_1>>::type;
+        public:
+            using AllEligibleSpeciesSources
+                = pmacc::mp_copy_if<AllSpeciesFilter, plugins::misc::speciesFilter::IsEligible>;
 
             using AllFieldSources = FileOutputFields;
 
@@ -282,11 +275,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 boost::program_options::options_description& desc,
                 std::string const& masterPrefix = std::string{}) override
             {
-                meta::ForEach<AllEligibleSpeciesSources, plugins::misc::AppendName<bmpl::_1>>
+                meta::ForEach<AllEligibleSpeciesSources, plugins::misc::AppendName<boost::mpl::_1>>
                     getEligibleDataSourceNames;
                 getEligibleDataSourceNames(allowedDataSources);
 
-                meta::ForEach<AllFieldSources, plugins::misc::AppendName<bmpl::_1>> appendFieldSourceNames;
+                meta::ForEach<AllFieldSources, plugins::misc::AppendName<boost::mpl::_1>> appendFieldSourceNames;
                 appendFieldSourceNames(allowedDataSources);
 
                 // string list with all possible particle sources
@@ -1113,11 +1106,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 mThreadParams.localWindowToDomainOffset = DataSpace<simDim>::create(0);
 
                 /* load all fields */
-                meta::ForEach<FileCheckpointFields, LoadFields<bmpl::_1>> ForEachLoadFields;
+                meta::ForEach<FileCheckpointFields, LoadFields<boost::mpl::_1>> ForEachLoadFields;
                 ForEachLoadFields(&mThreadParams);
 
                 /* load all particles */
-                meta::ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1>> ForEachLoadSpecies;
+                meta::ForEach<FileCheckpointParticles, LoadSpecies<boost::mpl::_1>> ForEachLoadSpecies;
                 ForEachLoadSpecies(&mThreadParams, restartChunkSize);
 
                 loadRngStates(&mThreadParams);
@@ -1205,7 +1198,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                      * them for sure (checkpoint) or just some user-defined species
                      * (dump)
                      */
-                    meta::ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1>> copySpeciesToHost;
+                    meta::ForEach<FileCheckpointParticles, CopySpeciesToHost<boost::mpl::_1>> copySpeciesToHost;
                     copySpeciesToHost();
                     lastSpeciesSyncStep = currentStep;
                 }
@@ -1541,19 +1534,19 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 log<picLog::INPUT_OUTPUT>("openPMD: (begin) writing fields.");
                 if(threadParams->isCheckpoint)
                 {
-                    meta::ForEach<FileCheckpointFields, GetFields<bmpl::_1>> ForEachGetFields;
+                    meta::ForEach<FileCheckpointFields, GetFields<boost::mpl::_1>> ForEachGetFields;
                     ForEachGetFields(threadParams);
                 }
                 else
                 {
                     if(dumpFields)
                     {
-                        meta::ForEach<FileOutputFields, GetFields<bmpl::_1>> ForEachGetFields;
+                        meta::ForEach<FileOutputFields, GetFields<boost::mpl::_1>> ForEachGetFields;
                         ForEachGetFields(threadParams);
                     }
 
                     // move over all field data sources
-                    meta::ForEach<typename Help::AllFieldSources, CallGetFields<bmpl::_1>>{}(
+                    meta::ForEach<typename Help::AllFieldSources, CallGetFields<boost::mpl::_1>>{}(
                         vectorOfDataSourceNames,
                         threadParams);
                 }
@@ -1567,8 +1560,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     meta::ForEach<
                         FileCheckpointParticles,
                         WriteSpecies<
-                            plugins::misc::SpeciesFilter<bmpl::_1>,
-                            plugins::misc::UnfilteredSpecies<bmpl::_1>>>
+                            plugins::misc::SpeciesFilter<boost::mpl::_1>,
+                            plugins::misc::UnfilteredSpecies<boost::mpl::_1>>>
                         writeSpecies;
                     writeSpecies(threadParams, particleToTotalDomainOffset);
                 }
@@ -1578,13 +1571,15 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     if(dumpAllParticles)
                     {
                         // move over all species defined in FileOutputParticles
-                        meta::ForEach<FileOutputParticles, WriteSpecies<plugins::misc::UnfilteredSpecies<bmpl::_1>>>
+                        meta::ForEach<
+                            FileOutputParticles,
+                            WriteSpecies<plugins::misc::UnfilteredSpecies<boost::mpl::_1>>>
                             writeSpecies;
                         writeSpecies(threadParams, particleToTotalDomainOffset);
                     }
 
                     // move over all species data sources
-                    meta::ForEach<typename Help::AllEligibleSpeciesSources, CallWriteSpecies<bmpl::_1>>{}(
+                    meta::ForEach<typename Help::AllEligibleSpeciesSources, CallWriteSpecies<boost::mpl::_1>>{}(
                         vectorOfDataSourceNames,
                         threadParams,
                         particleToTotalDomainOffset);

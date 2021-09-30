@@ -43,7 +43,7 @@ namespace picongpu
              *            Modeling field ionization in an energy conserving form and resulting nonstandard fluid
              * dynamcis, Physics of Plasmas 5, 4466 (1998) https://doi.org/10.1063/1.873184
              *
-             * @tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
+             * @tparam T_DestSpecies type or name as PMACC_CSTRING of the electron species to be created
              * @tparam T_Dim dimension of simulation
              * @tparam T_IonizationCurrent select type of ionization current (None or EnergyConservation)
              */

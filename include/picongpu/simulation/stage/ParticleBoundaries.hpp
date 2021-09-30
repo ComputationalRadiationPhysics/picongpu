@@ -231,7 +231,7 @@ namespace picongpu
                 using SpeciesWithPusher =
                     typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, particlePusher<>>::type;
                 //! Functor to process all affected species
-                meta::ForEach<SpeciesWithPusher, detail::ParticleBoundariesCommandLine<bmpl::_1>> processSpecies;
+                meta::ForEach<SpeciesWithPusher, detail::ParticleBoundariesCommandLine<boost::mpl::_1>> processSpecies;
             };
 
         } // namespace stage

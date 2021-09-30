@@ -15,7 +15,7 @@ For fully ionized ions, just use ``ManipulateDerive`` in :ref:`speciesInitializa
 
 .. code-block:: cpp
 
-   using InitPipeline = bmpl::vector<
+   using InitPipeline = pmacc::mp_list<
        /* density profile from density.param and
         *     start position from particle.param */
        CreateDensity<
@@ -72,7 +72,7 @@ Then again in :ref:`speciesInitialization.param <usage-params-core>` set your in
 
 .. code-block:: cpp
 
-   using InitPipeline = bmpl::vector<
+   using InitPipeline = pmacc::mp_list<
        /* density profile from density.param and
         *     start position from particle.param */
        CreateDensity<

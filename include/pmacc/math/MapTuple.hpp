@@ -24,11 +24,6 @@
 #include "pmacc/particles/boostExtension/InheritLinearly.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/pair.hpp>
-
-
 namespace pmacc
 {
     namespace math
@@ -37,13 +32,13 @@ namespace pmacc
 
         /** wrap a datum
          *
-         * @tparam T_Pair boost mpl pair< key, type of the value >
+         * @tparam T_Pair mp_list< key, type of the value >
          */
         template<typename T_Pair>
         struct TaggedValue
         {
-            using Key = typename T_Pair::first;
-            using ValueType = typename T_Pair::second;
+            using Key = mp_first<T_Pair>;
+            using ValueType = mp_second<T_Pair>;
 
             ValueType value;
         };
@@ -52,7 +47,7 @@ namespace pmacc
         struct MapTuple : protected InheritLinearly<T_Map, TaggedValue>
         {
             template<typename T_Key>
-            using TaggedValueFor = TaggedValue<bmpl::pair<T_Key, typename bmpl::at<T_Map, T_Key>::type>>;
+            using TaggedValueFor = TaggedValue<mp_map_find<T_Map, T_Key>>;
 
             /** access a value with a key
              *

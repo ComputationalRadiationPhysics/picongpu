@@ -28,27 +28,6 @@
 
 namespace pmacc
 {
-    namespace detail
-    {
-        template<typename T_Vector, typename T_TYPE>
-        HDINLINE auto& subscript(T_TYPE* p, int const idx, std::integral_constant<uint32_t, 1>)
-        {
-            return p[idx];
-        }
-
-        template<typename T_Vector, typename T_TYPE>
-        HDINLINE auto* subscript(T_TYPE* p, int const idx, std::integral_constant<uint32_t, 2>)
-        {
-            return p + idx * T_Vector::x::value;
-        }
-
-        template<typename T_Vector, typename T_TYPE>
-        HDINLINE auto* subscript(T_TYPE* p, int const idx, std::integral_constant<uint32_t, 3>)
-        {
-            return p + idx * (T_Vector::x::value * T_Vector::y::value);
-        }
-    } // namespace detail
-
     /** create shared memory on gpu
      *
      * @tparam T_TYPE type of memory objects
@@ -73,16 +52,16 @@ namespace pmacc
 
         HDINLINE SharedBox(SharedBox const&) = default;
 
-        using ReducedType1D = T_TYPE&;
-        using ReducedType2D = SharedBox<T_TYPE, math::CT::Int<T_Vector::x::value>, T_id>;
-        using ReducedType3D = SharedBox<T_TYPE, math::CT::Int<T_Vector::x::value, T_Vector::y::value>, T_id>;
-        using ReducedType
-            = std::conditional_t<Dim == 1, ReducedType1D, std::conditional_t<Dim == 2, ReducedType2D, ReducedType3D>>;
-
-        HDINLINE ReducedType operator[](const int idx) const
+        HDINLINE decltype(auto) operator[](const int idx) const
         {
-            ///@todo(bgruber): inline and replace this by if constexpr in C++17
-            return {detail::subscript<T_Vector>(fixedPointer, idx, std::integral_constant<uint32_t, T_dim>{})};
+            if constexpr(Dim == 1)
+                return fixedPointer[idx];
+            else if constexpr(Dim == 2)
+                return SharedBox<T_TYPE, math::CT::Int<T_Vector::x::value>, T_id>{
+                    fixedPointer + idx * T_Vector::x::value};
+            else if constexpr(Dim == 3)
+                return SharedBox<T_TYPE, math::CT::Int<T_Vector::x::value, T_Vector::y::value>, T_id>{
+                    fixedPointer + idx * (T_Vector::x::value * T_Vector::y::value)};
         }
 
         /*!return the first value in the box (list)
@@ -101,13 +80,6 @@ namespace pmacc
         {
             return fixedPointer;
         }
-
-        using CursorPitch1d = math::CT::Int<>;
-        using CursorPitch2d = math::CT::Int<sizeof(T_TYPE) * T_Vector::x::value>;
-        using CursorPitch3d = math::CT::
-            Int<sizeof(T_TYPE) * T_Vector::x::value, sizeof(T_TYPE) * T_Vector::x::value * T_Vector::y::value>;
-        using CursorPitch
-            = std::conditional_t<Dim == 1, CursorPitch1d, std::conditional_t<Dim == 2, CursorPitch2d, CursorPitch3d>>;
 
         /** create a shared memory box
          *

@@ -31,9 +31,7 @@
 #include <catch2/catch.hpp>
 
 // BOOST
-#include <boost/mpl/for_each.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/list.hpp>
+#include "pmacc/meta/Mp11.hpp"
 
 // MPI
 #include <mpi.h> /* MPI_Init, MPI_Finalize */
@@ -91,9 +89,9 @@ namespace pmacc
  * Definition of a list of dimension types. This
  * List is used to test memory operations in
  * each dimension setup automatically. For this
- * purpose boost::mpl::for_each is used.
+ * purpose pmacc::mp_for_each is used.
  */
-using Dims = ::boost::mpl::list<boost::mpl::int_<DIM1>, boost::mpl::int_<DIM2>, boost::mpl::int_<DIM3>>;
+using Dims = ::pmacc::mp_list<pmacc::mp_int<DIM1>, pmacc::mp_int<DIM2>, pmacc::mp_int<DIM3>>;
 
 /*******************************************************************************
  * Test Suites
