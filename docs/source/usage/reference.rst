@@ -125,6 +125,7 @@ Particle pushers
  - Boris pusher\ :sup:`\*` [Boris1970]_
  - Vay pusher\ :sup:`\*` [Vay2008]_
  - Reduces Landau-Lifshitz pusher\ :sup:`\*` [Vranic2016]_
+ - Higuera-Cary pusher [Higuera2017]_
 
 Current deposition
 """"""""""""""""""
@@ -516,6 +517,12 @@ List of other references in chronological order
        *Classical radiation reaction in particle-in-cell simulations*,
        Computer Physics Communications, Volume 204, July 2016, Pages 141-151,
        https://doi.org/10.1016/j.cpc.2016.04.002
+
+.. [Higuera2017]
+       Higuera, A. V. and Cary, J. R.,
+       *Structure-preserving second-order integration of relativistic charged particle trajectories in electromagnetic fields*,
+       Physics of Plasmas 24, 052104 (2017),
+       https://doi.org/10.1063/1.4979989
 
 .. [Higginson2020]
        Higginson, D. P. , Holod, I. , and Link, A.,
