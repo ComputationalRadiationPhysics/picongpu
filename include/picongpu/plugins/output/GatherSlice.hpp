@@ -114,7 +114,7 @@ namespace picongpu
             using ValueType = typename Box::ValueType;
 
             Box dstBox = Box(PitchedBox<ValueType, DIM2>(
-                (ValueType*) filteredData,
+                (ValueType*) filteredData.data(),
                 header.sim.size,
                 header.sim.size.x() * sizeof(ValueType)));
 
@@ -123,8 +123,8 @@ namespace picongpu
 
             auto* recvHeader = new char[MessageHeader::bytes * numRanks];
 
-            if(fullData == nullptr && mpiRank == masterRank)
-                fullData = (char*) new ValueType[header.sim.size.productOfComponents()];
+            if(fullData.empty() && mpiRank == masterRank)
+                fullData.resize(sizeof(ValueType) * header.sim.size.productOfComponents());
 
 
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
@@ -158,7 +158,7 @@ namespace picongpu
                 (char*) (data.getPointer()),
                 elementsCount,
                 MPI_CHAR,
-                fullData,
+                fullData.data(),
                 &counts[0],
                 &displs[0],
                 MPI_CHAR,
@@ -169,12 +169,12 @@ namespace picongpu
             if(mpiRank == masterRank)
             {
                 log<picLog::DOMAINS>("Master create image");
-                if(filteredData == nullptr)
-                    filteredData = (char*) new ValueType[header.sim.size.productOfComponents()];
+                if(filteredData.empty())
+                    filteredData.resize(sizeof(ValueType) * header.sim.size.productOfComponents());
 
                 /*create box with valid memory*/
                 dstBox = Box(PitchedBox<ValueType, DIM2>(
-                    (ValueType*) filteredData,
+                    (ValueType*) filteredData.data(),
                     header.sim.size,
                     header.sim.size.x() * sizeof(ValueType)));
 
@@ -186,14 +186,14 @@ namespace picongpu
                         % displs[i] % (displs[i] / sizeof(ValueType)) % head->node.maxSize.toString()
                         % head->node.offset.toString();
                     Box srcBox = Box(PitchedBox<ValueType, DIM2>(
-                        (ValueType*) (fullData + displs[i]),
+                        (ValueType*) (fullData.data() + displs[i]),
                         head->node.maxSize,
                         head->node.maxSize.x() * sizeof(ValueType)));
 
                     insertData(dstBox, srcBox, head->node.offset, head->node.maxSize);
                 }
 
-                __deleteArray(fullData);
+                fullData.clear();
             }
 
             delete[] recvHeader;
@@ -224,12 +224,8 @@ namespace picongpu
         {
             mpiRank = -1;
             numRanks = 0;
-            if(filteredData != nullptr)
-                delete[] filteredData;
-            filteredData = nullptr;
-            if(fullData != nullptr)
-                delete[] fullData;
-            fullData = nullptr;
+            filteredData.clear();
+            fullData.clear();
             if(isMPICommInitialized)
             {
                 // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
@@ -239,8 +235,8 @@ namespace picongpu
             isMPICommInitialized = false;
         }
 
-        char* filteredData{nullptr};
-        char* fullData{nullptr};
+        std::vector<char> filteredData;
+        std::vector<char> fullData;
         MPI_Comm comm;
         int mpiRank{-1};
         int numRanks{0};

@@ -49,6 +49,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <math.h>
 
@@ -94,11 +95,11 @@ namespace picongpu
                 transitionRadiation::frequencies::InitFreqFunctor freqInit;
                 transitionRadiation::frequencies::FreqFunctor freqFkt;
 
-                float_X* tmpITR = nullptr;
-                complex_X* tmpCTRpara = nullptr;
-                complex_X* tmpCTRperp = nullptr;
-                float_X* tmpNum = nullptr;
-                float_X* theTransRad = nullptr;
+                std::vector<float_X> tmpITR;
+                std::vector<complex_X> tmpCTRpara;
+                std::vector<complex_X> tmpCTRperp;
+                std::vector<float_X> tmpNum;
+                std::vector<float_X> theTransRad;
                 MappingDesc* cellDescription = nullptr;
                 std::string notifyPeriod;
                 uint32_t timeStep;
@@ -225,10 +226,10 @@ namespace picongpu
                 {
                     if(!notifyPeriod.empty())
                     {
-                        tmpITR = new float_X[elementsTransitionRadiation()];
-                        tmpCTRpara = new complex_X[elementsTransitionRadiation()];
-                        tmpCTRperp = new complex_X[elementsTransitionRadiation()];
-                        tmpNum = new float_X[elementsTransitionRadiation()];
+                        tmpITR.resize(elementsTransitionRadiation());
+                        tmpCTRpara.resize(elementsTransitionRadiation());
+                        tmpCTRperp.resize(elementsTransitionRadiation());
+                        tmpNum.resize(elementsTransitionRadiation());
 
                         /*only rank 0 create a file*/
                         isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
@@ -248,7 +249,7 @@ namespace picongpu
 
                         if(isMaster)
                         {
-                            theTransRad = new float_X[elementsTransitionRadiation()];
+                            theTransRad.resize(elementsTransitionRadiation());
                             /* save detector position / observation direction */
                             detectorPositions = new float3_X[transitionRadiation::parameters::nObserver];
                             for(uint32_t detectorIndex = 0; detectorIndex < transitionRadiation::parameters::nObserver;
@@ -282,19 +283,11 @@ namespace picongpu
                 {
                     if(!notifyPeriod.empty())
                     {
-                        if(isMaster)
-                        {
-                            __deleteArray(theTransRad);
-                        }
                         CUDA_CHECK(cuplaGetLastError());
                         __delete(incTransRad);
                         __delete(cohTransRadPara);
                         __delete(cohTransRadPerp);
                         __delete(numParticles);
-                        __deleteArray(tmpITR);
-                        __deleteArray(tmpCTRpara);
-                        __deleteArray(tmpCTRperp);
-                        __deleteArray(tmpNum);
                     }
                 }
 
@@ -332,25 +325,25 @@ namespace picongpu
                 {
                     reduce(
                         pmacc::math::operation::Add(),
-                        tmpITR,
+                        tmpITR.data(),
                         incTransRad->getHostBuffer().getBasePointer(),
                         elementsTransitionRadiation(),
                         mpi::reduceMethods::Reduce());
                     reduce(
                         pmacc::math::operation::Add(),
-                        tmpCTRpara,
+                        tmpCTRpara.data(),
                         cohTransRadPara->getHostBuffer().getBasePointer(),
                         elementsTransitionRadiation(),
                         mpi::reduceMethods::Reduce());
                     reduce(
                         pmacc::math::operation::Add(),
-                        tmpCTRperp,
+                        tmpCTRperp.data(),
                         cohTransRadPerp->getHostBuffer().getBasePointer(),
                         elementsTransitionRadiation(),
                         mpi::reduceMethods::Reduce());
                     reduce(
                         pmacc::math::operation::Add(),
-                        tmpNum,
+                        tmpNum.data(),
                         numParticles->getHostBuffer().getBasePointer(),
                         elementsTransitionRadiation(),
                         mpi::reduceMethods::Reduce());
@@ -367,7 +360,9 @@ namespace picongpu
                         o_step << currentStep;
 
                         // write totalRad data to txt
-                        writeFile(theTransRad, folderTransRad + "/" + filenamePrefix + "_" + o_step.str() + ".dat");
+                        writeFile(
+                            theTransRad.data(),
+                            folderTransRad + "/" + filenamePrefix + "_" + o_step.str() + ".dat");
                     }
                 }
 
@@ -378,7 +373,12 @@ namespace picongpu
                     // collect data GPU -> CPU -> Master
                     copyRadiationDeviceToHost();
                     collectRadiationOnMaster();
-                    sumTransitionRadiation(theTransRad, tmpITR, tmpCTRpara, tmpCTRperp, tmpNum);
+                    sumTransitionRadiation(
+                        theTransRad.data(),
+                        tmpITR.data(),
+                        tmpCTRpara.data(),
+                        tmpCTRperp.data(),
+                        tmpNum.data());
                 }
 
                 /** Final transition radiation calculation on CPU side

@@ -146,7 +146,7 @@ namespace picongpu
 
         static void destroy(MessageHeader* obj)
         {
-            __deleteArray(obj);
+            delete[] obj;
         }
 
         MessageHeader& operator=(MessageHeader const&) = default;

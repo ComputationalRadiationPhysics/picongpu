@@ -50,6 +50,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <vector>
 
 
 namespace picongpu
@@ -317,7 +318,7 @@ namespace picongpu
 
         std::string filename;
 
-        float_64* binReduced = nullptr;
+        std::vector<float_64> binReduced;
 
         int numBins;
         int realNumBins;
@@ -366,11 +367,7 @@ namespace picongpu
 
             /* create an array of float_64 on gpu und host */
             gBins = new GridBuffer<float_64, DIM1>(DataSpace<DIM1>(realNumBins));
-            binReduced = new float_64[realNumBins];
-            for(int i = 0; i < realNumBins; ++i)
-            {
-                binReduced[i] = 0.0;
-            }
+            binReduced.resize(realNumBins, 0.0);
 
             writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
             if(writeToFile)
@@ -392,7 +389,6 @@ namespace picongpu
             }
 
             __delete(gBins);
-            __deleteArray(binReduced);
         }
 
         void notify(uint32_t currentStep) override
@@ -483,7 +479,7 @@ namespace picongpu
 
             reduce(
                 pmacc::math::operation::Add(),
-                binReduced,
+                binReduced.data(),
                 gBins->getHostBuffer().getBasePointer(),
                 realNumBins,
                 mpi::reduceMethods::Reduce());
