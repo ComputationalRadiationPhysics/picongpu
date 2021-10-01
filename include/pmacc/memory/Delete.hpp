@@ -30,9 +30,3 @@
         delete(var);                                                                                                  \
         (var) = nullptr;                                                                                              \
     }
-#define __deleteArray(var)                                                                                            \
-    if((var))                                                                                                         \
-    {                                                                                                                 \
-        delete[](var);                                                                                                \
-        (var) = nullptr;                                                                                              \
-    }

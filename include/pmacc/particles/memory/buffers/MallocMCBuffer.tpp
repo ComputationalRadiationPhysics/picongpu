@@ -49,7 +49,7 @@ namespace pmacc
         {
 #    if(PMACC_CUDA_ENABLED == 1)
             cudaHostUnregister(hostPtr);
-            __deleteArray(hostPtr);
+            delete[] hostPtr;
 #    else
             CUDA_CHECK_NO_EXCEPT((cuplaError_t) hipFree(hostPtr));
 #    endif
