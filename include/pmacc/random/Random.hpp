@@ -47,7 +47,7 @@ namespace pmacc
             /* RNGHandle assumed */
             using RNGHandle = T_RNGStatePtrOrHandle;
             using Distribution = T_Distribution;
-            using result_type = typename boost::result_of<Distribution(typename RNGHandle::RNGState&)>::type;
+            using result_type = typename Distribution::result_type;
 
             /** This can be constructed with either the RNGBox (like the RNGHandle) or from an RNGHandle instance */
             template<class T_RNGBoxOrHandle>
@@ -83,7 +83,7 @@ namespace pmacc
             using RNGMethod = T_RNGMethod;
             using RNGState = T_RNGState;
             using Distribution = T_Distribution;
-            using result_type = typename boost::result_of<Distribution(RNGState&)>::type;
+            using result_type = typename Distribution::result_type;
 
             HDINLINE Random() : m_rngState(nullptr)
             {

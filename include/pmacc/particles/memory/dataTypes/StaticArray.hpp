@@ -39,21 +39,6 @@ namespace pmacc
         Type data[size];
 
     public:
-        template<class>
-        struct result;
-
-        template<class F, typename TKey>
-        struct result<F(TKey)>
-        {
-            using type = Type&;
-        };
-
-        template<class F, typename TKey>
-        struct result<const F(TKey)>
-        {
-            using type = const Type&;
-        };
-
         HDINLINE
         Type& operator[](const int idx)
         {

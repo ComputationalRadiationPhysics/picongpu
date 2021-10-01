@@ -139,21 +139,6 @@ namespace pmacc
             /*Vectors without elements are not allowed*/
             PMACC_CASSERT_MSG(math_Vector__with_DIM_0_is_not_allowed, dim > 0);
 
-            template<class>
-            struct result;
-
-            template<class F, typename T>
-            struct result<F(T)>
-            {
-                using type = typename F::type&;
-            };
-
-            template<class F, typename T>
-            struct result<const F(T)>
-            {
-                using type = const typename F::type&;
-            };
-
             HDINLINE
             constexpr Vector()
             {
