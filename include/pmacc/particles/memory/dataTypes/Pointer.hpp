@@ -25,7 +25,8 @@
 
 namespace pmacc
 {
-    /** Wrapper for a raw pointer
+    /** Wrapper for a raw pointer that propagates its constness onto the pointee. Similar to
+     * std::experimental::propagate_const<T>.
      *
      * @tparam T_Type type of the pointed object
      */
