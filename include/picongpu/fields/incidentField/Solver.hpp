@@ -198,19 +198,18 @@ namespace picongpu
                     functor.coeff1[dir1] = coeffBase;
                     functor.coeff2[dir2] = -coeffBase;
 
-                    /* When updating the total field, the incident field is added to scattered field terms for
-                     * external neighbors which are half-cell shifted to the outside.
-                     * When updating the scattered field, the incident field is subtracted from total field terms for
-                     * internal neighbors which are half-cell shifted to the inside.
+                    /* For the positive direction, the updated total field index was shifted by 1 earlier.
+                     * This index shift is translated to in-cell shift for the incident field here.
                      */
                     auto incidentFieldBaseShift = floatD_X::create(0.0_X);
-                    if(isUpdatedFieldTotal)
-                        incidentFieldBaseShift[dir0] = -0.5_X * parameters.direction;
-                    else
-                        incidentFieldBaseShift[dir0] = 0.5_X * parameters.direction;
+                    if(parameters.direction > 0)
+                        if(isUpdatedFieldTotal)
+                            incidentFieldBaseShift[dir0] = -1.0_X;
+                        else
+                            incidentFieldBaseShift[dir0] = 1.0_X;
                     auto incidentFieldPositions = traits::FieldPosition<cellType::Yee, T_IncidentField>{}();
-                    functor.inCellShift1 = incidentFieldBaseShift + incidentFieldPositions[dir1];
-                    functor.inCellShift2 = incidentFieldBaseShift + incidentFieldPositions[dir2];
+                    functor.inCellShift1 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent1];
+                    functor.inCellShift2 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent2];
 
                     PMACC_KERNEL(ApplyIncidentFieldKernel<numWorkers, PlaneSizeInSuperCells>{})
                     (gridBlocks, numWorkers)(functor, beginGridIdx, endGridIdx);
