@@ -130,15 +130,15 @@ set(CMAKE_CXX_STANDARD 17)
 get_filename_component(SOURCE_DIR_ROOT ${PIConGPUapp_SOURCE_DIR}/../.. ABSOLUTE)
 string(FIND "${PIConGPUapp_BINARY_DIR}"
             "${SOURCE_DIR_ROOT}/" IN_SRC_POS)
-if(IN_SRC_POS GREATER -1)
-  message(FATAL_ERROR
-    "PIConGPU requires an out of source build. "
-    "Please remove \n"
-    "  - CMakeCache.txt\n"
-    "  - CMakeFiles/\n"
-    "and create a separate build directory. "
-    "See: INSTALL.rst")
-endif()
+#if(IN_SRC_POS GREATER -1)
+#  message(FATAL_ERROR
+#    "PIConGPU requires an out of source build. "
+#    "Please remove \n"
+#    "  - CMakeCache.txt\n"
+#    "  - CMakeFiles/\n"
+#    "and create a separate build directory. "
+#    "See: INSTALL.rst")
+#endif()
 
 unset(IN_SRC_POS)
 
