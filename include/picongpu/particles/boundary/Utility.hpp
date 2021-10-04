@@ -68,6 +68,39 @@ namespace picongpu
                 return species.boundaryDescription()[axis].offset;
             }
 
+            /** Get a range of cells that define external area for the given species wrt given exchangeType
+             *
+             * Note that it only considers one, given, boundary.
+             * So the particles inside the returned range crossed that boundary.
+             * Particles outside the returned range did not cross that boundary, but may still be outside for others.
+             *
+             * The results are in the total coordinate system.
+             *
+             * @tparam T_Species particle species type
+             *
+             * @param species particle species
+             * @param exchangeType exchange describing the active boundary
+             * @param[out] begin begin of the range, all cells such that begin <= cell < end component-wise fit
+             * @param[out] end end of the range, all cells such that begin <= cell < end component-wise fit
+             */
+            template<typename T_Species>
+            HINLINE void getExternalCellsTotal(
+                T_Species const& species,
+                uint32_t exchangeType,
+                pmacc::DataSpace<simDim>* begin,
+                pmacc::DataSpace<simDim>* end)
+            {
+                auto axis = pmacc::boundary::getAxis(exchangeType);
+                auto offsetCells = static_cast<int>(getOffsetCells(species, exchangeType));
+                SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
+                *begin = subGrid.getGlobalDomain().offset;
+                *end = (*begin) + subGrid.getGlobalDomain().size;
+                if(pmacc::boundary::isMinSide(exchangeType))
+                    (*end)[axis] = std::min((*end)[axis], (*begin)[axis] + offsetCells);
+                if(pmacc::boundary::isMaxSide(exchangeType))
+                    (*begin)[axis] = std::max((*begin)[axis], (*end)[axis] - offsetCells);
+            }
+
             /** Get a range of cells that define internal area for the given species wrt given exchangeType
              *
              * Note that it only considers one, given, boundary.
