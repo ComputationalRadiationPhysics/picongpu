@@ -90,7 +90,7 @@ namespace pmacc
 // re-introduce the cupla macro
 #    define cudaFreeHost(...) cuplaFreeHost(__VA_ARGS__)
 #else
-                __deleteArray(pointer);
+                delete[] pointer;
 #endif
             }
         }

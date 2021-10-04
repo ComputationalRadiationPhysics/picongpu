@@ -36,6 +36,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <mpi.h>
 
@@ -237,23 +238,21 @@ namespace picongpu
             /**\todo: fixme I cant work with not regular domains (use mpi_gatherv)*/
             DataSpace<simDim> globalRootCell(subGrid.getLocalDomain().offset);
             int yOffset = globalRootCell.y();
-            int* yOffsetsAll = new int[gpus];
-            float_32* maxAll = new float_32[yGlobalSize];
-            float_32* maxAllTmp = new float_32[yLocalSize * gpus];
-            memset(maxAll, 0, sizeof(float_32) * yGlobalSize);
-            float_32* integretedAll = new float_32[yGlobalSize];
-            float_32* integretedAllTmp = new float_32[yLocalSize * gpus];
-            memset(integretedAll, 0, sizeof(float_32) * yGlobalSize);
+            auto yOffsetsAll = std::vector<int>(gpus);
+            auto maxAll = std::vector<float_32>(yGlobalSize, 0.0f);
+            auto maxAllTmp = std::vector<float_32>(yLocalSize * gpus);
+            auto integretedAll = std::vector<float_32>(yGlobalSize, 0.0f);
+            auto integretedAllTmp = std::vector<float_32>(yLocalSize * gpus);
 
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
             __getTransactionEvent().waitForFinished();
-            MPI_CHECK(MPI_Gather(&yOffset, 1, MPI_INT, yOffsetsAll, 1, MPI_INT, 0, MPI_COMM_WORLD));
+            MPI_CHECK(MPI_Gather(&yOffset, 1, MPI_INT, yOffsetsAll.data(), 1, MPI_INT, 0, MPI_COMM_WORLD));
 
             MPI_CHECK(MPI_Gather(
                 localMaxIntensity->getHostBuffer().getBasePointer(),
                 yLocalSize,
                 MPI_FLOAT,
-                maxAllTmp,
+                maxAllTmp.data(),
                 yLocalSize,
                 MPI_FLOAT,
                 0,
@@ -262,7 +261,7 @@ namespace picongpu
                 localIntegratedIntensity->getHostBuffer().getBasePointer(),
                 yLocalSize,
                 MPI_FLOAT,
-                integretedAllTmp,
+                integretedAllTmp.data(),
                 yLocalSize,
                 MPI_FLOAT,
                 0,
@@ -285,7 +284,7 @@ namespace picongpu
                 size_t physicelYCellOffset = numSlides * yLocalSize + window.globalDimensions.offset.y();
                 writeFile(
                     currentStep,
-                    maxAll + window.globalDimensions.offset.y(),
+                    maxAll.data() + window.globalDimensions.offset.y(),
                     window.globalDimensions.size.y(),
                     physicelYCellOffset,
                     outFileMax,
@@ -297,18 +296,12 @@ namespace picongpu
 
                 writeFile(
                     currentStep,
-                    integretedAll + window.globalDimensions.offset.y(),
+                    integretedAll.data() + window.globalDimensions.offset.y(),
                     window.globalDimensions.size.y(),
                     physicelYCellOffset,
                     outFileIntegrated,
                     unit);
             }
-
-            __deleteArray(yOffsetsAll);
-            __deleteArray(maxAll);
-            __deleteArray(integretedAll);
-            __deleteArray(maxAllTmp);
-            __deleteArray(integretedAllTmp);
         }
 
         /* write data from array to a file

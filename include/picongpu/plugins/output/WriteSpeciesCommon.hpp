@@ -158,16 +158,13 @@ namespace picongpu
 #elif(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
                 CUDA_CHECK((cuplaError_t) hipHostFree(ptr));
 #else
-                __deleteArray(ptr);
+                delete[] ptr;
 #endif
             }
         }
     };
 
-    /** free memory
-     *
-     * use `__deleteArray()` to free memory
-     */
+    //! Free memory
     template<typename T_Attribute>
     struct FreeHostMemory
     {
@@ -178,11 +175,7 @@ namespace picongpu
             typedef typename pmacc::traits::Resolve<Attribute>::type::type type;
 
             type* ptr = value.getIdentifier(Attribute()).getPointer();
-            if(ptr != nullptr)
-            {
-                __deleteArray(ptr);
-                ptr = nullptr;
-            }
+            delete[] ptr;
         }
     };
 
