@@ -316,7 +316,13 @@ namespace picongpu
     template<typename T_Name, typename T_Flags, typename T_Attributes>
     void Particles<T_Name, T_Flags, T_Attributes>::applyBoundary(uint32_t const currentStep)
     {
-        particles::boundary::apply(*this, currentStep);
+        using HasMomentum = typename pmacc::traits::HasIdentifier<FrameType, momentum>::type;
+        /* We have to templatize lambda parameter to defer its instantiation.
+         * Otherwise it would have been instantiated for all species, not just supported ones.
+         */
+        pmacc::meta::invokeIf<HasMomentum::value>(
+            [currentStep](auto thisInstance) { particles::boundary::apply(*thisInstance, currentStep); },
+            this);
     }
 
     /** Do the particle push stage using the given pusher
@@ -363,7 +369,18 @@ namespace picongpu
             FrameSolver(),
             mapper);
 
-        ParticlesBaseType::template shiftParticles<CORE + BORDER>();
+        // The move-and-mark kernel sets mustShift for supercells, so we can call the optimized version of shift
+        auto const onlyProcessMustShiftSupercells = true;
+        shiftBetweenSupercells(pmacc::AreaMapperFactory<CORE + BORDER>{}, onlyProcessMustShiftSupercells);
+    }
+
+    template<typename T_Name, typename T_Flags, typename T_Attributes>
+    template<typename T_MapperFactory>
+    void Particles<T_Name, T_Flags, T_Attributes>::shiftBetweenSupercells(
+        T_MapperFactory const& mapperFactory,
+        bool const onlyProcessMustShiftSupercells)
+    {
+        ParticlesBaseType::template shiftParticles(mapperFactory, onlyProcessMustShiftSupercells);
     }
 
     template<typename T_Name, typename T_Flags, typename T_Attributes>

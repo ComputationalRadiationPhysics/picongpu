@@ -43,6 +43,7 @@ namespace pmacc
             template<>
             struct IfElse<true>
             {
+                PMACC_NO_NVCC_HDWARNING
                 template<typename T_ConditionTrueFunctor, typename T_ConditionFalseFunctor, typename... T_Args>
                 HDINLINE void operator()(
                     T_ConditionTrueFunctor&& trueFunctor,
@@ -60,6 +61,7 @@ namespace pmacc
             template<>
             struct IfElse<false>
             {
+                PMACC_NO_NVCC_HDWARNING
                 template<typename T_ConditionTrueFunctor, typename T_ConditionFalseFunctor, typename... T_Args>
                 HDINLINE void operator()(
                     T_ConditionTrueFunctor&&,
@@ -82,6 +84,7 @@ namespace pmacc
          * @param trueFunctor functor instance which is called with the arguments args if T_condition is true
          * @param args arguments forwarded to the functor
          */
+        PMACC_NO_NVCC_HDWARNING
         template<bool T_condition, typename T_ConditionTrueFunctor, typename... T_Args>
         HDINLINE void invokeIf(T_ConditionTrueFunctor&& trueFunctor, T_Args&&... args)
         {
@@ -107,6 +110,7 @@ namespace pmacc
          * @param falseFunctor functor instance which is called with the arguments args if T_condition is false
          * @param args arguments forwarded to the functor
          */
+        PMACC_NO_NVCC_HDWARNING
         template<
             bool T_condition,
             typename T_ConditionTrueFunctor,

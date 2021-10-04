@@ -343,9 +343,26 @@ namespace pmacc
         /** This kernel moves particles to the next supercell
          *
          * @warning this kernel can only run with a double checker board
+         *
+         * @tparam T_ParBox particle data box type
+         * @tparam Mapping mapper type, adheres to Mapper concept
+         * @tparam T_Acc alpaka accelerator type
+         * @tparam T_Idx supercell index type
+         *
+         * @param acc accelerator
+         * @param pb particle box
+         * @param mapper mapper from blocks to supercells
+         * @param numSupercellsWithGuard number of supercells in local domain with guard
+         * @param onlyProcessMustShiftSupercells whether to process only supercells with mustShift set to true
+         * (optimization to be used with particle pusher) or process all supercells
          */
         template<typename T_ParBox, typename Mapping, typename T_Acc, typename T_Idx>
-        DINLINE void operator()(T_Acc const& acc, T_ParBox pb, Mapping mapper, T_Idx numSupercellsWithGuard) const
+        DINLINE void operator()(
+            T_Acc const& acc,
+            T_ParBox pb,
+            Mapping mapper,
+            T_Idx numSupercellsWithGuard,
+            bool onlyProcessMustShiftSupercells) const
         {
             using ParBox = T_ParBox;
             using FrameType = typename ParBox::FrameType;
@@ -366,14 +383,14 @@ namespace pmacc
             PMACC_SMEM(acc, destFramesCounter, memory::Array<int, numExchanges>);
 
             PMACC_SMEM(acc, frame, FramePtr);
-            PMACC_SMEM(acc, mustShift, bool);
+            PMACC_SMEM(acc, isProcessedSupercell, bool);
 
             DataSpace<dim> const superCellIdx = mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc)));
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             lockstep::makeMaster(workerIdx)([&]() {
-                mustShift = pb.getSuperCell(superCellIdx).mustShift();
-                if(mustShift)
+                isProcessedSupercell = !onlyProcessMustShiftSupercells || pb.getSuperCell(superCellIdx).mustShift();
+                if(isProcessedSupercell)
                 {
                     pb.getSuperCell(superCellIdx).setMustShift(false);
                     frame = pb.getFirstFrame(superCellIdx);
@@ -381,7 +398,7 @@ namespace pmacc
             });
 
             cupla::__syncthreads(acc);
-            if(!mustShift || !frame.isValid())
+            if(!isProcessedSupercell || !frame.isValid())
                 return;
 
             auto forEachExchange = lockstep::makeForEach<numExchanges, numWorkers>(workerIdx);

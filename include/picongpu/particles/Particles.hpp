@@ -127,6 +127,17 @@ namespace picongpu
         //! Push all particles
         void update(uint32_t const currentStep);
 
+        /** Update the supercell storage for particles in the area according to particle attributes
+         *
+         * @tparam T_MapperFactory factory type to construct a mapper that defines the area to process
+         *
+         * @param mapperFactory factory instance
+         * @param onlyProcessMustShiftSupercells whether to process only supercells with mustShift set to true
+         * (optimization to be used with particle pusher) or process all supercells
+         */
+        template<typename T_MapperFactory>
+        inline void shiftBetweenSupercells(T_MapperFactory const& mapperFactory, bool onlyProcessMustShiftSupercells);
+
         //! Apply all boundary conditions
         void applyBoundary(uint32_t const currentStep);
 

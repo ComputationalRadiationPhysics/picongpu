@@ -24,6 +24,7 @@
 #include "picongpu/particles/boundary/Absorbing.hpp"
 #include "picongpu/particles/boundary/ApplyImpl.hpp"
 #include "picongpu/particles/boundary/Description.hpp"
+#include "picongpu/particles/boundary/Reflecting.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/boundary/Utility.hpp>
@@ -99,6 +100,9 @@ namespace picongpu
                         break;
                     case Kind::Absorbing:
                         ApplyImpl<Kind::Absorbing>{}(species, exchange, currentStep);
+                        break;
+                    case Kind::Reflecting:
+                        ApplyImpl<Kind::Reflecting>{}(species, exchange, currentStep);
                         break;
                     default:
                         throw std::runtime_error("Unsupported boundary kind when trying to apply particle boundary");

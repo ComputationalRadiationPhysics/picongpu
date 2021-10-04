@@ -30,20 +30,30 @@
 
 namespace pmacc
 {
-    /** Mapping from block indices to supercells in the given interval for alpaka kernels
+    /** Strided mapping from block indices to supercells in the given interval for alpaka kernels
      *
      * An interval is a T_dim-dimensional contiguous Cartesian range.
      * Parameters of the inverval are defined at runtime, unlike most other mappers.
      *
      * Adheres to the MapperConcept.
      *
+     * The mapped interval is subdivided into stride^dim non-intersecting subintervals (some may be empty).
+     * A subinterval is an intersection of the interval and an integer lattice with given stride in all directions.
+     * Each subinterval has a unique offset relative to interval start.
+     *
      * @tparam T_MappingDescription mapping description type
+     * @tparam T_stride stride value, same for all directions
      */
-    template<typename T_MappingDescription>
-    class IntervalMapping;
+    template<typename T_MappingDescription, uint32_t T_stride>
+    class StrideIntervalMapping;
 
-    template<template<unsigned, class> class T_MappingDescription, unsigned T_dim, typename T_SuperCellSize>
-    class IntervalMapping<T_MappingDescription<T_dim, T_SuperCellSize>>
+    template<
+        template<unsigned, class>
+        class T_MappingDescription,
+        unsigned T_dim,
+        typename T_SuperCellSize,
+        uint32_t T_stride>
+    class StrideIntervalMapping<T_MappingDescription<T_dim, T_SuperCellSize>, T_stride>
         : public T_MappingDescription<T_dim, T_SuperCellSize>
     {
     public:
@@ -53,19 +63,26 @@ namespace pmacc
         //! Compile-time super cell size
         using SuperCellSize = typename BaseClass::SuperCellSize;
 
+        //! Dimensionality value
+        static constexpr uint32_t dim = T_dim;
+
+        //! Stride value
+        static constexpr uint32_t stride = T_stride;
+
         /** Create a mapper instance
          *
          * @param base instance of the base class to be propagated
          * @param beginSupercell the first supercell index of the interval, including guards
          * @param numSupercells number of supercells in the interval along each direction
          */
-        HINLINE IntervalMapping(
+        HINLINE StrideIntervalMapping(
             BaseClass base,
-            DataSpace<T_dim> const& beginSupercell,
-            DataSpace<T_dim> const& numSupercells)
+            DataSpace<dim> const& beginSupercell,
+            DataSpace<dim> const& numSupercells)
             : BaseClass(base)
             , beginSupercell(beginSupercell)
             , numSupercells(numSupercells)
+            , offset(DataSpace<dim>::create(0))
         {
         }
 
@@ -75,9 +92,9 @@ namespace pmacc
          *
          * @return number of blocks in a grid
          */
-        HINLINE DataSpace<T_dim> getGridDim() const
+        HINLINE DataSpace<dim> getGridDim() const
         {
-            return numSupercells;
+            return (numSupercells - offset + stride - 1) / stride;
         }
 
         /** Return index of a supercell to be processed by the given alpaka block
@@ -85,9 +102,44 @@ namespace pmacc
          * @param blockIdx alpaka block index
          * @return mapped SuperCell index including guards
          */
-        HDINLINE DataSpace<T_dim> getSuperCellIndex(DataSpace<T_dim> const& blockIdx) const
+        HDINLINE DataSpace<dim> getSuperCellIndex(DataSpace<dim> const& blockIdx) const
         {
-            return beginSupercell + blockIdx;
+            return beginSupercell + offset + blockIdx * stride;
+        }
+
+        //! Get current offset value
+        HDINLINE DataSpace<dim> getOffset() const
+        {
+            return offset;
+        }
+
+        /** Set a new offset value
+         *
+         * @param newOffset new offset value
+         */
+        HDINLINE void setOffset(DataSpace<dim> const newOffset)
+        {
+            offset = newOffset;
+        }
+
+        /** Set mapper to next non-empty subinterval
+         *
+         * @return whether the whole interval was processed
+         */
+        HINLINE bool next()
+        {
+            int linearOffset = DataSpaceOperations<dim>::map(DataSpace<dim>::create(stride), offset);
+            linearOffset++;
+            offset = DataSpaceOperations<dim>::map(DataSpace<dim>::create(stride), linearOffset);
+            /* First check if everything is processed to have a recursion stop condition.
+             * Then if the new grid dim has 0 size, immediately go to the next state.
+             * This way it guarantees a valid grid dim after next() returns true.
+             */
+            if(linearOffset >= DataSpace<dim>::create(stride).productOfComponents())
+                return false;
+            if(getGridDim().productOfComponents() == 0)
+                return next();
+            return true;
         }
 
     private:
@@ -96,16 +148,20 @@ namespace pmacc
 
         //! Number of supercells in the interval along each direction
         DataSpace<T_dim> const numSupercells;
+
+        //! Offset of the current stride relative to beginSupercell
+        DataSpace<T_dim> offset;
     };
 
-    /** Construct an interval mapper instance for the given description
+    /** Construct a strided interval mapper instance for the given description
      *
      * Adheres to the MapperFactoryConcept.
      *
      * @tparam T_dim dimensionality of mappers to be constructed
+     * @tparam T_stride stride value, same for all directions
      */
-    template<unsigned T_dim>
-    struct IntervalMapperFactory
+    template<unsigned T_dim, uint32_t T_stride>
+    struct StrideIntervalMapperFactory
     {
         /** Create a factory instance
          *
@@ -113,24 +169,27 @@ namespace pmacc
          * objects
          * @param numSupercells number of supercells in the interval along each direction in the constructed objects
          */
-        IntervalMapperFactory(DataSpace<T_dim> const& beginSupercell, DataSpace<T_dim> const& numSupercells)
+        StrideIntervalMapperFactory(DataSpace<T_dim> const& beginSupercell, DataSpace<T_dim> const& numSupercells)
             : beginSupercell(beginSupercell)
             , numSupercells(numSupercells)
         {
         }
 
-        /** Construct an interval mapper object
+        /** Construct a strided interval mapper object
          *
          * @tparam T_MappingDescription mapping description type
          *
          * @param mappingDescription mapping description
          *
-         * @return an object adhering to the AreaMapping concept
+         * @return an object adhering to the MapperConcept
          */
         template<typename T_MappingDescription>
         HINLINE auto operator()(T_MappingDescription mappingDescription) const
         {
-            return IntervalMapping<T_MappingDescription>{mappingDescription, beginSupercell, numSupercells};
+            return StrideIntervalMapping<T_MappingDescription, T_stride>{
+                mappingDescription,
+                beginSupercell,
+                numSupercells};
         }
 
         //! The first supercell index of the interval, including guards, in the constructed objects
@@ -140,8 +199,9 @@ namespace pmacc
         DataSpace<T_dim> const numSupercells;
     };
 
-    /** Construct an interval mapper instance for the given description and parameters
+    /** Construct a strided interval mapper instance for the given description and parameters
      *
+     * @tparam T_stride stride value, same for all directions
      * @tparam T_MappingDescription mapping description type
      * @tparam T_dim dimensionality of mapper
      *
@@ -149,13 +209,13 @@ namespace pmacc
      * @param beginSupercell the first supercell index of the interval, including guards
      * @param numSupercells number of supercells in the interval along each direction
      */
-    template<typename T_MappingDescription, unsigned T_dim>
-    HINLINE auto makeIntervalMapper(
+    template<uint32_t T_stride, typename T_MappingDescription, unsigned T_dim>
+    HINLINE auto makeStrideIntervalMapper(
         T_MappingDescription mappingDescription,
         DataSpace<T_dim> const& beginSupercell,
         DataSpace<T_dim> const& numSupercells)
     {
-        return IntervalMapperFactory<T_dim>{beginSupercell, numSupercells}(mappingDescription);
+        return StrideIntervalMapperFactory<T_dim, T_stride>{beginSupercell, numSupercells}(mappingDescription);
     }
 
 } // namespace pmacc

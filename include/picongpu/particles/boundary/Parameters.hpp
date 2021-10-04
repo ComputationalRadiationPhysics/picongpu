@@ -1,4 +1,4 @@
-/* Copyright 2021 Sergei Bastrakov, Lennert Sprenger
+/* Copyright 2021 Lennert Sprenger
  *
  * This file is part of PIConGPU.
  *
@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
 
 namespace picongpu
 {
@@ -26,14 +28,21 @@ namespace picongpu
     {
         namespace boundary
         {
-            //! Supported particle boundary kinds
-            enum class Kind
+            //! Parameters to be passed to particle boundary conditions
+            struct Parameters
             {
-                Periodic,
-                Absorbing,
-                Reflecting
-            };
+                /** Begin of the internal (relative to boundary) cells in total coordinates
+                 *
+                 * Particles to the left side are outside
+                 */
+                pmacc::DataSpace<simDim> beginInternalCellsTotal;
 
+                /** End of the internal (relative to boundary) cells in total coordinates
+                 *
+                 * Particles equal or to the right side are outside
+                 */
+                pmacc::DataSpace<simDim> endInternalCellsTotal;
+            };
         } // namespace boundary
     } // namespace particles
 } // namespace picongpu

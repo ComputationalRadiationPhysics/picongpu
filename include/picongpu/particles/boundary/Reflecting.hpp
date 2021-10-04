@@ -1,4 +1,4 @@
-/* Copyright 2021 Sergei Bastrakov
+/* Copyright 2021 Sergei Bastrakov, Lennert Sprenger
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/particles/MoveParticle.hpp"
 #include "picongpu/particles/boundary/ApplyImpl.hpp"
 #include "picongpu/particles/boundary/Kind.hpp"
 #include "picongpu/particles/boundary/Parameters.hpp"
@@ -29,7 +30,7 @@
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.hpp"
 
 #include <cstdint>
-
+#include <limits>
 
 namespace picongpu
 {
@@ -37,11 +38,10 @@ namespace picongpu
     {
         namespace boundary
         {
-            //! Functor to be applied to all particles in the active area
-            struct AbsorbParticleIfOutside : public functor::misc::Parametrized<Parameters>
+            struct ReflectParticleIfOutside : public functor::misc::Parametrized<Parameters>
             {
                 //! Name, required to be wrapped later
-                static constexpr char const* name = "absorbParticleIfOutside";
+                static constexpr char const* name = "reflectParticleIfOutside";
 
                 /** Process the current particle located in the given cell
                  *
@@ -54,15 +54,40 @@ namespace picongpu
                     for(uint32_t d = 0; d < simDim; d++)
                         if((offsetToTotalOrigin[d] < m_parameters.beginInternalCellsTotal[d])
                            || (offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d]))
-                            particle[multiMask_] = 0;
+                        {
+                            auto pos = particle[position_]; // floatD_X pos
+
+                            if(offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d])
+                            {
+                                /*
+                                 * substract epsilon so we are definitly in the cell left of the current
+                                 * cell, because that could happen if pos = 0 or pos < epsilon.
+                                 * To set the position to 0.9 of the left cell relative to the current cell,
+                                 * pos needs to be set to -0.1.
+                                 */
+                                pos[d] = -pos[d] - std::numeric_limits<float_X>::epsilon();
+                            }
+                            else
+                                /*
+                                 * no correction is needed here, because if the particle just barly crossed the left
+                                 * border pos[d] is about 0.9 in the current cell. In order to be very small ( <
+                                 * epsilon ) the particle needs to be on the left side of the cell and that would mean
+                                 * that the particle traveled a whole cell which should not be possible with the with
+                                 * the CFL-condition.
+                                 */
+                                pos[d] = 2.0_X - pos[d];
+
+                            particle[momentum_][d] = -particle[momentum_][d];
+                            moveParticle(particle, pos);
+                        }
                 }
             };
 
-            //! Functor to apply absorbing boundary to particle species
+            //! Functor to apply reflecting boundary condition to particle species
             template<>
-            struct ApplyImpl<Kind::Absorbing>
+            struct ApplyImpl<Kind::Reflecting>
             {
-                /** Apply absorbing boundary conditions along the given outer boundary
+                /** Apply reflecting boundary conditions along the given outer boundary
                  *
                  * @tparam T_Species particle species type
                  *
@@ -75,12 +100,17 @@ namespace picongpu
                 {
                     pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
                     getInternalCellsTotal(species, exchangeType, &beginInternalCellsTotal, &endInternalCellsTotal);
-                    AbsorbParticleIfOutside::parameters().beginInternalCellsTotal = beginInternalCellsTotal;
-                    AbsorbParticleIfOutside::parameters().endInternalCellsTotal = endInternalCellsTotal;
+                    ReflectParticleIfOutside::parameters().beginInternalCellsTotal = beginInternalCellsTotal;
+                    ReflectParticleIfOutside::parameters().endInternalCellsTotal = endInternalCellsTotal;
                     auto const mapperFactory = getMapperFactory(species, exchangeType);
-                    using Manipulator = manipulators::unary::FreeTotalCellOffset<AbsorbParticleIfOutside>;
+                    using Manipulator = manipulators::unary::FreeTotalCellOffset<ReflectParticleIfOutside>;
                     particles::manipulate<Manipulator, T_Species>(currentStep, mapperFactory);
-                    species.fillGaps(mapperFactory);
+
+                    /* After reflection is applied, some particles can require movement between supercells.
+                     * We have not set mustShift for those supercells, so shift has to process all supercells
+                     */
+                    auto const onlyProcessMustShiftSupercells = false;
+                    species.shiftBetweenSupercells(mapperFactory, onlyProcessMustShiftSupercells);
                 }
             };
 
