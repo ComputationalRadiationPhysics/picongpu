@@ -537,28 +537,26 @@ References
 ^^^^^^^^^^
 
 .. [Pausch2012]
-       Pausch, R.
-       *Electromagnetic Radiation from Relativistic Electrons as Characteristic Signature of their Dynamics*
-       Diploma Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Physiker" (2012)
+       Pausch, R.,
+       *Electromagnetic Radiation from Relativistic Electrons as Characteristic Signature of their Dynamics*,
+       Diploma Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Physiker" (2012),
        https://doi.org/10.5281/zenodo.843510
 
 .. [Pausch2014]
-       Pausch, R., Debus, A., Widera, R. et al.
-       *How to test and verify radiation diagnostics simulations within particle-in-cell frameworks*
-       Nuclear Instruments and Methods in Physics Research, Section A: Accelerators, Spectrometers, Detectors and Associated Equipment, 740, 250–256 (2014)
+       Pausch, R., Debus, A., Widera, R. et al.,
+       *How to test and verify radiation diagnostics simulations within particle-in-cell frameworks*,
+       Nuclear Instruments and Methods in Physics Research, Section A: Accelerators, Spectrometers, Detectors and Associated Equipment, 740, 250–256 (2014),
        https://doi.org/10.1016/j.nima.2013.10.073
 
 .. [Pausch2018]
-       Pausch, R., Debus, A., Huebl, A. at al.
-       *Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes — A general form factor formalism for macro-particles*
-       Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment, 909, 419–422 (2018)
+       Pausch, R., Debus, A., Huebl, A. at al.,
+       *Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes — A general form factor formalism for macro-particles*,
+       Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment, 909, 419–422 (2018),
        https://doi.org/10.1016/j.nima.2018.02.020
 
 .. [Pausch2019]
-       Pausch, R.
-       *Synthetic radiation diagnostics as a pathway for studying plasma dynamics from advanced accelerators to astrophysical observations*
-       PhD Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2019)
+       Pausch, R.,
+       *Synthetic radiation diagnostics as a pathway for studying plasma dynamics from advanced accelerators to astrophysical observations*,
+       PhD Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2019),
        https://doi.org/10.5281/zenodo.3616045
-
-
-
+   
