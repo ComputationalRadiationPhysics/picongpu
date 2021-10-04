@@ -22,6 +22,7 @@
 
 #include "picongpu/fields/Fields.def"
 #include "picongpu/fields/Fields.hpp"
+#include "picongpu/param/memory.param"
 #include "picongpu/particles/boundary/Description.hpp"
 #include "picongpu/particles/boundary/Utility.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
@@ -89,6 +90,7 @@ namespace picongpu
                       pmacc::HandleGuardRegion<
                           pmacc::particles::policies::ExchangeParticles,
                           pmacc::particles::policies::DoNothing>>>,
+              ParticleFrameMemoryLayout,
               MappingDesc,
               DeviceHeap>
         , public ISimulationData
@@ -108,7 +110,8 @@ namespace picongpu
                 pmacc::HandleGuardRegion<
                     pmacc::particles::policies::ExchangeParticles,
                     pmacc::particles::policies::DoNothing>>>;
-        using ParticlesBaseType = ParticlesBase<SpeciesParticleDescription, picongpu::MappingDesc, DeviceHeap>;
+        using ParticlesBaseType
+            = ParticlesBase<SpeciesParticleDescription, ParticleFrameMemoryLayout, picongpu::MappingDesc, DeviceHeap>;
         using FrameType = typename ParticlesBaseType::FrameType;
         using FrameTypeBorder = typename ParticlesBaseType::FrameTypeBorder;
         using ParticlesBoxType = typename ParticlesBaseType::ParticlesBoxType;

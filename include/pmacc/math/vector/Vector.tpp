@@ -108,8 +108,8 @@ namespace pmacc
 
         /** specialize l2norm2 algorithm
          */
-        template<typename Type, uint32_t dim>
-        struct L2norm2<::pmacc::math::Vector<Type, dim>>
+        template<typename Type, uint32_t dim, typename Storage>
+        struct L2norm2<::pmacc::math::Vector<Type, dim, StandardAccessor, StandardNavigator, Storage>>
         {
             using result = typename ::pmacc::math::Vector<Type, dim>::type;
 
@@ -124,12 +124,12 @@ namespace pmacc
 
         /** specialize l2norm algorithm
          */
-        template<typename Type, uint32_t dim>
-        struct L2norm<::pmacc::math::Vector<Type, dim>>
+        template<typename Type, uint32_t dim, typename Storage>
+        struct L2norm<::pmacc::math::Vector<Type, dim, StandardAccessor, StandardNavigator, Storage>>
         {
-            using result = typename ::pmacc::math::Vector<Type, dim>::type;
+            using result = typename ::pmacc::math::Vector<Type, dim, StandardAccessor, StandardNavigator, Storage>::type;
 
-            HDINLINE result operator()(const ::pmacc::math::Vector<Type, dim>& vector)
+            HDINLINE result operator()(const ::pmacc::math::Vector<Type, dim, StandardAccessor, StandardNavigator, Storage>& vector)
             {
                 result tmp = pmacc::math::l2norm2(vector);
                 return cupla::math::sqrt(tmp);

@@ -68,7 +68,7 @@ namespace picongpu
             {
                 using Identifier = T_Identifier;
                 using ValueType = typename pmacc::traits::Resolve<Identifier>::type::type;
-                const uint32_t components = GetNComponents<ValueType>::value;
+                constexpr uint32_t components = GetNComponents<ValueType>::value;
                 using ComponentType = typename GetComponentsType<ValueType>::type;
                 OpenPMDName<Identifier> openPMDName;
 
@@ -76,6 +76,7 @@ namespace picongpu
 
                 const std::string name_lookup[] = {"x", "y", "z"};
 
+                // TODO(bgruber): make this a std::shared_ptr<ComponentType[]> with openPMD 0.15
                 std::shared_ptr<ComponentType> loadBfr;
                 if(elements > 0)
                 {
@@ -90,7 +91,6 @@ namespace picongpu
                     ::openPMD::RecordComponent rc
                         = components > 1 ? record[name_lookup[n]] : record[::openPMD::RecordComponent::SCALAR];
 
-                    ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
 
                     if(elements > 0)
                     {
@@ -119,12 +119,15 @@ namespace picongpu
                                               "%3%")
                         % elements % globalNumElements % openPMDName();
 
-/* copy component from temporary array to array of structs */
+                    /* copy component from temporary array to array of structs */
 #pragma omp parallel for simd
                     for(size_t i = 0; i < elements; ++i)
                     {
-                        ComponentType* ref = &reinterpret_cast<ComponentType*>(dataPtr)[i * components + n];
-                        *ref = loadBfr.get()[i];
+                        auto& attrib = frame[i][Identifier{}];
+                        if constexpr(components == 1)
+                            attrib = loadBfr.get()[i];
+                        else
+                            reinterpret_cast<ComponentType*>(&attrib)[n] = loadBfr.get()[i];
                     }
                 }
 
