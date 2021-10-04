@@ -114,4 +114,27 @@ namespace picongpu
      */
     constexpr bool fieldTmpSupportGatherCommunication = true;
 
+    // struct ParticleFrameMemoryLayout : llama::mapping::BindAoS<>
+    struct ParticleFrameMemoryLayout
+        : llama::mapping::BindSoA<llama::mapping::Blobs::Single, llama::mapping::SubArrayAlignment::Align>
+    // struct ParticleFrameMemoryLayout : llama::mapping::BindAoSoA<16>
+    // struct ParticleFrameMemoryLayout : llama::mapping::BindAoSoA<32>
+    // struct ParticleFrameMemoryLayout : llama::mapping::BindAoSoA<64>
+    {
+        inline static constexpr bool splitVector = false;
+    };
+
+    struct ParticleFrameMemoryLayoutOpenPMD : llama::mapping::BindSoA<llama::mapping::Blobs::OnePerField>
+    {
+        inline static constexpr bool splitVector = false;
+    };
+
+    // struct SharedDataBoxMemoryLayout : llama::mapping::BindSoA<false>
+    // struct SharedDataBoxMemoryLayout : llama::mapping::BindSoA<false, false,
+    // llama::mapping::LinearizeArrayDimsFortran> struct SharedDataBoxMemoryLayout : llama::mapping::BindAoSoA<32>
+    struct SharedDataBoxMemoryLayout : llama::mapping::BindAoS<>
+    // struct SharedDataBoxMemoryLayout : llama::mapping::BindAoS<true, llama::mapping::LinearizeArrayDimsFortran>
+    {
+        inline static constexpr bool splitVector = false;
+    };
 } // namespace picongpu

@@ -43,8 +43,22 @@
 
 namespace pmacc
 {
-    namespace detail
+    /**
+     * Describes DIM-dimensional buffer for particles data on the host.
+     *
+     * @tParam T_ParticleDescription Object which describe a frame @see ParticleDescription.hpp
+     * @tparam SuperCellSize_ TVec which descripe size of a superce
+     * @tparam DIM dimension of the buffer (1-3)
+     */
+    template<
+        typename T_ParticleDescription,
+        typename T_FrameMemoryLayout,
+        class SuperCellSize_,
+        typename T_DeviceHeap,
+        unsigned DIM>
+    class ParticlesBuffer
     {
+    public:
         /** create static array
          */
         template<uint32_t T_size>
@@ -53,24 +67,9 @@ namespace pmacc
             template<typename X>
             struct apply
             {
-                using type = meta::Pair<
-                    X,
-                    StaticArray<typename traits::Resolve<X>::type::type, std::integral_constant<uint32_t, T_size>>>;
             };
         };
-    } // namespace detail
 
-    /**
-     * Describes DIM-dimensional buffer for particles data on the host.
-     *
-     * @tParam T_ParticleDescription Object which describe a frame @see ParticleDescription.hpp
-     * @tparam SuperCellSize_ TVec which descripe size of a superce
-     * @tparam DIM dimension of the buffer (1-3)
-     */
-    template<typename T_ParticleDescription, class SuperCellSize_, typename T_DeviceHeap, unsigned DIM>
-    class ParticlesBuffer
-    {
-    public:
         /** type of the border frame management object
          *
          * contains:
@@ -100,9 +99,8 @@ namespace pmacc
          *
          * a group of particles is stored as frame
          */
-        using FrameType = Frame<
-            detail::OperatorCreatePairStaticArray<pmacc::math::CT::volume<SuperCellSize>::type::value>,
-            FrameDescription>;
+        using FrameType
+            = Frame<pmacc::math::CT::volume<SuperCellSize>::type::value, FrameDescription, T_FrameMemoryLayout>;
 
         using FrameDescriptionBorder =
             typename ReplaceValueTypeSeq<T_ParticleDescription, ParticleAttributeListBorder>::type;
@@ -112,7 +110,7 @@ namespace pmacc
          * - each frame contains only one particle
          * - local administration attributes of a particle are removed
          */
-        using FrameTypeBorder = Frame<detail::OperatorCreatePairStaticArray<1U>, FrameDescriptionBorder>;
+        using FrameTypeBorder = Frame<1, FrameDescriptionBorder, llama::mapping::BindOne<>>;
 
         using SuperCellType = SuperCell<FrameType>;
 

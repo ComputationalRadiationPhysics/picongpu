@@ -100,7 +100,7 @@ namespace pmacc
                  * If you get an linker error in the next two lines you have not used
                  * DEFINE_LOGLVL makro to define a named logLvl
                  */
-                if(logLvl & LogParent::log_level) /*compile-time check*/
+                if constexpr((logLvl & LogParent::log_level) != 0)
                 {
                     std::cout << LogParent::getName() << " " << getLogName(LogClass()) << "("
                               << (logLvl & LogParent::log_level) << ")"
@@ -109,9 +109,9 @@ namespace pmacc
             }
 
             template<typename T>
-            VerboseLog& operator%(T value)
+            VerboseLog& operator%([[maybe_unused]] T value)
             {
-                if(logLvl & LogParent::log_level) /*compile-time check*/
+                if constexpr((logLvl & LogParent::log_level) != 0)
                     fmt % value;
                 return *this;
             }

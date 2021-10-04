@@ -51,9 +51,8 @@ namespace pmacc
                     T_dim,
                     T_Accessor,
                     math::StackedNavigator<T_Navigator, math::PermutedNavigator<T_Axes>>,
-                    T_Storage>&;
+                    T_Storage>;
             };
-
         } // namespace detail
 
         /** Returns a reference of vector with twisted axes.
@@ -69,13 +68,17 @@ namespace pmacc
          * @return reference of the input vector with twisted axes.
          */
         template<typename T_Axes, typename T_Vector>
-        HDINLINE auto twistComponents(T_Vector& vector)
+        HDINLINE auto& twistComponents(T_Vector& vector)
         {
-            /* The reinterpret_cast is valid because the target type is the same as the
-             * input type except its navigator policy which does not occupy any memory though.
-             */
-            return reinterpret_cast<typename detail::TwistComponents<T_Axes, T_Vector>::type>(vector);
+            // cast to reference with new navigator
+            return reinterpret_cast<typename detail::TwistComponents<T_Axes, T_Vector>::type&>(vector);
         }
 
+        template<typename T_Axes, typename T_Vector>
+        HDINLINE auto twistComponents(T_Vector&& vector)
+        {
+            // construct new vector (with reference semantic) with new navigator
+            return typename detail::TwistComponents<T_Axes, T_Vector>::type(std::move(vector));
+        }
     } // namespace math
 } // namespace pmacc

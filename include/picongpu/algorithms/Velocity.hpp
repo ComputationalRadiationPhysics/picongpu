@@ -28,7 +28,7 @@ namespace picongpu
     struct Velocity
     {
         template<typename MomType, typename MassType>
-        HDINLINE MomType operator()(const MomType mom, const MassType mass0)
+        HDINLINE auto operator()(const MomType mom, const MassType mass0)
         {
             const float_X rc2 = MUE0_EPS0;
             const float_X m0_2 = mass0 * mass0;

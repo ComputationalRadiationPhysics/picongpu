@@ -25,6 +25,7 @@
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
+#include "picongpu/param/memory.param"
 #include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/atomicPhysics/SetChargeState.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSI.hpp"
@@ -93,7 +94,10 @@ namespace picongpu
                 FieldE::DataBoxType eBox;
                 FieldJ::DataBoxType jBox;
                 /* shared memory EM-field device databoxes */
-                PMACC_ALIGN(cachedE, DataBox<SharedBox<ValueType_E, typename BlockArea::FullSuperCellSize, 1>>);
+                PMACC_ALIGN(
+                    cachedE,
+                    DataBox<
+                        SharedBox<ValueType_E, typename BlockArea::FullSuperCellSize, 1, SharedDataBoxMemoryLayout>>);
 
             public:
                 /* host constructor */
@@ -125,7 +129,7 @@ namespace picongpu
                     jBox = jBox.shift(blockCell);
 
                     /* caching of E field */
-                    cachedE = CachedBox::create<1, ValueType_E>(worker, BlockArea());
+                    cachedE = CachedBox::create<1, SharedDataBoxMemoryLayout, ValueType_E>(worker, BlockArea());
 
                     /* instance of nvidia assignment operator */
                     pmacc::math::operation::Assign assign;

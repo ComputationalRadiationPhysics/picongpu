@@ -21,10 +21,13 @@
 
 #pragma once
 
+#include "pmacc/mappings/kernel/MappingDescription.hpp"
 #include "pmacc/math/Vector.hpp"
 #include "pmacc/memory/Array.hpp"
 #include "pmacc/memory/shared/Allocate.hpp"
 #include "pmacc/types.hpp"
+
+#include <cstdint>
 
 namespace pmacc
 {
@@ -49,7 +52,7 @@ namespace pmacc
         }
     } // namespace detail
 
-    /** create shared memory on gpu
+    /** A shared memory on gpu. Used in conjunction with \ref pmacc::DataBox.
      *
      * @tparam T_TYPE type of memory objects
      * @tparam T_Vector CT::Vector with size description (per dimension)
@@ -57,7 +60,12 @@ namespace pmacc
      *              (is needed if more than one instance of shared memory in one kernel is used)
      * @tparam T_dim dimension of the memory (supports DIM1,DIM2 and DIM3)
      */
-    template<typename T_TYPE, typename T_Vector, uint32_t T_id = 0, uint32_t T_dim = T_Vector::dim>
+    template<
+        typename T_TYPE,
+        typename T_Vector,
+        uint32_t T_id,
+        typename T_MemoryMapping,
+        uint32_t T_dim = T_Vector::dim>
     struct SharedBox
     {
         static constexpr std::uint32_t Dim = T_dim;
@@ -74,8 +82,8 @@ namespace pmacc
         HDINLINE SharedBox(SharedBox const&) = default;
 
         using ReducedType1D = T_TYPE&;
-        using ReducedType2D = SharedBox<T_TYPE, typename math::CT::shrinkTo<T_Vector, 1>::type, T_id>;
-        using ReducedType3D = SharedBox<T_TYPE, typename math::CT::shrinkTo<T_Vector, 2>::type, T_id>;
+        using ReducedType2D = SharedBox<T_TYPE, typename math::CT::shrinkTo<T_Vector, 1>::type, T_id, T_MemoryMapping>;
+        using ReducedType3D = SharedBox<T_TYPE, typename math::CT::shrinkTo<T_Vector, 2>::type, T_id, T_MemoryMapping>;
         using ReducedType
             = std::conditional_t<Dim == 1, ReducedType1D, std::conditional_t<Dim == 2, ReducedType2D, ReducedType3D>>;
 
@@ -116,7 +124,7 @@ namespace pmacc
             return {mem_sh.data()};
         }
 
-    protected:
+    public:
         PMACC_ALIGN(fixedPointer, ValueType*);
     };
 } // namespace pmacc

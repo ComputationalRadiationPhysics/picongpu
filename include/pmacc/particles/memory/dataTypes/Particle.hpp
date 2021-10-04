@@ -41,6 +41,8 @@
 
 #include <type_traits>
 
+#include <llama/llama.hpp>
+
 namespace pmacc
 {
     /** A single particle of a @see Frame
@@ -119,20 +121,18 @@ namespace pmacc
          * @return result of operator[] of the Frame
          */
         template<typename T_Key>
-        HDINLINE auto& operator[](const T_Key key)
+        HDINLINE decltype(auto) operator[](const T_Key key)
         {
             PMACC_CASSERT_MSG_TYPE(key_not_available, T_Key, traits::HasIdentifier<Particle, T_Key>::type::value);
-
-            return frame->getIdentifier(key)[idx];
+            return frame->get(idx, key);
         }
 
         /** const version of method operator(const T_Key) */
         template<typename T_Key>
-        HDINLINE const auto& operator[](const T_Key key) const
+        HDINLINE decltype(auto) operator[](const T_Key key) const
         {
             PMACC_CASSERT_MSG_TYPE(key_not_available, T_Key, traits::HasIdentifier<Particle, T_Key>::type::value);
-
-            return frame->getIdentifier(key)[idx];
+            return frame->get(idx, key);
         }
 
         HDINLINE

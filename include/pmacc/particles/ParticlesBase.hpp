@@ -41,7 +41,7 @@ namespace pmacc
     /* Tag used for marking particle types */
     struct ParticlesTag;
 
-    template<typename T_ParticleDescription, class T_MappingDesc, typename T_DeviceHeap>
+    template<typename T_ParticleDescription, typename T_FrameMemoryLayout, class T_MappingDesc, typename T_DeviceHeap>
     class ParticlesBase : public SimulationFieldHelper<T_MappingDesc>
     {
         using ParticleDescription = T_ParticleDescription;
@@ -53,6 +53,7 @@ namespace pmacc
          */
         using BufferType = ParticlesBuffer<
             ParticleDescription,
+            T_FrameMemoryLayout,
             typename MappingDesc::SuperCellSize,
             T_DeviceHeap,
             MappingDesc::Dim>;

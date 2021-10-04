@@ -160,7 +160,7 @@ namespace picongpu
             /* create shared mem */
             constexpr int blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
             using SharedMemSize = SuperCellDescription<pmacc::math::CT::Int<num_pbins, blockCellsInDir>>;
-            auto sharedMemHist = CachedBox::create<0u, float_PS>(worker, SharedMemSize{});
+            auto sharedMemHist = CachedBox::create<0u, SharedDataBoxMemoryLayout, float_PS>(worker, SharedMemSize{});
 
             Set<float_PS> set(float_PS{0.0});
             auto collectiveOnSharedHistogram = makeThreadCollective<SharedMemSize>();

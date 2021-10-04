@@ -94,7 +94,9 @@ namespace picongpu
             if(!forEachParticle.hasParticles())
                 return;
 
-            auto cachedVal = CachedBox::create<0, typename T_TmpBox::ValueType>(worker, T_BlockDescription{});
+            auto cachedVal = CachedBox::create<0, SharedDataBoxMemoryLayout, typename T_TmpBox::ValueType>(
+                worker,
+                T_BlockDescription{});
             Set<typename T_TmpBox::ValueType> set(float_X(0.0));
 
             auto collective = makeThreadCollective<T_BlockDescription>();

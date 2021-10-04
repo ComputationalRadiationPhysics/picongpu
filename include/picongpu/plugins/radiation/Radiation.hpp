@@ -285,7 +285,7 @@ namespace picongpu
                 }
 
 
-                void checkpoint(uint32_t timeStep, const std::string restartDirectory)
+                void checkpoint(uint32_t timeStep, const std::string restartDirectory) override
                 {
                     // only write backup if radiation is calculated:
                     if(notifyPeriod.empty())

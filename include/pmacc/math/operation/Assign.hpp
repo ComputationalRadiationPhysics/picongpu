@@ -32,15 +32,15 @@ namespace pmacc
             struct Assign
             {
                 template<typename Dst, typename Src>
-                HDINLINE void operator()(Dst& dst, const Src& src) const
+                HDINLINE void operator()(Dst&& dst, const Src& src) const
                 {
-                    dst = src;
+                    std::forward<Dst>(dst) = src;
                 }
 
                 template<typename Dst, typename Src, typename T_Worker>
-                HDINLINE void operator()(const T_Worker&, Dst& dst, const Src& src) const
+                HDINLINE void operator()(const T_Worker&, Dst&& dst, const Src& src) const
                 {
-                    dst = src;
+                    std::forward<Dst>(dst) = src;
                 }
             };
         } // namespace operation
