@@ -31,19 +31,19 @@ namespace pmacc
         template<typename TCursor, typename Axes>
         struct TwistAxesAccessor
         {
-            using type = typename math::result_of::TwistComponents<Axes, typename TCursor::ValueType>::type;
+            using Reference = typename math::result_of::TwistComponents<Axes, typename TCursor::ValueType>::type;
 
             /** Returns a reference to the result of '*cursor' (with twisted axes).
              *
              * Be aware that the underlying cursor must not be a temporary object if '*cursor'
              * refers to something inside the cursor.
              */
-            HDINLINE type operator()(TCursor& cursor)
+            HDINLINE Reference operator()(TCursor& cursor)
             {
                 return math::twistComponents<Axes>(*cursor);
             }
 
-            ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
+            ///\todo: implement const method here with a const TCursor& argument and 'Reference' as return type.
         };
 
     } // namespace cursor

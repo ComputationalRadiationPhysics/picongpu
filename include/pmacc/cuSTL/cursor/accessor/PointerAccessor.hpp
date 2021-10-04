@@ -28,7 +28,7 @@ namespace pmacc
         template<typename Type>
         struct PointerAccessor
         {
-            using type = Type&;
+            using Reference = Type&;
 
             /** Returns the dereferenced pointer of type 'Type'
              *
@@ -37,7 +37,7 @@ namespace pmacc
              * There is no danger if the cursor object is temporary.
              */
             template<typename Data>
-            HDINLINE type operator()(Data& data) const
+            HDINLINE Reference operator()(Data& data) const
             {
                 return *((Type*) data);
             }

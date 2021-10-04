@@ -32,14 +32,14 @@ namespace pmacc
         {
             _Functor functor;
 
-            using type = typename ::pmacc::result_of::Functor<_Functor, ArgType>::type;
+            using Reference = typename ::pmacc::result_of::Functor<_Functor, ArgType>::type;
 
             HDINLINE FunctorAccessor(const _Functor& functor) : functor(functor)
             {
             }
 
             template<typename TCursor>
-            HDINLINE type operator()(TCursor& cursor)
+            HDINLINE Reference operator()(TCursor& cursor)
             {
                 return this->functor(*cursor);
             }

@@ -38,7 +38,7 @@ namespace pmacc
         template<typename T_Cursor>
         struct Functor<picongpu::AssignedTrilinearInterpolation, T_Cursor>
         {
-            using type = typename std::remove_reference_t<typename T_Cursor::type>;
+            using type = typename T_Cursor::ValueType;
         };
 
     } // namespace result_of

@@ -49,7 +49,7 @@ namespace picongpu
                         ::pmacc::cursor::tools::LinearInterp<float_X>,
                         ::pmacc::cursor::BufferCursor<float_X, DIM1>>::type;
 
-                    using type = float_X;
+                    using Reference = float_X;
 
                     LinInterpCursor linInterpCursor;
 

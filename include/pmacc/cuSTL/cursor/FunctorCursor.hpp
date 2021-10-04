@@ -40,10 +40,7 @@ namespace pmacc
          * @param functor User functor acting as a filter.
          */
         template<typename TCursor, typename Functor>
-        HDINLINE Cursor<
-            FunctorAccessor<Functor, typename std::remove_reference_t<typename TCursor::type>>,
-            CursorNavigator,
-            TCursor>
+        HDINLINE Cursor<FunctorAccessor<Functor, typename TCursor::ValueType>, CursorNavigator, TCursor>
         make_FunctorCursor(const TCursor& cursor, const Functor& functor)
         {
             return make_Cursor(
