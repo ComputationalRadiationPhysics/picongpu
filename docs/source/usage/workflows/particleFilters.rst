@@ -73,7 +73,7 @@ Filtering Based on Global Position
 """"""""""""""""""""""""""""""""""
 
 A particle only stores its relative position inside the cell.
-Thus, with a simple filter like one shown above, it is not possible to get global position of a particle.
+Thus, with a simple filter like one shown above, it is not possible to get `global position <https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-domain-definitions>`_ of a particle.
 However, there are helper wrapper filters that provide such information in addition to the particle data.
 
 For a special case of slicing along one axis this is a simple existing filter that only needs to be parametrized:
