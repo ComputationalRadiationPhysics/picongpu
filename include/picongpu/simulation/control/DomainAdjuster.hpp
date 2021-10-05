@@ -250,7 +250,7 @@ namespace picongpu
 
                 if(validLocalSize != m_localDomainSize[dim])
                 {
-                    showMessage(dim, "Local grid size must fir the absorber.", m_localDomainSize[dim], validLocalSize);
+                    showMessage(dim, "Local grid size must fit the absorber.", m_localDomainSize[dim], validLocalSize);
 
                     m_localDomainSize[dim] = validLocalSize;
                 }
