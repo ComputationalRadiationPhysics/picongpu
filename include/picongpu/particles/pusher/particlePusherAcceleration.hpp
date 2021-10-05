@@ -72,7 +72,8 @@ namespace picongpu
 
                 // normalize input SI values to
                 const float3_X eField(UnitlessParam::AMPLITUDEx, UnitlessParam::AMPLITUDEy, UnitlessParam::AMPLITUDEz);
-                const auto bField = functorBField(pos);
+                // the particle moves as if E = eField and B = 0, so record those values as probe fields
+                const auto bField = float3_X::create(0._X);
 
                 // update probe field if particle contains required attributes
                 pmacc::meta::invokeIf<pmacc::traits::HasIdentifier<T_Particle, probeB>::type::value>(
