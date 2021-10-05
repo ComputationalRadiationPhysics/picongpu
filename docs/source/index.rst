@@ -130,6 +130,7 @@ Development
    dev/picongpu
    dev/pmacc
    dev/py_postprocessing
+   dev/debugging
    dev/doxyindex
 
 ********************
