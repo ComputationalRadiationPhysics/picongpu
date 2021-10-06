@@ -85,6 +85,9 @@ namespace picongpu
                     //! Time increment in the target field, in iterations
                     float_X timeIncrementIteration;
 
+                    //! Whether there is an active (non-none) min source for each axis
+                    pmacc::math::Vector<bool, simDim> hasMinSource;
+
                     //! Cell description for kernels
                     MappingDesc const cellDescription;
                 };
@@ -120,10 +123,19 @@ namespace picongpu
                     auto const globalDomainOffset = subGrid.getGlobalDomain().offset;
                     auto beginUserIdx = parameters.offsetMinBorder + globalDomainOffset;
                     /* Total field in positive direction needs to have the begin adjusted by one to get the first
-                     * index inside the respective region
+                     * index inside the respective region.
+                     * Here we want to shift only for axes with active positive-direction source.
+                     * So for other boundaries the Huygens surface is effectively pushed one cell outside.
+                     * We do it to avoid creating artificial non-uniformities at the edges.
+                     * (Example: consider there is only XMin source and no YMin, no ZMin.
+                     * Then the XMin source is applied for y = beginUserIdx.y() and z = beginUserIdx.z() as usual.
+                     * If we always shifted by 1 in all directions, it would have made those layers special
+                     * and caused unnecessary edge effects.)
                      */
                     if(isUpdatedFieldTotal && parameters.direction > 0)
-                        beginUserIdx += pmacc::DataSpace<simDim>::create(1);
+                        for(uint32_t d = 0; d < simDim; d++)
+                            if(parameters.hasMinSource[d])
+                                beginUserIdx[d]++;
                     auto endUserIdx = subGrid.getGlobalDomain().size - parameters.offsetMaxBorder + globalDomainOffset;
                     if(parameters.direction > 0)
                         endUserIdx[T_axis] = beginUserIdx[T_axis] + 1;
@@ -198,19 +210,18 @@ namespace picongpu
                     functor.coeff1[dir1] = coeffBase;
                     functor.coeff2[dir2] = -coeffBase;
 
-                    /* When updating the total field, the incident field is added to scattered field terms for
-                     * external neighbors which are half-cell shifted to the outside.
-                     * When updating the scattered field, the incident field is subtracted from total field terms for
-                     * internal neighbors which are half-cell shifted to the inside.
+                    /* For the positive direction, the updated total field index was shifted by 1 earlier.
+                     * This index shift is translated to in-cell shift for the incident field here.
                      */
                     auto incidentFieldBaseShift = floatD_X::create(0.0_X);
-                    if(isUpdatedFieldTotal)
-                        incidentFieldBaseShift[dir0] = -0.5_X * parameters.direction;
-                    else
-                        incidentFieldBaseShift[dir0] = 0.5_X * parameters.direction;
+                    if(parameters.direction > 0)
+                        if(isUpdatedFieldTotal)
+                            incidentFieldBaseShift[dir0] = -1.0_X;
+                        else
+                            incidentFieldBaseShift[dir0] = 1.0_X;
                     auto incidentFieldPositions = traits::FieldPosition<cellType::Yee, T_IncidentField>{}();
-                    functor.inCellShift1 = incidentFieldBaseShift + incidentFieldPositions[dir1];
-                    functor.inCellShift2 = incidentFieldBaseShift + incidentFieldPositions[dir2];
+                    functor.inCellShift1 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent1];
+                    functor.inCellShift2 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent2];
 
                     PMACC_KERNEL(ApplyIncidentFieldKernel<numWorkers, PlaneSizeInSuperCells>{})
                     (gridBlocks, numWorkers)(functor, beginGridIdx, endGridIdx);
@@ -403,6 +414,10 @@ namespace picongpu
                         offsetMinBorder[axis] = absorberThickness(axis, 0) + GAP_FROM_ABSORBER[axis][0];
                         offsetMaxBorder[axis] = absorberThickness(axis, 1) + GAP_FROM_ABSORBER[axis][1];
                     }
+                    hasMinSource[0] = !std::is_same<XMin, None>::value;
+                    hasMinSource[1] = !std::is_same<YMin, None>::value;
+                    if(simDim == 3)
+                        hasMinSource[2] = !std::is_same<ZMin, None>::value;
                 }
 
                 /** Apply contribution of the incident B field to the E field update by one time step
@@ -452,6 +467,7 @@ namespace picongpu
                     auto parameters = detail::Parameters<T_axis>{cellDescription};
                     parameters.offsetMinBorder = offsetMinBorder;
                     parameters.offsetMaxBorder = offsetMaxBorder;
+                    parameters.hasMinSource = hasMinSource;
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrementIteration = 1.0_X;
@@ -477,6 +493,7 @@ namespace picongpu
                     auto parameters = detail::Parameters<T_axis>{cellDescription};
                     parameters.offsetMinBorder = offsetMinBorder;
                     parameters.offsetMaxBorder = offsetMaxBorder;
+                    parameters.hasMinSource = hasMinSource;
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrementIteration = 0.5_X;
@@ -506,6 +523,9 @@ namespace picongpu
                  * Counted in full cells, the surface is additionally offset by 0.75 cells
                  */
                 pmacc::DataSpace<simDim> offsetMaxBorder;
+
+                //! Whether there is an active (non-none) min source for each axis
+                pmacc::math::Vector<bool, simDim> hasMinSource;
 
                 //! Cell description for kernels
                 MappingDesc const cellDescription;
