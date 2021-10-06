@@ -44,14 +44,13 @@
 #include <boost/filesystem.hpp>
 
 #include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
-
-#include <math.h>
 
 
 namespace picongpu
