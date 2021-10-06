@@ -27,11 +27,11 @@
 #include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
 #include <pmacc/traits/HasIdentifier.hpp>
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
 
-#include <stdlib.h>
 
 namespace picongpu
 {
