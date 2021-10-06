@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "pmacc/math/vector/compile-time/Size_t.hpp"
 

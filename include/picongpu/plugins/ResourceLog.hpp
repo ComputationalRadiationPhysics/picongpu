@@ -37,6 +37,7 @@
 
 // STL
 #include <algorithm> /* std::accumulate */
+#include <cstdint> /* uint32_t */
 #include <fstream> /* std::filebuf */
 #include <iostream> /* std::cout, std::ostream */
 #include <map> /* std::map */
@@ -45,7 +46,6 @@
 #include <string> /* std::string */
 
 // C LIB
-#include <stdint.h> /* uint32_t */
 #include <stdlib.h> /* itoa */
 
 

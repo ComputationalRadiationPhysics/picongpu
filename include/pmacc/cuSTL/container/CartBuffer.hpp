@@ -38,7 +38,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/void.hpp>
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace pmacc
 {

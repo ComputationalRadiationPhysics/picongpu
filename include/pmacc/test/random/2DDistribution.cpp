@@ -34,11 +34,10 @@
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/types.hpp>
 
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <limits>
-
-#include <stdint.h>
 
 
 namespace pmacc

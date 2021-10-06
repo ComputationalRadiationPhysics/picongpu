@@ -21,7 +21,7 @@
 
 #include <pmacc/debug/VerboseLog.hpp>
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace picongpu
 {

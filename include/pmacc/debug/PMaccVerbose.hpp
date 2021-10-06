@@ -23,7 +23,7 @@
 
 #include "pmacc/debug/VerboseLog.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 #ifndef PMACC_VERBOSE_LVL
 #    define PMACC_VERBOSE_LVL 0

@@ -24,7 +24,7 @@
 #include "SphericZone.hpp"
 #include "vector/Vector.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace pmacc
 {

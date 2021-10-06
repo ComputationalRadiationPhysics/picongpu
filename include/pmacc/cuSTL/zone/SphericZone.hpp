@@ -24,7 +24,7 @@
 #include "pmacc/math/vector/Int.hpp"
 #include "pmacc/math/vector/Size_t.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace pmacc
 {
