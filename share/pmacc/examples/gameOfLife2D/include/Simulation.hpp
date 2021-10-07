@@ -52,8 +52,8 @@ namespace gol
         GatherSlice gather;
 
         /* for storing black (dead) and white (alive) data for gol */
-        Buffer* buff1; /* Buffer(@see types.h) for swapping between old and new world */
-        Buffer* buff2; /* like evolve(buff2 &, const buff1) would work internally */
+        std::unique_ptr<Buffer> buff1; /* Buffer(@see types.h) for swapping between old and new world */
+        std::unique_ptr<Buffer> buff2; /* like evolve(buff2 &, const buff1) would work internally */
         uint32_t steps;
 
         bool isMaster;
@@ -64,8 +64,6 @@ namespace gol
             , steps(steps)
             , gridSize(gridSize)
             , isMaster(false)
-            , buff1(nullptr)
-            , buff2(nullptr)
         {
             /* -First this initializes the GridController with number of 'devices'*
              *  and 'periodic'ity. The init-routine will then create and manage   *
@@ -101,8 +99,6 @@ namespace gol
         void finalize()
         {
             gather.finalize();
-            __delete(buff1);
-            __delete(buff2);
         }
 
         void init()
@@ -152,8 +148,8 @@ namespace gol
              * This is saved by init to be used by the kernel to identify itself. */
             evo.init(layout.getDataSpace(), Space::create(1));
 
-            buff1 = new Buffer(layout, false);
-            buff2 = new Buffer(layout, false);
+            buff1 = std::make_unique<Buffer>(layout, false);
+            buff2 = std::make_unique<Buffer>(layout, false);
 
             /* Set up the future data exchange. In this case we need to copy the
              * border cells of our neighbors to our guard cells, since we only read
@@ -194,8 +190,8 @@ namespace gol
 
         void start()
         {
-            Buffer* read = buff1;
-            Buffer* write = buff2;
+            Buffer* read = buff1.get();
+            Buffer* write = buff2.get();
             for(uint32_t i = 0; i < steps; ++i)
             {
                 oneStep(i, read, write);

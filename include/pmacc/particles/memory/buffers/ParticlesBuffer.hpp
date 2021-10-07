@@ -146,26 +146,15 @@ namespace pmacc
             : m_deviceHeap(deviceHeap)
             , superCellSize(superCellSize)
             , gridSize(layout)
-            , framesExchanges(nullptr)
         {
-            exchangeMemoryIndexer = new GridBuffer<BorderFrameIndex, DIM1>(DataSpace<DIM1>(0));
-            framesExchanges = new GridBuffer<FrameType, DIM1, FrameTypeBorder>(DataSpace<DIM1>(0));
+            exchangeMemoryIndexer = std::make_unique<GridBuffer<BorderFrameIndex, DIM1>>(DataSpace<DIM1>(0));
+            framesExchanges = std::make_unique<GridBuffer<FrameType, DIM1, FrameTypeBorder>>(DataSpace<DIM1>(0));
 
             DataSpace<DIM> superCellsCount = gridSize / superCellSize;
 
-            superCells = new GridBuffer<SuperCellType, DIM>(superCellsCount);
+            superCells = std::make_unique<GridBuffer<SuperCellType, DIM>>(superCellsCount);
 
             reset();
-        }
-
-        /**
-         * Destructor.
-         */
-        virtual ~ParticlesBuffer()
-        {
-            __delete(superCells);
-            __delete(framesExchanges);
-            __delete(exchangeMemoryIndexer);
         }
 
         /**
@@ -328,11 +317,11 @@ namespace pmacc
 
 
     private:
-        GridBuffer<BorderFrameIndex, DIM1>* exchangeMemoryIndexer;
+        std::unique_ptr<GridBuffer<BorderFrameIndex, DIM1>> exchangeMemoryIndexer;
 
-        GridBuffer<SuperCellType, DIM>* superCells;
+        std::unique_ptr<GridBuffer<SuperCellType, DIM>> superCells;
         /*GridBuffer for hold borderFrames, we need a own buffer to create first exchanges without core memory*/
-        GridBuffer<FrameType, DIM1, FrameTypeBorder>* framesExchanges;
+        std::unique_ptr<GridBuffer<FrameType, DIM1, FrameTypeBorder>> framesExchanges;
 
         DataSpace<DIM> superCellSize;
         DataSpace<DIM> gridSize;

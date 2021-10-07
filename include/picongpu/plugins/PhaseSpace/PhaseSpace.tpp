@@ -98,7 +98,7 @@ namespace picongpu
             /* CORE + BORDER + GUARD elements for spatial bins */
             this->r_bins = SuperCellSize().toRT()[r_element] * this->m_cellDescription->getGridSuperCells()[r_element];
 
-            this->dBuffer = new container::DeviceBuffer<float_PS, 2>(this->num_pbins, r_bins);
+            this->dBuffer = std::make_unique<container::DeviceBuffer<float_PS, 2>>(this->num_pbins, r_bins);
 
             /* reduce-add phase space from other GPUs in range [p0;p1]x[r;r+dr]
              * to "lowest" node in range
@@ -139,11 +139,11 @@ namespace picongpu
                     = new algorithm::mpi::Reduce<simDim>(zoneTransversalPlane, isGroupRoot);
                 if(isInGroup)
                 {
-                    this->planeReduce = createReduce;
+                    this->planeReduce.reset(createReduce);
                     this->isPlaneReduceRoot = isGroupRoot;
                 }
                 else
-                    __delete(createReduce);
+                    delete createReduce;
             }
 
             /* Create communicator with ranks of each plane reduce root */
@@ -187,9 +187,6 @@ namespace picongpu
     template<class AssignmentFunction, class Species>
     PhaseSpace<AssignmentFunction, Species>::~PhaseSpace()
     {
-        __delete(this->dBuffer);
-        __delete(planeReduce);
-
         if(commFileWriter != MPI_COMM_NULL)
         {
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives

@@ -27,6 +27,8 @@
 #include "pmacc/random/Random.hpp"
 #include "pmacc/types.hpp"
 
+#include <memory>
+
 namespace pmacc
 {
     namespace random
@@ -68,10 +70,7 @@ namespace pmacc
              *          (as returned by \ref getName()) is used
              */
             RNGProvider(const Space& size, const std::string& uniqueId = "");
-            ~RNGProvider() override
-            {
-                __delete(buffer)
-            }
+
             /**
              * Initializes the random number generators
              * Must be called before usage
@@ -123,7 +122,7 @@ namespace pmacc
             DataBoxType getDeviceDataBox();
 
             const Space m_size;
-            Buffer* buffer;
+            std::unique_ptr<Buffer> buffer;
             const std::string m_uniqueId;
         };
 

@@ -49,6 +49,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -86,10 +87,10 @@ namespace picongpu
 
                 using radLog = plugins::radiation::PIConGPUVerboseRadiation;
 
-                GridBuffer<float_X, DIM1>* incTransRad = nullptr;
-                GridBuffer<complex_X, DIM1>* cohTransRadPara = nullptr;
-                GridBuffer<complex_X, DIM1>* cohTransRadPerp = nullptr;
-                GridBuffer<float_X, DIM1>* numParticles = nullptr;
+                std::unique_ptr<GridBuffer<float_X, DIM1>> incTransRad;
+                std::unique_ptr<GridBuffer<complex_X, DIM1>> cohTransRadPara;
+                std::unique_ptr<GridBuffer<complex_X, DIM1>> cohTransRadPerp;
+                std::unique_ptr<GridBuffer<float_X, DIM1>> numParticles;
 
                 transitionRadiation::frequencies::InitFreqFunctor freqInit;
                 transitionRadiation::frequencies::FreqFunctor freqFkt;
@@ -236,12 +237,14 @@ namespace picongpu
 
                         Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
 
-                        incTransRad = new GridBuffer<float_X, DIM1>(DataSpace<DIM1>(elementsTransitionRadiation()));
-                        cohTransRadPara
-                            = new GridBuffer<complex_X, DIM1>(DataSpace<DIM1>(elementsTransitionRadiation()));
-                        cohTransRadPerp
-                            = new GridBuffer<complex_X, DIM1>(DataSpace<DIM1>(elementsTransitionRadiation()));
-                        numParticles = new GridBuffer<float_X, DIM1>(DataSpace<DIM1>(elementsTransitionRadiation()));
+                        incTransRad = std::make_unique<GridBuffer<float_X, DIM1>>(
+                            DataSpace<DIM1>(elementsTransitionRadiation()));
+                        cohTransRadPara = std::make_unique<GridBuffer<complex_X, DIM1>>(
+                            DataSpace<DIM1>(elementsTransitionRadiation()));
+                        cohTransRadPerp = std::make_unique<GridBuffer<complex_X, DIM1>>(
+                            DataSpace<DIM1>(elementsTransitionRadiation()));
+                        numParticles = std::make_unique<GridBuffer<float_X, DIM1>>(
+                            DataSpace<DIM1>(elementsTransitionRadiation()));
 
                         freqInit.Init(listFrequencies::listLocation);
                         freqFkt = freqInit.getFunctor();
@@ -274,19 +277,6 @@ namespace picongpu
                             fs.createDirectory(folderTransRad);
                             fs.setDirectoryPermissions(folderTransRad);
                         }
-                    }
-                }
-
-                //! Implementation of base class function. Deletes buffers andf arrays.
-                void pluginUnload() override
-                {
-                    if(!notifyPeriod.empty())
-                    {
-                        CUDA_CHECK(cuplaGetLastError());
-                        __delete(incTransRad);
-                        __delete(cohTransRadPara);
-                        __delete(cohTransRadPerp);
-                        __delete(numParticles);
                     }
                 }
 

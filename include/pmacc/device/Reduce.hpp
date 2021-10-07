@@ -31,6 +31,7 @@
 #include "pmacc/traits/GetValueType.hpp"
 #include "pmacc/types.hpp"
 
+#include <memory>
 #include <type_traits>
 
 namespace pmacc
@@ -48,9 +49,8 @@ namespace pmacc
             HINLINE Reduce(const uint32_t byte, const uint32_t sharedMemByte = 4 * 1024)
                 : byte(byte)
                 , sharedMemByte(sharedMemByte)
-                , reduceBuffer(nullptr)
             {
-                reduceBuffer = new GridBuffer<char, DIM1>(DataSpace<DIM1>(byte));
+                reduceBuffer = std::make_unique<GridBuffer<char, DIM1>>(DataSpace<DIM1>(byte));
             }
 
             /* Reduce elements in global gpu memory
@@ -146,11 +146,6 @@ namespace pmacc
                 reduceBuffer->deviceToHost();
                 __getTransactionEvent().waitForFinished();
                 return *((Type*) (reduceBuffer->getHostBuffer().getBasePointer()));
-            }
-
-            virtual ~Reduce()
-            {
-                __delete(reduceBuffer);
             }
 
         private:
@@ -271,7 +266,7 @@ namespace pmacc
             }
 
             /*global gpu buffer for reduce steps*/
-            GridBuffer<char, DIM1>* reduceBuffer;
+            std::unique_ptr<GridBuffer<char, DIM1>> reduceBuffer;
             /*buffer size limit in bytes on gpu*/
             uint32_t byte;
             /*shared memory limit in byte for one block*/

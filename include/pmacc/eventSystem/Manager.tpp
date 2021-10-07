@@ -79,7 +79,7 @@ namespace pmacc
                 if(getActiveITaskIfNotFinished(id) == taskPtr)
                 {
                     tasks.erase(id);
-                    __delete(taskPtr);
+                    delete taskPtr;
                 }
 #ifdef DEBUG_EVENTS
                 counter = 0;

@@ -27,6 +27,7 @@
 #include <pmacc/memory/Array.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 
+#include <memory>
 #include <string>
 
 
@@ -49,7 +50,7 @@ namespace picongpu
                             memory::Array<float_X, picongpu::flylite::populations>,
                             picongpu::flylite::populations>,
                         picongpu::flylite::ionizationStates>;
-                    GridBuffer<RateMatrix, simDim>* m_rateMatrix;
+                    std::unique_ptr<GridBuffer<RateMatrix, simDim>> m_rateMatrix;
                     std::string m_speciesName;
 
                 public:
@@ -58,15 +59,9 @@ namespace picongpu
                      * @param histSizeLocal spatial size of the local energy histogram
                      */
                     LocalRateMatrix(std::string const& ionSpeciesName, DataSpace<simDim> const& histSizeLocal)
-                        : m_rateMatrix(nullptr)
-                        , m_speciesName(ionSpeciesName)
+                        : m_speciesName(ionSpeciesName)
                     {
-                        m_rateMatrix = new GridBuffer<RateMatrix, simDim>(histSizeLocal);
-                    }
-
-                    ~LocalRateMatrix() override
-                    {
-                        __delete(m_rateMatrix);
+                        m_rateMatrix = std::make_unique<GridBuffer<RateMatrix, simDim>>(histSizeLocal);
                     }
 
                     static std::string getName(std::string const& speciesGroup)

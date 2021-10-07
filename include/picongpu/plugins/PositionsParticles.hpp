@@ -35,6 +35,7 @@
 #include <boost/mpl/and.hpp>
 
 #include <iostream>
+#include <memory>
 #include <string>
 
 
@@ -172,10 +173,10 @@ namespace picongpu
     class PositionsParticles : public ILightweightPlugin
     {
     private:
-        typedef MappingDesc::SuperCellSize SuperCellSize;
-        typedef floatD_X FloatPos;
+        using SuperCellSize = MappingDesc::SuperCellSize;
+        using FloatPos = floatD_X;
 
-        GridBuffer<SglParticle<FloatPos>, DIM1>* gParticle;
+        std::unique_ptr<GridBuffer<SglParticle<FloatPos>, DIM1>> gParticle;
 
         MappingDesc* cellDescription;
         std::string notifyPeriod;
@@ -187,7 +188,6 @@ namespace picongpu
         PositionsParticles()
             : pluginName("PositionsParticles: write position of one particle of a species to std::cout")
             , pluginPrefix(ParticlesType::FrameType::getName() + std::string("_position"))
-            , gParticle(nullptr)
             , cellDescription(nullptr)
         {
             Environment<>::get().PluginConnector().registerPlugin(this);
@@ -233,15 +233,10 @@ namespace picongpu
             if(!notifyPeriod.empty())
             {
                 // create one float3_X on gpu und host
-                gParticle = new GridBuffer<SglParticle<FloatPos>, DIM1>(DataSpace<DIM1>(1));
+                gParticle = std::make_unique<GridBuffer<SglParticle<FloatPos>, DIM1>>(DataSpace<DIM1>(1));
 
                 Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
             }
-        }
-
-        void pluginUnload() override
-        {
-            __delete(gParticle);
         }
 
         template<uint32_t AREA>

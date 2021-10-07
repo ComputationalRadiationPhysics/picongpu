@@ -389,7 +389,7 @@ namespace picongpu
                     isPlaneReduceRoot = isGroupRoot;
                 }
                 else
-                    __delete(createReduce);
+                    delete createReduce;
             }
 
             /* Create communicator with ranks of each plane reduce root */
@@ -429,10 +429,14 @@ namespace picongpu
             writeToFile = (gatherRank == 0);
 
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-            gSumMom2 = new GridBuffer<float_64, DIM1>(DataSpace<DIM1>(subGrid.getLocalDomain().size.y()));
-            gSumPos2 = new GridBuffer<float_64, DIM1>(DataSpace<DIM1>(subGrid.getLocalDomain().size.y()));
-            gSumMomPos = new GridBuffer<float_64, DIM1>(DataSpace<DIM1>(subGrid.getLocalDomain().size.y()));
-            gCount_e = new GridBuffer<float_64, DIM1>(DataSpace<DIM1>(subGrid.getLocalDomain().size.y()));
+            gSumMom2
+                = std::make_unique<GridBuffer<float_64, DIM1>>(DataSpace<DIM1>(subGrid.getLocalDomain().size.y()));
+            gSumPos2
+                = std::make_unique<GridBuffer<float_64, DIM1>>(DataSpace<DIM1>(subGrid.getLocalDomain().size.y()));
+            gSumMomPos
+                = std::make_unique<GridBuffer<float_64, DIM1>>(DataSpace<DIM1>(subGrid.getLocalDomain().size.y()));
+            gCount_e
+                = std::make_unique<GridBuffer<float_64, DIM1>>(DataSpace<DIM1>(subGrid.getLocalDomain().size.y()));
 
             // only MPI rank that writes to file
             if(writeToFile)
@@ -464,11 +468,6 @@ namespace picongpu
                     std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
                 outFile.close();
             }
-            // free global memory on GPU
-            __delete(gSumMom2);
-            __delete(gSumPos2);
-            __delete(gSumMomPos);
-            __delete(gCount_e);
         }
 
         /** this code is executed if the current time step is supposed to compute
@@ -738,13 +737,13 @@ namespace picongpu
             }
         }
 
-        GridBuffer<float_64, DIM1>* gSumMom2 = nullptr;
+        std::unique_ptr<GridBuffer<float_64, DIM1>> gSumMom2;
 
-        GridBuffer<float_64, DIM1>* gSumPos2 = nullptr;
+        std::unique_ptr<GridBuffer<float_64, DIM1>> gSumPos2;
 
-        GridBuffer<float_64, DIM1>* gSumMomPos = nullptr;
+        std::unique_ptr<GridBuffer<float_64, DIM1>> gSumMomPos;
 
-        GridBuffer<float_64, DIM1>* gCount_e = nullptr;
+        std::unique_ptr<GridBuffer<float_64, DIM1>> gCount_e;
 
         MappingDesc* m_cellDescription = nullptr;
 

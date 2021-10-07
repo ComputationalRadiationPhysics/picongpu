@@ -45,7 +45,7 @@ namespace picongpu
                     using ValueType = float_X;
 
                 private:
-                    GridBuffer<ValueType, simDim>* m_density;
+                    std::unique_ptr<GridBuffer<ValueType, simDim>> m_density;
                     std::string m_speciesGroup;
 
                 public:
@@ -56,16 +56,10 @@ namespace picongpu
                      * @param sizeLocal spatial size of the local density value
                      */
                     LocalDensity(std::string const& speciesGroup, DataSpace<simDim> const& sizeLocal)
-                        : m_density(nullptr)
-                        , m_speciesGroup(speciesGroup)
+                        : m_speciesGroup(speciesGroup)
                     {
                         // without guards
-                        m_density = new GridBuffer<ValueType, simDim>(sizeLocal);
-                    }
-
-                    ~LocalDensity() override
-                    {
-                        __delete(m_density);
+                        m_density = std::make_unique<GridBuffer<ValueType, simDim>>(sizeLocal);
                     }
 
                     static std::string getName(std::string const& speciesGroup)

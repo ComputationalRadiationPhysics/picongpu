@@ -303,7 +303,7 @@ namespace picongpu
             writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
 
             // create two ints on gpu and host
-            gEnergy = new GridBuffer<float_64, DIM1>(DataSpace<DIM1>(2));
+            gEnergy = std::make_unique<GridBuffer<float_64, DIM1>>(DataSpace<DIM1>(2));
 
             // only MPI rank that writes to file
             if(writeToFile)
@@ -340,8 +340,6 @@ namespace picongpu
                     std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
                 outFile.close();
             }
-            // free global memory on GPU
-            __delete(gEnergy);
         }
 
         /** this code is executed if the current time step is supposed to compute
@@ -427,7 +425,7 @@ namespace picongpu
         }
 
         //! energy values (global on GPU)
-        GridBuffer<float_64, DIM1>* gEnergy = nullptr;
+        std::unique_ptr<GridBuffer<float_64, DIM1>> gEnergy;
 
         MappingDesc* m_cellDescription;
 

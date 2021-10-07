@@ -271,7 +271,8 @@ namespace picongpu
             SimulationHelper<simDim>::pluginLoad();
 
             GridLayout<simDim> layout(gridSizeLocal, GuardSize::toRT() * SuperCellSize::toRT());
-            cellDescription = new MappingDesc(layout.getDataSpace(), DataSpace<simDim>(GuardSize::toRT()));
+            cellDescription
+                = std::make_unique<MappingDesc>(layout.getDataSpace(), DataSpace<simDim>(GuardSize::toRT()));
 
             if(gc.getGlobalRank() == 0)
             {
@@ -288,7 +289,7 @@ namespace picongpu
 
             SimulationHelper<simDim>::pluginUnload();
 
-            __delete(myFieldSolver);
+            myFieldSolver.reset();
 
             /** unshare all registered ISimulationData sets
              *
@@ -296,8 +297,6 @@ namespace picongpu
              *       a distinct order, e.g. DataConnector before CUDA context
              */
             dc.clean();
-
-            __delete(cellDescription);
         }
 
         void notify(uint32_t) override
@@ -313,7 +312,7 @@ namespace picongpu
             initFields(dc);
 
             // create field solver
-            this->myFieldSolver = new fields::Solver(*cellDescription);
+            myFieldSolver = std::make_unique<fields::Solver>(*cellDescription);
 
             // initialize field background stage,
             // this may include allocation of additional fields so has to be done before particles
@@ -386,7 +385,7 @@ namespace picongpu
 
             // Allocate and initialize particle species with all left-over memory below
             meta::ForEach<VectorAllSpecies, particles::CreateSpecies<bmpl::_1>> createSpeciesMemory;
-            createSpeciesMemory(deviceHeap, cellDescription);
+            createSpeciesMemory(deviceHeap, cellDescription.get());
 
             size_t freeGpuMem = freeDeviceMemory();
             if(freeGpuMem < reservedGpuMemorySize)
@@ -613,13 +612,13 @@ namespace picongpu
 
         MappingDesc* getMappingDescription()
         {
-            return cellDescription;
+            return cellDescription.get();
         }
 
     protected:
         std::shared_ptr<DeviceHeap> deviceHeap;
 
-        fields::Solver* myFieldSolver{nullptr};
+        std::unique_ptr<fields::Solver> myFieldSolver;
         simulation::stage::CurrentInterpolationAndAdditionToEMF currentInterpolationAndAdditionToEMF;
 
         // Field absorber stage, has to live always as it is used for registering options like a plugin.
@@ -648,7 +647,7 @@ namespace picongpu
 
         IInitPlugin* initialiserController{nullptr};
 
-        MappingDesc* cellDescription{nullptr};
+        std::unique_ptr<MappingDesc> cellDescription;
 
         // layout parameter
         std::vector<uint32_t> devices;

@@ -31,6 +31,7 @@
 #include <pmacc/memory/shared/Allocate.hpp>
 
 #include <iostream>
+#include <memory>
 
 
 namespace picongpu
@@ -87,7 +88,7 @@ namespace picongpu
         MappingDesc* cellDescription{nullptr};
         std::string notifyPeriod;
 
-        GridBuffer<float3_X, DIM1>* sumcurrents;
+        std::unique_ptr<GridBuffer<float3_X, DIM1>> sumcurrents;
 
     public:
         SumCurrents()
@@ -152,17 +153,10 @@ namespace picongpu
         {
             if(!notifyPeriod.empty())
             {
-                sumcurrents = new GridBuffer<float3_X, DIM1>(DataSpace<DIM1>(1)); // create one int on gpu und host
+                sumcurrents = std::make_unique<GridBuffer<float3_X, DIM1>>(
+                    DataSpace<DIM1>(1)); // create one int on gpu und host
 
                 Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
-            }
-        }
-
-        void pluginUnload() override
-        {
-            if(!notifyPeriod.empty())
-            {
-                __delete(sumcurrents);
             }
         }
 

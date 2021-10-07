@@ -28,6 +28,8 @@
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
 #include "pmacc/memory/buffers/Buffer.hpp"
 
+#include <memory>
+
 #include <mpi.h>
 
 namespace pmacc
@@ -82,10 +84,9 @@ namespace pmacc
             MPI_CHECK_NO_EXCEPT(MPI_Get_count(&(this->status), MPI_CHAR, &recv_data_count));
 
 
-            IEventData* edata = new EventDataReceive(nullptr, recv_data_count);
+            std::unique_ptr<IEventData> edata = std::make_unique<EventDataReceive>(nullptr, recv_data_count);
 
-            notify(this->myId, RECVFINISHED, edata); /*add notify her*/
-            __delete(edata);
+            notify(this->myId, RECVFINISHED, edata.get()); /*add notify her*/
         }
 
         void event(id_t, EventType, IEventData*) override
