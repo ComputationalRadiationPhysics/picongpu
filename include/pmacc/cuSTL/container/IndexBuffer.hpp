@@ -29,7 +29,7 @@
 #include "../vector/UInt32.hpp"
 #include "../zone/SphericZone.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace pmacc
 {

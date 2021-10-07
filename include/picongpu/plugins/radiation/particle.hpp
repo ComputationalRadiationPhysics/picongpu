@@ -24,7 +24,7 @@
 
 #include <pmacc/math/Vector.hpp>
 
-#include <stdint.h>
+#include <cstdint>
 
 
 namespace picongpu

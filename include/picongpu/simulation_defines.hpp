@@ -22,7 +22,7 @@
 
 // clang-format off
 
-#include <stdint.h>
+#include <cstdint>
 #include <pmacc/types.hpp>
 #include <picongpu/simulation_types.hpp>
 #include "pmacc_renamings.hpp"

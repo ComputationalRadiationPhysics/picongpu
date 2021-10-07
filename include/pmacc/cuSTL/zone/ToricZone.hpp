@@ -23,7 +23,7 @@
 
 #include "../vector/Size_t.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace pmacc
 {

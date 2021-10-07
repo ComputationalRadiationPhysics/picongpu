@@ -33,10 +33,10 @@
 #include <boost/mpl/list.hpp>
 
 #include <algorithm>
+#include <cstdint>
 #include <set>
 
 #include <catch2/catch.hpp>
-#include <stdint.h>
 
 
 namespace pmacc

@@ -26,7 +26,7 @@
 
 #include <boost/mpl/void.hpp>
 
-#include <stdint.h>
+#include <cstdint>
 
 
 namespace picongpu

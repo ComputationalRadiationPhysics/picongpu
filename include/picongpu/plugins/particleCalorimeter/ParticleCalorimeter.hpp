@@ -47,6 +47,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/mpl/and.hpp>
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -54,7 +55,6 @@
 #include <vector>
 
 #include <openPMD/openPMD.hpp>
-#include <stdlib.h>
 
 
 namespace picongpu

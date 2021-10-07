@@ -24,11 +24,11 @@
 #include <pmacc/test/PMaccFixture.hpp>
 
 // STL
+#include <cstdint> /* uint8_t */
 #include <iostream> /* cout, endl */
 #include <string>
 
 #include <catch2/catch.hpp>
-#include <stdint.h> /* uint8_t */
 
 // BOOST
 #include <boost/mpl/for_each.hpp>

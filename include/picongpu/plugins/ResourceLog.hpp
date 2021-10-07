@@ -35,18 +35,15 @@
 // Boost
 #include <boost/filesystem.hpp>
 
-// STL
 #include <algorithm> /* std::accumulate */
+#include <cstdint> /* uint32_t */
+#include <cstdlib> /* itoa */
 #include <fstream> /* std::filebuf */
 #include <iostream> /* std::cout, std::ostream */
 #include <map> /* std::map */
 #include <numeric> /* std::accumulate */
 #include <sstream> /* std::stringstream */
 #include <string> /* std::string */
-
-// C LIB
-#include <stdint.h> /* uint32_t */
-#include <stdlib.h> /* itoa */
 
 
 namespace picongpu

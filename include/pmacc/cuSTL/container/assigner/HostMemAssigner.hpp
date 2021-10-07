@@ -28,7 +28,7 @@
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/placeholders.hpp>
 
-#include <stdint.h>
+#include <cstdint>
 
 
 namespace pmacc

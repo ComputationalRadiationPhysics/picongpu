@@ -37,7 +37,7 @@
 #include <boost/mpl/times.hpp>
 #include <boost/mpl/vector.hpp>
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace pmacc
 {

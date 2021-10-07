@@ -25,7 +25,7 @@
 #include "pmacc/math/vector/Size_t.hpp"
 #include "tag.hpp"
 
-#include <stdint.h>
+#include <cstdint>
 
 
 namespace pmacc

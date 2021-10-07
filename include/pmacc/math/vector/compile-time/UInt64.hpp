@@ -26,7 +26,7 @@
 
 #include <boost/mpl/integral_c.hpp>
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace pmacc
 {

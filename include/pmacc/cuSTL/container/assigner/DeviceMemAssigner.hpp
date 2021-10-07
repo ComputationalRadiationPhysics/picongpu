@@ -33,7 +33,7 @@
 #include <boost/integer/common_factor_rt.hpp>
 #include <boost/mpl/placeholders.hpp>
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "pmacc/cuSTL/algorithm/kernel/run-time/Foreach.hpp"
 
