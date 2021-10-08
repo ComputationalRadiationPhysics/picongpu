@@ -41,12 +41,12 @@ namespace picongpu
         //! 2MiB page can hold around 256 particle frames
         static constexpr uint32_t pagesize = 2u * 1024u * 1024u;
 
-        /** accessblocks, regionsize and wastefactor are not conclusively
+        /** accessblocksize, regionsize and wastefactor are not conclusively
          * investigated and might be performance sensitive for multiple
          * particle species with heavily varying attributes (frame sizes)
          */
-        static constexpr uint32_t accessblocks = 4u;
-        static constexpr uint32_t regionsize = 8u;
+        static constexpr uint32_t accessblocksize = 2u * 1024u * 1024u * 1024u;
+        static constexpr uint32_t regionsize = 16u;
         static constexpr uint32_t wastefactor = 2u;
 
         /** resetfreedpages is used to minimize memory fragmentation with
