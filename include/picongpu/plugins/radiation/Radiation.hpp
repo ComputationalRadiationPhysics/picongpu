@@ -170,7 +170,7 @@ namespace picongpu
                  * function if for the actual time step radiation is to be calculated.
                  * @param currentStep
                  */
-                void notify(uint32_t currentStep)
+                void notify(uint32_t currentStep) override
                 {
                     if(currentStep >= radStart)
                     {
@@ -192,7 +192,7 @@ namespace picongpu
                     }
                 }
 
-                void pluginRegisterHelp(po::options_description& desc)
+                void pluginRegisterHelp(po::options_description& desc) override
                 {
                     desc.add_options()(
                         (pluginPrefix + ".period").c_str(),
@@ -232,19 +232,19 @@ namespace picongpu
                 }
 
 
-                std::string pluginGetName() const
+                std::string pluginGetName() const override
                 {
                     return pluginName;
                 }
 
 
-                void setMappingDescription(MappingDesc* cellDescription)
+                void setMappingDescription(MappingDesc* cellDescription) override
                 {
                     this->cellDescription = cellDescription;
                 }
 
 
-                void restart(uint32_t timeStep, const std::string restartDirectory)
+                void restart(uint32_t timeStep, const std::string restartDirectory) override
                 {
                     // only load backup if radiation is calculated:
                     if(notifyPeriod.empty())
@@ -296,7 +296,7 @@ namespace picongpu
                  * intermediate values.
                  * On every host data structure for storage of the calculated radiation
                  * is created.       */
-                void pluginLoad()
+                void pluginLoad() override
                 {
                     if(!notifyPeriod.empty())
                     {
@@ -376,7 +376,7 @@ namespace picongpu
                 }
 
 
-                void pluginUnload()
+                void pluginUnload() override
                 {
                     if(!notifyPeriod.empty())
                     {

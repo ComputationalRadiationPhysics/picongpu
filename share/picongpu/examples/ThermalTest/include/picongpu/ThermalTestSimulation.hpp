@@ -60,7 +60,7 @@ namespace picongpu
         {
         }
 
-        void init()
+        void init() override
         {
             Simulation::init();
 
@@ -78,12 +78,12 @@ namespace picongpu
             this->eField_zt[1] = std::make_unique<container::HostBuffer<float, 2>>(this->eField_zt[0]->size());
         }
 
-        void pluginRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc) override
         {
             Simulation::pluginRegisterHelp(desc);
         }
 
-        void pluginLoad()
+        void pluginLoad() override
         {
             Simulation::pluginLoad();
         }
@@ -140,7 +140,7 @@ namespace picongpu
          *
          * @param currentStep iteration number of the current step
          */
-        void runOneStep(uint32_t currentStep)
+        void runOneStep(uint32_t currentStep) override
         {
             Simulation::runOneStep(currentStep);
 

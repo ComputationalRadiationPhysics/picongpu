@@ -30,19 +30,19 @@ namespace picongpu
     class InitPluginNone : public IInitPlugin
     {
     public:
-        virtual void slide(uint32_t currentStep)
+        void slide(uint32_t currentStep) override
         {
         }
 
-        virtual void init()
+        void init() override
         {
         }
 
-        virtual void printInformation()
+        void printInformation() override
         {
         }
 
-        void notify(uint32_t)
+        void notify(uint32_t) override
         {
         }
 
@@ -50,25 +50,25 @@ namespace picongpu
         {
         }
 
-        virtual void pluginRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc) override
         {
         }
 
-        virtual std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return "InitPluginNone";
         }
 
-        virtual void setMappingDescription(MappingDesc* cellDescription)
+        void setMappingDescription(MappingDesc* cellDescription) override
         {
         }
 
     protected:
-        virtual void pluginLoad()
+        void pluginLoad() override
         {
         }
 
-        virtual void pluginUnload()
+        void pluginUnload() override
         {
         }
     };

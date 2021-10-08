@@ -157,13 +157,13 @@ namespace picongpu
         {
         }
 
-        void notify(uint32_t currentStep)
+        void notify(uint32_t currentStep) override
         {
             calcIntensity(currentStep);
             combineData(currentStep);
         }
 
-        void pluginRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc) override
         {
             desc.add_options()(
                 (pluginPrefix + ".period").c_str(),
@@ -171,18 +171,18 @@ namespace picongpu
                 "enable plugin [for each n-th step]");
         }
 
-        std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return pluginName;
         }
 
-        void setMappingDescription(MappingDesc* cellDescription)
+        void setMappingDescription(MappingDesc* cellDescription) override
         {
             this->cellDescription = cellDescription;
         }
 
     private:
-        void pluginLoad()
+        void pluginLoad() override
         {
             if(!notifyPeriod.empty())
             {
@@ -204,7 +204,7 @@ namespace picongpu
             }
         }
 
-        void pluginUnload()
+        void pluginUnload() override
         {
             if(!notifyPeriod.empty())
             {

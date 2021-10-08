@@ -166,7 +166,7 @@ namespace picongpu
                 }
 
             protected:
-                void pluginLoad()
+                void pluginLoad() override
                 {
                     if(notifyPeriod.empty())
                         return;
@@ -200,15 +200,15 @@ namespace picongpu
                               " has to be non-negative.");
                 }
 
-                void pluginUnload()
+                void pluginUnload() override
                 {
                 }
 
-                void restart(uint32_t, const std::string)
+                void restart(uint32_t, const std::string) override
                 {
                 }
 
-                void checkpoint(uint32_t, const std::string)
+                void checkpoint(uint32_t, const std::string) override
                 {
                 }
             };
@@ -241,33 +241,33 @@ namespace picongpu
                     Environment<>::get().PluginConnector().registerPlugin(this);
                 }
 
-                std::string pluginGetName() const
+                std::string pluginGetName() const override
                 {
                     return this->name;
                 }
 
             protected:
-                void setMappingDescription(MappingDesc*)
+                void setMappingDescription(MappingDesc*) override
                 {
                 }
 
-                void pluginRegisterHelp(po::options_description&)
+                void pluginRegisterHelp(po::options_description&) override
                 {
                 }
 
-                void pluginUnload()
+                void pluginUnload() override
                 {
                 }
 
-                void restart(uint32_t, const std::string)
+                void restart(uint32_t, const std::string) override
                 {
                 }
 
-                void checkpoint(uint32_t, const std::string)
+                void checkpoint(uint32_t, const std::string) override
                 {
                 }
 
-                void notify(uint32_t)
+                void notify(uint32_t) override
                 {
                 }
             };

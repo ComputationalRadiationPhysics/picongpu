@@ -261,7 +261,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             ///! method used by plugin controller to get --help description
             void registerHelp(
                 boost::program_options::options_description& desc,
-                std::string const& masterPrefix = std::string{})
+                std::string const& masterPrefix = std::string{}) override
             {
                 meta::ForEach<AllEligibleSpeciesSources, plugins::misc::AppendName<bmpl::_1>>
                     getEligibleDataSourceNames;
@@ -282,7 +282,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
             void expandHelp(
                 boost::program_options::options_description& desc,
-                std::string const& masterPrefix = std::string{})
+                std::string const& masterPrefix = std::string{}) override
             {
                 fileName.registerHelp(desc, masterPrefix + prefix);
                 fileNameExtension.registerHelp(desc, masterPrefix + prefix);
@@ -291,7 +291,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 dataPreparationStrategy.registerHelp(desc, masterPrefix + prefix);
             }
 
-            void validateOptions()
+            void validateOptions() override
             {
                 if(selfRegister)
                 {
@@ -315,7 +315,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
             }
 
-            size_t getNumPlugins() const
+            size_t getNumPlugins() const override
             {
                 if(selfRegister)
                     return notifyPeriod.size();
@@ -323,7 +323,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     return 1;
             }
 
-            std::string getDescription() const
+            std::string getDescription() const override
             {
                 return description;
             }
@@ -333,7 +333,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 return prefix;
             }
 
-            std::string getName() const
+            std::string getName() const override
             {
                 return name;
             }
@@ -762,7 +762,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
             }
 
-            void notify(uint32_t currentStep)
+            void notify(uint32_t currentStep) override
             {
                 // notify is only allowed if the plugin is not controlled by the
                 // class Checkpoint

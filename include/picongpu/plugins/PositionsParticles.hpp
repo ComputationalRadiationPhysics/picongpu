@@ -197,7 +197,7 @@ namespace picongpu
         {
         }
 
-        void notify(uint32_t currentStep)
+        void notify(uint32_t currentStep) override
         {
             const int rank = Environment<simDim>::get().GridController().getGlobalRank();
             const SglParticle<FloatPos> positionParticle = getPositionsParticles<CORE + BORDER>(currentStep);
@@ -209,7 +209,7 @@ namespace picongpu
                           << "\n"; // no flush
         }
 
-        void pluginRegisterHelp(po::options_description& desc)
+        void pluginRegisterHelp(po::options_description& desc) override
         {
             desc.add_options()(
                 (pluginPrefix + ".period").c_str(),
@@ -217,18 +217,18 @@ namespace picongpu
                 "enable plugin [for each n-th step]");
         }
 
-        std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return pluginName;
         }
 
-        void setMappingDescription(MappingDesc* cellDescription)
+        void setMappingDescription(MappingDesc* cellDescription) override
         {
             this->cellDescription = cellDescription;
         }
 
     private:
-        void pluginLoad()
+        void pluginLoad() override
         {
             if(!notifyPeriod.empty())
             {
@@ -239,7 +239,7 @@ namespace picongpu
             }
         }
 
-        void pluginUnload()
+        void pluginUnload() override
         {
             __delete(gParticle);
         }
