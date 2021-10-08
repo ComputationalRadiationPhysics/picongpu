@@ -32,6 +32,7 @@
 #include "picongpu/fields/absorber/pml/Pml.hpp"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/fields/incidentField/Solver.hpp"
+#include "picongpu/traits/GetCurl.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -318,6 +319,8 @@ namespace picongpu
                 typename GetUpperMargin<Solver, FieldB>::type,
                 typename GetUpperMargin<Solver, FieldE>::type>::type;
         };
+
+
 
     } // namespace traits
 } // namespace picongpu

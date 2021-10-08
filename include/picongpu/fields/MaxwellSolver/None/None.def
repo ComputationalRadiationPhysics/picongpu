@@ -19,6 +19,9 @@
 
 #pragma once
 
+#include "picongpu/fields/differentiation/Curl.def"
+#include "picongpu/fields/differentiation/Derivative.def"
+
 #include <pmacc/math/Vector.hpp>
 
 
@@ -32,4 +35,28 @@ namespace picongpu
 
         } // namespace maxwellSolver
     } // namespace fields
+
+    namespace traits
+    {
+        /** Get curl(E) type in the None solver
+         *
+         * Put a stub zero curl so that incident field solver compiles with None field solver and None sources.
+         */
+        template<>
+        struct GetCurlE<fields::maxwellSolver::None>
+        {
+            using type = fields::differentiation::Curl<fields::differentiation::Zero>;
+        };
+
+        /** Get curl(B) type in the None solver
+         *
+         * Put a stub zero curl so that incident field solver compiles with None field solver and None sources.
+         */
+        template<>
+        struct GetCurlB<fields::maxwellSolver::None>
+        {
+            using type = fields::differentiation::Curl<fields::differentiation::Zero>;
+        };
+    } // namespace traits
+
 } // namespace picongpu
