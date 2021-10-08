@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <pmacc/attribute/unroll.hpp>
 #include <pmacc/result_of_Functor.hpp>
 #include <pmacc/types.hpp>
 
@@ -67,13 +68,17 @@ namespace picongpu
         {
             using type = typename ::pmacc::result_of::Functor<AssignedTrilinearInterpolation, T_Cursor>::type;
 
+            constexpr auto iterations = T_end - T_begin + 1;
             auto result_z = type(0.0);
+            PMACC_UNROLL(iterations)
             for(int z = T_begin; z <= T_end; ++z)
             {
                 auto result_y = type(0.0);
+                PMACC_UNROLL(iterations)
                 for(int y = T_begin; y <= T_end; ++y)
                 {
                     auto result_x = type(0.0);
+                    PMACC_UNROLL(iterations)
                     for(int x = T_begin; x <= T_end; ++x)
                         /* a form factor is the "amount of particle" that is affected by this cell
                          * so we have to sum over: cell_value * form_factor
