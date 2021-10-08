@@ -21,6 +21,9 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/differentiation/Derivative.hpp"
+#include "picongpu/fields/incidentField/DerivativeCoefficients.hpp"
+
 #include <cstdint>
 
 
@@ -34,13 +37,19 @@ namespace picongpu
             {
                 /** Helper functor for in-kernel update of the given field using the given incident field functor
                  *
-                 * Performs update by adding two terms with the incident field.
+                 * Performs update by adding terms with the incident field.
                  * The positions, indices and coefficients for these terms are determined by members.
                  *
                  * @tparam T_UpdatedFieldBox updated field box type
+                 * @tparam T_CurlIncidentField curl(incidentField) functor type
                  * @tparam T_FunctorIncidentField incident field source functor type
+                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
                  */
-                template<typename T_UpdatedFieldBox, typename T_FunctorIncidentField>
+                template<
+                    typename T_UpdatedFieldBox,
+                    typename T_CurlIncidentField,
+                    typename T_FunctorIncidentField,
+                    uint32_t T_axis>
                 struct UpdateFunctor
                 {
                     /** Create an update functor instance
@@ -55,23 +64,100 @@ namespace picongpu
                     {
                     }
 
+                    /** Calculate initial incident field shift for the given updated field shift
+                     *
+                     * Both shifts are along T_axis, in cells, relative to the scheme for the classic Yee solver.
+                     * The incident field shift is moving the opposite side from the updated field shift.
+                     * It has to be adjusted by one based on TF or SF region and direction.
+                     *
+                     * @param updatedFieldShift shift of the updated field
+                     */
+                    HDINLINE float_X getInitialIncidentFieldShift(int32_t updatedFieldShift) const
+                    {
+                        auto result = static_cast<float_X>(-updatedFieldShift);
+                        if((isUpdatedFieldTotal) && (updatedFieldShift * direction > 0))
+                            result += direction;
+                        if((!isUpdatedFieldTotal) && (updatedFieldShift * direction < 0))
+                            result -= direction;
+                        return result;
+                    }
+
+                    /** Calculate incident field shift increment for the given updated field shift
+                     *
+                     * Both shifts are along T_axis, in cells, relative to the scheme for the classic Yee solver.
+                     * The incident field shift is moving the opposite side from the updated field shift.
+                     * For zero update field shift, this side is always towards outwards and
+                     * depending on TF or SF region, it aligns or counter-aligns with this->direction.
+                     *
+                     * @param updatedFieldShift index in the outer loop
+                     */
+                    HDINLINE float_X getIncidentFieldShiftIncrement(int32_t updatedFieldShift) const
+                    {
+                        if(updatedFieldShift < 0)
+                            return 1.0_X;
+                        else if(updatedFieldShift > 0)
+                            return -1.0_X;
+                        else
+                            return isUpdatedFieldTotal ? -direction : direction;
+                    }
+
                     /** Update field at the given grid index
                      *
                      * @param gridIdx grid index in the local domain, including guards
                      */
                     HDINLINE void operator()(pmacc::DataSpace<simDim> const& gridIdx)
                     {
-                        // fractional since the later shift is fractional
-                        auto const cellIdx
+                        // Fractional since the later shift is fractional
+                        auto const cellIdxBase
                             = pmacc::algorithms::precisionCast::precisionCast<float_X>(gridIdx + gridIdxShift);
-                        auto const incidentField
-                            = coeff1 * functorIncidentField(cellIdx + inCellShift1, currentStep)[incidentComponent1]
-                            + coeff2 * functorIncidentField(cellIdx + inCellShift2, currentStep)[incidentComponent2];
-                        updatedField(gridIdx) += incidentField;
+                        auto const cellIdx1 = cellIdxBase + inCellShift1;
+                        auto const cellIdx2 = cellIdxBase + inCellShift2;
+                        /* For Yee field solver we only need to update gridIdx with shift 0.
+                         * For other FDTD schemes iterate symmetrically around it.
+                         * The indices of the updated and incident fields counterpropagate.
+                         * The implementation is generic for all solvers, the specialization is done via
+                         * DerivativeCoefficients<>.
+                         * Here we rely on the fact coeff1 and coeff2 are always calculated for the Yee solver.
+                         * We iterate along the axis and "scatter" part of the coeff = 1 * coeff1,2 into a sum of
+                         * derivativeCoefficients.values[p] that are on the other side from the Huygens surface.
+                         */
+                        // Convert to signed to ensure correct arithmetic with negative shifts
+                        auto const numCoefficients = static_cast<int32_t>(derivativeCoefficients.size);
+                        for(int32_t updatedIdxShift = 1 - numCoefficients; updatedIdxShift < numCoefficients;
+                            updatedIdxShift++)
+                        {
+                            auto incidentIdxShift = floatD_X::create(0.0_X);
+                            incidentIdxShift[axis] = getInitialIncidentFieldShift(updatedIdxShift);
+                            auto const incidentIdxShiftIncrement = getIncidentFieldShiftIncrement(updatedIdxShift);
+                            auto incidentField = float3_X::create(0.0_X);
+                            for(int32_t p = abs(updatedIdxShift); p < numCoefficients; p++)
+                            {
+                                incidentField += derivativeCoefficients.values[p]
+                                    * (coeff1
+                                           * functorIncidentField(
+                                               cellIdx1 + incidentIdxShift,
+                                               currentStep)[incidentComponent1]
+                                       + coeff2
+                                           * functorIncidentField(
+                                               cellIdx2 + incidentIdxShift,
+                                               currentStep)[incidentComponent2]);
+                                incidentIdxShift[axis] += incidentIdxShiftIncrement;
+                            }
+                            auto updatedIdx = gridIdx;
+                            updatedIdx[axis] += updatedIdxShift;
+                            updatedField(updatedIdx) += incidentField;
+                        }
                     }
 
                     //! Updated field box
                     T_UpdatedFieldBox updatedField;
+
+                    //! Derivative functor along T_axis type
+                    using DerivativeFunctor
+                        = differentiation::DerivativeFunctor<typename T_CurlIncidentField::Derivative, T_axis>;
+
+                    //! Defivative coefficients
+                    DerivativeCoefficients<DerivativeFunctor, T_axis> derivativeCoefficients;
 
                     //! Incident field functor
                     T_FunctorIncidentField functorIncidentField;
@@ -79,7 +165,7 @@ namespace picongpu
                     //! Indices of the incident field components for the two terms
                     uint32_t incidentComponent1, incidentComponent2;
 
-                    //! Coefficients for two functorIncidentField invocations
+                    //! Coefficients for two functorIncidentField invocations assuming Yee field solver
                     float3_X coeff1, coeff2;
 
                     //! Shifts inside the cell for two functorIncidentField invocations, in cells
@@ -90,8 +176,20 @@ namespace picongpu
 
                     //! Current time step, in iterations; can be fractional
                     float_X currentStep;
-                };
 
+                    /** Direction of the incident field propagation
+                     *
+                     * +1._X is positive direction (from the min boundary inwards).
+                     * -1._X is negative direction (from the max boundary inwards)
+                     */
+                    float_X direction;
+
+                    //! Boundary axis, 0 = x, 1 = y, 2 = z
+                    static constexpr uint32_t axis = T_axis;
+
+                    //! Whether the updated field is total or scattered
+                    bool isUpdatedFieldTotal;
+                };
 
                 /** Kernel to apply incident field
                  *

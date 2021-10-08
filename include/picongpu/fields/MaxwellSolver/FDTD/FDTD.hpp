@@ -321,6 +321,5 @@ namespace picongpu
         };
 
 
-
     } // namespace traits
 } // namespace picongpu
