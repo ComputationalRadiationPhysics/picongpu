@@ -27,7 +27,6 @@
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --ntasks=!TBG_tasks
-#SBATCH --ntasks-per-node=!TBG_devicesPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerCPU
 #SBATCH --mem=!TBG_memPerNode
 # must be 1 else we can not use hyperthreading
