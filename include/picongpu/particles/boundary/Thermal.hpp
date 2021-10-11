@@ -29,8 +29,8 @@
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffsetRng.hpp"
 #include "picongpu/traits/attribute/GetMass.hpp"
 
-#include <cstdint>
 #include <cmath>
+#include <cstdint>
 #include <limits>
 
 
@@ -40,11 +40,23 @@ namespace picongpu
     {
         namespace boundary
         {
-            //! Functor to be applied to all particles in the active area
-            struct ReflectThermalIfOutside : public functor::misc::Parametrized<Parameters>
+            //! Manipulator parameters, extend the basic version with temperature
+            struct ThermalParameters : public Parameters
             {
-                //! Some name is required
+                //! Boundary temperature in keV
+                float_X temperature;
+            };
+
+            //! Functor to be applied to all particles in the active area
+            struct ReflectThermalIfOutside : public functor::misc::Parametrized<ThermalParameters>
+            {
+                //! Name, required to be wrapped later
                 static constexpr char const* name = "reflectThermalIfOutside";
+
+                HDINLINE ReflectThermalIfOutside()
+                    : energy((m_parameters.temperature * UNITCONV_keV_to_Joule) / UNIT_ENERGY)
+                {
+                }
 
                 /** Process the current particle located in the given cell
                  *
@@ -53,28 +65,29 @@ namespace picongpu
                  * @param particle handle of particle to process (can be used to change attribute values)
                  */
                 template<typename T_Rng, typename T_Particle>
-                HDINLINE void operator()(DataSpace<simDim> const& offsetToTotalOrigin, T_Rng& rng, T_Particle& particle)
+                HDINLINE void operator()(
+                    DataSpace<simDim> const& offsetToTotalOrigin,
+                    T_Rng& rng,
+                    T_Particle& particle)
                 {
                     for(uint32_t d = 0; d < simDim; d++)
                     {
                         if((offsetToTotalOrigin[d] < m_parameters.beginInternalCellsTotal[d])
                            || (offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d]))
                         {
+                            // to check if its the right or left boundary which is crossed
+                            bool rightBoundary = offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d];
 
-                            // to check if its the right or left boundary which is crossed    
-                            bool rightBoundary = offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d]; 
-
-                            // TODO: put the border temperature here:
-                            float_X energy = (200.0 * UNITCONV_keV_to_Joule) / UNIT_ENERGY;
-                            float_X macroWeighting = particle[ weighting_ ];
+                            float_X macroWeighting = particle[weighting_];
                             float_X macroEnergy = energy * macroWeighting;
                             float_X macroMass = attribute::getMass(macroWeighting, particle);
-                            float_X standardDeviation = static_cast<float_X>(math::sqrt(precisionCast<sqrt_X>(macroEnergy*macroMass)));
+                            float_X standardDeviation
+                                = static_cast<float_X>(math::sqrt(precisionCast<sqrt_X>(macroEnergy * macroMass)));
 
                             auto pos = particle[position_];
-                            float3_X mom = particle[momentum_];   // momentum is always float3_X and not dependant on simDim
+                            float3_X mom = particle[momentum_];
 
-                            auto prevPos = pos;     // values are not important, but just the same datatype as pos
+                            auto prevPos = pos; // values are not important, but just the same datatype as pos
 
                             Velocity velocity;
                             auto vel = velocity(mom, macroWeighting);
@@ -104,12 +117,13 @@ namespace picongpu
 
                             if(rightBoundary)
                                 // right boundary
-                                ddt  = pos[d] / (pos[d] + math::abs(prevPos[d]));
+                                ddt = pos[d] / (pos[d] + math::abs(prevPos[d]));
                             else
                                 // left boundary
-                                ddt  = (1 - pos[d]) / (prevPos[d] - pos[d]);
+                                ddt = (1.0_X - pos[d]) / (prevPos[d] - pos[d]);
 
-                            pos[d] = rightBoundary ? -std::numeric_limits<float_X>::epsilon() : 1.0; // set pos on reflection axis ON the boundary
+                            pos[d] = rightBoundary ? -std::numeric_limits<float_X>::epsilon()
+                                                   : 1.0_X; // set pos on reflection axis ON the boundary
 
                             for(uint32_t i = 0; i < simDim; i++)
                             {
@@ -120,14 +134,16 @@ namespace picongpu
                                 pos[i] += velAfterThermal[i] * DELTA_T * ddt / cellSize[i];
                             }
 
-                            // TODO: check if the new position is inside the border on the other axis (!=d)  (i don't know if its relevant)
+                            // TODO: check if the new position is inside the border on the other axis (!=d)  (i don't
+                            // know if its relevant)
 
                             moveParticle(particle, pos);
-
                         }
                     }
-
                 }
+
+                //! Energy corresponding to temperature, in internal units
+                float_X const energy;
             };
 
             //! Functor to apply thermal boundary to particle species
@@ -145,23 +161,18 @@ namespace picongpu
                 template<typename T_Species>
                 void operator()(T_Species& species, uint32_t exchangeType, uint32_t currentStep)
                 {
+                    // This is required for thermal boundaries until #3850 is resolved
                     if(!(getOffsetCells(species, exchangeType) > 0))
-                        /* 
-                         * Check if boundary offset is > 0.
-                         *
-                         * This if statement just makes sure to work properly with the rng provided for
-                         * the thermal boundary conditon. The statement can be removed when issue #3850
-                         * (https://github.com/ComputationalRadiationPhysics/picongpu/issues/3850) is
-                         * resolved.
-                         */
-                        throw std::runtime_error("Please use offset >0 for the thermal particle boundary condition (see issue #3850)");
+                        throw std::runtime_error("Thermal particle boundaries require a positive offset");
 
                     pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
                     getInternalCellsTotal(species, exchangeType, &beginInternalCellsTotal, &endInternalCellsTotal);
                     ReflectThermalIfOutside::parameters().beginInternalCellsTotal = beginInternalCellsTotal;
                     ReflectThermalIfOutside::parameters().endInternalCellsTotal = endInternalCellsTotal;
+                    ReflectThermalIfOutside::parameters().temperature = getTemperature(species, exchangeType);
                     auto const mapperFactory = getMapperFactory(species, exchangeType);
-                    using Manipulator = manipulators::unary::FreeTotalCellOffsetRng<ReflectThermalIfOutside, pmacc::random::distributions::Normal<float_X>>;
+                    using Manipulator = manipulators::unary::
+                        FreeTotalCellOffsetRng<ReflectThermalIfOutside, pmacc::random::distributions::Normal<float_X>>;
                     particles::manipulate<Manipulator, T_Species>(currentStep, mapperFactory);
                     auto const onlyProcessMustShiftSupercells = false;
                     species.shiftBetweenSupercells(mapperFactory, onlyProcessMustShiftSupercells);

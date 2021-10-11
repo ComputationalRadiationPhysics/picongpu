@@ -42,6 +42,12 @@ namespace picongpu
                  * Some boundary kinds may only support certain values of the offset.
                  */
                 uint32_t offset = 0u;
+
+                /** Boundary temperature in keV
+                 *
+                 * Only has effect for thermal boundaries
+                 */
+                float_X temperature = 0.0_X;
             };
 
         } // namespace boundary

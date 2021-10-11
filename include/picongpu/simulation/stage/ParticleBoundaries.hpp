@@ -64,15 +64,15 @@ namespace picongpu
                     {
                         auto example = std::string{"example: --" + prefix + "_boundary absorbing periodic"};
                         if(simDim == 3)
-                            example += " periodic";
+                            example += " reflecting";
                         desc.add_options()(
                             (prefix + "_boundary").c_str(),
                             po::value<std::vector<std::string>>(&(kindNames()))->multitoken(),
                             std::string(
                                 "Boundary kinds for species '" + prefix
                                 + "' for each axis. "
-                                  "Supported values: default (matching --periodic values), periodic, absorbing"
-                                  "\n"
+                                  "Supported values: default (matching --periodic values), periodic, absorbing, "
+                                  "reflecting, thermal\n"
                                 + example)
                                 .c_str());
                         desc.add_options()(
@@ -82,6 +82,13 @@ namespace picongpu
                                 "Boundary offsets inwards from global domain boundary for species '" + prefix
                                 + "' for each axis. "
                                   "Periodic boundaries only allow 0 offsets, other kinds support non-negative offsets")
+                                .c_str());
+                        desc.add_options()(
+                            (prefix + "_boundaryTemperature").c_str(),
+                            po::value<std::vector<float_X>>(&(temperatures()))->multitoken(),
+                            std::string(
+                                "Boundary temperatures (only affects thermal boundaries) for species '" + prefix
+                                + "' for each axis, in keV.")
                                 .c_str());
                     }
 
@@ -95,14 +102,18 @@ namespace picongpu
                         {
                             auto const errorString
                                 = std::string{"for species '" + prefix + "' and axis " + std::to_string(d)};
-                            auto const kindName = kindNames()[d];
                             int32_t offset = offsets()[d];
                             if(offset < 0)
                                 throw std::runtime_error(
                                     "Negative boundary offset " + errorString + " is not supported");
-                            
                             T_Species::boundaryDescription()[d].offset = offset;
-                            
+                            float_X temperature = temperatures()[d];
+                            if(temperature < 0.0_X)
+                                throw std::runtime_error(
+                                    "Negative boundary temperature " + errorString + " is not supported");
+                            T_Species::boundaryDescription()[d].temperature = temperature;
+
+                            auto const kindName = kindNames()[d];
                             if(kindName == "reflecting")
                             {
                                 if(T_Species::boundaryDescription()[d].kind == particles::boundary::Kind::Periodic)
@@ -151,6 +162,13 @@ namespace picongpu
                     {
                         static auto offsets = std::vector<int32_t>(simDim, 0);
                         return offsets;
+                    }
+
+                    //! Boundary temperatures for all axes
+                    static std::vector<float_X>& temperatures()
+                    {
+                        static auto temperatures = std::vector<float_X>(simDim, 0.0_X);
+                        return temperatures;
                     }
 
                     //! Prefix for the given species
