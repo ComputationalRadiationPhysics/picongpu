@@ -126,12 +126,16 @@ namespace picongpu
                 auto axis = pmacc::boundary::getAxis(exchangeType);
                 auto offsetCells = getOffsetCells(species, exchangeType);
                 SubGrid<simDim> const& subGrid = Environment<simDim>::get().SubGrid();
-                *begin = subGrid.getGlobalDomain().offset;
-                *end = (*begin) + subGrid.getGlobalDomain().size;
+                // For non-axis directions, we take all cells including the guards
+                auto const mappingDescription = species.getCellDescription();
+                auto const guardCells
+                    = mappingDescription.getGuardingSuperCells() * mappingDescription.getSuperCellSize();
+                *begin = subGrid.getGlobalDomain().offset - guardCells;
+                *end = (*begin) + subGrid.getGlobalDomain().size + guardCells * 2;
                 if(pmacc::boundary::isMinSide(exchangeType))
-                    (*begin)[axis] += offsetCells;
+                    (*begin)[axis] += guardCells[axis] + offsetCells;
                 if(pmacc::boundary::isMaxSide(exchangeType))
-                    (*end)[axis] -= offsetCells;
+                    (*end)[axis] -= guardCells[axis] + offsetCells;
             }
 
             /** Get a range of cells that define internal area for the given species with respect to all boundaries
