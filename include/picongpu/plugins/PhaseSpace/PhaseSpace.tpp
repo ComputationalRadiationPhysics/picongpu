@@ -98,7 +98,8 @@ namespace picongpu
             /* CORE + BORDER + GUARD elements for spatial bins */
             this->r_bins = SuperCellSize().toRT()[r_element] * this->m_cellDescription->getGridSuperCells()[r_element];
 
-            this->dBuffer = std::make_unique<container::DeviceBuffer<float_PS, 2>>(this->num_pbins, r_bins);
+            auto const num_pbinsToAvoidOdrUse = this->num_pbins;
+            this->dBuffer = std::make_unique<container::DeviceBuffer<float_PS, 2>>(num_pbinsToAvoidOdrUse, r_bins);
 
             /* reduce-add phase space from other GPUs in range [p0;p1]x[r;r+dr]
              * to "lowest" node in range
