@@ -29,6 +29,8 @@
 #include "picongpu/particles/manipulators/unary/FreeTotalCellOffsetRng.hpp"
 #include "picongpu/traits/attribute/GetMass.hpp"
 
+#include <pmacc/boundary/Utility.hpp>
+
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -40,11 +42,14 @@ namespace picongpu
     {
         namespace boundary
         {
-            //! Manipulator parameters, extend the basic version
-            struct ThermalParameters : public Parameters
+            //! Parameters for thermal boundary implementation
+            struct ThermalParameters
             {
                 //! Boundary temperature in keV
                 float_X temperature;
+
+                //! Axis of the active thermal boundary
+                uint32_t axis;
 
                 /** Begin of the internal (relative to all boundaries) cells in total coordinates
                  *
@@ -72,6 +77,14 @@ namespace picongpu
 
                 /** Process the current particle located in the given cell
                  *
+                 * Unlike other boundary implementations, thermal has to account for all boundary crossings.
+                 * The reason is, it samples a new momentum and thus effectively erases the particle move history.
+                 * After a particle is processed, it will be located inside, and with an inside-pointing momentum,
+                 * with respect to all boundaries.
+                 * Doing otherwise would be dangerous, as then it could happen that at the same time a particle
+                 * is crossing by its cell index, but both current and "old" positions (calculated with rewritten
+                 * momentum) are on the same side of the boundary.
+                 *
                  * @param offsetToTotalOrigin offset of particle cell in the total domain
                  * @param rng random number generator with normal distribution
                  * @param particle handle of particle to process (can be used to change attribute values)
@@ -82,64 +95,93 @@ namespace picongpu
                     T_Rng& rng,
                     T_Particle& particle)
                 {
+                    // > 0 means we crossed right boundary, < 0 means crossed left boundary, 0 means didn't cross
+                    auto crossedBoundary = pmacc::DataSpace<simDim>::create(0);
                     for(uint32_t d = 0; d < simDim; d++)
                     {
-                        if((offsetToTotalOrigin[d] < m_parameters.beginInternalCellsTotal[d])
-                           || (offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d]))
+                        if(offsetToTotalOrigin[d] < m_parameters.beginInternalCellsTotalAllBoundaries[d])
+                            crossedBoundary[d] = -1;
+                        else if(offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotalAllBoundaries[d])
+                            crossedBoundary[d] = 1;
+                        else
+                            crossedBoundary[d] = 0;
+                    }
+                    // Only apply thermal BC logic when an active thermal boundary was crossed
+                    if(crossedBoundary[m_parameters.axis])
+                    {
+                        // Save velocity before thermalization
+                        float_X const macroWeighting = particle[weighting_];
+                        float_X const mass = attribute::getMass(macroWeighting, particle);
+                        float3_X mom = particle[momentum_];
+                        auto velocity = Velocity{};
+                        auto velBeforeThermal = velocity(mom, mass);
+
+                        /* Sample momentum and for crossing particles make it point inwards wrt all boundaries.
+                         * Here we have to check all boundaries and not just the first-crossed one.
+                         * This is to avoid particles getting outside the boundary e.g. in case of applying another BC.
+                         * For 2d do not thermalize in z.
+                         */
+                        float_X const macroEnergy = energy * macroWeighting;
+                        float_X const macroMass = attribute::getMass(macroWeighting, particle);
+                        float_X const standardDeviation
+                            = static_cast<float_X>(math::sqrt(precisionCast<sqrt_X>(macroEnergy * macroMass)));
+                        for(uint32_t d = 0; d < simDim; d++)
                         {
-                            // Save velocity before thermalization
-                            float_X const macroWeighting = particle[weighting_];
-                            float3_X mom = particle[momentum_];
-                            auto velocity = Velocity{};
-                            auto velBeforeThermal = velocity(mom, macroWeighting);
-
-                            /* Sample momentum and for crossing particles make it point inwards wrt all boundaries.
-                             * Here we have to check all boundaries and not just the active one.
-                             * This is to avoid particles getting outside the boundary e.g. in case of applying thermal
-                             * BC twice. For 2d do not thermalize in z.
-                             */
-                            float_X const macroEnergy = energy * macroWeighting;
-                            float_X const macroMass = attribute::getMass(macroWeighting, particle);
-                            float_X const standardDeviation
-                                = static_cast<float_X>(math::sqrt(precisionCast<sqrt_X>(macroEnergy * macroMass)));
-                            for(uint32_t i = 0; i < simDim; i++)
-                            {
-                                mom[i] = rng() * standardDeviation;
-                                if(offsetToTotalOrigin[i] < m_parameters.beginInternalCellsTotalAllBoundaries[i])
-                                    mom[i] = math::abs(mom[i]);
-                                else if(offsetToTotalOrigin[i] >= m_parameters.endInternalCellsTotalAllBoundaries[i])
-                                    mom[i] = -math::abs(mom[i]);
-                            }
-                            particle[momentum_] = mom;
-
-                            // Now handle movement
-                            auto pos = particle[position_];
-                            auto prevPos = pos;
-                            for(uint32_t i = 0; i < simDim; i++)
-                                prevPos[i] = pos[d] - velBeforeThermal[i] * DELTA_T / cellSize[i];
-                            // Fraction of the time step that the particle is outside of the boundary
-                            float_X fractionOfTimeStep = 0._X;
-                            if(offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d])
-                            {
-                                fractionOfTimeStep = pos[d] / (pos[d] + math::abs(prevPos[d]));
-                                pos[d] = -std::numeric_limits<float_X>::epsilon();
-                            }
-                            else
-                            {
-                                fractionOfTimeStep = (1.0_X - pos[d]) / (prevPos[d] - pos[d]);
-                                pos[d] = 1.0_X;
-                            }
-                            // Move the particle inside the cell and between cells
-                            auto velAfterThermal = velocity(mom, macroWeighting);
-                            for(uint32_t i = 0; i < simDim; i++)
-                            {
-                                // pos[d] was set on the boundary before
-                                if(i != d)
-                                    pos[i] -= velBeforeThermal[i] * DELTA_T * fractionOfTimeStep / cellSize[i];
-                                pos[i] += velAfterThermal[i] * DELTA_T * fractionOfTimeStep / cellSize[i];
-                            }
-                            moveParticle(particle, pos);
+                            mom[d] = rng() * standardDeviation;
+                            if(crossedBoundary[d] > 0)
+                                mom[d] = -math::abs(mom[d]);
+                            else if(crossedBoundary[d] < 0)
+                                mom[d] = math::abs(mom[d]);
                         }
+                        particle[momentum_] = mom;
+
+                        // Find the first time the particle crossed any boundary, in internal units
+                        float_X timeAfterFirstBoundaryCross = 0._X;
+                        auto pos = particle[position_];
+                        auto const epsilon = std::numeric_limits<float_X>::epsilon();
+                        for(uint32_t d = 0; d < simDim; d++)
+                        {
+                            /* Add epsilon to avoid potential divisions by 0.
+                             * We clump the position later so it is no problem that timeAfterCross is slightly below
+                             * its analytical value.
+                             */
+                            auto timeAfterCross = 0.0_X;
+                            if(crossedBoundary[d] > 0)
+                                timeAfterCross = pos[d] * cellSize[d] / (velBeforeThermal[d] + epsilon);
+                            else if(crossedBoundary[d] < 0)
+                                timeAfterCross = (1.0_X - pos[d]) * cellSize[d] / (-velBeforeThermal[d] - epsilon);
+                            timeAfterFirstBoundaryCross = math::max(timeAfterFirstBoundaryCross, timeAfterCross);
+                        }
+
+                        /* Replace movement in the last timeAfterFirstBoundaryCross with new velocity.
+                         * Afterwards take care the particle is safely in the internal side for all boundaries.
+                         */
+                        auto velAfterThermal = velocity(mom, mass);
+                        for(uint32_t d = 0; d < simDim; d++)
+                        {
+                            pos[d] += (velAfterThermal[d] - velBeforeThermal[d]) * timeAfterFirstBoundaryCross
+                                / cellSize[d];
+                            if((crossedBoundary[d] > 0) && (pos[d] >= -epsilon))
+                                pos[d] = -epsilon;
+                            else if((crossedBoundary[d] < 0) && (pos[d] <= 1.0_X))
+                                pos[d] = 1.0_X;
+                            /* When a particle is crossing multiple boundaries at once, it could (rarely) happen that
+                             * it is jumping a cell as the result of this procedure.
+                             * For example, consider a particle that is in a near-boundary cell in both x and y.
+                             * This particle could be at the center of cell in x and near the border in y.
+                             * Now, consider what happens when it moves diagonally in x, y and crosses both boundaries.
+                             * Since y was very close to threshold, timeAfterFirstBoundaryCross would be almost
+                             * DELTA_T. So we will revert almost the whole movement and effectively do another push.
+                             * Then it can happen that in x we move sufficiently to end up in 2 cells from the current
+                             * one. There is nothing we can easily fix here, so just clump the position to be in valid
+                             * range. This case is rare and so should not disrupt the physics. This clump also guards
+                             * against the case when the original momentum of the particle was somehow modified
+                             * non-consistently with a position. For example, when the particle crossed by its cell
+                             * index, but (current position - v * dt) is on the same side as current position.
+                             */
+                            pos[d] = math::max(-1.0_X, math::min(pos[d], 2.0_X * (1.0_X - epsilon)));
+                        }
+                        moveParticle(particle, pos);
                     }
                 }
 
@@ -162,14 +204,11 @@ namespace picongpu
                 template<typename T_Species>
                 void operator()(T_Species& species, uint32_t exchangeType, uint32_t currentStep)
                 {
-                    // This is required for thermal boundaries until #3850 is resolved
-                    if(!(getOffsetCells(species, exchangeType) > 0))
+                    // Positive offset is required for thermal boundaries until #3850 is resolved
+                    if(getOffsetCells(species, exchangeType) <= 0)
                         throw std::runtime_error("Thermal particle boundaries require a positive offset");
 
-                    pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
-                    getInternalCellsTotal(species, exchangeType, &beginInternalCellsTotal, &endInternalCellsTotal);
-                    ReflectThermalIfOutside::parameters().beginInternalCellsTotal = beginInternalCellsTotal;
-                    ReflectThermalIfOutside::parameters().endInternalCellsTotal = endInternalCellsTotal;
+                    // Here we need area wrt all boundaries, not just the current one
                     pmacc::DataSpace<simDim> beginInternalCellsTotalAllBoundaries, endInternalCellsTotalAllBoundaries;
                     getInternalCellsTotal(
                         species,
@@ -180,6 +219,7 @@ namespace picongpu
                     ReflectThermalIfOutside::parameters().endInternalCellsTotalAllBoundaries
                         = endInternalCellsTotalAllBoundaries;
                     ReflectThermalIfOutside::parameters().temperature = getTemperature(species, exchangeType);
+                    ReflectThermalIfOutside::parameters().axis = pmacc::boundary::getAxis(exchangeType);
                     auto const mapperFactory = getMapperFactory(species, exchangeType);
                     using Manipulator = manipulators::unary::
                         FreeTotalCellOffsetRng<ReflectThermalIfOutside, pmacc::random::distributions::Normal<float_X>>;
