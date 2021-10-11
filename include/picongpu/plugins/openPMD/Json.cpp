@@ -36,6 +36,132 @@
  * ensures that NVCC never sees that library.
  */
 
+namespace picongpu
+{
+    namespace json
+    {
+        void MatcherPerBackend::init(nlohmann::json const& config)
+        {
+            if(config.is_object())
+            {
+                // simple layout: only one global JSON object was passed
+                // forward this one directly to openPMD
+                m_patterns.emplace_back("", std::make_shared<nlohmann::json>(config));
+            }
+            else if(config.is_array())
+            {
+                bool defaultEmplaced = false;
+                // enhanced PIConGPU-defined layout
+                for(size_t i = 0; i < config.size(); ++i)
+                {
+                    auto kindOfConfig = readPattern(m_patterns, m_defaultConfig, config[i]);
+                    if(kindOfConfig == KindOfConfig::Default)
+                    {
+                        if(defaultEmplaced)
+                        {
+                            throw std::runtime_error(
+                                "[openPMD plugin] Specified more than one default configuration.");
+                        }
+                        else
+                        {
+                            defaultEmplaced = true;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                throw std::runtime_error("[openPMD plugin] Expecting an object or an array as JSON configuration.");
+            }
+        }
+
+        /**
+         * @brief Get the JSON config associated with a regex pattern.
+         *
+         * @param datasetPath The regex.
+         * @return The matched JSON configuration, as a string.
+         */
+        nlohmann::json const& MatcherPerBackend::get(std::string const& datasetPath) const
+        {
+            for(auto const& pattern : m_patterns)
+            {
+                if(std::regex_match(datasetPath, pattern.pattern))
+                {
+                    return *pattern.config;
+                }
+            }
+            static nlohmann::json const emptyConfig; // null
+            return emptyConfig;
+        }
+
+        void JsonMatcher::init(std::string const& config, MPI_Comm comm)
+        {
+            auto const filename = extractFilename(config);
+            m_wholeConfig = nlohmann::json::parse(filename.empty() ? config : collective_file_read(filename, comm));
+            if(!m_wholeConfig.is_object())
+            {
+                throw std::runtime_error("[openPMD plugin] Expected an object for the JSON configuration.");
+            }
+            m_perBackend.reserve(m_wholeConfig.size());
+            for(auto it = m_wholeConfig.begin(); it != m_wholeConfig.end(); ++it)
+            {
+                std::string const& backendName = it.key();
+                if(std::find(m_recognizedBackends.begin(), m_recognizedBackends.end(), backendName)
+                   == m_recognizedBackends.end())
+                {
+                    // The key does not point to the configuration of a backend recognized by PIConGPU
+                    // Ignore it.
+                    continue;
+                }
+                if(!it.value().is_object())
+                {
+                    throw std::runtime_error(
+                        "[openPMD plugin] Each backend's configuration must be a JSON object (config for backend "
+                        + backendName + ").");
+                }
+                if(it.value().contains("dataset"))
+                {
+                    m_perBackend.emplace_back(PerBackend{backendName, MatcherPerBackend{it.value().at("dataset")}});
+                }
+            }
+        }
+        std::string JsonMatcher::get(std::string const& datasetPath) const
+        {
+            nlohmann::json result = nlohmann::json::object();
+            for(auto const& backend : m_perBackend)
+            {
+                auto const& datasetConfig = backend.matcher.get(datasetPath);
+                if(datasetConfig.empty())
+                {
+                    continue;
+                }
+                result[backend.backendName]["dataset"] = datasetConfig;
+            }
+            return result.dump();
+        }
+
+        std::string JsonMatcher::getDefault() const
+        {
+            nlohmann::json result = m_wholeConfig;
+            for(auto const& backend : m_perBackend)
+            {
+                auto const& datasetConfig = backend.matcher.getDefault();
+                if(datasetConfig.empty())
+                {
+                    continue;
+                }
+                result[backend.backendName]["dataset"] = datasetConfig;
+            }
+            return result.dump();
+        }
+
+        std::unique_ptr<AbstractJsonMatcher> AbstractJsonMatcher::construct(std::string const& config, MPI_Comm comm)
+        {
+            return std::unique_ptr<AbstractJsonMatcher>{new JsonMatcher{config, comm}};
+        }
+    } // namespace json
+} // namespace picongpu
+
 // Anonymous namespace so these helpers don't get exported
 namespace
 {
@@ -154,7 +280,7 @@ namespace
     }
 
     KindOfConfig readPattern(
-        std::vector<Pattern>& patterns,
+        std::vector<picongpu::json::Pattern>& patterns,
         nlohmann::json& defaultConfig,
         nlohmann::json const& object)
     {
@@ -206,131 +332,6 @@ The key 'select' must point to either a single string or an array of strings.)EN
             throw std::runtime_error(errorMsg);
         }
     }
-
-    void MatcherPerBackend::init(nlohmann::json const& config)
-    {
-        if(config.is_object())
-        {
-            // simple layout: only one global JSON object was passed
-            // forward this one directly to openPMD
-            m_patterns.emplace_back("", std::make_shared<nlohmann::json>(config));
-        }
-        else if(config.is_array())
-        {
-            bool defaultEmplaced = false;
-            // enhanced PIConGPU-defined layout
-            for(size_t i = 0; i < config.size(); ++i)
-            {
-                auto kindOfConfig = readPattern(m_patterns, m_defaultConfig, config[i]);
-                if(kindOfConfig == KindOfConfig::Default)
-                {
-                    if(defaultEmplaced)
-                    {
-                        throw std::runtime_error("[openPMD plugin] Specified more than one default configuration.");
-                    }
-                    else
-                    {
-                        defaultEmplaced = true;
-                    }
-                }
-            }
-        }
-        else
-        {
-            throw std::runtime_error("[openPMD plugin] Expecting an object or an array as JSON configuration.");
-        }
-    }
-
-    /**
-     * @brief Get the JSON config associated with a regex pattern.
-     *
-     * @param datasetPath The regex.
-     * @return The matched JSON configuration, as a string.
-     */
-    nlohmann::json const& MatcherPerBackend::get(std::string const& datasetPath) const
-    {
-        for(auto const& pattern : m_patterns)
-        {
-            if(std::regex_match(datasetPath, pattern.pattern))
-            {
-                return *pattern.config;
-            }
-        }
-        static nlohmann::json const emptyConfig; // null
-        return emptyConfig;
-    }
 } // namespace
-
-namespace picongpu
-{
-    namespace json
-    {
-        void JsonMatcher::init(std::string const& config, MPI_Comm comm)
-        {
-            auto const filename = extractFilename(config);
-            m_wholeConfig = nlohmann::json::parse(filename.empty() ? config : collective_file_read(filename, comm));
-            if(!m_wholeConfig.is_object())
-            {
-                throw std::runtime_error("[openPMD plugin] Expected an object for the JSON configuration.");
-            }
-            m_perBackend.reserve(m_wholeConfig.size());
-            for(auto it = m_wholeConfig.begin(); it != m_wholeConfig.end(); ++it)
-            {
-                std::string const& backendName = it.key();
-                if(std::find(m_recognizedBackends.begin(), m_recognizedBackends.end(), backendName)
-                   == m_recognizedBackends.end())
-                {
-                    // The key does not point to the configuration of a backend recognized by PIConGPU
-                    // Ignore it.
-                    continue;
-                }
-                if(!it.value().is_object())
-                {
-                    throw std::runtime_error(
-                        "[openPMD plugin] Each backend's configuration must be a JSON object (config for backend "
-                        + backendName + ").");
-                }
-                if(it.value().contains("dataset"))
-                {
-                    m_perBackend.emplace_back(PerBackend{backendName, MatcherPerBackend{it.value().at("dataset")}});
-                }
-            }
-        }
-        std::string JsonMatcher::get(std::string const& datasetPath) const
-        {
-            nlohmann::json result = nlohmann::json::object();
-            for(auto const& backend : m_perBackend)
-            {
-                auto const& datasetConfig = backend.matcher.get(datasetPath);
-                if(datasetConfig.empty())
-                {
-                    continue;
-                }
-                result[backend.backendName]["dataset"] = datasetConfig;
-            }
-            return result.dump();
-        }
-
-        std::string JsonMatcher::getDefault() const
-        {
-            nlohmann::json result = m_wholeConfig;
-            for(auto const& backend : m_perBackend)
-            {
-                auto const& datasetConfig = backend.matcher.getDefault();
-                if(datasetConfig.empty())
-                {
-                    continue;
-                }
-                result[backend.backendName]["dataset"] = datasetConfig;
-            }
-            return result.dump();
-        }
-
-        std::unique_ptr<AbstractJsonMatcher> AbstractJsonMatcher::construct(std::string const& config, MPI_Comm comm)
-        {
-            return std::unique_ptr<AbstractJsonMatcher>{new JsonMatcher{config, comm}};
-        }
-    } // namespace json
-} // namespace picongpu
 
 #endif // ENABLE_OPENPMD

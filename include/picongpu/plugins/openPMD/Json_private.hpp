@@ -37,6 +37,146 @@
  * ensures that NVCC never sees that library.
  */
 
+namespace picongpu
+{
+    namespace json
+    {
+        struct Pattern
+        {
+            std::regex pattern;
+            std::shared_ptr<nlohmann::json const> config;
+
+            Pattern(std::string pattern_in, std::shared_ptr<nlohmann::json const> config_in)
+                // we construct the patterns once and use them often, so let's ask for some optimization
+                : pattern{std::move(pattern_in), std::regex_constants::egrep | std::regex_constants::optimize}
+                , config{std::move(config_in)}
+            {
+            }
+        };
+
+        /**
+         * @brief Matcher for dataset configurations per backend.
+         *
+         */
+        class MatcherPerBackend
+        {
+        private:
+            nlohmann::json m_defaultConfig;
+            std::vector<Pattern> m_patterns;
+
+            void init(nlohmann::json const& config);
+
+        public:
+            /**
+             * @brief For default construction.
+             */
+            explicit MatcherPerBackend() = default;
+
+            /**
+             * @brief Initialize one backend's JSON matcher from its configuration.
+             *
+             * This constructor will parse the given config.
+             * It will distinguish between ordinary openPMD JSON configurations
+             * and extended configurations as defined by PIConGPU.
+             * If an ordinary JSON configuration was detected, given regex
+             * patterns will be matched against "" (the empty string).
+             *
+             * @param config The JSON configuration for one backend.
+             *               E.g. for ADIOS2, this will be the sub-object/array found under
+             *               config["adios2"]["dataset"].
+             */
+            MatcherPerBackend(nlohmann::json const& config)
+            {
+                init(config);
+            }
+
+            /**
+             * @brief Get the JSON config associated with a regex pattern.
+             *
+             * @param datasetPath The regex.
+             * @return The matched JSON configuration, as a string.
+             */
+            nlohmann::json const& get(std::string const& datasetPath) const;
+
+            /**
+             * @brief Get the default JSON config.
+             *
+             * @return The default JSON configuration, as a string.
+             */
+            nlohmann::json const& getDefault() const
+            {
+                return m_defaultConfig;
+            }
+        };
+        /**
+         * @brief Class to handle extended JSON configurations as used by
+         *        the openPMD plugin.
+         *
+         * This class handles parsing of the extended JSON patterns as well as
+         * selection of one JSON configuration by regex.
+         *
+         */
+        class JsonMatcher : public AbstractJsonMatcher
+        {
+        private:
+            struct PerBackend
+            {
+                std::string backendName;
+                MatcherPerBackend matcher;
+            };
+            std::vector<PerBackend> m_perBackend;
+            nlohmann::json m_wholeConfig;
+            static std::vector<std::string> const m_recognizedBackends;
+
+            void init(std::string const& config, MPI_Comm comm);
+
+        public:
+            /**
+             * @brief For default construction.
+             */
+            explicit JsonMatcher() = default;
+
+            /**
+             * @brief Initialize JSON matcher from command line arguments.
+             *
+             * This constructor will parse the given config, after reading it
+             * from a file if needed. In this case, the constructor is
+             * MPI-collective.
+             * It will distinguish between ordinary openPMD JSON configurations
+             * and extended configurations as defined by PIConGPU.
+             * If an ordinary JSON configuration was detected, given regex
+             * patterns will be matched against "" (the empty string).
+             *
+             * @param config The JSON configuration, exactly as in
+             *               --openPMD.json.
+             * @param comm MPI communicator for collective file reading,
+             *             if needed.
+             */
+            JsonMatcher(std::string const& config, MPI_Comm comm)
+            {
+                init(config, comm);
+            }
+
+            /**
+             * @brief Get the JSON config associated with a regex pattern.
+             *
+             * @param datasetPath The regex.
+             * @return The matched JSON configuration, as a string.
+             */
+            std::string get(std::string const& datasetPath) const override;
+
+            /**
+             * @brief Get the default JSON config.
+             *
+             * @return The default JSON configuration, as a string.
+             */
+            std::string getDefault() const override;
+        };
+
+        std::vector<std::string> const JsonMatcher::m_recognizedBackends = {"adios2", "hdf5", "json"};
+    } // namespace json
+} // namespace picongpu
+
 // Anonymous namespace so these helpers don't get exported
 namespace
 {
@@ -107,19 +247,6 @@ namespace
      */
     std::string collective_file_read(std::string const& path, MPI_Comm comm);
 
-    struct Pattern
-    {
-        std::regex pattern;
-        std::shared_ptr<nlohmann::json const> config;
-
-        Pattern(std::string pattern_in, std::shared_ptr<nlohmann::json const> config_in)
-            // we construct the patterns once and use them often, so let's ask for some optimization
-            : pattern{std::move(pattern_in), std::regex_constants::egrep | std::regex_constants::optimize}
-            , config{std::move(config_in)}
-        {
-        }
-    };
-
     enum class KindOfConfig : char
     {
         Pattern,
@@ -139,135 +266,7 @@ namespace
      * @return Whether the pattern was the default configuration or not.
      */
     KindOfConfig readPattern(
-        std::vector<Pattern>& patterns,
+        std::vector<picongpu::json::Pattern>& patterns,
         nlohmann::json& defaultConfig,
         nlohmann::json const& object);
-
-    /**
-     * @brief Matcher for dataset configurations per backend.
-     *
-     */
-    class MatcherPerBackend
-    {
-    private:
-        nlohmann::json m_defaultConfig;
-        std::vector<Pattern> m_patterns;
-
-        void init(nlohmann::json const& config);
-
-    public:
-        /**
-         * @brief For default construction.
-         */
-        explicit MatcherPerBackend() = default;
-
-        /**
-         * @brief Initialize one backend's JSON matcher from its configuration.
-         *
-         * This constructor will parse the given config.
-         * It will distinguish between ordinary openPMD JSON configurations
-         * and extended configurations as defined by PIConGPU.
-         * If an ordinary JSON configuration was detected, given regex
-         * patterns will be matched against "" (the empty string).
-         *
-         * @param config The JSON configuration for one backend.
-         *               E.g. for ADIOS2, this will be the sub-object/array found under
-         *               config["adios2"]["dataset"].
-         */
-        MatcherPerBackend(nlohmann::json const& config)
-        {
-            init(config);
-        }
-
-        /**
-         * @brief Get the JSON config associated with a regex pattern.
-         *
-         * @param datasetPath The regex.
-         * @return The matched JSON configuration, as a string.
-         */
-        nlohmann::json const& get(std::string const& datasetPath) const;
-
-        /**
-         * @brief Get the default JSON config.
-         *
-         * @return The default JSON configuration, as a string.
-         */
-        nlohmann::json const& getDefault() const
-        {
-            return m_defaultConfig;
-        }
-    };
 } // namespace
-
-namespace picongpu
-{
-    namespace json
-    {
-        /**
-         * @brief Class to handle extended JSON configurations as used by
-         *        the openPMD plugin.
-         *
-         * This class handles parsing of the extended JSON patterns as well as
-         * selection of one JSON configuration by regex.
-         *
-         */
-        class JsonMatcher : public AbstractJsonMatcher
-        {
-        private:
-            struct PerBackend
-            {
-                std::string backendName;
-                MatcherPerBackend matcher;
-            };
-            std::vector<PerBackend> m_perBackend;
-            nlohmann::json m_wholeConfig;
-            static std::vector<std::string> const m_recognizedBackends;
-
-            void init(std::string const& config, MPI_Comm comm);
-
-        public:
-            /**
-             * @brief For default construction.
-             */
-            explicit JsonMatcher() = default;
-
-            /**
-             * @brief Initialize JSON matcher from command line arguments.
-             *
-             * This constructor will parse the given config, after reading it
-             * from a file if needed. In this case, the constructor is
-             * MPI-collective.
-             * It will distinguish between ordinary openPMD JSON configurations
-             * and extended configurations as defined by PIConGPU.
-             * If an ordinary JSON configuration was detected, given regex
-             * patterns will be matched against "" (the empty string).
-             *
-             * @param config The JSON configuration, exactly as in
-             *               --openPMD.json.
-             * @param comm MPI communicator for collective file reading,
-             *             if needed.
-             */
-            JsonMatcher(std::string const& config, MPI_Comm comm)
-            {
-                init(config, comm);
-            }
-
-            /**
-             * @brief Get the JSON config associated with a regex pattern.
-             *
-             * @param datasetPath The regex.
-             * @return The matched JSON configuration, as a string.
-             */
-            std::string get(std::string const& datasetPath) const override;
-
-            /**
-             * @brief Get the default JSON config.
-             *
-             * @return The default JSON configuration, as a string.
-             */
-            std::string getDefault() const override;
-        };
-
-        std::vector<std::string> const JsonMatcher::m_recognizedBackends = {"adios2", "hdf5", "json"};
-    } // namespace json
-} // namespace picongpu
