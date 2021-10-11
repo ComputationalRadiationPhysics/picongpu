@@ -59,17 +59,17 @@ namespace pmacc
         }
 
         template<typename Type, int T_dim>
-        template<typename TCursor>
-        void DeviceMemEvenPitch<Type, T_dim>::deallocate(const TCursor& cursor)
+        template<typename TDataPtr>
+        void DeviceMemEvenPitch<Type, T_dim>::deallocate(const TDataPtr* ptr)
         {
-            CUDA_CHECK(cuplaFree(cursor.getMarker()));
+            CUDA_CHECK(cuplaFree(const_cast<TDataPtr*>(ptr)));
         }
 
         template<typename Type>
-        template<typename TCursor>
-        void DeviceMemEvenPitch<Type, 1>::deallocate(const TCursor& cursor)
+        template<typename TDataPtr>
+        void DeviceMemEvenPitch<Type, 1>::deallocate(const TDataPtr* ptr)
         {
-            CUDA_CHECK(cuplaFree(cursor.getMarker()));
+            CUDA_CHECK(cuplaFree(const_cast<TDataPtr*>(ptr)));
         }
 
     } // namespace allocator

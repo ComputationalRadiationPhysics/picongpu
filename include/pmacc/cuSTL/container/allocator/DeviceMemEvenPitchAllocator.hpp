@@ -39,8 +39,8 @@ namespace pmacc
             typedef allocator::tag::device tag;
 
             static cursor::BufferCursor<type, T_dim> allocate(const math::Size_t<T_dim>& size);
-            template<typename TCursor>
-            static void deallocate(const TCursor& cursor);
+            template<typename TDataPtr>
+            static void deallocate(const TDataPtr* ptr);
         };
 
         template<typename Type>
@@ -52,8 +52,8 @@ namespace pmacc
             typedef allocator::tag::device tag;
 
             static cursor::BufferCursor<type, 1> allocate(const math::Size_t<1>& size);
-            template<typename TCursor>
-            static void deallocate(const TCursor& cursor);
+            template<typename TDataPtr>
+            static void deallocate(const TDataPtr* ptr);
         };
 
     } // namespace allocator

@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "pmacc/cuSTL/container/allocator/EmptyAllocator.hpp"
 #include "pmacc/cuSTL/container/view/View.hpp"
 #include "pmacc/cuSTL/cursor/BufferCursor.hpp"
 #include "pmacc/cuSTL/cursor/SafeCursor.hpp"
@@ -39,6 +38,7 @@
 #include <boost/mpl/void.hpp>
 
 #include <cstdint>
+#include <memory>
 
 namespace pmacc
 {
@@ -63,7 +63,7 @@ namespace pmacc
         template<
             typename Type,
             int T_dim,
-            typename Allocator = allocator::EmptyAllocator,
+            typename Allocator,
             typename Copier = mpl::void_,
             typename Assigner = bmpl::vector<bmpl::_1, bmpl::_2>>
         class CartBuffer
@@ -80,28 +80,28 @@ namespace pmacc
             using PitchType = math::Size_t<T_dim - 1>;
 
         public:
-            Type* dataPointer;
-            int* refCount{nullptr};
+            // unchanged shared data pointer
+            std::shared_ptr<Type> sharedPtr;
+            // pointer to the origin of the current data view
+            Type* shiftedPtr = nullptr;
             SizeType _size;
             PitchType pitch;
-            HDINLINE void init();
-            HDINLINE void exit();
-            HDINLINE CartBuffer() = default;
+            HINLINE void init();
+            CartBuffer() = default;
 
         public:
-            HDINLINE CartBuffer(const math::Size_t<T_dim>& size);
-            HDINLINE CartBuffer(size_t x);
-            HDINLINE CartBuffer(size_t x, size_t y);
-            HDINLINE CartBuffer(size_t x, size_t y, size_t z);
-            /* the copy constructor just increments the reference counter but does not copy memory */
-            HDINLINE CartBuffer(const CartBuffer& other);
-            HDINLINE CartBuffer(CartBuffer&& other);
-            HDINLINE ~CartBuffer();
+            HINLINE CartBuffer(const math::Size_t<T_dim>& size);
+            HINLINE CartBuffer(size_t x);
+            HINLINE CartBuffer(size_t x, size_t y);
+            HINLINE CartBuffer(size_t x, size_t y, size_t z);
+            CartBuffer(const CartBuffer& other) = default;
+            CartBuffer(CartBuffer&& other) = default;
+            ~CartBuffer() = default;
 
             /* copy another container into this one (hard data copy) */
-            HDINLINE CartBuffer& operator=(const CartBuffer& rhs);
+            HINLINE CartBuffer& operator=(const CartBuffer& rhs);
             /* use the memory from another container and increment the reference counter */
-            HDINLINE CartBuffer& operator=(CartBuffer&& rhs);
+            HINLINE CartBuffer& operator=(CartBuffer&& rhs);
 
             /* get a view. Views represent a clipped area of the container.
              * @param a Top left corner of the view, inside the view.
@@ -109,39 +109,39 @@ namespace pmacc
              * @param b Bottom right corner of the view, outside the view.
              * Values are remapped, so that Int<2>(0,0) == Int<2>(width, height)
              */
-            HDINLINE View<CartBuffer> view(
+            HINLINE View<CartBuffer> view(
                 math::Int<T_dim> a = math::Int<T_dim>(0),
                 math::Int<T_dim> b = math::Int<T_dim>(0)) const;
 
             /* get a cursor at the container's origin cell */
-            HDINLINE cursor::BufferCursor<Type, T_dim> origin() const;
+            HINLINE cursor::BufferCursor<Type, T_dim> origin() const;
             /* get a safe cursor at the container's origin cell */
-            HDINLINE cursor::SafeCursor<cursor::BufferCursor<Type, T_dim>> originSafe() const;
+            HINLINE cursor::SafeCursor<cursor::BufferCursor<Type, T_dim>> originSafe() const;
             /* get a component-twisted cursor at the container's origin cell
              * @param axes x-axis -> axes[0], y-axis -> axes[1], ...
              * */
-            HDINLINE cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<T_dim>, char*>
+            HINLINE cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<T_dim>, char*>
             originCustomAxes(const math::UInt32<T_dim>& axes) const;
 
             /* get a zone spanning the whole container */
-            HDINLINE zone::SphericZone<T_dim> zone() const;
+            HINLINE zone::SphericZone<T_dim> zone() const;
 
-            HDINLINE Type* getDataPointer() const
+            HINLINE Type* getDataPointer() const
             {
-                return dataPointer;
+                return shiftedPtr;
             }
-            HDINLINE math::Size_t<T_dim> size() const
+            HINLINE math::Size_t<T_dim> size() const
             {
                 return this->_size;
             }
-            HDINLINE math::Size_t<T_dim - 1> getPitch() const
+            HINLINE math::Size_t<T_dim - 1> getPitch() const
             {
                 return this->pitch;
             }
             /** Returns whether the buffer has no additional pitches
              * The expected pitches are: 2D: size.x, 3D: size.x/size.x*size.y
              */
-            HDINLINE bool isContigousMemory() const;
+            HINLINE bool isContigousMemory() const;
         };
 
     } // namespace container

@@ -26,10 +26,9 @@ namespace pmacc
     namespace allocator
     {
         template<typename Type, int T_dim>
-        HDINLINE cursor::BufferCursor<Type, T_dim> HostMemAllocator<Type, T_dim>::allocate(
+        HINLINE cursor::BufferCursor<Type, T_dim> HostMemAllocator<Type, T_dim>::allocate(
             const math::Size_t<T_dim>& size)
         {
-#ifndef __CUDA_ARCH__
             Type* dataPointer = nullptr;
             math::Size_t<T_dim - 1> pitch;
 
@@ -46,19 +45,11 @@ namespace pmacc
             }
 
             return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
-#endif
-
-#ifdef __CUDA_ARCH__
-            Type* dataPointer = nullptr;
-            math::Size_t<T_dim - 1> pitch;
-            return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
-#endif
         }
 
         template<typename Type>
-        HDINLINE cursor::BufferCursor<Type, 1> HostMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
+        HINLINE cursor::BufferCursor<Type, 1> HostMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
         {
-#ifndef __CUDA_ARCH__
             Type* dataPointer = nullptr;
             math::Size_t<0> pitch;
 
@@ -66,31 +57,20 @@ namespace pmacc
                 CUDA_CHECK(cuplaMallocHost((void**) &dataPointer, sizeof(Type) * size.productOfComponents()));
 
             return cursor::BufferCursor<Type, 1>(dataPointer, pitch);
-#endif
-
-#ifdef __CUDA_ARCH__
-            Type* dataPointer = nullptr;
-            math::Size_t<0> pitch;
-            return cursor::BufferCursor<Type, 1>(dataPointer, pitch);
-#endif
         }
 
         template<typename Type, int T_dim>
-        template<typename TCursor>
-        HDINLINE void HostMemAllocator<Type, T_dim>::deallocate(const TCursor& cursor)
+        template<typename TDataPtr>
+        HINLINE void HostMemAllocator<Type, T_dim>::deallocate(const TDataPtr* ptr)
         {
-#ifndef __CUDA_ARCH__
-            CUDA_CHECK(cuplaFreeHost(cursor.getMarker()));
-#endif
+            CUDA_CHECK(cuplaFreeHost(const_cast<TDataPtr*>(ptr)));
         }
 
         template<typename Type>
-        template<typename TCursor>
-        HDINLINE void HostMemAllocator<Type, 1>::deallocate(const TCursor& cursor)
+        template<typename TDataPtr>
+        HINLINE void HostMemAllocator<Type, 1>::deallocate(const TDataPtr* ptr)
         {
-#ifndef __CUDA_ARCH__
-            CUDA_CHECK(cuplaFreeHost(cursor.getMarker()));
-#endif
+            CUDA_CHECK(cuplaFreeHost(const_cast<TDataPtr*>(ptr)));
         }
 
     } // namespace allocator

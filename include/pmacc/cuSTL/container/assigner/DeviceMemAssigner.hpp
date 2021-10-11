@@ -56,7 +56,7 @@ namespace pmacc
                 auto* buffer = static_cast<CartBuffer*>(this);
 
                 zone::SphericZone<dim> myZone(buffer->size());
-                cursor::BufferCursor<Type, dim> cursor(buffer->dataPointer, buffer->pitch);
+                cursor::BufferCursor<Type, dim> cursor(buffer->getDataPointer(), buffer->pitch);
 
                 /* The greatest common divisor of each component of the volume size
                  * and a certain power of two value gives the best suitable block size */

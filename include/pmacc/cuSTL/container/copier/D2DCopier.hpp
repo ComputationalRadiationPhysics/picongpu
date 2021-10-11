@@ -39,14 +39,13 @@ namespace pmacc
 
             PMACC_NO_NVCC_HDWARNING /* Handled via CUDA_ARCH */
                 template<typename Type>
-                HDINLINE static void copy(
+                HINLINE static void copy(
                     Type* dest,
                     const math::Size_t<dim - 1>& pitchDest,
                     Type* source,
                     const math::Size_t<dim - 1>& pitchSource,
                     const math::Size_t<dim>& size)
             {
-#ifdef __CUDA_ARCH__
                 typedef cursor::BufferCursor<Type, dim> Cursor;
                 Cursor bufCursorDest(dest, pitchDest);
                 Cursor bufCursorSrc(source, pitchSource);
@@ -59,15 +58,6 @@ namespace pmacc
                 {
                     destCursor[i] = srcCursor[i];
                 }
-#else
-                cuplaWrapper::Memcopy<dim>()(
-                    dest,
-                    pitchDest,
-                    source,
-                    pitchSource,
-                    size,
-                    cuplaWrapper::flags::Memcopy::deviceToDevice);
-#endif
             }
         };
 
