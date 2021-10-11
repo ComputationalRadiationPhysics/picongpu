@@ -40,11 +40,23 @@ namespace picongpu
     {
         namespace boundary
         {
-            //! Manipulator parameters, extend the basic version with temperature
+            //! Manipulator parameters, extend the basic version
             struct ThermalParameters : public Parameters
             {
                 //! Boundary temperature in keV
                 float_X temperature;
+
+                /** Begin of the internal (relative to all boundaries) cells in total coordinates
+                 *
+                 * Particles to the left side are outside
+                 */
+                pmacc::DataSpace<simDim> beginInternalCellsTotalAllBoundaries;
+
+                /** End of the internal (relative to all boundaries) cells in total coordinates
+                 *
+                 * Particles equal or to the right side are outside
+                 */
+                pmacc::DataSpace<simDim> endInternalCellsTotalAllBoundaries;
             };
 
             //! Functor to be applied to all particles in the active area
@@ -75,68 +87,57 @@ namespace picongpu
                         if((offsetToTotalOrigin[d] < m_parameters.beginInternalCellsTotal[d])
                            || (offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d]))
                         {
-                            // to check if its the right or left boundary which is crossed
-                            bool rightBoundary = offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d];
-
-                            float_X macroWeighting = particle[weighting_];
-                            float_X macroEnergy = energy * macroWeighting;
-                            float_X macroMass = attribute::getMass(macroWeighting, particle);
-                            float_X standardDeviation
-                                = static_cast<float_X>(math::sqrt(precisionCast<sqrt_X>(macroEnergy * macroMass)));
-
-                            auto pos = particle[position_];
+                            // Save velocity before thermalization
+                            float_X const macroWeighting = particle[weighting_];
                             float3_X mom = particle[momentum_];
+                            auto velocity = Velocity{};
+                            auto velBeforeThermal = velocity(mom, macroWeighting);
 
-                            auto prevPos = pos; // values are not important, but just the same datatype as pos
-
-                            Velocity velocity;
-                            auto vel = velocity(mom, macroWeighting);
-
+                            /* Sample momentum and for crossing particles make it point inwards wrt all boundaries.
+                             * Here we have to check all boundaries and not just the active one.
+                             * This is to avoid particles getting outside the boundary e.g. in case of applying thermal
+                             * BC twice. For 2d do not thermalize in z.
+                             */
+                            float_X const macroEnergy = energy * macroWeighting;
+                            float_X const macroMass = attribute::getMass(macroWeighting, particle);
+                            float_X const standardDeviation
+                                = static_cast<float_X>(math::sqrt(precisionCast<sqrt_X>(macroEnergy * macroMass)));
                             for(uint32_t i = 0; i < simDim; i++)
                             {
-                                prevPos[i] = pos[d] - vel[i] * DELTA_T / cellSize[i];
-                                mom[d] = rng() * standardDeviation; // do this here so it can be used in 2d and 3
+                                mom[i] = rng() * standardDeviation;
+                                if(offsetToTotalOrigin[i] < m_parameters.beginInternalCellsTotalAllBoundaries[i])
+                                    mom[i] = math::abs(mom[i]);
+                                else if(offsetToTotalOrigin[i] >= m_parameters.endInternalCellsTotalAllBoundaries[i])
+                                    mom[i] = -math::abs(mom[i]);
                             }
-
-                            // set sign to radiate the particle back into the simulation area on the reflected axiss
-                            float_X sign = 1.0;
-                            if(rightBoundary)
-                                sign = -1.0;
-
-                            mom[d] = sign * math::abs(mom[d]);
-
                             particle[momentum_] = mom;
 
-                            // now the momentum was thermalized
-                            auto velAfterThermal = velocity(mom, macroWeighting);
-
-                            // get position ON the boundary to start the random radiation from there
-
-                            // ddt: fraction of the time step DELTA_T the particle is outside of the boundary
-                            float_X ddt;
-
-                            if(rightBoundary)
-                                // right boundary
-                                ddt = pos[d] / (pos[d] + math::abs(prevPos[d]));
+                            // Now handle movement
+                            auto pos = particle[position_];
+                            auto prevPos = pos;
+                            for(uint32_t i = 0; i < simDim; i++)
+                                prevPos[i] = pos[d] - velBeforeThermal[i] * DELTA_T / cellSize[i];
+                            // Fraction of the time step that the particle is outside of the boundary
+                            float_X fractionOfTimeStep = 0._X;
+                            if(offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d])
+                            {
+                                fractionOfTimeStep = pos[d] / (pos[d] + math::abs(prevPos[d]));
+                                pos[d] = -std::numeric_limits<float_X>::epsilon();
+                            }
                             else
-                                // left boundary
-                                ddt = (1.0_X - pos[d]) / (prevPos[d] - pos[d]);
-
-                            pos[d] = rightBoundary ? -std::numeric_limits<float_X>::epsilon()
-                                                   : 1.0_X; // set pos on reflection axis ON the boundary
-
+                            {
+                                fractionOfTimeStep = (1.0_X - pos[d]) / (prevPos[d] - pos[d]);
+                                pos[d] = 1.0_X;
+                            }
+                            // Move the particle inside the cell and between cells
+                            auto velAfterThermal = velocity(mom, macroWeighting);
                             for(uint32_t i = 0; i < simDim; i++)
                             {
+                                // pos[d] was set on the boundary before
                                 if(i != d)
-                                    // pos on the boundary
-                                    pos[i] -= vel[i] * DELTA_T * ddt / cellSize[i];
-
-                                pos[i] += velAfterThermal[i] * DELTA_T * ddt / cellSize[i];
+                                    pos[i] -= velBeforeThermal[i] * DELTA_T * fractionOfTimeStep / cellSize[i];
+                                pos[i] += velAfterThermal[i] * DELTA_T * fractionOfTimeStep / cellSize[i];
                             }
-
-                            // TODO: check if the new position is inside the border on the other axis (!=d)  (i don't
-                            // know if its relevant)
-
                             moveParticle(particle, pos);
                         }
                     }
@@ -169,6 +170,15 @@ namespace picongpu
                     getInternalCellsTotal(species, exchangeType, &beginInternalCellsTotal, &endInternalCellsTotal);
                     ReflectThermalIfOutside::parameters().beginInternalCellsTotal = beginInternalCellsTotal;
                     ReflectThermalIfOutside::parameters().endInternalCellsTotal = endInternalCellsTotal;
+                    pmacc::DataSpace<simDim> beginInternalCellsTotalAllBoundaries, endInternalCellsTotalAllBoundaries;
+                    getInternalCellsTotal(
+                        species,
+                        &beginInternalCellsTotalAllBoundaries,
+                        &endInternalCellsTotalAllBoundaries);
+                    ReflectThermalIfOutside::parameters().beginInternalCellsTotalAllBoundaries
+                        = beginInternalCellsTotalAllBoundaries;
+                    ReflectThermalIfOutside::parameters().endInternalCellsTotalAllBoundaries
+                        = endInternalCellsTotalAllBoundaries;
                     ReflectThermalIfOutside::parameters().temperature = getTemperature(species, exchangeType);
                     auto const mapperFactory = getMapperFactory(species, exchangeType);
                     using Manipulator = manipulators::unary::
