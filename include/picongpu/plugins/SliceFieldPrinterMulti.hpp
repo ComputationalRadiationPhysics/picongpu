@@ -46,8 +46,8 @@ namespace picongpu
         MappingDesc* cellDescription;
         std::vector<SliceFieldPrinter<Field>> childs;
 
-        void pluginLoad();
-        void pluginUnload();
+        void pluginLoad() override;
+        void pluginUnload() override;
 
     public:
         SliceFieldPrinterMulti();
@@ -55,12 +55,12 @@ namespace picongpu
         {
         }
 
-        void notify(uint32_t)
+        void notify(uint32_t) override
         {
         }
-        void setMappingDescription(MappingDesc* desc);
-        void pluginRegisterHelp(po::options_description& desc);
-        std::string pluginGetName() const;
+        void setMappingDescription(MappingDesc* desc) override;
+        void pluginRegisterHelp(po::options_description& desc) override;
+        std::string pluginGetName() const override;
     };
 
 } // namespace picongpu

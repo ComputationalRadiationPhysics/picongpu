@@ -177,7 +177,7 @@ namespace picongpu
         }
 
     public:
-        void restart(uint32_t restartStep, const std::string& restartDirectory)
+        void restart(uint32_t restartStep, const std::string& restartDirectory) override
         {
             HBufCalorimeter hBufLeftParsCalorimeter(this->dBufLeftParsCalorimeter->size());
 
@@ -229,7 +229,7 @@ namespace picongpu
         }
 
 
-        void checkpoint(uint32_t currentStep, const std::string& checkpointDirectory)
+        void checkpoint(uint32_t currentStep, const std::string& checkpointDirectory) override
         {
             /*
              * Create folder for openPMD checkpoint files.
@@ -452,7 +452,7 @@ namespace picongpu
             ///! method used by plugin controller to get --help description
             void registerHelp(
                 boost::program_options::options_description& desc,
-                std::string const& masterPrefix = std::string{})
+                std::string const& masterPrefix = std::string{}) override
             {
                 meta::ForEach<EligibleFilters, plugins::misc::AppendName<bmpl::_1>> getEligibleFilterNames;
                 getEligibleFilterNames(allowedFilters);
@@ -477,12 +477,12 @@ namespace picongpu
 
             void expandHelp(
                 boost::program_options::options_description& desc,
-                std::string const& masterPrefix = std::string{})
+                std::string const& masterPrefix = std::string{}) override
             {
             }
 
 
-            void validateOptions()
+            void validateOptions() override
             {
                 if(notifyPeriod.size() != fileName.size())
                     throw std::runtime_error(
@@ -502,12 +502,12 @@ namespace picongpu
                 }
             }
 
-            size_t getNumPlugins() const
+            size_t getNumPlugins() const override
             {
                 return notifyPeriod.size();
             }
 
-            std::string getDescription() const
+            std::string getDescription() const override
             {
                 return description;
             }
@@ -517,7 +517,7 @@ namespace picongpu
                 return prefix;
             }
 
-            std::string getName() const
+            std::string getName() const override
             {
                 return name;
             }
@@ -575,7 +575,7 @@ namespace picongpu
         }
 
 
-        void notify(uint32_t currentStep)
+        void notify(uint32_t currentStep) override
         {
             /* initialize calorimeter with already detected particles */
             *this->dBufCalorimeter = *this->dBufLeftParsCalorimeter;

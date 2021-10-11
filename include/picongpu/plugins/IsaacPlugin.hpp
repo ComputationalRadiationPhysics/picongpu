@@ -421,7 +421,7 @@ namespace picongpu
                 Environment<>::get().PluginConnector().registerPlugin(this);
             }
 
-            std::string pluginGetName() const
+            std::string pluginGetName() const override
             {
                 return "IsaacPlugin";
             }
@@ -509,7 +509,7 @@ namespace picongpu
                 }
             }
 
-            void notify(uint32_t currentStep)
+            void notify(uint32_t currentStep) override
             {
                 if(recording)
                 {
@@ -611,7 +611,7 @@ namespace picongpu
                 lastNotify = getTicksUs();
             }
 
-            void pluginRegisterHelp(po::options_description& desc)
+            void pluginRegisterHelp(po::options_description& desc) override
             {
                 /* register command line parameters for your plugin */
                 desc.add_options()(
@@ -648,7 +648,7 @@ namespace picongpu
                     "Filename for dumping ISAAC timings.");
             }
 
-            void setMappingDescription(MappingDesc* cellDescription)
+            void setMappingDescription(MappingDesc* cellDescription) override
             {
                 this->cellDescription = cellDescription;
             }
@@ -690,7 +690,7 @@ namespace picongpu
             std::ofstream timingsFile;
             std::string timingsFilename;
 
-            void pluginLoad()
+            void pluginLoad() override
             {
                 if(!notifyPeriod.empty())
                 {
@@ -858,7 +858,7 @@ namespace picongpu
                 Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
             }
 
-            void pluginUnload()
+            void pluginUnload() override
             {
                 if(!notifyPeriod.empty())
                 {
