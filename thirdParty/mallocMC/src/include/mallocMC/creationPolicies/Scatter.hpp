@@ -54,10 +54,24 @@ namespace mallocMC
         {
             struct DefaultScatterConfig
             {
+                //! Size in byte of a page.
                 static constexpr auto pagesize = 4096;
-                static constexpr auto accessblocks = 8;
+                /** Size in byte of an access block.
+                 *
+                 * Scatter alloc will keep allocations within an access block to reduce the translation lookaside
+                 * buffer (tlb) pressure. accessblocksize can be used to optimize for the tlb of a device.
+                 */
+                static constexpr auto accessblocksize = 2u * 1024u * 1024u * 1024u;
+                //! Number of pages per region.
                 static constexpr auto regionsize = 16;
+                //! Factor used to calculate maximal allowed wast depending on the byte.
                 static constexpr auto wastefactor = 2;
+                /** Defines if a fully freed pages chunk size should be reset.
+                 *
+                 * true = Chunk size of a page will be reset if free.
+                 * false = A page will keep the chunk size selected during the first page usage over
+                 *         the full application runtime.
+                 */
                 static constexpr auto resetfreedpages = false;
             };
 
@@ -120,10 +134,10 @@ namespace mallocMC
 #endif
             static constexpr uint32 pagesize = MALLOCMC_CP_SCATTER_PAGESIZE;
 
-#ifndef MALLOCMC_CP_SCATTER_ACCESSBLOCKS
-#    define MALLOCMC_CP_SCATTER_ACCESSBLOCKS (HeapProperties::accessblocks)
+#ifndef MALLOCMC_CP_SCATTER_ACCESSBLOCKSIZE
+#    define MALLOCMC_CP_SCATTER_ACCESSBLOCKSIZE (HeapProperties::accessblocksize)
 #endif
-            static constexpr uint32 accessblocks = MALLOCMC_CP_SCATTER_ACCESSBLOCKS;
+            static constexpr size_t accessblocksize = MALLOCMC_CP_SCATTER_ACCESSBLOCKSIZE;
 
 #ifndef MALLOCMC_CP_SCATTER_REGIONSIZE
 #    define MALLOCMC_CP_SCATTER_REGIONSIZE (HeapProperties::regionsize)
@@ -142,7 +156,7 @@ namespace mallocMC
 
         public:
             static constexpr uint32 _pagesize = pagesize;
-            static constexpr uint32 _accessblocks = accessblocks;
+            static constexpr size_t _accessblocksize = accessblocksize;
             static constexpr uint32 _regionsize = regionsize;
             static constexpr uint32 _wastefactor = wastefactor;
             static constexpr bool _resetfreedpages = resetfreedpages;
@@ -151,12 +165,23 @@ namespace mallocMC
 #if _DEBUG || ANALYSEHEAP
         public:
 #endif
-            static constexpr uint32 minChunkSize1 = 0x10;
-            static constexpr uint32 HierarchyThreshold = (pagesize - 2 * sizeof(uint32)) / 33;
-            static constexpr uint32 minSegmentSize = 32 * minChunkSize1 + sizeof(uint32);
-            static constexpr uint32 tmp_maxOPM
-                = minChunkSize1 > HierarchyThreshold ? 0 : (pagesize + (minSegmentSize - 1)) / minSegmentSize;
-            static constexpr uint32 maxOnPageMasks = 32 > tmp_maxOPM ? tmp_maxOPM : 32;
+            /* HierarchyThreshold defines the largest chunk size which can be stored in a segment with hierarchy.
+             * 32 chunks can be stored without an on page bitmask, therefore a hierarchy is only useful if we store at
+             * least 33 chunks. For 33 chunks we need two bitmasks, each 32bit.
+             */
+            static constexpr uint32 HierarchyThreshold = (pagesize - 2u * sizeof(uint32)) / 33u;
+            /* Calculate minimal chunk size which can fill a page, this avoids that small allocations
+             * fragment the heap and increases the possibility that a small allocation can reuse an
+             * existing chunk.
+             * Each page can have 32x32 chunks. To maintain 32 chunks we need 32 bitmask on the page (each 32bit)
+             */
+            static constexpr uint32 minChunkSize = (pagesize - 32u * sizeof(uint32)) / (32u * 32u);
+            static constexpr uint32 minSegmentSize = 32u * minChunkSize + sizeof(uint32);
+            // Number of possible on page masks without taking the limit of 32 masks into account.
+            static constexpr uint32 onPageMasks
+                = minChunkSize > HierarchyThreshold ? 0u : (pagesize + (minSegmentSize - 1u)) / minSegmentSize;
+            // The scatter malloc hierarchy design allows only 32 on page bit masks.
+            static constexpr uint32 maxOnPageMasks = std::min(32u, onPageMasks);
 
 #ifndef MALLOCMC_CP_SCATTER_HASHINGK
 #    define MALLOCMC_CP_SCATTER_HASHINGK (HashingProperties::hashingK)
@@ -227,8 +252,9 @@ namespace mallocMC
             volatile PTE* _ptes;
             volatile uint32* _regions;
             Page* _page;
-            uint32 _numpages;
             size_t _memsize;
+            uint32 _numpages;
+            uint32 _accessblocks;
             uint32 _pagebasedMutex;
             volatile uint32 _firstFreePageBased;
             volatile uint32 _firstfreeblock;
@@ -249,14 +275,17 @@ namespace mallocMC
              * returns its offset. if there are no unset bits to the left
              * then it wraps around
              * @param bitfield the bitfield to be searched for
-             * @param spot the spot from which to search to the left
+             * @param spot the spot from which to search to the left, range [0,spots)
              * @param spots number of bits that can be used
              * @return next free spot in the bitfield
              */
             static ALPAKA_FN_ACC inline auto nextspot(uint32 bitfield, uint32 spot, uint32 spots) -> uint32
             {
+                const uint32 low_part = (spot + 1) == sizeof(uint32) * CHAR_BIT ? 0u : (bitfield >> (spot + 1));
+                const uint32 high_part = (bitfield << (spots - (spot + 1)));
+                const uint32 selection_mask = spots == sizeof(uint32) * CHAR_BIT ? ~0 : ((1 << spots) - 1);
                 // wrap around the bitfields from the current spot to the left
-                bitfield = ((bitfield >> (spot + 1)) | (bitfield << (spots - (spot + 1)))) & ((1 << spots) - 1);
+                bitfield = (high_part | low_part) & selection_mask;
                 // compute the step from the current spot in the bitfield
                 const uint32 step = ffs(~bitfield);
                 // and return the new spot
@@ -330,11 +359,14 @@ namespace mallocMC
                 uint32 chunksize) -> uint32
             {
                 if(fullsegments != 32)
-                    return alpaka::math::max(
-                               acc,
-                               0u,
-                               (int) pagesize - (int) fullsegments * segmentsize - (int) sizeof(uint32))
-                        / chunksize;
+                    return alpaka::math::min(
+                        acc,
+                        31,
+                        alpaka::math::max(
+                            acc,
+                            0,
+                            (int) pagesize - (int) fullsegments * segmentsize - (int) sizeof(uint32))
+                            / chunksize);
                 else
                     return 0;
             }
@@ -413,9 +445,27 @@ namespace mallocMC
 
                 // increse the fill level
                 const uint32 filllevel = alpaka::atomicOp<alpaka::AtomicAdd>(acc, (uint32*) &(_ptes[page].count), 1u);
-                // recheck chunck size (it could be that the page got freed in
-                // the meanwhile...)
-                if(!resetfreedpages || _ptes[page].chunksize == chunksize)
+
+                // if resetfreedpages == false we do not need to re-check filllevel or chunksize
+                bool tryAllocMem = !resetfreedpages;
+
+                // if _ptes[page].count >= pagesize then page is currently freed by another thread
+                if(resetfreedpages && filllevel < pagesize)
+                {
+                    /* Recheck chunk size (it could be that the page got freed in he meanwhile...)
+                     * Use atomic to guarantee that no other thread deleted the page and reinitialized
+                     * it with another chunk size.
+                     */
+                    const uint32 current_chunksize = alpaka::atomicOp<alpaka::AtomicCas>(
+                        acc,
+                        (uint32*) &_ptes[page].chunksize,
+                        chunksize,
+                        chunksize);
+                    if(current_chunksize == chunksize)
+                        tryAllocMem = true;
+                }
+
+                if(tryAllocMem)
                 {
                     if(chunksize <= HierarchyThreshold)
                     {
@@ -446,91 +496,122 @@ namespace mallocMC
             /**
              * allocChunked tries to allocate the demanded number of bytes on
              * one of the pages
-             * @param bytes the number of bytes to allocate
+             * @param bytes the number of bytes to allocate, must be <=pagesize
              * @return pointer to a free chunk on a page, 0 if we were unable to
              * obtain a free chunk
              */
             template<typename AlpakaAcc>
             ALPAKA_FN_ACC auto allocChunked(const AlpakaAcc& acc, uint32 bytes) -> void*
             {
-                const uint32 pagesperblock = _numpages / accessblocks;
-                const uint32 reloff = warpSize * bytes / pagesize;
-                const uint32 startpage = (bytes * hashingK + hashingDistMP * smid()
-                                          + (hashingDistWP + hashingDistWPRel * reloff) * warpid())
+                // use the minimal allocation size to increase the hit rate for small allocations.
+                const uint32 minAllocation = alpaka::math::max(acc, bytes, +minChunkSize);
+                const uint32 numpages = _numpages;
+                const uint32 pagesperblock = numpages / _accessblocks;
+                const uint32 reloff = warpSize * minAllocation / pagesize;
+                const uint32 start_page_in_block = (minAllocation * hashingK + hashingDistMP * smid()
+                                                    + (hashingDistWP + hashingDistWPRel * reloff) * warpid())
                     % pagesperblock;
-                const uint32 maxchunksize = alpaka::math::min(acc, +pagesize, wastefactor * bytes);
-                uint32 startblock = _firstfreeblock;
-                uint32 ptetry = startpage + startblock * pagesperblock;
+                const uint32 maxchunksize = alpaka::math::min(
+                    acc,
+                    +pagesize,
+                    /* this clumping means that allocations of minChunkSize could have a waste exceeding the
+                     * wastefactor
+                     */
+                    alpaka::math::max(acc, wastefactor * bytes, +minChunkSize));
+
+                /* global page index
+                 *   - different for each thread to reduce memory read/write conflicts
+                 *   - index calculated by the hash function
+                 */
+                const uint32 global_start_page = start_page_in_block + _firstfreeblock * pagesperblock;
+
                 uint32 checklevel = regionsize * 3 / 4;
+                /* Finding a free segment is using a two step approach.
+                 * In both cases each thread will start on a different region and page based on the hash function
+                 * result, this scatters the memory access and reduces access conflicts. Both steps will in the worst
+                 * case iterate over all heap access blocks and pages.
+                 * - step I search for a region which is only filled 3/4
+                 *   - if a free segment is found return
+                 * - step II goto any region independent of the fill level
+                 *   - if a free segment is found return
+                 */
                 for(uint32 finder = 0; finder < 2; ++finder)
                 {
-                    for(uint32 b = startblock; b < accessblocks; ++b)
+                    uint32 global_page = global_start_page;
+                    /* Loop over all pages until we found a free one or arrived to global_start_page again
+                     * This and the following loop are done as do-while to potentially save registers by avoiding an
+                     * extra loop counter variable
+                     */
+                    do
                     {
-                        while(ptetry < (b + 1) * pagesperblock)
+                        const uint32 region = global_page / regionsize;
+                        const uint32 regionfilllevel = _regions[region];
+                        const uint32 region_offset = region * regionsize;
+                        if(regionfilllevel < checklevel)
                         {
-                            const uint32 region = ptetry / regionsize;
-                            const uint32 regionfilllevel = _regions[region];
-                            if(regionfilllevel < checklevel)
+                            uint32 page_in_region = global_page;
+                            // loop over pages within a region
+                            do
                             {
-                                for(; ptetry < (region + 1) * regionsize; ++ptetry)
+                                const uint32 chunksize = _ptes[page_in_region].chunksize;
+                                if(chunksize >= bytes && chunksize <= maxchunksize)
                                 {
-                                    const uint32 chunksize = _ptes[ptetry].chunksize;
-                                    if(chunksize >= bytes && chunksize <= maxchunksize)
+                                    void* res = tryUsePage(acc, page_in_region, chunksize);
+                                    if(res != nullptr)
+                                        return res;
+                                }
+                                else if(chunksize == 0)
+                                {
+                                    // lets open up a new page
+                                    const uint32 beforechunksize = alpaka::atomicOp<alpaka::AtomicCas>(
+                                        acc,
+                                        (uint32*) &_ptes[page_in_region].chunksize,
+                                        0u,
+                                        minAllocation);
+                                    if(beforechunksize == 0)
                                     {
-                                        void* res = tryUsePage(acc, ptetry, chunksize);
-                                        if(res != 0)
+                                        void* res = tryUsePage(acc, page_in_region, minAllocation);
+                                        if(res != nullptr)
                                             return res;
                                     }
-                                    else if(chunksize == 0)
+                                    else if(beforechunksize >= bytes && beforechunksize <= maxchunksize)
                                     {
-                                        // lets open up a new page
-                                        // it is already padded
-                                        const uint32 new_chunksize = alpaka::math::max(acc, bytes, +minChunkSize1);
-                                        const uint32 beforechunksize = alpaka::atomicOp<alpaka::AtomicCas>(
-                                            acc,
-                                            (uint32*) &_ptes[ptetry].chunksize,
-                                            0u,
-                                            new_chunksize);
-                                        if(beforechunksize == 0)
-                                        {
-                                            void* res = tryUsePage(acc, ptetry, new_chunksize);
-                                            if(res != 0)
-                                                return res;
-                                        }
-                                        else if(beforechunksize >= bytes && beforechunksize <= maxchunksize)
-                                        {
-                                            // someone else aquired the page,
-                                            // but we can also use it
-                                            void* res = tryUsePage(acc, ptetry, beforechunksize);
-                                            if(res != 0)
-                                                return res;
-                                        }
+                                        // someone else aquired the page,
+                                        // but we can also use it
+                                        void* res = tryUsePage(acc, page_in_region, beforechunksize);
+                                        if(res != nullptr)
+                                            return res;
                                     }
                                 }
-                                // could not alloc in region, tell that
-                                if(regionfilllevel + 1 <= regionsize)
-                                    alpaka::atomicOp<alpaka::AtomicMax>(
-                                        acc,
-                                        (uint32*) (_regions + region),
-                                        regionfilllevel + 1);
-                            }
-                            else
-                                ptetry += regionsize;
-                            // ptetry = (region+1)*regionsize;
-                        }
-                        // randomize the thread writing the info
-                        // if(warpid() + laneid() == 0)
-                        if(b > startblock)
-                            _firstfreeblock = b;
-                    }
+                                page_in_region = region_offset + ((page_in_region + 1) % regionsize);
+                            } while(page_in_region != global_page);
 
-                    // we are really full :/ so lets search every page for a
-                    // spot!
-                    startblock = 0;
+                            // could not alloc in region, tell that
+                            if(regionfilllevel + 1 <= regionsize)
+                                alpaka::atomicOp<alpaka::AtomicCas>(
+                                    acc,
+                                    (uint32*) (_regions + region),
+                                    regionfilllevel,
+                                    regionfilllevel + 1);
+                        }
+                        // goto next region
+                        global_page = (global_page + regionsize) % numpages;
+                        // check if we jumped into the next access block
+                        if(global_page % pagesperblock == 0u)
+                        {
+                            const uint32 access_block_id = global_page / pagesperblock;
+                            // randomize the thread writing the info
+                            // Data races are not critical.
+                            if(access_block_id > _firstfreeblock)
+                                _firstfreeblock = access_block_id;
+                        }
+
+                    } while(global_page != global_start_page);
+
+                    // we are really full :/ so lets search every page for a segment!
                     checklevel = regionsize + 1;
-                    ptetry = 0;
                 }
-                return 0;
+                return nullptr;
             }
 
             /**
@@ -583,7 +664,7 @@ namespace mallocMC
                             // clean the bits for the hierarchy
                             _page[page].init();
                             // remove chunk information
-                            _ptes[page].chunksize = 0;
+                            alpaka::atomicOp<alpaka::AtomicCas>(acc, (uint32*) &_ptes[page].chunksize, chunksize, 0u);
 
                             threadfenceDevice(acc);
 
@@ -598,8 +679,8 @@ namespace mallocMC
                 if(oldfilllevel == pagesize / 2 / chunksize)
                 {
                     const uint32 region = page / regionsize;
-                    _regions[region] = 0;
-                    const uint32 block = region * regionsize * accessblocks / _numpages;
+                    alpaka::atomicOp<alpaka::AtomicExch>(acc, (uint32*) (_regions + region), 0u);
+                    const uint32 block = region * regionsize * _accessblocks / _numpages;
                     if(warpid() + laneid() == 0)
                         alpaka::atomicOp<alpaka::AtomicMin>(acc, (uint32*) &_firstfreeblock, block);
                 }
@@ -767,10 +848,13 @@ namespace mallocMC
             {
                 if(bytes == 0)
                     return 0;
-                // take care of padding
-                // bytes = (bytes + dataAlignment - 1) & ~(dataAlignment-1); //
-                // in alignment-policy
-                if(bytes < pagesize)
+                /* Take care of padding
+                 * bytes = (bytes + dataAlignment - 1) & ~(dataAlignment-1);
+                 * in alignment-policy.
+                 * bytes == pagesize must be handled by allocChunked() else maxchunksize calculation based
+                 * on the waste factor is colliding with the allocation schema in allocPageBased().
+                 */
+                if(bytes <= pagesize)
                     // chunck based
                     return allocChunked(acc, bytes);
                 else
@@ -884,6 +968,7 @@ namespace mallocMC
                 {
                     _memsize = memsize;
                     _numpages = numpages;
+                    _accessblocks = (static_cast<size_t>(numpages) * pagesize) / accessblocksize;
                     _ptes = (volatile PTE*) ptes;
                     _page = page;
                     _regions = regions;
@@ -1016,8 +1101,6 @@ namespace mallocMC
                     for(uint32 currentpage = gid; currentpage < _numpages; currentpage += stride)
                     {
                         const uint32 maxchunksize = alpaka::math::min(acc, +pagesize, wastefactor * (uint32) slotSize);
-                        const uint32 region = currentpage / regionsize;
-                        const uint32 regionfilllevel = _regions[region];
 
                         uint32 chunksize = _ptes[currentpage].chunksize;
                         if(chunksize >= slotSize && chunksize <= maxchunksize)
@@ -1029,7 +1112,7 @@ namespace mallocMC
                             chunksize = alpaka::math::max(
                                 acc,
                                 (uint32) slotSize,
-                                +minChunkSize1); // ensure minimum chunk size
+                                +minChunkSize); // ensure minimum chunk size
                             slotcount += countFreeChunksInPage(
                                 acc,
                                 currentpage,
@@ -1196,15 +1279,17 @@ namespace mallocMC
             {
                 std::stringstream ss;
                 ss << "Scatter[";
-                ss << pagesize << ",";
-                ss << accessblocks << ",";
-                ss << regionsize << ",";
-                ss << wastefactor << ",";
-                ss << resetfreedpages << ",";
-                ss << hashingK << ",";
-                ss << hashingDistMP << ",";
-                ss << hashingDistWP << ",";
-                ss << hashingDistWPRel << "]";
+                ss << "pagesize=" << pagesize << ",";
+                ss << "accessblocksize=" << accessblocksize << ",";
+                ss << "regionsize=" << regionsize << ",";
+                ss << "wastefactor=" << wastefactor << ",";
+                ss << "resetfreedpages=" << resetfreedpages << ",";
+                ss << "minChunkSize=" << minChunkSize << ",";
+                ss << "HierarchyThreshold=" << HierarchyThreshold << ",";
+                ss << "hashingK=" << hashingK << ",";
+                ss << "hashingDistMP=" << hashingDistMP << ",";
+                ss << "hashingDistWP=" << hashingDistWP << ",";
+                ss << "hashingDistWPRel=" << hashingDistWPRel << "]";
                 return ss.str();
             }
         };
