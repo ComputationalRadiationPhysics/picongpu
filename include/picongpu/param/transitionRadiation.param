@@ -179,7 +179,7 @@ namespace picongpu
             //! example of a filter for the relativistic Lorentz factor gamma
             struct GammaFilterFunctor
             {
-                //! Gamma value above which the radiation is calculated
+                //! Gamma value above which the radiation is calculated, must be positive
                 static constexpr float_X filterGamma = 5.0;
 
                 template<typename T_Particle>
@@ -198,6 +198,9 @@ namespace picongpu
              * to activate the filter:
              *   - goto file `speciesDefinition.param`
              *   - add the attribute `transitionRadiationMask` to the particle species
+             *
+             * @warning Do not remove this filter. Otherwise still standing electrons would generate NaNs in the
+             * output of the plugin and transition radiation is scaling proportionally to gamma^2.
              */
             using GammaFilter = picongpu::particles::manipulators::generic::Free<GammaFilterFunctor>;
 
