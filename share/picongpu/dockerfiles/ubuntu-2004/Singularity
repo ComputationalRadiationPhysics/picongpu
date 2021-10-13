@@ -1,10 +1,10 @@
 Bootstrap: docker
-From: computationalradiationphysics/picongpu:0.6.0-dev
+From: computationalradiationphysics/picongpu:0.6.0-rc1
 
 
 %labels
 Maintainer "Axel Huebl <a.huebl@hzdr.de>, Rene Widera <r.widera@hzdr.de>"
-Version 0.6.0-dev
+Version 0.6.0-rc1
 
 
 %runscript
