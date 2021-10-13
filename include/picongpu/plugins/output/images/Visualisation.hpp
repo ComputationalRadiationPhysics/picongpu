@@ -51,6 +51,7 @@
 #include <pmacc/traits/GetNumWorkers.hpp>
 
 #include <cfloat>
+#include <memory>
 #include <string>
 
 
@@ -635,7 +636,6 @@ namespace picongpu
             , isMaster(false)
             , header(nullptr)
             , reduce(1024)
-            , img(nullptr)
         {
             sliceDim = 0;
             if(m_transpose.x() == 0 || m_transpose.y() == 0)
@@ -653,7 +653,6 @@ namespace picongpu
             m_output.join();
             if(!m_notifyPeriod.empty())
             {
-                __delete(img);
                 MessageHeader::destroy(header);
             }
         }
@@ -828,7 +827,7 @@ namespace picongpu
 
                 /* create memory for the local picture if the gpu participate on the visualization */
                 if(isDrawing)
-                    img = new GridBuffer<float3_X, DIM2>(header->node.maxSize);
+                    img = std::make_unique<GridBuffer<float3_X, DIM2>>(header->node.maxSize);
             }
         }
 
@@ -857,7 +856,7 @@ namespace picongpu
         MappingDesc* cellDescription;
         SimulationDataId particleTag;
 
-        GridBuffer<float3_X, DIM2>* img;
+        std::unique_ptr<GridBuffer<float3_X, DIM2>> img;
 
         int sliceOffset;
         std::string m_notifyPeriod;

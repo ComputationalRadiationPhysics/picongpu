@@ -84,6 +84,7 @@
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 
 #include <list>
+#include <memory>
 
 
 namespace picongpu
@@ -96,7 +97,7 @@ namespace picongpu
     class PluginController : public ILightweightPlugin
     {
     private:
-        std::list<ISimulationPlugin*> plugins;
+        std::list<std::shared_ptr<ISimulationPlugin>> plugins;
 
         template<typename T_Type>
         struct PushBack
@@ -104,7 +105,7 @@ namespace picongpu
             template<typename T>
             void operator()(T& list)
             {
-                list.push_back(new T_Type());
+                list.push_back(std::make_shared<T_Type>());
             }
         };
 
@@ -273,10 +274,6 @@ namespace picongpu
 
         void pluginUnload() override
         {
-            for(auto iter = plugins.begin(); iter != plugins.end(); ++iter)
-            {
-                __delete(*iter);
-            }
             plugins.clear();
         }
     };

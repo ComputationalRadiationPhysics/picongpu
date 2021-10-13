@@ -43,6 +43,7 @@
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/min_max.hpp>
 
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -220,10 +221,10 @@ namespace picongpu
         static constexpr uint32_t maxShared = 30000;
         static constexpr uint32_t num_pbins = maxShared / (sizeof(float_PS) * SuperCellsLongestEdge::value);
 
-        container::DeviceBuffer<float_PS, 2>* dBuffer = nullptr;
+        std::unique_ptr<container::DeviceBuffer<float_PS, 2>> dBuffer;
 
         /** reduce functor to a single host per plane */
-        pmacc::algorithm::mpi::Reduce<simDim>* planeReduce = nullptr;
+        std::unique_ptr<pmacc::algorithm::mpi::Reduce<simDim>> planeReduce;
         bool isPlaneReduceRoot = false;
         /** MPI communicator that contains the root ranks of the \p planeReduce
          */

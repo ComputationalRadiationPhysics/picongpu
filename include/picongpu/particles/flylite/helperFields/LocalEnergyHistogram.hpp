@@ -27,6 +27,7 @@
 #include <pmacc/memory/Array.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 
+#include <memory>
 #include <string>
 
 
@@ -44,7 +45,7 @@ namespace picongpu
                 {
                 private:
                     using EnergyHistogram = memory::Array<float_X, picongpu::flylite::energies>;
-                    GridBuffer<EnergyHistogram, simDim>* m_energyHistogram;
+                    std::unique_ptr<GridBuffer<EnergyHistogram, simDim>> m_energyHistogram;
                     std::string m_speciesGroup;
 
                 public:
@@ -55,15 +56,9 @@ namespace picongpu
                      * @param histSizeLocal spatial size of the local energy histogram
                      */
                     LocalEnergyHistogram(std::string const& speciesGroup, DataSpace<simDim> const& histSizeLocal)
-                        : m_energyHistogram(nullptr)
-                        , m_speciesGroup(speciesGroup)
+                        : m_speciesGroup(speciesGroup)
                     {
-                        m_energyHistogram = new GridBuffer<EnergyHistogram, simDim>(histSizeLocal);
-                    }
-
-                    ~LocalEnergyHistogram() override
-                    {
-                        __delete(m_energyHistogram);
+                        m_energyHistogram = std::make_unique<GridBuffer<EnergyHistogram, simDim>>(histSizeLocal);
                     }
 
                     static std::string getName(std::string const& speciesGroup)

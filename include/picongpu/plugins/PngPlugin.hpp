@@ -33,6 +33,7 @@
 #include <boost/mpl/and.hpp>
 
 #include <list>
+#include <memory>
 #include <stdexcept>
 #include <vector>
 
@@ -49,7 +50,7 @@ namespace picongpu
     {
     public:
         using VisType = VisClass;
-        using VisPointerList = std::list<VisType*>;
+        using VisPointerList = std::list<std::shared_ptr<VisType>>;
 
         PngPlugin()
             : pluginName("PngPlugin: create png's of a species and fields")
@@ -137,7 +138,7 @@ namespace picongpu
                                     = !isSlidingWindowEnabled || (transpose.x() == 1 || transpose.y() == 1);
                                 if(isAllowed2DSlice && isAllowedMovingWindowSlice)
                                 {
-                                    auto* tmp = new VisType(
+                                    auto tmp = std::make_shared<VisType>(
                                         pluginName,
                                         pngCreator,
                                         period,
@@ -171,15 +172,6 @@ namespace picongpu
                     throw std::runtime_error("[Png Plugin] One parameter is missing");
                 }
             }
-        }
-
-        void pluginUnload() override
-        {
-            for(auto iter = visIO.begin(); iter != visIO.end(); ++iter)
-            {
-                __delete(*iter);
-            }
-            visIO.clear();
         }
 
         void notify(uint32_t currentStep) override

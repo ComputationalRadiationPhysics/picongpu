@@ -49,6 +49,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -313,7 +314,7 @@ namespace picongpu
             std::string const prefix = ParticlesType::FrameType::getName() + std::string("_energyHistogram");
         };
 
-        GridBuffer<float_64, DIM1>* gBins = nullptr;
+        std::unique_ptr<GridBuffer<float_64, DIM1>> gBins;
         MappingDesc* m_cellDescription = nullptr;
 
         std::string filename;
@@ -366,7 +367,7 @@ namespace picongpu
             realNumBins = numBins + 2;
 
             /* create an array of float_64 on gpu und host */
-            gBins = new GridBuffer<float_64, DIM1>(DataSpace<DIM1>(realNumBins));
+            gBins = std::make_unique<GridBuffer<float_64, DIM1>>(DataSpace<DIM1>(realNumBins));
             binReduced.resize(realNumBins, 0.0);
 
             writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
@@ -387,8 +388,6 @@ namespace picongpu
                     std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
                 outFile.close();
             }
-
-            __delete(gBins);
         }
 
         void notify(uint32_t currentStep) override

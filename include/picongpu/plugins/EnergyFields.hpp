@@ -88,7 +88,7 @@ namespace picongpu
 
         mpi::MPIReduce mpiReduce;
 
-        pmacc::device::Reduce* localReduce{nullptr};
+        std::unique_ptr<pmacc::device::Reduce> localReduce;
 
         using EneVectorType = promoteType<float_64, FieldB::ValueType>::type;
 
@@ -132,7 +132,7 @@ namespace picongpu
         {
             if(!notifyPeriod.empty())
             {
-                localReduce = new pmacc::device::Reduce(1024);
+                localReduce = std::make_unique<pmacc::device::Reduce>(1024);
                 writeToFile = mpiReduce.hasResult(mpi::reduceMethods::Reduce());
 
                 if(writeToFile)
@@ -164,7 +164,6 @@ namespace picongpu
                         std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
                     outFile.close();
                 }
-                __delete(localReduce);
             }
         }
 

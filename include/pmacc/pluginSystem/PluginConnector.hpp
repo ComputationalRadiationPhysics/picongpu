@@ -94,6 +94,8 @@ namespace pmacc
                     (*iter)->unload();
                 }
             }
+            // Make sure plugin instances are deleted and so resources are freed
+            plugins.clear();
         }
 
         /**

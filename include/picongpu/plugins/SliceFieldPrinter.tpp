@@ -73,7 +73,7 @@ namespace picongpu
             vec::Size_t<simDim> size = vec::Size_t<simDim>(this->cellDescription->getGridSuperCells())
                     * precisionCast<size_t>(BlockDim::toRT())
                 - precisionCast<size_t>(2 * BlockDim::toRT());
-            this->dBuffer_SI = new container::DeviceBuffer<float3_64, simDim - 1>(
+            this->dBuffer_SI = std::make_unique<container::DeviceBuffer<float3_64, simDim - 1>>(
                 size.shrink<simDim - 1>((this->plane + 1) % simDim));
         }
         else
@@ -84,12 +84,6 @@ namespace picongpu
                       << " (slice_point=" << slicePoint << ") is outside of [0.0, 1.0]. " << std::endl
                       << "The request will be ignored. " << std::endl;
         }
-    }
-
-    template<typename Field>
-    void SliceFieldPrinter<Field>::pluginUnload()
-    {
-        __delete(this->dBuffer_SI);
     }
 
     template<typename Field>

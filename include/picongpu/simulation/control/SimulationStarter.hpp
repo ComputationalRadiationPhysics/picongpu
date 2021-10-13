@@ -44,9 +44,9 @@ namespace picongpu
     private:
         using BoostOptionsList = std::list<boost::program_options::options_description>;
 
-        SimulationClass* simulationClass;
-        InitClass* initClass;
-        PluginClass* pluginClass;
+        std::unique_ptr<SimulationClass> simulationClass;
+        std::unique_ptr<InitClass> initClass;
+        std::unique_ptr<PluginClass> pluginClass;
 
 
         MappingDesc* mappingDesc{nullptr};
@@ -54,17 +54,10 @@ namespace picongpu
     public:
         SimulationStarter()
         {
-            simulationClass = new SimulationClass();
-            initClass = new InitClass();
-            simulationClass->setInitController(initClass);
-            pluginClass = new PluginClass();
-        }
-
-        ~SimulationStarter() override
-        {
-            __delete(initClass);
-            __delete(pluginClass);
-            __delete(simulationClass);
+            simulationClass = std::make_unique<SimulationClass>();
+            initClass = std::make_unique<InitClass>();
+            simulationClass->setInitController(initClass.get());
+            pluginClass = std::make_unique<PluginClass>();
         }
 
         std::string pluginGetName() const override
@@ -77,7 +70,7 @@ namespace picongpu
             PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
             pluginConnector.loadPlugins();
             log<picLog::SIMULATION_STATE>("Startup");
-            simulationClass->setInitController(initClass);
+            simulationClass->setInitController(initClass.get());
             simulationClass->startSimulation();
         }
 

@@ -318,10 +318,11 @@ namespace picongpu
             this->maxEnergy = maxEnergy_SI / UNIT_ENERGY;
 
             /* allocate memory buffers */
-            this->dBufCalorimeter = new DBufCalorimeter(this->numBinsYaw, this->numBinsPitch, this->numBinsEnergy);
-            this->dBufLeftParsCalorimeter = new DBufCalorimeter(this->dBufCalorimeter->size());
-            this->hBufCalorimeter = new HBufCalorimeter(this->dBufCalorimeter->size());
-            this->hBufTotalCalorimeter = new HBufCalorimeter(this->dBufCalorimeter->size());
+            this->dBufCalorimeter
+                = std::make_unique<DBufCalorimeter>(this->numBinsYaw, this->numBinsPitch, this->numBinsEnergy);
+            this->dBufLeftParsCalorimeter = std::make_unique<DBufCalorimeter>(this->dBufCalorimeter->size());
+            this->hBufCalorimeter = std::make_unique<HBufCalorimeter>(this->dBufCalorimeter->size());
+            this->hBufTotalCalorimeter = std::make_unique<HBufCalorimeter>(this->dBufCalorimeter->size());
 
             /* fill calorimeter for left particles with zero */
             this->dBufLeftParsCalorimeter->assign(float_X(0.0));
@@ -542,10 +543,6 @@ namespace picongpu
             , m_id(id)
             , m_cellDescription(cellDescription)
             , leftParticlesDatasetName("calorimeterLeftParticles")
-            , dBufCalorimeter(nullptr)
-            , dBufLeftParsCalorimeter(nullptr)
-            , hBufCalorimeter(nullptr)
-            , hBufTotalCalorimeter(nullptr)
         {
             foldername = m_help->getOptionPrefix() + "/" + m_help->filter.get(m_id);
             filenamePrefix
@@ -565,15 +562,6 @@ namespace picongpu
 
             initPlugin();
         }
-
-        virtual ~ParticleCalorimeter()
-        {
-            __delete(this->dBufCalorimeter);
-            __delete(this->dBufLeftParsCalorimeter);
-            __delete(this->hBufCalorimeter);
-            __delete(this->hBufTotalCalorimeter);
-        }
-
 
         void notify(uint32_t currentStep) override
         {
@@ -709,13 +697,13 @@ namespace picongpu
         float3_X calorimeterFrameVecZ;
 
         //! device calorimeter buffer for a single gpu
-        DBufCalorimeter* dBufCalorimeter;
+        std::unique_ptr<DBufCalorimeter> dBufCalorimeter;
         //! device calorimeter buffer for all particles which have left the simulation volume
-        DBufCalorimeter* dBufLeftParsCalorimeter;
+        std::unique_ptr<DBufCalorimeter> dBufLeftParsCalorimeter;
         //! host calorimeter buffer for a single mpi rank
-        HBufCalorimeter* hBufCalorimeter;
+        std::unique_ptr<HBufCalorimeter> hBufCalorimeter;
         //! host calorimeter buffer for summation of all mpi ranks
-        HBufCalorimeter* hBufTotalCalorimeter;
+        std::unique_ptr<HBufCalorimeter> hBufTotalCalorimeter;
     };
 
     namespace particles

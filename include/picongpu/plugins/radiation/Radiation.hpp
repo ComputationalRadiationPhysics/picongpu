@@ -46,6 +46,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -95,7 +96,7 @@ namespace picongpu
                  * The second dimension is used to store intermediate results if command
                  * line option numJobs is > 1.
                  */
-                GridBuffer<Amplitude, 2>* radiation;
+                std::unique_ptr<GridBuffer<Amplitude, 2>> radiation;
                 radiation_frequencies::InitFreqFunctor freqInit;
                 radiation_frequencies::FreqFunctor freqFkt;
 
@@ -145,7 +146,6 @@ namespace picongpu
                     , speciesName(ParticlesType::FrameType::getName())
                     , pluginPrefix(speciesName + std::string("_radiation"))
                     , filename_prefix(pluginPrefix)
-                    , radiation(nullptr)
                     , cellDescription(nullptr)
                     , dumpPeriod(0)
                     , totalRad(false)
@@ -157,10 +157,6 @@ namespace picongpu
                     , meshesPathName("DetectorMesh/")
                 {
                     Environment<>::get().PluginConnector().registerPlugin(this);
-                }
-
-                virtual ~Radiation()
-                {
                 }
 
                 /**
@@ -318,7 +314,8 @@ namespace picongpu
                          * The second dimension is used to store intermediate results if command
                          * line option numJobs is > 1.
                          */
-                        radiation = new GridBuffer<Amplitude, 2>(DataSpace<2>(elements_amplitude(), numJobs));
+                        radiation
+                            = std::make_unique<GridBuffer<Amplitude, 2>>(DataSpace<2>(elements_amplitude(), numJobs));
 
                         freqInit.Init(frequencies_from_list::listLocation);
                         freqFkt = freqInit.getFunctor();
@@ -395,8 +392,6 @@ namespace picongpu
                             writeAllFiles(globalOffset);
                         }
 
-
-                        __delete(radiation);
                         CUDA_CHECK(cuplaGetLastError());
                     }
                 }

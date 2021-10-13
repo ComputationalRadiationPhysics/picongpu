@@ -125,7 +125,7 @@ namespace picongpu
         std::string foldername;
         mpi::MPIReduce reduce;
 
-        GridBufferType* localResult;
+        std::unique_ptr<GridBufferType> localResult;
 
         // @todo upon switching to C++17, use std::option instead
         std::unique_ptr<::openPMD::Series> m_Series;
@@ -140,7 +140,6 @@ namespace picongpu
             , pluginPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesPerSuperCell"))
             , foldername(pluginPrefix)
             , cellDescription(nullptr)
-            , localResult(nullptr)
         {
             Environment<>::get().PluginConnector().registerPlugin(this);
         }
@@ -190,7 +189,7 @@ namespace picongpu
                 const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
                 /* local count of supercells without any guards*/
                 DataSpace<simDim> localSuperCells(subGrid.getLocalDomain().size / SuperCellSize::toRT());
-                localResult = new GridBufferType(localSuperCells);
+                localResult = std::make_unique<GridBufferType>(localSuperCells);
 
                 /* create folder for hdf5 files*/
                 Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(foldername);
@@ -199,8 +198,6 @@ namespace picongpu
 
         void pluginUnload() override
         {
-            __delete(localResult);
-
             m_Series.reset();
         }
 

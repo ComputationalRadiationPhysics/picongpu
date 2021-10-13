@@ -27,6 +27,7 @@
 #include "pmacc/memory/buffers/HostBufferIntern.hpp"
 #include "pmacc/types.hpp"
 
+#include <memory>
 #include <type_traits>
 
 
@@ -80,8 +81,6 @@ namespace pmacc
             const GridLayout<T_dim> size,
             bool sizeOnDevice = false);
 
-        HINLINE virtual ~HostDeviceBuffer();
-
         /**
          * Returns the internal data buffer on host side
          *
@@ -117,8 +116,8 @@ namespace pmacc
         HINLINE void deviceToHost();
 
     private:
-        HBuffer* hostBuffer;
-        DBuffer* deviceBuffer;
+        std::unique_ptr<HBuffer> hostBuffer;
+        std::unique_ptr<DBuffer> deviceBuffer;
     };
 
 } // namespace pmacc

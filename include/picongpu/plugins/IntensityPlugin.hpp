@@ -35,6 +35,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -120,11 +121,10 @@ namespace picongpu
     class IntensityPlugin : public ILightweightPlugin
     {
     private:
-        typedef MappingDesc::SuperCellSize SuperCellSize;
+        using SuperCellSize = MappingDesc::SuperCellSize;
 
-
-        GridBuffer<float_32, DIM1>* localMaxIntensity;
-        GridBuffer<float_32, DIM1>* localIntegratedIntensity;
+        std::unique_ptr<GridBuffer<float_32, DIM1>> localMaxIntensity;
+        std::unique_ptr<GridBuffer<float_32, DIM1>> localIntegratedIntensity;
         MappingDesc* cellDescription;
         std::string notifyPeriod;
 
@@ -145,8 +145,6 @@ namespace picongpu
             : pluginName("IntensityPlugin: calculate the maximum and integrated E-Field energy\nover laser "
                          "propagation direction")
             , pluginPrefix(FieldE::getName() + std::string("_intensity"))
-            , localMaxIntensity(nullptr)
-            , localIntegratedIntensity(nullptr)
             , cellDescription(nullptr)
             , writeToFile(false)
         {
@@ -189,10 +187,10 @@ namespace picongpu
                 writeToFile = Environment<simDim>::get().GridController().getGlobalRank() == 0;
                 int yCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().y();
 
-                localMaxIntensity
-                    = new GridBuffer<float_32, DIM1>(DataSpace<DIM1>(yCells)); // create one int on gpu und host
-                localIntegratedIntensity
-                    = new GridBuffer<float_32, DIM1>(DataSpace<DIM1>(yCells)); // create one int on gpu und host
+                localMaxIntensity = std::make_unique<GridBuffer<float_32, DIM1>>(
+                    DataSpace<DIM1>(yCells)); // create one int on gpu und host
+                localIntegratedIntensity = std::make_unique<GridBuffer<float_32, DIM1>>(
+                    DataSpace<DIM1>(yCells)); // create one int on gpu und host
 
                 if(writeToFile)
                 {
@@ -213,8 +211,6 @@ namespace picongpu
                     flushAndCloseFile(outFileIntegrated);
                     flushAndCloseFile(outFileMax);
                 }
-                __delete(localMaxIntensity);
-                __delete(localIntegratedIntensity);
             }
         }
 
