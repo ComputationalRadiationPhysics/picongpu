@@ -25,6 +25,7 @@
 #include "picongpu/particles/boundary/ApplyImpl.hpp"
 #include "picongpu/particles/boundary/Description.hpp"
 #include "picongpu/particles/boundary/Reflecting.hpp"
+#include "picongpu/particles/boundary/Thermal.hpp"
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/boundary/Utility.hpp>
@@ -103,6 +104,9 @@ namespace picongpu
                         break;
                     case Kind::Reflecting:
                         ApplyImpl<Kind::Reflecting>{}(species, exchange, currentStep);
+                        break;
+                    case Kind::Thermal:
+                        ApplyImpl<Kind::Thermal>{}(species, exchange, currentStep);
                         break;
                     default:
                         throw std::runtime_error("Unsupported boundary kind when trying to apply particle boundary");

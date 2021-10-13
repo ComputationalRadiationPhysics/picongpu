@@ -13,32 +13,36 @@ The same boundary condition kind is applied for all particles species and fields
 Particles
 """""""""
 
-By default, boundary kinds match the value of ``--periodic``.
+By default, boundary kinds match the value of ``--periodic`` and so are either periodic or absorbing.
 For species with a particle pusher, it can be overridden with option `--<prefix>_boundary <x> <y> <z>`.
-The boundary kinds currently supported are periodic, absorbing and reflecting.
+The supported boundary kinds are: periodic, absorbing, reflecting, and thermal.
 
-When using absorbing or reflecting particle boundaries, the field boundary on that
-axis must be set to absorbing.
+Currently only the following combinations of field and particle boundaries are supported.
+When fields are periodic along an axis, boundaries for all species must be periodic along this axis.
+When fields are absorbing (non-periodic), species must be absorbing, reflecting, or thermal.
 
 By default, the particle boundaries are applied at the global domain boundaries.
 For absorbing boundaries it means that particles will exist in the field absorbing area.
 This may be undesired for simulations with Perfectly Matched Layers (see below).
 A user can change the boundary application area by setting an offset with the
 option `--<prefix>_boundaryOffset <x> <y> <z>`.
-The boundaryOffset is in terms of whole cells, so integers are expected.
+The `boundaryOffset` is in terms of whole cells, so integers are expected.
 It sets an offset inwards from the global domain boundary.
-Periodic boundaries only allow 0 offset, other kinds support non-negative offsets.
+Periodic boundaries only allow 0 offset, thermal boundaries require a positive offset, and other kinds support non-negative offsets.
 
-For example, reflecting boundary conditions for species e are configured by
-`--e_boundary reflecting reflecting reflecting`
-`--e_boundaryOffset 1 1 1`
+Boundary temperature for thermal boundaries, in keV, is set with option `--<prefix>_boundaryTemperature <x> <y> <z>`.
+
+For example, reflecting and thermal boundary conditions for species `e` are configured by
+`--e_boundary reflecting thermal reflecting`
+`--e_boundaryOffset 0 1 10`
+`--e_boundaryTemperature 0.0 20.0 0.0`
 
 Particles are not allowed to be outside the boundaries for the respective species.
 (For the periodic case, there are no boundaries in that sense.)
 After species are initialized, all outer particles will be deleted.
 During the simulation, the crossing particles will be handled by boundary condition implementations and moved or deleted as a result.
 
-The internal treatment of particles crossing a boundary is controlled by the ``boundaryCondition`` flag in :ref:`speciesDefinition.param <usage-params-core>`.
+The internal treatment of particles in the guard area is controlled by the ``boundaryCondition`` flag in :ref:`speciesDefinition.param <usage-params-core>`.
 However, this option is for expert users and generally should not be modified.
 To set physical boundary conditions, use the command-line option described above.
 

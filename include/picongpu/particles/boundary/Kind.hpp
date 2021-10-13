@@ -31,7 +31,8 @@ namespace picongpu
             {
                 Periodic,
                 Absorbing,
-                Reflecting
+                Reflecting,
+                Thermal
             };
 
         } // namespace boundary

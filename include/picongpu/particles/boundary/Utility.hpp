@@ -68,6 +68,20 @@ namespace picongpu
                 return species.boundaryDescription()[axis].offset;
             }
 
+            /** Get boundary temperature in keV for the given species and exchange
+             *
+             * @tparam T_Species particle species type
+             *
+             * @param species particle species
+             * @param exchangeType exchange describing the active boundary
+             */
+            template<typename T_Species>
+            HINLINE float_X getTemperature(T_Species const& species, uint32_t exchangeType)
+            {
+                uint32_t axis = pmacc::boundary::getAxis(exchangeType);
+                return species.boundaryDescription()[axis].temperature;
+            }
+
             /** Get a range of cells that define external area for the given species wrt given exchangeType
              *
              * Note that it only considers one, given, boundary.
