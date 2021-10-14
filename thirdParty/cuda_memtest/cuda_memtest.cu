@@ -47,7 +47,7 @@
 #include <sys/time.h>
 #include <csignal>
 
-#define MAX_NUM_GPUS 8
+#define MAX_NUM_GPUS 128
 bool useMappedMemory;
 void* mappedHostPtr;
 char hostname[64];
@@ -498,6 +498,7 @@ main(int argc, char** argv)
     PRINTF("num_gpus=%d\n", num_gpus);
     if(num_gpus > MAX_NUM_GPUS){
 	fprintf(stderr, "Error: max number of GPUs (%d) exceeded: %d\n", MAX_NUM_GPUS, num_gpus);
+        exit(ERR_GENERAL);
     }
     pthread_t temp_pid;
     if (monitor_temp){

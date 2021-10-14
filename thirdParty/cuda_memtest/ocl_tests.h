@@ -32,7 +32,7 @@ extern "C" {
   
 #define PRINTF(fmt,...) do{                                             \
     pthread_mutex_lock(&mutex);						\
-    printf("[%s][%s][%d]:"fmt, time_string(), hostname, mc->device_idx, ##__VA_ARGS__); \
+    printf("[%s][%s][%d]:" fmt, time_string(), hostname, mc->device_idx, ##__VA_ARGS__); \
     fflush(stdout);							\
     pthread_mutex_unlock(&mutex);                                       \
   } while(0)
