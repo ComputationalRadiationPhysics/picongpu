@@ -215,10 +215,12 @@ namespace picongpu
                      */
                     auto incidentFieldBaseShift = floatD_X::create(0.0_X);
                     if(parameters.direction > 0)
+                    {
                         if(isUpdatedFieldTotal)
                             incidentFieldBaseShift[dir0] = -1.0_X;
                         else
                             incidentFieldBaseShift[dir0] = 1.0_X;
+                    }
                     auto incidentFieldPositions = traits::FieldPosition<cellType::Yee, T_IncidentField>{}();
                     functor.inCellShift1 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent1];
                     functor.inCellShift2 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent2];

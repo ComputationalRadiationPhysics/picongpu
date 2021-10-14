@@ -22,14 +22,14 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 3.15.0)
+cmake_minimum_required(VERSION 3.18.0)
 
 
 ################################################################################
 # Project
 ################################################################################
 
-project(mpiInfo)
+project(mpiInfo LANGUAGES CXX)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
@@ -109,7 +109,7 @@ add_executable(mpiInfo
     mpiInfo.cpp
 )
 
-target_link_libraries(mpiInfo ${LIBS})
+target_link_libraries(mpiInfo PRIVATE ${LIBS})
 
 
 ################################################################################

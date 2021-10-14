@@ -244,6 +244,9 @@ if((NOT ALPAKA_ACC_GPU_CUDA_ENABLE) OR ALPAKA_CUDA_COMPILER MATCHES "clang")
 endif()
 
 if(CUDAMEMTEST_ENABLE)
+    # Enabling CUDA solves a bug in mpiInfo
+    # Error message: No known features for CUDA compiler "" version .
+    ENABLE_LANGUAGE(CUDA)
     set(SAME_NVCC_FLAGS_IN_SUBPROJECTS OFF)
     find_path(CUDA_MEMTEST_DIR
             NAMES cuda_memtest.h

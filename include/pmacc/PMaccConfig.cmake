@@ -140,20 +140,7 @@ if(
 endif()
 
 if(${PMACC_CUPLA_PROVIDER} STREQUAL "intern")
-    find_package(cupla
-        REQUIRED
-        CONFIG
-        PATHS "${PMacc_DIR}/../../thirdParty/cupla"
-        NO_DEFAULT_PATH
-        NO_CMAKE_ENVIRONMENT_PATH
-        NO_CMAKE_PATH
-        NO_SYSTEM_ENVIRONMENT_PATH
-        NO_CMAKE_PACKAGE_REGISTRY
-        NO_CMAKE_BUILDS_PATH
-        NO_CMAKE_SYSTEM_PATH
-        NO_CMAKE_SYSTEM_PACKAGE_REGISTRY
-        NO_CMAKE_FIND_ROOT_PATH
-    )
+    add_subdirectory(${PMacc_DIR}/../../thirdParty/cupla ${CMAKE_BINARY_DIR}/cupla)
 else()
     find_package("cupla" PATHS $ENV{CUPLA_ROOT} REQUIRED)
 endif()
@@ -170,7 +157,7 @@ endif()
 # add possible indirect/transient library dependencies from alpaka backends
 # note: includes and definitions are already added in the cupla_add_executable
 #       wrapper
-set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${cupla_LIBRARIES})
+set(PMacc_LIBRARIES ${PMacc_LIBRARIES} cupla::cupla)
 
 
 ###############################################################################
@@ -336,19 +323,6 @@ if(Boost_VERSION GREATER 107000)
     message(WARNING "Untested Boost release > 1.70.0 (Found ${Boost_VERSION})! "
                     "Maybe use a newer PIConGPU?")
 endif()
-
-if(ALPAKA_ACC_GPU_CUDA_ENABLE)
-    if(CUDA_VERSION VERSION_LESS 9.2)
-        message(FATAL_ERROR "CUDA 9.2 or newer required! "
-                            "(Found ${CUDA_VERSION})")
-    endif()
-    # Newer CUDA releases: probably troublesome, warn at least
-    if(CUDA_VERSION VERSION_GREATER 11.2)
-        message(WARNING "Untested CUDA release >11.2 (Found ${CUDA_VERSION})! "
-                        "Maybe use a newer PIConGPU?")
-    endif()
-endif()
-
 
 ################################################################################
 # Find OpenMP
