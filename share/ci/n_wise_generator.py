@@ -95,11 +95,6 @@ def is_valid_combination(row):
         if is_clang and v_compiler == 12:
             return False
 
-        # docker images for clang cuda do not support clang++-7
-        # together with cuda-9.2
-        if is_clang_cuda and v_compiler == 7 and v_cuda == 9.2:
-            return False
-
         # CUDA compiler requires backed `cuda`
         if (is_nvcc or is_clang_cuda) and not is_cuda:
             return False
@@ -112,8 +107,6 @@ def is_valid_combination(row):
         if is_clang_cuda:
             if not is_cuda:
                 return False
-            if v_cuda == 9.2 and v_compiler >= 7:
-                return True
             if v_cuda == 10.0 and v_compiler >= 8:
                 return True
             if v_cuda == 10.1 and v_compiler >= 9:
@@ -145,8 +138,6 @@ def is_valid_combination(row):
                         return True
 
             if is_clang:
-                if v_cuda == 9.2 and v_compiler <= 5:
-                    return True
                 if 10.0 <= v_cuda and v_cuda <= 10.2 and v_compiler <= 8:
                     return True
                 if v_cuda == 11.0 and v_compiler <= 9:
@@ -195,7 +186,7 @@ compilers.append(hip_clang_compilers)
 # PIConGPU backend list
 # tuple with two components (backend name, version)
 # version is only required for the cuda backend
-backends = [("hip", 4.2), ("cuda", 9.2),
+backends = [("hip", 4.2),
             ("cuda", 10.0), ("cuda", 10.1), ("cuda", 10.2),
             ("cuda", 11.0), ("cuda", 11.1), ("cuda", 11.2),
             ("omp2b", ), ("serial", )]
