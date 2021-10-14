@@ -1,0 +1,27 @@
+/docs/doxygen/*
+
+**/build
+
+# tmp files
+*~
+
+# netbeans project files
+/nbproject/
+
+# Code::Blocks project files
+/*.cbp
+/*.layout
+
+# original backup files
+*.orig
+
+# VIM project files
+.vimrc
+
+# IDE & tmp build
+.idea/
+cmake-build-*/
+.kdev?/
+*.kdev?
+spack-build*
+build/
