@@ -138,7 +138,9 @@ def is_valid_combination(row):
                         return True
 
             if is_clang:
-                if 10.0 <= v_cuda and v_cuda <= 10.2 and v_compiler <= 8:
+                if 10.0 <= v_cuda and v_compiler <= 6:
+                    return True
+                if 10.1 >= v_cuda and v_cuda <= 10.2 and v_compiler <= 8:
                     return True
                 if v_cuda == 11.0 and v_compiler <= 9:
                     return True
