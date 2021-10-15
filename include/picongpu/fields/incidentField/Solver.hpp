@@ -126,25 +126,23 @@ namespace picongpu
                         "incident field source does not support the Yee grid layout");
 
                     // Ensure gap along the current axis is large enough that we don't touch the absorber area
-                    auto const numCoefficients = static_cast<int32_t>(updateFunctor.derivativeCoefficients.size);
-                    if((updateFunctor.direction > 0)
-                       && (GAP_FROM_ABSORBER[updateFunctor.axis][0] + 1 < numCoefficients))
+                    auto const margin = static_cast<int32_t>(updateFunctor.margin);
+                    if((updateFunctor.direction > 0) && (GAP_FROM_ABSORBER[updateFunctor.axis][0] + 1 < margin))
                         throw std::runtime_error(
                             "Incident field GAP_FROM_ABSORBER[" + std::to_string(updateFunctor.axis)
                             + "][0] is too small for used field solver, must be at least "
-                            + std::to_string(numCoefficients - 1));
-                    if((updateFunctor.direction < 0)
-                       && (GAP_FROM_ABSORBER[updateFunctor.axis][1] + 1 < numCoefficients))
+                            + std::to_string(margin - 1));
+                    if((updateFunctor.direction < 0) && (GAP_FROM_ABSORBER[updateFunctor.axis][1] + 1 < margin))
                         throw std::runtime_error(
                             "Incident field GAP_FROM_ABSORBER[" + std::to_string(updateFunctor.axis)
                             + "][1] is too small for used field solver, must be at least "
-                            + std::to_string(numCoefficients - 1));
+                            + std::to_string(margin - 1));
 
                     // Current implementation requires all updated values to be inside the same local domain
                     auto const& subGrid = Environment<simDim>::get().SubGrid();
                     auto const localDomainSize = subGrid.getLocalDomain().size[updateFunctor.axis];
-                    if((beginLocalUserIdx[updateFunctor.axis] + 1 < numCoefficients)
-                       || (beginLocalUserIdx[updateFunctor.axis] + numCoefficients > localDomainSize))
+                    if((beginLocalUserIdx[updateFunctor.axis] + 1 < margin)
+                       || (beginLocalUserIdx[updateFunctor.axis] + margin > localDomainSize))
                         throw std::runtime_error(
                             "Incident field solver can only operate on one local domain along the active axis. Adjust "
                             "GAP_FROM_ABSORBER or grid to fit it inside one local domain");

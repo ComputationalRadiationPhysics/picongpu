@@ -24,7 +24,11 @@
 #include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/Derivative.hpp"
 #include "picongpu/fields/MaxwellSolver/Lehe/Derivative.hpp"
 
+#include <pmacc/math/Vector.hpp>
+
 #include <cstdint>
+
+#include <pmacc/math/vector/compile-time/Vector.hpp>
 
 
 namespace picongpu
@@ -37,27 +41,24 @@ namespace picongpu
             {
                 /** Coefficients for the finite-difference derivative operator along the given axis
                  *
-                 * The current implementation assumes a certain form of the operator.
-                 * Namely, that Yee grid and central operator is used.
-                 * Additionally, we assume that only one "row" of values along T_axis is used.
+                 * The current implementation assumes Yee grid and central derivative operator are used.
+                 * Thus, the derivative coefficients are antisymmetric along T_axis and symmetric along other axes.
                  *
-                 * It represents a finite-difference derivative in this form (for T_axis == 0, similar for others):
-                 * dF/dx (i, j, k) = (1.0 / stepX) * sum(values[p] * (F(i + (p + 1/2), j, k) - F(i - (p + 1/2), j, k));
-                 * p = 0, 1, ..., size - 1).
-                 * Where F is the incident field and i, j, k can be half-integer according to the Yee grid.
+                 * For example, for T_axis = 0 evaluating d/dx of incident field F at (integer or half-integer)
+                 * Yee grid index (i0, j0, k0) follows the expression:
+                 * dF/dx (i0, j0, k0) = (1.0 / stepX) *
+                 * sum(value(i, |j|, |k|) * (F(i0 + (i + 1/2), j0 + j, k0 + k) - F(i0 - (i + 1/2), j0 + j, k0 + k));
+                 * i, j, k are integers, i in [0, Size::x::value); j in [-(Size::y::value - 1), Size::y::value),
+                 * k in [-(Size::z::value - 1), Size::z::value).
+                 * For other axes it is defined similarly.
                  *
                  * The default implementation works for the classic 2nd order central derivative on the Yee grid.
+                 * Each specialization must provide public Size and value members with the matching semantics.
+                 * Each specialization object must be default-constructible on host and bitwise copyable.
                  *
                  * @note We do not make the difference between the forward and backward derivative.
                  * This is becase it is already part of index calculations in the host side of the incident field
                  * solver. Same (no difference) should hold for all specializations.
-                 *
-                 * @note The aforementioned assumptions are not principle, but taken according to the currently used
-                 * solvers. (This is not true for the Lehe solver, @see notes at the corresponding specialization.) The
-                 * scheme can be generalized for other grids and non-central derivatives, then a full set of
-                 * coefficients will have to be stored, without assuming antisymmetry. In case multiple "rows" is used,
-                 * the values array will need to become simDim-dimensional. Such modifications would only affect this
-                 * struct and the inner loop in UpdateFunctor::operator().
                  *
                  * @tparam T_DerivativeFunctor derivative functor type along the axis
                  * @tparam T_axis derivative axis, 0 = x, 1 = y, 2 = z
@@ -65,15 +66,20 @@ namespace picongpu
                 template<typename T_DerivativeFunctor, uint32_t T_axis>
                 struct DerivativeCoefficients
                 {
-                    //! Number of coefficients = number of neighbors used in each side along T_axis
-                    static constexpr uint32_t size = 1u;
-
-                    /** Normalized coefficient values, actual coefficient = values / step
+                    /** Number of coefficients: 1 along each axis
                      *
-                     * The coefficients are for positive-side terms (see equation above).
-                     * For the negative side we assume antisymmetry.
+                     * This size must be defined as if for 3d, regardless of simDim.
+                     * Each component must be at least 1.
                      */
-                    float_X values[size] = {1.0_X};
+                    using Size = pmacc::math::CT::make_Int<3, 1>::type;
+
+                    /** Normalized coefficient values, actual coefficient = value[...] / step[T_axis]
+                     *
+                     * This array size is controlled by type Size.
+                     * The coefficients are for non-negative side terms (see equation above).
+                     * For the negative side we assume antisymmetry along T_axis and symmetry along other axes.
+                     */
+                    float_X value[Size::x::value][Size::y::value][Size::z::value] = {{{1.0_X}}};
                 };
 
                 /** Specialization for the arbitrary-order FDTD derivative operator
@@ -96,53 +102,108 @@ namespace picongpu
                         GeneralAofdtdDerivative<T_lowerNeighbors, T_upperNeighbors, T_neighbors, T_axis>,
                     T_axis>
                 {
-                    //! Number of coefficients = number of neighbors used in each side
-                    static constexpr uint32_t size = T_neighbors;
+                    //! Number of coefficients: T_neighbors along T_axis, 1 along other axes
+                    using Size = typename pmacc::math::CT::Assign<
+                        pmacc::math::CT::make_Int<3, 1>::type::vector_type,
+                        bmpl::integral_c<int, T_axis>,
+                        bmpl::integral_c<int, T_neighbors>>::type;
 
-                    //! Normalized coefficient values, actual coefficient = values / step
-                    float_X values[size];
+                    //! Normalized coefficient values, actual coefficient = value[...] / step[T_axis]
+                    float_X value[Size::x::value][Size::y::value][Size::z::value];
 
                     //! Instantiate and initialize derivative coefficients
-                    HDINLINE DerivativeCoefficients()
+                    DerivativeCoefficients()
                     {
-                        // E.g. for 4th-order FDTD (T_neighbors = 2) values[0] = 27/24, values[1] = -1/24
-                        maxwellSolver::aoFDTD::AOFDTDWeights<size> weights;
-                        for(uint32_t i = 0; i < size; i++)
-                            values[i] = weights[i];
+                        // E.g. for 4th-order FDTD and d/dy, values[0][0][0] = 27/24, values[0][1][0] = -1/24
+                        maxwellSolver::aoFDTD::AOFDTDWeights<T_neighbors> weights;
+                        auto idx = pmacc::DataSpace<3>::create(0);
+                        for(uint32_t i = 0; i < T_neighbors; i++)
+                        {
+                            idx[T_axis] = i;
+                            value[idx.x()][idx.y()][idx.z()] = weights[i];
+                        }
                     }
                 };
 
                 /** Specialization for the Lehe derivative along the Cherenkov-free direction
                  *
-                 * The Lehe derivative uses terms that differ not just in the boundary axis, but also others.
-                 * To fit into the assumed form, we sum up all terms along the other axes.
-                 * When doing it for non-Cherenkov-free directions, it would be same as Yee derivative.
-                 * So that case is covered already and we only need to specialize the Cherenkov-free direction.
-                 *
-                 * @tparam T_axis derivative axis equal to Charenkov-free direction in Lehe solver, 0 = x, 1 = y, 2 = z
+                 * @tparam T_axis derivative axis equal to Cherenkov-free direction in Lehe solver, 0 = x, 1 = y, 2 = z
                  */
                 template<uint32_t T_axis>
                 struct DerivativeCoefficients<maxwellSolver::lehe::DerivativeFunctor<T_axis, T_axis>, T_axis>
                 {
-                    //! Number of coefficients = number of neighbors used in each side
-                    static constexpr uint32_t size = 2;
+                    /* Number of coefficients: 2 along each axis
+                     * (on T_axis due to a wider stencil, on other axes due to the averaging)
+                     */
+                    using Size = typename pmacc::math::CT::make_Int<3, 2>::type;
 
-                    //! Normalized coefficient values, actual coefficient = values / step
-                    float_X values[size];
+                    //! Normalized coefficient values, actual coefficient = value[...] / step[T_axis]
+                    float_X value[Size::x::value][Size::y::value][Size::z::value];
 
                     //! Instantiate and initialize derivative coefficients
-                    HDINLINE DerivativeCoefficients()
+                    DerivativeCoefficients()
                     {
-                        float_64 const stepRatio = cellSize[T_axis] / (SPEED_OF_LIGHT * DELTA_T);
+                        constexpr uint32_t dir0 = T_axis;
+                        constexpr uint32_t dir1 = (dir0 + 1) % 3;
+                        constexpr uint32_t dir2 = (dir0 + 2) % 3;
+                        float_64 const stepRatio = cellSize[dir0] / (SPEED_OF_LIGHT * DELTA_T);
                         float_64 const coeff = stepRatio
                             * math::sin(pmacc::math::Pi<float_64>::halfValue * float_64(SPEED_OF_LIGHT)
-                                        * float_64(DELTA_T) / float_64(cellSize[T_axis]));
+                                        * float_64(DELTA_T) / float_64(cellSize[dir0]));
                         auto const delta = static_cast<float_X>(0.25 * (1.0 - coeff * coeff));
-                        /* values[0] = alpha + 2 * betaDir1 + 2 * betaDir2 = 1 - 3 * delta.
-                         * Note that same as for 4th-order FDTD, values[0] + 3 * values[1] = 1.
-                         */
-                        values[0] = 1.0_X - 3.0_X * delta;
-                        values[1] = delta;
+                        // for 2D the betas corresponding to z are 0
+                        float_64 const stepRatio1 = dir1 < simDim ? cellSize[dir0] / cellSize[dir1] : 0.0;
+                        float_64 const stepRatio2 = dir2 < simDim ? cellSize[dir0] / cellSize[dir2] : 0.0;
+                        float_64 const betaDir1 = 0.125 * stepRatio1 * stepRatio1;
+                        float_64 const betaDir2 = 0.125 * stepRatio2 * stepRatio2;
+                        auto const alpha = static_cast<float_X>(1.0 - 2.0 * betaDir1 - 2.0 * betaDir2 - 3.0 * delta);
+                        // Initialize all with 0 as we won't set values to some elements later
+                        for(uint32_t i = 0u; i < Size::x::value; i++)
+                            for(uint32_t j = 0u; j < Size::y::value; j++)
+                                for(uint32_t k = 0u; k < Size::z::value; k++)
+                                    value[i][j][k] = 0.0_X;
+                        value[0][0][0] = alpha;
+                        auto idxDir0 = pmacc::DataSpace<3>::create(0);
+                        idxDir0[dir0] = 1;
+                        value[idxDir0[0]][idxDir0[1]][idxDir0[2]] = delta;
+                        auto idxDir1 = pmacc::DataSpace<3>::create(0);
+                        idxDir1[dir1] = 1;
+                        value[idxDir1[0]][idxDir1[1]][idxDir1[2]] = betaDir1;
+                        auto idxDir2 = pmacc::DataSpace<3>::create(0);
+                        idxDir2[dir2] = 1;
+                        value[idxDir2[0]][idxDir2[1]][idxDir2[2]] = betaDir2;
+                    }
+                };
+
+                /** Specialization for the Lehe derivative not along the Cherenkov-free direction
+                 *
+                 * @tparam T_axis Cherenkov-free direction in Lehe solver, 0 = x, 1 = y, 2 = z
+                 * @tparam T_axis derivative axis not equal to Cherenkov-free direction in Lehe solver, 0 = x, 1 = y, 2
+                 * = z
+                 */
+                template<uint32_t T_cherenkovFreeDirection, uint32_t T_axis>
+                struct DerivativeCoefficients<
+                    maxwellSolver::lehe::DerivativeFunctor<T_cherenkovFreeDirection, T_axis>,
+                    T_axis>
+                {
+                    //! Number of coefficients: 2 along T_cherenkovFreeDirection, 1 along other axes
+                    using Size = typename pmacc::math::CT::Assign<
+                        pmacc::math::CT::make_Int<3, 1>::type::vector_type,
+                        bmpl::integral_c<int, T_cherenkovFreeDirection>,
+                        bmpl::integral_c<int, 2>>::type;
+
+                    //! Normalized coefficient values, actual coefficient = value[...] / step[T_axis]
+                    float_X value[Size::x::value][Size::y::value][Size::z::value];
+
+                    //! Instantiate and initialize derivative coefficients
+                    DerivativeCoefficients()
+                    {
+                        constexpr float_X beta = 0.125_X;
+                        constexpr float_X alpha = 1.0_X - 2.0_X * beta;
+                        value[0][0][0] = alpha;
+                        auto idx = pmacc::DataSpace<3>::create(0);
+                        idx[T_cherenkovFreeDirection] = 1;
+                        value[idx[0]][idx[1]][idx[2]] = beta;
                     }
                 };
 
