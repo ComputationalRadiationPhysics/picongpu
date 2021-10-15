@@ -102,6 +102,23 @@ endif()
 # alpaka path
 ################################################################################
 
+
+# workaround for a CMake bug which is not handled in alpaka 0.7.0
+# https://github.com/alpaka-group/alpaka/pull/1423
+if(ALPAKA_ACC_GPU_CUDA_ENABLE)
+        include(CheckLanguage)
+        check_language(CUDA)
+        # Use user selected CMake CXX compiler as cuda host compiler to avoid fallback to the default system CXX host compiler.
+        # CMAKE_CUDA_HOST_COMPILER is reset by check_language(CUDA) therefore definition passed by the user via -DCMAKE_CUDA_HOST_COMPILER are
+        # ignored by CMake (looks like a CMake bug).
+        # The if condition used here should work correct after the CMake bug is fixed, too.
+        # Check the environment variable CUDAHOSTCXX to prefer the CUDA host compiler set by the user.
+        if("$ENV{CUDAHOSTCXX}" STREQUAL "" AND NOT CMAKE_CUDA_HOST_COMPILER)
+            set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+        endif()
+        enable_language(CUDA)
+endif()
+
 # set path to internal
 set(PMACC_ALPAKA_PROVIDER "intern" CACHE STRING "Select which alpaka is used")
 set_property(CACHE PMACC_ALPAKA_PROVIDER PROPERTY STRINGS "intern;extern")
