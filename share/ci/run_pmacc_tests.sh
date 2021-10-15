@@ -21,6 +21,12 @@ CMAKE_ARGS="${PMACC_CONST_ARGS} ${PIC_CMAKE_ARGS} -DCMAKE_CXX_COMPILER=${CXX_VER
 # allow root user to execute MPI
 CMAKE_ARGS="$CMAKE_ARGS -DUSE_MPI_AS_ROOT_USER=ON"
 
+
+# check and activate if clang should be used as CUDA device compiler
+if [ -n "$CI_CLANG_AS_CUDA_COMPILER" ] ; then
+    CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CUDA_COMPILER=${CXX_VERSION}"
+fi
+
 ###################################################
 # translate PIConGPU backend names into CMake Flags
 ###################################################
