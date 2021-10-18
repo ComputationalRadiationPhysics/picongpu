@@ -158,7 +158,7 @@ add_definitions(${PMacc_DEFINITIONS})
 
 find_package(MPI REQUIRED)
 include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
-set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
+set(HOST_LIBS ${HOST_LIBS} ${MPI_C_LIBRARIES})
 
 
 ################################################################################
@@ -166,7 +166,7 @@ set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
 ################################################################################
 
 find_package(Threads REQUIRED)
-set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+set(HOST_LIBS ${HOST_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
 
 ################################################################################
@@ -188,7 +188,7 @@ endif()
 ################################################################################
 
 find_package(ZLIB REQUIRED)
-set(LIBS ${LIBS} ZLIB::ZLIB)
+set(HOST_LIBS ${HOST_LIBS} ZLIB::ZLIB)
 
 
 ################################################################################
@@ -198,7 +198,7 @@ set(LIBS ${LIBS} ZLIB::ZLIB)
 if(NOT WIN32 AND NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     # automatically added on windows
     # should not be added for Intel compiler as it has an optimized lib included
-    set(LIBS ${LIBS} m)
+    set(HOST_LIBS ${HOST_LIBS} m)
 endif()
 
 
@@ -209,12 +209,12 @@ endif()
 find_package(Boost 1.65.1 REQUIRED COMPONENTS program_options filesystem
                                               system math_tr1 serialization)
 if(TARGET Boost::program_options)
-    set(LIBS ${LIBS} Boost::boost Boost::program_options
+    set(HOST_LIBS ${HOST_LIBS} Boost::boost Boost::program_options
                      Boost::filesystem Boost::system Boost::math_tr1
                      Boost::serialization)
 else()
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-    set(LIBS ${LIBS} ${Boost_LIBRARIES})
+    set(HOST_LIBS ${HOST_LIBS} ${Boost_LIBRARIES})
 endif()
 
 
@@ -359,7 +359,7 @@ if(PIC_SEARCH_openPMD)
                 message(STATUS "nlohmann-json: Found version '${nlohmann_json_VERSION}'")
                 PIC_dependency_set_status(openPMD FALSE)
             endif()
-            set(LIBS ${LIBS} openPMD::openPMD)
+            set(HOST_LIBS ${HOST_LIBS} openPMD::openPMD)
         else()
             message(STATUS "Found openPMD at ${openPMD_DIR}, but PIConGPU requires"
                            " availability of either its ADIOS2 or HDF5 backend - "
@@ -384,7 +384,7 @@ if(PIC_SEARCH_PNGwriter)
     find_package(PNGwriter 0.7.0 CONFIG)
 
     if(PNGwriter_FOUND)
-        set(LIBS ${LIBS} PNGwriter::PNGwriter)
+        set(HOST_LIBS ${HOST_LIBS} PNGwriter::PNGwriter)
         add_definitions(-DPIC_ENABLE_PNG=1)
         message(STATUS "Found PNGwriter: ${PNGwriter_DIR}")
     else()
@@ -498,13 +498,13 @@ add_library(picongpu-hostonly
     STATIC
     ${SRCFILES}
 )
-target_link_libraries(picongpu-hostonly PUBLIC ${LIBS})
+target_link_libraries(picongpu-hostonly PUBLIC ${HOST_LIBS})
 
 cupla_add_executable(picongpu
      ${ACCSRCFILES}
 )
 
-target_link_libraries(picongpu PUBLIC ${LIBS} picongpu-hostonly)
+target_link_libraries(picongpu PUBLIC ${LIBS} ${HOST_LIBS} picongpu-hostonly)
 
 if(PIC_HAVE_openPMD)
     # Including <nlohmann/json.hpp> will throw loads of warnings. Quiet them.
