@@ -96,12 +96,12 @@ function getNode() {
     else
         numNodes=$1
     fi
-    if [ $numNodes -gt 8 ] ; then
-        echo "The maximal number of interactive nodes is 8." 1>&2
+    if [ $numNodes -gt 4 ] ; then
+        echo "The maximal number of interactive nodes is 4." 1>&2
         return 1
     fi
     echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
-    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --gres=gpu:4 --mem=515712 -A $account -p gpus bash
+    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --gres=gpu:4 --mem=488G -A $account -p develbooster bash
 }
 
 # allocate an interactive shell for one hour
@@ -117,7 +117,7 @@ function getDevice() {
             numDevices=$1
         fi
     fi
-    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:$(($numDevices)) --mem=515712 -A $account -p develbooster --pty bash
+    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:$(($numDevices)) --mem=488G -A $account -p develbooster --pty bash
 }
 
 # Load autocompletion for PIConGPU commands
