@@ -102,6 +102,18 @@ endif()
 # alpaka path
 ################################################################################
 
+# workaround for native CMake CUDA
+# CMake is not forwarding CMAKE_CUDA_ARCHITECTURES to the CMake CUDA compiler check
+# error: clang: error: cannot find libdevice for sm_20. Provide path to different CUDA installation via --cuda-path, or pass -nocudalib to build without linking with libdevice.
+# The workaround is parsing CMAKE_CUDA_ARCHITECTURES and forward command line parameter directly to clang++.
+if(ALPAKA_ACC_GPU_CUDA_ENABLE AND CMAKE_CUDA_COMPILER)
+    string(REGEX MATCH "(.*clang.*)" IS_CLANGCUDA_COMPILER ${CMAKE_CUDA_COMPILER})
+    if(IS_CLANGCUDA_COMPILER)
+        foreach(_CUDA_ARCH_ELEM ${CMAKE_CUDA_ARCHITECTURES})
+            set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --cuda-gpu-arch=sm_${_CUDA_ARCH_ELEM}")
+        endforeach()
+    endif()
+endif()
 
 # workaround for a CMake bug which is not handled in alpaka 0.7.0
 # https://github.com/alpaka-group/alpaka/pull/1423
@@ -138,9 +150,9 @@ set(PMACC_CUPLA_PROVIDER "intern" CACHE STRING "Select which cupla is used")
 set_property(CACHE PMACC_CUPLA_PROVIDER PROPERTY STRINGS "intern;extern")
 mark_as_advanced(PMACC_CUPLA_PROVIDER)
 
-# force activate CUDA backend if ALPAKA_CUDA_ARCH is defined
+# force activate CUDA backend if CMAKE_CUDA_ARCHITECTURES is defined
 if(
-    (ALPAKA_CUDA_ARCH) AND
+    (CMAKE_CUDA_ARCHITECTURES) AND
     (NOT ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE) AND
     (NOT ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE) AND
     (NOT ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE) AND
