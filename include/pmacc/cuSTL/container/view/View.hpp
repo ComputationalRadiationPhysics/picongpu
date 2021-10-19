@@ -36,36 +36,30 @@ namespace pmacc
         template<typename Buffer>
         struct View : public Buffer
         {
-            HDINLINE View() = default;
+            HINLINE View() = default;
 
             template<typename TBuffer>
-            HDINLINE View(const View<TBuffer>& other)
+            HINLINE View(const View<TBuffer>& other)
             {
                 *this = other;
             }
 
-            HDINLINE ~View()
-            {
-                /* increment the reference counter because the container's destructor decrements it.
-                 * We want to compensate this.
-                 */
-                (*this->refCount)++;
-            }
+            ~View() = default;
 
             template<typename TBuffer>
-            HDINLINE View& operator=(const View<TBuffer>& other)
+            HINLINE View& operator=(const View<TBuffer>& other)
             {
-                this->dataPointer = other.dataPointer;
+                this->sharedPtr = other.sharedPtr;
+                this->shiftedPtr = other.get();
                 this->_size = other._size;
                 this->pitch = other.pitch;
-                this->refCount = other.refCount;
 
                 return *this;
             }
 
         private:
             // forbid view = container
-            HDINLINE Buffer& operator=(const Buffer& rhs);
+            HINLINE Buffer& operator=(const Buffer& rhs);
         };
 
 

@@ -40,10 +40,10 @@ namespace pmacc
             using Cursor = cursor::BufferCursor<type, T_dim>;
             using tag = allocator::tag::host;
 
-            HDINLINE
+            HINLINE
             static cursor::BufferCursor<type, T_dim> allocate(const math::Size_t<T_dim>& size);
-            template<typename TCursor>
-            HDINLINE static void deallocate(const TCursor& cursor);
+            template<typename TDataPtr>
+            HINLINE static void deallocate(const TDataPtr* ptr);
         };
 
         template<typename Type>
@@ -54,10 +54,10 @@ namespace pmacc
             using Cursor = cursor::BufferCursor<type, 1>;
             using tag = allocator::tag::host;
 
-            HDINLINE
+            HINLINE
             static cursor::BufferCursor<type, 1> allocate(const math::Size_t<1>& size);
-            template<typename TCursor>
-            HDINLINE static void deallocate(const TCursor& cursor);
+            template<typename TDataPtr>
+            HINLINE static void deallocate(const TDataPtr* ptr);
         };
 
     } // namespace allocator

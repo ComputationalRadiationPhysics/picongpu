@@ -36,7 +36,7 @@ namespace pmacc
 
             PMACC_NO_NVCC_HDWARNING /* Should never be called from device functions */
                 template<typename Type>
-                HDINLINE static void copy(
+                HINLINE static void copy(
                     Type* dest,
                     const math::Size_t<dim - 1>& pitchDest,
                     Type* source,

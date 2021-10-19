@@ -63,7 +63,7 @@ namespace pmacc
                 assigner::DeviceMemAssigner<>>;
 
         protected:
-            HDINLINE DeviceBuffer() = default;
+            HINLINE DeviceBuffer() = default;
 
         public:
             using PitchType = typename Base::PitchType;
@@ -75,16 +75,16 @@ namespace pmacc
              * @param x,y,z convenient wrapper
              *
              */
-            HDINLINE DeviceBuffer(const math::Size_t<T_dim>& size) : Base(size)
+            HINLINE DeviceBuffer(const math::Size_t<T_dim>& size) : Base(size)
             {
             }
-            HDINLINE DeviceBuffer(size_t x) : Base(x)
+            HINLINE DeviceBuffer(size_t x) : Base(x)
             {
             }
-            HDINLINE DeviceBuffer(size_t x, size_t y) : Base(x, y)
+            HINLINE DeviceBuffer(size_t x, size_t y) : Base(x, y)
             {
             }
-            HDINLINE DeviceBuffer(size_t x, size_t y, size_t z) : Base(x, y, z)
+            HINLINE DeviceBuffer(size_t x, size_t y, size_t z) : Base(x, y, z)
             {
             }
             /**
@@ -96,31 +96,28 @@ namespace pmacc
              *                  Ignored for device side creation!y
              * @param pitch Pitch in bytes (number of bytes in the lower dimensions)
              */
-            HDINLINE DeviceBuffer(
-                Type* ptr,
+            HINLINE DeviceBuffer(
+                std::shared_ptr<Type> ptr,
                 const math::Size_t<T_dim>& size,
                 bool ownMemory,
                 PitchType pitch = PitchType::create(0))
             {
-                this->dataPointer = ptr;
+                this->sharedPtr = ptr;
+                this->shiftedPtr = ptr.get();
                 this->_size = size;
                 if(T_dim >= 2)
                     this->pitch[0] = (pitch[0]) ? pitch[0] : size.x() * sizeof(Type);
                 if(T_dim == 3)
                     this->pitch[1] = (pitch[1]) ? pitch[1] : this->pitch[0] * size.y();
-#ifndef __CUDA_ARCH__
-                this->refCount = new int;
-                *this->refCount = (ownMemory) ? 1 : 2;
-#endif
             }
-            HDINLINE DeviceBuffer(const Base& base) : Base(base)
+            HINLINE DeviceBuffer(const Base& base) : Base(base)
             {
             }
-            HDINLINE DeviceBuffer(DeviceBuffer&& obj) : Base(std::move(static_cast<Base&>(obj)))
+            HINLINE DeviceBuffer(DeviceBuffer&& obj) : Base(std::move(static_cast<Base&>(obj)))
             {
             }
 
-            HDINLINE DeviceBuffer& operator=(DeviceBuffer&& rhs)
+            HINLINE DeviceBuffer& operator=(DeviceBuffer&& rhs)
             {
                 Base::operator=(std::move(static_cast<Base&>(rhs)));
                 return *this;
@@ -141,7 +138,7 @@ namespace pmacc
                                                     .str());
 
                 cuplaWrapper::Memcopy<T_dim>()(
-                    this->dataPointer,
+                    this->getDataPointer(),
                     this->pitch,
                     rhs.getDataPointer(),
                     rhs.getPitch(),

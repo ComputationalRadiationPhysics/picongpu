@@ -36,7 +36,11 @@ namespace pmacc
         template<class TYPE>
         container::HostBuffer<TYPE, 1u> make_CartBuffer(HostBuffer<TYPE, 1u>& hb)
         {
-            return container::HostBuffer<TYPE, 1u>(hb.getBasePointer(), hb.getDataSpace(), false);
+            // pass data pointer without deletion policy
+            return container::HostBuffer<TYPE, 1u>(
+                std::shared_ptr<TYPE>((TYPE*) hb.getBasePointer(), [](auto const*) {}),
+                hb.getDataSpace(),
+                false);
         }
 
         template<class TYPE>
@@ -44,7 +48,12 @@ namespace pmacc
         {
             math::Size_t<2u - 1u> pitch;
             pitch[0] = hb.getPhysicalMemorySize()[0] * sizeof(TYPE);
-            return container::HostBuffer<TYPE, 2u>(hb.getBasePointer(), hb.getDataSpace(), false, pitch);
+            // pass data pointer without deletion policy
+            return container::HostBuffer<TYPE, 2u>(
+                std::shared_ptr<TYPE>((TYPE*) hb.getBasePointer(), [](auto const*) {}),
+                hb.getDataSpace(),
+                false,
+                pitch);
         }
 
         template<class TYPE>
@@ -53,7 +62,12 @@ namespace pmacc
             math::Size_t<3u - 1u> pitch;
             pitch[0] = hb.getPhysicalMemorySize()[0] * sizeof(TYPE);
             pitch[1] = pitch[0] * hb.getPhysicalMemorySize()[1];
-            return container::HostBuffer<TYPE, 3u>(hb.getBasePointer(), hb.getDataSpace(), false, pitch);
+            // pass data pointer without deletion policy
+            return container::HostBuffer<TYPE, 3u>(
+                std::shared_ptr<TYPE>((TYPE*) hb.getBasePointer(), [](auto const*) {}),
+                hb.getDataSpace(),
+                false,
+                pitch);
         }
     } // namespace detail
     class EventTask;

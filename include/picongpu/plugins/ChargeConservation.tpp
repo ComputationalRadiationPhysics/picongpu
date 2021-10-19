@@ -28,7 +28,6 @@
 #include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
 #include <pmacc/cuSTL/container/HostBuffer.hpp>
-#include <pmacc/cuSTL/container/PseudoBuffer.hpp>
 #include <pmacc/cuSTL/cursor/NestedCursor.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/math/Vector.hpp>

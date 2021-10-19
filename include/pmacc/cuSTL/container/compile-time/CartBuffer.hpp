@@ -51,7 +51,7 @@ namespace pmacc
 
             private:
                 Type* dataPointer;
-                // HDINLINE void init();
+
             public:
                 template<typename T_Acc>
                 DINLINE CartBuffer(T_Acc const& acc);
