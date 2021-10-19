@@ -25,7 +25,6 @@
 // and OpenMP runtime supporting at least 3.0. Disable it for other cases.
 #if defined _OPENMP && _OPENMP >= 200805 && ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
 
-//#############################################################################
 //! OpenMP schedule demonstration kernel
 //!
 //! Prints distribution of alpaka thread indices between OpenMP threads.
@@ -33,7 +32,6 @@
 //! Sets no schedule explicitly, so no schedule() clause is used.
 struct OpenMPScheduleDefaultKernel
 {
-    //-----------------------------------------------------------------------------
     template<typename TAcc>
     ALPAKA_FN_HOST auto operator()(TAcc const& acc) const -> void
     {
@@ -49,7 +47,6 @@ struct OpenMPScheduleDefaultKernel
     }
 };
 
-//#############################################################################
 //! Kernel that sets the schedule via a static member.
 //! We inherit OpenMPScheduleDefaultKernel just to reuse its operator().
 struct OpenMPScheduleMemberKernel : public OpenMPScheduleDefaultKernel
@@ -65,7 +62,6 @@ struct OpenMPScheduleMemberKernel : public OpenMPScheduleDefaultKernel
     static constexpr int ompScheduleChunkSize = 1;
 };
 
-//#############################################################################
 //! Kernel that sets the schedule via trait specialization.
 //! We inherit OpenMPScheduleDefaultKernel just to reuse its operator().
 //! The schedule trait specialization is given underneath this struct.

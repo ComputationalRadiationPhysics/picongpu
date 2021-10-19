@@ -11,6 +11,7 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <type_traits>
 
@@ -24,13 +25,20 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The sincos trait.
             template<typename T, typename TArg, typename TSfinae = void>
-            struct SinCos;
+            struct SinCos
+            {
+                ALPAKA_FN_HOST_ACC auto operator()(T const& ctx, TArg const& arg, TArg& result_sin, TArg& result_cos)
+                {
+                    alpaka::ignore_unused(ctx);
+                    // This is an ADL call. If you get a compile error here then your type is not supported by the
+                    // backend and we could not find sincos(TArg, TArg&, TArg&) in the namespace of your type.
+                    return sincos(arg, result_sin, result_cos);
+                }
+            };
         } // namespace traits
 
-        //-----------------------------------------------------------------------------
         //! Computes the sine and cosine (measured in radians).
         //!
         //! \tparam T The type of the object specializing SinCos.
@@ -45,7 +53,7 @@ namespace alpaka
             -> void
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathSinCos, T>;
-            traits::SinCos<ImplementationBase, TArg>::sincos(sincos_ctx, arg, result_sin, result_cos);
+            traits::SinCos<ImplementationBase, TArg>{}(sincos_ctx, arg, result_sin, result_cos);
         }
     } // namespace math
 } // namespace alpaka

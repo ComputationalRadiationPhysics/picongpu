@@ -40,12 +40,10 @@ namespace alpaka
 {
     namespace traits
     {
-        //#############################################################################
         //! The OpenACC device memory set trait specialization.
         template<typename TDim>
         struct CreateTaskMemset<TDim, DevOacc>
         {
-            //-----------------------------------------------------------------------------
             template<typename TExtent, typename TView>
             ALPAKA_FN_HOST static auto createTaskMemset(TView& view, std::uint8_t const& byte, TExtent const& extent)
             {

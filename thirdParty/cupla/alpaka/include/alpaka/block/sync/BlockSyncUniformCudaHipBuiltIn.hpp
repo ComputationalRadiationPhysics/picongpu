@@ -25,44 +25,33 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The GPU CUDA/HIP block synchronization.
     class BlockSyncUniformCudaHipBuiltIn
         : public concepts::Implements<ConceptBlockSync, BlockSyncUniformCudaHipBuiltIn>
     {
     public:
-        //-----------------------------------------------------------------------------
         BlockSyncUniformCudaHipBuiltIn() = default;
-        //-----------------------------------------------------------------------------
         __device__ BlockSyncUniformCudaHipBuiltIn(BlockSyncUniformCudaHipBuiltIn const&) = delete;
-        //-----------------------------------------------------------------------------
         __device__ BlockSyncUniformCudaHipBuiltIn(BlockSyncUniformCudaHipBuiltIn&&) = delete;
-        //-----------------------------------------------------------------------------
         __device__ auto operator=(BlockSyncUniformCudaHipBuiltIn const&) -> BlockSyncUniformCudaHipBuiltIn& = delete;
-        //-----------------------------------------------------------------------------
         __device__ auto operator=(BlockSyncUniformCudaHipBuiltIn&&) -> BlockSyncUniformCudaHipBuiltIn& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~BlockSyncUniformCudaHipBuiltIn() = default;
     };
 
     namespace traits
     {
-        //#############################################################################
         template<>
         struct SyncBlockThreads<BlockSyncUniformCudaHipBuiltIn>
         {
-            //-----------------------------------------------------------------------------
             __device__ static auto syncBlockThreads(BlockSyncUniformCudaHipBuiltIn const& /*blockSync*/) -> void
             {
                 __syncthreads();
             }
         };
 
-        //#############################################################################
         template<>
         struct SyncBlockThreadsPredicate<BlockCount, BlockSyncUniformCudaHipBuiltIn>
         {
-            //-----------------------------------------------------------------------------
             __device__ static auto syncBlockThreadsPredicate(
                 BlockSyncUniformCudaHipBuiltIn const& /*blockSync*/,
                 int predicate) -> int
@@ -85,11 +74,9 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         template<>
         struct SyncBlockThreadsPredicate<BlockAnd, BlockSyncUniformCudaHipBuiltIn>
         {
-            //-----------------------------------------------------------------------------
             __device__ static auto syncBlockThreadsPredicate(
                 BlockSyncUniformCudaHipBuiltIn const& /*blockSync*/,
                 int predicate) -> int
@@ -112,11 +99,9 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         template<>
         struct SyncBlockThreadsPredicate<BlockOr, BlockSyncUniformCudaHipBuiltIn>
         {
-            //-----------------------------------------------------------------------------
             __device__ static auto syncBlockThreadsPredicate(
                 BlockSyncUniformCudaHipBuiltIn const& /*blockSync*/,
                 int predicate) -> int

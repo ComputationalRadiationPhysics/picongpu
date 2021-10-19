@@ -19,20 +19,20 @@
  */
 
 
-#if defined( CUPLA_ACC_CpuOmp2Blocks  )
-#   include <cupla/config/CpuOmp2Blocks.hpp>
-#elif defined( CUPLA_ACC_CpuOmp2Threads  )
-#   include <cupla/config/CpuOmp2Threads.hpp>
-#elif defined( CUPLA_ACC_CpuSerial )
-#   include <cupla/config/CpuSerial.hpp>
-#elif defined( CUPLA_ACC_CpuTbbBlocks  )
-#   include <cupla/config/CpuTbbBlocks.hpp>
-#elif defined( CUPLA_ACC_CpuThreads  )
-#   include <cupla/config/CpuThreads.hpp>
-#elif defined( CUPLA_ACC_GpuCudaRt  )
-#   include <cupla/config/GpuCudaRt.hpp>
-#elif defined( CUPLA_ACC_GpuHipRt  )
-#   include <cupla/config/GpuHipRt.hpp>
+#if defined(CUPLA_ACC_CpuOmp2Blocks)
+#    include <cupla/config/CpuOmp2Blocks.hpp>
+#elif defined(CUPLA_ACC_CpuOmp2Threads)
+#    include <cupla/config/CpuOmp2Threads.hpp>
+#elif defined(CUPLA_ACC_CpuSerial)
+#    include <cupla/config/CpuSerial.hpp>
+#elif defined(CUPLA_ACC_CpuTbbBlocks)
+#    include <cupla/config/CpuTbbBlocks.hpp>
+#elif defined(CUPLA_ACC_CpuThreads)
+#    include <cupla/config/CpuThreads.hpp>
+#elif defined(CUPLA_ACC_GpuCudaRt)
+#    include <cupla/config/GpuCudaRt.hpp>
+#elif defined(CUPLA_ACC_GpuHipRt)
+#    include <cupla/config/GpuHipRt.hpp>
 #endif
 
 #include "cuda_to_cupla.hpp"
@@ -40,9 +40,9 @@
 struct IncrementKernel
 {
     template<typename T_Acc>
-    ALPAKA_FN_ACC void operator()( T_Acc const & acc, int * ptr) const
+    ALPAKA_FN_ACC void operator()(T_Acc const& acc, int* ptr) const
     {
-        for( int i = 0; i < elemDim.x; ++i )
+        for(int i = 0; i < elemDim.x; ++i)
             atomicAdd(ptr, 1);
     }
 };
@@ -51,7 +51,5 @@ struct IncrementKernel
 void callIncrementKernel(int* pr_d)
 {
     // increment 42 times
-    CUPLA_KERNEL_OPTI(
-        IncrementKernel
-    )(7, 6)(pr_d);
+    CUPLA_KERNEL_OPTI(IncrementKernel)(7, 6)(pr_d);
 }

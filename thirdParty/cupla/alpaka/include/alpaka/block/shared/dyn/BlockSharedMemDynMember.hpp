@@ -18,14 +18,13 @@
 #include <type_traits>
 
 #ifndef ALPAKA_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB
-#    define ALPAKA_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB 30
+#    define ALPAKA_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB 47u
 #endif
 
 namespace alpaka
 {
     namespace detail
     {
-        //#############################################################################
         //! "namespace" for static constexpr members that should be in BlockSharedMemDynMember
         //! but cannot be because having a static const member breaks GCC 10
         //! OpenMP target and OpenACC: type not mappable.
@@ -41,7 +40,6 @@ namespace alpaka
 #    pragma warning(push)
 #    pragma warning(disable : 4324) // warning C4324: structure was padded due to alignment specifier
 #endif
-    //#############################################################################
     //! Dynamic block shared memory provider using fixed-size
     //! member array to allocate memory on the stack or in shared
     //! memory.
@@ -50,20 +48,14 @@ namespace alpaka
         : public concepts::Implements<ConceptBlockSharedDyn, BlockSharedMemDynMember<TStaticAllocKiB>>
     {
     public:
-        //-----------------------------------------------------------------------------
         BlockSharedMemDynMember(std::size_t sizeBytes) : m_dynPitch(getPitch(sizeBytes))
         {
             ALPAKA_ASSERT_OFFLOAD(static_cast<std::uint32_t>(sizeBytes) <= staticAllocBytes());
         }
-        //-----------------------------------------------------------------------------
         BlockSharedMemDynMember(BlockSharedMemDynMember const&) = delete;
-        //-----------------------------------------------------------------------------
         BlockSharedMemDynMember(BlockSharedMemDynMember&&) = delete;
-        //-----------------------------------------------------------------------------
         auto operator=(BlockSharedMemDynMember const&) -> BlockSharedMemDynMember& = delete;
-        //-----------------------------------------------------------------------------
         auto operator=(BlockSharedMemDynMember&&) -> BlockSharedMemDynMember& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~BlockSharedMemDynMember() = default;
 
         uint8_t* dynMemBegin() const
@@ -110,7 +102,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         template<typename T, std::size_t TStaticAllocKiB>
         struct GetDynSharedMem<T, BlockSharedMemDynMember<TStaticAllocKiB>>
         {
@@ -119,7 +110,6 @@ namespace alpaka
 #    pragma GCC diagnostic ignored                                                                                    \
         "-Wcast-align" // "cast from 'unsigned char*' to 'unsigned int*' increases required alignment of target type"
 #endif
-            //-----------------------------------------------------------------------------
             static auto getMem(BlockSharedMemDynMember<TStaticAllocKiB> const& mem) -> T*
             {
                 static_assert(

@@ -19,7 +19,6 @@
 
 #include <alpaka/alpaka.hpp>
 
-//#############################################################################
 //! An iterator base class.
 //!
 //! \tparam T The type.
@@ -33,7 +32,6 @@ protected:
     const uint64_t mMaximum;
 
 public:
-    //-----------------------------------------------------------------------------
     //! Constructor.
     //!
     //! \param data A pointer to the data.
@@ -46,13 +44,11 @@ public:
     {
     }
 
-    //-----------------------------------------------------------------------------
     //! Constructor.
     //!
     //! \param other The other iterator object.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE Iterator(const Iterator& other) = default;
 
-    //-----------------------------------------------------------------------------
     //! Compare operator.
     //!
     //! \param other The other object.
@@ -63,7 +59,6 @@ public:
         return (this->mData == other.mData) && (this->mIndex == other.mIndex) && (this->mMaximum == other.mMaximum);
     }
 
-    //-----------------------------------------------------------------------------
     //! Compare operator.
     //!
     //! \param other The other object.
@@ -74,7 +69,6 @@ public:
         return !operator==(other);
     }
 
-    //-----------------------------------------------------------------------------
     //! Compare operator.
     //!
     //! \param other The other object.
@@ -86,7 +80,6 @@ public:
         return mIndex < other.mIndex;
     }
 
-    //-----------------------------------------------------------------------------
     //! Compare operator.
     //!
     //! \param other The other object.
@@ -97,7 +90,6 @@ public:
         return mIndex > other.mIndex;
     }
 
-    //-----------------------------------------------------------------------------
     //! Compare operator.
     //!
     //! \param other The other object.
@@ -108,7 +100,6 @@ public:
         return mIndex <= other.mIndex;
     }
 
-    //-----------------------------------------------------------------------------
     //! Compare operator.
     //!
     //! \param other The other object.
@@ -120,7 +111,6 @@ public:
         return mIndex >= other.mIndex;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the current element.
     //!
     //! Returns a reference to the current index.
@@ -130,7 +120,6 @@ public:
     }
 };
 
-//#############################################################################
 //! A CPU memory iterator.
 //!
 //! \tparam TAcc The accelerator type.
@@ -140,7 +129,6 @@ template<typename TAcc, typename T, typename TBuf = T>
 class IteratorCpu : public Iterator<T, TBuf>
 {
 public:
-    //-----------------------------------------------------------------------------
     //! Constructor.
     //!
     //! \param acc The accelerator object.
@@ -158,7 +146,6 @@ public:
     {
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the iterator for the last item.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto end() const -> IteratorCpu
     {
@@ -167,7 +154,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Increments the internal pointer to the next one and returns this
     //! element.
     //!
@@ -178,7 +164,6 @@ public:
         return *this;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the current element and increments the internal pointer to the
     //! next one.
     //!
@@ -190,7 +175,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Decrements the internal pointer to the previous one and returns the this
     //! element.
     //!
@@ -201,7 +185,6 @@ public:
         return *this;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the current element and decrements the internal pointer to the
     //! previous one.
     //!
@@ -213,7 +196,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the index + a supplied offset.
     //!
     //! \param n The offset.
@@ -224,7 +206,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the index - a supplied offset.
     //!
     //! \param n The offset.
@@ -235,7 +216,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Addition assignment.
     //!
     //! \param offset The offset.
@@ -247,7 +227,6 @@ public:
         return *this;
     }
 
-    //-----------------------------------------------------------------------------
     //! Substraction assignment.
     //!
     //! \param offset The offset.
@@ -260,7 +239,6 @@ public:
     }
 };
 
-//#############################################################################
 //! A GPU memory iterator.
 //!
 //! \tparam TAcc The accelerator type.
@@ -273,7 +251,6 @@ private:
     const uint32_t mGridSize;
 
 public:
-    //-----------------------------------------------------------------------------
     //! Constructor.
     //!
     //! \param data A pointer to the data.
@@ -287,7 +264,6 @@ public:
     {
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the iterator for the last item.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto end() const -> IteratorGpu
     {
@@ -296,7 +272,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Increments the internal pointer to the next one and returns this
     //! element.
     //!
@@ -307,7 +282,6 @@ public:
         return *this;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the current element and increments the internal pointer to the
     //! next one.
     //!
@@ -319,7 +293,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Decrements the internal pointer to the previous one and returns the this
     //! element.
     //!
@@ -330,7 +303,6 @@ public:
         return *this;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the current element and decrements the internal pointer to the
     //! previous one.
     //!
@@ -342,7 +314,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the index + a supplied offset.
     //!
     //! \param n The offset.
@@ -353,7 +324,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the index - a supplied offset.
     //!
     //! \param n The offset.
@@ -364,7 +334,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Addition assignment.
     //!
     //! \param offset The offset.
@@ -376,7 +345,6 @@ public:
         return *this;
     }
 
-    //-----------------------------------------------------------------------------
     //! Substraction assignment.
     //!
     //! \param offset The offset.

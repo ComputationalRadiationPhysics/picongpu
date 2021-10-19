@@ -16,7 +16,6 @@
 // CUDA C Programming guide says: "__host__ __device__ extended lambdas cannot be generic lambdas"
 #if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("genericLambdaKernelIsWorking", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
@@ -34,7 +33,6 @@ TEMPLATE_LIST_TEST_CASE("genericLambdaKernelIsWorking", "[kernel]", alpaka::test
     REQUIRE(fixture(kernel));
 }
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("variadicGenericLambdaKernelIsWorking", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

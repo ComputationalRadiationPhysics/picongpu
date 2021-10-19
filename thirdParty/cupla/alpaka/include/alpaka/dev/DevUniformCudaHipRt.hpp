@@ -46,7 +46,6 @@ namespace alpaka
     class QueueUniformCudaHipRtBlocking;
     class QueueUniformCudaHipRtNonBlocking;
 
-    //#############################################################################
     //! The CUDA/HIP RT device handle.
     class DevUniformCudaHipRt
         : public concepts::Implements<ConceptCurrentThreadWaitFor, DevUniformCudaHipRt>
@@ -55,29 +54,21 @@ namespace alpaka
         friend struct traits::GetDevByIdx<PltfUniformCudaHipRt>;
 
     protected:
-        //-----------------------------------------------------------------------------
         DevUniformCudaHipRt() = default;
 
     public:
-        //-----------------------------------------------------------------------------
         DevUniformCudaHipRt(DevUniformCudaHipRt const&) = default;
-        //-----------------------------------------------------------------------------
         DevUniformCudaHipRt(DevUniformCudaHipRt&&) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(DevUniformCudaHipRt const&) -> DevUniformCudaHipRt& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(DevUniformCudaHipRt&&) -> DevUniformCudaHipRt& = default;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator==(DevUniformCudaHipRt const& rhs) const -> bool
         {
             return m_iDevice == rhs.m_iDevice;
         }
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator!=(DevUniformCudaHipRt const& rhs) const -> bool
         {
             return !((*this) == rhs);
         }
-        //-----------------------------------------------------------------------------
         ~DevUniformCudaHipRt() = default;
 
     public:
@@ -93,12 +84,10 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CUDA/HIP RT device name get trait specialization.
         template<>
         struct GetName<DevUniformCudaHipRt>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getName(DevUniformCudaHipRt const& dev) -> std::string
             {
                 // There is cuda/hip-DeviceGetAttribute as faster alternative to cuda/hip-GetDeviceProperties to get a
@@ -114,12 +103,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CUDA/HIP RT device available memory get trait specialization.
         template<>
         struct GetMemBytes<DevUniformCudaHipRt>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getMemBytes(DevUniformCudaHipRt const& dev) -> std::size_t
             {
                 // Set the current device to wait for.
@@ -134,12 +121,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CUDA/HIP RT device free memory get trait specialization.
         template<>
         struct GetFreeMemBytes<DevUniformCudaHipRt>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getFreeMemBytes(DevUniformCudaHipRt const& dev) -> std::size_t
             {
                 // Set the current device to wait for.
@@ -154,12 +139,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CUDA/HIP RT device warp size get trait specialization.
         template<>
         struct GetWarpSize<DevUniformCudaHipRt>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getWarpSize(DevUniformCudaHipRt const& dev) -> std::size_t
             {
 #    ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
@@ -173,12 +156,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CUDA/HIP RT device reset trait specialization.
         template<>
         struct Reset<DevUniformCudaHipRt>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto reset(DevUniformCudaHipRt const& dev) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
@@ -195,7 +176,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CUDA/HIP RT device memory buffer type trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct BufType<DevUniformCudaHipRt, TElem, TDim, TIdx>
@@ -203,7 +183,6 @@ namespace alpaka
             using type = BufUniformCudaHipRt<TElem, TDim, TIdx>;
         };
 
-        //#############################################################################
         //! The CUDA/HIP RT device platform type trait specialization.
         template<>
         struct PltfType<DevUniformCudaHipRt>
@@ -211,7 +190,6 @@ namespace alpaka
             using type = PltfUniformCudaHipRt;
         };
 
-        //#############################################################################
         //! The thread CUDA/HIP device wait specialization.
         //!
         //! Blocks until the device has completed all preceding requested tasks.
@@ -219,7 +197,6 @@ namespace alpaka
         template<>
         struct CurrentThreadWaitFor<DevUniformCudaHipRt>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto currentThreadWaitFor(DevUniformCudaHipRt const& dev) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;

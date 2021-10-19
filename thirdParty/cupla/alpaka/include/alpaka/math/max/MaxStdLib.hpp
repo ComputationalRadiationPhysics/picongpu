@@ -20,7 +20,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The standard library max.
         class MaxStdLib : public concepts::Implements<ConceptMathMax, MaxStdLib>
         {
@@ -28,18 +27,16 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The standard library integral max trait specialization.
             template<typename Tx, typename Ty>
             struct Max<MaxStdLib, Tx, Ty, std::enable_if_t<std::is_integral<Tx>::value && std::is_integral<Ty>::value>>
             {
-                ALPAKA_FN_HOST static auto max(MaxStdLib const& max_ctx, Tx const& x, Ty const& y)
+                ALPAKA_FN_HOST auto operator()(MaxStdLib const& max_ctx, Tx const& x, Ty const& y)
                 {
                     alpaka::ignore_unused(max_ctx);
                     return std::max(x, y);
                 }
             };
-            //#############################################################################
             //! The standard library mixed integral floating point max trait specialization.
             template<typename Tx, typename Ty>
             struct Max<
@@ -50,7 +47,7 @@ namespace alpaka
                     std::is_arithmetic<Tx>::value && std::is_arithmetic<Ty>::value
                     && !(std::is_integral<Tx>::value && std::is_integral<Ty>::value)>>
             {
-                ALPAKA_FN_HOST static auto max(MaxStdLib const& max_ctx, Tx const& x, Ty const& y)
+                ALPAKA_FN_HOST auto operator()(MaxStdLib const& max_ctx, Tx const& x, Ty const& y)
                 {
                     alpaka::ignore_unused(max_ctx);
                     return std::fmax(x, y);

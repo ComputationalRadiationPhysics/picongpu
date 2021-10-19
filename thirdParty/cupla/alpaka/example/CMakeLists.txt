@@ -20,7 +20,7 @@
 # Required CMake version.
 ################################################################################
 
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.18)
 
 project("alpakaExamples")
 
@@ -32,6 +32,7 @@ add_subdirectory("bufferCopy/")
 add_subdirectory("heatEquation/")
 add_subdirectory("helloWorld/")
 add_subdirectory("helloWorldLambda/")
+add_subdirectory("kernelSpecialization/")
 add_subdirectory("monteCarloIntegration/")
 add_subdirectory("openMPSchedule/")
 add_subdirectory("reduce/")

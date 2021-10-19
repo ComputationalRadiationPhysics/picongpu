@@ -19,7 +19,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The standard library floor.
         class FloorStdLib : public concepts::Implements<ConceptMathFloor, FloorStdLib>
         {
@@ -27,12 +26,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The standard library floor trait specialization.
             template<typename TArg>
             struct Floor<FloorStdLib, TArg, std::enable_if_t<std::is_arithmetic<TArg>::value>>
             {
-                ALPAKA_FN_HOST static auto floor(FloorStdLib const& floor_ctx, TArg const& arg)
+                ALPAKA_FN_HOST auto operator()(FloorStdLib const& floor_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(floor_ctx);
                     return std::floor(arg);

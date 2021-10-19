@@ -26,18 +26,17 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-inline namespace device
-{
-inline namespace math
-{
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        inline namespace device
+        {
+            inline namespace math
+            {
+                //! Computes the absolute value.
+                CUPLA_UNARY_MATH_FN(abs, alpaka::math::ConceptMathAbs, Abs)
 
-    //! Computes the absolute value.
-    CUPLA_UNARY_MATH_FN( abs, alpaka::math::ConceptMathAbs, Abs )
 
-
-} // namespace math
-} // namespace device
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+            } // namespace math
+        } // namespace device
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

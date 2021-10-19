@@ -61,7 +61,6 @@ namespace alpaka
     constexpr size_t oaccMaxWorkerNum = 1;
 #    endif
 
-    //#############################################################################
     //! The OpenACC accelerator.
     template<
         typename TDim,
@@ -90,7 +89,6 @@ namespace alpaka
         friend class ::alpaka::TaskKernelOacc;
 
     protected:
-        //-----------------------------------------------------------------------------
         AccOacc(TIdx const& blockThreadIdx, CtxBlockOacc<TDim, TIdx>& blockShared)
             : bt::IdxBtLinear<TDim, TIdx>(blockThreadIdx)
             , AtomicHierarchy<
@@ -106,15 +104,10 @@ namespace alpaka
         }
 
     public:
-        //-----------------------------------------------------------------------------
         AccOacc(AccOacc const&) = delete;
-        //-----------------------------------------------------------------------------
         AccOacc(AccOacc&&) = delete;
-        //-----------------------------------------------------------------------------
         auto operator=(AccOacc const&) -> AccOacc& = delete;
-        //-----------------------------------------------------------------------------
         auto operator=(AccOacc&&) -> AccOacc& = delete;
-        //-----------------------------------------------------------------------------
         ~AccOacc() = default;
 
         CtxBlockOacc<TDim, TIdx>& m_blockShared;
@@ -122,19 +115,16 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The OpenACC accelerator accelerator type trait specialization.
         template<typename TDim, typename TIdx>
         struct AccType<AccOacc<TDim, TIdx>>
         {
             using type = AccOacc<TDim, TIdx>;
         };
-        //#############################################################################
         //! The OpenACC accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccOacc<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccDevProps(DevOacc const& dev) -> AccDevProps<TDim, TIdx>
             {
                 alpaka::ignore_unused(dev);
@@ -166,19 +156,16 @@ namespace alpaka
                         CtxBlockOacc<TDim, TIdx>::staticAllocBytes()};
             }
         };
-        //#############################################################################
         //! The OpenACC accelerator name trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccName<AccOacc<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
                 return "AccOacc<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
             }
         };
 
-        //#############################################################################
         //! The OpenACC accelerator device type trait specialization.
         template<typename TDim, typename TIdx>
         struct DevType<AccOacc<TDim, TIdx>>
@@ -186,7 +173,6 @@ namespace alpaka
             using type = DevOacc;
         };
 
-        //#############################################################################
         //! The OpenACC accelerator dimension getter trait specialization.
         template<typename TDim, typename TIdx>
         struct DimType<AccOacc<TDim, TIdx>>
@@ -194,12 +180,10 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The OpenACC accelerator execution task type trait specialization.
         template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
         struct CreateTaskKernel<AccOacc<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto createTaskKernel(
                 TWorkDiv const& workDiv,
                 TKernelFnObj const& kernelFnObj,
@@ -212,7 +196,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The OpenACC execution task platform type trait specialization.
         template<typename TDim, typename TIdx>
         struct PltfType<AccOacc<TDim, TIdx>>
@@ -220,7 +203,6 @@ namespace alpaka
             using type = PltfOacc;
         };
 
-        //#############################################################################
         //! The OpenACC accelerator idx type trait specialization.
         template<typename TDim, typename TIdx>
         struct IdxType<AccOacc<TDim, TIdx>>
@@ -228,12 +210,10 @@ namespace alpaka
             using type = TIdx;
         };
 
-        //#############################################################################
         //! The OpenACC accelerator grid block index get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetIdx<AccOacc<TDim, TIdx>, origin::Grid, unit::Blocks>
         {
-            //-----------------------------------------------------------------------------
             //! \return The index of the current block in the grid.
             template<typename TWorkDiv>
             static auto getIdx(AccOacc<TDim, TIdx> const& idx, TWorkDiv const& workDiv) -> Vec<TDim, TIdx>
@@ -248,7 +228,6 @@ namespace alpaka
         template<typename TIdx>
         struct GetIdx<AccOacc<DimInt<1u>, TIdx>, origin::Grid, unit::Blocks>
         {
-            //-----------------------------------------------------------------------------
             //! \return The index of the current block in the grid.
             template<typename TWorkDiv>
             static auto getIdx(AccOacc<DimInt<1u>, TIdx> const& idx, TWorkDiv const&) -> Vec<DimInt<1u>, TIdx>
@@ -257,7 +236,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         template<typename T, typename TDim, typename TIdx>
         struct GetDynSharedMem<T, AccOacc<TDim, TIdx>>
         {
@@ -266,7 +244,6 @@ namespace alpaka
 #        pragma GCC diagnostic ignored "-Wcast-align" // "cast from 'unsigned char*' to 'unsigned int*' increases
                                                       // required alignment of target type"
 #    endif
-            //-----------------------------------------------------------------------------
             static auto getMem(AccOacc<TDim, TIdx> const& mem) -> T*
             {
                 return reinterpret_cast<T*>(mem.m_blockShared.dynMemBegin());
@@ -276,33 +253,27 @@ namespace alpaka
 #    endif
         };
 
-        //#############################################################################
         template<typename T, typename TDim, typename TIdx, std::size_t TuniqueId>
         struct DeclareSharedVar<T, TuniqueId, AccOacc<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             static auto declareVar(AccOacc<TDim, TIdx> const& smem) -> T&
             {
                 return alpaka::declareSharedVar<T, TuniqueId>(smem.m_blockShared);
             }
         };
 
-        //#############################################################################
         template<typename TDim, typename TIdx>
         struct FreeSharedVars<AccOacc<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             static auto freeVars(AccOacc<TDim, TIdx> const& smem) -> void
             {
                 alpaka::freeSharedVars(smem.m_blockShared);
             }
         };
 
-        //#############################################################################
         template<typename TDim, typename TIdx>
         struct SyncBlockThreads<AccOacc<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             //! Execute op with single thread (any idx, last thread to
             //! arrive at barrier executes) syncing before and after
             template<typename TOp>
@@ -311,18 +282,15 @@ namespace alpaka
                 SyncBlockThreads<CtxBlockOacc<TDim, TIdx>>::masterOpBlockThreads(acc.m_blockShared, op);
             }
 
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto syncBlockThreads(AccOacc<TDim, TIdx> const& acc) -> void
             {
                 SyncBlockThreads<CtxBlockOacc<TDim, TIdx>>::syncBlockThreads(acc.m_blockShared);
             }
         };
 
-        //#############################################################################
         template<typename TOp, typename TDim, typename TIdx>
         struct SyncBlockThreadsPredicate<TOp, AccOacc<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_ACC static auto syncBlockThreadsPredicate(AccOacc<TDim, TIdx> const& acc, int predicate) -> int
             {
@@ -332,12 +300,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The OpenACC grid block extent trait specialization.
         template<typename TDim, typename TIdx>
         struct GetWorkDiv<AccOacc<TDim, TIdx>, origin::Grid, unit::Blocks>
         {
-            //-----------------------------------------------------------------------------
             //! \return The number of blocks in each dimension of the grid.
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC static auto getWorkDiv(AccOacc<TDim, TIdx> const& workDiv) -> Vec<TDim, TIdx>
@@ -347,12 +313,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The OpenACC block thread extent trait specialization.
         template<typename TDim, typename TIdx>
         struct GetWorkDiv<AccOacc<TDim, TIdx>, origin::Block, unit::Threads>
         {
-            //-----------------------------------------------------------------------------
             //! \return The number of threads in each dimension of a block.
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC static auto getWorkDiv(AccOacc<TDim, TIdx> const& workDiv) -> Vec<TDim, TIdx>
@@ -362,12 +326,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The OpenACC thread element extent trait specialization.
         template<typename TDim, typename TIdx>
         struct GetWorkDiv<AccOacc<TDim, TIdx>, origin::Thread, unit::Elems>
         {
-            //-----------------------------------------------------------------------------
             //! \return The number of elements in each dimension of a thread.
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC static auto getWorkDiv(AccOacc<TDim, TIdx> const& workDiv) -> Vec<TDim, TIdx>

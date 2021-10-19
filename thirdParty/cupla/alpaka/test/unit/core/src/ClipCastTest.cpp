@@ -11,7 +11,6 @@
 
 #include <catch2/catch.hpp>
 
-//-----------------------------------------------------------------------------
 TEST_CASE("clipCastNoCastShouldNotChangeTheValue", "[core]")
 {
     CHECK(
@@ -28,7 +27,6 @@ TEST_CASE("clipCastNoCastShouldNotChangeTheValue", "[core]")
         == alpaka::core::clipCast<std::uint64_t>(std::numeric_limits<std::uint64_t>::max()));
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("clipCastUpCastEqualSigndnessShouldNotChangeTheValue", "[core]")
 {
     CHECK(
@@ -42,7 +40,6 @@ TEST_CASE("clipCastUpCastEqualSigndnessShouldNotChangeTheValue", "[core]")
         == alpaka::core::clipCast<std::int64_t>(std::numeric_limits<std::int32_t>::min()));
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("clipCastUpCastDifferentSigndnessShouldNotChangeTheValueForPositives", "[core]")
 {
     CHECK(
@@ -56,7 +53,6 @@ TEST_CASE("clipCastUpCastDifferentSigndnessShouldNotChangeTheValueForPositives",
         == alpaka::core::clipCast<std::uint64_t>(std::numeric_limits<std::int32_t>::max()));
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("clipCastUpCastDifferentSigndnessCanChangeTheValueForNegatives", "[core]")
 {
     CHECK(
@@ -70,7 +66,6 @@ TEST_CASE("clipCastUpCastDifferentSigndnessCanChangeTheValueForNegatives", "[cor
         == alpaka::core::clipCast<std::uint64_t>(std::numeric_limits<std::int32_t>::min()));
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("clipCastDownCastEqualSigndnessCanChangeTheValue", "[core]")
 {
     CHECK(
@@ -87,7 +82,6 @@ TEST_CASE("clipCastDownCastEqualSigndnessCanChangeTheValue", "[core]")
         == alpaka::core::clipCast<std::int8_t>(std::numeric_limits<std::int64_t>::min()));
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("clipCastDownCastDifferentSigndnessCanChangeTheValue", "[core]")
 {
     CHECK(

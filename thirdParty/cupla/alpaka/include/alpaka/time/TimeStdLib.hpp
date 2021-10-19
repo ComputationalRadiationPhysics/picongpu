@@ -17,33 +17,24 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The CPU fibers accelerator time implementation.
     class TimeStdLib : public concepts::Implements<ConceptTime, TimeStdLib>
     {
     public:
-        //-----------------------------------------------------------------------------
         TimeStdLib() = default;
-        //-----------------------------------------------------------------------------
         TimeStdLib(TimeStdLib const&) = delete;
-        //-----------------------------------------------------------------------------
         TimeStdLib(TimeStdLib&&) = delete;
-        //-----------------------------------------------------------------------------
         auto operator=(TimeStdLib const&) -> TimeStdLib& = delete;
-        //-----------------------------------------------------------------------------
         auto operator=(TimeStdLib&&) -> TimeStdLib& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~TimeStdLib() = default;
     };
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU fibers accelerator clock operation.
         template<>
         struct Clock<TimeStdLib>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto clock(TimeStdLib const& time) -> std::uint64_t
             {
                 alpaka::ignore_unused(time);

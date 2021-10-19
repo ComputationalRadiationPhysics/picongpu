@@ -14,7 +14,6 @@
 #include <tuple>
 #include <type_traits>
 
-//-----------------------------------------------------------------------------
 TEST_CASE("filter", "[meta]")
 {
     using FilterInput = std::tuple<int, float, long>;

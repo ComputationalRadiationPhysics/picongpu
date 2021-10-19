@@ -46,7 +46,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The CUDA built in cbrt.
         class CbrtUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathCbrt, CbrtUniformCudaHipBuiltIn>
         {
@@ -54,12 +53,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The CUDA cbrt trait specialization.
             template<typename TArg>
             struct Cbrt<CbrtUniformCudaHipBuiltIn, TArg, std::enable_if_t<std::is_arithmetic<TArg>::value>>
             {
-                __device__ static auto cbrt(CbrtUniformCudaHipBuiltIn const& cbrt_ctx, TArg const& arg)
+                __device__ auto operator()(CbrtUniformCudaHipBuiltIn const& cbrt_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(cbrt_ctx);
                     return ::cbrt(arg);
@@ -69,7 +67,7 @@ namespace alpaka
             template<>
             struct Cbrt<CbrtUniformCudaHipBuiltIn, float>
             {
-                __device__ static auto cbrt(CbrtUniformCudaHipBuiltIn const& cbrt_ctx, float const& arg) -> float
+                __device__ auto operator()(CbrtUniformCudaHipBuiltIn const& cbrt_ctx, float const& arg) -> float
                 {
                     alpaka::ignore_unused(cbrt_ctx);
                     return ::cbrtf(arg);

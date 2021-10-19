@@ -13,11 +13,6 @@ set(_TARGET_NAME "math")
 append_recursive_files_add_to_src_group("src/" "src/" "cpp" _FILES_SOURCE)
 append_recursive_files_add_to_src_group("src/" "src/" "hpp" _FILES_HEADER)
 
-if(ALPAKA_ACC_GPU_CUDA_ENABLE)
-    list(REMOVE_ITEM
-            CUDA_NVCC_FLAGS "--ftz=true" "--prec-div=false" "--prec-sqrt=false" "--fmad=true" "--use_fast_math" "-use_fast_math")
-
-endif()
 if(ALPAKA_ACC_GPU_HIP_ENABLE)
     list(REMOVE_ITEM
             HIP_NVCC_FLAGS "--ftz=true" "--prec-div=false" "--prec-sqrt=false" "--fmad=true" "--use_fast_math" "-use_fast_math")

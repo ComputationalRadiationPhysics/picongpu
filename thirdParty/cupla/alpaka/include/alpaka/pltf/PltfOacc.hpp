@@ -24,18 +24,15 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The OpenACC device platform.
     class PltfOacc : public concepts::Implements<ConceptPltf, PltfOacc>
     {
     public:
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST PltfOacc() = delete;
     };
 
     namespace traits
     {
-        //#############################################################################
         //! The OpenACC device device type trait specialization.
         template<>
         struct DevType<PltfOacc>
@@ -43,12 +40,10 @@ namespace alpaka
             using type = DevOacc;
         };
 
-        //#############################################################################
         //! The OpenACC platform device count get trait specialization.
         template<>
         struct GetDevCount<PltfOacc>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDevCount() -> std::size_t
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
@@ -57,12 +52,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The OpenACC platform device get trait specialization.
         template<>
         struct GetDevByIdx<PltfOacc>
         {
-            //-----------------------------------------------------------------------------
             //! \param devIdx device id, less than GetDevCount
             ALPAKA_FN_HOST static auto getDevByIdx(std::size_t devIdx) -> DevOacc
             {

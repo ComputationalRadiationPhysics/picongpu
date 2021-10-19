@@ -44,7 +44,6 @@ namespace alpaka
             };
         } // namespace detail
 
-        //#############################################################################
         //! Trait that returns a list with only unique (no equal) types (a set). Duplicates will be filtered out.
         template<typename TList>
         using Unique = typename detail::UniqueImpl<TList>::type;

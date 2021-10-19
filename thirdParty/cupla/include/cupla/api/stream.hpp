@@ -21,36 +21,22 @@
 
 #pragma once
 
-#include <alpaka/alpaka.hpp>
-
 #include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla_driver_types.hpp"
 
+#include <alpaka/alpaka.hpp>
+
 inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
+    cuplaError_t cuplaStreamCreate(cuplaStream_t* stream);
 
-cuplaError_t
-cuplaStreamCreate(
-    cuplaStream_t * stream
-);
+    cuplaError_t cuplaStreamDestroy(cuplaStream_t stream);
 
-cuplaError_t
-cuplaStreamDestroy( cuplaStream_t stream );
+    cuplaError_t cuplaStreamSynchronize(cuplaStream_t stream);
 
-cuplaError_t
-cuplaStreamSynchronize(
-    cuplaStream_t stream
-);
+    cuplaError_t cuplaStreamWaitEvent(cuplaStream_t stream, cuplaEvent_t event, unsigned int flags);
 
-cuplaError_t
-cuplaStreamWaitEvent(
-    cuplaStream_t stream,
-    cuplaEvent_t event,
-    unsigned int flags
-);
+    cuplaError_t cuplaStreamQuery(cuplaStream_t stream);
 
-cuplaError_t
-cuplaStreamQuery( cuplaStream_t stream );
-
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace CUPLA_ACCELERATOR_NAMESPACE

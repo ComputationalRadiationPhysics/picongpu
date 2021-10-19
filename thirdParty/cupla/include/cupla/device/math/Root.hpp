@@ -26,23 +26,22 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-inline namespace device
-{
-inline namespace math
-{
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        inline namespace device
+        {
+            inline namespace math
+            {
+                //! Computes the square root.
+                CUPLA_UNARY_MATH_FN(sqrt, alpaka::math::ConceptMathSqrt, Sqrt)
 
-    //! Computes the square root.
-    CUPLA_UNARY_MATH_FN( sqrt, alpaka::math::ConceptMathSqrt, Sqrt )
+                //! Computes the inverse square root.
+                CUPLA_UNARY_MATH_FN(rsqrt, alpaka::math::ConceptMathRsqrt, Rsqrt)
 
-    //! Computes the inverse square root.
-    CUPLA_UNARY_MATH_FN( rsqrt, alpaka::math::ConceptMathRsqrt, Rsqrt )
+                //! Computes the cubic root.
+                CUPLA_UNARY_MATH_FN(cbrt, alpaka::math::ConceptMathCbrt, Cbrt)
 
-    //! Computes the cubic root.
-    CUPLA_UNARY_MATH_FN( cbrt, alpaka::math::ConceptMathCbrt, Cbrt )
-
-} // namespace math
-} // namespace device
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+            } // namespace math
+        } // namespace device
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

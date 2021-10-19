@@ -277,7 +277,7 @@ Access to Accelerator-Dependent Functionality
 
 There are two possible ways to implement access to accelerator dependent functionality inside a kernel:
 
-* Making the functions/templates members of the accelerator (maybe by inheritance) and calling them like ``acc.syncThreads()`` or ``acc.template getIdx<Grid, Thread, Dim1>()``.
+* Making the functions/templates members of the accelerator (maybe by inheritance) and calling them like ``acc.syncBlockThreads()`` or ``acc.template getIdx<Grid, Thread, Dim1>()``.
   This would require the user to know and understand when to use the template keyword inside dependent type  object function calls.
 * The functions are only light wrappers around traits that can be specialized taking the accelerator as first value (it can not be the last value because of the potential use of variadic arguments).
   The resulting code would look like ``sync(acc)`` or ``getIdx<Grid, Thread, Dim1>(acc)``.

@@ -20,17 +20,14 @@ namespace alpaka
     {
     };
 
-    //-----------------------------------------------------------------------------
     //! The block shared dynamic memory operation traits.
     namespace traits
     {
-        //#############################################################################
         //! The block shared dynamic memory get trait.
         template<typename T, typename TBlockSharedMemDyn, typename TSfinae = void>
         struct GetDynSharedMem;
     } // namespace traits
 
-    //-----------------------------------------------------------------------------
     //! Get block shared dynamic memory.
     //!
     //! The available size of the memory can be defined by specializing the trait

@@ -12,7 +12,6 @@
 
 #include <catch2/catch.hpp>
 
-//#############################################################################
 //! It is not possible to use a alpaka kernel function object without a templated operator() when the CUDA accelerator
 //! is hard-coded.
 //!
@@ -42,10 +41,8 @@ using AccGpu = alpaka::AccGpuCudaRt<Dim, Idx>;
 #endif
 
 #if defined(ALPAKA_ACC_CPU_SERIAL_ENABLED)
-//#############################################################################
 struct KernelNoTemplateCpu
 {
-    //-----------------------------------------------------------------------------
     ALPAKA_FN_ACC
     auto operator()(AccCpu const& acc, bool* success) const -> void
     {
@@ -55,7 +52,6 @@ struct KernelNoTemplateCpu
     }
 };
 
-//-----------------------------------------------------------------------------
 TEST_CASE("kernelNoTemplateCpu", "[kernel]")
 {
     alpaka::test::KernelExecutionFixture<AccCpu> fixture(alpaka::Vec<Dim, Idx>::ones());
@@ -67,11 +63,9 @@ TEST_CASE("kernelNoTemplateCpu", "[kernel]")
 #endif
 
 /*#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
-//#############################################################################
 //! DO NOT ENABLE! COMPILATION WILL FAIL!
 struct KernelNoTemplateGpu
 {
-    //-----------------------------------------------------------------------------
     ALPAKA_FN_ACC
     auto operator()(
         AccGpu const & acc,
@@ -84,7 +78,6 @@ struct KernelNoTemplateGpu
     }
 };
 
-//-----------------------------------------------------------------------------
 TEST_CASE("kernelNoTemplateGpu", "[kernel]")
 {
     alpaka::test::KernelExecutionFixture<AccGpu> fixture(
@@ -97,10 +90,8 @@ TEST_CASE("kernelNoTemplateGpu", "[kernel]")
 #endif*/
 
 #if defined(ALPAKA_ACC_CPU_SERIAL_ENABLED)
-//#############################################################################
 struct KernelWithoutTemplateParamCpu
 {
-    //-----------------------------------------------------------------------------
     template<typename TNotUsed = void>
     ALPAKA_FN_ACC auto operator()(AccCpu const& acc, bool* success) const -> void
     {
@@ -110,7 +101,6 @@ struct KernelWithoutTemplateParamCpu
     }
 };
 
-//-----------------------------------------------------------------------------
 TEST_CASE("kernelWithoutTemplateParamCpu", "[kernel]")
 {
     alpaka::test::KernelExecutionFixture<AccCpu> fixture(alpaka::Vec<Dim, Idx>::ones());
@@ -122,10 +112,8 @@ TEST_CASE("kernelWithoutTemplateParamCpu", "[kernel]")
 #endif
 
 #if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
-//#############################################################################
 struct KernelWithoutTemplateParamGpu
 {
-    //-----------------------------------------------------------------------------
     template<typename TNotUsed = void>
     ALPAKA_FN_ACC auto operator()(AccGpu const& acc, bool* success) const -> void
     {
@@ -135,7 +123,6 @@ struct KernelWithoutTemplateParamGpu
     }
 };
 
-//-----------------------------------------------------------------------------
 TEST_CASE("kernelWithoutTemplateParamGpu", "[kernel]")
 {
     alpaka::test::KernelExecutionFixture<AccGpu> fixture(alpaka::Vec<Dim, Idx>::ones());

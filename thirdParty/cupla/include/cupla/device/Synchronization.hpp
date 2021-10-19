@@ -27,34 +27,31 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-inline namespace device
-{
-
-    /** synchronize threads within the block
-     *
-     * @tparam T_Acc alpaka accelerator [alpaka::*]
-     * @param acc alpaka accelerator
-     *
-     * @{
-     */
-    template< typename T_Acc >
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE
-    void syncThreads( T_Acc const & acc )
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
     {
-        ::alpaka::syncBlockThreads( acc );
-    }
+        inline namespace device
+        {
+            /** synchronize threads within the block
+             *
+             * @tparam T_Acc alpaka accelerator [alpaka::*]
+             * @param acc alpaka accelerator
+             *
+             * @{
+             */
+            template<typename T_Acc>
+            ALPAKA_FN_ACC ALPAKA_FN_INLINE void syncThreads(T_Acc const& acc)
+            {
+                ::alpaka::syncBlockThreads(acc);
+            }
 
-    template< typename T_Acc >
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE
-    void __syncthreads( T_Acc const & acc )
-    {
-        syncThreads( acc );
-    }
+            template<typename T_Acc>
+            ALPAKA_FN_ACC ALPAKA_FN_INLINE void __syncthreads(T_Acc const& acc)
+            {
+                syncThreads(acc);
+            }
 
-    //!@}
+            //!@}
 
-} // namespace device
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+        } // namespace device
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

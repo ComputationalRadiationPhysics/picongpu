@@ -15,11 +15,9 @@
 
 #include <catch2/catch.hpp>
 
-//#############################################################################
 class BlockSharedMemStNonNullTestKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
@@ -63,7 +61,6 @@ public:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("nonNull", "[blockSharedMemSt]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
@@ -78,11 +75,9 @@ TEMPLATE_LIST_TEST_CASE("nonNull", "[blockSharedMemSt]", alpaka::test::TestAccs)
     REQUIRE(fixture(kernel));
 }
 
-//#############################################################################
 class BlockSharedMemStSameTypeAdressVerificationTestKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
@@ -129,7 +124,6 @@ public:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("sameTypeAddressVerification", "[blockSharedMemSt]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

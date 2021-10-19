@@ -1,5 +1,5 @@
 #
-# Copyright 2016 Rene Widera, Benjamin Worpitz
+# Copyright 2021 Simeon Ehrig
 #
 # This file is part of cupla.
 #
@@ -18,14 +18,12 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-find_path(
-    _cupla_ROOT_DIR
-    NAMES "include/cuda_to_cupla.hpp"
-    HINTS "${cupla_ROOT}" ENV CUPLA_ROOT
-    DOC "cupla ROOT location")
+cmake_minimum_required(VERSION 3.18.0)
+project(cuplaVectorAdd)
 
-if(_cupla_ROOT_DIR)
-    include("${_cupla_ROOT_DIR}/cuplaConfig.cmake")
-else()
-    message(FATAL_ERROR "cupla could not be found!")
-endif()
+add_subdirectory(alpaka)
+add_subdirectory(cupla)
+
+cupla_add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/vectorAdd.cpp)
+
+install(TARGETS ${PROJECT_NAME})

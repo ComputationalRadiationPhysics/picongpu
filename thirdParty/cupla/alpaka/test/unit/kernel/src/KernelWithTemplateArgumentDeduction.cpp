@@ -16,12 +16,10 @@
 
 #include <type_traits>
 
-//#############################################################################
 template<typename TExpected>
 class KernelInvocationTemplateDeductionValueSemantics
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename Acc, typename TByValue, typename TByConstValue, typename TByConstReference>
     ALPAKA_FN_ACC auto operator()(
@@ -47,7 +45,6 @@ public:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("kernelFuntionObjectTemplateDeductionFromValue", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
@@ -94,12 +91,10 @@ TEMPLATE_LIST_TEST_CASE("kernelFuntionObjectTemplateDeductionFromConstReference"
     REQUIRE(fixture(kernel, constReference, constReference, constReference));
 }
 
-//#############################################################################
 template<typename TExpectedFirst, typename TExpectedSecond = TExpectedFirst>
 class KernelInvocationTemplateDeductionPointerSemantics
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename Acc, typename TByPointer, typename TByPointerToConst>
     ALPAKA_FN_ACC auto operator()(Acc const& acc, bool* success, TByPointer*, TByPointerToConst const*) const -> void
@@ -117,7 +112,6 @@ public:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("kernelFuntionObjectTemplateDeductionFromPointer", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

@@ -102,6 +102,35 @@ endif()
 # alpaka path
 ################################################################################
 
+# workaround for native CMake CUDA
+# CMake is not forwarding CMAKE_CUDA_ARCHITECTURES to the CMake CUDA compiler check
+# error: clang: error: cannot find libdevice for sm_20. Provide path to different CUDA installation via --cuda-path, or pass -nocudalib to build without linking with libdevice.
+# The workaround is parsing CMAKE_CUDA_ARCHITECTURES and forward command line parameter directly to clang++.
+if(ALPAKA_ACC_GPU_CUDA_ENABLE AND CMAKE_CUDA_COMPILER)
+    string(REGEX MATCH "(.*clang.*)" IS_CLANGCUDA_COMPILER ${CMAKE_CUDA_COMPILER})
+    if(IS_CLANGCUDA_COMPILER)
+        foreach(_CUDA_ARCH_ELEM ${CMAKE_CUDA_ARCHITECTURES})
+            set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --cuda-gpu-arch=sm_${_CUDA_ARCH_ELEM}")
+        endforeach()
+    endif()
+endif()
+
+# workaround for a CMake bug which is not handled in alpaka 0.7.0
+# https://github.com/alpaka-group/alpaka/pull/1423
+if(ALPAKA_ACC_GPU_CUDA_ENABLE)
+        include(CheckLanguage)
+        check_language(CUDA)
+        # Use user selected CMake CXX compiler as cuda host compiler to avoid fallback to the default system CXX host compiler.
+        # CMAKE_CUDA_HOST_COMPILER is reset by check_language(CUDA) therefore definition passed by the user via -DCMAKE_CUDA_HOST_COMPILER are
+        # ignored by CMake (looks like a CMake bug).
+        # The if condition used here should work correct after the CMake bug is fixed, too.
+        # Check the environment variable CUDAHOSTCXX to prefer the CUDA host compiler set by the user.
+        if("$ENV{CUDAHOSTCXX}" STREQUAL "" AND NOT CMAKE_CUDA_HOST_COMPILER)
+            set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+        endif()
+        enable_language(CUDA)
+endif()
+
 # set path to internal
 set(PMACC_ALPAKA_PROVIDER "intern" CACHE STRING "Select which alpaka is used")
 set_property(CACHE PMACC_ALPAKA_PROVIDER PROPERTY STRINGS "intern;extern")
@@ -121,9 +150,9 @@ set(PMACC_CUPLA_PROVIDER "intern" CACHE STRING "Select which cupla is used")
 set_property(CACHE PMACC_CUPLA_PROVIDER PROPERTY STRINGS "intern;extern")
 mark_as_advanced(PMACC_CUPLA_PROVIDER)
 
-# force activate CUDA backend if ALPAKA_CUDA_ARCH is defined
+# force activate CUDA backend if CMAKE_CUDA_ARCHITECTURES is defined
 if(
-    (ALPAKA_CUDA_ARCH) AND
+    (CMAKE_CUDA_ARCHITECTURES) AND
     (NOT ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE) AND
     (NOT ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE) AND
     (NOT ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE) AND
@@ -140,20 +169,7 @@ if(
 endif()
 
 if(${PMACC_CUPLA_PROVIDER} STREQUAL "intern")
-    find_package(cupla
-        REQUIRED
-        CONFIG
-        PATHS "${PMacc_DIR}/../../thirdParty/cupla"
-        NO_DEFAULT_PATH
-        NO_CMAKE_ENVIRONMENT_PATH
-        NO_CMAKE_PATH
-        NO_SYSTEM_ENVIRONMENT_PATH
-        NO_CMAKE_PACKAGE_REGISTRY
-        NO_CMAKE_BUILDS_PATH
-        NO_CMAKE_SYSTEM_PATH
-        NO_CMAKE_SYSTEM_PACKAGE_REGISTRY
-        NO_CMAKE_FIND_ROOT_PATH
-    )
+    add_subdirectory(${PMacc_DIR}/../../thirdParty/cupla ${CMAKE_BINARY_DIR}/cupla)
 else()
     find_package("cupla" PATHS $ENV{CUPLA_ROOT} REQUIRED)
 endif()
@@ -170,7 +186,7 @@ endif()
 # add possible indirect/transient library dependencies from alpaka backends
 # note: includes and definitions are already added in the cupla_add_executable
 #       wrapper
-set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${cupla_LIBRARIES})
+set(PMacc_LIBRARIES ${PMacc_LIBRARIES} cupla::cupla)
 
 
 ###############################################################################
@@ -336,19 +352,6 @@ if(Boost_VERSION GREATER 107000)
     message(WARNING "Untested Boost release > 1.70.0 (Found ${Boost_VERSION})! "
                     "Maybe use a newer PIConGPU?")
 endif()
-
-if(ALPAKA_ACC_GPU_CUDA_ENABLE)
-    if(CUDA_VERSION VERSION_LESS 9.2)
-        message(FATAL_ERROR "CUDA 9.2 or newer required! "
-                            "(Found ${CUDA_VERSION})")
-    endif()
-    # Newer CUDA releases: probably troublesome, warn at least
-    if(CUDA_VERSION VERSION_GREATER 11.2)
-        message(WARNING "Untested CUDA release >11.2 (Found ${CUDA_VERSION})! "
-                        "Maybe use a newer PIConGPU?")
-    endif()
-endif()
-
 
 ################################################################################
 # Find OpenMP

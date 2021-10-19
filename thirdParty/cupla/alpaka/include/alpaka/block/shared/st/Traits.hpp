@@ -20,21 +20,17 @@ namespace alpaka
     {
     };
 
-    //-----------------------------------------------------------------------------
     //! The block shared static memory operation traits.
     namespace traits
     {
-        //#############################################################################
         //! The block shared static memory variable allocation operation trait.
         template<typename T, std::size_t TuniqueId, typename TBlockSharedMemSt, typename TSfinae = void>
         struct DeclareSharedVar;
-        //#############################################################################
         //! The block shared static memory free operation trait.
         template<typename TBlockSharedMemSt, typename TSfinae = void>
         struct FreeSharedVars;
     } // namespace traits
 
-    //-----------------------------------------------------------------------------
     //! Declare a block shared variable.
     //!
     //! The variable is uninitialized and not default constructed!
@@ -54,7 +50,6 @@ namespace alpaka
         return traits::DeclareSharedVar<T, TuniqueId, ImplementationBase>::declareVar(blockSharedMemSt);
     }
 
-    //-----------------------------------------------------------------------------
     //! Frees all memory used by block shared variables.
     //!
     //! \tparam TBlockSharedMemSt The block shared allocator implementation type.

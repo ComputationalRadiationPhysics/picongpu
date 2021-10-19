@@ -17,24 +17,17 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The OpenMP barrier block synchronization.
     class BlockSyncBarrierOmp : public concepts::Implements<ConceptBlockSync, BlockSyncBarrierOmp>
     {
     public:
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST BlockSyncBarrierOmp() : m_generation(0u)
         {
         }
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST BlockSyncBarrierOmp(BlockSyncBarrierOmp const&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST BlockSyncBarrierOmp(BlockSyncBarrierOmp&&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(BlockSyncBarrierOmp const&) -> BlockSyncBarrierOmp& = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(BlockSyncBarrierOmp&&) -> BlockSyncBarrierOmp& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~BlockSyncBarrierOmp() = default;
 
         std::uint8_t mutable m_generation;
@@ -43,11 +36,9 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         template<>
         struct SyncBlockThreads<BlockSyncBarrierOmp>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto syncBlockThreads(BlockSyncBarrierOmp const& blockSync) -> void
             {
                 alpaka::ignore_unused(blockSync);
@@ -60,10 +51,8 @@ namespace alpaka
 
         namespace detail
         {
-            //#############################################################################
             template<typename TOp>
             struct AtomicOp;
-            //#############################################################################
             template<>
             struct AtomicOp<BlockCount>
             {
@@ -73,7 +62,6 @@ namespace alpaka
                     result += static_cast<int>(value);
                 }
             };
-            //#############################################################################
             template<>
             struct AtomicOp<BlockAnd>
             {
@@ -83,7 +71,6 @@ namespace alpaka
                     result &= static_cast<int>(value);
                 }
             };
-            //#############################################################################
             template<>
             struct AtomicOp<BlockOr>
             {
@@ -95,11 +82,9 @@ namespace alpaka
             };
         } // namespace detail
 
-        //#############################################################################
         template<typename TOp>
         struct SyncBlockThreadsPredicate<TOp, BlockSyncBarrierOmp>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_ACC static auto syncBlockThreadsPredicate(BlockSyncBarrierOmp const& blockSync, int predicate)
                 -> int

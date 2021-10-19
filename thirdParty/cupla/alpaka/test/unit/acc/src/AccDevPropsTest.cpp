@@ -13,7 +13,6 @@
 
 #include <catch2/catch.hpp>
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("getAccDevProps", "[acc]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

@@ -14,7 +14,6 @@
 #include <tuple>
 #include <type_traits>
 
-//-----------------------------------------------------------------------------
 TEST_CASE("conjunctionTrue", "[meta]")
 {
     using ConjunctionResult
@@ -23,7 +22,6 @@ TEST_CASE("conjunctionTrue", "[meta]")
     static_assert(ConjunctionResult::value == true, "alpaka::meta::Conjunction failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("conjunctionFalse", "[meta]")
 {
     using ConjunctionResult
@@ -32,7 +30,6 @@ TEST_CASE("conjunctionFalse", "[meta]")
     static_assert(ConjunctionResult::value == false, "alpaka::meta::Conjunction failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("disjunctionTrue", "[meta]")
 {
     using DisjunctionResult
@@ -41,7 +38,6 @@ TEST_CASE("disjunctionTrue", "[meta]")
     static_assert(DisjunctionResult::value == true, "alpaka::meta::Disjunction failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("disjunctionFalse", "[meta]")
 {
     using DisjunctionResult
@@ -50,7 +46,6 @@ TEST_CASE("disjunctionFalse", "[meta]")
     static_assert(DisjunctionResult::value == false, "alpaka::meta::Disjunction failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("negationFalse", "[meta]")
 {
     using NegationResult = alpaka::meta::Negation<std::true_type>;
@@ -60,7 +55,6 @@ TEST_CASE("negationFalse", "[meta]")
     static_assert(std::is_same<NegationReference, NegationResult>::value, "alpaka::meta::Negation failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("negationTrue", "[meta]")
 {
     using NegationResult = alpaka::meta::Negation<std::false_type>;

@@ -49,7 +49,6 @@ namespace alpaka
     template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     class TaskKernelCpuThreads;
 
-    //#############################################################################
     //! The CPU threads accelerator.
     //!
     //! This accelerator allows parallel kernel execution on a CPU device.
@@ -86,7 +85,6 @@ namespace alpaka
         friend class ::alpaka::TaskKernelCpuThreads;
 
     private:
-        //-----------------------------------------------------------------------------
         template<typename TWorkDiv>
         ALPAKA_FN_HOST AccCpuThreads(TWorkDiv const& workDiv, std::size_t const& blockSharedMemDynSizeBytes)
             : WorkDivMembers<TDim, TIdx>(workDiv)
@@ -112,15 +110,10 @@ namespace alpaka
         }
 
     public:
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST AccCpuThreads(AccCpuThreads const&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST AccCpuThreads(AccCpuThreads&&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(AccCpuThreads const&) -> AccCpuThreads& = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(AccCpuThreads&&) -> AccCpuThreads& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~AccCpuThreads() = default;
 
     private:
@@ -136,19 +129,16 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU threads accelerator accelerator type trait specialization.
         template<typename TDim, typename TIdx>
         struct AccType<AccCpuThreads<TDim, TIdx>>
         {
             using type = AccCpuThreads<TDim, TIdx>;
         };
-        //#############################################################################
         //! The CPU threads accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccCpuThreads<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& dev) -> AccDevProps<TDim, TIdx>
             {
 #    ifdef ALPAKA_CI
@@ -157,9 +147,9 @@ namespace alpaka
                 // \TODO: Magic number. What is the maximum? Just set a reasonable value? There is a implementation
                 // defined maximum where the creation of a new thread crashes. std::thread::hardware_concurrency can
                 // return 0, so 1 is the default case?
-                auto const blockThreadCountMax(std::max(
+                auto const blockThreadCountMax = std::max(
                     static_cast<TIdx>(1),
-                    alpaka::core::clipCast<TIdx>(std::thread::hardware_concurrency() * 8)));
+                    alpaka::core::clipCast<TIdx>(std::thread::hardware_concurrency() * 8));
 #    endif
                 return {// m_multiProcessorCount
                         static_cast<TIdx>(1),
@@ -179,19 +169,16 @@ namespace alpaka
                         getMemBytes(dev)};
             }
         };
-        //#############################################################################
         //! The CPU threads accelerator name trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccName<AccCpuThreads<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
                 return "AccCpuThreads<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
             }
         };
 
-        //#############################################################################
         //! The CPU threads accelerator device type trait specialization.
         template<typename TDim, typename TIdx>
         struct DevType<AccCpuThreads<TDim, TIdx>>
@@ -199,7 +186,6 @@ namespace alpaka
             using type = DevCpu;
         };
 
-        //#############################################################################
         //! The CPU threads accelerator dimension getter trait specialization.
         template<typename TDim, typename TIdx>
         struct DimType<AccCpuThreads<TDim, TIdx>>
@@ -207,12 +193,10 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The CPU threads accelerator execution task type trait specialization.
         template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
         struct CreateTaskKernel<AccCpuThreads<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto createTaskKernel(
                 TWorkDiv const& workDiv,
                 TKernelFnObj const& kernelFnObj,
@@ -225,7 +209,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU threads execution task platform type trait specialization.
         template<typename TDim, typename TIdx>
         struct PltfType<AccCpuThreads<TDim, TIdx>>
@@ -233,7 +216,6 @@ namespace alpaka
             using type = PltfCpu;
         };
 
-        //#############################################################################
         //! The CPU threads accelerator idx type trait specialization.
         template<typename TDim, typename TIdx>
         struct IdxType<AccCpuThreads<TDim, TIdx>>

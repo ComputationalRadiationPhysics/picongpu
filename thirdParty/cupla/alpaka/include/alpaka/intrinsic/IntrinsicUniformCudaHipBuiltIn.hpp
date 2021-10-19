@@ -25,33 +25,24 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The GPU CUDA/HIP intrinsic.
     class IntrinsicUniformCudaHipBuiltIn
         : public concepts::Implements<ConceptIntrinsic, IntrinsicUniformCudaHipBuiltIn>
     {
     public:
-        //-----------------------------------------------------------------------------
         IntrinsicUniformCudaHipBuiltIn() = default;
-        //-----------------------------------------------------------------------------
         __device__ IntrinsicUniformCudaHipBuiltIn(IntrinsicUniformCudaHipBuiltIn const&) = delete;
-        //-----------------------------------------------------------------------------
         __device__ IntrinsicUniformCudaHipBuiltIn(IntrinsicUniformCudaHipBuiltIn&&) = delete;
-        //-----------------------------------------------------------------------------
         __device__ auto operator=(IntrinsicUniformCudaHipBuiltIn const&) -> IntrinsicUniformCudaHipBuiltIn& = delete;
-        //-----------------------------------------------------------------------------
         __device__ auto operator=(IntrinsicUniformCudaHipBuiltIn&&) -> IntrinsicUniformCudaHipBuiltIn& = delete;
-        //-----------------------------------------------------------------------------
         ~IntrinsicUniformCudaHipBuiltIn() = default;
     };
 
     namespace traits
     {
-        //#############################################################################
         template<>
         struct Popcount<IntrinsicUniformCudaHipBuiltIn>
         {
-            //-----------------------------------------------------------------------------
             __device__ static auto popcount(IntrinsicUniformCudaHipBuiltIn const& /*intrinsic*/, std::uint32_t value)
                 -> std::int32_t
             {
@@ -62,7 +53,6 @@ namespace alpaka
 #    endif
             }
 
-            //-----------------------------------------------------------------------------
             __device__ static auto popcount(IntrinsicUniformCudaHipBuiltIn const& /*intrinsic*/, std::uint64_t value)
                 -> std::int32_t
             {
@@ -74,18 +64,15 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         template<>
         struct Ffs<IntrinsicUniformCudaHipBuiltIn>
         {
-            //-----------------------------------------------------------------------------
             __device__ static auto ffs(IntrinsicUniformCudaHipBuiltIn const& /*intrinsic*/, std::int32_t value)
                 -> std::int32_t
             {
                 return __ffs(static_cast<int>(value));
             }
 
-            //-----------------------------------------------------------------------------
             __device__ static auto ffs(IntrinsicUniformCudaHipBuiltIn const& /*intrinsic*/, std::int64_t value)
                 -> std::int32_t
             {

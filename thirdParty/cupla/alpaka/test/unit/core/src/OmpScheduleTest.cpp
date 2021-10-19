@@ -12,14 +12,12 @@
 
 #include <catch2/catch.hpp>
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ompScheduleDefaultConstructor", "[core]")
 {
     auto const schedule = alpaka::omp::Schedule{};
     alpaka::ignore_unused(schedule);
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ompScheduleConstructor", "[core]")
 {
     auto const staticSchedule = alpaka::omp::Schedule{alpaka::omp::Schedule::Static, 5};
@@ -29,21 +27,18 @@ TEST_CASE("ompScheduleConstructor", "[core]")
     alpaka::ignore_unused(guidedSchedule);
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ompScheduleConstexprConstructor", "[core]")
 {
     constexpr auto schedule = alpaka::omp::Schedule{alpaka::omp::Schedule::Dynamic};
     alpaka::ignore_unused(schedule);
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ompGetSchedule", "[core]")
 {
     auto const schedule = alpaka::omp::getSchedule();
     alpaka::ignore_unused(schedule);
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ompSetSchedule", "[core]")
 {
     auto const expectedSchedule = alpaka::omp::Schedule{alpaka::omp::Schedule::Dynamic, 3};
@@ -56,7 +51,6 @@ TEST_CASE("ompSetSchedule", "[core]")
 #endif
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ompSetNoSchedule", "[core]")
 {
     auto const expectedSchedule = alpaka::omp::Schedule{alpaka::omp::Schedule::Guided, 2};

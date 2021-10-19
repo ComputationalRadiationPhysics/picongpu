@@ -12,7 +12,7 @@ fi
 # cmake config builder
 ###################################################
 
-CUPLA_CONST_ARGS=""
+CUPLA_CONST_ARGS="-Dcupla_BUILD_EXAMPLES=ON -Dcupla_ALPAKA_PROVIDER=internal"
 CUPLA_CONST_ARGS="${CUPLA_CONST_ARGS} -DCMAKE_BUILD_TYPE=${CUPLA_BUILD_TYPE}"
 CUPLA_CONST_ARGS="${CUPLA_CONST_ARGS} ${CUPLA_CMAKE_ARGS}"
 
@@ -45,17 +45,16 @@ for CONFIG in $(seq 0 $((${#CMAKE_CONFIGS[*]} - 1))); do
     echo "CMAKE_ARGS -> ${CMAKE_ARGS}"
     echo -e "/////////////////////////////////////////////////// \033[0m \n\n"
 
+    cmake $cupla_DIR $CMAKE_ARGS
+    cmake --build . -j
+
     echo "###################################################"
     echo "# Example Matrix Multiplication (adapted original)"
     echo "###################################################"
     echo "can not run with CPU_B_SEQ_T_SEQ due to missing elements layer in original SDK example"
     echo "CPU_B_SEQ_T_OMP2/THREADS too many threads necessary (256)"
     if [[ $CMAKE_ARGS =~ -*DALPAKA_ACC_GPU_CUDA_ENABLE=ON.* ]]; then
-        cmake $cupla_DIR/example/CUDASamples/matrixMul/ \
-	      $CMAKE_ARGS
-        make -j
-        time ./matrixMul -wA=64 -wB=64 -hA=64 -hB=64
-        rm -r * ;
+        time ./example/CUDASamples/matrixMul/matrixMul -wA=64 -wB=64 -hA=64 -hB=64
     fi
 
     echo "###################################################"
@@ -64,28 +63,31 @@ for CONFIG in $(seq 0 $((${#CMAKE_CONFIGS[*]} - 1))); do
     echo "can not run with CPU_B_SEQ_T_SEQ due to missing elements layer in original SDK example"
     echo "CPU_B_SEQ_T_OMP2/THREADS too many threads necessary (512)"
     if [[ $CMAKE_ARGS =~ -*DALPAKA_ACC_GPU_CUDA_ENABLE=ON.* ]]; then
-        cmake $cupla_DIR/example/CUDASamples/asyncAPI/ \
-	      $CMAKE_ARGS
-        make -j
-        time ./asyncAPI
-        rm -r * ;
+        time ./example/CUDASamples/asyncAPI/asyncAPI
     fi
 
     echo "###################################################"
     echo "# Example Async API (added elements layer)"
     echo "###################################################"
-    cmake $cupla_DIR/example/CUDASamples/asyncAPI_tuned/ \
-	  $CMAKE_ARGS
-    make -j
-    time ./asyncAPI_tuned
-    rm -r *
+    time ./example/CUDASamples/asyncAPI_tuned/asyncAPI_tuned
 
     echo "###################################################"
     echo "Example vectorAdd (added elements layer)"
     echo "###################################################"
-    cmake $cupla_DIR/example/CUDASamples/vectorAdd/ \
-	  $CMAKE_ARGS
-    make -j
-    time ./vectorAdd 100000
-    rm -r * ;
+    time ./example/CUDASamples/vectorAdd/vectorAdd 100000
+
+    echo "###################################################"
+    echo "Example cupla vectorAdd (added elements layer)"
+    echo "###################################################"
+    time ./example/CUDASamples/cuplaVectorAdd/cuplaVectorAdd 100000
+
+
+    echo "###################################################"
+    echo "Example blackSchloles"
+    echo "###################################################"
+    if [[ $CMAKE_ARGS =~ -*DALPAKA_ACC_GPU_CUDA_ENABLE=ON.* ]]; then
+	time ./example/CUDASamples/blackScholes/blackScholes
+    fi
+
+    rm -r *
 done

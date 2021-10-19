@@ -23,12 +23,10 @@
 #include <random>
 #include <typeinfo>
 
-//#############################################################################
 //! A vector addition kernel.
 class VectorAddKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     //! The kernel entry point.
     //!
     //! \tparam TAcc The accelerator environment to be executed on.

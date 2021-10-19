@@ -21,28 +21,27 @@
 
 #pragma once
 
-#include "cupla/namespace.hpp"
-#include "cupla/types.hpp"
 #include "cupla/c/datatypes/cuplaArray.hpp"
+#include "cupla/c/datatypes/cuplaExtent.hpp"
 #include "cupla/c/datatypes/cuplaPitchedPtr.hpp"
 #include "cupla/c/datatypes/cuplaPos.hpp"
-#include "cupla/c/datatypes/cuplaExtent.hpp"
+#include "cupla/namespace.hpp"
+#include "cupla/types.hpp"
 
 inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
+    struct cuplaMemcpy3DParms
+    {
+        cuplaArray* dstArray;
+        cuplaPos dstPos;
+        cuplaPitchedPtr dstPtr;
+        cuplaExtent extent;
+        cuplaMemcpyKind kind;
+        cuplaArray* srcArray;
+        cuplaPos srcPos;
+        cuplaPitchedPtr srcPtr;
 
-struct cuplaMemcpy3DParms
-{
-    cuplaArray* dstArray;
-    cuplaPos dstPos;
-    cuplaPitchedPtr dstPtr;
-    cuplaExtent extent;
-    cuplaMemcpyKind kind;
-    cuplaArray * srcArray;
-    cuplaPos srcPos;
-    cuplaPitchedPtr srcPtr;
+        cuplaMemcpy3DParms() = default;
+    };
 
-    cuplaMemcpy3DParms() = default;
-};
-
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace CUPLA_ACCELERATOR_NAMESPACE

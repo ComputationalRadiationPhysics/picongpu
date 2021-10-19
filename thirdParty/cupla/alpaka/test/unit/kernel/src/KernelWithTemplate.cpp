@@ -16,12 +16,10 @@
 
 #include <type_traits>
 
-//#############################################################################
 template<typename T>
 class KernelFuntionObjectTemplate
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
@@ -34,7 +32,6 @@ public:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("kernelFuntionObjectTemplate", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
@@ -48,11 +45,9 @@ TEMPLATE_LIST_TEST_CASE("kernelFuntionObjectTemplate", "[kernel]", alpaka::test:
     REQUIRE(fixture(kernel));
 }
 
-//#############################################################################
 class KernelInvocationWithAdditionalTemplate
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc, typename T>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, T const&) const -> void
@@ -65,7 +60,6 @@ public:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("kernelFuntionObjectExtraTemplate", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

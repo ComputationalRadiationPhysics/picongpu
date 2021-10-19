@@ -19,7 +19,6 @@
 #include <numeric>
 #include <type_traits>
 
-//-----------------------------------------------------------------------------
 template<typename TAcc>
 static auto testP2P(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& extent) -> void
 {
@@ -37,25 +36,21 @@ static auto testP2P(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& ext
         return;
     }
 
-    Dev const dev0(alpaka::getDevByIdx<Pltf>(0u));
-    Dev const dev1(alpaka::getDevByIdx<Pltf>(1u));
+    Dev const dev0 = alpaka::getDevByIdx<Pltf>(0u);
+    Dev const dev1 = alpaka::getDevByIdx<Pltf>(1u);
     Queue queue0(dev0);
 
-    //-----------------------------------------------------------------------------
-    auto buf0(alpaka::allocBuf<Elem, Idx>(dev0, extent));
-    auto buf1(alpaka::allocBuf<Elem, Idx>(dev1, extent));
+    auto buf0 = alpaka::allocBuf<Elem, Idx>(dev0, extent);
+    auto buf1 = alpaka::allocBuf<Elem, Idx>(dev1, extent);
 
-    //-----------------------------------------------------------------------------
     std::uint8_t const byte(static_cast<uint8_t>(42u));
     alpaka::memset(queue0, buf0, byte, extent);
 
-    //-----------------------------------------------------------------------------
     alpaka::memcpy(queue0, buf1, buf0, extent);
     alpaka::wait(queue0);
     alpaka::test::verifyBytesSet<TAcc>(buf1, byte);
 }
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("memP2PTest", "[memP2P]", alpaka::test::TestAccs)
 {
 #if defined(ALPAKA_CI) && BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(7, 2, 0)                                            \
@@ -67,8 +62,8 @@ TEMPLATE_LIST_TEST_CASE("memP2PTest", "[memP2P]", alpaka::test::TestAccs)
     using Dim = alpaka::Dim<Acc>;
     using Idx = alpaka::Idx<Acc>;
 
-    auto const extent(
-        alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>());
+    auto const extent
+        = alpaka::createVecFromIndexedFn<Dim, alpaka::test::CreateVecWithIdx<Idx>::template ForExtentBuf>();
 
     testP2P<Acc>(extent);
 #endif

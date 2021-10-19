@@ -86,12 +86,15 @@ set(mallocMC_REQUIRED_VARS_LIST mallocMC_ROOT_DIR mallocMC_INCLUDE_DIRS)
 mark_as_advanced(mallocMC_ROOT_DIR)
 
 if(mallocMC_ROOT_DIR)
-    if(${mallocMC_ALPAKA_PROVIDER} STREQUAL "intern")
-        set(alpaka_BUILD_EXAMPLES OFF)
-        set(BUILD_TESTING OFF)
-        add_subdirectory(${mallocMC_ROOT_DIR}/../alpaka ${CMAKE_BINARY_DIR}/alpaka)
-    else()
-        find_package(alpaka HINTS $ENV{ALPAKA_ROOT})
+    # if alpaka is already available do not search again for the dependency
+    if(NOT TARGET alpaka::alpaka)
+        if(${mallocMC_ALPAKA_PROVIDER} STREQUAL "intern")
+            set(alpaka_BUILD_EXAMPLES OFF)
+            set(BUILD_TESTING OFF)
+            add_subdirectory(${mallocMC_ROOT_DIR}/../alpaka ${CMAKE_BINARY_DIR}/alpaka)
+        else()
+            find_package(alpaka HINTS $ENV{ALPAKA_ROOT})
+        endif()
     endif()
 
     # find version ##############################################################

@@ -47,35 +47,26 @@ namespace alpaka
 {
     class EventUniformCudaHipRt;
 
-    //#############################################################################
     //! The CUDA/HIP RT non-blocking queue.
     class QueueUniformCudaHipRtNonBlocking final : public uniform_cuda_hip::detail::QueueUniformCudaHipRtBase
     {
     public:
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST QueueUniformCudaHipRtNonBlocking(DevUniformCudaHipRt const& dev)
             : uniform_cuda_hip::detail::QueueUniformCudaHipRtBase(dev)
         {
         }
-        //-----------------------------------------------------------------------------
         QueueUniformCudaHipRtNonBlocking(QueueUniformCudaHipRtNonBlocking const&) = default;
-        //-----------------------------------------------------------------------------
         QueueUniformCudaHipRtNonBlocking(QueueUniformCudaHipRtNonBlocking&&) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(QueueUniformCudaHipRtNonBlocking const&) -> QueueUniformCudaHipRtNonBlocking& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(QueueUniformCudaHipRtNonBlocking&&) -> QueueUniformCudaHipRtNonBlocking& = default;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator==(QueueUniformCudaHipRtNonBlocking const& rhs) const -> bool
         {
             return (m_spQueueImpl == rhs.m_spQueueImpl);
         }
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator!=(QueueUniformCudaHipRtNonBlocking const& rhs) const -> bool
         {
             return !((*this) == rhs);
         }
-        //-----------------------------------------------------------------------------
         ~QueueUniformCudaHipRtNonBlocking() = default;
     };
 
@@ -87,7 +78,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CUDA/HIP RT non-blocking queue device type trait specialization.
         template<>
         struct DevType<QueueUniformCudaHipRtNonBlocking>
@@ -95,7 +85,6 @@ namespace alpaka
             using type = DevUniformCudaHipRt;
         };
 
-        //#############################################################################
         //! The CUDA/HIP RT non-blocking queue event type trait specialization.
         template<>
         struct EventType<QueueUniformCudaHipRtNonBlocking>
@@ -103,12 +92,10 @@ namespace alpaka
             using type = EventUniformCudaHipRt;
         };
 
-        //#############################################################################
         //! The CUDA/HIP RT sync queue enqueue trait specialization.
         template<typename TTask>
         struct Enqueue<QueueUniformCudaHipRtNonBlocking, TTask>
         {
-            //#############################################################################
             enum class CallbackState
             {
                 enqueued,
@@ -116,7 +103,6 @@ namespace alpaka
                 finished,
             };
 
-            //#############################################################################
             struct CallbackSynchronizationData : public std::enable_shared_from_this<CallbackSynchronizationData>
             {
                 std::mutex m_mutex;
@@ -124,7 +110,6 @@ namespace alpaka
                 CallbackState state = CallbackState::enqueued;
             };
 
-            //-----------------------------------------------------------------------------
 #    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
             static void CUDART_CB
 #    else
@@ -157,15 +142,8 @@ namespace alpaka
                 }
             }
 
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(QueueUniformCudaHipRtNonBlocking& queue, TTask const& task) -> void
             {
-#    if BOOST_COMP_HIP
-                // NOTE: hip callbacks are not blocking the stream.
-                // @todo remove this assert when hipStreamAddCallback is fixed
-                static_assert(meta::DependentFalseType<TTask>::value, "Callbacks are not supported for HIP-clang");
-#    endif
-
                 auto pCallbackSynchronizationData = std::make_shared<CallbackSynchronizationData>();
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(StreamAddCallback)(
                     queue.m_spQueueImpl->m_UniformCudaHipQueue,

@@ -17,12 +17,10 @@
 #include <cstdint>
 #include <limits>
 
-//#############################################################################
 template<typename TInput>
 class FfsTestKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
@@ -63,7 +61,6 @@ private:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("ffs", "[intrinsic]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

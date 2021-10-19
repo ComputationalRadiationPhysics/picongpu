@@ -14,11 +14,9 @@
 
 #include <catch2/catch.hpp>
 
-//#############################################################################
 class KernelWithAdditionalParamByValue
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, std::int32_t val) const -> void
@@ -29,7 +27,6 @@ public:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("KernelWithAdditionalParamByValue", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
@@ -48,11 +45,9 @@ Passing a parameter by reference to non-const is not allowed.
 There is only one single copy of the parameters on the CPU accelerators.
 They are shared between all threads. Therefore they should not be mutated.
 
-//#############################################################################
 class KernelWithAdditionalParamByRef
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template <typename TAcc>
     ALPAKA_FN_ACC auto operator()(
@@ -65,7 +60,6 @@ public:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("KernelWithAdditionalParamByRef", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
@@ -80,11 +74,9 @@ TEMPLATE_LIST_TEST_CASE("KernelWithAdditionalParamByRef", "[kernel]", alpaka::te
     REQUIRE(fixture(kernel, 42));
 }*/
 
-//#############################################################################
 class KernelWithAdditionalParamByConstRef
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, std::int32_t const& val) const -> void
@@ -95,7 +87,6 @@ public:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("KernelWithAdditionalParamByConstRef", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

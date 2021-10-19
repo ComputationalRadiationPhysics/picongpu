@@ -43,13 +43,11 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The OpenACC accelerator execution task.
     template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     class TaskKernelOacc final : public WorkDivMembers<TDim, TIdx>
     {
     public:
-        //-----------------------------------------------------------------------------
         template<typename TWorkDiv>
         ALPAKA_FN_HOST TaskKernelOacc(TWorkDiv&& workDiv, TKernelFnObj const& kernelFnObj, TArgs&&... args)
             : WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv))
@@ -60,26 +58,20 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        //-----------------------------------------------------------------------------
         TaskKernelOacc(TaskKernelOacc const& other) = default;
-        //-----------------------------------------------------------------------------
         TaskKernelOacc(TaskKernelOacc&& other) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(TaskKernelOacc const&) -> TaskKernelOacc& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(TaskKernelOacc&&) -> TaskKernelOacc& = default;
-        //-----------------------------------------------------------------------------
         ~TaskKernelOacc() = default;
 
-        //-----------------------------------------------------------------------------
         //! Executes the kernel function object.
         ALPAKA_FN_HOST auto operator()(const DevOacc& dev) const -> void
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-            auto const gridBlockExtent(getWorkDiv<Grid, Blocks>(*this));
-            auto const blockThreadExtent(getWorkDiv<Block, Threads>(*this));
-            auto const threadElemExtent(getWorkDiv<Thread, Elems>(*this));
+            auto const gridBlockExtent = getWorkDiv<Grid, Blocks>(*this);
+            auto const blockThreadExtent = getWorkDiv<Block, Threads>(*this);
+            auto const threadElemExtent = getWorkDiv<Thread, Elems>(*this);
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
             std::cout << "m_gridBlockExtent=" << this->m_gridBlockExtent << "\tgridBlockExtent=" << gridBlockExtent
@@ -91,7 +83,7 @@ namespace alpaka
 #    endif
 
             // Get the size of the block shared dynamic memory.
-            auto const blockSharedMemDynSizeBytes(meta::apply(
+            auto const blockSharedMemDynSizeBytes = meta::apply(
                 [&](ALPAKA_DECAY_T(TArgs) const&... args) {
                     return getBlockSharedMemDynSizeBytes<AccOacc<TDim, TIdx>>(
                         m_kernelFnObj,
@@ -99,7 +91,7 @@ namespace alpaka
                         threadElemExtent,
                         args...);
                 },
-                m_args));
+                m_args);
 
 #    if ALPAKA_DEBUG > ALPAKA_DEBUG_MINIMAL
             std::cout << __func__ << " blockSharedMemDynSizeBytes: " << blockSharedMemDynSizeBytes << " B"
@@ -174,7 +166,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The OpenACC execution task accelerator type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct AccType<TaskKernelOacc<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -182,7 +173,6 @@ namespace alpaka
             using type = AccOacc<TDim, TIdx>;
         };
 
-        //#############################################################################
         //! The OpenACC execution task device type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct DevType<TaskKernelOacc<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -190,7 +180,6 @@ namespace alpaka
             using type = DevOacc;
         };
 
-        //#############################################################################
         //! The OpenACC execution task dimension getter trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct DimType<TaskKernelOacc<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -198,7 +187,6 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The OpenACC execution task platform type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct PltfType<TaskKernelOacc<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -206,7 +194,6 @@ namespace alpaka
             using type = PltfOacc;
         };
 
-        //#############################################################################
         //! The OpenACC execution task idx type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct IdxType<TaskKernelOacc<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -234,7 +221,6 @@ namespace alpaka
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct Enqueue<QueueOaccNonBlocking, TaskKernelOacc<TDim, TIdx, TKernelFnObj, TArgs...>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(
                 QueueOaccNonBlocking& queue,
                 TaskKernelOacc<TDim, TIdx, TKernelFnObj, TArgs...> const& task) -> void

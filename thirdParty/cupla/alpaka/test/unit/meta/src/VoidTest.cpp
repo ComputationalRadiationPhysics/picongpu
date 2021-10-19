@@ -14,22 +14,18 @@
 #include <type_traits>
 #include <vector>
 
-//-----------------------------------------------------------------------------
 TEST_CASE("voidNonEmpty", "[meta]")
 {
     using Result = alpaka::meta::Void<int, float, int>;
     REQUIRE(std::is_same<void, Result>::value);
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("voidEmpty", "[meta]")
 {
     using Result = alpaka::meta::Void<>;
     REQUIRE(std::is_same<void, Result>::value);
 }
 
-//-----------------------------------------------------------------------------
-//#############################################################################
 //! Trait to detect if the given class has a method size().
 //! This illustrates and tests the technique of using Void<> to compile-time
 //! check for methods (and members can be treated similarly).

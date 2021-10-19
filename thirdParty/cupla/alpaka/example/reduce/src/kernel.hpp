@@ -19,14 +19,12 @@
 
 #include <alpaka/alpaka.hpp>
 
-//#############################################################################
 //! A cheap wrapper around a C-style array in heap memory.
 template<typename T, uint64_t size>
 struct cheapArray
 {
     T data[size];
 
-    //-----------------------------------------------------------------------------
     //! Access operator.
     //!
     //! \param index The index of the element to be accessed.
@@ -37,7 +35,6 @@ struct cheapArray
         return data[index];
     }
 
-    //-----------------------------------------------------------------------------
     //! Access operator.
     //!
     //! \param index The index of the element to be accessed.
@@ -49,7 +46,6 @@ struct cheapArray
     }
 };
 
-//#############################################################################
 //! A reduction kernel.
 //!
 //! \tparam TBlockSize The block size.
@@ -60,7 +56,6 @@ struct ReduceKernel
 {
     ALPAKA_NO_HOST_ACC_WARNING
 
-    //-----------------------------------------------------------------------------
     //! The kernel entry point.
     //!
     //! \tparam TAcc The accelerator environment.

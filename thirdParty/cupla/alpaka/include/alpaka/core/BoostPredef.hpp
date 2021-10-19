@@ -11,7 +11,6 @@
 
 #include <boost/predef.h>
 
-//-----------------------------------------------------------------------------
 // In boost since 1.68.0
 // BOOST_PREDEF_MAKE_10_VVRRP(V)
 #if !defined(BOOST_PREDEF_MAKE_10_VVRRP)
@@ -37,7 +36,6 @@
 #    endif
 #endif
 
-//-----------------------------------------------------------------------------
 // HSA device architecture detection (HSA generated via HIP(clang))
 #if !defined(BOOST_ARCH_HSA)
 #    if defined(__HIP_DEVICE_COMPILE__) && __HIP_DEVICE_COMPILE__ == 1 && defined(__HIP__)
@@ -49,7 +47,6 @@
 #    endif
 #endif
 
-//-----------------------------------------------------------------------------
 // hip compiler detection
 #if !defined(BOOST_COMP_HIP)
 #    if defined(__HIP__)
@@ -59,7 +56,6 @@
 #    endif
 #endif
 
-//-----------------------------------------------------------------------------
 // In boost since 1.68.0
 // CUDA language detection
 // - clang defines __CUDA__ and __CUDACC__ when compiling CUDA code ('-x cuda')
@@ -73,7 +69,6 @@
 #    endif
 #endif
 
-//-----------------------------------------------------------------------------
 // In boost since 1.68.0
 // CUDA device architecture detection
 #if !defined(BOOST_ARCH_PTX)
@@ -84,7 +79,6 @@
 #    endif
 #endif
 
-//-----------------------------------------------------------------------------
 // In boost since 1.68.0
 // nvcc CUDA compiler detection
 
@@ -112,7 +106,6 @@
 #    endif
 #endif
 
-//-----------------------------------------------------------------------------
 // clang CUDA compiler detection
 // Currently __CUDA__ is only defined by clang when compiling CUDA code.
 #if defined(__clang__) && defined(__CUDA__)
@@ -121,7 +114,6 @@
 #    define BOOST_COMP_CLANG_CUDA BOOST_VERSION_NUMBER_NOT_AVAILABLE
 #endif
 
-//-----------------------------------------------------------------------------
 // Intel compiler detection
 // BOOST_COMP_INTEL_EMULATED is defined by boost instead of BOOST_COMP_INTEL
 #if defined(BOOST_COMP_INTEL) && defined(BOOST_COMP_INTEL_EMULATED)
@@ -129,7 +121,6 @@
 #    define BOOST_COMP_INTEL BOOST_COMP_INTEL_EMULATED
 #endif
 
-//-----------------------------------------------------------------------------
 // PGI and NV HPC SDK compiler detection
 // BOOST_COMP_PGI_EMULATED is defined by boost instead of BOOST_COMP_PGI
 #if defined(BOOST_COMP_PGI) && defined(BOOST_COMP_PGI_EMULATED)

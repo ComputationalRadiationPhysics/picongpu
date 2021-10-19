@@ -33,7 +33,7 @@ gcc
 """
 - 5.5 - 10.0 (if you want to build for Nvidia GPUs, supported compilers depend on your current `CUDA version <https://gist.github.com/ax3l/9489132>`_)
 
-  - CUDA 9.2 - 10.0: Use gcc 5.5 - 7
+  - CUDA 10.0: Use gcc 5.5 - 7
   - CUDA 10.1/10.2: Use gcc 5.5 - 8
   - CUDA 11.x: Used gcc 5.5 - 10.0
 - *note:* be sure to build all libraries/dependencies with the *same* gcc version; GCC 5 or newer is recommended
@@ -154,7 +154,7 @@ Optional Libraries
 
 CUDA
 """"
-- `9.2 - 10.2 <https://developer.nvidia.com/cuda-downloads>`_
+- `10.0+ <https://developer.nvidia.com/cuda-downloads>`_
 - required if you want to run on Nvidia GPUs
 - *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
 - *Arch Linux:* ``sudo pacman --sync cuda``

@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace omp
     {
-        //#############################################################################
         //! Representation of OpenMP schedule information: kind and chunk size. This class can be used regardless of
         //! whether OpenMP is enabled.
         struct Schedule
@@ -60,7 +59,6 @@ namespace alpaka
             }
         };
 
-        //-----------------------------------------------------------------------------
         //! Get the OpenMP schedule that is applied when the runtime schedule is used.
         //!
         //! For OpenMP >= 3.0 returns the value of the internal control variable run-sched-var.
@@ -80,7 +78,6 @@ namespace alpaka
 #endif
         }
 
-        //-----------------------------------------------------------------------------
         //! Set the OpenMP schedule that is applied when the runtime schedule is used for future parallel regions.
         //!
         //! For OpenMP >= 3.0 sets the value of the internal control variable run-sched-var according to the given

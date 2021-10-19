@@ -19,7 +19,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The standard library pow.
         class PowStdLib : public concepts::Implements<ConceptMathPow, PowStdLib>
         {
@@ -27,7 +26,6 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The standard library pow trait specialization.
             template<typename TBase, typename TExp>
             struct Pow<
@@ -36,7 +34,7 @@ namespace alpaka
                 TExp,
                 std::enable_if_t<std::is_arithmetic<TBase>::value && std::is_arithmetic<TExp>::value>>
             {
-                ALPAKA_FN_HOST static auto pow(PowStdLib const& pow_ctx, TBase const& base, TExp const& exp)
+                ALPAKA_FN_HOST auto operator()(PowStdLib const& pow_ctx, TBase const& base, TExp const& exp)
                 {
                     alpaka::ignore_unused(pow_ctx);
                     return std::pow(base, exp);

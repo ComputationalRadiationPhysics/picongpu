@@ -242,3 +242,19 @@ The ``std::enable_if`` template results in a valid expression, if the condition 
 Therefore it can be used to disable specializations depending on arbitrary boolean conditions.
 It is utilized in the case where the ``TaskId`` member is unequal one or the ``TQueue`` does not inherit from ``UserQueue``.
 In this cirumstances, the condition itself results in valid code but because it evaluates to false, the ``std::enable_if`` specialization results in invalid code and the whole ``Enqueue`` template specialization gets omitted.
+
+Argument dependent lookup for math functions
+--------------------------------------------
+
+Alpaka comes with a set of basic mathematical functions in the namespace `alpaka::math`.
+These functions are dispatched in two ways to support user defined overloads of these functions.
+
+Let's take `alpaka::math::abs` as an example:
+When `alpaka::math::abs(acc, value)` is called, a concrete implementation of `abs` is picked via template specialization.
+Concretely, something similar to `alpaka::math::traits::Abs<decltype(acc), decltype(value)>{}(acc, value)` is called.
+This allows alpaka (and the user) to specialize the template `alpaka::math::traits::Abs` for various backends and various argument types.
+E.g. alpaka contains specializations for `float` and `double`.
+If there is no specialization within alpaka (or by the user), the default implementation of `alpaka::math::traits::Abs<....>{}(acc, value)` will just call `abs(value)`.
+This is called an unqualified call and C++ will try to find a function called `abs` in the namespace where the type of `value` is defined.
+This feature is called Argument Dependent Lookup (ADL).
+Using ADL for types which are not covered by specializations in alpaka allows a user to bring their own implementation for which `abs` is meaningful, e.g. a custom implementation of complex numbers or a fixed precision type.

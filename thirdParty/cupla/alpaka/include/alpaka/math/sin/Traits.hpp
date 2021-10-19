@@ -11,6 +11,7 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <type_traits>
 
@@ -24,13 +25,20 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The sin trait.
             template<typename T, typename TArg, typename TSfinae = void>
-            struct Sin;
+            struct Sin
+            {
+                ALPAKA_FN_HOST_ACC auto operator()(T const& ctx, TArg const& arg)
+                {
+                    alpaka::ignore_unused(ctx);
+                    // This is an ADL call. If you get a compile error here then your type is not supported by the
+                    // backend and we could not find sin(TArg) in the namespace of your type.
+                    return sin(arg);
+                }
+            };
         } // namespace traits
 
-        //-----------------------------------------------------------------------------
         //! Computes the sine (measured in radians).
         //!
         //! \tparam T The type of the object specializing Sin.
@@ -42,7 +50,7 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto sin(T const& sin_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathSin, T>;
-            return traits::Sin<ImplementationBase, TArg>::sin(sin_ctx, arg);
+            return traits::Sin<ImplementationBase, TArg>{}(sin_ctx, arg);
         }
     } // namespace math
 } // namespace alpaka

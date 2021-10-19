@@ -16,7 +16,6 @@ namespace alpaka
 {
     namespace meta
     {
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TFnObj, typename T>
         ALPAKA_FN_HOST_ACC auto foldr(TFnObj const& f, T const& t) -> T
@@ -25,7 +24,6 @@ namespace alpaka
 
             return t;
         }
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TFnObj, typename T0, typename T1, typename... Ts>
         ALPAKA_FN_HOST_ACC auto foldr(TFnObj const& f, T0 const& t0, T1 const& t1, Ts const&... ts)

@@ -14,27 +14,22 @@
 
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
     //! The event management traits.
     namespace traits
     {
-        //#############################################################################
         //! The event type trait.
         template<typename T, typename TSfinae = void>
         struct EventType;
 
-        //#############################################################################
         //! The event tester trait.
         template<typename TEvent, typename TSfinae = void>
         struct IsComplete;
     } // namespace traits
 
-    //#############################################################################
     //! The event type trait alias template to remove the ::type.
     template<typename T>
     using Event = typename traits::EventType<T>::type;
 
-    //-----------------------------------------------------------------------------
     //! Tests if the given event has already been completed.
     //!
     //! \warning This function is allowed to return false negatives. An already completed event can reported as

@@ -25,15 +25,15 @@
 
 // emulated that cuda runtime is loaded
 #ifndef __DRIVER_TYPES_H__
-# define __DRIVER_TYPES_H__
+#    define __DRIVER_TYPES_H__
 #endif
 
 enum cuplaMemcpyKind
 {
-  cuplaMemcpyHostToHost,
-  cuplaMemcpyHostToDevice,
-  cuplaMemcpyDeviceToHost,
-  cuplaMemcpyDeviceToDevice
+    cuplaMemcpyHostToHost,
+    cuplaMemcpyHostToDevice,
+    cuplaMemcpyDeviceToHost,
+    cuplaMemcpyDeviceToDevice
 };
 
 enum cuplaError
@@ -63,42 +63,44 @@ using cuplaEvent_t = void*;
 /** error category for `cuplaError` */
 struct CuplaErrorCode : public std::error_category
 {
-    char const * name() const noexcept override { return "cuplaError"; }
-    std::string message(int ev) const override
-	{
-        return message_cstr( ev );
+    char const* name() const noexcept override
+    {
+        return "cuplaError";
     }
-	static char const * message_cstr(int ev)
-	{
+    std::string message(int ev) const override
+    {
+        return message_cstr(ev);
+    }
+    static char const* message_cstr(int ev)
+    {
         switch(ev)
         {
-            case cuplaSuccess:
-                return "cuplaSuccess";
-            case cuplaErrorMemoryAllocation:
-                return "cuplaErrorMemoryAllocation";
-            case cuplaErrorInitializationError:
-                return "cuplaErrorInitializationError";
-            case cuplaErrorNotReady:
-                return "cuplaErrorNotReady";
-            case cuplaErrorDeviceAlreadyInUse:
-                return "cuplaErrorDeviceAlreadyInUse";
-            default:
-                return "not defined cuplaError";
+        case cuplaSuccess:
+            return "cuplaSuccess";
+        case cuplaErrorMemoryAllocation:
+            return "cuplaErrorMemoryAllocation";
+        case cuplaErrorInitializationError:
+            return "cuplaErrorInitializationError";
+        case cuplaErrorNotReady:
+            return "cuplaErrorNotReady";
+        case cuplaErrorDeviceAlreadyInUse:
+            return "cuplaErrorDeviceAlreadyInUse";
+        default:
+            return "not defined cuplaError";
         };
     }
 };
 
 namespace std
 {
-
-    template< >
-    struct is_error_code_enum< cuplaError > : public true_type{};
+    template<>
+    struct is_error_code_enum<cuplaError> : public true_type
+    {
+    };
 
 } // namespace std
 
-inline std::error_code make_error_code( const cuplaError result )
+inline std::error_code make_error_code(const cuplaError result)
 {
-    return std::error_code( static_cast<int>(result), CuplaErrorCode() );
+    return std::error_code(static_cast<int>(result), CuplaErrorCode());
 }
-
-

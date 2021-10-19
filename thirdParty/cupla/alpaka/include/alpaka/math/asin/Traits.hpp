@@ -11,6 +11,7 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <type_traits>
 
@@ -24,13 +25,20 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The asin trait.
             template<typename T, typename TArg, typename TSfinae = void>
-            struct Asin;
+            struct Asin
+            {
+                ALPAKA_FN_HOST_ACC auto operator()(T const& ctx, TArg const& arg)
+                {
+                    alpaka::ignore_unused(ctx);
+                    // This is an ADL call. If you get a compile error here then your type is not supported by the
+                    // backend and we could not find asin(TArg) in the namespace of your type.
+                    return asin(arg);
+                }
+            };
         } // namespace traits
 
-        //-----------------------------------------------------------------------------
         //! Computes the principal value of the arc sine.
         //!
         //! The valid real argument range is [-1.0, 1.0]. For other values
@@ -45,7 +53,7 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto asin(T const& asin_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathAsin, T>;
-            return traits::Asin<ImplementationBase, TArg>::asin(asin_ctx, arg);
+            return traits::Asin<ImplementationBase, TArg>{}(asin_ctx, arg);
         }
     } // namespace math
 } // namespace alpaka

@@ -25,29 +25,27 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-namespace manager
-{
-
-/** initialize the cupla environment
- *
- * avoid side effects with singletons in the user code
- */
-class Driver
-{
-
-public:
-    static Driver& get()
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
     {
-        static Driver driver;
-        return driver;
-    }
-private:
+        namespace manager
+        {
+            /** initialize the cupla environment
+             *
+             * avoid side effects with singletons in the user code
+             */
+            class Driver
+            {
+            public:
+                static Driver& get()
+                {
+                    static Driver driver;
+                    return driver;
+                }
 
-    Driver();
-};
+            private:
+                Driver();
+            };
 
-} //namespace manager
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
-} //namespace cupla
+        } // namespace manager
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace cupla

@@ -27,35 +27,26 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The GPU CUDA/HIP block shared memory allocator.
     class BlockSharedMemDynUniformCudaHipBuiltIn
         : public concepts::Implements<ConceptBlockSharedDyn, BlockSharedMemDynUniformCudaHipBuiltIn>
     {
     public:
-        //-----------------------------------------------------------------------------
         BlockSharedMemDynUniformCudaHipBuiltIn() = default;
-        //-----------------------------------------------------------------------------
         __device__ BlockSharedMemDynUniformCudaHipBuiltIn(BlockSharedMemDynUniformCudaHipBuiltIn const&) = delete;
-        //-----------------------------------------------------------------------------
         __device__ BlockSharedMemDynUniformCudaHipBuiltIn(BlockSharedMemDynUniformCudaHipBuiltIn&&) = delete;
-        //-----------------------------------------------------------------------------
         __device__ auto operator=(BlockSharedMemDynUniformCudaHipBuiltIn const&)
             -> BlockSharedMemDynUniformCudaHipBuiltIn& = delete;
-        //-----------------------------------------------------------------------------
         __device__ auto operator=(BlockSharedMemDynUniformCudaHipBuiltIn&&)
             -> BlockSharedMemDynUniformCudaHipBuiltIn& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~BlockSharedMemDynUniformCudaHipBuiltIn() = default;
     };
 
     namespace traits
     {
-        //#############################################################################
         template<typename T>
         struct GetDynSharedMem<T, BlockSharedMemDynUniformCudaHipBuiltIn>
         {
-            //-----------------------------------------------------------------------------
             __device__ static auto getMem(BlockSharedMemDynUniformCudaHipBuiltIn const&) -> T*
             {
                 // Because unaligned access to variables is not allowed in device code,

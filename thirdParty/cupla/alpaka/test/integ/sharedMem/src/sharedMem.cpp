@@ -18,14 +18,12 @@
 #include <typeinfo>
 #include <vector>
 
-//#############################################################################
 //! A kernel using atomicOp, syncBlockThreads, getDynSharedMem, getIdx, getWorkDiv and global memory to compute a
 //! (useless) result. \tparam TnumUselessWork The number of useless calculations done in each kernel execution.
 template<typename TnumUselessWork, typename Val>
 class SharedMemKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, Val* const puiBlockRetVals) const -> void
@@ -93,12 +91,10 @@ namespace alpaka
 {
     namespace traits
     {
-        //#############################################################################
         //! The trait for getting the size of the block shared dynamic memory for a kernel.
         template<typename TnumUselessWork, typename Val, typename TAcc>
         struct BlockSharedMemDynSizeBytes<SharedMemKernel<TnumUselessWork, Val>, TAcc>
         {
-            //-----------------------------------------------------------------------------
             //! \return The size of the shared memory allocated for a block.
             template<typename TVec, typename... TArgs>
             ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
@@ -136,7 +132,7 @@ TEMPLATE_LIST_TEST_CASE("sharedMem", "[sharedMem]", TestAccs)
     SharedMemKernel<TnumUselessWork, Val> kernel;
 
     // Select a device to execute on.
-    auto const devAcc(alpaka::getDevByIdx<PltfAcc>(0u));
+    auto const devAcc = alpaka::getDevByIdx<PltfAcc>(0u);
 
     // Get a queue on this device.
     QueueAcc queue(devAcc);
@@ -161,11 +157,11 @@ TEMPLATE_LIST_TEST_CASE("sharedMem", "[sharedMem]", TestAccs)
 
     // Allocate accelerator buffers and copy.
     Idx const resultElemCount(gridBlocksCount);
-    auto blockRetValsAcc(alpaka::allocBuf<Val, Idx>(devAcc, resultElemCount));
+    auto blockRetValsAcc = alpaka::allocBuf<Val, Idx>(devAcc, resultElemCount);
     alpaka::memcpy(queue, blockRetValsAcc, blockRetVals, resultElemCount);
 
     // Create the kernel execution task.
-    auto const taskKernel(alpaka::createTaskKernel<Acc>(workDiv, kernel, alpaka::getPtrNative(blockRetValsAcc)));
+    auto const taskKernel = alpaka::createTaskKernel<Acc>(workDiv, kernel, alpaka::getPtrNative(blockRetValsAcc));
 
     // Profile the kernel execution.
     std::cout << "Execution time: " << alpaka::test::integ::measureTaskRunTimeMs(queue, taskKernel) << " ms"

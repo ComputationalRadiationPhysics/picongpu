@@ -15,7 +15,6 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The CPU new allocator.
     class AllocCpuNew : public concepts::Implements<ConceptMemAlloc, AllocCpuNew>
     {
@@ -23,12 +22,10 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU new allocator memory allocation trait specialization.
         template<typename T>
         struct Malloc<T, AllocCpuNew>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto malloc(AllocCpuNew const& alloc, std::size_t const& sizeElems) -> T*
             {
                 alpaka::ignore_unused(alloc);
@@ -36,12 +33,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU new allocator memory free trait specialization.
         template<typename T>
         struct Free<T, AllocCpuNew>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto free(AllocCpuNew const& alloc, T const* const ptr) -> void
             {
                 alpaka::ignore_unused(alloc);

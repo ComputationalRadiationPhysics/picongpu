@@ -46,7 +46,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The CUDA built in floor.
         class FloorUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathFloor, FloorUniformCudaHipBuiltIn>
         {
@@ -54,12 +53,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The CUDA floor trait specialization.
             template<typename TArg>
             struct Floor<FloorUniformCudaHipBuiltIn, TArg, std::enable_if_t<std::is_floating_point<TArg>::value>>
             {
-                __device__ static auto floor(FloorUniformCudaHipBuiltIn const& floor_ctx, TArg const& arg)
+                __device__ auto operator()(FloorUniformCudaHipBuiltIn const& floor_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(floor_ctx);
                     return ::floor(arg);
@@ -69,7 +67,7 @@ namespace alpaka
             template<>
             struct Floor<FloorUniformCudaHipBuiltIn, float>
             {
-                __device__ static auto floor(FloorUniformCudaHipBuiltIn const& floor_ctx, float const& arg) -> float
+                __device__ auto operator()(FloorUniformCudaHipBuiltIn const& floor_ctx, float const& arg) -> float
                 {
                     alpaka::ignore_unused(floor_ctx);
                     return ::floorf(arg);

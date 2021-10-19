@@ -19,7 +19,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The standard library rsqrt.
         class RsqrtStdLib : public concepts::Implements<ConceptMathRsqrt, RsqrtStdLib>
         {
@@ -27,12 +26,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The standard library rsqrt trait specialization.
             template<typename TArg>
             struct Rsqrt<RsqrtStdLib, TArg, std::enable_if_t<std::is_arithmetic<TArg>::value>>
             {
-                ALPAKA_FN_HOST static auto rsqrt(RsqrtStdLib const& rsqrt_ctx, TArg const& arg)
+                ALPAKA_FN_HOST auto operator()(RsqrtStdLib const& rsqrt_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(rsqrt_ctx);
                     return static_cast<TArg>(1) / std::sqrt(arg);

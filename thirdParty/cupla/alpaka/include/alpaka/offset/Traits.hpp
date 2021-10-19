@@ -17,11 +17,9 @@
 
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
     //! The offset traits.
     namespace traits
     {
-        //#############################################################################
         //! The x offset get trait.
         //!
         //! If not specialized explicitly it returns 0.
@@ -35,13 +33,11 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The x offset set trait.
         template<typename TIdx, typename TOffsets, typename TOffset, typename TSfinae = void>
         struct SetOffset;
     } // namespace traits
 
-    //-----------------------------------------------------------------------------
     //! \return The offset in the given dimension.
     ALPAKA_NO_HOST_ACC_WARNING
     template<std::size_t Tidx, typename TOffsets>
@@ -49,7 +45,6 @@ namespace alpaka
     {
         return traits::GetOffset<DimInt<Tidx>, TOffsets>::getOffset(offsets);
     }
-    //-----------------------------------------------------------------------------
     //! \return The offset in x dimension.
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TOffsets>
@@ -57,7 +52,6 @@ namespace alpaka
     {
         return getOffset<Dim<TOffsets>::value - 1u>(offsets);
     }
-    //-----------------------------------------------------------------------------
     //! \return The offset in y dimension.
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TOffsets>
@@ -65,7 +59,6 @@ namespace alpaka
     {
         return getOffset<Dim<TOffsets>::value - 2u>(offsets);
     }
-    //-----------------------------------------------------------------------------
     //! \return The offset in z dimension.
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TOffsets>
@@ -74,7 +67,6 @@ namespace alpaka
         return getOffset<Dim<TOffsets>::value - 3u>(offsets);
     }
 
-    //-----------------------------------------------------------------------------
     //! Sets the offset in the given dimension.
     ALPAKA_NO_HOST_ACC_WARNING
     template<std::size_t Tidx, typename TOffsets, typename TOffset>
@@ -82,7 +74,6 @@ namespace alpaka
     {
         traits::SetOffset<DimInt<Tidx>, TOffsets, TOffset>::setOffset(offsets, offset);
     }
-    //-----------------------------------------------------------------------------
     //! Sets the offset in x dimension.
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TOffsets, typename TOffset>
@@ -90,7 +81,6 @@ namespace alpaka
     {
         setOffset<Dim<TOffsets>::value - 1u>(offsets, offset);
     }
-    //-----------------------------------------------------------------------------
     //! Sets the offset in y dimension.
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TOffsets, typename TOffset>
@@ -98,7 +88,6 @@ namespace alpaka
     {
         setOffset<Dim<TOffsets>::value - 2u>(offsets, offset);
     }
-    //-----------------------------------------------------------------------------
     //! Sets the offset in z dimension.
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TOffsets, typename TOffset>
@@ -107,11 +96,9 @@ namespace alpaka
         setOffset<Dim<TOffsets>::value - 3u>(offsets, offset);
     }
 
-    //-----------------------------------------------------------------------------
     // Trait specializations for unsigned integral types.
     namespace traits
     {
-        //#############################################################################
         //! The unsigned integral x offset get trait specialization.
         template<typename TOffsets>
         struct GetOffset<DimInt<0u>, TOffsets, std::enable_if_t<std::is_integral<TOffsets>::value>>
@@ -122,7 +109,6 @@ namespace alpaka
                 return offset;
             }
         };
-        //#############################################################################
         //! The unsigned integral x offset set trait specialization.
         template<typename TOffsets, typename TOffset>
         struct SetOffset<DimInt<0u>, TOffsets, TOffset, std::enable_if_t<std::is_integral<TOffsets>::value>>

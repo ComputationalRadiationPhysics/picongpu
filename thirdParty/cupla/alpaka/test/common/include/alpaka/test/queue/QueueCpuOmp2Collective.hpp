@@ -45,7 +45,6 @@ namespace alpaka
 #        pragma clang diagnostic push
 #        pragma clang diagnostic ignored "-Wweak-vtables"
 #    endif
-            //#############################################################################
             //! The CPU collective device queue implementation.
             class QueueCpuOmp2CollectiveImpl final : public cpu::ICpuQueue
 #    if BOOST_COMP_CLANG
@@ -53,24 +52,17 @@ namespace alpaka
 #    endif
             {
             public:
-                //-----------------------------------------------------------------------------
                 QueueCpuOmp2CollectiveImpl(DevCpu const& dev) noexcept : m_dev(dev), m_uCurrentlyExecutingTask(0u)
                 {
                 }
-                //-----------------------------------------------------------------------------
                 QueueCpuOmp2CollectiveImpl(QueueCpuOmp2CollectiveImpl const&) = delete;
-                //-----------------------------------------------------------------------------
                 QueueCpuOmp2CollectiveImpl(QueueCpuOmp2CollectiveImpl&&) = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(QueueCpuOmp2CollectiveImpl const&) -> QueueCpuOmp2CollectiveImpl& = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(QueueCpuOmp2CollectiveImpl&&) -> QueueCpuOmp2CollectiveImpl& = delete;
-                //-----------------------------------------------------------------------------
                 void enqueue(EventCpu& ev) final
                 {
                     alpaka::enqueue(*this, ev);
                 }
-                //-----------------------------------------------------------------------------
                 void wait(EventCpu const& ev) final
                 {
                     alpaka::wait(*this, ev);
@@ -84,7 +76,6 @@ namespace alpaka
         } // namespace detail
     } // namespace cpu
 
-    //#############################################################################
     //! The CPU collective device queue.
     //
     // @attention Queue can only be used together with the accelerator AccCpuOmp2Blocks.
@@ -100,32 +91,24 @@ namespace alpaka
         : public concepts::Implements<ConceptCurrentThreadWaitFor, QueueCpuOmp2Collective>
     {
     public:
-        //-----------------------------------------------------------------------------
         QueueCpuOmp2Collective(DevCpu const& dev)
             : m_spQueueImpl(std::make_shared<cpu::detail::QueueCpuOmp2CollectiveImpl>(dev))
             , m_spBlockingQueue(std::make_shared<QueueCpuBlocking>(dev))
         {
             dev.registerQueue(m_spQueueImpl);
         }
-        //-----------------------------------------------------------------------------
         QueueCpuOmp2Collective(QueueCpuOmp2Collective const&) = default;
-        //-----------------------------------------------------------------------------
         QueueCpuOmp2Collective(QueueCpuOmp2Collective&&) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(QueueCpuOmp2Collective const&) -> QueueCpuOmp2Collective& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(QueueCpuOmp2Collective&&) -> QueueCpuOmp2Collective& = default;
-        //-----------------------------------------------------------------------------
         auto operator==(QueueCpuOmp2Collective const& rhs) const -> bool
         {
             return m_spQueueImpl == rhs.m_spQueueImpl && m_spBlockingQueue == rhs.m_spBlockingQueue;
         }
-        //-----------------------------------------------------------------------------
         auto operator!=(QueueCpuOmp2Collective const& rhs) const -> bool
         {
             return !((*this) == rhs);
         }
-        //-----------------------------------------------------------------------------
         ~QueueCpuOmp2Collective() = default;
 
     public:
@@ -135,26 +118,22 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU blocking device queue device type trait specialization.
         template<>
         struct DevType<QueueCpuOmp2Collective>
         {
             using type = DevCpu;
         };
-        //#############################################################################
         //! The CPU blocking device queue device get trait specialization.
         template<>
         struct GetDev<QueueCpuOmp2Collective>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDev(QueueCpuOmp2Collective const& queue) -> DevCpu
             {
                 return queue.m_spQueueImpl->m_dev;
             }
         };
 
-        //#############################################################################
         //! The CPU blocking device queue event type trait specialization.
         template<>
         struct EventType<QueueCpuOmp2Collective>
@@ -162,13 +141,11 @@ namespace alpaka
             using type = EventCpu;
         };
 
-        //#############################################################################
         //! The CPU blocking device queue enqueue trait specialization.
         //! This default implementation for all tasks directly invokes the function call operator of the task.
         template<typename TTask>
         struct Enqueue<QueueCpuOmp2Collective, TTask>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(QueueCpuOmp2Collective& queue, TTask const& task) -> void
             {
                 if(::omp_in_parallel() != 0)
@@ -192,24 +169,20 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU blocking device queue test trait specialization.
         template<>
         struct Empty<QueueCpuOmp2Collective>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto empty(QueueCpuOmp2Collective const& queue) -> bool
             {
                 return queue.m_spQueueImpl->m_uCurrentlyExecutingTask == 0u && alpaka::empty(*queue.m_spBlockingQueue);
             }
         };
 
-        //#############################################################################
         //! The CPU OpenMP2 collective device queue enqueue trait specialization.
         template<>
         struct Enqueue<cpu::detail::QueueCpuOmp2CollectiveImpl, EventCpu>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(cpu::detail::QueueCpuOmp2CollectiveImpl&, EventCpu&) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -217,12 +190,10 @@ namespace alpaka
 #    pragma omp barrier
             }
         };
-        //#############################################################################
         //! The CPU OpenMP2 collective device queue enqueue trait specialization.
         template<>
         struct Enqueue<QueueCpuOmp2Collective, EventCpu>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(QueueCpuOmp2Collective& queue, EventCpu& event) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -242,7 +213,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU blocking device queue enqueue trait specialization.
         //! This default implementation for all tasks directly invokes the function call operator of the task.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
@@ -252,7 +222,6 @@ namespace alpaka
             using Task = TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>;
 
         public:
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(QueueCpuOmp2Collective& queue, Task const& task) -> void
             {
                 if(::omp_in_parallel() != 0)
@@ -274,15 +243,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
-        //!
-        //#############################################################################
         template<>
         struct Enqueue<QueueCpuOmp2Collective, test::EventHostManualTriggerCpu<>>
         {
-            //-----------------------------------------------------------------------------
             //
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(QueueCpuOmp2Collective&, test::EventHostManualTriggerCpu<>&) -> void
             {
                 // EventHostManualTriggerCpu are not supported for together with the queue QueueCpuOmp2Collective
@@ -290,7 +254,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU blocking device queue thread wait trait specialization.
         //!
         //! Blocks execution of the calling thread until the queue has finished processing all previously requested
@@ -298,7 +261,6 @@ namespace alpaka
         template<>
         struct CurrentThreadWaitFor<QueueCpuOmp2Collective>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto currentThreadWaitFor(QueueCpuOmp2Collective const& queue) -> void
             {
                 if(::omp_in_parallel() != 0)
@@ -318,23 +280,19 @@ namespace alpaka
         };
 
 
-        //#############################################################################
         //! The CPU OpenMP2 collective device queue event wait trait specialization.
         template<>
         struct WaiterWaitFor<cpu::detail::QueueCpuOmp2CollectiveImpl, EventCpu>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto waiterWaitFor(cpu::detail::QueueCpuOmp2CollectiveImpl&, EventCpu const&) -> void
             {
 #    pragma omp barrier
             }
         };
-        //#############################################################################
         //! The CPU OpenMP2 collective queue event wait trait specialization.
         template<>
         struct WaiterWaitFor<QueueCpuOmp2Collective, EventCpu>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto waiterWaitFor(QueueCpuOmp2Collective& queue, EventCpu const& event) -> void
             {
                 if(::omp_in_parallel() != 0)
@@ -350,13 +308,11 @@ namespace alpaka
             }
         };
     } // namespace traits
-    //-----------------------------------------------------------------------------
     //! The test specifics.
     namespace test
     {
         namespace traits
         {
-            //#############################################################################
             //! The blocking queue trait specialization for a OpenMP2 collective CPU queue.
             template<>
             struct IsBlockingQueue<alpaka::QueueCpuOmp2Collective>

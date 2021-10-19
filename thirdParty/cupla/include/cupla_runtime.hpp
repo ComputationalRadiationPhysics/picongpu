@@ -21,34 +21,31 @@
 
 #pragma once
 
-#include <alpaka/alpaka.hpp>
-
-#include "cupla/namespace.hpp"
-#include "cupla/kernel.hpp"
-
+#include "cupla/api/common.hpp"
+#include "cupla/api/device.hpp"
+#include "cupla/api/event.hpp"
+#include "cupla/api/memory.hpp"
+#include "cupla/api/stream.hpp"
 #include "cupla/c/datatypes/cuplaArray.hpp"
-#include "cupla/datatypes/dim3.hpp"
-#include "cupla/datatypes/uint.hpp"
 #include "cupla/c/datatypes/cuplaExtent.hpp"
-#include "cupla/c/datatypes/cuplaPos.hpp"
 #include "cupla/c/datatypes/cuplaMemcpy3DParms.hpp"
 #include "cupla/c/datatypes/cuplaPitchedPtr.hpp"
-
+#include "cupla/c/datatypes/cuplaPos.hpp"
+#include "cupla/datatypes/dim3.hpp"
+#include "cupla/datatypes/uint.hpp"
+#include "cupla/kernel.hpp"
+#include "cupla/manager/Driver.hpp"
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla_driver_types.hpp"
 
-#include "cupla/api/common.hpp"
-#include "cupla/api/device.hpp"
-#include "cupla/api/stream.hpp"
-#include "cupla/api/event.hpp"
-#include "cupla/api/memory.hpp"
-#include "cupla/manager/Driver.hpp"
+#include <alpaka/alpaka.hpp>
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-    const auto driver = manager::Driver::get();
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        const auto driver = manager::Driver::get();
 
-} //namespace cupla
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace cupla

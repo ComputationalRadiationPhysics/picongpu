@@ -177,9 +177,7 @@ Instantiate a kernel and create a task that will run it (does not launch it yet)
   .. code-block:: c++
 
      Kernel kernel{argumentsForConstructor};
-     auto taskRunKernel = createTaskKernel<Acc>(workDiv,
-                                                        kernel,
-							parameters);
+     auto taskRunKernel = createTaskKernel<Acc>(workDiv, kernel, parameters);
 
 acc parameter of the kernel is provided automatically, does not need to be specified here
 
@@ -245,26 +243,26 @@ Get dynamic shared memory pool, requires the kernel to specialize
 Synchronize threads of the same block
   .. code-block:: c++
 
-     block::sync::syncBlockThreads(acc);
+     syncBlockThreads(acc);
 
 Atomic operations
   .. code-block:: c++
 
-     auto result = atomicOp<Operation>(acc,
-                                       arguments,
-                                       OperationHierarchy{});
+     auto result = atomicOp<Operation>(acc, arguments);
 
-  Operation (all in `op`):
+  Operations:
      .. code-block:: c++
 
-	namespace op
-           Add, Sub, Min, Max, Exch, Inc, Dec, And, Or, Xor, Cas
+         AtomicAdd, AtomicSub, AtomicMin, AtomicMax, AtomicExch,
+         AtomicInc, AtomicDec, AtomicAnd, AtomicOr, AtomicXor, AtomicCas
 
-  OperationHierarchy (all in hierarchy):
-     .. code-block:: c++
+Warp-level operations
+  .. code-block:: c++
 
-	namespace hierarchy
-	   Threads, Blocks, Grids
+     uint64_t result = warp::ballot(acc, idx == 1 || idx == 4);
+     assert( result == (1<<1) + (1<<4) );
+
+     int32_t valFromSrcLane = warp::shfl(val, srcLane);
 
 Math functions take acc as additional first argument
   .. code-block:: c++

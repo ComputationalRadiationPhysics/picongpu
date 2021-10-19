@@ -22,11 +22,9 @@
 #include <cstdlib>
 #include <iostream>
 
-//#############################################################################
 //! This functor defines the function for which the integral is to be computed.
 struct Function
 {
-    //-----------------------------------------------------------------------------
     //! \tparam TAcc The accelerator environment to be executed on.
     //! \param acc The accelerator to be executed on.
     //! \param x The argument.
@@ -37,13 +35,11 @@ struct Function
     }
 };
 
-//#############################################################################
 //! The kernel executing the parallel logic.
 //! Each Thread generates X pseudo random numbers and compares them with the given function.
 //! The local result will be added to a global result.
 struct Kernel
 {
-    //-----------------------------------------------------------------------------
     //! The kernel entry point.
     //! \tparam TAcc The accelerator environment to be executed on.
     //! \tparam TFunctor A wrapper for a function.

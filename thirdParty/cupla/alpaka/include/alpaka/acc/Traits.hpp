@@ -32,42 +32,35 @@ namespace alpaka
     struct ConceptAcc
     {
     };
-    //-----------------------------------------------------------------------------
     //! The accelerator traits.
     namespace traits
     {
-        //#############################################################################
         //! The accelerator type trait.
         template<typename T, typename TSfinae = void>
         struct AccType;
 
-        //#############################################################################
         //! The device properties get trait.
         template<typename TAcc, typename TSfinae = void>
         struct GetAccDevProps;
 
-        //#############################################################################
         //! The accelerator name trait.
         //!
         //! The default implementation returns the mangled class name.
         template<typename TAcc, typename TSfinae = void>
         struct GetAccName
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
                 return typeid(TAcc).name();
             }
         };
 
-        //#############################################################################
         //! The GPU CUDA accelerator device properties get trait specialization.
         template<typename TAcc>
         struct GetAccDevProps<
             TAcc,
             typename std::enable_if<concepts::ImplementsConcept<ConceptUniformCudaHip, TAcc>::value>::type>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccDevProps(typename alpaka::traits::DevType<TAcc>::type const& dev)
                 -> AccDevProps<typename traits::DimType<TAcc>::type, typename traits::IdxType<TAcc>::type>
             {
@@ -77,12 +70,10 @@ namespace alpaka
         };
     } // namespace traits
 
-    //#############################################################################
     //! The accelerator type trait alias template to remove the ::type.
     template<typename T>
     using Acc = typename traits::AccType<T>::type;
 
-    //-----------------------------------------------------------------------------
     //! \return The acceleration properties on the given device.
     template<typename TAcc, typename TDev>
     ALPAKA_FN_HOST auto getAccDevProps(TDev const& dev) -> AccDevProps<Dim<TAcc>, Idx<TAcc>>
@@ -91,7 +82,6 @@ namespace alpaka
         return traits::GetAccDevProps<ImplementationBase>::getAccDevProps(dev);
     }
 
-    //-----------------------------------------------------------------------------
     //! \return The accelerator name
     //!
     //! \tparam TAcc The accelerator type.
@@ -119,7 +109,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The GPU HIP accelerator device type trait specialization.
         template<typename TAcc>
         struct DevType<
@@ -130,7 +119,6 @@ namespace alpaka
             using type = typename DevType<ImplementationBase>::type;
         };
 
-        //#############################################################################
         //! The CPU HIP execution task platform type trait specialization.
         template<typename TAcc>
         struct PltfType<
@@ -141,7 +129,6 @@ namespace alpaka
             using type = typename PltfType<ImplementationBase>::type;
         };
 
-        //#############################################################################
         //! The GPU HIP accelerator dimension getter trait specialization.
         template<typename TAcc>
         struct DimType<
@@ -152,7 +139,6 @@ namespace alpaka
             using type = typename DimType<ImplementationBase>::type;
         };
 
-        //#############################################################################
         //! The GPU HIP accelerator idx type trait specialization.
         template<typename TAcc>
         struct IdxType<

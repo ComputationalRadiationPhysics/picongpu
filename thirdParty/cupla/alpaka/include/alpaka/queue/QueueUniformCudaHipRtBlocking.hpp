@@ -47,35 +47,26 @@ namespace alpaka
 {
     class EventUniformCudaHipRt;
 
-    //#############################################################################
     //! The CUDA/HIP RT blocking queue.
     class QueueUniformCudaHipRtBlocking final : public uniform_cuda_hip::detail::QueueUniformCudaHipRtBase
     {
     public:
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST QueueUniformCudaHipRtBlocking(DevUniformCudaHipRt const& dev)
             : uniform_cuda_hip::detail::QueueUniformCudaHipRtBase(dev)
         {
         }
-        //-----------------------------------------------------------------------------
         QueueUniformCudaHipRtBlocking(QueueUniformCudaHipRtBlocking const&) = default;
-        //-----------------------------------------------------------------------------
         QueueUniformCudaHipRtBlocking(QueueUniformCudaHipRtBlocking&&) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(QueueUniformCudaHipRtBlocking const&) -> QueueUniformCudaHipRtBlocking& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(QueueUniformCudaHipRtBlocking&&) -> QueueUniformCudaHipRtBlocking& = default;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator==(QueueUniformCudaHipRtBlocking const& rhs) const -> bool
         {
             return (m_spQueueImpl == rhs.m_spQueueImpl);
         }
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator!=(QueueUniformCudaHipRtBlocking const& rhs) const -> bool
         {
             return !((*this) == rhs);
         }
-        //-----------------------------------------------------------------------------
         ~QueueUniformCudaHipRtBlocking() = default;
     };
 
@@ -87,7 +78,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CUDA/HIP RT blocking queue device type trait specialization.
         template<>
         struct DevType<QueueUniformCudaHipRtBlocking>
@@ -95,7 +85,6 @@ namespace alpaka
             using type = DevUniformCudaHipRt;
         };
 
-        //#############################################################################
         //! The CUDA/HIP RT blocking queue event type trait specialization.
         template<>
         struct EventType<QueueUniformCudaHipRtBlocking>
@@ -103,12 +92,10 @@ namespace alpaka
             using type = EventUniformCudaHipRt;
         };
 
-        //#############################################################################
         //! The CUDA/HIP RT blocking queue enqueue trait specialization.
         template<typename TTask>
         struct Enqueue<QueueUniformCudaHipRtBlocking, TTask>
         {
-            //#############################################################################
             enum class CallbackState
             {
                 enqueued,
@@ -116,7 +103,6 @@ namespace alpaka
                 finished,
             };
 
-            //#############################################################################
             struct CallbackSynchronizationData : public std::enable_shared_from_this<CallbackSynchronizationData>
             {
                 std::mutex m_mutex;
@@ -124,7 +110,6 @@ namespace alpaka
                 CallbackState state = CallbackState::enqueued;
             };
 
-            //-----------------------------------------------------------------------------
 #    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
             static void CUDART_CB
 #    else
@@ -157,7 +142,6 @@ namespace alpaka
                 }
             }
 
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(QueueUniformCudaHipRtBlocking& queue, TTask const& task) -> void
             {
                 auto pCallbackSynchronizationData = std::make_shared<CallbackSynchronizationData>();

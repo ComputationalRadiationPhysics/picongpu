@@ -11,6 +11,7 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <type_traits>
 
@@ -24,13 +25,20 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The cos trait.
             template<typename T, typename TArg, typename TSfinae = void>
-            struct Cos;
+            struct Cos
+            {
+                ALPAKA_FN_HOST_ACC auto operator()(T const& ctx, TArg const& arg)
+                {
+                    alpaka::ignore_unused(ctx);
+                    // This is an ADL call. If you get a compile error here then your type is not supported by the
+                    // backend and we could not find cos(TArg) in the namespace of your type.
+                    return cos(arg);
+                }
+            };
         } // namespace traits
 
-        //-----------------------------------------------------------------------------
         //! Computes the cosine (measured in radians).
         //!
         //! \tparam T The type of the object specializing Cos.
@@ -42,7 +50,7 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto cos(T const& cos_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathCos, T>;
-            return traits::Cos<ImplementationBase, TArg>::cos(cos_ctx, arg);
+            return traits::Cos<ImplementationBase, TArg>{}(cos_ctx, arg);
         }
     } // namespace math
 } // namespace alpaka

@@ -68,7 +68,6 @@ namespace alpaka
     {
         namespace detail
         {
-            //-----------------------------------------------------------------------------
             //! The GPU CUDA/HIP kernel entry point.
             // \NOTE: 'A __global__ function or function template cannot have a trailing return type.'
             template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
@@ -92,11 +91,10 @@ namespace alpaka
                 kernelFnObj(const_cast<TAcc const&>(acc), args...);
             }
 
-            //-----------------------------------------------------------------------------
             template<typename TDim, typename TIdx>
             ALPAKA_FN_HOST auto checkVecOnly3Dim(Vec<TDim, TIdx> const& vec) -> void
             {
-                for(auto i(std::min(static_cast<typename TDim::value_type>(3), TDim::value)); i < TDim::value; ++i)
+                for(auto i = std::min(static_cast<typename TDim::value_type>(3), TDim::value); i < TDim::value; ++i)
                 {
                     if(vec[TDim::value - 1u - i] != 1)
                     {
@@ -106,12 +104,11 @@ namespace alpaka
                 }
             }
 
-            //-----------------------------------------------------------------------------
             template<typename TDim, typename TIdx>
             ALPAKA_FN_HOST auto convertVecToUniformCudaHipDim(Vec<TDim, TIdx> const& vec) -> dim3
             {
                 dim3 dim(1, 1, 1);
-                for(auto i(static_cast<typename TDim::value_type>(0));
+                for(auto i = static_cast<typename TDim::value_type>(0);
                     i < std::min(static_cast<typename TDim::value_type>(3), TDim::value);
                     ++i)
                 {
@@ -123,13 +120,11 @@ namespace alpaka
         } // namespace detail
     } // namespace uniform_cuda_hip
 
-    //#############################################################################
     //! The GPU CUDA/HIP accelerator execution task.
     template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     class TaskKernelGpuUniformCudaHipRt final : public WorkDivMembers<TDim, TIdx>
     {
     public:
-        //-----------------------------------------------------------------------------
         template<typename TWorkDiv>
         ALPAKA_FN_HOST TaskKernelGpuUniformCudaHipRt(
             TWorkDiv&& workDiv,
@@ -143,15 +138,10 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        //-----------------------------------------------------------------------------
         TaskKernelGpuUniformCudaHipRt(TaskKernelGpuUniformCudaHipRt const&) = default;
-        //-----------------------------------------------------------------------------
         TaskKernelGpuUniformCudaHipRt(TaskKernelGpuUniformCudaHipRt&&) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(TaskKernelGpuUniformCudaHipRt const&) -> TaskKernelGpuUniformCudaHipRt& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(TaskKernelGpuUniformCudaHipRt&&) -> TaskKernelGpuUniformCudaHipRt& = default;
-        //-----------------------------------------------------------------------------
         ~TaskKernelGpuUniformCudaHipRt() = default;
 
         TKernelFnObj m_kernelFnObj;
@@ -160,7 +150,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The GPU CUDA/HIP execution task accelerator type trait specialization.
         template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct AccType<TaskKernelGpuUniformCudaHipRt<TAcc, TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -168,7 +157,6 @@ namespace alpaka
             using type = AccGpuUniformCudaHipRt<TDim, TIdx>;
         };
 
-        //#############################################################################
         //! The GPU CUDA/HIP execution task device type trait specialization.
         template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct DevType<TaskKernelGpuUniformCudaHipRt<TAcc, TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -176,7 +164,6 @@ namespace alpaka
             using type = DevUniformCudaHipRt;
         };
 
-        //#############################################################################
         //! The GPU CUDA/HIP execution task dimension getter trait specialization.
         template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct DimType<TaskKernelGpuUniformCudaHipRt<TAcc, TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -184,7 +171,6 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The CPU CUDA/HIP execution task platform type trait specialization.
         template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct PltfType<TaskKernelGpuUniformCudaHipRt<TAcc, TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -192,7 +178,6 @@ namespace alpaka
             using type = PltfUniformCudaHipRt;
         };
 
-        //#############################################################################
         //! The GPU CUDA/HIP execution task idx type trait specialization.
         template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct IdxType<TaskKernelGpuUniformCudaHipRt<TAcc, TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -200,14 +185,12 @@ namespace alpaka
             using type = TIdx;
         };
 
-        //#############################################################################
         //! The CUDA/HIP non-blocking kernel enqueue trait specialization.
         template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct Enqueue<
             QueueUniformCudaHipRtNonBlocking,
             TaskKernelGpuUniformCudaHipRt<TAcc, TDim, TIdx, TKernelFnObj, TArgs...>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(
                 QueueUniformCudaHipRtNonBlocking& queue,
                 TaskKernelGpuUniformCudaHipRt<TAcc, TDim, TIdx, TKernelFnObj, TArgs...> const& task) -> void
@@ -223,12 +206,12 @@ namespace alpaka
                 // cudaDeviceGetLimit(&printfFifoSize, cudaLimitPrintfFifoSize);
                 // std::cout << __func__ << "INFO: printfFifoSize: " <<  printfFifoSize << std::endl;
 #    endif
-                auto const gridBlockExtent(getWorkDiv<Grid, Blocks>(task));
-                auto const blockThreadExtent(getWorkDiv<Block, Threads>(task));
-                auto const threadElemExtent(getWorkDiv<Thread, Elems>(task));
+                auto const gridBlockExtent = getWorkDiv<Grid, Blocks>(task);
+                auto const blockThreadExtent = getWorkDiv<Block, Threads>(task);
+                auto const threadElemExtent = getWorkDiv<Thread, Elems>(task);
 
-                dim3 const gridDim(uniform_cuda_hip::detail::convertVecToUniformCudaHipDim(gridBlockExtent));
-                dim3 const blockDim(uniform_cuda_hip::detail::convertVecToUniformCudaHipDim(blockThreadExtent));
+                dim3 const gridDim = uniform_cuda_hip::detail::convertVecToUniformCudaHipDim(gridBlockExtent);
+                dim3 const blockDim = uniform_cuda_hip::detail::convertVecToUniformCudaHipDim(blockThreadExtent);
                 uniform_cuda_hip::detail::checkVecOnly3Dim(threadElemExtent);
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
@@ -247,7 +230,7 @@ namespace alpaka
 #    endif
 
                 // Get the size of the block shared dynamic memory.
-                auto const blockSharedMemDynSizeBytes(meta::apply(
+                auto const blockSharedMemDynSizeBytes = meta::apply(
                     [&](ALPAKA_DECAY_T(TArgs) const&... args) {
                         return getBlockSharedMemDynSizeBytes<TAcc>(
                             task.m_kernelFnObj,
@@ -255,7 +238,7 @@ namespace alpaka
                             threadElemExtent,
                             args...);
                     },
-                    task.m_args));
+                    task.m_args);
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 // Log the block shared memory idx.
@@ -324,14 +307,12 @@ namespace alpaka
 #    endif
             }
         };
-        //#############################################################################
         //! The CUDA/HIP synchronous kernel enqueue trait specialization.
         template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct Enqueue<
             QueueUniformCudaHipRtBlocking,
             TaskKernelGpuUniformCudaHipRt<TAcc, TDim, TIdx, TKernelFnObj, TArgs...>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(
                 QueueUniformCudaHipRtBlocking& queue,
                 TaskKernelGpuUniformCudaHipRt<TAcc, TDim, TIdx, TKernelFnObj, TArgs...> const& task) -> void
@@ -347,19 +328,18 @@ namespace alpaka
                 // cudaDeviceGetLimit(&printfFifoSize, cudaLimitPrintfFifoSize);
                 // std::cout << __func__ << "INFO: printfFifoSize: " <<  printfFifoSize << std::endl;
 #    endif
-                auto const gridBlockExtent(getWorkDiv<Grid, Blocks>(task));
-                auto const blockThreadExtent(getWorkDiv<Block, Threads>(task));
-                auto const threadElemExtent(getWorkDiv<Thread, Elems>(task));
+                auto const gridBlockExtent = getWorkDiv<Grid, Blocks>(task);
+                auto const blockThreadExtent = getWorkDiv<Block, Threads>(task);
+                auto const threadElemExtent = getWorkDiv<Thread, Elems>(task);
 
 #    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-                dim3 const gridDim(uniform_cuda_hip::detail::convertVecToUniformCudaHipDim(gridBlockExtent));
-                dim3 const blockDim(uniform_cuda_hip::detail::convertVecToUniformCudaHipDim(blockThreadExtent));
-                uniform_cuda_hip::detail::checkVecOnly3Dim(threadElemExtent);
+                dim3 const gridDim = uniform_cuda_hip::detail::convertVecToUniformCudaHipDim(gridBlockExtent);
+                dim3 const blockDim = uniform_cuda_hip::detail::convertVecToUniformCudaHipDim(blockThreadExtent);
 #    else
-                dim3 gridDim(uniform_cuda_hip::detail::convertVecToUniformCudaHipDim(gridBlockExtent));
-                dim3 blockDim(uniform_cuda_hip::detail::convertVecToUniformCudaHipDim(blockThreadExtent));
-                uniform_cuda_hip::detail::checkVecOnly3Dim(threadElemExtent);
+                dim3 gridDim = uniform_cuda_hip::detail::convertVecToUniformCudaHipDim(gridBlockExtent);
+                dim3 blockDim = uniform_cuda_hip::detail::convertVecToUniformCudaHipDim(blockThreadExtent);
 #    endif
+                uniform_cuda_hip::detail::checkVecOnly3Dim(threadElemExtent);
 
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
@@ -379,7 +359,7 @@ namespace alpaka
 #    endif
 
                 // Get the size of the block shared dynamic memory.
-                auto const blockSharedMemDynSizeBytes(meta::apply(
+                auto const blockSharedMemDynSizeBytes = meta::apply(
                     [&](ALPAKA_DECAY_T(TArgs) const&... args) {
                         return getBlockSharedMemDynSizeBytes<TAcc>(
                             task.m_kernelFnObj,
@@ -387,7 +367,7 @@ namespace alpaka
                             threadElemExtent,
                             args...);
                     },
-                    task.m_args));
+                    task.m_args);
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 // Log the block shared memory idx.

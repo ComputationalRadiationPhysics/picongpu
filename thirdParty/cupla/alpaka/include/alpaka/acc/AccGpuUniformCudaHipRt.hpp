@@ -55,7 +55,6 @@ namespace alpaka
     template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     class TaskKernelGpuUniformCudaHipRt;
 
-    //#############################################################################
     //! The GPU CUDA accelerator.
     //!
     //! This accelerator allows parallel kernel execution on devices supporting CUDA.
@@ -86,7 +85,6 @@ namespace alpaka
             "Index type is not supported, consider using int or a larger type.");
 
     public:
-        //-----------------------------------------------------------------------------
         __device__ AccGpuUniformCudaHipRt(Vec<TDim, TIdx> const& threadElemExtent)
             : WorkDivUniformCudaHipBuiltIn<TDim, TIdx>(threadElemExtent)
             , gb::IdxGbUniformCudaHipBuiltIn<TDim, TIdx>()
@@ -108,33 +106,25 @@ namespace alpaka
     public:
         // using baseType = AccUniformCudaHip<TDim,TIdx>;
 
-        //-----------------------------------------------------------------------------
         __device__ AccGpuUniformCudaHipRt(AccGpuUniformCudaHipRt const&) = delete;
-        //-----------------------------------------------------------------------------
         __device__ AccGpuUniformCudaHipRt(AccGpuUniformCudaHipRt&&) = delete;
-        //-----------------------------------------------------------------------------
         __device__ auto operator=(AccGpuUniformCudaHipRt const&) -> AccGpuUniformCudaHipRt& = delete;
-        //-----------------------------------------------------------------------------
         __device__ auto operator=(AccGpuUniformCudaHipRt&&) -> AccGpuUniformCudaHipRt& = delete;
-        //-----------------------------------------------------------------------------
         ~AccGpuUniformCudaHipRt() = default;
     };
 
     namespace traits
     {
-        //#############################################################################
         //! The GPU CUDA accelerator accelerator type trait specialization.
         template<typename TDim, typename TIdx>
         struct AccType<AccGpuUniformCudaHipRt<TDim, TIdx>>
         {
             using type = AccGpuUniformCudaHipRt<TDim, TIdx>;
         };
-        //#############################################################################
         //! The GPU CUDA accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccGpuUniformCudaHipRt<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccDevProps(DevUniformCudaHipRt const& dev) -> AccDevProps<TDim, TIdx>
             {
 #    ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
@@ -220,19 +210,16 @@ namespace alpaka
 #    endif
             }
         };
-        //#############################################################################
         //! The GPU CUDA accelerator name trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccName<AccGpuUniformCudaHipRt<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
                 return "AccGpuUniformCudaHipRt<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
             }
         };
 
-        //#############################################################################
         //! The GPU CUDA accelerator device type trait specialization.
         template<typename TDim, typename TIdx>
         struct DevType<AccGpuUniformCudaHipRt<TDim, TIdx>>
@@ -240,7 +227,6 @@ namespace alpaka
             using type = DevUniformCudaHipRt;
         };
 
-        //#############################################################################
         //! The GPU CUDA accelerator dimension getter trait specialization.
         template<typename TDim, typename TIdx>
         struct DimType<AccGpuUniformCudaHipRt<TDim, TIdx>>
@@ -250,7 +236,6 @@ namespace alpaka
     } // namespace traits
     namespace detail
     {
-        //#############################################################################
         //! specialization of the TKernelFnObj return type evaluation
         //
         // It is not possible to determine the result type of a __device__ lambda for CUDA on the host side.
@@ -267,12 +252,10 @@ namespace alpaka
     } // namespace detail
     namespace traits
     {
-        //#############################################################################
         //! The GPU CUDA accelerator execution task type trait specialization.
         template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
         struct CreateTaskKernel<AccGpuUniformCudaHipRt<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto createTaskKernel(
                 TWorkDiv const& workDiv,
                 TKernelFnObj const& kernelFnObj,
@@ -287,7 +270,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU CUDA execution task platform type trait specialization.
         template<typename TDim, typename TIdx>
         struct PltfType<AccGpuUniformCudaHipRt<TDim, TIdx>>
@@ -295,7 +277,6 @@ namespace alpaka
             using type = PltfUniformCudaHipRt;
         };
 
-        //#############################################################################
         //! The GPU CUDA accelerator idx type trait specialization.
         template<typename TDim, typename TIdx>
         struct IdxType<AccGpuUniformCudaHipRt<TDim, TIdx>>

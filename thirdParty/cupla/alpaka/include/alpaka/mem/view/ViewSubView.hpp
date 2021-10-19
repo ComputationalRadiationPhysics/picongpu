@@ -25,7 +25,6 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! A sub-view to a view.
     template<typename TDev, typename TElem, typename TDim, typename TIdx>
     class ViewSubView
@@ -35,7 +34,6 @@ namespace alpaka
         using Dev = alpaka::Dev<TDev>;
 
     public:
-        //-----------------------------------------------------------------------------
         //! Constructor.
         //! \param view The view this view is a sub-view of.
         //! \param extentElements The extent in elements.
@@ -78,7 +76,6 @@ namespace alpaka
             ALPAKA_ASSERT(((m_offsetsElements + m_extentElements) <= extent::getExtentVec(view))
                               .foldrAll(std::logical_and<bool>()));
         }
-        //-----------------------------------------------------------------------------
         //! Constructor.
         //! \param view The view this view is a sub-view of.
         //! \param extentElements The extent in elements.
@@ -119,7 +116,6 @@ namespace alpaka
                               .foldrAll(std::logical_and<bool>()));
         }
 
-        //-----------------------------------------------------------------------------
         //! \param view The view this view is a sub-view of.
         template<typename TView>
         explicit ViewSubView(TView const& view) : ViewSubView(view, view, Vec<TDim, TIdx>::all(0))
@@ -127,7 +123,6 @@ namespace alpaka
             ALPAKA_DEBUG_FULL_LOG_SCOPE;
         }
 
-        //-----------------------------------------------------------------------------
         //! \param view The view this view is a sub-view of.
         template<typename TView>
         explicit ViewSubView(TView& view) : ViewSubView(view, view, Vec<TDim, TIdx>::all(0))
@@ -141,11 +136,9 @@ namespace alpaka
         Vec<TDim, TIdx> m_offsetsElements; // The offset relative to the parent view.
     };
 
-    //-----------------------------------------------------------------------------
     // Trait specializations for ViewSubView.
     namespace traits
     {
-        //#############################################################################
         //! The ViewSubView device type trait specialization.
         template<typename TElem, typename TDim, typename TDev, typename TIdx>
         struct DevType<ViewSubView<TDev, TElem, TDim, TIdx>>
@@ -153,19 +146,16 @@ namespace alpaka
             using type = alpaka::Dev<TDev>;
         };
 
-        //#############################################################################
         //! The ViewSubView device get trait specialization.
         template<typename TElem, typename TDim, typename TDev, typename TIdx>
         struct GetDev<ViewSubView<TDev, TElem, TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDev(ViewSubView<TDev, TElem, TDim, TIdx> const& view) -> alpaka::Dev<TDev>
             {
                 return alpaka::getDev(view.m_viewParentView);
             }
         };
 
-        //#############################################################################
         //! The ViewSubView dimension getter trait specialization.
         template<typename TElem, typename TDim, typename TDev, typename TIdx>
         struct DimType<ViewSubView<TDev, TElem, TDim, TIdx>>
@@ -173,7 +163,6 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The ViewSubView memory element type get trait specialization.
         template<typename TElem, typename TDim, typename TDev, typename TIdx>
         struct ElemType<ViewSubView<TDev, TElem, TDim, TIdx>>
@@ -185,7 +174,6 @@ namespace alpaka
     {
         namespace traits
         {
-            //#############################################################################
             //! The ViewSubView width get trait specialization.
             template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TDev, typename TIdx>
             struct GetExtent<
@@ -193,7 +181,6 @@ namespace alpaka
                 ViewSubView<TDev, TElem, TDim, TIdx>,
                 std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
             {
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getExtent(ViewSubView<TDev, TElem, TDim, TIdx> const& extent) -> TIdx
                 {
                     return extent.m_extentElements[TIdxIntegralConst::value];
@@ -208,7 +195,6 @@ namespace alpaka
 #    pragma GCC diagnostic ignored                                                                                    \
         "-Wcast-align" // "cast from 'std::uint8_t*' to 'TElem*' increases required alignment of target type"
 #endif
-        //#############################################################################
         //! The ViewSubView native pointer get trait specialization.
         template<typename TElem, typename TDim, typename TDev, typename TIdx>
         struct GetPtrNative<ViewSubView<TDev, TElem, TDim, TIdx>>
@@ -217,7 +203,6 @@ namespace alpaka
             using IdxSequence = std::make_index_sequence<TDim::value>;
 
         public:
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getPtrNative(ViewSubView<TDev, TElem, TDim, TIdx> const& view) -> TElem const*
             {
                 // \TODO: pre-calculate this pointer for faster execution.
@@ -225,7 +210,6 @@ namespace alpaka
                     reinterpret_cast<std::uint8_t const*>(alpaka::getPtrNative(view.m_viewParentView))
                     + pitchedOffsetBytes(view, IdxSequence()));
             }
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getPtrNative(ViewSubView<TDev, TElem, TDim, TIdx>& view) -> TElem*
             {
                 // \TODO: pre-calculate this pointer for faster execution.
@@ -235,7 +219,6 @@ namespace alpaka
             }
 
         private:
-            //-----------------------------------------------------------------------------
             //! For a 3D vector this calculates:
             //!
             //! getOffset<0u>(view) * getPitchBytes<1u>(view)
@@ -248,7 +231,6 @@ namespace alpaka
             {
                 return meta::foldr(std::plus<TIdx>(), pitchedOffsetBytesDim<TIndices>(view)...);
             }
-            //-----------------------------------------------------------------------------
             template<std::size_t Tidx, typename TView>
             ALPAKA_FN_HOST static auto pitchedOffsetBytesDim(TView const& view) -> TIdx
             {
@@ -259,19 +241,16 @@ namespace alpaka
 #    pragma GCC diagnostic pop
 #endif
 
-        //#############################################################################
         //! The ViewSubView pitch get trait specialization.
         template<typename TIdxIntegralConst, typename TDev, typename TElem, typename TDim, typename TIdx>
         struct GetPitchBytes<TIdxIntegralConst, ViewSubView<TDev, TElem, TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getPitchBytes(ViewSubView<TDev, TElem, TDim, TIdx> const& view) -> TIdx
             {
                 return alpaka::getPitchBytes<TIdxIntegralConst::value>(view.m_viewParentView);
             }
         };
 
-        //#############################################################################
         //! The ViewSubView x offset get trait specialization.
         template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TDev, typename TIdx>
         struct GetOffset<
@@ -279,14 +258,12 @@ namespace alpaka
             ViewSubView<TDev, TElem, TDim, TIdx>,
             std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getOffset(ViewSubView<TDev, TElem, TDim, TIdx> const& offset) -> TIdx
             {
                 return offset.m_offsetsElements[TIdxIntegralConst::value];
             }
         };
 
-        //#############################################################################
         //! The ViewSubView idx type trait specialization.
         template<typename TElem, typename TDim, typename TDev, typename TIdx>
         struct IdxType<ViewSubView<TDev, TElem, TDim, TIdx>>

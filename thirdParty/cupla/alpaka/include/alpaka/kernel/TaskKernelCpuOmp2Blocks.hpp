@@ -792,7 +792,6 @@ namespace alpaka
     class TaskKernelCpuOmp2Blocks final : public WorkDivMembers<TDim, TIdx>
     {
     public:
-        //-----------------------------------------------------------------------------
         template<typename TWorkDiv>
         ALPAKA_FN_HOST TaskKernelCpuOmp2Blocks(TWorkDiv&& workDiv, TKernelFnObj const& kernelFnObj, TArgs&&... args)
             : WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv))
@@ -803,18 +802,12 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        //-----------------------------------------------------------------------------
         TaskKernelCpuOmp2Blocks(TaskKernelCpuOmp2Blocks const&) = default;
-        //-----------------------------------------------------------------------------
         TaskKernelCpuOmp2Blocks(TaskKernelCpuOmp2Blocks&&) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(TaskKernelCpuOmp2Blocks const&) -> TaskKernelCpuOmp2Blocks& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(TaskKernelCpuOmp2Blocks&&) -> TaskKernelCpuOmp2Blocks& = default;
-        //-----------------------------------------------------------------------------
         ~TaskKernelCpuOmp2Blocks() = default;
 
-        //-----------------------------------------------------------------------------
         //! Executes the kernel function object.
         ALPAKA_FN_HOST auto operator()() const -> void
         {
@@ -937,7 +930,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU OpenMP 2.0 grid block execution task accelerator type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct AccType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -945,7 +937,6 @@ namespace alpaka
             using type = AccCpuOmp2Blocks<TDim, TIdx>;
         };
 
-        //#############################################################################
         //! The CPU OpenMP 2.0 grid block execution task device type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct DevType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -953,7 +944,6 @@ namespace alpaka
             using type = DevCpu;
         };
 
-        //#############################################################################
         //! The CPU OpenMP 2.0 grid block execution task dimension getter trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct DimType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -961,7 +951,6 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The CPU OpenMP 2.0 grid block execution task platform type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct PltfType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -969,7 +958,6 @@ namespace alpaka
             using type = PltfCpu;
         };
 
-        //#############################################################################
         //! The CPU OpenMP 2.0 block execution task idx type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct IdxType<TaskKernelCpuOmp2Blocks<TDim, TIdx, TKernelFnObj, TArgs...>>

@@ -45,7 +45,6 @@ namespace alpaka
 #    else
             using Error_t = hipError_t;
 #    endif
-            //-----------------------------------------------------------------------------
             //! CUDA/HIP runtime API error checking with log and exception, ignoring specific error values
             ALPAKA_FN_HOST inline auto rtCheck(
                 Error_t const& error,
@@ -68,7 +67,6 @@ namespace alpaka
                     throw std::runtime_error(sError);
                 }
             }
-            //-----------------------------------------------------------------------------
             //! CUDA/Hip runtime API error checking with log and exception, ignoring specific error values
             // NOTE: All ignored errors have to be convertible to Error_t.
             template<typename... TErrors>
@@ -96,7 +94,6 @@ namespace alpaka
                     }
                 }
             }
-            //-----------------------------------------------------------------------------
             //! CUDA runtime API last error checking with log and exception.
             ALPAKA_FN_HOST inline auto rtCheckLastError(char const* desc, char const* file, int const& line) -> void
             {
@@ -108,7 +105,6 @@ namespace alpaka
 } // namespace alpaka
 
 #    if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
-  //-----------------------------------------------------------------------------
 //! CUDA runtime error checking with log and exception, ignoring specific error values
 #        define ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_IGNORE(cmd, ...)                                                     \
             ::alpaka::uniform_cuda_hip::detail::rtCheckLastError(                                                     \
@@ -121,7 +117,6 @@ namespace alpaka
 #            pragma clang diagnostic push
 #            pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
 #        endif
-  //-----------------------------------------------------------------------------
 //! CUDA runtime error checking with log and exception, ignoring specific error values
 #        define ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_IGNORE(cmd, ...)                                                     \
             ::alpaka::uniform_cuda_hip::detail::rtCheckLastError(                                                     \
@@ -134,7 +129,6 @@ namespace alpaka
 #        endif
 #    endif
 
-//-----------------------------------------------------------------------------
 //! CUDA runtime error checking with log and exception.
 #    define ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(cmd) ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_IGNORE(cmd)
 

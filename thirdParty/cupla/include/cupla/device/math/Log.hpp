@@ -28,17 +28,16 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-inline namespace device
-{
-inline namespace math
-{
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        inline namespace device
+        {
+            inline namespace math
+            {
+                //! Computes the natural (base e) logarithm.
+                CUPLA_UNARY_MATH_FN(log, alpaka::math::ConceptMathLog, Log)
 
-    //! Computes the natural (base e) logarithm.
-    CUPLA_UNARY_MATH_FN( log, alpaka::math::ConceptMathLog, Log )
-
-} // namespace math
-} // namespace device
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+            } // namespace math
+        } // namespace device
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

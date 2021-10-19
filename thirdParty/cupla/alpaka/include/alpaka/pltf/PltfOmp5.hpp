@@ -25,18 +25,15 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The OpenMP 5 device platform.
     class PltfOmp5 : public concepts::Implements<ConceptPltf, PltfOmp5>
     {
     public:
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST PltfOmp5() = delete;
     };
 
     namespace traits
     {
-        //#############################################################################
         //! The OpenMP 5 device device type trait specialization.
         template<>
         struct DevType<PltfOmp5>
@@ -44,12 +41,10 @@ namespace alpaka
             using type = DevOmp5;
         };
 
-        //#############################################################################
         //! The OpenMP 5 platform device count get trait specialization.
         template<>
         struct GetDevCount<PltfOmp5>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDevCount() -> std::size_t
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
@@ -60,12 +55,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The OpenMP 5 platform device get trait specialization.
         template<>
         struct GetDevByIdx<PltfOmp5>
         {
-            //-----------------------------------------------------------------------------
             //! \param devIdx device id, less than GetDevCount or equal, yielding omp_get_initial_device()
             ALPAKA_FN_HOST static auto getDevByIdx(std::size_t devIdx) -> DevOmp5
             {

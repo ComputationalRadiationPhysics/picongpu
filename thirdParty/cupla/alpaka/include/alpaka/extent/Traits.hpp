@@ -21,15 +21,12 @@
 
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
     //! The extent specifics.
     namespace extent
     {
-        //-----------------------------------------------------------------------------
         //! The extent traits.
         namespace traits
         {
-            //#############################################################################
             //! The extent get trait.
             //!
             //! If not specialized explicitly it returns 1.
@@ -43,13 +40,11 @@ namespace alpaka
                 }
             };
 
-            //#############################################################################
             //! The extent set trait.
             template<typename TIdxIntegralConst, typename TExtent, typename TExtentVal, typename TSfinae = void>
             struct SetExtent;
         } // namespace traits
 
-        //-----------------------------------------------------------------------------
         //! \return The extent in the given dimension.
         ALPAKA_NO_HOST_ACC_WARNING
         template<std::size_t Tidx, typename TExtent>
@@ -57,7 +52,6 @@ namespace alpaka
         {
             return traits::GetExtent<DimInt<Tidx>, TExtent>::getExtent(extent);
         }
-        //-----------------------------------------------------------------------------
         //! \return The width.
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TExtent>
@@ -65,7 +59,6 @@ namespace alpaka
         {
             return getExtent<Dim<TExtent>::value - 1u>(extent);
         }
-        //-----------------------------------------------------------------------------
         //! \return The height.
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TExtent>
@@ -73,7 +66,6 @@ namespace alpaka
         {
             return getExtent<Dim<TExtent>::value - 2u>(extent);
         }
-        //-----------------------------------------------------------------------------
         //! \return The depth.
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TExtent>
@@ -84,7 +76,6 @@ namespace alpaka
 
         namespace detail
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_NO_HOST_ACC_WARNING
             template<typename TExtent, size_t... TIndices>
             ALPAKA_FN_HOST_ACC auto getExtentProductInternal(
@@ -97,7 +88,6 @@ namespace alpaka
             }
         } // namespace detail
 
-        //-----------------------------------------------------------------------------
         //! \return The product of the extent.
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TExtent>
@@ -107,7 +97,6 @@ namespace alpaka
             return detail::getExtentProductInternal(extent, IdxSequence());
         }
 
-        //-----------------------------------------------------------------------------
         //! Sets the extent in the given dimension.
         ALPAKA_NO_HOST_ACC_WARNING
         template<std::size_t Tidx, typename TExtent, typename TExtentVal>
@@ -115,7 +104,6 @@ namespace alpaka
         {
             traits::SetExtent<DimInt<Tidx>, TExtent, TExtentVal>::setExtent(extent, extentVal);
         }
-        //-----------------------------------------------------------------------------
         //! Sets the width.
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TExtent, typename TWidth>
@@ -123,7 +111,6 @@ namespace alpaka
         {
             setExtent<Dim<TExtent>::value - 1u>(extent, width);
         }
-        //-----------------------------------------------------------------------------
         //! Sets the height.
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TExtent, typename THeight>
@@ -131,7 +118,6 @@ namespace alpaka
         {
             setExtent<Dim<TExtent>::value - 2u>(extent, height);
         }
-        //-----------------------------------------------------------------------------
         //! Sets the depth.
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TExtent, typename TDepth>
@@ -140,11 +126,9 @@ namespace alpaka
             setExtent<Dim<TExtent>::value - 3u>(extent, depth);
         }
 
-        //-----------------------------------------------------------------------------
         // Trait specializations for unsigned integral types.
         namespace traits
         {
-            //#############################################################################
             //! The unsigned integral width get trait specialization.
             template<typename TExtent>
             struct GetExtent<DimInt<0u>, TExtent, std::enable_if_t<std::is_integral<TExtent>::value>>
@@ -155,7 +139,6 @@ namespace alpaka
                     return extent;
                 }
             };
-            //#############################################################################
             //! The unsigned integral width set trait specialization.
             template<typename TExtent, typename TExtentVal>
             struct SetExtent<DimInt<0u>, TExtent, TExtentVal, std::enable_if_t<std::is_integral<TExtent>::value>>

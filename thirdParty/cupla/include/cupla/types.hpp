@@ -20,240 +20,146 @@
 
 #pragma once
 
-#include <alpaka/alpaka.hpp>
-#include <cstdint>
-
 #include "cupla/defines.hpp"
 #include "cupla/namespace.hpp"
 
+#include <alpaka/alpaka.hpp>
+
+#include <cstdint>
+
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        using MemSizeType = size_t;
+        using IdxType = unsigned int;
 
-    using MemSizeType = size_t;
-    using IdxType = unsigned int;
+        static constexpr uint32_t Dimensions = 3u;
 
-    static constexpr uint32_t Dimensions = 3u;
+        template<uint32_t T_dim>
+        using AlpakaDim = ::alpaka::DimInt<T_dim>;
 
-    template<
-        uint32_t T_dim
-    >
-    using AlpakaDim = ::alpaka::DimInt< T_dim >;
+        using KernelDim = AlpakaDim<Dimensions>;
 
-    using KernelDim = AlpakaDim< Dimensions >;
+        using IdxVec3 = ::alpaka::Vec<KernelDim, IdxType>;
 
-    using IdxVec3 = ::alpaka::Vec<
-        KernelDim,
-        IdxType
-    >;
+        template<uint32_t T_dim>
+        using MemVec = ::alpaka::Vec<AlpakaDim<T_dim>, MemSizeType>;
 
-    template<
-        uint32_t T_dim
-    >
-    using MemVec = ::alpaka::Vec<
-        AlpakaDim< T_dim >,
-        MemSizeType
-    >;
+        using AccHost = ::alpaka::DevCpu;
+        using AccHostStream = ::alpaka::QueueCpuBlocking;
 
-    using AccHost = ::alpaka::DevCpu;
-    using AccHostStream = ::alpaka::QueueCpuBlocking;
+#if defined(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED) || defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED)                   \
+    || defined(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED) || defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)                    \
+    || defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
 
-#if defined(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED) ||                            \
-    defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED) ||                         \
-    defined(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED) ||                            \
-    defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED) ||                             \
-    defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
-
-    using AccDev = ::alpaka::DevCpu;
-#   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
+        using AccDev = ::alpaka::DevCpu;
+#    if(CUPLA_STREAM_ASYNC_ENABLED == 1)
         using AccStream = ::alpaka::QueueCpuNonBlocking;
-#   else
+#    else
         using AccStream = ::alpaka::QueueCpuBlocking;
-#   endif
+#    endif
 
-#ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
-    using Acc = ::alpaka::AccCpuOmp2Threads<
-        KernelDim,
-        IdxType
-    >;
-#endif
+#    ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
+        using Acc = ::alpaka::AccCpuOmp2Threads<KernelDim, IdxType>;
+#    endif
 
-#if (ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED == 1)
-    #if (CUPLA_NUM_SELECTED_DEVICES == 1)
-        using Acc = ::alpaka::AccCpuOmp2Blocks<
-            KernelDim,
-            IdxType
-        >;
-    #else
-        using AccThreadSeq = ::alpaka::AccCpuOmp2Blocks<
-            KernelDim,
-            IdxType
-        >;
-    #endif
-#endif
+#    if(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED == 1)
+#        if(CUPLA_NUM_SELECTED_DEVICES == 1)
+        using Acc = ::alpaka::AccCpuOmp2Blocks<KernelDim, IdxType>;
+#        else
+        using AccThreadSeq = ::alpaka::AccCpuOmp2Blocks<KernelDim, IdxType>;
+#        endif
+#    endif
 
-#ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
-    using Acc = ::alpaka::AccCpuThreads<
-        KernelDim,
-        IdxType
-    >;
-#endif
+#    ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
+        using Acc = ::alpaka::AccCpuThreads<KernelDim, IdxType>;
+#    endif
 
-#ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-    #if (CUPLA_NUM_SELECTED_DEVICES == 1)
-        using Acc = ::alpaka::AccCpuSerial<
-            KernelDim,
-            IdxType
-        >;
-    #else
-        using AccThreadSeq = ::alpaka::AccCpuSerial<
-            KernelDim,
-            IdxType
-        >;
-    #endif
-#endif
+#    ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
+#        if(CUPLA_NUM_SELECTED_DEVICES == 1)
+        using Acc = ::alpaka::AccCpuSerial<KernelDim, IdxType>;
+#        else
+        using AccThreadSeq = ::alpaka::AccCpuSerial<KernelDim, IdxType>;
+#        endif
+#    endif
 
-#if (ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED == 1)
-    #if (CUPLA_NUM_SELECTED_DEVICES == 1)
-        using Acc = ::alpaka::AccCpuTbbBlocks<
-            KernelDim,
-            IdxType
-        >;
-    #else
-        using AccThreadSeq = ::alpaka::AccCpuTbbBlocks<
-            KernelDim,
-            IdxType
-        >;
-    #endif
-#endif
+#    if(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED == 1)
+#        if(CUPLA_NUM_SELECTED_DEVICES == 1)
+        using Acc = ::alpaka::AccCpuTbbBlocks<KernelDim, IdxType>;
+#        else
+        using AccThreadSeq = ::alpaka::AccCpuTbbBlocks<KernelDim, IdxType>;
+#        endif
+#    endif
 
 #endif
 
 #ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-    using AccDev = ::alpaka::DevOmp5;
-#   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
+        using AccDev = ::alpaka::DevOmp5;
+#    if(CUPLA_STREAM_ASYNC_ENABLED == 1)
         using AccStream = ::alpaka::QueueOmp5NonBlocking;
-#   else
+#    else
         using AccStream = ::alpaka::QueueOmp5Blocking;
-#   endif
-    using Acc = ::alpaka::AccOmp5<
-        KernelDim,
-        IdxType
-    >;
+#    endif
+        using Acc = ::alpaka::AccOmp5<KernelDim, IdxType>;
 #endif
 
 #ifdef ALPAKA_ACC_ANY_BT_OACC_ENABLED
-    using AccDev = ::alpaka::DevOacc;
-#   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
+        using AccDev = ::alpaka::DevOacc;
+#    if(CUPLA_STREAM_ASYNC_ENABLED == 1)
         using AccStream = ::alpaka::QueueOaccNonBlocking;
-#   else
+#    else
         using AccStream = ::alpaka::QueueOaccBlocking;
-#   endif
-    using Acc = ::alpaka::AccOacc<
-        KernelDim,
-        IdxType
-    >;
+#    endif
+        using Acc = ::alpaka::AccOacc<KernelDim, IdxType>;
 #endif
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-    using AccDev = ::alpaka::DevCudaRt;
-#   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
+        using AccDev = ::alpaka::DevCudaRt;
+#    if(CUPLA_STREAM_ASYNC_ENABLED == 1)
         using AccStream = ::alpaka::QueueCudaRtNonBlocking;
-#   else
+#    else
         using AccStream = ::alpaka::QueueCudaRtBlocking;
-#   endif
-    using Acc = ::alpaka::AccGpuCudaRt<
-        KernelDim,
-        IdxType
-    >;
+#    endif
+        using Acc = ::alpaka::AccGpuCudaRt<KernelDim, IdxType>;
 #endif
 
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
-    using AccDev = ::alpaka::DevHipRt;
-#   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
+        using AccDev = ::alpaka::DevHipRt;
+#    if(CUPLA_STREAM_ASYNC_ENABLED == 1)
         using AccStream = ::alpaka::QueueHipRtNonBlocking;
-#   else
+#    else
         using AccStream = ::alpaka::QueueHipRtBlocking;
-#   endif
-    using Acc = ::alpaka::AccGpuHipRt<
-        KernelDim,
-        IdxType
-    >;
+#    endif
+        using Acc = ::alpaka::AccGpuHipRt<KernelDim, IdxType>;
 #endif
 
-#if (CUPLA_NUM_SELECTED_DEVICES == 1)
-    /** is an Alpaka accelerator which limits the thread count per block to one
-     *
-     * if only one accelerator is selected than it can be a accelerator without
-     * thread restrictions
-     */
-    using AccThreadSeq = Acc;
+#if(CUPLA_NUM_SELECTED_DEVICES == 1)
+        /** is an Alpaka accelerator which limits the thread count per block to one
+         *
+         * if only one accelerator is selected than it can be a accelerator without
+         * thread restrictions
+         */
+        using AccThreadSeq = Acc;
 #endif
 
-    template<
-        uint32_t T_dim
-    >
-    using AccBuf = ::alpaka::Buf<
-        AccDev,
-        uint8_t,
-        AlpakaDim< T_dim >,
-        MemSizeType
-    >;
+        template<uint32_t T_dim>
+        using AccBuf = ::alpaka::Buf<AccDev, uint8_t, AlpakaDim<T_dim>, MemSizeType>;
 
-    template<
-        uint32_t T_dim
-    >
-    using HostBuf = ::alpaka::Buf<
-        AccHost,
-        uint8_t,
-        AlpakaDim< T_dim >,
-        MemSizeType
-    >;
+        template<uint32_t T_dim>
+        using HostBuf = ::alpaka::Buf<AccHost, uint8_t, AlpakaDim<T_dim>, MemSizeType>;
 
-    template<
-        unsigned T_dim
-    >
-    using HostBufWrapper =
-        ::alpaka::ViewPlainPtr<
-            AccHost,
-            uint8_t,
-            AlpakaDim< T_dim >,
-            MemSizeType
-        >;
+        template<unsigned T_dim>
+        using HostBufWrapper = ::alpaka::ViewPlainPtr<AccHost, uint8_t, AlpakaDim<T_dim>, MemSizeType>;
 
-    template<
-        unsigned T_dim
-    >
-    using HostViewWrapper =
-        ::alpaka::ViewSubView<
-            AccHost,
-            uint8_t,
-            AlpakaDim< T_dim >,
-            MemSizeType
-        >;
+        template<unsigned T_dim>
+        using HostViewWrapper = ::alpaka::ViewSubView<AccHost, uint8_t, AlpakaDim<T_dim>, MemSizeType>;
 
-    template<
-        unsigned T_dim
-    >
-    using DeviceBufWrapper =
-        ::alpaka::ViewPlainPtr<
-            AccDev,
-            uint8_t,
-            AlpakaDim< T_dim >,
-            MemSizeType
-        >;
+        template<unsigned T_dim>
+        using DeviceBufWrapper = ::alpaka::ViewPlainPtr<AccDev, uint8_t, AlpakaDim<T_dim>, MemSizeType>;
 
-    template<
-        unsigned T_dim
-    >
-    using DeviceViewWrapper =
-        ::alpaka::ViewSubView<
-            AccDev,
-            uint8_t,
-            AlpakaDim< T_dim >,
-            MemSizeType
-        >;
+        template<unsigned T_dim>
+        using DeviceViewWrapper = ::alpaka::ViewSubView<AccDev, uint8_t, AlpakaDim<T_dim>, MemSizeType>;
 
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
-} // namepsace cupla
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace cupla

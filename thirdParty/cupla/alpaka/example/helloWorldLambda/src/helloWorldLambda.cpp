@@ -20,7 +20,6 @@
 
 #include <functional>
 
-//-----------------------------------------------------------------------------
 //! This functions says hi to the world and
 //! can be encapsulated into a std::function
 //! and used as a kernel function. It is

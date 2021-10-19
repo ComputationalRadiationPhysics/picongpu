@@ -46,7 +46,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The CUDA built in remainder.
         class RemainderUniformCudaHipBuiltIn
             : public concepts::Implements<ConceptMathRemainder, RemainderUniformCudaHipBuiltIn>
@@ -55,7 +54,6 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The CUDA remainder trait specialization.
             template<typename Tx, typename Ty>
             struct Remainder<
@@ -64,7 +62,7 @@ namespace alpaka
                 Ty,
                 std::enable_if_t<std::is_floating_point<Tx>::value && std::is_floating_point<Ty>::value>>
             {
-                __device__ static auto remainder(
+                __device__ auto operator()(
                     RemainderUniformCudaHipBuiltIn const& remainder_ctx,
                     Tx const& x,
                     Ty const& y)
@@ -77,7 +75,7 @@ namespace alpaka
             template<>
             struct Remainder<RemainderUniformCudaHipBuiltIn, float, float>
             {
-                __device__ static auto remainder(
+                __device__ auto operator()(
                     RemainderUniformCudaHipBuiltIn const& remainder_ctx,
                     float const& x,
                     float const& y) -> float

@@ -42,12 +42,10 @@ namespace alpaka
     {
         namespace detail
         {
-            //#############################################################################
             //! The CUDA/HIP RT blocking queue implementation.
             class QueueUniformCudaHipRtImpl final
             {
             public:
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST QueueUniformCudaHipRtImpl(DevUniformCudaHipRt const& dev)
                     : m_dev(dev)
                     , m_UniformCudaHipQueue()
@@ -68,15 +66,10 @@ namespace alpaka
                     ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(
                         StreamCreateWithFlags)(&m_UniformCudaHipQueue, ALPAKA_API_PREFIX(StreamNonBlocking)));
                 }
-                //-----------------------------------------------------------------------------
                 QueueUniformCudaHipRtImpl(QueueUniformCudaHipRtImpl const&) = delete;
-                //-----------------------------------------------------------------------------
                 QueueUniformCudaHipRtImpl(QueueUniformCudaHipRtImpl&&) = default;
-                //-----------------------------------------------------------------------------
                 auto operator=(QueueUniformCudaHipRtImpl const&) -> QueueUniformCudaHipRtImpl& = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(QueueUniformCudaHipRtImpl&&) -> QueueUniformCudaHipRtImpl& = delete;
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST ~QueueUniformCudaHipRtImpl()
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -102,7 +95,6 @@ namespace alpaka
                 ALPAKA_API_PREFIX(Stream_t) m_UniformCudaHipQueue;
             };
 
-            //#############################################################################
             //! The CUDA RT blocking queue.
             class QueueUniformCudaHipRtBase
                 : public concepts::Implements<ConceptCurrentThreadWaitFor, QueueUniformCudaHipRtBase>
@@ -110,30 +102,22 @@ namespace alpaka
                 , public concepts::Implements<ConceptGetDev, QueueUniformCudaHipRtBase>
             {
             public:
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST QueueUniformCudaHipRtBase(DevUniformCudaHipRt const& dev)
                     : m_spQueueImpl(std::make_shared<QueueUniformCudaHipRtImpl>(dev))
                 {
                 }
-                //-----------------------------------------------------------------------------
                 QueueUniformCudaHipRtBase(QueueUniformCudaHipRtBase const&) = default;
-                //-----------------------------------------------------------------------------
                 QueueUniformCudaHipRtBase(QueueUniformCudaHipRtBase&&) = default;
-                //-----------------------------------------------------------------------------
                 auto operator=(QueueUniformCudaHipRtBase const&) -> QueueUniformCudaHipRtBase& = default;
-                //-----------------------------------------------------------------------------
                 auto operator=(QueueUniformCudaHipRtBase&&) -> QueueUniformCudaHipRtBase& = default;
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST auto operator==(QueueUniformCudaHipRtBase const& rhs) const -> bool
                 {
                     return (m_spQueueImpl == rhs.m_spQueueImpl);
                 }
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST auto operator!=(QueueUniformCudaHipRtBase const& rhs) const -> bool
                 {
                     return !((*this) == rhs);
                 }
-                //-----------------------------------------------------------------------------
                 ~QueueUniformCudaHipRtBase() = default;
 
             public:
@@ -144,12 +128,10 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CUDA/HIP RT non-blocking queue device get trait specialization.
         template<>
         struct GetDev<uniform_cuda_hip::detail::QueueUniformCudaHipRtBase>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDev(uniform_cuda_hip::detail::QueueUniformCudaHipRtBase const& queue)
                 -> DevUniformCudaHipRt
             {
@@ -157,12 +139,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CUDA/HIP RT blocking queue test trait specialization.
         template<>
         struct Empty<uniform_cuda_hip::detail::QueueUniformCudaHipRtBase>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto empty(uniform_cuda_hip::detail::QueueUniformCudaHipRtBase const& queue) -> bool
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -176,7 +156,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CUDA/HIP RT blocking queue thread wait trait specialization.
         //!
         //! Blocks execution of the calling thread until the queue has finished processing all previously requested
@@ -184,7 +163,6 @@ namespace alpaka
         template<>
         struct CurrentThreadWaitFor<uniform_cuda_hip::detail::QueueUniformCudaHipRtBase>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto currentThreadWaitFor(
                 uniform_cuda_hip::detail::QueueUniformCudaHipRtBase const& queue) -> void
             {

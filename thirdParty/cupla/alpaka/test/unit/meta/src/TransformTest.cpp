@@ -17,7 +17,6 @@
 template<typename T>
 using AddConst = T const;
 
-//-----------------------------------------------------------------------------
 TEST_CASE("transform", "[meta]")
 {
     using TransformInput = std::tuple<int, float, long>;
@@ -29,7 +28,6 @@ TEST_CASE("transform", "[meta]")
     static_assert(std::is_same<TransformReference, TransformResult>::value, "alpaka::meta::Transform failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("transformVariadic", "[meta]")
 {
     using TransformInput = std::tuple<int, float, long>;

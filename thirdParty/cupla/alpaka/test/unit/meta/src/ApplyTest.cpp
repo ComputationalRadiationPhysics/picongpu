@@ -19,7 +19,6 @@ struct TypeList
 {
 };
 
-//-----------------------------------------------------------------------------
 TEST_CASE("apply", "[meta]")
 {
     using ApplyInput = std::tuple<int, float, long>;

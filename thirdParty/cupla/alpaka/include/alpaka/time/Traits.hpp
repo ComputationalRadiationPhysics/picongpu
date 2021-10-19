@@ -20,17 +20,14 @@ namespace alpaka
     {
     };
 
-    //-----------------------------------------------------------------------------
     //! The time traits.
     namespace traits
     {
-        //#############################################################################
         //! The clock trait.
         template<typename TTime, typename TSfinae = void>
         struct Clock;
     } // namespace traits
 
-    //-----------------------------------------------------------------------------
     //! \return A counter that is increasing every clock cycle.
     //!
     //! \tparam TTime The time implementation type.

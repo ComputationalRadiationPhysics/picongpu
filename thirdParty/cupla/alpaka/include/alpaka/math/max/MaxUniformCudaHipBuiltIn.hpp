@@ -45,7 +45,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The CUDA built in max.
         class MaxUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathMax, MaxUniformCudaHipBuiltIn>
         {
@@ -53,7 +52,6 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The standard library integral max trait specialization.
             template<typename Tx, typename Ty>
             struct Max<
@@ -62,14 +60,13 @@ namespace alpaka
                 Ty,
                 std::enable_if_t<std::is_integral<Tx>::value && std::is_integral<Ty>::value>>
             {
-                __device__ static auto max(MaxUniformCudaHipBuiltIn const& max_ctx, Tx const& x, Ty const& y)
+                __device__ auto operator()(MaxUniformCudaHipBuiltIn const& max_ctx, Tx const& x, Ty const& y)
                     -> decltype(::max(x, y))
                 {
                     alpaka::ignore_unused(max_ctx);
                     return ::max(x, y);
                 }
             };
-            //#############################################################################
             //! The CUDA mixed integral floating point max trait specialization.
             template<typename Tx, typename Ty>
             struct Max<
@@ -80,7 +77,7 @@ namespace alpaka
                     std::is_arithmetic<Tx>::value && std::is_arithmetic<Ty>::value
                     && !(std::is_integral<Tx>::value && std::is_integral<Ty>::value)>>
             {
-                __device__ static auto max(MaxUniformCudaHipBuiltIn const& max_ctx, Tx const& x, Ty const& y)
+                __device__ auto operator()(MaxUniformCudaHipBuiltIn const& max_ctx, Tx const& x, Ty const& y)
                     -> decltype(::fmax(x, y))
                 {
                     alpaka::ignore_unused(max_ctx);

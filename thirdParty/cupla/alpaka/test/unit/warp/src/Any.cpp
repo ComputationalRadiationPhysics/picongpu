@@ -16,11 +16,9 @@
 
 #include <cstdint>
 
-//#############################################################################
 class AnySingleThreadWarpTestKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
@@ -33,11 +31,9 @@ public:
     }
 };
 
-//#############################################################################
 class AnyMultipleThreadWarpTestKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
@@ -68,7 +64,6 @@ public:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("any", "[warp]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

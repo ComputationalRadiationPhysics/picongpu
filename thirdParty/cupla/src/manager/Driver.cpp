@@ -18,53 +18,38 @@
  *
  */
 
+#include "cupla/manager/Driver.hpp"
+
+#include "cupla/manager/Device.hpp"
+#include "cupla/manager/Event.hpp"
+#include "cupla/manager/Memory.hpp"
+#include "cupla/manager/Stream.hpp"
 #include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla_runtime.hpp"
-#include "cupla/manager/Driver.hpp"
-#include "cupla/manager/Memory.hpp"
-#include "cupla/manager/Device.hpp"
-#include "cupla/manager/Stream.hpp"
-#include "cupla/manager/Event.hpp"
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-namespace manager
-{
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        namespace manager
+        {
+            CUPLA_HEADER_ONLY_FUNC_SPEC Driver::Driver()
+            {
+                cupla::manager::Device<cupla::AccDev>::get();
 
-CUPLA_HEADER_ONLY_FUNC_SPEC Driver::Driver()
-{
-    cupla::manager::Device< cupla::AccDev >::get( );
+                cupla::manager::Stream<cupla::AccDev, cupla::AccStream>::get();
 
-    cupla::manager::Stream<
-        cupla::AccDev,
-        cupla::AccStream
-    >::get();
+                cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<3u>>::get();
 
-    cupla::manager::Memory<
-        cupla::AccDev,
-        cupla::AlpakaDim<3u>
-    >::get();
+                cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<2u>>::get();
 
-    cupla::manager::Memory<
-        cupla::AccDev,
-        cupla::AlpakaDim<2u>
-    >::get();
+                cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<1u>>::get();
 
-    cupla::manager::Memory<
-        cupla::AccDev,
-        cupla::AlpakaDim<1u>
-    >::get();
-
-    cupla::manager::Event<
-        cupla::AccDev,
-        cupla::AccStream
-    >::get();
-}
+                cupla::manager::Event<cupla::AccDev, cupla::AccStream>::get();
+            }
 
 
-} //namespace manager
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
-} //namespace cupla
+        } // namespace manager
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace cupla

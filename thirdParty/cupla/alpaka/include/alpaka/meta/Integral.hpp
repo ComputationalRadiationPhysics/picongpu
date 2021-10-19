@@ -15,7 +15,6 @@ namespace alpaka
 {
     namespace meta
     {
-        //#############################################################################
         //! The trait is true if all values of TSubset are contained in TSuperset.
         template<typename TSuperset, typename TSubset>
         using IsIntegralSuperset = std::integral_constant<
@@ -29,7 +28,6 @@ namespace alpaka
                     || ((std::is_unsigned<TSuperset>::value != std::is_unsigned<TSubset>::value)
                         && (sizeof(TSuperset) > sizeof(TSubset))))>;
 
-        //#############################################################################
         //! The type that has the higher max value.
         template<typename T0, typename T1>
         using HigherMax = std::conditional_t<
@@ -40,7 +38,6 @@ namespace alpaka
                 T0,
                 T1>>;
 
-        //#############################################################################
         //! The type that has the lower max value.
         template<typename T0, typename T1>
         using LowerMax = std::conditional_t<
@@ -51,7 +48,6 @@ namespace alpaka
                 T0,
                 T1>>;
 
-        //#############################################################################
         //! The type that has the higher min value. If both types have the same min value, the type with the wider
         //! range is chosen.
         template<typename T0, typename T1>
@@ -63,7 +59,6 @@ namespace alpaka
                 std::conditional_t<(sizeof(T0) < sizeof(T1)), T0, T1>>,
             std::conditional_t<std::is_unsigned<T0>::value, T0, T1>>;
 
-        //#############################################################################
         //! The type that has the lower min value. If both types have the same min value, the type with the wider range
         //! is chosen.
         template<typename T0, typename T1>

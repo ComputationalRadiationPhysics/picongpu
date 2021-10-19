@@ -21,22 +21,18 @@ namespace alpaka
     {
     };
 
-    //-----------------------------------------------------------------------------
     //! The intrinsics traits.
     namespace traits
     {
-        //#############################################################################
         //! The popcount trait.
         template<typename TWarp, typename TSfinae = void>
         struct Popcount;
 
-        //#############################################################################
         //! The ffs trait.
         template<typename TWarp, typename TSfinae = void>
         struct Ffs;
     } // namespace traits
 
-    //-----------------------------------------------------------------------------
     //! Returns the number of 1 bits in the given 32-bit value.
     //!
     //! \tparam TIntrinsic The intrinsic implementation type.
@@ -50,7 +46,6 @@ namespace alpaka
         return traits::Popcount<ImplementationBase>::popcount(intrinsic, value);
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the number of 1 bits in the given 64-bit value.
     //!
     //! \tparam TIntrinsic The intrinsic implementation type.
@@ -64,7 +59,6 @@ namespace alpaka
         return traits::Popcount<ImplementationBase>::popcount(intrinsic, value);
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the 1-based position of the least significant bit set to 1
     //! in the given 32-bit value. Returns 0 for input value 0.
     //!
@@ -79,7 +73,6 @@ namespace alpaka
         return traits::Ffs<ImplementationBase>::ffs(intrinsic, value);
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the 1-based position of the least significant bit set to 1
     //! in the given 64-bit value. Returns 0 for input value 0.
     //!

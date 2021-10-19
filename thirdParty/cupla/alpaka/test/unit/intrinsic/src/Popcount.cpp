@@ -14,12 +14,10 @@
 
 #include <catch2/catch.hpp>
 
-//#############################################################################
 template<typename TInput>
 class PopcountTestKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
@@ -57,7 +55,6 @@ private:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("popcount", "[intrinsic]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

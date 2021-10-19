@@ -25,28 +25,23 @@
 
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
     //! The view traits.
     namespace traits
     {
-        //#############################################################################
         //! The native pointer get trait.
         template<typename TView, typename TSfinae = void>
         struct GetPtrNative;
 
-        //#############################################################################
         //! The pointer on device get trait.
         template<typename TView, typename TDev, typename TSfinae = void>
         struct GetPtrDev;
 
         namespace detail
         {
-            //#############################################################################
             template<typename TIdx, typename TView, typename TSfinae = void>
             struct GetPitchBytesDefault;
         } // namespace detail
 
-        //#############################################################################
         //! The pitch in bytes.
         //! This is the distance in bytes in the linear memory between two consecutive elements in the next higher
         //! dimension (TIdx-1).
@@ -55,7 +50,6 @@ namespace alpaka
         template<typename TIdx, typename TView, typename TSfinae = void>
         struct GetPitchBytes
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getPitchBytes(TView const& view) -> Idx<TView>
             {
                 return detail::GetPitchBytesDefault<TIdx, TView>::getPitchBytesDefault(view);
@@ -64,33 +58,27 @@ namespace alpaka
 
         namespace detail
         {
-            //#############################################################################
             template<typename TIdx, typename TView>
                 struct GetPitchBytesDefault < TIdx,
                 TView, std::enable_if_t<TIdx::value<(Dim<TView>::value - 1)>>
             {
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getPitchBytesDefault(TView const& view) -> Idx<TView>
                 {
                     return extent::getExtent<TIdx::value>(view)
                         * GetPitchBytes<DimInt<TIdx::value + 1>, TView>::getPitchBytes(view);
                 }
             };
-            //#############################################################################
             template<typename TView>
             struct GetPitchBytesDefault<DimInt<Dim<TView>::value - 1u>, TView>
             {
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getPitchBytesDefault(TView const& view) -> Idx<TView>
                 {
                     return extent::getExtent<Dim<TView>::value - 1u>(view) * sizeof(Elem<TView>);
                 }
             };
-            //#############################################################################
             template<typename TView>
             struct GetPitchBytesDefault<DimInt<Dim<TView>::value>, TView>
             {
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getPitchBytesDefault(TView const&) -> Idx<TView>
                 {
                     return sizeof(Elem<TView>);
@@ -98,27 +86,23 @@ namespace alpaka
             };
         } // namespace detail
 
-        //#############################################################################
         //! The memory set task trait.
         //!
         //! Fills the view with data.
         template<typename TDim, typename TDev, typename TSfinae = void>
         struct CreateTaskMemset;
 
-        //#############################################################################
         //! The memory copy task trait.
         //!
         //! Copies memory from one view into another view possibly on a different device.
         template<typename TDim, typename TDevDst, typename TDevSrc, typename TSfinae = void>
         struct CreateTaskMemcpy;
 
-        //#############################################################################
         //! The static device memory view creation trait.
         template<typename TDev, typename TSfinae = void>
         struct CreateStaticDevMemView;
     } // namespace traits
 
-    //-----------------------------------------------------------------------------
     //! Gets the native pointer of the memory view.
     //!
     //! \param view The memory view.
@@ -128,7 +112,7 @@ namespace alpaka
     {
         return traits::GetPtrNative<TView>::getPtrNative(view);
     }
-    //-----------------------------------------------------------------------------
+
     //! Gets the native pointer of the memory view.
     //!
     //! \param view The memory view.
@@ -139,7 +123,6 @@ namespace alpaka
         return traits::GetPtrNative<TView>::getPtrNative(view);
     }
 
-    //-----------------------------------------------------------------------------
     //! Gets the pointer to the view on the given device.
     //!
     //! \param view The memory view.
@@ -150,7 +133,7 @@ namespace alpaka
     {
         return traits::GetPtrDev<TView, TDev>::getPtrDev(view, dev);
     }
-    //-----------------------------------------------------------------------------
+
     //! Gets the pointer to the view on the given device.
     //!
     //! \param view The memory view.
@@ -162,7 +145,6 @@ namespace alpaka
         return traits::GetPtrDev<TView, TDev>::getPtrDev(view, dev);
     }
 
-    //-----------------------------------------------------------------------------
     //! \return The pitch in bytes. This is the distance in bytes between two consecutive elements in the given
     //! dimension.
     ALPAKA_NO_HOST_ACC_WARNING
@@ -172,7 +154,6 @@ namespace alpaka
         return traits::GetPitchBytes<DimInt<Tidx>, TView>::getPitchBytes(view);
     }
 
-    //-----------------------------------------------------------------------------
     //! Create a memory set task.
     //!
     //! \param view The memory view to fill.
@@ -188,7 +169,6 @@ namespace alpaka
         return traits::CreateTaskMemset<Dim<TView>, Dev<TView>>::createTaskMemset(view, byte, extent);
     }
 
-    //-----------------------------------------------------------------------------
     //! Sets the memory to the given value.
     //!
     //! \param queue The queue to enqueue the view fill task into.
@@ -201,7 +181,6 @@ namespace alpaka
         enqueue(queue, createTaskMemset(view, byte, extent));
     }
 
-    //-----------------------------------------------------------------------------
     //! Creates a memory copy task.
     //!
     //! \param viewDst The destination memory view.
@@ -226,7 +205,6 @@ namespace alpaka
             extent);
     }
 
-    //-----------------------------------------------------------------------------
     //! Copies memory possibly between different memory spaces.
     //!
     //! \param queue The queue to enqueue the view copy task into.
@@ -242,7 +220,6 @@ namespace alpaka
 
     namespace detail
     {
-        //-----------------------------------------------------------------------------
         template<typename TDim, typename TView>
         struct Print
         {
@@ -282,7 +259,6 @@ namespace alpaka
                 os << rowSuffix;
             }
         };
-        //-----------------------------------------------------------------------------
         template<typename TView>
         struct Print<DimInt<Dim<TView>::value - 1u>, TView>
         {
@@ -318,7 +294,6 @@ namespace alpaka
             }
         };
     } // namespace detail
-    //-----------------------------------------------------------------------------
     //! Prints the content of the view to the given queue.
     // \TODO: Add precision flag.
     // \TODO: Add column alignment flag.
@@ -344,12 +319,10 @@ namespace alpaka
 
     namespace detail
     {
-        //#############################################################################
         //! A class with a create method that returns the pitch for each index.
         template<std::size_t Tidx>
         struct CreatePitchBytes
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_NO_HOST_ACC_WARNING
             template<typename TPitch>
             ALPAKA_FN_HOST_ACC static auto create(TPitch const& pitch) -> Idx<TPitch>
@@ -358,14 +331,12 @@ namespace alpaka
             }
         };
     } // namespace detail
-    //-----------------------------------------------------------------------------
     //! \return The pitch vector.
     template<typename TPitch>
     auto getPitchBytesVec(TPitch const& pitch = TPitch()) -> Vec<Dim<TPitch>, Idx<TPitch>>
     {
         return createVecFromIndexedFn<Dim<TPitch>, detail::CreatePitchBytes>(pitch);
     }
-    //-----------------------------------------------------------------------------
     //! \return The pitch but only the last N elements.
     template<typename TDim, typename TPitch>
     ALPAKA_FN_HOST auto getPitchBytesVecEnd(TPitch const& pitch = TPitch()) -> Vec<TDim, Idx<TPitch>>
@@ -376,7 +347,6 @@ namespace alpaka
         return createVecFromIndexedFnOffset<TDim, detail::CreatePitchBytes, IdxOffset>(pitch);
     }
 
-    //-----------------------------------------------------------------------------
     //! \return A view to static device memory.
     template<typename TElem, typename TDev, typename TExtent>
     auto createStaticDevMemView(TElem* pMem, TDev const& dev, TExtent const& extent)

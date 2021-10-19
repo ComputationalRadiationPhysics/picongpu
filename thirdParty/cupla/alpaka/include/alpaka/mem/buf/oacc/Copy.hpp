@@ -63,7 +63,6 @@ namespace alpaka
                 return TTask<TDim, TViewDst, TViewSrc, TExtent, TCopyPred>(viewDst, viewSrc, extent, dev, copyPred);
             }
 
-            //#############################################################################
             //! The OpenACC device memory copy task base.
             //!
             template<typename TDim, typename TViewDst, typename TViewSrc, typename TExtent, typename TCopyPred>
@@ -93,7 +92,6 @@ namespace alpaka
 
                 using Idx = alpaka::Idx<TExtent>;
 
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST TaskCopyOaccBase(
                     TViewDst& viewDst,
                     TViewSrc const& viewSrc,
@@ -122,7 +120,6 @@ namespace alpaka
                 }
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST auto printDebug() const -> void
                 {
                     std::cout << __func__ << " dev: " << m_dev.iDevice() << " ew: " << m_extent
@@ -145,7 +142,6 @@ namespace alpaka
                 TCopyPred m_copyPred;
             };
 
-            //#############################################################################
             //! The OpenACC Nd device memory copy task.
             //!
             template<typename TDim, typename TViewDst, typename TViewSrc, typename TExtent, typename TCopyPred>
@@ -156,10 +152,8 @@ namespace alpaka
                 using typename TaskCopyOaccBase<TDim, TViewDst, TViewSrc, TExtent, TCopyPred>::DstSize;
                 using typename TaskCopyOaccBase<TDim, TViewDst, TViewSrc, TExtent, TCopyPred>::SrcSize;
 
-                //-----------------------------------------------------------------------------
                 using TaskCopyOaccBase<TDim, TViewDst, TViewSrc, TExtent, TCopyPred>::TaskCopyOaccBase;
 
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST auto operator()() const -> void
                 {
                     ALPAKA_DEBUG_FULL_LOG_SCOPE;
@@ -189,16 +183,13 @@ namespace alpaka
                 }
             };
 
-            //#############################################################################
             //! The 1d OpenACC memory copy task.
             template<typename TViewDst, typename TViewSrc, typename TExtent, typename TCopyPred>
             struct TaskCopyOacc<DimInt<1>, TViewDst, TViewSrc, TExtent, TCopyPred>
                 : public TaskCopyOaccBase<DimInt<1>, TViewDst, TViewSrc, TExtent, TCopyPred>
             {
-                //-----------------------------------------------------------------------------
                 using TaskCopyOaccBase<DimInt<1u>, TViewDst, TViewSrc, TExtent, TCopyPred>::TaskCopyOaccBase;
 
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST auto operator()() const -> void
                 {
                     ALPAKA_DEBUG_FULL_LOG_SCOPE;
@@ -219,16 +210,13 @@ namespace alpaka
         } // namespace detail
     } // namespace oacc
 
-    //-----------------------------------------------------------------------------
     // Trait specializations for CreateTaskCopy.
     namespace traits
     {
-        //#############################################################################
         //! The CPU to OpenACC memory copy trait specialization.
         template<typename TDim>
         struct CreateTaskMemcpy<TDim, DevOacc, DevCpu>
         {
-            //-----------------------------------------------------------------------------
             template<typename TExtent, typename TViewSrc, typename TViewDst>
             ALPAKA_FN_HOST static auto createTaskMemcpy(
                 TViewDst& viewDst,
@@ -247,12 +235,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The OpenACC to CPU memory copy trait specialization.
         template<typename TDim>
         struct CreateTaskMemcpy<TDim, DevCpu, DevOacc>
         {
-            //-----------------------------------------------------------------------------
             template<typename TExtent, typename TViewSrc, typename TViewDst>
             ALPAKA_FN_HOST static auto createTaskMemcpy(
                 TViewDst& viewDst,
@@ -271,12 +257,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The OpenACC to OpenACC memory copy trait specialization.
         template<typename TDim>
         struct CreateTaskMemcpy<TDim, DevOacc, DevOacc>
         {
-            //-----------------------------------------------------------------------------
             template<typename TExtent, typename TViewSrc, typename TViewDst>
             ALPAKA_FN_HOST static auto createTaskMemcpy(
                 TViewDst& viewDst,

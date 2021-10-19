@@ -13,7 +13,6 @@ namespace alpaka
 {
     namespace test
     {
-        //#############################################################################
         template<typename TType, size_t TSize>
         struct Array
         {

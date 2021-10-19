@@ -25,7 +25,6 @@
 #include <utility>
 
 
-//#############################################################################
 //! alpaka version of explicit finite-difference 1d heat equation solver
 //!
 //! Solving equation u_t(x, t) = u_xx(x, t) using a simple explicit scheme with

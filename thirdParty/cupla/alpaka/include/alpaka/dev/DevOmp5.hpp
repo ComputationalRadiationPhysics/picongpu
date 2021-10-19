@@ -40,27 +40,19 @@ namespace alpaka
     {
         namespace detail
         {
-            //#############################################################################
             //! The Omp5 device implementation.
             class DevOmp5Impl
             {
             public:
-                //-----------------------------------------------------------------------------
                 DevOmp5Impl(int iDevice) noexcept : m_iDevice(iDevice)
                 {
                 }
-                //-----------------------------------------------------------------------------
                 DevOmp5Impl(DevOmp5Impl const&) = delete;
-                //-----------------------------------------------------------------------------
                 DevOmp5Impl(DevOmp5Impl&&) = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(DevOmp5Impl const&) -> DevOmp5Impl& = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(DevOmp5Impl&&) -> DevOmp5Impl& = delete;
-                //-----------------------------------------------------------------------------
                 ~DevOmp5Impl() = default;
 
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST auto getAllExistingQueues() const
                     -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOmp5>>>
                 {
@@ -85,7 +77,6 @@ namespace alpaka
                     return vspQueues;
                 }
 
-                //-----------------------------------------------------------------------------
                 //! Registers the given queue on this device.
                 //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
                 ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<IGenericThreadsQueue<DevOmp5>> spQueue) -> void
@@ -108,7 +99,6 @@ namespace alpaka
             };
         } // namespace detail
     } // namespace omp5
-    //#############################################################################
     //! The Omp5 device handle.
     class DevOmp5
         : public concepts::Implements<ConceptCurrentThreadWaitFor, DevOmp5>
@@ -116,31 +106,23 @@ namespace alpaka
     {
         friend struct traits::GetDevByIdx<PltfOmp5>;
 
-        //-----------------------------------------------------------------------------
         DevOmp5(int iDevice) : m_spDevOmp5Impl(std::make_shared<omp5::detail::DevOmp5Impl>(iDevice))
         {
         }
 
     public:
-        //-----------------------------------------------------------------------------
         DevOmp5(DevOmp5 const&) = default;
-        //-----------------------------------------------------------------------------
         DevOmp5(DevOmp5&&) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(DevOmp5 const&) -> DevOmp5& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(DevOmp5&&) -> DevOmp5& = default;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator==(DevOmp5 const& rhs) const -> bool
         {
             return m_spDevOmp5Impl->iDevice() == rhs.m_spDevOmp5Impl->iDevice();
         }
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator!=(DevOmp5 const& rhs) const -> bool
         {
             return !((*this) == rhs);
         }
-        //-----------------------------------------------------------------------------
         ~DevOmp5() = default;
         int iDevice() const
         {
@@ -152,7 +134,6 @@ namespace alpaka
             return m_spDevOmp5Impl->getAllExistingQueues();
         }
 
-        //-----------------------------------------------------------------------------
         //! Registers the given queue on this device.
         //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
         ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<IGenericThreadsQueue<DevOmp5>> spQueue) const -> void
@@ -166,26 +147,22 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The OpenMP 5.0 device name get trait specialization.
         template<>
         struct GetName<DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getName(DevOmp5 const&) -> std::string
             {
                 return std::string("OMP5 target");
             }
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 device available memory get trait specialization.
         //!
         //! Returns 0, because querying target mem is not supported by OpenMP
         template<>
         struct GetMemBytes<DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getMemBytes(DevOmp5 const& dev) -> std::size_t
             {
                 alpaka::ignore_unused(dev); //! \todo query device .. somehow
@@ -194,14 +171,12 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 device free memory get trait specialization.
         //!
         //! Returns 0, because querying free target mem is not supported by OpenMP
         template<>
         struct GetFreeMemBytes<DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getFreeMemBytes(DevOmp5 const& dev) -> std::size_t
             {
                 alpaka::ignore_unused(dev);
@@ -210,12 +185,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 device warp size get trait specialization.
         template<>
         struct GetWarpSize<DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getWarpSize(DevOmp5 const& dev) -> std::size_t
             {
                 alpaka::ignore_unused(dev);
@@ -224,12 +197,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 device reset trait specialization.
         template<>
         struct Reset<DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto reset(DevOmp5 const& dev) -> void
             {
                 alpaka::ignore_unused(dev); //! \TODO
@@ -242,7 +213,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The OpenMP 5.0 device memory buffer type trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct BufType<DevOmp5, TElem, TDim, TIdx>
@@ -250,7 +220,6 @@ namespace alpaka
             using type = BufOmp5<TElem, TDim, TIdx>;
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 device platform type trait specialization.
         template<>
         struct PltfType<DevOmp5>
@@ -275,7 +244,6 @@ namespace alpaka
             using type = QueueOmp5NonBlocking;
         };
 
-        //#############################################################################
         //! The thread Omp5 device wait specialization.
         //!
         //! Blocks until the device has completed all preceding requested tasks.
@@ -283,7 +251,6 @@ namespace alpaka
         template<>
         struct CurrentThreadWaitFor<DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto currentThreadWaitFor(DevOmp5 const& dev) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;

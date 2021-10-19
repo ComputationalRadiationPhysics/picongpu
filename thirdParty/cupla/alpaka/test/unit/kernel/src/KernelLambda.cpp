@@ -17,7 +17,6 @@
 
 #    include <catch2/catch.hpp>
 
-//-----------------------------------------------------------------------------
 struct TestTemplateLambda
 {
     template<typename TAcc>
@@ -45,7 +44,6 @@ struct TestTemplateLambda
     }
 };
 
-//-----------------------------------------------------------------------------
 struct TestTemplateArg
 {
     template<typename TAcc>
@@ -67,7 +65,6 @@ struct TestTemplateArg
     }
 };
 
-//-----------------------------------------------------------------------------
 struct TestTemplateCapture
 {
     template<typename TAcc>

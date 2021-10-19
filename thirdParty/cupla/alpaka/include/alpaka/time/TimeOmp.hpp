@@ -19,33 +19,24 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The OpenMP accelerator time implementation.
     class TimeOmp : public concepts::Implements<ConceptTime, TimeOmp>
     {
     public:
-        //-----------------------------------------------------------------------------
         TimeOmp() = default;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST TimeOmp(TimeOmp const&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST TimeOmp(TimeOmp&&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(TimeOmp const&) -> TimeOmp& = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(TimeOmp&&) -> TimeOmp& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~TimeOmp() = default;
     };
 
     namespace traits
     {
-        //#############################################################################
         //! The OpenMP accelerator clock operation.
         template<>
         struct Clock<TimeOmp>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto clock(TimeOmp const& time) -> std::uint64_t
             {
                 alpaka::ignore_unused(time);

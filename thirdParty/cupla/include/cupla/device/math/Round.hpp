@@ -26,41 +26,40 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-inline namespace device
-{
-inline namespace math
-{
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        inline namespace device
+        {
+            inline namespace math
+            {
+                //! Computes the smallest integer value not less than arg.
+                CUPLA_UNARY_MATH_FN(ceil, alpaka::math::ConceptMathCeil, Ceil)
 
-    //! Computes the smallest integer value not less than arg.
-    CUPLA_UNARY_MATH_FN( ceil, alpaka::math::ConceptMathCeil, Ceil )
+                //! Computes the largest integer value not greater than arg.
+                CUPLA_UNARY_MATH_FN(floor, alpaka::math::ConceptMathFloor, Floor)
 
-    //! Computes the largest integer value not greater than arg.
-    CUPLA_UNARY_MATH_FN( floor, alpaka::math::ConceptMathFloor, Floor )
+                //! Computes the nearest integer not greater in magnitude than arg.
+                CUPLA_UNARY_MATH_FN(trunc, alpaka::math::ConceptMathTrunc, Trunc)
 
-    //! Computes the nearest integer not greater in magnitude than arg.
-    CUPLA_UNARY_MATH_FN( trunc, alpaka::math::ConceptMathTrunc, Trunc )
+                /** Computes the nearest integer value to arg (in floating-point format).
+                 *
+                 * Rounding halfway cases away from zero, regardless of the current rounding mode.
+                 */
+                CUPLA_UNARY_MATH_FN(round, alpaka::math::ConceptMathRound, Round)
 
-    /** Computes the nearest integer value to arg (in floating-point format).
-     *
-     * Rounding halfway cases away from zero, regardless of the current rounding mode.
-     */
-    CUPLA_UNARY_MATH_FN( round, alpaka::math::ConceptMathRound, Round )
+                /** Computes the nearest integer value to arg (in integer format).
+                 *
+                 * Rounding halfway cases away from zero, regardless of the current rounding mode.
+                 */
+                CUPLA_UNARY_MATH_FN(lround, alpaka::math::ConceptMathRound, Lround)
 
-    /** Computes the nearest integer value to arg (in integer format).
-     *
-     * Rounding halfway cases away from zero, regardless of the current rounding mode.
-     */
-    CUPLA_UNARY_MATH_FN( lround, alpaka::math::ConceptMathRound, Lround )
+                /** Computes the nearest integer value to arg (in integer format).
+                 *
+                 * Rounding halfway cases away from zero, regardless of the current rounding mode.
+                 */
+                CUPLA_UNARY_MATH_FN(llround, alpaka::math::ConceptMathRound, Llround)
 
-    /** Computes the nearest integer value to arg (in integer format).
-     *
-     * Rounding halfway cases away from zero, regardless of the current rounding mode.
-     */
-    CUPLA_UNARY_MATH_FN( llround, alpaka::math::ConceptMathRound, Llround )
-
-} // namespace math
-} // namespace device
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+            } // namespace math
+        } // namespace device
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

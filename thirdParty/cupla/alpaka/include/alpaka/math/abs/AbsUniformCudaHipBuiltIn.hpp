@@ -46,7 +46,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The CUDA built in abs.
         class AbsUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathAbs, AbsUniformCudaHipBuiltIn>
         {
@@ -54,12 +53,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The CUDA built in abs trait specialization.
             template<typename TArg>
             struct Abs<AbsUniformCudaHipBuiltIn, TArg, std::enable_if_t<std::is_floating_point<TArg>::value>>
             {
-                __device__ static auto abs(AbsUniformCudaHipBuiltIn const& abs_ctx, TArg const& arg)
+                __device__ auto operator()(AbsUniformCudaHipBuiltIn const& abs_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(abs_ctx);
                     return ::abs(arg);
@@ -69,7 +67,7 @@ namespace alpaka
             template<>
             struct Abs<AbsUniformCudaHipBuiltIn, double>
             {
-                __device__ static auto abs(AbsUniformCudaHipBuiltIn const& abs_ctx, double const& arg)
+                __device__ auto operator()(AbsUniformCudaHipBuiltIn const& abs_ctx, double const& arg)
                 {
                     alpaka::ignore_unused(abs_ctx);
                     return ::fabs(arg);
@@ -79,7 +77,7 @@ namespace alpaka
             template<>
             struct Abs<AbsUniformCudaHipBuiltIn, float>
             {
-                __device__ static auto abs(AbsUniformCudaHipBuiltIn const& abs_ctx, float const& arg) -> float
+                __device__ auto operator()(AbsUniformCudaHipBuiltIn const& abs_ctx, float const& arg) -> float
                 {
                     alpaka::ignore_unused(abs_ctx);
                     return ::fabsf(arg);

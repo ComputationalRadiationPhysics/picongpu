@@ -38,31 +38,23 @@ namespace alpaka
 {
     namespace bt
     {
-        //#############################################################################
         //! The CUDA/HIP accelerator ND index provider.
         template<typename TDim, typename TIdx>
         class IdxBtUniformCudaHipBuiltIn
             : public concepts::Implements<ConceptIdxBt, IdxBtUniformCudaHipBuiltIn<TDim, TIdx>>
         {
         public:
-            //-----------------------------------------------------------------------------
             IdxBtUniformCudaHipBuiltIn() = default;
-            //-----------------------------------------------------------------------------
             __device__ IdxBtUniformCudaHipBuiltIn(IdxBtUniformCudaHipBuiltIn const&) = delete;
-            //-----------------------------------------------------------------------------
             __device__ IdxBtUniformCudaHipBuiltIn(IdxBtUniformCudaHipBuiltIn&&) = delete;
-            //-----------------------------------------------------------------------------
             __device__ auto operator=(IdxBtUniformCudaHipBuiltIn const&) -> IdxBtUniformCudaHipBuiltIn& = delete;
-            //-----------------------------------------------------------------------------
             __device__ auto operator=(IdxBtUniformCudaHipBuiltIn&&) -> IdxBtUniformCudaHipBuiltIn& = delete;
-            //-----------------------------------------------------------------------------
             /*virtual*/ ~IdxBtUniformCudaHipBuiltIn() = default;
         };
     } // namespace bt
 
     namespace traits
     {
-        //#############################################################################
         //! The GPU CUDA/HIP accelerator index dimension get trait specialization.
         template<typename TDim, typename TIdx>
         struct DimType<bt::IdxBtUniformCudaHipBuiltIn<TDim, TIdx>>
@@ -70,12 +62,10 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The GPU CUDA/HIP accelerator block thread index get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetIdx<bt::IdxBtUniformCudaHipBuiltIn<TDim, TIdx>, origin::Block, unit::Threads>
         {
-            //-----------------------------------------------------------------------------
             //! \return The index of the current thread in the block.
             template<typename TWorkDiv>
             __device__ static auto getIdx(bt::IdxBtUniformCudaHipBuiltIn<TDim, TIdx> const& idx, TWorkDiv const&)
@@ -93,7 +83,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The GPU CUDA/HIP accelerator block thread index idx type trait specialization.
         template<typename TDim, typename TIdx>
         struct IdxType<bt::IdxBtUniformCudaHipBuiltIn<TDim, TIdx>>

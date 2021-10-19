@@ -28,96 +28,65 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-inline namespace device
-{
-
-    /** number of blocks within the grid layer
-     *
-     * @tparam T_Acc alpaka accelerator [alpaka::*]
-     * @param acc alpaka accelerator
-     */
-    template< typename T_Acc >
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE
-    cupla::uint3 gridDim( T_Acc const & acc )
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
     {
-        return static_cast< uint3 >(
-            ::alpaka::getWorkDiv<
-                ::alpaka::Grid,
-                ::alpaka::Blocks
-            >( acc )
-        );
-    }
+        inline namespace device
+        {
+            /** number of blocks within the grid layer
+             *
+             * @tparam T_Acc alpaka accelerator [alpaka::*]
+             * @param acc alpaka accelerator
+             */
+            template<typename T_Acc>
+            ALPAKA_FN_ACC ALPAKA_FN_INLINE cupla::uint3 gridDim(T_Acc const& acc)
+            {
+                return static_cast<uint3>(::alpaka::getWorkDiv<::alpaka::Grid, ::alpaka::Blocks>(acc));
+            }
 
-    /** number of threads within the block layer
-     *
-     * @tparam T_Acc alpaka accelerator [alpaka::*]
-     * @param acc alpaka accelerator
-     */
-    template< typename T_Acc >
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE
-    cupla::uint3 blockDim( T_Acc const & acc )
-    {
-        return static_cast< uint3 >(
-            ::alpaka::getWorkDiv<
-                ::alpaka::Block,
-                ::alpaka::Threads
-            >( acc )
-        );
-    }
+            /** number of threads within the block layer
+             *
+             * @tparam T_Acc alpaka accelerator [alpaka::*]
+             * @param acc alpaka accelerator
+             */
+            template<typename T_Acc>
+            ALPAKA_FN_ACC ALPAKA_FN_INLINE cupla::uint3 blockDim(T_Acc const& acc)
+            {
+                return static_cast<uint3>(::alpaka::getWorkDiv<::alpaka::Block, ::alpaka::Threads>(acc));
+            }
 
-    /** number of elements within the thread layer
-     *
-     * @tparam T_Acc alpaka accelerator [alpaka::*]
-     * @param acc alpaka accelerator
-     */
-    template< typename T_Acc >
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE
-    cupla::uint3 threadDim( T_Acc const & acc )
-    {
-        return static_cast< uint3 >(
-            ::alpaka::getWorkDiv<
-                ::alpaka::Thread,
-                ::alpaka::Elems
-            >( acc )
-        );
-    }
+            /** number of elements within the thread layer
+             *
+             * @tparam T_Acc alpaka accelerator [alpaka::*]
+             * @param acc alpaka accelerator
+             */
+            template<typename T_Acc>
+            ALPAKA_FN_ACC ALPAKA_FN_INLINE cupla::uint3 threadDim(T_Acc const& acc)
+            {
+                return static_cast<uint3>(::alpaka::getWorkDiv<::alpaka::Thread, ::alpaka::Elems>(acc));
+            }
 
-    /** index of the thread within the block layer
-     *
-     * @tparam T_Acc alpaka accelerator [alpaka::*]
-     * @param acc alpaka accelerator
-     */
-    template< typename T_Acc >
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE
-    cupla::uint3 threadIdx( T_Acc const & acc )
-    {
-        return static_cast< uint3 >(
-            ::alpaka::getIdx<
-                ::alpaka::Block,
-                ::alpaka::Threads
-            >( acc )
-        );
-    }
+            /** index of the thread within the block layer
+             *
+             * @tparam T_Acc alpaka accelerator [alpaka::*]
+             * @param acc alpaka accelerator
+             */
+            template<typename T_Acc>
+            ALPAKA_FN_ACC ALPAKA_FN_INLINE cupla::uint3 threadIdx(T_Acc const& acc)
+            {
+                return static_cast<uint3>(::alpaka::getIdx<::alpaka::Block, ::alpaka::Threads>(acc));
+            }
 
-    /** index of the block within the grid layer
-     *
-     * @tparam T_Acc alpaka accelerator [alpaka::*]
-     * @param acc alpaka accelerator
-     */
-    template< typename T_Acc >
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE
-    cupla::uint3 blockIdx( T_Acc const & acc )
-    {
-        return static_cast< uint3 >(
-            ::alpaka::getIdx<
-                ::alpaka::Grid,
-                ::alpaka::Blocks
-            >( acc )
-        );
-    }
+            /** index of the block within the grid layer
+             *
+             * @tparam T_Acc alpaka accelerator [alpaka::*]
+             * @param acc alpaka accelerator
+             */
+            template<typename T_Acc>
+            ALPAKA_FN_ACC ALPAKA_FN_INLINE cupla::uint3 blockIdx(T_Acc const& acc)
+            {
+                return static_cast<uint3>(::alpaka::getIdx<::alpaka::Grid, ::alpaka::Blocks>(acc));
+            }
 
-} // namespace device
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+        } // namespace device
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

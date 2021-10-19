@@ -46,7 +46,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The CUDA sin.
         class SinUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathSin, SinUniformCudaHipBuiltIn>
         {
@@ -54,12 +53,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The CUDA sin trait specialization.
             template<typename TArg>
             struct Sin<SinUniformCudaHipBuiltIn, TArg, std::enable_if_t<std::is_floating_point<TArg>::value>>
             {
-                __device__ static auto sin(SinUniformCudaHipBuiltIn const& sin_ctx, TArg const& arg)
+                __device__ auto operator()(SinUniformCudaHipBuiltIn const& sin_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(sin_ctx);
                     return ::sin(arg);
@@ -69,7 +67,7 @@ namespace alpaka
             template<>
             struct Sin<SinUniformCudaHipBuiltIn, float>
             {
-                __device__ static auto sin(SinUniformCudaHipBuiltIn const& sin_ctx, float const& arg) -> float
+                __device__ auto operator()(SinUniformCudaHipBuiltIn const& sin_ctx, float const& arg) -> float
                 {
                     alpaka::ignore_unused(sin_ctx);
                     return ::sinf(arg);

@@ -66,7 +66,6 @@ struct ImplementerNonMatchingTaggedTaggedToBase
 {
 };
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ImplementerNotTagged", "[core]")
 {
     using ImplementationBase = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerNotTagged>;
@@ -76,7 +75,6 @@ TEST_CASE("ImplementerNotTagged", "[core]")
         "alpaka::concepts::ImplementationBase failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ImplementerNotTaggedButNonMatchingTagged", "[core]")
 {
     using ImplementationBase
@@ -87,7 +85,6 @@ TEST_CASE("ImplementerNotTaggedButNonMatchingTagged", "[core]")
         "alpaka::concepts::ImplementationBase failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ImplementerTagged", "[core]")
 {
     using ImplementationBase = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerTagged>;
@@ -97,7 +94,6 @@ TEST_CASE("ImplementerTagged", "[core]")
         "alpaka::concepts::ImplementationBase failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ImplementerTaggedButAlsoNonMatchingTagged", "[core]")
 {
     using ImplementationBase
@@ -108,7 +104,6 @@ TEST_CASE("ImplementerTaggedButAlsoNonMatchingTagged", "[core]")
         "alpaka::concepts::ImplementationBase failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ImplementerWithTaggedBaseAlsoNonMatchingTagged", "[core]")
 {
     using ImplementationBase
@@ -119,7 +114,6 @@ TEST_CASE("ImplementerWithTaggedBaseAlsoNonMatchingTagged", "[core]")
         "alpaka::concepts::ImplementationBase failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ImplementerWithTaggedBase", "[core]")
 {
     using ImplementationBase = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerWithTaggedBase>;
@@ -129,7 +123,6 @@ TEST_CASE("ImplementerWithTaggedBase", "[core]")
         "alpaka::concepts::ImplementationBase failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ImplementerTaggedToBase", "[core]")
 {
     using ImplementationBase = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerTaggedToBase>;
@@ -139,7 +132,6 @@ TEST_CASE("ImplementerTaggedToBase", "[core]")
         "alpaka::concepts::ImplementationBase failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ImplementerTaggedToBaseAlsoNonMatchingTagged", "[core]")
 {
     using ImplementationBase
@@ -150,7 +142,6 @@ TEST_CASE("ImplementerTaggedToBaseAlsoNonMatchingTagged", "[core]")
         "alpaka::concepts::ImplementationBase failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("ImplementerNonMatchingTaggedTaggedToBase", "[core]")
 {
     using ImplementationBase

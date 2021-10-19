@@ -47,7 +47,6 @@ namespace alpaka
     template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     class TaskKernelCpuTbbBlocks;
 
-    //#############################################################################
     //! The CPU TBB block accelerator.
     template<
         typename TDim,
@@ -81,7 +80,6 @@ namespace alpaka
         friend class ::alpaka::TaskKernelCpuTbbBlocks;
 
     private:
-        //-----------------------------------------------------------------------------
         template<typename TWorkDiv>
         ALPAKA_FN_HOST AccCpuTbbBlocks(TWorkDiv const& workDiv, std::size_t const& blockSharedMemDynSizeBytes)
             : WorkDivMembers<TDim, TIdx>(workDiv)
@@ -103,15 +101,10 @@ namespace alpaka
         }
 
     public:
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST AccCpuTbbBlocks(AccCpuTbbBlocks const&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST AccCpuTbbBlocks(AccCpuTbbBlocks&&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(AccCpuTbbBlocks const&) -> AccCpuTbbBlocks& = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(AccCpuTbbBlocks&&) -> AccCpuTbbBlocks& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~AccCpuTbbBlocks() = default;
 
     private:
@@ -121,19 +114,16 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU TBB block accelerator type trait specialization.
         template<typename TDim, typename TIdx>
         struct AccType<AccCpuTbbBlocks<TDim, TIdx>>
         {
             using type = AccCpuTbbBlocks<TDim, TIdx>;
         };
-        //#############################################################################
         //! The CPU TBB block accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccCpuTbbBlocks<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& dev) -> AccDevProps<TDim, TIdx>
             {
                 alpaka::ignore_unused(dev);
@@ -156,19 +146,16 @@ namespace alpaka
                         static_cast<size_t>(AccCpuTbbBlocks<TDim, TIdx>::staticAllocBytes())};
             }
         };
-        //#############################################################################
         //! The CPU TBB block accelerator name trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccName<AccCpuTbbBlocks<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
                 return "AccCpuTbbBlocks<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
             }
         };
 
-        //#############################################################################
         //! The CPU TBB block accelerator device type trait specialization.
         template<typename TDim, typename TIdx>
         struct DevType<AccCpuTbbBlocks<TDim, TIdx>>
@@ -176,7 +163,6 @@ namespace alpaka
             using type = DevCpu;
         };
 
-        //#############################################################################
         //! The CPU TBB block accelerator dimension getter trait specialization.
         template<typename TDim, typename TIdx>
         struct DimType<AccCpuTbbBlocks<TDim, TIdx>>
@@ -184,12 +170,10 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The CPU TBB block accelerator execution task type trait specialization.
         template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
         struct CreateTaskKernel<AccCpuTbbBlocks<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto createTaskKernel(
                 TWorkDiv const& workDiv,
                 TKernelFnObj const& kernelFnObj,
@@ -202,7 +186,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU TBB block execution task platform type trait specialization.
         template<typename TDim, typename TIdx>
         struct PltfType<AccCpuTbbBlocks<TDim, TIdx>>
@@ -210,7 +193,6 @@ namespace alpaka
             using type = PltfCpu;
         };
 
-        //#############################################################################
         //! The CPU TBB block accelerator idx type trait specialization.
         template<typename TDim, typename TIdx>
         struct IdxType<AccCpuTbbBlocks<TDim, TIdx>>

@@ -11,6 +11,7 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <type_traits>
 
@@ -24,13 +25,20 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The sqrt trait.
             template<typename T, typename TArg, typename TSfinae = void>
-            struct Sqrt;
+            struct Sqrt
+            {
+                ALPAKA_FN_HOST_ACC auto operator()(T const& ctx, TArg const& arg)
+                {
+                    alpaka::ignore_unused(ctx);
+                    // This is an ADL call. If you get a compile error here then your type is not supported by the
+                    // backend and we could not find sqrt(TArg) in the namespace of your type.
+                    return sqrt(arg);
+                }
+            };
         } // namespace traits
 
-        //-----------------------------------------------------------------------------
         //! Computes the square root of arg.
         //!
         //! Valid real arguments are non-negative. For other values the result
@@ -46,7 +54,7 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto sqrt(T const& sqrt_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathSqrt, T>;
-            return traits::Sqrt<ImplementationBase, TArg>::sqrt(sqrt_ctx, arg);
+            return traits::Sqrt<ImplementationBase, TArg>{}(sqrt_ctx, arg);
         }
     } // namespace math
 } // namespace alpaka

@@ -17,12 +17,10 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! any device ND memory set kernel.
     class MemSetKernel
     {
     public:
-        //-----------------------------------------------------------------------------
         //! The kernel entry point.
         //!
         //! All but the last element of threadElemExtent must be one.

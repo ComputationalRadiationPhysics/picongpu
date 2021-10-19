@@ -27,26 +27,22 @@
 
 // includes, project
 #include <helper_cuda.h>
-#include <helper_functions.h> // helper utility functions 
+#include <helper_functions.h> // helper utility functions
 
 struct increment_kernel
 {
-
-template<
-    typename T_Acc
->
-ALPAKA_FN_ACC 
-void operator()(T_Acc const & acc, int *g_data, int inc_value) const
-{
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    g_data[idx] = g_data[idx] + inc_value;
-}
+    template<typename T_Acc>
+    ALPAKA_FN_ACC void operator()(T_Acc const& acc, int* g_data, int inc_value) const
+    {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        g_data[idx] = g_data[idx] + inc_value;
+    }
 };
 
-int correct_output(int *data, const int n, const int x)
+int correct_output(int* data, const int n, const int x)
 {
-    for (int i = 0; i < n; i++)
-        if (data[i] != x)
+    for(int i = 0; i < n; i++)
+        if(data[i] != x)
         {
             printf("Error! data[%d] = %d, ref = %d\n", i, data[i], x);
             return 0;
@@ -55,44 +51,44 @@ int correct_output(int *data, const int n, const int x)
     return 1;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-//    int devID;
-//    cudaDeviceProp deviceProps;
+    //    int devID;
+    //    cudaDeviceProp deviceProps;
 
     printf("[%s] - Starting...\n", argv[0]);
 
     // This will pick the best possible CUDA capable device
-//    devID = findCudaDevice(argc, (const char **)argv);
+    //    devID = findCudaDevice(argc, (const char **)argv);
 
     // get device name
-//    checkCudaErrors(cudaGetDeviceProperties(&deviceProps, devID));
-//    printf("CUDA device [%s]\n", deviceProps.name);
+    //    checkCudaErrors(cudaGetDeviceProperties(&deviceProps, devID));
+    //    printf("CUDA device [%s]\n", deviceProps.name);
 
     int n = 16 * 1024 * 1024;
     int nbytes = n * sizeof(int);
     int value = 26;
 
     // allocate host memory
-    int *a = 0;
-    checkCudaErrors(cudaMallocHost((void **)&a, nbytes));
+    int* a = 0;
+    checkCudaErrors(cudaMallocHost((void**) &a, nbytes));
     memset(a, 0, nbytes);
 
     // allocate device memory
-    int *d_a=0;
-    checkCudaErrors(cudaMalloc((void **)&d_a, nbytes));
+    int* d_a = 0;
+    checkCudaErrors(cudaMalloc((void**) &d_a, nbytes));
     checkCudaErrors(cudaMemset(d_a, 255, nbytes));
 
     // set kernel launch configuration
     dim3 threads = dim3(512, 1);
-    dim3 blocks  = dim3(n / threads.x, 1);
+    dim3 blocks = dim3(n / threads.x, 1);
 
     // create cuda event handles
     cudaEvent_t start, stop;
     checkCudaErrors(cudaEventCreate(&start));
     checkCudaErrors(cudaEventCreate(&stop));
 
-    StopWatchInterface *timer = NULL;
+    StopWatchInterface* timer = NULL;
     sdkCreateTimer(&timer);
     sdkResetTimer(&timer);
 
@@ -109,9 +105,9 @@ int main(int argc, char *argv[])
     sdkStopTimer(&timer);
 
     // have CPU do some work while waiting for stage 1 to finish
-    unsigned long int counter=0;
+    unsigned long int counter = 0;
 
-    while (cudaEventQuery(stop) == cudaErrorNotReady)
+    while(cudaEventQuery(stop) == cudaErrorNotReady)
     {
         counter++;
     }
@@ -124,7 +120,7 @@ int main(int argc, char *argv[])
     printf("CPU executed %lu iterations while waiting for GPU to finish\n", counter);
 
     // check the output for correctness
-    bool bFinalResults = (bool)correct_output(a, n, value);
+    bool bFinalResults = (bool) correct_output(a, n, value);
 
     // release resources
     checkCudaErrors(cudaEventDestroy(start));

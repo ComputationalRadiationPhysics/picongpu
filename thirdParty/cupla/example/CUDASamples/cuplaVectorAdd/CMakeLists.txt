@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2020 Rene Widera, Benjamin Worpitz, Vincent Ridder
+# Copyright 2016-2021 Rene Widera, Benjamin Worpitz, Vincent Ridder, Simeon Ehrig
 #
 # This file is part of cupla.
 #
@@ -22,9 +22,7 @@
 # Required CMake version.
 ################################################################################
 
-cmake_minimum_required(VERSION 3.11.4)
-
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+cmake_minimum_required(VERSION 3.18.0)
 
 ################################################################################
 # Project.
@@ -33,35 +31,15 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 project(cuplaVectorAdd)
 
 ################################################################################
-# CMake policies
-#
-# Search in <PackageName>_ROOT:
-#   https://cmake.org/cmake/help/v3.12/policy/CMP0074.html#
-################################################################################
-
-if(POLICY CMP0074)
-    cmake_policy(SET CMP0074 NEW)
-endif()
-
-################################################################################
 # Find cupla
 ################################################################################
 
-set(cupla_ROOT "$ENV{CUPLA_ROOT}" CACHE STRING  "The location of the cupla library")
-
-list(APPEND CMAKE_MODULE_PATH "${cupla_ROOT}")
-find_package(cupla REQUIRED)
-
+if(NOT TARGET cupla::cupla)
+  find_package(cupla REQUIRED)
+endif()
 
 ################################################################################
 # Add library.
 ################################################################################
 
-set(_SOURCE_DIR "src/")
-
-# Add all the source files in all recursive subdirectories and group them accordingly.
-append_recursive_files_add_to_src_group("${_SOURCE_DIR}" "" "cpp" _FILES_SOURCE_CXX)
-
-# Always add all files to the target executable build call to add them to the build project.
-cupla_add_executable(${PROJECT_NAME} ${_FILES_SOURCE_CXX})
-
+cupla_add_executable(${PROJECT_NAME} src/vectorAdd.cpp)

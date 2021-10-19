@@ -18,7 +18,6 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The CPU boost aligned allocator.
     //!
     //! \tparam TAlignment An integral constant containing the alignment.
@@ -29,12 +28,10 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU boost aligned allocator memory allocation trait specialization.
         template<typename T, typename TAlignment>
         struct Malloc<T, AllocCpuAligned<TAlignment>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto malloc(AllocCpuAligned<TAlignment> const& alloc, std::size_t const& sizeElems)
                 -> T*
             {
@@ -58,12 +55,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU boost aligned allocator memory free trait specialization.
         template<typename T, typename TAlignment>
         struct Free<T, AllocCpuAligned<TAlignment>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto free(AllocCpuAligned<TAlignment> const& alloc, T const* const ptr) -> void
             {
                 alpaka::ignore_unused(alloc);

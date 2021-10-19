@@ -11,6 +11,7 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <type_traits>
 
@@ -24,13 +25,20 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The atan2 trait.
             template<typename T, typename Ty, typename Tx, typename TSfinae = void>
-            struct Atan2;
+            struct Atan2
+            {
+                ALPAKA_FN_HOST_ACC auto operator()(T const& ctx, Ty const& y, Tx const& x)
+                {
+                    alpaka::ignore_unused(ctx);
+                    // This is an ADL call. If you get a compile error here then your type is not supported by the
+                    // backend and we could not find atan2(Tx, Ty) in the namespace of your type.
+                    return atan2(y, x);
+                }
+            };
         } // namespace traits
 
-        //-----------------------------------------------------------------------------
         //! Computes the arc tangent of y/x using the signs of arguments to determine the correct quadrant.
         //!
         //! \tparam T The type of the object specializing Atan2.
@@ -44,7 +52,7 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto atan2(T const& atan2_ctx, Ty const& y, Tx const& x)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathAtan2, T>;
-            return traits::Atan2<ImplementationBase, Ty, Tx>::atan2(atan2_ctx, y, x);
+            return traits::Atan2<ImplementationBase, Ty, Tx>{}(atan2_ctx, y, x);
         }
     } // namespace math
 } // namespace alpaka

@@ -25,7 +25,6 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The OpenMP 5 block shared memory allocator.
     class BlockSharedMemStOmp5
         : public detail::BlockSharedMemStMemberImpl<4>
@@ -37,11 +36,9 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         template<typename T, std::size_t TuniqueId>
         struct DeclareSharedVar<T, TuniqueId, BlockSharedMemStOmp5>
         {
-            //-----------------------------------------------------------------------------
             static auto declareVar(BlockSharedMemStOmp5 const& smem) -> T&
             {
                 auto* data = smem.template getVarPtr<T>(TuniqueId);
@@ -61,11 +58,9 @@ namespace alpaka
                 return *data;
             }
         };
-        //#############################################################################
         template<>
         struct FreeSharedVars<BlockSharedMemStOmp5>
         {
-            //-----------------------------------------------------------------------------
             static auto freeVars(BlockSharedMemStOmp5 const&) -> void
             {
                 // shared memory block data will be reused

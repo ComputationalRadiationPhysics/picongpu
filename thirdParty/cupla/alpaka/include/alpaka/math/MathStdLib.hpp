@@ -36,11 +36,9 @@
 
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
     //! The mathematical operation specifics.
     namespace math
     {
-        //#############################################################################
         //! The standard library math trait specializations.
         class MathStdLib
             : public AbsStdLib

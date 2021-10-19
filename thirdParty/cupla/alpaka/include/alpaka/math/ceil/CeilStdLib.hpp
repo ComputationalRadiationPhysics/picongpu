@@ -19,7 +19,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The standard library ceil.
         class CeilStdLib : public concepts::Implements<ConceptMathCeil, CeilStdLib>
         {
@@ -27,12 +26,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The standard library ceil trait specialization.
             template<typename TArg>
             struct Ceil<CeilStdLib, TArg, std::enable_if_t<std::is_arithmetic<TArg>::value>>
             {
-                ALPAKA_FN_HOST static auto ceil(CeilStdLib const& ceil_ctx, TArg const& arg)
+                ALPAKA_FN_HOST auto operator()(CeilStdLib const& ceil_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(ceil_ctx);
                     return std::ceil(arg);

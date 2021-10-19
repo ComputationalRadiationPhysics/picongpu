@@ -15,7 +15,6 @@
 
 #include <catch2/catch.hpp>
 
-//-----------------------------------------------------------------------------
 namespace
 {
     template<typename TAcc>
@@ -39,7 +38,6 @@ namespace
     }
 } // namespace
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("getValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
@@ -48,7 +46,6 @@ TEMPLATE_LIST_TEST_CASE("getValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)
     alpaka::ignore_unused(workDiv);
 }
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("isValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

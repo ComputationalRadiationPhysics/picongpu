@@ -17,11 +17,9 @@
 
 #include <cstdint>
 
-//#############################################################################
 // Base kernel, not to be used directly in unit tests
 struct KernelWithOmpScheduleBase
 {
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void

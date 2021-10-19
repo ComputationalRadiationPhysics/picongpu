@@ -26,71 +26,46 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-namespace traits
-{
-
-    /** check if thread level is full sequential
-     *
-     * \return ::value true if no threads where used in the thread level
-     *                  else false
-     */
-    template< typename T_Acc >
-    struct IsThreadSeqAcc
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
     {
-        static constexpr bool value = false;
-    };
+        namespace traits
+        {
+            /** check if thread level is full sequential
+             *
+             * \return ::value true if no threads where used in the thread level
+             *                  else false
+             */
+            template<typename T_Acc>
+            struct IsThreadSeqAcc
+            {
+                static constexpr bool value = false;
+            };
 
 
 #ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
-    template<
-        typename T_KernelDim,
-        typename T_IndexType
-    >
-    struct IsThreadSeqAcc<
-        ::alpaka::AccCpuOmp2Blocks<
-            T_KernelDim,
-            T_IndexType
-        >
-    >
-    {
-        static constexpr bool value = true;
-    };
+            template<typename T_KernelDim, typename T_IndexType>
+            struct IsThreadSeqAcc<::alpaka::AccCpuOmp2Blocks<T_KernelDim, T_IndexType>>
+            {
+                static constexpr bool value = true;
+            };
 #endif
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-    template<
-        typename T_KernelDim,
-        typename T_IndexType
-    >
-    struct IsThreadSeqAcc<
-        ::alpaka::AccCpuSerial<
-            T_KernelDim,
-            T_IndexType
-        >
-    >
-    {
-        static constexpr bool value = true;
-    };
+            template<typename T_KernelDim, typename T_IndexType>
+            struct IsThreadSeqAcc<::alpaka::AccCpuSerial<T_KernelDim, T_IndexType>>
+            {
+                static constexpr bool value = true;
+            };
 #endif
 
 #ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
-    template<
-        typename T_KernelDim,
-        typename T_IndexType
-    >
-    struct IsThreadSeqAcc<
-        ::alpaka::AccCpuTbbBlocks<
-            T_KernelDim,
-            T_IndexType
-        >
-    >
-    {
-        static constexpr bool value = true;
-    };
+            template<typename T_KernelDim, typename T_IndexType>
+            struct IsThreadSeqAcc<::alpaka::AccCpuTbbBlocks<T_KernelDim, T_IndexType>>
+            {
+                static constexpr bool value = true;
+            };
 #endif
 
-} // namespace traits
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+        } // namespace traits
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

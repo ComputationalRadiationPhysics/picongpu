@@ -17,7 +17,6 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! build a single class to inherit from different atomic implementations
     //
     //  This implementation inherit from all three hierarchies.

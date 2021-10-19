@@ -74,13 +74,3 @@ For more information on *variants* of the ``picongpu`` package in spack run ``sp
       spack install picongpu backend=omp2b
       spack load picongpu backend=omp2b
 
-.. note::
-
-   If the install fails or you want to compile for CUDA 9.2, try using GCC 5.5.0:
-
-   .. code-block:: bash
-
-      spack compiler list | grep gcc@5.5.0 | spack install gcc@5.5.0 && spack load gcc@5.5.0 && spack compiler add
-      spack install picongpu %gcc@5.5.0
-      spack load picongpu %gcc@5.5.0
-

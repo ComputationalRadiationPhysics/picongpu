@@ -20,13 +20,11 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The thread id map barrier block synchronization.
     template<typename TIdx>
     class BlockSyncBarrierFiber : public concepts::Implements<ConceptBlockSync, BlockSyncBarrierFiber<TIdx>>
     {
     public:
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST BlockSyncBarrierFiber(TIdx const& blockThreadCount)
             : m_barrier(static_cast<std::size_t>(blockThreadCount))
             , m_threadCount(blockThreadCount)
@@ -34,15 +32,10 @@ namespace alpaka
             , m_generation(static_cast<TIdx>(0u))
         {
         }
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST BlockSyncBarrierFiber(BlockSyncBarrierFiber const&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST BlockSyncBarrierFiber(BlockSyncBarrierFiber&&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(BlockSyncBarrierFiber const&) -> BlockSyncBarrierFiber& = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(BlockSyncBarrierFiber&&) -> BlockSyncBarrierFiber& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~BlockSyncBarrierFiber() = default;
 
         boost::fibers::barrier mutable m_barrier;
@@ -55,22 +48,18 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         template<typename TIdx>
         struct SyncBlockThreads<BlockSyncBarrierFiber<TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto syncBlockThreads(BlockSyncBarrierFiber<TIdx> const& blockSync) -> void
             {
                 blockSync.m_barrier.wait();
             }
         };
 
-        //#############################################################################
         template<typename TOp, typename TIdx>
         struct SyncBlockThreadsPredicate<TOp, BlockSyncBarrierFiber<TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_ACC static auto syncBlockThreadsPredicate(
                 BlockSyncBarrierFiber<TIdx> const& blockSync,

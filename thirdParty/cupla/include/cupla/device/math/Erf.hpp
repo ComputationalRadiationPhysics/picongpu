@@ -26,17 +26,16 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-inline namespace device
-{
-inline namespace math
-{
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        inline namespace device
+        {
+            inline namespace math
+            {
+                //! Computes the error function.
+                CUPLA_UNARY_MATH_FN(erf, alpaka::math::ConceptMathErf, Erf)
 
-    //! Computes the error function.
-    CUPLA_UNARY_MATH_FN( erf, alpaka::math::ConceptMathErf, Erf )
-
-} // namespace math
-} // namespace device
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+            } // namespace math
+        } // namespace device
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

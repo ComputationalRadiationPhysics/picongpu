@@ -21,43 +21,36 @@
 
 //#define ALPAKA_MANDELBROT_TEST_CONTINOUS_COLOR_MAPPING  // Define this to enable the continuous color mapping.
 
-//#############################################################################
 //! Complex Number.
 template<typename T>
 class SimpleComplex
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_HOST_ACC SimpleComplex(T const& a, T const& b) : r(a), i(b)
     {
     }
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_INLINE
     ALPAKA_FN_HOST_ACC auto absSq() const -> T
     {
         return r * r + i * i;
     }
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_HOST_ACC auto operator*(SimpleComplex const& a) -> SimpleComplex
     {
         return SimpleComplex(r * a.r - i * a.i, i * a.r + r * a.i);
     }
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_HOST_ACC auto operator*(float const& a) -> SimpleComplex
     {
         return SimpleComplex(r * a, i * a);
     }
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_HOST_ACC auto operator+(SimpleComplex const& a) -> SimpleComplex
     {
         return SimpleComplex(r + a.r, i + a.i);
     }
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_HOST_ACC auto operator+(float const& a) -> SimpleComplex
     {
@@ -69,13 +62,11 @@ public:
     T i;
 };
 
-//#############################################################################
 //! A Mandelbrot kernel.
 class MandelbrotKernel
 {
 public:
 #ifndef ALPAKA_MANDELBROT_TEST_CONTINOUS_COLOR_MAPPING
-    //-----------------------------------------------------------------------------
     ALPAKA_FN_HOST_ACC MandelbrotKernel()
     {
         // Banding can be prevented by a continuous color functions.
@@ -98,7 +89,6 @@ public:
     }
 #endif
 
-    //-----------------------------------------------------------------------------
     //! \param acc The accelerator to be executed on.
     //! \param pColors The output image.
     //! \param numRows The number of rows in the image
@@ -125,9 +115,9 @@ public:
     {
         static_assert(alpaka::Dim<TAcc>::value == 2, "The MandelbrotKernel expects 2-dimensional indices!");
 
-        auto const gridThreadIdx(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc));
-        auto const& gridThreadIdxX(gridThreadIdx[1u]);
-        auto const& gridThreadIdxY(gridThreadIdx[0u]);
+        auto const gridThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+        auto const& gridThreadIdxX = gridThreadIdx[1u];
+        auto const& gridThreadIdxY = gridThreadIdx[0u];
 
         if((gridThreadIdxY < numRows) && (gridThreadIdxX < numCols))
         {
@@ -135,9 +125,9 @@ public:
                 (fMinR + (static_cast<float>(gridThreadIdxX) / float(numCols - 1) * (fMaxR - fMinR))),
                 (fMinI + (static_cast<float>(gridThreadIdxY) / float(numRows - 1) * (fMaxI - fMinI))));
 
-            auto const iterationCount(iterateMandelbrot(c, maxIterations));
+            auto const iterationCount = iterateMandelbrot(c, maxIterations);
 
-            auto const pColorsRow(pColors + ((gridThreadIdxY * pitchBytes) / sizeof(std::uint32_t)));
+            auto const pColorsRow = pColors + ((gridThreadIdxY * pitchBytes) / sizeof(std::uint32_t));
             pColorsRow[gridThreadIdxX] =
 #ifdef ALPAKA_MANDELBROT_TEST_CONTINOUS_COLOR_MAPPING
                 iterationCountToContinousColor(iterationCount, maxIterations);
@@ -146,7 +136,6 @@ public:
 #endif
         }
     }
-    //-----------------------------------------------------------------------------
     //! \return The number of iterations until the Mandelbrot iteration with the given Value reaches the absolute value
     //! of 2.
     //!     Only does maxIterations steps and returns maxIterations if the value would be higher.
@@ -165,7 +154,6 @@ public:
         return maxIterations;
     }
 
-    //-----------------------------------------------------------------------------
     ALPAKA_FN_HOST_ACC static auto convertRgbSingleToBgra(
         std::uint32_t const& r,
         std::uint32_t const& g,
@@ -175,7 +163,6 @@ public:
     }
 
 #ifdef ALPAKA_MANDELBROT_TEST_CONTINOUS_COLOR_MAPPING
-    //-----------------------------------------------------------------------------
     //! This uses a simple mapping from iteration count to colors.
     //! This leads to banding but allows a all pixels to be colored.
     ALPAKA_NO_HOST_ACC_WARNING
@@ -193,7 +180,6 @@ public:
         return convertRgbSingleToBgra(r, g, b);
     }
 #else
-    //-----------------------------------------------------------------------------
     //! This uses a simple mapping from iteration count to colors.
     //! This leads to banding but allows a all pixels to be colored.
     ALPAKA_FN_ACC auto iterationCountToRepeatedColor(std::uint32_t const& iterationCount) const -> std::uint32_t
@@ -205,7 +191,6 @@ public:
 #endif
 };
 
-//-----------------------------------------------------------------------------
 //! Writes the buffer color data to a file.
 template<typename TBuf>
 auto writeTgaColorImage(std::string const& fileName, TBuf const& bufRgba) -> void
@@ -214,16 +199,16 @@ auto writeTgaColorImage(std::string const& fileName, TBuf const& bufRgba) -> voi
     static_assert(std::is_integral<alpaka::Elem<TBuf>>::value, "The buffer element type has to be integral!");
 
     // The width of the input buffer is in input elements.
-    auto const bufWidthElems(alpaka::extent::getWidth(bufRgba));
-    auto const bufWidthBytes(bufWidthElems * sizeof(alpaka::Elem<TBuf>));
+    auto const bufWidthElems = alpaka::extent::getWidth(bufRgba);
+    auto const bufWidthBytes = bufWidthElems * sizeof(alpaka::Elem<TBuf>);
     // The row width in bytes has to be dividable by 4 Bytes (RGBA).
     ALPAKA_ASSERT(bufWidthBytes % sizeof(std::uint32_t) == 0);
     // The number of colors in a row.
-    auto const bufWidthColors(bufWidthBytes / sizeof(std::uint32_t));
+    auto const bufWidthColors = bufWidthBytes / sizeof(std::uint32_t);
     ALPAKA_ASSERT(bufWidthColors >= 1);
-    auto const bufHeightColors(alpaka::extent::getHeight(bufRgba));
+    auto const bufHeightColors = alpaka::extent::getHeight(bufRgba);
     ALPAKA_ASSERT(bufHeightColors >= 1);
-    auto const bufPitchBytes(alpaka::getPitchBytes<alpaka::Dim<TBuf>::value - 1u>(bufRgba));
+    auto const bufPitchBytes = alpaka::getPitchBytes<alpaka::Dim<TBuf>::value - 1u>(bufRgba);
     ALPAKA_ASSERT(bufPitchBytes >= bufWidthBytes);
 
     std::ofstream ofs(fileName, std::ofstream::out | std::ofstream::binary);
@@ -262,7 +247,7 @@ auto writeTgaColorImage(std::string const& fileName, TBuf const& bufRgba) -> voi
     // ... else we have to write row by row.
     else
     {
-        for(auto row(decltype(bufHeightColors)(0)); row < bufHeightColors; ++row)
+        for(auto row = decltype(bufHeightColors)(0); row < bufHeightColors; ++row)
         {
             ofs.write(pData + bufPitchBytes * row, static_cast<std::streamsize>(bufWidthBytes));
         }
@@ -300,10 +285,10 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
     MandelbrotKernel kernel;
 
     // Get the host device.
-    auto const devHost(alpaka::getDevByIdx<PltfHost>(0u));
+    auto const devHost = alpaka::getDevByIdx<PltfHost>(0u);
 
     // Select a device to execute on.
-    auto const devAcc(alpaka::getDevByIdx<PltfAcc>(0u));
+    auto const devAcc = alpaka::getDevByIdx<PltfAcc>(0u);
 
     // Get a queue on this device.
     QueueAcc queue(devAcc);
@@ -324,16 +309,16 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
               << ", workDiv: " << workDiv << ")" << std::endl;
 
     // allocate host memory
-    auto bufColorHost(alpaka::allocBuf<Val, Idx>(devHost, extent));
+    auto bufColorHost = alpaka::allocBuf<Val, Idx>(devHost, extent);
 
     // Allocate the buffer on the accelerator.
-    auto bufColorAcc(alpaka::allocBuf<Val, Idx>(devAcc, extent));
+    auto bufColorAcc = alpaka::allocBuf<Val, Idx>(devAcc, extent);
 
     // Copy Host -> Acc.
     alpaka::memcpy(queue, bufColorAcc, bufColorHost, extent);
 
     // Create the kernel execution task.
-    auto const taskKernel(alpaka::createTaskKernel<Acc>(
+    auto const taskKernel = alpaka::createTaskKernel<Acc>(
         workDiv,
         kernel,
         alpaka::getPtrNative(bufColorAcc),
@@ -344,7 +329,7 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
         fMaxR,
         fMinI,
         fMaxI,
-        maxIterations));
+        maxIterations);
 
     // Profile the kernel execution.
     std::cout << "Execution time: " << alpaka::test::integ::measureTaskRunTimeMs(queue, taskKernel) << " ms"

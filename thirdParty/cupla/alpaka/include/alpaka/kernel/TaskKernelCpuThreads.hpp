@@ -42,24 +42,20 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The CPU threads execution task.
     template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     class TaskKernelCpuThreads final : public WorkDivMembers<TDim, TIdx>
     {
     private:
-        //#############################################################################
         //! The type given to the ConcurrentExecPool for yielding the current thread.
         struct ThreadPoolYield
         {
-            //-----------------------------------------------------------------------------
             //! Yields the current thread.
             ALPAKA_FN_HOST static auto yield() -> void
             {
                 std::this_thread::yield();
             }
         };
-        //#############################################################################
         // When using the thread pool the threads are yielding because this is faster.
         // Using condition variables and going to sleep is very costly for real threads.
         // Especially when the time to wait is really short (syncBlockThreads) yielding is much faster.
@@ -70,7 +66,6 @@ namespace alpaka
             ThreadPoolYield>; // The type yielding the current concurrent execution.
 
     public:
-        //-----------------------------------------------------------------------------
         template<typename TWorkDiv>
         ALPAKA_FN_HOST TaskKernelCpuThreads(TWorkDiv&& workDiv, TKernelFnObj const& kernelFnObj, TArgs&&... args)
             : WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv))
@@ -81,29 +76,23 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        //-----------------------------------------------------------------------------
         TaskKernelCpuThreads(TaskKernelCpuThreads const&) = default;
-        //-----------------------------------------------------------------------------
         TaskKernelCpuThreads(TaskKernelCpuThreads&&) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(TaskKernelCpuThreads const&) -> TaskKernelCpuThreads& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(TaskKernelCpuThreads&&) -> TaskKernelCpuThreads& = default;
-        //-----------------------------------------------------------------------------
         ~TaskKernelCpuThreads() = default;
 
-        //-----------------------------------------------------------------------------
         //! Executes the kernel function object.
         ALPAKA_FN_HOST auto operator()() const -> void
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-            auto const gridBlockExtent(getWorkDiv<Grid, Blocks>(*this));
-            auto const blockThreadExtent(getWorkDiv<Block, Threads>(*this));
-            auto const threadElemExtent(getWorkDiv<Thread, Elems>(*this));
+            auto const gridBlockExtent = getWorkDiv<Grid, Blocks>(*this);
+            auto const blockThreadExtent = getWorkDiv<Block, Threads>(*this);
+            auto const threadElemExtent = getWorkDiv<Thread, Elems>(*this);
 
             // Get the size of the block shared dynamic memory.
-            auto const blockSharedMemDynSizeBytes(meta::apply(
+            auto const blockSharedMemDynSizeBytes = meta::apply(
                 [&](ALPAKA_DECAY_T(TArgs) const&... args) {
                     return getBlockSharedMemDynSizeBytes<AccCpuThreads<TDim, TIdx>>(
                         m_kernelFnObj,
@@ -111,7 +100,7 @@ namespace alpaka
                         threadElemExtent,
                         args...);
                 },
-                m_args));
+                m_args);
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
             std::cout << __func__ << " blockSharedMemDynSizeBytes: " << blockSharedMemDynSizeBytes << " B"
@@ -121,11 +110,11 @@ namespace alpaka
                 *static_cast<WorkDivMembers<TDim, TIdx> const*>(this),
                 blockSharedMemDynSizeBytes);
 
-            auto const blockThreadCount(blockThreadExtent.prod());
+            auto const blockThreadCount = blockThreadExtent.prod();
             ThreadPool threadPool(blockThreadCount);
 
             // Bind the kernel and its arguments to the grid block function.
-            auto const boundGridBlockExecHost(meta::apply(
+            auto const boundGridBlockExecHost = meta::apply(
                 [this, &acc, &blockThreadExtent, &threadPool](ALPAKA_DECAY_T(TArgs) const&... args) {
                     return std::bind(
                         &TaskKernelCpuThreads::gridBlockExecHost,
@@ -136,14 +125,13 @@ namespace alpaka
                         std::ref(m_kernelFnObj),
                         std::ref(args)...);
                 },
-                m_args));
+                m_args);
 
             // Execute the blocks serially.
             meta::ndLoopIncIdx(gridBlockExtent, boundGridBlockExecHost);
         }
 
     private:
-        //-----------------------------------------------------------------------------
         //! The function executed for each grid block.
         ALPAKA_FN_HOST static auto gridBlockExecHost(
             AccCpuThreads<TDim, TIdx>& acc,
@@ -160,14 +148,14 @@ namespace alpaka
             acc.m_gridBlockIdx = gridBlockIdx;
 
             // Bind the kernel and its arguments to the host block thread execution function.
-            auto boundBlockThreadExecHost(std::bind(
+            auto boundBlockThreadExecHost = std::bind(
                 &TaskKernelCpuThreads::blockThreadExecHost,
                 std::ref(acc),
                 std::ref(futuresInBlock),
                 std::placeholders::_1,
                 std::ref(threadPool),
                 std::ref(kernelFnObj),
-                std::ref(args)...));
+                std::ref(args)...);
             // Execute the block threads in parallel.
             meta::ndLoopIncIdx(blockThreadExtent, boundBlockThreadExecHost);
 // Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
@@ -183,7 +171,6 @@ namespace alpaka
             // After a block has been processed, the shared memory has to be deleted.
             freeSharedVars(acc);
         }
-        //-----------------------------------------------------------------------------
         //! The function executed for each block thread on the host.
         ALPAKA_FN_HOST static auto blockThreadExecHost(
             AccCpuThreads<TDim, TIdx>& acc,
@@ -202,8 +189,8 @@ namespace alpaka
             // Bind the arguments to the accelerator block thread execution function.
             // The blockThreadIdx is required to be copied in because the variable will get changed for the next
             // iteration/thread.
-            auto boundBlockThreadExecAcc(
-                [&, blockThreadIdx]() { blockThreadExecAcc(acc, blockThreadIdx, kernelFnObj, args...); });
+            auto boundBlockThreadExecAcc
+                = [&, blockThreadIdx]() { blockThreadExecAcc(acc, blockThreadIdx, kernelFnObj, args...); };
             // Add the bound function to the block thread pool.
 // Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
 #    if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
@@ -212,7 +199,6 @@ namespace alpaka
             (void) boundBlockThreadExecAcc;
 #    endif
         }
-        //-----------------------------------------------------------------------------
         //! The thread entry point on the accelerator.
         ALPAKA_FN_HOST static auto blockThreadExecAcc(
             AccCpuThreads<TDim, TIdx>& acc,
@@ -255,7 +241,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU threads execution task accelerator type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct AccType<TaskKernelCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -263,7 +248,6 @@ namespace alpaka
             using type = AccCpuThreads<TDim, TIdx>;
         };
 
-        //#############################################################################
         //! The CPU threads execution task device type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct DevType<TaskKernelCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -271,7 +255,6 @@ namespace alpaka
             using type = DevCpu;
         };
 
-        //#############################################################################
         //! The CPU threads execution task dimension getter trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct DimType<TaskKernelCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -279,7 +262,6 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The CPU threads execution task platform type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct PltfType<TaskKernelCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -287,7 +269,6 @@ namespace alpaka
             using type = PltfCpu;
         };
 
-        //#############################################################################
         //! The CPU threads execution task idx type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct IdxType<TaskKernelCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>>

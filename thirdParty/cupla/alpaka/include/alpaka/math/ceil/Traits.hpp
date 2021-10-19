@@ -11,6 +11,7 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <type_traits>
 
@@ -24,13 +25,20 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The ceil trait.
             template<typename T, typename TArg, typename TSfinae = void>
-            struct Ceil;
+            struct Ceil
+            {
+                ALPAKA_FN_HOST_ACC auto operator()(T const& ctx, TArg const& arg)
+                {
+                    alpaka::ignore_unused(ctx);
+                    // This is an ADL call. If you get a compile error here then your type is not supported by the
+                    // backend and we could not find ceil(TArg) in the namespace of your type.
+                    return ceil(arg);
+                }
+            };
         } // namespace traits
 
-        //-----------------------------------------------------------------------------
         //! Computes the smallest integer value not less than arg.
         //!
         //! \tparam T The type of the object specializing Ceil.
@@ -42,7 +50,7 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto ceil(T const& ceil_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathCeil, T>;
-            return traits::Ceil<ImplementationBase, TArg>::ceil(ceil_ctx, arg);
+            return traits::Ceil<ImplementationBase, TArg>{}(ceil_ctx, arg);
         }
     } // namespace math
 } // namespace alpaka

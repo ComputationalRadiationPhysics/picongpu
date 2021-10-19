@@ -27,17 +27,16 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-inline namespace device
-{
-namespace hierarchy
-{
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        inline namespace device
+        {
+            namespace hierarchy
+            {
+                //! hierarchy definitions for atomic operation
+                using namespace ::alpaka::hierarchy;
 
-    //! hierarchy definitions for atomic operation
-    using namespace ::alpaka::hierarchy;
-
-} // namespace layer
-} // namespace device
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+            } // namespace hierarchy
+        } // namespace device
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

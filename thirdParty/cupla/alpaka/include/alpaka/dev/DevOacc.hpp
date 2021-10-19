@@ -42,27 +42,19 @@ namespace alpaka
     {
         namespace detail
         {
-            //#############################################################################
             //! The OpenACC device implementation.
             class DevOaccImpl
             {
             public:
-                //-----------------------------------------------------------------------------
                 DevOaccImpl(int iDevice) noexcept : m_deviceType(::acc_get_device_type()), m_iDevice(iDevice)
                 {
                 }
-                //-----------------------------------------------------------------------------
                 DevOaccImpl(DevOaccImpl const&) = delete;
-                //-----------------------------------------------------------------------------
                 DevOaccImpl(DevOaccImpl&&) = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(DevOaccImpl const&) -> DevOaccImpl& = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(DevOaccImpl&&) -> DevOaccImpl& = delete;
-                //-----------------------------------------------------------------------------
                 ~DevOaccImpl() = default;
 
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST auto getAllExistingQueues() const
                     -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOacc>>>
                 {
@@ -87,7 +79,6 @@ namespace alpaka
                     return vspQueues;
                 }
 
-                //-----------------------------------------------------------------------------
                 //! Registers the given queue on this device.
                 //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
                 ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<IGenericThreadsQueue<DevOacc>> spQueue) -> void
@@ -115,7 +106,6 @@ namespace alpaka
             };
         } // namespace detail
     } // namespace oacc
-    //#############################################################################
     //! The OpenACC device handle.
     class DevOacc
         : public concepts::Implements<ConceptCurrentThreadWaitFor, DevOacc>
@@ -124,31 +114,23 @@ namespace alpaka
         friend struct traits::GetDevByIdx<PltfOacc>;
 
     protected:
-        //-----------------------------------------------------------------------------
         DevOacc(int iDevice) : m_spDevOaccImpl(std::make_shared<oacc::detail::DevOaccImpl>(iDevice))
         {
         }
 
     public:
-        //-----------------------------------------------------------------------------
         DevOacc(DevOacc const&) = default;
-        //-----------------------------------------------------------------------------
         DevOacc(DevOacc&&) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(DevOacc const&) -> DevOacc& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(DevOacc&&) -> DevOacc& = default;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator==(DevOacc const& rhs) const -> bool
         {
             return m_spDevOaccImpl->iDevice() == rhs.m_spDevOaccImpl->iDevice();
         }
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator!=(DevOacc const& rhs) const -> bool
         {
             return !((*this) == rhs);
         }
-        //-----------------------------------------------------------------------------
         ~DevOacc() = default;
         int iDevice() const
         {
@@ -171,7 +153,6 @@ namespace alpaka
             return m_spDevOaccImpl->getAllExistingQueues();
         }
 
-        //-----------------------------------------------------------------------------
         //! Registers the given queue on this device.
         //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
         ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<IGenericThreadsQueue<DevOacc>> spQueue) const -> void
@@ -185,48 +166,40 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The OpenACC device name get trait specialization.
         template<>
         struct GetName<DevOacc>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getName(DevOacc const&) -> std::string
             {
                 return std::string("OpenACC target");
             }
         };
 
-        //#############################################################################
         //! The OpenACC device available memory get trait specialization.
         template<>
         struct GetMemBytes<DevOacc>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getMemBytes(DevOacc const& dev) -> std::size_t
             {
                 return acc_get_property(dev.iDevice(), dev.deviceType(), acc_property_memory);
             }
         };
 
-        //#############################################################################
         //! The OpenACC device free memory get trait specialization.
         template<>
         struct GetFreeMemBytes<DevOacc>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getFreeMemBytes(DevOacc const& dev) -> std::size_t
             {
                 return acc_get_property(dev.iDevice(), dev.deviceType(), acc_property_free_memory);
             }
         };
 
-        //#############################################################################
         //! The OpenACC device warp size get trait specialization.
         template<>
         struct GetWarpSize<DevOacc>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getWarpSize(DevOacc const& dev) -> std::size_t
             {
                 alpaka::ignore_unused(dev);
@@ -235,12 +208,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The OpenACC device reset trait specialization.
         template<>
         struct Reset<DevOacc>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto reset(DevOacc const& dev) -> void
             {
                 alpaka::ignore_unused(dev); //! \TODO
@@ -253,7 +224,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The OpenACC device memory buffer type trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct BufType<DevOacc, TElem, TDim, TIdx>
@@ -261,7 +231,6 @@ namespace alpaka
             using type = BufOacc<TElem, TDim, TIdx>;
         };
 
-        //#############################################################################
         //! The OpenACC device platform type trait specialization.
         template<>
         struct PltfType<DevOacc>
@@ -287,7 +256,6 @@ namespace alpaka
             using type = QueueOaccNonBlocking;
         };
 
-        //#############################################################################
         //! The thread OpenACC device wait specialization.
         //!
         //! Blocks until the device has completed all preceding requested tasks.
@@ -295,7 +263,6 @@ namespace alpaka
         template<>
         struct CurrentThreadWaitFor<DevOacc>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto currentThreadWaitFor(DevOacc const& dev) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;

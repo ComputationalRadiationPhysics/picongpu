@@ -25,33 +25,24 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The GPU CUDA accelerator time implementation.
     class TimeUniformCudaHipBuiltIn : public concepts::Implements<ConceptTime, TimeUniformCudaHipBuiltIn>
     {
     public:
-        //-----------------------------------------------------------------------------
         TimeUniformCudaHipBuiltIn() = default;
-        //-----------------------------------------------------------------------------
         __device__ TimeUniformCudaHipBuiltIn(TimeUniformCudaHipBuiltIn const&) = delete;
-        //-----------------------------------------------------------------------------
         __device__ TimeUniformCudaHipBuiltIn(TimeUniformCudaHipBuiltIn&&) = delete;
-        //-----------------------------------------------------------------------------
         __device__ auto operator=(TimeUniformCudaHipBuiltIn const&) -> TimeUniformCudaHipBuiltIn& = delete;
-        //-----------------------------------------------------------------------------
         __device__ auto operator=(TimeUniformCudaHipBuiltIn&&) -> TimeUniformCudaHipBuiltIn& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~TimeUniformCudaHipBuiltIn() = default;
     };
 
     namespace traits
     {
-        //#############################################################################
         //! The CUDA built-in clock operation.
         template<>
         struct Clock<TimeUniformCudaHipBuiltIn>
         {
-            //-----------------------------------------------------------------------------
             __device__ static auto clock(TimeUniformCudaHipBuiltIn const&) -> std::uint64_t
             {
                 // This can be converted to a wall-clock time in seconds by dividing through the shader clock rate

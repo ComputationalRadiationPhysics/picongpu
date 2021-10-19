@@ -19,14 +19,12 @@
 #include <typeinfo>
 #include <vector>
 
-//#############################################################################
 //! A matrix multiplication kernel.
 //! Computes C + alpha*A*B + beta*C. LxM * MxN -> LxN
 //! This is an adaption of the algorithm from the CUDA developers guide.
 class MatMulKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     //! \tparam TAcc The accelerator environment to be executed on.
     //! \tparam TElem The matrix element type.
     //! \param acc The accelerator to be executed on.
@@ -60,27 +58,27 @@ public:
             "The accelerator used for the GemmAlpakaKernel has to be 2 dimensional!");
 
         // Column and row of C to calculate.
-        auto const gridThreadIdx(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc));
-        auto const& gridThreadIdxX(gridThreadIdx[1u]);
-        auto const& gridThreadIdxY(gridThreadIdx[0u]);
+        auto const gridThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+        auto const& gridThreadIdxX = gridThreadIdx[1u];
+        auto const& gridThreadIdxY = gridThreadIdx[0u];
 
         // Column and row inside the block of C to calculate.
-        auto const blockThreadIdx(alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc));
-        auto const& blockThreadIdxX(blockThreadIdx[1u]);
-        auto const& blockThreadIdxY(blockThreadIdx[0u]);
+        auto const blockThreadIdx = alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc);
+        auto const& blockThreadIdxX = blockThreadIdx[1u];
+        auto const& blockThreadIdxY = blockThreadIdx[0u];
 
         // The block threads extent.
-        auto const blockThreadExtent(alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc));
-        auto const& blockThreadExtentX(blockThreadExtent[1u]);
-        auto const& blockThreadExtentY(blockThreadExtent[0u]);
+        auto const blockThreadExtent = alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc);
+        auto const& blockThreadExtentX = blockThreadExtent[1u];
+        auto const& blockThreadExtentY = blockThreadExtent[0u];
         // ALPAKA_ASSERT(blockThreadExtentX == blockThreadExtentY);
-        auto const& blockThreadExtentVal(blockThreadExtentX);
+        auto const& blockThreadExtentVal = blockThreadExtentX;
 
         // Shared memory used to store the current blocks of A and B.
-        auto* const pBlockSharedA(alpaka::getDynSharedMem<TElem>(acc));
-        auto* const pBlockSharedB(pBlockSharedA + blockThreadExtentX * blockThreadExtentY);
+        auto* const pBlockSharedA = alpaka::getDynSharedMem<TElem>(acc);
+        auto* const pBlockSharedB = pBlockSharedA + blockThreadExtentX * blockThreadExtentY;
 
-        auto const sharedBlockIdx1d(blockThreadIdxY * blockThreadExtentX + blockThreadIdxX);
+        auto const sharedBlockIdx1d = blockThreadIdxY * blockThreadExtentX + blockThreadIdxX;
 
         // If the element corresponding to the current thread is outside of the respective matrix.
         bool const insideA(gridThreadIdxY < m);
@@ -90,19 +88,19 @@ public:
         TElem dotProduct(0);
 
         // Loop over all blocks of A and B that are required to compute the C block.
-        auto const blockMulCount(
-            static_cast<TIndex>(std::ceil(static_cast<float>(k) / static_cast<float>(blockThreadExtentVal))));
+        auto const blockMulCount
+            = static_cast<TIndex>(std::ceil(static_cast<float>(k) / static_cast<float>(blockThreadExtentVal)));
         for(TIndex k2(0u); k2 < blockMulCount; ++k2)
         {
             // Copy the current blocks of A and B into shared memory in parallel.
             // If the element of the current thread is outside of the matrix, zero is written into the shared memory.
             // This is possible because zero is a result neutral extension of the matrices regarding the dot product.
-            auto const AIdxX(k2 * blockThreadExtentX + blockThreadIdxX);
-            auto const AIdx1d(gridThreadIdxY * lda + AIdxX);
+            auto const AIdxX = k2 * blockThreadExtentX + blockThreadIdxX;
+            auto const AIdx1d = gridThreadIdxY * lda + AIdxX;
             pBlockSharedA[sharedBlockIdx1d] = (((!insideA) || (AIdxX >= k)) ? static_cast<TElem>(0) : A[AIdx1d]);
 
-            auto const BIdxY(k2 * blockThreadExtentY + blockThreadIdxY);
-            auto const BIdx1d(BIdxY * ldb + gridThreadIdxX);
+            auto const BIdxY = k2 * blockThreadExtentY + blockThreadIdxY;
+            auto const BIdx1d = BIdxY * ldb + gridThreadIdxX;
             pBlockSharedB[sharedBlockIdx1d] = (((!insideB) || (BIdxY >= k)) ? static_cast<TElem>(0) : B[BIdx1d]);
 
             // Synchronize to make sure the complete blocks are loaded before starting the computation.
@@ -128,7 +126,7 @@ public:
         // results.
         if(insideC)
         {
-            auto const CIdx1d(gridThreadIdxY * ldc + gridThreadIdxX);
+            auto const CIdx1d = gridThreadIdxY * ldc + gridThreadIdxX;
             C[CIdx1d] = alpha * dotProduct + beta * C[CIdx1d];
         }
     }
@@ -138,12 +136,10 @@ namespace alpaka
 {
     namespace traits
     {
-        //#############################################################################
         //! The trait for getting the size of the block shared dynamic memory for a kernel.
         template<typename TAcc>
         struct BlockSharedMemDynSizeBytes<MatMulKernel, TAcc>
         {
-            //-----------------------------------------------------------------------------
             //! \return The size of the shared memory allocated for a block.
             template<typename TVec, typename TIndex, typename TElem>
             ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
@@ -208,13 +204,13 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
     MatMulKernel kernel;
 
     // Get the host device.
-    DevHost const devHost(alpaka::getDevByIdx<PltfHost>(0u));
+    DevHost const devHost = alpaka::getDevByIdx<PltfHost>(0u);
 
     // Get a queue on the host device.
     QueueHost queueHost(devHost);
 
     // Select a device to execute on.
-    DevAcc const devAcc(alpaka::getDevByIdx<PltfAcc>(0u));
+    DevAcc const devAcc = alpaka::getDevByIdx<PltfAcc>(0u);
 
     // Get a queue on the accelerator device.
     QueueAcc queueAcc(devAcc);
@@ -252,13 +248,13 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
     BufWrapper bufBHost(bufBHost1d.data(), devHost, extentB);
 
     // Allocate C and set it to zero.
-    auto bufCHost(alpaka::allocBuf<Val, Idx>(devHost, extentC));
+    auto bufCHost = alpaka::allocBuf<Val, Idx>(devHost, extentC);
     alpaka::memset(queueHost, bufCHost, 0u, extentC);
 
     // Allocate the buffers on the accelerator.
-    auto bufAAcc(alpaka::allocBuf<Val, Idx>(devAcc, extentA));
-    auto bufBAcc(alpaka::allocBuf<Val, Idx>(devAcc, extentB));
-    auto bufCAcc(alpaka::allocBuf<Val, Idx>(devAcc, extentC));
+    auto bufAAcc = alpaka::allocBuf<Val, Idx>(devAcc, extentA);
+    auto bufBAcc = alpaka::allocBuf<Val, Idx>(devAcc, extentB);
+    auto bufCAcc = alpaka::allocBuf<Val, Idx>(devAcc, extentC);
 
     // Copy Host -> Acc.
     alpaka::memcpy(queueAcc, bufAAcc, bufAHost, extentA);
@@ -267,7 +263,7 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
     alpaka::memcpy(queueAcc, bufCAcc, bufCHost, extentC);
 
     // Create the kernel execution task.
-    auto const taskKernel(alpaka::createTaskKernel<Acc>(
+    auto const taskKernel = alpaka::createTaskKernel<Acc>(
         workDiv,
         kernel,
         m,
@@ -280,7 +276,7 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
         static_cast<Idx>(alpaka::getPitchBytes<1u>(bufBAcc) / sizeof(Val)),
         static_cast<Val>(1),
         alpaka::getPtrNative(bufCAcc),
-        static_cast<Idx>(alpaka::getPitchBytes<1u>(bufCAcc) / sizeof(Val))));
+        static_cast<Idx>(alpaka::getPitchBytes<1u>(bufCAcc) / sizeof(Val)));
 
     // Profile the kernel execution.
     std::cout << "Execution time: " << alpaka::test::integ::measureTaskRunTimeMs(queueAcc, taskKernel) << " ms"
@@ -294,10 +290,10 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
 
     // Assert that the results are correct.
     // When multiplying square matrices filled with ones, the result of each cell is the size of the matrix.
-    auto const correctResult(static_cast<Val>(k));
+    auto const correctResult = static_cast<Val>(k);
 
-    bool resultCorrect(true);
-    auto const pHostData(alpaka::getPtrNative(bufCHost));
+    bool resultCorrect = true;
+    auto const pHostData = alpaka::getPtrNative(bufCHost);
     for(Idx i(0u); i < m * n; ++i)
     {
         auto const& val(pHostData[i]);

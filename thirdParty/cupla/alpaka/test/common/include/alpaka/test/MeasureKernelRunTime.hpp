@@ -20,7 +20,6 @@ namespace alpaka
     {
         namespace integ
         {
-            //-----------------------------------------------------------------------------
             //! \return The run time of the given kernel.
             template<typename TQueue, typename TTask>
             auto measureTaskRunTimeMs(TQueue& queue, TTask&& task) -> std::chrono::milliseconds::rep

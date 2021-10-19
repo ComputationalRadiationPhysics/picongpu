@@ -33,7 +33,6 @@ namespace alpaka
 {
     namespace detail
     {
-        //#############################################################################
         //! The Omp5 memory copy trait.
         template<typename TDim, typename TViewDst, typename TViewSrc, typename TExtent>
         struct TaskCopyOmp5
@@ -56,7 +55,6 @@ namespace alpaka
 
             using Idx = alpaka::Idx<TExtent>;
 
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST TaskCopyOmp5(
                 TViewDst& viewDst,
                 TViewSrc const& viewSrc,
@@ -85,7 +83,6 @@ namespace alpaka
             }
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto printDebug() const -> void
             {
                 std::cout << __func__ << " ddev: " << m_iDstDevice << " ew: " << m_extent
@@ -101,7 +98,6 @@ namespace alpaka
             void* m_dstMemNative;
             void const* m_srcMemNative;
 
-            //-----------------------------------------------------------------------------
             //! Executes the kernel function object.
             ALPAKA_FN_HOST auto operator()() const -> void
             {
@@ -150,7 +146,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The Omp5 memory copy trait.
         template<typename TViewDst, typename TViewSrc, typename TExtent>
         struct TaskCopyOmp5<DimInt<1>, TViewDst, TViewSrc, TExtent>
@@ -167,7 +162,6 @@ namespace alpaka
 
             using Idx = alpaka::Idx<TExtent>;
 
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST TaskCopyOmp5(
                 TViewDst& viewDst,
                 TViewSrc const& viewSrc,
@@ -194,7 +188,6 @@ namespace alpaka
             }
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto printDebug() const -> void
             {
                 std::cout << __func__ << " ddev: " << m_iDstDevice << " ew: " << m_extentWidth
@@ -214,7 +207,6 @@ namespace alpaka
             void* m_dstMemNative;
             void const* m_srcMemNative;
 
-            //-----------------------------------------------------------------------------
             //! Executes the kernel function object.
             ALPAKA_FN_HOST auto operator()() const -> void
             {
@@ -240,18 +232,15 @@ namespace alpaka
         };
     } // namespace detail
 
-    //-----------------------------------------------------------------------------
     // Trait specializations for CreateTaskMemcpy.
     namespace traits
     {
         namespace detail
         {
-            //#############################################################################
             //! The Omp5 memory copy task creation trait detail.
             template<typename TDim, typename TDevDst, typename TDevSrc>
             struct CreateTaskCopyImpl
             {
-                //-----------------------------------------------------------------------------
                 template<typename TExtent, typename TViewSrc, typename TViewDst>
                 ALPAKA_FN_HOST static auto createTaskMemcpy(
                     TViewDst& viewDst,
@@ -272,12 +261,10 @@ namespace alpaka
             };
         } // namespace detail
 
-        //#############################################################################
         //! The CPU to Omp5 memory copy trait specialization.
         template<typename TDim>
         struct CreateTaskMemcpy<TDim, DevOmp5, DevCpu>
         {
-            //-----------------------------------------------------------------------------
             template<typename TExtent, typename TViewSrc, typename TViewDst>
             ALPAKA_FN_HOST static auto createTaskMemcpy(
                 TViewDst& viewDst,
@@ -295,12 +282,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The Omp5 to CPU memory copy trait specialization.
         template<typename TDim>
         struct CreateTaskMemcpy<TDim, DevCpu, DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             template<typename TExtent, typename TViewSrc, typename TViewDst>
             ALPAKA_FN_HOST static auto createTaskMemcpy(
                 TViewDst& viewDst,
@@ -318,12 +303,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The Omp5 to Omp5 memory copy trait specialization.
         template<typename TDim>
         struct CreateTaskMemcpy<TDim, DevOmp5, DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             template<typename TExtent, typename TViewSrc, typename TViewDst>
             ALPAKA_FN_HOST static auto createTaskMemcpy(
                 TViewDst& viewDst,

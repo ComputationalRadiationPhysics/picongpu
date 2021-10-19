@@ -13,26 +13,21 @@
 
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
     //! The element traits.
     namespace traits
     {
-        //#############################################################################
         //! The element type trait.
         template<typename TView, typename TSfinae = void>
         struct ElemType;
     } // namespace traits
 
-    //#############################################################################
     //! The element type trait alias template to remove the ::type.
     template<typename TView>
     using Elem = std::remove_volatile_t<typename traits::ElemType<TView>::type>;
 
-    //-----------------------------------------------------------------------------
     // Trait specializations for unsigned integral types.
     namespace traits
     {
-        //#############################################################################
         //! The fundamental type elem type trait specialization.
         template<typename T>
         struct ElemType<T, std::enable_if_t<std::is_fundamental<T>::value>>

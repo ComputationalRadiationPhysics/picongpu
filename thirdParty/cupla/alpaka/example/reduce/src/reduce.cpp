@@ -44,7 +44,6 @@ using QueueProperty = alpaka::Blocking;
 using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
 using MaxBlockSize = Accelerator::MaxBlockSize;
 
-//-----------------------------------------------------------------------------
 //! Reduces the numbers 1 to n.
 //!
 //! \tparam T The data type.

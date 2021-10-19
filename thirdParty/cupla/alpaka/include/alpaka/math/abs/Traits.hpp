@@ -11,6 +11,7 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <type_traits>
 
@@ -22,17 +23,23 @@ namespace alpaka
         {
         };
 
-        //-----------------------------------------------------------------------------
         //! The math traits.
         namespace traits
         {
-            //#############################################################################
             //! The abs trait.
             template<typename T, typename TArg, typename TSfinae = void>
-            struct Abs;
+            struct Abs
+            {
+                ALPAKA_FN_HOST_ACC auto operator()(T const& ctx, TArg const& arg)
+                {
+                    alpaka::ignore_unused(ctx);
+                    // This is an ADL call. If you get a compile error here then your type is not supported by the
+                    // backend and we could not find abs(TArg) in the namespace of your type.
+                    return abs(arg);
+                }
+            };
         } // namespace traits
 
-        //-----------------------------------------------------------------------------
         //! Computes the absolute value.
         //!
         //! \tparam T The type of the object specializing Abs.
@@ -44,7 +51,7 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto abs(T const& abs_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathAbs, T>;
-            return traits::Abs<ImplementationBase, TArg>::abs(abs_ctx, arg);
+            return traits::Abs<ImplementationBase, TArg>{}(abs_ctx, arg);
         }
     } // namespace math
 } // namespace alpaka

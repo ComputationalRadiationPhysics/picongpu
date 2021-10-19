@@ -20,7 +20,7 @@ Example
 .. code-block:: cmake
    :caption: CMakeLists.txt
 
-   cmake_minimum_required(VERSION 3.15)
+   cmake_minimum_required(VERSION 3.18)
 
    set(_TARGET_NAME helloWorld)
    project(${_TARGET_NAME})

@@ -13,7 +13,6 @@
 
 #include <iostream>
 
-//-----------------------------------------------------------------------------
 TEST_CASE("printDefines", "[core]")
 {
 #if BOOST_LANG_CUDA

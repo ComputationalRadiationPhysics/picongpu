@@ -20,25 +20,18 @@ namespace alpaka
 {
     namespace gb
     {
-        //#############################################################################
         //! A IdxGbRef grid block index.
         template<typename TDim, typename TIdx>
         class IdxGbRef : public concepts::Implements<ConceptIdxGb, IdxGbRef<TDim, TIdx>>
         {
         public:
-            //-----------------------------------------------------------------------------
             IdxGbRef(Vec<TDim, TIdx> const& gridBlockIdx) : m_gridBlockIdx(gridBlockIdx)
             {
             }
-            //-----------------------------------------------------------------------------
             IdxGbRef(IdxGbRef const&) = delete;
-            //-----------------------------------------------------------------------------
             IdxGbRef(IdxGbRef&&) = delete;
-            //-----------------------------------------------------------------------------
             auto operator=(IdxGbRef const&) -> IdxGbRef& = delete;
-            //-----------------------------------------------------------------------------
             auto operator=(IdxGbRef&&) -> IdxGbRef& = delete;
-            //-----------------------------------------------------------------------------
             /*virtual*/ ~IdxGbRef() = default;
 
         public:
@@ -48,7 +41,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The IdxGbRef grid block index dimension get trait specialization.
         template<typename TDim, typename TIdx>
         struct DimType<gb::IdxGbRef<TDim, TIdx>>
@@ -56,12 +48,10 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The IdxGbRef grid block index grid block index get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetIdx<gb::IdxGbRef<TDim, TIdx>, origin::Grid, unit::Blocks>
         {
-            //-----------------------------------------------------------------------------
             //! \return The index of the current block in the grid.
             template<typename TWorkDiv>
             ALPAKA_FN_HOST static auto getIdx(gb::IdxGbRef<TDim, TIdx> const& idx, TWorkDiv const& workDiv)
@@ -72,7 +62,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The IdxGbRef grid block index idx type trait specialization.
         template<typename TDim, typename TIdx>
         struct IdxType<gb::IdxGbRef<TDim, TIdx>>

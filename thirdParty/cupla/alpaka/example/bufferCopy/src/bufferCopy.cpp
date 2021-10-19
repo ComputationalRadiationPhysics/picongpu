@@ -21,7 +21,6 @@
 #include <cstdint>
 #include <iostream>
 
-//-----------------------------------------------------------------------------
 template<size_t width>
 ALPAKA_FN_ACC size_t linIdxToPitchedIdx(size_t const globalIdx, size_t const pitch)
 {
@@ -30,11 +29,9 @@ ALPAKA_FN_ACC size_t linIdxToPitchedIdx(size_t const globalIdx, size_t const pit
     return idx_x + idx_y * pitch;
 }
 
-//#############################################################################
 //! Prints all elements of the buffer.
 struct PrintBufferKernel
 {
-    //-----------------------------------------------------------------------------
     template<typename TAcc, typename TData, typename TExtent>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
@@ -56,11 +53,9 @@ struct PrintBufferKernel
 };
 
 
-//#############################################################################
 //! Tests if the value of the buffer on index i is equal to i.
 struct TestBufferKernel
 {
-    //-----------------------------------------------------------------------------
     template<typename TAcc, typename TData, typename TExtent>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
@@ -88,7 +83,6 @@ struct TestBufferKernel
     }
 };
 
-//#############################################################################
 //! Fills values of buffer with increasing elements starting from 0
 struct FillBufferKernel
 {

@@ -11,6 +11,7 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <type_traits>
 
@@ -24,13 +25,20 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The cbrt trait.
             template<typename T, typename TArg, typename TSfinae = void>
-            struct Cbrt;
+            struct Cbrt
+            {
+                ALPAKA_FN_HOST_ACC auto operator()(T const& ctx, TArg const& arg)
+                {
+                    alpaka::ignore_unused(ctx);
+                    // This is an ADL call. If you get a compile error here then your type is not supported by the
+                    // backend and we could not find cbrt(TArg) in the namespace of your type.
+                    return cbrt(arg);
+                }
+            };
         } // namespace traits
 
-        //-----------------------------------------------------------------------------
         //! Computes the cbrt.
         //!
         //! \tparam T The type of the object specializing Cbrt.
@@ -42,7 +50,7 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto cbrt(T const& cbrt_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathCbrt, T>;
-            return traits::Cbrt<ImplementationBase, TArg>::cbrt(cbrt_ctx, arg);
+            return traits::Cbrt<ImplementationBase, TArg>{}(cbrt_ctx, arg);
         }
     } // namespace math
 } // namespace alpaka

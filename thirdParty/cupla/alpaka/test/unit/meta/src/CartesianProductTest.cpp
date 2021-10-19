@@ -15,7 +15,6 @@
 #include <tuple>
 #include <type_traits>
 
-//-----------------------------------------------------------------------------
 TEST_CASE("cartesianProduct", "[meta]")
 {
     using TestDims = std::tuple<alpaka::DimInt<1u>, alpaka::DimInt<2u>, alpaka::DimInt<3u>>;

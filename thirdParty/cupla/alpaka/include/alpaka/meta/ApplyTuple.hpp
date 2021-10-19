@@ -20,7 +20,6 @@ namespace alpaka
 {
     namespace meta
     {
-        //-----------------------------------------------------------------------------
         // C++17 std::invoke
         namespace detail
         {
@@ -63,7 +62,6 @@ namespace alpaka
             return detail::invoke_impl(std::forward<F>(f), std::forward<ArgTypes>(args)...);
         }
 
-        //-----------------------------------------------------------------------------
         // C++17 std::apply
         namespace detail
         {

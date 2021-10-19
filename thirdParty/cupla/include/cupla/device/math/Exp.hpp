@@ -26,17 +26,16 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-inline namespace device
-{
-inline namespace math
-{
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        inline namespace device
+        {
+            inline namespace math
+            {
+                //! Computes e (Euler's number, 2.7182818...) raised to the given power.
+                CUPLA_UNARY_MATH_FN(exp, alpaka::math::ConceptMathExp, Exp)
 
-    //! Computes e (Euler's number, 2.7182818...) raised to the given power.
-    CUPLA_UNARY_MATH_FN( exp, alpaka::math::ConceptMathExp, Exp )
-
-} // namespace math
-} // namespace device
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+            } // namespace math
+        } // namespace device
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

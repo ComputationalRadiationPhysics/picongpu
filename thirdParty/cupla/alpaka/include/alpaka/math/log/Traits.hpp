@@ -11,6 +11,7 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <type_traits>
 
@@ -24,13 +25,20 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The log trait.
             template<typename T, typename TArg, typename TSfinae = void>
-            struct Log;
+            struct Log
+            {
+                ALPAKA_FN_HOST_ACC auto operator()(T const& ctx, TArg const& arg)
+                {
+                    alpaka::ignore_unused(ctx);
+                    // This is an ADL call. If you get a compile error here then your type is not supported by the
+                    // backend and we could not find log(TArg) in the namespace of your type.
+                    return log(arg);
+                }
+            };
         } // namespace traits
 
-        //-----------------------------------------------------------------------------
         //! Computes the the natural (base e) logarithm of arg.
         //!
         //! Valid real arguments are non-negative. For other values the result
@@ -46,7 +54,7 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto log(T const& log_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathLog, T>;
-            return traits::Log<ImplementationBase, TArg>::log(log_ctx, arg);
+            return traits::Log<ImplementationBase, TArg>{}(log_ctx, arg);
         }
     } // namespace math
 } // namespace alpaka

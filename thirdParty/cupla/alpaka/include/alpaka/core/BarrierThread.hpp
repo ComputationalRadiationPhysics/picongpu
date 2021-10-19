@@ -28,31 +28,23 @@ namespace alpaka
     {
         namespace threads
         {
-            //#############################################################################
             //! A self-resetting barrier.
             template<typename TIdx>
             class BarrierThread final
             {
             public:
-                //-----------------------------------------------------------------------------
                 explicit BarrierThread(TIdx const& threadCount)
                     : m_threadCount(threadCount)
                     , m_curThreadCount(threadCount)
                     , m_generation(0)
                 {
                 }
-                //-----------------------------------------------------------------------------
                 BarrierThread(BarrierThread const&) = delete;
-                //-----------------------------------------------------------------------------
                 BarrierThread(BarrierThread&&) = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(BarrierThread const&) -> BarrierThread& = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(BarrierThread&&) -> BarrierThread& = delete;
-                //-----------------------------------------------------------------------------
                 ~BarrierThread() = default;
 
-                //-----------------------------------------------------------------------------
                 //! Waits for all the other threads to reach the barrier.
                 auto wait() -> void
                 {
@@ -100,10 +92,8 @@ namespace alpaka
 
             namespace detail
             {
-                //#############################################################################
                 template<typename TOp>
                 struct AtomicOp;
-                //#############################################################################
                 template<>
                 struct AtomicOp<BlockCount>
                 {
@@ -112,7 +102,6 @@ namespace alpaka
                         result += static_cast<int>(value);
                     }
                 };
-                //#############################################################################
                 template<>
                 struct AtomicOp<BlockAnd>
                 {
@@ -121,7 +110,6 @@ namespace alpaka
                         result &= static_cast<int>(value);
                     }
                 };
-                //#############################################################################
                 template<>
                 struct AtomicOp<BlockOr>
                 {
@@ -132,31 +120,23 @@ namespace alpaka
                 };
             } // namespace detail
 
-            //#############################################################################
             //! A self-resetting barrier with barrier.
             template<typename TIdx>
             class BarrierThreadWithPredicate final
             {
             public:
-                //-----------------------------------------------------------------------------
                 explicit BarrierThreadWithPredicate(TIdx const& threadCount)
                     : m_threadCount(threadCount)
                     , m_curThreadCount(threadCount)
                     , m_generation(0)
                 {
                 }
-                //-----------------------------------------------------------------------------
                 BarrierThreadWithPredicate(BarrierThreadWithPredicate const& other) = delete;
-                //-----------------------------------------------------------------------------
                 BarrierThreadWithPredicate(BarrierThreadWithPredicate&&) = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(BarrierThreadWithPredicate const&) -> BarrierThreadWithPredicate& = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(BarrierThreadWithPredicate&&) -> BarrierThreadWithPredicate& = delete;
-                //-----------------------------------------------------------------------------
                 ~BarrierThreadWithPredicate() = default;
 
-                //-----------------------------------------------------------------------------
                 //! Waits for all the other threads to reach the barrier.
                 template<typename TOp>
                 ALPAKA_FN_HOST auto wait(int predicate) -> int
@@ -164,7 +144,7 @@ namespace alpaka
                     TIdx const generationWhenEnteredTheWait = m_generation;
                     std::unique_lock<std::mutex> lock(m_mtxBarrier);
 
-                    auto const generationMod2(m_generation % static_cast<TIdx>(2u));
+                    auto const generationMod2 = m_generation % static_cast<TIdx>(2u);
                     if(m_curThreadCount == m_threadCount)
                     {
                         m_result[generationMod2] = TOp::InitialValue;

@@ -20,13 +20,11 @@
 
 #include <iostream>
 
-//#############################################################################
 //! Hello World Kernel
 //!
 //! Prints "[x, y, z][gtid] Hello World" where tid is the global thread number.
 struct HelloWorldKernel
 {
-    //-----------------------------------------------------------------------------
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc) const -> void
     {

@@ -60,7 +60,6 @@ namespace alpaka
     {
         namespace detail
         {
-            //-----------------------------------------------------------------------------
             //! CUDA driver API error checking with log and exception, ignoring specific error values
             ALPAKA_FN_HOST inline auto cudaDrvCheck(
                 CUresult const& error,
@@ -103,22 +102,18 @@ namespace alpaka
     } // namespace cuda
 } // namespace alpaka
 
-//-----------------------------------------------------------------------------
 //! CUDA driver error checking with log and exception.
 #    define ALPAKA_CUDA_DRV_CHECK(cmd) ::alpaka::cuda::detail::cudaDrvCheck(cmd, #    cmd, __FILE__, __LINE__)
 
 
-//-----------------------------------------------------------------------------
 // CUDA vector_types.h trait specializations.
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
     //! The CUDA specifics.
     namespace cuda
     {
         namespace traits
         {
-            //#############################################################################
             //! The CUDA vectors 1D dimension get trait specialization.
             template<typename T>
             struct IsCudaBuiltInType
@@ -164,7 +159,6 @@ namespace alpaka
     } // namespace cuda
     namespace traits
     {
-        //#############################################################################
         //! The CUDA vectors 1D dimension get trait specialization.
         template<typename T>
         struct DimType<
@@ -178,7 +172,6 @@ namespace alpaka
         {
             using type = DimInt<1u>;
         };
-        //#############################################################################
         //! The CUDA vectors 2D dimension get trait specialization.
         template<typename T>
         struct DimType<
@@ -192,7 +185,6 @@ namespace alpaka
         {
             using type = DimInt<2u>;
         };
-        //#############################################################################
         //! The CUDA vectors 3D dimension get trait specialization.
         template<typename T>
         struct DimType<
@@ -213,7 +205,6 @@ namespace alpaka
         {
             using type = DimInt<3u>;
         };
-        //#############################################################################
         //! The CUDA vectors 4D dimension get trait specialization.
         template<typename T>
         struct DimType<
@@ -228,7 +219,6 @@ namespace alpaka
             using type = DimInt<4u>;
         };
 
-        //#############################################################################
         //! The CUDA vectors elem type trait specialization.
         template<typename T>
         struct ElemType<T, std::enable_if_t<cuda::traits::IsCudaBuiltInType<T>::value>>
@@ -240,7 +230,6 @@ namespace alpaka
     {
         namespace traits
         {
-            //#############################################################################
             //! The CUDA vectors extent get trait specialization.
             template<typename TExtent>
             struct GetExtent<
@@ -254,7 +243,6 @@ namespace alpaka
                     return extent.x;
                 }
             };
-            //#############################################################################
             //! The CUDA vectors extent get trait specialization.
             template<typename TExtent>
             struct GetExtent<
@@ -268,7 +256,6 @@ namespace alpaka
                     return extent.y;
                 }
             };
-            //#############################################################################
             //! The CUDA vectors extent get trait specialization.
             template<typename TExtent>
             struct GetExtent<
@@ -282,7 +269,6 @@ namespace alpaka
                     return extent.z;
                 }
             };
-            //#############################################################################
             //! The CUDA vectors extent get trait specialization.
             template<typename TExtent>
             struct GetExtent<
@@ -296,7 +282,6 @@ namespace alpaka
                     return extent.w;
                 }
             };
-            //#############################################################################
             //! The CUDA vectors extent set trait specialization.
             template<typename TExtent, typename TExtentVal>
             struct SetExtent<
@@ -311,7 +296,6 @@ namespace alpaka
                     extent.x = extentVal;
                 }
             };
-            //#############################################################################
             //! The CUDA vectors extent set trait specialization.
             template<typename TExtent, typename TExtentVal>
             struct SetExtent<
@@ -326,7 +310,6 @@ namespace alpaka
                     extent.y = extentVal;
                 }
             };
-            //#############################################################################
             //! The CUDA vectors extent set trait specialization.
             template<typename TExtent, typename TExtentVal>
             struct SetExtent<
@@ -341,7 +324,6 @@ namespace alpaka
                     extent.z = extentVal;
                 }
             };
-            //#############################################################################
             //! The CUDA vectors extent set trait specialization.
             template<typename TExtent, typename TExtentVal>
             struct SetExtent<
@@ -360,7 +342,6 @@ namespace alpaka
     } // namespace extent
     namespace traits
     {
-        //#############################################################################
         //! The CUDA vectors offset get trait specialization.
         template<typename TOffsets>
         struct GetOffset<
@@ -374,7 +355,6 @@ namespace alpaka
                 return offsets.x;
             }
         };
-        //#############################################################################
         //! The CUDA vectors offset get trait specialization.
         template<typename TOffsets>
         struct GetOffset<
@@ -388,7 +368,6 @@ namespace alpaka
                 return offsets.y;
             }
         };
-        //#############################################################################
         //! The CUDA vectors offset get trait specialization.
         template<typename TOffsets>
         struct GetOffset<
@@ -402,7 +381,6 @@ namespace alpaka
                 return offsets.z;
             }
         };
-        //#############################################################################
         //! The CUDA vectors offset get trait specialization.
         template<typename TOffsets>
         struct GetOffset<
@@ -416,7 +394,6 @@ namespace alpaka
                 return offsets.w;
             }
         };
-        //#############################################################################
         //! The CUDA vectors offset set trait specialization.
         template<typename TOffsets, typename TOffset>
         struct SetOffset<
@@ -431,7 +408,6 @@ namespace alpaka
                 offsets.x = offset;
             }
         };
-        //#############################################################################
         //! The CUDA vectors offset set trait specialization.
         template<typename TOffsets, typename TOffset>
         struct SetOffset<
@@ -446,7 +422,6 @@ namespace alpaka
                 offsets.y = offset;
             }
         };
-        //#############################################################################
         //! The CUDA vectors offset set trait specialization.
         template<typename TOffsets, typename TOffset>
         struct SetOffset<
@@ -461,7 +436,6 @@ namespace alpaka
                 offsets.z = offset;
             }
         };
-        //#############################################################################
         //! The CUDA vectors offset set trait specialization.
         template<typename TOffsets, typename TOffset>
         struct SetOffset<
@@ -477,7 +451,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CUDA vectors idx type trait specialization.
         template<typename TIdx>
         struct IdxType<TIdx, std::enable_if_t<cuda::traits::IsCudaBuiltInType<TIdx>::value>>

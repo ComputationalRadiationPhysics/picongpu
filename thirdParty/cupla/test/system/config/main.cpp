@@ -19,20 +19,20 @@
  */
 
 
-#if defined( CUPLA_ACC_CpuOmp2Blocks  )
-#   include <cupla/config/CpuOmp2Blocks.hpp>
-#elif defined( CUPLA_ACC_CpuOmp2Threads  )
-#   include <cupla/config/CpuOmp2Threads.hpp>
-#elif defined( CUPLA_ACC_CpuSerial )
-#   include <cupla/config/CpuSerial.hpp>
-#elif defined( CUPLA_ACC_CpuTbbBlocks  )
-#   include <cupla/config/CpuTbbBlocks.hpp>
-#elif defined( CUPLA_ACC_CpuThreads  )
-#   include <cupla/config/CpuThreads.hpp>
-#elif defined( CUPLA_ACC_GpuCudaRt  )
-#   include <cupla/config/GpuCudaRt.hpp>
-#elif defined( CUPLA_ACC_GpuHipRt  )
-#   include <cupla/config/GpuHipRt.hpp>
+#if defined(CUPLA_ACC_CpuOmp2Blocks)
+#    include <cupla/config/CpuOmp2Blocks.hpp>
+#elif defined(CUPLA_ACC_CpuOmp2Threads)
+#    include <cupla/config/CpuOmp2Threads.hpp>
+#elif defined(CUPLA_ACC_CpuSerial)
+#    include <cupla/config/CpuSerial.hpp>
+#elif defined(CUPLA_ACC_CpuTbbBlocks)
+#    include <cupla/config/CpuTbbBlocks.hpp>
+#elif defined(CUPLA_ACC_CpuThreads)
+#    include <cupla/config/CpuThreads.hpp>
+#elif defined(CUPLA_ACC_GpuCudaRt)
+#    include <cupla/config/GpuCudaRt.hpp>
+#elif defined(CUPLA_ACC_GpuHipRt)
+#    include <cupla/config/GpuHipRt.hpp>
 #endif
 
 #include "cuda_to_cupla.hpp"
@@ -42,16 +42,16 @@ extern void callIncrementKernel(int* pr_d);
 int main()
 {
     int res_h = 0;
-    int *res_ptr_d = nullptr;
-    cudaMalloc( (void**)&res_ptr_d, sizeof( int ) );
+    int* res_ptr_d = nullptr;
+    cudaMalloc((void**) &res_ptr_d, sizeof(int));
 
     // reset result to zero
-    cuplaMemset( res_ptr_d, 0, sizeof( int ) );
+    cuplaMemset(res_ptr_d, 0, sizeof(int));
 
     // increment 42 times
     callIncrementKernel(res_ptr_d);
 
-    cudaMemcpy(&res_h, res_ptr_d, sizeof( int ), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&res_h, res_ptr_d, sizeof(int), cudaMemcpyDeviceToHost);
 
     return res_h != 42;
 }

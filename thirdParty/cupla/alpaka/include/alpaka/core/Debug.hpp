@@ -14,18 +14,14 @@
 #include <iostream>
 #include <string>
 
-//-----------------------------------------------------------------------------
 //! The no debug level.
 #define ALPAKA_DEBUG_DISABLED 0
-//-----------------------------------------------------------------------------
 //! The minimal debug level.
 #define ALPAKA_DEBUG_MINIMAL 1
-//-----------------------------------------------------------------------------
 //! The full debug level.
 #define ALPAKA_DEBUG_FULL 2
 
 #ifndef ALPAKA_DEBUG
-//-----------------------------------------------------------------------------
 //! Set the minimum log level if it is not defined.
 #    define ALPAKA_DEBUG ALPAKA_DEBUG_DISABLED
 #endif
@@ -36,25 +32,18 @@ namespace alpaka
     {
         namespace detail
         {
-            //#############################################################################
             //! Scope logger.
             class ScopeLogStdOut final
             {
             public:
-                //-----------------------------------------------------------------------------
                 explicit ScopeLogStdOut(std::string const& sScope) : m_sScope(sScope)
                 {
                     std::cout << "[+] " << m_sScope << std::endl;
                 }
-                //-----------------------------------------------------------------------------
                 ScopeLogStdOut(ScopeLogStdOut const&) = delete;
-                //-----------------------------------------------------------------------------
                 ScopeLogStdOut(ScopeLogStdOut&&) = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(ScopeLogStdOut const&) -> ScopeLogStdOut& = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(ScopeLogStdOut&&) -> ScopeLogStdOut& = delete;
-                //-----------------------------------------------------------------------------
                 ~ScopeLogStdOut()
                 {
                     std::cout << "[-] " << m_sScope << std::endl;
@@ -67,7 +56,6 @@ namespace alpaka
     } // namespace core
 } // namespace alpaka
 
-//-----------------------------------------------------------------------------
 // Define ALPAKA_DEBUG_MINIMAL_LOG_SCOPE.
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
 #    define ALPAKA_DEBUG_MINIMAL_LOG_SCOPE ::alpaka::core::detail::ScopeLogStdOut const scopeLogStdOut(__func__)
@@ -75,7 +63,6 @@ namespace alpaka
 #    define ALPAKA_DEBUG_MINIMAL_LOG_SCOPE
 #endif
 
-//-----------------------------------------------------------------------------
 // Define ALPAKA_DEBUG_FULL_LOG_SCOPE.
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
 #    define ALPAKA_DEBUG_FULL_LOG_SCOPE ::alpaka::core::detail::ScopeLogStdOut const scopeLogStdOut(__func__)
@@ -83,7 +70,6 @@ namespace alpaka
 #    define ALPAKA_DEBUG_FULL_LOG_SCOPE
 #endif
 
-//-----------------------------------------------------------------------------
 // Define ALPAKA_DEBUG_BREAK.
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
 #    if BOOST_COMP_GNUC

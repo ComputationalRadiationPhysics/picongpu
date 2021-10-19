@@ -39,17 +39,14 @@
 //! prefix a name with `hip`
 #    define ALPAKA_API_PREFIX(name) ALPAKA_PP_CONCAT_DO(hip, name)
 
-//-----------------------------------------------------------------------------
 // HIP vector_types.h trait specializations.
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
     //! The HIP specifics.
     namespace hip
     {
         namespace traits
         {
-            //#############################################################################
             //! The HIP vectors 1D dimension get trait specialization.
             template<typename T>
             struct IsHipBuiltInType
@@ -89,7 +86,6 @@ namespace alpaka
         // If you receive '"alpaka::traits::DimType" has already been defined'
         // then too many operators in the enable_if are used. Split them in two or more structs.
         // (compiler: gcc 5.3.0)
-        //#############################################################################
         //! The HIP vectors 1D dimension get trait specialization.
         template<typename T>
         struct DimType<
@@ -110,7 +106,6 @@ namespace alpaka
         {
             using type = DimInt<1u>;
         };
-        //#############################################################################
         //! The HIP vectors 2D dimension get trait specialization.
         template<typename T>
         struct DimType<
@@ -131,7 +126,6 @@ namespace alpaka
         {
             using type = DimInt<2u>;
         };
-        //#############################################################################
         //! The HIP vectors 3D dimension get trait specialization.
         template<typename T>
         struct DimType<
@@ -152,7 +146,6 @@ namespace alpaka
         {
             using type = DimInt<3u>;
         };
-        //#############################################################################
         //! The HIP vectors 4D dimension get trait specialization.
         template<typename T>
         struct DimType<
@@ -174,7 +167,6 @@ namespace alpaka
             using type = DimInt<4u>;
         };
 
-        //#############################################################################
         //! The HIP vectors elem type trait specialization.
         template<typename T>
         struct ElemType<T, std::enable_if_t<hip::traits::IsHipBuiltInType<T>::value>>
@@ -186,7 +178,6 @@ namespace alpaka
     {
         namespace traits
         {
-            //#############################################################################
             //! The HIP vectors extent get trait specialization.
             template<typename TExtent>
             struct GetExtent<
@@ -200,7 +191,6 @@ namespace alpaka
                     return extent.x;
                 }
             };
-            //#############################################################################
             //! The HIP vectors extent get trait specialization.
             template<typename TExtent>
             struct GetExtent<
@@ -214,7 +204,6 @@ namespace alpaka
                     return extent.y;
                 }
             };
-            //#############################################################################
             //! The HIP vectors extent get trait specialization.
             template<typename TExtent>
             struct GetExtent<
@@ -228,7 +217,6 @@ namespace alpaka
                     return extent.z;
                 }
             };
-            //#############################################################################
             //! The HIP vectors extent get trait specialization.
             template<typename TExtent>
             struct GetExtent<
@@ -242,7 +230,6 @@ namespace alpaka
                     return extent.w;
                 }
             };
-            //#############################################################################
             //! The HIP vectors extent set trait specialization.
             template<typename TExtent, typename TExtentVal>
             struct SetExtent<
@@ -257,7 +244,6 @@ namespace alpaka
                     extent.x = extentVal;
                 }
             };
-            //#############################################################################
             //! The HIP vectors extent set trait specialization.
             template<typename TExtent, typename TExtentVal>
             struct SetExtent<
@@ -272,7 +258,6 @@ namespace alpaka
                     extent.y = extentVal;
                 }
             };
-            //#############################################################################
             //! The HIP vectors extent set trait specialization.
             template<typename TExtent, typename TExtentVal>
             struct SetExtent<
@@ -287,7 +272,6 @@ namespace alpaka
                     extent.z = extentVal;
                 }
             };
-            //#############################################################################
             //! The HIP vectors extent set trait specialization.
             template<typename TExtent, typename TExtentVal>
             struct SetExtent<
@@ -306,7 +290,6 @@ namespace alpaka
     } // namespace extent
     namespace traits
     {
-        //#############################################################################
         //! The HIP vectors offset get trait specialization.
         template<typename TOffsets>
         struct GetOffset<
@@ -320,7 +303,6 @@ namespace alpaka
                 return offsets.x;
             }
         };
-        //#############################################################################
         //! The HIP vectors offset get trait specialization.
         template<typename TOffsets>
         struct GetOffset<
@@ -334,7 +316,6 @@ namespace alpaka
                 return offsets.y;
             }
         };
-        //#############################################################################
         //! The HIP vectors offset get trait specialization.
         template<typename TOffsets>
         struct GetOffset<
@@ -348,7 +329,6 @@ namespace alpaka
                 return offsets.z;
             }
         };
-        //#############################################################################
         //! The HIP vectors offset get trait specialization.
         template<typename TOffsets>
         struct GetOffset<
@@ -362,7 +342,6 @@ namespace alpaka
                 return offsets.w;
             }
         };
-        //#############################################################################
         //! The HIP vectors offset set trait specialization.
         template<typename TOffsets, typename TOffset>
         struct SetOffset<
@@ -377,7 +356,6 @@ namespace alpaka
                 offsets.x = offset;
             }
         };
-        //#############################################################################
         //! The HIP vectors offset set trait specialization.
         template<typename TOffsets, typename TOffset>
         struct SetOffset<
@@ -392,7 +370,6 @@ namespace alpaka
                 offsets.y = offset;
             }
         };
-        //#############################################################################
         //! The HIP vectors offset set trait specialization.
         template<typename TOffsets, typename TOffset>
         struct SetOffset<
@@ -407,7 +384,6 @@ namespace alpaka
                 offsets.z = offset;
             }
         };
-        //#############################################################################
         //! The HIP vectors offset set trait specialization.
         template<typename TOffsets, typename TOffset>
         struct SetOffset<
@@ -423,7 +399,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The HIP vectors idx type trait specialization.
         template<typename TIdx>
         struct IdxType<TIdx, std::enable_if_t<hip::traits::IsHipBuiltInType<TIdx>::value>>

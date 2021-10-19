@@ -105,7 +105,7 @@ then
     then
         if (( "${ALPAKA_CI_GCC_VER_MAJOR}" == 5 ))
         then
-            if [ "${ALPAKA_CUDA_COMPILER}" == "nvcc" ]
+            if [ "${CMAKE_CUDA_COMPILER}" == "nvcc" ]
             then
                 if [ "${CMAKE_BUILD_TYPE}" == "Release" ]
                 then

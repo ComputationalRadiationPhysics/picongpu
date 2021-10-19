@@ -20,7 +20,6 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The memory view to wrap plain pointers.
     template<typename TDev, typename TElem, typename TDim, typename TIdx>
     class ViewPlainPtr final
@@ -30,7 +29,6 @@ namespace alpaka
         using Dev = alpaka::Dev<TDev>;
 
     public:
-        //-----------------------------------------------------------------------------
         template<typename TExtent>
         ALPAKA_FN_HOST ViewPlainPtr(TElem* pMem, Dev const& dev, TExtent const& extent = TExtent())
             : m_pMem(pMem)
@@ -40,7 +38,6 @@ namespace alpaka
         {
         }
 
-        //-----------------------------------------------------------------------------
         template<typename TExtent, typename TPitch>
         ALPAKA_FN_HOST ViewPlainPtr(TElem* pMem, Dev const dev, TExtent const& extent, TPitch const& pitchBytes)
             : m_pMem(pMem)
@@ -50,10 +47,8 @@ namespace alpaka
         {
         }
 
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST
         ViewPlainPtr(ViewPlainPtr const&) = default;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST
         ViewPlainPtr(ViewPlainPtr&& other) noexcept
             : m_pMem(other.m_pMem)
@@ -62,17 +57,13 @@ namespace alpaka
             , m_pitchBytes(other.m_pitchBytes)
         {
         }
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST
         auto operator=(ViewPlainPtr const&) -> ViewPlainPtr& = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST
         auto operator=(ViewPlainPtr&&) -> ViewPlainPtr& = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST ~ViewPlainPtr() = default;
 
     private:
-        //-----------------------------------------------------------------------------
         //! Calculate the pitches purely from the extents.
         template<typename TExtent>
         ALPAKA_FN_HOST static auto calculatePitchesFromExtents(TExtent const& extent) -> Vec<TDim, TIdx>
@@ -93,11 +84,9 @@ namespace alpaka
         Vec<TDim, TIdx> const m_pitchBytes;
     };
 
-    //-----------------------------------------------------------------------------
     // Trait specializations for ViewPlainPtr.
     namespace traits
     {
-        //#############################################################################
         //! The ViewPlainPtr device type trait specialization.
         template<typename TDev, typename TElem, typename TDim, typename TIdx>
         struct DevType<ViewPlainPtr<TDev, TElem, TDim, TIdx>>
@@ -105,7 +94,6 @@ namespace alpaka
             using type = alpaka::Dev<TDev>;
         };
 
-        //#############################################################################
         //! The ViewPlainPtr device get trait specialization.
         template<typename TDev, typename TElem, typename TDim, typename TIdx>
         struct GetDev<ViewPlainPtr<TDev, TElem, TDim, TIdx>>
@@ -116,7 +104,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The ViewPlainPtr dimension getter trait.
         template<typename TDev, typename TElem, typename TDim, typename TIdx>
         struct DimType<ViewPlainPtr<TDev, TElem, TDim, TIdx>>
@@ -124,7 +111,6 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The ViewPlainPtr memory element type get trait specialization.
         template<typename TDev, typename TElem, typename TDim, typename TIdx>
         struct ElemType<ViewPlainPtr<TDev, TElem, TDim, TIdx>>
@@ -136,7 +122,6 @@ namespace alpaka
     {
         namespace traits
         {
-            //#############################################################################
             //! The ViewPlainPtr width get trait specialization.
             template<typename TIdxIntegralConst, typename TDev, typename TElem, typename TDim, typename TIdx>
             struct GetExtent<
@@ -156,7 +141,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The ViewPlainPtr native pointer get trait specialization.
         template<typename TDev, typename TElem, typename TDim, typename TIdx>
         struct GetPtrNative<ViewPlainPtr<TDev, TElem, TDim, TIdx>>
@@ -171,7 +155,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The ViewPlainPtr memory pitch get trait specialization.
         template<typename TIdxIntegralConst, typename TDev, typename TElem, typename TDim, typename TIdx>
             struct GetPitchBytes < TIdxIntegralConst,
@@ -183,12 +166,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU device CreateStaticDevMemView trait specialization.
         template<>
         struct CreateStaticDevMemView<DevCpu>
         {
-            //-----------------------------------------------------------------------------
             template<typename TElem, typename TExtent>
             static auto createStaticDevMemView(TElem* pMem, DevCpu const& dev, TExtent const& extent)
             {
@@ -200,12 +181,10 @@ namespace alpaka
         };
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-        //#############################################################################
         //! The CUDA/HIP RT device CreateStaticDevMemView trait specialization.
         template<>
         struct CreateStaticDevMemView<DevUniformCudaHipRt>
         {
-            //-----------------------------------------------------------------------------
             template<typename TElem, typename TExtent>
             static auto createStaticDevMemView(TElem* pMem, DevUniformCudaHipRt const& dev, TExtent const& extent)
             {
@@ -232,13 +211,11 @@ namespace alpaka
 #endif
 
 #ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-        //#############################################################################
         //! The Omp5 device CreateStaticDevMemView trait specialization.
         //! \todo What ist this for? Does this exist in OMP5?
         template<>
         struct CreateStaticDevMemView<DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             template<typename TElem, typename TExtent>
             static auto createStaticDevMemView(TElem* pMem, DevOmp5 const& dev, TExtent const& extent)
             {
@@ -251,12 +228,10 @@ namespace alpaka
 #endif
 
 #ifdef ALPAKA_ACC_ANY_BT_OACC_ENABLED
-        //#############################################################################
         //! The Oacc device CreateStaticDevMemView trait specialization.
         template<>
         struct CreateStaticDevMemView<DevOacc>
         {
-            //-----------------------------------------------------------------------------
             template<typename TElem, typename TExtent>
             static auto createStaticDevMemView(TElem* pMem, DevOacc const& dev, TExtent const& extent)
             {
@@ -268,12 +243,10 @@ namespace alpaka
         };
 #endif
 
-        //#############################################################################
         //! The ViewPlainPtr offset get trait specialization.
         template<typename TIdxIntegralConst, typename TDev, typename TElem, typename TDim, typename TIdx>
         struct GetOffset<TIdxIntegralConst, ViewPlainPtr<TDev, TElem, TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC
             static auto getOffset(ViewPlainPtr<TDev, TElem, TDim, TIdx> const&) -> TIdx
@@ -282,7 +255,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The ViewPlainPtr idx type trait specialization.
         template<typename TDev, typename TElem, typename TDim, typename TIdx>
         struct IdxType<ViewPlainPtr<TDev, TElem, TDim, TIdx>>

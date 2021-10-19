@@ -23,11 +23,9 @@ namespace alpaka
     {
     };
 
-    //-----------------------------------------------------------------------------
     //! The platform traits.
     namespace traits
     {
-        //#############################################################################
         //! The platform type trait.
         template<typename T, typename TSfinae = void>
         struct PltfType;
@@ -38,23 +36,19 @@ namespace alpaka
             using type = typename concepts::ImplementationBase<ConceptDev, TPltf>;
         };
 
-        //#############################################################################
         //! The device count get trait.
         template<typename T, typename TSfinae = void>
         struct GetDevCount;
 
-        //#############################################################################
         //! The device get trait.
         template<typename T, typename TSfinae = void>
         struct GetDevByIdx;
     } // namespace traits
 
-    //#############################################################################
     //! The platform type trait alias template to remove the ::type.
     template<typename T>
     using Pltf = typename traits::PltfType<T>::type;
 
-    //-----------------------------------------------------------------------------
     //! \return The device identified by its index.
     template<typename TPltf>
     ALPAKA_FN_HOST auto getDevCount()
@@ -62,7 +56,6 @@ namespace alpaka
         return traits::GetDevCount<Pltf<TPltf>>::getDevCount();
     }
 
-    //-----------------------------------------------------------------------------
     //! \return The device identified by its index.
     template<typename TPltf>
     ALPAKA_FN_HOST auto getDevByIdx(std::size_t const& devIdx)
@@ -70,7 +63,6 @@ namespace alpaka
         return traits::GetDevByIdx<Pltf<TPltf>>::getDevByIdx(devIdx);
     }
 
-    //-----------------------------------------------------------------------------
     //! \return All the devices available on this accelerator.
     template<typename TPltf>
     ALPAKA_FN_HOST auto getDevs() -> std::vector<Dev<Pltf<TPltf>>>

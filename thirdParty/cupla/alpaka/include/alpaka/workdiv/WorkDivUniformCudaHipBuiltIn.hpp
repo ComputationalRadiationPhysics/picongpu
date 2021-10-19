@@ -35,27 +35,20 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The GPU CUDA/HIP accelerator work division.
     template<typename TDim, typename TIdx>
     class WorkDivUniformCudaHipBuiltIn
         : public concepts::Implements<ConceptWorkDiv, WorkDivUniformCudaHipBuiltIn<TDim, TIdx>>
     {
     public:
-        //-----------------------------------------------------------------------------
         __device__ WorkDivUniformCudaHipBuiltIn(Vec<TDim, TIdx> const& threadElemExtent)
             : m_threadElemExtent(threadElemExtent)
         {
         }
-        //-----------------------------------------------------------------------------
         __device__ WorkDivUniformCudaHipBuiltIn(WorkDivUniformCudaHipBuiltIn const&) = delete;
-        //-----------------------------------------------------------------------------
         __device__ WorkDivUniformCudaHipBuiltIn(WorkDivUniformCudaHipBuiltIn&&) = delete;
-        //-----------------------------------------------------------------------------
         __device__ auto operator=(WorkDivUniformCudaHipBuiltIn const&) -> WorkDivUniformCudaHipBuiltIn& = delete;
-        //-----------------------------------------------------------------------------
         __device__ auto operator=(WorkDivUniformCudaHipBuiltIn&&) -> WorkDivUniformCudaHipBuiltIn& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~WorkDivUniformCudaHipBuiltIn() = default;
 
     public:
@@ -67,7 +60,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The GPU CUDA/HIP accelerator work division dimension get trait specialization.
         template<typename TDim, typename TIdx>
         struct DimType<WorkDivUniformCudaHipBuiltIn<TDim, TIdx>>
@@ -75,7 +67,6 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The GPU CUDA/HIP accelerator work division idx type trait specialization.
         template<typename TDim, typename TIdx>
         struct IdxType<WorkDivUniformCudaHipBuiltIn<TDim, TIdx>>
@@ -83,12 +74,10 @@ namespace alpaka
             using type = TIdx;
         };
 
-        //#############################################################################
         //! The GPU CUDA/HIP accelerator work division grid block extent trait specialization.
         template<typename TDim, typename TIdx>
         struct GetWorkDiv<WorkDivUniformCudaHipBuiltIn<TDim, TIdx>, origin::Grid, unit::Blocks>
         {
-            //-----------------------------------------------------------------------------
             //! \return The number of blocks in each dimension of the grid.
             __device__ static auto getWorkDiv(WorkDivUniformCudaHipBuiltIn<TDim, TIdx> const& workDiv)
                 -> Vec<TDim, TIdx>
@@ -105,12 +94,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The GPU CUDA/HIP accelerator work division block thread extent trait specialization.
         template<typename TDim, typename TIdx>
         struct GetWorkDiv<WorkDivUniformCudaHipBuiltIn<TDim, TIdx>, origin::Block, unit::Threads>
         {
-            //-----------------------------------------------------------------------------
             //! \return The number of threads in each dimension of a block.
             __device__ static auto getWorkDiv(WorkDivUniformCudaHipBuiltIn<TDim, TIdx> const& workDiv)
                 -> Vec<TDim, TIdx>
@@ -127,12 +114,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The GPU CUDA/HIP accelerator work division thread element extent trait specialization.
         template<typename TDim, typename TIdx>
         struct GetWorkDiv<WorkDivUniformCudaHipBuiltIn<TDim, TIdx>, origin::Thread, unit::Elems>
         {
-            //-----------------------------------------------------------------------------
             //! \return The number of blocks in each dimension of the grid.
             __device__ static auto getWorkDiv(WorkDivUniformCudaHipBuiltIn<TDim, TIdx> const& workDiv)
                 -> Vec<TDim, TIdx>

@@ -50,11 +50,9 @@ namespace alpaka
 #    pragma GCC diagnostic ignored                                                                                    \
         "-Wcast-align" // "cast from 'unsigned char*' to 'unsigned int*' increases required alignment of target type"
 #endif
-        //#############################################################################
         template<typename T, std::size_t TDataAlignBytes, std::size_t TuniqueId>
         struct DeclareSharedVar<T, TuniqueId, BlockSharedMemStMemberMasterSync<TDataAlignBytes>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto declareVar(
                 BlockSharedMemStMemberMasterSync<TDataAlignBytes> const& blockSharedMemSt) -> T&
             {
@@ -81,11 +79,9 @@ namespace alpaka
 #if BOOST_COMP_GNUC
 #    pragma GCC diagnostic pop
 #endif
-        //#############################################################################
         template<std::size_t TDataAlignBytes>
         struct FreeSharedVars<BlockSharedMemStMemberMasterSync<TDataAlignBytes>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto freeVars(BlockSharedMemStMemberMasterSync<TDataAlignBytes> const&) -> void
             {
                 // shared memory block data will be reused

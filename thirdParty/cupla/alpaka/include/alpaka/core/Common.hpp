@@ -17,7 +17,6 @@
 #    include <intrin.h>
 #endif
 
-//-----------------------------------------------------------------------------
 //! All functions that can be used on an accelerator have to be attributed with ALPAKA_FN_ACC or ALPAKA_FN_HOST_ACC.
 //!
 //! Usage:
@@ -38,14 +37,11 @@
 #    define ALPAKA_FN_HOST
 #endif
 
-//-----------------------------------------------------------------------------
 //! Disable nvcc warning:
 //! 'calling a __host__ function from __host__ __device__ function.'
-//!
 //! Usage:
 //! ALPAKA_NO_HOST_ACC_WARNING
 //! ALPAKA_FN_HOST_ACC function_declaration()
-//!
 //! WARNING: Only use this method if there is no other way.
 //! Most cases can be solved by #if BOOST_ARCH_PTX or #if BOOST_LANG_CUDA.
 #if(BOOST_LANG_CUDA && !BOOST_COMP_CLANG_CUDA) || BOOST_LANG_HIP
@@ -58,7 +54,6 @@
 #    define ALPAKA_NO_HOST_ACC_WARNING
 #endif
 
-//-----------------------------------------------------------------------------
 //! Macro defining the inline function attribute.
 #if BOOST_LANG_CUDA || BOOST_LANG_HIP
 #    define ALPAKA_FN_INLINE __forceinline__
@@ -66,7 +61,6 @@
 #    define ALPAKA_FN_INLINE inline
 #endif
 
-//-----------------------------------------------------------------------------
 //! This macro defines a variable lying in global accelerator device memory.
 //!
 //! Example:
@@ -88,7 +82,6 @@
 #    define ALPAKA_STATIC_ACC_MEM_GLOBAL
 #endif
 
-//-----------------------------------------------------------------------------
 //! This macro defines a variable lying in constant accelerator device memory.
 //!
 //! Example:

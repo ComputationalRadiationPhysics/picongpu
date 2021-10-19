@@ -23,10 +23,6 @@
 
 #include <alpaka/alpaka.hpp>
 
-#define sharedMem(ppName, ...)                                                 \
-     __VA_ARGS__& ppName =                                                     \
-        ::alpaka::declareSharedVar< __VA_ARGS__, __COUNTER__ >( acc )
+#define sharedMem(ppName, ...) __VA_ARGS__& ppName = ::alpaka::declareSharedVar<__VA_ARGS__, __COUNTER__>(acc)
 
-#define sharedMemExtern(ppName, ...)                                           \
-    __VA_ARGS__* ppName =                                                      \
-        ::alpaka::getDynSharedMem< __VA_ARGS__ >( acc )
+#define sharedMemExtern(ppName, ...) __VA_ARGS__* ppName = ::alpaka::getDynSharedMem<__VA_ARGS__>(acc)

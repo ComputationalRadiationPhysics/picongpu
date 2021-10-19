@@ -17,7 +17,6 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The CPU threads accelerator atomic ops.
     //
     //  Atomics can be used in the grids, blocks and threads hierarchy levels.
@@ -38,7 +37,6 @@ namespace alpaka
                                                              : nextPowerOf2(value, bit + 1u);
         }
 
-        //-----------------------------------------------------------------------------
         //! get a hash value of the pointer
         //
         // This is no perfect hash, there will be collisions if the size of pointer type
@@ -53,23 +51,16 @@ namespace alpaka
             return (ptrAddr / typeSizePowerOf2);
         }
 
-        //-----------------------------------------------------------------------------
         AtomicStdLibLock() = default;
-        //-----------------------------------------------------------------------------
         AtomicStdLibLock(AtomicStdLibLock const&) = delete;
-        //-----------------------------------------------------------------------------
         AtomicStdLibLock(AtomicStdLibLock&&) = delete;
-        //-----------------------------------------------------------------------------
         auto operator=(AtomicStdLibLock const&) -> AtomicStdLibLock& = delete;
-        //-----------------------------------------------------------------------------
         auto operator=(AtomicStdLibLock&&) -> AtomicStdLibLock& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~AtomicStdLibLock() = default;
 
         template<typename TPtr>
         std::mutex& getMutex(TPtr const* const ptr) const
         {
-            //-----------------------------------------------------------------------------
             //! get the size of the hash table
             //
             // The size is at least 1 or THashTableSize rounded up to the next power of 2
@@ -93,12 +84,10 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU threads accelerator atomic operation.
         template<typename TOp, typename T, typename THierarchy, size_t THashTableSize>
         struct AtomicOp<TOp, AtomicStdLibLock<THashTableSize>, T, THierarchy>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto atomicOp(
                 AtomicStdLibLock<THashTableSize> const& atomic,
                 T* const addr,
@@ -107,7 +96,6 @@ namespace alpaka
                 std::lock_guard<std::mutex> lock(atomic.getMutex(addr));
                 return TOp()(addr, value);
             }
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto atomicOp(
                 AtomicStdLibLock<THashTableSize> const& atomic,
                 T* const addr,

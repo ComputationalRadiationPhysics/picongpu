@@ -21,34 +21,24 @@
 
 #pragma once
 
-#include <alpaka/alpaka.hpp>
-
 #include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla_driver_types.hpp"
 
+#include <alpaka/alpaka.hpp>
+
 inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
+    cuplaError_t cuplaGetDeviceCount(int* count);
 
-cuplaError_t
-cuplaGetDeviceCount( int * count);
+    cuplaError_t cuplaSetDevice(int idx);
 
-cuplaError_t
-cuplaSetDevice( int idx);
+    cuplaError_t cuplaGetDevice(int* deviceId);
 
-cuplaError_t
-cuplaGetDevice( int * deviceId );
+    cuplaError_t cuplaDeviceReset();
 
-cuplaError_t
-cuplaDeviceReset( );
+    cuplaError_t cuplaDeviceSynchronize();
 
-cuplaError_t
-cuplaDeviceSynchronize( );
+    cuplaError_t cuplaMemGetInfo(size_t* free, size_t* total);
 
-cuplaError_t
-cuplaMemGetInfo(
-    size_t * free,
-    size_t * total
-);
-
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace CUPLA_ACCELERATOR_NAMESPACE

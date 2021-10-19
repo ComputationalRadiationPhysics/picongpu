@@ -35,10 +35,12 @@ travis_retry rm -rf ${BOOST_ROOT} && git clone -b "${ALPAKA_CI_BOOST_BRANCH}" --
 if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
     (cd "${BOOST_ROOT}"; ./bootstrap.bat)
+elif [ "${CXX}" == "icpc" ]
+then
+    (cd "${BOOST_ROOT}"; sudo ./bootstrap.sh --with-toolset="intel-linux" || cat bootstrap.log)
 else
-    (cd "${BOOST_ROOT}"; sudo ./bootstrap.sh --with-toolset="${CC}")
+    (cd "${BOOST_ROOT}"; sudo ./bootstrap.sh --with-toolset="${CC}" || cat bootstrap.log)
 fi
-(cd "${BOOST_ROOT}"; cat ./bootstrap.log)
 
 # Create file links.
 if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]

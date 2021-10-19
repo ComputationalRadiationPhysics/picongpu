@@ -19,7 +19,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The standard library cbrt.
         class CbrtStdLib : public concepts::Implements<ConceptMathCbrt, CbrtStdLib>
         {
@@ -27,12 +26,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The standard library cbrt trait specialization.
             template<typename TArg>
             struct Cbrt<CbrtStdLib, TArg, std::enable_if_t<std::is_arithmetic<TArg>::value>>
             {
-                ALPAKA_FN_HOST static auto cbrt(CbrtStdLib const& cbrt_ctx, TArg const& arg)
+                ALPAKA_FN_HOST auto operator()(CbrtStdLib const& cbrt_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(cbrt_ctx);
                     return std::cbrt(arg);

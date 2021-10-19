@@ -51,7 +51,7 @@
 #define cudaMemcpy3DParms cuplaMemcpy3DParms
 
 #ifdef cudaEventBlockingSync
-#undef cudaEventBlockingSync
+#    undef cudaEventBlockingSync
 #endif
 /* cudaEventBlockingSync is a define in CUDA, hence we must remove
  * the old definition with the cupla enum
@@ -59,7 +59,7 @@
 #define cudaEventBlockingSync cuplaEventBlockingSync
 
 #ifdef cudaEventDisableTiming
-#undef cudaEventDisableTiming
+#    undef cudaEventDisableTiming
 #endif
 /* cudaEventDisableTiming is a define in CUDA therefore we must remove
  * the old definition with the cupla enum
@@ -135,23 +135,21 @@ ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE int3 make_int3(int x, int y, int z)
 // recast functions
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-
-    template< typename A, typename B >
-    ALPAKA_FN_HOST_ACC
-    B A_as_B( A const & x )
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
     {
-        static_assert( sizeof(A) == sizeof(B), "reinterpretation assumes data types of same size!" );
-        return reinterpret_cast< B const & >( x );
-    }
+        template<typename A, typename B>
+        ALPAKA_FN_HOST_ACC B A_as_B(A const& x)
+        {
+            static_assert(sizeof(A) == sizeof(B), "reinterpretation assumes data types of same size!");
+            return reinterpret_cast<B const&>(x);
+        }
 
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla
 
 #ifndef ALPAKA_ACC_GPU_CUDA_ENABLED
-#   define __int_as_float(...) cupla::A_as_B< int, float >( __VA_ARGS__ )
-#   define __float_as_int(...) cupla::A_as_B< float, int >( __VA_ARGS__ )
-#   define __longlong_as_double(...) cupla::A_as_B< long long, double >( __VA_ARGS__ )
-#   define __double_as_longlong(...) cupla::A_as_B< double, long long >( __VA_ARGS__ )
+#    define __int_as_float(...) cupla::A_as_B<int, float>(__VA_ARGS__)
+#    define __float_as_int(...) cupla::A_as_B<float, int>(__VA_ARGS__)
+#    define __longlong_as_double(...) cupla::A_as_B<long long, double>(__VA_ARGS__)
+#    define __double_as_longlong(...) cupla::A_as_B<double, long long>(__VA_ARGS__)
 #endif

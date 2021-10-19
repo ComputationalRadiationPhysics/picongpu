@@ -14,11 +14,9 @@
 
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
     //! The test specifics.
     namespace test
     {
-        //#############################################################################
         //! A std::tuple holding idx types.
         using TestIdxs = std::tuple<
         // size_t is most probably identical to either std::uint64_t or std::uint32_t.

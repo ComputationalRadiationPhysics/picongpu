@@ -21,48 +21,26 @@
 
 #pragma once
 
-#include <alpaka/alpaka.hpp>
-
 #include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla_driver_types.hpp"
 
+#include <alpaka/alpaka.hpp>
+
 inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
+    cuplaError_t cuplaEventCreateWithFlags(cuplaEvent_t* event, unsigned int flags);
 
-cuplaError_t
-cuplaEventCreateWithFlags(
-    cuplaEvent_t * event,
-    unsigned int flags
-);
+    cuplaError_t cuplaEventCreate(cuplaEvent_t* event);
 
-cuplaError_t
-cuplaEventCreate(
-    cuplaEvent_t * event
-);
+    cuplaError_t cuplaEventDestroy(cuplaEvent_t event);
 
-cuplaError_t
-cuplaEventDestroy( cuplaEvent_t event );
+    cuplaError_t cuplaEventRecord(cuplaEvent_t event, cuplaStream_t stream = 0);
 
-cuplaError_t
-cuplaEventRecord(
-    cuplaEvent_t event,
-    cuplaStream_t stream = 0
-);
+    cuplaError_t cuplaEventElapsedTime(float* ms, cuplaEvent_t start, cuplaEvent_t end);
 
-cuplaError_t
-cuplaEventElapsedTime(
-    float * ms,
-    cuplaEvent_t start,
-    cuplaEvent_t end
-);
+    cuplaError_t cuplaEventSynchronize(cuplaEvent_t event);
 
-cuplaError_t
-cuplaEventSynchronize(
-    cuplaEvent_t event
-);
+    cuplaError_t cuplaEventQuery(cuplaEvent_t event);
 
-cuplaError_t
-cuplaEventQuery( cuplaEvent_t event );
-
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace CUPLA_ACCELERATOR_NAMESPACE

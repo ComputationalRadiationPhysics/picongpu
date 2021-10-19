@@ -22,16 +22,13 @@ namespace alpaka
     {
         namespace detail
         {
-            //#############################################################################
             //! N-dimensional loop iteration template.
             template<typename TIndexSequence>
             struct NdLoop;
-            //#############################################################################
             //! N-dimensional loop iteration template.
             template<>
             struct NdLoop<std::index_sequence<>>
             {
-                //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<typename TIndex, typename TExtentVec, typename TFnObj>
                 ALPAKA_FN_HOST_ACC static auto ndLoop(TIndex& idx, TExtentVec const& extent, TFnObj const& f) -> void
@@ -41,12 +38,10 @@ namespace alpaka
                     alpaka::ignore_unused(f);
                 }
             };
-            //#############################################################################
             //! N-dimensional loop iteration template.
             template<std::size_t Tdim>
             struct NdLoop<std::index_sequence<Tdim>>
             {
-                //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<typename TIndex, typename TExtentVec, typename TFnObj>
                 ALPAKA_FN_HOST_ACC static auto ndLoop(TIndex& idx, TExtentVec const& extent, TFnObj const& f) -> void
@@ -67,12 +62,10 @@ namespace alpaka
                     }
                 }
             };
-            //#############################################################################
             //! N-dimensional loop iteration template.
             template<std::size_t Tdim0, std::size_t Tdim1, std::size_t... Tdims>
             struct NdLoop<std::index_sequence<Tdim0, Tdim1, Tdims...>>
             {
-                //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<typename TIndex, typename TExtentVec, typename TFnObj>
                 ALPAKA_FN_HOST_ACC static auto ndLoop(TIndex& idx, TExtentVec const& extent, TFnObj const& f) -> void
@@ -94,7 +87,7 @@ namespace alpaka
                 }
             };
         } // namespace detail
-        //-----------------------------------------------------------------------------
+
         //! Loops over an n-dimensional iteration index variable calling f(idx, args...) for each iteration.
         //! The loops are nested in the order given by the index_sequence with the first element being the outermost
         //! and the last index the innermost loop.
@@ -125,11 +118,11 @@ namespace alpaka
                 meta::IntegerSequenceValuesUnique<std::index_sequence<Tdims...>>::value,
                 "The values in the index_sequence have to be unique!");
 
-            auto idx(Vec<Dim<TExtentVec>, Idx<TExtentVec>>::zeros());
+            auto idx = Vec<Dim<TExtentVec>, Idx<TExtentVec>>::zeros();
 
             detail::NdLoop<std::index_sequence<Tdims...>>::template ndLoop(idx, extent, f);
         }
-        //-----------------------------------------------------------------------------
+
         //! Loops over an n-dimensional iteration index variable calling f(idx, args...) for each iteration.
         //! The loops are nested from index zero outmost to index (dim-1) innermost.
         //!

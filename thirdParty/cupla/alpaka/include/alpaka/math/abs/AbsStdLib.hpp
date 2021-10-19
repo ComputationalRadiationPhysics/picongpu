@@ -20,7 +20,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The standard library abs.
         class AbsStdLib : public concepts::Implements<ConceptMathAbs, AbsStdLib>
         {
@@ -28,7 +27,6 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The standard library abs trait specialization.
             template<typename TArg>
             struct Abs<
@@ -36,7 +34,7 @@ namespace alpaka
                 TArg,
                 std::enable_if_t<std::is_arithmetic<TArg>::value && std::is_signed<TArg>::value>>
             {
-                ALPAKA_FN_HOST static auto abs(AbsStdLib const& abs_ctx, TArg const& arg)
+                ALPAKA_FN_HOST auto operator()(AbsStdLib const& abs_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(abs_ctx);
                     return std::abs(arg);

@@ -15,7 +15,6 @@ namespace alpaka
 {
     namespace test
     {
-        //#############################################################################
         template<typename TDevQueue>
         struct QueueTestFixture
         {
@@ -24,7 +23,6 @@ namespace alpaka
 
             using Pltf = alpaka::Pltf<Dev>;
 
-            //-----------------------------------------------------------------------------
             QueueTestFixture() : m_dev(alpaka::getDevByIdx<Pltf>(0u)), m_queue(m_dev)
             {
             }

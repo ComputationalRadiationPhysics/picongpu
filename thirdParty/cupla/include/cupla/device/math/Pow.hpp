@@ -26,17 +26,16 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-inline namespace device
-{
-inline namespace math
-{
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        inline namespace device
+        {
+            inline namespace math
+            {
+                //! Computes the value of base raised to the power exp.
+                CUPLA_BINARY_MATH_FN(pow, alpaka::math::ConceptMathPow, Pow)
 
-    //! Computes the value of base raised to the power exp.
-    CUPLA_BINARY_MATH_FN( pow, alpaka::math::ConceptMathPow, Pow )
-
-} // namespace math
-} // namespace device
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+            } // namespace math
+        } // namespace device
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

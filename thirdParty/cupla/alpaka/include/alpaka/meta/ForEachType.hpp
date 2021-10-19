@@ -20,14 +20,11 @@ namespace alpaka
     {
         namespace detail
         {
-            //#############################################################################
             template<typename TList>
             struct ForEachTypeHelper;
-            //#############################################################################
             template<template<typename...> class TList>
             struct ForEachTypeHelper<TList<>>
             {
-                //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<typename TFnObj, typename... TArgs>
                 ALPAKA_FN_HOST_ACC static auto forEachTypeHelper(TFnObj&& f, TArgs&&... args) -> void
@@ -36,11 +33,9 @@ namespace alpaka
                     alpaka::ignore_unused(args...);
                 }
             };
-            //#############################################################################
             template<template<typename...> class TList, typename T, typename... Ts>
             struct ForEachTypeHelper<TList<T, Ts...>>
             {
-                //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<typename TFnObj, typename... TArgs>
                 ALPAKA_FN_HOST_ACC static auto forEachTypeHelper(TFnObj&& f, TArgs&&... args) -> void
@@ -53,7 +48,6 @@ namespace alpaka
             };
         } // namespace detail
 
-        //-----------------------------------------------------------------------------
         //! Equivalent to boost::mpl::for_each but does not require the types of the sequence to be default
         //! constructible. This function does not create instances of the types instead it passes the types as template
         //! parameter.

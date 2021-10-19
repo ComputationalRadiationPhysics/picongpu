@@ -26,38 +26,25 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        template<typename T_Type, size_t T_size>
+        struct Array
+        {
+            T_Type m_data[T_size];
 
-    template<
-        typename T_Type,
-        size_t T_size
-    >
-    struct Array{
-        T_Type m_data[T_size];
+            template<typename T_Idx>
+            ALPAKA_FN_HOST_ACC const T_Type& operator[](const T_Idx idx) const
+            {
+                return m_data[idx];
+            }
 
-        template<
-            typename T_Idx
-        >
-        ALPAKA_FN_HOST_ACC
-        const T_Type &
-        operator[](
-            const T_Idx idx
-        ) const {
-            return m_data[idx];
-        }
+            template<typename T_Idx>
+            ALPAKA_FN_HOST_ACC T_Type& operator[](const T_Idx idx)
+            {
+                return m_data[idx];
+            }
+        };
 
-        template<
-            typename T_Idx
-        >
-        ALPAKA_FN_HOST_ACC
-        T_Type &
-        operator[](
-            const T_Idx idx
-        ){
-            return m_data[idx];
-        }
-    };
-
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
-} //namespace cupla
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace cupla

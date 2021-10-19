@@ -44,13 +44,11 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The OpenMP 5.0 accelerator execution task.
     template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     class TaskKernelOmp5 final : public WorkDivMembers<TDim, TIdx>
     {
     public:
-        //-----------------------------------------------------------------------------
         template<typename TWorkDiv>
         ALPAKA_FN_HOST TaskKernelOmp5(TWorkDiv&& workDiv, TKernelFnObj const& kernelFnObj, TArgs&&... args)
             : WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv))
@@ -61,26 +59,20 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        //-----------------------------------------------------------------------------
         TaskKernelOmp5(TaskKernelOmp5 const& other) = default;
-        //-----------------------------------------------------------------------------
         TaskKernelOmp5(TaskKernelOmp5&& other) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(TaskKernelOmp5 const&) -> TaskKernelOmp5& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(TaskKernelOmp5&&) -> TaskKernelOmp5& = default;
-        //-----------------------------------------------------------------------------
         ~TaskKernelOmp5() = default;
 
-        //-----------------------------------------------------------------------------
         //! Executes the kernel function object.
         ALPAKA_FN_HOST auto operator()(const DevOmp5& dev) const -> void
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-            auto const gridBlockExtent(getWorkDiv<Grid, Blocks>(*this));
-            auto const blockThreadExtent(getWorkDiv<Block, Threads>(*this));
-            auto const threadElemExtent(getWorkDiv<Thread, Elems>(*this));
+            auto const gridBlockExtent = getWorkDiv<Grid, Blocks>(*this);
+            auto const blockThreadExtent = getWorkDiv<Block, Threads>(*this);
+            auto const threadElemExtent = getWorkDiv<Thread, Elems>(*this);
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
             std::cout << "m_gridBlockExtent=" << this->m_gridBlockExtent << "\tgridBlockExtent=" << gridBlockExtent
@@ -92,7 +84,7 @@ namespace alpaka
 #    endif
 
             // Get the size of the block shared dynamic memory.
-            auto const blockSharedMemDynSizeBytes(meta::apply(
+            auto const blockSharedMemDynSizeBytes = meta::apply(
                 [&](ALPAKA_DECAY_T(TArgs) const&... args) {
                     return getBlockSharedMemDynSizeBytes<AccOmp5<TDim, TIdx>>(
                         m_kernelFnObj,
@@ -100,7 +92,7 @@ namespace alpaka
                         threadElemExtent,
                         args...);
                 },
-                m_args));
+                m_args);
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
             std::cout << __func__ << " blockSharedMemDynSizeBytes: " << blockSharedMemDynSizeBytes << " B"
@@ -215,7 +207,6 @@ namespace alpaka
     };
     namespace traits
     {
-        //#############################################################################
         //! The OpenMP 5.0 execution task accelerator type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct AccType<TaskKernelOmp5<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -223,7 +214,6 @@ namespace alpaka
             using type = AccOmp5<TDim, TIdx>;
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 execution task device type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct DevType<TaskKernelOmp5<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -231,7 +221,6 @@ namespace alpaka
             using type = DevOmp5;
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 execution task dimension getter trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct DimType<TaskKernelOmp5<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -239,7 +228,6 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 execution task platform type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct PltfType<TaskKernelOmp5<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -247,7 +235,6 @@ namespace alpaka
             using type = PltfOmp5;
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 execution task idx type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct IdxType<TaskKernelOmp5<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -275,7 +262,6 @@ namespace alpaka
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct Enqueue<QueueOmp5NonBlocking, TaskKernelOmp5<TDim, TIdx, TKernelFnObj, TArgs...>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(
                 QueueOmp5NonBlocking& queue,
                 TaskKernelOmp5<TDim, TIdx, TKernelFnObj, TArgs...> const& task) -> void

@@ -19,113 +19,84 @@
  */
 
 
+#include "cupla/manager/Device.hpp"
+
+#include "cupla/api/device.hpp"
+#include "cupla/manager/Event.hpp"
+#include "cupla/manager/Memory.hpp"
+#include "cupla/manager/Stream.hpp"
 #include "cupla/namespace.hpp"
 #include "cupla_runtime.hpp"
-#include "cupla/manager/Memory.hpp"
-#include "cupla/manager/Device.hpp"
-#include "cupla/manager/Stream.hpp"
-#include "cupla/manager/Event.hpp"
-#include "cupla/api/device.hpp"
+
 #include <stdexcept>
 
 inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
-
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaGetDeviceCount( int * count)
-{
-    *count = cupla::manager::Device< cupla::AccDev >::get().count();
-    return cuplaSuccess;
-}
-
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaSetDevice( int idx)
-{
-    try
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaGetDeviceCount(int* count)
     {
-      cupla::manager::Device< cupla::AccDev >::get().device( idx );
+        *count = cupla::manager::Device<cupla::AccDev>::get().count();
+        return cuplaSuccess;
     }
-    catch(const std::system_error& e)
+
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaSetDevice(int idx)
     {
-      return static_cast<cuplaError_t>( e.code().value() );
+        try
+        {
+            cupla::manager::Device<cupla::AccDev>::get().device(idx);
+        }
+        catch(const std::system_error& e)
+        {
+            return static_cast<cuplaError_t>(e.code().value());
+        }
+        return cuplaSuccess;
     }
-    return cuplaSuccess;
-}
 
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaGetDevice( int * deviceId )
-{
-    *deviceId = cupla::manager::Device< cupla::AccDev >::get().id();
-    return cuplaSuccess;
-}
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaGetDevice(int* deviceId)
+    {
+        *deviceId = cupla::manager::Device<cupla::AccDev>::get().id();
+        return cuplaSuccess;
+    }
 
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaDeviceReset( )
-{
-    // wait that all work on the device is finished
-    cuplaDeviceSynchronize( );
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaDeviceReset()
+    {
+        // wait that all work on the device is finished
+        cuplaDeviceSynchronize();
 
-    // delete all events on the current device
-    cupla::manager::Event<
-        cupla::AccDev,
-        cupla::AccStream
-    >::get().reset( );
+        // delete all events on the current device
+        cupla::manager::Event<cupla::AccDev, cupla::AccStream>::get().reset();
 
-    // delete all memory on the current device
-    cupla::manager::Memory<
-        cupla::AccDev,
-        cupla::AlpakaDim<1u>
-    >::get().reset( );
+        // delete all memory on the current device
+        cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<1u>>::get().reset();
 
-    cupla::manager::Memory<
-        cupla::AccDev,
-        cupla::AlpakaDim<2u>
-    >::get().reset( );
+        cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<2u>>::get().reset();
 
-    cupla::manager::Memory<
-        cupla::AccDev,
-        cupla::AlpakaDim<3u>
-    >::get().reset( );
+        cupla::manager::Memory<cupla::AccDev, cupla::AlpakaDim<3u>>::get().reset();
 
-    // delete all streams on the current device
-    cupla::manager::Stream<
-        cupla::AccDev,
-        cupla::AccStream
-    >::get().reset( );
+        // delete all streams on the current device
+        cupla::manager::Stream<cupla::AccDev, cupla::AccStream>::get().reset();
 
-    cupla::manager::Device< cupla::AccDev >::get( ).reset( );
-    return cuplaSuccess;
-}
+        cupla::manager::Device<cupla::AccDev>::get().reset();
+        return cuplaSuccess;
+    }
 
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaDeviceSynchronize( )
-{
-    ::alpaka::wait(
-        cupla::manager::Device< cupla::AccDev >::get( ).current( )
-    );
-    return cuplaSuccess;
-}
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaDeviceSynchronize()
+    {
+        ::alpaka::wait(cupla::manager::Device<cupla::AccDev>::get().current());
+        return cuplaSuccess;
+    }
 
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaMemGetInfo(
-    size_t * free,
-    size_t * total
-)
-{
-    auto& device(
-        cupla::manager::Device<
-            cupla::AccDev
-        >::get().current()
-    );
-    *total = ::alpaka::getMemBytes( device );
-    *free = ::alpaka::getFreeMemBytes( device );
-    return cuplaSuccess;
-}
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaMemGetInfo(size_t* free, size_t* total)
+    {
+        auto& device(cupla::manager::Device<cupla::AccDev>::get().current());
+        *total = ::alpaka::getMemBytes(device);
+        *free = ::alpaka::getFreeMemBytes(device);
+        return cuplaSuccess;
+    }
 
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace CUPLA_ACCELERATOR_NAMESPACE

@@ -26,20 +26,19 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-inline namespace device
-{
-inline namespace math
-{
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        inline namespace device
+        {
+            inline namespace math
+            {
+                //! Calculates the smaller value of two arguments.
+                CUPLA_BINARY_MATH_FN(min, alpaka::math::ConceptMathMin, Min)
 
-    //! Calculates the smaller value of two arguments.
-    CUPLA_BINARY_MATH_FN( min, alpaka::math::ConceptMathMin, Min )
+                //! Calculates the larger value of two arguments.
+                CUPLA_BINARY_MATH_FN(max, alpaka::math::ConceptMathMax, Max)
 
-    //! Calculates the larger value of two arguments.
-    CUPLA_BINARY_MATH_FN( max, alpaka::math::ConceptMathMax, Max )
-
-} // namespace math
-} // namespace device
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+            } // namespace math
+        } // namespace device
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

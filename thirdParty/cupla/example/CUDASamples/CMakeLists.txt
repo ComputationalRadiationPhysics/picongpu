@@ -1,0 +1,6 @@
+add_subdirectory(asyncAPI/)
+add_subdirectory(asyncAPI_tuned/)
+add_subdirectory(blackScholes/)
+add_subdirectory(cuplaVectorAdd/)
+add_subdirectory(matrixMul/)
+add_subdirectory(vectorAdd/)

@@ -21,11 +21,9 @@ namespace alpaka
     {
     };
 
-    //-----------------------------------------------------------------------------
     //! The idx traits.
     namespace traits
     {
-        //#############################################################################
         //! The idx type trait.
         template<typename T, typename TSfinae = void>
         struct IdxType;
@@ -36,7 +34,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The arithmetic idx type trait specialization.
         template<typename T>
         struct IdxType<T, std::enable_if_t<std::is_arithmetic<T>::value>>
@@ -44,7 +41,6 @@ namespace alpaka
             using type = std::decay_t<T>;
         };
 
-        //#############################################################################
         //! The index get trait.
         template<typename TIdx, typename TOrigin, typename TUnit, typename TSfinae = void>
         struct GetIdx;

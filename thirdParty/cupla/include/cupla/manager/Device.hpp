@@ -32,148 +32,112 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-namespace manager
-{
-
-    template<
-        typename T_DeviceType
-    >
-    struct Device
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
     {
-        using DeviceType = T_DeviceType;
-
-        using DeviceMap = std::map<
-            int,
-            std::unique_ptr<
-                DeviceType
-            >
-        >;
-
-        DeviceMap m_map;
-        int m_currentDevice;
-
-        static Device &
-        get()
+        namespace manager
         {
-            static Device device;
-            return device;
-        }
-
-        auto
-        device(
-            int idx = 0
-        )
-        -> DeviceType &
-        {
-            m_currentDevice = idx;
-            auto iter = m_map.find( idx );
-            if( iter != m_map.end() )
+            template<typename T_DeviceType>
+            struct Device
             {
-                return *iter->second;
-            }
-            else
-            {
-                using Pltf = ::alpaka::Pltf< DeviceType >;
+                using DeviceType = T_DeviceType;
 
-                const int numDevices = count();
-                if( idx >= numDevices )
+                using DeviceMap = std::map<int, std::unique_ptr<DeviceType>>;
+
+                DeviceMap m_map;
+                int m_currentDevice;
+
+                static Device& get()
                 {
-                    std::stringstream err;
-                    err << "Unable to return device " << idx << ". There are only " << numDevices << " devices!";
-                    throw std::system_error(
-                        cuplaErrorInvalidDevice,
-                        err.str()
-                    );
+                    static Device device;
+                    return device;
                 }
 
-                std::unique_ptr< DeviceType > dev;
-
-                try
+                auto device(int idx = 0) -> DeviceType&
                 {
-                    /* device id is not in the list
-                     *
-                     * select device with idx
-                     */
-                    dev.reset(
-                        new DeviceType(
-                            alpaka::getDevByIdx<
-                                Pltf
-                            >( idx )
-                        )
-                    );
+                    m_currentDevice = idx;
+                    auto iter = m_map.find(idx);
+                    if(iter != m_map.end())
+                    {
+                        return *iter->second;
+                    }
+                    else
+                    {
+                        using Pltf = ::alpaka::Pltf<DeviceType>;
+
+                        const int numDevices = count();
+                        if(idx >= numDevices)
+                        {
+                            std::stringstream err;
+                            err << "Unable to return device " << idx << ". There are only " << numDevices
+                                << " devices!";
+                            throw std::system_error(cuplaErrorInvalidDevice, err.str());
+                        }
+
+                        std::unique_ptr<DeviceType> dev;
+
+                        try
+                        {
+                            /* device id is not in the list
+                             *
+                             * select device with idx
+                             */
+                            dev.reset(new DeviceType(alpaka::getDevByIdx<Pltf>(idx)));
+                        }
+                        catch(const std::runtime_error& e)
+                        {
+                            throw std::system_error(cuplaErrorDeviceAlreadyInUse, e.what());
+                        }
+                        m_map.insert(std::make_pair(idx, std::move(dev)));
+                        return *m_map[idx];
+                    }
                 }
-                catch( const std::runtime_error& e )
+
+                /**! reset the current device
+                 *
+                 * streams, memory and events on the current device must be
+                 * deleted at first by the user
+                 *
+                 * @return true in success case else false
+                 */
+                bool reset()
                 {
-                    throw std::system_error(
-                        cuplaErrorDeviceAlreadyInUse,
-                        e.what()
-                    );
+                    ::alpaka::reset(this->current());
+                    auto iter = m_map.find(this->id());
+
+                    if(iter == m_map.end())
+                    {
+                        std::cerr << "device " << this->id() << " can not destroyed (was never created) " << std::endl;
+                        return false;
+                    }
+                    else
+                    {
+                        m_map.erase(iter);
+                        return true;
+                    }
                 }
-                m_map.insert(
-                    std::make_pair( idx, std::move( dev ) )
-                );
-                return *m_map[ idx ];
-            }
-        }
 
-        /**! reset the current device
-         *
-         * streams, memory and events on the current device must be
-         * deleted at first by the user
-         *
-         * @return true in success case else false
-         */
-        bool reset()
-        {
-            ::alpaka::reset( this->current( ) );
-            auto iter = m_map.find( this->id( ) );
+                auto id() -> int
+                {
+                    return m_currentDevice;
+                }
 
-            if( iter == m_map.end() )
-            {
-                std::cerr << "device " << this->id( ) <<
-                    " can not destroyed (was never created) " <<
-                    std::endl;
-                return false;
-            }
-            else
-            {
-                m_map.erase( iter );
-                return true;
-            }
-        }
+                auto current() -> DeviceType&
+                {
+                    return this->device(this->id());
+                }
 
-        auto
-        id()
-        -> int
-        {
-            return m_currentDevice;
-        }
+                auto count() -> int
+                {
+                    using Pltf = ::alpaka::Pltf<DeviceType>;
+                    return static_cast<int>(::alpaka::getDevCount<Pltf>());
+                }
 
-        auto
-        current()
-        -> DeviceType &
-        {
-            return this->device( this->id( ) );
-        }
+            protected:
+                Device() : m_currentDevice(0)
+                {
+                }
+            };
 
-        auto
-        count()
-        -> int
-        {
-            using Pltf = ::alpaka::Pltf< DeviceType >;
-            return static_cast< int >( ::alpaka::getDevCount< Pltf >( ) );
-        }
-
-    protected:
-        Device() : m_currentDevice( 0 )
-        {
-
-        }
-
-    };
-
-} //namespace manager
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
-} //namespace cupla
+        } // namespace manager
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace cupla

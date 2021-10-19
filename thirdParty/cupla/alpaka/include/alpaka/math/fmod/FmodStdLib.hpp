@@ -19,7 +19,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The standard library fmod.
         class FmodStdLib : public concepts::Implements<ConceptMathFmod, FmodStdLib>
         {
@@ -27,7 +26,6 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The standard library fmod trait specialization.
             template<typename Tx, typename Ty>
             struct Fmod<
@@ -36,7 +34,7 @@ namespace alpaka
                 Ty,
                 std::enable_if_t<std::is_arithmetic<Tx>::value && std::is_arithmetic<Ty>::value>>
             {
-                ALPAKA_FN_HOST static auto fmod(FmodStdLib const& fmod_ctx, Tx const& x, Ty const& y)
+                ALPAKA_FN_HOST auto operator()(FmodStdLib const& fmod_ctx, Tx const& x, Ty const& y)
                 {
                     alpaka::ignore_unused(fmod_ctx);
                     return std::fmod(x, y);

@@ -20,7 +20,6 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! Static block shared memory provider using a pointer to
     //! externally allocated fixed-size memory, likely provided by
     //! BlockSharedMemDynMember.
@@ -36,11 +35,9 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         template<typename T, std::size_t TDataAlignBytes, std::size_t TuniqueId>
         struct DeclareSharedVar<T, TuniqueId, BlockSharedMemStMember<TDataAlignBytes>>
         {
-            //-----------------------------------------------------------------------------
             static auto declareVar(BlockSharedMemStMember<TDataAlignBytes> const& smem) -> T&
             {
                 auto* data = smem.template getVarPtr<T>(TuniqueId);
@@ -54,11 +51,9 @@ namespace alpaka
                 return *data;
             }
         };
-        //#############################################################################
         template<std::size_t TDataAlignBytes>
         struct FreeSharedVars<BlockSharedMemStMember<TDataAlignBytes>>
         {
-            //-----------------------------------------------------------------------------
             static auto freeVars(BlockSharedMemStMember<TDataAlignBytes> const&) -> void
             {
                 // shared memory block data will be reused

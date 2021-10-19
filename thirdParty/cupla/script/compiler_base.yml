@@ -1,5 +1,5 @@
 .base_gcc:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-gcc:1.1
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-gcc:1.4
   variables:
     GIT_SUBMODULE_STRATEGY: normal
     ALPAKA_ACCS: "ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE
@@ -13,7 +13,7 @@
     - x86_64
 
 .base_clang:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-clang:1.1
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-clang:1.4
   variables:
     GIT_SUBMODULE_STRATEGY: normal
     ALPAKA_ACCS: "ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE

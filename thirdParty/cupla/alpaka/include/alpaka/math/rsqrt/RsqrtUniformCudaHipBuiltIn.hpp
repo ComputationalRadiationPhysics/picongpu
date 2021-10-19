@@ -46,7 +46,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The CUDA rsqrt.
         class RsqrtUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathRsqrt, RsqrtUniformCudaHipBuiltIn>
         {
@@ -54,12 +53,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The CUDA rsqrt trait specialization.
             template<typename TArg>
             struct Rsqrt<RsqrtUniformCudaHipBuiltIn, TArg, std::enable_if_t<std::is_arithmetic<TArg>::value>>
             {
-                __device__ static auto rsqrt(RsqrtUniformCudaHipBuiltIn const& rsqrt_ctx, TArg const& arg)
+                __device__ auto operator()(RsqrtUniformCudaHipBuiltIn const& rsqrt_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(rsqrt_ctx);
                     return ::rsqrt(arg);
@@ -69,7 +67,7 @@ namespace alpaka
             template<>
             struct Rsqrt<RsqrtUniformCudaHipBuiltIn, float>
             {
-                __device__ static auto rsqrt(RsqrtUniformCudaHipBuiltIn const& rsqrt_ctx, float const& arg) -> float
+                __device__ auto operator()(RsqrtUniformCudaHipBuiltIn const& rsqrt_ctx, float const& arg) -> float
                 {
                     alpaka::ignore_unused(rsqrt_ctx);
                     return ::rsqrtf(arg);

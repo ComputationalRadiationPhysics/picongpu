@@ -18,7 +18,6 @@ namespace alpaka
 {
     namespace core
     {
-        //-----------------------------------------------------------------------------
         //! \return The input casted and clipped to T.
         template<typename T, typename V>
         auto clipCast(V const& val) -> T

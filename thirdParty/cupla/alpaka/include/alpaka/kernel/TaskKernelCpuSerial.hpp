@@ -37,13 +37,11 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The CPU serial execution task implementation.
     template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     class TaskKernelCpuSerial final : public WorkDivMembers<TDim, TIdx>
     {
     public:
-        //-----------------------------------------------------------------------------
         template<typename TWorkDiv>
         ALPAKA_FN_HOST TaskKernelCpuSerial(TWorkDiv&& workDiv, TKernelFnObj const& kernelFnObj, TArgs&&... args)
             : WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv))
@@ -54,29 +52,23 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        //-----------------------------------------------------------------------------
         TaskKernelCpuSerial(TaskKernelCpuSerial const&) = default;
-        //-----------------------------------------------------------------------------
         TaskKernelCpuSerial(TaskKernelCpuSerial&&) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(TaskKernelCpuSerial const&) -> TaskKernelCpuSerial& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(TaskKernelCpuSerial&&) -> TaskKernelCpuSerial& = default;
-        //-----------------------------------------------------------------------------
         ~TaskKernelCpuSerial() = default;
 
-        //-----------------------------------------------------------------------------
         //! Executes the kernel function object.
         ALPAKA_FN_HOST auto operator()() const -> void
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-            auto const gridBlockExtent(getWorkDiv<Grid, Blocks>(*this));
-            auto const blockThreadExtent(getWorkDiv<Block, Threads>(*this));
-            auto const threadElemExtent(getWorkDiv<Thread, Elems>(*this));
+            auto const gridBlockExtent = getWorkDiv<Grid, Blocks>(*this);
+            auto const blockThreadExtent = getWorkDiv<Block, Threads>(*this);
+            auto const threadElemExtent = getWorkDiv<Thread, Elems>(*this);
 
             // Get the size of the block shared dynamic memory.
-            auto const blockSharedMemDynSizeBytes(meta::apply(
+            auto const blockSharedMemDynSizeBytes = meta::apply(
                 [&](ALPAKA_DECAY_T(TArgs) const&... args) {
                     return getBlockSharedMemDynSizeBytes<AccCpuSerial<TDim, TIdx>>(
                         m_kernelFnObj,
@@ -84,7 +76,7 @@ namespace alpaka
                         threadElemExtent,
                         args...);
                 },
-                m_args));
+                m_args);
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
             std::cout << __func__ << " blockSharedMemDynSizeBytes: " << blockSharedMemDynSizeBytes << " B"
@@ -92,11 +84,11 @@ namespace alpaka
 #    endif
             // Bind all arguments except the accelerator.
             // TODO: With C++14 we could create a perfectly argument forwarding function object within the constructor.
-            auto const boundKernelFnObj(meta::apply(
+            auto const boundKernelFnObj = meta::apply(
                 [this](ALPAKA_DECAY_T(TArgs) const&... args) {
                     return std::bind(std::ref(m_kernelFnObj), std::placeholders::_1, std::ref(args)...);
                 },
-                m_args));
+                m_args);
 
             AccCpuSerial<TDim, TIdx> acc(
                 *static_cast<WorkDivMembers<TDim, TIdx> const*>(this),
@@ -125,7 +117,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU serial execution task accelerator type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct AccType<TaskKernelCpuSerial<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -133,7 +124,6 @@ namespace alpaka
             using type = AccCpuSerial<TDim, TIdx>;
         };
 
-        //#############################################################################
         //! The CPU serial execution task device type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct DevType<TaskKernelCpuSerial<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -141,7 +131,6 @@ namespace alpaka
             using type = DevCpu;
         };
 
-        //#############################################################################
         //! The CPU serial execution task dimension getter trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct DimType<TaskKernelCpuSerial<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -149,7 +138,6 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The CPU serial execution task platform type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct PltfType<TaskKernelCpuSerial<TDim, TIdx, TKernelFnObj, TArgs...>>
@@ -157,7 +145,6 @@ namespace alpaka
             using type = PltfCpu;
         };
 
-        //#############################################################################
         //! The CPU serial execution task idx type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct IdxType<TaskKernelCpuSerial<TDim, TIdx, TKernelFnObj, TArgs...>>

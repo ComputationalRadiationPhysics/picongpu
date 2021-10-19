@@ -26,76 +26,76 @@
 #if CUPLA_STREAM_ASYNC_ENABLED
 
 // thread parallel and thread sequential accelerator is used together
-#   if(CUPLA_NUM_SELECTED_THREAD_SEQ_DEVICES == 1 && CUPLA_NUM_SELECTED_THREAD_PARALLEL_DEVICES == 1)
-#       define CUPLA_ACCELERATOR_NAMESPACE cupla_mixed_async
-#   else
+#    if(CUPLA_NUM_SELECTED_THREAD_SEQ_DEVICES == 1 && CUPLA_NUM_SELECTED_THREAD_PARALLEL_DEVICES == 1)
+#        define CUPLA_ACCELERATOR_NAMESPACE cupla_mixed_async
+#    else
 
-#       ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_seq_omp2_async
-#       endif
+#        ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_seq_omp2_async
+#        endif
 
-#       ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_seq_threads_async
-#       endif
+#        ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_seq_threads_async
+#        endif
 
-#       ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_omp2_seq_async
-#       endif
+#        ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_omp2_seq_async
+#        endif
 
-#       ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_cuda_async
-#       endif
+#        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_cuda_async
+#        endif
 
-#       ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_seq_seq_async
-#       endif
+#        ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_seq_seq_async
+#        endif
 
-#       ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_tbb_seq_async
-#       endif
+#        ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_tbb_seq_async
+#        endif
 
-#       ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_omp5_omp5_async
-#       endif
+#        ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_omp5_omp5_async
+#        endif
 
-#   endif // mixed accelerator usage
+#    endif // mixed accelerator usage
 
 #else // CUPLA_STREAM_ASYNC_ENABLED
 
 // thread parallel and thread sequential accelerator is used together
-#   if(CUPLA_NUM_SELECTED_THREAD_SEQ_DEVICES == 1 && CUPLA_NUM_SELECTED_THREAD_PARALLEL_DEVICES == 1)
-#       define CUPLA_ACCELERATOR_NAMESPACE cupla_mixed_sync
-#   else
+#    if(CUPLA_NUM_SELECTED_THREAD_SEQ_DEVICES == 1 && CUPLA_NUM_SELECTED_THREAD_PARALLEL_DEVICES == 1)
+#        define CUPLA_ACCELERATOR_NAMESPACE cupla_mixed_sync
+#    else
 
-#       ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_seq_omp2_sync
-#       endif
+#        ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_seq_omp2_sync
+#        endif
 
-#       ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_seq_threads_sync
-#       endif
+#        ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_seq_threads_sync
+#        endif
 
-#       ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_omp2_seq_sync
-#       endif
+#        ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_omp2_seq_sync
+#        endif
 
-#       ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_cuda_sync
-#       endif
+#        ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_cuda_sync
+#        endif
 
-#       ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_seq_seq_sync
-#       endif
+#        ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_seq_seq_sync
+#        endif
 
-#       ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_tbb_seq_sync
-#       endif
+#        ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_tbb_seq_sync
+#        endif
 
-#       ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-#           define CUPLA_ACCELERATOR_NAMESPACE cupla_omp5_omp5_sync
-#       endif
+#        ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
+#            define CUPLA_ACCELERATOR_NAMESPACE cupla_omp5_omp5_sync
+#        endif
 
-#   endif // mixed accelerator usage
+#    endif // mixed accelerator usage
 
 #endif // CUPLA_STREAM_ASYNC_ENABLED
 

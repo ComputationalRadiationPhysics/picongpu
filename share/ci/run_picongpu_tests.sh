@@ -19,12 +19,19 @@ PIC_CONST_ARGS=""
 PIC_CONST_ARGS="${PIC_CONST_ARGS} -DISAAC_MAX_FUNCTORS=1 -DCMAKE_BUILD_TYPE=${PIC_BUILD_TYPE}"
 CMAKE_ARGS="${PIC_CONST_ARGS} ${PIC_CMAKE_ARGS} -DCMAKE_CXX_COMPILER=${CXX_VERSION} -DBOOST_ROOT=/opt/boost/${BOOST_VERSION}"
 
+# check and activate if clang should be used as CUDA device compiler
+if [ -n "$CI_CLANG_AS_CUDA_COMPILER" ] ; then
+  CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CUDA_COMPILER=${CXX_VERSION}"
+fi
+
 # enforce optional dependencies
 CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_openPMD=ON -DPIC_USE_PNGwriter=ON"
 
-if [ -z "$DISABLE_ISAAC" ] ; then
-  CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=ON"
-fi
+# disable ISSAC until we could reproduce the CI compile issue
+CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=OFF"
+#if [ -z "$DISABLE_ISAAC" ] ; then
+#  CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=ON"
+#fi
 
 # workaround for clang cuda
 # HDF5 from the apt sources is pulling -D_FORTIFY_SOURCE=2 into the compile flags

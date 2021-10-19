@@ -21,33 +21,31 @@
 
 #pragma once
 
+#include "cupla/datatypes/uint.hpp"
 #include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
-#include "cupla/datatypes/uint.hpp"
 
 inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
+    struct cuplaPitchedPtr
+    {
+        void* ptr;
+        cupla::MemSizeType pitch, xsize, ysize;
 
-struct cuplaPitchedPtr
-{
-    void * ptr;
-    cupla::MemSizeType pitch, xsize, ysize;
+        cuplaPitchedPtr() = default;
 
-    cuplaPitchedPtr() = default;
+        ALPAKA_FN_HOST_ACC
+        cuplaPitchedPtr(
+            void* const d,
+            cupla::MemSizeType const p,
+            cupla::MemSizeType const xsz,
+            cupla::MemSizeType const ysz)
+            : ptr(d)
+            , pitch(p)
+            , xsize(xsz)
+            , ysize(ysz)
+        {
+        }
+    };
 
-    ALPAKA_FN_HOST_ACC
-    cuplaPitchedPtr(
-        void * const d,
-        cupla::MemSizeType const p,
-        cupla::MemSizeType const xsz,
-        cupla::MemSizeType const ysz
-    ) :
-        ptr( d ),
-        pitch( p ),
-        xsize( xsz ),
-        ysize( ysz )
-    {}
-
-};
-
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace CUPLA_ACCELERATOR_NAMESPACE

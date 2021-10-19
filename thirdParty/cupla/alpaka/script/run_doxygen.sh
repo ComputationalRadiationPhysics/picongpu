@@ -10,8 +10,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-source ./script/travis_retry.sh
-
 source ./script/set.sh
 
 #To deploy the doxygen documentation a copy of the repository is created inside the deployed folder.
@@ -25,7 +23,7 @@ source ./script/set.sh
 #- Commit and push the branch: `git add --all`, `git commit -m"add gh-pages branch"`, `git push`
 
 # Clone the gh-pages branch into the docs/doxygen/html folder.
-travis_retry rm -rf docs/doxygen/html || git clone -b gh-pages https://x-access-token:${2}@github.com/${1}.git docs/doxygen/html
+git clone -b gh-pages https://x-access-token:${2}@github.com/${1}.git docs/doxygen/html
 
 cd docs/
 

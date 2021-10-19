@@ -37,18 +37,15 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The CUDA/HIP RT platform.
     class PltfUniformCudaHipRt : public concepts::Implements<ConceptPltf, PltfUniformCudaHipRt>
     {
     public:
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST PltfUniformCudaHipRt() = delete;
     };
 
     namespace traits
     {
-        //#############################################################################
         //! The CUDA/HIP RT platform device type trait specialization.
         template<>
         struct DevType<PltfUniformCudaHipRt>
@@ -56,12 +53,10 @@ namespace alpaka
             using type = DevUniformCudaHipRt;
         };
 
-        //#############################################################################
         //! The CUDA/HIP RT platform device count get trait specialization.
         template<>
         struct GetDevCount<PltfUniformCudaHipRt>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDevCount() -> std::size_t
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
@@ -75,12 +70,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CUDA/HIP RT platform device get trait specialization.
         template<>
         struct GetDevByIdx<PltfUniformCudaHipRt>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDevByIdx(std::size_t const& devIdx) -> DevUniformCudaHipRt
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
@@ -126,7 +119,6 @@ namespace alpaka
             }
 
         private:
-            //-----------------------------------------------------------------------------
             //! \return If the device is usable.
             ALPAKA_FN_HOST static auto isDevUsable(std::size_t iDevice) -> bool
             {
@@ -162,7 +154,6 @@ namespace alpaka
             }
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-            //-----------------------------------------------------------------------------
             //! Prints all the device properties to std::cout.
             ALPAKA_FN_HOST static auto printDeviceProperties(
 #        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)

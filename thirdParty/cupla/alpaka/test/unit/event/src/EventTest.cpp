@@ -23,7 +23,6 @@ using TestQueues = alpaka::meta::Concatenate<
 #endif
     >;
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("eventTestShouldInitiallyBeTrue", "[event]", TestQueues)
 {
     using DevQueue = TestType;
@@ -36,7 +35,6 @@ TEMPLATE_LIST_TEST_CASE("eventTestShouldInitiallyBeTrue", "[event]", TestQueues)
     REQUIRE(alpaka::isComplete(event));
 }
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("eventTestShouldBeFalseWhileInQueueAndTrueAfterBeingProcessed", "[event]", TestQueues)
 {
     using DevQueue = TestType;
@@ -76,7 +74,6 @@ TEMPLATE_LIST_TEST_CASE("eventTestShouldBeFalseWhileInQueueAndTrueAfterBeingProc
     }
 }
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("eventReEnqueueShouldBePossibleIfNobodyWaitsFor", "[event]", TestQueues)
 {
     using DevQueue = TestType;
@@ -136,7 +133,6 @@ TEMPLATE_LIST_TEST_CASE("eventReEnqueueShouldBePossibleIfNobodyWaitsFor", "[even
     }
 }
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("eventReEnqueueShouldBePossibleIfSomeoneWaitsFor", "[event]", TestQueues)
 {
     using DevQueue = TestType;
@@ -213,7 +209,6 @@ TEMPLATE_LIST_TEST_CASE("eventReEnqueueShouldBePossibleIfSomeoneWaitsFor", "[eve
 }
 
 
-//-----------------------------------------------------------------------------
 // github issue #388
 TEMPLATE_LIST_TEST_CASE("waitForEventThatAlreadyFinishedShouldBeSkipped", "[event]", TestQueues)
 {

@@ -35,7 +35,6 @@ ALPAKA_FN_ACC std::enable_if_t<!std::numeric_limits<FP>::is_integer, bool> almos
 class SinCosTestKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc, typename FP>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, FP const arg) const -> void
@@ -55,7 +54,6 @@ public:
 
 using TestAccs = alpaka::test::EnabledAccs<alpaka::DimInt<1u>, std::size_t>;
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("sincos", "[sincos]", TestAccs)
 {
     using Acc = TestType;

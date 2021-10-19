@@ -22,20 +22,17 @@ namespace alpaka
 {
     namespace rand
     {
-        //#############################################################################
         //! "Tiny" state mersenne twister implementation
         class TinyMersenneTwister : public concepts::Implements<ConceptRand, TinyMersenneTwister>
         {
         };
         using RandStdLib = TinyMersenneTwister;
 
-        //#############################################################################
         //! The standard library mersenne twister implementation.
         class MersenneTwister : public concepts::Implements<ConceptRand, MersenneTwister>
         {
         };
 
-        //#############################################################################
         //! The standard library rand device implementation.
         class RandomDevice : public concepts::Implements<ConceptRand, RandomDevice>
         {
@@ -45,17 +42,14 @@ namespace alpaka
         {
             namespace cpu
             {
-                //#############################################################################
                 //! The standard library mersenne twister random number generator.
                 //!
                 //! size of state: 19937 bytes
                 class MersenneTwister
                 {
                 public:
-                    //-----------------------------------------------------------------------------
                     MersenneTwister() = default;
 
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST MersenneTwister(
                         std::uint32_t const& seed,
                         std::uint32_t const& subsequence = 0,
@@ -69,7 +63,6 @@ namespace alpaka
                     std::mt19937 m_State;
                 };
 
-                //#############################################################################
                 //! "Tiny" state mersenne twister implementation
                 //!
                 //! repository: github.com/MersenneTwister-Lab/TinyMT
@@ -83,10 +76,8 @@ namespace alpaka
                 class TinyMersenneTwister
                 {
                 public:
-                    //-----------------------------------------------------------------------------
                     TinyMersenneTwister() = default;
 
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST TinyMersenneTwister(
                         std::uint32_t const& seed,
                         std::uint32_t const& subsequence = 0,
@@ -100,7 +91,6 @@ namespace alpaka
                     TinyMTengine m_State;
                 };
 
-                //#############################################################################
                 //! The standard library's random device based on the local entropy pool.
                 //!
                 //! Warning: the entropy pool on many devices degrates quickly and performance
@@ -110,13 +100,11 @@ namespace alpaka
                 class RandomDevice
                 {
                 public:
-                    //-----------------------------------------------------------------------------
                     RandomDevice() = default;
                     RandomDevice(RandomDevice&&) : m_State{}
                     {
                     }
 
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST RandomDevice(
                         std::uint32_t const&,
                         std::uint32_t const& = 0,
@@ -135,16 +123,13 @@ namespace alpaka
         {
             namespace cpu
             {
-                //#############################################################################
                 //! The CPU random number normal distribution.
                 template<typename T>
                 class NormalReal
                 {
                 public:
-                    //-----------------------------------------------------------------------------
                     NormalReal() = default;
 
-                    //-----------------------------------------------------------------------------
                     template<typename TGenerator>
                     ALPAKA_FN_HOST auto operator()(TGenerator& generator) -> T
                     {
@@ -153,16 +138,13 @@ namespace alpaka
                     std::normal_distribution<T> m_dist;
                 };
 
-                //#############################################################################
                 //! The CPU random number uniform distribution.
                 template<typename T>
                 class UniformReal
                 {
                 public:
-                    //-----------------------------------------------------------------------------
                     UniformReal() = default;
 
-                    //-----------------------------------------------------------------------------
                     template<typename TGenerator>
                     ALPAKA_FN_HOST auto operator()(TGenerator& generator) -> T
                     {
@@ -171,13 +153,11 @@ namespace alpaka
                     std::uniform_real_distribution<T> m_dist;
                 };
 
-                //#############################################################################
                 //! The CPU random number normal distribution.
                 template<typename T>
                 class UniformUint
                 {
                 public:
-                    //-----------------------------------------------------------------------------
                     UniformUint()
                         : m_dist(
                             0, // For signed integer: std::numeric_limits<T>::lowest()
@@ -185,7 +165,6 @@ namespace alpaka
                     {
                     }
 
-                    //-----------------------------------------------------------------------------
                     template<typename TGenerator>
                     ALPAKA_FN_HOST auto operator()(TGenerator& generator) -> T
                     {
@@ -200,12 +179,10 @@ namespace alpaka
         {
             namespace traits
             {
-                //#############################################################################
                 //! The CPU device random number float normal distribution get trait specialization.
                 template<typename T>
                 struct CreateNormalReal<RandStdLib, T, std::enable_if_t<std::is_floating_point<T>::value>>
                 {
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto createNormalReal(RandStdLib const& rand)
                         -> rand::distribution::cpu::NormalReal<T>
                     {
@@ -213,12 +190,10 @@ namespace alpaka
                         return rand::distribution::cpu::NormalReal<T>();
                     }
                 };
-                //#############################################################################
                 //! The CPU device random number float uniform distribution get trait specialization.
                 template<typename T>
                 struct CreateUniformReal<RandStdLib, T, std::enable_if_t<std::is_floating_point<T>::value>>
                 {
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto createUniformReal(RandStdLib const& rand)
                         -> rand::distribution::cpu::UniformReal<T>
                     {
@@ -226,12 +201,10 @@ namespace alpaka
                         return rand::distribution::cpu::UniformReal<T>();
                     }
                 };
-                //#############################################################################
                 //! The CPU device random number integer uniform distribution get trait specialization.
                 template<typename T>
                 struct CreateUniformUint<RandStdLib, T, std::enable_if_t<std::is_integral<T>::value>>
                 {
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto createUniformUint(RandStdLib const& rand)
                         -> rand::distribution::cpu::UniformUint<T>
                     {
@@ -245,12 +218,10 @@ namespace alpaka
         {
             namespace traits
             {
-                //#############################################################################
                 //! The CPU device random number default generator get trait specialization.
                 template<>
                 struct CreateDefault<TinyMersenneTwister>
                 {
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto createDefault(
                         TinyMersenneTwister const& rand,
                         std::uint32_t const& seed,
@@ -264,7 +235,6 @@ namespace alpaka
                 template<>
                 struct CreateDefault<MersenneTwister>
                 {
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto createDefault(
                         MersenneTwister const& rand,
                         std::uint32_t const& seed,
@@ -278,7 +248,6 @@ namespace alpaka
                 template<>
                 struct CreateDefault<RandomDevice>
                 {
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto createDefault(
                         RandomDevice const& rand,
                         std::uint32_t const& seed,

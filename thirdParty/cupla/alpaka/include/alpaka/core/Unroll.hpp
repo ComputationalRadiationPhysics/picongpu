@@ -11,7 +11,6 @@
 
 #include <alpaka/core/BoostPredef.hpp>
 
-//-----------------------------------------------------------------------------
 //! Suggests unrolling of the directly following loop to the compiler.
 //!
 //! Usage:

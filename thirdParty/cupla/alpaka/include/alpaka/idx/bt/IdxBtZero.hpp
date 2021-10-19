@@ -19,30 +19,22 @@ namespace alpaka
 {
     namespace bt
     {
-        //#############################################################################
         //! A zero block thread index provider.
         template<typename TDim, typename TIdx>
         class IdxBtZero : public concepts::Implements<ConceptIdxBt, IdxBtZero<TDim, TIdx>>
         {
         public:
-            //-----------------------------------------------------------------------------
             IdxBtZero() = default;
-            //-----------------------------------------------------------------------------
             IdxBtZero(IdxBtZero const&) = delete;
-            //-----------------------------------------------------------------------------
             IdxBtZero(IdxBtZero&&) = delete;
-            //-----------------------------------------------------------------------------
             auto operator=(IdxBtZero const&) -> IdxBtZero& = delete;
-            //-----------------------------------------------------------------------------
             auto operator=(IdxBtZero&&) -> IdxBtZero& = delete;
-            //-----------------------------------------------------------------------------
             /*virtual*/ ~IdxBtZero() = default;
         };
     } // namespace bt
 
     namespace traits
     {
-        //#############################################################################
         //! The zero block thread index provider dimension get trait specialization.
         template<typename TDim, typename TIdx>
         struct DimType<bt::IdxBtZero<TDim, TIdx>>
@@ -50,12 +42,10 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The zero block thread index provider block thread index get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetIdx<bt::IdxBtZero<TDim, TIdx>, origin::Block, unit::Threads>
         {
-            //-----------------------------------------------------------------------------
             //! \return The index of the current thread in the block.
             template<typename TWorkDiv>
             ALPAKA_FN_HOST static auto getIdx(bt::IdxBtZero<TDim, TIdx> const& idx, TWorkDiv const& workDiv)
@@ -67,7 +57,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The zero block thread index idx type trait specialization.
         template<typename TDim, typename TIdx>
         struct IdxType<bt::IdxBtZero<TDim, TIdx>>

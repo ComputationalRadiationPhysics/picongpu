@@ -19,133 +19,83 @@
  */
 
 
+#include "cupla/manager/Event.hpp"
+
+#include "cupla/api/event.hpp"
+#include "cupla/manager/Device.hpp"
+#include "cupla/manager/Memory.hpp"
+#include "cupla/manager/Stream.hpp"
 #include "cupla/namespace.hpp"
 #include "cupla_runtime.hpp"
-#include "cupla/manager/Memory.hpp"
-#include "cupla/manager/Device.hpp"
-#include "cupla/manager/Stream.hpp"
-#include "cupla/manager/Event.hpp"
-#include "cupla/api/event.hpp"
 
 inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
-
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaEventCreateWithFlags(
-    cuplaEvent_t * event,
-    unsigned int flags
-)
-{
-    *event = cupla::manager::Event<
-        cupla::AccDev,
-        cupla::AccStream
-    >::get().create( flags );
-
-    return cuplaSuccess;
-}
-
-
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaEventCreate(
-    cuplaEvent_t * event
-)
-{
-    *event = cupla::manager::Event<
-        cupla::AccDev,
-        cupla::AccStream
-    >::get().create( 0 );
-
-    return cuplaSuccess;
-}
-
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaEventDestroy( cuplaEvent_t event )
-{
-    if(
-        cupla::manager::Event<
-            cupla::AccDev,
-            cupla::AccStream
-        >::get().destroy( event )
-    )
-        return cuplaSuccess;
-    else
-        return cuplaErrorInitializationError;
-}
-
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaEventRecord(
-    cuplaEvent_t event,
-    cuplaStream_t stream
-)
-{
-    auto& streamObject = cupla::manager::Stream<
-        cupla::AccDev,
-        cupla::AccStream
-    >::get().stream( stream );
-    auto& eventObject = cupla::manager::Event<
-        cupla::AccDev,
-        cupla::AccStream
-    >::get().event( event );
-
-    eventObject.record( streamObject );
-    return cuplaSuccess;
-}
-
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaEventElapsedTime(
-    float * ms,
-    cuplaEvent_t start,
-    cuplaEvent_t end
-)
-{
-    auto& eventStart = cupla::manager::Event<
-        cupla::AccDev,
-        cupla::AccStream
-    >::get().event( start );
-    auto& eventEnd = cupla::manager::Event<
-        cupla::AccDev,
-        cupla::AccStream
-    >::get().event( end );
-    *ms = static_cast< float >( eventEnd.elapsedSince( eventStart ) );
-    return cuplaSuccess;
-}
-
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaEventSynchronize(
-    cuplaEvent_t event
-)
-{
-    auto& eventObject = cupla::manager::Event<
-        cupla::AccDev,
-        cupla::AccStream
-    >::get().event( event );
-    ::alpaka::wait( *eventObject );
-    return cuplaSuccess;
-}
-
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaEventQuery( cuplaEvent_t event )
-{
-    auto& eventObject = cupla::manager::Event<
-        cupla::AccDev,
-        cupla::AccStream
-    >::get().event( event );
-
-    if( ::alpaka::isComplete( *eventObject ) )
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaEventCreateWithFlags(cuplaEvent_t* event, unsigned int flags)
     {
+        *event = cupla::manager::Event<cupla::AccDev, cupla::AccStream>::get().create(flags);
+
         return cuplaSuccess;
     }
-    else
-    {
-        return cuplaErrorNotReady;
-    }
-}
 
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
+
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaEventCreate(cuplaEvent_t* event)
+    {
+        *event = cupla::manager::Event<cupla::AccDev, cupla::AccStream>::get().create(0);
+
+        return cuplaSuccess;
+    }
+
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaEventDestroy(cuplaEvent_t event)
+    {
+        if(cupla::manager::Event<cupla::AccDev, cupla::AccStream>::get().destroy(event))
+            return cuplaSuccess;
+        else
+            return cuplaErrorInitializationError;
+    }
+
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaEventRecord(cuplaEvent_t event, cuplaStream_t stream)
+    {
+        auto& streamObject = cupla::manager::Stream<cupla::AccDev, cupla::AccStream>::get().stream(stream);
+        auto& eventObject = cupla::manager::Event<cupla::AccDev, cupla::AccStream>::get().event(event);
+
+        eventObject.record(streamObject);
+        return cuplaSuccess;
+    }
+
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaEventElapsedTime(float* ms, cuplaEvent_t start, cuplaEvent_t end)
+    {
+        auto& eventStart = cupla::manager::Event<cupla::AccDev, cupla::AccStream>::get().event(start);
+        auto& eventEnd = cupla::manager::Event<cupla::AccDev, cupla::AccStream>::get().event(end);
+        *ms = static_cast<float>(eventEnd.elapsedSince(eventStart));
+        return cuplaSuccess;
+    }
+
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaEventSynchronize(cuplaEvent_t event)
+    {
+        auto& eventObject = cupla::manager::Event<cupla::AccDev, cupla::AccStream>::get().event(event);
+        ::alpaka::wait(*eventObject);
+        return cuplaSuccess;
+    }
+
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaEventQuery(cuplaEvent_t event)
+    {
+        auto& eventObject = cupla::manager::Event<cupla::AccDev, cupla::AccStream>::get().event(event);
+
+        if(::alpaka::isComplete(*eventObject))
+        {
+            return cuplaSuccess;
+        }
+        else
+        {
+            return cuplaErrorNotReady;
+        }
+    }
+
+} // namespace CUPLA_ACCELERATOR_NAMESPACE

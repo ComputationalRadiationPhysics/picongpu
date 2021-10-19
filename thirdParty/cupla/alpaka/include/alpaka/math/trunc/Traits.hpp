@@ -11,6 +11,7 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <type_traits>
 
@@ -24,13 +25,20 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The trunc trait.
             template<typename T, typename TArg, typename TSfinae = void>
-            struct Trunc;
+            struct Trunc
+            {
+                ALPAKA_FN_HOST_ACC auto operator()(T const& ctx, TArg const& arg)
+                {
+                    alpaka::ignore_unused(ctx);
+                    // This is an ADL call. If you get a compile error here then your type is not supported by the
+                    // backend and we could not find trunc(TArg) in the namespace of your type.
+                    return trunc(arg);
+                }
+            };
         } // namespace traits
 
-        //-----------------------------------------------------------------------------
         //! Computes the nearest integer not greater in magnitude than arg.
         //!
         //! \tparam T The type of the object specializing Trunc.
@@ -42,7 +50,7 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto trunc(T const& trunc_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathTrunc, T>;
-            return traits::Trunc<ImplementationBase, TArg>::trunc(trunc_ctx, arg);
+            return traits::Trunc<ImplementationBase, TArg>{}(trunc_ctx, arg);
         }
     } // namespace math
 } // namespace alpaka

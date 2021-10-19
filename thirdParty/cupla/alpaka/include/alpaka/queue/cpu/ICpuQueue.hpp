@@ -16,7 +16,6 @@ namespace alpaka
 {
     namespace cpu
     {
-        //#############################################################################
         //! The CPU queue interface
         using ICpuQueue = IGenericThreadsQueue<DevCpu>;
     } // namespace cpu

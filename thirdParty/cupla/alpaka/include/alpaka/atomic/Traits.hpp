@@ -55,17 +55,14 @@ namespace alpaka
     template<typename THierarchy>
     using AtomicHierarchyConcept = typename detail::AtomicHierarchyConceptType<THierarchy>::type;
 
-    //-----------------------------------------------------------------------------
     //! The atomic operation traits.
     namespace traits
     {
-        //#############################################################################
         //! The atomic operation trait.
         template<typename TOp, typename TAtomic, typename T, typename THierarchy, typename TSfinae = void>
         struct AtomicOp;
     } // namespace traits
 
-    //-----------------------------------------------------------------------------
     //! Executes the given operation atomically.
     //!
     //! \tparam TOp The operation type.
@@ -86,7 +83,6 @@ namespace alpaka
         return traits::AtomicOp<TOp, ImplementationBase, T, THierarchy>::atomicOp(atomic, addr, value);
     }
 
-    //-----------------------------------------------------------------------------
     //! Executes the given operation atomically.
     //!
     //! \tparam TOp The operation type.
@@ -109,7 +105,6 @@ namespace alpaka
         return traits::AtomicOp<TOp, ImplementationBase, T, THierarchy>::atomicOp(atomic, addr, compare, value);
     }
 
-    //-----------------------------------------------------------------------------
     //! Executes an atomic add operation.
     //!
     //! \tparam T The value type.
@@ -128,7 +123,6 @@ namespace alpaka
         return atomicOp<AtomicAdd>(atomic, addr, value, hier);
     }
 
-    //-----------------------------------------------------------------------------
     //! Executes an atomic sub operation.
     //!
     //! \tparam T The value type.
@@ -147,7 +141,6 @@ namespace alpaka
         return atomicOp<AtomicSub>(atomic, addr, value, hier);
     }
 
-    //-----------------------------------------------------------------------------
     //! Executes an atomic min operation.
     //!
     //! \tparam T The value type.
@@ -166,7 +159,6 @@ namespace alpaka
         return atomicOp<AtomicMin>(atomic, addr, value, hier);
     }
 
-    //-----------------------------------------------------------------------------
     //! Executes an atomic max operation.
     //!
     //! \tparam T The value type.
@@ -185,7 +177,6 @@ namespace alpaka
         return atomicOp<AtomicMax>(atomic, addr, value, hier);
     }
 
-    //-----------------------------------------------------------------------------
     //! Executes an atomic exchange operation.
     //!
     //! \tparam T The value type.
@@ -204,7 +195,6 @@ namespace alpaka
         return atomicOp<AtomicExch>(atomic, addr, value, hier);
     }
 
-    //-----------------------------------------------------------------------------
     //! Executes an atomic increment operation.
     //!
     //! \tparam T The value type.
@@ -223,7 +213,6 @@ namespace alpaka
         return atomicOp<AtomicInc>(atomic, addr, value, hier);
     }
 
-    //-----------------------------------------------------------------------------
     //! Executes an atomic decrement operation.
     //!
     //! \tparam T The value type.
@@ -242,7 +231,6 @@ namespace alpaka
         return atomicOp<AtomicDec>(atomic, addr, value, hier);
     }
 
-    //-----------------------------------------------------------------------------
     //! Executes an atomic and operation.
     //!
     //! \tparam T The value type.
@@ -261,7 +249,6 @@ namespace alpaka
         return atomicOp<AtomicAnd>(atomic, addr, value, hier);
     }
 
-    //-----------------------------------------------------------------------------
     //! Executes an atomic or operation.
     //!
     //! \tparam T The value type.
@@ -280,7 +267,6 @@ namespace alpaka
         return atomicOp<AtomicOr>(atomic, addr, value, hier);
     }
 
-    //-----------------------------------------------------------------------------
     //! Executes an atomic xor operation.
     //!
     //! \tparam T The value type.
@@ -299,7 +285,6 @@ namespace alpaka
         return atomicOp<AtomicXor>(atomic, addr, value, hier);
     }
 
-    //-----------------------------------------------------------------------------
     //! Executes an atomic compare-and-swap operation.
     //!
     //! \tparam TAtomic The atomic implementation type.

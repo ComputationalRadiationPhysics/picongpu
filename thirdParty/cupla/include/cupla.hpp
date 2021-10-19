@@ -21,5 +21,5 @@
 
 #pragma once
 
-#include "cupla_runtime.hpp"
 #include "cupla/device_functions.hpp"
+#include "cupla_runtime.hpp"

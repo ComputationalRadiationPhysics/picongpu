@@ -21,155 +21,124 @@
 
 #pragma once
 
+#include "cupla/manager/Device.hpp"
 #include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
-#include "cupla/manager/Device.hpp"
 #include "cupla_driver_types.hpp"
 
 #include <map>
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-namespace manager
-{
-
-    template<
-        typename T_DeviceType,
-        typename T_QueueType
-    >
-    struct Stream
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
     {
-        using DeviceType = T_DeviceType;
-        using QueueType = T_QueueType;
-
-
-        using StreamMap = std::map<
-            cuplaStream_t,
-            std::unique_ptr<
-                QueueType
-            >
-        >;
-        using MapVector = std::vector< StreamMap >;
-
-        MapVector m_mapVector;
-
-        static auto
-        get()
-        -> Stream &
+        namespace manager
         {
-            static Stream stream;
-            return stream;
-        }
-
-        auto
-        create( )
-        -> cuplaStream_t
-        {
-            return createNewStream(reinterpret_cast< cuplaStream_t >(m_id++));
-        }
-
-        auto
-        stream( cuplaStream_t streamId = 0 )
-        -> QueueType &
-        {
-            auto& device = Device< DeviceType >::get();
-            const auto deviceId = device.id();
-            auto iter = m_mapVector[ deviceId ].find(
-                streamId
-            );
-
-            if( iter == m_mapVector[ device.id( ) ].end() )
+            template<typename T_DeviceType, typename T_QueueType>
+            struct Stream
             {
-                if( streamId == 0 )
+                using DeviceType = T_DeviceType;
+                using QueueType = T_QueueType;
+
+
+                using StreamMap = std::map<cuplaStream_t, std::unique_ptr<QueueType>>;
+                using MapVector = std::vector<StreamMap>;
+
+                MapVector m_mapVector;
+
+                static auto get() -> Stream&
                 {
-                    createNewStream( streamId );
-                    return this->stream( streamId );
+                    static Stream stream;
+                    return stream;
                 }
-                else
+
+                auto create() -> cuplaStream_t
                 {
-                    std::cerr << "stream " << streamId <<
-                        " not exists on device "<< deviceId << std::endl;
+                    return createNewStream(reinterpret_cast<cuplaStream_t>(m_id++));
                 }
-            }
-            // @todo: check if stream was created
-            return *(iter->second);
-        }
 
-        auto
-        destroy( cuplaStream_t streamId)
-        -> bool
-        {
-            auto& device = Device< DeviceType >::get();
-            const auto deviceId = device.id();
+                auto stream(cuplaStream_t streamId = 0) -> QueueType&
+                {
+                    auto& device = Device<DeviceType>::get();
+                    const auto deviceId = device.id();
+                    auto iter = m_mapVector[deviceId].find(streamId);
 
-            auto iter = m_mapVector[ deviceId ].find(
-                streamId
-            );
+                    if(iter == m_mapVector[device.id()].end())
+                    {
+                        if(streamId == 0)
+                        {
+                            createNewStream(streamId);
+                            return this->stream(streamId);
+                        }
+                        else
+                        {
+                            std::cerr << "stream " << streamId << " not exists on device " << deviceId << std::endl;
+                        }
+                    }
+                    // @todo: check if stream was created
+                    return *(iter->second);
+                }
 
-            if( iter == m_mapVector[ deviceId ].end() )
-            {
-                std::cerr << "stream " << streamId <<
-                    " can not destroyed (was never created) on device " <<
-                    deviceId <<
-                    std::endl;
-                return false;
-            }
-            else
-            {
-                m_mapVector[ deviceId ].erase( iter );
-                return true;
-            }
-        }
+                auto destroy(cuplaStream_t streamId) -> bool
+                {
+                    auto& device = Device<DeviceType>::get();
+                    const auto deviceId = device.id();
+
+                    auto iter = m_mapVector[deviceId].find(streamId);
+
+                    if(iter == m_mapVector[deviceId].end())
+                    {
+                        std::cerr << "stream " << streamId << " can not destroyed (was never created) on device "
+                                  << deviceId << std::endl;
+                        return false;
+                    }
+                    else
+                    {
+                        m_mapVector[deviceId].erase(iter);
+                        return true;
+                    }
+                }
 
 
-        /** delete all streams on the current device
-         *
-         * @return true in success case else false
-         */
-        bool
-        reset( )
-        {
-            auto& device = Device< DeviceType >::get();
-            const auto deviceId = device.id();
+                /** delete all streams on the current device
+                 *
+                 * @return true in success case else false
+                 */
+                bool reset()
+                {
+                    auto& device = Device<DeviceType>::get();
+                    const auto deviceId = device.id();
 
-            m_mapVector[ deviceId ].clear( );
+                    m_mapVector[deviceId].clear();
 
-            // @todo: check if clear creates errors
-            return true;
-        }
+                    // @todo: check if clear creates errors
+                    return true;
+                }
 
-    protected:
-        Stream() :  m_mapVector( Device< DeviceType >::get().count() )
-        {
-        }
+            protected:
+                Stream() : m_mapVector(Device<DeviceType>::get().count())
+                {
+                }
 
-        auto
-        createNewStream( cuplaStream_t streamId  )
-        -> cuplaStream_t
-        {
+                auto createNewStream(cuplaStream_t streamId) -> cuplaStream_t
+                {
+                    auto& device = Device<DeviceType>::get();
 
-            auto& device = Device< DeviceType >::get();
+                    auto streamPtr = std::make_unique<QueueType>(device.current());
+                    m_mapVector[device.id()].insert(std::make_pair(streamId, std::move(streamPtr)));
+                    return streamId;
+                }
 
-            auto streamPtr = std::make_unique< QueueType >( device.current() );
-            m_mapVector[ device.id() ].insert(
-                std::make_pair( streamId, std::move( streamPtr ) )
-            );
-            return streamId;
-        }
+                /** unique id for the next stream
+                 *
+                 * The enumeration starts with id one. Id zero is reserved
+                 * for the default stream.
+                 */
+                size_t m_id = 1u;
+            };
 
-        /** unique id for the next stream
-         *
-         * The enumeration starts with id one. Id zero is reserved
-         * for the default stream.
-         */
-        size_t m_id = 1u;
-
-    };
-
-} //namespace manager
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
-} //namespace cupla
+        } // namespace manager
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace cupla

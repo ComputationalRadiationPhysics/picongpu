@@ -175,7 +175,7 @@ namespace pmacc
     {                                                                                                                 \
         using ResultType = ::pmacc::math::Vector<T_ScalarType, T_dim>;                                                \
                                                                                                                       \
-        ALPAKA_FN_ACC static auto functionName(                                                                       \
+        ALPAKA_FN_ACC auto operator()(                                                                                \
             T_Ctx const& mathConcept,                                                                                 \
             ::pmacc::math::Vector<T_ScalarType, T_dim> const& vector) -> ResultType                                   \
         {                                                                                                             \
@@ -203,7 +203,7 @@ namespace alpaka
             {
                 using ResultType = typename ::pmacc::math::Vector<T_ScalarType, T_dim>::type;
 
-                ALPAKA_FN_HOST_ACC static auto pow(
+                ALPAKA_FN_HOST_ACC auto operator()(
                     T_Ctx const& mathConcept,
                     ::pmacc::math::Vector<T_ScalarType, T_dim> const& vector,
                     T_ScalarType const& exponent) -> ResultType
@@ -232,7 +232,7 @@ namespace alpaka
             {
                 using ResultType = typename ::pmacc::math::Vector<T_ScalarType, T_dim>::type;
 
-                ALPAKA_FN_HOST_ACC static auto abs(
+                ALPAKA_FN_HOST_ACC auto operator()(
                     T_Ctx const& mathConcept,
                     ::pmacc::math::Vector<T_ScalarType, T_dim> const& vector) -> ResultType
                 {

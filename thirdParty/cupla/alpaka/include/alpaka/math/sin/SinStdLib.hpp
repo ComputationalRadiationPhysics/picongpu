@@ -19,7 +19,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The standard library sin.
         class SinStdLib : public concepts::Implements<ConceptMathSin, SinStdLib>
         {
@@ -27,12 +26,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The standard library sin trait specialization.
             template<typename TArg>
             struct Sin<SinStdLib, TArg, std::enable_if_t<std::is_arithmetic<TArg>::value>>
             {
-                ALPAKA_FN_HOST static auto sin(SinStdLib const& sin_ctx, TArg const& arg)
+                ALPAKA_FN_HOST auto operator()(SinStdLib const& sin_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(sin_ctx);
                     return std::sin(arg);

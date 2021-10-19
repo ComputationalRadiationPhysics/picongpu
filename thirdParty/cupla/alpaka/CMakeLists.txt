@@ -11,7 +11,7 @@
 ################################################################################
 # Required CMake version
 
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.18)
 
 cmake_policy(SET CMP0091 OLD)
 
@@ -117,23 +117,11 @@ endif()
 # since alpakaCommon.cmake is included.
 
 if(NOT ${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
-    if(ALPAKA_ACC_GPU_CUDA_ENABLE)
-        # export NVCC flags to parent scope in case alpaka is another project's subdirectory
-        set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} PARENT_SCOPE)
-        set(CUDA_HOST_COMPILER ${CUDA_HOST_COMPILER} PARENT_SCOPE)
-        set(CUDA_VERBOSE_BUILD ${CUDA_VERBOSE_BUILD} PARENT_SCOPE)
-        set(CUDA_SEPARABLE_COMPILATION ${CUDA_SEPARABLE_COMPILATION} PARENT_SCOPE)
-    endif()
-
     if(ALPAKA_ACC_GPU_HIP_ENABLE)
         # export HIPCC flags to parent scope in case alpaka is another project's subdirectory
         set(HIP_HIPCC_FLAGS ${HIP_HIPCC_FLAGS} PARENT_SCOPE)
         set(HIP_NVCC_FLAGS ${HIP_NVCC_FLAGS} PARENT_SCOPE)
         set(HIP_VERBOSE_BUILD ${HIP_VERBOSE_BUILD} PARENT_SCOPE)
-    endif()
-
-    if((ALPAKA_ACC_GPU_CUDA_ENABLE OR ALPAKA_ACC_GPU_HIP_ENABLE) AND ALPAKA_CUDA_COMPILER MATCHES "nvcc")
-        set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} PARENT_SCOPE)
     endif()
 endif()
 

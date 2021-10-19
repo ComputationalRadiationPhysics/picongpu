@@ -46,7 +46,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The CUDA built in asin.
         class AsinUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathAsin, AsinUniformCudaHipBuiltIn>
         {
@@ -54,12 +53,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The CUDA asin trait specialization.
             template<typename TArg>
             struct Asin<AsinUniformCudaHipBuiltIn, TArg, std::enable_if_t<std::is_floating_point<TArg>::value>>
             {
-                __device__ static auto asin(AsinUniformCudaHipBuiltIn const& asin_ctx, TArg const& arg)
+                __device__ auto operator()(AsinUniformCudaHipBuiltIn const& asin_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(asin_ctx);
                     return ::asin(arg);
@@ -69,7 +67,7 @@ namespace alpaka
             template<>
             struct Asin<AsinUniformCudaHipBuiltIn, float>
             {
-                __device__ static auto asin(AsinUniformCudaHipBuiltIn const& asin_ctx, float const& arg) -> float
+                __device__ auto operator()(AsinUniformCudaHipBuiltIn const& asin_ctx, float const& arg) -> float
                 {
                     alpaka::ignore_unused(asin_ctx);
                     return ::asinf(arg);

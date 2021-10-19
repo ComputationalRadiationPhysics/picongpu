@@ -41,31 +41,22 @@ namespace alpaka
     }
     class PltfCpu;
 
-    //-----------------------------------------------------------------------------
     //! The CPU device.
     namespace cpu
     {
         namespace detail
         {
-            //#############################################################################
             //! The CPU device implementation.
             class DevCpuImpl
             {
             public:
-                //-----------------------------------------------------------------------------
                 DevCpuImpl() = default;
-                //-----------------------------------------------------------------------------
                 DevCpuImpl(DevCpuImpl const&) = delete;
-                //-----------------------------------------------------------------------------
                 DevCpuImpl(DevCpuImpl&&) = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(DevCpuImpl const&) -> DevCpuImpl& = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(DevCpuImpl&&) -> DevCpuImpl& = delete;
-                //-----------------------------------------------------------------------------
                 ~DevCpuImpl() = default;
 
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST auto getAllExistingQueues() const -> std::vector<std::shared_ptr<cpu::ICpuQueue>>
                 {
                     std::vector<std::shared_ptr<cpu::ICpuQueue>> vspQueues;
@@ -89,7 +80,6 @@ namespace alpaka
                     return vspQueues;
                 }
 
-                //-----------------------------------------------------------------------------
                 //! Registers the given queue on this device.
                 //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
                 ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<cpu::ICpuQueue> spQueue) const -> void
@@ -107,7 +97,6 @@ namespace alpaka
         } // namespace detail
     } // namespace cpu
 
-    //#############################################################################
     //! The CPU device handle.
     class DevCpu
         : public concepts::Implements<ConceptCurrentThreadWaitFor, DevCpu>
@@ -116,31 +105,23 @@ namespace alpaka
         friend struct traits::GetDevByIdx<PltfCpu>;
 
     protected:
-        //-----------------------------------------------------------------------------
         DevCpu() : m_spDevCpuImpl(std::make_shared<cpu::detail::DevCpuImpl>())
         {
         }
 
     public:
-        //-----------------------------------------------------------------------------
         DevCpu(DevCpu const&) = default;
-        //-----------------------------------------------------------------------------
         DevCpu(DevCpu&&) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(DevCpu const&) -> DevCpu& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(DevCpu&&) -> DevCpu& = default;
-        //-----------------------------------------------------------------------------
         auto operator==(DevCpu const&) const -> bool
         {
             return true;
         }
-        //-----------------------------------------------------------------------------
         auto operator!=(DevCpu const& rhs) const -> bool
         {
             return !((*this) == rhs);
         }
-        //-----------------------------------------------------------------------------
         ~DevCpu() = default;
 
         ALPAKA_FN_HOST auto getAllQueues() const -> std::vector<std::shared_ptr<cpu::ICpuQueue>>
@@ -148,7 +129,6 @@ namespace alpaka
             return m_spDevCpuImpl->getAllExistingQueues();
         }
 
-        //-----------------------------------------------------------------------------
         //! Registers the given queue on this device.
         //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
         ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<cpu::ICpuQueue> spQueue) const -> void
@@ -162,12 +142,10 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU device name get trait specialization.
         template<>
         struct GetName<DevCpu>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getName(DevCpu const& dev) -> std::string
             {
                 alpaka::ignore_unused(dev);
@@ -176,12 +154,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU device available memory get trait specialization.
         template<>
         struct GetMemBytes<DevCpu>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getMemBytes(DevCpu const& dev) -> std::size_t
             {
                 alpaka::ignore_unused(dev);
@@ -190,12 +166,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU device free memory get trait specialization.
         template<>
         struct GetFreeMemBytes<DevCpu>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getFreeMemBytes(DevCpu const& dev) -> std::size_t
             {
                 alpaka::ignore_unused(dev);
@@ -204,12 +178,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU device warp size get trait specialization.
         template<>
         struct GetWarpSize<DevCpu>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getWarpSize(DevCpu const& dev) -> std::size_t
             {
                 alpaka::ignore_unused(dev);
@@ -218,12 +190,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU device reset trait specialization.
         template<>
         struct Reset<DevCpu>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto reset(DevCpu const& dev) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
@@ -240,7 +210,6 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU device memory buffer type trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct BufType<DevCpu, TElem, TDim, TIdx>
@@ -248,7 +217,6 @@ namespace alpaka
             using type = BufCpu<TElem, TDim, TIdx>;
         };
 
-        //#############################################################################
         //! The CPU device platform type trait specialization.
         template<>
         struct PltfType<DevCpu>

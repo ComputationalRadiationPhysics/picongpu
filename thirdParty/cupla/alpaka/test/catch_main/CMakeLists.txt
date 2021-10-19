@@ -37,7 +37,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "PGI")
 endif()
 if(MSVC)
     target_compile_definitions(CatchMain PUBLIC "CATCH_CONFIG_WINDOWS_CRTDBG")
-    target_compile_options(CatchMain PUBLIC "/bigobj")
+    target_compile_options(CatchMain PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/bigobj> $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/bigobj>)
 endif()
 
 if(ALPAKA_USE_INTERNAL_CATCH2)

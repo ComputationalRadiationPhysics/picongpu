@@ -14,7 +14,6 @@
 #include <tuple>
 #include <type_traits>
 
-//-----------------------------------------------------------------------------
 TEST_CASE("uniqueWithDuplicate", "[meta]")
 {
     using UniqueInput = std::tuple<int, float, int, float, float, int>;
@@ -26,7 +25,6 @@ TEST_CASE("uniqueWithDuplicate", "[meta]")
     static_assert(std::is_same<UniqueReference, UniqueResult>::value, "alpaka::meta::Unique failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("uniqueWithoutDuplicate", "[meta]")
 {
     using UniqueInput = std::tuple<int, float, double>;

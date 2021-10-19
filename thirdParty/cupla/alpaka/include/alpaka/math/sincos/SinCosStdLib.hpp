@@ -19,7 +19,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The standard library sincos.
         class SinCosStdLib : public concepts::Implements<ConceptMathSinCos, SinCosStdLib>
         {
@@ -27,12 +26,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The standard library sincos trait specialization.
             template<typename TArg>
             struct SinCos<SinCosStdLib, TArg, std::enable_if_t<std::is_floating_point<TArg>::value>>
             {
-                ALPAKA_FN_HOST static auto sincos(
+                ALPAKA_FN_HOST auto operator()(
                     SinCosStdLib const& sincos_ctx,
                     TArg const& arg,
                     TArg& result_sin,

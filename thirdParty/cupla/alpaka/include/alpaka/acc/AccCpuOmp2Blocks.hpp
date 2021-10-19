@@ -52,7 +52,6 @@ namespace alpaka
     template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     class TaskKernelCpuOmp2Blocks;
 
-    //#############################################################################
     //! The CPU OpenMP 2.0 block accelerator.
     //!
     //! This accelerator allows parallel kernel execution on a CPU device.
@@ -90,7 +89,6 @@ namespace alpaka
         friend class ::alpaka::TaskKernelCpuOmp2Blocks;
 
     private:
-        //-----------------------------------------------------------------------------
         template<typename TWorkDiv>
         ALPAKA_FN_HOST AccCpuOmp2Blocks(TWorkDiv const& workDiv, std::size_t const& blockSharedMemDynSizeBytes)
             : WorkDivMembers<TDim, TIdx>(workDiv)
@@ -112,15 +110,10 @@ namespace alpaka
         }
 
     public:
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST AccCpuOmp2Blocks(AccCpuOmp2Blocks const&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST AccCpuOmp2Blocks(AccCpuOmp2Blocks&&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(AccCpuOmp2Blocks const&) -> AccCpuOmp2Blocks& = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(AccCpuOmp2Blocks&&) -> AccCpuOmp2Blocks& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~AccCpuOmp2Blocks() = default;
 
     private:
@@ -130,19 +123,16 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU OpenMP 2.0 block accelerator accelerator type trait specialization.
         template<typename TDim, typename TIdx>
         struct AccType<AccCpuOmp2Blocks<TDim, TIdx>>
         {
             using type = AccCpuOmp2Blocks<TDim, TIdx>;
         };
-        //#############################################################################
         //! The CPU OpenMP 2.0 block accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccCpuOmp2Blocks<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& dev) -> alpaka::AccDevProps<TDim, TIdx>
             {
                 alpaka::ignore_unused(dev);
@@ -165,19 +155,16 @@ namespace alpaka
                         static_cast<size_t>(AccCpuOmp2Blocks<TDim, TIdx>::staticAllocBytes())};
             }
         };
-        //#############################################################################
         //! The CPU OpenMP 2.0 block accelerator name trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccName<AccCpuOmp2Blocks<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
                 return "AccCpuOmp2Blocks<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
             }
         };
 
-        //#############################################################################
         //! The CPU OpenMP 2.0 block accelerator device type trait specialization.
         template<typename TDim, typename TIdx>
         struct DevType<AccCpuOmp2Blocks<TDim, TIdx>>
@@ -185,7 +172,6 @@ namespace alpaka
             using type = DevCpu;
         };
 
-        //#############################################################################
         //! The CPU OpenMP 2.0 block accelerator dimension getter trait specialization.
         template<typename TDim, typename TIdx>
         struct DimType<AccCpuOmp2Blocks<TDim, TIdx>>
@@ -193,12 +179,10 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The CPU OpenMP 2.0 block accelerator execution task type trait specialization.
         template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
         struct CreateTaskKernel<AccCpuOmp2Blocks<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto createTaskKernel(
                 TWorkDiv const& workDiv,
                 TKernelFnObj const& kernelFnObj,
@@ -211,7 +195,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU OpenMP 2.0 block execution task platform type trait specialization.
         template<typename TDim, typename TIdx>
         struct PltfType<AccCpuOmp2Blocks<TDim, TIdx>>
@@ -219,7 +202,6 @@ namespace alpaka
             using type = PltfCpu;
         };
 
-        //#############################################################################
         //! The CPU OpenMP 2.0 block accelerator idx type trait specialization.
         template<typename TDim, typename TIdx>
         struct IdxType<AccCpuOmp2Blocks<TDim, TIdx>>

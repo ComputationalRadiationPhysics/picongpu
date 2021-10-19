@@ -13,7 +13,6 @@
 
 #include <type_traits>
 
-//-----------------------------------------------------------------------------
 //! Wrapper around std::decay_t for parameter pack expansion expressions
 //
 // Works around Intel compiler internal error when used in empty template pack
@@ -25,7 +24,6 @@
 // The choice of macro over writing typename std::decay<Type>::type explicitly
 // in parameter pack expansion expressions is to avoid warnings from diagnostic
 // tools, and also for brevity.
-//-----------------------------------------------------------------------------
 #if BOOST_COMP_INTEL || BOOST_COMP_PGI
 #    define ALPAKA_DECAY_T(Type) typename std::decay<Type>::type
 #else

@@ -21,12 +21,10 @@
 #include <random>
 #include <typeinfo>
 
-//#############################################################################
 //! A vector addition kernel.
 class AxpyKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     //! Vector addition Y = alpha * X + Y.
     //!
     //! \tparam TAcc The type of the accelerator the kernel is executed on..
@@ -47,16 +45,16 @@ public:
     {
         static_assert(alpaka::Dim<TAcc>::value == 1, "The AxpyKernel expects 1-dimensional indices!");
 
-        auto const gridThreadIdx(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u]);
-        auto const threadElemExtent(alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u]);
-        auto const threadFirstElemIdx(gridThreadIdx * threadElemExtent);
+        auto const gridThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u];
+        auto const threadElemExtent = alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u];
+        auto const threadFirstElemIdx = gridThreadIdx * threadElemExtent;
 
         if(threadFirstElemIdx < numElements)
         {
             // Calculate the number of elements to compute in this thread.
             // The result is uniform for all but the last thread.
-            auto const threadLastElemIdx(threadFirstElemIdx + threadElemExtent);
-            auto const threadLastElemIdxClipped((numElements > threadLastElemIdx) ? threadLastElemIdx : numElements);
+            auto const threadLastElemIdx = threadFirstElemIdx + threadElemExtent;
+            auto const threadLastElemIdxClipped = (numElements > threadLastElemIdx) ? threadLastElemIdx : numElements;
 
             for(TIdx i(threadFirstElemIdx); i < threadLastElemIdxClipped; ++i)
             {
@@ -90,10 +88,10 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
     AxpyKernel kernel;
 
     // Get the host device.
-    auto const devHost(alpaka::getDevByIdx<PltfHost>(0u));
+    auto const devHost = alpaka::getDevByIdx<PltfHost>(0u);
 
     // Select a device to execute on.
-    auto const devAcc(alpaka::getDevByIdx<PltfAcc>(0u));
+    auto const devAcc = alpaka::getDevByIdx<PltfAcc>(0u);
 
     // Get a queue on this device.
     QueueAcc queue(devAcc);
@@ -113,9 +111,9 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
               << ", kernel: " << typeid(kernel).name() << ", workDiv: " << workDiv << ")" << std::endl;
 
     // Allocate host memory buffers.
-    auto memBufHostX(alpaka::allocBuf<Val, Idx>(devHost, extent));
-    auto memBufHostOrigY(alpaka::allocBuf<Val, Idx>(devHost, extent));
-    auto memBufHostY(alpaka::allocBuf<Val, Idx>(devHost, extent));
+    auto memBufHostX = alpaka::allocBuf<Val, Idx>(devHost, extent);
+    auto memBufHostOrigY = alpaka::allocBuf<Val, Idx>(devHost, extent);
+    auto memBufHostY = alpaka::allocBuf<Val, Idx>(devHost, extent);
     Val* const pBufHostX = alpaka::getPtrNative(memBufHostX);
     Val* const pBufHostOrigY = alpaka::getPtrNative(memBufHostOrigY);
     Val* const pBufHostY = alpaka::getPtrNative(memBufHostY);
@@ -146,8 +144,8 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
 #endif
 
     // Allocate the buffer on the accelerator.
-    auto memBufAccX(alpaka::allocBuf<Val, Idx>(devAcc, extent));
-    auto memBufAccY(alpaka::allocBuf<Val, Idx>(devAcc, extent));
+    auto memBufAccX = alpaka::allocBuf<Val, Idx>(devAcc, extent);
+    auto memBufAccY = alpaka::allocBuf<Val, Idx>(devAcc, extent);
 
     // Copy Host -> Acc.
     alpaka::memcpy(queue, memBufAccX, memBufHostX, extent);
@@ -165,13 +163,13 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
 #endif
 
     // Create the kernel execution task.
-    auto const taskKernel(alpaka::createTaskKernel<Acc>(
+    auto const taskKernel = alpaka::createTaskKernel<Acc>(
         workDiv,
         kernel,
         numElements,
         alpha,
         alpaka::getPtrNative(memBufAccX),
-        alpaka::getPtrNative(memBufAccY)));
+        alpaka::getPtrNative(memBufAccY));
 
     // Profile the kernel execution.
     std::cout << "Execution time: " << alpaka::test::integ::measureTaskRunTimeMs(queue, taskKernel) << " ms"
@@ -187,7 +185,7 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
     for(Idx i(0u); i < numElements; ++i)
     {
         auto const& val(pBufHostY[i]);
-        auto const correctResult(alpha * pBufHostX[i] + pBufHostOrigY[i]);
+        auto const correctResult = alpha * pBufHostX[i] + pBufHostOrigY[i];
         auto const relDiff = std::abs((val - correctResult) / std::min(val, correctResult));
         if(relDiff > std::numeric_limits<Val>::epsilon())
         {

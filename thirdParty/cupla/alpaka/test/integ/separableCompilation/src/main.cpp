@@ -18,12 +18,10 @@
 #include <iostream>
 #include <typeinfo>
 
-//#############################################################################
 //! A vector addition kernel.
 class SqrtKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     //! The kernel entry point.
     //!
     //! \tparam TAcc The accelerator environment to be executed on.
@@ -84,10 +82,10 @@ TEMPLATE_LIST_TEST_CASE("separableCompilation", "[separableCompilation]", TestAc
     SqrtKernel kernel;
 
     // Get the host device.
-    DevHost const devHost(alpaka::getDevByIdx<PltfHost>(0u));
+    DevHost const devHost = alpaka::getDevByIdx<PltfHost>(0u);
 
     // Select a device to execute on.
-    DevAcc const devAcc(alpaka::getDevByIdx<PltfAcc>(0));
+    DevAcc const devAcc = alpaka::getDevByIdx<PltfAcc>(0);
 
     // Get a queue on this device.
     QueueAcc queueAcc(devAcc);

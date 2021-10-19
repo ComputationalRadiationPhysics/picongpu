@@ -14,7 +14,6 @@
 #include <cstddef>
 #include <cstdint>
 
-//-----------------------------------------------------------------------------
 //! Suggests vectorization of the directly following loop to the compiler.
 //!
 //! Usage:
@@ -40,7 +39,6 @@ namespace alpaka
     {
         namespace vectorization
         {
-            //-----------------------------------------------------------------------------
             // The alignment required to enable optimal performance dependant on the target architecture.
             constexpr std::size_t defaultAlignment =
 #if defined(__AVX512BW__) || defined(__AVX512F__) || defined(__MIC__)
@@ -52,7 +50,6 @@ namespace alpaka
 #endif
                 ;
 
-            //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
             // By default there is no vectorization.
             template<typename TElem>
@@ -61,7 +58,6 @@ namespace alpaka
                 static constexpr std::size_t value = 1u;
             };
 
-            //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
             template<>
             struct GetVectorizationSizeElems<double>
@@ -91,7 +87,6 @@ namespace alpaka
                     1u;
 #endif
             };
-            //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
             template<>
             struct GetVectorizationSizeElems<float>
@@ -120,7 +115,6 @@ namespace alpaka
                     1u;
 #endif
             };
-            //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
             template<>
             struct GetVectorizationSizeElems<std::int8_t>
@@ -154,7 +148,6 @@ namespace alpaka
                     1u;
 #endif
             };
-            //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
             template<>
             struct GetVectorizationSizeElems<std::uint8_t>
@@ -188,7 +181,6 @@ namespace alpaka
                     1u;
 #endif
             };
-            //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
             template<>
             struct GetVectorizationSizeElems<std::int16_t>
@@ -222,7 +214,6 @@ namespace alpaka
                     1u;
 #endif
             };
-            //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
             template<>
             struct GetVectorizationSizeElems<std::uint16_t>
@@ -256,7 +247,6 @@ namespace alpaka
                     1u;
 #endif
             };
-            //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
             template<>
             struct GetVectorizationSizeElems<std::int32_t>
@@ -285,7 +275,6 @@ namespace alpaka
                     1u;
 #endif
             };
-            //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
             template<>
             struct GetVectorizationSizeElems<std::uint32_t>
@@ -314,7 +303,6 @@ namespace alpaka
                     1u;
 #endif
             };
-            //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
             template<>
             struct GetVectorizationSizeElems<std::int64_t>
@@ -341,7 +329,6 @@ namespace alpaka
                     1u;
 #endif
             };
-            //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
             template<>
             struct GetVectorizationSizeElems<std::uint64_t>

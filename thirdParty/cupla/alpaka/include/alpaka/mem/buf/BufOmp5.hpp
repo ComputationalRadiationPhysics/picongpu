@@ -36,7 +36,6 @@ namespace alpaka
 
     namespace detail
     {
-        //#############################################################################
         //! The OMP5 memory buffer detail.
         template<typename TElem, typename TDim, typename TIdx>
         class BufOmp5Impl
@@ -50,7 +49,6 @@ namespace alpaka
         private:
             using Elem = TElem;
             using Dim = TDim;
-            //-----------------------------------------------------------------------------
             //! Calculate the pitches purely from the extents.
             template<typename TExtent>
             ALPAKA_FN_HOST static auto calculatePitchesFromExtents(TExtent const& extent) -> Vec<TDim, TIdx>
@@ -65,7 +63,6 @@ namespace alpaka
             }
 
         public:
-            //-----------------------------------------------------------------------------
             //! Constructor
             template<typename TExtent>
             ALPAKA_FN_HOST BufOmp5Impl(DevOmp5 const& dev, TElem* const pMem, TExtent const& extent)
@@ -106,7 +103,6 @@ namespace alpaka
     class BufOmp5
     {
     public:
-        //-----------------------------------------------------------------------------
         //! Constructor
         template<typename TExtent>
         ALPAKA_FN_HOST BufOmp5(DevOmp5 const& dev, TElem* const pMem, TExtent const& extent)
@@ -139,14 +135,12 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The BufOmp5 device type trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct DevType<BufOmp5<TElem, TDim, TIdx>>
         {
             using type = DevOmp5;
         };
-        //#############################################################################
         //! The BufOmp5 device get trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct GetDev<BufOmp5<TElem, TDim, TIdx>>
@@ -157,7 +151,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The BufOmp5 dimension getter trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct DimType<BufOmp5<TElem, TDim, TIdx>>
@@ -165,7 +158,6 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The BufOmp5 memory element type get trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct ElemType<BufOmp5<TElem, TDim, TIdx>>
@@ -177,7 +169,6 @@ namespace alpaka
     {
         namespace traits
         {
-            //#############################################################################
             //! The BufOmp5 extent get trait specialization.
             template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
             struct GetExtent<
@@ -185,7 +176,6 @@ namespace alpaka
                 BufOmp5<TElem, TDim, TIdx>,
                 typename std::enable_if<(TDim::value > TIdxIntegralConst::value)>::type>
             {
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getExtent(BufOmp5<TElem, TDim, TIdx> const& extent) -> TIdx
                 {
                     return extent.extentElements()[TIdxIntegralConst::value];
@@ -195,28 +185,23 @@ namespace alpaka
     } // namespace extent
     namespace traits
     {
-        //#############################################################################
         //! The BufOmp5 native pointer get trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct GetPtrNative<BufOmp5<TElem, TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getPtrNative(BufOmp5<TElem, TDim, TIdx> const& buf) -> TElem const*
             {
                 return (*buf).m_pMem;
             }
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getPtrNative(BufOmp5<TElem, TDim, TIdx>& buf) -> TElem*
             {
                 return (*buf).m_pMem;
             }
         };
-        //#############################################################################
         //! The BufOmp5 pointer on device get trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct GetPtrDev<BufOmp5<TElem, TDim, TIdx>, DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getPtrDev(BufOmp5<TElem, TDim, TIdx> const& buf, DevOmp5 const& dev)
                 -> TElem const*
             {
@@ -229,7 +214,6 @@ namespace alpaka
                     throw std::runtime_error("The buffer is not accessible from the given device!");
                 }
             }
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getPtrDev(BufOmp5<TElem, TDim, TIdx>& buf, DevOmp5 const& dev) -> TElem*
             {
                 if(dev == getDev(buf))
@@ -242,24 +226,20 @@ namespace alpaka
                 }
             }
         };
-        //#############################################################################
         //! The BufOmp5 pitch get trait specialization.
         template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
         struct GetPitchBytes<TIdxIntegralConst, BufOmp5<TElem, TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getPitchBytes(BufOmp5<TElem, TDim, TIdx> const& pitch) -> TIdx
             {
                 return (*pitch).m_pitchBytes[TIdxIntegralConst::value];
             }
         };
 
-        //#############################################################################
         //! The BufOmp5 1D memory allocation trait specialization.
         template<typename TElem, typename TIdx>
         struct BufAlloc<TElem, DimInt<1u>, TIdx, DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             template<typename TExtent>
             ALPAKA_FN_HOST static auto allocBuf(DevOmp5 const& dev, TExtent const& extent)
                 -> BufOmp5<TElem, DimInt<1u>, TIdx>
@@ -279,12 +259,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The BufOmp5 nD memory allocation trait specialization. \todo Add pitch
         template<typename TElem, typename TDim, typename TIdx>
         struct BufAlloc<TElem, TDim, TIdx, DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             template<typename TExtent>
             ALPAKA_FN_HOST static auto allocBuf(DevOmp5 const& dev, TExtent const& extent)
                 -> BufOmp5<TElem, TDim, TIdx>
@@ -303,12 +281,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The BufOmp5 device memory mapping trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct Map<BufOmp5<TElem, TDim, TIdx>, DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto map(BufOmp5<TElem, TDim, TIdx> const& buf, DevOmp5 const& dev) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -321,12 +297,10 @@ namespace alpaka
                 // If it is already the same device, nothing has to be mapped.
             }
         };
-        //#############################################################################
         //! The BufOmp5 device memory unmapping trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct Unmap<BufOmp5<TElem, TDim, TIdx>, DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto unmap(BufOmp5<TElem, TDim, TIdx> const& buf, DevOmp5 const& dev) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -339,12 +313,10 @@ namespace alpaka
                 // If it is already the same device, nothing has to be unmapped.
             }
         };
-        //#############################################################################
         //! The BufOmp5 memory pinning trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct Pin<BufOmp5<TElem, TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto pin(BufOmp5<TElem, TDim, TIdx>&) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -352,12 +324,10 @@ namespace alpaka
                 // No explicit pinning in OMP5? GPU would be pinned anyway.
             }
         };
-        //#############################################################################
         //! The BufOmp5 memory unpinning trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct Unpin<BufOmp5<TElem, TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto unpin(BufOmp5<TElem, TDim, TIdx>&) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -365,12 +335,10 @@ namespace alpaka
                 // No explicit pinning in OMP5? GPU would be pinned anyway.
             }
         };
-        //#############################################################################
         //! The BufOmp5 memory pin state trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct IsPinned<BufOmp5<TElem, TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto isPinned(BufOmp5<TElem, TDim, TIdx> const&) -> bool
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -379,12 +347,10 @@ namespace alpaka
                 return true;
             }
         };
-        //#############################################################################
         //! The BufOmp5 memory prepareForAsyncCopy trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct PrepareForAsyncCopy<BufOmp5<TElem, TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto prepareForAsyncCopy(BufOmp5<TElem, TDim, TIdx>&) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -393,19 +359,16 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The BufOmp5 offset get trait specialization.
         template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
         struct GetOffset<TIdxIntegralConst, BufOmp5<TElem, TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getOffset(BufOmp5<TElem, TDim, TIdx> const&) -> TIdx
             {
                 return 0u;
             }
         };
 
-        //#############################################################################
         //! The BufOmp5 idx type trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct IdxType<BufOmp5<TElem, TDim, TIdx>>
@@ -413,12 +376,10 @@ namespace alpaka
             using type = TIdx;
         };
 
-        //#############################################################################
         //! The BufCpu CUDA device memory mapping trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct Map<BufCpu<TElem, TDim, TIdx>, DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto map(BufCpu<TElem, TDim, TIdx>& buf, DevOmp5 const& dev) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -432,12 +393,10 @@ namespace alpaka
                 // If it is already the same device, nothing has to be mapped.
             }
         };
-        //#############################################################################
         //! The BufCpu CUDA device memory unmapping trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct Unmap<BufCpu<TElem, TDim, TIdx>, DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto unmap(BufCpu<TElem, TDim, TIdx>& buf, DevOmp5 const& dev) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -450,17 +409,14 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The BufCpu pointer on CUDA device get trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct GetPtrDev<BufCpu<TElem, TDim, TIdx>, DevOmp5>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getPtrDev(BufCpu<TElem, TDim, TIdx> const&, DevOmp5 const&) -> TElem const*
             {
                 throw std::runtime_error("Mapping host memory to OMP5 device not implemented!");
             }
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getPtrDev(BufCpu<TElem, TDim, TIdx>&, DevOmp5 const&) -> TElem*
             {
                 throw std::runtime_error("Mapping host memory to OMP5 device not implemented!");

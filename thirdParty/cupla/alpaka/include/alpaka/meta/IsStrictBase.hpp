@@ -15,7 +15,6 @@ namespace alpaka
 {
     namespace meta
     {
-        //#############################################################################
         //! The trait is true if TDerived is derived from TBase but is not TBase itself.
         template<typename TBase, typename TDerived>
         using IsStrictBase = std::integral_constant<

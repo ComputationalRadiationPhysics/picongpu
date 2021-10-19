@@ -19,13 +19,11 @@
 
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
     // Trait specializations for fixed idx arrays.
     //
     // This allows the usage of multidimensional compile time arrays e.g. int[4][3] as argument to memory ops.
     /*namespace traits
     {
-        //#############################################################################
         //! The fixed idx array device type trait specialization.
         template<
             typename TFixedSizeArray>
@@ -36,7 +34,6 @@ namespace alpaka
             using type = DevCpu;
         };
 
-        //#############################################################################
         //! The fixed idx array device get trait specialization.
         template<
             typename TFixedSizeArray>
@@ -44,7 +41,6 @@ namespace alpaka
             TFixedSizeArray,
             std::enable_if_t<std::is_array<TFixedSizeArray>::value>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDev(
                 TFixedSizeArray const & view)
             -> DevCpu
@@ -54,7 +50,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The fixed idx array dimension getter trait specialization.
         template<
             typename TFixedSizeArray>
@@ -65,7 +60,6 @@ namespace alpaka
             using type = DimInt<std::rank<TFixedSizeArray>::value>;
         };
 
-        //#############################################################################
         //! The fixed idx array memory element type get trait specialization.
         template<
             typename TFixedSizeArray>
@@ -81,7 +75,6 @@ namespace alpaka
     {
         namespace traits
         {
-            //#############################################################################
             //! The fixed idx array width get trait specialization.
             template<
                 typename TIdxIntegralConst,
@@ -94,7 +87,6 @@ namespace alpaka
                     && (std::rank<TFixedSizeArray>::value > TIdxIntegralConst::value)
                     && (std::extent<TFixedSizeArray, TIdxIntegralConst::value>::value > 0u)>>
             {
-                //-----------------------------------------------------------------------------
                 static constexpr auto getExtent(
                     TFixedSizeArray const & extent
                 )
@@ -108,7 +100,6 @@ namespace alpaka
     }
     namespace traits
     {
-        //#############################################################################
         //! The fixed idx array native pointer get trait specialization.
         template<
             typename TFixedSizeArray>
@@ -119,14 +110,12 @@ namespace alpaka
         {
             using TElem = std::remove_all_extent_t<TFixedSizeArray>;
 
-            //-----------------------------------------------------------------------------
             static auto getPtrNative(
                 TFixedSizeArray const & view)
             -> TElem const *
             {
                 return view;
             }
-            //-----------------------------------------------------------------------------
             static auto getPtrNative(
                 TFixedSizeArray & view)
             -> TElem *
@@ -135,7 +124,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The fixed idx array pitch get trait specialization.
         template<
             typename TFixedSizeArray>
@@ -148,7 +136,6 @@ namespace alpaka
         {
             using TElem = std::remove_all_extent_t<TFixedSizeArray>;
 
-            //-----------------------------------------------------------------------------
             static constexpr auto getPitchBytes(
                 TFixedSizeArray const &)
             -> Idx<TFixedSizeArray>
@@ -157,7 +144,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The fixed idx array offset get trait specialization.
         template<
             typename TIdx,
@@ -167,7 +153,6 @@ namespace alpaka
             TFixedSizeArray,
             std::enable_if_t<std::is_array<TFixedSizeArray>::value>>
         {
-            //-----------------------------------------------------------------------------
             static auto getOffset(
                 TFixedSizeArray const &)
             -> Idx<TFixedSizeArray>
@@ -176,7 +161,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The std::vector idx type trait specialization.
         template<
             typename TFixedSizeArray>

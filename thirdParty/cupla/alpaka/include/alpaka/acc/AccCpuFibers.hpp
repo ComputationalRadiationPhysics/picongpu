@@ -50,7 +50,6 @@ namespace alpaka
     template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     class TaskKernelCpuFibers;
 
-    //#############################################################################
     //! The CPU fibers accelerator.
     //!
     //! This accelerator allows parallel kernel execution on a CPU device.
@@ -89,7 +88,6 @@ namespace alpaka
         friend class ::alpaka::TaskKernelCpuFibers;
 
     private:
-        //-----------------------------------------------------------------------------
         template<typename TWorkDiv>
         ALPAKA_FN_HOST AccCpuFibers(TWorkDiv const& workDiv, std::size_t const& blockSharedMemDynSizeBytes)
             : WorkDivMembers<TDim, TIdx>(workDiv)
@@ -115,15 +113,10 @@ namespace alpaka
         }
 
     public:
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST AccCpuFibers(AccCpuFibers const&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST AccCpuFibers(AccCpuFibers&&) = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(AccCpuFibers const&) -> AccCpuFibers& = delete;
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator=(AccCpuFibers&&) -> AccCpuFibers& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~AccCpuFibers() = default;
 
     private:
@@ -138,19 +131,16 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU fibers accelerator accelerator type trait specialization.
         template<typename TDim, typename TIdx>
         struct AccType<AccCpuFibers<TDim, TIdx>>
         {
             using type = AccCpuFibers<TDim, TIdx>;
         };
-        //#############################################################################
         //! The CPU fibers accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccCpuFibers<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccDevProps(DevCpu const& dev) -> alpaka::AccDevProps<TDim, TIdx>
             {
 #    ifdef ALPAKA_CI
@@ -180,19 +170,16 @@ namespace alpaka
                         getMemBytes(dev)};
             }
         };
-        //#############################################################################
         //! The CPU fibers accelerator name trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccName<AccCpuFibers<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
                 return "AccCpuFibers<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
             }
         };
 
-        //#############################################################################
         //! The CPU fibers accelerator device type trait specialization.
         template<typename TDim, typename TIdx>
         struct DevType<AccCpuFibers<TDim, TIdx>>
@@ -200,7 +187,6 @@ namespace alpaka
             using type = DevCpu;
         };
 
-        //#############################################################################
         //! The CPU fibers accelerator dimension getter trait specialization.
         template<typename TDim, typename TIdx>
         struct DimType<AccCpuFibers<TDim, TIdx>>
@@ -208,12 +194,10 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The CPU fibers accelerator execution task type trait specialization.
         template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
         struct CreateTaskKernel<AccCpuFibers<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto createTaskKernel(
                 TWorkDiv const& workDiv,
                 TKernelFnObj const& kernelFnObj,
@@ -226,7 +210,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU fibers execution task platform type trait specialization.
         template<typename TDim, typename TIdx>
         struct PltfType<AccCpuFibers<TDim, TIdx>>
@@ -234,7 +217,6 @@ namespace alpaka
             using type = PltfCpu;
         };
 
-        //#############################################################################
         //! The CPU fibers accelerator idx type trait specialization.
         template<typename TDim, typename TIdx>
         struct IdxType<AccCpuFibers<TDim, TIdx>>

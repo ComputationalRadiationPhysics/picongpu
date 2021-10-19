@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace core
     {
-        //-----------------------------------------------------------------------------
         //! Rounds to the next higher power of two (if not already power of two).
         // Adapted from llvm/ADT/SmallPtrSet.h
         ALPAKA_FN_INLINE ALPAKA_FN_HOST void* alignedAlloc(size_t alignment, size_t size)
@@ -50,13 +49,11 @@ namespace alpaka
 #endif
         }
 
-        //#############################################################################
         //! destroy aligned object and free aligned memory
         struct AlignedDelete
         {
             constexpr AlignedDelete() = default;
 
-            //-----------------------------------------------------------------------------
             //! Calls ~T() on ptr to destroy the object and then calls aligned_free to free the allocated memory.
             template<typename T>
             void operator()(T* ptr) const

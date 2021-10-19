@@ -19,56 +19,52 @@
  */
 
 
+#include "cupla/api/common.hpp"
+
+#include "cupla/manager/Device.hpp"
+#include "cupla/manager/Event.hpp"
+#include "cupla/manager/Memory.hpp"
+#include "cupla/manager/Stream.hpp"
 #include "cupla/namespace.hpp"
 #include "cupla_runtime.hpp"
-#include "cupla/manager/Memory.hpp"
-#include "cupla/manager/Device.hpp"
-#include "cupla/manager/Stream.hpp"
-#include "cupla/manager/Event.hpp"
-#include "cupla/api/common.hpp"
 
 inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    const char* cuplaGetErrorName(cuplaError_t e)
+    {
+        return CuplaErrorCode::message_cstr(e);
+    }
 
-CUPLA_HEADER_ONLY_FUNC_SPEC
-const char *
-cuplaGetErrorName(cuplaError_t e)
-{
-    return CuplaErrorCode::message_cstr(e);
-}
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    const char* cuplaGetErrorString(cuplaError_t e)
+    {
+        return CuplaErrorCode::message_cstr(e);
+    }
 
-CUPLA_HEADER_ONLY_FUNC_SPEC
-const char *
-cuplaGetErrorString(cuplaError_t e)
-{
-    return CuplaErrorCode::message_cstr(e);
-}
-
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaGetLastError()
-{
-#if( ALPAKA_ACC_GPU_CUDA_ENABLED == 1 )
-    // reset the last cuda error
-    return (cuplaError_t)cudaGetLastError();
-#elif( ALPAKA_ACC_GPU_HIP_ENABLED == 1 )
-    return (cuplaError_t)hipGetLastError();
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaGetLastError()
+    {
+#if(ALPAKA_ACC_GPU_CUDA_ENABLED == 1)
+        // reset the last cuda error
+        return (cuplaError_t) cudaGetLastError();
+#elif(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+        return (cuplaError_t) hipGetLastError();
 #else
-    return cuplaSuccess;
+        return cuplaSuccess;
 #endif
-}
+    }
 
-CUPLA_HEADER_ONLY_FUNC_SPEC
-cuplaError_t
-cuplaPeekAtLastError()
-{
-#if( ALPAKA_ACC_GPU_CUDA_ENABLED == 1 )
-    return (cuplaError_t)cudaPeekAtLastError();
-#elif( ALPAKA_ACC_GPU_HIP_ENABLED == 1 )
-    return (cuplaError_t)hipPeekAtLastError();
+    CUPLA_HEADER_ONLY_FUNC_SPEC
+    cuplaError_t cuplaPeekAtLastError()
+    {
+#if(ALPAKA_ACC_GPU_CUDA_ENABLED == 1)
+        return (cuplaError_t) cudaPeekAtLastError();
+#elif(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+        return (cuplaError_t) hipPeekAtLastError();
 #else
-    return cuplaSuccess;
+        return cuplaSuccess;
 #endif
-}
+    }
 
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace CUPLA_ACCELERATOR_NAMESPACE

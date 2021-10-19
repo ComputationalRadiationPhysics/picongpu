@@ -46,7 +46,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The CUDA built in acos.
         class AcosUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathAcos, AcosUniformCudaHipBuiltIn>
         {
@@ -54,12 +53,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The CUDA acos trait specialization.
             template<typename TArg>
             struct Acos<AcosUniformCudaHipBuiltIn, TArg, std::enable_if_t<std::is_floating_point<TArg>::value>>
             {
-                __device__ static auto acos(AcosUniformCudaHipBuiltIn const& acos_ctx, TArg const& arg)
+                __device__ auto operator()(AcosUniformCudaHipBuiltIn const& acos_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(acos_ctx);
                     return ::acos(arg);
@@ -69,7 +67,7 @@ namespace alpaka
             template<>
             struct Acos<AcosUniformCudaHipBuiltIn, float>
             {
-                __device__ static auto acos(AcosUniformCudaHipBuiltIn const& acos_ctx, float const& arg) -> float
+                __device__ auto operator()(AcosUniformCudaHipBuiltIn const& acos_ctx, float const& arg) -> float
                 {
                     alpaka::ignore_unused(acos_ctx);
                     return ::acosf(arg);

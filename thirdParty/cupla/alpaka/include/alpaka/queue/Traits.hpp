@@ -20,27 +20,22 @@ namespace alpaka
 {
     struct ConceptQueue;
 
-    //-----------------------------------------------------------------------------
     //! The queue traits.
     namespace traits
     {
-        //#############################################################################
         //! The queue enqueue trait.
         template<typename TQueue, typename TTask, typename TSfinae = void>
         struct Enqueue;
 
-        //#############################################################################
         //! The queue empty trait.
         template<typename TQueue, typename TSfinae = void>
         struct Empty;
 
-        //#############################################################################
         //! Queue for an accelerator
         template<typename TAcc, typename TProperty, typename TSfinae = void>
         struct QueueType;
     } // namespace traits
 
-    //-----------------------------------------------------------------------------
     //! Queues the given task in the given queue.
     //!
     //! Special Handling for events:
@@ -53,7 +48,6 @@ namespace alpaka
         traits::Enqueue<TQueue, std::decay_t<TTask>>::enqueue(queue, std::forward<TTask>(task));
     }
 
-    //-----------------------------------------------------------------------------
     //! Tests if the queue is empty (all ops in the given queue have been completed).
     //!
     //! \warning This function is allowed to return false negatives. An empty queue can reported as
@@ -66,7 +60,6 @@ namespace alpaka
         return traits::Empty<ImplementationBase>::empty(queue);
     }
 
-    //-----------------------------------------------------------------------------
     //! Queue based on the environment and a property
     //!
     //! \tparam TEnv Environment type, e.g.  accelerator, device or a platform.

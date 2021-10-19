@@ -21,6 +21,12 @@ CMAKE_ARGS="${PMACC_CONST_ARGS} ${PIC_CMAKE_ARGS} -DCMAKE_CXX_COMPILER=${CXX_VER
 # allow root user to execute MPI
 CMAKE_ARGS="$CMAKE_ARGS -DUSE_MPI_AS_ROOT_USER=ON"
 
+
+# check and activate if clang should be used as CUDA device compiler
+if [ -n "$CI_CLANG_AS_CUDA_COMPILER" ] ; then
+    CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CUDA_COMPILER=${CXX_VERSION}"
+fi
+
 ###################################################
 # translate PIConGPU backend names into CMake Flags
 ###################################################
@@ -36,7 +42,9 @@ get_backend_flags()
     if [ "${backend_cfg[0]}" == "cuda" ] ; then
         result+=" -DALPAKA_ACC_GPU_CUDA_ENABLE=ON -DALPAKA_ACC_GPU_CUDA_ONLY_MODE=ON"
         if [ $num_options -eq 2 ] ; then
-            result+=" -DALPAKA_CUDA_ARCH=\"${backend_cfg[1]}\""
+            result+=" -DCMAKE_CUDA_ARCHITECTURES=\"${backend_cfg[1]}\""
+        else
+            result+=" -DCMAKE_CUDA_ARCHITECTURES=35"
         fi
     elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
         result+=" -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
@@ -61,7 +69,7 @@ get_backend_flags()
     elif [ "${backend_cfg[0]}" == "hip" ] ; then
         result+=" -DALPAKA_ACC_GPU_HIP_ENABLE=ON -DALPAKA_ACC_GPU_HIP_ONLY_MODE=ON"
         if [ $num_options -eq 2 ] ; then
-            result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
+            result+=" -DALPAKA_HIP_ARCH=\"${backend_cfg[1]}\""
         fi
     else
         echo "unsupported backend given '$1'" >&2

@@ -51,7 +51,6 @@ namespace alpaka
     template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     class TaskKernelOmp5;
 
-    //#############################################################################
     //! The CPU OpenMP 5.0 accelerator.
     //!
     //! This accelerator allows parallel kernel execution on an OpenMP target device.
@@ -88,7 +87,6 @@ namespace alpaka
         friend class ::alpaka::TaskKernelOmp5;
 
     private:
-        //-----------------------------------------------------------------------------
         AccOmp5(
             Vec<TDim, TIdx> const& gridBlockExtent,
             Vec<TDim, TIdx> const& blockThreadExtent,
@@ -115,33 +113,25 @@ namespace alpaka
         }
 
     public:
-        //-----------------------------------------------------------------------------
         AccOmp5(AccOmp5 const&) = delete;
-        //-----------------------------------------------------------------------------
         AccOmp5(AccOmp5&&) = delete;
-        //-----------------------------------------------------------------------------
         auto operator=(AccOmp5 const&) -> AccOmp5& = delete;
-        //-----------------------------------------------------------------------------
         auto operator=(AccOmp5&&) -> AccOmp5& = delete;
-        //-----------------------------------------------------------------------------
         /*virtual*/ ~AccOmp5() = default;
     };
 
     namespace traits
     {
-        //#############################################################################
         //! The OpenMP 5.0 accelerator accelerator type trait specialization.
         template<typename TDim, typename TIdx>
         struct AccType<AccOmp5<TDim, TIdx>>
         {
             using type = AccOmp5<TDim, TIdx>;
         };
-        //#############################################################################
         //! The OpenMP 5.0 accelerator device properties get trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccDevProps<AccOmp5<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccDevProps(DevOmp5 const& dev) -> AccDevProps<TDim, TIdx>
             {
                 alpaka::ignore_unused(dev);
@@ -190,19 +180,16 @@ namespace alpaka
                         AccOmp5<TDim, TIdx>::staticAllocBytes()};
             }
         };
-        //#############################################################################
         //! The OpenMP 5.0 accelerator name trait specialization.
         template<typename TDim, typename TIdx>
         struct GetAccName<AccOmp5<TDim, TIdx>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
                 return "AccOmp5<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
             }
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 accelerator device type trait specialization.
         template<typename TDim, typename TIdx>
         struct DevType<AccOmp5<TDim, TIdx>>
@@ -210,7 +197,6 @@ namespace alpaka
             using type = DevOmp5;
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 accelerator dimension getter trait specialization.
         template<typename TDim, typename TIdx>
         struct DimType<AccOmp5<TDim, TIdx>>
@@ -218,12 +204,10 @@ namespace alpaka
             using type = TDim;
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 accelerator execution task type trait specialization.
         template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
         struct CreateTaskKernel<AccOmp5<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto createTaskKernel(
                 TWorkDiv const& workDiv,
                 TKernelFnObj const& kernelFnObj,
@@ -236,7 +220,6 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 execution task platform type trait specialization.
         template<typename TDim, typename TIdx>
         struct PltfType<AccOmp5<TDim, TIdx>>
@@ -244,7 +227,6 @@ namespace alpaka
             using type = PltfOmp5;
         };
 
-        //#############################################################################
         //! The OpenMP 5.0 accelerator idx type trait specialization.
         template<typename TDim, typename TIdx>
         struct IdxType<AccOmp5<TDim, TIdx>>

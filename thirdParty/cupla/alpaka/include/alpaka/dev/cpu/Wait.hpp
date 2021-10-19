@@ -17,7 +17,6 @@ namespace alpaka
 {
     namespace traits
     {
-        //#############################################################################
         //! The CPU device thread wait specialization.
         //!
         //! Blocks until the device has completed all preceding requested tasks.
@@ -25,7 +24,6 @@ namespace alpaka
         template<>
         struct CurrentThreadWaitFor<DevCpu>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto currentThreadWaitFor(DevCpu const& dev) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;

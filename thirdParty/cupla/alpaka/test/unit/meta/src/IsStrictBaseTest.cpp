@@ -24,7 +24,6 @@ class C
 {
 };
 
-//-----------------------------------------------------------------------------
 TEST_CASE("isStrictBaseTrue", "[meta]")
 {
     constexpr bool IsStrictBaseResult = alpaka::meta::IsStrictBase<A, B>::value;
@@ -34,7 +33,6 @@ TEST_CASE("isStrictBaseTrue", "[meta]")
     static_assert(IsStrictBaseReference == IsStrictBaseResult, "alpaka::meta::IsStrictBase failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("isStrictBaseIdentity", "[meta]")
 {
     constexpr bool IsStrictBaseResult = alpaka::meta::IsStrictBase<A, A>::value;
@@ -44,7 +42,6 @@ TEST_CASE("isStrictBaseIdentity", "[meta]")
     static_assert(IsStrictBaseReference == IsStrictBaseResult, "alpaka::meta::IsStrictBase failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("isStrictBaseNoInheritance", "[meta]")
 {
     constexpr bool IsStrictBaseResult = alpaka::meta::IsStrictBase<A, C>::value;
@@ -54,7 +51,6 @@ TEST_CASE("isStrictBaseNoInheritance", "[meta]")
     static_assert(IsStrictBaseReference == IsStrictBaseResult, "alpaka::meta::IsStrictBase failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("isStrictBaseWrongOrder", "[meta]")
 {
     constexpr bool IsStrictBaseResult = alpaka::meta::IsStrictBase<B, A>::value;

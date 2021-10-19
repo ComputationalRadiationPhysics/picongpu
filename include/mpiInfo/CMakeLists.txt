@@ -22,14 +22,14 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 3.15.0)
+cmake_minimum_required(VERSION 3.18.0)
 
 
 ################################################################################
 # Project
 ################################################################################
 
-project(mpiInfo)
+project(mpiInfo LANGUAGES CXX)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
@@ -80,11 +80,11 @@ set(CMAKE_CXX_FLAGS_DEFAULT "-Wall")
 
 find_package(MPI REQUIRED)
 include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
-set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
+set(MPIINFO_LIBS ${MPIINFO_LIBS} ${MPI_C_LIBRARIES})
 
 # bullxmpi fails if it can not find its c++ counter part
 if(MPI_CXX_FOUND)
-    set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
+    set(MPIINFO_LIBS ${MPIINFO_LIBS} ${MPI_CXX_LIBRARIES})
 endif(MPI_CXX_FOUND)
 
 
@@ -94,10 +94,10 @@ endif(MPI_CXX_FOUND)
 
 find_package(Boost 1.65.1 REQUIRED COMPONENTS program_options)
 if(TARGET Boost::program_options)
-    set(LIBS ${LIBS} Boost::boost Boost::program_options)
+    set(MPIINFO_LIBS ${MPIINFO_LIBS} Boost::boost Boost::program_options)
 else()
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-    set(LIBS ${LIBS} ${Boost_LIBRARIES})
+    set(MPIINFO_LIBS ${MPIINFO_LIBS} ${Boost_LIBRARIES})
 endif()
 
 
@@ -109,7 +109,7 @@ add_executable(mpiInfo
     mpiInfo.cpp
 )
 
-target_link_libraries(mpiInfo ${LIBS})
+target_link_libraries(mpiInfo PRIVATE ${MPIINFO_LIBS})
 
 
 ################################################################################

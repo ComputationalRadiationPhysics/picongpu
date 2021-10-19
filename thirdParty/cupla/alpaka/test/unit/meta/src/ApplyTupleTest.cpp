@@ -11,7 +11,6 @@
 
 #include <catch2/catch.hpp>
 
-//#############################################################################
 struct Foo
 {
     Foo(int num) : num_(num)
@@ -24,14 +23,12 @@ struct Foo
     int num_;
 };
 
-//-----------------------------------------------------------------------------
 auto abs_num(int i) -> int;
 auto abs_num(int i) -> int
 {
     return std::abs(i);
 }
 
-//#############################################################################
 struct AbsNum
 {
     auto operator()(int i) const -> int
@@ -40,7 +37,6 @@ struct AbsNum
     }
 };
 
-//-----------------------------------------------------------------------------
 TEST_CASE("invoke", "[meta]")
 {
     // invoke a free function
@@ -60,21 +56,18 @@ TEST_CASE("invoke", "[meta]")
     REQUIRE(18 == alpaka::meta::invoke(AbsNum(), -18));
 }
 
-//-----------------------------------------------------------------------------
 auto add(int first, int second) -> int;
 auto add(int first, int second) -> int
 {
     return first + second;
 }
 
-//-----------------------------------------------------------------------------
 template<typename T>
 T add_generic(T first, T second)
 {
     return first + second;
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("applyTuple", "[meta]")
 {
     REQUIRE(3 == alpaka::meta::apply(add, std::make_tuple(1, 2)));

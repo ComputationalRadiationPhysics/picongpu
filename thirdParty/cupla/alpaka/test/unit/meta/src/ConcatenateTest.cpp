@@ -15,7 +15,6 @@
 #include <tuple>
 #include <type_traits>
 
-//-----------------------------------------------------------------------------
 TEST_CASE("concatenate", "[meta]")
 {
     using TestTuple1 = std::tuple<float, int, std::tuple<double, unsigned long>>;

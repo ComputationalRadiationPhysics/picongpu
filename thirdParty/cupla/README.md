@@ -40,7 +40,7 @@ Dependencies
 ------------
 
 - **cmake 3.15.0**
-- **[alpaka 0.6.X](https://github.com/alpaka-group/alpaka/)**
+- **[alpaka 0.7.X](https://github.com/alpaka-group/alpaka/)**
   - alpaka is loaded as `git subtree` within **cupla**, see [INSTALL.md](INSTALL.md)
 
 Usage
@@ -50,6 +50,8 @@ Usage
 - Checkout the [guide](doc/PortingGuide.md) how to port your project.
 - Checkout the [tuning guide](doc/TuningGuide.md) for a step further to performance
   portable code.
+- Checkout the [interoperability guide](doc/InteroperabilityGuide.md) to learn more on
+  how to use **cupla** with software developed with an **alpaka** compatible interface.
 
 [cupla can be used as a header-only library and without the CMake build system](doc/ConfigurationHeader.md)
 

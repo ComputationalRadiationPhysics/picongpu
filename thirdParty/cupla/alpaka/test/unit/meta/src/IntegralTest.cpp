@@ -13,7 +13,6 @@
 
 #include <type_traits>
 
-//-----------------------------------------------------------------------------
 TEST_CASE("isIntegralSupersetTrue", "[meta]")
 {
     // unsigned - unsigned
@@ -131,7 +130,6 @@ TEST_CASE("isIntegralSupersetTrue", "[meta]")
         "alpaka::meta::IsIntegralSuperset failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("isIntegralSupersetNoIntegral", "[meta]")
 {
     static_assert(
@@ -142,7 +140,6 @@ TEST_CASE("isIntegralSupersetNoIntegral", "[meta]")
         "alpaka::meta::IsIntegralSuperset failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("isIntegralSupersetFalse", "[meta]")
 {
     // unsigned - unsigned
@@ -260,7 +257,6 @@ TEST_CASE("isIntegralSupersetFalse", "[meta]")
         "alpaka::meta::IsIntegralSuperset failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("higherMax", "[meta]")
 {
     static_assert(
@@ -464,7 +460,6 @@ TEST_CASE("higherMax", "[meta]")
         "alpaka::meta::HigherMax failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("lowerMax", "[meta]")
 {
     static_assert(
@@ -668,7 +663,6 @@ TEST_CASE("lowerMax", "[meta]")
         "alpaka::meta::LowerMax failed!");
 }
 
-//-----------------------------------------------------------------------------
 TEST_CASE("higherMin", "[meta]")
 {
     static_assert(
@@ -871,7 +865,6 @@ TEST_CASE("higherMin", "[meta]")
         std::is_same<alpaka::meta::HigherMin<std::uint64_t, std::uint64_t>, std::uint64_t>::value,
         "alpaka::meta::HigherMin failed!");
 }
-//-----------------------------------------------------------------------------
 TEST_CASE("lowerMin", "[meta]")
 {
     static_assert(

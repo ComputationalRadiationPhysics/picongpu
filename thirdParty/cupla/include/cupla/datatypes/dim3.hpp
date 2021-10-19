@@ -21,49 +21,38 @@
 
 #pragma once
 
+#include "cupla/datatypes/uint.hpp"
 #include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
-#include "cupla/datatypes/uint.hpp"
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-
-    struct dim3
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
     {
-        IdxType x, y, z;
-
-        ALPAKA_FN_HOST_ACC
-        dim3(
-            IdxType vx = 1,
-            IdxType vy = 1,
-            IdxType vz = 1
-        ) :
-            x(vx),
-            y(vy),
-            z(vz)
-        {}
-
-        ALPAKA_FN_HOST_ACC
-        dim3(
-            const uint3& v
-        ) :
-            x(v.x),
-            y(v.y),
-            z(v.z)
-        {}
-
-        ALPAKA_FN_HOST_ACC
-        operator uint3(void)
+        struct dim3
         {
-          uint3 t;
-          t.x = x;
-          t.y = y;
-          t.z = z;
-          return t;
-        }
-    };
+            IdxType x, y, z;
 
-} //namespace CUPLA_ACCELERATOR_NAMESPACE
-} //namespace cupla
+            ALPAKA_FN_HOST_ACC
+            dim3(IdxType vx = 1, IdxType vy = 1, IdxType vz = 1) : x(vx), y(vy), z(vz)
+            {
+            }
+
+            ALPAKA_FN_HOST_ACC
+            dim3(const uint3& v) : x(v.x), y(v.y), z(v.z)
+            {
+            }
+
+            ALPAKA_FN_HOST_ACC
+            operator uint3(void)
+            {
+                uint3 t;
+                t.x = x;
+                t.y = y;
+                t.z = z;
+                return t;
+            }
+        };
+
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace cupla

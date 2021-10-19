@@ -20,22 +20,18 @@ namespace alpaka
     {
     };
 
-    //-----------------------------------------------------------------------------
     //! The block synchronization traits.
     namespace traits
     {
-        //#############################################################################
         //! The block synchronization operation trait.
         template<typename TBlockSync, typename TSfinae = void>
         struct SyncBlockThreads;
 
-        //#############################################################################
         //! The block synchronization and predicate operation trait.
         template<typename TOp, typename TBlockSync, typename TSfinae = void>
         struct SyncBlockThreadsPredicate;
     } // namespace traits
 
-    //-----------------------------------------------------------------------------
     //! Synchronizes all threads within the current block (independently for all blocks).
     //!
     //! \tparam TBlockSync The block synchronization implementation type.
@@ -48,7 +44,6 @@ namespace alpaka
         traits::SyncBlockThreads<ImplementationBase>::syncBlockThreads(blockSync);
     }
 
-    //#############################################################################
     //! The counting function object.
     struct BlockCount
     {
@@ -64,7 +59,6 @@ namespace alpaka
             return currentResult + static_cast<T>(value != static_cast<T>(0));
         }
     };
-    //#############################################################################
     //! The logical and function object.
     struct BlockAnd
     {
@@ -80,7 +74,6 @@ namespace alpaka
             return static_cast<T>(currentResult && (value != static_cast<T>(0)));
         }
     };
-    //#############################################################################
     //! The logical or function object.
     struct BlockOr
     {
@@ -97,7 +90,6 @@ namespace alpaka
         }
     };
 
-    //-----------------------------------------------------------------------------
     //! Synchronizes all threads within the current block (independently for all blocks),
     //! evaluates the predicate for all threads and returns the combination of all the results
     //! computed via TOp.

@@ -18,18 +18,15 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The CPU device platform.
     class PltfCpu : public concepts::Implements<ConceptPltf, PltfCpu>
     {
     public:
-        //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST PltfCpu() = delete;
     };
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU device device type trait specialization.
         template<>
         struct DevType<PltfCpu>
@@ -37,12 +34,10 @@ namespace alpaka
             using type = DevCpu;
         };
 
-        //#############################################################################
         //! The CPU platform device count get trait specialization.
         template<>
         struct GetDevCount<PltfCpu>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDevCount() -> std::size_t
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
@@ -51,12 +46,10 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
         //! The CPU platform device get trait specialization.
         template<>
         struct GetDevByIdx<PltfCpu>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDevByIdx(std::size_t const& devIdx) -> DevCpu
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;

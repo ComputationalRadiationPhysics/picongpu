@@ -38,7 +38,6 @@ namespace alpaka
 #    pragma clang diagnostic push
 #    pragma clang diagnostic ignored "-Wweak-vtables"
 #endif
-            //#############################################################################
             //! The CPU device queue implementation.
             template<typename TDev>
             class QueueGenericThreadsNonBlockingImpl final : public IGenericThreadsQueue<TDev>
@@ -47,7 +46,6 @@ namespace alpaka
 #endif
             {
             private:
-                //#############################################################################
                 using ThreadPool = alpaka::core::detail::ConcurrentExecPool<
                     std::size_t,
                     std::thread, // The concurrent execution type.
@@ -59,28 +57,21 @@ namespace alpaka
                     false>; // If the threads should yield.
 
             public:
-                //-----------------------------------------------------------------------------
                 explicit QueueGenericThreadsNonBlockingImpl(TDev const& dev) : m_dev(dev), m_workerThread(1u)
                 {
                 }
-                //-----------------------------------------------------------------------------
                 QueueGenericThreadsNonBlockingImpl(QueueGenericThreadsNonBlockingImpl<TDev> const&) = delete;
-                //-----------------------------------------------------------------------------
                 QueueGenericThreadsNonBlockingImpl(QueueGenericThreadsNonBlockingImpl<TDev>&&) = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(QueueGenericThreadsNonBlockingImpl<TDev> const&)
                     -> QueueGenericThreadsNonBlockingImpl<TDev>& = delete;
-                //-----------------------------------------------------------------------------
                 auto operator=(QueueGenericThreadsNonBlockingImpl<TDev>&&)
                     -> QueueGenericThreadsNonBlockingImpl<TDev>& = delete;
 
-                //-----------------------------------------------------------------------------
                 void enqueue(EventGenericThreads<TDev>& ev) final
                 {
                     alpaka::enqueue(*this, ev);
                 }
 
-                //-----------------------------------------------------------------------------
                 void wait(EventGenericThreads<TDev> const& ev) final
                 {
                     alpaka::wait(*this, ev);
@@ -94,7 +85,6 @@ namespace alpaka
         } // namespace detail
     } // namespace generic
 
-    //#############################################################################
     //! The CPU device queue.
     template<typename TDev>
     class QueueGenericThreadsNonBlocking final
@@ -103,7 +93,6 @@ namespace alpaka
         , public concepts::Implements<ConceptGetDev, QueueGenericThreadsNonBlocking<TDev>>
     {
     public:
-        //-----------------------------------------------------------------------------
         explicit QueueGenericThreadsNonBlocking(TDev const& dev)
             : m_spQueueImpl(std::make_shared<generic::detail::QueueGenericThreadsNonBlockingImpl<TDev>>(dev))
         {
@@ -111,25 +100,18 @@ namespace alpaka
 
             dev.registerQueue(m_spQueueImpl);
         }
-        //-----------------------------------------------------------------------------
         QueueGenericThreadsNonBlocking(QueueGenericThreadsNonBlocking<TDev> const&) = default;
-        //-----------------------------------------------------------------------------
         QueueGenericThreadsNonBlocking(QueueGenericThreadsNonBlocking<TDev>&&) = default;
-        //-----------------------------------------------------------------------------
         auto operator=(QueueGenericThreadsNonBlocking<TDev> const&) -> QueueGenericThreadsNonBlocking<TDev>& = default;
-        //-----------------------------------------------------------------------------
         auto operator=(QueueGenericThreadsNonBlocking<TDev>&&) -> QueueGenericThreadsNonBlocking<TDev>& = default;
-        //-----------------------------------------------------------------------------
         auto operator==(QueueGenericThreadsNonBlocking<TDev> const& rhs) const -> bool
         {
             return (m_spQueueImpl == rhs.m_spQueueImpl);
         }
-        //-----------------------------------------------------------------------------
         auto operator!=(QueueGenericThreadsNonBlocking<TDev> const& rhs) const -> bool
         {
             return !((*this) == rhs);
         }
-        //-----------------------------------------------------------------------------
         ~QueueGenericThreadsNonBlocking() = default;
 
     public:
@@ -138,26 +120,22 @@ namespace alpaka
 
     namespace traits
     {
-        //#############################################################################
         //! The CPU non-blocking device queue device type trait specialization.
         template<typename TDev>
         struct DevType<QueueGenericThreadsNonBlocking<TDev>>
         {
             using type = TDev;
         };
-        //#############################################################################
         //! The CPU non-blocking device queue device get trait specialization.
         template<typename TDev>
         struct GetDev<QueueGenericThreadsNonBlocking<TDev>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDev(QueueGenericThreadsNonBlocking<TDev> const& queue) -> TDev
             {
                 return queue.m_spQueueImpl->m_dev;
             }
         };
 
-        //#############################################################################
         //! The CPU non-blocking device queue event type trait specialization.
         template<typename TDev>
         struct EventType<QueueGenericThreadsNonBlocking<TDev>>
@@ -165,13 +143,11 @@ namespace alpaka
             using type = EventGenericThreads<TDev>;
         };
 
-        //#############################################################################
         //! The CPU non-blocking device queue enqueue trait specialization.
         //! This default implementation for all tasks directly invokes the function call operator of the task.
         template<typename TDev, typename TTask>
         struct Enqueue<QueueGenericThreadsNonBlocking<TDev>, TTask>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(QueueGenericThreadsNonBlocking<TDev>& queue, TTask const& task) -> void
             {
 // Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
@@ -183,12 +159,10 @@ namespace alpaka
 #endif
             }
         };
-        //#############################################################################
         //! The CPU non-blocking device queue test trait specialization.
         template<typename TDev>
         struct Empty<QueueGenericThreadsNonBlocking<TDev>>
         {
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto empty(QueueGenericThreadsNonBlocking<TDev> const& queue) -> bool
             {
                 return queue.m_spQueueImpl->m_workerThread.isIdle();

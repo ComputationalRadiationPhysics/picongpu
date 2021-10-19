@@ -26,20 +26,19 @@
 
 namespace cupla
 {
-inline namespace CUPLA_ACCELERATOR_NAMESPACE
-{
-inline namespace device
-{
-inline namespace math
-{
+    inline namespace CUPLA_ACCELERATOR_NAMESPACE
+    {
+        inline namespace device
+        {
+            inline namespace math
+            {
+                //! Computes the floating-point remainder of the division operation x/y.
+                CUPLA_BINARY_MATH_FN(fmod, alpaka::math::ConceptMathFmod, Fmod)
 
-    //! Computes the floating-point remainder of the division operation x/y.
-    CUPLA_BINARY_MATH_FN( fmod, alpaka::math::ConceptMathFmod, Fmod )
+                //! Computes the IEEE remainder of the floating point division operation x/y.
+                CUPLA_BINARY_MATH_FN(remainder, alpaka::math::ConceptMathRemainder, Remainder)
 
-    //! Computes the IEEE remainder of the floating point division operation x/y.
-    CUPLA_BINARY_MATH_FN( remainder, alpaka::math::ConceptMathRemainder, Remainder )
-
-} // namespace math
-} // namespace device
-} // namespace CUPLA_ACCELERATOR_NAMESPACE
+            } // namespace math
+        } // namespace device
+    } // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

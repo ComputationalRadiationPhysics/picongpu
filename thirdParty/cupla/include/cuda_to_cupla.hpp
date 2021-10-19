@@ -22,8 +22,6 @@
 #pragma once
 
 #include "cupla.hpp"
-
-#include "cupla/device_functions.hpp"
-
 #include "cupla/cudaToCupla/driverTypes.hpp"
 #include "cupla/cudaToCupla/runtime.hpp"
+#include "cupla/device_functions.hpp"

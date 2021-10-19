@@ -46,7 +46,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The CUDA sincos.
         class SinCosUniformCudaHipBuiltIn : public concepts::Implements<ConceptMathSinCos, SinCosUniformCudaHipBuiltIn>
         {
@@ -54,13 +53,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
-
             //! sincos trait specialization.
             template<>
             struct SinCos<SinCosUniformCudaHipBuiltIn, double>
             {
-                __device__ static auto sincos(
+                __device__ auto operator()(
                     SinCosUniformCudaHipBuiltIn const& sincos_ctx,
                     double const& arg,
                     double& result_sin,
@@ -75,7 +72,7 @@ namespace alpaka
             template<>
             struct SinCos<SinCosUniformCudaHipBuiltIn, float>
             {
-                __device__ static auto sincos(
+                __device__ auto operator()(
                     SinCosUniformCudaHipBuiltIn const& sincos_ctx,
                     float const& arg,
                     float& result_sin,

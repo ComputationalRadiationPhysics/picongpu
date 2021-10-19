@@ -20,13 +20,11 @@ namespace alpaka
 {
     namespace core
     {
-        //-----------------------------------------------------------------------------
         //! convert any type to a reverence type
         //
         // This function is equivalent to std::declval() but can be used
         // within an alpaka accelerator kernel too.
         // This function can be used only within std::decltype().
-        //-----------------------------------------------------------------------------
 #if BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA || BOOST_COMP_HIP
         template<class T>
         ALPAKA_FN_HOST_ACC std::add_rvalue_reference_t<T> declval();

@@ -85,7 +85,7 @@
  * are disabled in CUDA
  */
 #if CUPLA_DEVICE_COMPILE == 0
-#   define __fdividef(a,b) ((a)/(b))
-#   define __expf(a) cupla::math::exp(a)
-#   define __logf(a) cupla::math::log(a)
+#    define __fdividef(a, b) ((a) / (b))
+#    define __expf(a) cupla::math::exp(a)
+#    define __logf(a) cupla::math::log(a)
 #endif

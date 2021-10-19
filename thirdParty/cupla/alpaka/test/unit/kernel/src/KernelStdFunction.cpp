@@ -24,7 +24,6 @@ TEST_UNIT_KERNEL_KERNEL_STD_FUNCTION
 #    include <nvfunctional>
 #endif
 
-//-----------------------------------------------------------------------------
 template<typename Acc>
 void ALPAKA_FN_ACC kernelFn(Acc const& acc, bool* success, std::int32_t val)
 {
@@ -35,7 +34,6 @@ void ALPAKA_FN_ACC kernelFn(Acc const& acc, bool* success, std::int32_t val)
 
 // std::function and std::bind is only allowed on CPU
 #if !BOOST_LANG_CUDA && !BOOST_LANG_HIP
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("stdFunctionKernelIsWorking", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
@@ -48,7 +46,6 @@ TEMPLATE_LIST_TEST_CASE("stdFunctionKernelIsWorking", "[kernel]", alpaka::test::
     REQUIRE(fixture(kernel, 42));
 }
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("stdBindKernelIsWorking", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
@@ -68,7 +65,6 @@ TEMPLATE_LIST_TEST_CASE("stdBindKernelIsWorking", "[kernel]", alpaka::test::Test
 // clang as a native CUDA compiler does not seem to support nvstd::function when ALPAKA_ACC_GPU_CUDA_ONLY_MODE is used.
 // error: reference to __device__ function 'kernelFn<alpaka::AccGpuCudaRt<std::__1::integral_constant<unsigned long, 1>, unsigned long> >' in __host__ function const auto kernel = nvstd::function<void(Acc const &, bool *, std::int32_t)>( kernelFn<Acc> );
 #    if !(defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE) && BOOST_COMP_CLANG_CUDA)
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE( "nvstdFunctionKernelIsWorking", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

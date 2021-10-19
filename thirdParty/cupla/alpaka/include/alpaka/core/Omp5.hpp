@@ -33,7 +33,6 @@ namespace alpaka
     {
         namespace detail
         {
-            //-----------------------------------------------------------------------------
             //! OMP5 runtime API error checking with log and exception, ignoring specific error values
             ALPAKA_FN_HOST inline auto omp5Check(int const& error, char const* desc, char const* file, int const& line)
                 -> void
@@ -56,7 +55,6 @@ namespace alpaka
     } // namespace omp5
 } // namespace alpaka
 
-//-----------------------------------------------------------------------------
 //! OMP5 runtime error checking with log and exception.
 #    define ALPAKA_OMP5_CHECK(cmd) ::alpaka::omp5::detail::omp5Check(cmd, #    cmd, __FILE__, __LINE__)
 
