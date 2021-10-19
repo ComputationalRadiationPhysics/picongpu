@@ -51,10 +51,9 @@ namespace picongpu
                 template<typename T_Particle>
                 HDINLINE void operator()(DataSpace<simDim> const& offsetToTotalOrigin, T_Particle& particle)
                 {
-                    for(uint32_t d = 0; d < simDim; d++)
-                        if((offsetToTotalOrigin[d] < m_parameters.beginInternalCellsTotal[d])
-                           || (offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d]))
-                            particle[multiMask_] = 0;
+                    if((offsetToTotalOrigin[m_parameters.axis] < m_parameters.beginInternalCellsTotal)
+                       || (offsetToTotalOrigin[m_parameters.axis] >= m_parameters.endInternalCellsTotal))
+                        particle[multiMask_] = 0;
                 }
             };
 
@@ -75,8 +74,10 @@ namespace picongpu
                 {
                     pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
                     getInternalCellsTotal(species, exchangeType, &beginInternalCellsTotal, &endInternalCellsTotal);
-                    AbsorbParticleIfOutside::parameters().beginInternalCellsTotal = beginInternalCellsTotal;
-                    AbsorbParticleIfOutside::parameters().endInternalCellsTotal = endInternalCellsTotal;
+                    auto const axis = pmacc::boundary::getAxis(exchangeType);
+                    AbsorbParticleIfOutside::parameters().axis = axis;
+                    AbsorbParticleIfOutside::parameters().beginInternalCellsTotal = beginInternalCellsTotal[axis];
+                    AbsorbParticleIfOutside::parameters().endInternalCellsTotal = endInternalCellsTotal[axis];
                     auto const mapperFactory = getMapperFactory(species, exchangeType);
                     using Manipulator = manipulators::unary::FreeTotalCellOffset<AbsorbParticleIfOutside>;
                     particles::manipulate<Manipulator, T_Species>(currentStep, mapperFactory);
