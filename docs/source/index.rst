@@ -81,6 +81,7 @@ Models
 
    models/pic
    models/AOFDTD
+   models/total_field_scattered_field
    models/shapes
    models/LL_RR
    models/field_ionization
