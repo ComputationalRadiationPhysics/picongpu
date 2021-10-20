@@ -16,7 +16,7 @@ fi
 
 PIC_CONST_ARGS=""
 # to save compile time reduce the isaac functor chain length to one
-PIC_CONST_ARGS="${PIC_CONST_ARGS} -DISAAC_MAX_FUNCTORS=1 -DCMAKE_BUILD_TYPE=${PIC_BUILD_TYPE}"
+PIC_CONST_ARGS="${PIC_CONST_ARGS} -DPIC_CI_COMPILE=ON -DISAAC_MAX_FUNCTORS=1 -DCMAKE_BUILD_TYPE=${PIC_BUILD_TYPE}"
 CMAKE_ARGS="${PIC_CONST_ARGS} ${PIC_CMAKE_ARGS} -DCMAKE_CXX_COMPILER=${CXX_VERSION} -DBOOST_ROOT=/opt/boost/${BOOST_VERSION}"
 
 # check and activate if clang should be used as CUDA device compiler
