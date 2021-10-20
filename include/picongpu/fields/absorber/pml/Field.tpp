@@ -180,11 +180,11 @@ namespace picongpu
                         {
                             /* Note: here we could have returned the result directly,
                              * but chose to have a single return for potential
-                             * performance gains on GPU. The break is not required,
-                             * since each valid index belonds to exactly one layer.
+                             * performance gains on GPU.
+                             * 'break' can be used too because the if condition will evaluate only for one layer to
+                             * true but this would create 'stack frame' usage within GPU kernel.
                              */
                             result = currentLayerBeginIdx + layer.getLinearIdx(idx);
-                            break;
                         }
                         else
                             currentLayerBeginIdx += layer.getVolume();
