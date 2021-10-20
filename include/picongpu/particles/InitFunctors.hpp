@@ -64,7 +64,8 @@ namespace picongpu
          * The sampling process operates independently for each cell, as follows:
          *    - Evaluate the amount of real particles in the cell, Nr, using T_DensityFunctor.
          *    - If Nr > 0, decide how to represent it with macroparticles using T_PositionFunctor:
-         *        - (For simplicity we describe how all currently used functors operate, see below for customization)
+         *        - (For simplicity we describe how all currently used functors but RandomPositionAndWeightingImpl
+         *           operate, see below for customization)
          *        - Try to have exactly T_PositionFunctor::numParticlesPerCell macroparticles
          *          with same weighting w = Nr / T_PositionFunctor::numParticlesPerCell.
          *        - If such w < MIN_WEIGHTING, instead use fewer macroparticles and higher weighting.
@@ -75,7 +76,7 @@ namespace picongpu
          * In principle, one could override the logic inside the (If Nr > 0) block by implementing a custom functor.
          * Then one could have an arbitrary number of macroparticles and weight distribution between them.
          * The only requirement is that together it matches Nr.
-         * However, the description above holds for all preset position functors provided by PIConGPU.
+         * For an example of non-uniform weight distribution @see startPosition::RandomPositionAndWeightingImpl.
          * Note that in this scheme almost all non-vacuum cells will start with the same number of macroparticles.
          * Having a higher density in a cell would mean larger weighting, but not more macroparticles.
          *
