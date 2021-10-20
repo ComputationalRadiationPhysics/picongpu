@@ -36,9 +36,11 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/meta/InvokeIf.hpp>
 #include <pmacc/particles/memory/buffers/ParticlesBuffer.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/GetUniqueTypeId.hpp>
+#include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
 #include <iostream>
@@ -202,6 +204,15 @@ namespace picongpu
         : ParticlesBase<SpeciesParticleDescription, picongpu::MappingDesc, DeviceHeap>(heap, cellDescription)
         , m_datasetID(datasetID)
     {
+        constexpr bool particleHasShape = pmacc::traits::HasIdentifier<FrameType, shape<>>::type::value;
+        pmacc::meta::invokeIf<particleHasShape>([]() {
+            constexpr auto particleAssignmentShapeSupport = GetShape<Particles>::type::ChargeAssignment::support;
+            static_assert(
+                particleAssignmentShapeSupport > 0,
+                "A particle shape must have a support larger than zero. Please use a higher order shape. If you "
+                "need a pointwise particle use NGP shape.");
+        });
+
         size_t sizeOfExchanges = 0u;
 
         const uint32_t commTag = pmacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid();
