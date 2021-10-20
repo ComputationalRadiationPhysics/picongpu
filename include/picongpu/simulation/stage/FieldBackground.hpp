@@ -68,10 +68,10 @@ namespace picongpu
                      * @param useDuplicateField flag to store duplicate of the field
                      */
                     ApplyFieldBackground(MappingDesc const cellDescription, bool const useDuplicateField)
-                        : cellDescription(cellDescription)
+                        : isEnabled(FieldBackground::InfluenceParticlePusher)
                         , useDuplicateField(useDuplicateField)
                         , restoreFromDuplicateField(false)
-                        , isEnabled(FieldBackground::InfluenceParticlePusher)
+                        , cellDescription(cellDescription)
                     {
                         if(isEnabled && useDuplicateField)
                         {

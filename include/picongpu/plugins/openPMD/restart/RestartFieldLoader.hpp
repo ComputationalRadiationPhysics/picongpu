@@ -138,7 +138,6 @@ namespace picongpu
 
                     log<picLog::INPUT_OUTPUT>("openPMD: Read from field '%1%'") % objectName;
 
-                    auto ndim = rc.getDimensionality();
                     ::openPMD::Offset start = asStandardVector<DataSpace<simDim>&, ::openPMD::Offset>(domain_offset);
                     ::openPMD::Extent count
                         = asStandardVector<DataSpace<simDim>&, ::openPMD::Extent>(local_domain_size);

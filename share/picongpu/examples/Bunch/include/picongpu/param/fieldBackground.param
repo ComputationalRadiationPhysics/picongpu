@@ -124,6 +124,9 @@ namespace picongpu
         /** Add this additional field for pushing particles */
         static constexpr bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
 
+        /** We use this to calculate your SI input back to our unit system */
+        PMACC_ALIGN(m_unitField, const float3_64);
+
         /** TWTS B-fields need to be initialized on host,
          *  so they can look up global grid dimensions.
          *
@@ -135,9 +138,6 @@ namespace picongpu
 #else
         const templates::twts::BField twtsFieldB;
 #endif
-
-        /** We use this to calculate your SI input back to our unit system */
-        PMACC_ALIGN(m_unitField, const float3_64);
 
         HINLINE FieldBackgroundB(const float3_64 unitField)
             : m_unitField(unitField)

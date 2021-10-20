@@ -375,8 +375,6 @@ namespace picongpu
             template<typename T_CellDescription>
             HINLINE void operator()(T_CellDescription cellDesc, const uint32_t currentStep) const
             {
-                DataConnector& dc = Environment<>::get().DataConnector();
-
                 // only if an ionizer has been specified, this is executed
                 using hasIonizers = typename HasFlag<FrameType, ionizers<>>::type;
                 if(hasIonizers::value)

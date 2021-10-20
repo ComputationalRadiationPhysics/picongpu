@@ -188,9 +188,6 @@ namespace picongpu
                     ValueType_E eField
                         = Field2ParticleInterpolation()(cachedE.shift(localCell).toCursor(), pos, fieldPosE());
 
-                    /* define number of bound macro electrons before ionization */
-                    float_X prevBoundElectrons = particle[boundElectrons_];
-
                     /* this is the point where actual ionization takes place */
                     IonizationAlgorithm ionizeAlgo{};
                     auto retValue = ionizeAlgo(eField, particle);

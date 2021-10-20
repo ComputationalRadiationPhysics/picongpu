@@ -96,8 +96,8 @@ namespace pmacc
          */
         GridBuffer(const GridLayout<DIM>& gridLayout, bool sizeOnDevice = false)
             : Parent(gridLayout.getDataSpace(), sizeOnDevice)
-            , gridLayout(gridLayout)
             , hasOneExchange(false)
+            , gridLayout(gridLayout)
             , maxExchange(0)
         {
             init();
@@ -115,8 +115,8 @@ namespace pmacc
          */
         GridBuffer(const DataSpace<DIM>& dataSpace, bool sizeOnDevice = false)
             : Parent(dataSpace, sizeOnDevice)
-            , gridLayout(dataSpace)
             , hasOneExchange(false)
+            , gridLayout(dataSpace)
             , maxExchange(0)
         {
             init();
@@ -138,8 +138,8 @@ namespace pmacc
             const GridLayout<DIM>& gridLayout,
             bool sizeOnDevice = false)
             : Parent(otherDeviceBuffer, gridLayout.getDataSpace(), sizeOnDevice)
-            , gridLayout(gridLayout)
             , hasOneExchange(false)
+            , gridLayout(gridLayout)
             , maxExchange(0)
         {
             init();
@@ -159,8 +159,8 @@ namespace pmacc
                 offsetDevice,
                 gridLayout.getDataSpace(),
                 sizeOnDevice)
-            , gridLayout(gridLayout)
             , hasOneExchange(false)
+            , gridLayout(gridLayout)
             , maxExchange(0)
         {
             init();

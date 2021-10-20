@@ -243,7 +243,7 @@ namespace picongpu
                                                 // set z component to zero in case of simDim==DIM2
                                                 particleLocation[2] = 0.0;
                                                 // run over all components and compute gobal position
-                                                for(int i = 0; i < simDim; ++i)
+                                                for(uint32_t i = 0; i < simDim; ++i)
                                                     particleLocation[i]
                                                         = (float_X(globalPos[i]) + pos[i]) * cellSize[i];
 
@@ -288,7 +288,8 @@ namespace picongpu
                             cupla::__syncthreads(acc);
 
                             // run over all  valid omegas for this thread
-                            for(int o = workerIdx; o < transitionRadiation::frequencies::nOmega; o += T_numWorkers)
+                            for(uint32_t o = workerIdx; o < transitionRadiation::frequencies::nOmega;
+                                o += T_numWorkers)
                             {
                                 float_X itrSum = 0.0;
                                 float_X totalParticles = 0.0;
@@ -316,7 +317,8 @@ namespace picongpu
                                     ctrSumPerp += energyPerp_s[j] * formfactor;
                                 }
 
-                                int const index = theta_idx * transitionRadiation::frequencies::nOmega + o;
+                                uint32_t const index
+                                    = static_cast<uint32_t>(theta_idx) * transitionRadiation::frequencies::nOmega + o;
                                 incTransRad[index] += itrSum;
                                 numParticles[index] += totalParticles;
                                 cohTransRadPara[index] += ctrSumPara;

@@ -54,8 +54,8 @@ namespace pmacc
             uint32_t area = BORDER,
             bool sizeOnDevice = false)
             : Exchange<TYPE, DIM>(exchange, communicationTag)
-            , deviceDoubleBuffer(nullptr)
             , hostBuffer(nullptr)
+            , deviceDoubleBuffer(nullptr)
         {
             PMACC_ASSERT(!guardingCells.isOneDimensionGreaterThan(memoryLayout.getGuard()));
 
@@ -99,8 +99,8 @@ namespace pmacc
             uint32_t communicationTag,
             bool sizeOnDevice = false)
             : Exchange<TYPE, DIM>(exchange, communicationTag)
-            , deviceDoubleBuffer(nullptr)
             , hostBuffer(nullptr)
+            , deviceDoubleBuffer(nullptr)
         {
             using DeviceBuffer = DeviceBufferIntern<TYPE, DIM>;
             deviceBuffer = std::make_unique<DeviceBuffer>(exchangeDataSpace, sizeOnDevice);

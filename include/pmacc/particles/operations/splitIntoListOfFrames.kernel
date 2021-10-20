@@ -200,7 +200,7 @@ namespace pmacc
                                     ++vThreadMasterIdx;
 
                                     // load empty frame if virtual thread is the master
-                                    if(vThreadMasterIdx == idx)
+                                    if(vThreadMasterIdx == static_cast<int32_t>(idx))
                                     {
                                         /* counter[2] -> number of used frames */
                                         kernel::atomicAllInc(acc, &(counter[2]), ::alpaka::hierarchy::Blocks{});

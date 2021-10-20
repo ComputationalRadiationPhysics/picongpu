@@ -66,8 +66,8 @@ namespace picongpu
             {
                 const float_64 x(position_SI.x());
                 const float_64 y(position_SI.y());
-                const uint64_t xCellId(uint64_t(position_SI.x() / cellSize_SI[0]));
-                const uint64_t yCellId(uint64_t(position_SI.y() / cellSize_SI[1]));
+                const uint64_t xCellId(uint64_t(x / cellSize_SI[0]));
+                const uint64_t yCellId(uint64_t(y / cellSize_SI[1]));
                 constexpr uint32_t cellsY = 128;
                 constexpr uint32_t cellsX = 128;
                 constexpr uint32_t w = 8;

@@ -36,9 +36,9 @@ namespace pmacc
     public:
         TaskFieldReceiveAndInsertExchange(Field& buffer, uint32_t exchange)
             : m_buffer(buffer)
-            , m_exchange(exchange)
             , m_state(Constructor)
             , initDependency(__getTransactionEvent())
+            , m_exchange(exchange)
         {
         }
 

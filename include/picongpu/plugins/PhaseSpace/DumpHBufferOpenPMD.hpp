@@ -99,8 +99,6 @@ namespace picongpu
                 softwareVersion << "-" << PICONGPU_VERSION_LABEL;
             series.setSoftware(software, softwareVersion.str());
 
-            pmacc::GridController<simDim>& gc = pmacc::Environment<simDim>::get().GridController();
-
             /** calculate GUARD offset in the source hBuffer *****************/
             const uint32_t rGuardCells
                 = SuperCellSize().toRT()[axis_element.space] * GuardSize::toRT()[axis_element.space];

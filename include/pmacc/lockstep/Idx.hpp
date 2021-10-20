@@ -40,8 +40,8 @@ namespace pmacc
              * @param workerElemIndex virtual workers linear index of the work item
              */
             HDINLINE Idx(uint32_t const domElemIndex, uint32_t const workerElemIndex)
-                : domElemIdx(std::move(domElemIndex))
-                , workerElemIdx(std::move(workerElemIndex))
+                : workerElemIdx(std::move(workerElemIndex))
+                , domElemIdx(std::move(domElemIndex))
             {
             }
 

@@ -51,9 +51,9 @@ namespace pmacc
          */
         DeviceBufferIntern(DataSpace<DIM> size, bool sizeOnDevice = false, bool useVectorAsBase = false)
             : DeviceBuffer<TYPE, DIM>(size, size)
+            , offset(DataSpace<DIM>())
             , sizeOnDevice(sizeOnDevice)
             , useOtherMemory(false)
-            , offset(DataSpace<DIM>())
         {
             // create size on device before any use of setCurrentSize
             if(useVectorAsBase)
@@ -77,8 +77,8 @@ namespace pmacc
             DataSpace<DIM> offset,
             bool sizeOnDevice = false)
             : DeviceBuffer<TYPE, DIM>(size, source.getPhysicalMemorySize())
-            , sizeOnDevice(sizeOnDevice)
             , offset(offset + source.getOffset())
+            , sizeOnDevice(sizeOnDevice)
             , data(source.getCudaPitched())
             , useOtherMemory(true)
         {

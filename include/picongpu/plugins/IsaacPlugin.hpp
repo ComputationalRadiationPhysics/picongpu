@@ -288,8 +288,8 @@ namespace picongpu
         private:
             ParticlesBoxType pb;
             FramePtr frame;
-            int i;
             int frameSize;
+            int i;
         };
 
 
@@ -405,22 +405,9 @@ namespace picongpu
 #    endif
 #endif
                 >;
-            VisualizationType* visualization;
+            VisualizationType* visualization = nullptr;
 
             IsaacPlugin()
-                : visualization(nullptr)
-                , cellDescription(nullptr)
-                , movingWindow(false)
-                , renderInterval(1)
-                , step(0)
-                , drawingTime(0)
-                , simulationTime(0)
-                , cellCount(0)
-                , particleCount(0)
-                , lastNotify(0)
-                , runSteps(-10)
-                , timingsFileExist(0)
-                , recording(false)
             {
                 Environment<>::get().PluginConnector().registerPlugin(this);
             }
@@ -658,7 +645,7 @@ namespace picongpu
             }
 
         private:
-            MappingDesc* cellDescription;
+            MappingDesc* cellDescription = nullptr;
             std::string notifyPeriod;
             std::string url;
             std::string name;
@@ -669,7 +656,7 @@ namespace picongpu
             uint32_t jpeg_quality;
             int rank;
             int numProc;
-            bool movingWindow;
+            bool movingWindow = false;
             SourceList sources;
             VectorFieldSourceList vecFieldSources;
             ParticleList particleSources;
@@ -677,20 +664,20 @@ namespace picongpu
              *
              * render each n-th time step within an interval defined by notifyPeriod
              */
-            uint32_t renderInterval;
-            uint32_t step;
-            int drawingTime;
-            int simulationTime;
-            bool directPause;
-            int cellCount;
-            int particleCount;
-            uint64_t lastNotify;
-            bool reconnect;
+            uint32_t renderInterval = 1;
+            uint32_t step = 0;
+            int drawingTime = 0;
+            int simulationTime = 0;
+            bool directPause = false;
+            int cellCount = 0;
+            int particleCount = 0;
+            uint64_t lastNotify = 0;
+            bool reconnect = false;
 
             // storage for timings and control variables
-            bool timingsFileExist;
-            bool recording;
-            int runSteps;
+            bool timingsFileExist = false;
+            bool recording = false;
+            int runSteps = 0;
             std::ofstream timingsFile;
             std::string timingsFilename;
 

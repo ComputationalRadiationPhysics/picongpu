@@ -104,8 +104,8 @@ namespace picongpu
 
                 // Variables for plugin options:
                 std::string notifyPeriod;
-                std::string speciesName;
                 std::string pluginName;
+                std::string speciesName;
                 std::string pluginPrefix;
                 std::string fileName;
                 std::string fileExtension;
@@ -145,16 +145,15 @@ namespace picongpu
             public:
                 //! XrayScattering object initializer.
                 XrayScattering()
-                    : pluginName("xrayScattering: Calculate the SAXS scattering intensity of a "
+                    : // this is bodged so it passes the verification at
+                      // MappingDescription.hpp:79
+                    cellDescription(DataSpace<simDim>(SuperCellSize::toRT()))
+                    , currentStep(0)
+                    , pluginName("xrayScattering: Calculate the SAXS scattering intensity of a "
                                  "species.")
                     , speciesName(T_ParticlesType::FrameType::getName())
                     , pluginPrefix(speciesName + std::string("_xrayScattering"))
-                    ,
-                    // this is bodged so it passes the verification at
-                    // MappingDescription.hpp:79
-                    cellDescription(DataSpace<simDim>(SuperCellSize::toRT()))
                     , isMaster(false)
-                    , currentStep(0)
                     , accumulatedRotations(0)
                 {
                     Environment<>::get().PluginConnector().registerPlugin(this);

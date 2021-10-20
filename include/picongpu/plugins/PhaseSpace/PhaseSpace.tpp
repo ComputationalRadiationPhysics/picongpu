@@ -46,9 +46,9 @@ namespace picongpu
         std::shared_ptr<plugins::multi::IHelp>& help,
         size_t const id,
         MappingDesc* cellDescription)
-        : m_help(std::static_pointer_cast<Help>(help))
+        : m_cellDescription(cellDescription)
+        , m_help(std::static_pointer_cast<Help>(help))
         , m_id(id)
-        , m_cellDescription(cellDescription)
     {
         // unit is m_species c (for a single "real" particle)
         float_X pRangeSingle_unit(frame::getMass<typename Species::FrameType>() * SPEED_OF_LIGHT);

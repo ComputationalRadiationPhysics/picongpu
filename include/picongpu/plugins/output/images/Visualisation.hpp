@@ -641,15 +641,14 @@ namespace picongpu
             std::string notifyPeriod,
             DataSpace<DIM2> transpose,
             float_X slicePoint)
-            : m_output(output)
-            , pluginName(name)
-            , cellDescription(nullptr)
-            , particleTag(ParticlesType::FrameType::getName())
+            : particleTag(ParticlesType::FrameType::getName())
             , m_notifyPeriod(notifyPeriod)
-            , m_transpose(transpose)
             , m_slicePoint(slicePoint)
-            , isMaster(false)
+            , pluginName(name)
+            , m_transpose(transpose)
             , header(nullptr)
+            , m_output(output)
+            , isMaster(false)
             , reduce(1024)
         {
             sliceDim = 0;

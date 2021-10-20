@@ -111,8 +111,8 @@ namespace picongpu
                         DataSpace<simDim> const& offsetToTotalDomain,
                         float3_X const& elong)
                         : m_dataBoxE(dataBoxE)
-                        , m_offsetToTotalDomain(offsetToTotalDomain)
                         , m_superCellToLocalOriginCellOffset(superCellToLocalOriginCellOffset)
+                        , m_offsetToTotalDomain(offsetToTotalDomain)
                         , m_elong(elong)
                     {
                     }
