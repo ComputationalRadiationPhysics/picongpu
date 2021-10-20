@@ -284,26 +284,30 @@ add_definitions(-DCMAKE_CXX_COMPILER_VERSION=${CMAKE_CXX_COMPILER_VERSION})
 # Warnings
 ################################################################################
 
-# GNU
-if(CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
-# ICC
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-# PGI
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=inform")
-# MSVS
-elseif(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
-    # Required for MSVS 15.8+ due to alignment change
-    # https://devblogs.microsoft.com/cppblog/stl-features-and-fixes-in-vs-2017-15-8/
-    if(MSVC_VERSION GREATER_EQUAL 1916)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D _ENABLE_EXTENDED_ALIGNED_STORAGE")
+option(PIC_CI_COMPILE "Enable strict error checking." OFF)
+if(PIC_CI_COMPILE)
+    # GNU
+    if(CMAKE_COMPILER_IS_GNUCXX)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+    # ICC
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+    # PGI
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=inform")
+    # MSVS
+    elseif(MSVC)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+        # Required for MSVS 15.8+ due to alignment change
+        # https://devblogs.microsoft.com/cppblog/stl-features-and-fixes-in-vs-2017-15-8/
+        if(MSVC_VERSION GREATER_EQUAL 1916)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D _ENABLE_EXTENDED_ALIGNED_STORAGE")
+        endif()
     endif()
 endif()
 
