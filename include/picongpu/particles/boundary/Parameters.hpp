@@ -1,4 +1,4 @@
-/* Copyright 2021 Lennert Sprenger
+/* Copyright 2021 Lennert Sprenger, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include <cstdint>
+
 
 namespace picongpu
 {
@@ -28,20 +30,23 @@ namespace picongpu
     {
         namespace boundary
         {
-            //! Parameters to be passed to particle boundary conditions
+            //! Basic parameters to be passed to some particle boundary condition functors
             struct Parameters
             {
-                /** Begin of the internal (relative to boundary) cells in total coordinates
-                 *
-                 * Particles to the left side are outside
-                 */
-                pmacc::DataSpace<simDim> beginInternalCellsTotal;
+                //! Axis of the active boundary
+                uint32_t axis;
 
-                /** End of the internal (relative to boundary) cells in total coordinates
+                /** Begin of the internal (relative to boundary) cells in total coordinates along the axis
                  *
-                 * Particles equal or to the right side are outside
+                 * Particles with totalCellIdx[axis] < beginInternalCellsTotal are outside
                  */
-                pmacc::DataSpace<simDim> endInternalCellsTotal;
+                int32_t beginInternalCellsTotal;
+
+                /** End of the internal (relative to boundary) cells in total coordinates along the axis
+                 *
+                 * Particles with totalCellIdx[axis] >= endInternalCellsTotal are outside
+                 */
+                int32_t endInternalCellsTotal;
             };
         } // namespace boundary
     } // namespace particles

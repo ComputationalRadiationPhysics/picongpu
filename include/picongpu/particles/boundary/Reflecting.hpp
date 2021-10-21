@@ -51,35 +51,32 @@ namespace picongpu
                 template<typename T_Particle>
                 HDINLINE void operator()(DataSpace<simDim> const& offsetToTotalOrigin, T_Particle& particle)
                 {
-                    for(uint32_t d = 0; d < simDim; d++)
-                        if((offsetToTotalOrigin[d] < m_parameters.beginInternalCellsTotal[d])
-                           || (offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d]))
+                    if((offsetToTotalOrigin[m_parameters.axis] < m_parameters.beginInternalCellsTotal)
+                       || (offsetToTotalOrigin[m_parameters.axis] >= m_parameters.endInternalCellsTotal))
+                    {
+                        auto pos = particle[position_];
+                        if(offsetToTotalOrigin[m_parameters.axis] >= m_parameters.endInternalCellsTotal)
                         {
-                            auto pos = particle[position_]; // floatD_X pos
-
-                            if(offsetToTotalOrigin[d] >= m_parameters.endInternalCellsTotal[d])
-                            {
-                                /*
-                                 * substract epsilon so we are definitly in the cell left of the current
-                                 * cell, because that could happen if pos = 0 or pos < epsilon.
-                                 * To set the position to 0.9 of the left cell relative to the current cell,
-                                 * pos needs to be set to -0.1.
-                                 */
-                                pos[d] = -pos[d] - std::numeric_limits<float_X>::epsilon();
-                            }
-                            else
-                                /*
-                                 * no correction is needed here, because if the particle just barly crossed the left
-                                 * border pos[d] is about 0.9 in the current cell. In order to be very small ( <
-                                 * epsilon ) the particle needs to be on the left side of the cell and that would mean
-                                 * that the particle traveled a whole cell which should not be possible with the with
-                                 * the CFL-condition.
-                                 */
-                                pos[d] = 2.0_X - pos[d];
-
-                            particle[momentum_][d] = -particle[momentum_][d];
-                            moveParticle(particle, pos);
+                            /* Subtract epsilon so we are definitly in the cell left of the current
+                             * cell, because that could happen if pos = 0 or pos < epsilon.
+                             * To set the position to 0.9 of the left cell relative to the current cell,
+                             * pos needs to be set to -0.1.
+                             */
+                            pos[m_parameters.axis] = -pos[m_parameters.axis] - std::numeric_limits<float_X>::epsilon();
                         }
+                        else
+                            /* No correction is needed here.
+                             * If the particle barely crossed the left border, pos[m_parameters.axis] is about 0.9 in
+                             * the current cell. For this value to be very small (< epsilon) the particle needs to be
+                             * on the left side of the cell which would mean that the particle travelled a whole cell.
+                             * However, this is not possible since validity of the CFL-condition is enforced.
+                             */
+
+                            pos[m_parameters.axis] = 2.0_X - pos[m_parameters.axis];
+
+                        particle[momentum_][m_parameters.axis] = -particle[momentum_][m_parameters.axis];
+                        moveParticle(particle, pos);
+                    }
                 }
             };
 
@@ -100,8 +97,10 @@ namespace picongpu
                 {
                     pmacc::DataSpace<simDim> beginInternalCellsTotal, endInternalCellsTotal;
                     getInternalCellsTotal(species, exchangeType, &beginInternalCellsTotal, &endInternalCellsTotal);
-                    ReflectParticleIfOutside::parameters().beginInternalCellsTotal = beginInternalCellsTotal;
-                    ReflectParticleIfOutside::parameters().endInternalCellsTotal = endInternalCellsTotal;
+                    auto const axis = pmacc::boundary::getAxis(exchangeType);
+                    ReflectParticleIfOutside::parameters().axis = axis;
+                    ReflectParticleIfOutside::parameters().beginInternalCellsTotal = beginInternalCellsTotal[axis];
+                    ReflectParticleIfOutside::parameters().endInternalCellsTotal = endInternalCellsTotal[axis];
                     auto const mapperFactory = getMapperFactory(species, exchangeType);
                     using Manipulator = manipulators::unary::FreeTotalCellOffset<ReflectParticleIfOutside>;
                     particles::manipulate<Manipulator, T_Species>(currentStep, mapperFactory);
