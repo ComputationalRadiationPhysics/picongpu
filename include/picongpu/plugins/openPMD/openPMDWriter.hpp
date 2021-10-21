@@ -194,7 +194,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             std::shared_ptr<plugins::multi::IInstance> create(
                 std::shared_ptr<IHelp>& help,
                 size_t const id,
-                MappingDesc* cellDescription);
+                MappingDesc* cellDescription) override;
             // defined later since we need openPMDWriter constructor
 
             plugins::multi::Option<std::string> notifyPeriod = {"period", "enable openPMD IO [for each n-th step]"};
@@ -778,14 +778,14 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 dumpData(currentStep);
             }
 
-            virtual void restart(uint32_t restartStep, std::string const& restartDirectory)
+            void restart(uint32_t restartStep, std::string const& restartDirectory) override
             {
                 /* IInstance restart interface is not needed becase IIOBackend
                  * restart interface is used
                  */
             }
 
-            virtual void checkpoint(uint32_t currentStep, std::string const& checkpointDirectory)
+            void checkpoint(uint32_t currentStep, std::string const& checkpointDirectory) override
             {
                 /* IInstance checkpoint interface is not needed becase IIOBackend
                  * checkpoint interface is used
@@ -795,7 +795,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             void dumpCheckpoint(
                 const uint32_t currentStep,
                 const std::string& checkpointDirectory,
-                const std::string& checkpointFilename)
+                const std::string& checkpointFilename) override
             {
                 // checkpointing is only allowed if the plugin is controlled by the
                 // class Checkpoint
@@ -816,7 +816,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 const uint32_t restartStep,
                 const std::string& restartDirectory,
                 const std::string& constRestartFilename,
-                const uint32_t restartChunkSize)
+                const uint32_t restartChunkSize) override
             {
                 // restart is only allowed if the plugin is controlled by the class
                 // Checkpoint

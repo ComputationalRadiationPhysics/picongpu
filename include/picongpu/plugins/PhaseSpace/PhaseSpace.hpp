@@ -279,11 +279,11 @@ namespace picongpu
 
         void notify(uint32_t currentStep) override;
 
-        void restart(uint32_t restartStep, std::string const& restartDirectory)
+        void restart(uint32_t restartStep, std::string const& restartDirectory) override
         {
         }
 
-        void checkpoint(uint32_t currentStep, std::string const& checkpointDirectory)
+        void checkpoint(uint32_t currentStep, std::string const& checkpointDirectory) override
         {
         }
 
