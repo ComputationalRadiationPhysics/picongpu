@@ -64,10 +64,12 @@ namespace picongpu
         PMACC_SMEM(acc, particlesInSuperCell, uint16_t);                                                              \
         auto onlyMaster = lockstep::makeMaster(workerIdx);                                                            \
                                                                                                                       \
-        onlyMaster([&]() {                                                                                            \
-            frame = pb.getLastFrame(superCellIdx);                                                                    \
-            particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();                                  \
-        });                                                                                                           \
+        onlyMaster(                                                                                                   \
+            [&]()                                                                                                     \
+            {                                                                                                         \
+                frame = pb.getLastFrame(superCellIdx);                                                                \
+                particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();                              \
+            });                                                                                                       \
         cupla::__syncthreads(acc);                                                                                    \
                                                                                                                       \
         if(!frame.isValid())                                                                                          \
@@ -78,18 +80,22 @@ namespace picongpu
         while(frame.isValid())                                                                                        \
         {                                                                                                             \
             auto forEachParticle = lockstep::makeForEach<maxParticlesInFrame, numWorkers>(workerIdx);                 \
-            forEachParticle([&](uint32_t const linearThreadIdx) {                                                     \
-                if(linearThreadIdx < particlesInSuperCell)                                                            \
+            forEachParticle(                                                                                          \
+                [&](uint32_t const linearThreadIdx)                                                                   \
                 {                                                                                                     \
-                    if(accFilter(acc, frame[linearThreadIdx]))                                                        \
-                        functor(acc, frame, linearThreadIdx BOOST_PP_ENUM_TRAILING(N, ARGS, _));                      \
-                }                                                                                                     \
-            });                                                                                                       \
+                    if(linearThreadIdx < particlesInSuperCell)                                                        \
+                    {                                                                                                 \
+                        if(accFilter(acc, frame[linearThreadIdx]))                                                    \
+                            functor(acc, frame, linearThreadIdx BOOST_PP_ENUM_TRAILING(N, ARGS, _));                  \
+                    }                                                                                                 \
+                });                                                                                                   \
             cupla::__syncthreads(acc);                                                                                \
-            onlyMaster([&]() {                                                                                        \
-                frame = pb.getPreviousFrame(frame);                                                                   \
-                particlesInSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;                           \
-            });                                                                                                       \
+            onlyMaster(                                                                                               \
+                [&]()                                                                                                 \
+                {                                                                                                     \
+                    frame = pb.getPreviousFrame(frame);                                                               \
+                    particlesInSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;                       \
+                });                                                                                                   \
             cupla::__syncthreads(acc);                                                                                \
         }                                                                                                             \
     }

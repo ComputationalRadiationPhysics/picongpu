@@ -213,135 +213,142 @@ namespace picongpu
                             // loop over all particles in the frame
                             auto forEachParticle = lockstep::makeForEach<frameSize, numWorker>(workerIdx);
 
-                            forEachParticle([&](uint32_t const linearIdx) {
-                                // only threads with particles are running
-                                if(linearIdx < particlesInFrame)
+                            forEachParticle(
+                                [&](uint32_t const linearIdx)
                                 {
-                                    auto par = frame[linearIdx];
-                                    // get old and new particle momenta
-                                    vector_X const particle_momentumNow = vector_X(par[momentum_]);
-                                    vector_X const particle_momentumOld = vector_X(par[momentumPrev1_]);
-                                    /* initializes "saveParticleAt" flag with -1
-                                     * because "counter_s" will never be -1
-                                     * therefore, if a particle is saved, a value of counter
-                                     * is stored in "saveParticleAt" != -1
-                                     * THIS IS ACTUALLY ONLY NEEDED IF: the radiation flag was set
-                                     * LATER: can this be optimized?
-                                     */
-                                    int saveParticleAt = -1;
-
-                                    /* if particle is not accelerated we skip all calculations
-                                     *
-                                     * this is a component-wise comparison
-                                     */
-                                    if(particle_momentumNow != particle_momentumOld)
+                                    // only threads with particles are running
+                                    if(linearIdx < particlesInFrame)
                                     {
-                                        if(getRadiationMask(par))
-                                            saveParticleAt = kernel::atomicAllInc(
-                                                acc,
-                                                &counter_s,
-                                                ::alpaka::hierarchy::Threads{});
-
-                                        /* for information:
-                                         *   atomicAdd returns an int with the previous
-                                         *   value of "counter_s" != -1
-                                         *   therefore, if a particle is selected
-                                         *   "saveParticleAs" != -1
+                                        auto par = frame[linearIdx];
+                                        // get old and new particle momenta
+                                        vector_X const particle_momentumNow = vector_X(par[momentum_]);
+                                        vector_X const particle_momentumOld = vector_X(par[momentumPrev1_]);
+                                        /* initializes "saveParticleAt" flag with -1
+                                         * because "counter_s" will never be -1
+                                         * therefore, if a particle is saved, a value of counter
+                                         * is stored in "saveParticleAt" != -1
+                                         * THIS IS ACTUALLY ONLY NEEDED IF: the radiation flag was set
+                                         * LATER: can this be optimized?
                                          */
+                                        int saveParticleAt = -1;
 
-                                        // if a particle needs to be considered
-                                        if(saveParticleAt != -1)
+                                        /* if particle is not accelerated we skip all calculations
+                                         *
+                                         * this is a component-wise comparison
+                                         */
+                                        if(particle_momentumNow != particle_momentumOld)
                                         {
-                                            // calculate global position
-                                            lcellId_t const cellIdx = par[localCellIdx_];
+                                            if(getRadiationMask(par))
+                                                saveParticleAt = kernel::atomicAllInc(
+                                                    acc,
+                                                    &counter_s,
+                                                    ::alpaka::hierarchy::Threads{});
 
-                                            // position inside of the cell
-                                            floatD_X const pos = par[position_];
-
-                                            // calculate global position of cell
-                                            DataSpace<simDim> const globalPos(
-                                                superCellOffset
-                                                + DataSpaceOperations<simDim>::template map<SuperCellSize>(cellIdx));
-
-                                            // add global position of cell with local position of particle in cell
-                                            vector_X particle_locationNow;
-                                            // set z component to zero in case of simDim==DIM2
-                                            particle_locationNow[2] = 0.0;
-                                            // run over all components and compute gobal position
-                                            for(int i = 0; i < simDim; ++i)
-                                                particle_locationNow[i]
-                                                    = (float_X(globalPos[i]) + pos[i]) * cellSize[i];
-
-                                            /* get macro-particle weighting
-                                             *
-                                             * Info:
-                                             * the weighting is the number of real particles described
-                                             * by a macro-particle
+                                            /* for information:
+                                             *   atomicAdd returns an int with the previous
+                                             *   value of "counter_s" != -1
+                                             *   therefore, if a particle is selected
+                                             *   "saveParticleAs" != -1
                                              */
-                                            float_X const weighting = par[weighting_];
 
-                                            /* only of coherent and incoherent radiation of a single macro-particle is
-                                             * considered, the weighting of each macro-particle needs to be stored
-                                             * in order to be considered when the actual frequency calculation is done
-                                             */
-                                            radWeighting_s[saveParticleAt] = weighting;
-
-                                            // mass of macro-particle
-                                            float_X const particle_mass = attribute::getMass(weighting, par);
-
-                                            /****************************************************
-                                             **** Here happens the true physical calculation ****
-                                             ****************************************************/
-
-                                            // set up particle using the radiation's own particle class
-                                            /*!\todo please add a namespace for Particle class*/
-                                            Particle const particle(
-                                                particle_locationNow,
-                                                particle_momentumOld,
-                                                particle_momentumNow,
-                                                particle_mass);
-
-                                            // set up amplitude calculator
-                                            using Calc_Amplitude_n_sim_1 = Calc_Amplitude<Retarded_time_1, Old_DFT>;
-
-                                            // calculate amplitude
-                                            Calc_Amplitude_n_sim_1 const amplitude3(particle, DELTA_T, t);
-
-                                            // get charge of single electron ! (weighting=1.0f)
-                                            float_X const particle_charge = frame::getCharge<FrameType>();
-
-                                            /* compute real amplitude of macro-particle with a charge of
-                                             * a single electron
-                                             */
-                                            real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look)
-                                                * particle_charge * picongpu::float_64(DELTA_T);
-
-                                            // retarded time stored in shared memory
-                                            t_ret_s[saveParticleAt] = static_cast<float_X>(amplitude3.get_t_ret(look));
-
-                                            lowpass_s[saveParticleAt] = NyquistLowPass(look, particle);
-
-                                            /* the particle amplitude is used to include the weighting
-                                             * of the window function filter without needing more memory
-                                             */
-                                            radWindowFunction::radWindowFunction const winFkt;
-
-                                            /* start with a factor of one */
-                                            float_X windowFactor = 1.0;
-
-                                            for(uint32_t d = 0; d < simDim; ++d)
+                                            // if a particle needs to be considered
+                                            if(saveParticleAt != -1)
                                             {
-                                                windowFactor
-                                                    *= winFkt(particle_locationNow[d], simBoxSize[d] * cellSize[d]);
-                                            }
+                                                // calculate global position
+                                                lcellId_t const cellIdx = par[localCellIdx_];
 
-                                            /* apply window function factor to amplitude */
-                                            real_amplitude_s[saveParticleAt] *= windowFactor;
+                                                // position inside of the cell
+                                                floatD_X const pos = par[position_];
 
-                                        } // END: if a particle needs to be considered
-                                    } // END: check if particle is accelerated
-                                } // END: only threads with particles are running
-                            });
+                                                // calculate global position of cell
+                                                DataSpace<simDim> const globalPos(
+                                                    superCellOffset
+                                                    + DataSpaceOperations<simDim>::template map<SuperCellSize>(
+                                                        cellIdx));
+
+                                                // add global position of cell with local position of particle in cell
+                                                vector_X particle_locationNow;
+                                                // set z component to zero in case of simDim==DIM2
+                                                particle_locationNow[2] = 0.0;
+                                                // run over all components and compute gobal position
+                                                for(int i = 0; i < simDim; ++i)
+                                                    particle_locationNow[i]
+                                                        = (float_X(globalPos[i]) + pos[i]) * cellSize[i];
+
+                                                /* get macro-particle weighting
+                                                 *
+                                                 * Info:
+                                                 * the weighting is the number of real particles described
+                                                 * by a macro-particle
+                                                 */
+                                                float_X const weighting = par[weighting_];
+
+                                                /* only of coherent and incoherent radiation of a single macro-particle
+                                                 * is considered, the weighting of each macro-particle needs to be
+                                                 * stored in order to be considered when the actual frequency
+                                                 * calculation is done
+                                                 */
+                                                radWeighting_s[saveParticleAt] = weighting;
+
+                                                // mass of macro-particle
+                                                float_X const particle_mass = attribute::getMass(weighting, par);
+
+                                                /****************************************************
+                                                 **** Here happens the true physical calculation ****
+                                                 ****************************************************/
+
+                                                // set up particle using the radiation's own particle class
+                                                /*!\todo please add a namespace for Particle class*/
+                                                Particle const particle(
+                                                    particle_locationNow,
+                                                    particle_momentumOld,
+                                                    particle_momentumNow,
+                                                    particle_mass);
+
+                                                // set up amplitude calculator
+                                                using Calc_Amplitude_n_sim_1
+                                                    = Calc_Amplitude<Retarded_time_1, Old_DFT>;
+
+                                                // calculate amplitude
+                                                Calc_Amplitude_n_sim_1 const amplitude3(particle, DELTA_T, t);
+
+                                                // get charge of single electron ! (weighting=1.0f)
+                                                float_X const particle_charge = frame::getCharge<FrameType>();
+
+                                                /* compute real amplitude of macro-particle with a charge of
+                                                 * a single electron
+                                                 */
+                                                real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look)
+                                                    * particle_charge * picongpu::float_64(DELTA_T);
+
+                                                // retarded time stored in shared memory
+                                                t_ret_s[saveParticleAt]
+                                                    = static_cast<float_X>(amplitude3.get_t_ret(look));
+
+                                                lowpass_s[saveParticleAt] = NyquistLowPass(look, particle);
+
+                                                /* the particle amplitude is used to include the weighting
+                                                 * of the window function filter without needing more memory
+                                                 */
+                                                radWindowFunction::radWindowFunction const winFkt;
+
+                                                /* start with a factor of one */
+                                                float_X windowFactor = 1.0;
+
+                                                for(uint32_t d = 0; d < simDim; ++d)
+                                                {
+                                                    windowFactor *= winFkt(
+                                                        particle_locationNow[d],
+                                                        simBoxSize[d] * cellSize[d]);
+                                                }
+
+                                                /* apply window function factor to amplitude */
+                                                real_amplitude_s[saveParticleAt] *= windowFactor;
+
+                                            } // END: if a particle needs to be considered
+                                        } // END: check if particle is accelerated
+                                    } // END: only threads with particles are running
+                                });
 
                             cupla::__syncthreads(acc); // wait till every thread has loaded its particle data
 

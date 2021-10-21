@@ -368,17 +368,17 @@ namespace picongpu
                 switch(params->strategy)
                 {
                 case WriteSpeciesStrategy::ADIOS:
-                {
-                    using type = StrategyADIOS<openPMDFrameType, RunParameters_T>;
-                    strategy = std::unique_ptr<AStrategy>(dynamic_cast<AStrategy*>(new type));
-                    break;
-                }
+                    {
+                        using type = StrategyADIOS<openPMDFrameType, RunParameters_T>;
+                        strategy = std::unique_ptr<AStrategy>(dynamic_cast<AStrategy*>(new type));
+                        break;
+                    }
                 case WriteSpeciesStrategy::HDF5:
-                {
-                    using type = StrategyHDF5<openPMDFrameType, RunParameters_T>;
-                    strategy = std::unique_ptr<AStrategy>(dynamic_cast<AStrategy*>(new type));
-                    break;
-                }
+                    {
+                        using type = StrategyHDF5<openPMDFrameType, RunParameters_T>;
+                        strategy = std::unique_ptr<AStrategy>(dynamic_cast<AStrategy*>(new type));
+                        break;
+                    }
                 }
 
 

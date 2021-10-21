@@ -118,55 +118,65 @@ namespace picongpu
 
             auto onlyMaster = lockstep::makeMaster(workerIdx);
 
-            onlyMaster([&]() {
-                localCounter = 0;
-                srcFramePtr = srcBox.getFirstFrame(supcerCellIdx);
-            });
+            onlyMaster(
+                [&]()
+                {
+                    localCounter = 0;
+                    srcFramePtr = srcBox.getFirstFrame(supcerCellIdx);
+                });
 
             cupla::__syncthreads(acc);
 
             // move over all Frames in the supercell
             while(srcFramePtr.isValid())
             {
-                forEachParticleInFrame([&](lockstep::Idx const idx) {
-                    auto parSrc = (srcFramePtr[idx]);
-                    storageOffsetCtx[idx] = -1;
-                    // count particle in frame
-                    if(parSrc[multiMask_] == 1 && filter(*srcFramePtr, idx))
-                        if(accParFilter(acc, parSrc))
-                            storageOffsetCtx[idx]
-                                = kernel::atomicAllInc(acc, &localCounter, ::alpaka::hierarchy::Threads{});
-                });
-                cupla::__syncthreads(acc);
-
-                onlyMaster([&]() {
-                    // reserve host memory for particle
-                    globalOffset = cupla::atomicAdd(acc, counter, localCounter, ::alpaka::hierarchy::Blocks{});
-                });
-
-                cupla::__syncthreads(acc);
-
-                forEachParticleInFrame([&](lockstep::Idx const idx) {
-                    if(storageOffsetCtx[idx] != -1)
+                forEachParticleInFrame(
+                    [&](lockstep::Idx const idx)
                     {
-                        auto parDest = destFrame[globalOffset + storageOffsetCtx[idx]];
-                        auto parDestNoDomainIdx = deselect<T_Identifier>(parDest);
                         auto parSrc = (srcFramePtr[idx]);
-                        assign(parDestNoDomainIdx, parSrc);
-                        // calculate cell index for user-defined domain
-                        DataSpace<simDim> const localCell(
-                            DataSpaceOperations<simDim>::template map<SuperCellSize>(parSrc[localCellIdx_]));
-                        parDest[domainCellIdxIdentifier] = domainOffset + localSuperCellCellOffset + localCell;
-                    }
-                });
+                        storageOffsetCtx[idx] = -1;
+                        // count particle in frame
+                        if(parSrc[multiMask_] == 1 && filter(*srcFramePtr, idx))
+                            if(accParFilter(acc, parSrc))
+                                storageOffsetCtx[idx]
+                                    = kernel::atomicAllInc(acc, &localCounter, ::alpaka::hierarchy::Threads{});
+                    });
+                cupla::__syncthreads(acc);
+
+                onlyMaster(
+                    [&]()
+                    {
+                        // reserve host memory for particle
+                        globalOffset = cupla::atomicAdd(acc, counter, localCounter, ::alpaka::hierarchy::Blocks{});
+                    });
 
                 cupla::__syncthreads(acc);
 
-                onlyMaster([&]() {
-                    // get next frame in supercell
-                    srcFramePtr = srcBox.getNextFrame(srcFramePtr);
-                    localCounter = 0;
-                });
+                forEachParticleInFrame(
+                    [&](lockstep::Idx const idx)
+                    {
+                        if(storageOffsetCtx[idx] != -1)
+                        {
+                            auto parDest = destFrame[globalOffset + storageOffsetCtx[idx]];
+                            auto parDestNoDomainIdx = deselect<T_Identifier>(parDest);
+                            auto parSrc = (srcFramePtr[idx]);
+                            assign(parDestNoDomainIdx, parSrc);
+                            // calculate cell index for user-defined domain
+                            DataSpace<simDim> const localCell(
+                                DataSpaceOperations<simDim>::template map<SuperCellSize>(parSrc[localCellIdx_]));
+                            parDest[domainCellIdxIdentifier] = domainOffset + localSuperCellCellOffset + localCell;
+                        }
+                    });
+
+                cupla::__syncthreads(acc);
+
+                onlyMaster(
+                    [&]()
+                    {
+                        // get next frame in supercell
+                        srcFramePtr = srcBox.getNextFrame(srcFramePtr);
+                        localCounter = 0;
+                    });
                 cupla::__syncthreads(acc);
             }
         }

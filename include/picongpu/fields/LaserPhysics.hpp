@@ -71,16 +71,18 @@ namespace picongpu
                     = LaserFunctor::Unitless::initPlaneY % SuperCellSize::y::value;
 
                 auto forEachCell = lockstep::makeForEach<planeSize, numWorkers>(workerIdx);
-                forEachCell([&](uint32_t const linearIdx) {
-                    auto accLaserFunctor = laserFunctor(acc, localSuperCellOffset, forEachCell.getWorkerCfg());
+                forEachCell(
+                    [&](uint32_t const linearIdx)
+                    {
+                        auto accLaserFunctor = laserFunctor(acc, localSuperCellOffset, forEachCell.getWorkerCfg());
 
-                    /* cell index within the superCell */
-                    DataSpace<simDim> cellIdxInSuperCell
-                        = DataSpaceOperations<simDim>::template map<LaserPlaneSizeInSuperCell>(linearIdx);
-                    cellIdxInSuperCell.y() += cellOffsetInSuperCellFromInitPlaneY;
+                        /* cell index within the superCell */
+                        DataSpace<simDim> cellIdxInSuperCell
+                            = DataSpaceOperations<simDim>::template map<LaserPlaneSizeInSuperCell>(linearIdx);
+                        cellIdxInSuperCell.y() += cellOffsetInSuperCellFromInitPlaneY;
 
-                    accLaserFunctor(acc, cellIdxInSuperCell);
-                });
+                        accLaserFunctor(acc, cellIdxInSuperCell);
+                    });
             }
         };
 

@@ -106,7 +106,6 @@ namespace pmacc
             Constructor,
             Init,
             WaitForSend
-
         };
 
 

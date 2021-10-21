@@ -189,96 +189,102 @@ namespace picongpu
                             // loop over all particles in the frame
                             auto forEachParticle = lockstep::makeForEach<frameSize, numWorker>(workerIdx);
 
-                            forEachParticle([&](uint32_t const linearIdx) {
-                                // only threads with particles are running
-                                if(linearIdx < particlesInFrame)
+                            forEachParticle(
+                                [&](uint32_t const linearIdx)
                                 {
-                                    auto par = frame[linearIdx];
-                                    // get particle momenta
-                                    float3_X const particleMomentum = par[momentum_];
-                                    /* initializes "saveParticleAt" flag with -1
-                                     * because "counter_s" will never be -1
-                                     * therefore, if a particle is saved, a value of counter
-                                     * is stored in "saveParticleAt" != -1
-                                     * THIS IS ACTUALLY ONLY NEEDED IF: the radiation flag was set
-                                     * LATER: can this be optimized?
-                                     */
-
-                                    int saveParticleAt = -1;
-
-                                    // only moving particles create transition radiation
-                                    if((particleMomentum * particleMomentum).sumOfComponents() > 0.0)
+                                    // only threads with particles are running
+                                    if(linearIdx < particlesInFrame)
                                     {
-                                        if(transitionRadiation::getTransitionRadiationMask(par))
-                                            saveParticleAt = kernel::atomicAllInc(
-                                                acc,
-                                                &counter_s,
-                                                ::alpaka::hierarchy::Threads{});
-
-                                        /* for information:
-                                         *   atomicAdd returns an int with the previous
-                                         *   value of "counter_s" != -1
-                                         *   therefore, if a particle is selected
-                                         *   "saveParticleAt" != -1
+                                        auto par = frame[linearIdx];
+                                        // get particle momenta
+                                        float3_X const particleMomentum = par[momentum_];
+                                        /* initializes "saveParticleAt" flag with -1
+                                         * because "counter_s" will never be -1
+                                         * therefore, if a particle is saved, a value of counter
+                                         * is stored in "saveParticleAt" != -1
+                                         * THIS IS ACTUALLY ONLY NEEDED IF: the radiation flag was set
+                                         * LATER: can this be optimized?
                                          */
-                                        // if a particle needs to be considered
-                                        if(saveParticleAt != -1)
+
+                                        int saveParticleAt = -1;
+
+                                        // only moving particles create transition radiation
+                                        if((particleMomentum * particleMomentum).sumOfComponents() > 0.0)
                                         {
-                                            // calculate global position
-                                            lcellId_t const cellIdx = par[localCellIdx_];
+                                            if(transitionRadiation::getTransitionRadiationMask(par))
+                                                saveParticleAt = kernel::atomicAllInc(
+                                                    acc,
+                                                    &counter_s,
+                                                    ::alpaka::hierarchy::Threads{});
 
-                                            // position inside of the cell
-                                            floatD_X const pos = par[position_];
-
-                                            // calculate global position of cell
-                                            DataSpace<simDim> const globalPos(
-                                                superCellOffset
-                                                + DataSpaceOperations<simDim>::template map<SuperCellSize>(cellIdx));
-
-                                            // add global position of cell with local position of particle in cell
-                                            float3_X particleLocation;
-                                            // set z component to zero in case of simDim==DIM2
-                                            particleLocation[2] = 0.0;
-                                            // run over all components and compute gobal position
-                                            for(int i = 0; i < simDim; ++i)
-                                                particleLocation[i] = (float_X(globalPos[i]) + pos[i]) * cellSize[i];
-
-                                            /* get macro-particle weighting
-                                             *
-                                             * Info:
-                                             * the weighting is the number of real particles described
-                                             * by a macro-particle
+                                            /* for information:
+                                             *   atomicAdd returns an int with the previous
+                                             *   value of "counter_s" != -1
+                                             *   therefore, if a particle is selected
+                                             *   "saveParticleAt" != -1
                                              */
-                                            float_X const weighting = par[weighting_];
-                                            radWeighting_s[saveParticleAt] = weighting;
+                                            // if a particle needs to be considered
+                                            if(saveParticleAt != -1)
+                                            {
+                                                // calculate global position
+                                                lcellId_t const cellIdx = par[localCellIdx_];
 
-                                            // mass of macro-particle
-                                            float_X const particleMass = attribute::getMass(weighting, par);
+                                                // position inside of the cell
+                                                floatD_X const pos = par[position_];
 
-                                            // using transition radiation particle class
-                                            transitionRadiation::Particle particle(
-                                                particleLocation,
-                                                particleMomentum,
-                                                particleMass);
+                                                // calculate global position of cell
+                                                DataSpace<simDim> const globalPos(
+                                                    superCellOffset
+                                                    + DataSpaceOperations<simDim>::template map<SuperCellSize>(
+                                                        cellIdx));
 
-                                            // only propagate particles if it is set up in transitionRadiation.param
-                                            if(parameters::foilPosition != 0.0)
-                                                particle.propagate(propagationDistance);
+                                                // add global position of cell with local position of particle in cell
+                                                float3_X particleLocation;
+                                                // set z component to zero in case of simDim==DIM2
+                                                particleLocation[2] = 0.0;
+                                                // run over all components and compute gobal position
+                                                for(int i = 0; i < simDim; ++i)
+                                                    particleLocation[i]
+                                                        = (float_X(globalPos[i]) + pos[i]) * cellSize[i];
 
-                                            // create calculator for TR calculations
-                                            transitionRadiation::Calculator const calculator
-                                                = transitionRadiation::Calculator(particle, look);
+                                                /* get macro-particle weighting
+                                                 *
+                                                 * Info:
+                                                 * the weighting is the number of real particles described
+                                                 * by a macro-particle
+                                                 */
+                                                float_X const weighting = par[weighting_];
+                                                radWeighting_s[saveParticleAt] = weighting;
 
-                                            // calculate values for transition radiation
-                                            energyPara_s[saveParticleAt] = calculator.calcEnergyPara();
+                                                // mass of macro-particle
+                                                float_X const particleMass = attribute::getMass(weighting, par);
 
-                                            energyPerp_s[saveParticleAt] = calculator.calcEnergyPerp();
+                                                // using transition radiation particle class
+                                                transitionRadiation::Particle particle(
+                                                    particleLocation,
+                                                    particleMomentum,
+                                                    particleMass);
 
-                                            formfactorExponent_s[saveParticleAt] = calculator.calcFormFactorExponent();
-                                        }
-                                    } // only moving particles
-                                } // only threads with particle
-                            }); // for each particle
+                                                // only propagate particles if it is set up in
+                                                // transitionRadiation.param
+                                                if(parameters::foilPosition != 0.0)
+                                                    particle.propagate(propagationDistance);
+
+                                                // create calculator for TR calculations
+                                                transitionRadiation::Calculator const calculator
+                                                    = transitionRadiation::Calculator(particle, look);
+
+                                                // calculate values for transition radiation
+                                                energyPara_s[saveParticleAt] = calculator.calcEnergyPara();
+
+                                                energyPerp_s[saveParticleAt] = calculator.calcEnergyPerp();
+
+                                                formfactorExponent_s[saveParticleAt]
+                                                    = calculator.calcFormFactorExponent();
+                                            }
+                                        } // only moving particles
+                                    } // only threads with particle
+                                }); // for each particle
                             cupla::__syncthreads(acc);
 
                             // run over all  valid omegas for this thread

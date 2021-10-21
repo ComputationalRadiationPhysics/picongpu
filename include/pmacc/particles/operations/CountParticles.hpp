@@ -87,11 +87,13 @@ namespace pmacc
 
             auto onlyMaster = lockstep::makeMaster(workerIdx);
 
-            onlyMaster([&]() {
-                frame = pb.getLastFrame(superCellIdx);
-                particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
-                counter = 0;
-            });
+            onlyMaster(
+                [&]()
+                {
+                    frame = pb.getLastFrame(superCellIdx);
+                    particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
+                    counter = 0;
+                });
 
             cupla::__syncthreads(acc);
 
@@ -108,32 +110,36 @@ namespace pmacc
 
             while(frame.isValid())
             {
-                forEachParticle([&](uint32_t const linearIdx) {
-                    if(linearIdx < particlesInSuperCell)
+                forEachParticle(
+                    [&](uint32_t const linearIdx)
                     {
-                        bool const useParticle = filter(*frame, linearIdx);
-                        if(useParticle)
+                        if(linearIdx < particlesInSuperCell)
                         {
-                            auto parSrc = (frame[linearIdx]);
-                            if(accParFilter(acc, parSrc))
-                                kernel::atomicAllInc(acc, &counter, ::alpaka::hierarchy::Threads{});
+                            bool const useParticle = filter(*frame, linearIdx);
+                            if(useParticle)
+                            {
+                                auto parSrc = (frame[linearIdx]);
+                                if(accParFilter(acc, parSrc))
+                                    kernel::atomicAllInc(acc, &counter, ::alpaka::hierarchy::Threads{});
+                            }
                         }
-                    }
-                });
+                    });
 
                 cupla::__syncthreads(acc);
 
-                onlyMaster([&]() {
-                    frame = pb.getPreviousFrame(frame);
-                    particlesInSuperCell = frameSize;
-                });
+                onlyMaster(
+                    [&]()
+                    {
+                        frame = pb.getPreviousFrame(frame);
+                        particlesInSuperCell = frameSize;
+                    });
 
                 cupla::__syncthreads(acc);
             }
 
-            onlyMaster([&]() {
-                cupla::atomicAdd(acc, gCounter, static_cast<uint64_cu>(counter), ::alpaka::hierarchy::Blocks{});
-            });
+            onlyMaster(
+                [&]()
+                { cupla::atomicAdd(acc, gCounter, static_cast<uint64_cu>(counter), ::alpaka::hierarchy::Blocks{}); });
         }
     };
 

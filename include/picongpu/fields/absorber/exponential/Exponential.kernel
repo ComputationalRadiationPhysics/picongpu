@@ -96,39 +96,42 @@ namespace picongpu
                             auto forEachParticleInFrame
                                 = lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx);
 
-                            forEachParticleInFrame([&](uint32_t const linearIdx) {
-                                /* cell index within the superCell */
-                                DataSpace<simDim> const cellIdx
-                                    = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
-
-                                DataSpace<simDim> cell(superCellIdx * SuperCellSize::toRT() + cellIdx);
-
-
-                                do
+                            forEachParticleInFrame(
+                                [&](uint32_t const linearIdx)
                                 {
-                                    cell[axis] += guardCells[axis] * -relExchangeDir[axis];
-                                    int factor(0);
+                                    /* cell index within the superCell */
+                                    DataSpace<simDim> const cellIdx
+                                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
 
-                                    if(relExchangeDir[axis] < 0)
-                                    {
-                                        factor = guardCells[axis] - cell[axis] + thickness - 1;
-                                    }
-                                    else
-                                    {
-                                        factor = guardCells[axis] + cell[axis] - localDomainCells[axis] + thickness;
-                                    }
+                                    DataSpace<simDim> cell(superCellIdx * SuperCellSize::toRT() + cellIdx);
 
-                                    if(factor <= 0)
+
+                                    do
                                     {
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        float_X const a = math::exp(-absorberStrength * float_X(factor));
-                                        field(cell) = field(cell) * a;
-                                    }
-                                } while(true);
-                            });
+                                        cell[axis] += guardCells[axis] * -relExchangeDir[axis];
+                                        int factor(0);
+
+                                        if(relExchangeDir[axis] < 0)
+                                        {
+                                            factor = guardCells[axis] - cell[axis] + thickness - 1;
+                                        }
+                                        else
+                                        {
+                                            factor
+                                                = guardCells[axis] + cell[axis] - localDomainCells[axis] + thickness;
+                                        }
+
+                                        if(factor <= 0)
+                                        {
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            float_X const a = math::exp(-absorberStrength * float_X(factor));
+                                            field(cell) = field(cell) * a;
+                                        }
+                                    } while(true);
+                                });
                         }
                     };
 

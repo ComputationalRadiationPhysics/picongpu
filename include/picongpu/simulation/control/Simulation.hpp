@@ -713,7 +713,8 @@ namespace picongpu
          */
         void resetFields(uint32_t const currentStep)
         {
-            auto resetField = [currentStep](std::string const name) {
+            auto resetField = [currentStep](std::string const name)
+            {
                 DataConnector& dc = Environment<>::get().DataConnector();
                 auto const fieldExists = dc.hasId(name);
                 if(fieldExists)

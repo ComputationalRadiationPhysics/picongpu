@@ -65,7 +65,7 @@ namespace pmacc
             HDINLINE bool operator()(FRAME& frame, lcellId_t id)
             {
                 DataSpace<dim> localCellIdx = DataSpaceOperations<dim>::template map<typename FRAME::SuperCellSize>(
-                    (uint32_t)(frame[id][localCellIdx_]));
+                    (uint32_t) (frame[id][localCellIdx_]));
                 DataSpace<dim> pos = this->superCellIdx + localCellIdx;
                 bool result = true;
                 for(uint32_t d = 0; d < dim; ++d)

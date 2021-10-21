@@ -109,12 +109,14 @@ namespace picongpu
 
             while(frame.isValid())
             {
-                lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                    if(linearIdx < particlesInSuperCell)
+                lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx)(
+                    [&](uint32_t const linearIdx)
                     {
-                        frameSolver(acc, *frame, linearIdx, SuperCellSize::toRT(), accFilter, cachedVal);
-                    }
-                });
+                        if(linearIdx < particlesInSuperCell)
+                        {
+                            frameSolver(acc, *frame, linearIdx, SuperCellSize::toRT(), accFilter, cachedVal);
+                        }
+                    });
 
                 frame = boxPar.getPreviousFrame(frame);
                 particlesInSuperCell = cellsPerSuperCell;

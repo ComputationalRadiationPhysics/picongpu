@@ -64,14 +64,16 @@ namespace pmacc
                     uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
                     uint32_t const blockId = cupla::blockIdx(acc).x * T_numIdsPerBlock;
-                    lockstep::makeForEach<T_numIdsPerBlock, numWorkers>(workerIdx)([&](uint32_t const linearId) {
-                        uint32_t const localId = blockId + linearId;
-                        if(localId < numThreads)
+                    lockstep::makeForEach<T_numIdsPerBlock, numWorkers>(workerIdx)(
+                        [&](uint32_t const linearId)
                         {
-                            for(uint32_t i = 0u; i < numIdsPerThread; i++)
-                                outputbox(i * numThreads + localId) = T_IdProvider::getNewId();
-                        }
-                    });
+                            uint32_t const localId = blockId + linearId;
+                            if(localId < numThreads)
+                            {
+                                for(uint32_t i = 0u; i < numIdsPerThread; i++)
+                                    outputbox(i * numThreads + localId) = T_IdProvider::getNewId();
+                            }
+                        });
                 }
             };
 

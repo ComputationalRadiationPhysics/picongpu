@@ -130,7 +130,6 @@ namespace pmacc
             WaitForInsert,
             Wait,
             Finished
-
         };
 
 

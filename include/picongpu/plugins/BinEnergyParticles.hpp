@@ -119,16 +119,20 @@ namespace picongpu
 
             DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
 
-            lockstep::makeMaster(workerIdx)([&]() {
-                frame = pb.getLastFrame(superCellIdx);
-                particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
-            });
+            lockstep::makeMaster(workerIdx)(
+                [&]()
+                {
+                    frame = pb.getLastFrame(superCellIdx);
+                    particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
+                });
 
-            lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                /* set all bins to 0 */
-                for(int i = linearIdx; i < realNumBins; i += numWorkers)
-                    shBin[i] = float_X(0.);
-            });
+            lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)(
+                [&](uint32_t const linearIdx)
+                {
+                    /* set all bins to 0 */
+                    for(int i = linearIdx; i < realNumBins; i += numWorkers)
+                        shBin[i] = float_X(0.);
+                });
 
             cupla::__syncthreads(acc);
 
@@ -141,71 +145,77 @@ namespace picongpu
             while(frame.isValid())
             {
                 // move over all particles in a frame
-                lockstep::makeForEach<maxParticlesPerFrame, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                    if(linearIdx < particlesInSuperCell)
+                lockstep::makeForEach<maxParticlesPerFrame, numWorkers>(workerIdx)(
+                    [&](uint32_t const linearIdx)
                     {
-                        auto const particle = frame[linearIdx];
-                        if(accFilter(acc, particle))
+                        if(linearIdx < particlesInSuperCell)
                         {
-                            /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
-                             *                                   = c^2 * [p^2 + m^2*c^2]
-                             */
-                            float3_X const mom = particle[momentum_];
-                            float_X const weighting = particle[weighting_];
-                            float_X const mass = attribute::getMass(weighting, particle);
+                            auto const particle = frame[linearIdx];
+                            if(accFilter(acc, particle))
+                            {
+                                /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
+                                 *                                   = c^2 * [p^2 + m^2*c^2]
+                                 */
+                                float3_X const mom = particle[momentum_];
+                                float_X const weighting = particle[weighting_];
+                                float_X const mass = attribute::getMass(weighting, particle);
 
-                            // calculate kinetic energy of the macro particle
-                            float_X localEnergy = KinEnergy<>()(mom, mass);
+                                // calculate kinetic energy of the macro particle
+                                float_X localEnergy = KinEnergy<>()(mom, mass);
 
-                            localEnergy /= weighting;
+                                localEnergy /= weighting;
 
-                            /* +1 move value from 1 to numBins+1 */
-                            int binNumber = math::floor(
-                                                (localEnergy - minEnergy) / (maxEnergy - minEnergy)
-                                                * static_cast<float_X>(numBins))
-                                + 1;
+                                /* +1 move value from 1 to numBins+1 */
+                                int binNumber = math::floor(
+                                                    (localEnergy - minEnergy) / (maxEnergy - minEnergy)
+                                                    * static_cast<float_X>(numBins))
+                                    + 1;
 
-                            int const maxBin = numBins + 1;
+                                int const maxBin = numBins + 1;
 
-                            /* all entries larger than maxEnergy go into bin maxBin */
-                            binNumber = binNumber < maxBin ? binNumber : maxBin;
+                                /* all entries larger than maxEnergy go into bin maxBin */
+                                binNumber = binNumber < maxBin ? binNumber : maxBin;
 
-                            /* all entries smaller than minEnergy go into bin zero */
-                            binNumber = binNumber > 0 ? binNumber : 0;
+                                /* all entries smaller than minEnergy go into bin zero */
+                                binNumber = binNumber > 0 ? binNumber : 0;
 
-                            /*!\todo: we can't use 64bit type on this place (NVIDIA BUG?)
-                             * COMPILER ERROR: ptxas /tmp/tmpxft_00005da6_00000000-2_main.ptx, line 4246; error   :
-                             * Global state space expected for instruction 'atom' I think this is a problem with
-                             * extern shared mem and atmic (only on TESLA) NEXT BUG: don't do uint32_t
-                             * w=__float2uint_rn(weighting); and use w for atomic, this create wrong results
-                             *
-                             * uses a normed float weighting to avoid an overflow of the floating point result
-                             * for the reduced weighting if the particle weighting is very large
-                             */
-                            float_X const normedWeighting
-                                = weighting / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
-                            cupla::atomicAdd(
-                                acc,
-                                &(shBin[binNumber]),
-                                normedWeighting,
-                                ::alpaka::hierarchy::Threads{});
+                                /*!\todo: we can't use 64bit type on this place (NVIDIA BUG?)
+                                 * COMPILER ERROR: ptxas /tmp/tmpxft_00005da6_00000000-2_main.ptx, line 4246; error   :
+                                 * Global state space expected for instruction 'atom' I think this is a problem with
+                                 * extern shared mem and atmic (only on TESLA) NEXT BUG: don't do uint32_t
+                                 * w=__float2uint_rn(weighting); and use w for atomic, this create wrong results
+                                 *
+                                 * uses a normed float weighting to avoid an overflow of the floating point result
+                                 * for the reduced weighting if the particle weighting is very large
+                                 */
+                                float_X const normedWeighting
+                                    = weighting / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                                cupla::atomicAdd(
+                                    acc,
+                                    &(shBin[binNumber]),
+                                    normedWeighting,
+                                    ::alpaka::hierarchy::Threads{});
+                            }
                         }
-                    }
-                });
+                    });
 
                 cupla::__syncthreads(acc);
 
-                lockstep::makeMaster(workerIdx)([&]() {
-                    frame = pb.getPreviousFrame(frame);
-                    particlesInSuperCell = maxParticlesPerFrame;
-                });
+                lockstep::makeMaster(workerIdx)(
+                    [&]()
+                    {
+                        frame = pb.getPreviousFrame(frame);
+                        particlesInSuperCell = maxParticlesPerFrame;
+                    });
                 cupla::__syncthreads(acc);
             }
 
-            lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                for(int i = linearIdx; i < realNumBins; i += numWorkers)
-                    cupla::atomicAdd(acc, &(gBins[i]), float_64(shBin[i]), ::alpaka::hierarchy::Blocks{});
-            });
+            lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)(
+                [&](uint32_t const linearIdx)
+                {
+                    for(int i = linearIdx; i < realNumBins; i += numWorkers)
+                        cupla::atomicAdd(acc, &(gBins[i]), float_64(shBin[i]), ::alpaka::hierarchy::Blocks{});
+                });
         }
     };
 

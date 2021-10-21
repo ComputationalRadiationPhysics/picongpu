@@ -89,39 +89,42 @@ namespace pmacc
 
                     auto const numGuardSuperCells = mapper.getGuardingSuperCells();
 
-                    lockstep::makeForEach<numCells, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                        // cell index within the superCell
-                        DataSpace<dim> const cellIdx
-                            = DataSpaceOperations<dim>::template map<SuperCellSize>(linearIdx);
-
-                        DataSpace<T_Mapping::Dim> const sourceCell(blockCell + cellIdx);
-                        DataSpace<dim> targetCell(sourceCell - nullSourceCell);
-
-                        // supercell offset relative to the guard origin (in cells)
-                        DataSpace<dim> superCellOffsetInGuard(
-                            (targetCell / SuperCellSize::toRT()) * SuperCellSize::toRT());
-
-                        /* defines if the virtual worker needs to copy the value of
-                         * the cell to to the exchange box
-                         */
-                        bool copyValue = true;
-
-                        for(uint32_t d = 0; d < dim; ++d)
+                    lockstep::makeForEach<numCells, numWorkers>(workerIdx)(
+                        [&](uint32_t const linearIdx)
                         {
-                            if(direction[d] == -1)
-                            {
-                                if(superCellOffsetInGuard[d] + cellIdx[d]
-                                   < numGuardSuperCells[d] * SuperCellSize::toRT()[d] - exchangeSize[d])
-                                    copyValue = false;
-                                targetCell[d] -= numGuardSuperCells[d] * SuperCellSize::toRT()[d] - exchangeSize[d];
-                            }
-                            else if(direction[d] == 1 && superCellOffsetInGuard[d] + cellIdx[d] >= exchangeSize[d])
-                                copyValue = false;
-                        }
+                            // cell index within the superCell
+                            DataSpace<dim> const cellIdx
+                                = DataSpaceOperations<dim>::template map<SuperCellSize>(linearIdx);
 
-                        if(copyValue)
-                            exchangeBox(targetCell) = srcBox(sourceCell);
-                    });
+                            DataSpace<T_Mapping::Dim> const sourceCell(blockCell + cellIdx);
+                            DataSpace<dim> targetCell(sourceCell - nullSourceCell);
+
+                            // supercell offset relative to the guard origin (in cells)
+                            DataSpace<dim> superCellOffsetInGuard(
+                                (targetCell / SuperCellSize::toRT()) * SuperCellSize::toRT());
+
+                            /* defines if the virtual worker needs to copy the value of
+                             * the cell to to the exchange box
+                             */
+                            bool copyValue = true;
+
+                            for(uint32_t d = 0; d < dim; ++d)
+                            {
+                                if(direction[d] == -1)
+                                {
+                                    if(superCellOffsetInGuard[d] + cellIdx[d]
+                                       < numGuardSuperCells[d] * SuperCellSize::toRT()[d] - exchangeSize[d])
+                                        copyValue = false;
+                                    targetCell[d]
+                                        -= numGuardSuperCells[d] * SuperCellSize::toRT()[d] - exchangeSize[d];
+                                }
+                                else if(direction[d] == 1 && superCellOffsetInGuard[d] + cellIdx[d] >= exchangeSize[d])
+                                    copyValue = false;
+                            }
+
+                            if(copyValue)
+                                exchangeBox(targetCell) = srcBox(sourceCell);
+                        });
                 }
             };
 

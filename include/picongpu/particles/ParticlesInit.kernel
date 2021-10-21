@@ -134,46 +134,51 @@ namespace picongpu
             cupla::__syncthreads(acc);
 
             // initialize the position functor for each cell in the supercell
-            auto positionFunctorCtx = forEachCellInSuperCell([&](lockstep::Idx const idx) {
-                /* cell index within the superCell */
-                DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
+            auto positionFunctorCtx = forEachCellInSuperCell(
+                [&](lockstep::Idx const idx)
+                {
+                    /* cell index within the superCell */
+                    DataSpace<simDim> const cellIdx = DataSpaceOperations<simDim>::template map<SuperCellSize>(idx);
 
-                /* cell offset to the begin of the simulation */
-                DataSpace<simDim> const totalCellOffset
-                    = totalGpuCellOffset + localSuperCellOffset * SuperCellSize::toRT() + cellIdx;
-                float_X const realDensity = calcRealDensity<T_Species>(densityFunctor, totalCellOffset);
+                    /* cell offset to the begin of the simulation */
+                    DataSpace<simDim> const totalCellOffset
+                        = totalGpuCellOffset + localSuperCellOffset * SuperCellSize::toRT() + cellIdx;
+                    float_X const realDensity = calcRealDensity<T_Species>(densityFunctor, totalCellOffset);
 
-                /** @bug volatile is required for CUDA 9.2 and sm_60 else the compiler will
-                 * optimize out `if(realParticlesPerCell > 0.0_X)` later on.
-                 */
-                volatile float_X const realParticlesPerCell = realDensity * CELL_VOLUME;
+                    /** @bug volatile is required for CUDA 9.2 and sm_60 else the compiler will
+                     * optimize out `if(realParticlesPerCell > 0.0_X)` later on.
+                     */
+                    volatile float_X const realParticlesPerCell = realDensity * CELL_VOLUME;
 
-                // create an independent position functor for each cell in the supercell
-                auto posFunctor = positionFunctor(acc, localSuperCellOffset, forEachCellInSuperCell.getWorkerCfg());
+                    // create an independent position functor for each cell in the supercell
+                    auto posFunctor
+                        = positionFunctor(acc, localSuperCellOffset, forEachCellInSuperCell.getWorkerCfg());
 
-                if(realParticlesPerCell > 0.0_X)
-                    numParsPerCellCtx[idx]
-                        = posFunctor.template numberOfMacroParticles<ParticleType>(realParticlesPerCell);
+                    if(realParticlesPerCell > 0.0_X)
+                        numParsPerCellCtx[idx]
+                            = posFunctor.template numberOfMacroParticles<ParticleType>(realParticlesPerCell);
 
-                if(numParsPerCellCtx[idx] > 0)
-                    kernel::atomicAllExch(
-                        acc,
-                        &finished,
-                        0,
-                        ::alpaka::hierarchy::Threads{}); // one or more cells have particles to create
+                    if(numParsPerCellCtx[idx] > 0)
+                        kernel::atomicAllExch(
+                            acc,
+                            &finished,
+                            0,
+                            ::alpaka::hierarchy::Threads{}); // one or more cells have particles to create
 
-                return posFunctor;
-            });
+                    return posFunctor;
+                });
 
             cupla::__syncthreads(acc);
 
             if(finished == 1)
                 return; // if there is no particle which has to be created
 
-            onlyMaster([&]() {
-                frame = pb.getEmptyFrame(acc);
-                pb.setAsLastFrame(acc, frame, superCellIdx);
-            });
+            onlyMaster(
+                [&]()
+                {
+                    frame = pb.getEmptyFrame(acc);
+                    pb.setAsLastFrame(acc, frame, superCellIdx);
+                });
 
             // distribute the particles within the cell
             do
@@ -185,49 +190,53 @@ namespace picongpu
 
                 cupla::__syncthreads(acc);
 
-                forEachParticle([&](lockstep::Idx const idx) {
-                    if(numParsPerCellCtx[idx] > 0u)
+                forEachParticle(
+                    [&](lockstep::Idx const idx)
                     {
-                        auto particle = frame[idx];
-
-                        /** we now initialize all attributes of the new particle to their default values
-                         *   some attributes, such as the position, localCellIdx, weighting or the
-                         *   multiMask (@see AttrToIgnore) of the particle will be set individually
-                         *   in the following lines since they are already known at this point.
-                         */
+                        if(numParsPerCellCtx[idx] > 0u)
                         {
-                            using ParticleAttrList = typename FrameType::ValueTypeSeq;
-                            using AttrToIgnore = bmpl::vector4<position<>, multiMask, localCellIdx, weighting>;
-                            using ParticleCleanedAttrList =
-                                typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type;
+                            auto particle = frame[idx];
 
-                            meta::ForEach<ParticleCleanedAttrList, SetAttributeToDefault<bmpl::_1>> setToDefault;
-                            setToDefault(particle);
+                            /** we now initialize all attributes of the new particle to their default values
+                             *   some attributes, such as the position, localCellIdx, weighting or the
+                             *   multiMask (@see AttrToIgnore) of the particle will be set individually
+                             *   in the following lines since they are already known at this point.
+                             */
+                            {
+                                using ParticleAttrList = typename FrameType::ValueTypeSeq;
+                                using AttrToIgnore = bmpl::vector4<position<>, multiMask, localCellIdx, weighting>;
+                                using ParticleCleanedAttrList =
+                                    typename ResolveAndRemoveFromSeq<ParticleAttrList, AttrToIgnore>::type;
+
+                                meta::ForEach<ParticleCleanedAttrList, SetAttributeToDefault<bmpl::_1>> setToDefault;
+                                setToDefault(particle);
+                            }
+                            particle[multiMask_] = 1;
+                            particle[localCellIdx_] = idx;
+                            // initialize position and weighting
+                            positionFunctorCtx[idx](acc, particle);
+
+                            numParsPerCellCtx[idx]--;
+                            if(numParsPerCellCtx[idx] > 0)
+                                kernel::atomicAllExch(
+                                    acc,
+                                    &finished,
+                                    0,
+                                    ::alpaka::hierarchy::Threads{}); // one or more cells have particles to create
                         }
-                        particle[multiMask_] = 1;
-                        particle[localCellIdx_] = idx;
-                        // initialize position and weighting
-                        positionFunctorCtx[idx](acc, particle);
-
-                        numParsPerCellCtx[idx]--;
-                        if(numParsPerCellCtx[idx] > 0)
-                            kernel::atomicAllExch(
-                                acc,
-                                &finished,
-                                0,
-                                ::alpaka::hierarchy::Threads{}); // one or more cells have particles to create
-                    }
-                });
+                    });
 
                 cupla::__syncthreads(acc);
 
-                onlyMaster([&]() {
-                    if(finished == 0)
+                onlyMaster(
+                    [&]()
                     {
-                        frame = pb.getEmptyFrame(acc);
-                        pb.setAsLastFrame(acc, frame, superCellIdx);
-                    }
-                });
+                        if(finished == 0)
+                        {
+                            frame = pb.getEmptyFrame(acc);
+                            pb.setAsLastFrame(acc, frame, superCellIdx);
+                        }
+                    });
             } while(finished == 0);
         }
     };

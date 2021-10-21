@@ -205,13 +205,15 @@ namespace picongpu
         , m_datasetID(datasetID)
     {
         constexpr bool particleHasShape = pmacc::traits::HasIdentifier<FrameType, shape<>>::type::value;
-        pmacc::meta::invokeIf<particleHasShape>([]() {
-            constexpr auto particleAssignmentShapeSupport = GetShape<Particles>::type::ChargeAssignment::support;
-            static_assert(
-                particleAssignmentShapeSupport > 0,
-                "A particle shape must have a support larger than zero. Please use a higher order shape. If you "
-                "need a pointwise particle use NGP shape.");
-        });
+        pmacc::meta::invokeIf<particleHasShape>(
+            []()
+            {
+                constexpr auto particleAssignmentShapeSupport = GetShape<Particles>::type::ChargeAssignment::support;
+                static_assert(
+                    particleAssignmentShapeSupport > 0,
+                    "A particle shape must have a support larger than zero. Please use a higher order shape. If you "
+                    "need a pointwise particle use NGP shape.");
+            });
 
         size_t sizeOfExchanges = 0u;
 

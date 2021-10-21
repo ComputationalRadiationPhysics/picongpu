@@ -48,6 +48,5 @@
  */
 #define value_identifier(in_type, name, in_default)                                                                   \
     identifier(                                                                                                       \
-        name, using type = in_type; static HDINLINE type getValue() {                                                 \
-            return in_default;                                                                                        \
-        } static std::string getName() { return std::string(#name); })
+        name, using type = in_type; static HDINLINE type getValue()                                                   \
+        { return in_default; } static std::string getName() { return std::string(#name); })

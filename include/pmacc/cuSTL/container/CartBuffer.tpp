@@ -75,8 +75,8 @@ namespace pmacc
                 HINLINE math::Size_t<2> operator()(const TCursor& cursor)
                 {
                     return {
-                        (size_t)((char*) cursor(0, 1, 0).getMarker() - (char*) cursor.getMarker()),
-                        (size_t)((char*) cursor(0, 0, 1).getMarker() - (char*) cursor.getMarker())};
+                        (size_t) ((char*) cursor(0, 1, 0).getMarker() - (char*) cursor.getMarker()),
+                        (size_t) ((char*) cursor(0, 0, 1).getMarker() - (char*) cursor.getMarker())};
                 }
 
                 HINLINE math::Size_t<2> operator()(const math::Size_t<3>& size)
@@ -140,9 +140,9 @@ namespace pmacc
         HINLINE void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::init()
         {
             typename Allocator::Cursor cursor = Allocator::allocate(this->_size);
-            this->sharedPtr = std::shared_ptr<Type>(cursor.getMarker(), [](auto const* dataptr) {
-                Allocator::deallocate(dataptr);
-            });
+            this->sharedPtr = std::shared_ptr<Type>(
+                cursor.getMarker(),
+                [](auto const* dataptr) { Allocator::deallocate(dataptr); });
             this->shiftedPtr = this->sharedPtr.get();
             this->pitch = detail::PitchHelper<T_dim>()(cursor);
         }

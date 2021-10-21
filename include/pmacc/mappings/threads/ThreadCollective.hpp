@@ -82,7 +82,8 @@ namespace pmacc
         DINLINE void operator()(T_Acc const& acc, T_Functor& functor, T_Args&&... args)
         {
             lockstep::makeForEach<math::CT::volume<DomainSize>::type::value, numWorkers>(m_workerIdx)(
-                [&](uint32_t const linearIdx) {
+                [&](uint32_t const linearIdx)
+                {
                     /* offset (in elements) of the current processed element relative
                      * to the origin of the core domain
                      */

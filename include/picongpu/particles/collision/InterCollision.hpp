@@ -163,13 +163,15 @@ namespace picongpu
                     cupla::__syncthreads(acc);
 
                     // shuffle indices list of the longest particle list
-                    forEachFrameElem([&](uint32_t const linearIdx) {
-                        // find longer list
-                        auto* longParList = parCellList0[linearIdx].size >= parCellList1[linearIdx].size
-                            ? &parCellList0[linearIdx]
-                            : &parCellList1[linearIdx];
-                        (*longParList).shuffle(acc, rngHandle);
-                    });
+                    forEachFrameElem(
+                        [&](uint32_t const linearIdx)
+                        {
+                            // find longer list
+                            auto* longParList = parCellList0[linearIdx].size >= parCellList1[linearIdx].size
+                                ? &parCellList0[linearIdx]
+                                : &parCellList1[linearIdx];
+                            (*longParList).shuffle(acc, rngHandle);
+                        });
 
                     auto collisionFunctorCtx = lockstep::makeVar<decltype(collisionFunctor(
                         acc,
@@ -183,60 +185,64 @@ namespace picongpu
                         alpaka::core::declval<uint32_t const>(),
                         alpaka::core::declval<float_X const>()))>(forEachFrameElem);
 
-                    forEachFrameElem([&](lockstep::Idx const idx) {
-                        uint32_t const linearIdx = idx;
-                        if(parCellList0[linearIdx].size >= parCellList1[linearIdx].size)
+                    forEachFrameElem(
+                        [&](lockstep::Idx const idx)
                         {
-                            inCellCollisions(
-                                acc,
-                                rngHandle,
-                                collisionFunctor,
-                                localSuperCellOffset,
-                                workerIdx,
-                                densityArray0[linearIdx],
-                                densityArray1[linearIdx],
-                                parCellList0[linearIdx].ptrToIndicies,
-                                parCellList1[linearIdx].ptrToIndicies,
-                                parCellList0[linearIdx].size,
-                                parCellList1[linearIdx].size,
-                                pb0,
-                                pb1,
-                                firstFrame0,
-                                firstFrame1,
-                                coulombLog,
-                                collisionFunctorCtx,
-                                idx);
-                        }
-                        else
-                        {
-                            inCellCollisions(
-                                acc,
-                                rngHandle,
-                                collisionFunctor,
-                                localSuperCellOffset,
-                                workerIdx,
-                                densityArray1[linearIdx],
-                                densityArray0[linearIdx],
-                                parCellList1[linearIdx].ptrToIndicies,
-                                parCellList0[linearIdx].ptrToIndicies,
-                                parCellList1[linearIdx].size,
-                                parCellList0[linearIdx].size,
-                                pb1,
-                                pb0,
-                                firstFrame1,
-                                firstFrame0,
-                                coulombLog,
-                                collisionFunctorCtx,
-                                idx);
-                        }
-                    });
+                            uint32_t const linearIdx = idx;
+                            if(parCellList0[linearIdx].size >= parCellList1[linearIdx].size)
+                            {
+                                inCellCollisions(
+                                    acc,
+                                    rngHandle,
+                                    collisionFunctor,
+                                    localSuperCellOffset,
+                                    workerIdx,
+                                    densityArray0[linearIdx],
+                                    densityArray1[linearIdx],
+                                    parCellList0[linearIdx].ptrToIndicies,
+                                    parCellList1[linearIdx].ptrToIndicies,
+                                    parCellList0[linearIdx].size,
+                                    parCellList1[linearIdx].size,
+                                    pb0,
+                                    pb1,
+                                    firstFrame0,
+                                    firstFrame1,
+                                    coulombLog,
+                                    collisionFunctorCtx,
+                                    idx);
+                            }
+                            else
+                            {
+                                inCellCollisions(
+                                    acc,
+                                    rngHandle,
+                                    collisionFunctor,
+                                    localSuperCellOffset,
+                                    workerIdx,
+                                    densityArray1[linearIdx],
+                                    densityArray0[linearIdx],
+                                    parCellList1[linearIdx].ptrToIndicies,
+                                    parCellList0[linearIdx].ptrToIndicies,
+                                    parCellList1[linearIdx].size,
+                                    parCellList0[linearIdx].size,
+                                    pb1,
+                                    pb0,
+                                    firstFrame1,
+                                    firstFrame0,
+                                    coulombLog,
+                                    collisionFunctorCtx,
+                                    idx);
+                            }
+                        });
 
                     cupla::__syncthreads(acc);
 
-                    forEachFrameElem([&](uint32_t const linearIdx) {
-                        parCellList0[linearIdx].finalize(acc, deviceHeapHandle);
-                        parCellList1[linearIdx].finalize(acc, deviceHeapHandle);
-                    });
+                    forEachFrameElem(
+                        [&](uint32_t const linearIdx)
+                        {
+                            parCellList0[linearIdx].finalize(acc, deviceHeapHandle);
+                            parCellList1[linearIdx].finalize(acc, deviceHeapHandle);
+                        });
                 }
 
 

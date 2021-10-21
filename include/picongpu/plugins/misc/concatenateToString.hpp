@@ -43,9 +43,8 @@ namespace picongpu
                     container.begin(),
                     container.end(),
                     std::string(),
-                    [&](std::string& result, std::string& inString) {
-                        return result.empty() ? inString : result + separator + inString;
-                    });
+                    [&](std::string& result, std::string& inString)
+                    { return result.empty() ? inString : result + separator + inString; });
             }
         } // namespace misc
     } // namespace plugins

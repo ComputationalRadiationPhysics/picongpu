@@ -41,7 +41,7 @@ namespace picongpu
                 amountOfSubstance = 5, // N
                 luminousIntensity = 6, // J
             };
-        }
+        } // namespace SIBaseUnits
 
     } // namespace traits
 } // namespace picongpu

@@ -125,18 +125,21 @@ namespace picongpu
                         DataSpace<simDim> supercellOffsetCells
                             = DataSpace<simDim>(cupla::blockIdx(acc)) * SuperCellSize::toRT();
 
-                        lockstep::makeForEach<planeSize, T_numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                            auto cellIdxInSuperCell
-                                = DataSpaceOperations<simDim>::template map<T_BlockDescription>(linearIdx);
-                            auto const gridIdx = beginGridIdx + supercellOffsetCells + cellIdxInSuperCell;
+                        lockstep::makeForEach<planeSize, T_numWorkers>(workerIdx)(
+                            [&](uint32_t const linearIdx)
+                            {
+                                auto cellIdxInSuperCell
+                                    = DataSpaceOperations<simDim>::template map<T_BlockDescription>(linearIdx);
+                                auto const gridIdx = beginGridIdx + supercellOffsetCells + cellIdxInSuperCell;
 
-                            // The index may be outside since the active area is not generally a multiple of block size
-                            bool isInside = true;
-                            for(uint32_t d = 0; d < simDim; d++)
-                                isInside = isInside && (gridIdx[d] < endGridIdx[d]);
-                            if(isInside)
-                                functor(gridIdx);
-                        });
+                                // The index may be outside since the active area is not generally a multiple of block
+                                // size
+                                bool isInside = true;
+                                for(uint32_t d = 0; d < simDim; d++)
+                                    isInside = isInside && (gridIdx[d] < endGridIdx[d]);
+                                if(isInside)
+                                    functor(gridIdx);
+                            });
                     }
                 };
 

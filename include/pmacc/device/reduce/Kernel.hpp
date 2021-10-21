@@ -106,8 +106,8 @@ namespace pmacc
                         s_mem,
                         cupla::blockIdx(acc).x);
 
-                    lockstep::makeMaster(workerIdx)(
-                        [&]() { destFunc(acc, destBuffer[cupla::blockIdx(acc).x], s_mem[0]); });
+                    lockstep::makeMaster(workerIdx)([&]()
+                                                    { destFunc(acc, destBuffer[cupla::blockIdx(acc).x], s_mem[0]); });
                 }
 
                 /** reduce a buffer
@@ -163,21 +163,23 @@ namespace pmacc
                     auto isActiveCtx = forEachBlockElem(
                         [&](lockstep::Idx const idx) -> bool { return linearReduceThreadIdxCtx[idx] < bufferSize; });
 
-                    forEachBlockElem([&](lockstep::Idx const idx) {
-                        if(isActiveCtx[idx])
+                    forEachBlockElem(
+                        [&](lockstep::Idx const idx)
                         {
-                            /*fill shared mem*/
-                            Type r_value = srcBuffer[linearReduceThreadIdxCtx[idx]];
-                            /*reduce not read global memory to shared*/
-                            uint32_t i = linearReduceThreadIdxCtx[idx] + numReduceThreads;
-                            while(i < bufferSize)
+                            if(isActiveCtx[idx])
                             {
-                                func(acc, r_value, srcBuffer[i]);
-                                i += numReduceThreads;
+                                /*fill shared mem*/
+                                Type r_value = srcBuffer[linearReduceThreadIdxCtx[idx]];
+                                /*reduce not read global memory to shared*/
+                                uint32_t i = linearReduceThreadIdxCtx[idx] + numReduceThreads;
+                                while(i < bufferSize)
+                                {
+                                    func(acc, r_value, srcBuffer[i]);
+                                    i += numReduceThreads;
+                                }
+                                sharedMem[idx] = r_value;
                             }
-                            sharedMem[idx] = r_value;
-                        }
-                    });
+                        });
 
                     cupla::__syncthreads(acc);
                     /*now reduce shared memory*/
@@ -194,15 +196,17 @@ namespace pmacc
                          */
                         chunk_count = (chunk_count + 1u) / 2u;
 
-                        forEachBlockElem([&](lockstep::Idx const idx) {
-                            uint32_t const linearIdx = idx;
-                            isActiveCtx[idx] = (linearReduceThreadIdxCtx[idx] < bufferSize)
-                                && !(linearIdx != 0u && linearIdx >= active_threads);
-                            if(isActiveCtx[idx])
-                                func(acc, sharedMem[linearIdx], sharedMem[linearIdx + chunk_count]);
+                        forEachBlockElem(
+                            [&](lockstep::Idx const idx)
+                            {
+                                uint32_t const linearIdx = idx;
+                                isActiveCtx[idx] = (linearReduceThreadIdxCtx[idx] < bufferSize)
+                                    && !(linearIdx != 0u && linearIdx >= active_threads);
+                                if(isActiveCtx[idx])
+                                    func(acc, sharedMem[linearIdx], sharedMem[linearIdx + chunk_count]);
 
-                            cupla::__syncthreads(acc);
-                        });
+                                cupla::__syncthreads(acc);
+                            });
                     }
                 }
             };

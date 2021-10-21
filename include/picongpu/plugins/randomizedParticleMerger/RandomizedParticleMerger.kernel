@@ -134,7 +134,8 @@ namespace picongpu
                         particlesBox,
                         workerIdx,
                         cellIdx,
-                        [this](const T_Acc& acc, FramePtr frame, const int linearThreadIdx) {
+                        [this](const T_Acc& acc, FramePtr frame, const int linearThreadIdx)
+                        {
                             auto particle = frame[linearThreadIdx];
                             const lcellId_t particleCellIdx = particle[localCellIdx_];
                             particle[voronoiCellId_] = this->mapCellIdxToInitialVoronoiCell(particleCellIdx);
@@ -312,7 +313,8 @@ namespace picongpu
                         this->particlesBox,
                         workerIdx,
                         cellIdx,
-                        [&](const T_Acc& acc, FramePtr frame, const int linearThreadIdx) {
+                        [&](const T_Acc& acc, FramePtr frame, const int linearThreadIdx)
+                        {
                             auto particle = frame[linearThreadIdx];
                             const voronoiCellId::type voronoiCellId = particle[voronoiCellId_];
 
@@ -337,15 +339,15 @@ namespace picongpu
                                 break;
 
                             case VoronoiStatus::splitting:
-                            {
-                                const voronoiCellId::type subVoronoiCellId
-                                    = voronoiCell.getSubVoronoiCell(position, singleParticleMomentum);
-                                particle[voronoiCellId_] = subVoronoiCellId;
-                                listVoronoiCells[subVoronoiCellId]
-                                    .addParticle(acc, position, singleParticleMomentum, weighting);
+                                {
+                                    const voronoiCellId::type subVoronoiCellId
+                                        = voronoiCell.getSubVoronoiCell(position, singleParticleMomentum);
+                                    particle[voronoiCellId_] = subVoronoiCellId;
+                                    listVoronoiCells[subVoronoiCellId]
+                                        .addParticle(acc, position, singleParticleMomentum, weighting);
 
-                                break;
-                            }
+                                    break;
+                                }
 
                             case VoronoiStatus::abort:
                                 particle[voronoiCellId_] = -1;

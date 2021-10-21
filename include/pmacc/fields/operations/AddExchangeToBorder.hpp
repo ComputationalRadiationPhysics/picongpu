@@ -92,42 +92,45 @@ namespace pmacc
 
                     auto const numGuardSuperCells = mapper.getGuardingSuperCells();
 
-                    lockstep::makeForEach<numCells, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                        // cell index within the superCell
-                        DataSpace<dim> const cellIdx
-                            = DataSpaceOperations<dim>::template map<SuperCellSize>(linearIdx);
-                        DataSpace<dim> targetCell(blockCell + cellIdx);
-                        DataSpace<dim> sourceCell(targetCell - nullSourceCell);
-
-                        // supercell offset relative to the guard origin (in cells)
-                        DataSpace<dim> superCellOffsetInGuard(
-                            (sourceCell / SuperCellSize::toRT()) * SuperCellSize::toRT());
-
-                        /* defines if the virtual worker needs to add the value from
-                         * the exchange box to the cell in the border
-                         */
-                        bool addValue = true;
-
-                        for(uint32_t d = 0; d < dim; ++d)
+                    lockstep::makeForEach<numCells, numWorkers>(workerIdx)(
+                        [&](uint32_t const linearIdx)
                         {
-                            if(direction[d] == 1)
+                            // cell index within the superCell
+                            DataSpace<dim> const cellIdx
+                                = DataSpaceOperations<dim>::template map<SuperCellSize>(linearIdx);
+                            DataSpace<dim> targetCell(blockCell + cellIdx);
+                            DataSpace<dim> sourceCell(targetCell - nullSourceCell);
+
+                            // supercell offset relative to the guard origin (in cells)
+                            DataSpace<dim> superCellOffsetInGuard(
+                                (sourceCell / SuperCellSize::toRT()) * SuperCellSize::toRT());
+
+                            /* defines if the virtual worker needs to add the value from
+                             * the exchange box to the cell in the border
+                             */
+                            bool addValue = true;
+
+                            for(uint32_t d = 0; d < dim; ++d)
                             {
-                                if(superCellOffsetInGuard[d] + cellIdx[d]
-                                   < numGuardSuperCells[d] * SuperCellSize::toRT()[d] - exchangeSize[d])
-                                    addValue = false;
-                                sourceCell[d] -= numGuardSuperCells[d] * SuperCellSize::toRT()[d] - exchangeSize[d];
-                                targetCell[d] -= numGuardSuperCells[d] * SuperCellSize::toRT()[d];
+                                if(direction[d] == 1)
+                                {
+                                    if(superCellOffsetInGuard[d] + cellIdx[d]
+                                       < numGuardSuperCells[d] * SuperCellSize::toRT()[d] - exchangeSize[d])
+                                        addValue = false;
+                                    sourceCell[d]
+                                        -= numGuardSuperCells[d] * SuperCellSize::toRT()[d] - exchangeSize[d];
+                                    targetCell[d] -= numGuardSuperCells[d] * SuperCellSize::toRT()[d];
+                                }
+                                else if(direction[d] == -1)
+                                {
+                                    if(superCellOffsetInGuard[d] + cellIdx[d] >= exchangeSize[d])
+                                        addValue = false;
+                                    targetCell[d] += numGuardSuperCells[d] * SuperCellSize::toRT()[d];
+                                }
                             }
-                            else if(direction[d] == -1)
-                            {
-                                if(superCellOffsetInGuard[d] + cellIdx[d] >= exchangeSize[d])
-                                    addValue = false;
-                                targetCell[d] += numGuardSuperCells[d] * SuperCellSize::toRT()[d];
-                            }
-                        }
-                        if(addValue)
-                            destBox(targetCell) += exchangeBox(sourceCell);
-                    });
+                            if(addValue)
+                                destBox(targetCell) += exchangeBox(sourceCell);
+                        });
                 }
             };
 
