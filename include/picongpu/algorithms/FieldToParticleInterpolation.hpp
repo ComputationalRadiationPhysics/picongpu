@@ -24,6 +24,7 @@
 
 #include "picongpu/algorithms/ShiftCoordinateSystem.hpp"
 
+#include <pmacc/attribute/unroll.hpp>
 #include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
 #include <pmacc/cuSTL/cursor/FunctorCursor.hpp>
 #include <pmacc/math/Vector.hpp>
@@ -76,6 +77,7 @@ namespace picongpu
             using Supports = typename pmacc::math::CT::make_Int<simDim, supp>::type;
 
             typename Cursor::ValueType result;
+            PMACC_UNROLL(Cursor::ValueType::dim)
             for(uint32_t i = 0; i < Cursor::ValueType::dim; i++)
             {
                 auto fieldComponent
