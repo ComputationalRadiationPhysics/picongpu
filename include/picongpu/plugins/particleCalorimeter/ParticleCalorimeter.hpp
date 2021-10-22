@@ -615,7 +615,7 @@ namespace picongpu
             this->writeToOpenPMDFile(currentStep);
         }
 
-        void onParticleLeave(const std::string& speciesName, int32_t direction)
+        void onParticleLeave(const std::string& speciesName, int32_t direction) override
         {
             if(this->notifyPeriod.empty())
                 return;
