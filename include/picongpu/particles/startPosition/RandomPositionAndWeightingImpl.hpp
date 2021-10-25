@@ -39,7 +39,7 @@ namespace picongpu
                 template<typename T_ParamClass>
                 struct RandomPositionAndWeightingImpl
                 {
-                    /** set in-cell position and weighting
+                    /** Set in-cell position and weighting
                      *
                      * @tparam T_Rng functor::misc::RngWrapper, type of the random number generator
                      * @tparam T_Particle pmacc::Particle, particle type
@@ -60,26 +60,32 @@ namespace picongpu
                         // The last macroparticle of a cell gets the remaining weight
                         if(m_remainingMacroparticles <= 1)
                         {
-                            particle[weighting_] = math::max(m_totalRemainingWeighting, MIN_WEIGHTING);
+                            particle[weighting_] = m_totalRemainingWeighting + MIN_WEIGHTING;
                             m_totalRemainingWeighting = 0.0_X;
                             m_remainingMacroparticles = 0;
                         }
                         else
                         {
-                            m_remainingMacroparticles--;
-                            // Generate a weighting uniformly distributed in [0, 2x average weighting]
-                            auto weighting = rng() * 2.0_X * m_averageWeighting;
-                            /* Clump it to the valid range: it has to be at least MIN_WEIGHTING and
-                             * all remaining macroparticles also have at least MIN_WEIGHTING
+                            /* Generate a weighting uniformly distributed in [0, 2x average weighting).
+                             * This is a weighting on top of MIN_WEIGHTING.
+                             * Clump it to be withing the remaining weighting for this cell.
                              */
-                            auto const maxWeighting = m_totalRemainingWeighting
-                                - MIN_WEIGHTING * static_cast<float_X>(m_remainingMacroparticles);
-                            weighting = math::max(math::min(weighting, maxWeighting), MIN_WEIGHTING);
-                            particle[weighting_] = weighting;
+                            auto weighting = rng() * 2.0_X * m_averageWeighting;
+                            weighting = math::min(weighting, m_totalRemainingWeighting);
+                            particle[weighting_] = weighting + MIN_WEIGHTING;
                             m_totalRemainingWeighting -= weighting;
+                            m_remainingMacroparticles--;
                         }
                     }
 
+                    /** Get the number of macroparticles for the current cell
+                     *
+                     * A user must call operator() for this object exactly as many times.
+                     *
+                     * @tparam T_Particle particle type
+                     *
+                     * @param realParticlesPerCell number of real particles for the cell
+                     */
                     template<typename T_Particle>
                     HDINLINE uint32_t numberOfMacroParticles(float_X const realParticlesPerCell)
                     {
@@ -87,17 +93,18 @@ namespace picongpu
                             realParticlesPerCell,
                             T_ParamClass::numParticlesPerCell,
                             m_averageWeighting);
+                        m_averageWeighting = math::max(m_averageWeighting - MIN_WEIGHTING, 0.0_X);
                         m_totalRemainingWeighting = m_averageWeighting * m_remainingMacroparticles;
                         return m_remainingMacroparticles;
                     }
 
-                    /** Average weighting of a macroparticle
+                    /** Average weighting of a macroparticle on top of MIN_WEIGHTING
                      *
-                     * Due to the initialization logic, will always be >= MIN_WEIGHTING
+                     * Due to the initialization logic, will always be >= 0
                      */
                     float_X m_averageWeighting;
 
-                    //! Total weighting for remaining macroparticles
+                    //! Total weighting for remaining macroparticles on top of MIN_WEIGHTING for each particle
                     float_X m_totalRemainingWeighting;
 
                     //! Number of macroparticles remaining to be generated
