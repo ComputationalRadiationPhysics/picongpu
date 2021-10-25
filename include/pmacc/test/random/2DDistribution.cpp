@@ -66,22 +66,24 @@ namespace pmacc
                     // each virtual worker initialize one rng state
                     auto forEachCell = lockstep::makeForEach<T_blockSize, numWorkers>(workerIdx);
 
-                    forEachCell([&](uint32_t const linearIdx) {
-                        uint32_t const linearTid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
-
-                        if(linearTid >= boxSize.productOfComponents())
-                            return;
-
-                        Space2D const ownIdx = pmacc::DataSpaceOperations<Space2D::dim>::map(boxSize, linearTid);
-                        // each virtual worker needs an own instance of rand
-                        T_Random vWorkerRand = rand;
-                        vWorkerRand.init(ownIdx);
-                        for(uint32_t i = 0u; i < numSamples; i++)
+                    forEachCell(
+                        [&](uint32_t const linearIdx)
                         {
-                            Space2D idx = vWorkerRand(acc, boxSize);
-                            cupla::atomicAdd(acc, &box(idx), 1u, ::alpaka::hierarchy::Blocks{});
-                        }
-                    });
+                            uint32_t const linearTid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
+
+                            if(linearTid >= boxSize.productOfComponents())
+                                return;
+
+                            Space2D const ownIdx = pmacc::DataSpaceOperations<Space2D::dim>::map(boxSize, linearTid);
+                            // each virtual worker needs an own instance of rand
+                            T_Random vWorkerRand = rand;
+                            vWorkerRand.init(ownIdx);
+                            for(uint32_t i = 0u; i < numSamples; i++)
+                            {
+                                Space2D idx = vWorkerRand(acc, boxSize);
+                                cupla::atomicAdd(acc, &box(idx), 1u, ::alpaka::hierarchy::Blocks{});
+                            }
+                        });
                 }
             };
 

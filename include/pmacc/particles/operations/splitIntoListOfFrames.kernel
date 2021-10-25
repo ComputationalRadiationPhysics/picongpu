@@ -115,16 +115,18 @@ namespace pmacc
 
                         auto onlyMaster = lockstep::makeMaster(workerIdx);
 
-                        onlyMaster([&]() {
-                            /* apply for work for the full block, counter[0] contains the
-                             * offset in srcFrame to load N particles
-                             */
-                            sharedSrcParticleOffset = cupla::atomicAdd(
-                                acc,
-                                &(counter[0]),
-                                particlesPerFrame,
-                                ::alpaka::hierarchy::Blocks{});
-                        });
+                        onlyMaster(
+                            [&]()
+                            {
+                                /* apply for work for the full block, counter[0] contains the
+                                 * offset in srcFrame to load N particles
+                                 */
+                                sharedSrcParticleOffset = cupla::atomicAdd(
+                                    acc,
+                                    &(counter[0]),
+                                    particlesPerFrame,
+                                    ::alpaka::hierarchy::Blocks{});
+                            });
 
                         cupla::__syncthreads(acc);
 
@@ -134,13 +136,15 @@ namespace pmacc
                         auto srcParticleIdxCtx = lockstep::makeVar<int>(forEachParticle);
                         auto hasValidParticleCtx = lockstep::makeVar<bool>(forEachParticle);
 
-                        forEachParticle([&](lockstep::Idx const idx) {
-                            destFramePtr[idx] = DestFramePtr{};
-                            sharedLinearSuperCellIds[idx] = -1;
+                        forEachParticle(
+                            [&](lockstep::Idx const idx)
+                            {
+                                destFramePtr[idx] = DestFramePtr{};
+                                sharedLinearSuperCellIds[idx] = -1;
 
-                            srcParticleIdxCtx[idx] = sharedSrcParticleOffset + idx;
-                            hasValidParticleCtx[idx] = srcParticleIdxCtx[idx] < maxParticles;
-                        });
+                                srcParticleIdxCtx[idx] = sharedSrcParticleOffset + idx;
+                                hasValidParticleCtx[idx] = srcParticleIdxCtx[idx] < maxParticles;
+                            });
 
                         cupla::__syncthreads(acc);
 
@@ -150,81 +154,88 @@ namespace pmacc
                         auto linearParticlesSuperCellCtx = lockstep::makeVar<int>(forEachParticle, -1);
 
                         // supercell index of the particle relative to the origin of the local domain
-                        auto particlesSuperCellCtx
-                            = forEachParticle([&](lockstep::Idx const idx) -> DataSpace<numDims> {
-                                  DataSpace<numDims> particlesSuperCellIdx;
-                                  if(hasValidParticleCtx[idx])
-                                  {
-                                      // offset of the particle relative to the origin of the local domain
-                                      DataSpace<numDims> const particleCellOffset
-                                          = srcFrame[srcParticleIdxCtx[idx]][domainCellIdxIdentifier]
-                                          - localDomainCellOffset;
-                                      particlesSuperCellIdx = particleCellOffset / SuperCellSize::toRT();
-                                      linearParticlesSuperCellCtx[idx]
-                                          = DataSpaceOperations<numDims>::map(numSuperCells, particlesSuperCellIdx);
-                                      sharedLinearSuperCellIds[idx] = linearParticlesSuperCellCtx[idx];
-                                      DataSpace<numDims> const localCellIdx(
-                                          particleCellOffset - particlesSuperCellIdx * SuperCellSize::toRT());
-                                      lCellIdxCtx[idx]
-                                          = DataSpaceOperations<numDims>::template map<SuperCellSize>(localCellIdx);
-                                  }
-                                  return particlesSuperCellIdx;
-                              });
+                        auto particlesSuperCellCtx = forEachParticle(
+                            [&](lockstep::Idx const idx) -> DataSpace<numDims>
+                            {
+                                DataSpace<numDims> particlesSuperCellIdx;
+                                if(hasValidParticleCtx[idx])
+                                {
+                                    // offset of the particle relative to the origin of the local domain
+                                    DataSpace<numDims> const particleCellOffset
+                                        = srcFrame[srcParticleIdxCtx[idx]][domainCellIdxIdentifier]
+                                        - localDomainCellOffset;
+                                    particlesSuperCellIdx = particleCellOffset / SuperCellSize::toRT();
+                                    linearParticlesSuperCellCtx[idx]
+                                        = DataSpaceOperations<numDims>::map(numSuperCells, particlesSuperCellIdx);
+                                    sharedLinearSuperCellIds[idx] = linearParticlesSuperCellCtx[idx];
+                                    DataSpace<numDims> const localCellIdx(
+                                        particleCellOffset - particlesSuperCellIdx * SuperCellSize::toRT());
+                                    lCellIdxCtx[idx]
+                                        = DataSpaceOperations<numDims>::template map<SuperCellSize>(localCellIdx);
+                                }
+                                return particlesSuperCellIdx;
+                            });
 
                         cupla::__syncthreads(acc);
 
                         // auto masterVirtualThreadIdxCtx
                         //     = forEachParticle([&](uint32_t const linearIdx) -> int { return linearIdx - 1; });
 
-                        auto masterVirtualThreadIdxCtx = forEachParticle([&](lockstep::Idx const idx) -> int {
-                            int vThreadMasterIdx = static_cast<int>(idx) - 1;
-                            if(hasValidParticleCtx[idx])
+                        auto masterVirtualThreadIdxCtx = forEachParticle(
+                            [&](lockstep::Idx const idx) -> int
                             {
-                                // auto& vThreadMasterIdx = masterVirtualThreadIdxCtx[idx];
-                                /* search master thread index */
-                                while(vThreadMasterIdx >= 0)
+                                int vThreadMasterIdx = static_cast<int>(idx) - 1;
+                                if(hasValidParticleCtx[idx])
                                 {
-                                    if(linearParticlesSuperCellCtx[idx] != sharedLinearSuperCellIds[vThreadMasterIdx])
-                                        break;
+                                    // auto& vThreadMasterIdx = masterVirtualThreadIdxCtx[idx];
+                                    /* search master thread index */
+                                    while(vThreadMasterIdx >= 0)
+                                    {
+                                        if(linearParticlesSuperCellCtx[idx]
+                                           != sharedLinearSuperCellIds[vThreadMasterIdx])
+                                            break;
 
-                                    --vThreadMasterIdx;
-                                }
-                                ++vThreadMasterIdx;
+                                        --vThreadMasterIdx;
+                                    }
+                                    ++vThreadMasterIdx;
 
-                                // load empty frame if virtual thread is the master
-                                if(vThreadMasterIdx == idx)
-                                {
-                                    /* counter[2] -> number of used frames */
-                                    kernel::atomicAllInc(acc, &(counter[2]), ::alpaka::hierarchy::Blocks{});
-                                    DestFramePtr tmpFrame = destBox.getEmptyFrame(acc);
-                                    destFramePtr[idx] = tmpFrame;
-                                    destBox.setAsFirstFrame(
-                                        acc,
-                                        tmpFrame,
-                                        particlesSuperCellCtx[idx] + cellDesc.getGuardingSuperCells());
+                                    // load empty frame if virtual thread is the master
+                                    if(vThreadMasterIdx == idx)
+                                    {
+                                        /* counter[2] -> number of used frames */
+                                        kernel::atomicAllInc(acc, &(counter[2]), ::alpaka::hierarchy::Blocks{});
+                                        DestFramePtr tmpFrame = destBox.getEmptyFrame(acc);
+                                        destFramePtr[idx] = tmpFrame;
+                                        destBox.setAsFirstFrame(
+                                            acc,
+                                            tmpFrame,
+                                            particlesSuperCellCtx[idx] + cellDesc.getGuardingSuperCells());
+                                    }
                                 }
-                            }
-                            return vThreadMasterIdx;
-                        });
+                                return vThreadMasterIdx;
+                            });
 
                         cupla::__syncthreads(acc);
 
-                        forEachParticle([&](lockstep::Idx const idx) {
-                            if(hasValidParticleCtx[idx])
+                        forEachParticle(
+                            [&](lockstep::Idx const idx)
                             {
-                                /* copy attributes and activate particle*/
-                                auto parDest = destFramePtr[masterVirtualThreadIdxCtx[idx]][idx];
-                                auto parDestDeselect = deselect<bmpl::vector2<localCellIdx, multiMask>>(parDest);
+                                if(hasValidParticleCtx[idx])
+                                {
+                                    /* copy attributes and activate particle*/
+                                    auto parDest = destFramePtr[masterVirtualThreadIdxCtx[idx]][idx];
+                                    auto parDestDeselect = deselect<bmpl::vector2<localCellIdx, multiMask>>(parDest);
 
-                                assign(parDestDeselect, srcFrame[srcParticleIdxCtx[idx]]);
-                                parDest[localCellIdx_] = lCellIdxCtx[idx];
-                                parDest[multiMask_] = 1;
-                                /* counter[1] -> number of loaded particles
-                                 * this counter is evaluated on host side
-                                 * (check that loaded particles by this kernel == loaded particles from HDF5 file)*/
-                                kernel::atomicAllInc(acc, &(counter[1]), ::alpaka::hierarchy::Blocks{});
-                            }
-                        });
+                                    assign(parDestDeselect, srcFrame[srcParticleIdxCtx[idx]]);
+                                    parDest[localCellIdx_] = lCellIdxCtx[idx];
+                                    parDest[multiMask_] = 1;
+                                    /* counter[1] -> number of loaded particles
+                                     * this counter is evaluated on host side
+                                     * (check that loaded particles by this kernel == loaded particles from HDF5
+                                     * file)*/
+                                    kernel::atomicAllInc(acc, &(counter[1]), ::alpaka::hierarchy::Blocks{});
+                                }
+                            });
                     }
                 };
             } // namespace detail

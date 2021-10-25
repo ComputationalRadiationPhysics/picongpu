@@ -99,15 +99,17 @@ namespace pmacc
                                 auto forEachParticle = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
 
                                 // loop over all particles in the frame
-                                forEachParticle([&](uint32_t const linearIdx) {
-                                    // particle index within the supercell
-                                    uint32_t parIdx = parOffset + linearIdx;
-                                    auto particle = frame[linearIdx];
+                                forEachParticle(
+                                    [&](uint32_t const linearIdx)
+                                    {
+                                        // particle index within the supercell
+                                        uint32_t parIdx = parOffset + linearIdx;
+                                        auto particle = frame[linearIdx];
 
-                                    bool const isPar = parIdx < numPartcilesInSupercell;
-                                    if(isPar)
-                                        accFunctor(acc, particle);
-                                });
+                                        bool const isPar = parIdx < numPartcilesInSupercell;
+                                        if(isPar)
+                                            accFunctor(acc, particle);
+                                    });
 
                                 frame = pb.getNextFrame(frame);
                             }

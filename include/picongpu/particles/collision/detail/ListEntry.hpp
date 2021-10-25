@@ -176,17 +176,19 @@ namespace picongpu
 
                     for(uint32_t i = 0; i < numParticlesInSupercell; i += frameSize)
                     {
-                        forEach([&](uint32_t const linearIdx) {
-                            if(i + linearIdx < numParticlesInSupercell)
+                        forEach(
+                            [&](uint32_t const linearIdx)
                             {
-                                auto particle = frame[linearIdx];
-                                if(filter(acc, particle))
+                                if(i + linearIdx < numParticlesInSupercell)
                                 {
-                                    auto parLocalIndex = particle[localCellIdx_];
-                                    cupla::atomicAdd(acc, &nppc[parLocalIndex], 1u);
+                                    auto particle = frame[linearIdx];
+                                    if(filter(acc, particle))
+                                    {
+                                        auto parLocalIndex = particle[localCellIdx_];
+                                        cupla::atomicAdd(acc, &nppc[parLocalIndex], 1u);
+                                    }
                                 }
-                            }
-                        });
+                            });
                         frame = parBox.getNextFrame(frame);
                     }
                 }
@@ -215,19 +217,22 @@ namespace picongpu
                     constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
                     for(uint32_t i = 0; i < numParticlesInSupercell; i += frameSize)
                     {
-                        forEach([&](uint32_t const linearIdx) {
-                            uint32_t const parInSuperCellIdx = i + linearIdx;
-                            if(parInSuperCellIdx < numParticlesInSupercell)
+                        forEach(
+                            [&](uint32_t const linearIdx)
                             {
-                                auto particle = frame[linearIdx];
-                                if(filter(acc, particle))
+                                uint32_t const parInSuperCellIdx = i + linearIdx;
+                                if(parInSuperCellIdx < numParticlesInSupercell)
                                 {
-                                    auto parLocalIndex = particle[localCellIdx_];
-                                    uint32_t parOffset = cupla::atomicAdd(acc, &parCellList[parLocalIndex].size, 1u);
-                                    parCellList[parLocalIndex].ptrToIndicies[parOffset] = parInSuperCellIdx;
+                                    auto particle = frame[linearIdx];
+                                    if(filter(acc, particle))
+                                    {
+                                        auto parLocalIndex = particle[localCellIdx_];
+                                        uint32_t parOffset
+                                            = cupla::atomicAdd(acc, &parCellList[parLocalIndex].size, 1u);
+                                        parCellList[parLocalIndex].ptrToIndicies[parOffset] = parInSuperCellIdx;
+                                    }
                                 }
-                            }
-                        });
+                            });
                         frame = parBox.getNextFrame(frame);
                     }
                 }
@@ -272,9 +277,8 @@ namespace picongpu
                     cupla::__syncthreads(acc);
 
                     // memory for particle indices
-                    forEach([&](uint32_t const linearIdx) {
-                        parCellList[linearIdx].init(acc, deviceHeapHandle, nppc[linearIdx]);
-                    });
+                    forEach([&](uint32_t const linearIdx)
+                            { parCellList[linearIdx].init(acc, deviceHeapHandle, nppc[linearIdx]); });
                     cupla::__syncthreads(acc);
 
                     detail::updateLinkedList(

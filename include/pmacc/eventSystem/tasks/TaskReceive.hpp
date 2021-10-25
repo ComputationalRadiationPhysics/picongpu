@@ -173,7 +173,6 @@ namespace pmacc
             WaitForSetSize,
             WaitForFinish,
             Finish
-
         };
 
 

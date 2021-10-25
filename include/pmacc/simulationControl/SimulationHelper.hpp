@@ -478,14 +478,16 @@ namespace pmacc
             if(currentStep != 0u && handleSignalAtStep == currentStep)
             {
                 // Wait for MPI without blocking the event system.
-                Environment<>::get().Manager().waitFor([&signalMPI = signalMPI]() -> bool {
-                    // wait until we know the largest time step in the simulation
-                    MPI_Status mpiReduceStatus;
+                Environment<>::get().Manager().waitFor(
+                    [&signalMPI = signalMPI]() -> bool
+                    {
+                        // wait until we know the largest time step in the simulation
+                        MPI_Status mpiReduceStatus;
 
-                    int flag = 0;
-                    MPI_CHECK(MPI_Test(&signalMPI, &flag, &mpiReduceStatus));
-                    return flag != 0;
-                });
+                        int flag = 0;
+                        MPI_CHECK(MPI_Test(&signalMPI, &flag, &mpiReduceStatus));
+                        return flag != 0;
+                    });
 
                 // Translate signals into actions
                 if(signalCreateCheckpoint)

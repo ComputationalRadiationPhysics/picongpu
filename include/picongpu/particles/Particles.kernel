@@ -107,14 +107,16 @@ namespace picongpu
 
             auto onlyMaster = lockstep::makeMaster(workerIdx);
 
-            onlyMaster([&]() {
-                srcFrame = srcBox.getFirstFrame(superCellIdx);
-                if(srcFrame.isValid())
+            onlyMaster(
+                [&]()
                 {
-                    // we have something to clone
-                    destFrame = destBox.getEmptyFrame(acc);
-                }
-            });
+                    srcFrame = srcBox.getFirstFrame(superCellIdx);
+                    if(srcFrame.isValid())
+                    {
+                        // we have something to clone
+                        destFrame = destBox.getEmptyFrame(acc);
+                    }
+                });
 
             auto accManipulator = manipulateFunctor(acc, localSuperCellOffset, lockstep::Worker<numWorker>{workerIdx});
             auto accSrcFilter = srcFilterFunctor(acc, localSuperCellOffset, lockstep::Worker<numWorker>{workerIdx});
@@ -125,31 +127,35 @@ namespace picongpu
             while(srcFrame.isValid())
             {
                 // loop over all particles in the frame
-                lockstep::makeForEach<frameSize, numWorker>(workerIdx)([&](uint32_t const linearIdx) {
-                    auto parDest = destFrame[linearIdx];
-                    auto parSrc = srcFrame[linearIdx];
-                    if(parSrc[multiMask_] != 1)
-                        parSrc.setHandleInvalid();
-
-                    if(accSrcFilter(acc, parSrc))
+                lockstep::makeForEach<frameSize, numWorker>(workerIdx)(
+                    [&](uint32_t const linearIdx)
                     {
-                        assign(parDest, deselect<particleId>(parSrc));
+                        auto parDest = destFrame[linearIdx];
+                        auto parSrc = srcFrame[linearIdx];
+                        if(parSrc[multiMask_] != 1)
+                            parSrc.setHandleInvalid();
 
-                        accManipulator(acc, parDest, parSrc);
-                    }
-                });
+                        if(accSrcFilter(acc, parSrc))
+                        {
+                            assign(parDest, deselect<particleId>(parSrc));
+
+                            accManipulator(acc, parDest, parSrc);
+                        }
+                    });
 
                 cupla::__syncthreads(acc);
 
-                onlyMaster([&]() {
-                    destBox.setAsLastFrame(acc, destFrame, superCellIdx);
-
-                    srcFrame = srcBox.getNextFrame(srcFrame);
-                    if(srcFrame.isValid())
+                onlyMaster(
+                    [&]()
                     {
-                        destFrame = destBox.getEmptyFrame(acc);
-                    }
-                });
+                        destBox.setAsLastFrame(acc, destFrame, superCellIdx);
+
+                        srcFrame = srcBox.getNextFrame(srcFrame);
+                        if(srcFrame.isValid())
+                        {
+                            destFrame = destBox.getEmptyFrame(acc);
+                        }
+                    });
                 cupla::__syncthreads(acc);
             }
         }
@@ -257,12 +263,14 @@ namespace picongpu
             while(frame.isValid())
             {
                 // loop over all particles in the frame
-                lockstep::makeForEach<frameSize, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                    if(linearIdx < particlesInSuperCell)
+                lockstep::makeForEach<frameSize, numWorkers>(workerIdx)(
+                    [&](uint32_t const linearIdx)
                     {
-                        particleFunctor(acc, *frame, linearIdx, cachedB, cachedE, currentStep, hasLeavingParticle);
-                    }
-                });
+                        if(linearIdx < particlesInSuperCell)
+                        {
+                            particleFunctor(acc, *frame, linearIdx, cachedB, cachedE, currentStep, hasLeavingParticle);
+                        }
+                    });
                 // independent for each worker
                 frame = pb.getPreviousFrame(frame);
                 particlesInSuperCell = frameSize;
@@ -276,16 +284,18 @@ namespace picongpu
 
             cupla::__syncthreads(acc);
 
-            onlyMaster([&]() {
-                /* set in SuperCell the hasLeavingParticle flag which is an optimization
-                 * for shift particles (pmacc::KernelShiftParticles)
-                 */
-                if(mustShiftSupercell == 1)
+            onlyMaster(
+                [&]()
                 {
-                    pb.getSuperCell(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))))
-                        .setMustShift(true);
-                }
-            });
+                    /* set in SuperCell the hasLeavingParticle flag which is an optimization
+                     * for shift particles (pmacc::KernelShiftParticles)
+                     */
+                    if(mustShiftSupercell == 1)
+                    {
+                        pb.getSuperCell(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))))
+                            .setMustShift(true);
+                    }
+                });
         }
     };
 

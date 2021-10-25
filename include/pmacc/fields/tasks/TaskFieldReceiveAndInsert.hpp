@@ -126,7 +126,6 @@ namespace pmacc
             WaitInsertFinished,
             WaitForReceived,
             Finish
-
         };
 
 

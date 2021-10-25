@@ -113,14 +113,16 @@ namespace pmacc
             constexpr uint32_t numWorkers = T_numWorkers;
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-            lockstep::makeForEach<T_xChunkSize, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                auto virtualWorkerIdx(SizeVecType::create(0));
-                virtualWorkerIdx.x() = linearIdx;
+            lockstep::makeForEach<T_xChunkSize, numWorkers>(workerIdx)(
+                [&](uint32_t const linearIdx)
+                {
+                    auto virtualWorkerIdx(SizeVecType::create(0));
+                    virtualWorkerIdx.x() = linearIdx;
 
-                SizeVecType const idx(blockSize * blockIndex + virtualWorkerIdx);
-                if(idx.x() < size.x())
-                    memBox(idx) = taskSetValueHelper::getValue(value);
-            });
+                    SizeVecType const idx(blockSize * blockIndex + virtualWorkerIdx);
+                    if(idx.x() < size.x())
+                        memBox(idx) = taskSetValueHelper::getValue(value);
+                });
         }
     };
 

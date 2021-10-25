@@ -112,13 +112,15 @@ namespace picongpu
 
             auto forEachSuperCellInY = lockstep::makeForEach<SuperCellSize::y::value, numWorkers>(workerIdx);
 
-            forEachSuperCellInY([&](uint32_t const linearIdx) {
-                // set shared sums of x^2, ux^2, x*ux, particle counter to zero
-                shSumMom2[linearIdx] = 0.0_X;
-                shSumPos2[linearIdx] = 0.0_X;
-                shSumMomPos[linearIdx] = 0.0_X;
-                shCount_e[linearIdx] = 0.0_X;
-            });
+            forEachSuperCellInY(
+                [&](uint32_t const linearIdx)
+                {
+                    // set shared sums of x^2, ux^2, x*ux, particle counter to zero
+                    shSumMom2[linearIdx] = 0.0_X;
+                    shSumPos2[linearIdx] = 0.0_X;
+                    shSumMomPos[linearIdx] = 0.0_X;
+                    shCount_e[linearIdx] = 0.0_X;
+                });
             cupla::__syncthreads(acc);
 
             DataSpace<simDim> const superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
@@ -135,7 +137,8 @@ namespace picongpu
 
             auto currentParticleCtx = forEachParticleInFrame(
 
-                [&](uint32_t const linearIdx) -> typename FramePtr::type::ParticleType {
+                [&](uint32_t const linearIdx) -> typename FramePtr::type::ParticleType
+                {
                     auto particle = frame[linearIdx];
                     /* - only particles from the last frame must be checked
                      * - all other particles are always valid
@@ -148,55 +151,63 @@ namespace picongpu
             while(frame.isValid())
             {
                 // loop over all particles in the frame
-                forEachParticleInFrame([&](lockstep::Idx const idx) {
-                    /* get one particle */
-                    auto& particle = currentParticleCtx[idx];
-                    if(accFilter(acc, particle))
+                forEachParticleInFrame(
+                    [&](lockstep::Idx const idx)
                     {
-                        float_X const weighting = particle[weighting_];
-                        float_X const normedWeighting
-                            = weighting / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
-                        float3_X const mom = particle[momentum_] / weighting;
-                        floatD_X const pos = particle[position_];
-                        lcellId_t const cellIdx = particle[localCellIdx_];
-                        DataSpace<simDim> const frameCellOffset(
-                            DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize>(cellIdx));
-                        auto const localSupercellStart
-                            = (superCellIdx - mapper.getGuardingSuperCells()) * MappingDesc::SuperCellSize::toRT();
-                        int const index_y = frameCellOffset.y();
-                        auto const globalCellOffset = globalOffset + localSupercellStart + frameCellOffset;
-                        float_X const posX = (float_X(globalCellOffset.x()) + pos.x()) * cellSize.x();
+                        /* get one particle */
+                        auto& particle = currentParticleCtx[idx];
+                        if(accFilter(acc, particle))
+                        {
+                            float_X const weighting = particle[weighting_];
+                            float_X const normedWeighting
+                                = weighting / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                            float3_X const mom = particle[momentum_] / weighting;
+                            floatD_X const pos = particle[position_];
+                            lcellId_t const cellIdx = particle[localCellIdx_];
+                            DataSpace<simDim> const frameCellOffset(
+                                DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize>(cellIdx));
+                            auto const localSupercellStart
+                                = (superCellIdx - mapper.getGuardingSuperCells()) * MappingDesc::SuperCellSize::toRT();
+                            int const index_y = frameCellOffset.y();
+                            auto const globalCellOffset = globalOffset + localSupercellStart + frameCellOffset;
+                            float_X const posX = (float_X(globalCellOffset.x()) + pos.x()) * cellSize.x();
 
-                        cupla::atomicAdd(acc, &(shCount_e[index_y]), normedWeighting, ::alpaka::hierarchy::Threads{});
-                        // weighted sum of single Electron values (Momentum = particle_momentum/weighting)
-                        cupla::atomicAdd(
-                            acc,
-                            &(shSumMom2[index_y]),
-                            mom.x() * mom.x() * normedWeighting,
-                            ::alpaka::hierarchy::Threads{});
-                        cupla::atomicAdd(
-                            acc,
-                            &(shSumPos2[index_y]),
-                            posX * posX * normedWeighting,
-                            ::alpaka::hierarchy::Threads{});
-                        cupla::atomicAdd(
-                            acc,
-                            &(shSumMomPos[index_y]),
-                            mom.x() * posX * normedWeighting,
-                            ::alpaka::hierarchy::Threads{});
-                    }
-                });
+                            cupla::atomicAdd(
+                                acc,
+                                &(shCount_e[index_y]),
+                                normedWeighting,
+                                ::alpaka::hierarchy::Threads{});
+                            // weighted sum of single Electron values (Momentum = particle_momentum/weighting)
+                            cupla::atomicAdd(
+                                acc,
+                                &(shSumMom2[index_y]),
+                                mom.x() * mom.x() * normedWeighting,
+                                ::alpaka::hierarchy::Threads{});
+                            cupla::atomicAdd(
+                                acc,
+                                &(shSumPos2[index_y]),
+                                posX * posX * normedWeighting,
+                                ::alpaka::hierarchy::Threads{});
+                            cupla::atomicAdd(
+                                acc,
+                                &(shSumMomPos[index_y]),
+                                mom.x() * posX * normedWeighting,
+                                ::alpaka::hierarchy::Threads{});
+                        }
+                    });
 
                 // set frame to next particle frame
                 frame = pb.getPreviousFrame(frame);
-                forEachParticleInFrame([&](lockstep::Idx const idx) {
-                    /* Update particle for the next round.
-                     * The frame list is traversed from the last to the first frame.
-                     * Only the last frame can contain gaps therefore all following
-                     * frames are fully filled with particles.
-                     */
-                    currentParticleCtx[idx] = frame[idx];
-                });
+                forEachParticleInFrame(
+                    [&](lockstep::Idx const idx)
+                    {
+                        /* Update particle for the next round.
+                         * The frame list is traversed from the last to the first frame.
+                         * Only the last frame can contain gaps therefore all following
+                         * frames are fully filled with particles.
+                         */
+                        currentParticleCtx[idx] = frame[idx];
+                    });
             }
 
 
@@ -206,28 +217,30 @@ namespace picongpu
             const int gOffset
                 = ((superCellIdx - mapper.getGuardingSuperCells()) * MappingDesc::SuperCellSize::toRT()).y();
 
-            forEachSuperCellInY([&](uint32_t const linearIdx) {
-                cupla::atomicAdd(
-                    acc,
-                    &(gSumMom2[gOffset + linearIdx]),
-                    static_cast<float_64>(shSumMom2[linearIdx]),
-                    ::alpaka::hierarchy::Blocks{});
-                cupla::atomicAdd(
-                    acc,
-                    &(gSumPos2[gOffset + linearIdx]),
-                    static_cast<float_64>(shSumPos2[linearIdx]),
-                    ::alpaka::hierarchy::Blocks{});
-                cupla::atomicAdd(
-                    acc,
-                    &(gSumMomPos[gOffset + linearIdx]),
-                    static_cast<float_64>(shSumMomPos[linearIdx]),
-                    ::alpaka::hierarchy::Blocks{});
-                cupla::atomicAdd(
-                    acc,
-                    &(gCount_e[gOffset + linearIdx]),
-                    static_cast<float_64>(shCount_e[linearIdx]),
-                    ::alpaka::hierarchy::Blocks{});
-            });
+            forEachSuperCellInY(
+                [&](uint32_t const linearIdx)
+                {
+                    cupla::atomicAdd(
+                        acc,
+                        &(gSumMom2[gOffset + linearIdx]),
+                        static_cast<float_64>(shSumMom2[linearIdx]),
+                        ::alpaka::hierarchy::Blocks{});
+                    cupla::atomicAdd(
+                        acc,
+                        &(gSumPos2[gOffset + linearIdx]),
+                        static_cast<float_64>(shSumPos2[linearIdx]),
+                        ::alpaka::hierarchy::Blocks{});
+                    cupla::atomicAdd(
+                        acc,
+                        &(gSumMomPos[gOffset + linearIdx]),
+                        static_cast<float_64>(shSumMomPos[linearIdx]),
+                        ::alpaka::hierarchy::Blocks{});
+                    cupla::atomicAdd(
+                        acc,
+                        &(gCount_e[gOffset + linearIdx]),
+                        static_cast<float_64>(shCount_e[linearIdx]),
+                        ::alpaka::hierarchy::Blocks{});
+                });
         }
     };
 

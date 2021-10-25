@@ -92,23 +92,26 @@ namespace gol
 
                 cupla::__syncthreads(acc);
 
-                lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                    // cell index within the superCell
-                    DataSpace<DIM2> const cellIdx = DataSpaceOperations<DIM2>::template map<SuperCellSize>(linearIdx);
-
-                    Type neighbors = 0;
-                    for(uint32_t i = 1; i < 9; ++i)
+                lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx)(
+                    [&](uint32_t const linearIdx)
                     {
-                        Space const offset(Mask::getRelativeDirections<DIM2>(i));
-                        neighbors += cache(cellIdx + offset);
-                    }
+                        // cell index within the superCell
+                        DataSpace<DIM2> const cellIdx
+                            = DataSpaceOperations<DIM2>::template map<SuperCellSize>(linearIdx);
 
-                    Type isLife = cache(cellIdx);
-                    isLife = static_cast<bool>(((!isLife) * (1 << (neighbors + 9))) & rule)
-                        + static_cast<bool>((isLife * (1 << (neighbors))) & rule);
+                        Type neighbors = 0;
+                        for(uint32_t i = 1; i < 9; ++i)
+                        {
+                            Space const offset(Mask::getRelativeDirections<DIM2>(i));
+                            neighbors += cache(cellIdx + offset);
+                        }
 
-                    buffWrite(blockCell + cellIdx) = isLife;
-                });
+                        Type isLife = cache(cellIdx);
+                        isLife = static_cast<bool>(((!isLife) * (1 << (neighbors + 9))) & rule)
+                            + static_cast<bool>((isLife * (1 << (neighbors))) & rule);
+
+                        buffWrite(blockCell + cellIdx) = isLife;
+                    });
             }
         };
 
@@ -167,12 +170,15 @@ namespace gol
                 using Random = random::Random<Distribution, RngMethod, State*>;
                 Random rng(&state);
 
-                lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                    // cell index within the superCell
-                    DataSpace<DIM2> const cellIdx = DataSpaceOperations<DIM2>::template map<SuperCellSize>(linearIdx);
-                    // write 1(white) if uniform random number 0<rng<1 is smaller than 'threshold'
-                    buffWrite(blockCell + cellIdx) = static_cast<bool>(rng(acc) <= threshold);
-                });
+                lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx)(
+                    [&](uint32_t const linearIdx)
+                    {
+                        // cell index within the superCell
+                        DataSpace<DIM2> const cellIdx
+                            = DataSpaceOperations<DIM2>::template map<SuperCellSize>(linearIdx);
+                        // write 1(white) if uniform random number 0<rng<1 is smaller than 'threshold'
+                        buffWrite(blockCell + cellIdx) = static_cast<bool>(rng(acc) <= threshold);
+                    });
             }
         };
     } // namespace kernel

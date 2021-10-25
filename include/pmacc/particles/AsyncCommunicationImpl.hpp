@@ -38,7 +38,8 @@ namespace pmacc
     {
         enum
         {
-            value = std::is_same<typename T::SimulationDataTag, ParticlesTag>::value
+            value = std::is_same < typename T::SimulationDataTag,
+            ParticlesTag > ::value
         };
     };
 

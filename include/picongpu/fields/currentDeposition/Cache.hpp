@@ -51,8 +51,9 @@ namespace picongpu
                 template<uint32_t T_numWorkers, typename T_BlockDescription, typename T_Acc, typename T_FieldBox>
                 DINLINE static auto create(T_Acc const& acc, T_FieldBox const& fieldBox, uint32_t const workerIdx)
 #if(!BOOST_COMP_CLANG)
-                    -> decltype(
-                        CachedBox::create<0u, typename T_FieldBox::ValueType>(acc, std::declval<T_BlockDescription>()))
+                    -> decltype(CachedBox::create<0u, typename T_FieldBox::ValueType>(
+                        acc,
+                        std::declval<T_BlockDescription>()))
 #endif
                 {
                     using ValueType = typename T_FieldBox::ValueType;

@@ -33,7 +33,7 @@ namespace picongpu
                 constexpr float_X omegaMin = SI::omegaMin * UNIT_TIME;
                 constexpr float_X omegaMax = SI::omegaMax * UNIT_TIME;
                 constexpr float_X deltaOmega
-                    = (float_X)((omegaMax - omegaMin) / (float_X)(nOmega - 1)); // difference beween two omega
+                    = (float_X) ((omegaMax - omegaMin) / (float_X) (nOmega - 1)); // difference beween two omega
 
                 constexpr unsigned int blocksizeOmega
                     = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;

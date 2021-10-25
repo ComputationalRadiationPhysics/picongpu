@@ -326,7 +326,7 @@ namespace picongpu
             stream << std::endl << currentStep << " ";
             for(size_t i = 0; i < count; ++i)
             {
-                stream << sqrt((float_64)(array[i])) * unit << " ";
+                stream << sqrt((float_64) (array[i])) * unit << " ";
             }
             stream << std::endl;
         }

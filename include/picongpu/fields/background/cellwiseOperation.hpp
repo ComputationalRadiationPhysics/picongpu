@@ -88,16 +88,18 @@ namespace picongpu
                 DataSpace<simDim> const blockCell = block * SuperCellSize::toRT();
                 DataSpace<simDim> const guardCells = mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
-                lockstep::makeForEach<cellsPerSupercell, numWorker>(workerIdx)([&](uint32_t const linearIdx) {
-                    // cell index within the superCell
-                    DataSpace<simDim> const cellIdx
-                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                lockstep::makeForEach<cellsPerSupercell, numWorker>(workerIdx)(
+                    [&](uint32_t const linearIdx)
+                    {
+                        // cell index within the superCell
+                        DataSpace<simDim> const cellIdx
+                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
 
-                    opFunctor(
-                        acc,
-                        field(blockCell + cellIdx),
-                        valFunctor(blockCell + cellIdx + totalDomainOffset - guardCells, currentStep));
-                });
+                        opFunctor(
+                            acc,
+                            field(blockCell + cellIdx),
+                            valFunctor(blockCell + cellIdx + totalDomainOffset - guardCells, currentStep));
+                    });
             }
         };
 

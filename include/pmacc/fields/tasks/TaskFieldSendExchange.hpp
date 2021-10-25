@@ -109,7 +109,6 @@ namespace pmacc
             InitSend,
             WaitForSendEnd,
             Finished
-
         };
 
 

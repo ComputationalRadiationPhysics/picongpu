@@ -1154,7 +1154,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         mrc,
                         asStandardVector(fieldsOffsetDims),
                         asStandardVector(fieldsSizeDims),
-                        [&fieldBuffer](size_t size) {
+                        [&fieldBuffer](size_t size)
+                        {
                             // if there is no special backend support for creating buffers,
                             // reuse the fieldBuffer
                             fieldBuffer.resize(sizeof(ComponentType) * size);

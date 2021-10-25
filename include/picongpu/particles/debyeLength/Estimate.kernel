@@ -123,18 +123,20 @@ namespace picongpu
                     uint32_t const workerIdx = cupla::threadIdx(acc).x;
                     while(frame.isValid())
                     {
-                        lockstep::makeForEach<frameSize, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                            if(linearIdx < particlesInFrame)
+                        lockstep::makeForEach<frameSize, numWorkers>(workerIdx)(
+                            [&](uint32_t const linearIdx)
                             {
-                                auto const particle = frame[linearIdx];
-                                auto const weighting = float_64{particle[weighting_]};
-                                sumWeighting += weighting;
-                                auto const singleParticleMomentum
-                                    = precisionCast<float_64>(particle[momentum_]) / weighting;
-                                sumMomentum += weighting * singleParticleMomentum;
-                                sumMomentumSquared += weighting * singleParticleMomentum * singleParticleMomentum;
-                            }
-                        });
+                                if(linearIdx < particlesInFrame)
+                                {
+                                    auto const particle = frame[linearIdx];
+                                    auto const weighting = float_64{particle[weighting_]};
+                                    sumWeighting += weighting;
+                                    auto const singleParticleMomentum
+                                        = precisionCast<float_64>(particle[momentum_]) / weighting;
+                                    sumMomentum += weighting * singleParticleMomentum;
+                                    sumMomentumSquared += weighting * singleParticleMomentum * singleParticleMomentum;
+                                }
+                            });
                         frame = electronBox.getPreviousFrame(frame);
                         particlesInFrame = frameSize;
                     }
@@ -144,11 +146,13 @@ namespace picongpu
                     PMACC_SMEM(acc, supercellSumMomentum, float3_64);
                     PMACC_SMEM(acc, supercellSumMomentumSquared, float3_64);
                     auto onlyMaster = lockstep::makeMaster(workerIdx);
-                    onlyMaster([&]() {
-                        supercellSumWeighting = float_64(0.0);
-                        supercellSumMomentum = float3_64::create(0.0);
-                        supercellSumMomentumSquared = float3_64::create(0.0);
-                    });
+                    onlyMaster(
+                        [&]()
+                        {
+                            supercellSumWeighting = float_64(0.0);
+                            supercellSumMomentum = float3_64::create(0.0);
+                            supercellSumMomentumSquared = float3_64::create(0.0);
+                        });
                     cupla::__syncthreads(acc);
                     cupla::atomicAdd(acc, &supercellSumWeighting, sumWeighting, ::alpaka::hierarchy::Threads{});
                     for(uint32_t d = 0; d < 3; d++)
@@ -165,14 +169,16 @@ namespace picongpu
                             ::alpaka::hierarchy::Threads{});
                     }
                     cupla::__syncthreads(acc);
-                    onlyMaster([&]() {
-                        auto const mean = supercellSumMomentum / supercellSumWeighting;
-                        // Use a simple variance estimator, the fact it is biased should not matter here
-                        auto const variance = pmacc::math::max(
-                            float3_64::create(0.0),
-                            supercellSumMomentumSquared / supercellSumWeighting - mean * mean);
-                        check(acc, electronBox, supercellIdx, supercellSumWeighting, variance, estimateBox);
-                    });
+                    onlyMaster(
+                        [&]()
+                        {
+                            auto const mean = supercellSumMomentum / supercellSumWeighting;
+                            // Use a simple variance estimator, the fact it is biased should not matter here
+                            auto const variance = pmacc::math::max(
+                                float3_64::create(0.0),
+                                supercellSumMomentumSquared / supercellSumWeighting - mean * mean);
+                            check(acc, electronBox, supercellIdx, supercellSumWeighting, variance, estimateBox);
+                        });
                 }
 
                 /** Check Debye length and write back results

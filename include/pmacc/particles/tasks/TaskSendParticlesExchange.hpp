@@ -144,7 +144,6 @@ namespace pmacc
             WaitForSend,
             WaitForSendEnd,
             Finished
-
         };
 
 

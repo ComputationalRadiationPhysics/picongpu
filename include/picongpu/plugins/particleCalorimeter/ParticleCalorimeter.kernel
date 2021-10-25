@@ -93,25 +93,27 @@ namespace picongpu
                 auto forEachParticleInSuperCell = lockstep::makeForEach<maxParticlesInFrame, numWorkers>(workerIdx);
 
                 // loop over all particles in the frame
-                forEachParticleInSuperCell([&](uint32_t const linearIdx) {
-                    auto particle = particlesFrame[linearIdx];
-                    if(linearIdx >= numParticles)
+                forEachParticleInSuperCell(
+                    [&](uint32_t const linearIdx)
                     {
-                        particle.setHandleInvalid();
-                    }
+                        auto particle = particlesFrame[linearIdx];
+                        if(linearIdx >= numParticles)
+                        {
+                            particle.setHandleInvalid();
+                        }
 
-                    if(accFilter(acc, particle))
-                    {
-                        // Check if it fits the internal cells range
-                        auto const cellInSuperCell
-                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(particle[localCellIdx_]);
-                        auto const localCell = blockStartCellLocal + cellInSuperCell;
-                        for(uint32_t d = 0; d < simDim; d++)
-                            if((localCell[d] < beginCellIdxLocal[d]) || (localCell[d] >= endCellIdxLocal[d]))
-                                return;
-                        calorimeterFunctor(acc, particlesFrame, linearIdx);
-                    }
-                });
+                        if(accFilter(acc, particle))
+                        {
+                            // Check if it fits the internal cells range
+                            auto const cellInSuperCell
+                                = DataSpaceOperations<simDim>::template map<SuperCellSize>(particle[localCellIdx_]);
+                            auto const localCell = blockStartCellLocal + cellInSuperCell;
+                            for(uint32_t d = 0; d < simDim; d++)
+                                if((localCell[d] < beginCellIdxLocal[d]) || (localCell[d] >= endCellIdxLocal[d]))
+                                    return;
+                            calorimeterFunctor(acc, particlesFrame, linearIdx);
+                        }
+                    });
 
                 // independent for each worker
                 particlesFrame = particlesBox.getPreviousFrame(particlesFrame);

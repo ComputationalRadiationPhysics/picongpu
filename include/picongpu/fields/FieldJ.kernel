@@ -105,29 +105,33 @@ namespace picongpu
                     [&](uint32_t const linearIdx) -> uint32_t { return linearIdx / numParticlesPerFrame; });
 
                 /* linear virtual worker index in the virtual block*/
-                auto virtualLinearIdCtx = forEachParticleInFrame([&](lockstep::Idx const idx) -> uint32_t {
-                    /* map virtualLinearIdCtx to the range [0;numParticlesPerFrame) */
-                    return idx - (virtualBlockIdCtx[idx] * numParticlesPerFrame);
-                });
+                auto virtualLinearIdCtx = forEachParticleInFrame(
+                    [&](lockstep::Idx const idx) -> uint32_t
+                    {
+                        /* map virtualLinearIdCtx to the range [0;numParticlesPerFrame) */
+                        return idx - (virtualBlockIdCtx[idx] * numParticlesPerFrame);
+                    });
 
                 /* each virtual worker stores the currently used frame */
                 // auto frameCtx = lockstep::makeVar<FramePtr>(forEachParticleInFrame);
 
                 auto particlesInSuperCellCtx = lockstep::makeVar<lcellId_t>(forEachParticleInFrame, lcellId_t(0u));
                 /* each virtual worker stores the currently used frame */
-                auto frameCtx = forEachParticleInFrame([&](lockstep::Idx const idx) {
-                    auto frame = boxPar.getLastFrame(block);
-                    if(frame.isValid() && virtualBlockIdCtx[idx] == 0u)
-                        particlesInSuperCellCtx[idx] = boxPar.getSuperCell(block).getSizeLastFrame();
-
-                    /* select N-th (N=virtualBlockId) frame from the end of the list */
-                    for(uint32_t i = 1; i <= virtualBlockIdCtx[idx] && frame.isValid(); ++i)
+                auto frameCtx = forEachParticleInFrame(
+                    [&](lockstep::Idx const idx)
                     {
-                        particlesInSuperCellCtx[idx] = numParticlesPerFrame;
-                        frame = boxPar.getPreviousFrame(frame);
-                    }
-                    return frame;
-                });
+                        auto frame = boxPar.getLastFrame(block);
+                        if(frame.isValid() && virtualBlockIdCtx[idx] == 0u)
+                            particlesInSuperCellCtx[idx] = boxPar.getSuperCell(block).getSizeLastFrame();
+
+                        /* select N-th (N=virtualBlockId) frame from the end of the list */
+                        for(uint32_t i = 1; i <= virtualBlockIdCtx[idx] && frame.isValid(); ++i)
+                        {
+                            particlesInSuperCellCtx[idx] = numParticlesPerFrame;
+                            frame = boxPar.getPreviousFrame(frame);
+                        }
+                        return frame;
+                    });
 
                 DataSpace<simDim> const blockCell = block * SuperCellSize::toRT();
                 using Strategy = currentSolver::traits::GetStrategy_t<FrameSolver>;
@@ -143,33 +147,36 @@ namespace picongpu
                 while(true)
                 {
                     bool isOneFrameValid = false;
-                    forEachParticleInFrame([&](lockstep::Idx const idx) {
-                        isOneFrameValid = isOneFrameValid || frameCtx[idx].isValid();
-                    });
+                    forEachParticleInFrame([&](lockstep::Idx const idx)
+                                           { isOneFrameValid = isOneFrameValid || frameCtx[idx].isValid(); });
 
                     if(!isOneFrameValid)
                         break;
 
-                    forEachParticleInFrame([&](lockstep::Idx const idx) {
-                        /* this test is only important for the last frame
-                         * if the frame is not the last one then: `particlesInSuperCell == numParticlesPerFrame`
-                         */
-                        if(frameCtx[idx].isValid() && virtualLinearIdCtx[idx] < particlesInSuperCellCtx[idx])
+                    forEachParticleInFrame(
+                        [&](lockstep::Idx const idx)
                         {
-                            frameSolver(acc, *frameCtx[idx], virtualLinearIdCtx[idx], cachedJ);
-                        }
-                    });
-
-                    forEachParticleInFrame([&](lockstep::Idx const idx) {
-                        if(frameCtx[idx].isValid())
-                        {
-                            particlesInSuperCellCtx[idx] = numParticlesPerFrame;
-                            for(int i = 0; i < numVirtualBlocks && frameCtx[idx].isValid(); ++i)
+                            /* this test is only important for the last frame
+                             * if the frame is not the last one then: `particlesInSuperCell == numParticlesPerFrame`
+                             */
+                            if(frameCtx[idx].isValid() && virtualLinearIdCtx[idx] < particlesInSuperCellCtx[idx])
                             {
-                                frameCtx[idx] = boxPar.getPreviousFrame(frameCtx[idx]);
+                                frameSolver(acc, *frameCtx[idx], virtualLinearIdCtx[idx], cachedJ);
                             }
-                        }
-                    });
+                        });
+
+                    forEachParticleInFrame(
+                        [&](lockstep::Idx const idx)
+                        {
+                            if(frameCtx[idx].isValid())
+                            {
+                                particlesInSuperCellCtx[idx] = numParticlesPerFrame;
+                                for(int i = 0; i < numVirtualBlocks && frameCtx[idx].isValid(); ++i)
+                                {
+                                    frameCtx[idx] = boxPar.getPreviousFrame(frameCtx[idx]);
+                                }
+                            }
+                        });
                 }
 
                 /* we wait that all workers finish the loop */
@@ -265,18 +272,20 @@ namespace picongpu
 
                 cupla::__syncthreads(acc);
 
-                lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                    /* cell index within the superCell */
-                    DataSpace<simDim> const cellIdx
-                        = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
-                    DataSpace<simDim> const cell(blockCell + cellIdx);
+                lockstep::makeForEach<cellsPerSuperCell, numWorkers>(workerIdx)(
+                    [&](uint32_t const linearIdx)
+                    {
+                        /* cell index within the superCell */
+                        DataSpace<simDim> const cellIdx
+                            = DataSpaceOperations<simDim>::template map<SuperCellSize>(linearIdx);
+                        DataSpace<simDim> const cell(blockCell + cellIdx);
 
-                    // Amperes Law:
-                    //   Change of the dE = - j / EPS0 * dt
-                    //                        j = current density (= current per area)
-                    //                          = fieldJ
-                    currentInterpolationFunctor(fieldE.shift(cell), fieldB.shift(cell), cachedJ.shift(cellIdx));
-                });
+                        // Amperes Law:
+                        //   Change of the dE = - j / EPS0 * dt
+                        //                        j = current density (= current per area)
+                        //                          = fieldJ
+                        currentInterpolationFunctor(fieldE.shift(cell), fieldB.shift(cell), cachedJ.shift(cellIdx));
+                    });
             }
         };
 

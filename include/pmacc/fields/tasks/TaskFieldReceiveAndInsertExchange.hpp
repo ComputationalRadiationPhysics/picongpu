@@ -94,7 +94,6 @@ namespace pmacc
             Init,
             WaitForReceive,
             Finished
-
         };
 
 

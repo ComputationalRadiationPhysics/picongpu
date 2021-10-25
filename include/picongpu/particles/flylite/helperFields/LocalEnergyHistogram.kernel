@@ -115,17 +115,21 @@ namespace picongpu
                         auto onlyMaster = lockstep::makeMaster(workerIdx);
 
                         // get frame lists of this supercell
-                        onlyMaster([&]() {
-                            frame = pb.getLastFrame(superCellIdx);
-                            particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
-                        });
+                        onlyMaster(
+                            [&]()
+                            {
+                                frame = pb.getLastFrame(superCellIdx);
+                                particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
+                            });
 
                         // empty the histogram to contain only zeroes
-                        lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                            /* set all bins to 0 */
-                            for(int i = linearIdx; i < numBins; i += numWorkers)
-                                shLocalEnergyHistogram[i] = float_X(0.);
-                        });
+                        lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)(
+                            [&](uint32_t const linearIdx)
+                            {
+                                /* set all bins to 0 */
+                                for(int i = linearIdx; i < numBins; i += numWorkers)
+                                    shLocalEnergyHistogram[i] = float_X(0.);
+                            });
 
                         cupla::__syncthreads(acc);
 
@@ -137,66 +141,71 @@ namespace picongpu
                         while(frame.isValid())
                         {
                             // move over all particles in a frame
-                            lockstep::makeForEach<maxParticlesPerFrame, numWorkers>(
-                                workerIdx)([&](uint32_t const linearIdx) {
-                                if(linearIdx < particlesInSuperCell)
+                            lockstep::makeForEach<maxParticlesPerFrame, numWorkers>(workerIdx)(
+                                [&](uint32_t const linearIdx)
                                 {
-                                    auto const particle = frame[linearIdx];
-                                    /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
-                                     *                                   = c^2 * [p^2 + m^2*c^2]
-                                     */
-                                    float3_X const mom = particle[momentum_];
-
-                                    float_X const weighting = particle[weighting_];
-                                    float_X const mass = attribute::getMass(weighting, particle);
-
-                                    // calculate kinetic energy of the macro particle
-                                    float_X particleEnergy = KinEnergy<>()(mom, mass);
-
-                                    particleEnergy /= weighting;
-
-                                    // calculate bin number
-                                    int binNumber = math::floor(
-                                        (particleEnergy - minEnergy) / (maxEnergy - minEnergy)
-                                        * static_cast<float_X>(numBins));
-
-                                    /* all entries larger than maxEnergy or smaller
-                                     * than minEnergy are ignored
-                                     */
-                                    if(binNumber >= 0 and binNumber < numBins)
+                                    if(linearIdx < particlesInSuperCell)
                                     {
-                                        // artifical norm for reduce
-                                        float_X const normedWeighting
-                                            = weighting / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                                        auto const particle = frame[linearIdx];
+                                        /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
+                                         *                                   = c^2 * [p^2 + m^2*c^2]
+                                         */
+                                        float3_X const mom = particle[momentum_];
 
-                                        cupla::atomicAdd(
-                                            acc,
-                                            &(shLocalEnergyHistogram[binNumber]),
-                                            normedWeighting,
-                                            ::alpaka::hierarchy::Threads{});
+                                        float_X const weighting = particle[weighting_];
+                                        float_X const mass = attribute::getMass(weighting, particle);
+
+                                        // calculate kinetic energy of the macro particle
+                                        float_X particleEnergy = KinEnergy<>()(mom, mass);
+
+                                        particleEnergy /= weighting;
+
+                                        // calculate bin number
+                                        int binNumber = math::floor(
+                                            (particleEnergy - minEnergy) / (maxEnergy - minEnergy)
+                                            * static_cast<float_X>(numBins));
+
+                                        /* all entries larger than maxEnergy or smaller
+                                         * than minEnergy are ignored
+                                         */
+                                        if(binNumber >= 0 and binNumber < numBins)
+                                        {
+                                            // artifical norm for reduce
+                                            float_X const normedWeighting = weighting
+                                                / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+
+                                            cupla::atomicAdd(
+                                                acc,
+                                                &(shLocalEnergyHistogram[binNumber]),
+                                                normedWeighting,
+                                                ::alpaka::hierarchy::Threads{});
+                                        }
                                     }
-                                }
-                            });
+                                });
 
                             cupla::__syncthreads(acc);
 
                             // go to next frame
-                            onlyMaster([&]() {
-                                frame = pb.getPreviousFrame(frame);
-                                particlesInSuperCell = maxParticlesPerFrame;
-                            });
+                            onlyMaster(
+                                [&]()
+                                {
+                                    frame = pb.getPreviousFrame(frame);
+                                    particlesInSuperCell = maxParticlesPerFrame;
+                                });
                             cupla::__syncthreads(acc);
                         }
 
                         // write histogram back to global memory (add)
-                        lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
-                            for(int i = linearIdx; i < numBins; i += numWorkers)
-                                cupla::atomicAdd(
-                                    acc,
-                                    &(localEnergyHistogram[i]),
-                                    shLocalEnergyHistogram[i],
-                                    ::alpaka::hierarchy::Blocks{});
-                        });
+                        lockstep::makeForEach<numWorkers, numWorkers>(workerIdx)(
+                            [&](uint32_t const linearIdx)
+                            {
+                                for(int i = linearIdx; i < numBins; i += numWorkers)
+                                    cupla::atomicAdd(
+                                        acc,
+                                        &(localEnergyHistogram[i]),
+                                        shLocalEnergyHistogram[i],
+                                        ::alpaka::hierarchy::Blocks{});
+                            });
                     }
                 };
 

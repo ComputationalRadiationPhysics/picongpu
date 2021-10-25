@@ -107,9 +107,12 @@ namespace pmacc
             {
                 enum
                 {
-                    value = std::is_same<T, int>::value || std::is_same<T, unsigned int>::value
-                        || std::is_same<T, long long int>::value || std::is_same<T, unsigned long long int>::value
-                        || std::is_same<T, float>::value
+                    value = std::is_same < T,
+                    int > ::value || std::is_same < T,
+                    unsigned int > ::value || std::is_same < T,
+                    long long int > ::value || std::is_same < T,
+                    unsigned long long int > ::value || std::is_same < T,
+                    float > ::value
                 };
             };
 

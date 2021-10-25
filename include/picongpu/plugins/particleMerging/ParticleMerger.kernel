@@ -121,7 +121,8 @@ namespace picongpu
                         this->particlesBox,
                         workerIdx,
                         cellIdx,
-                        [this](const T_Acc& acc, FramePtr frame, const int linearThreadIdx) {
+                        [this](const T_Acc& acc, FramePtr frame, const int linearThreadIdx)
+                        {
                             auto particle = frame[linearThreadIdx];
 
                             const lcellId_t particleCellIdx = particle[localCellIdx_];
@@ -177,7 +178,8 @@ namespace picongpu
                         this->particlesBox,
                         workerIdx,
                         cellIdx,
-                        [&](const T_Acc& acc, FramePtr frame, const int linearThreadIdx) {
+                        [&](const T_Acc& acc, FramePtr frame, const int linearThreadIdx)
+                        {
                             auto particle = frame[linearThreadIdx];
 
                             const voronoiCellId::type voronoiCellId = particle[voronoiCellId_];
@@ -199,18 +201,18 @@ namespace picongpu
                                 break;
 
                             case VoronoiStatus::splitting:
-                            {
-                                /* determine in what sub-Voronoi cell the particle falls */
-                                const voronoiCellId::type subVoronoiCellId
-                                    = voronoiCell.getSubVoronoiCell(position, momentum);
+                                {
+                                    /* determine in what sub-Voronoi cell the particle falls */
+                                    const voronoiCellId::type subVoronoiCellId
+                                        = voronoiCell.getSubVoronoiCell(position, momentum);
 
-                                particle[voronoiCellId_] = subVoronoiCellId;
+                                    particle[voronoiCellId_] = subVoronoiCellId;
 
-                                /* place particle into one of the two sub-Voronoi cells */
-                                listVoronoiCells[subVoronoiCellId].addParticle(acc, position, momentum, weighting);
-                            }
+                                    /* place particle into one of the two sub-Voronoi cells */
+                                    listVoronoiCells[subVoronoiCellId].addParticle(acc, position, momentum, weighting);
+                                }
 
-                            break;
+                                break;
 
                             case VoronoiStatus::abort:
                                 /* check out of the Voronoi cell */
@@ -260,77 +262,80 @@ namespace picongpu
                         switch(voronoiCell.status)
                         {
                         case VoronoiStatus::collecting:
-                        {
-                            /* check if Voronoi cell is too small of count */
-                            if(voronoiCell.numMacroParticles < this->minParticlesToMerge)
                             {
-                                voronoiCell.setToAbort();
-
-                                break;
-                            }
-
-                            /* finalize mean value calculation */
-                            voronoiCell.finalizeMeanValues();
-
-                            /* abort if mean energy of Voronoi cell is below limit */
-                            if(voronoiCell.getMeanEnergy(frame::getMass<FrameType>()) < this->minMeanEnergy)
-                            {
-                                voronoiCell.setToAbort();
-
-                                break;
-                            }
-
-                            /* choose threshold of spread of momentum */
-                            const float_X momSpreadThreshold2 = this->relMomSpreadThreshold != float_X(-1.0)
-                                ? this->relMomSpreadThreshold * this->relMomSpreadThreshold
-                                    * voronoiCell.getMeanMomentum2()
-                                : this->absMomSpreadThreshold * this->absMomSpreadThreshold;
-
-                            /* check if Voronoi cell is too large in spread of position or momentum */
-                            uint8_t splittingComponent;
-                            if((voronoiCell.splittingStage == VoronoiSplittingStage::position
-                                && voronoiCell.getMaxPositionSpread2(splittingComponent) > this->posSpreadThreshold2)
-                               || (voronoiCell.splittingStage == VoronoiSplittingStage::momentum
-                                   && voronoiCell.getMaxMomentumSpread2(splittingComponent) > momSpreadThreshold2))
-                            {
-                                /* create two new sub Voronoi cells */
-                                voronoiCell.setToSplitting(
-                                    splittingComponent,
-                                    voronoiIndexPool.get(), /* lower Voronoi cell id */
-                                    voronoiIndexPool.get() /* higher Voronoi cell id */
-                                );
-
-                                /* abort if Voronoi index pool is full */
-                                if(voronoiCell.lowerCellId == -1 || voronoiCell.higherCellId == -1)
+                                /* check if Voronoi cell is too small of count */
+                                if(voronoiCell.numMacroParticles < this->minParticlesToMerge)
                                 {
                                     voronoiCell.setToAbort();
 
                                     break;
                                 }
 
-                                /* initialize the two new sub Voronoi cells in `collecting` state */
-                                listVoronoiCells[voronoiCell.lowerCellId] = VoronoiCell(voronoiCell.splittingStage);
-                                listVoronoiCells[voronoiCell.higherCellId] = VoronoiCell(voronoiCell.splittingStage);
+                                /* finalize mean value calculation */
+                                voronoiCell.finalizeMeanValues();
+
+                                /* abort if mean energy of Voronoi cell is below limit */
+                                if(voronoiCell.getMeanEnergy(frame::getMass<FrameType>()) < this->minMeanEnergy)
+                                {
+                                    voronoiCell.setToAbort();
+
+                                    break;
+                                }
+
+                                /* choose threshold of spread of momentum */
+                                const float_X momSpreadThreshold2 = this->relMomSpreadThreshold != float_X(-1.0)
+                                    ? this->relMomSpreadThreshold * this->relMomSpreadThreshold
+                                        * voronoiCell.getMeanMomentum2()
+                                    : this->absMomSpreadThreshold * this->absMomSpreadThreshold;
+
+                                /* check if Voronoi cell is too large in spread of position or momentum */
+                                uint8_t splittingComponent;
+                                if((voronoiCell.splittingStage == VoronoiSplittingStage::position
+                                    && voronoiCell.getMaxPositionSpread2(splittingComponent)
+                                        > this->posSpreadThreshold2)
+                                   || (voronoiCell.splittingStage == VoronoiSplittingStage::momentum
+                                       && voronoiCell.getMaxMomentumSpread2(splittingComponent) > momSpreadThreshold2))
+                                {
+                                    /* create two new sub Voronoi cells */
+                                    voronoiCell.setToSplitting(
+                                        splittingComponent,
+                                        voronoiIndexPool.get(), /* lower Voronoi cell id */
+                                        voronoiIndexPool.get() /* higher Voronoi cell id */
+                                    );
+
+                                    /* abort if Voronoi index pool is full */
+                                    if(voronoiCell.lowerCellId == -1 || voronoiCell.higherCellId == -1)
+                                    {
+                                        voronoiCell.setToAbort();
+
+                                        break;
+                                    }
+
+                                    /* initialize the two new sub Voronoi cells in `collecting` state */
+                                    listVoronoiCells[voronoiCell.lowerCellId]
+                                        = VoronoiCell(voronoiCell.splittingStage);
+                                    listVoronoiCells[voronoiCell.higherCellId]
+                                        = VoronoiCell(voronoiCell.splittingStage);
+
+                                    break;
+                                }
+
+                                /* switch to momentum-splitting-stage after position-splitting-stage */
+                                if(voronoiCell.splittingStage == VoronoiSplittingStage::position)
+                                {
+                                    voronoiCell = VoronoiCell(VoronoiSplittingStage::momentum);
+
+                                    break;
+                                }
+
+                                /* if the Voronoi cell is neither too small in count
+                                 * nor too large in spread of position or momentum
+                                 * nor too low in mean energy it is ready to be merged
+                                 */
+                                voronoiCell.setToReadyForMerging();
 
                                 break;
                             }
-
-                            /* switch to momentum-splitting-stage after position-splitting-stage */
-                            if(voronoiCell.splittingStage == VoronoiSplittingStage::position)
-                            {
-                                voronoiCell = VoronoiCell(VoronoiSplittingStage::momentum);
-
-                                break;
-                            }
-
-                            /* if the Voronoi cell is neither too small in count
-                             * nor too large in spread of position or momentum
-                             * nor too low in mean energy it is ready to be merged
-                             */
-                            voronoiCell.setToReadyForMerging();
-
-                            break;
-                        }
 
                         default:
                             /* delete Voronoi cell */

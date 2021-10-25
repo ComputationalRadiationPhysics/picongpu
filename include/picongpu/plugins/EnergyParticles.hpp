@@ -94,12 +94,14 @@ namespace picongpu
 
             auto masterOnly = lockstep::makeMaster(workerIdx);
 
-            masterOnly([&]() {
-                // set shared kinetic energy to zero
-                shEnergyKin = float_X(0.0);
-                // set shared total energy to zero
-                shEnergy = float_X(0.0);
-            });
+            masterOnly(
+                [&]()
+                {
+                    // set shared kinetic energy to zero
+                    shEnergyKin = float_X(0.0);
+                    // set shared total energy to zero
+                    shEnergy = float_X(0.0);
+                });
 
             cupla::__syncthreads(acc);
 
@@ -119,7 +121,8 @@ namespace picongpu
 
             auto currentParticleCtx = forEachParticleInFrame(
 
-                [&](uint32_t const linearIdx) -> typename FramePtr::type::ParticleType {
+                [&](uint32_t const linearIdx) -> typename FramePtr::type::ParticleType
+                {
                     auto particle = frame[linearIdx];
                     /* - only particles from the last frame must be checked
                      * - all other particles are always valid
@@ -132,39 +135,43 @@ namespace picongpu
             while(frame.isValid())
             {
                 // loop over all particles in the frame
-                forEachParticleInFrame([&](lockstep::Idx const idx) {
-                    /* get one particle */
-                    auto& particle = currentParticleCtx[idx];
-                    if(accFilter(acc, particle))
+                forEachParticleInFrame(
+                    [&](lockstep::Idx const idx)
                     {
-                        float3_X const mom = particle[momentum_];
-                        // compute square of absolute momentum of the particle
-                        float_X const mom2 = pmacc::math::abs2(mom);
-                        float_X const weighting = particle[weighting_];
-                        float_X const mass = attribute::getMass(weighting, particle);
-                        float_X const c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                        /* get one particle */
+                        auto& particle = currentParticleCtx[idx];
+                        if(accFilter(acc, particle))
+                        {
+                            float3_X const mom = particle[momentum_];
+                            // compute square of absolute momentum of the particle
+                            float_X const mom2 = pmacc::math::abs2(mom);
+                            float_X const weighting = particle[weighting_];
+                            float_X const mass = attribute::getMass(weighting, particle);
+                            float_X const c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
-                        // calculate kinetic energy of the macro particle
-                        localEnergyKin += KinEnergy<>()(mom, mass);
+                            // calculate kinetic energy of the macro particle
+                            localEnergyKin += KinEnergy<>()(mom, mass);
 
-                        /* total energy for particles:
-                         *    E^2 = p^2*c^2 + m^2*c^4
-                         *        = c^2 * [p^2 + m^2*c^2]
-                         */
-                        localEnergy += math::sqrt(mom2 + mass * mass * c2) * SPEED_OF_LIGHT;
-                    }
-                });
+                            /* total energy for particles:
+                             *    E^2 = p^2*c^2 + m^2*c^4
+                             *        = c^2 * [p^2 + m^2*c^2]
+                             */
+                            localEnergy += math::sqrt(mom2 + mass * mass * c2) * SPEED_OF_LIGHT;
+                        }
+                    });
 
                 // set frame to next particle frame
                 frame = pb.getPreviousFrame(frame);
-                forEachParticleInFrame([&](lockstep::Idx const idx) {
-                    /* Update particle for the next round.
-                     * The frame list is traverse from the last to the first frame.
-                     * Only the last frame can contain gaps therefore all following
-                     * frames are filled with fully particles.
-                     */
-                    currentParticleCtx[idx] = frame[idx];
-                });
+                forEachParticleInFrame(
+                    [&](lockstep::Idx const idx)
+                    {
+                        /* Update particle for the next round.
+                         * The frame list is traverse from the last to the first frame.
+                         * Only the last frame can contain gaps therefore all following
+                         * frames are filled with fully particles.
+                         */
+                        currentParticleCtx[idx] = frame[idx];
+                    });
             }
 
             // each virtual thread adds the energies to the shared memory
@@ -175,16 +182,22 @@ namespace picongpu
             cupla::__syncthreads(acc);
 
             // add energies on global level using global memory
-            masterOnly([&]() {
-                // add kinetic energy
-                cupla::atomicAdd(
-                    acc,
-                    &(gEnergy[0]),
-                    static_cast<float_64>(shEnergyKin),
-                    ::alpaka::hierarchy::Blocks{});
-                // add total energy
-                cupla::atomicAdd(acc, &(gEnergy[1]), static_cast<float_64>(shEnergy), ::alpaka::hierarchy::Blocks{});
-            });
+            masterOnly(
+                [&]()
+                {
+                    // add kinetic energy
+                    cupla::atomicAdd(
+                        acc,
+                        &(gEnergy[0]),
+                        static_cast<float_64>(shEnergyKin),
+                        ::alpaka::hierarchy::Blocks{});
+                    // add total energy
+                    cupla::atomicAdd(
+                        acc,
+                        &(gEnergy[1]),
+                        static_cast<float_64>(shEnergy),
+                        ::alpaka::hierarchy::Blocks{});
+                });
         }
     };
 

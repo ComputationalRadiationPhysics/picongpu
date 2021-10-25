@@ -115,7 +115,8 @@ namespace picongpu
                                     recordComponent,
                                     ::openPMD::Offset{globalOffset},
                                     ::openPMD::Extent{elements},
-                                    [&storeBfr](size_t size) {
+                                    [&storeBfr](size_t size)
+                                    {
                                         // if there is no special backend support for creating buffers,
                                         // reuse the storeBfr
                                         if(!storeBfr && size > 0)

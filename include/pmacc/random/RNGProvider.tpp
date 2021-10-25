@@ -48,14 +48,16 @@ namespace pmacc
                     // each virtual worker initialize one rng state
                     auto forEachCell = lockstep::makeForEach<T_blockSize, numWorkers>(workerIdx);
 
-                    forEachCell([&](uint32_t const linearIdx) {
-                        uint32_t const linearTid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
-                        if(linearTid >= size.productOfComponents())
-                            return;
+                    forEachCell(
+                        [&](uint32_t const linearIdx)
+                        {
+                            uint32_t const linearTid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
+                            if(linearTid >= size.productOfComponents())
+                                return;
 
-                        T_Space const cellIdx = DataSpaceOperations<T_Space::dim>::map(size, linearTid);
-                        T_RNGMethod().init(acc, rngBox(cellIdx), seed, linearTid);
-                    });
+                            T_Space const cellIdx = DataSpaceOperations<T_Space::dim>::map(size, linearTid);
+                            T_RNGMethod().init(acc, rngBox(cellIdx), seed, linearTid);
+                        });
                 }
             };
 

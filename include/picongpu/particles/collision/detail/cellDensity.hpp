@@ -48,20 +48,22 @@ namespace picongpu
                     T_Array& densityArray,
                     T_Filter& filter)
                 {
-                    forEach([&](uint32_t const linearIdx) {
-                        uint32_t const numParInCell = parCellList[linearIdx].size;
-                        uint32_t* parListStart = parCellList[linearIdx].ptrToIndicies;
-                        float_X density(0.0);
-                        for(uint32_t ii = 0; ii < numParInCell; ii++)
+                    forEach(
+                        [&](uint32_t const linearIdx)
                         {
-                            auto particle = getParticle(parBox, firstFrame, parListStart[ii]);
-                            if(filter(acc, particle))
+                            uint32_t const numParInCell = parCellList[linearIdx].size;
+                            uint32_t* parListStart = parCellList[linearIdx].ptrToIndicies;
+                            float_X density(0.0);
+                            for(uint32_t ii = 0; ii < numParInCell; ii++)
                             {
-                                density += particle[weighting_];
+                                auto particle = getParticle(parBox, firstFrame, parListStart[ii]);
+                                if(filter(acc, particle))
+                                {
+                                    density += particle[weighting_];
+                                }
                             }
-                        }
-                        densityArray[linearIdx] = density / CELL_VOLUME;
-                    });
+                            densityArray[linearIdx] = density / CELL_VOLUME;
+                        });
                 }
 
             } // namespace detail
