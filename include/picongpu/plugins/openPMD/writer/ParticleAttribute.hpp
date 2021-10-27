@@ -22,6 +22,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/plugins/openPMD/GetComponentsType.hpp"
 #include "picongpu/plugins/openPMD/openPMDDimension.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/traits/PICToOpenPMD.tpp"
