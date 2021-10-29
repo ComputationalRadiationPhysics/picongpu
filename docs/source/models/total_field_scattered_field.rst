@@ -110,14 +110,14 @@ We now proceed to describe how are these values identified and what is the modif
 
 As mentioned above, values like :math:`E_y\rvert_{i, j+1/2, k}^{n+1}` are stored for the whole Yee grid.
 Whether they represent the total or the scattered field, depends on the position of the node relative to the Huygens surface.
-To avoid confusion, we use the :math:`E_y\rvert_{i, j+1/2, k}^{n+1}` notation for stored grid values, and :math:`E_y^{other}(i \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1) \Delta t)` to denote fields at the same time and space position, but not stored long-term.
+To avoid confusion, we use the :math:`E_y\rvert_{i, j+1/2, k}^{n+1}` notation for stored grid values, and :math:`E_y^{other}\left( i \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1) \Delta t \right)` to denote fields at the same time and space position, but not stored long-term.
 
 Since the Maxwell's equations hold in both the TF and SF regions, all Yee solver updates involving only grid values from the same region produced correct values that do not need any further modification.
 A correction is only needed for grid values that were calculated using a mix of TF and SF values.
 Since the standard Yee solver uses a 2-point central derivative operator, those are a single layer of :math:`\vec E` and :math:`\vec B` values located near :math:`S`.
 
 Taking into account the 0.75 shift inwards used by PIConGPU, denote the :math:`x` position of :math:`S`  as :math:`x_S = (i_S + 0.75) \Delta x`.
-Then the grid values to be modified by the incident field solver are :math:`E_y\rvert_{i_S+1, j+1/2, k}^{n+1}`, :math:`E_z\rvert_{i_S+1, j, k+1/2}^{n+1}`, :math:`B_y\rvert_{i_S+1/2, j, k+1/2}^{n+1/2}`, and :math:`B_z\rvert_{i_S+1/2, j+1/2, k}^{n+1/2}`.
+Then the grid values to be modified by the incident field solver are :math:`E_y\rvert_{i_S+1, j+1/2, k}^{n+1}`, :math:`E_z\rvert_{i_S+1, j, k+1/2}^{n+1}`, :math:`B_y\rvert_{i_S+1/2, j, k+1/2}^{n+3/2}`, and :math:`B_z\rvert_{i_S+1/2, j+1/2, k}^{n+3/2}`.
 (All grid values to the right side of those were calculated using only TF values and all grid values on the left side were calculated using only SF values.)
 
 Consider the update of :math:`E_y\rvert_{i_S+1, j+1/2, k}^{n+1}` performed by a standard Yee solver for each :math:`j, k`.
@@ -128,34 +128,34 @@ To derive the modification necessary, consider a hypothetical Maxwell's-preservi
 
 .. math::
 
-   & \frac{E_y^{tot}((i_S+1) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1) \Delta t) - E_y\rvert_{i_S+1, j+1/2, k}^{n}}{c^2 \Delta t} =
+   & \frac{E_y^{tot}\left( (i_S+1) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1) \Delta t \right) - E_y\rvert_{i_S+1, j+1/2, k}^{n}}{c^2 \Delta t} =
    
    & \frac{B_x\rvert_{i_S+1, j+1/2, k+1/2}^{n+1/2} - B_x\rvert_{i_S+1, j+1/2, k-1/2}^{n+1/2}}{\Delta z} -
 
-   & \frac{B_z\rvert_{i_S+3/2, j+1/2, k}^{n+1/2} - B_z^{tot}((i_S+1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t)}{\Delta x}
+   & \frac{B_z\rvert_{i_S+3/2, j+1/2, k}^{n+1/2} - B_z^{tot}\left( (i_S+1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t \right)}{\Delta x}
 
 Since :math:`B_z\rvert_{i_S+1/2, j+1/2, k}^{n+1/2}` is an SF and by definition of TF and SF,
 
 .. math::
 
-   & B_z^{tot}((i_S+1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t) =
+   & B_z^{tot}\left( (i_S+1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t \right) =
 
-   & B_z\rvert_{i_S+1/2, j+1/2, k}^{n+1/2} + B_z^{inc}((i_S+1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t)
+   & B_z\rvert_{i_S+1/2, j+1/2, k}^{n+1/2} + B_z^{inc}\left( (i_S+1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t \right)
 
 Substituting it into the update equation and regrouping the terms yields:
    
 .. math::   
    & E_y^{tot}((i_S+1) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1) \Delta t) = E_y\rvert_{i_S+1, j+1/2, k}^{n}
 
-   & + c^2 \Delta t (
-   \frac{B_x\rvert_{i_S+1, j+1/2, k+1/2}^{n+1/2} - B_x\rvert_{i_S+1, j+1/2, k-1/2}^{n+1/2}}{\Delta z} -
+   & + c^2 \Delta t \left(
+   \frac{B_x\rvert_{i_S+1, j+1/2, k+1/2}^{n+1/2} - B_x\rvert_{i_S+1, j+1/2, k-1/2}^{n+1/2}}{\Delta z} - \right.
 
-   & \frac{B_z\rvert_{i_S+3/2, j+1/2, k}^{n+1/2} - (B_z\rvert_{i_S+1/2, j+1/2, k}^{n+1/2} + B_z^{inc}((i_S+1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t))}{\Delta x} )
+   & \left. \frac{B_z\rvert_{i_S+3/2, j+1/2, k}^{n+1/2} - (B_z\rvert_{i_S+1/2, j+1/2, k}^{n+1/2} + B_z^{inc}((i_S+1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t))}{\Delta x} \right)
    
-   & = E_y\rvert_{i_S+1, j+1/2, k}^{n} + c^2 \Delta t (
-   \frac{B_x\rvert_{i_S+1, j+1/2, k+1/2}^{n+1/2} - B_x\rvert_{i_S+1, j+1/2, k-1/2}^{n+1/2}}{\Delta z} -
+   & = E_y\rvert_{i_S+1, j+1/2, k}^{n} + c^2 \Delta t \left(
+   \frac{B_x\rvert_{i_S+1, j+1/2, k+1/2}^{n+1/2} - B_x\rvert_{i_S+1, j+1/2, k-1/2}^{n+1/2}}{\Delta z} - \right.
    
-   & \frac{B_z\rvert_{i_S+3/2, j+1/2, k}^{n+1/2} - B_z\rvert_{i_S+1/2, j+1/2, k}^{n+1/2}}{\Delta x} )
+   & \left. \frac{B_z\rvert_{i_S+3/2, j+1/2, k}^{n+1/2} - B_z\rvert_{i_S+1/2, j+1/2, k}^{n+1/2}}{\Delta x} \right)
    
    & + \frac{c^2 \Delta t}{\Delta x} B_z^{inc}((i_S+1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t)
    
@@ -174,15 +174,15 @@ Grid value :math:`E_z\rvert_{i_S+1, j, k+1/2}^{n+1}` is also located in the TF r
 
     E_z\rvert_{i_S+1, j, k+1/2}^{n+1} += - \frac{c^2 \Delta t}{\Delta x} B_y^{inc}((i_S+1/2) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t)
 
-Values :math:`B_y\rvert_{i_S+1/2, j, k+1/2}^{n+1/2}`, and :math:`B_z\rvert_{i_S+1/2, j+1/2, k}^{n+1/2}` are in the SF region.
-For them the Yee solver update includes one term from the TF region, :math:`E_z\rvert_{i_S, j, k+1/2}^{n}` and :math:`E_y\rvert_{i_S, j+1/2, k}^{n}` respectively.
+Values :math:`B_y\rvert_{i_S+1/2, j, k+1/2}^{n+3/2}`, and :math:`B_z\rvert_{i_S+1/2, j+1/2, k}^{n+3/2}` are in the SF region.
+For them the Yee solver update includes one term from the TF region, :math:`E_z\rvert_{i_S, j, k+1/2}^{n+1}` and :math:`E_y\rvert_{i_S, j+1/2, k}^{n+1}` respectively.
 Making a similar replacement of an SF value as a difference between a TF value and the incident field value and regrouping, the following update must be applied:
 
 .. math::   
 
-    & B_y\rvert_{i_S+1/2, j, k+1/2}^{n+1/2} += - \frac{\Delta t}{\Delta x} E_z^{inc}((i_S+1) \Delta x, j \Delta y, (k+1/2) \Delta z, n \Delta t)
+    & B_y\rvert_{i_S+1/2, j, k+1/2}^{n+3/2} += - \frac{\Delta t}{\Delta x} E_z^{inc}((i_S+1) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1) \Delta t)
     
-    & B_z\rvert_{i_S+1/2, j+1/2, k}^{n+1/2} += \frac{\Delta t}{\Delta x} E_y^{inc}((i_S+1) \Delta x, (j+1/2) \Delta y, k \Delta z, n \Delta t)
+    & B_z\rvert_{i_S+1/2, j+1/2, k}^{n+3/2} += \frac{\Delta t}{\Delta x} E_y^{inc}((i_S+1) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1) \Delta t)
 
 The derivation for the :math:`x_{max}` boundary can be done in a similar fashion.
 Denote the position of :math:`S` as :math:`x_S = (i_{S, max} + 0.25) \Delta x`.
@@ -196,9 +196,9 @@ The update scheme for :math:`x_{max}` is:
 
     & E_z\rvert_{i_{S, max}, j, k+1/2}^{n+1} += \frac{c^2 \Delta t}{\Delta x} B_y^{inc}((i_{S, max}+1/2) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t)
 
-    & B_y\rvert_{i_{S, max}+1/2, j, k+1/2}^{n+1/2} += \frac{\Delta t}{\Delta x} E_z^{inc}((i_{S, max}+1) \Delta x, j \Delta y, (k+1/2) \Delta z, n \Delta t)
+    & B_y\rvert_{i_{S, max}+1/2, j, k+1/2}^{n+3/2} += \frac{\Delta t}{\Delta x} E_z^{inc}((i_{S, max}+1) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1) \Delta t)
 
-    & B_z\rvert_{i_{S, max}+1/2, j+1/2, k}^{n+1/2} += - \frac{\Delta t}{\Delta x} E_y^{inc}((i_{S, max}+1) \Delta x, (j+1/2) \Delta y, k \Delta z, n \Delta t)
+    & B_z\rvert_{i_{S, max}+1/2, j+1/2, k}^{n+3/2} += - \frac{\Delta t}{\Delta x} E_y^{inc}((i_{S, max}+1) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1) \Delta t)
 
 Multiple Boundaries
 ^^^^^^^^^^^^^^^^^^^
@@ -231,7 +231,7 @@ For :math:`dB_z/dx` such an operator has the following general form:
    & \partial_x B_z(i\Delta x, (j+1/2)\Delta y, k\Delta z, (n+1/2)\Delta t) = 
 
    & \frac{1}{\Delta x} \sum_{ii=0}^{m_x} \sum_{jj=-m_y}^{m_y} \sum_{kk=-m_z}^{m_z} 
-   \alpha_{ii, jj, kk} (B_z\rvert_{i+(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} - B_z\rvert_{i-(ii+1/2), j+jj+1/2, k+kk}^{n+1/2})
+   \alpha_{ii, jj, kk} \left( B_z\rvert_{i+(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} - B_z\rvert_{i-(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} \right)
 
 Note that there is also typically a symmetry of coefficients along :math:`y` and :math:`z`: :math:`\alpha_{ii, jj, kk} = \alpha_{ii, -jj, kk}`, :math:`\alpha_{ii, jj, kk} = \alpha_{ii, jj, -kk}` but it is not significant for TF/SF.
 The derivative operator used by the standard Yee solver has :math:`m_x = m_y = m_z = 0, \alpha_{0, 0, 0} = 1`.
@@ -255,8 +255,8 @@ During the FDTD update of this node, the :math:`dB_z/dx` operator is calculated:
    & \partial_x B_z(i_0\Delta x, (j+1/2)\Delta y, k\Delta z, (n+1/2)\Delta t) = 
 
    & \frac{1}{\Delta x} \sum_{ii=0}^{m_x} \sum_{jj=-m_y}^{m_y} \sum_{kk=-m_z}^{m_z} 
-   \alpha_{ii, jj, kk} (B_z\rvert_{i_0+(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} - B_z\rvert_{i_0-(ii+1/2), j+jj+1/2, k+kk}^{n+1/2})
-   
+   \alpha_{ii, jj, kk} \left( B_z\rvert_{i_0+(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} - B_z\rvert_{i_0-(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} \right)
+
 We split the outer sum over :math:`ii` into two parts:
 
 .. math::
@@ -264,12 +264,13 @@ We split the outer sum over :math:`ii` into two parts:
    & \partial_x B_z(i_0\Delta x, (j+1/2)\Delta y, k\Delta z, (n+1/2)\Delta t) =
  
    &  \frac{1}{\Delta x} \sum_{ii=0}^{i_0-i_S-2} \sum_{jj=-m_y}^{m_y} \sum_{kk=-m_z}^{m_z} 
-   \alpha_{ii, jj, kk} (B_z\rvert_{i_0+(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} - B_z\rvert_{i_0-(ii+1/2), j+jj+1/2, k+kk}^{n+1/2}) +
+   \alpha_{ii, jj, kk} \left( B_z\rvert_{i_0+(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} - B_z\rvert_{i_0-(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} \right) +
    
    &  \frac{1}{\Delta x} \sum_{ii=i_0-i_S-1}^{m_x} \sum_{jj=-m_y}^{m_y} \sum_{kk=-m_z}^{m_z} 
-   \alpha_{ii, jj, kk} (B_z\rvert_{i_0+(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} - B_z\rvert_{i_0-(ii+1/2), j+jj+1/2, k+kk}^{n+1/2})
+   \alpha_{ii, jj, kk} \left( B_z\rvert_{i_0+(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} - B_z\rvert_{i_0-(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} \right)
 
 The first sum over :math:`ii \in [0, i_0-i_S-2]` only uses :math:`B_z` grid values in the TF region (the minimal index in :math:`x` used is :math:`B_z\rvert_{i_S+3/2, j+jj+1/2, k+kk}^{n+1/2}` for :math:`ii = i_0-i_S-2`).
+Note that if :math:`i_0-i_S-2 < 0`, this sum has no terms and is equal to 0; the same applies for the following sums.
 Since the :math:`E_y` value in question is also a TF, these terms do not require any action by incident field solver.
 The remaining sum over :math:`ii \in [i_0-i_S-1, m_x]` contains differences of a TF value and an SF value.
 Each of the latter ones requires a term in the incident field solver update of :math:`E_y\rvert_{i_0, j+1/2, k}^{n+1}`.
@@ -281,9 +282,9 @@ Performing the same kind of substitution and regrouping demonstrated above for t
    & E_y^{tot}(i_0 \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1) \Delta t) =  E_y\rvert_{i_0, j+1/2, k}^{n+1} +
    
    & \frac{c^2 \Delta t}{\Delta x} \sum_{ii=i_0-i_S-1}^{m_x} \sum_{jj=-m_y}^{m_y} \sum_{kk=-m_z}^{m_z} 
-   (\alpha_{ii, jj, kk} \cdot
+   \left( \alpha_{ii, jj, kk} \cdot \right.
    
-   & B_z^{inc}((i_0-(ii+1/2)) \Delta x, (j+jj+1/2) \Delta y, (k+kk) \Delta z, (n+1/2) \Delta t))
+   & \left. B_z^{inc}((i_0-(ii+1/2)) \Delta x, (j+jj+1/2) \Delta y, (k+kk) \Delta z, (n+1/2) \Delta t) \right)
    
 Thus, we apply the following update for each grid value :math:`E_y\rvert_{i_0, j+1/2, k}^{n+1} \in E_{TF}`:
 
@@ -292,9 +293,9 @@ Thus, we apply the following update for each grid value :math:`E_y\rvert_{i_0, j
    & E_y\rvert_{i_0, j+1/2, k}^{n+1} +=
 
    & \frac{c^2 \Delta t}{\Delta x} \sum_{ii=i_0-i_S-1}^{m_x} \sum_{jj=-m_y}^{m_y} \sum_{kk=-m_z}^{m_z} 
-   (\alpha_{ii, jj, kk} \cdot
+   \left( \alpha_{ii, jj, kk} \cdot \right.
    
-   & B_z^{inc}((i_0-(ii+1/2)) \Delta x, (j+jj+1/2) \Delta y, (k+kk) \Delta z, (n+1/2) \Delta t))
+   & \left. B_z^{inc}((i_0-(ii+1/2)) \Delta x, (j+jj+1/2) \Delta y, (k+kk) \Delta z, (n+1/2) \Delta t) \right)
 
 For values in SF the treatment is similar.
 For a node :math:`E_y\rvert_{i_0, j+1/2, k}^{n+1} \in E_{SF}` (:math:`i_0 = i_S+1-ii_0` for some :math:`ii_0 \in [1, m_x]`) we apply :math:`dB_z/dx` operator and split the outer sum the same way:
@@ -304,10 +305,10 @@ For a node :math:`E_y\rvert_{i_0, j+1/2, k}^{n+1} \in E_{SF}` (:math:`i_0 = i_S+
    & \partial_x B_z(i_0\Delta x, (j+1/2)\Delta y, k\Delta z, (n+1/2)\Delta t) =
 
    &  \frac{1}{\Delta x} \sum_{ii=0}^{i_S-i_0} \sum_{jj=-m_y}^{m_y} \sum_{kk=-m_z}^{m_z} 
-   \alpha_{ii, jj, kk} (B_z\rvert_{i_0+(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} - B_z\rvert_{i_0-(ii+1/2), j+jj+1/2, k+kk}^{n+1/2}) +
+   \alpha_{ii, jj, kk} \left( B_z\rvert_{i_0+(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} - B_z\rvert_{i_0-(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} \right) +
    
    &  \frac{1}{\Delta x} \sum_{ii=i_S+1-i_0}^{m_x} \sum_{jj=-m_y}^{m_y} \sum_{kk=-m_z}^{m_z} 
-   \alpha_{ii, jj, kk} (B_z\rvert_{i_0+(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} - B_z\rvert_{i_0-(ii+1/2), j+jj+1/2, k+kk}^{n+1/2})
+   \alpha_{ii, jj, kk} \left( B_z\rvert_{i_0+(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} - B_z\rvert_{i_0-(ii+1/2), j+jj+1/2, k+kk}^{n+1/2} \right)
 
 The first sum only has values in the SF region, and the second sum contains differences of TF and SF values.
 Note that now :math:`E_y\rvert_{i_0, j+1/2, k}^{n+1}` is in the SF region and so we express the whole update as for SF:
@@ -317,9 +318,9 @@ Note that now :math:`E_y\rvert_{i_0, j+1/2, k}^{n+1}` is in the SF region and so
    & E_y^{scat}(i_0 \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1) \Delta t) = E_y\rvert_{i_0, j+1/2, k}^{n+1} +
    
    & \frac{c^2 \Delta t}{\Delta x} \sum_{ii=i_S+1-i_0}^{m_x} \sum_{jj=-m_y}^{m_y} \sum_{kk=-m_z}^{m_z} 
-   (\alpha_{ii, jj, kk} \cdot
+   \left( \alpha_{ii, jj, kk} \cdot \right.
    
-   & B_z^{inc}((i_0+(ii+1/2)) \Delta x, (j+jj+1/2) \Delta y, (k+kk) \Delta z, (n+1/2) \Delta t))
+   & \left. B_z^{inc}((i_0+(ii+1/2)) \Delta x, (j+jj+1/2) \Delta y, (k+kk) \Delta z, (n+1/2) \Delta t) \right)
 
 Thus, we apply the following update for each grid value :math:`E_y\rvert_{i_0, j+1/2, k}^{n+1} \in E_{SF}`:
 
@@ -328,9 +329,9 @@ Thus, we apply the following update for each grid value :math:`E_y\rvert_{i_0, j
    & E_y\rvert_{i_0, j+1/2, k}^{n+1} +=
 
    & \frac{c^2 \Delta t}{\Delta x} \sum_{ii=i_S+1-i_0}^{m_x} \sum_{jj=-m_y}^{m_y} \sum_{kk=-m_z}^{m_z} 
-   (\alpha_{ii, jj, kk} \cdot
+   \left( \alpha_{ii, jj, kk} \cdot \right.
    
-   & B_z^{inc}((i_0+(ii+1/2)) \Delta x, (j+jj+1/2) \Delta y, (k+kk) \Delta z, (n+1/2) \Delta t))
+   & \left. B_z^{inc}((i_0+(ii+1/2)) \Delta x, (j+jj+1/2) \Delta y, (k+kk) \Delta z, (n+1/2) \Delta t) \right)
 
 Other field components, axes and directions are treated in a similar way.
 
@@ -343,50 +344,50 @@ Three layers of :math:`E_y` are updated, the first in the SF region and the latt
 
 .. math::
 
-   & E_y\rvert_{i_S, j+1/2, k}^{n+1} += \frac{c^2 \Delta t}{\Delta x} \cdot -\frac{1}{24} B_z^{inc}((i_S+3/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t)
+   & E_y\rvert_{i_S, j+1/2, k}^{n+1} += \frac{c^2 \Delta t}{\Delta x} \left( -\frac{1}{24} B_z^{inc}\left( (i_S+3/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t \right) \right)
 
-   & E_y\rvert_{i_S + 1, j+1/2, k}^{n+1} += \frac{c^2 \Delta t}{\Delta x} \cdot ( \frac{27}{24} B_z^{inc}((i_S+1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t)
+   & E_y\rvert_{i_S + 1, j+1/2, k}^{n+1} += \frac{c^2 \Delta t}{\Delta x} \left( \frac{27}{24} B_z^{inc}\left( (i_S+1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t \right) \right.
    
-   & -\frac{1}{24} B_z^{inc}((i_S-1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t))
+   & \left. -\frac{1}{24} B_z^{inc}\left( (i_S-1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t \right) \right)
 
-   & E_y\rvert_{i_S + 2, j+1/2, k}^{n+1} += \frac{c^2 \Delta t}{\Delta x} \cdot -\frac{1}{24} B_z^{inc}((i_S+1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t)
+   & E_y\rvert_{i_S + 2, j+1/2, k}^{n+1} += \frac{c^2 \Delta t}{\Delta x} \left( -\frac{1}{24}  B_z^{inc}\left( (i_S+1/2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t \right) \right)
 
 
 Updates of :math:`E_z` are done in a similar fashion:
 
 .. math::
 
-   & E_z\rvert_{i_S, j, k+1/2}^{n+1} += -\frac{c^2 \Delta t}{\Delta x} \cdot -\frac{1}{24} B_y^{inc}((i_S+3/2) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t)
+   & E_z\rvert_{i_S, j, k+1/2}^{n+1} += -\frac{c^2 \Delta t}{\Delta x} \left( -\frac{1}{24} B_y^{inc}\left( (i_S+3/2) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t \right) \right)
 
-   & E_z\rvert_{i_S + 1, j, k+1/2}^{n+1} += -\frac{c^2 \Delta t}{\Delta x} \cdot ( \frac{27}{24} B_y^{inc}((i_S+1/2) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t)
+   & E_z\rvert_{i_S + 1, j, k+1/2}^{n+1} += -\frac{c^2 \Delta t}{\Delta x} \left( \frac{27}{24} B_y^{inc}\left( (i_S+1/2) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t \right) \right.
    
-   & -\frac{1}{24} B_y^{inc}((i_S-1/2) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t))
+   & \left. -\frac{1}{24} B_y^{inc}\left( (i_S-1/2) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t \right) \right)
 
-   & E_z\rvert_{i_S + 2, j, k+1/2}^{n+1} += -\frac{c^2 \Delta t}{\Delta x} \cdot -\frac{1}{24} B_y^{inc}((i_S+1/2) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t)
+   & E_z\rvert_{i_S + 2, j, k+1/2}^{n+1} += -\frac{c^2 \Delta t}{\Delta x} \left( -\frac{1}{24}  B_y^{inc}\left( (i_S+1/2) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t \right) \right)
 
 Three layers of :math:`B_y` are updated, the first two in the SF region and the last one in the TF region:
 
 .. math::
 
-   & B_y\rvert_{i_S-1/2, j, k+1/2}^{n+1} += -\frac{\Delta t}{\Delta x} \cdot -\frac{1}{24} E_z^{inc}((i_S+1) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t)
+   & B_y\rvert_{i_S-1/2, j, k+1/2}^{n+3/2} += -\frac{\Delta t}{\Delta x} \left( -\frac{1}{24} E_z^{inc}\left( (i_S+1) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1) \Delta t \right) \right)
 
-   & B_y\rvert_{i_S + 1/2, j, k+1/2}^{n+1} += -\frac{\Delta t}{\Delta x} \cdot ( \frac{27}{24} E_z^{inc}((i_S+1) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t)
+   & B_y\rvert_{i_S + 1/2, j, k+1/2}^{n+3/2} += -\frac{\Delta t}{\Delta x} \left( \frac{27}{24} E_z^{inc}\left( (i_S+1) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1) \Delta t \right) \right.
    
-   & -\frac{1}{24} E_z^{inc}((i_S+2) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t))
+   & \left. -\frac{1}{24} E_z^{inc}\left( (i_S+2) \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1) \Delta t \right) \right)
 
-   & B_y\rvert_{i_S + 3/2, j, k+1/2}^{n+1} += -\frac{\Delta t}{\Delta x} \cdot -\frac{1}{24} E_z^{inc}(i_S \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1/2) \Delta t)
+   & B_y\rvert_{i_S + 3/2, j, k+1/2}^{n+3/2} += -\frac{\Delta t}{\Delta x} \left( -\frac{1}{24}  E_z^{inc}\left( i_S \Delta x, j \Delta y, (k+1/2) \Delta z, (n+1) \Delta t \right) \right)
 
 Finally, updates of :math:`B_z` are as follows:
 
 .. math::
 
-   & B_z\rvert_{i_S-1/2, j+1/2, k}^{n+1} += \frac{\Delta t}{\Delta x} \cdot -\frac{1}{24} E_y^{inc}((i_S+1) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t)
+   & B_z\rvert_{i_S-1/2, j+1/2, k}^{n+3/2} += \frac{\Delta t}{\Delta x} \left( -\frac{1}{24}  E_y^{inc}\left( (i_S+1) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1) \Delta t \right) \right)
 
-   & B_z\rvert_{i_S + 1/2, j+1/2, k}^{n+1} += \frac{\Delta t}{\Delta x} \cdot ( \frac{27}{24} E_y^{inc}((i_S+1) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t)
+   & B_z\rvert_{i_S + 1/2, j+1/2, k}^{n+3/2} += \frac{\Delta t}{\Delta x} \left( \frac{27}{24} E_y^{inc}\left( (i_S+1) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1) \Delta t \right) \right.
    
-   & -\frac{1}{24} E_y^{inc}((i_S+2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t))
+   & \left. -\frac{1}{24} E_y^{inc}\left( (i_S+2) \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1) \Delta t \right) \right)
 
-   & B_z\rvert_{i_S + 3/2, j+1/2, k}^{n+1} += \frac{\Delta t}{\Delta x} \cdot -\frac{1}{24} E_y^{inc}(i_S \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1/2) \Delta t)
+   & B_z\rvert_{i_S + 3/2, j+1/2, k}^{n+3/2} += \frac{\Delta t}{\Delta x} \left( -\frac{1}{24}  E_y^{inc}\left( i_S \Delta x, (j+1/2) \Delta y, k \Delta z, (n+1) \Delta t \right) \right)
 
 Usage
 -----
@@ -398,14 +399,15 @@ This is checked at run time.
 
 Consider a case when both :math:`E^{inc}(x, y, z, t)` and  :math:`\vec B^{inc}(x, y, z, t)` are theoretically present, but only one of them is known in explicit form.
 
-In this case TF/SF can be used with only the modified known field set as incident and the other one set to 0.
-The interpretation of the result is assisted by the equivalence theorem and Schelkunoff equivalence principle.
+In this case one can try using TF/SF with only the modified known field set as incident and the other one set to 0.
+The interpretation of the result is assisted by the equivalence theorem, and in particular Love and Schelkunoff equivalence principles [Harrington2001]_ [Balanis2012]_.
 Having :math:`\vec E^{inc}(x, y, z, t) = \vec 0` means only electric current :math:`\vec J` would be impressed on :math:`S`.
 Taking into account no incident fields in the SF region, the region is effectively a perfect magnetic conductor.
 Likewise, having :math:`\vec B^{inc}(x, y, z, t) = \vec 0` corresponds to only magnetic current and effectively a perfect electric conductor in the SF region.
 To generate the expected field amplitude inside the area, the only non-zero source field has to be adjusted.
-In the plane wave case, the adjustment is to set the amplitude of the present field twice as large.
-Also note, that within this approximation the not-known field could have alternatively been calculated from the known one.
+In the simple plane wave case, the adjustment is to set the amplitude of the present field twice as large, as demonstrated in [Rengarajan2000]_.
+In the general case, it appears unclear how to calculate such an adjustment.
+Also note, that within the plain wave approximation the unknown field could have alternatively been calculated from the known one.
 
 References
 ----------
@@ -418,3 +420,18 @@ References
         A. Taflove
         *Computational electrodynamics: the finite-difference time-domain method*
         Artech house (2005)
+
+.. [Harrington2001]
+        R.F. Harrington
+        *Time-Harmonic Electromagnetic Fields*
+        McGraw-Hill (2001)
+
+.. [Balanis2012]
+        C.A. Balanis
+        *Advanced Engineering Electromagnetics*
+        John Wiley & Sons (2012)
+
+.. [Rengarajan2000]
+        S.R. Rengarajan, Y. Rahmat-Samii
+        *The field equivalence principle: illustration of the establishment of the non-intuitive null fields*
+        IEEE Antennas and Propagation Magazine, Volume 42, No. 4 (2000)
