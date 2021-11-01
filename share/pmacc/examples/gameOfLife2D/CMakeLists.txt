@@ -104,7 +104,7 @@ endif(GOL_RELEASE)
 # Find Boost
 ###############################################################################
 
-find_package(Boost 1.65.1 REQUIRED COMPONENTS program_options)
+find_package(Boost 1.66.0 REQUIRED COMPONENTS program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 
