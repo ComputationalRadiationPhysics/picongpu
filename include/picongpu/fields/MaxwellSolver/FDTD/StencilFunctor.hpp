@@ -30,7 +30,7 @@ namespace picongpu
     {
         namespace maxwellSolver
         {
-            namespace yee
+            namespace fdtd
             {
                 /** Base stencil functor to update fields inside the kernel
                  *
@@ -69,7 +69,7 @@ namespace picongpu
                         T_DestBox destBox);
                 };
 
-            } // namespace yee
+            } // namespace fdtd
         } // namespace maxwellSolver
     } // namespace fields
 } // namespace picongpu

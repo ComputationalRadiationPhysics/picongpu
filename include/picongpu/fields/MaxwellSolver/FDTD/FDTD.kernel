@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/MaxwellSolver/Yee/StencilFunctor.hpp"
+#include "picongpu/fields/MaxwellSolver/FDTD/StencilFunctor.hpp"
 
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
 #include <pmacc/dimensions/SuperCellDescription.hpp>
@@ -47,7 +47,7 @@ namespace picongpu
                  *                 adheres to the Curl concept
                  */
                 template<typename T_CurlB>
-                class UpdateEFunctor : public yee::StencilFunctor<T_CurlB>
+                class UpdateEFunctor : public StencilFunctor<T_CurlB>
                 {
                 public:
                     /** Update electric field at the given position
@@ -83,7 +83,7 @@ namespace picongpu
                  *                 adheres to the Curl concept
                  */
                 template<typename T_CurlE>
-                class UpdateBHalfFunctor : public yee::StencilFunctor<T_CurlE>
+                class UpdateBHalfFunctor : public StencilFunctor<T_CurlE>
                 {
                 public:
                     /** Update magnetic field at the given position

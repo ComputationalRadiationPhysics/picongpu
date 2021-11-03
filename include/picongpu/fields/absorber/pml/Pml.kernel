@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/MaxwellSolver/Yee/StencilFunctor.hpp"
+#include "picongpu/fields/MaxwellSolver/FDTD/StencilFunctor.hpp"
 #include "picongpu/fields/absorber/pml/Parameters.hpp"
 
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
@@ -235,7 +235,7 @@ namespace picongpu
                  *                 adheres to the Curl concept
                  */
                 template<typename T_CurlB>
-                class UpdateEFunctor : public maxwellSolver::yee::StencilFunctor<T_CurlB>
+                class UpdateEFunctor : public maxwellSolver::fdtd::StencilFunctor<T_CurlB>
                 {
                 public:
                     /** Create a functor instance on the host side
@@ -328,7 +328,7 @@ namespace picongpu
                  *                 adheres to the Curl concept
                  */
                 template<typename T_CurlE>
-                class UpdateBHalfFunctor : public maxwellSolver::yee::StencilFunctor<T_CurlE>
+                class UpdateBHalfFunctor : public maxwellSolver::fdtd::StencilFunctor<T_CurlE>
                 {
                 public:
                     /** Create a functor instance on the host side
