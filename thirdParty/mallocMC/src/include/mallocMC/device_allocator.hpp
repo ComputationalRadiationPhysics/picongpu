@@ -67,7 +67,8 @@ namespace mallocMC
             ALPAKA_FN_ACC static auto getAvailableSlots(const AlpakaAcc& acc, size_t slotSize, T_Allocator& alloc)
                 -> unsigned
             {
-                return alloc.T_Allocator::CreationPolicy ::getAvailableSlotsAccelerator(acc, slotSize);
+                return alloc.T_Allocator::CreationPolicy::template getAvailableSlotsAccelerator<
+                    typename T_Allocator::AlignmentPolicy>(acc, slotSize);
             }
         };
 
@@ -110,7 +111,7 @@ namespace mallocMC
             bytes = AlignmentPolicy::applyPadding(bytes);
             DistributionPolicy distributionPolicy(acc);
             const uint32 req_size = distributionPolicy.collect(acc, bytes);
-            void* memBlock = CreationPolicy::create(acc, req_size);
+            void* memBlock = CreationPolicy::template create<AlignmentPolicy>(acc, req_size);
             if(CreationPolicy::isOOM(memBlock, req_size))
                 memBlock = OOMPolicy::handleOOM(memBlock);
             return distributionPolicy.distribute(acc, memBlock);
