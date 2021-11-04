@@ -40,6 +40,12 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
 .. _wiki: https://github.com/ComputationalRadiationPhysics/picongpu/wiki
 .. _official homepage: http://picongpu.hzdr.de
 
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   in5min
+
 ************
 Installation
 ************
