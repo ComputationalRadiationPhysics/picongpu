@@ -123,8 +123,11 @@ namespace picongpu
                  *  unit: none */
                 static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
             };
-            /** definition of random particle start */
+            /** definition of random particle position */
             using Random = RandomImpl<RandomParameter>;
+
+            /** definition of random particle position and weighting, same template parameter */
+            using RandomPositionAndWeighting = RandomPositionAndWeightingImpl<RandomParameter>;
 
             struct QuietParam
             {
