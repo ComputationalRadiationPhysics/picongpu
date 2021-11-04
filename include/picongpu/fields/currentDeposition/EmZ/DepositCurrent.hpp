@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -79,8 +79,7 @@ namespace picongpu
                     T_Acc const& acc,
                     const T_Cursor& cursorJ,
                     const Line<float3_X>& line,
-                    const float_X chargeDensity,
-                    const float_X) const
+                    const float_X chargeDensity) const
                 {
                     /**
                      * \brief the following three calls separate the 3D current deposition
@@ -155,13 +154,18 @@ namespace picongpu
             struct DepositCurrent<T_AtomicAddOp, ParticleAssign, T_begin, T_end, DIM2>
                 : public BaseMethods<ParticleAssign>
             {
+                /** Deposit Jx and Jy.
+                 *
+                 * In 2d, we have to handle Jz differently from Jx, Jy.
+                 * It is done in computeCurrentZ() which has to be explicitly called by a user.
+                 * This it different from 3d, where only calling operator() is needed.
+                 */
                 template<typename T_Cursor, typename T_Acc>
                 DINLINE void operator()(
                     T_Acc const& acc,
                     const T_Cursor& cursorJ,
                     const Line<float2_X>& line,
-                    const float_X chargeDensity,
-                    const float_X velocityZ) const
+                    const float_X chargeDensity) const
                 {
                     using namespace cursor::tools;
                     cptCurrent1D(acc, cursorJ, line, cellSize.x() * chargeDensity / DELTA_T);
@@ -170,7 +174,6 @@ namespace picongpu
                         twistVectorFieldAxes<pmacc::math::CT::Int<1, 0>>(cursorJ),
                         rotateOrigin<1, 0>(line),
                         cellSize.y() * chargeDensity / DELTA_T);
-                    cptCurrentZ(acc, cursorJ, line, velocityZ * chargeDensity);
                 }
 
                 /** deposites current in x-direction
@@ -211,14 +214,21 @@ namespace picongpu
                     }
                 }
 
-                /** deposites current in z-direction
+                /** Deposit current in z-direction using 2d3v model
+                 *
+                 * @note unlike 3d, for 2d this method has to be called explicitly
+                 * with line representing whole movement of a particle on a time step (no relay point).
+                 * The particle may be outside of support in x, y.
+                 * T_begin and T_end must account for it, and ParticleAssign must work outside of support.
+                 * When these conditions are met, this function is basically same to how Jz is assigned in Esirkepov 2d
+                 * implementation.
                  *
                  * @param cursorJ cursor pointing at the current density field of the particle's cell
                  * @param line trajectory of the virtual particle
                  * @param currentSurfaceDensityZ surface density in z direction
                  */
                 template<typename CursorJ, typename T_Line, typename T_Acc>
-                DINLINE void cptCurrentZ(
+                DINLINE void computeCurrentZ(
                     T_Acc const& acc,
                     CursorJ cursorJ,
                     const T_Line& line,
