@@ -190,6 +190,7 @@ namespace picongpu
             for(auto exchange : particles::boundary::getAllAxisAlignedExchanges())
             {
                 auto const axis = pmacc::boundary::getAxis(exchange);
+                auto const temperature = boundaryDescription()[axis].temperature;
 
                 const std::string directionName = ExchangeTypeNames()[exchange];
                 propList[directionName]["param"] = std::string("none");
@@ -201,6 +202,14 @@ namespace picongpu
                 case particles::boundary::Kind::Absorbing:
                     propList[directionName]["name"] = "absorbing";
                     propList[directionName]["param"] = std::string("without field correction");
+                    break;
+                case particles::boundary::Kind::Reflecting:
+                    propList[directionName]["name"] = "reflecting";
+                    break;
+                case particles::boundary::Kind::Thermal:
+                    propList[directionName]["name"] = "thermal";
+                    propList[directionName]["param"]
+                        = std::string("temperature ") + std::to_string(temperature) + " keV";
                     break;
                 default:
                     propList[directionName]["name"] = "unknown";
