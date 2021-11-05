@@ -205,8 +205,8 @@ namespace picongpu
                     }
                 }
 
-                pmacc::Selection<simDim> const globalDomain = Environment<simDim>::get().SubGrid().getGlobalDomain();
-                DataSpace<simDim> const patchOffset = globalDomain.offset + params->window.globalDimensions.offset
+                // Note: the global domain offset is already included in params->window.globalDimensions.offset
+                DataSpace<simDim> const patchOffset = params->window.globalDimensions.offset
                     + params->window.localDimensions.offset;
                 DataSpace<simDim> const patchExtent = params->window.localDimensions.size;
 
