@@ -40,6 +40,7 @@
 #include <boost/mpl/vector.hpp>
 
 #include <cassert>
+#include <stdexcept>
 
 #include <openPMD/openPMD.hpp>
 
@@ -206,21 +207,21 @@ namespace picongpu
                 }
 
                 // Note: the global domain offset is already included in params->window.globalDimensions.offset
-                DataSpace<simDim> const patchOffset = params->window.globalDimensions.offset
-                    + params->window.localDimensions.offset;
+                DataSpace<simDim> const patchOffset
+                    = params->window.globalDimensions.offset + params->window.localDimensions.offset;
                 DataSpace<simDim> const patchExtent = params->window.localDimensions.size;
 
-                size_t patchIdx = 0;
                 // search the patch index based on the offset and extents of local domain size
                 for(size_t i = 0; i < numRanks; ++i)
                 {
                     if(patchOffset == offsets[i] && patchExtent == extents[i])
-                    {
-                        patchIdx = i;
-                        break;
-                    }
+                        return i;
                 }
-                return patchIdx;
+                // If no patch fits the conditions, something went wrong before
+                throw std::runtime_error(
+                    "Error while restarting: no particle patch matches the required offset and extent");
+                // Fake return still needed to avoid warnings
+                return 0;
             }
         };
 
