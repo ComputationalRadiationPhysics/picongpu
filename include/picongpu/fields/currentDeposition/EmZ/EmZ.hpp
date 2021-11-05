@@ -128,18 +128,17 @@ namespace picongpu
                     [&, this](auto&& dataBoxJ)
                     {
                         /* For Jz we consider the whole movement on a step.
-                         * This movement it is not necessarily on support.
-                         * So extend the bounds in x, y by 1 and use general assignment function.
-                         *
-                         * We have to calculate everything relative to I[1], not I[0].
-                         * The reason is I[1] corresponds to the current cell of a particle,
-                         * from where the margins are counted.
-                         * I[1] with begin and end extended by 1 both sides is guaranteed to fit the general margins of
-                         * this functor. This is because I[0] can differ from I[1] by 1 in any direction and for each
-                         * the original begin and end fit.
+                         * This movement is not necessarily on support.
+                         * A naive implementation would be to extend the bounds in x, y by 1 in both sides, and use
+                         * general assignment function. To optimize it, we redefine I[1] as component-wise minimum
+                         * between old I[1] and I[0]. We calculate everything relative to the new I[1]. Since it is the
+                         * minimum in both x and y, the same begin value can be used. Thus, the bounds only have to be
+                         * extended by 1 in the max side, not both. Still, the general assignment function has to be
+                         * used.
                          */
                         for(uint32_t d = 0; d < simDim; ++d)
                         {
+                            I[1][d] = math::min(I[0][d], I[1][d]);
                             line.m_pos0[d] = this->calc_InCellPos(posStart[d], I[1][d]);
                             line.m_pos1[d] = this->calc_InCellPos(posEnd[d], I[1][d]);
                         }
@@ -151,7 +150,7 @@ namespace picongpu
                         emz::DepositCurrent<
                             typename T_Strategy::BlockReductionOp,
                             typename T_ParticleShape::ChargeAssignment,
-                            begin - 1,
+                            begin,
                             end + 1,
                             DIM2>
                             depositZ;
