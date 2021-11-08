@@ -72,7 +72,9 @@ Create a directory and copy an example::
   cd ~/picongpu-projects/tinkering/try01
 
 Usually you would now adjust the files in the newly created directory ``~/picongpu-projects/tinkering/try01`` – for this introduction we will use the parameters as provided.
-Also note how the variable ``$PIC_EXAMPLES`` has been provided becauses you executed ``source ~/picongpu.profile`` in the previous step.
+
+Also note how the command ``pic-create`` and the variable ``$PIC_EXAMPLES`` have been provided because you loaded the file ``~/picongpu.profile`` in the previous step.
+If this fails (producing ``pic-create: command not found``), make sure you load the PIConGPU profile by executing ``source ~/picongpu.profile``.
 
 Compile and Run
 ---------------
