@@ -95,6 +95,7 @@ namespace picongpu
                      */
                     HDINLINE float_X gauss_spectrum(float_X v)
                     {
+                        // Norm is choosen so that the maximum after fourier transformation is unity.
                         float_X norm = 0.5 * math::sqrt(float_X(PI)) * Unitless::PULSE_LENGTH;
                         return norm * math::exp( -1.0 * math::pow( Unitless::PULSE_LENGTH * float_X(PI) * ( v - Unitless::v0 ), 2.0) );
                     }

@@ -599,6 +599,18 @@ namespace picongpu
                 static constexpr PolarisationType Polarisation = LINEAR_X;
             };
 
+            /** The laser pulse is defined in the frequency domain and the time dependent E-field is calculated through
+             *  Fourier transformation. 
+             *  This allows to choose the Group Delay Dispersion (GDD) and Third Order Dispersion (TOD) freely.
+             *  In addition to dispersion, the phase is altered (depending on the distance to the beam axis) to get the
+             *  (spatial) shape of a Gaussian beam.
+             *  
+             *  Overall this laser profile describes a time dependent Gaussian beam, whose temporal profile is given
+             *  by the spectrum and dispersion.
+             *  
+             *  As of now, only a Gaussian spectrum is implemented. So the temporal profile (without dispersion) is
+             *  also Gaussian.
+             */
             struct PulseFromSpectrumParam
             {
                 /** unit: meter */
@@ -618,10 +630,12 @@ namespace picongpu
                  *  unit: meter */
                 static constexpr float_X FOCUS_POS_SI = 0.0e-6;
 
-	            /* unit: second^2 */
+                /** group delay dispersion
+                 *  unit: seconds^-2 */
 	            static constexpr float_64 GDD_SI = 0.0 * 1.0e-15 * 1.0e-15;
 
-	            /* unit: second^3 */
+                /** third order dispersion
+                 *  unit: seconds^-3 */
 	            static constexpr float_64 TOD_SI = 0.0 * 1.0e-15 * 1.0e-15 * 1.0e-15;
 
                  /** Convert the normalized laser strength parameter a0 to Volt per meter */
@@ -661,12 +675,12 @@ namespace picongpu
                  */
                 static constexpr uint32_t initPlaneY = 0;
 
-                /** laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
-                 * the actual length of a laserPulse depends on the shape of the spectrum
-                 * PULSE_INIT have to be high enough to calculate the time dependent field
-                 * of the laser pulse correctly
-                 * as there is no analytical expression to calculate the actual length with
-                 * given GDD/TOD, one has to check if the laserPulse was represented correctly
+                /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH.
+                 *  The actual length of a laser pulse depends on the shape of the spectrum.
+                 *  PULSE_INIT has to be high enough to calculate the time dependent field
+                 *  of the laser pulse correctly.
+                 *  As there is no analytical expression to calculate the actual length with
+                 *  given GDD and TOD, one has to check if the laserPulse is represented correctly.
                  *  unit: none */
                 static constexpr float_64 PULSE_INIT = 32.0;
 

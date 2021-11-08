@@ -41,7 +41,7 @@ namespace picongpu
                         /** beam waist: distance from the axis where the pulse intensity (E^2)
                          *              decreases to its 1/e^2-th part,
                          *              at the focus position of the laser                                                                                                      
-                         * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+                         *  W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
                          *                             [   1.17741    ]
                          *
                          *  unit: meter */
@@ -51,10 +51,12 @@ namespace picongpu
                          *  unit: meter */
                         static constexpr float_64 FOCUS_POS_SI = 0.0e-6;
 
-                        /** unit: seconds^-2 */
+                        /** group delay dispersion
+                         *  unit: seconds^-2 */
                         static constexpr float_64 GDD_SI = 0.0 * (1.0e-15) * (1.0e-15);
 
-                        /** unit: seconds^-3 */
+                        /** third order dispersion
+                         *  unit: seconds^-3 */
                         static constexpr float_64 TOD_SI = 0.0 * (1.0e-15) * (1.0e-15) * (1.0e-15);
 
                         /** Convert the normalized laser strength parameter a0 to Volt per meter */
@@ -95,14 +97,14 @@ namespace picongpu
                          */
                         static constexpr uint32_t initPlaneY = 0;
 
-                        /** laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
-                         * the actual length of a laserPulse depends on the shape of the spectrum
-                         * PULSE_INIT have to be high enough to calculate the time dependent field
-                         * of the laser pulse correctly
-                         * as there is no analytical expression to calculate the actual length with
-                         * given GDD/TOD, one has to check if the laserPulse was represented correctly
+                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH.
+                         *  The actual length of a laser pulse depends on the shape of the spectrum.
+                         *  PULSE_INIT has to be high enough to calculate the time dependent field
+                         *  of the laser pulse correctly.
+                         *  As there is no analytical expression to calculate the actual length with
+                         *  given GDD and TOD, one has to check if the laserPulse is represented correctly.
                          *  unit: none */
-                         static constexpr float_64 PULSE_INIT = 32.0;
+                        static constexpr float_64 PULSE_INIT = 32.0;
 
                         /** Available polarisation types
                          */
