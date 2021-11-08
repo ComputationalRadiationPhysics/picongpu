@@ -26,7 +26,9 @@ Get the Source
 Use git to obtain the source and use the current ``dev`` branch and put it into ``~/src/picongpu``::
 
   mkdir -p ~/src
-  git clone -b dev https://github.com/ComputationalRadiationPhysics/picongpu ~/src/picongpu
+  git clone https://github.com/ComputationalRadiationPhysics/picongpu ~/src/picongpu
+  cd ~/src/picongpu
+  git checkout dev
 
 Setup
 -----
