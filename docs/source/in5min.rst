@@ -20,7 +20,7 @@ We will use the following directories:
 
 Please replace them whenever appropriate.
 
-Get the source
+Get the Source
 --------------
 
 Use git to obtain the source and use the current ``dev`` branch and put it into ``~/src/picongpu``::
@@ -103,7 +103,7 @@ E.g. for “Hypnos” the invocation could be (invoke from the login node)::
 
   tbg -s qsub -c etc/picongpu/1.cfg -t etc/picongpu/hypnos-hzdr/k20.tpl $SCRATCH/tinkering/try01/run01
 
-Examine the results
+Examine the Results
 -------------------
 
 Results are located at ``$SCRATCH/tinkering/try01/run01``.
@@ -117,7 +117,7 @@ To view pretty pictures from a linux workstation you can use the following proce
 2. Browse the directory using a file browser/image viewer
    (e.g. ``gwenview``). Check out ``~/mnt/scratch/tinkering/try01/run01/simOutput/pngElectronsYX/`` for image files.
 
-Further reading
+Further Reading
 ---------------
 
 You now know the process of using PIConGPU.
