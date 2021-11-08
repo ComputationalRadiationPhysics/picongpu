@@ -53,7 +53,7 @@ namespace mallocMC
             }
 
             ALPAKA_FN_HOST_ACC
-            static auto applyPadding(size_t bytes) -> size_t
+            static auto applyPadding(uint32_t bytes) -> uint32_t
             {
                 return bytes;
             }

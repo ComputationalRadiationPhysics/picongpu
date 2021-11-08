@@ -130,9 +130,9 @@ namespace mallocMC
             }
 
             ALPAKA_FN_HOST_ACC
-            static auto applyPadding(size_t bytes) -> size_t
+            static auto applyPadding(uint32_t bytes) -> uint32_t
             {
-                constexpr auto bitsToClear = dataAlignment - 1;
+                constexpr uint32_t bitsToClear = dataAlignment - 1;
                 return (bytes + bitsToClear) & ~bitsToClear;
             }
 
