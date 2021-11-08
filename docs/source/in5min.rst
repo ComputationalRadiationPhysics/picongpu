@@ -40,7 +40,7 @@ Select a profile file (``NAME.profile.example``) for your local HPC cluster from
 
   cp ~/src/picongpu/etc/picongpu/hemera-hzdr/k80_picongpu.profile.example ~/picongpu.profile
 
-This profile determines which part of the HPC cluster (“partition”, also: “queue”) – and thereby the type of GPUs – you will use.
+This profile determines which part of the HPC cluster (“partition”, also: “queue”) – and thereby the hardware (type of CPUs/GPUs) – you will use.
 
 **Maybe you have to adjust this profile file.**
 Use your favorite editor.
