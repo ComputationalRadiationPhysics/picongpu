@@ -174,6 +174,8 @@ namespace mallocMC
              * fragment the heap and increases the possibility that a small allocation can reuse an
              * existing chunk.
              * Each page can have 32x32 chunks. To maintain 32 chunks we need 32 bitmask on the page (each 32bit)
+             *
+             * @note: There is no requirement that minChunksSize is a power of two.
              */
             static constexpr uint32 minChunkSize = (pagesize - 32u * sizeof(uint32)) / (32u * 32u);
             static constexpr uint32 minSegmentSize = 32u * minChunkSize + sizeof(uint32);
@@ -500,11 +502,12 @@ namespace mallocMC
              * @return pointer to a free chunk on a page, 0 if we were unable to
              * obtain a free chunk
              */
-            template<typename AlpakaAcc>
+            template<typename AlignmentPolicy, typename AlpakaAcc>
             ALPAKA_FN_ACC auto allocChunked(const AlpakaAcc& acc, uint32 bytes) -> void*
             {
                 // use the minimal allocation size to increase the hit rate for small allocations.
-                const uint32 minAllocation = alpaka::math::max(acc, bytes, +minChunkSize);
+                const uint32 paddedMinChunkSize = AlignmentPolicy::applyPadding(minChunkSize);
+                const uint32 minAllocation = alpaka::math::max(acc, bytes, paddedMinChunkSize);
                 const uint32 numpages = _numpages;
                 const uint32 pagesperblock = numpages / _accessblocks;
                 const uint32 reloff = warpSize * minAllocation / pagesize;
@@ -514,10 +517,10 @@ namespace mallocMC
                 const uint32 maxchunksize = alpaka::math::min(
                     acc,
                     +pagesize,
-                    /* this clumping means that allocations of minChunkSize could have a waste exceeding the
+                    /* this clumping means that allocations of paddedMinChunkSize could have a waste exceeding the
                      * wastefactor
                      */
-                    alpaka::math::max(acc, wastefactor * bytes, +minChunkSize));
+                    alpaka::math::max(acc, wastefactor * bytes, paddedMinChunkSize));
 
                 /* global page index
                  *   - different for each thread to reduce memory read/write conflicts
@@ -843,7 +846,7 @@ namespace mallocMC
              * @param bytes number of bytes to allocate
              * @return pointer to the allocated memory
              */
-            template<typename AlpakaAcc>
+            template<typename AlignmentPolicy, typename AlpakaAcc>
             ALPAKA_FN_ACC auto create(const AlpakaAcc& acc, uint32 bytes) -> void*
             {
                 if(bytes == 0)
@@ -856,7 +859,7 @@ namespace mallocMC
                  */
                 if(bytes <= pagesize)
                     // chunck based
-                    return allocChunked(acc, bytes);
+                    return allocChunked<AlignmentPolicy>(acc, bytes);
                 else
                     // allocate a range of pages
                     return allocPageBased(acc, bytes);
@@ -1088,7 +1091,7 @@ namespace mallocMC
              * @param stride the stride should be equal to the number of
              * different gids (and therefore of value max(gid)-1)
              */
-            template<typename AlpakaAcc>
+            template<typename AlignmentPolicy, typename AlpakaAcc>
             ALPAKA_FN_ACC auto getAvailaibleSlotsDeviceFunction(
                 const AlpakaAcc& acc,
                 size_t slotSize,
@@ -1112,7 +1115,7 @@ namespace mallocMC
                             chunksize = alpaka::math::max(
                                 acc,
                                 (uint32) slotSize,
-                                +minChunkSize); // ensure minimum chunk size
+                                AlignmentPolicy::applyPadding(minChunkSize)); // ensure minimum chunk size
                             slotcount += countFreeChunksInPage(
                                 acc,
                                 currentpage,
@@ -1181,7 +1184,12 @@ namespace mallocMC
                     const auto gid = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc).sum();
 
                     const auto nWorker = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc).prod();
-                    const unsigned temp = heap->getAvailaibleSlotsDeviceFunction(acc, slotSize, gid, nWorker);
+                    const unsigned temp
+                        = heap->template getAvailaibleSlotsDeviceFunction<typename T_DeviceAllocator::AlignmentPolicy>(
+                            acc,
+                            slotSize,
+                            gid,
+                            nWorker);
                     if(temp)
                         alpaka::atomicOp<alpaka::AtomicAdd>(acc, slots, temp);
                 };
@@ -1236,7 +1244,7 @@ namespace mallocMC
              *
              * @param slotSize the size of allocatable elements to count
              */
-            template<typename AlpakaAcc>
+            template<typename AlignmentPolicy, typename AlpakaAcc>
             ALPAKA_FN_ACC auto getAvailableSlotsAccelerator(const AlpakaAcc& acc, size_t slotSize) -> unsigned
             {
                 const int wId = warpid_withinblock(acc); // do not use warpid-function, since
@@ -1265,7 +1273,11 @@ namespace mallocMC
 
                 // printf("Block %d, id %d: activeThreads=%d
                 // linearId=%d\n",blockIdx.x,threadIdx.x,activeThreads,linearId);
-                const unsigned temp = getAvailaibleSlotsDeviceFunction(acc, slotSize, linearId, activeThreads);
+                const unsigned temp = this->template getAvailaibleSlotsDeviceFunction<AlignmentPolicy>(
+                    acc,
+                    slotSize,
+                    linearId,
+                    activeThreads);
                 if(temp)
                     alpaka::atomicOp<alpaka::AtomicAdd>(acc, &warpResults[wId], temp);
 
