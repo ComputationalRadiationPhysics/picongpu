@@ -77,7 +77,7 @@ namespace picongpu
                  *
                  * @return name
                  */
-                std::string getName()
+                std::string getName() const
                 {
                     return m_name;
                 }
@@ -146,6 +146,15 @@ namespace picongpu
                     return ss.str();
                 }
 
+                /** Has the option been specified on the command line at index idx?
+                 *
+                 * Does not consider default values.
+                 */
+                bool optionDefined(uint32_t idx) const
+                {
+                    return idx < StorageType::size();
+                }
+
                 /** get the value set by the user
                  *
                  * Throw an exception if there is no default value defined and idx is
@@ -157,7 +166,7 @@ namespace picongpu
                  */
                 T_ValueType get(uint32_t idx)
                 {
-                    if(StorageType::size() <= idx)
+                    if(not optionDefined(idx))
                     {
                         if(!m_hasDefaultValue)
                             throw std::runtime_error(std::string(
