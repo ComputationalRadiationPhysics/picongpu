@@ -343,7 +343,23 @@ if(PIC_SEARCH_openPMD)
             else()
                 find_package(nlohmann_json 3.9.1 CONFIG REQUIRED)
                 message(STATUS "nlohmann-json: Found version '${nlohmann_json_VERSION}'")
-                PIC_dependency_set_status(openPMD FALSE)
+            endif()
+
+            # TOML
+            set(
+                PIC_toml11_PROVIDER "intern" CACHE
+                STRING "Use internally shipped or external nlohmann_json library.")
+            set_property(
+                CACHE PIC_toml11_PROVIDER
+                PROPERTY STRINGS "intern;extern")
+            mark_as_advanced(PIC_toml11_PROVIDER)
+            if(${PIC_toml11_PROVIDER} STREQUAL "intern")
+                add_subdirectory(
+                    "${PIConGPUapp_SOURCE_DIR}/../../thirdParty/toml11"
+                    "${CMAKE_CURRENT_BINARY_DIR}/build_toml11")
+            else()
+                find_package(toml11 3.7.0 CONFIG REQUIRED)
+                message(STATUS "toml11: Found version '${toml11_VERSION}'")
             endif()
             set(HOST_LIBS ${HOST_LIBS} openPMD::openPMD)
         else()
@@ -500,6 +516,13 @@ if(PIC_HAVE_openPMD)
         SYSTEM PRIVATE
         $<TARGET_PROPERTY:nlohmann_json::nlohmann_json,INTERFACE_INCLUDE_DIRECTORIES>)
     target_link_libraries(picongpu-hostonly PRIVATE nlohmann_json::nlohmann_json)
+
+    # same tricks for toml11
+    target_include_directories(
+        picongpu-hostonly
+        SYSTEM PRIVATE
+        $<TARGET_PROPERTY:toml11::toml11,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_link_libraries(picongpu-hostonly PRIVATE toml11::toml11)
 endif()
 
 
