@@ -164,7 +164,7 @@ namespace picongpu
                  * @return if number of user provided option <= idx then the user defined
                  *         value else the default value if defined
                  */
-                T_ValueType get(uint32_t idx)
+                T_ValueType get(uint32_t idx) const
                 {
                     if(!optionDefined(idx))
                     {
