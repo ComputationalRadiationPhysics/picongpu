@@ -47,9 +47,6 @@ namespace picongpu
 
 
             floatD_X pos = newPos;
-            const int particleCellIdx = particle[localCellIdx_];
-
-            DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec>(particleCellIdx));
 
             DataSpace<simDim> dir;
             for(uint32_t i = 0; i < simDim; ++i)
@@ -84,62 +81,76 @@ namespace picongpu
                  * moveDir has to be corrected back, too (add +1 again).*/
                 moveDir += valueCorrector;
                 /* If we have corrected moveDir we must set pos to 0 */
-                pos[i] -= valueCorrector;
+                particle[position_][i] = pos[i] - valueCorrector;
                 dir[i] = precisionCast<int>(moveDir);
             }
-            particle[position_] = pos;
 
-            /* new local cell position after particle move
-             * can be out of supercell
+            // direction is used for multimask where 1 mean particle is valid
+            int newMultimask = 1;
+
+            /* multimask and localCell index must only be updated if the particle is moving out of the cell.
+             * This is reducing the global memory pressure by performing only necessary memory writes.
              */
-            localCell += dir;
-
-            /* ATTENTION ATTENTION we cast to unsigned, this means that a negative
-             * direction is know a very very big number, than we compare with supercell!
-             *
-             * if particle is inside of the supercell the **unsigned** representation
-             * of dir is always >= size of the supercell
-             */
-            for(uint32_t i = 0; i < simDim; ++i)
-                dir[i] *= precisionCast<uint32_t>(localCell[i]) >= precisionCast<uint32_t>(TVec::toRT()[i]) ? 1 : 0;
-
-            /* if partice is outside of the supercell we use mod to
-            * set particle at cell supercellSize to 1
-            * and partticle at cell -1 to supercellSize-1
-            * % (mod) can't use with negativ numbers, we add one supercellSize to hide this
-            *
-            localCell.x() = (localCell.x() + TVec::x) % TVec::x;
-            localCell.y() = (localCell.y() + TVec::y) % TVec::y;
-            localCell.z() = (localCell.z() + TVec::z) % TVec::z;
-            */
-
-            /*dir is only +1 or -1 if particle is outside of supercell
-             * y=cell-(dir*superCell_size)
-             * y=0 if dir==-1
-             * y=superCell_size if dir==+1
-             * for dir 0 localCel is not changed
-             */
-            localCell -= (dir * TVec::toRT());
-            /*calculate one dimensional cell index*/
-            particle[localCellIdx_] = DataSpaceOperations<TVec::dim>::template map<TVec>(localCell);
-
-            /* [ dir + int(dir < 0)*3 ] == [ (dir + 3) %3 = y ]
-             * but without modulo
-             * y=0 for dir = 0
-             * y=1 for dir = 1
-             * y=2 for dir = -1
-             */
-            int direction = 1;
-            uint32_t exchangeType = 1; // see inlcude/pmacc/types.h for RIGHT, BOTTOM and BACK
-            for(uint32_t i = 0; i < simDim; ++i)
+            if(dir != DataSpace<simDim>::create(0))
             {
-                direction += (dir[i] == -1 ? 2 : dir[i]) * exchangeType;
-                exchangeType *= 3; // =3^i (1=RIGHT, 3=BOTTOM; 9=BACK)
+                const int particleCellIdx = particle[localCellIdx_];
+
+                DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec>(particleCellIdx));
+                /* new local cell position after particle move
+                 * can be out of supercell
+                 */
+                localCell += dir;
+
+                /* ATTENTION ATTENTION we cast to unsigned, this means that a negative
+                 * direction is know a very very big number, than we compare with supercell!
+                 *
+                 * if particle is inside of the supercell the **unsigned** representation
+                 * of dir is always >= size of the supercell
+                 */
+                for(uint32_t i = 0; i < simDim; ++i)
+                    dir[i] = precisionCast<uint32_t>(localCell[i]) >= precisionCast<uint32_t>(TVec::toRT()[i]) ? dir[i]
+                                                                                                               : 0;
+
+                /* if partice is outside of the supercell we use mod to
+                 * set particle at cell supercellSize to 1
+                 * and partticle at cell -1 to supercellSize-1
+                 * % (mod) can't use with negativ numbers, we add one supercellSize to hide this
+                 *
+                 * localCell.x() = (localCell.x() + TVec::x) % TVec::x;
+                 * localCell.y() = (localCell.y() + TVec::y) % TVec::y;
+                 * localCell.z() = (localCell.z() + TVec::z) % TVec::z;
+                 *
+                 * dir is only +1 or -1 if particle is outside of supercell
+                 * localCell = localCell - (dir*superCell_size)
+                 * localCell = 0 if dir==-1
+                 * localCell = superCell_size - 1 if dir==+1
+                 * for dir 0 localCel is not changed
+                 */
+                localCell -= (dir * TVec::toRT());
+                // update one dimensional cell index
+                particle[localCellIdx_] = DataSpaceOperations<TVec::dim>::template map<TVec>(localCell);
+
+                // see inlcude/pmacc/type/Exchnages.hpp for RIGHT, BOTTOM and BACK
+                uint32_t exchangeType = 1;
+
+                /* transform direction vector into a exchange id
+                 *
+                 * newMultimask:
+                 *   0 == is not possible because each particle processed by this function must be a valid particle
+                 *   1 == valid particle whihc is not leaving the supercell
+                 *   2 >= valid particle which is leaving the supercell into the direction (newMultimask - 1)
+                 */
+                for(uint32_t i = 0; i < simDim; ++i)
+                {
+                    newMultimask += (dir[i] == -1 ? 2 : dir[i]) * exchangeType;
+                    exchangeType *= 3; // =3^i (1=RIGHT, 3=BOTTOM; 9=BACK)
+                }
+
+                // change multimask only if the particle is leaving the supercell
+                if(newMultimask >= 2)
+                    particle[multiMask_] = newMultimask;
             }
-
-            particle[multiMask_] = direction;
-
-            return direction >= 2;
+            return newMultimask >= 2;
         }
 
     } // namespace particles
