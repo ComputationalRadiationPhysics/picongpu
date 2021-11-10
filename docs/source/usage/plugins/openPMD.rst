@@ -31,6 +31,9 @@ Also see :ref:`common patterns of defining particle filters <usage-workflows-par
 .cfg file
 ^^^^^^^^^
 
+Note that all the following command line parameters can *alternatively* be specified in a ``.toml`` configuration file.
+See the next section for further information: `Configuring the openPMD plugin with a TOML configuration file>`
+
 You can use ``--openPMD.period`` to specify the output period.
 The base filename is specified via ``--openPMD.file``.
 The openPMD API will parse the file name to decide the chosen backend and iteration layout:
@@ -198,6 +201,18 @@ Performance
 
 On the Summit compute system, specifying ``export IBM_largeblock_io=true`` disables data shipping, which leads to reduced overhead for large block write operations.
 This setting is applied in the Summit templates found in ``etc/picongpu/summit-ornl``.
+
+Configuring the openPMD plugin with a TOML configuration file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The openPMD plugin can alternatively be configured by using a ``.toml`` configuration file.
+Note the inline comments for a description of the used schema:
+
+.. literalinclude:: openPMD.toml
+
+The location of the ``.toml`` file on the filesystem is specified via ``--openPMD.toml``.
+If using this parameter, no other parameters must be specified.
+If another parameter is specified, the openPMD plugin will notice and abort.
 
 
 Memory Complexity
