@@ -33,6 +33,7 @@
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/traits/IsBaseTemplateOf.hpp>
 
+#include <algorithm>
 #include <cstdint>
 #include <stdexcept>
 #include <string>
@@ -202,10 +203,27 @@ namespace picongpu
                             if(parameters.hasMinSource[d])
                                 beginUserIdx[d]++;
                     auto endUserIdx = subGrid.getGlobalDomain().size - parameters.offsetMaxBorder + globalDomainOffset;
+
+                    // Prepare update functor type
+                    DataConnector& dc = Environment<>::get().DataConnector();
+                    auto& updatedField = *dc.get<T_UpdatedField>(T_UpdatedField::getName(), true);
+                    auto dataBox = updatedField.getDeviceDataBox();
+                    auto const& incidentField = *dc.get<T_IncidentField>(T_IncidentField::getName(), true);
+                    using Functor
+                        = UpdateFunctor<decltype(dataBox), T_CurlIncidentField, T_FunctorIncidentField, T_axis>;
+                    constexpr int margin = Functor::margin;
+                    constexpr int sizeAlongAxis = 2 * margin - 1;
+
                     if(parameters.direction > 0)
-                        endUserIdx[T_axis] = beginUserIdx[T_axis] + 1;
+                    {
+                        beginUserIdx[T_axis] -= (margin - 1);
+                        endUserIdx[T_axis] = beginUserIdx[T_axis] + sizeAlongAxis;
+                    }
                     else
-                        beginUserIdx[T_axis] = endUserIdx[T_axis] - 1;
+                    {
+                        endUserIdx[T_axis] += (margin - 1);
+                        beginUserIdx[T_axis] = endUserIdx[T_axis] - sizeAlongAxis;
+                    }
 
                     // Convert to the local domain indices
                     using Index = pmacc::DataSpace<simDim>;
@@ -225,16 +243,21 @@ namespace picongpu
                     if(!areAnyCellsInLocalDomain)
                         return;
 
-                    // The block-thread organization is same as used for the laser kernel
-                    using PlaneSizeInSuperCells = typename pmacc::math::CT::AssignIfInRange<
+                    /* The block size is generally equal to supercell size, but can be smaller along T_axis
+                     * when there is not enough work
+                     */
+                    constexpr int supercellSizeAlongAxis
+                        = pmacc::math::CT::At_c<SuperCellSize::vector_type, T_axis>::type::value;
+                    constexpr int blockSizeAlongAxis = std::min(sizeAlongAxis, supercellSizeAlongAxis);
+                    using BlockSize = typename pmacc::math::CT::AssignIfInRange<
                         typename SuperCellSize::vector_type,
                         bmpl::integral_c<uint32_t, T_axis>,
-                        bmpl::integral_c<int, 1>>::type;
+                        bmpl::integral_c<int, blockSizeAlongAxis>>::type;
                     auto const superCellSize = SuperCellSize::toRT();
                     auto const gridBlocks
                         = (endLocalUserIdx - beginLocalUserIdx + superCellSize - Index::create(1)) / superCellSize;
-                    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-                        pmacc::math::CT::volume<PlaneSizeInSuperCells>::type::value>::value;
+                    constexpr uint32_t numWorkers
+                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<BlockSize>::type::value>::value;
 
                     // Shift by guard size to go to the in-kernel coordinate system
                     auto const mapper = pmacc::makeAreaMapper<CORE + BORDER>(parameters.cellDescription);
@@ -243,12 +266,6 @@ namespace picongpu
                     auto endGridIdx = endLocalUserIdx + numGuardCells;
 
                     // Indexing is done, now prepare the update functor
-                    DataConnector& dc = Environment<>::get().DataConnector();
-                    auto& updatedField = *dc.get<T_UpdatedField>(T_UpdatedField::getName(), true);
-                    auto dataBox = updatedField.getDeviceDataBox();
-                    auto const& incidentField = *dc.get<T_IncidentField>(T_IncidentField::getName(), true);
-                    using Functor
-                        = UpdateFunctor<decltype(dataBox), T_CurlIncidentField, T_FunctorIncidentField, T_axis>;
                     auto functor = Functor{incidentField.getUnit()};
                     functor.updatedField = dataBox;
                     functor.currentStep = parameters.sourceTimeIteration;
@@ -297,7 +314,7 @@ namespace picongpu
                     // Check that incidentField can be applied
                     checkRequirements(functor, beginLocalUserIdx);
 
-                    PMACC_KERNEL(ApplyIncidentFieldKernel<numWorkers, PlaneSizeInSuperCells>{})
+                    PMACC_KERNEL(ApplyIncidentFieldKernel<numWorkers, BlockSize>{})
                     (gridBlocks, numWorkers)(functor, beginGridIdx, endGridIdx);
                 }
 

@@ -72,34 +72,29 @@ namespace picongpu
                     {
                     }
 
-                    /** Apply correction to updatedField due to incidentField
+                    /** Apply correction to a single value of updatedField due to incidentField
                      *
-                     * gridIdx points to a cell on the Huygens surface and updatedField values within the stencil width
-                     * of curl(incidentField) along the surface normal need to be corrected.
+                     * Both indices are in the local domain, including guards.
                      *
-                     * @param gridIdx grid index in the local domain, including guards
+                     * @param beginGridIdx grid index of the first updatedField value to be corrected at all
+                     * (not necessarily by this call)
+                     * @param updatedGridIdx grid index of updatedField to be corrected by this function
                      */
-                    HDINLINE void operator()(pmacc::DataSpace<simDim> const& gridIdx)
+                    HDINLINE void operator()(
+                        pmacc::DataSpace<simDim> const& beginGridIdx,
+                        pmacc::DataSpace<simDim> const& updatedGridIdx)
                     {
+                        // Determine Huygens surface position for the current updatedField value
+                        auto huygensSurfaceIdx = updatedGridIdx;
+                        huygensSurfaceIdx[T_axis] = beginGridIdx[T_axis] + margin - 1;
                         // Fractional since the later shift is fractional
-                        auto const incidentFieldShiftBase
-                            = pmacc::algorithms::precisionCast::precisionCast<float_X>(gridIdx + gridIdxShift);
+                        auto const incidentFieldShiftBase = pmacc::algorithms::precisionCast::precisionCast<float_X>(
+                            huygensSurfaceIdx + gridIdxShift);
                         auto const incidentFieldShift1 = incidentFieldShiftBase + inCellShift1;
                         auto const incidentFieldShift2 = incidentFieldShiftBase + inCellShift2;
-                        /* Update all field values within margin - 1 cells in both sides of gridIdx along the axis.
-                         * We do not need any synchronization here, as the kernel distributes work along
-                         * the other two axes. So all grid values in this "row" along the axis will be touched by one
-                         * thread.
-                         */
-                        for(int32_t updatedFieldShift = 1 - margin; updatedFieldShift < margin; updatedFieldShift++)
-                        {
-                            auto updatedFieldIdx = gridIdx;
-                            updatedFieldIdx[axis] += updatedFieldShift;
-                            updatedField(updatedFieldIdx) += getUpdatedFieldCorrection(
-                                updatedFieldShift,
-                                incidentFieldShift1,
-                                incidentFieldShift2);
-                        }
+                        auto const updatedFieldShift = (updatedGridIdx - huygensSurfaceIdx)[T_axis];
+                        updatedField(updatedGridIdx)
+                            += getUpdatedFieldCorrection(updatedFieldShift, incidentFieldShift1, incidentFieldShift2);
                     }
 
                     //! UpdatedField box
@@ -308,6 +303,8 @@ namespace picongpu
                 {
                     /** Run the incidentField kernel
                      *
+                     * The kernel must be called for all grid values that need an update.
+                     *
                      * @tparam T_Acc alpaka accelerator type
                      * @tparam T_UpdateFunctor update functor type
                      *
@@ -335,15 +332,15 @@ namespace picongpu
                             {
                                 auto cellIdxInSuperCell
                                     = DataSpaceOperations<simDim>::template map<T_BlockDescription>(linearIdx);
-                                auto const gridIdx = beginGridIdx + supercellOffsetCells + cellIdxInSuperCell;
+                                auto const updatedGridIdx = beginGridIdx + supercellOffsetCells + cellIdxInSuperCell;
 
                                 // The index may be outside since the active area is not generally a multiple of block
                                 // size
                                 bool isInside = true;
                                 for(uint32_t d = 0; d < simDim; d++)
-                                    isInside = isInside && (gridIdx[d] < endGridIdx[d]);
+                                    isInside = isInside && (updatedGridIdx[d] < endGridIdx[d]);
                                 if(isInside)
-                                    functor(gridIdx);
+                                    functor(beginGridIdx, updatedGridIdx);
                             });
                     }
                 };
