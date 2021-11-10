@@ -166,7 +166,7 @@ namespace picongpu
                  */
                 T_ValueType get(uint32_t idx)
                 {
-                    if(not optionDefined(idx))
+                    if(!optionDefined(idx))
                     {
                         if(!m_hasDefaultValue)
                             throw std::runtime_error(std::string(
