@@ -38,6 +38,7 @@
 #include <string>
 #include <type_traits>
 
+//! @note this file uses the same naming convention for updated and incident field as Solver.kernel.
 
 namespace picongpu
 {
@@ -47,7 +48,7 @@ namespace picongpu
         {
             namespace detail
             {
-                /** Internally used parameters of the incident field generation normal to the given axis
+                /** Internally used parameters of the incidentField generation normal to the given axis
                  *
                  * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
                  */
@@ -76,14 +77,14 @@ namespace picongpu
                      */
                     pmacc::DataSpace<simDim> offsetMaxBorder;
 
-                    /** Direction of the incident field propagation
+                    /** Direction of the incidentField propagation
                      *
                      * +1._X is positive direction (from the min boundary inwards).
                      * -1._X is negative direction (from the max boundary inwards)
                      */
                     float_X direction;
 
-                    //! Time iteration at which the source incident field values will be calculated
+                    //! Time iteration at which the source incidentField values will be calculated
                     float_X sourceTimeIteration;
 
                     //! Time increment in the target field, in iterations
@@ -96,7 +97,7 @@ namespace picongpu
                     MappingDesc const cellDescription;
                 };
 
-                /** Check compile- and run-time requirements for incident field solver
+                /** Check compile- and run-time requirements for incidentField solver
                  *
                  * Cause compile error or throw when a check is failed.
                  *
@@ -123,7 +124,7 @@ namespace picongpu
                     auto const exPosition = traits::FieldPosition<cellType::Yee, FieldE>{}()[0];
                     PMACC_VERIFY_MSG(
                         exPosition[0] == 0.5_X,
-                        "incident field source does not support the Yee grid layout");
+                        "incident field source does not support the used Yee grid layout");
 
                     // Ensure gap along the current axis is large enough that we don't touch the absorber area
                     auto const margin = static_cast<int32_t>(updateFunctor.margin);
@@ -138,26 +139,28 @@ namespace picongpu
                             + "][1] is too small for used field solver, must be at least "
                             + std::to_string(margin - 1));
 
-                    // Current implementation requires all updated values to be inside the same local domain
+                    /* Current implementation requires all updated values (along the active axis) to be inside the same
+                     * local domain
+                     */
                     auto const& subGrid = Environment<simDim>::get().SubGrid();
                     auto const localDomainSize = subGrid.getLocalDomain().size[updateFunctor.axis];
                     if((beginLocalUserIdx[updateFunctor.axis] + 1 < margin)
                        || (beginLocalUserIdx[updateFunctor.axis] + margin > localDomainSize))
                         throw std::runtime_error(
-                            "Incident field solver can only operate on one local domain along the active axis. Adjust "
-                            "GAP_FROM_ABSORBER or grid to fit it inside one local domain");
+                            "The Huygens surface for incident field generation is too close to a local domain border."
+                            "Adjust GAP_FROM_ABSORBER or grid distribution over gpus.");
                 }
 
-                /** Update a field with the given incident field normally to the given axis
+                /** Update a field with the given incidentField normally to the given axis
                  *
                  * @note This function operates in terms of the standard Yee field solver.
                  * It concerns calculations, naming, and comments.
                  * The kernel called takes it into account and provides correct processing for all supported solvers.
                  *
-                 * @tparam T_UpdatedField updated field type (FieldE or FieldB)
-                 * @tparam T_IncidentField incident field type (FieldB or FieldE)
+                 * @tparam T_UpdatedField updatedField type (FieldE or FieldB)
+                 * @tparam T_IncidentField incidentField type (FieldB or FieldE)
                  * @tparam T_CurlIncidentField curl(incidentField) functor type
-                 * @tparam T_FunctorIncidentField incident field source functor type
+                 * @tparam T_FunctorIncidentField incidentField source functor type
                  * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
                  *
                  * @param parameters parameters
@@ -256,8 +259,8 @@ namespace picongpu
                      */
                     functor.gridIdxShift = totalCellOffset - numGuardCells;
 
-                    /* Compute which components of the incident field are used,
-                     * which components of the updated field they contribute to and with which coefficients.
+                    /* Compute which components of the incidentField are used,
+                     * which components of the updatedField they contribute to and with which coefficients.
                      */
 
                     // dir0 is boundary normal axis, dir1 and dir2 are two other axes
@@ -265,7 +268,7 @@ namespace picongpu
                     constexpr auto dir1 = (dir0 + 1) % 3;
                     constexpr auto dir2 = (dir0 + 2) % 3;
 
-                    /* Incident field components to be used for the two terms.
+                    /* IncidentField components to be used for the two terms.
                      * Note the intentional cross combination here, the following calculations rely on it
                      */
                     functor.incidentComponent1 = dir2;
@@ -277,7 +280,7 @@ namespace picongpu
                     functor.coeff2[dir2] = -coeffBase;
 
                     /* For the positive direction, the updated total field index was shifted by 1 earlier.
-                     * This index shift is translated to in-cell shift for the incident field here.
+                     * This index shift is translated to in-cell shift for the incidentField here.
                      */
                     auto incidentFieldBaseShift = floatD_X::create(0.0_X);
                     if(parameters.direction > 0)
@@ -291,21 +294,21 @@ namespace picongpu
                     functor.inCellShift1 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent1];
                     functor.inCellShift2 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent2];
 
-                    // Check that incident field can be applied
+                    // Check that incidentField can be applied
                     checkRequirements(functor, beginLocalUserIdx);
 
                     PMACC_KERNEL(ApplyIncidentFieldKernel<numWorkers, PlaneSizeInSuperCells>{})
                     (gridBlocks, numWorkers)(functor, beginGridIdx, endGridIdx);
                 }
 
-                /** Update a field with the given incident field normally to the given axis
+                /** Update a field with the given incidentField normally to the given axis
                  *
                  * After the sliding window started moving, does nothing for the y boundaries.
                  *
-                 * @tparam T_UpdatedField updated field type (FieldE or FieldB)
-                 * @tparam T_IncidentField incident field type (FieldB or FieldE)
+                 * @tparam T_UpdatedField updatedField type (FieldE or FieldB)
+                 * @tparam T_IncidentField incidentField type (FieldB or FieldE)
                  * @tparam T_Curl curl(incidentField) functor type
-                 * @tparam T_FunctorIncidentField incident field source functor type
+                 * @tparam T_FunctorIncidentField incidentField source functor type
                  * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
                  *
                  * @param parameters parameters
@@ -319,7 +322,7 @@ namespace picongpu
                     uint32_t T_axis>
                 inline void callUpdateField(Parameters<T_axis> const& parameters, float_X const curlCoefficient)
                 {
-                    // Incident field generation at y boundaries cannot be performed once the window started moving
+                    // IncidentField generation at y boundaries cannot be performed once the window started moving
                     const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(
                         static_cast<uint32_t>(parameters.sourceTimeIteration));
                     bool const boxHasSlided = (numSlides != 0);
@@ -329,18 +332,18 @@ namespace picongpu
                             curlCoefficient);
                 }
 
-                /** Functor to apply contribution of the incident field source to the E field
+                /** Functor to apply contribution of the incidentField functor source to the E field
                  *
                  * @tparam T_Source source type: Source<...> or None
                  */
                 template<typename T_Source>
                 struct UpdateE;
 
-                //! Functor to apply contribution of the None incident field to the E field
+                //! Functor to apply contribution of the None incidentField functor to the E field
                 template<>
                 struct UpdateE<None>
                 {
-                    /** Apply contribution of the None incident field to the E field
+                    /** Apply contribution of the None incidentField functor to the E field
                      *
                      * @tparam T_Parameters parameters type
                      */
@@ -350,7 +353,7 @@ namespace picongpu
                     }
                 };
 
-                /** Functor to apply contribution of the incident field source to the E field
+                /** Functor to apply contribution of the incidentField source functor to the E field
                  *
                  * @tparam T_FunctorIncidentE functor for the incident E field (not used)
                  * @tparam T_FunctorIncidentB functor for the incident B field
@@ -358,7 +361,7 @@ namespace picongpu
                 template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
                 struct UpdateE<Source<T_FunctorIncidentE, T_FunctorIncidentB>>
                 {
-                    /** Apply contribution of the incident field source to the E field
+                    /** Apply contribution of the incidentField source functor to the E field
                      *
                      * @tparam T_Parameters parameters type
                      *
@@ -382,18 +385,18 @@ namespace picongpu
                     }
                 };
 
-                /** Functor to apply contribution of the incident field source to the B field
+                /** Functor to apply contribution of the incidentField source functor to the B field
                  *
                  * @tparam T_Source source type: Source<...> or None
                  */
                 template<typename T_Source>
                 struct UpdateB;
 
-                //! Functor to apply contribution of the None incident field to the B field
+                //! Functor to apply contribution of the None incidentField functor to the B field
                 template<>
                 struct UpdateB<None>
                 {
-                    /** Apply contribution of the None incident field to the B field
+                    /** Apply contribution of the None incidentField functor to the B field
                      *
                      * @tparam T_Parameters parameters type
                      */
@@ -403,7 +406,7 @@ namespace picongpu
                     }
                 };
 
-                /** Functor to apply contribution of the incident field source to the B field
+                /** Functor to apply contribution of the incidentField source functor to the B field
                  *
                  * @tparam T_FunctorIncidentE functor for the incident E field
                  * @tparam T_FunctorIncidentB functor for the incident B field (not used)
@@ -411,7 +414,7 @@ namespace picongpu
                 template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
                 struct UpdateB<Source<T_FunctorIncidentE, T_FunctorIncidentB>>
                 {
-                    /** Apply contribution of the incident field source to the B field
+                    /** Apply contribution of the incidentField source functor to the B field
                      *
                      * @tparam T_Parameters parameters type
                      *

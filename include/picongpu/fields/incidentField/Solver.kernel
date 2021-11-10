@@ -26,6 +26,12 @@
 
 #include <cstdint>
 
+/** @note In this file we use camelCase "updatedField" in both code and comments to denote field E or B that is being
+ * updated (i.e. corrected) in the kernel. The other of the two fields is called "incidentField". And for the
+ * incidentField source we explicitly use "functor" to not confuse it with the field itself. Please refer to
+ * https://picongpu.readthedocs.io/en/latest/models/total_field_scattered_field.html for theoretical background of this
+ * procedure.
+ */
 
 namespace picongpu
 {
@@ -35,14 +41,14 @@ namespace picongpu
         {
             namespace detail
             {
-                /** Helper functor for in-kernel update of the given field using the given incident field functor
+                /** Helper functor for in-kernel update of the given field using the given incidentField functor
                  *
-                 * Performs update by adding terms with the incident field.
+                 * Performs update by adding terms with the incidentField.
                  * The positions, indices and coefficients for these terms are determined by members.
                  *
-                 * @tparam T_UpdatedFieldBox updated field box type
+                 * @tparam T_UpdatedFieldBox updatedField box type
                  * @tparam T_CurlIncidentField curl(incidentField) functor type
-                 * @tparam T_FunctorIncidentField incident field source functor type
+                 * @tparam T_FunctorIncidentField incidentField source functor type
                  * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
                  */
                 template<
@@ -66,7 +72,10 @@ namespace picongpu
                     {
                     }
 
-                    /** Update field at the given grid index
+                    /** Apply correction to updatedField due to incidentField
+                     *
+                     * gridIdx points to a cell on the Huygens surface and updatedField values within the stencil width
+                     * of curl(incidentField) along the surface normal need to be corrected.
                      *
                      * @param gridIdx grid index in the local domain, including guards
                      */
@@ -93,7 +102,7 @@ namespace picongpu
                         }
                     }
 
-                    //! Updated field box
+                    //! UpdatedField box
                     T_UpdatedFieldBox updatedField;
 
                     //! Derivative functor along T_axis type
@@ -115,21 +124,41 @@ namespace picongpu
                      */
                     static constexpr int32_t margin = pmacc::math::CT::At_c<NumCoefficients, T_axis>::type::value;
 
-                    //! Incident field functor
+                    //! IncidentField functor
                     T_FunctorIncidentField functorIncidentField;
 
-                    //! Indices of the incident field components for the two terms
-                    uint32_t incidentComponent1, incidentComponent2;
+                    /** Parameters of the update to be used for each affected updatedField value.
+                     *
+                     * We formulate correction of the updatedField in the following vector form:
+                     * updateField(gridIdx) += sum(
+                     *     coeff1 * functorIncidentField(idx + inCellShift1)[incidentComponent1] +
+                     *     coeff2 * functorIncidentField(idx + inCellShift2)[incidentComponent2];
+                     *     idx is in range around gridIdx depending on T_CurlIncidentField)
+                     *
+                     * The update only uses tangential components of both updatedField and incidentField, in a cross
+                     * combination. Thus, updateField[T_axis] is never changed and functorIncidentField()[T_axis] is
+                     * never used. incidentComponent1, 2 are different and both not equal to T_axis. inCellShift1, 2
+                     * match the Yee grid layout for incidentField for incidentComponent1, 2. coeff1, 2 are non-zero
+                     * only along incidentComponent2, 1 respectively. Which of the components/terms is first or second
+                     * is irrelevant, as long as the variables with 1, 2 match the described scheme.
+                     *
+                     * @{
+                     */
 
                     /** Coefficients for two functorIncidentField invocations assuming Yee field solver
                      *
                      * The coefficients have a single non-zero component (different between those two).
-                     * Thus, they define both the updated field component and the corresponding coefficient.
+                     * Thus, they define both the updatedField component and the corresponding coefficient.
                      */
                     float3_X coeff1, coeff2;
 
+                    //! Indices of the incidentField components for the two terms
+                    uint32_t incidentComponent1, incidentComponent2;
+
                     //! Shifts inside the cell for two functorIncidentField invocations, in cells
                     floatD_X inCellShift1, inCellShift2;
+
+                    //! @}
 
                     //! Index shift: totalCellIdx (that a user functor gets) = gridIdx + gridIdxShirt
                     pmacc::DataSpace<simDim> gridIdxShift;
@@ -137,7 +166,7 @@ namespace picongpu
                     //! Current time step, in iterations; can be fractional
                     float_X currentStep;
 
-                    /** Direction of the incident field propagation
+                    /** Direction of the incidentField propagation
                      *
                      * +1._X is positive direction (from the min boundary inwards).
                      * -1._X is negative direction (from the max boundary inwards)
@@ -147,28 +176,36 @@ namespace picongpu
                     //! Boundary axis, 0 = x, 1 = y, 2 = z
                     static constexpr uint32_t axis = T_axis;
 
-                    //! Whether the updated field is total or scattered
+                    //! Whether the updatedField is total or scattered
                     bool isUpdatedFieldTotal;
 
                 private:
-                    /** Calculate correction for the updated field due to incident field for the given shift
+                    /** Calculate correction for the updatedField due to incidentField for the given distance
+                     * updatedFieldShift from Huygens surface.
                      *
-                     * All shifts are in cells, relative to the base position corresponding to the Yee solver.
+                     * All shifts are in cells, relative to the base position, i.e. the update position used for the
+                     * Yee solver (with updatedFieldShift==0 as the only value for this solver).
                      *
                      * The correction is calculated as follows.
-                     * We consider all grid nodes of the incident field involved in finite-difference calculation of
-                     * d(incidentField)/d(T_axis) at the given position of the updated field.
-                     * Out of those nodes, we only use ones on the opposite side of the Huygens surface from the
-                     * updated field position.
-                     * Incident field values are evaluated on those places and accumulated with coefficients
-                     * derived from the curl coefficients.
-                     * The total coefficient in front of incident field over all updatedFieldShift values
-                     * is the same for all schemes.
-                     * The difference between schemes is basically in how it is scattered betweeen the nodes.
+                     * We consider all grid nodes of the incidentField involved in finite-difference calculation of
+                     * d(incidentField)/d(T_axis) at the given position of the updatedField.
+                     * Out of those nodes, we only use ones located near and on the opposite side of the Huygens
+                     * surface from the updatedField position. The number of such nodes depends on the derivative
+                     * operators used and the given value of updatedFieldShift, it varies between 1 and (operator width
+                     * - 1).
                      *
-                     * @param updatedFieldShift shift of the updated field along the axis relative to the base position
-                     * @param incidentFieldShift1 base shift of the first incident field component
-                     * @param incidentFieldShift2 base shift of the second incident field component
+                     * IncidentField values are evaluated on those places and accumulated with coefficients
+                     * derived from the curl coefficients.
+                     * The total coefficient in front of incidentField over all updatedFieldShift values
+                     * is the same for all FDTD-type Maxwell's solvers (i.e. T_CurlIncidentField).
+                     * Those total coefficients are equal to coeff1, 2 and are by absolute value c^2 * dt / dT_axis
+                     * for updating the E field and dt / dT_axis for updating the B field.
+                     * The difference between solvers is basically in how it is scattered between the nodes.
+                     * The scattering coefficients are taken from the finite-difference derivative operator used.
+                     *
+                     * @param updatedFieldShift shift of the updatedField along the axis relative to the base position
+                     * @param incidentFieldShift1 base shift of the first incidentField component
+                     * @param incidentFieldShift2 base shift of the second incidentField component
                      */
                     HDINLINE float3_X getUpdatedFieldCorrection(
                         int32_t updatedFieldShift,
@@ -183,7 +220,7 @@ namespace picongpu
                         /* To unify implementation for 2d and 3d, derivative coefficients and this function always
                          * operate as if in 3d.
                          * For 2d the z loop is always for a single iteration.
-                         * The resulting 3d indices and shrinked to simDim.
+                         * The resulting 3d indices are shrinked to simDim.
                          */
                         constexpr auto dir1 = (axis + 1) % 3;
                         constexpr auto dir2 = (axis + 2) % 3;
@@ -203,6 +240,8 @@ namespace picongpu
                                     coeffIdx[dir2] = abs(dir2Shift);
                                     auto const derivativeCoeff
                                         = derivativeCoefficients.value[coeffIdx[0]][coeffIdx[1]][coeffIdx[2]];
+                                    // Note: the vector update scheme and notation is described at declaration of
+                                    // coeff1, 2
                                     result += derivativeCoeff
                                         * (coeff1
                                                * functorIncidentField(
@@ -221,14 +260,14 @@ namespace picongpu
                         return result;
                     }
 
-                    /** Calculate incident field shift increment for the given updated field shift
+                    /** Calculate incidentField shift increment for the given updatedField shift
                      *
                      * Both shifts are along T_axis, in cells, relative to the scheme for the classic Yee solver.
-                     * The incident field shift is moving the opposite side from the updated field shift.
+                     * The incidentField shift is moving the opposite side from the updatedField shift.
                      * For zero update field shift, this side is always towards outwards and
                      * depending on TF or SF region, it aligns or counter-aligns with this->direction.
                      *
-                     * @param updatedFieldShift shift of the updated field along the axis relative to the base position
+                     * @param updatedFieldShift shift of the updatedField along the axis relative to the base position
                      */
                     HDINLINE float_X getIncidentFieldShiftIncrement(int32_t updatedFieldShift) const
                     {
@@ -240,13 +279,13 @@ namespace picongpu
                             return isUpdatedFieldTotal ? -direction : direction;
                     }
 
-                    /** Calculate initial incident field shift for the given updated field shift
+                    /** Calculate initial incidentField shift for the given updatedField shift
                      *
                      * Both shifts are along T_axis, in cells, relative to the scheme for the classic Yee solver.
-                     * The incident field shift is moving the opposite side from the updated field shift.
+                     * The incidentField shift is moving the opposite side from the updatedField shift.
                      * It has to be adjusted by one based on TF or SF region and direction.
                      *
-                     * @param updatedFieldShift shift of the updated field along the axis relative to the base position
+                     * @param updatedFieldShift shift of the updatedField along the axis relative to the base position
                      */
                     HDINLINE float_X getInitialIncidentFieldShift(int32_t updatedFieldShift) const
                     {
@@ -259,7 +298,7 @@ namespace picongpu
                     }
                 };
 
-                /** Kernel to apply incident field
+                /** Kernel to apply incidentField
                  *
                  * @tparam T_numWorkers number of workers
                  * @tparam T_BlockDescription domain description
@@ -267,7 +306,7 @@ namespace picongpu
                 template<uint32_t T_numWorkers, typename T_BlockDescription>
                 struct ApplyIncidentFieldKernel
                 {
-                    /** Run the incident field kernel
+                    /** Run the incidentField kernel
                      *
                      * @tparam T_Acc alpaka accelerator type
                      * @tparam T_UpdateFunctor update functor type
