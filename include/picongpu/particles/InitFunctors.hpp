@@ -28,7 +28,6 @@
 #include "picongpu/particles/manipulators/manipulators.def"
 
 #include <pmacc/Environment.hpp>
-#include <pmacc/math/MapTuple.hpp>
 #include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/traits/GetFlagType.hpp>

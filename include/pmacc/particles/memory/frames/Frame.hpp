@@ -62,8 +62,7 @@ namespace pmacc
     struct Frame
         : public InheritLinearly<typename T_ParticleDescription::MethodsList>
         , protected pmath::MapTuple<
-              typename SeqToMap<typename T_ParticleDescription::ValueTypeSeq, T_CreatePairOperator>::type,
-              pmath::AlignedData>
+              typename SeqToMap<typename T_ParticleDescription::ValueTypeSeq, T_CreatePairOperator>::type>
         , public InheritLinearly<typename OperateOnSeq<
               typename T_ParticleDescription::FrameExtensionList,
               bmpl::apply1<bmpl::_1, Frame<T_CreatePairOperator, T_ParticleDescription>>>::type>
@@ -77,8 +76,7 @@ namespace pmacc
         using FrameExtensionList = typename ParticleDescription::FrameExtensionList;
         using ThisType = Frame<T_CreatePairOperator, ParticleDescription>;
         /* definition of the MapTupel where we inherit from*/
-        using BaseType
-            = pmath::MapTuple<typename SeqToMap<ValueTypeSeq, T_CreatePairOperator>::type, pmath::AlignedData>;
+        using BaseType = pmath::MapTuple<typename SeqToMap<ValueTypeSeq, T_CreatePairOperator>::type>;
 
         /* type of a single particle*/
         using ParticleType = pmacc::Particle<ThisType>;
