@@ -1,4 +1,4 @@
-.. _in5min:
+.. _hemeraIn5min:
 
 PIConGPU in 5 Minutes on Hemera
 ===============================
