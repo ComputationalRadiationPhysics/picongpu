@@ -220,7 +220,9 @@ namespace picongpu
                                 {
                                     a = 3.0_COLL * math::exp(-1.0_COLL * s12);
                                 }
-                                float_COLL bracket = math::exp(-1.0_COLL * a) + 2.0_COLL * u * std::sinh(a);
+                                // on host std::sinh will be used and on device the HIP/CUDA equivalent
+                                using std::sinh;
+                                float_COLL bracket = math::exp(-1.0_COLL * a) + 2.0_COLL * u * sinh(a);
                                 float_COLL cosXi = math::log(bracket) / a;
                                 if(cosXi < -1.0_COLL || cosXi > 1.0_COLL)
                                 {
