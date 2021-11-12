@@ -1,71 +1,117 @@
 .. _in5min:
 
-PIConGPU in 5 Minutes
-=====================
+PIConGPU in 5 Minutes on Hemera
+===============================
 
 A guide to run, but not understand PIConGPU.
-It is aimed at existing and preconfigured high performance computing clusters (“supercomputers”, also: HPC systems).
-For more information on the individual steps please refer to the manual.
+It is aimed at users of the high performance computing (HPC) cluster `"Hemera" at the HZDR <https://www.hzdr.de/db/Cms?pOid=12231&pNid=852>`_,
+but should be applicable to other HPC clusters with slight adjustments.
 
-This guide needs **shell access** (probably via ``ssh``) and **some auxilliary programs** (e.g. ``git``).
+This guide needs **shell access** (probably via :command:`ssh`) and :command:`git`.
 Consider getting familiar with the shell and git.
 Please also read the tutorial for your local HPC cluster.
 
+.. seealso::
+   resources on the command line (bash)
+     `a tutorial <http://www.bu.edu/tech/files/2018/05/2018-Summer-Tutorial-Intro-to-Linux.pdf>`_ |
+     `another tutorial <https://cscar.research.umich.edu/wp-content/uploads/sites/5/2016/09/Intro-to-Command-Line.pdf>`_ |
+     `scripting by examples <https://learnxinyminutes.com/docs/bash/>`_
+
+   resources on git
+     `official tutorial <https://git-scm.com/docs/gittutorial>`_ (also available as man page :manpage:`gittutorial(7)`) |
+     `w3school tutorial <https://www.w3schools.com/git/default.asp>`_ |
+     `brief introduction <https://learnxinyminutes.com/docs/git/>`_ |
+     `cheatsheet (by github) <https://training.github.com/downloads/github-git-cheat-sheet.pdf>`_
+
+   Hemera at HZDR
+     `official website <https://www.hzdr.de/db/Cms?pOid=12231&pNid=852>`_ |
+     `presentation <https://www.hzdr.de/db/Cms?pOid=61949>`_ |
+     internal links:
+     `wiki <https://fwcc.pages.hzdr.de/infohub/hpc/hemera.html>`_ |
+     `storage layout <https://fwcc.pages.hzdr.de/infohub/hpc/storage.html>`_
+  
 We will use the following directories:
 
-- ``~/src/picongpu``: source files from github
-- ``~/picongpu.profile``: load the dependencies for your local environment
-- ``~/picongpu-projects``: scenarios to simulate
-- ``/scratch/mydir``: result data of the simulation runs
+- :file:`~/src/picongpu`: source files from github
+- :file:`~/k80_picongpu.profile`: load the dependencies for your local environment
+- :file:`~/picongpu-projects`: scenarios to simulate
+- :file:`/bigdata/hplsim/extern/alice`: result data of the simulation runs (*scratch* storage)
 
 Please replace them whenever appropriate.
 
 Get the Source
 --------------
 
-Use git to obtain the source and use the current ``dev`` branch and put it into ``~/src/picongpu``::
+Use :command:`git` to obtain the source and use the current ``dev`` branch and put it into ``~/src/picongpu``::
 
   mkdir -p ~/src
   git clone https://github.com/ComputationalRadiationPhysics/picongpu ~/src/picongpu
   cd ~/src/picongpu
   git checkout dev
 
+.. note::
+   If you get the error ``git: command not found`` load git by invoking ``module load git`` and try again.
+
 Setup
 -----
 
 You need :ref:`a lot of dependencies <install-dependencies>`.
 
-If you are on a known cluster you can take a shortcut:
-Select a profile file (``NAME.profile.example``) for your local HPC cluster from ``etc/picongpu`` and copy it to your home directory::
+Luckily, other people already did the work and prepared a *profile* that you can use.
+Copy it to your home directory::
 
-  cp ~/src/picongpu/etc/picongpu/hemera-hzdr/k80_picongpu.profile.example ~/picongpu.profile
+  cp ~/src/picongpu/etc/picongpu/hemera-hzdr/k80_picongpu.profile.example ~/k80_picongpu.profile
 
-This profile determines which part of the HPC cluster (“partition”, also: “queue”) – and thereby the compute device(s) (type of CPUs/GPUs) – you will use.
+This profile determines which part of the HPC cluster (*partition*, also: *queue*) – and thereby the compute device(s) (type of CPUs/GPUs) – you will use.
+This particular profile will use `NVIDIA Tesla K80 <https://www.nvidia.com/en-gb/data-center/tesla-k80/>`_ GPUs.
 
-**Maybe you have to adjust this profile file.**
-Use your favorite editor.
-If unsure use nano: ``nano ~/picongpu.profile`` (Save with Ctrl+O, exit with Ctrl+X)
-Read the file (it’s short) and apply changes if appropriate.
+You can view the full list of available profiles `on github <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/etc/picongpu>`_ (look for :file:`NAME.profile.example`).
 
-For this guide, add after the last line::
+For this guide we will add our scratch directory location to this profile.
+Edit the profile file using your favorite editor.
+If unsure use nano: ``nano ~/k80_picongpu.profile`` (save with :kbd:`Control-o`, exit with :kbd:`Control-x`).
+Go to the end of the file and add a new line::
 
-  export SCRATCH=/scratch/mydir
+  export SCRATCH=/bigdata/hplsim/extern/alice
 
-This is the location where runtime data and all results will be stored.
-Obviously change the path according to your local setup.
-Consult the documentation of your HPC cluster where to save your data.
-**On HPC clusters this is probably not your home directory.**
+(Please replace ``alice`` with your username.)
+
+You can supply additional settings like your email address and notification settings if you want.
+
+.. note::
+    This is the location where runtime data and all results will be stored.
+    If you're not on Hemera make sure you select the correct directory:
+    Consult the documentation of your HPC cluster where to save your data.
+    **On HPC clusters this is probably not your home directory.**
 
 Now activate your profile::
 
-  source ~/picongpu.profile
+  source ~/k80_picongpu.profile
 
-You will have to repeat the last command every time you want to use PIConGPU.
+.. warning::
+   You will have to repeat this command every time you want to use PIConGPU on a new shell, i.e. after logging in.
+
+Test your new profile::
+
+  echo $SCRATCH
+
+That should print your data directory.
+If that works make sure that this directory actually exists by executing::
+
+  mkdir -p $SCRATCH
+  ls -lah $SCRATCH
+
+If you see this output everything worked and you can carry on::
+
+  total 0
+  drwxr-xr-x  2 alice    fwt   40 Nov 12 10:09 .
+  drwxrwxrwt 17 root     root 400 Nov 12 10:09 ..
 
 Create a Scenario
 -----------------
 
-Create a directory and copy an example::
+As an example we will use the predefined `*LaserWakefield* example <https://github.com/ComputationalRadiationPhysics/picongpu/tree/dev/share/picongpu/examples/LaserWakefield>`_.
+Create a directory and copy it::
 
   mkdir -p ~/picongpu-projects/tinkering
   pic-create $PIC_EXAMPLES/LaserWakefield ~/picongpu-projects/tinkering/try01
@@ -73,53 +119,74 @@ Create a directory and copy an example::
 
 Usually you would now adjust the files in the newly created directory ``~/picongpu-projects/tinkering/try01`` – for this introduction we will use the parameters as provided.
 
-Also note how the command ``pic-create`` and the variable ``$PIC_EXAMPLES`` have been provided because you loaded the file ``~/picongpu.profile`` in the previous step.
-If this fails (producing ``pic-create: command not found``), make sure you load the PIConGPU profile by executing ``source ~/picongpu.profile``.
+.. note::
+   The command :command:`pic-create` and the variable ``$PIC_EXAMPLES`` have been provided because you loaded the file :file:`~/k80_picongpu.profile` in the previous step.
+   If this fails (printing ``pic-create: command not found``), make sure you load the PIConGPU profile by executing ``source ~/k80_picongpu.profile``.
 
 Compile and Run
 ---------------
 
 **Now use a compute node.**
-Your profile probably provides a helper command for that::
+Your profile provides a helper command for that::
 
   getDevice
 
 (You can now run ``hostname`` to see which node you are using.)
 
-Now build (from inside your scenario directory, maybe use ``cd ~/picongpu-projects/tinkering/try01``)::
+Now build the scenario::
 
+  # switch to the scenario directory if you haven't already
+  cd ~/picongpu-projects/tinkering/try01
   pic-build
 
 This will take a while, go grab a coffee.
 If this fails, read the manual or ask a colleague.
 
-After a successfull build, run (still on the compute node, from inside your scenario directory, maybe use ``cd ~/picongpu-projects/tinkering/try01``)::
+After a successfull build, run (still on the compute node, still inside your scenario directory)::
 
   tbg -s bash -c etc/picongpu/1.cfg -t etc/picongpu/bash/mpiexec.tpl $SCRATCH/tinkering/try01/run01
 
-- ``tbg``: tool provided by PIConGPU
+- :command:`tbg`: tool provided by PIConGPU
 - ``bash``: the “submit system”, e.g. use ``sbatch`` for slurm
-- ``etc/picongpu/1.cfg``: runtime options (number of GPUs, etc.)
-- ``etc/picongpu/bash/mpiexec.tpl``: options for the chosen submit system
-- ``$SCRATCH/tinkering/try01/run01``: not-yet-existing destination for your result files
+- :file:`etc/picongpu/1.cfg`: runtime options (number of GPUs, etc.)
+- :file:`etc/picongpu/bash/mpiexec.tpl`: options for the chosen submit system
+- :file:`$SCRATCH/tinkering/try01/run01`: not-yet-existing destination for your result files
 
-E.g. for “Hypnos” the invocation could be (invoke from the login node)::
+.. note::
+   Usually you would use the *workload manager* (e.g. `SLURM <https://slurm.schedmd.com/>`_ on Hemera) to submit your jobs.
+   You can try that with::
 
-  tbg -s qsub -c etc/picongpu/1.cfg -t etc/picongpu/hypnos-hzdr/k20.tpl $SCRATCH/tinkering/try01/run01
+     # go back to the login node
+     exit
+     hostname
+     # ...should now display hemera4.cluster or hemera5.cluster
+
+     # resubmit your simulation with a new directory:
+     tbg -s sbatch -c etc/picongpu/1.cfg -t etc/picongpu/hemera-hzdr/k80.tpl $SCRATCH/tinkering/try01/run02
+     # you will get a confirmation, e.g.
+     # Submitted batch job 3769365
+
+   The output of you job will not be displayed!
+   By invoking ``squeue -u $USER`` you can view the current status of your job.
 
 Examine the Results
 -------------------
 
-Results are located at ``$SCRATCH/tinkering/try01/run01``.
+Results are located at :file:`$SCRATCH/tinkering/try01/run01`.
 
-To view pretty pictures from a linux workstation you can use the following process (execute on your workstation, **not the HPC cluster**):
+To view pretty pictures from a linux workstation you can use the following process (execute on your workstation, **not the HPC cluster**)::
 
-0. Create a “mount point” (empty directory): ``mkdir -p ~/mnt/scratch``
-1. Mount the data directory using sshfs:
-   ``sshfs -o default_permissions -o idmap=user -o uid=$(id -u) -o gid=$(id -g) HOST:DATADIR ~/mnt/scratch/``
-   Substitute HOST with the hostname (``ssh HOST`` should connect to the HPC cluster) and DATADIR with the full path to your data directory, e.g. ``/scratch/mydir``
-2. Browse the directory using a file browser/image viewer
-   (e.g. ``gwenview``). Check out ``~/mnt/scratch/tinkering/try01/run01/simOutput/pngElectronsYX/`` for image files.
+  # Create a “mount point” (empty directory)
+  mkdir -p ~/mnt/scratch
+
+  # Mount the data directory using sshfs
+  sshfs -o default_permissions -o idmap=user -o uid=$(id -u) -o gid=$(id -g) HOST:DATADIR ~/mnt/scratch/
+
+Substitute HOST with the hostname (``ssh HOST`` should connect to the HPC cluster)
+and DATADIR with the full path to your data directory, e.g. :file:`/bigdata/hplsim/extern/alice`.
+
+Browse the directory using a file browser/image viewer (e.g. :command:`gwenview`).
+Check out :file:`~/mnt/scratch/tinkering/try01/run01/simOutput/pngElectronsYX/` for image files.
 
 Further Reading
 ---------------
