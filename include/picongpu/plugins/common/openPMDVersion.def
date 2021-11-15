@@ -47,30 +47,6 @@ namespace picongpu
             template<typename>
             using void_t = void;
 
-            template<typename = ::openPMD::Dataset, typename = void>
-            struct SetDatasetOptions
-            {
-                static void run(::openPMD::Dataset const&, std::string const& options)
-                {
-                    if(options != "{}")
-                    {
-                        std::cerr
-                            << "[openPMD plugin] Setting dataset-specific JSON options requires openPMD API 0.13.0 "
-                               "or later."
-                            << std::endl;
-                    }
-                }
-            };
-
-            template<typename Dataset>
-            struct SetDatasetOptions<Dataset, void_t<decltype(Dataset::options)>>
-            {
-                static void run(Dataset& ds, std::string options)
-                {
-                    ds.options = std::move(options);
-                }
-            };
-
             template<typename ValueType, typename = ::openPMD::RecordComponent, typename = void>
             struct openPMDSpan
             {
@@ -159,11 +135,6 @@ namespace picongpu
                 }
             };
         } // namespace detail
-
-        void setDatasetOptions(::openPMD::Dataset& ds, std::string options)
-        {
-            detail::SetDatasetOptions<>::run(ds, std::move(options));
-        }
 
         /*
          * This mocks the span-based storeChunk API available in openPMD with

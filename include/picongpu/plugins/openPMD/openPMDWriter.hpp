@@ -107,7 +107,7 @@ namespace picongpu
         {
             std::vector<uint64_t> v = asStandardVector(globalDimensions);
             ::openPMD::Dataset dataset{datatype, std::move(v)};
-            setDatasetOptions(dataset, jsonMatcher->get(datasetName));
+            dataset.options = jsonMatcher->get(datasetName);
             recordComponent.resetDataset(std::move(dataset));
             return recordComponent;
         }
