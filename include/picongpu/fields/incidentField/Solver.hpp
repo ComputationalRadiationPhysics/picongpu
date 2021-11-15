@@ -22,18 +22,24 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/Fields.hpp"
-#include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
+#include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/incidentField/Profiles.hpp"
 #include "picongpu/fields/incidentField/Solver.kernel"
 #include "picongpu/fields/incidentField/Traits.hpp"
+#include "picongpu/traits/GetCurl.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/traits/IsBaseTemplateOf.hpp>
 
+#include <algorithm>
 #include <cstdint>
+#include <stdexcept>
+#include <string>
 #include <type_traits>
 
+//! @note this file uses the same naming convention for updated and incident field as Solver.kernel.
 
 namespace picongpu
 {
@@ -43,7 +49,7 @@ namespace picongpu
         {
             namespace detail
             {
-                /** Internally used parameters of the incident field generation normal to the given axis
+                /** Internally used parameters of the incidentField generation normal to the given axis
                  *
                  * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
                  */
@@ -72,14 +78,14 @@ namespace picongpu
                      */
                     pmacc::DataSpace<simDim> offsetMaxBorder;
 
-                    /** Direction of the incident field propagation
+                    /** Direction of the incidentField propagation
                      *
                      * +1._X is positive direction (from the min boundary inwards).
                      * -1._X is negative direction (from the max boundary inwards)
                      */
                     float_X direction;
 
-                    //! Time iteration at which the source incident field values will be calculated
+                    //! Time iteration at which the source incidentField values will be calculated
                     float_X sourceTimeIteration;
 
                     //! Time increment in the target field, in iterations
@@ -92,11 +98,70 @@ namespace picongpu
                     MappingDesc const cellDescription;
                 };
 
-                /** Update a field with the given incident field normally to the given axis
+                /** Check compile- and run-time requirements for incidentField solver
                  *
-                 * @tparam T_UpdatedField updated field type (FieldE or FieldB)
-                 * @tparam T_IncidentField incident field type (FieldB or FieldE)
-                 * @tparam T_FunctorIncidentField incident field source functor type
+                 * Cause compile error or throw when a check is failed.
+                 *
+                 * @tparam T_UpdateFunctor update functor type
+                 *
+                 * @param updateFunctor update functor
+                 * @param beginLocalUserIdx begin active grid index, in the local domain without guards
+                 */
+                template<typename T_UpdateFunctor>
+                inline void checkRequirements(
+                    T_UpdateFunctor const& updateFunctor,
+                    pmacc::DataSpace<simDim> const& beginLocalUserIdx)
+                {
+                    /* Only the FDTD solvers are supported.
+                     * Make the condition depend on the template parameters so that it is only compile-time checked
+                     * when this part is instantiated, i.e. for non-None sources.
+                     */
+                    PMACC_CASSERT_MSG(
+                        _error_field_solver_does_not_support_incident_field_use_fdtd_solver,
+                        pmacc::traits::IsBaseTemplateOf_t<maxwellSolver::FDTD, Solver>::value
+                            && (sizeof(T_UpdateFunctor*) != 0));
+
+                    // The implementation assumes the layout of the Yee grid where Ex is at (i + 0.5) cells in x
+                    auto const exPosition = traits::FieldPosition<cellType::Yee, FieldE>{}()[0];
+                    PMACC_VERIFY_MSG(
+                        exPosition[0] == 0.5_X,
+                        "incident field source does not support the used Yee grid layout");
+
+                    // Ensure gap along the current axis is large enough that we don't touch the absorber area
+                    auto const margin = static_cast<int32_t>(updateFunctor.margin);
+                    if((updateFunctor.direction > 0) && (GAP_FROM_ABSORBER[updateFunctor.axis][0] + 1 < margin))
+                        throw std::runtime_error(
+                            "Incident field GAP_FROM_ABSORBER[" + std::to_string(updateFunctor.axis)
+                            + "][0] is too small for used field solver, must be at least "
+                            + std::to_string(margin - 1));
+                    if((updateFunctor.direction < 0) && (GAP_FROM_ABSORBER[updateFunctor.axis][1] + 1 < margin))
+                        throw std::runtime_error(
+                            "Incident field GAP_FROM_ABSORBER[" + std::to_string(updateFunctor.axis)
+                            + "][1] is too small for used field solver, must be at least "
+                            + std::to_string(margin - 1));
+
+                    /* Current implementation requires all updated values (along the active axis) to be inside the same
+                     * local domain
+                     */
+                    auto const& subGrid = Environment<simDim>::get().SubGrid();
+                    auto const localDomainSize = subGrid.getLocalDomain().size[updateFunctor.axis];
+                    if((beginLocalUserIdx[updateFunctor.axis] + 1 < margin)
+                       || (beginLocalUserIdx[updateFunctor.axis] + margin > localDomainSize))
+                        throw std::runtime_error(
+                            "The Huygens surface for incident field generation is too close to a local domain border."
+                            "Adjust GAP_FROM_ABSORBER or grid distribution over gpus.");
+                }
+
+                /** Update a field with the given incidentField normally to the given axis
+                 *
+                 * @note This function operates in terms of the standard Yee field solver.
+                 * It concerns calculations, naming, and comments.
+                 * The kernel called takes it into account and provides correct processing for all supported solvers.
+                 *
+                 * @tparam T_UpdatedField updatedField type (FieldE or FieldB)
+                 * @tparam T_IncidentField incidentField type (FieldB or FieldE)
+                 * @tparam T_CurlIncidentField curl(incidentField) functor type
+                 * @tparam T_FunctorIncidentField incidentField source functor type
                  * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
                  *
                  * @param parameters parameters
@@ -105,6 +170,7 @@ namespace picongpu
                 template<
                     typename T_UpdatedField,
                     typename T_IncidentField,
+                    typename T_CurlIncidentField,
                     typename T_FunctorIncidentField,
                     uint32_t T_axis>
                 inline void updateField(Parameters<T_axis> const& parameters, float_X const curlCoefficient)
@@ -137,10 +203,27 @@ namespace picongpu
                             if(parameters.hasMinSource[d])
                                 beginUserIdx[d]++;
                     auto endUserIdx = subGrid.getGlobalDomain().size - parameters.offsetMaxBorder + globalDomainOffset;
+
+                    // Prepare update functor type
+                    DataConnector& dc = Environment<>::get().DataConnector();
+                    auto& updatedField = *dc.get<T_UpdatedField>(T_UpdatedField::getName(), true);
+                    auto dataBox = updatedField.getDeviceDataBox();
+                    auto const& incidentField = *dc.get<T_IncidentField>(T_IncidentField::getName(), true);
+                    using Functor
+                        = UpdateFunctor<decltype(dataBox), T_CurlIncidentField, T_FunctorIncidentField, T_axis>;
+                    constexpr int margin = Functor::margin;
+                    constexpr int sizeAlongAxis = 2 * margin - 1;
+
                     if(parameters.direction > 0)
-                        endUserIdx[T_axis] = beginUserIdx[T_axis] + 1;
+                    {
+                        beginUserIdx[T_axis] -= (margin - 1);
+                        endUserIdx[T_axis] = beginUserIdx[T_axis] + sizeAlongAxis;
+                    }
                     else
-                        beginUserIdx[T_axis] = endUserIdx[T_axis] - 1;
+                    {
+                        endUserIdx[T_axis] += (margin - 1);
+                        beginUserIdx[T_axis] = endUserIdx[T_axis] - sizeAlongAxis;
+                    }
 
                     // Convert to the local domain indices
                     using Index = pmacc::DataSpace<simDim>;
@@ -160,16 +243,21 @@ namespace picongpu
                     if(!areAnyCellsInLocalDomain)
                         return;
 
-                    // The block-thread organization is same as used for the laser kernel
-                    using PlaneSizeInSuperCells = typename pmacc::math::CT::AssignIfInRange<
+                    /* The block size is generally equal to supercell size, but can be smaller along T_axis
+                     * when there is not enough work
+                     */
+                    constexpr int supercellSizeAlongAxis
+                        = pmacc::math::CT::At_c<SuperCellSize::vector_type, T_axis>::type::value;
+                    constexpr int blockSizeAlongAxis = std::min(sizeAlongAxis, supercellSizeAlongAxis);
+                    using BlockSize = typename pmacc::math::CT::AssignIfInRange<
                         typename SuperCellSize::vector_type,
                         bmpl::integral_c<uint32_t, T_axis>,
-                        bmpl::integral_c<int, 1>>::type;
+                        bmpl::integral_c<int, blockSizeAlongAxis>>::type;
                     auto const superCellSize = SuperCellSize::toRT();
                     auto const gridBlocks
                         = (endLocalUserIdx - beginLocalUserIdx + superCellSize - Index::create(1)) / superCellSize;
-                    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-                        pmacc::math::CT::volume<PlaneSizeInSuperCells>::type::value>::value;
+                    constexpr uint32_t numWorkers
+                        = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<BlockSize>::type::value>::value;
 
                     // Shift by guard size to go to the in-kernel coordinate system
                     auto const mapper = pmacc::makeAreaMapper<CORE + BORDER>(parameters.cellDescription);
@@ -178,20 +266,18 @@ namespace picongpu
                     auto endGridIdx = endLocalUserIdx + numGuardCells;
 
                     // Indexing is done, now prepare the update functor
-                    DataConnector& dc = Environment<>::get().DataConnector();
-                    auto& updatedField = *dc.get<T_UpdatedField>(T_UpdatedField::getName(), true);
-                    auto dataBox = updatedField.getDeviceDataBox();
-                    auto const& incidentField = *dc.get<T_IncidentField>(T_IncidentField::getName(), true);
-                    UpdateFunctor<decltype(dataBox), T_FunctorIncidentField> functor(incidentField.getUnit());
+                    auto functor = Functor{incidentField.getUnit()};
                     functor.updatedField = dataBox;
                     functor.currentStep = parameters.sourceTimeIteration;
+                    functor.isUpdatedFieldTotal = isUpdatedFieldTotal;
+                    functor.direction = parameters.direction;
                     /* Shift between local grid idx and fractional total cell idx that a user functor needs:
                      * total cell idx = local grid idx + functor.gridIdxShift.
                      */
                     functor.gridIdxShift = totalCellOffset - numGuardCells;
 
-                    /* Compute which components of the incident field are used,
-                     * which components of the updated field they contribute to and with which coefficients.
+                    /* Compute which components of the incidentField are used,
+                     * which components of the updatedField they contribute to and with which coefficients.
                      */
 
                     // dir0 is boundary normal axis, dir1 and dir2 are two other axes
@@ -199,7 +285,7 @@ namespace picongpu
                     constexpr auto dir1 = (dir0 + 1) % 3;
                     constexpr auto dir2 = (dir0 + 2) % 3;
 
-                    /* Incident field components to be used for the two terms.
+                    /* IncidentField components to be used for the two terms.
                      * Note the intentional cross combination here, the following calculations rely on it
                      */
                     functor.incidentComponent1 = dir2;
@@ -211,7 +297,7 @@ namespace picongpu
                     functor.coeff2[dir2] = -coeffBase;
 
                     /* For the positive direction, the updated total field index was shifted by 1 earlier.
-                     * This index shift is translated to in-cell shift for the incident field here.
+                     * This index shift is translated to in-cell shift for the incidentField here.
                      */
                     auto incidentFieldBaseShift = floatD_X::create(0.0_X);
                     if(parameters.direction > 0)
@@ -225,18 +311,21 @@ namespace picongpu
                     functor.inCellShift1 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent1];
                     functor.inCellShift2 = incidentFieldBaseShift + incidentFieldPositions[functor.incidentComponent2];
 
-                    PMACC_KERNEL(ApplyIncidentFieldKernel<numWorkers, PlaneSizeInSuperCells>{})
+                    // Check that incidentField can be applied
+                    checkRequirements(functor, beginLocalUserIdx);
+
+                    PMACC_KERNEL(ApplyIncidentFieldKernel<numWorkers, BlockSize>{})
                     (gridBlocks, numWorkers)(functor, beginGridIdx, endGridIdx);
                 }
 
-                /** Check preprequisites and update a field with the given incident field normally to the given axis
+                /** Update a field with the given incidentField normally to the given axis
                  *
-                 * Checks that the field solver type is supported.
                  * After the sliding window started moving, does nothing for the y boundaries.
                  *
-                 * @tparam T_UpdatedField updated field type (FieldE or FieldB)
-                 * @tparam T_IncidentField incident field type (FieldB or FieldE)
-                 * @tparam T_FunctorIncidentField incident field source functor type
+                 * @tparam T_UpdatedField updatedField type (FieldE or FieldB)
+                 * @tparam T_IncidentField incidentField type (FieldB or FieldE)
+                 * @tparam T_Curl curl(incidentField) functor type
+                 * @tparam T_FunctorIncidentField incidentField source functor type
                  * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
                  *
                  * @param parameters parameters
@@ -245,46 +334,33 @@ namespace picongpu
                 template<
                     typename T_UpdatedField,
                     typename T_IncidentField,
+                    typename T_Curl,
                     typename T_FunctorIncidentField,
                     uint32_t T_axis>
                 inline void callUpdateField(Parameters<T_axis> const& parameters, float_X const curlCoefficient)
                 {
-                    /* Only the classic Yee solver is supported so far.
-                     * Make the condition depend on the template parameters so that it is only compile-time checked
-                     * when this part is instantiated, i.e. for non-None sources.
-                     */
-                    PMACC_CASSERT_MSG(
-                        _error_field_solver_does_not_support_incident_field,
-                        std::is_same<Solver, maxwellSolver::Yee>::value && (sizeof(T_UpdatedField*) != 0));
-
-                    // The implementation assumes the layout of the Yee grid where Ex is at (i + 0.5) cells in x
-                    auto const exPosition = traits::FieldPosition<cellType::Yee, FieldE>{}()[0];
-                    PMACC_VERIFY_MSG(
-                        exPosition[0] == 0.5_X,
-                        "incident field source does not support the Yee grid layout");
-
-                    // Incident field generation at y boundaries cannot be performed once the window started moving
+                    // IncidentField generation at y boundaries cannot be performed once the window started moving
                     const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(
                         static_cast<uint32_t>(parameters.sourceTimeIteration));
                     bool const boxHasSlided = (numSlides != 0);
                     if(!((T_axis == 1) && boxHasSlided))
-                        updateField<T_UpdatedField, T_IncidentField, T_FunctorIncidentField>(
+                        updateField<T_UpdatedField, T_IncidentField, T_Curl, T_FunctorIncidentField>(
                             parameters,
                             curlCoefficient);
                 }
 
-                /** Functor to apply contribution of the incident field source to the E field
+                /** Functor to apply contribution of the incidentField functor source to the E field
                  *
                  * @tparam T_Source source type: Source<...> or None
                  */
                 template<typename T_Source>
                 struct UpdateE;
 
-                //! Functor to apply contribution of the None incident field to the E field
+                //! Functor to apply contribution of the None incidentField functor to the E field
                 template<>
                 struct UpdateE<None>
                 {
-                    /** Apply contribution of the None incident field to the E field
+                    /** Apply contribution of the None incidentField functor to the E field
                      *
                      * @tparam T_Parameters parameters type
                      */
@@ -294,7 +370,7 @@ namespace picongpu
                     }
                 };
 
-                /** Functor to apply contribution of the incident field source to the E field
+                /** Functor to apply contribution of the incidentField source functor to the E field
                  *
                  * @tparam T_FunctorIncidentE functor for the incident E field (not used)
                  * @tparam T_FunctorIncidentB functor for the incident B field
@@ -302,7 +378,7 @@ namespace picongpu
                 template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
                 struct UpdateE<Source<T_FunctorIncidentE, T_FunctorIncidentB>>
                 {
-                    /** Apply contribution of the incident field source to the E field
+                    /** Apply contribution of the incidentField source functor to the E field
                      *
                      * @tparam T_Parameters parameters type
                      *
@@ -319,22 +395,25 @@ namespace picongpu
                         auto const curlCoefficient = timeIncrement * c2;
                         using UpdatedField = picongpu::FieldE;
                         using IncidentField = picongpu::FieldB;
-                        callUpdateField<UpdatedField, IncidentField, T_FunctorIncidentB>(parameters, curlCoefficient);
+                        using Curl = traits::GetCurlB<Solver>::type;
+                        callUpdateField<UpdatedField, IncidentField, Curl, T_FunctorIncidentB>(
+                            parameters,
+                            curlCoefficient);
                     }
                 };
 
-                /** Functor to apply contribution of the incident field source to the B field
+                /** Functor to apply contribution of the incidentField source functor to the B field
                  *
                  * @tparam T_Source source type: Source<...> or None
                  */
                 template<typename T_Source>
                 struct UpdateB;
 
-                //! Functor to apply contribution of the None incident field to the B field
+                //! Functor to apply contribution of the None incidentField functor to the B field
                 template<>
                 struct UpdateB<None>
                 {
-                    /** Apply contribution of the None incident field to the B field
+                    /** Apply contribution of the None incidentField functor to the B field
                      *
                      * @tparam T_Parameters parameters type
                      */
@@ -344,7 +423,7 @@ namespace picongpu
                     }
                 };
 
-                /** Functor to apply contribution of the incident field source to the B field
+                /** Functor to apply contribution of the incidentField source functor to the B field
                  *
                  * @tparam T_FunctorIncidentE functor for the incident E field
                  * @tparam T_FunctorIncidentB functor for the incident B field (not used)
@@ -352,7 +431,7 @@ namespace picongpu
                 template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
                 struct UpdateB<Source<T_FunctorIncidentE, T_FunctorIncidentB>>
                 {
-                    /** Apply contribution of the incident field source to the B field
+                    /** Apply contribution of the incidentField source functor to the B field
                      *
                      * @tparam T_Parameters parameters type
                      *
@@ -368,7 +447,10 @@ namespace picongpu
                         auto const curlCoefficient = -timeIncrement;
                         using UpdatedField = picongpu::FieldB;
                         using IncidentField = picongpu::FieldE;
-                        callUpdateField<UpdatedField, IncidentField, T_FunctorIncidentE>(parameters, curlCoefficient);
+                        using Curl = traits::GetCurlE<Solver>::type;
+                        callUpdateField<UpdatedField, IncidentField, Curl, T_FunctorIncidentE>(
+                            parameters,
+                            curlCoefficient);
                     }
                 };
 

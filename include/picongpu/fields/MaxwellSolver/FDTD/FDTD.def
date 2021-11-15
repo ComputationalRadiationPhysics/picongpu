@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "picongpu/traits/GetCurl.hpp"
 
 namespace picongpu
 {
@@ -43,4 +44,29 @@ namespace picongpu
 
         } // namespace maxwellSolver
     } // namespace fields
+
+    namespace traits
+    {
+        /** Get curl(E) type in the FDTD solver
+         *
+         * @tparam T_CurlE functor to compute curl of E
+         * @tparam T_CurlB functor to compute curl of B
+         */
+        template<typename T_CurlE, typename T_CurlB>
+        struct GetCurlE<fields::maxwellSolver::FDTD<T_CurlE, T_CurlB>>
+        {
+            using type = T_CurlE;
+        };
+
+        /** Get curl(B) type in the FDTD solver
+         *
+         * @tparam T_CurlE functor to compute curl of E
+         * @tparam T_CurlB functor to compute curl of B
+         */
+        template<typename T_CurlE, typename T_CurlB>
+        struct GetCurlB<fields::maxwellSolver::FDTD<T_CurlE, T_CurlB>>
+        {
+            using type = T_CurlB;
+        };
+    } // namespace traits
 } // namespace picongpu
