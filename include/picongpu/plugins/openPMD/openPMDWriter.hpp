@@ -587,7 +587,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 rngProvider->synchronize();
                 auto const name = rngProvider->getName();
 
-                ::openPMD::Iteration iteration = params->openPMDSeries->WRITE_ITERATIONS[params->currentStep];
+                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[params->currentStep];
                 ::openPMD::Mesh mesh = iteration.meshes[name];
 
                 auto const unitDimension = std::vector<float_64>(7, 0.0);
@@ -651,7 +651,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 auto rngProvider = dc.get<RNGProvider>(RNGProvider::getName());
                 auto const name = rngProvider->getName();
 
-                ::openPMD::Iteration iteration = params->openPMDSeries->WRITE_ITERATIONS[params->currentStep];
+                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[params->currentStep];
                 ::openPMD::Mesh mesh = iteration.meshes[name];
                 ::openPMD::MeshRecordComponent mrc = mesh[::openPMD::RecordComponent::SCALAR];
 
@@ -1056,7 +1056,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 log<picLog::INPUT_OUTPUT>("openPMD: write field: %1% %2% %3%") % name % nComponents % ptr;
 
-                ::openPMD::Iteration iteration = params->openPMDSeries->WRITE_ITERATIONS[params->currentStep];
+                ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[params->currentStep];
                 ::openPMD::Mesh mesh = iteration.meshes[name];
 
                 // set mesh attributes
@@ -1363,13 +1363,13 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 WriteMeta writeMetaAttributes;
                 writeMetaAttributes(
                     *threadParams->openPMDSeries,
-                    (*threadParams->openPMDSeries).WRITE_ITERATIONS[threadParams->currentStep],
+                    (*threadParams->openPMDSeries).writeIterations()[threadParams->currentStep],
                     threadParams->currentStep);
 
                 // avoid deadlock between not finished pmacc tasks and mpi calls in
                 // openPMD
                 __getTransactionEvent().waitForFinished();
-                mThreadParams.openPMDSeries->WRITE_ITERATIONS[mThreadParams.currentStep].close();
+                mThreadParams.openPMDSeries->writeIterations()[mThreadParams.currentStep].close();
 
                 return;
             }

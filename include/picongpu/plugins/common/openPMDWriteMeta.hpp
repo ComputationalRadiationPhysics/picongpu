@@ -77,7 +77,7 @@ namespace picongpu
                         }
                     }
 
-                    ::openPMD::Iteration iteration = series.WRITE_ITERATIONS[currentStep];
+                    ::openPMD::Iteration iteration = series.writeIterations()[currentStep];
                     iteration.setAttribute("particleBoundary", listParticleBoundary);
                     iteration.setAttribute("particleBoundaryParameters", listParticleBoundaryParam);
                 }

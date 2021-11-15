@@ -86,7 +86,7 @@ namespace picongpu
 
                 ::openPMD::Series& series = *params.openPMDSeries;
                 ::openPMD::MeshRecordComponent mrc
-                    = series.WRITE_ITERATIONS[params.currentStep].meshes[baseName + "_" + group][dataset];
+                    = series.writeIterations()[params.currentStep].meshes[baseName + "_" + group][dataset];
 
                 if(!attrName.empty())
                 {
