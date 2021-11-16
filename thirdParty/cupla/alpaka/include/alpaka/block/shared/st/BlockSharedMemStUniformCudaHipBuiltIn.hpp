@@ -32,21 +32,6 @@ namespace alpaka
     class BlockSharedMemStUniformCudaHipBuiltIn
         : public concepts::Implements<ConceptBlockSharedSt, BlockSharedMemStUniformCudaHipBuiltIn>
     {
-    public:
-        //! Default constructor.
-        BlockSharedMemStUniformCudaHipBuiltIn() = default;
-        //! Copy constructor.
-        __device__ BlockSharedMemStUniformCudaHipBuiltIn(BlockSharedMemStUniformCudaHipBuiltIn const&) = delete;
-        //! Move constructor.
-        __device__ BlockSharedMemStUniformCudaHipBuiltIn(BlockSharedMemStUniformCudaHipBuiltIn&&) = delete;
-        //! Copy assignment operator.
-        __device__ auto operator=(BlockSharedMemStUniformCudaHipBuiltIn const&)
-            -> BlockSharedMemStUniformCudaHipBuiltIn& = delete;
-        //! Move assignment operator.
-        __device__ auto operator=(BlockSharedMemStUniformCudaHipBuiltIn&&)
-            -> BlockSharedMemStUniformCudaHipBuiltIn& = delete;
-        //! Destructor.
-        /*virtual*/ ~BlockSharedMemStUniformCudaHipBuiltIn() = default;
     };
 
     namespace traits

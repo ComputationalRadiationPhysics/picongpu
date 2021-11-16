@@ -17,13 +17,6 @@ namespace alpaka
     //! The CPU fibers accelerator atomic ops.
     class AtomicNoOp
     {
-    public:
-        AtomicNoOp() = default;
-        AtomicNoOp(AtomicNoOp const&) = delete;
-        AtomicNoOp(AtomicNoOp&&) = delete;
-        auto operator=(AtomicNoOp const&) -> AtomicNoOp& = delete;
-        auto operator=(AtomicNoOp&&) -> AtomicNoOp& = delete;
-        /*virtual*/ ~AtomicNoOp() = default;
     };
 
     namespace traits

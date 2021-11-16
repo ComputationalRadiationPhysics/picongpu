@@ -90,9 +90,7 @@ namespace alpaka
                 Vec<TDim, TIdx> m_pitchBytes;
                 TElem* m_pMem;
 
-                BufOaccImpl(const BufOaccImpl&) = delete;
                 BufOaccImpl(BufOaccImpl&&) = default;
-                BufOaccImpl& operator=(const BufOaccImpl&) = delete;
                 BufOaccImpl& operator=(BufOaccImpl&&) = default;
                 ~BufOaccImpl()
                 {
@@ -113,11 +111,6 @@ namespace alpaka
             : m_spBufImpl(std::make_shared<oacc::detail::BufOaccImpl<TElem, TDim, TIdx>>(dev, pMem, extent))
         {
         }
-
-        BufOacc(const BufOacc&) = default;
-        BufOacc(BufOacc&&) = default;
-        BufOacc& operator=(const BufOacc&) = default;
-        BufOacc& operator=(BufOacc&&) = default;
 
         oacc::detail::BufOaccImpl<TElem, TDim, TIdx>& operator*()
         {

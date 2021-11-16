@@ -78,7 +78,7 @@ struct TestBufferKernel
 
         for(size_t i(linearizedGlobalThreadIdx[0]); i < extents.prod(); i += globalThreadExtent.prod())
         {
-            ALPAKA_ASSERT(data[linIdxToPitchedIdx<2>(i, pitch)] == i);
+            ALPAKA_ASSERT_OFFLOAD(data[linIdxToPitchedIdx<2>(i, pitch)] == i);
         }
     }
 };
@@ -197,8 +197,7 @@ auto main() -> int
     // The view does not own the underlying memory. So you have to make sure that
     // the view does not outlive its underlying memory.
     std::array<Data, nElementsPerDim * nElementsPerDim * nElementsPerDim> plainBuffer;
-    using ViewHost = alpaka::ViewPlainPtr<Host, Data, Dim, Idx>;
-    ViewHost hostViewPlainPtr(plainBuffer.data(), devHost, extents);
+    auto hostViewPlainPtr = alpaka::createView(devHost, plainBuffer.data(), extents);
 
     // Allocate accelerator memory buffers
     //

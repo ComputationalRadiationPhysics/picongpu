@@ -65,26 +65,25 @@ public:
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
     {
         // default generator for accelerator
-        auto genDefault = alpaka::rand::generator::createDefault(acc, 12345u, 6789u);
+        auto genDefault = alpaka::rand::engine::createDefault(acc, 12345u, 6789u);
         genNumbers(acc, success, genDefault);
 
 #if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-#    ifndef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
+#    if !defined(ALPAKA_ACC_ANY_BT_OMP5_ENABLED) && !defined(ALPAKA_ACC_ANY_BT_OACC_ENABLED)
         // TODO: These ifdefs are wrong: They will reduce the test to the
         // smallest common denominator from all enabled backends
         // std::random_device
-        auto genRandomDevice = alpaka::rand::generator::createDefault(alpaka::rand::RandomDevice{}, 12345u, 6789u);
+        auto genRandomDevice = alpaka::rand::engine::createDefault(alpaka::rand::RandomDevice{}, 12345u, 6789u);
         genNumbers(acc, success, genRandomDevice);
 
         // MersenneTwister
-        auto genMersenneTwister
-            = alpaka::rand::generator::createDefault(alpaka::rand::MersenneTwister{}, 12345u, 6789u);
+        auto genMersenneTwister = alpaka::rand::engine::createDefault(alpaka::rand::MersenneTwister{}, 12345u, 6789u);
         genNumbers(acc, success, genMersenneTwister);
 #    endif
 
         // TinyMersenneTwister
         auto genTinyMersenneTwister
-            = alpaka::rand::generator::createDefault(alpaka::rand::TinyMersenneTwister{}, 12345u, 6789u);
+            = alpaka::rand::engine::createDefault(alpaka::rand::TinyMersenneTwister{}, 12345u, 6789u);
         genNumbers(acc, success, genTinyMersenneTwister);
 #endif
     }

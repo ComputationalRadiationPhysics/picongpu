@@ -55,10 +55,6 @@ namespace alpaka
             : uniform_cuda_hip::detail::QueueUniformCudaHipRtBase(dev)
         {
         }
-        QueueUniformCudaHipRtNonBlocking(QueueUniformCudaHipRtNonBlocking const&) = default;
-        QueueUniformCudaHipRtNonBlocking(QueueUniformCudaHipRtNonBlocking&&) = default;
-        auto operator=(QueueUniformCudaHipRtNonBlocking const&) -> QueueUniformCudaHipRtNonBlocking& = default;
-        auto operator=(QueueUniformCudaHipRtNonBlocking&&) -> QueueUniformCudaHipRtNonBlocking& = default;
         ALPAKA_FN_HOST auto operator==(QueueUniformCudaHipRtNonBlocking const& rhs) const -> bool
         {
             return (m_spQueueImpl == rhs.m_spQueueImpl);
@@ -67,7 +63,6 @@ namespace alpaka
         {
             return !((*this) == rhs);
         }
-        ~QueueUniformCudaHipRtNonBlocking() = default;
     };
 
 #    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
@@ -136,9 +131,10 @@ namespace alpaka
                 std::unique_lock<std::mutex> lock(pCallbackSynchronizationData->m_mutex);
                 if(pCallbackSynchronizationData->state != CallbackState::finished)
                 {
-                    pCallbackSynchronizationData->m_event.wait(lock, [pCallbackSynchronizationData]() {
-                        return pCallbackSynchronizationData->state == CallbackState::finished;
-                    });
+                    pCallbackSynchronizationData->m_event.wait(
+                        lock,
+                        [pCallbackSynchronizationData]()
+                        { return pCallbackSynchronizationData->state == CallbackState::finished; });
                 }
             }
 
@@ -156,24 +152,27 @@ namespace alpaka
                 // callback thread. The CUDA/HIP thread signals the std::thread when it is ready to execute the task.
                 // The CUDA/HIP thread is waiting for the std::thread to signal that it is finished executing the task
                 // before it executes the next task in the queue (CUDA/HIP stream).
-                std::thread t([pCallbackSynchronizationData, task]() {
-                    // If the callback has not yet been called, we wait for it.
+                std::thread t(
+                    [pCallbackSynchronizationData, task]()
                     {
-                        std::unique_lock<std::mutex> lock(pCallbackSynchronizationData->m_mutex);
-                        if(pCallbackSynchronizationData->state != CallbackState::notified)
+                        // If the callback has not yet been called, we wait for it.
                         {
-                            pCallbackSynchronizationData->m_event.wait(lock, [pCallbackSynchronizationData]() {
-                                return pCallbackSynchronizationData->state == CallbackState::notified;
-                            });
+                            std::unique_lock<std::mutex> lock(pCallbackSynchronizationData->m_mutex);
+                            if(pCallbackSynchronizationData->state != CallbackState::notified)
+                            {
+                                pCallbackSynchronizationData->m_event.wait(
+                                    lock,
+                                    [pCallbackSynchronizationData]()
+                                    { return pCallbackSynchronizationData->state == CallbackState::notified; });
+                            }
+
+                            task();
+
+                            // Notify the waiting CUDA thread.
+                            pCallbackSynchronizationData->state = CallbackState::finished;
                         }
-
-                        task();
-
-                        // Notify the waiting CUDA thread.
-                        pCallbackSynchronizationData->state = CallbackState::finished;
-                    }
-                    pCallbackSynchronizationData->m_event.notify_one();
-                });
+                        pCallbackSynchronizationData->m_event.notify_one();
+                    });
 
                 t.detach();
             }

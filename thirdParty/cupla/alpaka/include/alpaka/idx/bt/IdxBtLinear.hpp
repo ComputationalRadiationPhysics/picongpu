@@ -29,11 +29,6 @@ namespace alpaka
             IdxBtLinear(TIdx blockThreadIdx) : m_blockThreadIdx(blockThreadIdx)
             {
             }
-            IdxBtLinear(IdxBtLinear const&) = delete;
-            IdxBtLinear(IdxBtLinear&&) = delete;
-            auto operator=(IdxBtLinear const&) -> IdxBtLinear& = delete;
-            auto operator=(IdxBtLinear&&) -> IdxBtLinear& = delete;
-            ~IdxBtLinear() = default;
 
             const TIdx m_blockThreadIdx;
         };

@@ -28,7 +28,7 @@ namespace
         Dev const dev(alpaka::getDevByIdx<Pltf>(0u));
         auto const gridThreadExtent = alpaka::Vec<Dim, Idx>::all(10);
         auto const threadElementExtent = alpaka::Vec<Dim, Idx>::ones();
-        auto workDiv = alpaka::getValidWorkDiv<TAcc>(
+        auto const workDiv = alpaka::getValidWorkDiv<TAcc>(
             dev,
             gridThreadExtent,
             threadElementExtent,
@@ -42,7 +42,7 @@ TEMPLATE_LIST_TEST_CASE("getValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
     // Note: getValidWorkDiv() is called inside getWorkDiv
-    auto workDiv = getWorkDiv<Acc>();
+    auto const workDiv = getWorkDiv<Acc>();
     alpaka::ignore_unused(workDiv);
 }
 
@@ -53,7 +53,7 @@ TEMPLATE_LIST_TEST_CASE("isValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)
     using Pltf = alpaka::Pltf<Dev>;
 
     Dev dev(alpaka::getDevByIdx<Pltf>(0u));
-    auto workDiv = getWorkDiv<Acc>();
+    auto const workDiv = getWorkDiv<Acc>();
     // Test both overloads
     REQUIRE(alpaka::isValidWorkDiv(alpaka::getAccDevProps<Acc>(dev), workDiv));
     REQUIRE(alpaka::isValidWorkDiv<Acc>(dev, workDiv));

@@ -51,13 +51,6 @@ namespace alpaka
             return (ptrAddr / typeSizePowerOf2);
         }
 
-        AtomicStdLibLock() = default;
-        AtomicStdLibLock(AtomicStdLibLock const&) = delete;
-        AtomicStdLibLock(AtomicStdLibLock&&) = delete;
-        auto operator=(AtomicStdLibLock const&) -> AtomicStdLibLock& = delete;
-        auto operator=(AtomicStdLibLock&&) -> AtomicStdLibLock& = delete;
-        /*virtual*/ ~AtomicStdLibLock() = default;
-
         template<typename TPtr>
         std::mutex& getMutex(TPtr const* const ptr) const
         {

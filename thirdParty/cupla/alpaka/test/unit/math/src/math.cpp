@@ -125,7 +125,7 @@ struct TestTemplate
         {
             INFO("Idx i: " << i)
             TData std_result = functor(args(i));
-            REQUIRE(results(i) == Approx(std_result));
+            REQUIRE(results(i) == Approx(std_result).margin(std::numeric_limits<TData>::epsilon()));
         }
     }
 };

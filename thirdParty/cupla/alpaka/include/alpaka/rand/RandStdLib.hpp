@@ -15,6 +15,7 @@
 #include <alpaka/rand/Traits.hpp>
 
 #include <cstdint>
+#include <limits>
 #include <random>
 #include <type_traits>
 
@@ -38,7 +39,7 @@ namespace alpaka
         {
         };
 
-        namespace generator
+        namespace engine
         {
             namespace cpu
             {
@@ -48,6 +49,9 @@ namespace alpaka
                 class MersenneTwister
                 {
                 public:
+                    std::mt19937 state;
+
+                public:
                     MersenneTwister() = default;
 
                     ALPAKA_FN_HOST MersenneTwister(
@@ -55,12 +59,24 @@ namespace alpaka
                         std::uint32_t const& subsequence = 0,
                         std::uint32_t const& offset = 0)
                         : // NOTE: XOR the seed and the subsequence to generate a unique seed.
-                        m_State((seed ^ subsequence) + offset)
+                        state((seed ^ subsequence) + offset)
                     {
                     }
 
-                public:
-                    std::mt19937 m_State;
+                    // STL UniformRandomBitGenerator concept interface
+                    using result_type = std::mt19937::result_type;
+                    ALPAKA_FN_HOST constexpr static result_type min()
+                    {
+                        return std::mt19937::min();
+                    }
+                    ALPAKA_FN_HOST constexpr static result_type max()
+                    {
+                        return std::mt19937::max();
+                    }
+                    ALPAKA_FN_HOST result_type operator()()
+                    {
+                        return state();
+                    }
                 };
 
                 //! "Tiny" state mersenne twister implementation
@@ -76,6 +92,9 @@ namespace alpaka
                 class TinyMersenneTwister
                 {
                 public:
+                    TinyMTengine state;
+
+                public:
                     TinyMersenneTwister() = default;
 
                     ALPAKA_FN_HOST TinyMersenneTwister(
@@ -83,12 +102,24 @@ namespace alpaka
                         std::uint32_t const& subsequence = 0,
                         std::uint32_t const& offset = 0)
                         : // NOTE: XOR the seed and the subsequence to generate a unique seed.
-                        m_State((seed ^ subsequence) + offset)
+                        state((seed ^ subsequence) + offset)
                     {
                     }
 
-                public:
-                    TinyMTengine m_State;
+                    // STL UniformRandomBitGenerator concept interface
+                    using result_type = TinyMTengine::result_type;
+                    ALPAKA_FN_HOST constexpr static result_type min()
+                    {
+                        return TinyMTengine::min();
+                    }
+                    ALPAKA_FN_HOST constexpr static result_type max()
+                    {
+                        return TinyMTengine::max();
+                    }
+                    ALPAKA_FN_HOST result_type operator()()
+                    {
+                        return state();
+                    }
                 };
 
                 //! The standard library's random device based on the local entropy pool.
@@ -100,8 +131,11 @@ namespace alpaka
                 class RandomDevice
                 {
                 public:
+                    std::random_device state;
+
+                public:
                     RandomDevice() = default;
-                    RandomDevice(RandomDevice&&) : m_State{}
+                    RandomDevice(RandomDevice&&) : state{}
                     {
                     }
 
@@ -109,15 +143,27 @@ namespace alpaka
                         std::uint32_t const&,
                         std::uint32_t const& = 0,
                         std::uint32_t const& = 0)
-                        : m_State{}
+                        : state{}
                     {
                     }
 
-                public:
-                    std::random_device m_State;
+                    // STL UniformRandomBitGenerator concept interface
+                    using result_type = std::random_device::result_type;
+                    ALPAKA_FN_HOST constexpr static result_type min()
+                    {
+                        return std::random_device::min();
+                    }
+                    ALPAKA_FN_HOST constexpr static result_type max()
+                    {
+                        return std::random_device::max();
+                    }
+                    ALPAKA_FN_HOST result_type operator()()
+                    {
+                        return state();
+                    }
                 };
             } // namespace cpu
-        } // namespace generator
+        } // namespace engine
 
         namespace distribution
         {
@@ -128,12 +174,10 @@ namespace alpaka
                 class NormalReal
                 {
                 public:
-                    NormalReal() = default;
-
-                    template<typename TGenerator>
-                    ALPAKA_FN_HOST auto operator()(TGenerator& generator) -> T
+                    template<typename TEngine>
+                    ALPAKA_FN_HOST auto operator()(TEngine& engine) -> T
                     {
-                        return m_dist(generator.m_State);
+                        return m_dist(engine);
                     }
                     std::normal_distribution<T> m_dist;
                 };
@@ -143,12 +187,10 @@ namespace alpaka
                 class UniformReal
                 {
                 public:
-                    UniformReal() = default;
-
-                    template<typename TGenerator>
-                    ALPAKA_FN_HOST auto operator()(TGenerator& generator) -> T
+                    template<typename TEngine>
+                    ALPAKA_FN_HOST auto operator()(TEngine& engine) -> T
                     {
-                        return m_dist(generator.m_State);
+                        return m_dist(engine);
                     }
                     std::uniform_real_distribution<T> m_dist;
                 };
@@ -158,19 +200,14 @@ namespace alpaka
                 class UniformUint
                 {
                 public:
-                    UniformUint()
-                        : m_dist(
-                            0, // For signed integer: std::numeric_limits<T>::lowest()
-                            std::numeric_limits<T>::max())
+                    template<typename TEngine>
+                    ALPAKA_FN_HOST auto operator()(TEngine& engine) -> T
                     {
+                        return m_dist(engine);
                     }
-
-                    template<typename TGenerator>
-                    ALPAKA_FN_HOST auto operator()(TGenerator& generator) -> T
-                    {
-                        return m_dist(generator.m_State);
-                    }
-                    std::uniform_int_distribution<T> m_dist;
+                    std::uniform_int_distribution<T> m_dist{
+                        0, // For signed integer: std::numeric_limits<T>::lowest()
+                        std::numeric_limits<T>::max()};
                 };
             } // namespace cpu
         } // namespace distribution
@@ -214,7 +251,7 @@ namespace alpaka
                 };
             } // namespace traits
         } // namespace distribution
-        namespace generator
+        namespace engine
         {
             namespace traits
             {
@@ -224,11 +261,12 @@ namespace alpaka
                 {
                     ALPAKA_FN_HOST static auto createDefault(
                         TinyMersenneTwister const& rand,
-                        std::uint32_t const& seed,
-                        std::uint32_t const& subsequence) -> rand::generator::cpu::TinyMersenneTwister
+                        std::uint32_t const& seed = 0,
+                        std::uint32_t const& subsequence = 0,
+                        std::uint32_t const& offset = 0) -> rand::engine::cpu::TinyMersenneTwister
                     {
                         alpaka::ignore_unused(rand);
-                        return rand::generator::cpu::TinyMersenneTwister(seed, subsequence);
+                        return rand::engine::cpu::TinyMersenneTwister(seed, subsequence, offset);
                     }
                 };
 
@@ -237,11 +275,12 @@ namespace alpaka
                 {
                     ALPAKA_FN_HOST static auto createDefault(
                         MersenneTwister const& rand,
-                        std::uint32_t const& seed,
-                        std::uint32_t const& subsequence) -> rand::generator::cpu::MersenneTwister
+                        std::uint32_t const& seed = 0,
+                        std::uint32_t const& subsequence = 0,
+                        std::uint32_t const& offset = 0) -> rand::engine::cpu::MersenneTwister
                     {
                         alpaka::ignore_unused(rand);
-                        return rand::generator::cpu::MersenneTwister(seed, subsequence);
+                        return rand::engine::cpu::MersenneTwister(seed, subsequence, offset);
                     }
                 };
 
@@ -250,14 +289,15 @@ namespace alpaka
                 {
                     ALPAKA_FN_HOST static auto createDefault(
                         RandomDevice const& rand,
-                        std::uint32_t const& seed,
-                        std::uint32_t const& subsequence) -> rand::generator::cpu::RandomDevice
+                        std::uint32_t const& seed = 0,
+                        std::uint32_t const& subsequence = 0,
+                        std::uint32_t const& offset = 0) -> rand::engine::cpu::RandomDevice
                     {
                         alpaka::ignore_unused(rand);
-                        return rand::generator::cpu::RandomDevice(seed, subsequence);
+                        return rand::engine::cpu::RandomDevice(seed, subsequence, offset);
                     }
                 };
             } // namespace traits
-        } // namespace generator
+        } // namespace engine
     } // namespace rand
 } // namespace alpaka

@@ -71,9 +71,7 @@ namespace alpaka
                           << " pitch: " << m_pitchBytes << std::endl;
 #endif
             }
-            BufCpuImpl(BufCpuImpl const&) = delete;
             BufCpuImpl(BufCpuImpl&&) = default;
-            auto operator=(BufCpuImpl const&) -> BufCpuImpl& = delete;
             auto operator=(BufCpuImpl&&) -> BufCpuImpl& = default;
             ALPAKA_FN_HOST ~BufCpuImpl()
             {
@@ -118,11 +116,6 @@ namespace alpaka
             : m_spBufCpuImpl(std::make_shared<detail::BufCpuImpl<TElem, TDim, TIdx>>(dev, extent))
         {
         }
-        BufCpu(BufCpu const&) = default;
-        BufCpu(BufCpu&&) = default;
-        auto operator=(BufCpu const&) -> BufCpu& = default;
-        auto operator=(BufCpu&&) -> BufCpu& = default;
-        ~BufCpu() = default;
 
     public:
         std::shared_ptr<detail::BufCpuImpl<TElem, TDim, TIdx>> m_spBufCpuImpl;

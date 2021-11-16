@@ -53,13 +53,6 @@ namespace alpaka
             : AccGpuUniformCudaHipRt<TDim, TIdx>(threadElemExtent)
         {
         }
-
-    public:
-        __device__ AccGpuCudaRt(AccGpuCudaRt const&) = delete;
-        __device__ AccGpuCudaRt(AccGpuCudaRt&&) = delete;
-        __device__ auto operator=(AccGpuCudaRt const&) -> AccGpuCudaRt& = delete;
-        __device__ auto operator=(AccGpuCudaRt&&) -> AccGpuCudaRt& = delete;
-        ~AccGpuCudaRt() = default;
     };
 
     namespace traits

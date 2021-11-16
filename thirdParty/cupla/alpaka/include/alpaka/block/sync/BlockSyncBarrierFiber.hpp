@@ -32,11 +32,6 @@ namespace alpaka
             , m_generation(static_cast<TIdx>(0u))
         {
         }
-        ALPAKA_FN_HOST BlockSyncBarrierFiber(BlockSyncBarrierFiber const&) = delete;
-        ALPAKA_FN_HOST BlockSyncBarrierFiber(BlockSyncBarrierFiber&&) = delete;
-        ALPAKA_FN_HOST auto operator=(BlockSyncBarrierFiber const&) -> BlockSyncBarrierFiber& = delete;
-        ALPAKA_FN_HOST auto operator=(BlockSyncBarrierFiber&&) -> BlockSyncBarrierFiber& = delete;
-        /*virtual*/ ~BlockSyncBarrierFiber() = default;
 
         boost::fibers::barrier mutable m_barrier;
 

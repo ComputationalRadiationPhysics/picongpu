@@ -18,7 +18,7 @@ namespace alpaka
 {
     namespace rand
     {
-        namespace generator
+        namespace engine
         {
             namespace cpu
             {
@@ -78,6 +78,6 @@ namespace alpaka
                 };
 
             } // namespace cpu
-        } // namespace generator
+        } // namespace engine
     } // namespace rand
 } // namespace alpaka

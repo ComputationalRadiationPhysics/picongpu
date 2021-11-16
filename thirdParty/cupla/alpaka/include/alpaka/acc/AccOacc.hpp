@@ -16,13 +16,12 @@
 #    endif
 
 // Base classes.
-#    include <alpaka/atomic/AtomicHierarchy.hpp>
-#    include <alpaka/atomic/AtomicOaccBuiltIn.hpp>
 #    include <alpaka/ctx/block/CtxBlockOacc.hpp>
 #    include <alpaka/idx/bt/IdxBtLinear.hpp>
 #    include <alpaka/intrinsic/IntrinsicFallback.hpp>
 #    include <alpaka/math/MathStdLib.hpp>
-#    include <alpaka/rand/RandStdLib.hpp>
+#    include <alpaka/mem/fence/MemFenceOacc.hpp>
+#    include <alpaka/rand/RandDefault.hpp>
 #    include <alpaka/time/TimeStdLib.hpp>
 #    include <alpaka/warp/WarpSingleThread.hpp>
 
@@ -62,28 +61,26 @@ namespace alpaka
 #    endif
 
     //! The OpenACC accelerator.
-    template<
-        typename TDim,
-        typename TIdx>
-    class AccOacc final :
-        public bt::IdxBtLinear<TDim, TIdx>,
-        public AtomicHierarchy<
-            AtomicOaccBuiltIn,    // grid atomics
-            AtomicOaccBuiltIn,    // block atomics
-            AtomicOaccBuiltIn     // thread atomics
-        >,
-        public math::MathStdLib,
-        public rand::RandStdLib,
-        public TimeStdLib,
-        public warp::WarpSingleThread,
-        // NVHPC calls a builtin in the STL implementation, which fails in OpenACC offload, using fallback
-        public IntrinsicFallback,
-        public concepts::Implements<ConceptAcc, AccOacc<TDim, TIdx>>,
-        public concepts::Implements<ConceptWorkDiv, AccOacc<TDim, TIdx>>,
-        public concepts::Implements<ConceptBlockSharedDyn, AccOacc<TDim, TIdx>>,
-        public concepts::Implements<ConceptBlockSharedSt, AccOacc<TDim, TIdx>>,
-        public concepts::Implements<ConceptBlockSync, AccOacc<TDim, TIdx>>,
-        public concepts::Implements<ConceptIdxGb, AccOacc<TDim, TIdx>>
+    template<typename TDim, typename TIdx>
+    class AccOacc final
+        : public bt::IdxBtLinear<TDim, TIdx>
+        , public math::MathStdLib
+        , public MemFenceOacc
+        , public rand::RandDefault
+        , public TimeStdLib
+        , public warp::WarpSingleThread
+        ,
+          // NVHPC calls a builtin in the STL implementation, which fails in OpenACC offload, using fallback
+          public IntrinsicFallback
+        , public concepts::Implements<ConceptAcc, AccOacc<TDim, TIdx>>
+        , public concepts::Implements<ConceptWorkDiv, AccOacc<TDim, TIdx>>
+        , public concepts::Implements<ConceptBlockSharedDyn, AccOacc<TDim, TIdx>>
+        , public concepts::Implements<ConceptBlockSharedSt, AccOacc<TDim, TIdx>>
+        , public concepts::Implements<ConceptBlockSync, AccOacc<TDim, TIdx>>
+        , public concepts::Implements<ConceptIdxGb, AccOacc<TDim, TIdx>>
+        , public concepts::Implements<ConceptAtomicGrids, AccOacc<TDim, TIdx>>
+        , public concepts::Implements<ConceptAtomicBlocks, AccOacc<TDim, TIdx>>
+        , public concepts::Implements<ConceptAtomicThreads, AccOacc<TDim, TIdx>>
     {
         template<typename TDim2, typename TIdx2, typename TKernelFnObj, typename... TArgs>
         friend class ::alpaka::TaskKernelOacc;
@@ -91,25 +88,15 @@ namespace alpaka
     protected:
         AccOacc(TIdx const& blockThreadIdx, CtxBlockOacc<TDim, TIdx>& blockShared)
             : bt::IdxBtLinear<TDim, TIdx>(blockThreadIdx)
-            , AtomicHierarchy<
-                  AtomicOaccBuiltIn, // grid atomics
-                  AtomicOaccBuiltIn, // block atomics
-                  AtomicOaccBuiltIn // thread atomics
-                  >()
             , math::MathStdLib()
-            , rand::RandStdLib()
+            , MemFenceOacc()
+            , rand::RandDefault()
             , TimeStdLib()
             , m_blockShared(blockShared)
         {
         }
 
     public:
-        AccOacc(AccOacc const&) = delete;
-        AccOacc(AccOacc&&) = delete;
-        auto operator=(AccOacc const&) -> AccOacc& = delete;
-        auto operator=(AccOacc&&) -> AccOacc& = delete;
-        ~AccOacc() = default;
-
         CtxBlockOacc<TDim, TIdx>& m_blockShared;
     };
 
@@ -297,6 +284,34 @@ namespace alpaka
                 return SyncBlockThreadsPredicate<TOp, CtxBlockOacc<TDim, TIdx>>::syncBlockThreadsPredicate(
                     acc.m_blockShared,
                     predicate);
+            }
+        };
+
+        //! The OpenACC atomicOp trait specialization.
+        template<typename TDim, typename TIdx, typename TOp, typename T, typename THierarchy>
+        struct AtomicOp<TOp, AccOacc<TDim, TIdx>, T, THierarchy>
+        {
+            //-----------------------------------------------------------------------------
+            ALPAKA_FN_HOST_ACC static auto atomicOp(AccOacc<TDim, TIdx> const& acc, T* const addr, T const& value) -> T
+            {
+                return AtomicOp<TOp, AtomicOaccExtended<THierarchy>, T, THierarchy>::atomicOp(
+                    acc.m_blockShared,
+                    addr,
+                    value);
+            }
+
+            //-----------------------------------------------------------------------------
+            ALPAKA_FN_HOST_ACC static auto atomicOp(
+                AccOacc<TDim, TIdx> const& acc,
+                T* const addr,
+                T const& compare,
+                T const& value) -> T
+            {
+                return AtomicOp<TOp, AtomicOaccExtended<THierarchy>, T, THierarchy>::atomicOp(
+                    acc.m_blockShared,
+                    addr,
+                    compare,
+                    value);
             }
         };
 

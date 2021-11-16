@@ -44,7 +44,7 @@
 //! ALPAKA_FN_HOST_ACC function_declaration()
 //! WARNING: Only use this method if there is no other way.
 //! Most cases can be solved by #if BOOST_ARCH_PTX or #if BOOST_LANG_CUDA.
-#if(BOOST_LANG_CUDA && !BOOST_COMP_CLANG_CUDA) || BOOST_LANG_HIP
+#if(BOOST_LANG_CUDA && !BOOST_COMP_CLANG_CUDA)
 #    if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
 #        define ALPAKA_NO_HOST_ACC_WARNING __pragma(hd_warning_disable)
 #    else
@@ -76,7 +76,22 @@
 //! In contrast to ordinary variables, you can not define such variables
 //! as static compilation unit local variables with internal linkage
 //! because this is forbidden by CUDA.
-#if(BOOST_LANG_CUDA && BOOST_ARCH_PTX) || (BOOST_LANG_HIP && (BOOST_ARCH_HSA || BOOST_ARCH_PTX))
+//!
+//! \attention It is not allowed to initialize the variable together with the declaration.
+//!            To initialize the variable alpaka::createStaticDevMemView and alpaka::memcpy must be used.
+//! \code{.cpp}
+//! ALPAKA_STATIC_ACC_MEM_GLOBAL int foo;
+//!
+//! void initFoo() {
+//!     auto extent = alpaka::Vec<alpaka::DimInt<1u>, size_t>{1};
+//!     auto viewFoo = alpaka::createStaticDevMemView(&foo, device, extent);
+//!     int initialValue = 42;
+//!     alpaka::ViewPlainPtr<DevHost, int, alpaka::DimInt<1u>, size_t> bufHost(&initialValue, devHost, extent);
+//!     alpaka::memcpy(queue, viewGlobalMemUninitialized, bufHost, extent);
+//! }
+//! \endcode
+#if((BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA) || (BOOST_LANG_CUDA && BOOST_COMP_NVCC && BOOST_ARCH_PTX)              \
+    || BOOST_LANG_HIP)
 #    define ALPAKA_STATIC_ACC_MEM_GLOBAL __device__
 #else
 #    define ALPAKA_STATIC_ACC_MEM_GLOBAL
@@ -97,8 +112,38 @@
 //! In contrast to ordinary variables, you can not define such variables
 //! as static compilation unit local variables with internal linkage
 //! because this is forbidden by CUDA.
-#if(BOOST_LANG_CUDA && BOOST_ARCH_PTX) || (BOOST_LANG_HIP && (BOOST_ARCH_HSA || BOOST_ARCH_PTX))
+//!
+//! \attention It is not allowed to initialize the variable together with the declaration.
+//!            To initialize the variable alpaka::createStaticDevMemView and alpaka::memcpy must be used.
+//! \code{.cpp}
+//! ALPAKA_STATIC_ACC_MEM_CONSTANT int foo;
+//!
+//! void initFoo() {
+//!     auto extent = alpaka::Vec<alpaka::DimInt<1u>, size_t>{1};
+//!     auto viewFoo = alpaka::createStaticDevMemView(&foo, device, extent);
+//!     int initialValue = 42;
+//!     alpaka::ViewPlainPtr<DevHost, int, alpaka::DimInt<1u>, size_t> bufHost(&initialValue, devHost, extent);
+//!     alpaka::memcpy(queue, viewGlobalMemUninitialized, bufHost, extent);
+//! }
+//! \endcode
+#if((BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA) || (BOOST_LANG_CUDA && BOOST_COMP_NVCC && BOOST_ARCH_PTX)              \
+    || BOOST_LANG_HIP)
 #    define ALPAKA_STATIC_ACC_MEM_CONSTANT __constant__
 #else
 #    define ALPAKA_STATIC_ACC_MEM_CONSTANT
+#endif
+
+//! This macro disables memory optimizations for annotated device memory.
+//!
+//! Example:
+//!   ALPAKA_DEVICE_VOLATILE float* ptr;
+//!
+//! This is useful for pointers, (shared) variables and shared memory which are used in combination with
+//! the alpaka::mem_fence() function. It ensures that memory annotated with this macro will always be written directly
+//! to memory (and not to a register or cache because of compiler optimizations).
+#if(BOOST_LANG_CUDA && BOOST_ARCH_PTX)                                                                                \
+    || (BOOST_LANG_HIP && defined(__HIP_DEVICE_COMPILE__) && __HIP_DEVICE_COMPILE__ == 1)
+#    define ALPAKA_DEVICE_VOLATILE volatile
+#else
+#    define ALPAKA_DEVICE_VOLATILE
 #endif

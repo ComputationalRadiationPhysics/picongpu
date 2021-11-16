@@ -12,16 +12,40 @@ fi
 # cmake config builder
 ###################################################
 
-CUPLA_CONST_ARGS="-Dcupla_BUILD_EXAMPLES=ON -Dcupla_ALPAKA_PROVIDER=internal"
+# create a cmake variable definition if an environment variable exists
+#
+# This function can not handle environment variables with spaces in its content.
+#
+# @param $1 cmake/environment variable name
+#
+# @result if $1 exists cmake variable definition else nothing is returned
+#
+# @code{.bash}
+# FOO=ON
+# echo "$(env2cmake FOO)" # returns "-DFOO=ON"
+# echo "$(env2cmake BAR)" # returns nothing
+# @endcode
+function env2cmake()
+{
+    if [ ! -z "${!1}" ] ; then
+        echo -n "-D$1=${!1}"
+    fi
+}
+
+CUPLA_CONST_ARGS="$(env2cmake CMAKE_CUDA_ARCHITECTURES) $(env2cmake CMAKE_CXX_EXTENSIONS)  -Dcupla_BUILD_EXAMPLES=ON -Dcupla_ALPAKA_PROVIDER=internal"
 CUPLA_CONST_ARGS="${CUPLA_CONST_ARGS} -DCMAKE_BUILD_TYPE=${CUPLA_BUILD_TYPE}"
 CUPLA_CONST_ARGS="${CUPLA_CONST_ARGS} ${CUPLA_CMAKE_ARGS}"
 
 CMAKE_CONFIGS=()
-for CXX_VERSION in $CUPLA_CXX; do
+for CXX_COMPILER in $CUPLA_CXX; do
     for BOOST_VERSION in ${CUPLA_BOOST_VERSIONS}; do
-	for ACC in ${ALPAKA_ACCS}; do
-	    CMAKE_CONFIGS+=("${CUPLA_CONST_ARGS} -DCMAKE_CXX_COMPILER=${CXX_VERSION} -DBOOST_ROOT=/opt/boost/${BOOST_VERSION} -D${ACC}=ON")
-	done
+        for ACC in ${ALPAKA_ACCS}; do
+            CMAKE_ARGS=$CUPLA_CONST_ARGS
+            if [ -n "$CUPLA_USE_CLANG_CUDA" ] ; then
+                CMAKE_ARGS=("${CMAKE_ARGS} -DCMAKE_CUDA_COMPILER=${CXX_COMPILER}")
+            fi
+            CMAKE_CONFIGS+=("${CMAKE_ARGS} -DCMAKE_CXX_COMPILER=${CXX_COMPILER} -DBOOST_ROOT=/opt/boost/${BOOST_VERSION} -D${ACC}=ON")
+        done
     done
 done
 

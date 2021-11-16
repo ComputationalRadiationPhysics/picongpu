@@ -70,19 +70,18 @@ Supported Compilers
 
 This library uses C++14 (or newer when available).
 
-|Accelerator Back-end|gcc 5.5 <br/> (Linux)|gcc 6.4/7.3 <br/> (Linux)|gcc 8.1 <br/> (Linux)|gcc 9.1 <br/> (Linux)|gcc 10.3 <br/> (Linux)|clang 4 <br/> (Linux)|clang 5/6/7/8 <br/> (Linux)|clang 9 <br/> (Linux)|clang 10 <br/> (Linux)|clang 11 <br/> (Linux)|clang 12 <br/> (Linux)|Apple LLVM 11.2.1-12.2.0 <br/> (macOS)|MSVC 2019 <br/> (Windows)|
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|Serial|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|:white_check_mark:|
-|OpenMP 2.0+ blocks|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:x:|:white_check_mark:|
-|OpenMP 2.0+ threads|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:x:|:white_check_mark:|
-|OpenMP 4.0+ (CPU)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:x:|:x:|
-| std::thread |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|:white_check_mark:|
-| Boost.Fiber |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:x:|:white_check_mark:|
-|TBB|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|:x:|
-|CUDA (nvcc)|:white_check_mark: <br/> (CUDA 9.0-11.3)|:white_check_mark: <br/> (CUDA 9.2-11.3) |:white_check_mark: <br/> (CUDA 10.1-11.3) |:white_check_mark: <br/> (CUDA 11.0-11.3)|:x:|:white_check_mark: <br/> (CUDA 9.1-11.3)|:white_check_mark: <br/> (CUDA 10.1-11.3)|:white_check_mark: <br/> (CUDA 11.0-11.3)|:white_check_mark: <br/> (CUDA 11.1-11.3)|:white_check_mark: <br/> (CUDA 11.1-11.3)| - |:x:|:white_check_mark: <br/> (CUDA 10.1,10.2,11.2,11.3)|
-|CUDA (clang) | - | - | - | - | - | - | - | :white_check_mark: <br/> (CUDA 9.2-10.1) | :white_check_mark: <br/> (CUDA 9.2-10.1) | :white_check_mark: <br/> (CUDA 10.0-10.2) | - | - | - |
-|[HIP-4.0.1](https://alpaka.readthedocs.io/en/latest/install/HIP.html) (clang)|:x: |:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:white_check_mark:| - | - |
-
+|Accelerator Back-end|gcc 7.5 <br/> (Linux)|gcc 8.5 <br/> (Linux)|gcc 9.4 <br/> (Linux)|gcc 10.3 <br/> (Linux)|gcc 11.1 <br/> (Linux)|clang 5/6/7/8 <br/> (Linux)|clang 9 <br/> (Linux)|clang 10 <br/> (Linux)|clang 11 <br/> (Linux)|clang 12 <br/> (Linux)|Apple LLVM 11.3.1/12.4.0/12.5.1/13.0.0 <br /> (macOS)|MSVC 2019 <br/> (Windows)|
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|Serial|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+|OpenMP 2.0+ blocks|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|
+|OpenMP 2.0+ threads|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|
+|OpenMP 5.0 (CPU)|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:white_check_mark:|:white_check_mark:|:x:|:x:|
+| std::thread |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+| Boost.Fiber |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|
+|TBB|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|
+|CUDA (nvcc)|:white_check_mark: <br/> (CUDA 9.2-11.4) |:white_check_mark: <br/> (CUDA 10.1-11.4) |:white_check_mark: <br/> (CUDA 11.0-11.4)|:x:|:x:|:white_check_mark: <br/> (CUDA 10.1-11.4)|:white_check_mark: <br/> (CUDA 11.0-11.4)|:white_check_mark: <br/> (CUDA 11.1-11.4)|:white_check_mark: <br/> (CUDA 11.4)| - |:x:|:white_check_mark: <br/> (CUDA 10.1,10.2,11.2,11.3, 11.4)|
+|CUDA (clang) | - | - | - | - | - | - | :white_check_mark: <br/> (CUDA 9.2-10.1) | :white_check_mark: <br/> (CUDA 9.2-10.1) | :white_check_mark: <br/> (CUDA 10.0-10.2) | - | - | - |
+|[HIP-4.0.1](https://alpaka.readthedocs.io/en/latest/install/HIP.html) (clang)|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:white_check_mark:| - | - |
 
 Other compilers or combinations marked with :x: in the table above may work but are not tested in CI and are therefore not explicitly supported.
 

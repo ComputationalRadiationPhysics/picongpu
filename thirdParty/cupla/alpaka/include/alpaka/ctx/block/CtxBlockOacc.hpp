@@ -16,6 +16,7 @@
 #    endif
 
 // Base classes.
+#    include <alpaka/atomic/AtomicOaccExtended.hpp>
 #    include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
 #    include <alpaka/block/shared/st/BlockSharedMemStMember.hpp>
 #    include <alpaka/block/sync/BlockSyncBarrierOacc.hpp>
@@ -38,6 +39,9 @@ namespace alpaka
     class CtxBlockOacc final
         : public WorkDivMembers<TDim, TIdx>
         , public gb::IdxGbLinear<TDim, TIdx>
+        , public AtomicOaccExtended<hierarchy::Grids> // grid atomics
+        , public AtomicOaccExtended<hierarchy::Blocks> // block atomics
+        , public AtomicOaccExtended<hierarchy::Threads> // thread atomics
         , public BlockSharedMemDynMember<>
         , public detail::BlockSharedMemStMemberImpl<4>
         , public BlockSyncBarrierOacc
@@ -54,9 +58,15 @@ namespace alpaka
             Vec<TDim, TIdx> const& blockThreadExtent,
             Vec<TDim, TIdx> const& threadElemExtent,
             TIdx const& gridBlockIdx,
-            std::size_t const& blockSharedMemDynSizeBytes)
+            std::size_t const& blockSharedMemDynSizeBytes,
+            std::uint32_t* gridsMutex,
+            std::uint32_t* blocksMutex)
             : WorkDivMembers<TDim, TIdx>(gridBlockExtent, blockThreadExtent, threadElemExtent)
             , gb::IdxGbLinear<TDim, TIdx>(gridBlockIdx)
+            , // grid atomics, using block lock is save as long as only one synchronous queue is used
+            AtomicOaccExtended<hierarchy::Grids>(gridsMutex)
+            , AtomicOaccExtended<hierarchy::Blocks>(blocksMutex)
+            , AtomicOaccExtended<hierarchy::Threads>()
             , BlockSharedMemDynMember<>(blockSharedMemDynSizeBytes)
             ,
             //! \TODO can with some TMP determine the amount of statically alloced smem from the kernelFuncObj?
@@ -64,13 +74,6 @@ namespace alpaka
             , BlockSyncBarrierOacc()
         {
         }
-
-    public:
-        CtxBlockOacc(CtxBlockOacc const&) = delete;
-        CtxBlockOacc(CtxBlockOacc&&) = delete;
-        auto operator=(CtxBlockOacc const&) -> CtxBlockOacc& = delete;
-        auto operator=(CtxBlockOacc&&) -> CtxBlockOacc& = delete;
-        ~CtxBlockOacc() = default;
     };
 
     namespace traits
@@ -174,9 +177,9 @@ namespace alpaka
                 int predicate) -> int
             {
                 // implicit snyc
-                SyncBlockThreads<CtxBlockOacc<TDim, TIdx>>::masterOpBlockThreads(blockSync, [&blockSync]() {
-                    blockSync.m_result = TOp::InitialValue;
-                });
+                SyncBlockThreads<CtxBlockOacc<TDim, TIdx>>::masterOpBlockThreads(
+                    blockSync,
+                    [&blockSync]() { blockSync.m_result = TOp::InitialValue; });
 
                 int& result(blockSync.m_result);
                 bool const predicateBool(predicate != 0);
@@ -212,9 +215,9 @@ namespace alpaka
 
                 if(!data)
                 {
-                    traits::SyncBlockThreads<CtxBlockOacc<TDim, TIdx>>::masterOpBlockThreads(smem, [&data, &smem]() {
-                        smem.template alloc<T>(TuniqueId);
-                    });
+                    traits::SyncBlockThreads<CtxBlockOacc<TDim, TIdx>>::masterOpBlockThreads(
+                        smem,
+                        [&data, &smem]() { smem.template alloc<T>(TuniqueId); });
                     data = smem.template getLatestVarPtr<T>();
                 }
                 ALPAKA_ASSERT_OFFLOAD(data != nullptr);

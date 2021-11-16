@@ -21,6 +21,9 @@
 #include <alpaka/math/exp/ExpStdLib.hpp>
 #include <alpaka/math/floor/FloorStdLib.hpp>
 #include <alpaka/math/fmod/FmodStdLib.hpp>
+#include <alpaka/math/isfinite/IsfiniteStdLib.hpp>
+#include <alpaka/math/isinf/IsinfStdLib.hpp>
+#include <alpaka/math/isnan/IsnanStdLib.hpp>
 #include <alpaka/math/log/LogStdLib.hpp>
 #include <alpaka/math/max/MaxStdLib.hpp>
 #include <alpaka/math/min/MinStdLib.hpp>
@@ -65,6 +68,9 @@ namespace alpaka
             , public SqrtStdLib
             , public TanStdLib
             , public TruncStdLib
+            , public IsnanStdLib
+            , public IsinfStdLib
+            , public IsfiniteStdLib
         {
         };
     } // namespace math

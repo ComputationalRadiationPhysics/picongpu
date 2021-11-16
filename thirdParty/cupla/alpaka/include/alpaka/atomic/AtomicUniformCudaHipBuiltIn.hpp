@@ -36,13 +36,6 @@ namespace alpaka
     //  Atomics are not guaranteed to be save between devices.
     class AtomicUniformCudaHipBuiltIn
     {
-    public:
-        AtomicUniformCudaHipBuiltIn() = default;
-        __device__ AtomicUniformCudaHipBuiltIn(AtomicUniformCudaHipBuiltIn const&) = delete;
-        __device__ AtomicUniformCudaHipBuiltIn(AtomicUniformCudaHipBuiltIn&&) = delete;
-        __device__ auto operator=(AtomicUniformCudaHipBuiltIn const&) -> AtomicUniformCudaHipBuiltIn& = delete;
-        __device__ auto operator=(AtomicUniformCudaHipBuiltIn&&) -> AtomicUniformCudaHipBuiltIn& = delete;
-        /*virtual*/ ~AtomicUniformCudaHipBuiltIn() = default;
     };
 
     namespace traits

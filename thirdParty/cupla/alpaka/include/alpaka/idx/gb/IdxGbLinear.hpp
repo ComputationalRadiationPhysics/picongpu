@@ -29,11 +29,6 @@ namespace alpaka
             IdxGbLinear(const TIdx& teamOffset = static_cast<TIdx>(0u)) : m_gridBlockIdx(teamOffset)
             {
             }
-            IdxGbLinear(IdxGbLinear const&) = delete;
-            IdxGbLinear(IdxGbLinear&&) = delete;
-            auto operator=(IdxGbLinear const&) -> IdxGbLinear& = delete;
-            auto operator=(IdxGbLinear&&) -> IdxGbLinear& = delete;
-            /*virtual*/ ~IdxGbLinear() = default;
 
             TIdx const m_gridBlockIdx;
         };

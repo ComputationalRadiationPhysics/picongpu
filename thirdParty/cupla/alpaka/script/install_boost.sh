@@ -104,7 +104,7 @@ then
 
     # Clang is not supported by the FindBoost script.
     # boost (especially old versions) produces too much warnings when using clang (newer versions) so that the 4 MiB log is too short.
-    if [ "${CXX}" == "clang++" ]
+    if [[ "${CXX}" == "clang++"* ]]
     then
         ALPAKA_BOOST_B2_CXXFLAGS+=" -Wunused-private-field -Wno-unused-local-typedef -Wno-c99-extensions -Wno-variadic-macros"
     fi

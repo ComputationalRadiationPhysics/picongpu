@@ -25,6 +25,7 @@
 // Implementation details.
 #    include <alpaka/acc/AccOacc.hpp>
 #    include <alpaka/core/Decay.hpp>
+#    include <alpaka/core/Tuple.hpp>
 #    include <alpaka/ctx/block/CtxBlockOacc.hpp>
 #    include <alpaka/dev/DevOacc.hpp>
 #    include <alpaka/idx/MapIdx.hpp>
@@ -35,7 +36,6 @@
 #    include <algorithm>
 #    include <functional>
 #    include <stdexcept>
-#    include <tuple>
 #    include <type_traits>
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
 #        include <iostream>
@@ -58,11 +58,6 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        TaskKernelOacc(TaskKernelOacc const& other) = default;
-        TaskKernelOacc(TaskKernelOacc&& other) = default;
-        auto operator=(TaskKernelOacc const&) -> TaskKernelOacc& = default;
-        auto operator=(TaskKernelOacc&&) -> TaskKernelOacc& = default;
-        ~TaskKernelOacc() = default;
 
         //! Executes the kernel function object.
         ALPAKA_FN_HOST auto operator()(const DevOacc& dev) const -> void
@@ -83,8 +78,9 @@ namespace alpaka
 #    endif
 
             // Get the size of the block shared dynamic memory.
-            auto const blockSharedMemDynSizeBytes = meta::apply(
-                [&](ALPAKA_DECAY_T(TArgs) const&... args) {
+            auto const blockSharedMemDynSizeBytes = core::apply(
+                [&](ALPAKA_DECAY_T(TArgs) const&... args)
+                {
                     return getBlockSharedMemDynSizeBytes<AccOacc<TDim, TIdx>>(
                         m_kernelFnObj,
                         blockThreadExtent,
@@ -114,13 +110,18 @@ namespace alpaka
             auto argsD = m_args;
             auto kernelFnObj = m_kernelFnObj;
             dev.makeCurrent();
+
+            std::uint32_t blocksLock[2] = {0u, 0u};
+            std::uint32_t* gridsLock = dev.gridsLock();
+
 #    pragma acc parallel num_workers(blockThreadCount) copyin(                                                        \
         threadElemExtent,                                                                                             \
         blockThreadExtent,                                                                                            \
         gridBlockExtent,                                                                                              \
         argsD,                                                                                                        \
         blockSharedMemDynSizeBytes,                                                                                   \
-        kernelFnObj) default(present)
+        blocksLock [0:2],                                                                                             \
+        kernelFnObj) default(present) deviceptr(gridsLock)
             {
                 {
 #    pragma acc loop gang
@@ -131,7 +132,9 @@ namespace alpaka
                             blockThreadExtent,
                             threadElemExtent,
                             b,
-                            blockSharedMemDynSizeBytes);
+                            blockSharedMemDynSizeBytes,
+                            gridsLock,
+                            blocksLock);
 
 // Execute the threads in parallel.
 
@@ -147,10 +150,9 @@ namespace alpaka
                         {
                             AccOacc<TDim, TIdx> acc(w, blockShared);
 
-                            meta::apply(
-                                [kernelFnObj, &acc](typename std::decay<TArgs>::type const&... args) {
-                                    kernelFnObj(acc, args...);
-                                },
+                            core::apply(
+                                [kernelFnObj, &acc](typename std::decay<TArgs>::type const&... args)
+                                { kernelFnObj(acc, args...); },
                                 argsD);
                         }
                         freeSharedVars(blockShared);
@@ -161,7 +163,7 @@ namespace alpaka
 
     private:
         TKernelFnObj m_kernelFnObj;
-        std::tuple<std::decay_t<TArgs>...> m_args;
+        core::Tuple<std::decay_t<TArgs>...> m_args;
     };
 
     namespace traits
@@ -225,8 +227,8 @@ namespace alpaka
                 QueueOaccNonBlocking& queue,
                 TaskKernelOacc<TDim, TIdx, TKernelFnObj, TArgs...> const& task) -> void
             {
-                queue.m_spQueueImpl->m_workerThread.enqueueTask(
-                    [&queue, task]() { task(queue.m_spQueueImpl->m_dev); });
+                queue.m_spQueueImpl->m_workerThread.enqueueTask([&queue, task]()
+                                                                { task(queue.m_spQueueImpl->m_dev); });
             }
         };
     } // namespace traits

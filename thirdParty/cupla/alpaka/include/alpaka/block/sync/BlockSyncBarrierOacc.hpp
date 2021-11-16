@@ -23,13 +23,6 @@ namespace alpaka
     class BlockSyncBarrierOacc
     {
     public:
-        ALPAKA_FN_HOST BlockSyncBarrierOacc() = default;
-        ALPAKA_FN_HOST BlockSyncBarrierOacc(BlockSyncBarrierOacc const&) = delete;
-        ALPAKA_FN_HOST BlockSyncBarrierOacc(BlockSyncBarrierOacc&&) = delete;
-        ALPAKA_FN_HOST auto operator=(BlockSyncBarrierOacc const&) -> BlockSyncBarrierOacc& = delete;
-        ALPAKA_FN_HOST auto operator=(BlockSyncBarrierOacc&&) -> BlockSyncBarrierOacc& = delete;
-        ~BlockSyncBarrierOacc() = default;
-
         std::uint8_t mutable m_generation = 0u;
         // NVHPC 20.7: initializer causes warning:
         // NVC++-W-0155-External and Static variables are not supported in acc routine - _T139951818207704_37530

@@ -163,13 +163,13 @@ auto main() -> int
     VectorAddKernel kernel;
 
     // Create the kernel execution task.
-    auto const taskKernel(alpaka::createTaskKernel<Acc>(
+    auto const taskKernel = alpaka::createTaskKernel<Acc>(
         workDiv,
         kernel,
         alpaka::getPtrNative(bufAccA),
         alpaka::getPtrNative(bufAccB),
         alpaka::getPtrNative(bufAccC),
-        numElements));
+        numElements);
 
     // Enqueue the kernel execution task
     {

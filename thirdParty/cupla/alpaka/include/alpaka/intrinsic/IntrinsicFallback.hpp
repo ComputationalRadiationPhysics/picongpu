@@ -47,13 +47,6 @@ namespace alpaka
     //! The Fallback intrinsic.
     class IntrinsicFallback : public concepts::Implements<ConceptIntrinsic, IntrinsicFallback>
     {
-    public:
-        IntrinsicFallback() = default;
-        IntrinsicFallback(IntrinsicFallback const&) = delete;
-        IntrinsicFallback(IntrinsicFallback&&) = delete;
-        auto operator=(IntrinsicFallback const&) -> IntrinsicFallback& = delete;
-        auto operator=(IntrinsicFallback&&) -> IntrinsicFallback& = delete;
-        ~IntrinsicFallback() = default;
     };
 
     namespace traits

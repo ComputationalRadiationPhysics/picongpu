@@ -79,11 +79,6 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        TaskKernelCpuFibers(TaskKernelCpuFibers const&) = default;
-        TaskKernelCpuFibers(TaskKernelCpuFibers&&) = default;
-        auto operator=(TaskKernelCpuFibers const&) -> TaskKernelCpuFibers& = default;
-        auto operator=(TaskKernelCpuFibers&&) -> TaskKernelCpuFibers& = default;
-        ~TaskKernelCpuFibers() = default;
 
         //! Executes the kernel function object.
         ALPAKA_FN_HOST auto operator()() const -> void
@@ -96,7 +91,8 @@ namespace alpaka
 
             // Get the size of the block shared dynamic memory.
             auto const blockSharedMemDynSizeBytes = meta::apply(
-                [&](ALPAKA_DECAY_T(TArgs) const&... args) {
+                [&](ALPAKA_DECAY_T(TArgs) const&... args)
+                {
                     return getBlockSharedMemDynSizeBytes<AccCpuFibers<TDim, TIdx>>(
                         m_kernelFnObj,
                         blockThreadExtent,
@@ -123,7 +119,8 @@ namespace alpaka
             FiberPool fiberPool(blockThreadCount);
 
             auto const boundGridBlockExecHost = meta::apply(
-                [this, &acc, &blockThreadExtent, &fiberPool](ALPAKA_DECAY_T(TArgs) const&... args) {
+                [this, &acc, &blockThreadExtent, &fiberPool](ALPAKA_DECAY_T(TArgs) const&... args)
+                {
                     // Bind the kernel and its arguments to the grid block function.
                     return std::bind(
                         &TaskKernelCpuFibers::gridBlockExecHost,
@@ -169,9 +166,10 @@ namespace alpaka
             meta::ndLoopIncIdx(blockThreadExtent, boundBlockThreadExecHost);
 
             // Wait for the completion of the block thread kernels.
-            std::for_each(futuresInBlock.begin(), futuresInBlock.end(), [](boost::fibers::future<void>& t) {
-                t.wait();
-            });
+            std::for_each(
+                futuresInBlock.begin(),
+                futuresInBlock.end(),
+                [](boost::fibers::future<void>& t) { t.wait(); });
             // Clean up.
             futuresInBlock.clear();
 
@@ -198,8 +196,8 @@ namespace alpaka
             // Bind the arguments to the accelerator block thread execution function.
             // The blockThreadIdx is required to be copied in because the variable will get changed for the next
             // iteration/thread.
-            auto boundBlockThreadExecAcc(
-                [&, blockThreadIdx]() { blockThreadFiberFn(acc, blockThreadIdx, kernelFnObj, args...); });
+            auto boundBlockThreadExecAcc([&, blockThreadIdx]()
+                                         { blockThreadFiberFn(acc, blockThreadIdx, kernelFnObj, args...); });
             // Add the bound function to the block thread pool.
 // Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
 #    if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)

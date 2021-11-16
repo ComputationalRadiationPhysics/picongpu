@@ -57,11 +57,6 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        TaskKernelCpuTbbBlocks(TaskKernelCpuTbbBlocks const&) = default;
-        TaskKernelCpuTbbBlocks(TaskKernelCpuTbbBlocks&&) = default;
-        auto operator=(TaskKernelCpuTbbBlocks const&) -> TaskKernelCpuTbbBlocks& = default;
-        auto operator=(TaskKernelCpuTbbBlocks&&) -> TaskKernelCpuTbbBlocks& = default;
-        ~TaskKernelCpuTbbBlocks() = default;
 
         //! Executes the kernel function object.
         ALPAKA_FN_HOST auto operator()() const -> void
@@ -74,7 +69,8 @@ namespace alpaka
 
             // Get the size of the block shared dynamic memory.
             auto const blockSharedMemDynSizeBytes = meta::apply(
-                [&](ALPAKA_DECAY_T(TArgs) const&... args) {
+                [&](ALPAKA_DECAY_T(TArgs) const&... args)
+                {
                     return getBlockSharedMemDynSizeBytes<AccCpuTbbBlocks<TDim, TIdx>>(
                         m_kernelFnObj,
                         blockThreadExtent,
@@ -90,9 +86,8 @@ namespace alpaka
             // Bind all arguments except the accelerator.
             // TODO: With C++14 we could create a perfectly argument forwarding function object within the constructor.
             auto const boundKernelFnObj = meta::apply(
-                [this](ALPAKA_DECAY_T(TArgs) const&... args) {
-                    return std::bind(std::ref(m_kernelFnObj), std::placeholders::_1, std::ref(args)...);
-                },
+                [this](ALPAKA_DECAY_T(TArgs) const&... args)
+                { return std::bind(std::ref(m_kernelFnObj), std::placeholders::_1, std::ref(args)...); },
                 m_args);
 
             // The number of blocks in the grid.
@@ -103,17 +98,22 @@ namespace alpaka
                 throw std::runtime_error("A block for the TBB accelerator can only ever have one single thread!");
             }
 
-            tbb::parallel_for(static_cast<TIdx>(0), static_cast<TIdx>(numBlocksInGrid), [&](TIdx i) {
-                AccCpuTbbBlocks<TDim, TIdx> acc(
-                    *static_cast<WorkDivMembers<TDim, TIdx> const*>(this),
-                    blockSharedMemDynSizeBytes);
+            tbb::parallel_for(
+                static_cast<TIdx>(0),
+                static_cast<TIdx>(numBlocksInGrid),
+                [&](TIdx i)
+                {
+                    AccCpuTbbBlocks<TDim, TIdx> acc(
+                        *static_cast<WorkDivMembers<TDim, TIdx> const*>(this),
+                        blockSharedMemDynSizeBytes);
 
-                acc.m_gridBlockIdx = mapIdx<TDim::value>(Vec<DimInt<1u>, TIdx>(static_cast<TIdx>(i)), gridBlockExtent);
+                    acc.m_gridBlockIdx
+                        = mapIdx<TDim::value>(Vec<DimInt<1u>, TIdx>(static_cast<TIdx>(i)), gridBlockExtent);
 
-                boundKernelFnObj(acc);
+                    boundKernelFnObj(acc);
 
-                freeSharedVars(acc);
-            });
+                    freeSharedVars(acc);
+                });
         }
 
     private:

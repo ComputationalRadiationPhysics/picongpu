@@ -66,9 +66,7 @@ namespace alpaka
                     ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(
                         StreamCreateWithFlags)(&m_UniformCudaHipQueue, ALPAKA_API_PREFIX(StreamNonBlocking)));
                 }
-                QueueUniformCudaHipRtImpl(QueueUniformCudaHipRtImpl const&) = delete;
                 QueueUniformCudaHipRtImpl(QueueUniformCudaHipRtImpl&&) = default;
-                auto operator=(QueueUniformCudaHipRtImpl const&) -> QueueUniformCudaHipRtImpl& = delete;
                 auto operator=(QueueUniformCudaHipRtImpl&&) -> QueueUniformCudaHipRtImpl& = delete;
                 ALPAKA_FN_HOST ~QueueUniformCudaHipRtImpl()
                 {
@@ -106,10 +104,6 @@ namespace alpaka
                     : m_spQueueImpl(std::make_shared<QueueUniformCudaHipRtImpl>(dev))
                 {
                 }
-                QueueUniformCudaHipRtBase(QueueUniformCudaHipRtBase const&) = default;
-                QueueUniformCudaHipRtBase(QueueUniformCudaHipRtBase&&) = default;
-                auto operator=(QueueUniformCudaHipRtBase const&) -> QueueUniformCudaHipRtBase& = default;
-                auto operator=(QueueUniformCudaHipRtBase&&) -> QueueUniformCudaHipRtBase& = default;
                 ALPAKA_FN_HOST auto operator==(QueueUniformCudaHipRtBase const& rhs) const -> bool
                 {
                     return (m_spQueueImpl == rhs.m_spQueueImpl);
@@ -118,7 +112,6 @@ namespace alpaka
                 {
                     return !((*this) == rhs);
                 }
-                ~QueueUniformCudaHipRtBase() = default;
 
             public:
                 std::shared_ptr<QueueUniformCudaHipRtImpl> m_spQueueImpl;

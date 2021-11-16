@@ -20,6 +20,13 @@
 
 #ifdef ALPAKA_DEBUG_OFFLOAD_ASSUME_HOST
 #    define ALPAKA_ASSERT_OFFLOAD(EXPRESSION) ALPAKA_ASSERT(EXPRESSION)
+#elif defined __AMDGCN__ && (!defined NDEBUG)
+#    define ALPAKA_ASSERT_OFFLOAD(EXPRESSION)                                                                         \
+        do                                                                                                            \
+        {                                                                                                             \
+            if(!(EXPRESSION))                                                                                         \
+                __builtin_trap();                                                                                     \
+        } while(false)
 #else
 #    define ALPAKA_ASSERT_OFFLOAD(EXPRESSION)
 #endif
@@ -38,11 +45,8 @@ namespace alpaka
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto assertValueUnsigned(TArg const& arg) -> void
                 {
-#ifdef NDEBUG
                     alpaka::ignore_unused(arg);
-#else
-                    ALPAKA_ASSERT(arg >= 0);
-#endif
+                    ALPAKA_ASSERT_OFFLOAD(arg >= 0);
                 }
             };
             template<typename TArg>
@@ -78,11 +82,8 @@ namespace alpaka
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto assertGreaterThan(TRhs const& lhs) -> void
                 {
-#ifdef NDEBUG
                     alpaka::ignore_unused(lhs);
-#else
-                    ALPAKA_ASSERT(TLhs::value > lhs);
-#endif
+                    ALPAKA_ASSERT_OFFLOAD(TLhs::value > lhs);
                 }
             };
             template<typename TLhs, typename TRhs>

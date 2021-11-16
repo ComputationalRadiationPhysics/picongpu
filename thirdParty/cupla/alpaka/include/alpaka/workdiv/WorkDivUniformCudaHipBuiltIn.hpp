@@ -45,13 +45,7 @@ namespace alpaka
             : m_threadElemExtent(threadElemExtent)
         {
         }
-        __device__ WorkDivUniformCudaHipBuiltIn(WorkDivUniformCudaHipBuiltIn const&) = delete;
-        __device__ WorkDivUniformCudaHipBuiltIn(WorkDivUniformCudaHipBuiltIn&&) = delete;
-        __device__ auto operator=(WorkDivUniformCudaHipBuiltIn const&) -> WorkDivUniformCudaHipBuiltIn& = delete;
-        __device__ auto operator=(WorkDivUniformCudaHipBuiltIn&&) -> WorkDivUniformCudaHipBuiltIn& = delete;
-        /*virtual*/ ~WorkDivUniformCudaHipBuiltIn() = default;
 
-    public:
         // \TODO: Optimize! Add WorkDivUniformCudaHipBuiltInNoElems that has no member m_threadElemExtent as well as
         // AccGpuUniformCudaHipRtNoElems. Use it instead of AccGpuUniformCudaHipRt if the thread element extent is one
         // to reduce the register usage.

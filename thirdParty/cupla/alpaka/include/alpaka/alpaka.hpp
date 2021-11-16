@@ -123,6 +123,14 @@
 #include <alpaka/mem/buf/BufOmp5.hpp>
 #include <alpaka/mem/buf/BufUniformCudaHipRt.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
+#include <alpaka/mem/fence/MemFenceCpu.hpp>
+#include <alpaka/mem/fence/MemFenceCpuSerial.hpp>
+#include <alpaka/mem/fence/MemFenceOacc.hpp>
+#include <alpaka/mem/fence/MemFenceOmp2Blocks.hpp>
+#include <alpaka/mem/fence/MemFenceOmp2Threads.hpp>
+#include <alpaka/mem/fence/MemFenceOmp5.hpp>
+#include <alpaka/mem/fence/MemFenceUniformCudaHipBuiltIn.hpp>
+#include <alpaka/mem/fence/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/mem/view/ViewCompileTimeArray.hpp>
 #include <alpaka/mem/view/ViewPlainPtr.hpp>
@@ -134,6 +142,7 @@
 #include <alpaka/meta/ApplyTuple.hpp>
 #include <alpaka/meta/CartesianProduct.hpp>
 #include <alpaka/meta/Concatenate.hpp>
+#include <alpaka/meta/CudaVectorArrayWrapper.hpp>
 #include <alpaka/meta/DependentFalseType.hpp>
 #include <alpaka/meta/Filter.hpp>
 #include <alpaka/meta/Fold.hpp>
@@ -141,6 +150,7 @@
 #include <alpaka/meta/Functional.hpp>
 #include <alpaka/meta/IntegerSequence.hpp>
 #include <alpaka/meta/Integral.hpp>
+#include <alpaka/meta/IsArrayOrVector.hpp>
 #include <alpaka/meta/IsStrictBase.hpp>
 #include <alpaka/meta/Metafunctions.hpp>
 #include <alpaka/meta/NdLoop.hpp>
@@ -157,6 +167,9 @@
 #include <alpaka/pltf/PltfUniformCudaHipRt.hpp>
 #include <alpaka/pltf/Traits.hpp>
 // rand
+#include <alpaka/rand/RandDefault.hpp>
+#include <alpaka/rand/RandPhilox.hpp>
+#include <alpaka/rand/RandStdLib.hpp>
 #include <alpaka/rand/RandUniformCudaHipRand.hpp>
 #include <alpaka/rand/Traits.hpp>
 // idx

@@ -138,11 +138,6 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        TaskKernelGpuUniformCudaHipRt(TaskKernelGpuUniformCudaHipRt const&) = default;
-        TaskKernelGpuUniformCudaHipRt(TaskKernelGpuUniformCudaHipRt&&) = default;
-        auto operator=(TaskKernelGpuUniformCudaHipRt const&) -> TaskKernelGpuUniformCudaHipRt& = default;
-        auto operator=(TaskKernelGpuUniformCudaHipRt&&) -> TaskKernelGpuUniformCudaHipRt& = default;
-        ~TaskKernelGpuUniformCudaHipRt() = default;
 
         TKernelFnObj m_kernelFnObj;
         std::tuple<std::decay_t<TArgs>...> m_args;
@@ -272,7 +267,8 @@ namespace alpaka
                 // (MSVC). If not given by value, the kernel launch code does not copy the value but the pointer to the
                 // value location.
                 meta::apply(
-                    [&](ALPAKA_DECAY_T(TArgs) const&... args) {
+                    [&](ALPAKA_DECAY_T(TArgs) const&... args)
+                    {
 #    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
                         kernelName<<<
                             gridDim,
@@ -399,7 +395,8 @@ namespace alpaka
 
                 // Enqueue the kernel execution.
                 meta::apply(
-                    [&](ALPAKA_DECAY_T(TArgs) const&... args) {
+                    [&](ALPAKA_DECAY_T(TArgs) const&... args)
+                    {
 #    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
                         kernelName<<<
                             gridDim,

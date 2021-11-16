@@ -28,13 +28,6 @@ namespace alpaka
     //! The GPU CUDA accelerator time implementation.
     class TimeUniformCudaHipBuiltIn : public concepts::Implements<ConceptTime, TimeUniformCudaHipBuiltIn>
     {
-    public:
-        TimeUniformCudaHipBuiltIn() = default;
-        __device__ TimeUniformCudaHipBuiltIn(TimeUniformCudaHipBuiltIn const&) = delete;
-        __device__ TimeUniformCudaHipBuiltIn(TimeUniformCudaHipBuiltIn&&) = delete;
-        __device__ auto operator=(TimeUniformCudaHipBuiltIn const&) -> TimeUniformCudaHipBuiltIn& = delete;
-        __device__ auto operator=(TimeUniformCudaHipBuiltIn&&) -> TimeUniformCudaHipBuiltIn& = delete;
-        /*virtual*/ ~TimeUniformCudaHipBuiltIn() = default;
     };
 
     namespace traits

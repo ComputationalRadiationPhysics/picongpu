@@ -135,18 +135,21 @@ namespace alpaka
 
                 if(static_cast<std::size_t>(this->m_extent.prod()) != 0u)
                 {
-                    meta::ndLoopIncIdx(extentWithoutInnermost, [&](Vec<DimMin1, ExtentSize> const& idx) {
-                        std::memcpy(
-                            reinterpret_cast<void*>(
-                                this->m_dstMemNative
-                                + (castVec<DstSize>(idx) * dstPitchBytesWithoutOutmost)
-                                      .foldrAll(std::plus<DstSize>())),
-                            reinterpret_cast<void const*>(
-                                this->m_srcMemNative
-                                + (castVec<SrcSize>(idx) * srcPitchBytesWithoutOutmost)
-                                      .foldrAll(std::plus<SrcSize>())),
-                            static_cast<std::size_t>(this->m_extentWidthBytes));
-                    });
+                    meta::ndLoopIncIdx(
+                        extentWithoutInnermost,
+                        [&](Vec<DimMin1, ExtentSize> const& idx)
+                        {
+                            std::memcpy(
+                                reinterpret_cast<void*>(
+                                    this->m_dstMemNative
+                                    + (castVec<DstSize>(idx) * dstPitchBytesWithoutOutmost)
+                                          .foldrAll(std::plus<DstSize>())),
+                                reinterpret_cast<void const*>(
+                                    this->m_srcMemNative
+                                    + (castVec<SrcSize>(idx) * srcPitchBytesWithoutOutmost)
+                                          .foldrAll(std::plus<SrcSize>())),
+                                static_cast<std::size_t>(this->m_extentWidthBytes));
+                        });
                 }
             }
         };

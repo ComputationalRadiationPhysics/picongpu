@@ -154,6 +154,17 @@ namespace alpaka
                     alpaka::math::trunc,
                     Range::Unrestricted)
 
+                ALPAKA_TEST_MATH_OP_FUNCTOR(OpIsnan, Arity::Unary, std::isnan, alpaka::math::isnan, Range::Anything)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(OpIsinf, Arity::Unary, std::isinf, alpaka::math::isinf, Range::Anything)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpIsfinite,
+                    Arity::Unary,
+                    std::isfinite,
+                    alpaka::math::isfinite,
+                    Range::Anything)
+
                 // All binary operators.
                 ALPAKA_TEST_MATH_OP_FUNCTOR(
                     OpAtan2,
@@ -222,7 +233,10 @@ namespace alpaka
                     OpSin,
                     OpSqrt,
                     OpTan,
-                    OpTrunc>;
+                    OpTrunc,
+                    OpIsnan,
+                    OpIsinf,
+                    OpIsfinite>;
 
             } // namespace math
         } // namespace unit

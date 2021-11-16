@@ -50,13 +50,6 @@ namespace alpaka
             class DevCpuImpl
             {
             public:
-                DevCpuImpl() = default;
-                DevCpuImpl(DevCpuImpl const&) = delete;
-                DevCpuImpl(DevCpuImpl&&) = delete;
-                auto operator=(DevCpuImpl const&) -> DevCpuImpl& = delete;
-                auto operator=(DevCpuImpl&&) -> DevCpuImpl& = delete;
-                ~DevCpuImpl() = default;
-
                 ALPAKA_FN_HOST auto getAllExistingQueues() const -> std::vector<std::shared_ptr<cpu::ICpuQueue>>
                 {
                     std::vector<std::shared_ptr<cpu::ICpuQueue>> vspQueues;
@@ -110,10 +103,6 @@ namespace alpaka
         }
 
     public:
-        DevCpu(DevCpu const&) = default;
-        DevCpu(DevCpu&&) = default;
-        auto operator=(DevCpu const&) -> DevCpu& = default;
-        auto operator=(DevCpu&&) -> DevCpu& = default;
         auto operator==(DevCpu const&) const -> bool
         {
             return true;
@@ -122,7 +111,6 @@ namespace alpaka
         {
             return !((*this) == rhs);
         }
-        ~DevCpu() = default;
 
         ALPAKA_FN_HOST auto getAllQueues() const -> std::vector<std::shared_ptr<cpu::ICpuQueue>>
         {

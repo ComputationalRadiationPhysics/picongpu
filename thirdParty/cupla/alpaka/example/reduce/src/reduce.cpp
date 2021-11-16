@@ -90,22 +90,22 @@ T reduce(
     WorkDiv workDiv2{static_cast<Extent>(1), static_cast<Extent>(blockSize), static_cast<Extent>(1)};
 
     // create main reduction kernel execution task
-    auto const taskKernelReduceMain(alpaka::createTaskKernel<Acc>(
+    auto const taskKernelReduceMain = alpaka::createTaskKernel<Acc>(
         workDiv1,
         kernel1,
         alpaka::getPtrNative(sourceDeviceMemory),
         alpaka::getPtrNative(destinationDeviceMemory),
         n,
-        func));
+        func);
 
     // create last block reduction kernel execution task
-    auto const taskKernelReduceLastBlock(alpaka::createTaskKernel<Acc>(
+    auto const taskKernelReduceLastBlock = alpaka::createTaskKernel<Acc>(
         workDiv2,
         kernel2,
         alpaka::getPtrNative(destinationDeviceMemory),
         alpaka::getPtrNative(destinationDeviceMemory),
         blockCount,
-        func));
+        func);
 
     // enqueue both kernel execution tasks
     alpaka::enqueue(queue, taskKernelReduceMain);
@@ -113,8 +113,7 @@ T reduce(
 
     //  download result from GPU
     T resultGpuHost;
-    auto resultGpuDevice
-        = alpaka::ViewPlainPtr<DevHost, T, Dim, Idx>(&resultGpuHost, devHost, static_cast<Extent>(blockSize));
+    auto resultGpuDevice = alpaka::createView(devHost, &resultGpuHost, static_cast<Extent>(blockSize));
 
     alpaka::memcpy(queue, resultGpuDevice, destinationDeviceMemory, 1);
 

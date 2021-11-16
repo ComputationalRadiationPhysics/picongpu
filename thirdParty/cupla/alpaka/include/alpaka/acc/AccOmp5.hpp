@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, René Widera
+/* Copyright 2021 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -15,6 +15,12 @@
 #        error If ALPAKA_ACC_ANY_BT_OMP5_ENABLED is set, the compiler has to support OpenMP 4.0 or higher!
 #    endif
 
+// Kill printf in AMD GPU code because of missing compiler support
+#    ifdef __AMDGCN__
+#        include <cstdio> // the define breaks <cstdio> if it is included afterwards
+#        define printf(...)
+#    endif
+
 // Base classes.
 #    include <alpaka/atomic/AtomicHierarchy.hpp>
 #    include <alpaka/atomic/AtomicOmpBuiltIn.hpp>
@@ -25,7 +31,8 @@
 #    include <alpaka/idx/gb/IdxGbLinear.hpp>
 #    include <alpaka/intrinsic/IntrinsicFallback.hpp>
 #    include <alpaka/math/MathStdLib.hpp>
-#    include <alpaka/rand/RandStdLib.hpp>
+#    include <alpaka/mem/fence/MemFenceOmp5.hpp>
+#    include <alpaka/rand/RandDefault.hpp>
 #    include <alpaka/time/TimeOmp.hpp>
 #    include <alpaka/warp/WarpSingleThread.hpp>
 #    include <alpaka/workdiv/WorkDivMembers.hpp>
@@ -72,7 +79,8 @@ namespace alpaka
         public BlockSyncBarrierOmp,
         // cannot determine which intrinsics are safe to use (depends on target), using fallback
         public IntrinsicFallback,
-        public rand::RandStdLib,
+        public MemFenceOmp5,
+        public rand::RandDefault,
         public TimeOmp,
         public warp::WarpSingleThread,
         public concepts::Implements<ConceptAcc, AccOmp5<TDim, TIdx>>
@@ -107,17 +115,11 @@ namespace alpaka
             //! \TODO can with some TMP determine the amount of statically alloced smem from the kernelFuncObj?
             BlockSharedMemStOmp5(staticMemBegin(), staticMemCapacity())
             , BlockSyncBarrierOmp()
-            , rand::RandStdLib()
+            , MemFenceOmp5()
+            , rand::RandDefault()
             , TimeOmp()
         {
         }
-
-    public:
-        AccOmp5(AccOmp5 const&) = delete;
-        AccOmp5(AccOmp5&&) = delete;
-        auto operator=(AccOmp5 const&) -> AccOmp5& = delete;
-        auto operator=(AccOmp5&&) -> AccOmp5& = delete;
-        /*virtual*/ ~AccOmp5() = default;
     };
 
     namespace traits

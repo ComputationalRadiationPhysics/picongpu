@@ -34,11 +34,6 @@ namespace alpaka
             , m_barrierWithPredicate(blockThreadCount)
         {
         }
-        ALPAKA_FN_HOST BlockSyncBarrierThread(BlockSyncBarrierThread const&) = delete;
-        ALPAKA_FN_HOST BlockSyncBarrierThread(BlockSyncBarrierThread&&) = delete;
-        ALPAKA_FN_HOST auto operator=(BlockSyncBarrierThread const&) -> BlockSyncBarrierThread& = delete;
-        ALPAKA_FN_HOST auto operator=(BlockSyncBarrierThread&&) -> BlockSyncBarrierThread& = delete;
-        /*virtual*/ ~BlockSyncBarrierThread() = default;
 
         Barrier mutable m_barrier;
         BarrierWithPredicate mutable m_barrierWithPredicate;
