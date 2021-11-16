@@ -280,3 +280,24 @@ TEMPLATE_LIST_TEST_CASE("vecNDConstructionFromNonAlpakaVec", "[vec]", alpaka::te
         REQUIRE(nonAlpakaVec[d] == alpakaVec[d]);
     }
 }
+
+#ifdef __cpp_structured_bindings
+TEST_CASE("structuredBindings", "[vec]")
+{
+    using Dim = alpaka::DimInt<2u>;
+    using Idx = std::size_t;
+    using Vec = alpaka::Vec<Dim, Idx>;
+
+    Vec vec{Idx{1}, Idx{2}};
+
+    const auto [y, x] = vec;
+    CHECK(y == 1);
+    CHECK(x == 2);
+
+    auto& [y2, x2] = vec;
+    y2++;
+    x2++;
+    CHECK(vec[0] == 2);
+    CHECK(vec[1] == 3);
+}
+#endif

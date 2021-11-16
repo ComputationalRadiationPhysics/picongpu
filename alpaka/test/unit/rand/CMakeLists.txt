@@ -8,7 +8,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-set(_TARGET_NAME "rand")
+set(_TARGET_NAME "randTest")
 
 append_recursive_files_add_to_src_group("src/" "src/" "cpp" _FILES_SOURCE)
 

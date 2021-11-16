@@ -122,10 +122,31 @@ Allocate a buffer in host memory
 
      prepareForAsyncCopy(bufHost);
 
-Get a raw pointer to a buffer initialization, etc.
+Create a view to host memory represented by a pointer
   .. code-block:: c++
 
-     DataType * raw = view::getPtrNative(bufHost);
+     using Dim = alpaka::DimInt<1u>;
+     Vec<Dim, Idx> extent = value;
+     DataType* date = new DataType[extent[0]];
+     auto hostView = createView(devHost, data, extent);
+
+Create a view to host std::vector
+   .. code-block:: c++
+
+     auto vec = std::vector<DataType>(42u);
+     auto hostView = createView(devHost, vec);
+
+Create a view to host std::array
+   .. code-block:: c++
+
+     std::vector<DataType, 2> array = {42u, 23};
+     auto hostView = createView(devHost, array);
+
+Get a raw pointer to a buffer or view initialization, etc.
+  .. code-block:: c++
+
+     DataType* raw = view::getPtrNative(bufHost);
+     DataType* rawViewPtr = view::getPtrNative(hostView);
 
 Allocate a buffer in device memory
   .. code-block:: c++
@@ -255,6 +276,12 @@ Atomic operations
 
          AtomicAdd, AtomicSub, AtomicMin, AtomicMax, AtomicExch,
          AtomicInc, AtomicDec, AtomicAnd, AtomicOr, AtomicXor, AtomicCas
+
+Memory fences on block- or device level (guarantees LoadLoad and StoreStore ordering)
+  .. code-block:: c++
+
+     mem_fence(acc, memory_scope::Block{});
+     mem_fence(acc, memory_scope::Device{});
 
 Warp-level operations
   .. code-block:: c++

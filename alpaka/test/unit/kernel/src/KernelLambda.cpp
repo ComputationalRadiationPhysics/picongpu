@@ -31,7 +31,8 @@ struct TestTemplateLambda
 #        pragma warning(push)
 #        pragma warning(disable : 4702) // warning C4702: unreachable code
 #    endif
-        auto kernel = [] ALPAKA_FN_ACC(TAcc const& acc, bool* success) -> void {
+        auto kernel = [] ALPAKA_FN_ACC(TAcc const& acc, bool* success) -> void
+        {
             ALPAKA_CHECK(
                 *success,
                 static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
@@ -55,7 +56,8 @@ struct TestTemplateArg
         alpaka::test::KernelExecutionFixture<TAcc> fixture(alpaka::Vec<Dim, Idx>::ones());
 
         std::uint32_t const arg = 42u;
-        auto kernel = [] ALPAKA_FN_ACC(TAcc const& acc, bool* success, std::uint32_t const& arg1) -> void {
+        auto kernel = [] ALPAKA_FN_ACC(TAcc const& acc, bool* success, std::uint32_t const& arg1) -> void
+        {
             alpaka::ignore_unused(acc);
 
             ALPAKA_CHECK(*success, 42u == arg1);
@@ -81,7 +83,8 @@ struct TestTemplateCapture
 #        pragma clang diagnostic push
 #        pragma clang diagnostic ignored "-Wunused-lambda-capture"
 #    endif
-        auto kernel = [arg] ALPAKA_FN_ACC(TAcc const& acc, bool* success) -> void {
+        auto kernel = [arg] ALPAKA_FN_ACC(TAcc const& acc, bool* success) -> void
+        {
             alpaka::ignore_unused(acc);
 
             ALPAKA_CHECK(*success, 42u == arg);

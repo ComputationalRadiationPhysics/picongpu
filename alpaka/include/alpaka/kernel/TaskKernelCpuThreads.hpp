@@ -76,11 +76,6 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        TaskKernelCpuThreads(TaskKernelCpuThreads const&) = default;
-        TaskKernelCpuThreads(TaskKernelCpuThreads&&) = default;
-        auto operator=(TaskKernelCpuThreads const&) -> TaskKernelCpuThreads& = default;
-        auto operator=(TaskKernelCpuThreads&&) -> TaskKernelCpuThreads& = default;
-        ~TaskKernelCpuThreads() = default;
 
         //! Executes the kernel function object.
         ALPAKA_FN_HOST auto operator()() const -> void
@@ -93,7 +88,8 @@ namespace alpaka
 
             // Get the size of the block shared dynamic memory.
             auto const blockSharedMemDynSizeBytes = meta::apply(
-                [&](ALPAKA_DECAY_T(TArgs) const&... args) {
+                [&](ALPAKA_DECAY_T(TArgs) const&... args)
+                {
                     return getBlockSharedMemDynSizeBytes<AccCpuThreads<TDim, TIdx>>(
                         m_kernelFnObj,
                         blockThreadExtent,
@@ -115,7 +111,8 @@ namespace alpaka
 
             // Bind the kernel and its arguments to the grid block function.
             auto const boundGridBlockExecHost = meta::apply(
-                [this, &acc, &blockThreadExtent, &threadPool](ALPAKA_DECAY_T(TArgs) const&... args) {
+                [this, &acc, &blockThreadExtent, &threadPool](ALPAKA_DECAY_T(TArgs) const&... args)
+                {
                     return std::bind(
                         &TaskKernelCpuThreads::gridBlockExecHost,
                         std::ref(acc),

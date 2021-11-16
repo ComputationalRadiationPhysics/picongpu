@@ -20,6 +20,6 @@ then
   ./script/docker_ci.sh
 elif [ "$ALPAKA_CI_OS_NAME" = "Windows" ] || [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
 then
-  ./script/install.sh
+  source ./script/install.sh
   ./script/run.sh
 fi

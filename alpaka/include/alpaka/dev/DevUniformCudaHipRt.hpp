@@ -57,10 +57,6 @@ namespace alpaka
         DevUniformCudaHipRt() = default;
 
     public:
-        DevUniformCudaHipRt(DevUniformCudaHipRt const&) = default;
-        DevUniformCudaHipRt(DevUniformCudaHipRt&&) = default;
-        auto operator=(DevUniformCudaHipRt const&) -> DevUniformCudaHipRt& = default;
-        auto operator=(DevUniformCudaHipRt&&) -> DevUniformCudaHipRt& = default;
         ALPAKA_FN_HOST auto operator==(DevUniformCudaHipRt const& rhs) const -> bool
         {
             return m_iDevice == rhs.m_iDevice;
@@ -69,7 +65,6 @@ namespace alpaka
         {
             return !((*this) == rhs);
         }
-        ~DevUniformCudaHipRt() = default;
 
     public:
         int m_iDevice;

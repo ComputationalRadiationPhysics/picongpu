@@ -37,10 +37,7 @@ namespace alpaka
             {
             }
             ALPAKA_FN_HOST IdxBtRefThreadIdMap(IdxBtRefThreadIdMap const&) = delete;
-            ALPAKA_FN_HOST IdxBtRefThreadIdMap(IdxBtRefThreadIdMap&&) = delete;
             ALPAKA_FN_HOST auto operator=(IdxBtRefThreadIdMap const&) -> IdxBtRefThreadIdMap& = delete;
-            ALPAKA_FN_HOST auto operator=(IdxBtRefThreadIdMap&&) -> IdxBtRefThreadIdMap& = delete;
-            /*virtual*/ ~IdxBtRefThreadIdMap() = default;
 
         public:
             ThreadIdToIdxMap const& m_threadToIndexMap; //!< The mapping of thread id's to thread indices.

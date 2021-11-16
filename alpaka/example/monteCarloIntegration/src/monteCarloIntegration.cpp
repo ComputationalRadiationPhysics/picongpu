@@ -59,8 +59,8 @@ struct Kernel
         auto const globalThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
         auto const linearizedGlobalThreadIdx = alpaka::mapIdx<1u>(globalThreadIdx, globalThreadExtent)[0];
-        // Setup generator and distribution.
-        auto generator = alpaka::rand::generator::createDefault(
+        // Setup generator engine and distribution.
+        auto engine = alpaka::rand::engine::createDefault(
             acc,
             linearizedGlobalThreadIdx,
             0); // No specific subsequence start.
@@ -71,8 +71,8 @@ struct Kernel
         for(size_t i = linearizedGlobalThreadIdx; i < numPoints; i += globalThreadExtent.prod())
         {
             // Generate a point in the 2D interval.
-            float x = dist(generator);
-            float y = dist(generator);
+            float x = dist(engine);
+            float y = dist(engine);
             // Count every time where the point is "below" the given function.
             if(y <= functor(acc, x))
             {

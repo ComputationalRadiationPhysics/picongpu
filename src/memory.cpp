@@ -142,54 +142,55 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
         switch(kind)
         {
         case cuplaMemcpyHostToDevice:
-        {
-            auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
+            {
+                auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
 
-            const cupla::HostBufWrapper<1u> hBuf(
-                const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
-                host,
-                numBytes);
-            cupla::DeviceBufWrapper<1u> dBuf(static_cast<uint8_t*>(dst), device, numBytes);
+                const cupla::HostBufWrapper<1u> hBuf(
+                    const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
+                    host,
+                    numBytes);
+                cupla::DeviceBufWrapper<1u> dBuf(static_cast<uint8_t*>(dst), device, numBytes);
 
-            ::alpaka::memcpy(streamObject, dBuf, hBuf, numBytes);
-        }
-        break;
+                ::alpaka::memcpy(streamObject, dBuf, hBuf, numBytes);
+            }
+            break;
         case cuplaMemcpyDeviceToHost:
-        {
-            auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
-            const cupla::DeviceBufWrapper<1u> dBuf(
-                const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
-                device,
-                numBytes);
-            cupla::HostBufWrapper<1u> hBuf(static_cast<uint8_t*>(dst), host, numBytes);
+            {
+                auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
+                const cupla::DeviceBufWrapper<1u> dBuf(
+                    const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
+                    device,
+                    numBytes);
+                cupla::HostBufWrapper<1u> hBuf(static_cast<uint8_t*>(dst), host, numBytes);
 
-            ::alpaka::memcpy(streamObject, hBuf, dBuf, numBytes);
-        }
-        break;
+                ::alpaka::memcpy(streamObject, hBuf, dBuf, numBytes);
+            }
+            break;
         case cuplaMemcpyDeviceToDevice:
-        {
-            const cupla::DeviceBufWrapper<1u> dSrcBuf(
-                const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
-                device,
-                numBytes);
-            cupla::DeviceBufWrapper<1u> dDestBuf(static_cast<uint8_t*>(dst), device, numBytes);
+            {
+                const cupla::DeviceBufWrapper<1u> dSrcBuf(
+                    const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
+                    device,
+                    numBytes);
+                cupla::DeviceBufWrapper<1u> dDestBuf(static_cast<uint8_t*>(dst), device, numBytes);
 
-            ::alpaka::memcpy(streamObject, dDestBuf, dSrcBuf, numBytes);
-        }
-        break;
+                ::alpaka::memcpy(streamObject, dDestBuf, dSrcBuf, numBytes);
+            }
+            break;
         case cuplaMemcpyHostToHost:
-        {
-            auto& hostStreamObject(cupla::manager::Stream<cupla::AccHost, cupla::AccHostStream>::get().stream(stream));
-            auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
-            const cupla::HostBufWrapper<1u> hSrcBuf(
-                const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
-                host,
-                numBytes);
-            cupla::HostBufWrapper<1u> hDestBuf(static_cast<uint8_t*>(dst), host, numBytes);
+            {
+                auto& hostStreamObject(
+                    cupla::manager::Stream<cupla::AccHost, cupla::AccHostStream>::get().stream(stream));
+                auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
+                const cupla::HostBufWrapper<1u> hSrcBuf(
+                    const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
+                    host,
+                    numBytes);
+                cupla::HostBufWrapper<1u> hDestBuf(static_cast<uint8_t*>(dst), host, numBytes);
 
-            ::alpaka::memcpy(hostStreamObject, hDestBuf, hSrcBuf, numBytes);
-        }
-        break;
+                ::alpaka::memcpy(hostStreamObject, hDestBuf, hSrcBuf, numBytes);
+            }
+            break;
         }
         return cuplaSuccess;
     }
@@ -260,58 +261,59 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
         switch(kind)
         {
         case cuplaMemcpyHostToDevice:
-        {
-            auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
+            {
+                auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
 
-            const cupla::HostBufWrapper<2u> hBuf(
-                const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
-                host,
-                numBytes,
-                srcPitch);
-            cupla::DeviceBufWrapper<2u> dBuf(static_cast<uint8_t*>(dst), device, numBytes, dstPitch);
+                const cupla::HostBufWrapper<2u> hBuf(
+                    const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
+                    host,
+                    numBytes,
+                    srcPitch);
+                cupla::DeviceBufWrapper<2u> dBuf(static_cast<uint8_t*>(dst), device, numBytes, dstPitch);
 
-            ::alpaka::memcpy(streamObject, dBuf, hBuf, numBytes);
-        }
-        break;
+                ::alpaka::memcpy(streamObject, dBuf, hBuf, numBytes);
+            }
+            break;
         case cuplaMemcpyDeviceToHost:
-        {
-            auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
-            const cupla::DeviceBufWrapper<2u> dBuf(
-                const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
-                device,
-                numBytes,
-                srcPitch);
-            cupla::HostBufWrapper<2u> hBuf(static_cast<uint8_t*>(dst), host, numBytes, dstPitch);
+            {
+                auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
+                const cupla::DeviceBufWrapper<2u> dBuf(
+                    const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
+                    device,
+                    numBytes,
+                    srcPitch);
+                cupla::HostBufWrapper<2u> hBuf(static_cast<uint8_t*>(dst), host, numBytes, dstPitch);
 
-            ::alpaka::memcpy(streamObject, hBuf, dBuf, numBytes);
-        }
-        break;
+                ::alpaka::memcpy(streamObject, hBuf, dBuf, numBytes);
+            }
+            break;
         case cuplaMemcpyDeviceToDevice:
-        {
-            const cupla::DeviceBufWrapper<2u> dSrcBuf(
-                const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
-                device,
-                numBytes,
-                srcPitch);
-            cupla::DeviceBufWrapper<2u> dDestBuf(static_cast<uint8_t*>(dst), device, numBytes, dstPitch);
+            {
+                const cupla::DeviceBufWrapper<2u> dSrcBuf(
+                    const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
+                    device,
+                    numBytes,
+                    srcPitch);
+                cupla::DeviceBufWrapper<2u> dDestBuf(static_cast<uint8_t*>(dst), device, numBytes, dstPitch);
 
-            ::alpaka::memcpy(streamObject, dDestBuf, dSrcBuf, numBytes);
-        }
-        break;
+                ::alpaka::memcpy(streamObject, dDestBuf, dSrcBuf, numBytes);
+            }
+            break;
         case cuplaMemcpyHostToHost:
-        {
-            auto& hostStreamObject(cupla::manager::Stream<cupla::AccHost, cupla::AccHostStream>::get().stream(stream));
-            auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
-            const cupla::HostBufWrapper<2u> hSrcBuf(
-                const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
-                host,
-                numBytes,
-                srcPitch);
-            cupla::HostBufWrapper<2u> hDestBuf(static_cast<uint8_t*>(dst), host, numBytes, dstPitch);
+            {
+                auto& hostStreamObject(
+                    cupla::manager::Stream<cupla::AccHost, cupla::AccHostStream>::get().stream(stream));
+                auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
+                const cupla::HostBufWrapper<2u> hSrcBuf(
+                    const_cast<uint8_t*>(static_cast<const uint8_t*>(src)),
+                    host,
+                    numBytes,
+                    srcPitch);
+                cupla::HostBufWrapper<2u> hDestBuf(static_cast<uint8_t*>(dst), host, numBytes, dstPitch);
 
-            ::alpaka::memcpy(hostStreamObject, hDestBuf, hSrcBuf, numBytes);
-        }
-        break;
+                ::alpaka::memcpy(hostStreamObject, hDestBuf, hSrcBuf, numBytes);
+            }
+            break;
         }
         return cuplaSuccess;
     }
@@ -380,82 +382,87 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
         switch(p->kind)
         {
         case cuplaMemcpyHostToDevice:
-        {
-            auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
+            {
+                auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
 
-            cupla::HostBufWrapper<3u> hBuf(
-                const_cast<uint8_t*>(static_cast<const uint8_t*>(p->srcPtr.ptr)),
-                host,
-                extentSrc,
-                srcPitch);
-            cupla::DeviceBufWrapper<3u> dBuf(static_cast<uint8_t*>(p->dstPtr.ptr), device, extentDst, dstPitch);
+                cupla::HostBufWrapper<3u> hBuf(
+                    const_cast<uint8_t*>(static_cast<const uint8_t*>(p->srcPtr.ptr)),
+                    host,
+                    extentSrc,
+                    srcPitch);
+                cupla::DeviceBufWrapper<3u> dBuf(static_cast<uint8_t*>(p->dstPtr.ptr), device, extentDst, dstPitch);
 
-            cupla::DeviceViewWrapper<3u> dView(dBuf, extentDst - offsetDst, offsetDst);
+                cupla::DeviceViewWrapper<3u> dView(dBuf, extentDst - offsetDst, offsetDst);
 
-            ::alpaka::memcpy(
-                streamObject,
-                dView,
-                cupla::HostViewWrapper<3u>(hBuf, extentSrc - offsetSrc, offsetSrc),
-                numBytes);
-        }
-        break;
+                ::alpaka::memcpy(
+                    streamObject,
+                    dView,
+                    cupla::HostViewWrapper<3u>(hBuf, extentSrc - offsetSrc, offsetSrc),
+                    numBytes);
+            }
+            break;
         case cuplaMemcpyDeviceToHost:
-        {
-            auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
-            cupla::DeviceBufWrapper<3u> dBuf(
-                const_cast<uint8_t*>(static_cast<const uint8_t*>(p->srcPtr.ptr)),
-                device,
-                extentSrc,
-                srcPitch);
-            cupla::HostBufWrapper<3u> hBuf(static_cast<uint8_t*>(p->dstPtr.ptr), host, extentDst, dstPitch);
+            {
+                auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
+                cupla::DeviceBufWrapper<3u> dBuf(
+                    const_cast<uint8_t*>(static_cast<const uint8_t*>(p->srcPtr.ptr)),
+                    device,
+                    extentSrc,
+                    srcPitch);
+                cupla::HostBufWrapper<3u> hBuf(static_cast<uint8_t*>(p->dstPtr.ptr), host, extentDst, dstPitch);
 
-            cupla::HostViewWrapper<3u> hView(hBuf, extentDst - offsetDst, offsetDst);
+                cupla::HostViewWrapper<3u> hView(hBuf, extentDst - offsetDst, offsetDst);
 
-            ::alpaka::memcpy(
-                streamObject,
-                hView,
-                cupla::DeviceViewWrapper<3u>(dBuf, extentSrc - offsetSrc, offsetSrc),
-                numBytes);
-        }
-        break;
+                ::alpaka::memcpy(
+                    streamObject,
+                    hView,
+                    cupla::DeviceViewWrapper<3u>(dBuf, extentSrc - offsetSrc, offsetSrc),
+                    numBytes);
+            }
+            break;
         case cuplaMemcpyDeviceToDevice:
-        {
-            cupla::DeviceBufWrapper<3u> dSrcBuf(
-                const_cast<uint8_t*>(static_cast<const uint8_t*>(p->srcPtr.ptr)),
-                device,
-                extentSrc,
-                srcPitch);
-            cupla::DeviceBufWrapper<3u> dDestBuf(static_cast<uint8_t*>(p->dstPtr.ptr), device, extentDst, dstPitch);
+            {
+                cupla::DeviceBufWrapper<3u> dSrcBuf(
+                    const_cast<uint8_t*>(static_cast<const uint8_t*>(p->srcPtr.ptr)),
+                    device,
+                    extentSrc,
+                    srcPitch);
+                cupla::DeviceBufWrapper<3u> dDestBuf(
+                    static_cast<uint8_t*>(p->dstPtr.ptr),
+                    device,
+                    extentDst,
+                    dstPitch);
 
-            cupla::DeviceViewWrapper<3u> dView(dDestBuf, extentDst - offsetDst, offsetDst);
+                cupla::DeviceViewWrapper<3u> dView(dDestBuf, extentDst - offsetDst, offsetDst);
 
-            ::alpaka::memcpy(
-                streamObject,
-                dView,
-                cupla::DeviceViewWrapper<3u>(dSrcBuf, extentSrc - offsetSrc, offsetSrc),
-                numBytes);
-        }
-        break;
+                ::alpaka::memcpy(
+                    streamObject,
+                    dView,
+                    cupla::DeviceViewWrapper<3u>(dSrcBuf, extentSrc - offsetSrc, offsetSrc),
+                    numBytes);
+            }
+            break;
         case cuplaMemcpyHostToHost:
-        {
-            auto& hostStreamObject(cupla::manager::Stream<cupla::AccHost, cupla::AccHostStream>::get().stream(stream));
+            {
+                auto& hostStreamObject(
+                    cupla::manager::Stream<cupla::AccHost, cupla::AccHostStream>::get().stream(stream));
 
-            auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
-            cupla::HostBufWrapper<3u> hSrcBuf(
-                const_cast<uint8_t*>(static_cast<const uint8_t*>(p->srcPtr.ptr)),
-                host,
-                extentSrc,
-                srcPitch);
-            cupla::HostBufWrapper<3u> hDestBuf(static_cast<uint8_t*>(p->dstPtr.ptr), host, extentDst, dstPitch);
+                auto& host(cupla::manager::Device<cupla::AccHost>::get().current());
+                cupla::HostBufWrapper<3u> hSrcBuf(
+                    const_cast<uint8_t*>(static_cast<const uint8_t*>(p->srcPtr.ptr)),
+                    host,
+                    extentSrc,
+                    srcPitch);
+                cupla::HostBufWrapper<3u> hDestBuf(static_cast<uint8_t*>(p->dstPtr.ptr), host, extentDst, dstPitch);
 
-            cupla::HostViewWrapper<3u> hView(hDestBuf, extentDst - offsetDst, offsetDst);
-            ::alpaka::memcpy(
-                hostStreamObject,
-                hView,
-                cupla::HostViewWrapper<3u>(hSrcBuf, extentSrc - offsetSrc, offsetSrc),
-                numBytes);
-        }
-        break;
+                cupla::HostViewWrapper<3u> hView(hDestBuf, extentDst - offsetDst, offsetDst);
+                ::alpaka::memcpy(
+                    hostStreamObject,
+                    hView,
+                    cupla::HostViewWrapper<3u>(hSrcBuf, extentSrc - offsetSrc, offsetSrc),
+                    numBytes);
+            }
+            break;
         }
         return cuplaSuccess;
     }

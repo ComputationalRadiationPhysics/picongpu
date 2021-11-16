@@ -265,9 +265,7 @@ namespace alpaka
                     }
                 }
                 ConcurrentExecPool(ConcurrentExecPool const&) = delete;
-                ConcurrentExecPool(ConcurrentExecPool&&) = delete;
                 auto operator=(ConcurrentExecPool const&) -> ConcurrentExecPool& = delete;
-                auto operator=(ConcurrentExecPool&&) -> ConcurrentExecPool& = delete;
 
                 //! Completes any currently running task normally.
                 //! Signals a std::runtime_error exception to any other tasks that was not able to run.
@@ -310,9 +308,8 @@ namespace alpaka
                     auto boundTask = [=]() { return task(args...); };
                     auto decrementNumActiveTasks = [this]() { --m_numActiveTasks; };
 
-                    auto extendedTask = [boundTask, decrementNumActiveTasks]() {
-                        return invokeBothReturnFirst(std::move(boundTask), std::move(decrementNumActiveTasks));
-                    };
+                    auto extendedTask = [boundTask, decrementNumActiveTasks]()
+                    { return invokeBothReturnFirst(std::move(boundTask), std::move(decrementNumActiveTasks)); };
 
                     using TaskPackage = TaskPkg<TPromise, decltype(extendedTask)>;
                     auto pTaskPackage = new TaskPackage(std::move(extendedTask));
@@ -429,9 +426,7 @@ namespace alpaka
                     }
                 }
                 ConcurrentExecPool(ConcurrentExecPool const&) = delete;
-                ConcurrentExecPool(ConcurrentExecPool&&) = delete;
                 auto operator=(ConcurrentExecPool const&) -> ConcurrentExecPool& = delete;
-                auto operator=(ConcurrentExecPool&&) -> ConcurrentExecPool& = delete;
 
                 //! Completes any currently running task normally.
                 //! Signals a std::runtime_error exception to any other tasks that was not able to run.
@@ -480,9 +475,8 @@ namespace alpaka
                     auto boundTask = [=]() { return task(args...); };
                     auto decrementNumActiveTasks = [this]() { --m_numActiveTasks; };
 
-                    auto extendedTask = [boundTask, decrementNumActiveTasks]() {
-                        return invokeBothReturnFirst(std::move(boundTask), std::move(decrementNumActiveTasks));
-                    };
+                    auto extendedTask = [boundTask, decrementNumActiveTasks]()
+                    { return invokeBothReturnFirst(std::move(boundTask), std::move(decrementNumActiveTasks)); };
 
                     using TaskPackage = TaskPkg<TPromise, decltype(extendedTask)>;
                     auto pTaskPackage = new TaskPackage(std::move(extendedTask));

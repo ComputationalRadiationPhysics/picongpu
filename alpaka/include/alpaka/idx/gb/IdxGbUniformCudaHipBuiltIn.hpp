@@ -43,13 +43,6 @@ namespace alpaka
         class IdxGbUniformCudaHipBuiltIn
             : public concepts::Implements<ConceptIdxGb, IdxGbUniformCudaHipBuiltIn<TDim, TIdx>>
         {
-        public:
-            IdxGbUniformCudaHipBuiltIn() = default;
-            __device__ IdxGbUniformCudaHipBuiltIn(IdxGbUniformCudaHipBuiltIn const&) = delete;
-            __device__ IdxGbUniformCudaHipBuiltIn(IdxGbUniformCudaHipBuiltIn&&) = delete;
-            __device__ auto operator=(IdxGbUniformCudaHipBuiltIn const&) -> IdxGbUniformCudaHipBuiltIn& = delete;
-            __device__ auto operator=(IdxGbUniformCudaHipBuiltIn&&) -> IdxGbUniformCudaHipBuiltIn& = delete;
-            /*virtual*/ ~IdxGbUniformCudaHipBuiltIn() = default;
         };
     } // namespace gb
 

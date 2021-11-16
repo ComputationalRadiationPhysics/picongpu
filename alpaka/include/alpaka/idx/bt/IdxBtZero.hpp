@@ -23,13 +23,6 @@ namespace alpaka
         template<typename TDim, typename TIdx>
         class IdxBtZero : public concepts::Implements<ConceptIdxBt, IdxBtZero<TDim, TIdx>>
         {
-        public:
-            IdxBtZero() = default;
-            IdxBtZero(IdxBtZero const&) = delete;
-            IdxBtZero(IdxBtZero&&) = delete;
-            auto operator=(IdxBtZero const&) -> IdxBtZero& = delete;
-            auto operator=(IdxBtZero&&) -> IdxBtZero& = delete;
-            /*virtual*/ ~IdxBtZero() = default;
         };
     } // namespace bt
 

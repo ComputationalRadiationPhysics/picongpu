@@ -31,15 +31,6 @@ namespace alpaka
     class BlockSharedMemDynUniformCudaHipBuiltIn
         : public concepts::Implements<ConceptBlockSharedDyn, BlockSharedMemDynUniformCudaHipBuiltIn>
     {
-    public:
-        BlockSharedMemDynUniformCudaHipBuiltIn() = default;
-        __device__ BlockSharedMemDynUniformCudaHipBuiltIn(BlockSharedMemDynUniformCudaHipBuiltIn const&) = delete;
-        __device__ BlockSharedMemDynUniformCudaHipBuiltIn(BlockSharedMemDynUniformCudaHipBuiltIn&&) = delete;
-        __device__ auto operator=(BlockSharedMemDynUniformCudaHipBuiltIn const&)
-            -> BlockSharedMemDynUniformCudaHipBuiltIn& = delete;
-        __device__ auto operator=(BlockSharedMemDynUniformCudaHipBuiltIn&&)
-            -> BlockSharedMemDynUniformCudaHipBuiltIn& = delete;
-        /*virtual*/ ~BlockSharedMemDynUniformCudaHipBuiltIn() = default;
     };
 
     namespace traits

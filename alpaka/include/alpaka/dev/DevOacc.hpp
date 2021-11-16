@@ -46,14 +46,17 @@ namespace alpaka
             class DevOaccImpl
             {
             public:
-                DevOaccImpl(int iDevice) noexcept : m_deviceType(::acc_get_device_type()), m_iDevice(iDevice)
+                DevOaccImpl(int iDevice) noexcept
+                    : m_deviceType(::acc_get_device_type())
+                    , m_iDevice(iDevice)
+                    , m_gridsLock(reinterpret_cast<std::uint32_t*>(acc_malloc(2 * sizeof(std::uint32_t))))
                 {
+                    makeCurrent();
+                    const auto gridsLock = m_gridsLock;
+#    pragma acc parallel loop vector default(present) deviceptr(gridsLock)
+                    for(std::size_t a = 0; a < 2; ++a)
+                        gridsLock[a] = 0u;
                 }
-                DevOaccImpl(DevOaccImpl const&) = delete;
-                DevOaccImpl(DevOaccImpl&&) = delete;
-                auto operator=(DevOaccImpl const&) -> DevOaccImpl& = delete;
-                auto operator=(DevOaccImpl&&) -> DevOaccImpl& = delete;
-                ~DevOaccImpl() = default;
 
                 ALPAKA_FN_HOST auto getAllExistingQueues() const
                     -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOacc>>>
@@ -98,11 +101,40 @@ namespace alpaka
                     return m_deviceType;
                 }
 
+                void makeCurrent() const
+                {
+#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
+                    std::cout << "acc_set_device_num( " << iDevice() << ", [type] )" << std::endl;
+#    endif
+                    acc_set_device_num(iDevice(), deviceType());
+                }
+
+                std::uint32_t* gridsLock() const
+                {
+                    return m_gridsLock;
+                }
+
+                //! Create and/or return staticlly mapped device pointer of host address.
+                template<typename TElem, typename TExtent>
+                ALPAKA_FN_HOST auto mapStatic(TElem* pHost, TExtent const& extent) -> TElem*
+                {
+                    makeCurrent();
+                    void* pDev = acc_deviceptr(pHost);
+                    if(!pDev)
+                    {
+#    pragma acc enter data create(pHost [0:extent.prod()])
+                        pDev = acc_deviceptr(pHost);
+                        assert(pDev != nullptr);
+                    }
+                    return reinterpret_cast<TElem*>(pDev);
+                }
+
             private:
                 std::mutex mutable m_Mutex;
                 std::vector<std::weak_ptr<IGenericThreadsQueue<DevOacc>>> mutable m_queues;
                 acc_device_t m_deviceType;
                 int m_iDevice;
+                std::uint32_t* m_gridsLock = nullptr;
             };
         } // namespace detail
     } // namespace oacc
@@ -119,10 +151,6 @@ namespace alpaka
         }
 
     public:
-        DevOacc(DevOacc const&) = default;
-        DevOacc(DevOacc&&) = default;
-        auto operator=(DevOacc const&) -> DevOacc& = default;
-        auto operator=(DevOacc&&) -> DevOacc& = default;
         ALPAKA_FN_HOST auto operator==(DevOacc const& rhs) const -> bool
         {
             return m_spDevOaccImpl->iDevice() == rhs.m_spDevOaccImpl->iDevice();
@@ -131,7 +159,6 @@ namespace alpaka
         {
             return !((*this) == rhs);
         }
-        ~DevOacc() = default;
         int iDevice() const
         {
             return m_spDevOaccImpl->iDevice();
@@ -142,15 +169,24 @@ namespace alpaka
         }
         void makeCurrent() const
         {
-#    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-            std::cout << "acc_set_device_num( " << m_spDevOaccImpl->iDevice() << ", [type] )" << std::endl;
-#    endif
-            acc_set_device_num(m_spDevOaccImpl->iDevice(), m_spDevOaccImpl->deviceType());
+            m_spDevOaccImpl->makeCurrent();
+        }
+
+        std::uint32_t* gridsLock() const
+        {
+            return m_spDevOaccImpl->gridsLock();
         }
 
         ALPAKA_FN_HOST auto getAllQueues() const -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOacc>>>
         {
             return m_spDevOaccImpl->getAllExistingQueues();
+        }
+
+        //! Create and/or return staticlly mapped device pointer of host address.
+        template<typename TElem, typename TExtent>
+        ALPAKA_FN_HOST auto mapStatic(TElem* pHost, TExtent const& extent) const -> TElem*
+        {
+            return m_spDevOaccImpl->mapStatic(pHost, extent);
         }
 
         //! Registers the given queue on this device.

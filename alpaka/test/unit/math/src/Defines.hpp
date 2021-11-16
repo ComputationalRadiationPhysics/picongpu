@@ -29,7 +29,8 @@ namespace alpaka
                     PositiveOnly,
                     PositiveAndZero,
                     NotZero,
-                    Unrestricted
+                    Unrestricted,
+                    Anything
                 };
 
                 // New types need to be added to the operator() function in Functor.hpp

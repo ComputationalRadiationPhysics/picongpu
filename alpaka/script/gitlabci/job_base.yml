@@ -1,0 +1,49 @@
+.base:
+  variables:
+    ALPAKA_DEBUG: 0
+    ALPAKA_CI_BOOST_BRANCH: "boost-${ALPAKA_BOOST_VERSION}"
+    BOOST_LIBRARYDIR: "/opt/boost/${ALPAKA_BOOST_VERSION}/lib"
+    ALPAKA_CI_OS_NAME: "Linux"
+  script:
+    - source ./script/before_install.sh
+    - source ./script/install.sh
+    - source ./script/run.sh
+  interruptible: true
+
+.base_cuda_gcc:
+  image: nvidia/cuda:${ALPAKA_CI_CUDA_VERSION}-devel-ubuntu${ALPAKA_CI_UBUNTU_VER}
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    CC: gcc
+    CXX: g++
+    OMP_NUM_THREADS: 2
+    ALPAKA_CI_BUILD_JOBS: 2
+    ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE: "ON"
+    ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "ON"
+    ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE: "OFF"
+    ALPAKA_ACC_GPU_CUDA_ENABLE: "ON"
+    ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: "OFF"
+    CMAKE_CUDA_COMPILER: nvcc
+  extends: .base
+  tags:
+    - cuda
+    - intel
+
+.base_cuda_clang:
+  image: nvidia/cuda:${ALPAKA_CI_CUDA_VERSION}-devel-ubuntu${ALPAKA_CI_UBUNTU_VER}
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    CC: clang
+    CXX: clang++
+    OMP_NUM_THREADS: 2
+    ALPAKA_CI_BUILD_JOBS: 2
+    ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE: "ON"
+    ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "ON"
+    ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE: "OFF"
+    ALPAKA_ACC_GPU_CUDA_ENABLE: "ON"
+    ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: "OFF"
+    CMAKE_CUDA_COMPILER: clang++
+  extends: .base
+  tags:
+    - cuda
+    - intel

@@ -26,6 +26,10 @@
 #    include <alpaka/queue/cpu/IGenericThreadsQueue.hpp>
 #    include <alpaka/wait/Traits.hpp>
 
+#    include <map>
+#    include <sstream>
+#    include <stdexcept>
+
 namespace alpaka
 {
     class DevOmp5;
@@ -47,11 +51,11 @@ namespace alpaka
                 DevOmp5Impl(int iDevice) noexcept : m_iDevice(iDevice)
                 {
                 }
-                DevOmp5Impl(DevOmp5Impl const&) = delete;
-                DevOmp5Impl(DevOmp5Impl&&) = delete;
-                auto operator=(DevOmp5Impl const&) -> DevOmp5Impl& = delete;
-                auto operator=(DevOmp5Impl&&) -> DevOmp5Impl& = delete;
-                ~DevOmp5Impl() = default;
+                ~DevOmp5Impl()
+                {
+                    for(auto& a : m_staticMemMap)
+                        omp_target_free(a.second.first, iDevice());
+                }
 
                 ALPAKA_FN_HOST auto getAllExistingQueues() const
                     -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOmp5>>>
@@ -92,10 +96,42 @@ namespace alpaka
                     return m_iDevice;
                 }
 
+                //! Create and/or return staticlly mapped device pointer of host address.
+                template<typename TElem, typename TExtent>
+                ALPAKA_FN_HOST auto mapStatic(TElem* pHost, TExtent const& extent) -> TElem*
+                {
+                    const std::size_t sizeB = extent.prod() * sizeof(TElem);
+                    auto m = m_staticMemMap.find(pHost);
+                    if(m != m_staticMemMap.end())
+                    {
+                        if(sizeB != m->second.second)
+                        {
+                            std::ostringstream os;
+                            os << "Statically mapped size cannot change: Static size is " << m->second.second
+                               << " requested size is " << sizeB << '.';
+                            throw std::runtime_error(os.str());
+                        }
+                        return reinterpret_cast<TElem*>(m->second.first);
+                    }
+
+                    void* pDev = omp_target_alloc(sizeB, iDevice());
+                    if(!pDev)
+                        return nullptr;
+
+                    /*! Associating pointers for good measure. Not actually
+                     * required as long a not `target enter data` is done */
+                    omp_target_associate_ptr(pHost, pDev, sizeB, 0u, iDevice());
+
+                    m_staticMemMap[pHost] = std::make_pair(pDev, sizeB);
+                    return reinterpret_cast<TElem*>(pDev);
+                }
+
             private:
                 std::mutex mutable m_Mutex;
                 std::vector<std::weak_ptr<IGenericThreadsQueue<DevOmp5>>> mutable m_queues;
                 const int m_iDevice;
+
+                std::map<void*, std::pair<void*, std::size_t>> m_staticMemMap;
             };
         } // namespace detail
     } // namespace omp5
@@ -111,10 +147,6 @@ namespace alpaka
         }
 
     public:
-        DevOmp5(DevOmp5 const&) = default;
-        DevOmp5(DevOmp5&&) = default;
-        auto operator=(DevOmp5 const&) -> DevOmp5& = default;
-        auto operator=(DevOmp5&&) -> DevOmp5& = default;
         ALPAKA_FN_HOST auto operator==(DevOmp5 const& rhs) const -> bool
         {
             return m_spDevOmp5Impl->iDevice() == rhs.m_spDevOmp5Impl->iDevice();
@@ -123,10 +155,16 @@ namespace alpaka
         {
             return !((*this) == rhs);
         }
-        ~DevOmp5() = default;
         int iDevice() const
         {
             return m_spDevOmp5Impl->iDevice();
+        }
+
+        //! Create and/or return staticlly mapped device pointer of host address.
+        template<typename TElem, typename TExtent>
+        ALPAKA_FN_HOST auto mapStatic(TElem* pHost, TExtent const& extent) const -> TElem*
+        {
+            return m_spDevOmp5Impl->mapStatic(pHost, extent);
         }
 
         ALPAKA_FN_HOST auto getAllQueues() const -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOmp5>>>

@@ -20,13 +20,6 @@ namespace alpaka
         //! The single-threaded warp to emulate it on CPUs.
         class WarpSingleThread : public concepts::Implements<ConceptWarp, WarpSingleThread>
         {
-        public:
-            WarpSingleThread() = default;
-            WarpSingleThread(WarpSingleThread const&) = delete;
-            WarpSingleThread(WarpSingleThread&&) = delete;
-            auto operator=(WarpSingleThread const&) -> WarpSingleThread& = delete;
-            auto operator=(WarpSingleThread&&) -> WarpSingleThread& = delete;
-            ~WarpSingleThread() = default;
         };
 
         namespace traits

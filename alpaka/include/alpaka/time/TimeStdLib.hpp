@@ -20,13 +20,6 @@ namespace alpaka
     //! The CPU fibers accelerator time implementation.
     class TimeStdLib : public concepts::Implements<ConceptTime, TimeStdLib>
     {
-    public:
-        TimeStdLib() = default;
-        TimeStdLib(TimeStdLib const&) = delete;
-        TimeStdLib(TimeStdLib&&) = delete;
-        auto operator=(TimeStdLib const&) -> TimeStdLib& = delete;
-        auto operator=(TimeStdLib&&) -> TimeStdLib& = delete;
-        /*virtual*/ ~TimeStdLib() = default;
     };
 
     namespace traits

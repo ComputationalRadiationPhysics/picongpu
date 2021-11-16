@@ -270,5 +270,22 @@ namespace alpaka
         {
             using type = TIdx;
         };
+
+        //! The CPU device CreateSubView trait default implementation
+        template<typename TDev, typename TSfinae>
+        struct CreateSubView
+        {
+            template<typename TView, typename TExtent, typename TOffsets>
+            static auto createSubView(
+                TView& view,
+                TExtent const& extentElements,
+                TOffsets const& relativeOffsetsElements)
+            {
+                using Dim = alpaka::Dim<TExtent>;
+                using Idx = alpaka::Idx<TExtent>;
+                using Elem = typename traits::ElemType<TView>::type;
+                return ViewSubView<TDev, Elem, Dim, Idx>(view, extentElements, relativeOffsetsElements);
+            }
+        };
     } // namespace traits
 } // namespace alpaka

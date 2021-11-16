@@ -1,4 +1,4 @@
-/** Copyright 2019 Jakob Krude, Benjamin Worpitz
+/** Copyright 2019 Jakob Krude, Benjamin Worpitz, Jeffrey Kelling
  *
  * This file is part of alpaka.
  *
@@ -49,7 +49,7 @@ namespace alpaka
                     static_assert(
                         TArgs::value_type::arity == TFunctor::arity,
                         "Buffer properties must match TFunctor::arity");
-                    static_assert(TArgs::capacity > 2, "Set of args must provide > 2 entries.");
+                    static_assert(TArgs::capacity > 6, "Set of args must provide > 6 entries.");
                     constexpr auto max = std::numeric_limits<TData>::max();
                     constexpr auto low = std::numeric_limits<TData>::lowest();
                     std::default_random_engine eng{static_cast<std::default_random_engine::result_type>(seed)};
@@ -118,6 +118,28 @@ namespace alpaka
                                     args(i).arg[k] = dist(eng);
                                 else
                                     args(i).arg[k] = -dist(eng);
+                            }
+                            break;
+
+                        case Range::Anything:
+                            matchedSwitch = true;
+                            args(0).arg[k] = 0.0;
+                            args(1).arg[k] = std::numeric_limits<TData>::quiet_NaN();
+                            args(2).arg[k] = std::numeric_limits<TData>::signaling_NaN();
+                            args(3).arg[k] = std::numeric_limits<TData>::infinity();
+                            args(4).arg[k] = -std::numeric_limits<TData>::infinity();
+                            constexpr size_t nFixed = 5;
+                            size_t i = nFixed;
+                            // no need to test for denormal for now: not supported by CUDA
+                            // for(; i < nFixed + (TArgs::capacity - nFixed) / 2; ++i)
+                            // {
+                            //     const TData v = dist(eng) * std::numeric_limits<TData>::denorm_min();
+                            //     args(i).arg[k] = (i % 2 == 0) ? v : -v;
+                            // }
+                            for(; i < TArgs::capacity; ++i)
+                            {
+                                const TData v = dist(eng);
+                                args(i).arg[k] = (i % 2 == 0) ? v : -v;
                             }
                             break;
                         }

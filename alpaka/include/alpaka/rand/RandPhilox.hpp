@@ -1,0 +1,228 @@
+/* Copyright 2021 Jiri Vyskocil
+ *
+ * This file is part of alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+#pragma once
+
+#include <alpaka/core/Common.hpp>
+#include <alpaka/core/Unused.hpp>
+#include <alpaka/meta/IsArrayOrVector.hpp>
+#include <alpaka/rand/Philox/PhiloxSingle.hpp>
+#include <alpaka/rand/Philox/PhiloxVector.hpp>
+#include <alpaka/rand/Traits.hpp>
+
+#include <cstdint>
+#include <limits>
+#include <random>
+#include <type_traits>
+
+namespace alpaka
+{
+    namespace rand
+    {
+        /** Most common Philox engine variant, outputs single number
+         *
+         * This is a variant of the Philox engine generator which outputs a single float. The counter size is \f$4
+         * \times 32 = 128\f$ bits. Since the engine returns a single number, the generated result, which has the same
+         * size as the counter, has to be stored between invocations. Additionally a 32 bit pointer is stored. The
+         * total size of the state is 352 bits = 44 bytes.
+         *
+         * Ref.: J. K. Salmon, M. A. Moraes, R. O. Dror and D. E. Shaw, "Parallel random numbers: As easy as 1, 2, 3,"
+         * SC '11: Proceedings of 2011 International Conference for High Performance Computing, Networking, Storage and
+         * Analysis, 2011, pp. 1-12, doi: 10.1145/2063384.2063405.
+         *
+         * @tparam TAcc Accelerator type as defined in alpaka/acc
+         */
+        template<typename TAcc>
+        class Philox4x32x10 : public concepts::Implements<ConceptRand, Philox4x32x10<TAcc>>
+        {
+        public:
+            using EngineParams
+                = engine::PhiloxParams<4, 32, 10>; ///< Philox algorithm: 10 rounds, 4 numbers of size 32.
+            using EngineVariant = engine::PhiloxSingle<TAcc, EngineParams>; ///< Engine outputs a single number
+
+            /** Initialize a new Philox engine
+             *
+             * @param seed Set the Philox generator key
+             * @param subsequence Select a subsequence of size 2^64
+             * @param offset Skip \a offset numbers form the start of the subsequence
+             */
+            ALPAKA_FN_HOST_ACC Philox4x32x10(
+                std::uint64_t const seed = 0,
+                std::uint64_t const subsequence = 0,
+                std::uint64_t const offset = 0)
+                : engineVariant(seed, subsequence, offset)
+            {
+            }
+
+            ALPAKA_FN_HOST_ACC Philox4x32x10(EngineVariant state) : engineVariant(state)
+            {
+            }
+
+            EngineVariant engineVariant;
+
+            // STL UniformRandomBitGenerator concept
+            // https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator
+            using result_type = std::uint32_t;
+            ALPAKA_FN_HOST_ACC constexpr result_type min()
+            {
+                return 0;
+            }
+            ALPAKA_FN_HOST_ACC constexpr result_type max()
+            {
+                return std::numeric_limits<result_type>::max();
+            }
+            ALPAKA_FN_HOST_ACC result_type operator()()
+            {
+                return engineVariant();
+            }
+        };
+
+        /** Most common Philox engine variant, outputs a 4-vector of floats
+         *
+         * This is a variant of the Philox engine generator which outputs a vector containing 4 floats. The counter
+         * size is \f$4 \times 32 = 128\f$ bits. Since the engine returns the whole generated vector, it is up to the
+         * user to extract individual floats as they need. The benefit is smaller state size since the state does not
+         * contain the intermediate results. The total size of the state is 192 bits = 24 bytes.
+         *
+         * Ref.: J. K. Salmon, M. A. Moraes, R. O. Dror and D. E. Shaw, "Parallel random numbers: As easy as 1, 2, 3,"
+         * SC '11: Proceedings of 2011 International Conference for High Performance Computing, Networking, Storage and
+         * Analysis, 2011, pp. 1-12, doi: 10.1145/2063384.2063405.
+         *
+         * @tparam TAcc Accelerator type as defined in alpaka/acc
+         */
+        template<typename TAcc>
+        class Philox4x32x10Vector : public concepts::Implements<ConceptRand, Philox4x32x10Vector<TAcc>>
+        {
+        public:
+            using EngineParams = engine::PhiloxParams<4, 32, 10>;
+            using EngineVariant = engine::PhiloxVector<TAcc, EngineParams>;
+
+            /** Initialize a new Philox engine
+             *
+             * @param seed Set the Philox generator key
+             * @param subsequence Select a subsequence of size 2^64
+             * @param offset Number of numbers to skip form the start of the subsequence.
+             */
+            ALPAKA_FN_HOST_ACC Philox4x32x10Vector(
+                std::uint32_t const seed = 0,
+                std::uint32_t const subsequence = 0,
+                std::uint32_t const offset = 0)
+                : engineVariant(seed, subsequence, offset)
+            {
+            }
+
+            ALPAKA_FN_HOST_ACC Philox4x32x10Vector(EngineVariant state) : engineVariant(state)
+            {
+            }
+
+            EngineVariant engineVariant;
+            template<typename TScalar>
+            using ResultContainer = typename EngineVariant::template ResultContainer<TScalar>;
+
+            using ResultInt = std::uint32_t;
+            using ResultVec = decltype(engineVariant());
+            ALPAKA_FN_HOST_ACC constexpr ResultInt min()
+            {
+                return 0;
+            }
+            ALPAKA_FN_HOST_ACC constexpr ResultInt max()
+            {
+                return std::numeric_limits<ResultInt>::max();
+            }
+            ALPAKA_FN_HOST_ACC ResultVec operator()()
+            {
+                return engineVariant();
+            }
+        };
+
+
+        // The following exists because you "cannot call __device__ function from a __host__ __device__ function"
+        // directly, but wrapping that call in a struct is just fine.
+        template<typename TEngine>
+        struct EngineCallHostAccProxy
+        {
+            ALPAKA_FN_HOST_ACC auto operator()(TEngine& engine) -> decltype(engine())
+            {
+                return engine();
+            }
+        };
+
+        /// TEMP: Distributions to be decided on later. The generator should be compatible with STL as of now.
+        template<typename TResult, typename TSFINAE = void>
+        class UniformReal
+        {
+        public:
+            UniformReal() = delete;
+        };
+
+        /// TEMP: Distributions to be decided on later. The generator should be compatible with STL as of now.
+        template<typename TResult>
+        class UniformReal<TResult, std::enable_if_t<meta::IsArrayOrVector<TResult>::value>>
+            : public concepts::Implements<ConceptRand, UniformReal<TResult>>
+        {
+            using T = typename TResult::value_type;
+
+        public:
+            ALPAKA_FN_HOST_ACC UniformReal() : UniformReal(0, 1)
+            {
+            }
+
+            ALPAKA_FN_HOST_ACC UniformReal(T min, T max) : _min(min), _max(max), _range(_max - _min)
+            {
+            }
+
+            template<typename TEngine>
+            ALPAKA_FN_HOST_ACC TResult operator()(TEngine& engine)
+            {
+                auto result = engine();
+                T scale = static_cast<T>(1) / engine.max() * _range;
+                TResult ret{
+                    static_cast<T>(result[0]) * scale + _min,
+                    static_cast<T>(result[1]) * scale + _min,
+                    static_cast<T>(result[2]) * scale + _min,
+                    static_cast<T>(result[3]) * scale + _min};
+                return ret;
+            }
+
+        private:
+            const T _min;
+            const T _max;
+            const T _range;
+        };
+
+        template<typename TResult>
+        class UniformReal<TResult, std::enable_if_t<std::is_floating_point<TResult>::value>>
+            : public concepts::Implements<ConceptRand, UniformReal<TResult>>
+        {
+            using T = TResult;
+
+        public:
+            ALPAKA_FN_HOST_ACC UniformReal() : UniformReal(0, 1)
+            {
+            }
+
+            ALPAKA_FN_HOST_ACC UniformReal(T min, T max) : _min(min), _max(max), _range(_max - _min)
+            {
+            }
+
+            template<typename TEngine>
+            ALPAKA_FN_HOST_ACC auto operator()(TEngine& engine)
+            {
+                // Since it's possible to get a host-only engine here, the call has to go through proxy
+                return static_cast<T>(EngineCallHostAccProxy<TEngine>{}(engine)) / engine.max() * _range + _min;
+            }
+
+        private:
+            const T _min;
+            const T _max;
+            const T _range;
+        };
+
+    } // namespace rand
+} // namespace alpaka

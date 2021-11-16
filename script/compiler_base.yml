@@ -44,7 +44,9 @@
   variables:
     GIT_SUBMODULE_STRATEGY: normal
     ALPAKA_ACCS: "ALPAKA_ACC_GPU_CUDA_ENABLE"
-    CUPLA_CMAKE_ARGS: "-DALPAKA_CUDA_COMPILER=clang"
+    CUPLA_USE_CLANG_CUDA: "yes"
+    CMAKE_CUDA_ARCHITECTURES: "60"
+    CMAKE_CXX_EXTENSIONS: "OFF"
   before_script:
     - nvidia-smi
     - nvcc --version
@@ -60,7 +62,7 @@
     CUPLA_CXX: "hipcc"
     ALPAKA_ACCS: "ALPAKA_ACC_GPU_HIP_ENABLE"
     # architecture of the Vega 64
-    CUPLA_CMAKE_ARGS: "-DALPAKA_HIP_ARCH=900"
+    CUPLA_CMAKE_ARGS: "-DGPU_TARGETS=gfx900"
   before_script:
     - rocm-smi
     - hipcc --version

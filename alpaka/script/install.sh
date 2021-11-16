@@ -33,24 +33,25 @@ then
     # software-properties-common: 'add-apt-repository' and certificates for wget https download
     # binutils: ld
     # xz-utils: xzcat
-    travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install software-properties-common wget git make binutils xz-utils
+    travis_retry sudo DEBIAN_FRONTEND=noninteractive apt-get -y --quiet --allow-unauthenticated --no-install-recommends install software-properties-common wget git make binutils xz-utils gnupg2
 fi
 
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ] || [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
-    ./script/install_cmake.sh
+    source ./script/install_cmake.sh
 fi
 
-if [ "${ALPAKA_CI_ANALYSIS}" == "ON" ] ;then ./script/install_analysis.sh ;fi
+if [ "${ALPAKA_CI_ANALYSIS}" == "ON" ] ;then source ./script/install_analysis.sh ;fi
 
 # Install CUDA before installing gcc as it installs gcc-4.8 and overwrites our selected compiler
-if [ "${ALPAKA_CI_INSTALL_CUDA}" == "ON" ] ;then ./script/install_cuda.sh ;fi
+if [ "${ALPAKA_CI_INSTALL_CUDA}" == "ON" ] ;then source ./script/install_cuda.sh ;fi
 
 if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
-    if [ "${CXX}" == "g++" ] ;then ./script/install_gcc.sh ;fi
-    if [ "${CXX}" == "clang++" ] ;then source ./script/install_clang.sh ;fi
-    if [ "${CXX}" == "icpc" ] ;then source ./script/install_icpc.sh ;fi
+    if [[ "${CXX}" == "g++"* ]] ;then source ./script/install_gcc.sh ;fi
+    # do not install clang if we use HIP, HIP/ROCm is shipping an own clang version
+    if [[ "${CXX}" == "clang++" ]] && [ "${ALPAKA_CI_INSTALL_HIP}" != "ON" ] ;then source ./script/install_clang.sh ;fi
+    if [[ "${CXX}" == "icpc"* ]] ;then source ./script/install_icpc.sh ;fi
 elif [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
 then
     echo "### list all applications ###"
@@ -61,14 +62,14 @@ fi
 
 if [ "${ALPAKA_CI_INSTALL_TBB}" = "ON" ]
 then
-    ./script/install_tbb.sh
+    source ./script/install_tbb.sh
 fi
 
 # HIP
-if [ "${ALPAKA_CI_INSTALL_HIP}" == "ON" ]
+if [ "${ALPAKA_CI_INSTALL_HIP}" = "ON" ]
 then
-    ./script/install_hip.sh
+    source ./script/install_hip.sh
 fi
 
-./script/install_boost.sh
+source ./script/install_boost.sh
 

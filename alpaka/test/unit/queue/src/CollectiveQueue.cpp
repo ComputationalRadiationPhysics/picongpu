@@ -106,11 +106,8 @@ TEST_CASE("TestCollectiveMemcpy", "[queue]")
     {
         int threadId = omp_get_thread_num();
 
-        using View = alpaka::ViewPlainPtr<Dev, int, Dim, Idx>;
-
-        View dst(results.data() + threadId, dev, Vec(static_cast<Idx>(1u)), Vec(sizeof(int)));
-
-        View src(&threadId, dev, Vec(static_cast<Idx>(1u)), Vec(sizeof(int)));
+        auto dst = alpaka::createView(dev, results.data() + threadId, Vec(static_cast<Idx>(1u)), Vec(sizeof(int)));
+        auto src = alpaka::createView(dev, &threadId, Vec(static_cast<Idx>(1u)), Vec(sizeof(int)));
 
         // avoid that the first thread is executing the copy (can not be guaranteed)
         size_t sleep_ms = (results.size() - static_cast<uint32_t>(threadId)) * 100u;

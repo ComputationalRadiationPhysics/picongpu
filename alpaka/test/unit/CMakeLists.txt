@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2020 Benjamin Worpitz, Jan Stephan
+# Copyright 2015-2021 Benjamin Worpitz, Jan Stephan
 #
 # This file is part of alpaka.
 #
@@ -31,6 +31,7 @@ add_subdirectory("kernel/")
 add_subdirectory("math/")
 add_subdirectory("mem/buf/")
 add_subdirectory("mem/copy/")
+add_subdirectory("mem/fence/")
 add_subdirectory("mem/view/")
 add_subdirectory("mem/p2p/")
 add_subdirectory("meta/")

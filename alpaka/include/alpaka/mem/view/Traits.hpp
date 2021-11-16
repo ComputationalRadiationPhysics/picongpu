@@ -20,8 +20,10 @@
 #include <alpaka/queue/Traits.hpp>
 #include <alpaka/vec/Vec.hpp>
 
+#include <array>
 #include <iosfwd>
 #include <type_traits>
+#include <vector>
 
 namespace alpaka
 {
@@ -101,6 +103,14 @@ namespace alpaka
         //! The static device memory view creation trait.
         template<typename TDev, typename TSfinae = void>
         struct CreateStaticDevMemView;
+
+        //! The device memory view creation trait.
+        template<typename TDev, typename TSfinae = void>
+        struct CreateViewPlainPtr;
+
+        //! The sub view creation trait.
+        template<typename TDev, typename TSfinae = void>
+        struct CreateSubView;
     } // namespace traits
 
     //! Gets the native pointer of the memory view.
@@ -330,6 +340,19 @@ namespace alpaka
                 return getPitchBytes<Tidx>(pitch);
             }
         };
+
+        //! Calculate the pitches purely from the extents.
+        template<typename TElem, typename TDim, typename TIdx>
+        ALPAKA_FN_HOST inline auto calculatePitchesFromExtents(Vec<TDim, TIdx> const& extent)
+        {
+            Vec<TDim, TIdx> pitchBytes(Vec<TDim, TIdx>::all(0));
+            pitchBytes[TDim::value - 1u] = extent[TDim::value - 1u] * static_cast<TIdx>(sizeof(TElem));
+            for(TIdx i = TDim::value - 1u; i > static_cast<TIdx>(0u); --i)
+            {
+                pitchBytes[i - 1] = extent[i - 1] * pitchBytes[i];
+            }
+            return pitchBytes;
+        }
     } // namespace detail
     //! \return The pitch vector.
     template<typename TPitch>
@@ -353,4 +376,104 @@ namespace alpaka
     {
         return traits::CreateStaticDevMemView<TDev>::createStaticDevMemView(pMem, dev, extent);
     }
+
+    //! Creates a view to a device pointer
+    //!
+    //! \param dev Device from where pMem can be accessed.
+    //! \param pMem Pointer to memory. The pointer must be accessible from the given device.
+    //! \param extent Number of elements represented by the pMem.
+    //!               Using a multi dimensional extent will result in a multi dimension view to the memory represented
+    //!               by pMem.
+    //! \return A view to device memory.
+    template<typename TDev, typename TElem, typename TExtent>
+    auto createView(TDev const& dev, TElem* pMem, TExtent const& extent)
+    {
+        using Dim = alpaka::Dim<TExtent>;
+        using Idx = alpaka::Idx<TExtent>;
+        auto const extentVec = Vec<Dim, Idx>(extent);
+        return traits::CreateViewPlainPtr<TDev>::createViewPlainPtr(
+            dev,
+            pMem,
+            extentVec,
+            detail::calculatePitchesFromExtents<TElem>(extentVec));
+    }
+
+    //! Creates a view to a device pointer
+    //!
+    //! \param dev Device from where pMem can be accessed.
+    //! \param pMem Pointer to memory. The pointer must be accessible from the given device.
+    //! \param extent Number of elements represented by the pMem.
+    //!               Using a multi dimensional extent will result in a multi dimension view to the memory represented
+    //!               by pMem.
+    //! \param pitch Pitch in bytes for each dimension. Dimensionality must be equal to extent.
+    //! \return A view to device memory.
+    template<typename TDev, typename TElem, typename TExtent, typename TPitch>
+    auto createView(TDev const& dev, TElem* pMem, TExtent const& extent, TPitch const& pitch)
+    {
+        return traits::CreateViewPlainPtr<TDev>::createViewPlainPtr(dev, pMem, extent, pitch);
+    }
+
+    //! Creates a view to a device std::vector
+    //!
+    //! \param dev Device from where vec can be accessed.
+    //! \param vec std::vector container. The data hold by the container the must be accessible from the given device.
+    //! \return A view to device memory.
+    template<typename TDev, typename TElem, typename TAllocator>
+    auto createView(TDev const& dev, std::vector<TElem, TAllocator>& vec)
+    {
+        //! \todo With C++17 use std::data() and add support for all contiguous container
+        return createView(dev, vec.data(), extent::getExtent(vec));
+    }
+
+    //! Creates a view to a device std::vector
+    //!
+    //! \param dev Device from where pMem can be accessed.
+    //! \param vec std::vector container. The data hold by the container the must be accessible from the given device.
+    //! \param extent Number of elements represented by vec.
+    //!               Using a multi dimensional extent will result in a multi dimension view to the memory represented
+    //!               by vec.
+    //! \return A view to device memory.
+    template<typename TDev, typename TElem, typename TAllocator, typename TExtent>
+    auto createView(TDev const& dev, std::vector<TElem, TAllocator>& vec, TExtent const& extent)
+    {
+        return createView(dev, vec.data(), extent);
+    }
+
+    //! Creates a view to a device std::array
+    //!
+    //! \param dev Device from where array can be accessed.
+    //! \param array std::array container. The data hold by the container the must be accessible from the given device.
+    //! \return A view to device memory.
+    template<typename TDev, typename TElem, std::size_t Tsize>
+    auto createView(TDev const& dev, std::array<TElem, Tsize>& array)
+    {
+        return createView(dev, array.data(), extent::getExtent(array));
+    }
+
+    //! Creates a view to a device std::vector
+    //!
+    //! \param dev Device from where array can be accessed.
+    //! \param array std::array container. The data hold by the container the must be accessible from the given device
+    //! \param extent Number of elements represented by array.
+    //!               Using a multi dimensional extent will result in a multi dimension view to the memory represented
+    //!               by array.
+    //! \return A view to device memory.
+    template<typename TDev, typename TElem, std::size_t Tsize, typename TExtent>
+    auto createView(TDev const& dev, std::array<TElem, Tsize>& array, TExtent const& extent)
+    {
+        return createView(dev, array.data(), extent);
+    }
+
+    //! Creates a sub view to an existing view.
+    //!
+    //! \param view The view this view is a sub-view of.
+    //! \param extent Number of elements the resulting view holds.
+    //! \param offset Number of elements skipped in view for the new origin of the resulting view.
+    //! \return A sub view to a existing view.
+    template<typename TView, typename TExtent, typename TOffsets>
+    auto createSubView(TView& view, TExtent const& extent, TOffsets const& offset = TExtent())
+    {
+        return traits::CreateSubView<typename traits::DevType<TView>::type>::createSubView(view, extent, offset);
+    }
+
 } // namespace alpaka

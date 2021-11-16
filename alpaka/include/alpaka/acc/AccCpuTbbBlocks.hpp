@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Erik Zenker, René Widera
+/* Copyright 2021 Axel Huebl, Benjamin Worpitz, Erik Zenker, René Widera, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -22,6 +22,7 @@
 #    include <alpaka/idx/gb/IdxGbRef.hpp>
 #    include <alpaka/intrinsic/IntrinsicCpu.hpp>
 #    include <alpaka/math/MathStdLib.hpp>
+#    include <alpaka/mem/fence/MemFenceCpu.hpp>
 #    include <alpaka/rand/RandStdLib.hpp>
 #    include <alpaka/time/TimeStdLib.hpp>
 #    include <alpaka/warp/WarpSingleThread.hpp>
@@ -65,6 +66,7 @@ namespace alpaka
         public BlockSharedMemStMember<>,
         public BlockSyncNoOp,
         public IntrinsicCpu,
+        public MemFenceCpu,
         public rand::RandStdLib,
         public TimeStdLib,
         public warp::WarpSingleThread,
@@ -94,18 +96,12 @@ namespace alpaka
             , BlockSharedMemDynMember<>(blockSharedMemDynSizeBytes)
             , BlockSharedMemStMember<>(staticMemBegin(), staticMemCapacity())
             , BlockSyncNoOp()
+            , MemFenceCpu()
             , rand::RandStdLib()
             , TimeStdLib()
             , m_gridBlockIdx(Vec<TDim, TIdx>::zeros())
         {
         }
-
-    public:
-        ALPAKA_FN_HOST AccCpuTbbBlocks(AccCpuTbbBlocks const&) = delete;
-        ALPAKA_FN_HOST AccCpuTbbBlocks(AccCpuTbbBlocks&&) = delete;
-        ALPAKA_FN_HOST auto operator=(AccCpuTbbBlocks const&) -> AccCpuTbbBlocks& = delete;
-        ALPAKA_FN_HOST auto operator=(AccCpuTbbBlocks&&) -> AccCpuTbbBlocks& = delete;
-        /*virtual*/ ~AccCpuTbbBlocks() = default;
 
     private:
         // getIdx

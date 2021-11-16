@@ -12,7 +12,7 @@ if((NOT ALPAKA_ACC_GPU_CUDA_ENABLE AND NOT ALPAKA_ACC_GPU_HIP_ENABLE
    AND NOT ALPAKA_ACC_ANY_BT_OMP5_ENABLE AND NOT ALPAKA_ACC_ANY_BT_OACC_ENABLE) OR
    (ALPAKA_ACC_GPU_CUDA_ENABLE AND CMAKE_CUDA_SEPARABLE_COMPILATION))
 
-    set(_TARGET_NAME "separableCompilation")
+    set(_TARGET_NAME "separableCompilationTest")
 
     append_recursive_files_add_to_src_group("src/" "src/" "cpp" _FILES_SOURCE)
     append_recursive_files_add_to_src_group("include/" "include/" "hpp" _FILES_HEADER)

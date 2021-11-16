@@ -33,13 +33,6 @@ namespace alpaka
         //! The GPU CUDA/HIP warp.
         class WarpUniformCudaHipBuiltIn : public concepts::Implements<ConceptWarp, WarpUniformCudaHipBuiltIn>
         {
-        public:
-            WarpUniformCudaHipBuiltIn() = default;
-            __device__ WarpUniformCudaHipBuiltIn(WarpUniformCudaHipBuiltIn const&) = delete;
-            __device__ WarpUniformCudaHipBuiltIn(WarpUniformCudaHipBuiltIn&&) = delete;
-            __device__ auto operator=(WarpUniformCudaHipBuiltIn const&) -> WarpUniformCudaHipBuiltIn& = delete;
-            __device__ auto operator=(WarpUniformCudaHipBuiltIn&&) -> WarpUniformCudaHipBuiltIn& = delete;
-            ~WarpUniformCudaHipBuiltIn() = default;
         };
 
         namespace traits
@@ -142,6 +135,7 @@ namespace alpaka
 #    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
                     return __shfl_sync(activemask(warp), val, srcLane, width);
 #    else
+                    alpaka::ignore_unused(warp);
                     return __shfl(val, srcLane, width);
 #    endif
                 }
@@ -155,6 +149,7 @@ namespace alpaka
 #    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
                     return __shfl_sync(activemask(warp), val, srcLane, width);
 #    else
+                    alpaka::ignore_unused(warp);
                     return __shfl(val, srcLane, width);
 #    endif
                 }

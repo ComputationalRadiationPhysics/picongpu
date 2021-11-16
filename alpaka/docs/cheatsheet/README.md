@@ -13,5 +13,5 @@ pip install rst2pdf
 # Build
 
 ``` bash
-rst2pdf -s cheatsheet.style ../source/usage/cheatsheet.rst -o cheatsheet.pdf
+rst2pdf -s cheatsheet.style ../source/basics/cheatsheet.rst -o cheatsheet.pdf
 ```

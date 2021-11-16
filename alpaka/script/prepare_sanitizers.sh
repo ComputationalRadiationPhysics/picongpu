@@ -42,7 +42,7 @@ then
     CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fno-optimize-sibling-calls"
 
     # g++ needs to use a different linker
-    if [[ "${CXX}" == "g++" ]]
+    if [[ "${CXX}" == "g++"* ]]
     then
         CMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold"
     fi
@@ -52,7 +52,7 @@ then
     then
         CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize=undefined"
 
-        if [[ "${CXX}" == "clang++" ]]
+        if [[ "${CXX}" == "clang++"* ]]
         then
             CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize-blacklist=$(pwd)/test/sanitizer_ubsan_blacklist.txt"
 
@@ -82,7 +82,7 @@ then
 
         CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize=address"
 
-        if [[ "${CXX}" != "clang++" ]]
+        if [[ "${CXX}" != "clang++"* ]]
         then
             CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize-address-use-after-scope"
         fi
@@ -104,7 +104,7 @@ then
         fi
 
         CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize=thread"
-        if [ "${CXX}" == "g++" ]
+        if [[ "${CXX}" == "g++"* ]]
         then
             CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -pie -fPIE"
             CMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS} -ltsan"

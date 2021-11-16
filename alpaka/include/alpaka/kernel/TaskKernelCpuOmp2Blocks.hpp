@@ -802,11 +802,6 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        TaskKernelCpuOmp2Blocks(TaskKernelCpuOmp2Blocks const&) = default;
-        TaskKernelCpuOmp2Blocks(TaskKernelCpuOmp2Blocks&&) = default;
-        auto operator=(TaskKernelCpuOmp2Blocks const&) -> TaskKernelCpuOmp2Blocks& = default;
-        auto operator=(TaskKernelCpuOmp2Blocks&&) -> TaskKernelCpuOmp2Blocks& = default;
-        ~TaskKernelCpuOmp2Blocks() = default;
 
         //! Executes the kernel function object.
         ALPAKA_FN_HOST auto operator()() const -> void
@@ -819,7 +814,8 @@ namespace alpaka
 
             // Get the size of the block shared dynamic memory.
             auto const blockSharedMemDynSizeBytes = meta::apply(
-                [&](ALPAKA_DECAY_T(TArgs) const&... args) {
+                [&](ALPAKA_DECAY_T(TArgs) const&... args)
+                {
                     return getBlockSharedMemDynSizeBytes<AccCpuOmp2Blocks<TDim, TIdx>>(
                         m_kernelFnObj,
                         blockThreadExtent,
@@ -835,9 +831,8 @@ namespace alpaka
             // Bind all arguments except the accelerator.
             // TODO: With C++14 we could create a perfectly argument forwarding function object within the constructor.
             auto const boundKernelFnObj = meta::apply(
-                [this](ALPAKA_DECAY_T(TArgs) const&... args) {
-                    return std::bind(std::ref(m_kernelFnObj), std::placeholders::_1, std::ref(args)...);
-                },
+                [this](ALPAKA_DECAY_T(TArgs) const&... args)
+                { return std::bind(std::ref(m_kernelFnObj), std::placeholders::_1, std::ref(args)...); },
                 m_args);
 
             // The number of blocks in the grid.
@@ -906,7 +901,8 @@ namespace alpaka
 
             // Body of the OpenMP parallel loop to be executed.
             // Index type is auto since we have a difference for OpenMP 2.0 and later ones
-            auto loopBody = [&](auto currentIndex) {
+            auto loopBody = [&](auto currentIndex)
+            {
 #    if _OPENMP < 200805
                 auto const i_tidx = static_cast<TIdx>(currentIndex); // for issue #840
                 auto const index = Vec<DimInt<1u>, TIdx>(i_tidx); // for issue #840
