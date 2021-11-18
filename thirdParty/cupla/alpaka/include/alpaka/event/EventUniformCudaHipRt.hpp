@@ -74,9 +74,7 @@ namespace alpaka
                             | ALPAKA_API_PREFIX(EventDisableTiming)));
                 }
                 EventUniformCudaHipImpl(EventUniformCudaHipImpl const&) = delete;
-                EventUniformCudaHipImpl(EventUniformCudaHipImpl&&) = default;
                 auto operator=(EventUniformCudaHipImpl const&) -> EventUniformCudaHipImpl& = delete;
-                auto operator=(EventUniformCudaHipImpl&&) -> EventUniformCudaHipImpl& = delete;
                 ALPAKA_FN_HOST ~EventUniformCudaHipImpl()
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -111,10 +109,6 @@ namespace alpaka
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
         }
-        EventUniformCudaHipRt(EventUniformCudaHipRt const&) = default;
-        EventUniformCudaHipRt(EventUniformCudaHipRt&&) = default;
-        auto operator=(EventUniformCudaHipRt const&) -> EventUniformCudaHipRt& = default;
-        auto operator=(EventUniformCudaHipRt&&) -> EventUniformCudaHipRt& = default;
         ALPAKA_FN_HOST auto operator==(EventUniformCudaHipRt const& rhs) const -> bool
         {
             return (m_spEventImpl == rhs.m_spEventImpl);
@@ -123,7 +117,6 @@ namespace alpaka
         {
             return !((*this) == rhs);
         }
-        ~EventUniformCudaHipRt() = default;
 
     public:
         std::shared_ptr<uniform_cuda_hip::detail::EventUniformCudaHipImpl> m_spEventImpl;

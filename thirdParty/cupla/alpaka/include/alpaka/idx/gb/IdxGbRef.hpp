@@ -28,13 +28,7 @@ namespace alpaka
             IdxGbRef(Vec<TDim, TIdx> const& gridBlockIdx) : m_gridBlockIdx(gridBlockIdx)
             {
             }
-            IdxGbRef(IdxGbRef const&) = delete;
-            IdxGbRef(IdxGbRef&&) = delete;
-            auto operator=(IdxGbRef const&) -> IdxGbRef& = delete;
-            auto operator=(IdxGbRef&&) -> IdxGbRef& = delete;
-            /*virtual*/ ~IdxGbRef() = default;
 
-        public:
             Vec<TDim, TIdx> const& m_gridBlockIdx;
         };
     } // namespace gb

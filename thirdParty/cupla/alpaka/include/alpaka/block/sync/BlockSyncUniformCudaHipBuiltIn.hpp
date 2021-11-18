@@ -29,13 +29,6 @@ namespace alpaka
     class BlockSyncUniformCudaHipBuiltIn
         : public concepts::Implements<ConceptBlockSync, BlockSyncUniformCudaHipBuiltIn>
     {
-    public:
-        BlockSyncUniformCudaHipBuiltIn() = default;
-        __device__ BlockSyncUniformCudaHipBuiltIn(BlockSyncUniformCudaHipBuiltIn const&) = delete;
-        __device__ BlockSyncUniformCudaHipBuiltIn(BlockSyncUniformCudaHipBuiltIn&&) = delete;
-        __device__ auto operator=(BlockSyncUniformCudaHipBuiltIn const&) -> BlockSyncUniformCudaHipBuiltIn& = delete;
-        __device__ auto operator=(BlockSyncUniformCudaHipBuiltIn&&) -> BlockSyncUniformCudaHipBuiltIn& = delete;
-        /*virtual*/ ~BlockSyncUniformCudaHipBuiltIn() = default;
     };
 
     namespace traits

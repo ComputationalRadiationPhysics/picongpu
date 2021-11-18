@@ -7,16 +7,18 @@ DisableFormat: false
 AccessModifierOffset: -4
 AlignAfterOpenBracket: AlwaysBreak
 AlignConsecutiveAssignments: false
+AlignConsecutiveBitFields: false
 AlignConsecutiveDeclarations: false
 AlignConsecutiveMacros: false
 AlignEscapedNewlines: Right
-AlignOperands: false
+AlignOperands: DontAlign
 AlignTrailingComments: false
 AllowAllArgumentsOnNextLine: false
 AllowAllConstructorInitializersOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: All
@@ -26,8 +28,10 @@ AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: false
 BinPackParameters: false
+BitFieldColonSpacing: Both
 BreakBeforeBinaryOperators: All
 BreakBeforeBraces: Allman
+BreakBeforeConceptDeclarations: true
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: BeforeComma
@@ -46,9 +50,12 @@ FixNamespaceComments: true
 IncludeBlocks: Regroup
 IncludeIsMainRegex: '(Test)?$'
 IncludeIsMainSourceRegex: ''
+IndentCaseBlocks: true
 IndentCaseLabels: false
+IndentExternBlock: AfterExternBlock
 IndentGotoLabels: true
 IndentPPDirectives: AfterHash
+IndentRequires: true
 IndentWidth: 4
 IndentWrappedFunctionNames: false
 KeepEmptyLinesAtTheStartOfBlocks: false
@@ -72,6 +79,7 @@ SpaceAfterCStyleCast: true
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: false
 SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
 SpaceBeforeCpp11BracedList: false
 SpaceBeforeCtorInitializerColon: true
 SpaceBeforeInheritanceColon: true
@@ -107,11 +115,7 @@ IncludeCategories:
   - Regex: '<([A-Za-z0-9.\/-_])+>'
     Priority: 3
 
-# Future options - not supported in clang-format 11
-# AlignConsecutiveBitFields: false
-# AllowShortEnumsOnASingleLine: false
-# BitFieldColonSpacing: Both
-# IndentCaseBlocks: true
-# IndentExternBlock: AfterExternBlock
+# Future options - not supported in clang-format 12
+# 
 # OperandAlignmentStyle: Align
 ...

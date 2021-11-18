@@ -11,14 +11,11 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 
 #------------------------------------------------------------------------------
-# Calls HIP_ADD_LIBRARY or ADD_LIBRARY depending on the enabled alpaka
-# accelerators.
 #
 # ALPAKA_ADD_LIBRARY( cuda_target file0 file1 ... [STATIC | SHARED | MODULE]
 #   [EXCLUDE_FROM_ALL] [OPTIONS <nvcc-flags> ... ] )
 #
-# In order to be compliant with both ADD_LIBRARY and HIP_ADD_LIBRARY
-# the position of STATIC, SHARED, MODULE, EXCLUDE_FROM_ALL options don't matter.
+# The position of STATIC, SHARED, MODULE, EXCLUDE_FROM_ALL options don't matter.
 # This also means you won't be able to include files with those exact same
 # case-sensitive names.
 # After OPTIONS only nvcc compiler flags are allowed though. And for readiblity
@@ -27,9 +24,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 # OPTIONS and the arguments thereafter are ignored if not using CUDA, they
 # won't throw an error in that case.
 MACRO(ALPAKA_ADD_LIBRARY libraryName)
-    # HIP_ADD_LIBRARY( target file0 file1 ...
-    #                   [STATIC | SHARED | MODULE]
-    #                   [EXCLUDE_FROM_ALL] [OPTIONS <nvcc-flags> ... ] )
     # add_library( <name> [STATIC | SHARED | MODULE]
     #              [EXCLUDE_FROM_ALL]
     #              source1 [source2 ...] )
@@ -100,23 +94,6 @@ MACRO(ALPAKA_ADD_LIBRARY libraryName)
             ${optionArguments}
             ${sourceFileNames}
             )
-    ELSEIF( ALPAKA_ACC_GPU_HIP_ENABLE )
-        FOREACH( _file ${ARGN} )
-            IF( ( ${_file} MATCHES "\\.cpp$" ) OR
-                ( ${_file} MATCHES "\\.cxx$" )
-            )
-                SET_SOURCE_FILES_PROPERTIES( ${_file} PROPERTIES HIP_SOURCE_PROPERTY_FORMAT OBJ )
-            ENDIF()
-        ENDFOREACH()
-
-        HIP_ADD_LIBRARY(
-            ${libraryName}
-            ${sourceFileNames}
-            ${libraryType}
-            ${excludeFromAll}
-            ${optionArguments}
-        )
-
     ELSE()
         #message( "add_library( ${libraryName} ${libraryType} ${excludeFromAll} ${sourceFileNames} )" )
         ADD_LIBRARY(

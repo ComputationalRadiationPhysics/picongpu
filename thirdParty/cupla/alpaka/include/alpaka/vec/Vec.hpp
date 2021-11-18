@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <ostream>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -110,21 +111,6 @@ namespace alpaka
             : m_data{std::forward<TArg0>(arg0), std::forward<TArgs>(args)...}
         {
         }
-
-        ALPAKA_NO_HOST_ACC_WARNING
-        ALPAKA_FN_HOST_ACC
-        Vec(Vec const&) = default;
-        ALPAKA_NO_HOST_ACC_WARNING
-        ALPAKA_FN_HOST_ACC
-        Vec(Vec&&) noexcept = default;
-        ALPAKA_NO_HOST_ACC_WARNING
-        ALPAKA_FN_HOST_ACC
-        auto operator=(Vec const&) -> Vec& = default;
-        ALPAKA_NO_HOST_ACC_WARNING
-        ALPAKA_FN_HOST_ACC
-        auto operator=(Vec&&) noexcept -> Vec& = default;
-        ALPAKA_NO_HOST_ACC_WARNING
-        ALPAKA_FN_HOST_ACC ~Vec() = default;
 
     private:
         //! A function object that returns the given value for each index.
@@ -261,6 +247,18 @@ namespace alpaka
         {
             return static_cast<typename TDim::value_type>(
                 std::distance(std::begin(m_data), std::max_element(std::begin(m_data), std::end(m_data))));
+        }
+
+        template<size_t I>
+        ALPAKA_FN_HOST_ACC auto get() -> TVal&
+        {
+            return (*this)[I];
+        }
+
+        template<size_t I>
+        ALPAKA_FN_HOST_ACC auto get() const -> TVal
+        {
+            return (*this)[I];
         }
 
     private:
@@ -702,3 +700,24 @@ namespace alpaka
         };
     } // namespace traits
 } // namespace alpaka
+
+#if defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wmismatched-tags"
+#endif
+namespace std
+{
+    template<typename TDim, typename TVal>
+    struct tuple_size<alpaka::Vec<TDim, TVal>> : integral_constant<size_t, TDim::value>
+    {
+    };
+
+    template<size_t I, typename TDim, typename TVal>
+    struct tuple_element<I, alpaka::Vec<TDim, TVal>>
+    {
+        using type = TVal;
+    };
+} // namespace std
+#if defined(__clang__)
+#    pragma GCC diagnostic pop
+#endif

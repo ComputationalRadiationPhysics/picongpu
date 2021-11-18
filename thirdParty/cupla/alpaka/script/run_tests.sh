@@ -24,7 +24,8 @@ then
     echo "OMP_NUM_THREADS=${OMP_NUM_THREADS}"
 fi
 
-if [ "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "OFF" ] && [ "${ALPAKA_ACC_GPU_HIP_ENABLE}" == "OFF" ];
+# in the GitLab CI, all runtime tests are possible
+if [[ ! -z "${GITLAB_CI+x}" || ("${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "OFF" && "${ALPAKA_ACC_GPU_HIP_ENABLE}" == "OFF" ) ]];
 then
     cd build/
 

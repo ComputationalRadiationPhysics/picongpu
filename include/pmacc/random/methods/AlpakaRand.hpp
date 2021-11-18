@@ -33,14 +33,14 @@ namespace pmacc
             class AlpakaRand
             {
             public:
-                using StateType = decltype(::alpaka::rand::generator::createDefault(
+                using StateType = decltype(::alpaka::rand::engine::createDefault(
                     alpaka::core::declval<T_Acc const&>(),
                     alpaka::core::declval<uint32_t&>(),
                     alpaka::core::declval<uint32_t&>()));
 
                 DINLINE void init(T_Acc const& acc, StateType& state, uint32_t seed, uint32_t subsequence = 0) const
                 {
-                    state = ::alpaka::rand::generator::createDefault(acc, seed, subsequence);
+                    state = ::alpaka::rand::engine::createDefault(acc, seed, subsequence);
                 }
 
                 DINLINE uint32_t get32Bits(T_Acc const& acc, StateType& state) const

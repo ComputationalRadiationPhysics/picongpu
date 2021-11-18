@@ -61,10 +61,7 @@ namespace alpaka
                 {
                 }
                 QueueGenericThreadsNonBlockingImpl(QueueGenericThreadsNonBlockingImpl<TDev> const&) = delete;
-                QueueGenericThreadsNonBlockingImpl(QueueGenericThreadsNonBlockingImpl<TDev>&&) = delete;
                 auto operator=(QueueGenericThreadsNonBlockingImpl<TDev> const&)
-                    -> QueueGenericThreadsNonBlockingImpl<TDev>& = delete;
-                auto operator=(QueueGenericThreadsNonBlockingImpl<TDev>&&)
                     -> QueueGenericThreadsNonBlockingImpl<TDev>& = delete;
 
                 void enqueue(EventGenericThreads<TDev>& ev) final
@@ -100,10 +97,6 @@ namespace alpaka
 
             dev.registerQueue(m_spQueueImpl);
         }
-        QueueGenericThreadsNonBlocking(QueueGenericThreadsNonBlocking<TDev> const&) = default;
-        QueueGenericThreadsNonBlocking(QueueGenericThreadsNonBlocking<TDev>&&) = default;
-        auto operator=(QueueGenericThreadsNonBlocking<TDev> const&) -> QueueGenericThreadsNonBlocking<TDev>& = default;
-        auto operator=(QueueGenericThreadsNonBlocking<TDev>&&) -> QueueGenericThreadsNonBlocking<TDev>& = default;
         auto operator==(QueueGenericThreadsNonBlocking<TDev> const& rhs) const -> bool
         {
             return (m_spQueueImpl == rhs.m_spQueueImpl);
@@ -112,7 +105,6 @@ namespace alpaka
         {
             return !((*this) == rhs);
         }
-        ~QueueGenericThreadsNonBlocking() = default;
 
     public:
         std::shared_ptr<generic::detail::QueueGenericThreadsNonBlockingImpl<TDev>> m_spQueueImpl;

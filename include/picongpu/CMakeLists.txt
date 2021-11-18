@@ -170,20 +170,6 @@ set(HOST_LIBS ${HOST_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
 
 ################################################################################
-# Find OpenMP
-################################################################################
-
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND ALPAKA_ACC_GPU_CUDA_ENABLE AND ALPAKA_CUDA_COMPILER MATCHES "clang")
-    message(WARNING "OpenMP host side acceleration is disabled: CUDA compilation with clang is not supporting OpenMP.")
-else()
-    find_package(OpenMP)
-    if(OPENMP_FOUND)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    endif()
-endif()
-
-
-################################################################################
 # Find zlib
 ################################################################################
 

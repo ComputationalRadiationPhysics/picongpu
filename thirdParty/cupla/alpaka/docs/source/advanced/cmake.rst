@@ -37,6 +37,14 @@ BUILD_TESTING
 
      Build the testing tree.
 
+alpaka_INSTALL_TEST_HEADER
+  .. code-block::
+
+     Install headers of the namespace alpaka::test.
+     Attention, headers are not designed for production code.
+     They should only be used for prototyping or creating tests that use alpaka
+     functionality.
+
 ALPAKA_DEBUG
   .. code-block::
 
@@ -233,8 +241,7 @@ ALPAKA_CUDA_SHOW_REGISTER
 HIP
 ---
 
-To enable the HIP backend please provide the path to the CMake find module `FindHIP.cmake`.
-The path can be given via an environment variable `CMAKE_MODULE_PATH` or by providing the CMake flag `-DCMAKE_MODULE_PATH=<path>`.
+To enable the HIP back-end please extend ``CMAKE_PREFIX_PATH`` with the path to the HIP installation.
 
 ALPAKA_ACC_GPU_HIP_ENABLE
   .. code-block::
@@ -246,26 +253,8 @@ ALPAKA_ACC_GPU_HIP_ONLY_MODE
 
      Only back-ends using HIP can be enabled in this mode.
 
-ALPAKA_HIP_PLATFORM
-  .. code-block::
-
-     Specify HIP platform. Can be "clang" or "nvcc".
-
 ALPAKA_HIP_KEEP_FILES
   .. code-block::
 
      Keep all intermediate files that are generated during internal compilation
      steps 'CMakeFiles/<targetname>.dir'.
-
-ALPAKA_HIP_SHOW_REGISTER
-  .. code-block::
-
-     Show the number of used kernel registers during compilation and create PTX.
-     Option is only available if ALPAKA_HIP_PLATFORM=nvcc.
-
-ALPAKA_HIP_SHOW_CODELINES
-  .. code-block::
-
-     Show kernel lines in cuda-gdb and cuda-memcheck. If ALPAKA_HIP_KEEP_FILES
-     is enabled source code will be inlined in ptx.
-     Option is only available if ALPAKA_HIP_PLATFORM=nvcc.

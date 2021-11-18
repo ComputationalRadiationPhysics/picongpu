@@ -18,13 +18,32 @@ source ./script/set.sh
 : "${ALPAKA_CI_STDLIB?'ALPAKA_CI_STDLIB must be specified'}"
 : "${CXX?'CXX must be specified'}"
 
+# add clang-11 reposetory for ubuntu 18.04
+if [[ "$(cat /etc/os-release)" == *"18.04"* && "${ALPAKA_CI_CLANG_VER}" -eq 11 ]]
+then
+    travis_retry sudo DEBIAN_FRONTEND=noninteractive apt-get -y --quiet --allow-unauthenticated --no-install-recommends install tzdata
+    travis_retry apt-get -y --quiet install wget gnupg2
+    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+    echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-11 main" | sudo tee /etc/apt/sources.list.d/clang11.list
+    echo "deb-src http://apt.llvm.org/bionic/ llvm-toolchain-bionic-11 main" | sudo tee -a  /etc/apt/sources.list.d/clang11.list
+    travis_retry apt-get -y --quiet update
+fi
+
 travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install clang-${ALPAKA_CI_CLANG_VER}
 
 if [ "${ALPAKA_CI_STDLIB}" == "libc++" ]
 then
     travis_retry sudo apt-get -y --quiet update
-    travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libc++-dev
-    travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libc++abi-dev
+    if [ "${ALPAKA_CI_CLANG_VER}" -gt 6 ]
+    then
+        travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libc++-${ALPAKA_CI_CLANG_VER}-dev
+        travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libc++abi-${ALPAKA_CI_CLANG_VER}-dev
+    else
+        # Ubuntu started numbering libc++ with version 7. If we got to this point, we need to install the 
+        # default libc++ and hope for the best
+        travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libc++-dev
+        travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libc++abi-dev
+    fi
 fi
 
 if [ "${ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE}" = "ON" ] || [ "${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE}" = "ON" ] || [ "${ALPAKA_ACC_ANY_BT_OMP5_ENABLE}" = "ON" ]

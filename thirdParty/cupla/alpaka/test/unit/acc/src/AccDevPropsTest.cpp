@@ -21,11 +21,9 @@ TEMPLATE_LIST_TEST_CASE("getAccDevProps", "[acc]", alpaka::test::TestAccs)
     Dev const dev(alpaka::getDevByIdx<Pltf>(0u));
     auto const devProps = alpaka::getAccDevProps<Acc>(dev);
 
-    REQUIRE(devProps.m_gridBlockExtentMax.prod() > 0);
-    // Note: this causes signed overflow for some configurations,
-    // will be fixed separately
-    // REQUIRE(devProps.m_blockThreadExtentMax.prod() > 0);
-    REQUIRE(devProps.m_threadElemExtentMax.prod() > 0);
+    REQUIRE(devProps.m_gridBlockExtentMax.min() > 0);
+    REQUIRE(devProps.m_blockThreadExtentMax.min() > 0);
+    REQUIRE(devProps.m_threadElemExtentMax.min() > 0);
     REQUIRE(devProps.m_gridBlockCountMax > 0);
     REQUIRE(devProps.m_blockThreadCountMax > 0);
     REQUIRE(devProps.m_threadElemCountMax > 0);

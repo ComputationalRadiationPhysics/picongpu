@@ -21,16 +21,7 @@ namespace alpaka
     class BlockSyncBarrierOmp : public concepts::Implements<ConceptBlockSync, BlockSyncBarrierOmp>
     {
     public:
-        ALPAKA_FN_HOST BlockSyncBarrierOmp() : m_generation(0u)
-        {
-        }
-        ALPAKA_FN_HOST BlockSyncBarrierOmp(BlockSyncBarrierOmp const&) = delete;
-        ALPAKA_FN_HOST BlockSyncBarrierOmp(BlockSyncBarrierOmp&&) = delete;
-        ALPAKA_FN_HOST auto operator=(BlockSyncBarrierOmp const&) -> BlockSyncBarrierOmp& = delete;
-        ALPAKA_FN_HOST auto operator=(BlockSyncBarrierOmp&&) -> BlockSyncBarrierOmp& = delete;
-        /*virtual*/ ~BlockSyncBarrierOmp() = default;
-
-        std::uint8_t mutable m_generation;
+        std::uint8_t mutable m_generation = 0u;
         int mutable m_result[2];
     };
 

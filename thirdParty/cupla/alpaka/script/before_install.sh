@@ -32,6 +32,7 @@ fi
 
 #-------------------------------------------------------------------------------
 # Boost.
+echo $ALPAKA_CI_BOOST_BRANCH
 ALPAKA_CI_BOOST_BRANCH_MAJOR=${ALPAKA_CI_BOOST_BRANCH:6:1}
 echo ALPAKA_CI_BOOST_BRANCH_MAJOR: "${ALPAKA_CI_BOOST_BRANCH_MAJOR}"
 ALPAKA_CI_BOOST_BRANCH_MINOR=${ALPAKA_CI_BOOST_BRANCH:8:2}
@@ -40,16 +41,9 @@ echo ALPAKA_CI_BOOST_BRANCH_MINOR: "${ALPAKA_CI_BOOST_BRANCH_MINOR}"
 #-------------------------------------------------------------------------------
 # CUDA
 export ALPAKA_CI_INSTALL_CUDA="OFF"
-if [ "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "ON" ]
+if [[ "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "ON" && -z "${GITLAB_CI+x}" ]]
 then
     export ALPAKA_CI_INSTALL_CUDA="ON"
-fi
-if [ "${ALPAKA_ACC_GPU_HIP_ENABLE}" == "ON" ]
-then
-    if [ "${ALPAKA_HIP_PLATFORM}" == "nvcc" ]
-    then
-        export ALPAKA_CI_INSTALL_CUDA="ON"
-    fi
 fi
 
 #-------------------------------------------------------------------------------
@@ -58,13 +52,6 @@ export ALPAKA_CI_INSTALL_HIP="OFF"
 if [ "${ALPAKA_ACC_GPU_HIP_ENABLE}" == "ON" ]
 then
     export ALPAKA_CI_INSTALL_HIP="ON"
-
-    # if platform is nvcc, CUDA part is already processed in this file.
-    if [ "${ALPAKA_HIP_PLATFORM}" == "hcc" ]
-    then
-        echo "HIP(hcc) is not supported."
-        exit 1
-    fi
 fi
 
 #-------------------------------------------------------------------------------
@@ -99,9 +86,9 @@ fi
 # GCC-5.5 has broken avx512vlintrin.h in Release mode with NVCC 9.X
 #   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=76731
 #   https://github.com/tensorflow/tensorflow/issues/10220
-if [ "${ALPAKA_CI_INSTALL_CUDA}" == "ON" ]
+if [ "${ALPAKA_CI_INSTALL_CUDA}" == "ON"  ]
 then
-    if [ "${CXX}" == "g++" ]
+    if [[ "${CXX}" == "g++"* ]]
     then
         if (( "${ALPAKA_CI_GCC_VER_MAJOR}" == 5 ))
         then
@@ -121,7 +108,7 @@ if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
     if [ "${ALPAKA_CI_STDLIB}" == "libc++" ]
     then
-        if [ "${CXX}" == "g++" ]
+        if [[ "${CXX}" == "g++"* ]]
         then
             echo "using libc++ with g++ not yet supported."
             exit 1

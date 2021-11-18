@@ -12,14 +12,8 @@ cmake_minimum_required(VERSION 3.18)
 
 set(_COMMON_TARGET_NAME "common")
 set(_COMMON_COMPILE_OPTIONS_FILE "devCompileOptions.cmake")
-set(_COMMON_INCLUDE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/include")
-
-# Add all the source files in all recursive subdirectories and group them accordingly.
-append_recursive_files_add_to_src_group("${_COMMON_INCLUDE_DIRECTORY}" "${_COMMON_INCLUDE_DIRECTORY}" "hpp" _COMMON_FILES_HEADER)
 
 add_library(${_COMMON_TARGET_NAME} INTERFACE)
-
-target_include_directories(${_COMMON_TARGET_NAME} INTERFACE ${_COMMON_INCLUDE_DIRECTORY})
 
 include(${_COMMON_COMPILE_OPTIONS_FILE})
 message(STATUS "ALPAKA_DEV_COMPILE_OPTIONS: ${ALPAKA_DEV_COMPILE_OPTIONS}")

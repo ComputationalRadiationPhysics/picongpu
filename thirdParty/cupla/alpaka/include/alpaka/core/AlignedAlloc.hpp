@@ -52,8 +52,6 @@ namespace alpaka
         //! destroy aligned object and free aligned memory
         struct AlignedDelete
         {
-            constexpr AlignedDelete() = default;
-
             //! Calls ~T() on ptr to destroy the object and then calls aligned_free to free the allocated memory.
             template<typename T>
             void operator()(T* ptr) const

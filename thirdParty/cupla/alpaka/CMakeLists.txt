@@ -42,6 +42,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 option(alpaka_BUILD_EXAMPLES "Build the examples" OFF)
 
 option(BUILD_TESTING "Build the testing tree." OFF)
+
+option(alpaka_INSTALL_TEST_HEADER "Install headers of the namespace alpaka::test. Attention, headers are not designed for production code, see documentation." OFF)
 include(CTest)
 
 ################################################################################
@@ -87,6 +89,11 @@ include(${_ALPAKA_ROOT_DIR}/cmake/alpakaCommon.cmake)
 # Add all the source and include files in all recursive subdirectories and group them accordingly.
 append_recursive_files_add_to_src_group("${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "hpp" _ALPAKA_FILES_HEADER)
 append_recursive_files_add_to_src_group("${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "h" _ALPAKA_FILES_HEADER)
+
+# remove headers of the folder alpaka/test, if alpaka_INSTALL_TEST_HEADER is disabled
+if(NOT alpaka_INSTALL_TEST_HEADER)
+  list(FILTER _ALPAKA_FILES_HEADER EXCLUDE REGEX "(.*)/alpaka/test/(.*)")
+endif()
 
 append_recursive_files_add_to_src_group("${_ALPAKA_ROOT_DIR}/script" "${_ALPAKA_ROOT_DIR}" "sh" _ALPAKA_FILES_SCRIPT)
 set_source_files_properties(${_ALPAKA_FILES_SCRIPT} PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -157,15 +164,21 @@ if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
 
     configure_package_config_file(
         "${_ALPAKA_ROOT_DIR}/cmake/alpakaConfig.cmake.in"
-        "${PROJECT_BINARY_DIR}/alpakaConfig.cmake" 
+        "${PROJECT_BINARY_DIR}/alpakaConfig.cmake"
         INSTALL_DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
 
     install(FILES "${PROJECT_BINARY_DIR}/alpakaConfig.cmake"
                   "${PROJECT_BINARY_DIR}/alpakaConfigVersion.cmake"
             DESTINATION "${_ALPAKA_INSTALL_CMAKEDIR}")
 
-    install(DIRECTORY "${_ALPAKA_SUFFIXED_INCLUDE_DIR}"
-            DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    if(alpaka_INSTALL_TEST_HEADER)
+        install(DIRECTORY "${_ALPAKA_SUFFIXED_INCLUDE_DIR}"
+	        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    else()
+	install(DIRECTORY "${_ALPAKA_SUFFIXED_INCLUDE_DIR}"
+	        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+                PATTERN "test" EXCLUDE)
+    endif()
 
     install(FILES "${_ALPAKA_ROOT_DIR}/cmake/addExecutable.cmake"
                   "${_ALPAKA_ROOT_DIR}/cmake/addLibrary.cmake"

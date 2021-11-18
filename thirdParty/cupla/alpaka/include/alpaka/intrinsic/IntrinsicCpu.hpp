@@ -24,13 +24,6 @@ namespace alpaka
     //! The CPU intrinsic.
     class IntrinsicCpu : public concepts::Implements<ConceptIntrinsic, IntrinsicCpu>
     {
-    public:
-        IntrinsicCpu() = default;
-        IntrinsicCpu(IntrinsicCpu const&) = delete;
-        IntrinsicCpu(IntrinsicCpu&&) = delete;
-        auto operator=(IntrinsicCpu const&) -> IntrinsicCpu& = delete;
-        auto operator=(IntrinsicCpu&&) -> IntrinsicCpu& = delete;
-        ~IntrinsicCpu() = default;
     };
 
     namespace traits

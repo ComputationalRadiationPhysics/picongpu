@@ -6,13 +6,16 @@
   image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-rocm${HIP_CONTAINER_VERSION}-pic:${CONTAINER_TAG}
   variables:
     GIT_SUBMODULE_STRATEGY: normal
-    PIC_CMAKE_ARGS: "-DALPAKA_HIP_ARCH=900 -DCMAKE_MODULE_PATH=/opt/rocm/hip/cmake"
+    PIC_CMAKE_ARGS: "-DALPAKA_HIP_ARCH=gfx900"
     # use VEGA64 GPU
     HIP_VISIBLE_DEVICES: "2"
     # ISAAC is not working with HIP
     DISABLE_ISAAC: "yes"
   script:
     - export PATH="$PATH:/opt/rocm/llvm/bin/"
+    - export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/rocrand/lib/"
+    - export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/hiprand/lib/"
+    - export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/lib/"
     # rocm 4.2 container is missing a binary/symlink named `clang++-12`
     - ln -s /opt/rocm/llvm/bin/clang++ /opt/rocm/llvm/bin/clang++-12
     - rocm-smi

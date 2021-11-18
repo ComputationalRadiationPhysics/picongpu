@@ -48,7 +48,7 @@ struct vectorAdd
             int end = (begin + cupla::threadDim(acc).x < numElements) ? begin + cupla::threadDim(acc).x : numElements;
             for(int i = begin; i < end; ++i)
             {
-                C[i] = A[i] + B[i], cupla::hierarchy::Blocks{};
+                C[i] = A[i] + B[i];
             }
         }
     }

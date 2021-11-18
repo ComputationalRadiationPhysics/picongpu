@@ -53,11 +53,6 @@ namespace alpaka
             {
             }
 #endif
-            BlockSharedMemStMemberImpl(BlockSharedMemStMemberImpl const&) = delete;
-            BlockSharedMemStMemberImpl(BlockSharedMemStMemberImpl&&) = delete;
-            auto operator=(BlockSharedMemStMemberImpl const&) -> BlockSharedMemStMemberImpl& = delete;
-            auto operator=(BlockSharedMemStMemberImpl&&) -> BlockSharedMemStMemberImpl& = delete;
-            /*virtual*/ ~BlockSharedMemStMemberImpl() = default;
 
             template<typename T>
             void alloc(std::uint32_t id) const

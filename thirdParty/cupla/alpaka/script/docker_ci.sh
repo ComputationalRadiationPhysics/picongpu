@@ -112,7 +112,6 @@ ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_HIP=${ALPAKA_CI_INSTALL_HIP}
 if [ "${ALPAKA_CI_INSTALL_HIP}" == "ON" ]
 then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_HIP_ROOT_DIR=${ALPAKA_CI_HIP_ROOT_DIR}")
-    ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_HIP_PLATFORM=${ALPAKA_HIP_PLATFORM}")
 fi
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_TBB=${ALPAKA_CI_INSTALL_TBB}")
 ALPAKA_DOCKER_ENV_LIST+=("--env" "ALPAKA_CI_INSTALL_FIBERS=${ALPAKA_CI_INSTALL_FIBERS}")
@@ -164,4 +163,4 @@ then
     ALPAKA_DOCKER_ENV_LIST+=("--env" "CMAKE_CUDA_SEPARABLE_COMPILATION=${CMAKE_CUDA_SEPARABLE_COMPILATION}")
 fi
 
-docker_retry docker run -v "$(pwd)":"$(pwd)" -w "$(pwd)" "${ALPAKA_DOCKER_ENV_LIST[@]}" "${ALPAKA_CI_DOCKER_BASE_IMAGE_NAME}" /bin/bash -c "./script/install.sh && ./script/run.sh"
+docker_retry docker run -v "$(pwd)":"$(pwd)" -w "$(pwd)" "${ALPAKA_DOCKER_ENV_LIST[@]}" "${ALPAKA_CI_DOCKER_BASE_IMAGE_NAME}" /bin/bash -c "source ./script/install.sh && ./script/run.sh"

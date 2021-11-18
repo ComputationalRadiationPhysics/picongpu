@@ -88,9 +88,7 @@ namespace alpaka
             Vec<TDim, TIdx> m_pitchBytes;
             TElem* m_pMem;
 
-            BufOmp5Impl(const BufOmp5Impl&) = delete;
             BufOmp5Impl(BufOmp5Impl&&) = default;
-            BufOmp5Impl& operator=(const BufOmp5Impl&) = delete;
             BufOmp5Impl& operator=(BufOmp5Impl&&) = default;
             ~BufOmp5Impl()
             {
@@ -109,11 +107,6 @@ namespace alpaka
             : m_spBufImpl(std::make_shared<detail::BufOmp5Impl<TElem, TDim, TIdx>>(dev, pMem, extent))
         {
         }
-
-        BufOmp5(const BufOmp5&) = default;
-        BufOmp5(BufOmp5&&) = default;
-        BufOmp5& operator=(const BufOmp5&) = default;
-        BufOmp5& operator=(BufOmp5&&) = default;
 
         detail::BufOmp5Impl<TElem, TDim, TIdx>& operator*()
         {

@@ -65,6 +65,7 @@ Individual chapters are based on the information of the chapters before.
    dev/details.rst
    dev/style
    dev/sphinx
+   dev/ci
    API Reference <https://alpaka-group.github.io/alpaka>
 
 Indices and Tables

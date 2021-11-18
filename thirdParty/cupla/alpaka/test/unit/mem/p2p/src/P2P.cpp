@@ -39,16 +39,21 @@ static auto testP2P(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& ext
     Dev const dev0 = alpaka::getDevByIdx<Pltf>(0u);
     Dev const dev1 = alpaka::getDevByIdx<Pltf>(1u);
     Queue queue0(dev0);
+    Queue queue1(dev1);
 
     auto buf0 = alpaka::allocBuf<Elem, Idx>(dev0, extent);
     auto buf1 = alpaka::allocBuf<Elem, Idx>(dev1, extent);
 
+    // fill each byte with value 42
     std::uint8_t const byte(static_cast<uint8_t>(42u));
-    alpaka::memset(queue0, buf0, byte, extent);
+    alpaka::memset(queue1, buf1, byte, extent);
+    alpaka::wait(queue1);
 
-    alpaka::memcpy(queue0, buf1, buf0, extent);
+    // copy buffer from device 1 into device 0 buffer
+    alpaka::memcpy(queue0, buf0, buf1, extent);
     alpaka::wait(queue0);
-    alpaka::test::verifyBytesSet<TAcc>(buf1, byte);
+    // verify buffer on device 0
+    alpaka::test::verifyBytesSet<TAcc>(buf0, byte);
 }
 
 TEMPLATE_LIST_TEST_CASE("memP2PTest", "[memP2P]", alpaka::test::TestAccs)

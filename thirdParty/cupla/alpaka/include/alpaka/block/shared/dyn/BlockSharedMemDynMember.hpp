@@ -52,11 +52,6 @@ namespace alpaka
         {
             ALPAKA_ASSERT_OFFLOAD(static_cast<std::uint32_t>(sizeBytes) <= staticAllocBytes());
         }
-        BlockSharedMemDynMember(BlockSharedMemDynMember const&) = delete;
-        BlockSharedMemDynMember(BlockSharedMemDynMember&&) = delete;
-        auto operator=(BlockSharedMemDynMember const&) -> BlockSharedMemDynMember& = delete;
-        auto operator=(BlockSharedMemDynMember&&) -> BlockSharedMemDynMember& = delete;
-        /*virtual*/ ~BlockSharedMemDynMember() = default;
 
         uint8_t* dynMemBegin() const
         {

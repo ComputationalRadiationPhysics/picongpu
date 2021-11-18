@@ -47,7 +47,7 @@ public:
     //! Constructor.
     //!
     //! \param other The other iterator object.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE Iterator(const Iterator& other) = default;
+    Iterator(const Iterator& other) = default;
 
     //! Compare operator.
     //!
@@ -149,7 +149,7 @@ public:
     //! Returns the iterator for the last item.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto end() const -> IteratorCpu
     {
-        IteratorCpu ret(*this);
+        auto ret = *this;
         ret.mIndex = this->mMaximum;
         return ret;
     }
@@ -170,7 +170,7 @@ public:
     //! Returns a reference to the current index.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator++(int) -> IteratorCpu
     {
-        auto ret(*this);
+        auto ret = *this;
         ++(this->mIndex);
         return ret;
     }
@@ -191,7 +191,7 @@ public:
     //! Returns a reference to the current index.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator--(int) -> IteratorCpu
     {
-        auto ret(*this);
+        auto ret = *this;
         --(this->mIndex);
         return ret;
     }
@@ -201,7 +201,7 @@ public:
     //! \param n The offset.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator+(uint64_t n) const -> IteratorCpu
     {
-        IteratorCpu ret(*this);
+        auto ret = *this;
         ret.mIndex += n;
         return ret;
     }
@@ -211,7 +211,7 @@ public:
     //! \param n The offset.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator-(uint64_t n) const -> IteratorCpu
     {
-        IteratorCpu ret(*this);
+        auto ret = *this;
         ret.mIndex -= n;
         return ret;
     }
@@ -267,7 +267,7 @@ public:
     //! Returns the iterator for the last item.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto end() const -> IteratorGpu
     {
-        IteratorGpu ret(*this);
+        auto ret = *this;
         ret.mIndex = this->mMaximum;
         return ret;
     }
@@ -288,7 +288,7 @@ public:
     //! Returns a reference to the current index.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator++(int) -> IteratorGpu
     {
-        auto ret(*this);
+        auto ret = *this;
         this->mIndex += this->mGridSize;
         return ret;
     }
@@ -309,7 +309,7 @@ public:
     //! Returns a reference to the current index.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator--(int) -> IteratorGpu
     {
-        auto ret(*this);
+        auto ret = *this;
         this->mIndex -= this->mGridSize;
         return ret;
     }
@@ -319,7 +319,7 @@ public:
     //! \param n The offset.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator+(uint64_t n) const -> IteratorGpu
     {
-        auto ret(*this);
+        auto ret = *this;
         ret.mIndex += n * mGridSize;
         return ret;
     }
@@ -329,7 +329,7 @@ public:
     //! \param n The offset.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator-(uint64_t n) const -> IteratorGpu
     {
-        auto ret(*this);
+        auto ret = *this;
         ret.mIndex -= n * mGridSize;
         return ret;
     }

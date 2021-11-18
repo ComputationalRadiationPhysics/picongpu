@@ -52,11 +52,6 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        TaskKernelCpuSerial(TaskKernelCpuSerial const&) = default;
-        TaskKernelCpuSerial(TaskKernelCpuSerial&&) = default;
-        auto operator=(TaskKernelCpuSerial const&) -> TaskKernelCpuSerial& = default;
-        auto operator=(TaskKernelCpuSerial&&) -> TaskKernelCpuSerial& = default;
-        ~TaskKernelCpuSerial() = default;
 
         //! Executes the kernel function object.
         ALPAKA_FN_HOST auto operator()() const -> void
@@ -69,7 +64,8 @@ namespace alpaka
 
             // Get the size of the block shared dynamic memory.
             auto const blockSharedMemDynSizeBytes = meta::apply(
-                [&](ALPAKA_DECAY_T(TArgs) const&... args) {
+                [&](ALPAKA_DECAY_T(TArgs) const&... args)
+                {
                     return getBlockSharedMemDynSizeBytes<AccCpuSerial<TDim, TIdx>>(
                         m_kernelFnObj,
                         blockThreadExtent,
@@ -85,9 +81,8 @@ namespace alpaka
             // Bind all arguments except the accelerator.
             // TODO: With C++14 we could create a perfectly argument forwarding function object within the constructor.
             auto const boundKernelFnObj = meta::apply(
-                [this](ALPAKA_DECAY_T(TArgs) const&... args) {
-                    return std::bind(std::ref(m_kernelFnObj), std::placeholders::_1, std::ref(args)...);
-                },
+                [this](ALPAKA_DECAY_T(TArgs) const&... args)
+                { return std::bind(std::ref(m_kernelFnObj), std::placeholders::_1, std::ref(args)...); },
                 m_args);
 
             AccCpuSerial<TDim, TIdx> acc(
@@ -100,14 +95,17 @@ namespace alpaka
             }
 
             // Execute the blocks serially.
-            meta::ndLoopIncIdx(gridBlockExtent, [&](Vec<TDim, TIdx> const& blockThreadIdx) {
-                acc.m_gridBlockIdx = blockThreadIdx;
+            meta::ndLoopIncIdx(
+                gridBlockExtent,
+                [&](Vec<TDim, TIdx> const& blockThreadIdx)
+                {
+                    acc.m_gridBlockIdx = blockThreadIdx;
 
-                boundKernelFnObj(acc);
+                    boundKernelFnObj(acc);
 
-                // After a block has been processed, the shared memory has to be deleted.
-                freeSharedVars(acc);
-            });
+                    // After a block has been processed, the shared memory has to be deleted.
+                    freeSharedVars(acc);
+                });
         }
 
     private:

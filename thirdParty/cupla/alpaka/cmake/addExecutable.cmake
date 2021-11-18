@@ -26,18 +26,6 @@ MACRO(ALPAKA_ADD_EXECUTABLE In_Name)
         ADD_EXECUTABLE(
             ${In_Name}
             ${ARGN})
-
-    ELSEIF(ALPAKA_ACC_GPU_HIP_ENABLE)
-	    FOREACH(_file ${ARGN})
-		    IF((${_file} MATCHES "\\.cpp$") OR (${_file} MATCHES "\\.cxx$"))
-		        SET_SOURCE_FILES_PROPERTIES(${_file} PROPERTIES HIP_SOURCE_PROPERTY_FORMAT OBJ)
-		    ENDIF()
-	    ENDFOREACH()
-
-	    HIP_ADD_EXECUTABLE(
-		    ${In_Name}
-		    ${ARGN})
-
     ELSE()
         ADD_EXECUTABLE(
             ${In_Name}

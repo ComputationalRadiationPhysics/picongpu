@@ -25,10 +25,10 @@
 // Implementation details.
 #    include <alpaka/acc/AccOmp5.hpp>
 #    include <alpaka/core/Decay.hpp>
+#    include <alpaka/core/Tuple.hpp>
 #    include <alpaka/dev/DevOmp5.hpp>
 #    include <alpaka/idx/MapIdx.hpp>
 #    include <alpaka/kernel/Traits.hpp>
-#    include <alpaka/meta/ApplyTuple.hpp>
 #    include <alpaka/workdiv/WorkDivMembers.hpp>
 
 #    include <omp.h>
@@ -36,8 +36,8 @@
 #    include <algorithm>
 #    include <functional>
 #    include <stdexcept>
-#    include <tuple>
 #    include <type_traits>
+
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
 #        include <iostream>
 #    endif
@@ -59,11 +59,6 @@ namespace alpaka
                 Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                 "The work division and the execution task have to be of the same dimensionality!");
         }
-        TaskKernelOmp5(TaskKernelOmp5 const& other) = default;
-        TaskKernelOmp5(TaskKernelOmp5&& other) = default;
-        auto operator=(TaskKernelOmp5 const&) -> TaskKernelOmp5& = default;
-        auto operator=(TaskKernelOmp5&&) -> TaskKernelOmp5& = default;
-        ~TaskKernelOmp5() = default;
 
         //! Executes the kernel function object.
         ALPAKA_FN_HOST auto operator()(const DevOmp5& dev) const -> void
@@ -84,8 +79,9 @@ namespace alpaka
 #    endif
 
             // Get the size of the block shared dynamic memory.
-            auto const blockSharedMemDynSizeBytes = meta::apply(
-                [&](ALPAKA_DECAY_T(TArgs) const&... args) {
+            auto const blockSharedMemDynSizeBytes = core::apply(
+                [&](ALPAKA_DECAY_T(TArgs) const&... args)
+                {
                     return getBlockSharedMemDynSizeBytes<AccOmp5<TDim, TIdx>>(
                         m_kernelFnObj,
                         blockThreadExtent,
@@ -184,10 +180,9 @@ namespace alpaka
                             }
                         }
 #    endif
-                        meta::apply(
-                            [kernelFnObj, &acc](typename std::decay<TArgs>::type const&... args) {
-                                kernelFnObj(acc, args...);
-                            },
+                        core::apply(
+                            [kernelFnObj, &acc](typename std::decay<TArgs>::type const&... args)
+                            { kernelFnObj(acc, args...); },
                             argsD);
 
                         // Wait for all threads to finish before deleting the shared memory.
@@ -203,7 +198,7 @@ namespace alpaka
 
     private:
         TKernelFnObj m_kernelFnObj;
-        std::tuple<std::decay_t<TArgs>...> m_args;
+        core::Tuple<std::decay_t<TArgs>...> m_args;
     };
     namespace traits
     {
@@ -266,8 +261,8 @@ namespace alpaka
                 QueueOmp5NonBlocking& queue,
                 TaskKernelOmp5<TDim, TIdx, TKernelFnObj, TArgs...> const& task) -> void
             {
-                queue.m_spQueueImpl->m_workerThread.enqueueTask(
-                    [&queue, task]() { task(queue.m_spQueueImpl->m_dev); });
+                queue.m_spQueueImpl->m_workerThread.enqueueTask([&queue, task]()
+                                                                { task(queue.m_spQueueImpl->m_dev); });
             }
         };
     } // namespace traits

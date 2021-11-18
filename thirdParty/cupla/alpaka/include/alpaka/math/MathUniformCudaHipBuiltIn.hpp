@@ -11,31 +11,6 @@
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-#    include <alpaka/core/BoostPredef.hpp>
-
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-#        include <cuda_runtime.h>
-#        if !BOOST_LANG_CUDA
-#            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-#        endif
-#    endif
-
-#    if defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-
-#        if BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(9, 0, 0)
-#            include <cuda_runtime_api.h>
-#        else
-#            if BOOST_COMP_HIP
-#                include <hip/math_functions.h>
-#            else
-#                include <math_functions.hpp>
-#            endif
-#        endif
-#        if !BOOST_LANG_HIP
-#            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-#        endif
-#    endif
-
 #    include <alpaka/math/abs/AbsUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/math/acos/AcosUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/math/asin/AsinUniformCudaHipBuiltIn.hpp>
@@ -48,6 +23,9 @@
 #    include <alpaka/math/exp/ExpUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/math/floor/FloorUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/math/fmod/FmodUniformCudaHipBuiltIn.hpp>
+#    include <alpaka/math/isfinite/IsfiniteUniformCudaHipBuiltIn.hpp>
+#    include <alpaka/math/isinf/IsinfUniformCudaHipBuiltIn.hpp>
+#    include <alpaka/math/isnan/IsnanUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/math/log/LogUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/math/max/MaxUniformCudaHipBuiltIn.hpp>
 #    include <alpaka/math/min/MinUniformCudaHipBuiltIn.hpp>
@@ -92,6 +70,9 @@ namespace alpaka
             , public SqrtUniformCudaHipBuiltIn
             , public TanUniformCudaHipBuiltIn
             , public TruncUniformCudaHipBuiltIn
+            , public IsnanUniformCudaHipBuiltIn
+            , public IsinfUniformCudaHipBuiltIn
+            , public IsfiniteUniformCudaHipBuiltIn
         {
         };
     } // namespace math

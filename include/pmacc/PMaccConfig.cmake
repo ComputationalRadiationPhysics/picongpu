@@ -357,8 +357,10 @@ endif()
 # Find OpenMP
 ################################################################################
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND ALPAKA_ACC_GPU_CUDA_ENABLE AND ALPAKA_CUDA_COMPILER MATCHES "clang")
-    message(WARNING "OpenMP host side acceleration is disabled: CUDA compilation with clang is not supporting OpenMP.")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND (ALPAKA_ACC_GPU_HIP_ENABLE OR (ALPAKA_ACC_GPU_CUDA_ENABLE AND ALPAKA_CUDA_COMPILER MATCHES "clang")))
+    # For HIP the problem is that in alpaka '::isnan(), ::sinh(), ::isfinite(), ::isinf()' is not found.
+    # The reason could be that if OpenMP is activated clang is using math C headers where all of these functions are macros.
+    message(WARNING "OpenMP host side acceleration is disabled: CUDA/HIP compilation with clang is not supporting OpenMP.")
 else()
     find_package(OpenMP)
     if(OPENMP_FOUND)

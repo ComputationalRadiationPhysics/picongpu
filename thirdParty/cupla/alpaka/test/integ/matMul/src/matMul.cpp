@@ -242,10 +242,9 @@ TEMPLATE_LIST_TEST_CASE("matMul", "[matMul]", TestAccs)
     // Wrap the std::vectors into a memory buffer object.
     // For 1D data this would not be required because alpaka::copy is specialized for std::vector and std::array.
     // For multi dimensional data you could directly create them using alpaka::malloc<Type>(devHost, extent), which is
-    // not used here. Instead we use ViewPlainPtr to wrap the data.
-    using BufWrapper = alpaka::ViewPlainPtr<DevHost, Val, Dim, Idx>;
-    BufWrapper bufAHost(bufAHost1d.data(), devHost, extentA);
-    BufWrapper bufBHost(bufBHost1d.data(), devHost, extentB);
+    // not used here. Instead we create a View to wrap the data.
+    auto bufAHost = alpaka::createView(devHost, bufAHost1d.data(), extentA);
+    auto bufBHost = alpaka::createView(devHost, bufBHost1d.data(), extentB);
 
     // Allocate C and set it to zero.
     auto bufCHost = alpaka::allocBuf<Val, Idx>(devHost, extentC);

@@ -232,7 +232,8 @@ namespace alpaka
                         std::min_element(
                             &blockThreadExtent[0u],
                             &blockThreadExtent[TDim::value - 1u],
-                            [](TIdx const& a, TIdx const& b) {
+                            [](TIdx const& a, TIdx const& b)
+                            {
                                 // This first case is redundant.
                                 /*if((a == 1u) && (b == 1u))
                                 {

@@ -127,13 +127,13 @@ TEMPLATE_LIST_TEST_CASE("separableCompilation", "[separableCompilation]", TestAc
     alpaka::memcpy(queueAcc, memBufAccB, memBufHostB, extent);
 
     // Create the executor task.
-    auto const taskKernel(alpaka::createTaskKernel<Acc>(
+    auto const taskKernel = alpaka::createTaskKernel<Acc>(
         workDiv,
         kernel,
         alpaka::getPtrNative(memBufAccA),
         alpaka::getPtrNative(memBufAccB),
         alpaka::getPtrNative(memBufAccC),
-        numElements));
+        numElements);
 
     // Profile the kernel execution.
     std::cout << "Execution time: " << alpaka::test::integ::measureTaskRunTimeMs(queueAcc, taskKernel) << " ms"
