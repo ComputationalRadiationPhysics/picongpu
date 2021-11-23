@@ -143,6 +143,31 @@ Backend-specific notes
 HDF5
 ====
 
+
+Chunking
+""""""""
+
+By default, the openPMD-api uses a heuristic to automatically set an appropriate `dataset chunk size <https://support.hdfgroup.org/HDF5/doc/Advanced/Chunking/>`_.
+In combination with some MPI-IO backends (e.g. ROMIO), this has been found to cause crashes.
+To avoid this, PIConGPU overrides the default choice and deactivates HDF5 chunking in the openPMD plugin.
+
+If you want to use chunking, you can ask for it via the following option passed in ``--openPMD.json``:
+
+.. code-block:: json
+
+  {
+    "hdf5": {
+      "dataset": {
+        "chunks": "auto"
+      }
+    }
+  }
+
+In that case, make sure not to use an MPI IO backend that conflicts with HDF5 chunking, e.g. by removing lines such as ``export OMPI_MCA_io=^ompio`` from your batch scripts.
+
+Performance tuning on Summit
+""""""""""""""""""""""""""""
+
 In order to avoid a performance bug for parallel HDF5 on the ORNL Summit compute system, a specific version of ROMIO should be chosen and performance hints should be passed:
 
 .. code-block:: bash
@@ -166,6 +191,7 @@ Performance
 
 On the Summit compute system, specifying ``export IBM_largeblock_io=true`` disables data shipping, which leads to reduced overhead for large block write operations.
 This setting is applied in the Summit templates found in ``etc/picongpu/summit-ornl``.
+
 
 Memory Complexity
 ^^^^^^^^^^^^^^^^^
