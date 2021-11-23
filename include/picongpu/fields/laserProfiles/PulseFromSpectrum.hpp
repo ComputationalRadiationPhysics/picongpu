@@ -83,7 +83,7 @@ namespace picongpu
                      */
                     HDINLINE float_X R_inv(float_X y_to_focus)
                     {
-                        //??? if Unitless::Y_R is inserted in (89) in pow() --> compile error???, why not in line 79, why does this workaround work?
+                        //??? if Unitless::Y_R is inserted in (88) in pow() --> compile error???, why not in line 78, why does this workaround work?
                         float_X y_R = Unitless::Y_R;
                         return y_to_focus / ( math::pow(y_to_focus, 2.0) + math::pow(y_R, 2.0) );
                     }
