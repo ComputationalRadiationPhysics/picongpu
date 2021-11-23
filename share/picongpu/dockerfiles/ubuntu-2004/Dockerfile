@@ -36,8 +36,9 @@ RUN        apt-get update && \
               git \
               nano \
               openssh-client \
+              patchelf \
               pkg-config \
-              python \
+              python3-dev \
               rsync \
               time \
               unzip \
@@ -54,7 +55,8 @@ RUN        curl -s -L https://github.com/spack/spack/archive/develop.tar.gz \
            mkdir -p $SPACK_EXTRA_REPO && \
            curl -s -L https://api.github.com/repos/ComputationalRadiationPhysics/spack-repo/tarball \
                 | tar xzC $SPACK_EXTRA_REPO --strip 1 && \
-           spack repo add --scope=system $SPACK_EXTRA_REPO
+           spack repo add --scope=system $SPACK_EXTRA_REPO && \
+           . $SPACK_ROOT/share/spack/setup-env.sh
 RUN        spack install --only dependencies $PIC_PACKAGE
 RUN        spack install $PIC_PACKAGE && \
            spack clean -a
