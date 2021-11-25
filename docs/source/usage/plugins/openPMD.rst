@@ -113,7 +113,7 @@ PIConGPU command line option          description
 ===================================== ====================================================================================================================================================
 ``--openPMD.period``                  Period after which simulation data should be stored on disk.
 ``--openPMD.source``                  Select data sources and filters to dump. Default is ``species_all,fields_all``, which dumps all fields and particle species.
-``--openPMD.file``                    Relative or absolute openPMD file prefix for simulation data. If relative, files are stored under ``simOutput``. 
+``--openPMD.file``                    Relative or absolute openPMD file prefix for simulation data. If relative, files are stored under ``simOutput``.
 ``--openPMD.ext``                     openPMD filename extension (this controls thebackend picked by the openPMD API).
 ``--openPMD.infix``                   openPMD filename infix (use to pick file- or group-based layout in openPMD). Set to NULL to keep empty (e.g. to pick group-based iteration layout).
 ``--openPMD.json``                    Set backend-specific parameters for openPMD backends in JSON format.
@@ -122,20 +122,50 @@ PIConGPU command line option          description
 
 .. note::
 
-   This plugin is a multi plugin. 
+   This plugin is a multi plugin.
    Command line parameter can be used multiple times to create e.g. dumps with different dumping period.
    In the case where an optional parameter with a default value is explicitly defined, the parameter will always be passed to the instance of the multi plugin where the parameter is not set.
    e.g.
 
    .. code-block:: bash
 
-      --openPMD.period 128 --openPMD.file simData1 --openPMD.source 'species_all' 
+      --openPMD.period 128 --openPMD.file simData1 --openPMD.source 'species_all'
       --openPMD.period 1000 --openPMD.file simData2 --openPMD.source 'fields_all' --openPMD.ext h5
 
    creates two plugins:
 
    #. dump all species data each 128th time step, use HDF5 backend.
    #. dump all field data each 1000th time step, use the default ADIOS backend.
+
+Backend-specific notes
+^^^^^^^^^^^^^^^^^^^^^^
+
+HDF5
+====
+
+In order to avoid a performance bug for parallel HDF5 on the ORNL Summit compute system, a specific version of ROMIO should be chosen and performance hints should be passed:
+
+.. code-block:: bash
+
+  > export OMPI_MCA_io=romio321
+  > export ROMIO_HINTS=./my_romio_hints
+  > cat << EOF > ./my_romio_hints
+  romio_cb_write enable
+  romio_ds_write enable
+  cb_buffer_size 16777216
+  cb_nodes <number_of_nodes>
+  EOF
+
+Replace ``<number_of_nodes>`` with the number of nodes that your job uses.
+These settings are applied automatically in the Summit templates found in ``etc/picongpu/summit-ornl``.
+For further information, see the `official Summit documentation <https://docs.olcf.ornl.gov/systems/summit_user_guide.html#slow-performance-using-parallel-hdf5-resolved-march-12-2019>`_ and `this pull request for WarpX <https://github.com/ECP-WarpX/WarpX/pull/2495>`_.
+
+
+Performance
+^^^^^^^^^^^
+
+On the Summit compute system, specifying ``export IBM_largeblock_io=true`` disables data shipping, which leads to reduced overhead for large block write operations.
+This setting is applied in the Summit templates found in ``etc/picongpu/summit-ornl``.
 
 Memory Complexity
 ^^^^^^^^^^^^^^^^^

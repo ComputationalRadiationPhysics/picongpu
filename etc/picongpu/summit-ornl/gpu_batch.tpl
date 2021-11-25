@@ -88,6 +88,22 @@ export OMPI_MCA_coll_ibm_skip_barrier=true
 
 #jsrun  -N 1 -n !TBG_nodes !TBG_dstPath/input/bin/cuda_memtest.sh
 
+# I/O tuning inspired from WarpX, see https://github.com/ECP-WarpX/WarpX/pull/2495
+# ROMIO has a hint for GPFS named IBM_largeblock_io which optimizes I/O with operations on large blocks
+export IBM_largeblock_io=true
+
+# MPI-I/O: ROMIO hints for parallel HDF5 performance
+export OMPI_MCA_io=romio321
+export ROMIO_HINTS=./romio-hints
+#   number of hosts: unique node names minus batch node
+NUM_HOSTS=$(( $(echo $LSB_HOSTS | tr ' ' '\n' | uniq | wc -l) - 1 ))
+cat > romio-hints << EOL
+romio_cb_write enable
+romio_ds_write enable
+cb_buffer_size 16777216
+cb_nodes ${NUM_HOSTS}
+EOL
+
 #if [ $? -eq 0 ] ; then
 export OMP_NUM_THREADS=!TBG_coresPerGPU
 jsrun --nrs !TBG_tasks --tasks_per_rs 1 --cpu_per_rs !TBG_coresPerGPU --gpu_per_rs 1 --latency_priority GPU-CPU --bind rs --smpiargs="-gpu" !TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams | tee output
