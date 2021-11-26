@@ -35,10 +35,7 @@ namespace pmacc
     class TaskFieldSend : public MPITask
     {
     public:
-        enum
-        {
-            Dim = picongpu::simDim
-        };
+        static constexpr uint32_t Dim = Field::dim;
 
         TaskFieldSend(Field& buffer) : m_buffer(buffer), m_state(Constructor)
         {

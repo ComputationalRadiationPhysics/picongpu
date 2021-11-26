@@ -26,6 +26,8 @@
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/mappings/kernel/MappingDescription.hpp"
 
+#include <cstdint>
+
 namespace pmacc
 {
     template<class CellDescription>
@@ -33,6 +35,8 @@ namespace pmacc
     {
     public:
         using MappingDesc = CellDescription;
+
+        static constexpr uint32_t dim = MappingDesc::Dim;
 
         SimulationFieldHelper(CellDescription description) : cellDescription(description)
         {
