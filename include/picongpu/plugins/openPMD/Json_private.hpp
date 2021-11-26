@@ -269,4 +269,6 @@ namespace
         std::vector<picongpu::json::Pattern>& patterns,
         nlohmann::json& defaultConfig,
         nlohmann::json const& object);
+
+    void addDefaults(nlohmann::json&);
 } // namespace
