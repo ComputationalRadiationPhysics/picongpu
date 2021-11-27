@@ -600,14 +600,14 @@ namespace picongpu
             };
 
             /** The laser pulse is defined in the frequency domain and the time dependent E-field is calculated through
-             *  Fourier transformation. 
+             *  Fourier transformation.
              *  This allows to choose the Group Delay Dispersion (GDD) and Third Order Dispersion (TOD) freely.
              *  In addition to dispersion, the phase is altered (depending on the distance to the beam axis) to get the
              *  (spatial) shape of a Gaussian beam.
-             *  
+             *
              *  Overall this laser profile describes a time dependent Gaussian beam, whose temporal profile is given
              *  by the spectrum and dispersion.
-             *  
+             *
              *  As of now, only a Gaussian spectrum is implemented. So the temporal profile (without dispersion) is
              *  also Gaussian.
              */
@@ -623,7 +623,7 @@ namespace picongpu
                  *                             [   1.17741    ]
                  *
                  *  unit: meter */
-	            // -> 32 cells
+                // -> 32 cells
                 static constexpr float_X W0_SI = 3.0e-6;
 
                 /** the distance to the laser focus in y-direction
@@ -632,13 +632,13 @@ namespace picongpu
 
                 /** group delay dispersion
                  *  unit: seconds^-2 */
-	            static constexpr float_64 GDD_SI = 0.0 * 1.0e-15 * 1.0e-15;
+                static constexpr float_64 GDD_SI = 0.0 * 1.0e-15 * 1.0e-15;
 
                 /** third order dispersion
                  *  unit: seconds^-3 */
-	            static constexpr float_64 TOD_SI = 0.0 * 1.0e-15 * 1.0e-15 * 1.0e-15;
+                static constexpr float_64 TOD_SI = 0.0 * 1.0e-15 * 1.0e-15 * 1.0e-15;
 
-                 /** Convert the normalized laser strength parameter a0 to Volt per meter */
+                /** Convert the normalized laser strength parameter a0 to Volt per meter */
                 static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
                     * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
                     * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
@@ -647,7 +647,7 @@ namespace picongpu
                 // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
                 /** unit: none */
-                static constexpr float_64 _A0  = 1.5;
+                static constexpr float_64 _A0 = 1.5;
 
                 /** unit: Volt / meter */
                 static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;

@@ -40,7 +40,7 @@ namespace picongpu
 
                         /** beam waist: distance from the axis where the pulse intensity (E^2)
                          *              decreases to its 1/e^2-th part,
-                         *              at the focus position of the laser                                                                                                      
+                         *              at the focus position of the laser
                          *  W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
                          *                             [   1.17741    ]
                          *
@@ -68,7 +68,7 @@ namespace picongpu
                         // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
                         /** unit: none */
-                        static constexpr float_64 _A0  = 1.5;
+                        static constexpr float_64 _A0 = 1.5;
 
                         /** unit: Volt / meter */
                         static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
@@ -120,7 +120,8 @@ namespace picongpu
                 } // namespace defaults
             } // namespace pulseFromSpectrum
 
-            /** PulseFromSpectrum laser profile with a transversal gaussian profile and longitudinal shape derived from spectrum
+            /** PulseFromSpectrum laser profile with a transversal gaussian profile and longitudinal shape derived from
+             * spectrum
              *
              * @tparam T_Params class parameter to configure the PulseFromSpectrum profile,
              *                  see members of pulseFromSpectrum::default::PulseFromSpectrumParam
