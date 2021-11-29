@@ -25,6 +25,7 @@
 #include "pmacc/algorithms/TypeCast.hpp"
 #include "pmacc/algorithms/math.hpp"
 #include "pmacc/math/complex/Complex.hpp"
+#include "pmacc/mpi/GetMPI_StructAsArray.hpp"
 #include "pmacc/traits/GetComponentsType.hpp"
 #include "pmacc/traits/GetNComponents.hpp"
 
@@ -277,14 +278,23 @@ namespace pmacc
 
     namespace mpi
     {
-        using complex_X = pmacc::math::Complex<picongpu::float_X>;
+        // Specialize complex type grid buffer for MPI
+        template<>
+        HINLINE MPI_StructAsArray getMPI_StructAsArray<pmacc::math::Complex<float>>()
+        {
+            using ComplexType = pmacc::math::Complex<float>;
+            MPI_StructAsArray result = getMPI_StructAsArray<ComplexType::type>();
+            result.sizeMultiplier *= uint32_t(sizeof(ComplexType) / sizeof(typename ComplexType::type));
+            return result;
+        };
 
         // Specialize complex type grid buffer for MPI
         template<>
-        MPI_StructAsArray getMPI_StructAsArray<pmacc::math::Complex<picongpu::float_X>>()
+        HINLINE MPI_StructAsArray getMPI_StructAsArray<pmacc::math::Complex<double>>()
         {
-            MPI_StructAsArray result = getMPI_StructAsArray<complex_X::type>();
-            result.sizeMultiplier *= uint32_t(sizeof(complex_X) / sizeof(typename complex_X::type));
+            using ComplexType = pmacc::math::Complex<double>;
+            MPI_StructAsArray result = getMPI_StructAsArray<ComplexType::type>();
+            result.sizeMultiplier *= uint32_t(sizeof(ComplexType) / sizeof(typename ComplexType::type));
             return result;
         };
 

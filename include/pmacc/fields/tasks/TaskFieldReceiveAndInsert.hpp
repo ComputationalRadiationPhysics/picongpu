@@ -28,6 +28,7 @@
 #include "pmacc/fields/tasks/FieldFactory.hpp"
 #include "pmacc/traits/NumberOfExchanges.hpp"
 
+#include <cstdint>
 #include <iostream>
 
 namespace pmacc
@@ -36,7 +37,7 @@ namespace pmacc
     class TaskFieldReceiveAndInsert : public MPITask
     {
     public:
-        static constexpr uint32_t Dim = picongpu::simDim;
+        static constexpr uint32_t Dim = Field::dim;
 
         TaskFieldReceiveAndInsert(Field& buffer) : m_buffer(buffer), m_state(Constructor)
         {
