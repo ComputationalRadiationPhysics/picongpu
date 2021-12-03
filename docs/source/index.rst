@@ -54,6 +54,16 @@ Installation
    install/profile
    install/changelog.md
 
+*********
+Tutorials
+*********
+.. toctree::
+   :caption: TUTORIALS
+   :maxdepth: 1
+   :hidden:
+
+   tutorials/hemeraIn5min
+
 *****
 Usage
 *****
