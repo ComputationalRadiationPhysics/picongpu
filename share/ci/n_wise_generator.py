@@ -78,6 +78,19 @@ def is_valid_combination(row):
         # hipcc
         is_hipcc = True if len(row[0]) == 3 and row[0][2] == "hipcc" else False
         is_hip = True if row[1][0] == "hip" else False
+        v_hip = get_version(row[1])
+
+        os_name = row[2][0] if n >= 3 else ""
+        os_version = get_version(row[2]) if n >= 3 else 0
+
+        if is_cuda and os_name == "ubuntu":
+            if os_version < 20.04 and v_cuda >= 11.0:
+                return False
+            elif os_version > 18.04 and v_cuda < 11.0:
+                return False
+
+        if is_hip and os_name == "ubuntu" and os_version < 20.04:
+            return False
 
         # CI nvcc image is not shipped with clang++
         # clang_cuda images can currently not be used because
@@ -86,9 +99,14 @@ def is_valid_combination(row):
             return False
 
         # hipcc is only valid in one combination
-        if is_hip and is_hipcc and is_clang and v_compiler == 12:
-            return True
-        elif is_hip or is_hipcc:
+        if is_hip:
+            if is_hipcc and is_clang:
+                if v_hip == 4.3 and v_compiler == 13:
+                    return True
+            return False
+
+        # hipcc should not be used without the hip backend
+        if is_hipcc:
             return False
 
         # clang 12 is currently only shipped with the HIP container
@@ -157,11 +175,10 @@ def is_valid_combination(row):
 
 # compiler list
 # tuple with two components (compiler name, version)
-clang_compiers = [("clang++", 5.0), ("clang++", 6.0), ("clang++", 7),
+clang_compiers = [("clang++", 6.0), ("clang++", 7),
                   ("clang++", 8), ("clang++", 9), ("clang++", 10),
-                  ("clang++", 11), ("clang++", 12)]
-gnu_compilers = [("g++", 5), ("g++", 6), ("g++", 7), ("g++", 8),
-                 ("g++", 9), ("g++", 10)]
+                  ("clang++", 11), ("clang++", 12), ("clang++", 13)]
+gnu_compilers = [("g++", 7), ("g++", 8), ("g++", 9), ("g++", 10)]
 compilers = [
     clang_compiers,
     gnu_compilers
@@ -191,7 +208,7 @@ compilers.append(hip_clang_compilers)
 # PIConGPU backend list
 # tuple with two components (backend name, version)
 # version is only required for the cuda backend
-backends = [("hip", 4.2),
+backends = [("hip", 4.3),
             ("cuda", 10.0), ("cuda", 10.1), ("cuda", 10.2),
             ("cuda", 11.0), ("cuda", 11.1), ("cuda", 11.2),
             ("omp2b", ), ("serial", )]
@@ -199,6 +216,8 @@ backends = [("hip", 4.2),
 boost_libs_all = ["1.65.1", "1.66.0", "1.67.0", "1.68.0",
                   "1.69.0", "1.70.0", "1.71.0", "1.72.0",
                   "1.73.0", "1.74.0", "1.75.0"]
+
+operating_system = [("ubuntu", 18.04), ("ubuntu", 20.04)]
 
 if args.limit_boost_versions:
     # select each second but keep the order
@@ -228,6 +247,7 @@ for i in range(rounds):
     parameters = [
         used_compilers,
         backends,
+        operating_system,
         boost_libs,
         examples
     ]
@@ -258,16 +278,20 @@ for stage in range(num_stages):
         else:
             compiler = pairs[0][0] + "-" + str(pairs[0][1])
             backend = pairs[1][0]
-            boost_version = pairs[2]
-            folder = pairs[3]
+            boost_version = pairs[3]
+            folder = pairs[4]
             v_cuda_hip = get_version(pairs[1])
             v_cuda_hip_str = "" if v_cuda_hip == 0 else str(v_cuda_hip)
+            os_name = pairs[2][0]
+            os_version = get_version(pairs[2])
             image_prefix = "_run" if folder == "pmacc" else "_compile"
             job_name = compiler + "_" + backend + v_cuda_hip_str + \
                 "_boost" + boost_version + "_" + folder.replace("/", ".")
             print(job_name + ":")
             print("  stage: job_{}".format(stage))
             print("  variables:")
+            print("    CI_CONTAINER_NAME: '" + os_name + str(os_version) +
+                  "'")
             if backend == "cuda":
                 print("    CUDA_CONTAINER_VERSION: '" +
                       v_cuda_hip_str.replace('.', '') + "'")

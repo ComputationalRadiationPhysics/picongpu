@@ -3,10 +3,12 @@
 # clang compiler is located under /opt/rocm/llvm/bin
 
 .base_hipcc:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-rocm${HIP_CONTAINER_VERSION}-pic:${CONTAINER_TAG}
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-rocm${HIP_CONTAINER_VERSION}-pic:${CONTAINER_TAG}
   variables:
     GIT_SUBMODULE_STRATEGY: normal
-    PIC_CMAKE_ARGS: "-DALPAKA_HIP_ARCH=gfx900"
+    # -DMPI_CXX_WORKS=ON -DMPI_CXX_VERSION=0 workaround for CMake issue
+    #  "Could NOT find MPI (missing: MPI_C_FOUND MPI_CXX_FOUND)"
+    PIC_CMAKE_ARGS: "-DALPAKA_HIP_ARCH=gfx900 -DMPI_CXX_WORKS=ON -DMPI_CXX_VERSION=0"
     # use VEGA64 GPU
     HIP_VISIBLE_DEVICES: "2"
     # ISAAC is not working with HIP
@@ -16,8 +18,9 @@
     - export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/rocrand/lib/"
     - export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/hiprand/lib/"
     - export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/lib/"
-    # rocm 4.2 container is missing a binary/symlink named `clang++-12`
-    - ln -s /opt/rocm/llvm/bin/clang++ /opt/rocm/llvm/bin/clang++-12
+    # rocm 4.2+ container is missing a binary/symlink named `clang++-XX`
+    - export DETECTED_CLANG_VERSION=$(ls -w 1 /opt/rocm/llvm/bin/clang-* | grep clang-[0-9][0-9] | cut -d"-" -f2)
+    - ln -s /opt/rocm/llvm/bin/clang++ /opt/rocm/llvm/bin/clang++-${DETECTED_CLANG_VERSION}
     - rocm-smi
     - hipcc --version
     # AMD container keys are outdated and must be updated
