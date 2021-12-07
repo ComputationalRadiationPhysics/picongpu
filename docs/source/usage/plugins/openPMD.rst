@@ -137,6 +137,16 @@ PIConGPU command line option          description
    #. dump all species data each 128th time step, use HDF5 backend.
    #. dump all field data each 1000th time step, use the default ADIOS backend.
 
+Backend-specific notes
+^^^^^^^^^^^^^^^^^^^^^^
+
+ADIOS2
+======
+
+The memory usage of some engines in ADIOS2 can be reduced by specifying the environment variable ``openPMD_USE_STORECHUNK_SPAN=1``.
+This makes PIConGPU use the `span-based Put() API <https://adios2.readthedocs.io/en/latest/components/components.html#put-modes-and-memory-contracts>`_ of ADIOS2 which avoids buffer copies, but does not allow for compression.
+Do *not* use this optimization in combination with compression, otherwise the resulting datasets will not be usable.
+
 Memory Complexity
 ^^^^^^^^^^^^^^^^^
 
