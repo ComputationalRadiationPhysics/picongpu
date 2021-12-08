@@ -24,7 +24,6 @@
 
 #include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/kernel/CopySpecies.kernel"
 #include "picongpu/plugins/openPMD/openPMDDimension.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"

@@ -22,7 +22,6 @@
 
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
-#include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/traits/SIBaseUnits.hpp"

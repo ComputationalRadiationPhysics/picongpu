@@ -23,7 +23,6 @@
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/common/openPMDAttributes.hpp"
-#include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/openPMDWriteMeta.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
