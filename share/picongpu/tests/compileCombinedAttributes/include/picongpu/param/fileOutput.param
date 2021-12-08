@@ -108,11 +108,23 @@ namespace picongpu
     using MomentumComponent_Seq
         = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::MomentumComponent<0>>;
 
+    using AverageEnergy_Seq = deriveField::CreateEligible_t<
+        VectorAllSpecies,
+        deriveField::combinedAttributes::AverageAttribute<deriveField::derivedAttributes::Energy>>;
+    using RelativisticDensity_Seq
+        = deriveField::CreateEligible_t<PIC_Electrons, deriveField::combinedAttributes::RelativisticDensity>;
+
+
     /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
      *
      * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
      */
-    using FieldTmpSolvers = MakeSeq_t<ChargeDensity_Seq, EnergyDensity_Seq, MomentumComponent_Seq>;
+    using FieldTmpSolvers = MakeSeq_t<
+        ChargeDensity_Seq,
+        EnergyDensity_Seq,
+        MomentumComponent_Seq,
+        AverageEnergy_Seq,
+        RelativisticDensity_Seq>;
 
 
     /** FileOutputFields: Groups all Fields that shall be dumped *************/

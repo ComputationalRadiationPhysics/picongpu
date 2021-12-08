@@ -1,0 +1,65 @@
+/* Copyright 2021 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/particleToGrid/CombinedDerivedAttribute.hpp"
+#include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensity.def"
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace particleToGrid
+        {
+            namespace combinedAttributes
+            {
+                //! Implementation for the RelativisticDensityOperation
+                template<typename T_Species>
+                struct RelativisticDensityOperationImpl;
+
+                //! Compute the relativistic density from number density and energy density
+                struct RelativisticDensityOperation
+                {
+                    template<typename T_Species>
+                    struct apply
+                    {
+                        using type = RelativisticDensityOperationImpl<T_Species>;
+                    };
+                };
+
+                struct RelativisticDensityDescription;
+
+                /** number density with a relativistic correction
+                 *
+                 * This attribute is equal to \f$ \frac{1}{<\gamma>^2} n $\f
+                 * with \f$<\gamma> - average gamma value, \f$n$\f - number density.
+                 * Average gamma is calculated from energy density and number density.
+                 */
+                using RelativisticDensity = CombinedDeriveAttribute<
+                    particleToGrid::derivedAttributes::Density,
+                    particleToGrid::derivedAttributes::EnergyDensity,
+                    RelativisticDensityOperation,
+                    RelativisticDensityDescription>;
+            } // namespace combinedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
+} // namespace picongpu

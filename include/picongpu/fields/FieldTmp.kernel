@@ -131,4 +131,43 @@ namespace picongpu
         }
     };
 
+    /** Kernel used in the modifyField method
+     *
+     * @tparam T_numWorkers number of workers
+     * @tparam T_ModifyingOperation a binary operation used to modify one field by another one
+     * @tparam T_SuperCellSize compile-time  supercell size vector
+     */
+    template<uint32_t T_numWorkers, typename T_ModifyingOperation, typename T_SuperCellSize>
+    struct ModifyByFieldKernel
+    {
+        /** Kernel implementation
+         *
+         * @tparam T_Acc alpaka accelerator type
+         * @tparam T_Mapper mapper type
+         * @tparam T_Box1 1st data box type
+         * @tparam T_Box2 2nd data box type
+         * @param acc alpaka accelerator
+         * @param mapper functor to map a block to a supercell
+         * @param box1 data box of the first field
+         * @param box2 data box of the second field
+         */
+        template<typename T_Acc, typename T_Mapper, typename T_Box1, typename T_Box2>
+        DINLINE void operator()(T_Acc const& acc, T_Mapper const mapper, T_Box1& box1, T_Box2 const& box2) const
+        {
+            // Shift the fields to the supercell processed by current block.
+            DataSpace<simDim> const block(mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc))));
+            DataSpace<simDim> const blockCell = block * T_SuperCellSize::toRT();
+            auto box1Block = box1.shift(blockCell);
+            auto box2Block = box2.shift(blockCell);
+
+            // Call the binary operation for a pair of field values for each cell in the supercell.
+            constexpr uint32_t numWorkers = T_numWorkers;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
+            using BlockAreaConfiguration = pmacc::SuperCellDescription<T_SuperCellSize>;
+            ThreadCollective<BlockAreaConfiguration, numWorkers> applyOperationToCells(workerIdx);
+            T_ModifyingOperation binaryOperation;
+            applyOperationToCells(acc, binaryOperation, box1Block, box2Block);
+        }
+    };
+
 } // namespace picongpu

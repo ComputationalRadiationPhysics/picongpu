@@ -150,9 +150,9 @@ namespace picongpu
          */
         HINLINE EventTask asyncCommunicationGather(EventTask serialEvent);
 
-        /** Compute current density created by a species in an area
+        /** Compute an attribute derived from species in an area
          *
-         * @tparam T_area area to compute currents in
+         * @tparam AREA area to compute values in
          * @tparam T_Species particle species type
          * @tparam Filter particle filter used to filter contributing particles
          *         (default is all particles contribute)
@@ -162,6 +162,18 @@ namespace picongpu
          */
         template<uint32_t AREA, class FrameSolver, typename Filter = particles::filter::All, class ParticlesClass>
         HINLINE void computeValue(ParticlesClass& parClass, uint32_t currentStep);
+
+        /** Modify this field by an another field
+         *
+         * @tparam AREA area where the values are modified
+         * @tparam T_ModifyingOperation a binary operation defining the result of the modification as a function
+         *  of two values. The 1st value is this field and the 2nd value is the modifying field.
+         * @tparam T_ModifyingField type of the second field
+         *
+         * @param modifyingField the second field
+         */
+        template<uint32_t AREA, typename T_ModifyingOperation, typename T_ModifyingField>
+        HINLINE void modifyByField(T_ModifyingField& modifyingField);
 
         /** Bash particles in a direction.
          * Copy all particles from the guard of a direction to the device exchange buffer

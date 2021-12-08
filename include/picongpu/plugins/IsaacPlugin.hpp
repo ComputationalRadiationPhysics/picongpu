@@ -131,17 +131,21 @@ namespace picongpu
                     uint32_t* currentStep = (uint32_t*) pointer;
                     DataConnector& dc = Environment<simDim>::get().DataConnector();
 
-                    PMACC_CASSERT_MSG(_please_allocate_at_least_one_FieldTmp_in_memory_param, fieldTmpNumSlots > 0);
+                    constexpr uint32_t requiredExtraSlots
+                        = particles::particleToGrid::RequiredExtraSlots<FrameSolver>::type::value;
+                    PMACC_CASSERT_MSG(
+                        _please_allocate_at_least_one_or_two_when_using_combined_attributes_FieldTmp_in_memory_param,
+                        fieldTmpNumSlots >= 1u + requiredExtraSlots);
+
                     auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0), true);
-                    auto particles = dc.get<ParticleType>(ParticleType::FrameType::getName(), true);
-
-                    fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
-                    fieldTmp->template computeValue<CORE + BORDER, FrameSolver, ParticleFilter>(
-                        *particles,
-                        *currentStep);
-                    EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
-
-                    __setTransactionEvent(fieldTmpEvent);
+                    auto eventPtr = particles::particleToGrid::
+                        ComputeFieldValue<CORE + BORDER, FrameSolver, ParticleType, ParticleFilter>()(
+                            *fieldTmp,
+                            *currentStep,
+                            1u);
+                    // wait for unfinished asynchronous communication
+                    if(eventPtr != nullptr)
+                        __setTransactionEvent(*eventPtr);
                     __getTransactionEvent().waitForFinished();
 
                     DataSpace<simDim> guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
