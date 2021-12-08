@@ -35,57 +35,10 @@ namespace picongpu
          */
         namespace detail
         {
-            // As std::void_t in C++17.
-            template<typename>
-            using void_t = void;
-
-            template<typename ValueType, typename = ::openPMD::RecordComponent, typename = void>
+            template<typename ValueType>
             struct openPMDSpan
             {
-                // default implementation if the span-based storeChunk API is
-                // not available in openPMD
-
-                std::shared_ptr<ValueType> m_buffer;
-                ValueType* currentBuffer() const
-                {
-                    return m_buffer.get();
-                }
-
-                template<typename Functor>
-                openPMDSpan(
-                    ::openPMD::RecordComponent& rc,
-                    ::openPMD::Offset offset,
-                    ::openPMD::Extent extent,
-                    bool /* useSpanAPI */, // only used in the specialization below
-                    Functor&& createBaseBuffer)
-                {
-                    using extent_t = ::openPMD::Extent::value_type;
-                    extent_t scalarExtent = 1;
-                    for(auto val : extent)
-                    {
-                        scalarExtent *= val;
-                    }
-                    m_buffer = std::forward<Functor>(createBaseBuffer)(scalarExtent);
-                    rc.storeChunk(m_buffer, std::move(offset), std::move(extent));
-                }
-            };
-
-            template<typename ValueType, typename RecordComponent>
-            struct openPMDSpan<
-                ValueType,
-                RecordComponent,
-                // check for existence of span-based storeChunk API
-                void_t<decltype(std::declval<RecordComponent>().template storeChunk<ValueType>(
-                    std::declval<::openPMD::Offset>(),
-                    std::declval<::openPMD::Extent>()))>>
-            {
-                // pass-through to the span-based storeChunk API
-
-                // We cannot use ::openPMD::DynamicMemoryView directly since that is non-dependent lookup
-                // so, use a dependent type
-                using DynamicMemoryView = decltype(std::declval<RecordComponent>().template storeChunk<ValueType>(
-                    std::declval<::openPMD::Offset>(),
-                    std::declval<::openPMD::Extent>()));
+                using DynamicMemoryView = ::openPMD::DynamicMemoryView<ValueType>;
 
                 bool m_useSpanAPI; // depending on the value of this, use either m_bufferFallback or m_bufferSpan
                 // need a pointer here since DynamicMemoryView has no default constructor
