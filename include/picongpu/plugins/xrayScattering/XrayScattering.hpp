@@ -495,7 +495,7 @@ namespace picongpu
                     tmpField->template computeValue<CORE + BORDER, ElectronDensitySolver>(*species, currentStep);
                     // Particles can contribute to cells in GUARD (due to their shape) this values need to be
                     // added to the neighbouring GPU BOARDERs.
-                    EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
+                    EventTask fieldTmpEvent = tmpField->asyncCommunication(__getTransactionEvent());
                     __setTransactionEvent(fieldTmpEvent);
                     // Get the field data box.
                     FieldTmp::DataBoxType tmpFieldBox = tmpField->getGridBuffer().getDeviceBuffer().getDataBox();
