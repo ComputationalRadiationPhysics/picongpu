@@ -25,7 +25,7 @@ Adding ``probeE`` creates a tracer species stores the interpolated electric fiel
           particlePusher< particles::pusher::Boris >,
           shape< UsedParticleShape >,
           interpolation< UsedField2Particle >,
-          currentSolver::EmZ<UsedParticleCurrentSolver>
+          currentSolver::Esirkepov<UsedParticleCurrentSolver>
       >;
 
       using TracerElectron = Particles<

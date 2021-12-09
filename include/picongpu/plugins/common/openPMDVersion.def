@@ -20,6 +20,9 @@
 
 #include "openPMD/openPMD.hpp"
 
+#include <cstdlib> // std::getenv
+#include <memory>
+#include <string> // std::stoull
 #include <utility> // std::declval
 
 #if OPENPMDAPI_VERSION_GE(0, 13, 0)
@@ -85,6 +88,7 @@ namespace picongpu
                     ::openPMD::RecordComponent& rc,
                     ::openPMD::Offset offset,
                     ::openPMD::Extent extent,
+                    bool /* useSpanAPI */, // only used in the specialization below
                     Functor&& createBaseBuffer)
                 {
                     using extent_t = ::openPMD::Extent::value_type;
@@ -114,10 +118,15 @@ namespace picongpu
                 using DynamicMemoryView = decltype(std::declval<RecordComponent>().template storeChunk<ValueType>(
                     std::declval<::openPMD::Offset>(),
                     std::declval<::openPMD::Extent>()));
-                DynamicMemoryView m_buffer;
+
+                bool m_useSpanAPI; // depending on the value of this, use either m_bufferFallback or m_bufferSpan
+                // need a pointer here since DynamicMemoryView has no default constructor
+                std::unique_ptr<DynamicMemoryView> m_bufferSpan;
+                std::shared_ptr<ValueType> m_bufferFallback;
+
                 ValueType* currentBuffer()
                 {
-                    return m_buffer.currentBuffer().data();
+                    return m_useSpanAPI ? m_bufferSpan->currentBuffer().data() : m_bufferFallback.get();
                 }
 
                 template<typename Functor>
@@ -125,12 +134,28 @@ namespace picongpu
                     ::openPMD::RecordComponent& rc,
                     ::openPMD::Offset offset,
                     ::openPMD::Extent extent,
+                    bool useSpanAPI,
                     Functor&& createBaseBuffer)
-                    : m_buffer{rc.storeChunk<ValueType>(
-                        std::move(offset),
-                        std::move(extent),
-                        std::forward<Functor>(createBaseBuffer))}
+                    : m_useSpanAPI(useSpanAPI)
                 {
+                    if(m_useSpanAPI)
+                    {
+                        m_bufferSpan = std::make_unique<DynamicMemoryView>(rc.storeChunk<ValueType>(
+                            std::move(offset),
+                            std::move(extent),
+                            std::forward<Functor>(createBaseBuffer)));
+                    }
+                    else
+                    {
+                        using extent_t = ::openPMD::Extent::value_type;
+                        extent_t scalarExtent = 1;
+                        for(auto val : extent)
+                        {
+                            scalarExtent *= val;
+                        }
+                        m_bufferFallback = std::forward<Functor>(createBaseBuffer)(scalarExtent);
+                        rc.storeChunk(m_bufferFallback, std::move(offset), std::move(extent));
+                    }
                 }
             };
         } // namespace detail
@@ -156,10 +181,40 @@ namespace picongpu
             ::openPMD::Extent extent,
             Functor&& createBaseBuffer) -> detail::openPMDSpan<ValueType>
         {
+            bool useSpanAPI = false;
+            {
+                auto value = std::getenv("openPMD_USE_STORECHUNK_SPAN");
+                unsigned long long valueAsLong{};
+                if(value)
+                {
+                    try
+                    {
+                        valueAsLong = std::stoull(value);
+                    }
+                    catch(std::invalid_argument const&)
+                    {
+                        throw std::runtime_error("Environment variable 'openPMD_USE_STORECHUNK_SPAN' may only be set "
+                                                 "to values '0' or '1'.");
+                    }
+                    switch(valueAsLong)
+                    {
+                    case 0:
+                        useSpanAPI = false;
+                        break;
+                    case 1:
+                        useSpanAPI = true;
+                        break;
+                    default:
+                        throw std::runtime_error("Environment variable 'openPMD_USE_STORECHUNK_SPAN' may only be set "
+                                                 "to values '0' or '1'.");
+                    }
+                }
+            }
             return detail::openPMDSpan<ValueType>(
                 rc,
                 std::move(offset),
                 std::move(extent),
+                useSpanAPI,
                 std::forward<Functor>(createBaseBuffer));
         }
     } // namespace openPMD
