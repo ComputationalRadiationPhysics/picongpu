@@ -3,7 +3,7 @@
 # cuda9.2Clang is not supporting clang-7
 
 .base_cuda_clang:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda${CUDA_CONTAINER_VERSION}-clangpic:${CONTAINER_TAG}
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-cuda${CUDA_CONTAINER_VERSION}-clangpic:${CONTAINER_TAG}
   variables:
     GIT_SUBMODULE_STRATEGY: normal
     PIC_CMAKE_ARGS: "-DCMAKE_CUDA_FLAGS=--no-cuda-version-check"
