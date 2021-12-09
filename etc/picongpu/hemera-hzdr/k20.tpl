@@ -30,6 +30,7 @@
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --ntasks=!TBG_tasks
+#SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
 #SBATCH --mincpus=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
 #SBATCH --mem=!TBG_memPerNode
@@ -107,13 +108,13 @@ export OMPI_MCA_io=^ompio
 # test if cuda_memtest binary is available and we have the node exclusive
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
   # Run CUDA memtest to check GPU's health
-  mpiexec !TBG_dstPath/input/bin/cuda_memtest.sh
+  mpiexec -np !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
 else
   echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available or compute node is not exclusively allocated. This does not affect PIConGPU, starting it now" >&2
 fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  source !TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec -tag-output --display-map !TBG_dstPath/input/bin/picongpu \
+  source !TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec -np !TBG_tasks -tag-output --display-map !TBG_dstPath/input/bin/picongpu \
     !TBG_author !TBG_programParams
 fi
