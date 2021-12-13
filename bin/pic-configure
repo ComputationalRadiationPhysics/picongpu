@@ -52,7 +52,9 @@ help()
 
 get_backend_flags()
 {
-    backend_cfg=(${1//:/ })
+    # Everything before the first : is the backend, the rest is the architecture definition which could contain : too.
+    cfg="$(echo -n $1 | sed 's/:/=/')"
+    backend_cfg=(${cfg//=/ })
     num_options="${#backend_cfg[@]}"
     if [ $num_options -gt 2 ] ; then
         echo "-b|--backend must be contain 'backend:arch' or 'backend'" >&2
