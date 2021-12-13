@@ -493,6 +493,10 @@ namespace picongpu
                     using ElectronDensitySolver = typename DetermineElectronDensitySolver<T_ParticlesType>::type;
                     // Calculate density.
                     tmpField->template computeValue<CORE + BORDER, ElectronDensitySolver>(*species, currentStep);
+                    // Particles can contribute to cells in GUARD (due to their shape) this values need to be
+                    // added to the neighbouring GPU BOARDERs.
+                    EventTask fieldTmpEvent = tmpField->asyncCommunication(__getTransactionEvent());
+                    __setTransactionEvent(fieldTmpEvent);
                     // Get the field data box.
                     FieldTmp::DataBoxType tmpFieldBox = tmpField->getGridBuffer().getDeviceBuffer().getDataBox();
                     return tmpFieldBox;
