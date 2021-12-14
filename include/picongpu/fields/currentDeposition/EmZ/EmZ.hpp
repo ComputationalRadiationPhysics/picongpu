@@ -82,14 +82,15 @@ namespace picongpu
                 /*note: all positions are normalized to the grid*/
                 const floatD_X posStart(posEnd - deltaPos);
 
-                DataSpace<simDim> I[2];
+                // Grid shifts for the start and end positions
+                DataSpace<simDim> shiftStart, shiftEnd;
                 floatD_X relayPoint;
 
                 /* calculate the relay point for the trajectory splitting */
                 for(uint32_t d = 0; d < simDim; ++d)
                 {
                     constexpr bool isSupportEven = (supp % 2 == 0);
-                    relayPoint[d] = RelayPoint<isSupportEven>()(I[0][d], I[1][d], posStart[d], posEnd[d]);
+                    relayPoint[d] = RelayPoint<isSupportEven>()(shiftStart[d], shiftEnd[d], posStart[d], posEnd[d]);
                 }
 
                 Line<floatD_X> line;
@@ -98,27 +99,27 @@ namespace picongpu
                 /* Esirkepov implementation for the current deposition */
                 emz::DepositCurrent<typename T_Strategy::BlockReductionOp, ParticleAssign, begin, end> deposit;
 
-                /* calculate positions for the second virtual particle */
+                /* calculate positions for the second virtual particle, normalized to cell size */
                 for(uint32_t d = 0; d < simDim; ++d)
                 {
-                    line.m_pos0[d] = posStart[d] - I[0][d];
-                    line.m_pos1[d] = relayPoint[d] - I[0][d];
+                    line.m_pos0[d] = posStart[d] - shiftStart[d];
+                    line.m_pos1[d] = relayPoint[d] - shiftStart[d];
                 }
 
-                deposit(acc, dataBoxJ.shift(I[0]).toCursor(), line, chargeDensity);
+                deposit(acc, dataBoxJ.shift(shiftStart).toCursor(), line, chargeDensity);
 
                 /* detect if there is a second virtual particle */
-                const bool twoParticlesNeeded = (I[0] != I[1]);
+                const bool twoParticlesNeeded = (shiftStart != shiftEnd);
                 if(twoParticlesNeeded)
                 {
                     /* calculate positions for the second virtual particle */
                     for(uint32_t d = 0; d < simDim; ++d)
                     {
                         /* switched start and end point */
-                        line.m_pos1[d] = posEnd[d] - I[1][d];
-                        line.m_pos0[d] = relayPoint[d] - I[1][d];
+                        line.m_pos1[d] = posEnd[d] - shiftEnd[d];
+                        line.m_pos0[d] = relayPoint[d] - shiftEnd[d];
                     }
-                    deposit(acc, dataBoxJ.shift(I[1]).toCursor(), line, chargeDensity);
+                    deposit(acc, dataBoxJ.shift(shiftEnd).toCursor(), line, chargeDensity);
                 }
 
                 /* 2d case requires special handling of Jz as explained in #3889.
@@ -130,17 +131,17 @@ namespace picongpu
                         /* For Jz we consider the whole movement on a step.
                          * This movement is not necessarily on support.
                          * A naive implementation would be to extend the bounds in x, y by 1 in both sides, and use
-                         * general assignment function. To optimize it, we redefine I[1] as component-wise minimum
-                         * between old I[1] and I[0]. We calculate everything relative to the new I[1]. Since it is the
-                         * minimum in both x and y, the same begin value can be used. Thus, the bounds only have to be
-                         * extended by 1 in the max side, not both. Still, the general assignment function has to be
-                         * used.
+                         * general assignment function. To optimize it, we redefine shiftEnd as component-wise minimum
+                         * between old shiftEnd and shiftStart. We calculate everything relative to the new shiftEnd.
+                         * Since it is the minimum in both x and y, the same begin value can be used. Thus, the bounds
+                         * only have to be extended by 1 in the max side, not both. Still, the general assignment
+                         * function has to be used.
                          */
                         for(uint32_t d = 0; d < simDim; ++d)
                         {
-                            I[1][d] = math::min(I[0][d], I[1][d]);
-                            line.m_pos0[d] = posStart[d] - I[1][d];
-                            line.m_pos1[d] = posEnd[d] - I[1][d];
+                            shiftEnd[d] = math::min(shiftStart[d], shiftEnd[d]);
+                            line.m_pos0[d] = posStart[d] - shiftEnd[d];
+                            line.m_pos1[d] = posEnd[d] - shiftEnd[d];
                         }
                         /* Have to use DIM2, otherwise 3d case wouldn't compile due to
                          * no computeCurrentZ() method.
@@ -154,8 +155,11 @@ namespace picongpu
                             end + 1,
                             DIM2>
                             depositZ;
-                        depositZ
-                            .computeCurrentZ(acc, dataBoxJ.shift(I[1]).toCursor(), line, velocity.z() * chargeDensity);
+                        depositZ.computeCurrentZ(
+                            acc,
+                            dataBoxJ.shift(shiftEnd).toCursor(),
+                            line,
+                            velocity.z() * chargeDensity);
                     },
                     dataBoxJ);
             }
