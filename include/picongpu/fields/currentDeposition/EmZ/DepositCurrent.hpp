@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/fields/currentDeposition/EmZ/EmZ.def"
+#include "picongpu/fields/currentDeposition/Esirkepov/Base.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 
 #include <pmacc/cuSTL/cursor/Cursor.hpp>
@@ -34,45 +35,8 @@ namespace picongpu
         {
             using namespace pmacc;
 
-            template<typename ParticleAssign>
-            struct BaseMethods
-            {
-                /** evaluate particle shape
-                 * @param line element with previous and current position of the particle
-                 * @param gridPoint used grid point to evaluate assignment shape
-                 * @param d dimension range {0,1,2} means {x,y,z}
-                 *          different to Esirkepov paper, here we use C style
-                 * @{
-                 */
-
-                /** evaluate shape for the first particle S0 (see paper) */
-                DINLINE float_X S0(const Line<floatD_X>& line, const float_X gridPoint, const uint32_t d) const
-                {
-                    return ParticleAssign()(gridPoint - line.m_pos0[d]);
-                }
-
-                /** evaluate shape for the second particle */
-                DINLINE float_X S1(const Line<floatD_X>& line, const float_X gridPoint, const uint32_t d) const
-                {
-                    return ParticleAssign()(gridPoint - line.m_pos1[d]);
-                }
-                /*! @} */
-
-                /** calculate DS (see paper)
-                 * @param line element with previous and current position of the particle
-                 * @param gridPoint used grid point to evaluate assignment shape
-                 * @param d dimension range {0,1,2} means {x,y,z}]
-                 *          different to Esirkepov paper, here we use C style
-                 */
-                DINLINE float_X DS(const Line<floatD_X>& line, const float_X gridPoint, const uint32_t d) const
-                {
-                    return ParticleAssign()(gridPoint - line.m_pos1[d]) - ParticleAssign()(gridPoint - line.m_pos0[d]);
-                }
-            };
-
             template<typename T_AtomicAddOp, typename ParticleAssign, int T_begin, int T_end>
-            struct DepositCurrent<T_AtomicAddOp, ParticleAssign, T_begin, T_end, DIM3>
-                : public BaseMethods<ParticleAssign>
+            struct DepositCurrent<T_AtomicAddOp, ParticleAssign, T_begin, T_end, DIM3> : public Base<ParticleAssign>
             {
                 template<typename T_Cursor, typename T_Acc>
                 DINLINE void operator()(
@@ -130,10 +94,9 @@ namespace picongpu
                             const float_X dsj = this->S1(line, j, 1) - s0j;
 
                             float_X tmp = -currentSurfaceDensity
-                                * (s0i * s0j + float_X(0.5) * (dsi * s0j + s0i * dsj)
-                                   + (float_X(1.0) / float_X(3.0)) * dsj * dsi);
+                                * (s0i * s0j + 0.5_X * (dsi * s0j + s0i * dsj) + (1.0_X / 3.0_X) * dsj * dsi);
 
-                            auto accumulated_J = float_X(0.0);
+                            auto accumulated_J = 0.0_X;
                             for(int k = T_begin; k < T_end - 1; ++k)
                             {
                                 /* This is the implementation of the FORTRAN W(i,j,k,3)/ C style W(i,j,k,2) version
@@ -151,8 +114,7 @@ namespace picongpu
             };
 
             template<typename T_AtomicAddOp, typename ParticleAssign, int T_begin, int T_end>
-            struct DepositCurrent<T_AtomicAddOp, ParticleAssign, T_begin, T_end, DIM2>
-                : public BaseMethods<ParticleAssign>
+            struct DepositCurrent<T_AtomicAddOp, ParticleAssign, T_begin, T_end, DIM2> : public Base<ParticleAssign>
             {
                 /** Deposit Jx and Jy.
                  *
@@ -197,9 +159,9 @@ namespace picongpu
                         const float_X s0j = this->S0(line, j, 1);
                         const float_X dsj = this->S1(line, j, 1) - s0j;
 
-                        float_X tmp = -currentSurfaceDensity * (s0j + float_X(0.5) * dsj);
+                        float_X tmp = -currentSurfaceDensity * (s0j + 0.5_X * dsj);
 
-                        auto accumulated_J = float_X(0.0);
+                        auto accumulated_J = 0.0_X;
                         for(int i = T_begin; i < T_end - 1; ++i)
                         {
                             /* This is the implementation of the FORTRAN W(i,j,k,1)/ C style W(i,j,k,0) version from
@@ -234,7 +196,7 @@ namespace picongpu
                     const T_Line& line,
                     const float_X currentSurfaceDensityZ) const
                 {
-                    if(currentSurfaceDensityZ == float_X(0.0))
+                    if(currentSurfaceDensityZ == 0.0_X)
                         return;
 
                     for(int j = T_begin; j < T_end; ++j)
@@ -245,8 +207,8 @@ namespace picongpu
                         {
                             const float_X s0i = this->S0(line, i, 0);
                             const float_X dsi = this->S1(line, i, 0) - s0i;
-                            float_X W = s0i * this->S0(line, j, 1) + float_X(0.5) * (dsi * s0j + s0i * dsj)
-                                + (float_X(1.0) / float_X(3.0)) * dsi * dsj;
+                            float_X W = s0i * this->S0(line, j, 1) + 0.5_X * (dsi * s0j + s0i * dsj)
+                                + (1.0_X / 3.0_X) * dsi * dsj;
 
                             const float_X j_z = W * currentSurfaceDensityZ;
                             auto const atomicOp = T_AtomicAddOp{};

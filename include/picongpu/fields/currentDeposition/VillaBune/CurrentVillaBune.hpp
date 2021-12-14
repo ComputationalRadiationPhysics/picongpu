@@ -122,7 +122,7 @@ namespace picongpu
                 meanPos.z() -= math::floor(meanPos.z());
 
                 // for the formulas used in here see Villasenor/Buneman paper page 314
-                const float_X tmp = deltaPos.x() * deltaPos.y() * deltaPos.z() * (float_X(1.0) / float_X(12.0));
+                const float_X tmp = deltaPos.x() * deltaPos.y() * deltaPos.z() * (1.0_X / 12.0_X);
 
                 // j = rho * v
                 //   = rho * dr / dt
@@ -149,53 +149,35 @@ namespace picongpu
                 //   Q.x() = charge * deltaPos_real.x() / cellsize.x()
                 //       = charge * deltaPos.x() / 1.0
                 //
-                const float_X rho_dtX = charge * (float_X(1.0) / (CELL_HEIGHT * CELL_DEPTH * deltaTime));
-                const float_X rho_dtY = charge * (float_X(1.0) / (CELL_WIDTH * CELL_DEPTH * deltaTime));
-                const float_X rho_dtZ = charge * (float_X(1.0) / (CELL_WIDTH * CELL_HEIGHT * deltaTime));
+                const float_X rho_dtX = charge * (1.0_X / (CELL_HEIGHT * CELL_DEPTH * deltaTime));
+                const float_X rho_dtY = charge * (1.0_X / (CELL_WIDTH * CELL_DEPTH * deltaTime));
+                const float_X rho_dtZ = charge * (1.0_X / (CELL_WIDTH * CELL_HEIGHT * deltaTime));
 
                 auto const atomicOp = typename T_Strategy::BlockReductionOp{};
 
                 atomicOp(acc, mem[1][1][0].x(), rho_dtX * (deltaPos.x() * meanPos.y() * meanPos.z() + tmp));
-                atomicOp(
-                    acc,
-                    mem[1][0][0].x(),
-                    rho_dtX * (deltaPos.x() * (float_X(1.0) - meanPos.y()) * meanPos.z() - tmp));
-                atomicOp(
-                    acc,
-                    mem[0][1][0].x(),
-                    rho_dtX * (deltaPos.x() * meanPos.y() * (float_X(1.0) - meanPos.z()) - tmp));
+                atomicOp(acc, mem[1][0][0].x(), rho_dtX * (deltaPos.x() * (1.0_X - meanPos.y()) * meanPos.z() - tmp));
+                atomicOp(acc, mem[0][1][0].x(), rho_dtX * (deltaPos.x() * meanPos.y() * (1.0_X - meanPos.z()) - tmp));
                 atomicOp(
                     acc,
                     mem[0][0][0].x(),
-                    rho_dtX * (deltaPos.x() * (float_X(1.0) - meanPos.y()) * (float_X(1.0) - meanPos.z()) + tmp));
+                    rho_dtX * (deltaPos.x() * (1.0_X - meanPos.y()) * (1.0_X - meanPos.z()) + tmp));
 
                 atomicOp(acc, mem[1][0][1].y(), rho_dtY * (deltaPos.y() * meanPos.z() * meanPos.x() + tmp));
-                atomicOp(
-                    acc,
-                    mem[0][0][1].y(),
-                    rho_dtY * (deltaPos.y() * (float_X(1.0) - meanPos.z()) * meanPos.x() - tmp));
-                atomicOp(
-                    acc,
-                    mem[1][0][0].y(),
-                    rho_dtY * (deltaPos.y() * meanPos.z() * (float_X(1.0) - meanPos.x()) - tmp));
+                atomicOp(acc, mem[0][0][1].y(), rho_dtY * (deltaPos.y() * (1.0_X - meanPos.z()) * meanPos.x() - tmp));
+                atomicOp(acc, mem[1][0][0].y(), rho_dtY * (deltaPos.y() * meanPos.z() * (1.0_X - meanPos.x()) - tmp));
                 atomicOp(
                     acc,
                     mem[0][0][0].y(),
-                    rho_dtY * (deltaPos.y() * (float_X(1.0) - meanPos.z()) * (float_X(1.0) - meanPos.x()) + tmp));
+                    rho_dtY * (deltaPos.y() * (1.0_X - meanPos.z()) * (1.0_X - meanPos.x()) + tmp));
 
                 atomicOp(acc, mem[0][1][1].z(), rho_dtZ * (deltaPos.z() * meanPos.x() * meanPos.y() + tmp));
-                atomicOp(
-                    acc,
-                    mem[0][1][0].z(),
-                    rho_dtZ * (deltaPos.z() * (float_X(1.0) - meanPos.x()) * meanPos.y() - tmp));
-                atomicOp(
-                    acc,
-                    mem[0][0][1].z(),
-                    rho_dtZ * (deltaPos.z() * meanPos.x() * (float_X(1.0) - meanPos.y()) - tmp));
+                atomicOp(acc, mem[0][1][0].z(), rho_dtZ * (deltaPos.z() * (1.0_X - meanPos.x()) * meanPos.y() - tmp));
+                atomicOp(acc, mem[0][0][1].z(), rho_dtZ * (deltaPos.z() * meanPos.x() * (1.0_X - meanPos.y()) - tmp));
                 atomicOp(
                     acc,
                     mem[0][0][0].z(),
-                    rho_dtZ * (deltaPos.z() * (float_X(1.0) - meanPos.x()) * (float_X(1.0) - meanPos.y()) + tmp));
+                    rho_dtZ * (deltaPos.z() * (1.0_X - meanPos.x()) * (1.0_X - meanPos.y()) + tmp));
             }
 
             // calculates the intersection point of the [pos1,pos2] beam with an y,z-plane at position x0
@@ -240,16 +222,16 @@ namespace picongpu
                         newPos,
                         math::max(pmacc::math::float2int_rd(oldPos.z()), pmacc::math::float2int_rd(newPos.z())));
                     float3_X deltaPos = interPos - oldPos;
-                    float3_X meanPos = oldPos + float_X(0.5) * deltaPos;
+                    float3_X meanPos = oldPos + 0.5_X * deltaPos;
                     addCurrentToSingleCell(acc, meanPos, deltaPos, charge, mem, deltaTime);
 
                     deltaPos = newPos - interPos;
-                    meanPos = interPos + float_X(0.5) * deltaPos;
+                    meanPos = interPos + 0.5_X * deltaPos;
                     addCurrentToSingleCell(acc, meanPos, deltaPos, charge, mem, deltaTime);
                     return;
                 }
                 const float3_X deltaPos = newPos - oldPos;
-                const float3_X meanPos = oldPos + float_X(0.5) * deltaPos;
+                const float3_X meanPos = oldPos + 0.5_X * deltaPos;
                 addCurrentToSingleCell(acc, meanPos, deltaPos, charge, mem, deltaTime);
             }
 

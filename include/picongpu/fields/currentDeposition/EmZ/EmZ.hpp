@@ -101,8 +101,8 @@ namespace picongpu
                 /* calculate positions for the second virtual particle */
                 for(uint32_t d = 0; d < simDim; ++d)
                 {
-                    line.m_pos0[d] = calc_InCellPos(posStart[d], I[0][d]);
-                    line.m_pos1[d] = calc_InCellPos(relayPoint[d], I[0][d]);
+                    line.m_pos0[d] = posStart[d] - I[0][d];
+                    line.m_pos1[d] = relayPoint[d] - I[0][d];
                 }
 
                 deposit(acc, dataBoxJ.shift(I[0]).toCursor(), line, chargeDensity);
@@ -115,8 +115,8 @@ namespace picongpu
                     for(uint32_t d = 0; d < simDim; ++d)
                     {
                         /* switched start and end point */
-                        line.m_pos1[d] = calc_InCellPos(posEnd[d], I[1][d]);
-                        line.m_pos0[d] = calc_InCellPos(relayPoint[d], I[1][d]);
+                        line.m_pos1[d] = posEnd[d] - I[1][d];
+                        line.m_pos0[d] = relayPoint[d] - I[1][d];
                     }
                     deposit(acc, dataBoxJ.shift(I[1]).toCursor(), line, chargeDensity);
                 }
@@ -139,8 +139,8 @@ namespace picongpu
                         for(uint32_t d = 0; d < simDim; ++d)
                         {
                             I[1][d] = math::min(I[0][d], I[1][d]);
-                            line.m_pos0[d] = this->calc_InCellPos(posStart[d], I[1][d]);
-                            line.m_pos1[d] = this->calc_InCellPos(posEnd[d], I[1][d]);
+                            line.m_pos0[d] = posStart[d] - I[1][d];
+                            line.m_pos1[d] = posEnd[d] - I[1][d];
                         }
                         /* Have to use DIM2, otherwise 3d case wouldn't compile due to
                          * no computeCurrentZ() method.
@@ -164,18 +164,6 @@ namespace picongpu
             {
                 pmacc::traits::StringProperty propList("name", "EmZ");
                 return propList;
-            }
-
-
-            /** get normalized in cell particle position
-             *
-             * @param x position of the particle
-             * @param i shift of grid (only integral positions are allowed)
-             * @return in cell position
-             */
-            DINLINE float_X calc_InCellPos(const float_X x, const float_X i) const
-            {
-                return x - i;
             }
         };
 
