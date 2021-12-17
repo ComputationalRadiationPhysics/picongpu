@@ -22,7 +22,11 @@ CMAKE_ARGS="${PIC_CONST_ARGS} ${PIC_CMAKE_ARGS} -DCMAKE_CXX_COMPILER=${CXX_VERSI
 # enforce optional dependencies
 CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_openPMD=ON -DPIC_USE_PNGwriter=ON"
 
-if [ -z "$DISABLE_ISAAC" ] ; then
+# ISAAC together with the example FoilLCT is to complex therefore the CI is always running out of memory.
+if [[ "$PIC_TEST_CASE_FOLDER" =~ .*FoilLCT.* ]] ; then
+    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=OFF"
+    export CI_CPUS=1
+elif [ -z "$DISABLE_ISAAC" ] ; then
   CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=ON"
 fi
 
