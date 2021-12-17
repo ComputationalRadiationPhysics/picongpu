@@ -192,7 +192,7 @@ endif()
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.65.1 REQUIRED COMPONENTS program_options filesystem
+find_package(Boost 1.66.0 REQUIRED COMPONENTS program_options filesystem
                                               system math_tr1 serialization)
 if(TARGET Boost::program_options)
     set(HOST_LIBS ${HOST_LIBS} Boost::boost Boost::program_options
