@@ -27,7 +27,7 @@
 #include <boost/core/ignore_unused.hpp>
 
 #include <string>
-#include <type_traits> // std::is_same
+#include <type_traits>
 
 
 namespace pmacc
@@ -89,7 +89,7 @@ namespace pmacc
                     // compare user functor return type with the interface requirements
                     PMACC_CASSERT_MSG(
                         __wrong_user_functor_return_type,
-                        std::is_same<UserFunctorReturnType, T_ReturnType>::value);
+                        std::is_same_v<UserFunctorReturnType, T_ReturnType>);
                     return (*static_cast<UserFunctor*>(this))(acc, args...);
                 }
             };
@@ -121,7 +121,7 @@ namespace pmacc
             template<typename DeferFunctor = UserFunctor>
             HINLINE Interface(
                 uint32_t const currentStep,
-                typename std::enable_if<std::is_constructible<DeferFunctor, uint32_t>::value>::type* = nullptr)
+                std::enable_if_t<std::is_constructible_v<DeferFunctor, uint32_t>>* = nullptr)
                 : UserFunctor(currentStep)
             {
             }
@@ -138,7 +138,7 @@ namespace pmacc
             template<typename DeferFunctor = UserFunctor>
             HINLINE Interface(
                 uint32_t const currentStep,
-                typename std::enable_if<std::is_constructible<DeferFunctor>::value>::type* = nullptr)
+                std::enable_if_t<std::is_constructible_v<DeferFunctor>>* = nullptr)
                 : UserFunctor()
             {
                 boost::ignore_unused(currentStep);

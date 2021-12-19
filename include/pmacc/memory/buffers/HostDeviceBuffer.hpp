@@ -47,7 +47,7 @@ namespace pmacc
         using DataBoxType = typename HostBufferType::DataBoxType;
         PMACC_CASSERT_MSG(
             DataBoxTypes_must_match,
-            std::is_same<DataBoxType, typename DeviceBufferType::DataBoxType>::value);
+            std::is_same_v<DataBoxType, typename DeviceBufferType::DataBoxType>);
 
         /**
          * Constructor that creates the buffers with the given size

@@ -33,7 +33,7 @@ namespace pmacc
          * @tparam T_Type any type
          * @return \p ::value as public with number of components (uint32_t)
          */
-        template<typename T_Type, bool T_IsFundamental = std::is_fundamental<T_Type>::value>
+        template<typename T_Type, bool T_IsFundamental = std::is_fundamental_v<T_Type>>
         struct GetNComponents
         {
             /* The compiler is allowed to evaluate an expression that does not depend on a template parameter

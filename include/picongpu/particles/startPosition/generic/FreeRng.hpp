@@ -109,7 +109,7 @@ namespace picongpu
                     template<typename DeferFunctor = Functor>
                     HINLINE FreeRng(
                         uint32_t currentStep,
-                        typename std::enable_if<std::is_constructible<DeferFunctor, uint32_t>::value>::type* = 0)
+                        std::enable_if_t<std::is_constructible_v<DeferFunctor, uint32_t>>* = 0)
                         : Functor(currentStep)
                         , RngGenerator(currentStep)
                     {
@@ -125,9 +125,7 @@ namespace picongpu
                      * @param is used to enable/disable the constructor (do not pass any value to this parameter)
                      */
                     template<typename DeferFunctor = Functor>
-                    HINLINE FreeRng(
-                        uint32_t currentStep,
-                        typename std::enable_if<std::is_constructible<DeferFunctor>::value>::type* = 0)
+                    HINLINE FreeRng(uint32_t currentStep, std::enable_if_t<std::is_constructible_v<DeferFunctor>>* = 0)
                         : Functor()
                         , RngGenerator(currentStep)
                     {

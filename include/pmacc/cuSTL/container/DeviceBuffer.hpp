@@ -124,11 +124,10 @@ namespace pmacc
             }
 
             template<typename HBuffer>
-            HINLINE typename std::
-                enable_if_t<std::is_same<typename HBuffer::memoryTag, allocator::tag::host>::value, DeviceBuffer&>
-                operator=(const HBuffer& rhs)
+            HINLINE std::enable_if_t<std::is_same_v<typename HBuffer::memoryTag, allocator::tag::host>, DeviceBuffer&>
+            operator=(const HBuffer& rhs)
             {
-                PMACC_CASSERT(std::is_same<typename HBuffer::type, Type>::value);
+                PMACC_CASSERT(std::is_same_v<typename HBuffer::type, Type>);
                 PMACC_CASSERT(HBuffer::dim == T_dim);
                 if(rhs.size() != this->size())
                     throw std::invalid_argument(static_cast<std::stringstream&>(

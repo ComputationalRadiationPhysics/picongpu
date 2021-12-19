@@ -40,12 +40,8 @@ namespace pmacc
                  * Equivalent to uniform::ExcludeOne< T_Type >::Reduced
                  */
                 template<typename T_Type, class T_RNGMethod>
-                class Uniform<
-                    T_Type,
-                    T_RNGMethod,
-                    typename std::enable_if<std::is_floating_point<T_Type>::value>::type>
-                    : public pmacc::random::distributions::
-                          Uniform<typename uniform::ExcludeOne<T_Type>::Reduced, T_RNGMethod>
+                class Uniform<T_Type, T_RNGMethod, std::enable_if_t<std::is_floating_point_v<T_Type>>>
+                    : public distributions::Uniform<typename uniform::ExcludeOne<T_Type>::Reduced, T_RNGMethod>
                 {
                 };
 
@@ -57,9 +53,8 @@ namespace pmacc
                 class Uniform<
                     uniform::ExcludeOne<T_Type>,
                     T_RNGMethod,
-                    typename std::enable_if<std::is_floating_point<T_Type>::value>::type>
-                    : public pmacc::random::distributions::
-                          Uniform<typename uniform::ExcludeOne<T_Type>::Reduced, T_RNGMethod>
+                    std::enable_if_t<std::is_floating_point_v<T_Type>>>
+                    : public distributions::Uniform<typename uniform::ExcludeOne<T_Type>::Reduced, T_RNGMethod>
                 {
                 };
             } // namespace detail

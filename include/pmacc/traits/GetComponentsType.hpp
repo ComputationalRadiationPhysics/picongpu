@@ -36,7 +36,7 @@ namespace pmacc
          *
          * Attention: do not defines this trait for structs with different attributes inside
          */
-        template<typename T_Type, bool T_IsFundamental = std::is_fundamental<T_Type>::value>
+        template<typename T_Type, bool T_IsFundamental = std::is_fundamental_v<T_Type>>
         struct GetComponentsType;
 
         template<typename T_Type>
