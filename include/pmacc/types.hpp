@@ -42,7 +42,6 @@
 
 
 #include "pmacc/attribute/Constexpr.hpp"
-#include "pmacc/attribute/Fallthrough.hpp"
 #include "pmacc/attribute/FunctionSpecifier.hpp"
 #include "pmacc/cuplaHelper/ValidateCall.hpp"
 #include "pmacc/debug/PMaccVerbose.hpp"
