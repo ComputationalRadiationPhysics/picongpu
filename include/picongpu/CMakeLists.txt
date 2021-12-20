@@ -316,7 +316,7 @@ PIC_dependency(openPMD "API for IO" AUTO)
 
 if(PIC_SEARCH_openPMD)
     # find openPMD installation
-    find_package(openPMD 0.12.0 CONFIG COMPONENTS MPI)
+    find_package(openPMD 0.14.3 CONFIG COMPONENTS MPI)
     if(openPMD_FOUND)
         if(openPMD_HAVE_ADIOS2 OR openPMD_HAVE_HDF5)
             message(STATUS "Found openPMD: ${openPMD_DIR}")

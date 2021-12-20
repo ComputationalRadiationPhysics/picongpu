@@ -24,7 +24,6 @@
 
 #include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/kernel/CopySpecies.kernel"
 #include "picongpu/plugins/openPMD/openPMDDimension.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
@@ -295,7 +294,7 @@ namespace picongpu
                     const float_64 mass(getMassOrZero());
                     auto& massRecord = record["mass"];
                     auto& massComponent = massRecord[::openPMD::RecordComponent::SCALAR];
-                    setDatasetOptions(dataSet, matcher.get(basename + "/mass"));
+                    dataSet.options = matcher.get(basename + "/mass");
                     massComponent.resetDataset(dataSet);
                     massComponent.makeConstant(mass);
 
@@ -315,7 +314,7 @@ namespace picongpu
                     const float_64 charge(getChargeOrZero());
                     auto& chargeRecord = record["charge"];
                     auto& chargeComponent = chargeRecord[::openPMD::RecordComponent::SCALAR];
-                    setDatasetOptions(dataSet, matcher.get(basename + "/charge"));
+                    dataSet.options = matcher.get(basename + "/charge");
                     chargeComponent.resetDataset(dataSet);
                     chargeComponent.makeConstant(charge);
 
@@ -341,7 +340,7 @@ namespace picongpu
                 const std::string speciesGroup(T_Species::getName());
 
                 ::openPMD::Series& series = *params->openPMDSeries;
-                ::openPMD::Iteration iteration = series.WRITE_ITERATIONS[params->currentStep];
+                ::openPMD::Iteration iteration = series.writeIterations()[params->currentStep];
                 const std::string basename = series.particlesPath() + speciesGroup;
 
                 // enforce that the filter interface is fulfilled
@@ -470,9 +469,9 @@ namespace picongpu
                     ::openPMD::PatchRecordComponent numParticlesOffset
                         = particlePatches["numParticlesOffset"][::openPMD::RecordComponent::SCALAR];
 
-                    setDatasetOptions(ds, params->jsonMatcher->get(basename + "/particlePatches/numParticles"));
+                    ds.options = params->jsonMatcher->get(basename + "/particlePatches/numParticles");
                     numParticles.resetDataset(ds);
-                    setDatasetOptions(ds, params->jsonMatcher->get(basename + "/particlePatches/numParticlesOffset"));
+                    ds.options = params->jsonMatcher->get(basename + "/particlePatches/numParticlesOffset");
                     numParticlesOffset.resetDataset(ds);
 
                     /* It is safe to use the mpi rank to write the data even if the rank can differ between simulation
@@ -489,13 +488,9 @@ namespace picongpu
                     {
                         ::openPMD::PatchRecordComponent offset_x = offset[name_lookup[d]];
                         ::openPMD::PatchRecordComponent extent_x = extent[name_lookup[d]];
-                        setDatasetOptions(
-                            ds,
-                            params->jsonMatcher->get(basename + "/particlePatches/offset/" + name_lookup[d]));
+                        ds.options = params->jsonMatcher->get(basename + "/particlePatches/offset/" + name_lookup[d]);
                         offset_x.resetDataset(ds);
-                        setDatasetOptions(
-                            ds,
-                            params->jsonMatcher->get(basename + "/particlePatches/extent/" + name_lookup[d]));
+                        ds.options = params->jsonMatcher->get(basename + "/particlePatches/extent/" + name_lookup[d]);
                         extent_x.resetDataset(ds);
 
                         offset_x.store<index_t>(mpiRank, particleOffset[d]);

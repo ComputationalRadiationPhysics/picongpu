@@ -22,7 +22,6 @@
 
 #include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
-#include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"
 #include "picongpu/plugins/openPMD/openPMDWriter.def"
 #include "picongpu/traits/SIBaseUnits.hpp"
@@ -77,7 +76,7 @@ namespace picongpu
                         }
                     }
 
-                    ::openPMD::Iteration iteration = series.WRITE_ITERATIONS[currentStep];
+                    ::openPMD::Iteration iteration = series.writeIterations()[currentStep];
                     iteration.setAttribute("particleBoundary", listParticleBoundary);
                     iteration.setAttribute("particleBoundaryParameters", listParticleBoundaryParam);
                 }

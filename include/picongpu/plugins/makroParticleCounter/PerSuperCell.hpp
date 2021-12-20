@@ -23,7 +23,6 @@
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/common/openPMDAttributes.hpp"
-#include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/openPMDWriteMeta.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -247,7 +246,7 @@ namespace picongpu
             // avoid deadlock between not finished pmacc tasks and collective or blocking MPI calls in openPMD
             __getTransactionEvent().waitForFinished();
 
-            auto iteration = m_Series->WRITE_ITERATIONS[currentStep];
+            auto iteration = m_Series->writeIterations()[currentStep];
 
             auto mesh = iteration.meshes["makroParticlePerSupercell"];
             auto dataset = mesh[::openPMD::RecordComponent::SCALAR];
