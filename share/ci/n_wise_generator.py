@@ -109,10 +109,6 @@ def is_valid_combination(row):
         if is_hipcc:
             return False
 
-        # clang 12 is currently only shipped with the HIP container
-        if is_clang and v_compiler == 12:
-            return False
-
         # CUDA compiler requires backed `cuda`
         if (is_nvcc or is_clang_cuda) and not is_cuda:
             return False
@@ -140,14 +136,7 @@ def is_valid_combination(row):
         # nvcc compatibility
         if is_cuda and is_nvcc:
             if is_gnu:
-                # g++-5.5 is not compatible with CUDA
-                # https://github.com/tensorflow/tensorflow/issues/10220
-                if v_compiler == 5:
-                    return False
-                if v_cuda <= 10.1 and v_compiler <= 7:
-                    return True
-                if v_cuda == 10.2 and v_compiler <= 8:
-                    return True
+                # for C++17 support CUDA >= 11 is required
                 if v_cuda == 11.0 and v_compiler <= 9:
                     return True
                 if v_cuda >= 11.1 and v_compiler <= 10:
@@ -159,10 +148,7 @@ def is_valid_combination(row):
                         return True
 
             if is_clang:
-                if 10.0 <= v_cuda and v_compiler <= 6:
-                    return True
-                if 10.1 >= v_cuda and v_cuda <= 10.2 and v_compiler <= 8:
-                    return True
+                # for C++17 support CUDA >= 11 is required
                 if v_cuda == 11.0 and v_compiler <= 9:
                     return True
                 if v_cuda >= 11.1 and v_compiler <= 10:
