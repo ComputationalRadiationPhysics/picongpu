@@ -140,6 +140,10 @@ if(${PMACC_ALPAKA_PROVIDER} STREQUAL "intern")
     list(INSERT CMAKE_MODULE_PATH 0 "${PMacc_DIR}/../../thirdParty/cupla/alpaka")
 endif()
 
+# Set alpaka CXX standard because the default is currently C++14.
+if(NOT DEFINED ALPAKA_CXX_STANDARD)
+    set(ALPAKA_CXX_STANDARD ${CMAKE_CXX_STANDARD} CACHE STRING "C++ standard version")
+endif()
 
 ################################################################################
 # Find cupla
