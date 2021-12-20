@@ -36,11 +36,7 @@ namespace pmacc
     template<typename T>
     struct IsParticleSpecies
     {
-        enum
-        {
-            value = std::is_same < typename T::SimulationDataTag,
-            ParticlesTag > ::value
-        };
+        inline static constexpr bool value = std::is_same_v<typename T::SimulationDataTag, ParticlesTag>;
     };
 
     namespace communication

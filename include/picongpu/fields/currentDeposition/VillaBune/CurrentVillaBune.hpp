@@ -51,7 +51,7 @@ namespace picongpu
                 PMACC_CASSERT_MSG_TYPE(
                     currentSolverVillaBune_requires_shapeCIC_in_particleConfig,
                     T_ParticleShape,
-                    std::is_same<T_ParticleShape, particles::shapes::CIC>::value);
+                    std::is_same_v<T_ParticleShape, particles::shapes::CIC>);
 
                 // normalize deltaPos to innerCell units [0.; 1.)
                 //   that means: dx_real   = v.x() * dt

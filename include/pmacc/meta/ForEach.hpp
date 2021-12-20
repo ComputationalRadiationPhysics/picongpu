@@ -44,7 +44,7 @@ namespace pmacc
              *  @tparam itEnd iterator to the end of a mpl sequence
              *  @tparam isEnd true if itBegin == itEnd, else false
              */
-            template<typename itBegin, typename itEnd, bool isEnd = std::is_same<itBegin, itEnd>::value>
+            template<typename itBegin, typename itEnd, bool isEnd = std::is_same_v<itBegin, itEnd>>
             struct CallFunctorOfIterator
             {
                 using nextIt = typename boost::mpl::next<itBegin>::type;

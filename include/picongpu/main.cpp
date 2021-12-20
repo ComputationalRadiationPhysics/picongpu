@@ -57,7 +57,7 @@ namespace
             sim.load();
             sim.start();
             sim.unload();
-            PMACC_FALLTHROUGH;
+            [[fallthrough]];
         case ArgsParser::Status::successExit:
             errorCode = 0;
             break;

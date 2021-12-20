@@ -498,10 +498,10 @@ namespace picongpu
                         offsetMinBorder[axis] = absorberThickness(axis, 0) + GAP_FROM_ABSORBER[axis][0];
                         offsetMaxBorder[axis] = absorberThickness(axis, 1) + GAP_FROM_ABSORBER[axis][1];
                     }
-                    hasMinSource[0] = !std::is_same<XMin, None>::value;
-                    hasMinSource[1] = !std::is_same<YMin, None>::value;
+                    hasMinSource[0] = !std::is_same_v<XMin, None>;
+                    hasMinSource[1] = !std::is_same_v<YMin, None>;
                     if(simDim == 3)
-                        hasMinSource[2] = !std::is_same<ZMin, None>::value;
+                        hasMinSource[2] = !std::is_same_v<ZMin, None>;
                 }
 
                 /** Apply contribution of the incident B field to the E field update by one time step

@@ -130,8 +130,7 @@ namespace pmacc
                 typename T_Functor,
                 // check if functor is invocable
                 typename = IsCallableWithIndex<T_Functor>,
-                std::
-                    enable_if_t<std::is_void<InvokeResult_t<T_Functor, Idx const>>::value && domainSize != 1, int> = 0>
+                std::enable_if_t<std::is_void_v<InvokeResult_t<T_Functor, Idx const>> && domainSize != 1, int> = 0>
             HDINLINE void operator()(T_Functor&& functor) const
             {
                 // number of iterations each worker can safely execute without boundary checks
@@ -171,7 +170,7 @@ namespace pmacc
                 typename T_Functor,
                 // check if functor is invocable
                 typename = IsCallableWithoutArguments<T_Functor>,
-                std::enable_if_t<std::is_void<InvokeResult_t<T_Functor>>::value && domainSize != 1, int> = 0>
+                std::enable_if_t<std::is_void_v<InvokeResult_t<T_Functor>> && domainSize != 1, int> = 0>
             HDINLINE void operator()(T_Functor&& functor) const
             {
                 this->operator()([&](Idx const&) { functor(); });
@@ -188,8 +187,7 @@ namespace pmacc
                 typename T_Functor,
                 // check if functor is invocable
                 typename = IsCallableWithIndex<T_Functor>,
-                std::
-                    enable_if_t<std::is_void<InvokeResult_t<T_Functor, Idx const>>::value && domainSize == 1, int> = 0>
+                std::enable_if_t<std::is_void_v<InvokeResult_t<T_Functor, Idx const>> && domainSize == 1, int> = 0>
             HDINLINE void operator()(T_Functor&& functor) const
             {
                 if(this->getWorkerIdx() == 0u)
@@ -205,7 +203,7 @@ namespace pmacc
                 typename T_Functor,
                 // check if functor is invocable
                 typename = IsCallableWithoutArguments<T_Functor>,
-                std::enable_if_t<std::is_void<InvokeResult_t<T_Functor>>::value && domainSize == 1, int> = 0>
+                std::enable_if_t<std::is_void_v<InvokeResult_t<T_Functor>> && domainSize == 1, int> = 0>
             HDINLINE void operator()(T_Functor&& functor) const
             {
                 if(this->getWorkerIdx() == 0u)
@@ -229,7 +227,7 @@ namespace pmacc
                 typename T_Functor,
                 // check if functor is invocable
                 typename = IsCallableWithIndex<T_Functor>,
-                std::enable_if_t<!std::is_void<InvokeResult_t<T_Functor, Idx const>>::value, int> = 0>
+                std::enable_if_t<!std::is_void_v<InvokeResult_t<T_Functor, Idx const>>, int> = 0>
             HDINLINE auto operator()(T_Functor&& functor) const
             {
                 auto tmp = makeVar<ALPAKA_DECAY_T(decltype(functor(alpaka::core::declval<Idx const>())))>(*this);
@@ -251,7 +249,7 @@ namespace pmacc
                 typename T_Functor,
                 // check if functor is invocable
                 typename = IsCallableWithoutArguments<T_Functor>,
-                std::enable_if_t<!std::is_void<InvokeResult_t<T_Functor>>::value, int> = 0>
+                std::enable_if_t<!std::is_void_v<InvokeResult_t<T_Functor>>, int> = 0>
             HDINLINE auto operator()(T_Functor&& functor) const
             {
                 auto tmp = makeVar<ALPAKA_DECAY_T(decltype(functor()))>(*this);

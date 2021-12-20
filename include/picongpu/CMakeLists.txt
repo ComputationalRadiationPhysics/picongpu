@@ -117,10 +117,10 @@ endif()
 # Language Flags
 ###############################################################################
 
-# enforce C++14
+# enforce C++17
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 
 ################################################################################
@@ -542,7 +542,7 @@ if(${CLANG_TIDY_RETURN} EQUAL 0)
             # -checks='-*,modernize-use-using'
             # -fix # -fix-errors
             --
-            -std=c++14
+            -std=c++17
             ${OpenMP_CXX_FLAGS}
             ${ALL_INCLUDES_STR}
             ${ALL_DEFINES_STR}
