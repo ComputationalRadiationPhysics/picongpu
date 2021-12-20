@@ -4,7 +4,7 @@ Changelog
 0.6.0
 -----
 
-**Date:** 2021-12-XX
+**Date:** 2021-12-21
 
 C++14, New Solvers, I/O via openPMD API, HIP Support
 
