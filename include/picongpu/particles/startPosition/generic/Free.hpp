@@ -79,10 +79,7 @@ namespace picongpu
                     using Functor = T_Functor;
 
                     template<typename T_SpeciesType>
-                    struct apply
-                    {
-                        using type = Free;
-                    };
+                    using fn = Free;
 
                     /** constructor
                      *

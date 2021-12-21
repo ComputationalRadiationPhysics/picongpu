@@ -197,8 +197,8 @@ namespace picongpu
         /* calculate and add the charge density values from all species in FieldTmp */
         meta::ForEach<
             EligibleSpecies,
-            picongpu::detail::ComputeChargeDensity<boost::mpl::_1, pmacc::mp_int<CORE + BORDER>>,
-            boost::mpl::_1>
+            picongpu::detail::ComputeChargeDensity<pmacc::_1, pmacc::mp_int<CORE + BORDER>>,
+            pmacc::_1>
             computeChargeDensity;
         computeChargeDensity(fieldTmp.get(), currentStep);
 

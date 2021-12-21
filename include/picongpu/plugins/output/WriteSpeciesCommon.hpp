@@ -124,11 +124,8 @@ namespace picongpu
     struct OperatorCreateVectorBox
     {
         template<typename InType>
-        struct apply
-        {
-            using type
-                = pmacc::meta::Pair<InType, pmacc::VectorDataBox<typename pmacc::traits::Resolve<InType>::type::type>>;
-        };
+        using fn
+            = pmacc::meta::Pair<InType, pmacc::VectorDataBox<typename pmacc::traits::Resolve<InType>::type::type>>;
     };
 
 } // namespace picongpu

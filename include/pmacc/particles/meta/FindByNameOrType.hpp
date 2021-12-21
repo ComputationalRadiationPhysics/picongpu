@@ -21,10 +21,9 @@
 
 #pragma once
 
+#include "pmacc/meta/Apply.hpp"
 #include "pmacc/meta/errorHandlerPolicies/ThrowValueNotFound.hpp"
 #include "pmacc/traits/GetCTName.hpp"
-
-#include <boost/mpl/apply.hpp>
 
 #include <type_traits>
 
@@ -63,7 +62,7 @@ namespace pmacc
 
                 using type = typename mp_if<
                     mp_empty<FilteredSeq>,
-                    boost::mpl::apply<KeyNotFoundPolicy, T_MPLSeq, T_Identifier>,
+                    mp_defer<Apply, KeyNotFoundPolicy, T_MPLSeq, T_Identifier>,
                     mp_defer<mp_front, FilteredSeq>>::type;
             };
 

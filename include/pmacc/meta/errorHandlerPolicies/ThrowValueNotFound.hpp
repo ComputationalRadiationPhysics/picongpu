@@ -34,7 +34,7 @@ namespace pmacc
         struct ThrowValueNotFound
         {
             template<typename T_MPLSeq, typename T_Value>
-            struct apply
+            struct fn
             {
                 /* The compiler is allowed to evaluate an expression that does not depend on a template parameter
                  * even if the class is never instantiated. In that case static assert is always
@@ -45,7 +45,6 @@ namespace pmacc
                  * `sizeof(ANY_TYPE) != 0` is always true and defers the evaluation.
                  */
                 PMACC_CASSERT_MSG_TYPE(value_not_found_in_seq, T_Value, false && (sizeof(T_MPLSeq) != 0));
-                using type = boost::mpl::void_;
             };
         };
 

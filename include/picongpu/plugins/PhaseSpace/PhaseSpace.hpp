@@ -100,7 +100,7 @@ namespace picongpu
                 boost::program_options::options_description& desc,
                 std::string const& masterPrefix = std::string{}) override
             {
-                meta::ForEach<EligibleFilters, plugins::misc::AppendName<boost::mpl::_1>> getEligibleFilterNames;
+                meta::ForEach<EligibleFilters, plugins::misc::AppendName<pmacc::_1>> getEligibleFilterNames;
                 getEligibleFilterNames(allowedFilters);
 
                 concatenatedFilterNames = plugins::misc::concatenateToString(allowedFilters, ", ");

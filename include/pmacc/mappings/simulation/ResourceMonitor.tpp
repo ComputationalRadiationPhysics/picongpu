@@ -70,7 +70,7 @@ namespace pmacc
     {
         using dim = std::integral_constant<unsigned int, T_DIM>;
         std::vector<size_t> particleCounts;
-        meta::ForEach<T_Species, MyCountParticles<dim, boost::mpl::_1>> countParticles;
+        meta::ForEach<T_Species, MyCountParticles<dim, pmacc::_1>> countParticles;
         countParticles(particleCounts, cellDescription, parFilter);
         return particleCounts;
     }

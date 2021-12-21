@@ -33,10 +33,7 @@ namespace pmacc
         struct ReturnValue
         {
             template<typename T_MPLSeq, typename T_Value>
-            struct apply
-            {
-                using type = T_Value;
-            };
+            using fn = T_Value;
         };
 
     } // namespace errorHandlerPolicies

@@ -24,8 +24,6 @@
 
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/placeholders.hpp>
-
 namespace pmacc
 {
     namespace meta
@@ -37,12 +35,11 @@ namespace pmacc
              * @tparam T in type
              *
              */
-            template<typename T = boost::mpl::_1>
+            template<typename T = pmacc::_1>
             struct Identity
             {
                 using type = T;
             };
-
         } // namespace accessors
 
     } // namespace meta

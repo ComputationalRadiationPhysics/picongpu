@@ -32,10 +32,7 @@ namespace picongpu
             using ParamClass = T_ParamClass;
 
             template<typename T_SpeciesType>
-            struct apply
-            {
-                using type = LinearExponentialImpl<ParamClass>;
-            };
+            using fn = LinearExponentialImpl;
 
             HINLINE LinearExponentialImpl(uint32_t currentStep)
             {

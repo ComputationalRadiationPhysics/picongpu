@@ -29,10 +29,7 @@ namespace picongpu
         struct HomogenousImpl
         {
             template<typename T_SpeciesType>
-            struct apply
-            {
-                using type = HomogenousImpl;
-            };
+            using fn = HomogenousImpl;
 
             HINLINE HomogenousImpl(uint32_t currentStep)
             {

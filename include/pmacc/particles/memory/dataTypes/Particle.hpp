@@ -37,8 +37,6 @@
 #include "pmacc/traits/HasIdentifier.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/placeholders.hpp>
-
 #include <type_traits>
 
 namespace pmacc
@@ -226,11 +224,11 @@ namespace pmacc
                     {
                         using pmacc::meta::ForEach;
                         /* assign attributes from src to dest*/
-                        ForEach<CommonTypeSeq, CopyIdentifier<boost::mpl::_1>> copy;
+                        ForEach<CommonTypeSeq, CopyIdentifier<pmacc::_1>> copy;
                         copy(dest, src);
 
                         /* set all attributes which are not in src to their default value*/
-                        ForEach<UniqueInDestTypeSeq, SetAttributeToDefault<boost::mpl::_1>> setAttributeToDefault;
+                        ForEach<UniqueInDestTypeSeq, SetAttributeToDefault<pmacc::_1>> setAttributeToDefault;
                         setAttributeToDefault(dest);
                     };
                 };

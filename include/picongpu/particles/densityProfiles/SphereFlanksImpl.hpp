@@ -33,10 +33,7 @@ namespace picongpu
             using ParamClass = T_ParamClass;
 
             template<typename T_SpeciesType>
-            struct apply
-            {
-                using type = SphereFlanksImpl<ParamClass>;
-            };
+            using fn = SphereFlanksImpl;
 
             HINLINE SphereFlanksImpl(uint32_t currentStep)
             {

@@ -34,10 +34,7 @@ namespace pmacc
         struct ReturnType
         {
             template<typename T_MPLSeq, typename T_Value>
-            struct apply
-            {
-                using type = T_ReturnType;
-            };
+            using fn = T_ReturnType;
         };
 
     } // namespace errorHandlerPolicies

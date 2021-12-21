@@ -34,10 +34,7 @@ namespace picongpu
             using ParamClass = T_ParamClass;
 
             template<typename T_SpeciesType>
-            struct apply
-            {
-                using type = GaussianImpl<ParamClass>;
-            };
+            using fn = GaussianImpl;
 
             HINLINE GaussianImpl(uint32_t currentStep)
             {

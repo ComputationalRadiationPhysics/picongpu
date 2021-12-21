@@ -34,10 +34,7 @@ namespace picongpu
             using ParamClass = T_ParamClass;
 
             template<typename T_SpeciesType>
-            struct apply
-            {
-                using type = GaussianCloudImpl<ParamClass>;
-            };
+            using fn = GaussianCloudImpl;
 
             HINLINE GaussianCloudImpl(uint32_t currentStep)
             {

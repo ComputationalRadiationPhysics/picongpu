@@ -21,12 +21,11 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include <pmacc/meta/Apply.hpp>
 #include <pmacc/meta/accessors/Type.hpp>
 #include <pmacc/meta/conversion/OperateOnSeq.hpp>
 #include <pmacc/traits/GetFlagType.hpp>
 #include <pmacc/traits/Resolve.hpp>
-
-#include <boost/mpl/apply.hpp>
 
 
 namespace picongpu
@@ -57,7 +56,7 @@ namespace picongpu
 
                 using type = typename pmacc::OperateOnSeq<
                     FoundIonizerList,
-                    boost::mpl::apply1<boost::mpl::_1, SpeciesType>,
+                    pmacc::Apply<pmacc::_1, SpeciesType>,
                     pmacc::meta::accessors::Type<>>::type;
             };
 

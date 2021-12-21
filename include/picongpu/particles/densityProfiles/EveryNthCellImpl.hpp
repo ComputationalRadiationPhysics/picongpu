@@ -37,10 +37,7 @@ namespace picongpu
             using SkipCells = typename pmacc::math::CT::shrinkTo<OrgSkipCells, simDim>::type;
 
             template<typename T_SpeciesType>
-            struct apply
-            {
-                using type = EveryNthCellImpl<OrgSkipCells>;
-            };
+            using fn = EveryNthCellImpl;
 
             HINLINE
             EveryNthCellImpl(uint32_t currentStep)

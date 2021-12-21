@@ -24,8 +24,6 @@
 #include "pmacc/math/vector/Vector.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/aux_/na.hpp>
-
 #include <cstdint>
 
 namespace pmacc

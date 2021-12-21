@@ -35,10 +35,7 @@ namespace picongpu
             using UserFunctor = particles::functor::User<T_UserFunctor>;
 
             template<typename T_SpeciesType>
-            struct apply
-            {
-                using type = FreeFormulaImpl<UserFunctor>;
-            };
+            using fn = FreeFormulaImpl<UserFunctor>;
 
             HINLINE FreeFormulaImpl(uint32_t currentStep) : UserFunctor(currentStep)
             {

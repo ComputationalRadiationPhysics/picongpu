@@ -95,13 +95,7 @@ namespace pmacc
          * A unary filters means that each argument can only pass the same filter
          * check before its results are combined.
          */
-        template<
-            typename T_FilterOperator,
-            typename T_Filter,
-            typename T_Functor,
-            uint32_t T_numFunctorArguments
-
-            >
+        template<typename T_FilterOperator, typename T_Filter, typename T_Functor, uint32_t T_numFunctorArguments>
         struct Filtered<
             T_FilterOperator,
             filter::Interface<T_Filter, 1u>,
@@ -109,14 +103,8 @@ namespace pmacc
             : private filter::Interface<T_Filter, 1u>
             , Interface<T_Functor, T_numFunctorArguments, void>
         {
-            template<typename... T_Params>
-            struct apply
-            {
-                using type = Filtered<
-                    T_FilterOperator,
-                    typename boost::mpl::apply<T_Filter, T_Params...>::type,
-                    typename boost::mpl::apply<T_Functor, T_Params...>::type>;
-            };
+            // template<typename... T_Params>
+            // using fn = Filtered<T_FilterOperator, Apply<T_Filter, T_Params...>, Apply<T_Functor, T_Params...>>;
 
             using Filter = filter::Interface<T_Filter, 1u>;
             using Functor = Interface<T_Functor, T_numFunctorArguments, void>;

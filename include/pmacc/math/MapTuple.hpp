@@ -28,8 +28,6 @@ namespace pmacc
 {
     namespace math
     {
-        namespace bmpl = boost::mpl;
-
         /** wrap a datum
          *
          * @tparam T_Pair mp_list< key, type of the value >

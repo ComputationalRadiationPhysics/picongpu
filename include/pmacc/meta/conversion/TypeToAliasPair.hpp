@@ -28,6 +28,23 @@
 
 namespace pmacc
 {
+    namespace detail
+    {
+        template<typename T_Type>
+        struct TypeToAliasPairImpl
+        {
+            using type = TypeToPair<T_Type>;
+        };
+
+        /** specialisation if T_Type is a pmacc alias*/
+        template<template<typename, typename> class T_Alias, typename T_Type>
+        struct TypeToAliasPairImpl<T_Alias<T_Type, pmacc::pmacc_isAlias>>
+        {
+            using type
+                = pmacc::meta::Pair<T_Alias<pmacc_void, pmacc::pmacc_isAlias>, T_Alias<T_Type, pmacc::pmacc_isAlias>>;
+        };
+    } // namespace detail
+
     /** create pmacc::meta::Pair
      *
      * If T_Type is a pmacc alias than first is set to anonym alias name
@@ -38,18 +55,5 @@ namespace pmacc
      * @resturn ::type
      */
     template<typename T_Type>
-    struct TypeToAliasPair
-    {
-        using type = typename TypeToPair<T_Type>::type;
-    };
-
-    /** specialisation if T_Type is a pmacc alias*/
-    template<template<typename, typename> class T_Alias, typename T_Type>
-    struct TypeToAliasPair<T_Alias<T_Type, pmacc::pmacc_isAlias>>
-    {
-        using type
-            = pmacc::meta::Pair<T_Alias<pmacc_void, pmacc::pmacc_isAlias>, T_Alias<T_Type, pmacc::pmacc_isAlias>>;
-    };
-
-
+    using TypeToAliasPair = typename detail::TypeToAliasPairImpl<T_Type>::type;
 } // namespace pmacc

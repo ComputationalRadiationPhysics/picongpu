@@ -213,7 +213,7 @@ namespace picongpu
                 /* push all species */
                 using VectorSpeciesWithPusher =
                     typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, particlePusher<>>::type;
-                meta::ForEach<VectorSpeciesWithPusher, PushSpecies<boost::mpl::_1>> pushSpecies;
+                meta::ForEach<VectorSpeciesWithPusher, PushSpecies<pmacc::_1>> pushSpecies;
                 pushSpecies(currentStep, eventInt, updateEventList);
 
                 /* join all push events */
@@ -223,8 +223,7 @@ namespace picongpu
                 }
 
                 /* call communication for all species */
-                meta::ForEach<VectorSpeciesWithPusher, particles::CommunicateSpecies<boost::mpl::_1>>
-                    communicateSpecies;
+                meta::ForEach<VectorSpeciesWithPusher, particles::CommunicateSpecies<pmacc::_1>> communicateSpecies;
                 communicateSpecies(updateEventList, commEventList);
 
                 /* join all communication events */
@@ -246,7 +245,7 @@ namespace picongpu
             {
                 using VectorSpeciesWithPusher =
                     typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, particlePusher<>>::type;
-                meta::ForEach<VectorSpeciesWithPusher, RemoveOuterParticles<boost::mpl::_1>> removeOuterParticles;
+                meta::ForEach<VectorSpeciesWithPusher, RemoveOuterParticles<pmacc::_1>> removeOuterParticles;
                 removeOuterParticles(currentStep);
             }
         };
@@ -326,8 +325,7 @@ namespace picongpu
                 using hasIonizers = typename HasFlag<FrameType, ionizers<>>::type;
                 if(hasIonizers::value)
                 {
-                    meta::ForEach<SelectIonizerList, CallIonizationScheme<SpeciesType, boost::mpl::_1>>
-                        particleIonization;
+                    meta::ForEach<SelectIonizerList, CallIonizationScheme<SpeciesType, pmacc::_1>> particleIonization;
                     particleIonization(cellDesc, currentStep);
                 }
             }

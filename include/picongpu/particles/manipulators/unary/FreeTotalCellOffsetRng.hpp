@@ -93,10 +93,7 @@ namespace picongpu
                     using Distribution = T_Distribution;
 
                     template<typename T_SpeciesType>
-                    struct apply
-                    {
-                        using type = FreeTotalCellOffsetRng;
-                    };
+                    using fn = FreeTotalCellOffsetRng;
 
                     /** constructor
                      *

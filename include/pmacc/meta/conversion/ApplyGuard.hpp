@@ -51,10 +51,7 @@ namespace pmacc
     struct ApplyGuard
     {
         template<typename... T_Args>
-        struct apply
-        {
-            using type = T_LockedType;
-        };
+        using fn = T_LockedType;
     };
 
 } // namespace pmacc

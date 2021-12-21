@@ -29,8 +29,6 @@
 #include <pmacc/particles/algorithm/CallForEach.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
 
-#include <boost/mpl/placeholders.hpp>
-
 #include <cstdint>
 #include <type_traits>
 
@@ -48,8 +46,8 @@ namespace picongpu
             {
             private:
                 using Species = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_Species>;
-                using SpeciesFunctor = typename boost::mpl::apply1<T_Manipulator, Species>::type;
-                using ParticleFilter = typename boost::mpl::apply1<T_Filter, Species>::type;
+                using SpeciesFunctor = pmacc::Apply<T_Manipulator, Species>;
+                using ParticleFilter = pmacc::Apply<T_Filter, Species>;
 
             public:
                 using type = manipulators::IUnary<SpeciesFunctor, ParticleFilter>;
@@ -76,12 +74,12 @@ namespace picongpu
          * @tparam T_Filter picongpu::particles::filter, particle filter type to
          *                  select particles in `T_Species` to manipulate
          * @tparam T_Area area to process particles in operator()(currentStep),
-         *                wrapped into std::integral_constant for boost::mpl::apply to work;
+         *                wrapped into std::integral_constant for meta programming to work;
          *                does not affect operator()(currentStep, areaMapperFactory)
          */
         template<
             typename T_Manipulator,
-            typename T_Species = boost::mpl::_1,
+            typename T_Species = pmacc::_1,
             typename T_Filter = filter::All,
             typename T_Area = std::integral_constant<uint32_t, CORE + BORDER>>
         struct Manipulate
@@ -99,7 +97,7 @@ namespace picongpu
          * workflow is as follows:
          * - select the species to manipulate, often by filtering VectorAllSpecies
          * - define a manipulator type; in case the manipulator has a species type
-         * as a template parameter, use the boost::mpl::_1 placeholder instead
+         * as a template parameter, use the pmacc::_1 placeholder instead
          * - define a filter type when necessary
          * - call manipulate()
          *
@@ -135,8 +133,7 @@ namespace picongpu
         inline void manipulate(uint32_t const currentStep)
         {
             using SpeciesSeq = pmacc::ToSeq<T_Species>;
-            using Functor
-                = Manipulate<T_Manipulator, boost::mpl::_1, T_Filter, std::integral_constant<uint32_t, T_area>>;
+            using Functor = Manipulate<T_Manipulator, pmacc::_1, T_Filter, std::integral_constant<uint32_t, T_area>>;
             pmacc::meta::ForEach<SpeciesSeq, Functor> forEach;
             forEach(currentStep);
         }
@@ -156,7 +153,7 @@ namespace picongpu
         inline void manipulate(uint32_t const currentStep, T_AreaMapperFactory const& areaMapperFactory)
         {
             using SpeciesSeq = pmacc::ToSeq<T_Species>;
-            using Functor = Manipulate<T_Manipulator, boost::mpl::_1, T_Filter>;
+            using Functor = Manipulate<T_Manipulator, pmacc::_1, T_Filter>;
             pmacc::meta::ForEach<SpeciesSeq, Functor> forEach;
             forEach(currentStep, areaMapperFactory);
         }

@@ -24,9 +24,8 @@
 #include "picongpu/particles/collision/InterCollision.hpp"
 #include "picongpu/particles/collision/IntraCollision.hpp"
 
+#include <pmacc/meta/Apply.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
-
-#include <boost/mpl/apply.hpp>
 
 #include <cstdio>
 
@@ -106,8 +105,7 @@ namespace picongpu
 
                     using PeerSpecies = pmacc::particles::meta::FindByNameOrType_t<VectorAllSpecies, T_PeerSpecies>;
 
-                    using CollisionFunctor =
-                        typename boost::mpl::apply2<T_CollisionFunctor, BaseSpecies, PeerSpecies>::type;
+                    using CollisionFunctor = pmacc::Apply<T_CollisionFunctor, BaseSpecies, PeerSpecies>;
 
                     detail::WithPeer<CollisionFunctor, T_FilterPair, BaseSpecies, PeerSpecies, colliderId, pairId>{}(
                         deviceHeap,

@@ -306,13 +306,12 @@ namespace picongpu
 
         /** Wrapper to be used in density.param, compatible with other density definitions
          *
-         * Hooks internal implementation in detail:: to boost::mpl::apply
-         *
          * @tparam T_ParamClass parameter type
          */
         template<typename T_ParamClass>
         struct FromOpenPMDImpl : public T_ParamClass
         {
+            // TODO(bgruber): is this supposed to hook into MPL? I cannot find where this is used.
             template<typename T_SpeciesType>
             struct apply
             {

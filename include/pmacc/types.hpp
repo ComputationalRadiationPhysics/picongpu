@@ -50,6 +50,7 @@
 #include "pmacc/dimensions/Definition.hpp"
 #include "pmacc/eventSystem/EventType.hpp"
 #include "pmacc/memory/Align.hpp"
+#include "pmacc/meta/Apply.hpp"
 #include "pmacc/meta/Mp11.hpp"
 #include "pmacc/ppFunctions.hpp"
 #include "pmacc/type/Area.hpp"
