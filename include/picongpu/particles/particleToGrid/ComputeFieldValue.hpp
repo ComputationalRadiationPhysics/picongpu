@@ -118,7 +118,7 @@ namespace picongpu
                     fieldTmp1.template computeValue<AREA, typename CombinedSolver::BaseAttributeSolver, T_Filter>(
                         *speciesTmp,
                         currentStep);
-                    /* Particles can contribute to cells in GUARD (due to their shape) this values need to be
+                    /* Particles can contribute to cells in GUARD (due to their shape) these values need to be
                      * added to the neighbouring GPU BORDERs.
                      * Start adding field contribution from the GUARD to the adjacent GPUs while the second attribute
                      * is computed. */
