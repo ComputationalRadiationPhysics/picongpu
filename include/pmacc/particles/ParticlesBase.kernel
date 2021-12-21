@@ -86,7 +86,7 @@ namespace pmacc
             PMACC_SMEM(acc, lastFrame, FramePtr);
             PMACC_SMEM(acc, gapIndices_sh, memory::Array<int, frameSize>);
             PMACC_SMEM(acc, numGaps, int);
-            PMACC_SMEM(acc, numParticles, int);
+            PMACC_SMEM(acc, numParticles, uint32_t);
             PMACC_SMEM(acc, srcGap, int);
 
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
@@ -456,7 +456,7 @@ namespace pmacc
 
                         if(tmpFrame.isValid())
                         {
-                            int32_t const particlesInFrame = pb.getSuperCell(neighborSuperCellIdx).getSizeLastFrame();
+                            uint32_t const particlesInFrame = pb.getSuperCell(neighborSuperCellIdx).getSizeLastFrame();
                             // do not use the neighbor's last frame if it is full
                             if(particlesInFrame < frameSize)
                             {
@@ -529,7 +529,7 @@ namespace pmacc
                                     pb.setAsLastFrame(acc, tmpFrame, neighborSuperCellIdx);
                                 }
                                 /* check if a `high frame` is needed */
-                                if(destFramesCounter[linearIdx] > frameSize)
+                                if(static_cast<uint32_t>(destFramesCounter[linearIdx]) > frameSize)
                                 {
                                     FramePtr tmpFrame(pb.getEmptyFrame(acc));
                                     destFrames[linearIdx + numExchanges] = tmpFrame;
@@ -576,7 +576,7 @@ namespace pmacc
                          * uses the `high frame` (is invalid, if still empty) as the next
                          * `low frame` for the following iteration of the loop
                          */
-                        if(destFramesCounter[linearIdx] >= frameSize)
+                        if(static_cast<uint32_t>(destFramesCounter[linearIdx]) >= frameSize)
                         {
                             newParticleInFrameCtx[idx] += frameSize;
                             destFramesCounter[linearIdx] -= frameSize;
@@ -744,7 +744,7 @@ namespace pmacc
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             // number of particles in the current handled frame
-            PMACC_SMEM(acc, numParticles, int);
+            PMACC_SMEM(acc, numParticles, uint32_t);
             PMACC_SMEM(acc, frame, FramePtr);
 
             /* `exchangeChunk` is a view to a chunk of the memory in the exchange-
@@ -887,7 +887,7 @@ namespace pmacc
             using FramePtr = typename T_ParBox::FramePtr;
 
             PMACC_SMEM(acc, frame, FramePtr);
-            PMACC_SMEM(acc, elementCount, int);
+            PMACC_SMEM(acc, elementCount, uint32_t);
             PMACC_SMEM(acc, exchangeChunk, TileDataBox<T_ExchangeValueType>);
 
 

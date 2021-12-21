@@ -52,7 +52,7 @@ namespace pmacc
                         [&](uint32_t const linearIdx)
                         {
                             uint32_t const linearTid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
-                            if(linearTid >= size.productOfComponents())
+                            if(linearTid >= static_cast<uint32_t>(size.productOfComponents()))
                                 return;
 
                             T_Space const cellIdx = DataSpaceOperations<T_Space::dim>::map(size, linearTid);

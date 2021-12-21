@@ -65,7 +65,7 @@ namespace pmacc
          *
          * @return size of this TileDataBox
          */
-        HDINLINE int getSize()
+        HDINLINE uint32_t getSize() const
         {
             return size;
         }
@@ -75,7 +75,7 @@ namespace pmacc
 
 
     protected:
-        PMACC_ALIGN(size, size_t);
+        PMACC_ALIGN(size, uint32_t);
     };
 
 

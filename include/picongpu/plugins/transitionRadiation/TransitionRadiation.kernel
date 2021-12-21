@@ -243,7 +243,7 @@ namespace picongpu
                                                 // set z component to zero in case of simDim==DIM2
                                                 particleLocation[2] = 0.0;
                                                 // run over all components and compute gobal position
-                                                for(int i = 0; i < simDim; ++i)
+                                                for(uint32_t i = 0; i < simDim; ++i)
                                                     particleLocation[i]
                                                         = (float_X(globalPos[i]) + pos[i]) * cellSize[i];
 
