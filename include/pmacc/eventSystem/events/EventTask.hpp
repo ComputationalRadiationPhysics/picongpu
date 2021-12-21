@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -27,7 +27,6 @@
 
 namespace pmacc
 {
-
     /**
      * EventTask is used for task-synchronization in the event system.
      *
@@ -37,7 +36,6 @@ namespace pmacc
     class EventTask
     {
     public:
-
         /**
          * Constructor.
          *
@@ -45,12 +43,15 @@ namespace pmacc
          */
         EventTask(id_t taskId);
 
+        constexpr EventTask(const pmacc::EventTask&) = default;
+
         /**
          * Constructor.
          */
         EventTask();
 
-        virtual ~EventTask(){};
+        virtual ~EventTask() = default;
+        ;
 
         /**
          * Returns the task id.
@@ -78,7 +79,7 @@ namespace pmacc
          *
          * @param other EventTask to add to this task
          */
-        EventTask operator+(const EventTask & other);
+        EventTask operator+(const EventTask& other);
 
         /**
          * Adds two tasks (this task and other) and creates
@@ -86,22 +87,19 @@ namespace pmacc
          *
          * @param other EventTask to add to this task
          */
-        EventTask& operator+=(const EventTask & other);
+        EventTask& operator+=(const EventTask& other);
 
         /**
          * Copies attributes from other to this task.
          *
          * This task effectively becomes other.
          */
-        EventTask & operator=(const EventTask & other);
+        EventTask& operator=(const EventTask& other);
 
         std::string toString();
 
     private:
-
-        id_t taskId;
+        id_t taskId{0};
     };
 
-} //namespace pmacc
-
-
+} // namespace pmacc

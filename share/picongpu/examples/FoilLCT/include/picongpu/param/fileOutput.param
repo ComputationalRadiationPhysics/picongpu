@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Felix Schmitt,
  *                     Benjamin Worpitz, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -63,55 +63,34 @@ namespace picongpu
     namespace deriveField = particles::particleToGrid;
 
     /* Density section */
-    using Density_Seq = deriveField::CreateEligible_t<
-        VectorAllSpecies,
-        deriveField::derivedAttributes::Density
-    >;
+    using Density_Seq = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::Density>;
 
     /* BoundElectronDensity section */
-    using BoundElectronDensity_Seq = deriveField::CreateEligible_t<
-        VectorAllSpecies,
-        deriveField::derivedAttributes::BoundElectronDensity
-    >;
+    using BoundElectronDensity_Seq
+        = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::BoundElectronDensity>;
 
     /* ChargeDensity section */
-    using ChargeDensity_Seq = deriveField::CreateEligible_t<
-        VectorAllSpecies,
-        deriveField::derivedAttributes::ChargeDensity
-    >;
+    using ChargeDensity_Seq
+        = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::ChargeDensity>;
 
     /* EnergyDensity section */
-    using EnergyDensity_Seq = deriveField::CreateEligible_t<
-        VectorAllSpecies,
-        deriveField::derivedAttributes::EnergyDensity
-    >;
+    using EnergyDensity_Seq
+        = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::EnergyDensity>;
 
     /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
      *
      * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
      */
-    using FieldTmpSolvers = MakeSeq_t<
-        Density_Seq,
-        BoundElectronDensity_Seq,
-        ChargeDensity_Seq,
-        EnergyDensity_Seq
-    >;
+    using FieldTmpSolvers = MakeSeq_t<Density_Seq, BoundElectronDensity_Seq, ChargeDensity_Seq, EnergyDensity_Seq>;
 
 
     /** FileOutputFields: Groups all Fields that shall be dumped *************/
 
     /** Possible native fields: FieldE, FieldB, FieldJ
      */
-    using NativeFileOutputFields = MakeSeq_t<
-        FieldE,
-        FieldB,
-        FieldJ
-    >;
+    using NativeFileOutputFields = MakeSeq_t<FieldE, FieldB, FieldJ>;
 
-    using FileOutputFields = MakeSeq_t<
-        NativeFileOutputFields,
-        FieldTmpSolvers
-    >;
+    using FileOutputFields = MakeSeq_t<NativeFileOutputFields, FieldTmpSolvers>;
 
 
     /** FileOutputParticles: Groups all Species that shall be dumped **********
@@ -119,6 +98,6 @@ namespace picongpu
      * hint: to enable particle output set to
      *   using FileOutputParticles = VectorAllSpecies;
      */
-    using FileOutputParticles = MakeSeq_t< Probes >;
+    using FileOutputParticles = MakeSeq_t<Probes>;
 
-}
+} // namespace picongpu

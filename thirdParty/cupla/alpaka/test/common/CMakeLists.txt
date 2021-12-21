@@ -1,63 +1,46 @@
 #
-# Copyright 2014-2019 Benjamin Worpitz
+# Copyright 2014-2020 Benjamin Worpitz, Jan Stephan
 #
-# This file is part of Alpaka.
+# This file is part of alpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.11.4)
+cmake_minimum_required(VERSION 3.15)
 
-SET(_COMMON_TARGET_NAME "common")
-
-SET(_COMMON_INCLUDE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/include")
-LIST(APPEND _COMMON_INCLUDE_DIRECTORIES_PUBLIC "${_COMMON_INCLUDE_DIRECTORY}")
-SET(_COMMON_SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/src")
+set(_COMMON_TARGET_NAME "common")
+set(_COMMON_COMPILE_OPTIONS_FILE "devCompileOptions.cmake")
+set(_COMMON_INCLUDE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/include")
 
 # Add all the source files in all recursive subdirectories and group them accordingly.
 append_recursive_files_add_to_src_group("${_COMMON_INCLUDE_DIRECTORY}" "${_COMMON_INCLUDE_DIRECTORY}" "hpp" _COMMON_FILES_HEADER)
-append_recursive_files_add_to_src_group("${_COMMON_SOURCE_DIRECTORY}" "${_COMMON_SOURCE_DIRECTORY}" "cpp" _COMMON_FILES_SOURCE)
 
-INCLUDE("${_ALPAKA_ROOT_DIR}/cmake/dev.cmake")
-LIST(APPEND _COMMON_COMPILE_OPTIONS_PUBLIC ${ALPAKA_DEV_COMPILE_OPTIONS})
-IF(MSVC)
-    LIST(APPEND _COMMON_COMPILE_OPTIONS_PUBLIC "/wd4996")   # This function or variable may be unsafe. Consider using <safe_version> instead.
-ENDIF()
+add_library(${_COMMON_TARGET_NAME} INTERFACE)
 
-IF(ALPAKA_ACC_GPU_CUDA_ENABLE OR (ALPAKA_ACC_GPU_HIP_ENABLE AND HIP_PLATFORM MATCHES "nvcc"))
+target_include_directories(${_COMMON_TARGET_NAME} INTERFACE ${_COMMON_INCLUDE_DIRECTORY})
+
+include(${_COMMON_COMPILE_OPTIONS_FILE})
+target_compile_options(${_COMMON_TARGET_NAME} INTERFACE ${ALPAKA_DEV_COMPILE_OPTIONS})
+
+if(MSVC)
+    target_compile_options(${_COMMON_TARGET_NAME} INTERFACE "/wd4996") # This function or variable may be unsafe. Consider using <safe_version> instead.
+    target_compile_options(${_COMMON_TARGET_NAME} INTERFACE "/bigobj")
+endif()
+
+if(ALPAKA_ACC_GPU_CUDA_ENABLE OR (ALPAKA_ACC_GPU_HIP_ENABLE AND HIP_PLATFORM MATCHES "nvcc"))
     # CUDA driver API is used by EventHostManualTrigger
-    LIST(APPEND _COMMON_LINK_LIBRARIES_PUBLIC "${CUDA_CUDA_LIBRARY}")
-    LIST(APPEND _COMMON_COMPILE_DEFINITIONS_PUBLIC "CUDA_API_PER_THREAD_DEFAULT_STREAM")
-ENDIF()
+    target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE "${CUDA_CUDA_LIBRARY}")
+    target_compile_definitions(${_COMMON_TARGET_NAME} INTERFACE "CUDA_API_PER_THREAD_DEFAULT_STREAM")
+endif()
 
-ADD_LIBRARY(
-    ${_COMMON_TARGET_NAME}
-    STATIC
-    ${_COMMON_FILES_HEADER} ${_COMMON_FILES_SOURCE})
-TARGET_INCLUDE_DIRECTORIES(
-    ${_COMMON_TARGET_NAME}
-    PUBLIC ${_COMMON_INCLUDE_DIRECTORIES_PUBLIC})
-LIST(
-    LENGTH
-    _COMMON_COMPILE_DEFINITIONS_PUBLIC
-    _COMMON_COMPILE_DEFINITIONS_PUBLIC_LENGTH)
-IF(${_COMMON_COMPILE_DEFINITIONS_PUBLIC_LENGTH} GREATER 0)
-    TARGET_COMPILE_DEFINITIONS(
-        ${_COMMON_TARGET_NAME}
-        PUBLIC ${_COMMON_COMPILE_DEFINITIONS_PUBLIC})
-ENDIF()
-TARGET_COMPILE_OPTIONS(
-    ${_COMMON_TARGET_NAME}
-    PUBLIC ${_COMMON_COMPILE_OPTIONS_PUBLIC})
-TARGET_LINK_LIBRARIES(
-    ${_COMMON_TARGET_NAME}
-    PUBLIC "alpaka;${_COMMON_LINK_LIBRARIES_PUBLIC}")
-SET_TARGET_PROPERTIES(
-    ${_COMMON_TARGET_NAME}
-    PROPERTIES FOLDER "test")
+target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE alpaka::alpaka)
+target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE CatchMain)
 
-TARGET_LINK_LIBRARIES(
-    ${_COMMON_TARGET_NAME}
-    PUBLIC CatchMain)
+if(TARGET ${_COMMON_TARGET_NAME})
+    # HACK: Workaround for the limitation that files added to INTERFACE targets (target_sources) can not be marked as PUBLIC or PRIVATE but only as INTERFACE.
+    # Therefore those files will be added to projects "linking" to the INTERFACE library, but are not added to the project itself within an IDE.
+    add_custom_target("${_COMMON_TARGET_NAME}Ide" SOURCES ${_COMMON_FILES_HEADER} ${_COMMON_COMPILE_OPTIONS_FILE})
+    set_target_properties("${_COMMON_TARGET_NAME}Ide" PROPERTIES FOLDER "test")
+endif()

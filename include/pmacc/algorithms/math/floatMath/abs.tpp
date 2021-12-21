@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PMacc.
  *
@@ -22,39 +22,24 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
 #include <cmath>
 
 
 namespace pmacc
 {
-namespace algorithms
-{
-namespace math
-{
-
-
-template<>
-struct Abs<float>
-{
-    typedef float result;
-
-    HDINLINE float operator( )(float value)
+    namespace math
     {
-        return ::fabsf( value );
-    }
-};
+        template<>
+        struct Abs2<float>
+        {
+            using result = float;
 
-template<>
-struct Abs2<float>
-{
-    typedef float result;
+            HDINLINE float operator()(const float& value)
+            {
+                return value * value;
+            }
+        };
 
-    HDINLINE float operator( )(const float& value )
-    {
-        return value*value;
-    }
-};
-
-} //namespace math
-} //namespace algorithms
+    } // namespace math
 } // namespace pmacc

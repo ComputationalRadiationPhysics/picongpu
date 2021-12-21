@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,27 +17,11 @@
 //-----------------------------------------------------------------------------
 TEST_CASE("filter", "[meta]")
 {
-    using FilterInput =
-        std::tuple<
-            int,
-            float,
-            long>;
+    using FilterInput = std::tuple<int, float, long>;
 
-    using FilterResult =
-        alpaka::meta::Filter<
-            FilterInput,
-            std::is_integral
-        >;
+    using FilterResult = alpaka::meta::Filter<FilterInput, std::is_integral>;
 
-    using FilterReference =
-        std::tuple<
-            int,
-            long>;
+    using FilterReference = std::tuple<int, long>;
 
-    static_assert(
-        std::is_same<
-            FilterReference,
-            FilterResult
-        >::value,
-        "alpaka::meta::Filter failed!");
+    static_assert(std::is_same<FilterReference, FilterResult>::value, "alpaka::meta::Filter failed!");
 }

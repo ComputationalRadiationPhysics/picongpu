@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Alexander Grund, Axel Huebl
+/* Copyright 2013-2021 Rene Widera, Alexander Grund, Axel Huebl
  *
  * This file is part of PMacc.
  *
@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/identifier/value_identifier.hpp"
 #include "pmacc/identifier/alias.hpp"
+#include "pmacc/identifier/value_identifier.hpp"
 #include "pmacc/particles/frame_types.hpp"
+#include "pmacc/types.hpp"
 
 
 namespace pmacc

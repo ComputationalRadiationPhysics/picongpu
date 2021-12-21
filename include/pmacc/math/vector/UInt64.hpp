@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Axel Huebl
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Axel Huebl
  *
  * This file is part of PMacc.
  *
@@ -25,46 +25,9 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<int dim>
-struct UInt64 : public Vector<uint64_t, dim>
-{
-    using BaseType = Vector<uint64_t, dim>;
-
-    HDINLINE UInt64()
+    namespace math
     {
-    }
-
-    HDINLINE UInt64(uint64_t x) : BaseType(x)
-    {
-    }
-
-    HDINLINE UInt64(uint64_t x, uint64_t y) : BaseType(x, y)
-    {
-    }
-
-    HDINLINE UInt64(uint64_t x, uint64_t y, uint64_t z) : BaseType(x, y, z)
-    {
-    }
-
-    /*! only allow explicit cast*/
-    template<
-    typename T_OtherType,
-    typename T_OtherAccessor,
-    typename T_OtherNavigator,
-    template <typename, int> class T_OtherStorage>
-    HDINLINE explicit UInt64(const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec) :
-    BaseType(vec)
-    {
-    }
-
-    HDINLINE UInt64(const BaseType& vec) :
-    BaseType(vec)
-    {
-    }
-};
-
-} // math
-} // PMacc
+        template<int dim>
+        using UInt64 = Vector<uint64_t, dim>;
+    } // namespace math
+} // namespace pmacc

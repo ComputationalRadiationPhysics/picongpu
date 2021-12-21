@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -21,17 +21,18 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <boost/program_options/options_description.hpp>
-#include <iostream>
-
-#include "picongpu/simulation_defines.hpp"
 #include "picongpu/ArgsParser.hpp"
+#include "picongpu/simulation/control/ISimulationStarter.hpp"
+
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
+#include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/pluginSystem/PluginConnector.hpp>
-#include "picongpu/simulation/control/ISimulationStarter.hpp"
+
+#include <boost/program_options/options_description.hpp>
+
+#include <iostream>
 
 namespace picongpu
 {
@@ -43,52 +44,45 @@ namespace picongpu
     private:
         using BoostOptionsList = std::list<boost::program_options::options_description>;
 
-        SimulationClass* simulationClass;
-        InitClass* initClass;
-        PluginClass* pluginClass;
+        std::unique_ptr<SimulationClass> simulationClass;
+        std::unique_ptr<InitClass> initClass;
+        std::unique_ptr<PluginClass> pluginClass;
 
 
-        MappingDesc* mappingDesc;
+        MappingDesc* mappingDesc{nullptr};
+
     public:
-
-        SimulationStarter() : mappingDesc(nullptr)
+        SimulationStarter()
         {
-            simulationClass = new SimulationClass();
-            initClass = new InitClass();
-            simulationClass->setInitController(initClass);
-            pluginClass = new PluginClass();
+            simulationClass = std::make_unique<SimulationClass>();
+            initClass = std::make_unique<InitClass>();
+            simulationClass->setInitController(initClass.get());
+            pluginClass = std::make_unique<PluginClass>();
         }
 
-        virtual ~SimulationStarter()
-        {
-            __delete(initClass);
-            __delete(pluginClass);
-            __delete(simulationClass);
-        }
-
-        virtual std::string pluginGetName() const
+        std::string pluginGetName() const override
         {
             return "PIConGPU simulation starter";
         }
 
-        virtual void start()
+        void start() override
         {
             PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
             pluginConnector.loadPlugins();
-            log<picLog::SIMULATION_STATE > ("Startup");
-            simulationClass->setInitController(initClass);
+            log<picLog::SIMULATION_STATE>("Startup");
+            simulationClass->setInitController(initClass.get());
             simulationClass->startSimulation();
         }
 
-        virtual void pluginRegisterHelp(po::options_description&)
+        void pluginRegisterHelp(po::options_description&) override
         {
         }
 
-        void notify(uint32_t)
+        void notify(uint32_t) override
         {
         }
 
-        ArgsParser::Status parseConfigs(int argc, char **argv)
+        ArgsParser::Status parseConfigs(int argc, char** argv) override
         {
             ArgsParser& ap = ArgsParser::getInstance();
             PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
@@ -108,8 +102,7 @@ namespace picongpu
             // setup all boost::program_options and add to ArgsParser
             BoostOptionsList options = pluginConnector.registerHelp();
 
-            for (BoostOptionsList::const_iterator iter = options.begin();
-                 iter != options.end(); ++iter)
+            for(BoostOptionsList::const_iterator iter = options.begin(); iter != options.end(); ++iter)
             {
                 ap.addOptions(*iter);
             }
@@ -117,9 +110,9 @@ namespace picongpu
             // parse environment variables, config files and command line
             return ap.parse(argc, argv);
         }
-    protected:
 
-        void pluginLoad()
+    protected:
+        void pluginLoad() override
         {
             simulationClass->load();
             mappingDesc = simulationClass->getMappingDescription();
@@ -127,7 +120,7 @@ namespace picongpu
             initClass->setMappingDescription(mappingDesc);
         }
 
-        void pluginUnload()
+        void pluginUnload() override
         {
             PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
             pluginConnector.unloadPlugins();
@@ -135,17 +128,16 @@ namespace picongpu
             pluginClass->unload();
             simulationClass->unload();
         }
-    private:
 
-        void printStartParameters(int argc, char **argv)
+    private:
+        void printStartParameters(int argc, char** argv)
         {
             std::cout << "Start Parameters: ";
-            for (int i = 0; i < argc; ++i)
+            for(int i = 0; i < argc; ++i)
             {
                 std::cout << argv[i] << " ";
             }
             std::cout << std::endl;
         }
     };
-}
-
+} // namespace picongpu

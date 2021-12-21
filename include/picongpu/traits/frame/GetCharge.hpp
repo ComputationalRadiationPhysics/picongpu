@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera
+/* Copyright 2014-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,20 +20,20 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include <pmacc/traits/HasIdentifier.hpp>
 
 namespace picongpu
 {
-namespace traits
-{
-namespace frame
-{
+    namespace traits
+    {
+        namespace frame
+        {
+            /** get the charge value for a species frame
+             */
+            template<typename T_Frame>
+            HDINLINE float_X getCharge();
 
-/** get the charge value for a species frame
- */
-template<typename T_Frame>
-HDINLINE float_X getCharge();
-
-}// namespace frame
-}// namespace traits
-}// namespace picongpu
+        } // namespace frame
+    } // namespace traits
+} // namespace picongpu

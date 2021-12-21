@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Axel Huebl, Rene Widera
+/* Copyright 2014-2021 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -33,28 +33,28 @@
 
 namespace picongpu
 {
-namespace random
-{
-    /** Random number generation methods
-     *
-     * It is not allowed to change the method and restart an already existing checkpoint.
-     *
-     *  - pmacc::random::methods::XorMin
-     *  - pmacc::random::methods::MRG32k3aMin
-     *  - pmacc::random::methods::AlpakaRand
-     */
-    using Generator =  pmacc::random::methods::XorMin< >;
+    namespace random
+    {
+        /** Random number generation methods
+         *
+         * It is not allowed to change the method and restart an already existing checkpoint.
+         *
+         *  - pmacc::random::methods::XorMin
+         *  - pmacc::random::methods::MRG32k3aMin
+         *  - pmacc::random::methods::AlpakaRand
+         */
+        using Generator = pmacc::random::methods::XorMin<>;
 
-    /** random number start seed
-     *
-     * Generator to create a seed for the random number generator.
-     * Depending of the generator the seed is reproducible or
-     * or changed with each program execution.
-     *
-     *   - seed::Value< 42 >
-     *   - seed::FromTime
-     *   - seed::FromEnvironment
-     */
-    using SeedGenerator = seed::Value< 42 > ;
-} // namespace random
+        /** random number start seed
+         *
+         * Generator to create a seed for the random number generator.
+         * Depending of the generator the seed is reproducible or
+         * or changed with each program execution.
+         *
+         *   - seed::Value< 42 >
+         *   - seed::FromTime
+         *   - seed::FromEnvironment
+         */
+        using SeedGenerator = seed::Value<42>;
+    } // namespace random
 } // namespace picongpu

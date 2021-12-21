@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -25,57 +25,54 @@
 #include "pmacc/types.hpp"
 
 
-
 namespace pmacc
 {
-
-/**
- * Wrapper for a single cuda stream.
- * Allows recording cuda events on the stream.
- */
-class EventStream
-{
-public:
-
     /**
-     * Constructor.
-     * Creates the cudaStream_t object.
+     * Wrapper for a single cupla stream.
+     * Allows recording cupla events on the stream.
      */
-    EventStream() : stream(nullptr)
+    class EventStream
     {
-        CUDA_CHECK(cudaStreamCreate(&stream));
-    }
-
-    /**
-     * Destructor.
-     * Waits for the stream to finish and destroys it.
-     */
-    virtual ~EventStream()
-    {
-        // wait for all kernels in stream to finish
-        CUDA_CHECK_NO_EXCEPT(cudaStreamSynchronize(stream));
-        CUDA_CHECK_NO_EXCEPT(cudaStreamDestroy(stream));
-    }
-
-    /**
-     * Returns the cudaStream_t object associated with this EventStream.
-     * @return the internal cuda stream object
-     */
-    cudaStream_t getCudaStream() const
-    {
-        return stream;
-    }
-
-    void waitOn(const CudaEventHandle& ev)
-    {
-        if (this->stream != ev.getStream())
+    public:
+        /**
+         * Constructor.
+         * Creates the cuplaStream_t object.
+         */
+        EventStream()
         {
-            CUDA_CHECK(cudaStreamWaitEvent(this->getCudaStream(), *ev, 0));
+            CUDA_CHECK(cuplaStreamCreate(&stream));
         }
-    }
 
-private:
-    cudaStream_t stream;
-};
+        /**
+         * Destructor.
+         * Waits for the stream to finish and destroys it.
+         */
+        virtual ~EventStream()
+        {
+            // wait for all kernels in stream to finish
+            CUDA_CHECK_NO_EXCEPT(cuplaStreamSynchronize(stream));
+            CUDA_CHECK_NO_EXCEPT(cuplaStreamDestroy(stream));
+        }
 
-}
+        /**
+         * Returns the cuplaStream_t object associated with this EventStream.
+         * @return the internal cupla stream object
+         */
+        cuplaStream_t getCudaStream() const
+        {
+            return stream;
+        }
+
+        void waitOn(const CudaEventHandle& ev)
+        {
+            if(this->stream != ev.getStream())
+            {
+                CUDA_CHECK(cuplaStreamWaitEvent(this->getCudaStream(), *ev, 0));
+            }
+        }
+
+    private:
+        cuplaStream_t stream{nullptr};
+    };
+
+} // namespace pmacc

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,44 +21,43 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include <mpi.h>
 #include "pmacc/communication/manager_common.hpp"
+#include "pmacc/types.hpp"
+
+#include <mpi.h>
 
 namespace pmacc
 {
-namespace mpi
-{
-
-namespace reduceMethods
-{
-
-struct Reduce
-{
-
-    HINLINE bool hasResult(int mpiRank) const
+    namespace mpi
     {
-        return mpiRank == 0;
-    }
+        namespace reduceMethods
+        {
+            struct Reduce
+            {
+                HINLINE bool hasResult(int mpiRank) const
+                {
+                    return mpiRank == 0;
+                }
 
-    template<class Functor, typename Type >
-    HINLINE void operator()(Functor, Type* dest, Type* src, const size_t count, MPI_Datatype type, MPI_Op op, MPI_Comm comm) const
-    {
-        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
-        __getTransactionEvent().waitForFinished();
+                template<class Functor, typename Type>
+                HINLINE void operator()(
+                    Functor,
+                    Type* dest,
+                    Type* src,
+                    const size_t count,
+                    MPI_Datatype type,
+                    MPI_Op op,
+                    MPI_Comm comm) const
+                {
+                    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+                    __getTransactionEvent().waitForFinished();
 
-        MPI_CHECK(MPI_Reduce((void*) src,
-                             (void*) dest,
-                             count,
-                             type,
-                             op, 0, comm));
-    }
-};
+                    MPI_CHECK(MPI_Reduce((void*) src, (void*) dest, count, type, op, 0, comm));
+                }
+            };
 
-} /*namespace reduceMethods*/
+        } /*namespace reduceMethods*/
 
-} /*namespace mpi*/
+    } /*namespace mpi*/
 
 } /*namespace pmacc*/
-
-

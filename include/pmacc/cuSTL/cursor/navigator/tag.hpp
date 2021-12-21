@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -24,15 +24,15 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-namespace tag
-{
-struct BufferNavigator;
-struct CartNavigator;
-struct MultiIndexNavigator;
-} // tag
-} // cursor
-} // pmacc
+    namespace cursor
+    {
+        namespace tag
+        {
+            struct BufferNavigator;
+            struct CartNavigator;
+            struct MultiIndexNavigator;
+        } // namespace tag
+    } // namespace cursor
+} // namespace pmacc
 
 #endif // CURSOR_NAVIGATOR_TAG_H

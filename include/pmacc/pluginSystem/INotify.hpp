@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Felix Schmitt, Axel Huebl,
+/* Copyright 2013-2021 Rene Widera, Felix Schmitt, Axel Huebl,
  *                     Richard Pausch
  *
  * This file is part of PMacc.
@@ -31,17 +31,12 @@ namespace pmacc
     class INotify
     {
     protected:
-        uint32_t lastNotify;
+        uint32_t lastNotify{0};
 
     public:
+        INotify() = default;
 
-        INotify() : lastNotify(0)
-        {
-        }
-
-        virtual ~INotify()
-        {
-        }
+        virtual ~INotify() = default;
 
         /** Notification callback
          *
@@ -50,7 +45,7 @@ namespace pmacc
          *
          * @param currentStep current simulation iteration step
          */
-        virtual void notify( uint32_t currentStep ) = 0;
+        virtual void notify(uint32_t currentStep) = 0;
 
         /** When was the plugin notified last?
          *
@@ -65,10 +60,9 @@ namespace pmacc
          *
          * @param currentStep current simulation iteration step
          */
-        void setLastNotify( uint32_t currentStep )
+        void setLastNotify(uint32_t currentStep)
         {
             lastNotify = currentStep;
         }
-
     };
-}
+} // namespace pmacc

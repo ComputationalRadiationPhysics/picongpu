@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of PMacc.
@@ -23,29 +23,24 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/tasks/StreamTask.hpp"
 #include "pmacc/eventSystem/streams/EventStream.hpp"
+#include "pmacc/eventSystem/tasks/StreamTask.hpp"
 
 namespace pmacc
 {
-
     class TaskKernel : public StreamTask
     {
     public:
-
-        TaskKernel(std::string kernelName) :
-        StreamTask(),
-        kernelName(kernelName),
-        canBeChecked(false)
+        TaskKernel(std::string kernelName) : StreamTask(), kernelName(kernelName), canBeChecked(false)
         {
         }
 
-        virtual ~TaskKernel()
+        ~TaskKernel() override
         {
             notify(this->myId, KERNEL, nullptr);
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             if(canBeChecked)
             {
@@ -54,18 +49,18 @@ namespace pmacc
             return false;
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
         HINLINE void activateChecks();
 
-        virtual std::string toString()
+        std::string toString() override
         {
             return std::string("TaskKernel ") + kernelName;
         }
 
-        virtual void init()
+        void init() override
         {
         }
 
@@ -74,5 +69,4 @@ namespace pmacc
         std::string kernelName;
     };
 
-} //namespace pmacc
-
+} // namespace pmacc

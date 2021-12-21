@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Axel Huebl
+/* Copyright 2017-2021 Axel Huebl
  *
  *
  * This file is part of PIConGPU.
@@ -23,32 +23,31 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace flylite
-{
-    /** Non-LTE Steady-State
-     *
-     * Implementation of non-LTE ionization dynamics.
-     * @todo later on, add references on the overall model here.
-     *
-     * @todo add T_OtherIonsList for multi ion species IPD
-     *
-     * @tparam T_ElectronsList A mpl sequence of picongpu::Particles with a list
-     *                         of electron species for local density and energy
-     *                         histogram binning
-     *
-     * @tparam T_PhotonsList A mpl sequence of picongpu::Particles with a list
-     *                       of photon species for local energy histogram
-     *                       binning
-     */
-    template<
-        /* typename T_OtherIonsList, */
-        typename T_ElectronsList,
-        typename T_PhotonsList
-    >
-    class NonLTE;
+    namespace particles
+    {
+        namespace flylite
+        {
+            /** Non-LTE Steady-State
+             *
+             * Implementation of non-LTE ionization dynamics.
+             * @todo later on, add references on the overall model here.
+             *
+             * @todo add T_OtherIonsList for multi ion species IPD
+             *
+             * @tparam T_ElectronsList A mpl sequence of picongpu::Particles with a list
+             *                         of electron species for local density and energy
+             *                         histogram binning
+             *
+             * @tparam T_PhotonsList A mpl sequence of picongpu::Particles with a list
+             *                       of photon species for local energy histogram
+             *                       binning
+             */
+            template<
+                /* typename T_OtherIonsList, */
+                typename T_ElectronsList,
+                typename T_PhotonsList>
+            class NonLTE;
 
-} // namespace flylite
-} // namespace particles
+        } // namespace flylite
+    } // namespace particles
 } // namespace picongpu

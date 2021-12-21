@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -33,23 +33,22 @@
 
 namespace picongpu
 {
+    /*! Select a precision for the simulation data
+     *  - precision32Bit : use 32Bit floating point numbers
+     *                     [significant digits 7 to 8]
+     *  - precision64Bit : use 64Bit floating point numbers
+     *                     [significant digits 15 to 16]
+     */
+    namespace precisionPIConGPU = precision32Bit;
 
-/*! Select a precision for the simulation data
- *  - precision32Bit : use 32Bit floating point numbers
- *                     [significant digits 7 to 8]
- *  - precision64Bit : use 64Bit floating point numbers
- *                     [significant digits 15 to 16]
- */
-namespace precisionPIConGPU      = precision32Bit;
-
-/*! Select a precision special operations (can be different from simulation precision)
- *  - precisionPIConGPU : use precision which is selected on top (precisionPIConGPU)
- *  - precision32Bit    : use 32Bit floating point numbers
- *  - precision64Bit    : use 64Bit floating point numbers
- */
-namespace precisionSqrt          = precisionPIConGPU;
-namespace precisionExp           = precisionPIConGPU;
-namespace precisionTrigonometric = precisionPIConGPU;
+    /*! Select a precision special operations (can be different from simulation precision)
+     *  - precisionPIConGPU : use precision which is selected on top (precisionPIConGPU)
+     *  - precision32Bit    : use 32Bit floating point numbers
+     *  - precision64Bit    : use 64Bit floating point numbers
+     */
+    namespace precisionSqrt = precisionPIConGPU;
+    namespace precisionExp = precisionPIConGPU;
+    namespace precisionTrigonometric = precisionPIConGPU;
 
 
 } // namespace picongpu

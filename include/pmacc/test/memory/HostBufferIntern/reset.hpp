@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Erik Zenker
+/* Copyright 2015-2021 Erik Zenker
  *
  * This file is part of PMacc.
  *
@@ -26,58 +26,57 @@
 
 namespace pmacc
 {
-namespace test
-{
-namespace memory
-{
-namespace HostBufferIntern
-{
-
-/**
- * Checks if the HostBufferIntern is reseted correctly to zero.
- */
-struct ResetTest {
-
-    template<typename T_Dim>
-    void exec(T_Dim)
+    namespace test
     {
-        using Data = uint8_t ;
-        using Extents = size_t;
-
-        using ::pmacc::test::memory::getElementsPerDim;
-
-        std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
-
-        for(unsigned i = 0; i < nElementsPerDim.size(); ++i)
+        namespace memory
         {
-            ::pmacc::DataSpace<T_Dim::value> const dataSpace = ::pmacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
-            ::pmacc::HostBufferIntern<Data, T_Dim::value> hostBufferIntern(dataSpace);
+            namespace HostBufferIntern
+            {
+                /**
+                 * Checks if the HostBufferIntern is reseted correctly to zero.
+                 */
+                struct ResetTest
+                {
+                    template<typename T_Dim>
+                    void exec(T_Dim)
+                    {
+                        using Data = uint8_t;
+                        using Extents = size_t;
 
-            hostBufferIntern.reset();
+                        using ::pmacc::test::memory::getElementsPerDim;
 
-            for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i){
-                BOOST_CHECK_EQUAL( hostBufferIntern.getPointer()[i], 0 );
-            }
+                        std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
 
-        }
+                        for(unsigned i = 0; i < nElementsPerDim.size(); ++i)
+                        {
+                            ::pmacc::DataSpace<T_Dim::value> const dataSpace
+                                = ::pmacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
+                            ::pmacc::HostBufferIntern<Data, T_Dim::value> hostBufferIntern(dataSpace);
 
-    }
+                            hostBufferIntern.reset();
 
-    PMACC_NO_NVCC_HDWARNING
-    template<typename T_Dim>
-    HDINLINE void operator()(T_Dim dim)
-    {
-        exec(dim);
-    }
-};
+                            for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i)
+                            {
+                                REQUIRE(hostBufferIntern.getPointer()[i] == 0);
+                            }
+                        }
+                    }
 
-} // namespace HostBufferIntern
-} // namespace memory
-} // namespace test
+                    PMACC_NO_NVCC_HDWARNING
+                    template<typename T_Dim>
+                    HDINLINE void operator()(T_Dim dim)
+                    {
+                        exec(dim);
+                    }
+                };
+
+            } // namespace HostBufferIntern
+        } // namespace memory
+    } // namespace test
 } // namespace pmacc
 
-BOOST_AUTO_TEST_CASE( reset )
+TEST_CASE("HostBufferIntern::reset", "[reset]")
 {
     using namespace pmacc::test::memory::HostBufferIntern;
-    ::boost::mpl::for_each< Dims >( ResetTest() );
+    ::boost::mpl::for_each<Dims>(ResetTest());
 }

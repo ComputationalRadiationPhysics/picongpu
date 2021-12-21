@@ -1,4 +1,4 @@
-# Copyright 2016-2020 Alexander Grund
+# Copyright 2016-2021 Alexander Grund
 #
 # This file is part of PMacc.
 #
@@ -19,7 +19,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-cmake_minimum_required(VERSION 3.11.4)
+cmake_minimum_required(VERSION 3.15.0)
 project("TestRandomGenerators")
 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../..")

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -21,18 +21,15 @@
 
 #pragma once
 
-#include "pmacc/particles/memory/frames/NullFrame.hpp"
 #include "pmacc/particles/frame_types.hpp"
+#include "pmacc/particles/memory/frames/NullFrame.hpp"
 #include "pmacc/types.hpp"
 
 namespace pmacc
 {
-
     class FalseFilter
     {
-
     public:
-
         FalseFilter()
         {
         }
@@ -42,10 +39,10 @@ namespace pmacc
         }
 
         template<class FRAME>
-        bool operator()(FRAME & frame, lcellId_t id)
+        bool operator()(FRAME& frame, lcellId_t id)
         {
             return false;
         }
     };
 
-} //namespace Frame
+} // namespace pmacc

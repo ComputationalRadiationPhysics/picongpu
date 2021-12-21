@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -21,28 +21,25 @@
 
 #pragma once
 
-#include "pmacc/particles/memory/frames/NullFrame.hpp"
 #include "pmacc/particles/frame_types.hpp"
+#include "pmacc/particles/memory/frames/NullFrame.hpp"
 #include "pmacc/types.hpp"
 
 namespace pmacc
 {
-
-
-template<class Base = NullFrame>
-class DefaultFilter : public Base
-{
+    template<class Base = NullFrame>
+    class DefaultFilter : public Base
+    {
     private:
-        bool filterActive;
-    public:
+        bool filterActive{false};
 
-        HDINLINE DefaultFilter() : filterActive(false)
-        {}
+    public:
+        HDINLINE DefaultFilter() = default;
 
         template<class FRAME>
-        HDINLINE bool operator()(FRAME & frame,lcellId_t id)
+        HDINLINE bool operator()(FRAME& frame, lcellId_t id)
         {
-            return (!filterActive)||Base::operator() (frame,id);
+            return (!filterActive) || Base::operator()(frame, id);
         }
 
         /*disable or enable filter
@@ -51,41 +48,40 @@ class DefaultFilter : public Base
          */
         HDINLINE void setStatus(bool active)
         {
-            filterActive=active;
+            filterActive = active;
         }
 
         HDINLINE bool getStatus()
         {
             return filterActive;
         }
-};
+    };
 
-template<>
-class DefaultFilter<NullFrame>
-{
+    template<>
+    class DefaultFilter<NullFrame>
+    {
     private:
-        bool alwaysTrue;
-    public:
+        bool alwaysTrue{true};
 
-        HDINLINE DefaultFilter() : alwaysTrue(true)
-        {}
+    public:
+        HDINLINE DefaultFilter() = default;
 
         template<class FRAME>
-        HDINLINE bool operator()(FRAME & frame,lcellId_t id)
+        HDINLINE bool operator()(FRAME& frame, lcellId_t id)
         {
             return alwaysTrue;
         }
 
         HDINLINE void setDefault(bool value)
         {
-            alwaysTrue=value;
+            alwaysTrue = value;
         }
 
         HDINLINE bool getDefault()
         {
             return alwaysTrue;
         }
-};
+    };
 
 
-} //namespace Frame
+} // namespace pmacc

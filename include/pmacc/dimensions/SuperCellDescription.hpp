@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/math/Vector.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {
@@ -37,23 +37,23 @@ namespace pmacc
      * @tparam T_OffsetOrigin compile time size of the guard relative to origin (positive value)
      * @tparam T_OffsetEnd compile time size of the guard relative to end of SuperCell (positive value)
      */
-    template< class T_SuperCellSize,
-    class T_OffsetOrigin = typename math::CT::make_Int<T_SuperCellSize::dim, 0>::type,
-    class T_OffsetEnd = typename math::CT::make_Int<T_SuperCellSize::dim, 0>::type >
+    template<
+        class T_SuperCellSize,
+        class T_OffsetOrigin = typename math::CT::make_Int<T_SuperCellSize::dim, 0>::type,
+        class T_OffsetEnd = typename math::CT::make_Int<T_SuperCellSize::dim, 0>::type>
     struct SuperCellDescription
     {
-
         enum
         {
             Dim = T_SuperCellSize::dim
         };
-        typedef T_SuperCellSize SuperCellSize;
-        typedef T_OffsetOrigin OffsetOrigin;
-        typedef T_OffsetEnd OffsetEnd;
-        typedef SuperCellDescription<SuperCellSize, OffsetOrigin, OffsetEnd> Type;
+        using SuperCellSize = T_SuperCellSize;
+        using OffsetOrigin = T_OffsetOrigin;
+        using OffsetEnd = T_OffsetEnd;
+        using Type = SuperCellDescription<SuperCellSize, OffsetOrigin, OffsetEnd>;
 
-        typedef typename ct::add<OffsetOrigin,SuperCellSize>::type AddFirst;
-        typedef typename ct::add<AddFirst,OffsetEnd>::type FullSuperCellSize;
+        using AddFirst = typename ct::add<OffsetOrigin, SuperCellSize>::type;
+        using FullSuperCellSize = typename ct::add<AddFirst, OffsetEnd>::type;
     };
 
-}//namespace
+} // namespace pmacc

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,25 +21,23 @@
 
 #pragma once
 
-#include "tag.hpp"
-
 #include "pmacc/types.hpp"
+#include "tag.hpp"
 
 
 namespace pmacc
 {
-namespace allocator
-{
+    namespace allocator
+    {
+        struct EmptyAllocator
+        {
+            using tag = allocator::tag::unspecified;
 
-struct EmptyAllocator
-{
-    typedef allocator::tag::unspecified tag;
+            template<typename TCursor>
+            HDINLINE static void deallocate(const TCursor&)
+            {
+            }
+        };
 
-    template<typename TCursor>
-    HDINLINE
-    static void deallocate(const TCursor&) {}
-};
-
-} // allocator
-} // pmacc
-
+    } // namespace allocator
+} // namespace pmacc

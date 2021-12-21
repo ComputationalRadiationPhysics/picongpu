@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,31 +21,30 @@
 
 #pragma once
 
-#include <boost/type_traits.hpp>
+#include <cstdint>
+#include <type_traits>
 
 namespace pmacc
 {
-
-namespace traits
-{
-    /** Get component type of an object
-     *
-     * \tparam T_Type any type
-     * \return \p ::type get result type
-     *            If T_Type is fundamental c++ type, the identity is returned
-     *
-     * Attention: do not defines this trait for structs with different attributes inside
-     */
-    template<typename T_Type,bool T_IsFundamental=boost::is_fundamental<T_Type>::value >
-    struct GetComponentsType;
-
-    template<typename T_Type>
-    struct GetComponentsType<T_Type,true>
+    namespace traits
     {
-        typedef T_Type type;
-    };
+        /** Get component type of an object
+         *
+         * @tparam T_Type any type
+         * @return \p ::type get result type
+         *            If T_Type is fundamental c++ type, the identity is returned
+         *
+         * Attention: do not defines this trait for structs with different attributes inside
+         */
+        template<typename T_Type, bool T_IsFundamental = std::is_fundamental<T_Type>::value>
+        struct GetComponentsType;
 
-} //namespace traits
+        template<typename T_Type>
+        struct GetComponentsType<T_Type, true>
+        {
+            using type = T_Type;
+        };
 
-}// namespace pmacc
+    } // namespace traits
 
+} // namespace pmacc

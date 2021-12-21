@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Axel Huebl, Rene Widera
+/* Copyright 2014-2021 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,7 +20,7 @@
 #pragma once
 
 #ifndef PARAM_DIMENSION
-#define PARAM_DIMENSION DIM3
+#    define PARAM_DIMENSION DIM3
 #endif
 
 #define SIMDIM PARAM_DIMENSION

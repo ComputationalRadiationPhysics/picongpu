@@ -54,6 +54,11 @@ In order to extract only the total current information from the output stored in
 
 The plugin data is then stored in ``totalCurrent.dat``.
 
+Known Limitations
+^^^^^^^^^^^^^^^^^
+
+- this plugin is only available with the CUDA backend
+
 Known Issues
 ^^^^^^^^^^^^
 

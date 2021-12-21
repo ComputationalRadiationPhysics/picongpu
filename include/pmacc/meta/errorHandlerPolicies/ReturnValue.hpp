@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Alexander Grund
+/* Copyright 2015-2021 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -25,20 +25,19 @@
 
 namespace pmacc
 {
-namespace errorHandlerPolicies
-{
-
-/** Returns the second parameter (normally the value that the sequence was searched for
- *  Binary meta function that takes any boost mpl sequence and a type
- */
-struct ReturnValue
-{
-    template<typename T_MPLSeq, typename T_Value>
-    struct apply
+    namespace errorHandlerPolicies
     {
-        typedef T_Value type;
-    };
-};
+        /** Returns the second parameter (normally the value that the sequence was searched for
+         *  Binary meta function that takes any boost mpl sequence and a type
+         */
+        struct ReturnValue
+        {
+            template<typename T_MPLSeq, typename T_Value>
+            struct apply
+            {
+                using type = T_Value;
+            };
+        };
 
-} // namespace errorHandlerPolicies
+    } // namespace errorHandlerPolicies
 } // namespace pmacc

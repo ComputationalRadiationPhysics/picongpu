@@ -1,4 +1,4 @@
-# Copyright 2014-2020 Richard Pausch, Klaus Steiniger
+# Copyright 2014-2021 Richard Pausch, Klaus Steiniger
 #
 # This file is part of PIConGPU.
 #

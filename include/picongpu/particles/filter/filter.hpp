@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,8 +19,8 @@
 
 #pragma once
 
+#include "picongpu/particles/filter/All.hpp"
+#include "picongpu/particles/filter/RelativeGlobalDomainPosition.hpp"
 #include "picongpu/particles/filter/generic/Free.hpp"
 #include "picongpu/particles/filter/generic/FreeRng.hpp"
 #include "picongpu/particles/filter/generic/FreeTotalCellOffset.hpp"
-#include "picongpu/particles/filter/RelativeGlobalDomainPosition.hpp"
-#include "picongpu/particles/filter/All.hpp"

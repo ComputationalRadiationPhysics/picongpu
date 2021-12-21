@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of PMacc.
@@ -22,65 +22,59 @@
 
 #pragma once
 
+#include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
-#include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/types.hpp"
-
-
 
 
 namespace pmacc
 {
+    template<class TYPE, unsigned DIM>
+    class DeviceBuffer;
 
-
-template <class TYPE, unsigned DIM>
-class DeviceBuffer;
-
-template <class TYPE, unsigned DIM>
-class TaskGetCurrentSizeFromDevice : public StreamTask
-{
-public:
-
-    TaskGetCurrentSizeFromDevice(DeviceBuffer<TYPE,DIM>& buffer):
-    StreamTask()
+    template<class TYPE, unsigned DIM>
+    class TaskGetCurrentSizeFromDevice : public StreamTask
     {
-        this->buffer =  & buffer;
-    }
+    public:
+        TaskGetCurrentSizeFromDevice(DeviceBuffer<TYPE, DIM>& buffer) : StreamTask()
+        {
+            this->buffer = &buffer;
+        }
 
-    virtual ~TaskGetCurrentSizeFromDevice()
-    {
-        notify(this->myId,GETVALUE, nullptr);
-    }
+        ~TaskGetCurrentSizeFromDevice() override
+        {
+            notify(this->myId, GETVALUE, nullptr);
+        }
 
-    bool executeIntern()
-    {
-        return isFinished();
-    }
+        bool executeIntern() override
+        {
+            return isFinished();
+        }
 
-    void event(id_t, EventType, IEventData*)
-    {
-    }
+        void event(id_t, EventType, IEventData*) override
+        {
+        }
 
-    virtual void init()
-    {
-        CUDA_CHECK(cudaMemcpyAsync((void*) buffer->getCurrentSizeHostSidePointer(),
-                                   buffer->getCurrentSizeOnDevicePointer(),
-                                   sizeof (size_t),
-                                   cudaMemcpyDeviceToHost,
-                                   this->getCudaStream()));
-        this->activate();
-    }
+        void init() override
+        {
+            CUDA_CHECK(cuplaMemcpyAsync(
+                (void*) buffer->getCurrentSizeHostSidePointer(),
+                buffer->getCurrentSizeOnDevicePointer(),
+                sizeof(size_t),
+                cuplaMemcpyDeviceToHost,
+                this->getCudaStream()));
+            this->activate();
+        }
 
-    virtual std::string toString()
-    {
-        return "TaskGetCurrentSizeFromDevice";
-    }
+        std::string toString() override
+        {
+            return "TaskGetCurrentSizeFromDevice";
+        }
 
-private:
+    private:
+        DeviceBuffer<TYPE, DIM>* buffer;
+    };
 
-    DeviceBuffer<TYPE, DIM> *buffer;
-};
-
-} //namespace pmacc
+} // namespace pmacc

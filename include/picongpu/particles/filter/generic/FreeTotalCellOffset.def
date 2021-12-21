@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -27,49 +27,48 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace filter
-{
-namespace generic
-{
+    namespace particles
+    {
+        namespace filter
+        {
+            namespace generic
+            {
+                /** call simple free user defined functor and provide the cell information
+                 *
+                 * The functor passes the cell offset of the particle relative to the total
+                 * domain origin into the functor.
+                 *
+                 * @tparam T_Functor user defined unary functor
+                 *
+                 * example for `particleFilters.param`: each particle with a cell offset of 5
+                 * in X direction
+                 *   @code{.cpp}
+                 *
+                 *   struct FunctorEachParticleInXCell5
+                 *   {
+                 *       template< typename T_Particle >
+                 *       HDINLINE bool operator()(
+                 *           DataSpace< simDim > const & particleOffsetToTotalOrigin,
+                 *           T_Particle const & particle
+                 *       )
+                 *       {
+                 *           bool result = false;
+                 *           if( particleOffsetToTotalOrigin.x() == 5 )
+                 *               result = true;
+                 *           return result;
+                 *       }
+                 *       static constexpr char const * name = "eachParticleInXCell5";
+                 *   };
+                 *
+                 *   using EachParticleInXCell5 = generic::FreeTotalCellOffset<
+                 *      FunctorEachParticleInXCell5
+                 *   >;
+                 *   @endcode
+                 */
+                template<typename T_Functor>
+                struct FreeTotalCellOffset;
 
-    /** call simple free user defined functor and provide the cell information
-     *
-     * The functor passes the cell offset of the particle relative to the total
-     * domain origin into the functor.
-     *
-     * @tparam T_Functor user defined unary functor
-     *
-     * example for `particleFilters.param`: each particle with a cell offset of 5
-     * in X direction
-     *   @code{.cpp}
-     *
-     *   struct FunctorEachParticleInXCell5
-     *   {
-     *       template< typename T_Particle >
-     *       HDINLINE bool operator()(
-     *           DataSpace< simDim > const & particleOffsetToTotalOrigin,
-     *           T_Particle const & particle
-     *       )
-     *       {
-     *           bool result = false;
-     *           if( particleOffsetToTotalOrigin.x() == 5 )
-     *               result = true;
-     *           return result;
-     *       }
-     *       static constexpr char const * name = "eachParticleInXCell5";
-     *   };
-     *
-     *   using EachParticleInXCell5 = generic::FreeTotalCellOffset<
-     *      FunctorEachParticleInXCell5
-     *   >;
-     *   @endcode
-     */
-    template< typename T_Functor >
-    struct FreeTotalCellOffset;
-
-} // namespace generic
-} // namespace filter
-} // namespace particles
+            } // namespace generic
+        } // namespace filter
+    } // namespace particles
 } // namespace picongpu

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2020 Axel Huebl, Richard Pausch, Rene Widera, Sergei Bastrakov
+# Copyright 2013-2021 Axel Huebl, Richard Pausch, Rene Widera, Sergei Bastrakov
 #
 # This file is part of PIConGPU.
 #
@@ -93,7 +93,7 @@ if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedDevicesPerNode 
   # Run CUDA memtest to check GPU's health
   srun --cpu_bind=sockets !TBG_dstPath/input/bin/cuda_memtest.sh
 else
-  echo "no binary 'cuda_memtest' available or compute node is not exclusively allocated, skip GPU memory test" >&2
+  echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available or compute node is not exclusively allocated. This does not affect PIConGPU, starting it now" >&2
 fi
 
 if [ $? -eq 0 ] ; then

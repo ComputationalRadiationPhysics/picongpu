@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,54 +21,54 @@
 
 #pragma once
 
+#include "pmacc/types.hpp"
+
 namespace pmacc
 {
-namespace algorithms
-{
-
-namespace math
-{
-
-template<typename T1,typename T2>
-struct Max;
-
-template<typename T1,typename T2>
-struct Min;
-
-template<typename T>
-struct Max<T,T>
-{
-    typedef T result;
-
-    HDINLINE T operator()(T value1, T value2)
+    namespace math
     {
-        return value1 > value2 ? value1 : value2;
-    }
-};
+        template<typename T1, typename T2>
+        struct Max;
 
-template<typename T>
-struct Min<T,T>
-{
-    typedef T result;
+        template<typename T1, typename T2>
+        struct Min;
 
-    HDINLINE T operator()(T value1, T value2)
-    {
-        return value1 < value2 ? value1 : value2;
-    }
-};
+        template<typename T>
+        struct Max<T, T>
+        {
+            using result = T;
 
-template<typename T1,typename T2>
-HDINLINE typename Min< T1,T2>::result min(const T1& value1,const T2& value2)
-{
-    return Min< T1,T2 > ()(value1,value2);
-}
+            HDINLINE T operator()(T value1, T value2)
+            {
+                return value1 > value2 ? value1 : value2;
+            }
+        };
 
-template<typename T1,typename T2>
-HDINLINE typename Max< T1,T2 >::result max(const T1& value1,const T2& value2)
-{
-    return Max< T1,T2 > ()(value1,value2);
-}
+        template<typename T>
+        struct Min<T, T>
+        {
+            using result = T;
 
-} //namespace math
-} //namespace algorithms
-}//namespace pmacc
+            HDINLINE T operator()(T value1, T value2)
+            {
+                return value1 < value2 ? value1 : value2;
+            }
+        };
+
+        template<typename T1, typename T2>
+        HDINLINE typename Min<T1, T2>::result min(const T1& value1, const T2& value2)
+        {
+            return Min<T1, T2>()(value1, value2);
+        }
+
+        template<typename T1, typename T2>
+        HDINLINE typename Max<T1, T2>::result max(const T1& value1, const T2& value2)
+        {
+            return Max<T1, T2>()(value1, value2);
+        }
+
+    } // namespace math
+} // namespace pmacc
+
+#include "pmacc/algorithms/math/doubleMath/comparison.tpp"
+#include "pmacc/algorithms/math/floatMath/comparison.tpp"

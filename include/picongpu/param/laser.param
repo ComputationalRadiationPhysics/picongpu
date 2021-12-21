@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch,
+/* Copyright 2013-2021 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch,
  *                     Alexander Debus
  *
  * This file is part of PIConGPU.
@@ -49,541 +49,559 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace laserProfiles
-{
-namespace gaussianBeam
-{
-    //! Use only the 0th Laguerremode for a standard Gaussian
-    static constexpr uint32_t MODENUMBER = 0;
-    PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, 1.0);
-    // This is just an example for a more complicated set of Laguerre modes
-    //constexpr uint32_t MODENUMBER = 12;
-    //PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, -1.0, 0.0300519, 0.319461, -0.23783, 0.0954839, 0.0318653, -0.144547, 0.0249208, -0.111989, 0.0434385, -0.030038, -0.00896321, -0.0160788);
-
-} // namespace gaussianBeam
-
-    struct GaussianBeamParam
+    namespace fields
     {
-        /** unit: meter */
-        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-
-        /** Convert the normalized laser strength parameter a0 to Volt per meter */
-        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
-
-        /** unit: W / m^2 */
-        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
-
-        /** unit: none */
-        //static constexpr float_64 _A0  = 1.5;
-
-        /** unit: Volt / meter */
-        //static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
-
-        /** unit: Volt / meter */
-        static constexpr float_64 AMPLITUDE_SI = 1.738e13;
-
-        /** Pulse length: sigma of std. gauss for intensity (E^2)
-         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
-         *                                          [    2.354820045     ]
-         *  Info:             FWHM_of_Intensity = FWHM_Illumination
-         *                      = what a experimentalist calls "pulse duration"
-         *
-         *  unit: seconds (1 sigma) */
-        static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
-
-        /** beam waist: distance from the axis where the pulse intensity (E^2)
-         *              decreases to its 1/e^2-th part,
-         *              at the focus position of the laser
-         * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
-         *                             [   1.17741    ]
-         *
-         *  unit: meter */
-        static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
-        /** the distance to the laser focus in y-direction
-         *  unit: meter */
-        static constexpr float_64 FOCUS_POS_SI = 4.62e-5;
-
-        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
-         *
-         *  unit: none */
-        static constexpr float_64 PULSE_INIT = 20.0;
-
-        /** cell from top where the laser is initialized
-         *
-         * if `initPlaneY == 0` than the absorber are disabled.
-         * if `initPlaneY > absorbercells negative Y` the negative absorber in y
-         * direction is enabled
-         *
-         * valid ranges:
-         *   - initPlaneY == 0
-         *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
-         */
-        static constexpr uint32_t initPlaneY = 0;
-
-        /** laser phase shift (no shift: 0.0)
-         *
-         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
-         *
-         * unit: rad, periodic in 2*pi
-         */
-        static constexpr float_X LASER_PHASE = 0.0;
-
-        using LAGUERREMODES_t = gaussianBeam::LAGUERREMODES_t;
-        static constexpr uint32_t MODENUMBER = gaussianBeam::MODENUMBER;
-
-        /** Available polarisation types
-         */
-        enum PolarisationType
+        namespace laserProfiles
         {
-            LINEAR_X = 1u,
-            LINEAR_Z = 2u,
-            CIRCULAR = 4u,
-        };
-        /** Polarization selection
-         */
-        static constexpr PolarisationType Polarisation = CIRCULAR;
-    };
-
-    struct PulseFrontTiltParam
-    {
-        /** unit: meter */
-        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-
-        /** Convert the normalized laser strength parameter a0 to Volt per meter */
-        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
-
-        /** unit: W / m^2 */
-        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
-
-        /** unit: none */
-        //static constexpr float_64 _A0  = 1.5;
-
-        /** unit: Volt / meter */
-        //static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
-
-        /** unit: Volt / meter */
-        static constexpr float_64 AMPLITUDE_SI = 1.738e13;
-
-        /** Pulse length: sigma of std. gauss for intensity (E^2)
-         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
-         *                                          [    2.354820045     ]
-         *  Info:             FWHM_of_Intensity = FWHM_Illumination
-         *                      = what a experimentalist calls "pulse duration"
-         *
-         *  unit: seconds (1 sigma) */
-        static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
-
-        /** beam waist: distance from the axis where the pulse intensity (E^2)
-         *              decreases to its 1/e^2-th part,
-         *              at the focus position of the laser
-         * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
-         *                             [   1.17741    ]
-         *
-         *  unit: meter */
-        static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
-
-        /** the distance to the laser focus in y-direction
-         *  unit: meter */
-        static constexpr float_64 FOCUS_POS_SI = 4.62e-5;
-
-        /** the tilt angle between laser propagation in y-direction and laser axis in
-        *  x-direction (0 degree == no tilt)
-        *  unit: degree */
-        static constexpr float_64 TILT_X_SI = 0.0;
-
-        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
-         *
-         *  unit: none */
-        static constexpr float_64 PULSE_INIT = 20.0;
-
-        /** cell from top where the laser is initialized
-         *
-         * if `initPlaneY == 0` than the absorber are disabled.
-         * if `initPlaneY > absorbercells negative Y` the negative absorber in y
-         * direction is enabled
-         *
-         * valid ranges:
-         *   - initPlaneY == 0
-         *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
-         */
-        static constexpr uint32_t initPlaneY = 0;
-
-        /** laser phase shift (no shift: 0.0)
-         *
-         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
-         *
-         * unit: rad, periodic in 2*pi
-         */
-        static constexpr float_X LASER_PHASE = 0.0;
-
-        //! Available polarisation types
-        enum PolarisationType
-        {
-            LINEAR_X = 1u,
-            LINEAR_Z = 2u,
-            CIRCULAR = 4u,
-        };
-
-        /** Polarization selection
-         */
-        static constexpr PolarisationType Polarisation = CIRCULAR;
-    };
-
-    struct WavepacketParam
-    {
-        /** unit: meter */
-        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-
-        /** Convert the normalized laser strength parameter a0 to Volt per meter */
-        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
-
-        /** unit: W / m^2 */
-        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
-
-        /** unit: none */
-        //static constexpr float_64 _A0  = 1.5;
-
-        /** unit: Volt / meter */
-        //static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
-
-        /** unit: Volt / meter */
-        static constexpr float_64 AMPLITUDE_SI = 1.738e13;
-
-        /** The profile of the test Lasers 0 and 2 can be stretched by a
-         *      constant area between the up and downramp
-         *  unit: seconds */
-        static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI = 7.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
-
-        /** Pulse length: sigma of std. gauss for intensity (E^2)
-         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
-         *                                          [    2.354820045     ]
-         *  Info:             FWHM_of_Intensity = FWHM_Illumination
-         *                      = what a experimentalist calls "pulse duration"
-         *
-         *  unit: seconds (1 sigma) */
-        static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
-
-        /** beam waist: distance from the axis where the pulse intensity (E^2)
-         *              decreases to its 1/e^2-th part,
-         *              at the focus position of the laser
-         * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
-         *                             [   1.17741    ]
-         *
-         *  unit: meter */
-        static constexpr float_64 W0_X_SI = 4.246e-6;
-        static constexpr float_64 W0_Z_SI = W0_X_SI;
-
-        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
-         *
-         *  unit: none */
-        static constexpr float_64 PULSE_INIT = 20.0;
-
-        /** cell from top where the laser is initialized
-         *
-         * if `initPlaneY == 0` than the absorber are disabled.
-         * if `initPlaneY > absorbercells negative Y` the negative absorber in y
-         * direction is enabled
-         *
-         * valid ranges:
-         *   - initPlaneY == 0
-         *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
-         */
-        static constexpr uint32_t initPlaneY = 0;
-
-        /** laser phase shift (no shift: 0.0)
-         *
-         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
-         *
-         * unit: rad, periodic in 2*pi
-         */
-        static constexpr float_X LASER_PHASE = 0.0;
-
-        /** Available polarisation types
-         */
-        enum PolarisationType
-        {
-            LINEAR_X = 1u,
-            LINEAR_Z = 2u,
-            CIRCULAR = 4u,
-        };
-        /** Polarization selection
-         */
-        static constexpr PolarisationType Polarisation = LINEAR_X;
-    };
-
-    /** Based on a wavepacket with Gaussian spatial envelope
-     *
-     * and the following temporal shape:
-     * A Gaussian peak (optionally lengthened by a plateau) is preceded by
-     * two pieces of exponential preramps, defined by 3 (time, intensity)-
-     * -points.
-     * The first two points get connected by an exponential, the 2nd and
-     * 3rd point are connected by another exponential, which is then
-     * extrapolated to the peak. The Gaussian is added everywhere, but
-     * typically contributes significantly only near the peak.
-     * It is advisable to set the third point far enough from the plateau
-     * (approx 3*FWHM), then the contribution from the Gaussian is
-     * negligible there, and the intensity can be set as measured from the
-     * laser profile.
-     * Optionally a Gaussian prepulse can be added, given by the parameters
-     * of the relative intensity and time point.
-     * The time of the prepulse and the three preramp points are given in
-     * SI, the intensities are given as multiples of the peak intensity.
-     */
-    struct ExpRampWithPrepulseParam
-    {
-        // Intensities of prepulse and exponential preramp
-        static constexpr float_X INT_RATIO_PREPULSE = 0.;
-        static constexpr float_X INT_RATIO_POINT_1 = 1.e-8;
-        static constexpr float_X INT_RATIO_POINT_2 = 1.e-4;
-        static constexpr float_X INT_RATIO_POINT_3 = 1.e-4;
-
-        // time-positions of prepulse and preramps points
-        static constexpr float_64 TIME_PREPULSE_SI = -950.0e-15;
-        static constexpr float_64 TIME_PEAKPULSE_SI = 0.0e-15;
-        static constexpr float_64 TIME_POINT_1_SI = -1000.0e-15;
-        static constexpr float_64 TIME_POINT_2_SI = -300.0e-15;
-        static constexpr float_64 TIME_POINT_3_SI = -100.0e-15;
-
-        /** unit: meter */
-        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-
-        /** UNITCONV */
-        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
-
-        /** unit: W / m^2 */
-        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
-
-        /** unit: none */
-        static constexpr float_64 _A0  = 20.;
-
-        /** unit: Volt /meter */
-        static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
-
-        /** unit: Volt /meter */
-        //constexpr float_64 AMPLITUDE_SI = 1.738e13;
-
-        /** The profile of the test Lasers 0 and 2 can be stretched by a
-         *      constant area between the up and downramp
-         *  unit: seconds */
-        static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI = 0.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
-
-        /** Pulse length: sigma of std. gauss for intensity (E^2)
-         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
-         *                                          [    2.354820045     ]
-         *  Info:             FWHM_of_Intensity = FWHM_Illumination
-         *                      = what a experimentalist calls "pulse duration"
-         *  unit: seconds (1 sigma) */
-        static constexpr float_64 PULSE_LENGTH_SI = 3.0e-14 / 2.35482; // half of the time in which E falls to half its initial value (then I falls to half its value in 15fs, approx 6 wavelengths). Those are 4.8 wavelenghts.
-
-        /** beam waist: distance from the axis where the pulse intensity (E^2)
-         *              decreases to its 1/e^2-th part,
-         *              WO_X_SI is this distance in x-direction
-         *              W0_Z_SI is this distance in z-direction
-         *              if both values are equal, the laser has a circular shape in x-z
-         * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
-         *                             [   1.17741    ]
-         *  unit: meter */
-        static constexpr float_64 W0_X_SI = 2.5 * WAVE_LENGTH_SI;
-        static constexpr float_64 W0_Z_SI = W0_X_SI;
-
-        /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before plateau
-         *  and half at the end of the plateau
-         *  unit: none */
-        static constexpr float_64 RAMP_INIT = 16.0;
-
-        /** cell from top where the laser is initialized
-         *
-         * if `initPlaneY == 0` than the absorber are disabled.
-         * if `initPlaneY > absorbercells negative Y` the negative absorber in y
-         * direction is enabled
-         *
-         * valid ranges:
-         *   - initPlaneY == 0
-         *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
-         */
-        static constexpr uint32_t initPlaneY = 0;
-
-        /** laser phase shift (no shift: 0.0)
-         *
-         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
-         *
-         * unit: rad, periodic in 2*pi
-         */
-        static constexpr float_X LASER_PHASE = 0.0;
-
-        /** Available polarisation types
-         */
-        enum PolarisationType
-        {
-            LINEAR_X = 1u,
-            LINEAR_Z = 2u,
-            CIRCULAR = 4u,
-        };
-
-        /** Polarization selection
-         */
-        static constexpr PolarisationType Polarisation = LINEAR_X;
-    };
-
-    /** Based on a wavepacket with Gaussian spatial envelope
-     *
-     * Wavepacket with a polynomial temporal intensity shape.
-     */
-    struct PolynomParam
-    {
-        /** unit: meter */
-        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-
-        /** Convert the normalized laser strength parameter a0 to Volt per meter */
-        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
-
-        /** unit: W / m^2 */
-        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
-
-        /** unit: none */
-        //static constexpr float_64 _A0  = 1.5;
-
-        /** unit: Volt / meter */
-        //static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
-
-        /** unit: Volt / meter */
-        static constexpr float_64 AMPLITUDE_SI = 1.738e13;
-
-        /** The profile of the test Lasers 0 and 2 can be stretched by a
-         *      constant area between the up and downramp
-         *  unit: seconds */
-        static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI = 13.34e-15;
-
-        /** Pulse length: sigma of std. gauss for intensity (E^2)
-         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
-         *                                          [    2.354820045     ]
-         *  Info:             FWHM_of_Intensity = FWHM_Illumination
-         *                      = what a experimentalist calls "pulse duration"
-         *  unit: seconds (1 sigma) */
-        static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
-
-        /** beam waist: distance from the axis where the pulse intensity (E^2)
-         *              decreases to its 1/e^2-th part,
-         *              at the focus position of the laser
-         *  unit: meter
-         */
-        static constexpr float_64 W0_X_SI = 4.246e-6; // waist in x-direction
-        static constexpr float_64 W0_Z_SI = W0_X_SI; // waist in z-direction
-
-        /** cell from top where the laser is initialized
-         *
-         * if `initPlaneY == 0` than the absorber are disabled.
-         * if `initPlaneY > absorbercells negative Y` the negative absorber in y
-         * direction is enabled
-         *
-         * valid ranges:
-         *   - initPlaneY == 0
-         *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
-         */
-        static constexpr uint32_t initPlaneY = 0;
-
-        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
-         *
-         *  unit: none */
-        static constexpr float_64 PULSE_INIT = 20.0;
-
-        /** laser phase shift (no shift: 0.0)
-         *
-         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
-         *
-         * unit: rad, periodic in 2*pi
-         */
-        static constexpr float_X LASER_PHASE = 0.0;
-
-        /** Available polarization types
-         */
-        enum PolarisationType
-        {
-            LINEAR_X = 1u,
-            LINEAR_Z = 2u,
-            CIRCULAR = 4u,
-        };
-        /** Polarization selection
-         */
-        static constexpr PolarisationType Polarisation = LINEAR_X;
-    };
-
-    struct PlaneWaveParam
-    {
-        /** unit: meter */
-        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-
-        /** Convert the normalized laser strength parameter a0 to Volt per meter */
-        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
-
-        /** unit: W / m^2 */
-        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
-
-        /** unit: none */
-        static constexpr float_64 _A0  = 1.5;
-
-        /** unit: Volt / meter */
-        static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
-
-        /** unit: Volt / meter */
-        //static constexpr float_64 AMPLITUDE_SI = 1.738e13;
-
-        /** The profile of the test Lasers 0 and 2 can be stretched by a
-         *      constant area between the up and downramp
-         *  unit: seconds */
-        static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI = 13.34e-15;
-
-        /** Pulse length: sigma of std. gauss for intensity (E^2)
-         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
-         *                                          [    2.354820045     ]
-         *  Info:             FWHM_of_Intensity = FWHM_Illumination
-         *                      = what a experimentalist calls "pulse duration"
-         *  unit: seconds (1 sigma) */
-        static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
-
-        /** cell from top where the laser is initialized
-         *
-         * if `initPlaneY == 0` than the absorber are disabled.
-         * if `initPlaneY > absorbercells negative Y` the negative absorber in y
-         * direction is enabled
-         *
-         * valid ranges:
-         *   - initPlaneY == 0
-         *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
-         */
-        static constexpr uint32_t initPlaneY = 0;
-
-        /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before and after the plateau
-         *  unit: none */
-        static constexpr float_64 RAMP_INIT = 20.6146;
-
-        /** laser phase shift (no shift: 0.0)
-         *
-         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
-         *
-         * unit: rad, periodic in 2*pi
-         */
-        static constexpr float_X LASER_PHASE = 0.0;
-
-        /** Available polarization types
-         */
-        enum PolarisationType
-        {
-            LINEAR_X = 1u,
-            LINEAR_Z = 2u,
-            CIRCULAR = 4u,
-        };
-        /** Polarization selection
-         */
-        static constexpr PolarisationType Polarisation = LINEAR_X;
-    };
-
-    //! currently selected laser profile
-    using Selected = None<>;
-
-} // namespace laserProfiles
-} // namespace fields
+            namespace gaussianBeam
+            {
+                //! Use only the 0th Laguerremode for a standard Gaussian
+                static constexpr uint32_t MODENUMBER = 0;
+                PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, 1.0);
+                // This is just an example for a more complicated set of Laguerre modes
+                // constexpr uint32_t MODENUMBER = 12;
+                // PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, -1.0, 0.0300519, 0.319461, -0.23783,
+                // 0.0954839, 0.0318653, -0.144547, 0.0249208, -0.111989, 0.0434385, -0.030038, -0.00896321,
+                // -0.0160788);
+
+            } // namespace gaussianBeam
+
+            struct GaussianBeamParam
+            {
+                /** unit: meter */
+                static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+
+                /** Convert the normalized laser strength parameter a0 to Volt per meter */
+                static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                    * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
+                    * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+
+                /** unit: W / m^2 */
+                // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
+
+                /** unit: none */
+                // static constexpr float_64 _A0  = 1.5;
+
+                /** unit: Volt / meter */
+                // static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                /** unit: Volt / meter */
+                static constexpr float_64 AMPLITUDE_SI = 1.738e13;
+
+                /** Pulse length: sigma of std. gauss for intensity (E^2)
+                 *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                 *                                          [    2.354820045     ]
+                 *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                 *                      = what a experimentalist calls "pulse duration"
+                 *
+                 *  unit: seconds (1 sigma) */
+                static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
+
+                /** beam waist: distance from the axis where the pulse intensity (E^2)
+                 *              decreases to its 1/e^2-th part,
+                 *              at the focus position of the laser
+                 * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+                 *                             [   1.17741    ]
+                 *
+                 *  unit: meter */
+                static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
+                /** the distance to the laser focus in y-direction
+                 *  unit: meter */
+                static constexpr float_64 FOCUS_POS_SI = 4.62e-5;
+
+                /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+                 *
+                 *  unit: none */
+                static constexpr float_64 PULSE_INIT = 20.0;
+
+                /** cell from top where the laser is initialized
+                 *
+                 * if `initPlaneY == 0` than the absorber are disabled.
+                 * if `initPlaneY > absorbercells negative Y` the negative absorber in y
+                 * direction is enabled
+                 *
+                 * valid ranges:
+                 *   - initPlaneY == 0
+                 *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
+                 */
+                static constexpr uint32_t initPlaneY = 0;
+
+                /** laser phase shift (no shift: 0.0)
+                 *
+                 * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
+                 *
+                 * unit: rad, periodic in 2*pi
+                 */
+                static constexpr float_X LASER_PHASE = 0.0;
+
+                using LAGUERREMODES_t = gaussianBeam::LAGUERREMODES_t;
+                static constexpr uint32_t MODENUMBER = gaussianBeam::MODENUMBER;
+
+                /** Available polarisation types
+                 */
+                enum PolarisationType
+                {
+                    LINEAR_X = 1u,
+                    LINEAR_Z = 2u,
+                    CIRCULAR = 4u,
+                };
+                /** Polarization selection
+                 */
+                static constexpr PolarisationType Polarisation = CIRCULAR;
+            };
+
+            struct PulseFrontTiltParam
+            {
+                /** unit: meter */
+                static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+
+                /** Convert the normalized laser strength parameter a0 to Volt per meter */
+                static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                    * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
+                    * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+
+                /** unit: W / m^2 */
+                // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
+
+                /** unit: none */
+                // static constexpr float_64 _A0  = 1.5;
+
+                /** unit: Volt / meter */
+                // static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                /** unit: Volt / meter */
+                static constexpr float_64 AMPLITUDE_SI = 1.738e13;
+
+                /** Pulse length: sigma of std. gauss for intensity (E^2)
+                 *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                 *                                          [    2.354820045     ]
+                 *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                 *                      = what a experimentalist calls "pulse duration"
+                 *
+                 *  unit: seconds (1 sigma) */
+                static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
+
+                /** beam waist: distance from the axis where the pulse intensity (E^2)
+                 *              decreases to its 1/e^2-th part,
+                 *              at the focus position of the laser
+                 * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+                 *                             [   1.17741    ]
+                 *
+                 *  unit: meter */
+                static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
+
+                /** the distance to the laser focus in y-direction
+                 *  unit: meter */
+                static constexpr float_64 FOCUS_POS_SI = 4.62e-5;
+
+                /** the tilt angle between laser propagation in y-direction and laser axis in
+                 *  x-direction (0 degree == no tilt)
+                 *  unit: degree */
+                static constexpr float_64 TILT_X_SI = 0.0;
+
+                /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+                 *
+                 *  unit: none */
+                static constexpr float_64 PULSE_INIT = 20.0;
+
+                /** cell from top where the laser is initialized
+                 *
+                 * if `initPlaneY == 0` than the absorber are disabled.
+                 * if `initPlaneY > absorbercells negative Y` the negative absorber in y
+                 * direction is enabled
+                 *
+                 * valid ranges:
+                 *   - initPlaneY == 0
+                 *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
+                 */
+                static constexpr uint32_t initPlaneY = 0;
+
+                /** laser phase shift (no shift: 0.0)
+                 *
+                 * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
+                 *
+                 * unit: rad, periodic in 2*pi
+                 */
+                static constexpr float_X LASER_PHASE = 0.0;
+
+                //! Available polarisation types
+                enum PolarisationType
+                {
+                    LINEAR_X = 1u,
+                    LINEAR_Z = 2u,
+                    CIRCULAR = 4u,
+                };
+
+                /** Polarization selection
+                 */
+                static constexpr PolarisationType Polarisation = CIRCULAR;
+            };
+
+            struct WavepacketParam
+            {
+                /** unit: meter */
+                static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+
+                /** Convert the normalized laser strength parameter a0 to Volt per meter */
+                static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                    * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
+                    * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+
+                /** unit: W / m^2 */
+                // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
+
+                /** unit: none */
+                // static constexpr float_64 _A0  = 1.5;
+
+                /** unit: Volt / meter */
+                // static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                /** unit: Volt / meter */
+                static constexpr float_64 AMPLITUDE_SI = 1.738e13;
+
+                /** The profile of the test Lasers 0 and 2 can be stretched by a
+                 *      constant area between the up and downramp
+                 *  unit: seconds */
+                static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI
+                    = 7.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
+
+                /** Pulse length: sigma of std. gauss for intensity (E^2)
+                 *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                 *                                          [    2.354820045     ]
+                 *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                 *                      = what a experimentalist calls "pulse duration"
+                 *
+                 *  unit: seconds (1 sigma) */
+                static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
+
+                /** beam waist: distance from the axis where the pulse intensity (E^2)
+                 *              decreases to its 1/e^2-th part,
+                 *              at the focus position of the laser
+                 * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+                 *                             [   1.17741    ]
+                 *
+                 *  unit: meter */
+                static constexpr float_64 W0_X_SI = 4.246e-6;
+                static constexpr float_64 W0_Z_SI = W0_X_SI;
+
+                /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+                 *
+                 *  unit: none */
+                static constexpr float_64 PULSE_INIT = 20.0;
+
+                /** cell from top where the laser is initialized
+                 *
+                 * if `initPlaneY == 0` than the absorber are disabled.
+                 * if `initPlaneY > absorbercells negative Y` the negative absorber in y
+                 * direction is enabled
+                 *
+                 * valid ranges:
+                 *   - initPlaneY == 0
+                 *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
+                 */
+                static constexpr uint32_t initPlaneY = 0;
+
+                /** laser phase shift (no shift: 0.0)
+                 *
+                 * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
+                 *
+                 * unit: rad, periodic in 2*pi
+                 */
+                static constexpr float_X LASER_PHASE = 0.0;
+
+                /** Available polarisation types
+                 */
+                enum PolarisationType
+                {
+                    LINEAR_X = 1u,
+                    LINEAR_Z = 2u,
+                    CIRCULAR = 4u,
+                };
+                /** Polarization selection
+                 */
+                static constexpr PolarisationType Polarisation = LINEAR_X;
+            };
+
+            /** Based on a wavepacket with Gaussian spatial envelope
+             *
+             * and the following temporal shape:
+             * A Gaussian peak (optionally lengthened by a plateau) is preceded by
+             * two pieces of exponential preramps, defined by 3 (time, intensity)-
+             * -points.
+             * The first two points get connected by an exponential, the 2nd and
+             * 3rd point are connected by another exponential, which is then
+             * extrapolated to the peak. The Gaussian is added everywhere, but
+             * typically contributes significantly only near the peak.
+             * It is advisable to set the third point far enough from the plateau
+             * (approx 3*FWHM), then the contribution from the Gaussian is
+             * negligible there, and the intensity can be set as measured from the
+             * laser profile.
+             * Optionally a Gaussian prepulse can be added, given by the parameters
+             * of the relative intensity and time point.
+             * The time of the prepulse and the three preramp points are given in
+             * SI, the intensities are given as multiples of the peak intensity.
+             */
+            struct ExpRampWithPrepulseParam
+            {
+                // Intensities of prepulse and exponential preramp
+                static constexpr float_X INT_RATIO_PREPULSE = 0.;
+                static constexpr float_X INT_RATIO_POINT_1 = 1.e-8;
+                static constexpr float_X INT_RATIO_POINT_2 = 1.e-4;
+                static constexpr float_X INT_RATIO_POINT_3 = 1.e-4;
+
+                // time-positions of prepulse and preramps points
+                static constexpr float_64 TIME_PREPULSE_SI = -950.0e-15;
+                static constexpr float_64 TIME_PEAKPULSE_SI = 0.0e-15;
+                static constexpr float_64 TIME_POINT_1_SI = -1000.0e-15;
+                static constexpr float_64 TIME_POINT_2_SI = -300.0e-15;
+                static constexpr float_64 TIME_POINT_3_SI = -100.0e-15;
+
+                /** unit: meter */
+                static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+
+                /** UNITCONV */
+                static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                    * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
+                    * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+
+                /** unit: W / m^2 */
+                // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
+
+                /** unit: none */
+                static constexpr float_64 _A0 = 20.;
+
+                /** unit: Volt /meter */
+                static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                /** unit: Volt /meter */
+                // constexpr float_64 AMPLITUDE_SI = 1.738e13;
+
+                /** The profile of the test Lasers 0 and 2 can be stretched by a
+                 *      constant area between the up and downramp
+                 *  unit: seconds */
+                static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI
+                    = 0.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
+
+                /** Pulse length: sigma of std. gauss for intensity (E^2)
+                 *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                 *                                          [    2.354820045     ]
+                 *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                 *                      = what a experimentalist calls "pulse duration"
+                 *  unit: seconds (1 sigma) */
+                static constexpr float_64 PULSE_LENGTH_SI = 3.0e-14
+                    / 2.35482; // half of the time in which E falls to half its initial value (then I falls to half its
+                               // value in 15fs, approx 6 wavelengths). Those are 4.8 wavelenghts.
+
+                /** beam waist: distance from the axis where the pulse intensity (E^2)
+                 *              decreases to its 1/e^2-th part,
+                 *              WO_X_SI is this distance in x-direction
+                 *              W0_Z_SI is this distance in z-direction
+                 *              if both values are equal, the laser has a circular shape in x-z
+                 * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+                 *                             [   1.17741    ]
+                 *  unit: meter */
+                static constexpr float_64 W0_X_SI = 2.5 * WAVE_LENGTH_SI;
+                static constexpr float_64 W0_Z_SI = W0_X_SI;
+
+                /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before plateau
+                 *  and half at the end of the plateau
+                 *  unit: none */
+                static constexpr float_64 RAMP_INIT = 16.0;
+
+                /** cell from top where the laser is initialized
+                 *
+                 * if `initPlaneY == 0` than the absorber are disabled.
+                 * if `initPlaneY > absorbercells negative Y` the negative absorber in y
+                 * direction is enabled
+                 *
+                 * valid ranges:
+                 *   - initPlaneY == 0
+                 *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
+                 */
+                static constexpr uint32_t initPlaneY = 0;
+
+                /** laser phase shift (no shift: 0.0)
+                 *
+                 * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
+                 *
+                 * unit: rad, periodic in 2*pi
+                 */
+                static constexpr float_X LASER_PHASE = 0.0;
+
+                /** Available polarisation types
+                 */
+                enum PolarisationType
+                {
+                    LINEAR_X = 1u,
+                    LINEAR_Z = 2u,
+                    CIRCULAR = 4u,
+                };
+
+                /** Polarization selection
+                 */
+                static constexpr PolarisationType Polarisation = LINEAR_X;
+            };
+
+            /** Based on a wavepacket with Gaussian spatial envelope
+             *
+             * Wavepacket with a polynomial temporal intensity shape.
+             */
+            struct PolynomParam
+            {
+                /** unit: meter */
+                static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+
+                /** Convert the normalized laser strength parameter a0 to Volt per meter */
+                static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                    * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
+                    * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+
+                /** unit: W / m^2 */
+                // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
+
+                /** unit: none */
+                // static constexpr float_64 _A0  = 1.5;
+
+                /** unit: Volt / meter */
+                // static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                /** unit: Volt / meter */
+                static constexpr float_64 AMPLITUDE_SI = 1.738e13;
+
+                /** The profile of the test Lasers 0 and 2 can be stretched by a
+                 *      constant area between the up and downramp
+                 *  unit: seconds */
+                static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI = 13.34e-15;
+
+                /** Pulse length: sigma of std. gauss for intensity (E^2)
+                 *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                 *                                          [    2.354820045     ]
+                 *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                 *                      = what a experimentalist calls "pulse duration"
+                 *  unit: seconds (1 sigma) */
+                static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
+
+                /** beam waist: distance from the axis where the pulse intensity (E^2)
+                 *              decreases to its 1/e^2-th part,
+                 *              at the focus position of the laser
+                 *  unit: meter
+                 */
+                static constexpr float_64 W0_X_SI = 4.246e-6; // waist in x-direction
+                static constexpr float_64 W0_Z_SI = W0_X_SI; // waist in z-direction
+
+                /** cell from top where the laser is initialized
+                 *
+                 * if `initPlaneY == 0` than the absorber are disabled.
+                 * if `initPlaneY > absorbercells negative Y` the negative absorber in y
+                 * direction is enabled
+                 *
+                 * valid ranges:
+                 *   - initPlaneY == 0
+                 *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
+                 */
+                static constexpr uint32_t initPlaneY = 0;
+
+                /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+                 *
+                 *  unit: none */
+                static constexpr float_64 PULSE_INIT = 20.0;
+
+                /** laser phase shift (no shift: 0.0)
+                 *
+                 * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
+                 *
+                 * unit: rad, periodic in 2*pi
+                 */
+                static constexpr float_X LASER_PHASE = 0.0;
+
+                /** Available polarization types
+                 */
+                enum PolarisationType
+                {
+                    LINEAR_X = 1u,
+                    LINEAR_Z = 2u,
+                    CIRCULAR = 4u,
+                };
+                /** Polarization selection
+                 */
+                static constexpr PolarisationType Polarisation = LINEAR_X;
+            };
+
+            struct PlaneWaveParam
+            {
+                /** unit: meter */
+                static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+
+                /** Convert the normalized laser strength parameter a0 to Volt per meter */
+                static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                    * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
+                    * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+
+                /** unit: W / m^2 */
+                // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
+
+                /** unit: none */
+                static constexpr float_64 _A0 = 1.5;
+
+                /** unit: Volt / meter */
+                static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                /** unit: Volt / meter */
+                // static constexpr float_64 AMPLITUDE_SI = 1.738e13;
+
+                /** The profile of the test Lasers 0 and 2 can be stretched by a
+                 *      constant area between the up and downramp
+                 *  unit: seconds */
+                static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI = 13.34e-15;
+
+                /** Pulse length: sigma of std. gauss for intensity (E^2)
+                 *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                 *                                          [    2.354820045     ]
+                 *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                 *                      = what a experimentalist calls "pulse duration"
+                 *  unit: seconds (1 sigma) */
+                static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
+
+                /** cell from top where the laser is initialized
+                 *
+                 * if `initPlaneY == 0` than the absorber are disabled.
+                 * if `initPlaneY > absorbercells negative Y` the negative absorber in y
+                 * direction is enabled
+                 *
+                 * valid ranges:
+                 *   - initPlaneY == 0
+                 *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
+                 */
+                static constexpr uint32_t initPlaneY = 0;
+
+                /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before and after
+                 * the plateau unit: none */
+                static constexpr float_64 RAMP_INIT = 20.6146;
+
+                /** laser phase shift (no shift: 0.0)
+                 *
+                 * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
+                 *
+                 * unit: rad, periodic in 2*pi
+                 */
+                static constexpr float_X LASER_PHASE = 0.0;
+
+                /** Available polarization types
+                 */
+                enum PolarisationType
+                {
+                    LINEAR_X = 1u,
+                    LINEAR_Z = 2u,
+                    CIRCULAR = 4u,
+                };
+                /** Polarization selection
+                 */
+                static constexpr PolarisationType Polarisation = LINEAR_X;
+            };
+
+            //! currently selected laser profile
+            using Selected = None<>;
+
+        } // namespace laserProfiles
+    } // namespace fields
 } // namespace picongpu

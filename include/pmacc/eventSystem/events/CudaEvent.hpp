@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Rene Widera
+/* Copyright 2016-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -26,25 +26,22 @@
 #include "pmacc/types.hpp"
 
 
-
-
 namespace pmacc
 {
-    CudaEvent::CudaEvent( ) : isRecorded( false ), finished( true ), refCounter( 0u )
+    CudaEvent::CudaEvent()
     {
-        log( ggLog::CUDA_RT()+ggLog::EVENT(), "create event" );
-        CUDA_CHECK( cudaEventCreateWithFlags( &event, cudaEventDisableTiming ) );
+        log(ggLog::CUDA_RT() + ggLog::EVENT(), "create event");
+        CUDA_CHECK(cuplaEventCreateWithFlags(&event, cuplaEventDisableTiming));
     }
 
 
-    CudaEvent::~CudaEvent( )
+    CudaEvent::~CudaEvent()
     {
-        PMACC_ASSERT( refCounter == 0u );
-        log( ggLog::CUDA_RT()+ggLog::EVENT(), "sync and delete event" );
-        // free cuda event
-        CUDA_CHECK_NO_EXCEPT(cudaEventSynchronize( event ));
-        CUDA_CHECK_NO_EXCEPT(cudaEventDestroy( event ));
-
+        PMACC_ASSERT(refCounter == 0u);
+        log(ggLog::CUDA_RT() + ggLog::EVENT(), "sync and delete event");
+        // free cupla event
+        CUDA_CHECK_NO_EXCEPT(cuplaEventSynchronize(event));
+        CUDA_CHECK_NO_EXCEPT(cuplaEventDestroy(event));
     }
 
     void CudaEvent::registerHandle()
@@ -54,49 +51,49 @@ namespace pmacc
 
     void CudaEvent::releaseHandle()
     {
-        assert( refCounter != 0u );
+        assert(refCounter != 0u);
         // get old value and decrement
         uint32_t oldCounter = refCounter--;
-        if( oldCounter == 1u )
+        if(oldCounter == 1u)
         {
             // reset event meta data
             isRecorded = false;
             finished = true;
 
-            Environment<>::get().EventPool( ).push( this );
+            Environment<>::get().EventPool().push(this);
         }
     }
 
 
     bool CudaEvent::isFinished()
     {
-        // avoid cuda driver calls if event is already finished
-        if( finished )
+        // avoid cupla driver calls if event is already finished
+        if(finished)
             return true;
-        assert( isRecorded );
+        assert(isRecorded);
 
-        cudaError_t rc = cudaEventQuery(event);
+        cuplaError_t rc = cuplaEventQuery(event);
 
-        if(rc == cudaSuccess)
+        if(rc == cuplaSuccess)
         {
             finished = true;
             return true;
         }
-        else if(rc == cudaErrorNotReady)
+        else if(rc == cuplaErrorNotReady)
             return false;
         else
-            PMACC_PRINT_CUDA_ERROR_AND_THROW(rc, "Event query failed");
+            PMACC_PRINT_CUPLA_ERROR_AND_THROW(rc, "Event query failed");
     }
 
 
-    void CudaEvent::recordEvent(cudaStream_t stream)
+    void CudaEvent::recordEvent(cuplaStream_t stream)
     {
         /* disallow double recording */
         assert(isRecorded == false);
         isRecorded = true;
         finished = false;
         this->stream = stream;
-        CUDA_CHECK(cudaEventRecord(event, stream));
+        CUDA_CHECK(cuplaEventRecord(event, stream));
     }
 
-} // namepsace pmacc
+} // namespace pmacc

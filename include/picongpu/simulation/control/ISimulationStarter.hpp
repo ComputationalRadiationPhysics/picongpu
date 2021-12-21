@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,9 +20,11 @@
 
 #pragma once
 
-#include <pmacc/pluginSystem/IPlugin.hpp>
-#include "picongpu/ArgsParser.hpp"
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/ArgsParser.hpp"
+
+#include <pmacc/pluginSystem/IPlugin.hpp>
 
 namespace picongpu
 {
@@ -32,10 +34,7 @@ namespace picongpu
     class ISimulationStarter : public IPlugin
     {
     public:
-
-        virtual ~ISimulationStarter()
-        {
-        }
+        ~ISimulationStarter() override = default;
         /**Pars progarm parameters
          *             *
          * @param argc number of arguments in argv
@@ -43,21 +42,21 @@ namespace picongpu
          *
          * @return true if no error else false
          */
-        virtual ArgsParser::Status parseConfigs(int argc, char **argv) = 0;
+        virtual ArgsParser::Status parseConfigs(int argc, char** argv) = 0;
 
         /*start simulation
          * is called after parsConfig and pluginLoad
          */
         virtual void start() = 0;
 
-        virtual void restart(uint32_t, const std::string)
+        void restart(uint32_t, const std::string) override
         {
             // nothing to do here
         }
 
-        virtual void checkpoint(uint32_t, const std::string)
+        void checkpoint(uint32_t, const std::string) override
         {
             // nothing to do here
         }
     };
-}
+} // namespace picongpu

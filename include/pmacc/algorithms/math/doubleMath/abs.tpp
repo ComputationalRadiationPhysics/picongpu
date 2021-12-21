@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PMacc.
  *
@@ -23,45 +23,24 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
 #include <cmath>
 
 
 namespace pmacc
 {
-namespace algorithms
-{
-namespace math
-{
-
-template<>
-struct Abs<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(double value)
+    namespace math
     {
-#ifdef __CUDA_ARCH__
-      return ::fabs( value );
-#else
-      /* \bug on cpu `::abs(double)` always return zero -> maybe this is the
-       * integer version of `abs()`
-       */
-      return std::abs( value );
-#endif
-    }
-};
+        template<>
+        struct Abs2<double>
+        {
+            using result = double;
 
-template<>
-struct Abs2<double>
-{
-    typedef double result;
+            HDINLINE double operator()(const double& value)
+            {
+                return value * value;
+            }
+        };
 
-    HDINLINE double operator( )(const double& value )
-    {
-        return value*value;
-    }
-};
-
-} //namespace math
-} //namespace algorithms
+    } // namespace math
 } // namespace pmacc

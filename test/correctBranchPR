@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2020 Axel Huebl
+# Copyright 2017-2021 Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -22,55 +22,71 @@
 # Disallow PRs to `ComputationalRadiationPhysics/picongpu` branch `master`
 # if not an other mainline branch such as `dev` or `release-...`
 #
-# See: https://docs.travis-ci.com/user/environment-variables/
-#      https://developer.github.com/v3/pulls/#get-a-single-pull-request
-#
 # -> only enforced for `master` branch
 #    -> only enforced for mainline repo (not for forks)
 #
-# This file needs to be sourced in .travis.yml to work.
+# dependencies: curl, python3
 #
-# @result 0 if correct target (or not in travis CI for mainline), else 1
+# @result 0 if correct target, else 1
 #
 
-# Are we even in travis? Otherwise pass this test.
-if [ "$TRAVIS" != "true" ]
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+cd $CI_PROJECT_DIR
+
+is_pr=$(echo "$CI_BUILD_REF_NAME" | grep -q "^pr-" && echo 0 || echo 1)
+# merge only pull requests
+
+mainline_slug="ComputationalRadiationPhysics/picongpu"
+
+# only enforced for PRs
+if [ $is_pr -eq 0 ]
 then
-    echo "Not in travis, so I have nothing to do :)"
-else
+    github_group_repo="ComputationalRadiationPhysics/picongpu"
 
-    mainline_slug="ComputationalRadiationPhysics/picongpu"
+    pr_id=$(echo "$CI_BUILD_REF_NAME" | cut -d"/" -f1 | cut -d"-" -f2)
+    # used a token without any rights from psychocoderHPC to avoid API query limitations
+    curl_data=$(curl -u psychocoderHPC:$GITHUB_TOKEN -X GET https://api.github.com/repos/${github_group_repo}/pulls/${pr_id} 2>/dev/null)
+    echo "--- curl data ---"
+    echo "$curl_data"
+    echo "-----------------"
+    # get the destination branch
+    destination_branch=$(echo "$curl_data" | python3 -c 'import json,sys;obj=json.loads(sys.stdin.read());print(obj["base"]["ref"])')
+    echo "destination_branch=${destination_branch}"
 
-    # only enforced for PRs
-    if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]
+    # only enforced for `master` branch
+    if [ "$destination_branch" == "master" ]
     then
-        # only enforced for `master` branch
-        if [ "$TRAVIS_BRANCH" == "master" ]
+        repo_slug=$(echo "$curl_data" | python3 -c 'import json,sys;obj=json.loads(sys.stdin.read());print(obj["base"]["repo"]["full_name"])')
+        echo "repo_slug=${repo_slug}"
+        # only enforced for mainline repo (not for forks)
+        if [ "$repo_slug" == "$mainline_slug" ]
         then
-            # only enforced for mainline repo (not for forks)
-            if [ "$TRAVIS_REPO_SLUG" == "$mainline_slug" ]
+            pull_request_slug=$(echo "$curl_data" | python3 -c 'import json,sys;obj=json.loads(sys.stdin.read());print(obj["head"]["repo"]["full_name"])')
+            echo "pull_request_slug=${pull_request_slug}"
+            # origin repo is not our mainline? so it's a PR from a fork!
+            if [ "$pull_request_slug" != "$mainline_slug" ]
             then
-                # origin repo is not our mainline? so it's a PR from a fork!
-                if [ "$TRAVIS_PULL_REQUEST_SLUG" != "$mainline_slug" ]
-                then
-                    # the PR came from a fork owned by the first part of the slug
-                    pr_author=$(echo "$TRAVIS_PULL_REQUEST_SLUG" | awk -F "/" '{print $1}')
-                    pr_branch=$TRAVIS_PULL_REQUEST_BRANCH
-                    echo ""
-                    echo "Pull request opened to wrong branch!"
-                    echo ""
-                    echo "New features need to go to our 'dev' branch but your"
-                    echo "pull-request from '"$TRAVIS_PULL_REQUEST_SLUG"' was"
-                    echo "sent to 'master' which is only updated by our"
-                    echo "maintainers for new stable releases."
-                    echo ""
-                    echo "Please re-open your pull-request against our 'dev' branch:"
-                    echo "  https://github.com/ComputationalRadiationPhysics/picongpu/compare/dev...$pr_author:$pr_branch?expand=1"
-                    echo ""
-                    echo "For further information, please see:"
-                    echo "  https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/CONTRIBUTING.md"
-                    exit 1
-                fi
+                # the PR came from a fork
+                pr_label=$(echo "$curl_data" | python3 -c 'import json,sys;obj=json.loads(sys.stdin.read());print(obj["head"]["label"])')
+                echo "pr_label=${pr_label}"
+                echo ""
+                echo "Pull request opened to wrong branch!"
+                echo ""
+                echo "New features need to go to our 'dev' branch but your"
+                echo "pull-request from '"$pull_request_slug"' was"
+                echo "sent to 'master' which is only updated by our"
+                echo "maintainers for new stable releases."
+                echo ""
+                echo "Please re-open your pull-request against our 'dev' branch:"
+                echo "  https://github.com/ComputationalRadiationPhysics/picongpu/compare/dev...$pr_label?expand=1"
+                echo ""
+                echo "For further information, please see:"
+                echo "  https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/CONTRIBUTING.md"
+                exit 1
             fi
         fi
     fi

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -26,22 +26,22 @@
 #include <pmacc/preprocessor/size.hpp>
 
 
-#define PMACC_MIN(x,y) (((x)<=(y))?x:y)
-#define PMACC_MAX(x,y) (((x)>(y))?x:y)
+#define PMACC_MIN(x, y) (((x) <= (y)) ? x : y)
+#define PMACC_MAX(x, y) (((x) > (y)) ? x : y)
 
 
-#define PMACC_JOIN_DO(x,y) x##y
-#define PMACC_JOIN(x,y) PMACC_JOIN_DO(x,y)
+#define PMACC_JOIN_DO(x, y) x##y
+#define PMACC_JOIN(x, y) PMACC_JOIN_DO(x, y)
 
-#define PMACC_MAX_DO(what,x,y) (((x)>(y))?x what:y what)
-#define PMACC_MIN_DO(what,x,y) (((x)<(y))?x what:y what)
+#define PMACC_MAX_DO(what, x, y) (((x) > (y)) ? x what : y what)
+#define PMACC_MIN_DO(what, x, y) (((x) < (y)) ? x what : y what)
 
 
 #ifdef PMACC_PP_VARIADIC_SIZE
-#   define PMACC_COUNT_ARGS_DEF(type,...) (PMACC_PP_VARIADIC_SIZE(__VA_ARGS__))
+#    define PMACC_COUNT_ARGS_DEF(type, ...) (PMACC_PP_VARIADIC_SIZE(__VA_ARGS__))
 #else
-    // A fallback implementation using compound literals, supported by some compilers
-#   define PMACC_COUNT_ARGS_DEF(type,...) (sizeof((type[]){type{}, ##__VA_ARGS__})/sizeof(type)-1u)
+// A fallback implementation using compound literals, supported by some compilers
+#    define PMACC_COUNT_ARGS_DEF(type, ...) (sizeof((type[]){type{}, ##__VA_ARGS__}) / sizeof(type) - 1u)
 #endif
 
 /**
@@ -50,7 +50,7 @@
  * @param type type of the arguments in ...
  * @param ... arguments
  */
-#define PMACC_COUNT_ARGS(type,...) PMACC_COUNT_ARGS_DEF(type,__VA_ARGS__)
+#define PMACC_COUNT_ARGS(type, ...) PMACC_COUNT_ARGS_DEF(type, __VA_ARGS__)
 
 /**
  * Check if ... has arguments or not
@@ -60,7 +60,7 @@
  * @param ... arguments
  * @return false if no arguments are given, else true
  */
-#define PMACC_HAS_ARGS(...)  (PMACC_COUNT_ARGS(int,__VA_ARGS__)>0)
+#define PMACC_HAS_ARGS(...) (PMACC_COUNT_ARGS(int, __VA_ARGS__) > 0)
 
 /** round up to next higher pow 2 value
  *
@@ -71,12 +71,12 @@
  * @param value integral number between [1,Inf]
  * @return next higher pow 2 value
  */
-#define PMACC_ROUND_UP_NEXT_POW2(value) \
-        ((value)==1?1:                  \
-        ((value)<=2?2:                  \
-        ((value)<=4?4:                  \
-        ((value)<=8?8:                  \
-        ((value)<=16?16:                \
-        ((value)<=32?32:                \
-        ((value)<=64?64:128             \
-        )))))))
+#define PMACC_ROUND_UP_NEXT_POW2(value)                                                                               \
+    ((value) == 1                                                                                                     \
+         ? 1                                                                                                          \
+         : ((value) <= 2                                                                                              \
+                ? 2                                                                                                   \
+                : ((value) <= 4                                                                                       \
+                       ? 4                                                                                            \
+                       : ((value) <= 8 ? 8                                                                            \
+                                       : ((value) <= 16 ? 16 : ((value) <= 32 ? 32 : ((value) <= 64 ? 64 : 128)))))))

@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2017-2020 PIConGPU contributors
+Copyright 2017-2021 PIConGPU contributors
 Authors: Sebastian Starke
 License: GPLv3+
 """
@@ -191,6 +191,9 @@ class Visualizer(BaseVisualizer):
             ps : string
                 phase space selection in order: spatial, momentum component,
                 e.g. 'ypy' or 'ypx'
+            file_ext: string
+                filename extension for openPMD backend
+                default is 'h5' for the HDF5 backend
         """
         super().visualize(**kwargs)
 

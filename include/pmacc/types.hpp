@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz,
  *                     Alexander Grund
  *
@@ -30,59 +30,39 @@
 #include <cupla/types.hpp>
 
 #ifndef PMACC_CUDA_ENABLED
-#   define PMACC_CUDA_ENABLED ALPAKA_ACC_GPU_CUDA_ENABLED
+#    define PMACC_CUDA_ENABLED ALPAKA_ACC_GPU_CUDA_ENABLED
 #endif
 
-#if( PMACC_CUDA_ENABLED == 1 )
+#if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
 /* include mallocMC before cupla renaming is activated, else we need the variable acc
  * to call atomic cuda functions
  */
-#   include <mallocMC/mallocMC.hpp>
+#    include <mallocMC/mallocMC.hpp>
 #endif
 
 
-#include <cuda_to_cupla.hpp>
-
-#if( PMACC_CUDA_ENABLED == 1 )
-/** @todo please remove this workaround
- * This workaround allows to use native CUDA on the CUDA device without
- * passing the variable `acc` to each function. This is only needed during the
- * porting phase to allow the full feature set of the plain PMacc and PIConGPU
- * CUDA version if the accelerator is CUDA.
- */
-#   undef blockIdx
-#   undef __syncthreads
-#   undef threadIdx
-#   undef gridDim
-#   undef blockDim
-#   undef uint3
-
-#endif
-
-#include "pmacc/debug/PMaccVerbose.hpp"
-#include "pmacc/ppFunctions.hpp"
-
-#include "pmacc/dimensions/Definition.hpp"
-#include "pmacc/type/Area.hpp"
-#include "pmacc/type/Integral.hpp"
-#include "pmacc/type/Exchange.hpp"
-#include "pmacc/attribute/FunctionSpecifier.hpp"
 #include "pmacc/attribute/Constexpr.hpp"
 #include "pmacc/attribute/Fallthrough.hpp"
-#include "pmacc/eventSystem/EventType.hpp"
+#include "pmacc/attribute/FunctionSpecifier.hpp"
 #include "pmacc/cuplaHelper/ValidateCall.hpp"
+#include "pmacc/debug/PMaccVerbose.hpp"
+#include "pmacc/dimensions/Definition.hpp"
+#include "pmacc/eventSystem/EventType.hpp"
 #include "pmacc/memory/Align.hpp"
-#include "pmacc/memory/Delete.hpp"
+#include "pmacc/ppFunctions.hpp"
+#include "pmacc/type/Area.hpp"
+#include "pmacc/type/Exchange.hpp"
+#include "pmacc/type/Integral.hpp"
 
-#include <boost/typeof/std/utility.hpp>
-#include <boost/mpl/placeholders.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/mpl/placeholders.hpp>
+
+#include <cupla.hpp>
 
 
 namespace pmacc
 {
+    namespace bmpl = boost::mpl;
+    namespace bfs = boost::filesystem;
 
-namespace bmpl = boost::mpl;
-namespace bfs = boost::filesystem;
-
-} //namespace pmacc
+} // namespace pmacc

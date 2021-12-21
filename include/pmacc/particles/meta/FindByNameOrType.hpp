@@ -1,4 +1,4 @@
-/* Copyright 2018-2020 Rene Widera
+/* Copyright 2018-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,84 +21,62 @@
 
 #pragma once
 
-#include "pmacc/traits/GetCTName.hpp"
 #include "pmacc/meta/errorHandlerPolicies/ThrowValueNotFound.hpp"
+#include "pmacc/traits/GetCTName.hpp"
 
-#include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/copy_if.hpp>
-#include <boost/type_traits/is_same.hpp>
 #include <boost/mpl/empty.hpp>
-#include <boost/mpl/or.hpp>
 #include <boost/mpl/front.hpp>
-#include <boost/type_traits/is_same.hpp>
+#include <boost/mpl/or.hpp>
+#include <boost/mpl/placeholders.hpp>
+
+#include <type_traits>
 
 
 namespace pmacc
 {
-namespace particles
-{
-namespace meta
-{
-
-    /* find a type within a sequence by name or the type itself
-     *
-     * pmacc::traits::GetCTName is used to translate each element of
-     * T_MPLSeq into a name.
-     *
-     * @tparam T_MPLSeq source sequence where we search T_Identifier
-     * @tparam T_Identifier name or type to search
-     */
-    template<
-        typename T_MPLSeq,
-        typename T_Identifier,
-        typename T_KeyNotFoundPolicy = pmacc::errorHandlerPolicies::ThrowValueNotFound
-    >
-    struct FindByNameOrType
+    namespace particles
     {
-        using KeyNotFoundPolicy = T_KeyNotFoundPolicy;
-
-        template< typename T_Value >
-        struct HasTypeOrName
+        namespace meta
         {
-            using type = bmpl::or_<
-                boost::is_same<
-                    T_Identifier,
-                    T_Value
-                >,
-                boost::is_same<
-                    pmacc::traits::GetCTName_t< T_Value >,
-                    T_Identifier
-                >
-            >;
-        };
+            /* find a type within a sequence by name or the type itself
+             *
+             * pmacc::traits::GetCTName is used to translate each element of
+             * T_MPLSeq into a name.
+             *
+             * @tparam T_MPLSeq source sequence where we search T_Identifier
+             * @tparam T_Identifier name or type to search
+             */
+            template<
+                typename T_MPLSeq,
+                typename T_Identifier,
+                typename T_KeyNotFoundPolicy = pmacc::errorHandlerPolicies::ThrowValueNotFound>
+            struct FindByNameOrType
+            {
+                using KeyNotFoundPolicy = T_KeyNotFoundPolicy;
 
-        using FilteredSeq = typename bmpl::copy_if<
-            T_MPLSeq,
-            HasTypeOrName< bmpl::_1 >
-        >::type;
+                template<typename T_Value>
+                struct HasTypeOrName
+                {
+                    using type = bmpl::or_<
+                        std::is_same<T_Identifier, T_Value>,
+                        std::is_same<pmacc::traits::GetCTName_t<T_Value>, T_Identifier>>;
+                };
 
-        using type = typename bmpl::if_<
-            bmpl::empty< FilteredSeq >,
-            bmpl::apply<
-                KeyNotFoundPolicy,
-                T_MPLSeq,
-                T_Identifier
-            >,
-            bmpl::front< FilteredSeq >
-        >::type::type;
-    };
+                using FilteredSeq = typename bmpl::copy_if<T_MPLSeq, HasTypeOrName<bmpl::_1>>::type;
 
-    template<
-        typename T_MPLSeq,
-        typename T_Identifier,
-        typename T_KeyNotFoundPolicy = pmacc::errorHandlerPolicies::ThrowValueNotFound
-    >
-    using FindByNameOrType_t = typename FindByNameOrType<
-        T_MPLSeq,
-        T_Identifier,
-        T_KeyNotFoundPolicy
-    >::type;
+                using type = typename bmpl::if_<
+                    bmpl::empty<FilteredSeq>,
+                    bmpl::apply<KeyNotFoundPolicy, T_MPLSeq, T_Identifier>,
+                    bmpl::front<FilteredSeq>>::type::type;
+            };
 
-} // namespace meta
-} // namespace particles
+            template<
+                typename T_MPLSeq,
+                typename T_Identifier,
+                typename T_KeyNotFoundPolicy = pmacc::errorHandlerPolicies::ThrowValueNotFound>
+            using FindByNameOrType_t = typename FindByNameOrType<T_MPLSeq, T_Identifier, T_KeyNotFoundPolicy>::type;
+
+        } // namespace meta
+    } // namespace particles
 } // namespace pmacc

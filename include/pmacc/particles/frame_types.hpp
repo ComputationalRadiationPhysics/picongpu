@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -23,27 +23,30 @@
 
 #include "pmacc/types.hpp"
 
-//define which index means that the index is invalid
-#define INV_IDX 0xFFFFFFFF
-
-//define which index means that a local cell index is invalid
-#define INV_LOC_IDX 0xFFFF
-
 namespace pmacc
 {
     /**
      * Is used for indirect pointer layer.
      * This type is limited by atomicSub on device (in CUDA 3.2 we can use 32 Bit int only).
      */
-    typedef unsigned int vint_t;
+    using vint_t = unsigned int;
+    //! define which index means that the index is invalid
+#define INV_IDX (vint_t(0xFFFFFFFF))
 
     /**
      * Defines the local cell id type in a supercell
      */
-    typedef uint16_t lcellId_t;
+    using lcellId_t = uint16_t;
+    //! define which index means that a local cell index is invalid
+#define INV_LOC_IDX (lcellId_t(0xFFFF))
 
     /**
      * Describes type of a frame (core, border)
      */
-    enum FrameType { CORE_FRAME = 0u, BORDER_FRAME =1u , BIG_FRAME=2u};
-}
+    enum FrameType
+    {
+        CORE_FRAME = 0u,
+        BORDER_FRAME = 1u,
+        BIG_FRAME = 2u
+    };
+} // namespace pmacc

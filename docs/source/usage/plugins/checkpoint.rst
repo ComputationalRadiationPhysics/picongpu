@@ -21,18 +21,17 @@ What is the format of the created files?
 
 We write our fields and particles in an open markup called :ref:`openPMD <pp-openPMD>`.
 
-For further details, see the according sections in :ref:`HDF5 <usage-plugins-HDF5>` and :ref:`ADIOS <usage-plugins-ADIOS>`.
+For further details, see :ref:`the openPMD API <usage-plugins-openPMD>` section.
 
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
-The plugin is available as soon as the :ref:`libSplash (HDF5) or ADIOS libraries <install-dependencies>` are compiled in.
+The plugin is available as soon as the :ref:`openPMD API library <install-dependencies>` is compiled in.
 
 .cfg file
 ^^^^^^^^^
 
 You can use ``--checkpoint.period`` to specify the output period of the created checkpoints.
-Note that this plugin will only be available if libSplash (HDF5) or ADIOS is found during compile configuration.
 
 ============================================= ======================================================================================
 PIConGPU command line option                  Description
@@ -44,7 +43,8 @@ PIConGPU command line option                  Description
 ``--checkpoint.file <string>``                Relative or absolute fileset prefix for writing checkpoints.
                                               If relative, checkpoint files are stored under ``simOutput/<checkpoint-directory>``.
                                               Default depends on the selected IO-backend.
-``--checkpoint.restart``                      Restart a simulation from the latest checkpoint.
+``--checkpoint.restart``                      Restart a simulation from the latest checkpoint (requires a valid checkpoint).
+``--checkpoint.tryRestart``                   Restart a simulation from the latest checkpoint if available else start from scratch.
 ``--checkpoint.restart.step <N>``             Select a specific restart checkpoint.
 ``--checkpoint.restart.backend <IO-backend>`` IO-backend used to load a existent checkpoint.
 ``--checkpoint.restart.directory <string>``   Directory inside ``simOutput`` containing checkpoints for a restart.
@@ -59,10 +59,9 @@ PIConGPU command line option                  Description
 ``--checkpoint.<IO-backend>.*``               Additional options to control the IO-backend
 ============================================= ======================================================================================
 
-Depending on the available external dependencies (see above), the options for the ``<IO-backend>`` are:
+Depending on the available external dependencies (see above), the options for the `<IO-backend>` are:
 
-* :ref:`hdf5 <usage-plugins-HDF5>`
-* :ref:`adios <usage-plugins-ADIOS>` (keep in mind the :ref:`note on meta-files <usage-plugins-ADIOS-meta>` for restarts)
+* :ref:`openPMD <usage-plugins-openPMD>`
 
 Interacting Manually with Checkpoint Data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -25,46 +25,9 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<int dim>
-struct Float : public Vector<float, dim>
-{
-    using BaseType = Vector<float, dim>;
-
-    HDINLINE Float()
+    namespace math
     {
-    }
-
-    HDINLINE Float(float x) : BaseType(x)
-    {
-    }
-
-    HDINLINE Float(float x, float y) : BaseType(x, y)
-    {
-    }
-
-    HDINLINE Float(float x, float y, float z) : BaseType(x, y, z)
-    {
-    }
-
-    /*! only allow explicit cast*/
-    template<
-    typename T_OtherType,
-    typename T_OtherAccessor,
-    typename T_OtherNavigator,
-    template <typename, int> class T_OtherStorage>
-    HDINLINE explicit Float(const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec) :
-    BaseType(vec)
-    {
-    }
-
-    HDINLINE Float(const BaseType& vec) :
-    BaseType(vec)
-    {
-    }
-};
-
-} // math
-} // PMacc
+        template<int dim>
+        using Float = Vector<float, dim>;
+    } // namespace math
+} // namespace pmacc

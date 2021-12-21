@@ -1,14 +1,16 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2017-2020 PIConGPU contributors
+Copyright 2017-2021 PIConGPU contributors
 Authors: Sebastian Starke
 License: GPLv3+
 """
+import numpy as np
 
 from picongpu.plugins.data import EnergyHistogramData
 from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
     BaseVisualizer
+from warnings import warn
 
 
 class Visualizer(BaseVisualizer):
@@ -44,6 +46,12 @@ class Visualizer(BaseVisualizer):
 
         counts, bins, iteration, dt = self.data[idx]
         label = self.sim_labels[idx]
+
+        if np.all(counts == 0.):
+            warn("All counts were 0 for {}. ".format(label) +
+                 "No log-plot can be created!")
+            return
+
         self.plt_obj[idx] = self.ax.semilogy(
             bins, counts, nonposy='clip', label=label,
             color=self.colors[idx])[0]
@@ -53,6 +61,13 @@ class Visualizer(BaseVisualizer):
         Implementation of base class function.
         """
         counts, bins, iteration, dt = self.data[idx]
+        label = self.sim_labels[idx]
+
+        if np.all(counts == 0.):
+            warn("All counts were 0 for {}. ".format(label) +
+                 "Log-plot will not be updated!")
+            return
+
         self.plt_obj[idx].set_data(bins, counts)
 
     def visualize(self, **kwargs):

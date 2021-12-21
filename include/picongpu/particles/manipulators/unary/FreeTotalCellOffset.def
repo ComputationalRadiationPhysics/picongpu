@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera, Axel Huebl
+/* Copyright 2017-2021 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -27,44 +27,44 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
-namespace unary
-{
-    /** call simple free user defined manipulators and provide the cell information
-     *
-     * The functor passes the cell offset of the particle relative to the total
-     * domain origin into the functor.
-     *
-     * @tparam T_Functor user defined unary functor
-     *
-     * example for `particle.param`: set a user-defined species attribute y0
-     * (type: uint32_t) to the current total y-cell index
-     *   @code{.cpp}
-     *   struct FunctorSaveYcell
-     *   {
-     *       template< typename T_Particle >
-     *       HDINLINE void operator()(
-     *          DataSpace< simDim > const & particleOffsetToTotalOrigin,
-     *          T_Particle & particle
-     *       )
-     *       {
-     *           particle[ y0_ ] = particleOffsetToTotalOrigin.y();
-     *       }
-     *       static constexpr char const * name = "saveYcell";
-     *   };
-     *
-     *   using SaveYcell = unary::FreeTotalCellOffset<
-     *      FunctorSaveYcell
-     *   >;
-     *   @endcode
-     */
-    template< typename T_Functor >
-    struct FreeTotalCellOffset;
+    namespace particles
+    {
+        namespace manipulators
+        {
+            namespace unary
+            {
+                /** call simple free user defined manipulators and provide the cell information
+                 *
+                 * The functor passes the cell offset of the particle relative to the total
+                 * domain origin into the functor.
+                 *
+                 * @tparam T_Functor user defined unary functor
+                 *
+                 * example for `particle.param`: set a user-defined species attribute y0
+                 * (type: uint32_t) to the current total y-cell index
+                 *   @code{.cpp}
+                 *   struct FunctorSaveYcell
+                 *   {
+                 *       template< typename T_Particle >
+                 *       HDINLINE void operator()(
+                 *          DataSpace< simDim > const & particleOffsetToTotalOrigin,
+                 *          T_Particle & particle
+                 *       )
+                 *       {
+                 *           particle[ y0_ ] = particleOffsetToTotalOrigin.y();
+                 *       }
+                 *       static constexpr char const * name = "saveYcell";
+                 *   };
+                 *
+                 *   using SaveYcell = unary::FreeTotalCellOffset<
+                 *      FunctorSaveYcell
+                 *   >;
+                 *   @endcode
+                 */
+                template<typename T_Functor>
+                struct FreeTotalCellOffset;
 
-} // namespace unary
-} // namespace manipulators
-} // namespace particles
+            } // namespace unary
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

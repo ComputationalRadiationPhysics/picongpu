@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Axel Huebl
+/* Copyright 2015-2021 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -20,9 +20,9 @@
 
 #include "picongpu/version.hpp"
 
+#include <list>
 #include <ostream>
 #include <string>
-#include <list>
 
 
 namespace picongpu
@@ -35,6 +35,5 @@ namespace picongpu
      * @param[out] cliText formatted table for output to a command line
      * @return a list of strings in the form software/version
      */
-    std::list< std::string >
-    getSoftwareVersions( std::ostream & cliText );
+    std::list<std::string> getSoftwareVersions(std::ostream& cliText);
 } // namespace picongpu

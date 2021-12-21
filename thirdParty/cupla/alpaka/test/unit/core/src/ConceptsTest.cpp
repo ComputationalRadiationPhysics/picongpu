@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,8 +13,12 @@
 
 #include <type_traits>
 
-struct ConceptExample;
-struct ConceptNonMatchingExample;
+struct ConceptExample
+{
+};
+struct ConceptNonMatchingExample
+{
+};
 
 struct ImplementerNotTagged
 {
@@ -25,8 +29,7 @@ struct ImplementerNotTaggedButNonMatchingTagged
 {
 };
 
-struct ImplementerTagged
-    : public alpaka::concepts::Implements<ConceptExample, ImplementerTagged>
+struct ImplementerTagged : public alpaka::concepts::Implements<ConceptExample, ImplementerTagged>
 {
 };
 
@@ -36,13 +39,11 @@ struct ImplementerTaggedButAlsoNonMatchingTagged
 {
 };
 
-struct ImplementerWithTaggedBase
-    : public ImplementerTagged
+struct ImplementerWithTaggedBase : public ImplementerTagged
 {
 };
 
-struct ImplementerWithTaggedBaseAlsoNonMatchingTagged
-    : public ImplementerTaggedButAlsoNonMatchingTagged
+struct ImplementerWithTaggedBaseAlsoNonMatchingTagged : public ImplementerTaggedButAlsoNonMatchingTagged
 {
 };
 
@@ -66,118 +67,96 @@ struct ImplementerNonMatchingTaggedTaggedToBase
 };
 
 //-----------------------------------------------------------------------------
-TEST_CASE("ImplementerNotTagged", "[meta]")
+TEST_CASE("ImplementerNotTagged", "[core]")
 {
     using ImplementationBase = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerNotTagged>;
 
     static_assert(
-        std::is_same<
-            ImplementerNotTagged,
-            ImplementationBase
-        >::value,
-        "alpaka::meta::ImplementationBase failed!");
+        std::is_same<ImplementerNotTagged, ImplementationBase>::value,
+        "alpaka::concepts::ImplementationBase failed!");
 }
 
 //-----------------------------------------------------------------------------
-TEST_CASE("ImplementerNotTaggedButNonMatchingTagged", "[meta]")
+TEST_CASE("ImplementerNotTaggedButNonMatchingTagged", "[core]")
 {
-    using ImplementationBase = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerNotTaggedButNonMatchingTagged>;
+    using ImplementationBase
+        = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerNotTaggedButNonMatchingTagged>;
 
     static_assert(
-        std::is_same<
-            ImplementerNotTaggedButNonMatchingTagged,
-            ImplementationBase
-        >::value,
-        "alpaka::meta::ImplementationBase failed!");
+        std::is_same<ImplementerNotTaggedButNonMatchingTagged, ImplementationBase>::value,
+        "alpaka::concepts::ImplementationBase failed!");
 }
 
 //-----------------------------------------------------------------------------
-TEST_CASE("ImplementerTagged", "[meta]")
+TEST_CASE("ImplementerTagged", "[core]")
 {
     using ImplementationBase = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerTagged>;
 
     static_assert(
-        std::is_same<
-            ImplementerTagged,
-            ImplementationBase
-        >::value,
-        "alpaka::meta::ImplementationBase failed!");
+        std::is_same<ImplementerTagged, ImplementationBase>::value,
+        "alpaka::concepts::ImplementationBase failed!");
 }
 
 //-----------------------------------------------------------------------------
-TEST_CASE("ImplementerTaggedButAlsoNonMatchingTagged", "[meta]")
+TEST_CASE("ImplementerTaggedButAlsoNonMatchingTagged", "[core]")
 {
-    using ImplementationBase = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerTaggedButAlsoNonMatchingTagged>;
+    using ImplementationBase
+        = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerTaggedButAlsoNonMatchingTagged>;
 
     static_assert(
-        std::is_same<
-            ImplementerTaggedButAlsoNonMatchingTagged,
-            ImplementationBase
-        >::value,
-        "alpaka::meta::ImplementationBase failed!");
+        std::is_same<ImplementerTaggedButAlsoNonMatchingTagged, ImplementationBase>::value,
+        "alpaka::concepts::ImplementationBase failed!");
 }
 
 //-----------------------------------------------------------------------------
-TEST_CASE("ImplementerWithTaggedBaseAlsoNonMatchingTagged", "[meta]")
+TEST_CASE("ImplementerWithTaggedBaseAlsoNonMatchingTagged", "[core]")
 {
-    using ImplementationBase = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerWithTaggedBaseAlsoNonMatchingTagged>;
+    using ImplementationBase
+        = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerWithTaggedBaseAlsoNonMatchingTagged>;
 
     static_assert(
-        std::is_same<
-            ImplementerTaggedButAlsoNonMatchingTagged,
-            ImplementationBase
-        >::value,
-        "alpaka::meta::ImplementationBase failed!");
+        std::is_same<ImplementerTaggedButAlsoNonMatchingTagged, ImplementationBase>::value,
+        "alpaka::concepts::ImplementationBase failed!");
 }
 
 //-----------------------------------------------------------------------------
-TEST_CASE("ImplementerWithTaggedBase", "[meta]")
+TEST_CASE("ImplementerWithTaggedBase", "[core]")
 {
     using ImplementationBase = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerWithTaggedBase>;
 
     static_assert(
-        std::is_same<
-            ImplementerTagged,
-            ImplementationBase
-        >::value,
-        "alpaka::meta::ImplementationBase failed!");
+        std::is_same<ImplementerTagged, ImplementationBase>::value,
+        "alpaka::concepts::ImplementationBase failed!");
 }
 
 //-----------------------------------------------------------------------------
-TEST_CASE("ImplementerTaggedToBase", "[meta]")
+TEST_CASE("ImplementerTaggedToBase", "[core]")
 {
     using ImplementationBase = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerTaggedToBase>;
 
     static_assert(
-        std::is_same<
-            ImplementerNotTagged,
-            ImplementationBase
-        >::value,
-        "alpaka::meta::ImplementationBase failed!");
+        std::is_same<ImplementerNotTagged, ImplementationBase>::value,
+        "alpaka::concepts::ImplementationBase failed!");
 }
 
 //-----------------------------------------------------------------------------
-TEST_CASE("ImplementerTaggedToBaseAlsoNonMatchingTagged", "[meta]")
+TEST_CASE("ImplementerTaggedToBaseAlsoNonMatchingTagged", "[core]")
 {
-    using ImplementationBase = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerTaggedToBaseAlsoNonMatchingTagged>;
+    using ImplementationBase
+        = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerTaggedToBaseAlsoNonMatchingTagged>;
 
     static_assert(
-        std::is_same<
-            ImplementerNotTaggedButNonMatchingTagged,
-            ImplementationBase
-        >::value,
-        "alpaka::meta::ImplementationBase failed!");
+        std::is_same<ImplementerNotTaggedButNonMatchingTagged, ImplementationBase>::value,
+        "alpaka::concepts::ImplementationBase failed!");
 }
 
 //-----------------------------------------------------------------------------
-TEST_CASE("ImplementerNonMatchingTaggedTaggedToBase", "[meta]")
+TEST_CASE("ImplementerNonMatchingTaggedTaggedToBase", "[core]")
 {
-    using ImplementationBase = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerNonMatchingTaggedTaggedToBase>;
+    using ImplementationBase
+        = alpaka::concepts::ImplementationBase<ConceptExample, ImplementerNonMatchingTaggedTaggedToBase>;
 
     static_assert(
-        std::is_same<
-            ImplementerNotTagged,
-            ImplementationBase
-        >::value,
-        "alpaka::meta::ImplementationBase failed!");
+        std::is_same<ImplementerNotTagged, ImplementationBase>::value,
+        "alpaka::concepts::ImplementationBase failed!");
 }

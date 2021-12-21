@@ -1,6 +1,54 @@
 Change Log / Release Log for mallocMC
 ================================================================
 
+2.5.0crp
+--------
+**Date:** 2021-02-18
+
+This release removes the native usage of CUDA by alpaka.
+Attention: This release depends on an unreleased [alpaka 0.5.0dev](https://github.com/alpaka-group/alpaka/commit/34870a73ecf702069465aa030fbdf301c4d22c61) 
+version before the heavy alpaka namespace refactoring.
+
+### Changes to mallocMC 2.4.0crp
+
+**Features**
+- Port to alpaka #173
+
+**Bug fixes**
+- fix HIP support (warpsize, activemask, compile issues) #182
+- fix data race and printf issue #189
+- fix data races in `Scatter.hpp` #190
+- fix clang cuda compile #192
+
+**Misc:**
+- Added alpaka subtree and switched to C++14 #176
+- Added 3rd party catch.hpp and made CMake find it #179
+- Update documentation after switch to alpaka #194
+- Update .clang-format and apply clang-format #197
+
+Thanks to Bernhard Manfred Gruber and Rene Widera for contributing to this release!
+
+2.4.0crp
+--------
+**Date:** 2020-05-28
+
+This release removes the Boost dependency and switched to C++11.
+
+### Changes to mallocMC 2.3.1crp
+
+**Features**
+  - Cleaning, remove Boost dependency & C++11 Migration #169
+
+**Bug fixes**
+  - Choose the value for the -arch nvcc flag depending on CUDA version #164 #165
+ 
+**Misc:**
+  - Travis CI: GCC 5.5.0 + CUDA 9.1.85 #170
+  - Adding headers to projects and applied clang-tidy #171
+  - clang-format #172
+
+Thanks to  Sergei Bastrakov, Bernhard Manfred Gruber and Axel Huebl for contributing to this release!
+
 2.3.1crp
 --------
 **Date:** 2019-02-14

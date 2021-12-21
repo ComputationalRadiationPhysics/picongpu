@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,29 +19,22 @@
 
 #include "picongpu/plugins/misc/removeSpaces.hpp"
 
-#include <string>
 #include <algorithm>
+#include <string>
 
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace misc
-{
-    std::string removeSpaces( std::string value )
+    namespace plugins
     {
-        value.erase(
-            std::remove(
-                value.begin(),
-                value.end(),
-                ' '
-            ),
-            value.end()
-        );
+        namespace misc
+        {
+            std::string removeSpaces(std::string value)
+            {
+                value.erase(std::remove(value.begin(), value.end(), ' '), value.end());
 
-        return value;
-    }
-} // namespace misc
-} // namespace plugins
+                return value;
+            }
+        } // namespace misc
+    } // namespace plugins
 } // namespace picongpu

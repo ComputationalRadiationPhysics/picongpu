@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Alexander Grund
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -21,81 +21,57 @@
 
 #pragma once
 
+#include "pmacc/types.hpp"
+
 namespace pmacc
 {
-namespace algorithms
-{
+    namespace math
+    {
+        template<typename Type>
+        struct Float2int_ru;
 
-namespace math
-{
+        template<typename Type>
+        struct Float2int_rd;
 
-template<typename Type>
-struct Floor;
+        template<typename Type>
+        struct Float2int_rn;
 
-template<typename Type>
-struct Ceil;
+        /**
+         * Returns the smallest int value that is at least as big as value
+         * Note: Using values outside the range of an int is undefined
+         * @return integer value
+         */
+        template<typename T1>
+        HDINLINE typename Float2int_ru<T1>::result float2int_ru(T1 value)
+        {
+            return Float2int_ru<T1>()(value);
+        }
 
-template<typename Type>
-struct Float2int_ru;
+        /**
+         * Returns the largest int value that is not greater than value
+         * Note: Using values outside the range of an int is undefined
+         * @return integer value
+         */
+        template<typename T1>
+        HDINLINE typename Float2int_rd<T1>::result float2int_rd(T1 value)
+        {
+            return Float2int_rd<T1>()(value);
+        }
 
-template<typename Type>
-struct Float2int_rd;
+        /**
+         * Rounds towards the nearest value returning an int
+         * For the case of x.5 the even value is chosen from the 2 possible values
+         * Note: Using values outside the range of an int is undefined
+         * @return integer value
+         */
+        template<typename T1>
+        HDINLINE typename Float2int_rn<T1>::result float2int_rn(T1 value)
+        {
+            return Float2int_rn<T1>()(value);
+        }
 
-template<typename Type>
-struct Float2int_rn;
+    } // namespace math
+} // namespace pmacc
 
-/**
- * Rounds down (towards -inf)
- */
-template<typename T1>
-HDINLINE typename Floor< T1>::result floor(T1 value)
-{
-    return Floor< T1 > ()(value);
-}
-
-/**
- * Rounds up (towards +inf)
- */
-template<typename T1>
-HDINLINE typename Ceil< T1>::result ceil(T1 value)
-{
-    return Ceil< T1 > ()(value);
-}
-
-/**
- * Returns the smallest int value that is at least as big as value
- * Note: Using values outside the range of an int is undefined
- * @return integer value
- */
-template<typename T1>
-HDINLINE typename Float2int_ru< T1>::result float2int_ru(T1 value)
-{
-    return Float2int_ru< T1 > ()(value);
-}
-
-/**
- * Returns the largest int value that is not greater than value
- * Note: Using values outside the range of an int is undefined
- * @return integer value
- */
-template<typename T1>
-HDINLINE typename Float2int_rd< T1>::result float2int_rd(T1 value)
-{
-    return Float2int_rd< T1 > ()(value);
-}
-
-/**
- * Rounds towards the nearest value returning an int
- * For the case of x.5 the even value is chosen from the 2 possible values
- * Note: Using values outside the range of an int is undefined
- * @return integer value
- */
-template<typename T1>
-HDINLINE typename Float2int_rn< T1>::result float2int_rn(T1 value)
-{
-    return Float2int_rn< T1 > ()(value);
-}
-
-} //namespace math
-} //namespace algorithms
-}//namespace pmacc
+#include "pmacc/algorithms/math/doubleMath/floatingPoint.tpp"
+#include "pmacc/algorithms/math/floatMath/floatingPoint.tpp"

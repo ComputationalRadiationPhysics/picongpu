@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/types.hpp>
 
 #include <iostream>
 #include <string>
@@ -28,54 +28,53 @@
 
 namespace picongpu
 {
-/** Color Header for Preview Images
- *
- *  Used to store the relation of color channels to min/max units
- *  and data names they represent.
- */
-struct ColorHeader
-{
-    struct channel {
-        /// assign a physical meaningful name to the channel
-        std::string name;
-        /// assign a unit to the range values
-        std::string unitName;
-        /// min/max real values for 0 and 255
-        picongpu::float_32 range[2];
+    /** Color Header for Preview Images
+     *
+     *  Used to store the relation of color channels to min/max units
+     *  and data names they represent.
+     */
+    struct ColorHeader
+    {
+        struct channel
+        {
+            /// assign a physical meaningful name to the channel
+            std::string name;
+            /// assign a unit to the range values
+            std::string unitName;
+            /// min/max real values for 0 and 255
+            picongpu::float_32 range[2];
+        };
+
+        channel particles;
+        channel channel1;
+        channel channel2;
+        channel channel3;
+
+        ColorHeader()
+        {
+            particles.range[0] = 0.f;
+            particles.range[1] = 0.f;
+
+            channel1.range[0] = 0.f;
+            channel1.range[1] = 0.f;
+
+            channel2.range[0] = 0.f;
+            channel2.range[1] = 0.f;
+
+            channel3.range[0] = 0.f;
+            channel3.range[1] = 0.f;
+        }
+
+        // void setScale(picongpu::float_32 x, picongpu::float_32 y)
+        //{
+        //    scale[0] = x;
+        //    scale[1] = y;
+        //}
+
+        void writeToConsole(std::ostream& ocons) const
+        {
+            // ocons << "ColorHeader.XYZ " << "..." << std::endl;
+        }
     };
-
-    channel particles;
-    channel channel1;
-    channel channel2;
-    channel channel3;
-
-    ColorHeader()
-    {
-        particles.range[0] = 0.f;
-        particles.range[1] = 0.f;
-
-        channel1.range[0] = 0.f;
-        channel1.range[1] = 0.f;
-
-        channel2.range[0] = 0.f;
-        channel2.range[1] = 0.f;
-
-        channel3.range[0] = 0.f;
-        channel3.range[1] = 0.f;
-    }
-
-    //void setScale(picongpu::float_32 x, picongpu::float_32 y)
-    //{
-    //    scale[0] = x;
-    //    scale[1] = y;
-    //}
-
-    void writeToConsole(std::ostream& ocons) const
-    {
-        //ocons << "ColorHeader.XYZ " << "..." << std::endl;
-
-    }
-
-};
 
 } // namespace picongpu

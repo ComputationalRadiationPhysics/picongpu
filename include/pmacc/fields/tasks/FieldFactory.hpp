@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,14 +21,12 @@
 
 #pragma once
 
-#include "pmacc/memory/buffers/Exchange.hpp"
-
 #include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
+#include "pmacc/memory/buffers/Exchange.hpp"
 
 namespace pmacc
 {
-
     /**
      * Singleton Factory-pattern class for creation of several types of EventTasks.
      * Tasks are not actually 'returned' but immediately initialised and
@@ -37,34 +35,34 @@ namespace pmacc
     class FieldFactory
     {
     public:
-
         /**
          * Creates a TaskReceive.
          * @param ex Exchange to create new TaskReceive with
          * @param task_out returns the newly created task
-         * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
+         * @param registeringTask optional pointer to an ITask which should be registered at the new task as an
+         * observer
          */
         template<class Field>
-        EventTask createTaskFieldReceiveAndInsert(Field &buffer,
-        ITask *registeringTask = nullptr);
+        EventTask createTaskFieldReceiveAndInsert(Field& buffer, ITask* registeringTask = nullptr);
 
         template<class Field>
-        EventTask createTaskFieldReceiveAndInsertExchange(Field &buffer, uint32_t exchange,
-        ITask *registeringTask = nullptr);
+        EventTask createTaskFieldReceiveAndInsertExchange(
+            Field& buffer,
+            uint32_t exchange,
+            ITask* registeringTask = nullptr);
 
         /**
          * Creates a TaskSend.
          * @param ex Exchange to create new TaskSend with
          * @param task_in TaskReceive to register at new TaskSend
-         * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
+         * @param registeringTask optional pointer to an ITask which should be registered at the new task as an
+         * observer
          */
         template<class Field>
-        EventTask createTaskFieldSend(Field &buffer,
-        ITask *registeringTask = nullptr);
+        EventTask createTaskFieldSend(Field& buffer, ITask* registeringTask = nullptr);
 
         template<class Field>
-        EventTask createTaskFieldSendExchange(Field &buffer, uint32_t exchange,
-        ITask *registeringTask = nullptr);
+        EventTask createTaskFieldSendExchange(Field& buffer, uint32_t exchange, ITask* registeringTask = nullptr);
 
         /**
          * returns the instance of this factory
@@ -77,14 +75,13 @@ namespace pmacc
         }
 
     private:
+        FieldFactory() = default;
+        ;
 
-        FieldFactory() { };
-
-        FieldFactory(const FieldFactory&) { };
-
+        FieldFactory(const FieldFactory&) = default;
+        ;
     };
 
-} //namespace pmacc
+} // namespace pmacc
 
 #include "pmacc/fields/tasks/FieldFactory.tpp"
-

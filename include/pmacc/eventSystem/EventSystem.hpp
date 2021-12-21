@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Alexander Grund
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -22,9 +22,9 @@
 #pragma once
 
 #include "pmacc/eventSystem/Manager.hpp"
+#include "pmacc/eventSystem/events/EventNotify.hpp"
+#include "pmacc/eventSystem/events/EventTask.hpp"
+#include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 #include "pmacc/eventSystem/transactions/Transaction.hpp"
 #include "pmacc/eventSystem/transactions/TransactionManager.hpp"
-#include "pmacc/eventSystem/events/EventTask.hpp"
-#include "pmacc/eventSystem/events/EventNotify.hpp"
-#include "pmacc/eventSystem/tasks/Factory.hpp"

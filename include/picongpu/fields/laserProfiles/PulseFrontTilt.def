@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Anton Helm, Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2021 Anton Helm, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Axel Huebl, Alexander Debus
  *
  * This file is part of PIConGPU.
@@ -25,111 +25,113 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace laserProfiles
-{
-namespace pulseFrontTilt
-{
-namespace defaults
-{
-    struct PulseFrontTiltParam
+    namespace fields
     {
-        /** unit: meter */
-        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-
-        /** Convert the normalized laser strength parameter a0 to Volt per meter */
-        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
-
-        /** unit: W / m^2 */
-        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
-
-        /** unit: none */
-        //static constexpr float_64 _A0  = 1.5;
-
-        /** unit: Volt / meter */
-        //static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
-
-        /** unit: Volt / meter */
-        static constexpr float_64 AMPLITUDE_SI = 1.738e13;
-
-        /** Pulse length: sigma of std. gauss for intensity (E^2)
-         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
-         *                                          [    2.354820045     ]
-         *  Info:             FWHM_of_Intensity = FWHM_Illumination
-         *                      = what a experimentalist calls "pulse duration"
-         *
-         *  unit: seconds (1 sigma) */
-        static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
-
-        /** beam waist: distance from the axis where the pulse intensity (E^2)
-         *              decreases to its 1/e^2-th part,
-         *              at the focus position of the laser
-         * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
-         *                             [   1.17741    ]
-         *
-         *  unit: meter */
-        static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
-
-        /** the distance to the laser focus in y-direction
-         *  unit: meter */
-        static constexpr float_64 FOCUS_POS_SI = 4.62e-5;
-
-        /** the tilt angle between laser propagation in y-direction and laser axis in
-        *  x-direction (0 degree == no tilt)
-        *  unit: degree */
-        static constexpr float_64 TILT_X_SI = 0.0;
-
-        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
-         *
-         *  unit: none */
-        static constexpr float_64 PULSE_INIT = 20.0;
-
-        /** cell from top where the laser is initialized
-         *
-         * if `initPlaneY == 0` than the absorber are disabled.
-         * if `initPlaneY > absorbercells negative Y` the negative absorber in y
-         * direction is enabled
-         *
-         * valid ranges:
-         *   - initPlaneY == 0
-         *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
-         */
-        static constexpr uint32_t initPlaneY = 0;
-
-        /** laser phase shift (no shift: 0.0)
-         *
-         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
-         *
-         * unit: rad, periodic in 2*pi
-         */
-        static constexpr float_X LASER_PHASE = 0.0;
-
-        //! Available polarisation types
-        enum PolarisationType
+        namespace laserProfiles
         {
-            LINEAR_X = 1u,
-            LINEAR_Z = 2u,
-            CIRCULAR = 4u,
-        };
+            namespace pulseFrontTilt
+            {
+                namespace defaults
+                {
+                    struct PulseFrontTiltParam
+                    {
+                        /** unit: meter */
+                        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
-        /** Polarization selection
-         */
-        static constexpr PolarisationType Polarisation = LINEAR_X;
-    };
-} // namespace defaults
-} // namespace pulseFrontTilt
+                        /** Convert the normalized laser strength parameter a0 to Volt per meter */
+                        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                            * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
+                            * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
 
-    /** Gaussian Beam laser profile with titled pulse front
-     *
-     * @tparam T_Params class parameter to configure the Gaussian Beam with
-     *                  pulse front titlt, see members of
-     *                  pulseFrontTilt::defaults::PulseFrontTiltParam for
-     *                  required members
-     */
-    template< typename T_Params = pulseFrontTilt::defaults::PulseFrontTiltParam >
-    struct PulseFrontTilt;
+                        /** unit: W / m^2 */
+                        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
-} // namespace laserProfiles
-} // namespace fields
+                        /** unit: none */
+                        // static constexpr float_64 _A0  = 1.5;
+
+                        /** unit: Volt / meter */
+                        // static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                        /** unit: Volt / meter */
+                        static constexpr float_64 AMPLITUDE_SI = 1.738e13;
+
+                        /** Pulse length: sigma of std. gauss for intensity (E^2)
+                         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                         *                                          [    2.354820045     ]
+                         *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                         *                      = what a experimentalist calls "pulse duration"
+                         *
+                         *  unit: seconds (1 sigma) */
+                        static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
+
+                        /** beam waist: distance from the axis where the pulse intensity (E^2)
+                         *              decreases to its 1/e^2-th part,
+                         *              at the focus position of the laser
+                         * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+                         *                             [   1.17741    ]
+                         *
+                         *  unit: meter */
+                        static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
+
+                        /** the distance to the laser focus in y-direction
+                         *  unit: meter */
+                        static constexpr float_64 FOCUS_POS_SI = 4.62e-5;
+
+                        /** the tilt angle between laser propagation in y-direction and laser axis in
+                         *  x-direction (0 degree == no tilt)
+                         *  unit: degree */
+                        static constexpr float_64 TILT_X_SI = 0.0;
+
+                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+                         *
+                         *  unit: none */
+                        static constexpr float_64 PULSE_INIT = 20.0;
+
+                        /** cell from top where the laser is initialized
+                         *
+                         * if `initPlaneY == 0` than the absorber are disabled.
+                         * if `initPlaneY > absorbercells negative Y` the negative absorber in y
+                         * direction is enabled
+                         *
+                         * valid ranges:
+                         *   - initPlaneY == 0
+                         *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
+                         */
+                        static constexpr uint32_t initPlaneY = 0;
+
+                        /** laser phase shift (no shift: 0.0)
+                         *
+                         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
+                         *
+                         * unit: rad, periodic in 2*pi
+                         */
+                        static constexpr float_X LASER_PHASE = 0.0;
+
+                        //! Available polarisation types
+                        enum PolarisationType
+                        {
+                            LINEAR_X = 1u,
+                            LINEAR_Z = 2u,
+                            CIRCULAR = 4u,
+                        };
+
+                        /** Polarization selection
+                         */
+                        static constexpr PolarisationType Polarisation = LINEAR_X;
+                    };
+                } // namespace defaults
+            } // namespace pulseFrontTilt
+
+            /** Gaussian Beam laser profile with titled pulse front
+             *
+             * @tparam T_Params class parameter to configure the Gaussian Beam with
+             *                  pulse front titlt, see members of
+             *                  pulseFrontTilt::defaults::PulseFrontTiltParam for
+             *                  required members
+             */
+            template<typename T_Params = pulseFrontTilt::defaults::PulseFrontTiltParam>
+            struct PulseFrontTilt;
+
+        } // namespace laserProfiles
+    } // namespace fields
 } // namespace picongpu

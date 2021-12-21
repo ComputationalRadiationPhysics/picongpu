@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,50 +20,16 @@
 #pragma once
 
 #include <pmacc/math/Vector.hpp>
-#include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
 
 
 namespace picongpu
 {
-namespace fields
-{
-namespace maxwellSolver
-{
-
-    template< typename T_CurrentInterpolation = currentInterpolation::None >
-    class None;
-
-} // namespace maxwellSolver
-} // namespace fields
-
-namespace traits
-{
-
-    template< typename T_CurrentInterpolation >
-    struct GetMargin<
-        picongpu::fields::maxwellSolver::None< T_CurrentInterpolation >,
-        FIELD_B
-    >
+    namespace fields
     {
-        using LowerMargin = typename pmacc::math::CT::make_Int<
-            simDim,
-            0
-        >::type;
-        using UpperMargin = LowerMargin;
-    };
+        namespace maxwellSolver
+        {
+            class None;
 
-    template< typename T_CurrentInterpolation >
-    struct GetMargin<
-        picongpu::fields::maxwellSolver::None< T_CurrentInterpolation >,
-        FIELD_E
-    >
-    {
-        using LowerMargin = typename pmacc::math::CT::make_Int<
-            simDim,
-            0
-        >::type;
-        using UpperMargin = LowerMargin;
-    };
-
-} // namespace traits
+        } // namespace maxwellSolver
+    } // namespace fields
 } // namespace picongpu

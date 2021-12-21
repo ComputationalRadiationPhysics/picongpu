@@ -4,8 +4,8 @@ mallocMC
 mallocMC: *Memory Allocator for Many Core Architectures*
 
 This project provides a framework for **fast memory managers** on **many core
-accelerators**. Currently, it supports **NVIDIA GPUs** of compute capability
-`sm_20` or higher through the *ScatterAlloc* algorithm.
+accelerators**. It is based on [alpaka](https://github.com/alpaka-group/alpaka)
+to run on many different accelerators and implements the *ScatterAlloc* algorithm.
 
 
 Usage
@@ -21,6 +21,11 @@ Install
 mallocMC is header-only, but requires a few other C++ libraries to be
 available. Our installation notes can be found in [INSTALL.md](INSTALL.md).
 
+
+Contributing
+------------
+
+Rules for contributions are found in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 On the ScatterAlloc Algorithm
 -----------------------------
@@ -56,8 +61,8 @@ Branches
 
 | *branch*    | *state* | *description*           |
 | ----------- | ------- | ----------------------- |
-| **master**  | [![Build Status Master](https://travis-ci.org/ComputationalRadiationPhysics/mallocMC.png?branch=master)](https://travis-ci.org/ComputationalRadiationPhysics/mallocMC "master") | our latest stable release |
-| **dev**     | [![Build Status Development](https://travis-ci.org/ComputationalRadiationPhysics/mallocMC.png?branch=dev)](https://travis-ci.org/ComputationalRadiationPhysics/mallocMC "dev") | our development branch - start and merge new branches here |
+| **master**  | [![Build Status Master](https://travis-ci.org/alpaka-group/mallocMC.png?branch=master)](https://travis-ci.org/alpaka-group/mallocMC "master") | our latest stable release |
+| **dev**     | [![Build Status Development](https://travis-ci.org/alpaka-group/mallocMC.png?branch=dev)](https://travis-ci.org/alpaka-group/mallocMC "dev") | our development branch - start and merge new branches here |
 | **tugraz**  | n/a | *ScatterAlloc* "upstream" branch: not backwards compatible mirror for algorithmic changes |
 
 

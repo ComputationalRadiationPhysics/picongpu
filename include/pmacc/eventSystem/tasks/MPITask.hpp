@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -27,21 +27,17 @@
 
 namespace pmacc
 {
-
     /**
      * Abstract base class for all tasks which depend on MPI communication.
      */
     class MPITask : public ITask
     {
     public:
-
         /**
          * Constructor.
          * Starts a MPI operation on the transaction system.
          */
-        MPITask() :
-        ITask(),
-        finished(false)
+        MPITask() : ITask()
         {
             this->setTaskType(ITask::TASK_MPI);
         }
@@ -49,12 +45,9 @@ namespace pmacc
         /**
          * Destructor.
          */
-        virtual ~MPITask()
-        {
-        }
+        ~MPITask() override = default;
 
     protected:
-
         /**
          * Returns if the task is finished.
          *
@@ -72,7 +65,8 @@ namespace pmacc
         {
             finished = true;
         }
+
     private:
-        bool finished;
+        bool finished{false};
     };
-}
+} // namespace pmacc

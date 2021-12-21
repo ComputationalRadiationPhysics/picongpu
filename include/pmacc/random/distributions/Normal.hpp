@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Alexander Grund
+/* Copyright 2015-2021 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -21,42 +21,39 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/random/methods/RngPlaceholder.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {
-namespace random
-{
-namespace distributions
-{
-    namespace detail
+    namespace random
     {
-        /** Only this must be specialized for different types */
-        template<typename T_Type, class T_RNGMethod, class T_SFINAE = void>
-        class Normal;
-    }
-
-    /**
-     * Returns a random, normal distributed value of the given type
-     */
-    template<typename T_Type, class T_RNGMethod = methods::RngPlaceholder>
-    struct Normal: public detail::Normal<T_Type, T_RNGMethod>
-    {
-        template< typename T_Method >
-        struct applyMethod
+        namespace distributions
         {
-            using type = Normal<
-                T_Type,
-                T_Method
-            >;
-        };
-    };
+            namespace detail
+            {
+                /** Only this must be specialized for different types */
+                template<typename T_Type, class T_RNGMethod, class T_SFINAE = void>
+                class Normal;
+            } // namespace detail
 
-}  // namespace distributions
-}  // namespace random
-}  // namespace pmacc
+            /**
+             * Returns a random, normal distributed value of the given type
+             */
+            template<typename T_Type, class T_RNGMethod = methods::RngPlaceholder>
+            struct Normal : public detail::Normal<T_Type, T_RNGMethod>
+            {
+                template<typename T_Method>
+                struct applyMethod
+                {
+                    using type = Normal<T_Type, T_Method>;
+                };
+            };
 
-#include "pmacc/random/distributions/normal/Normal_generic.hpp"
-#include "pmacc/random/distributions/normal/Normal_float.hpp"
+        } // namespace distributions
+    } // namespace random
+} // namespace pmacc
+
 #include "pmacc/random/distributions/normal/Normal_double.hpp"
+#include "pmacc/random/distributions/normal/Normal_float.hpp"
+#include "pmacc/random/distributions/normal/Normal_generic.hpp"

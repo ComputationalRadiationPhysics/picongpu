@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -23,26 +23,24 @@
 
 namespace pmacc
 {
-namespace container
-{
-namespace CT
-{
+    namespace container
+    {
+        namespace CT
+        {
+            template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
+            template<typename T_Acc>
+            DINLINE CartBuffer<Type, _Size, Allocator, Copier, Assigner>::CartBuffer(T_Acc const& acc)
+            {
+                this->dataPointer = Allocator::allocate(acc).getMarker();
+            }
 
-template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
-template< typename T_Acc >
-DINLINE CartBuffer<Type, _Size, Allocator, Copier, Assigner>::CartBuffer( T_Acc const & acc )
-{
-    this->dataPointer = Allocator::allocate( acc ).getMarker();
-}
+            template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
+            DINLINE cursor::CT::BufferCursor<Type, typename Allocator::Pitch>
+            CartBuffer<Type, _Size, Allocator, Copier, Assigner>::origin() const
+            {
+                return cursor::CT::BufferCursor<Type, Pitch>(this->dataPointer);
+            }
 
-template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
-DINLINE
-cursor::CT::BufferCursor<Type, typename Allocator::Pitch>
-CartBuffer<Type, _Size, Allocator, Copier, Assigner>::origin() const
-{
-    return cursor::CT::BufferCursor<Type, Pitch>(this->dataPointer);
-}
-
-} // CT
-} // container
-} // pmacc
+        } // namespace CT
+    } // namespace container
+} // namespace pmacc

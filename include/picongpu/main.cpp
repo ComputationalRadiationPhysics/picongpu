@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Sergei Bastrakov
  *
  * This file is part of PIConGPU.
@@ -18,11 +18,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "picongpu/ArgsParser.hpp"
-#include <pmacc/Environment.hpp>
-#include <pmacc/types.hpp>
+#include <pmacc/boost_workaround.hpp>
 
 #include <picongpu/simulation_defines.hpp>
+
+#include "picongpu/ArgsParser.hpp"
+
+#include <pmacc/Environment.hpp>
+#include <pmacc/types.hpp>
 
 #include <cstdlib>
 #include <iostream>
@@ -32,37 +35,36 @@
 
 namespace
 {
-
     /** Run a PIConGPU simulation
      *
      * @param argc count of arguments in argv (same as for main() )
      * @param argv arguments of program start (same as for main() )
      */
-    int runSimulation( int argc, char **argv )
+    int runSimulation(int argc, char** argv)
     {
         using namespace picongpu;
 
         simulation_starter::SimStarter sim;
-        auto const parserStatus = sim.parseConfigs( argc, argv );
+        auto const parserStatus = sim.parseConfigs(argc, argv);
         int errorCode = EXIT_FAILURE;
 
-        switch( parserStatus )
+        switch(parserStatus)
         {
-            case ArgsParser::Status::error:
-                errorCode = EXIT_FAILURE;
-                break;
-            case ArgsParser::Status::success:
-                sim.load( );
-                sim.start( );
-                sim.unload( );
-                PMACC_FALLTHROUGH;
-            case ArgsParser::Status::successExit:
-                errorCode = 0;
-                break;
+        case ArgsParser::Status::error:
+            errorCode = EXIT_FAILURE;
+            break;
+        case ArgsParser::Status::success:
+            sim.load();
+            sim.start();
+            sim.unload();
+            PMACC_FALLTHROUGH;
+        case ArgsParser::Status::successExit:
+            errorCode = 0;
+            break;
         };
 
         // finalize the pmacc context */
-        pmacc::Environment<>::get( ).finalize( );
+        pmacc::Environment<>::get().finalize();
 
         return errorCode;
     }
@@ -74,21 +76,20 @@ namespace
  * @param argc count of arguments in argv
  * @param argv arguments of program start
  */
-int main( int argc, char **argv )
+int main(int argc, char** argv)
 {
     try
     {
-        return runSimulation( argc, argv );
+        return runSimulation(argc, argv);
     }
     // A last-ditch effort to report exceptions to a user
-    catch ( const std::exception & ex )
+    catch(const std::exception& ex)
     {
-        auto const typeName = std::string( typeid( ex ).name( ) );
-        std::cerr << "Unhandled exception of type '" + typeName +
-            "' with message '" + ex.what() + "', terminating\n";
+        auto const typeName = std::string(typeid(ex).name());
+        std::cerr << "Unhandled exception of type '" + typeName + "' with message '" + ex.what() + "', terminating\n";
         return EXIT_FAILURE;
     }
-    catch ( ... )
+    catch(...)
     {
         std::cerr << "Unhandled exception of unknown type, terminating\n";
         return EXIT_FAILURE;

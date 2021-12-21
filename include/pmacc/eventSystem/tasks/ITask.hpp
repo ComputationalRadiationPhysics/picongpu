@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -22,13 +22,13 @@
 
 #pragma once
 
+#include "pmacc/assert.hpp"
 #include "pmacc/eventSystem/events/EventNotify.hpp"
 #include "pmacc/eventSystem/events/IEvent.hpp"
 #include "pmacc/types.hpp"
-#include "pmacc/assert.hpp"
 
-#include <string>
 #include <set>
+#include <string>
 
 
 namespace pmacc
@@ -36,19 +36,23 @@ namespace pmacc
     /**
      * Abstract base class for all tasks.
      */
-    class ITask : public EventNotify, public IEvent
+    class ITask
+        : public EventNotify
+        , public IEvent
     {
     public:
-
         enum TaskType
         {
-            TASK_UNKNOWN, TASK_CUDA, TASK_MPI, TASK_HOST
+            TASK_UNKNOWN,
+            TASK_DEVICE,
+            TASK_MPI,
+            TASK_HOST
         };
 
         /**
          * constructor
          */
-        ITask(): myType(ITask::TASK_UNKNOWN)
+        ITask()
         {
             // task id 0 is reserved for invalid
             static id_t globalId = 1;
@@ -58,9 +62,7 @@ namespace pmacc
         }
 
 
-        virtual ~ITask()
-        {
-        }
+        ~ITask() override = default;
 
         /**
          * Executes this task.
@@ -69,7 +71,7 @@ namespace pmacc
          */
         bool execute()
         {
-            //std::cout << "execute: " << toString() << std::endl;
+            // std::cout << "execute: " << toString() << std::endl;
             return executeIntern();
         }
 
@@ -77,7 +79,7 @@ namespace pmacc
          * Initializes the task.
          * Must be called before adding the task to the Manager's queue.
          */
-        virtual void init()=0;
+        virtual void init() = 0;
 
         /**
          * Returns the unique id of this task.
@@ -116,11 +118,12 @@ namespace pmacc
          * @return a string naming this task
          */
         virtual std::string toString() = 0;
+
     protected:
         virtual bool executeIntern() = 0;
 
         id_t myId;
-        TaskType myType;
+        TaskType myType{ITask::TASK_UNKNOWN};
     };
 
-} //namespace pmacc
+} // namespace pmacc

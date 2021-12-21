@@ -1,0 +1,96 @@
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Felix Schmitt,
+ *                     Benjamin Worpitz, Richard Pausch, Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+
+/* some forward declarations we need */
+#include "picongpu/fields/Fields.def"
+#include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
+
+#include <boost/mpl/vector.hpp>
+
+
+namespace picongpu
+{
+    /** FieldTmp output (calculated at runtime) *******************************
+     *
+     * Those operations derive scalar field quantities from particle species
+     * at runtime. Each value is mapped per cell. Some operations are identical
+     * up to a constant, so avoid writing those twice to save storage.
+     *
+     * you can choose any of these particle to grid projections:
+     *   - Density: particle position + shape on the grid
+     *   - BoundElectronDensity: density of bound electrons
+     *       note: only makes sense for partially ionized ions
+     *   - ChargeDensity: density * charge
+     *       note: for species that do not change their charge state, this is
+     *             the same as the density times a constant for the charge
+     *   - Energy: sum of kinetic particle energy per cell with respect to shape
+     *   - EnergyDensity: average kinetic particle energy per cell times the
+     *                    particle density
+     *       note: this is the same as the sum of kinetic particle energy
+     *             divided by a constant for the cell volume
+     *   - MomentumComponent: ratio between a selected momentum component and
+     *                        the absolute momentum with respect to shape
+     *   - LarmorPower: radiated Larmor power
+     *                  (species must contain the attribute `momentumPrev1`)
+     *
+     * for debugging:
+     *   - MidCurrentDensityComponent:
+     *       density * charge * velocity_component
+     *   - Counter: counts point like particles per cell
+     *   - MacroCounter: counts point like macro particles per cell
+     */
+    namespace deriveField = particles::particleToGrid;
+
+    /* ChargeDensity section */
+    using ChargeDensity_Seq
+        = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::ChargeDensity>;
+
+    /* Density section */
+    using Density_Seq = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::Density>;
+
+
+    /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
+     *
+     * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
+     */
+    using FieldTmpSolvers = MakeSeq_t<ChargeDensity_Seq, Density_Seq>;
+
+
+    /** FileOutputFields: Groups all Fields that shall be dumped *************/
+
+    /** Possible native fields: FieldE, FieldB, FieldJ
+     */
+    using NativeFileOutputFields = MakeSeq_t<FieldE, FieldB>;
+
+    using FileOutputFields = MakeSeq_t<NativeFileOutputFields, FieldTmpSolvers>;
+
+
+    /** FileOutputParticles: Groups all Species that shall be dumped **********
+     *
+     * hint: to disable particle output set to
+     *   using FileOutputParticles = MakeSeq_t< >;
+     */
+    using FileOutputParticles = VectorAllSpecies;
+
+} // namespace picongpu

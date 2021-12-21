@@ -30,12 +30,14 @@ Variable                       Meaning
 ============================== ================================================================================
 
 Currently this allows to predict the emitted radiation from plasma if it can be described by classical means.
-Not considered are emissions from ionization, Compton scattering or any bremsstrahlung that originate from scattering on scales smaller than the PIC cell size. 
+Not considered are emissions from ionization, Compton scattering or any bremsstrahlung that originate from scattering on scales smaller than the PIC cell size.
 
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
-The plugin is available as soon as the :ref:`libSplash and HDF5 libraries <install-dependencies>` are compiled in.
+The plugin is available as soon as the :ref:`openPMD API <install-dependencies>` is compiled in.
+(Currently it is fixed to use the hdf5 backend until the radiation python module is converted from ``h5py`` to ``openPMD-api``.
+Therefore, an openPMD API which supports the HDF5 backend is required.)
 
 .param files
 ^^^^^^^^^^^^
@@ -68,18 +70,18 @@ namespace                     Description
 
 All three options require variable definitions in the according namespaces as described below:
 
-For the **linear frequency** scale all definitions need to be in the ``picongpu::plugins::radiation::linear_frequencies`` namespace. 
+For the **linear frequency** scale all definitions need to be in the ``picongpu::plugins::radiation::linear_frequencies`` namespace.
 The number of total sample frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``.
 In the sub-namespace ``SI``, a minimal frequency ``omega_min`` and a maximum frequency ``omega_max`` need to be defined as ``constexpr float_64``.
 
-For the **logarithmic frequency** scale all definitions need to be in the ``picongpu::plugins::radiation::log_frequencies`` namespace. 
-Equivalently to the linear case, three variables need to be defined: 
+For the **logarithmic frequency** scale all definitions need to be in the ``picongpu::plugins::radiation::log_frequencies`` namespace.
+Equivalently to the linear case, three variables need to be defined:
 The number of total sample frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``.
 In the sub-namespace ``SI``, a minimal frequency ``omega_min`` and a maximum frequency ``omega_max`` need to be defined as ``constexpr float_64``.
 
 For the **file-based frequency** definition,  all definitions need to be in the ``picongpu::plugins::radiation::frequencies_from_list`` namespace.
 The number of total frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``  and the path to the file containing the frequency values in units of :math:`\mathrm{[s^{-1}]}` needs to be given as ``constexpr const char * listLocation = "/path/to/frequency_list";``.
-The frequency values in the file can be separated by newlines, spaces, tabs, or any other whitespace. The numbers should be given in such a way, that c++ standard ``std::ifstream`` can interpret the number e.g., as ``2.5344e+16``. 
+The frequency values in the file can be separated by newlines, spaces, tabs, or any other whitespace. The numbers should be given in such a way, that c++ standard ``std::ifstream`` can interpret the number e.g., as ``2.5344e+16``.
 
 .. note::
 
@@ -93,14 +95,14 @@ Observation directions
 The number of observation directions ``N_theta`` is defined in :ref:`radiation.param <usage-params-plugins>`, but the distribution of observation directions is given in :ref:`radiationObserver.param <usage-params-plugins>`)
 There, the function ``observation_direction`` defines the observation directions.
 
-This function returns the x,y and z component of a **unit vector** pointing in the observation direction. 
+This function returns the x,y and z component of a **unit vector** pointing in the observation direction.
 
 .. code:: cpp
 
    DINLINE vector_64
    observation_direction( int const observation_id_extern )
    {
-       /* use the scalar index const int observation_id_extern to compute an 
+       /* use the scalar index const int observation_id_extern to compute an
         * observation direction (x,y,y) */
        return vector_64( x , y , z );
    }
@@ -116,9 +118,9 @@ Nyquist limit
 
 A major limitation of discrete Fourier transform is the limited frequency resolution due to the discrete time steps of the temporal signal.
 (see `Nyquist-Shannon sampling theorem <https://en.wikipedia.org/wiki/Nyquist%E2%80%93Shannon_sampling_theorem>`_)
-Due to the consideration of relativistic delays, the sampling of the emitted radiation is not equidistantly sampled. 
-The plugin has the option to ignore any frequency contributions that lies above the frequency resolution given by the Nyquist-Shannon sampling theorem. 
-Because performing this check costs computation time, it can be switched off. 
+Due to the consideration of relativistic delays, the sampling of the emitted radiation is not equidistantly sampled.
+The plugin has the option to ignore any frequency contributions that lies above the frequency resolution given by the Nyquist-Shannon sampling theorem.
+Because performing this check costs computation time, it can be switched off.
 This is done via a precompiler pragma:
 
 .. code:: cpp
@@ -138,8 +140,8 @@ Additionally, the maximally resolvable frequency compared to the Nyquist frequen
        const float NyquistFactor = 0.5;
    }
 
-This allows to make a save margin to the hard limit of the Nyquist frequency. 
-By using ``NyquistFactor = 0.5`` for periodic boundary conditions, particles that jump from one border to another and back can still be considered. 
+This allows to make a save margin to the hard limit of the Nyquist frequency.
+By using ``NyquistFactor = 0.5`` for periodic boundary conditions, particles that jump from one border to another and back can still be considered.
 
 
 Form factor
@@ -176,7 +178,7 @@ Reducing the particle sample
 """"""""""""""""""""""""""""
 
 In order to save computation time, only a random subset of all macro particles can be used to compute the emitted radiation.
-In order to do that, the radiating particle species needs the attribute ``radiationMask`` (which is initialized as ``false``) which further needs to be manipulated, to set to true for specific (random) particles.  
+In order to do that, the radiating particle species needs the attribute ``radiationMask`` (which is initialized as ``false``) which further needs to be manipulated, to set to true for specific (random) particles.
 
 
 .. note::
@@ -208,7 +210,7 @@ Using a filter functor as:
     >;
 
 (see Bunch or Kelvin Helmholtz example for details)
-sets the flag to true is a particle fulfills the gamma condition.  
+sets the flag to true is a particle fulfills the gamma condition.
 
 .. note::
 
@@ -252,7 +254,7 @@ There are several different window function available:
    namespace radWindowFunctionGauss { }
 
    namespace radWindowFunction = radWindowFunctionTriangle;
- 
+
 By setting ``radWindowFunction`` a specific window function is selected.
 
 More details can be found in [Pausch2019]_.
@@ -260,7 +262,7 @@ More details can be found in [Pausch2019]_.
 .cfg file
 ^^^^^^^^^
 
-For a specific (charged) species ``<species>`` e.g. ``e``, the radiation can be computed by the following commands.  
+For a specific (charged) species ``<species>`` e.g. ``e``, the radiation can be computed by the following commands.
 
 ========================================= ==============================================================================================================================
 Command line option                       Description
@@ -286,7 +288,11 @@ Command line option                       Description
                                           This allows for a localization of specific spectral features.
 ``--<species>_radiation.folderRadPerGPU`` Name of the folder, where the GPU specific spectra are stored.
                                           Default: ``radPerGPU``
-``--<species>_radiation.compression``     If set, the hdf5 output is compressed.
+``--<species>_radiation.numJobs``         Number of independent jobs used for the radiation calculation.
+                                          This option is used to increase the utilization of the device by producing more independent work.
+                                          This option enables accumulation of data in parallel into multiple temporary arrays, thereby increasing the utilization of
+                                          the device by increasing the memory footprint
+                                          Default: ``2``
 ========================================= ==============================================================================================================================
 
 Memory Complexity
@@ -295,7 +301,8 @@ Memory Complexity
 Accelerator
 """""""""""
 
-each energy bin times each coordinate bin allocates one counter (``float_X``) permanently and on each accelerator.
+locally, ``numJobs`` times number of frequencies ``N_omega`` times number of directions ``N_theta`` is permanently allocated.
+Each result element (amplitude) is a double precision complex number.
 
 Host
 """"
@@ -316,9 +323,9 @@ Command line flag                        Output description
                                          The spectral intensity is stored in the units :math:`\mathrm{[Js]}`.
 ``--<species>_radiation.lastRadiation``  has the same format as the output of *totalRadiation*.
                                          The spectral intensity is only summed over the last radiation ``dump`` period.
-``--<species>_radiation.radPerGPU``      Same output as *totalRadiation* but only summed over each GPU. 
+``--<species>_radiation.radPerGPU``      Same output as *totalRadiation* but only summed over each GPU.
                                          Because each GPU specifies a spatial region, the origin of radiation signatures can be distinguished.
-*radiationHDF5*                          In the folder  ``radiationHDF5``, hdf5 files for each radiation dump and species are stored.
+*radiationOpenPMD*                       In the folder  ``radiationOpenPMD``, openPMD files (currently hdf5) for each radiation dump and species are stored.
                                          These are complex amplitudes in units used by *PIConGPU*.
                                          These are for restart purposes and for more complex data analysis.
 ======================================== ========================================================================================================================
@@ -327,7 +334,7 @@ Command line flag                        Output description
 Text-based output
 """""""""""""""""
 
-The text-based output of ``lastRadiation`` and ``totalRadiation`` contains the intensity values in SI-units :math:`\mathrm{[Js]}`. Intensity values for different frequencies are separated by spaces, while newlines separate values for different observation directions. 
+The text-based output of ``lastRadiation`` and ``totalRadiation`` contains the intensity values in SI-units :math:`\mathrm{[Js]}`. Intensity values for different frequencies are separated by spaces, while newlines separate values for different observation directions.
 
 
 In order to read and plot the text-based radiation data, a python script as follows could be used:
@@ -381,10 +388,10 @@ In order to read and plot the text-based radiation data, a python script as foll
     plt.show()
 
 
-HDF5 output
-"""""""""""
+openPMD output
+""""""""""""""
 
-The hdf5 based data contains the following data structure in ``/data/{iteration}/DetectorMesh/`` according to the openPMD standard:
+The openPMD based data contains the following data structure in ``/data/{iteration}/DetectorMesh/`` according to the openPMD standard:
 
 **Amplitude (Group):**
 
@@ -403,8 +410,8 @@ Dataset  Description                                           Dimensions
 
    Please be aware, that despite the fact, that the SI-unit of each amplitude entry is :math:`\mathrm{[\sqrt{Js}]}`, the stored ``unitSI`` attribute returns :math:`\mathrm{[Js]}`.
    This inconsistency will be fixed in the future.
-   Until this inconstincy is resolved, please multiply the datasets with the square root of the ``unitSI`` attribute to convert the amplitudes to SI units. 
-   
+   Until this inconstincy is resolved, please multiply the datasets with the square root of the ``unitSI`` attribute to convert the amplitudes to SI units.
+
 
 **DetectorDirection (Group):**
 
@@ -425,22 +432,24 @@ Dataset    Description                                             Dimensions
 ========== ======================================================= ===============================
 
 
-Please be aware that all datasets in the hdf5 output are given in the PIConGPU-intrinsic unit system. In order to convert, for example, the frequencies :math:`\omega` to SI-units one has to multiply with the dataset-attribute `unitSI`. 
+Please be aware that all datasets in the openPMD output are given in the PIConGPU-intrinsic unit system. In order to convert, for example, the frequencies :math:`\omega` to SI-units one has to multiply with the dataset-attribute `unitSI`.
 
 .. code:: python
 
    import h5py
    f = h5py.File("e_radAmplitudes_2800_0_0_0.h5", "r")
    omega_handler = f['/data/2800/DetectorMesh/DetectorFrequency/omega']
-   omega = omega_handler[0, :, 0] * omega_handler.attrs['unitSI'] 
+   omega = omega_handler[0, :, 0] * omega_handler.attrs['unitSI']
    f.close()
 
-In order to extract the radiation data from the HDF5 datasets, PIConGPU provides a python module to read the data and obtain the result in SI-units. An example python script is given below:
+In order to extract the radiation data from the openPMD datasets, PIConGPU provides a python module to read the data and obtain the result in SI-units.
+An example python script is given below.
+This currently assumes hdf5 output and will soon become openPMD agnostic.
 
 .. code:: python
 
     import numpy as np
-    import matplotlib.pyplot as plt 
+    import matplotlib.pyplot as plt
     from matplotlib.colors import LogNorm
 
     from picongpu.plugins.data import RadiationData
@@ -455,7 +464,7 @@ In order to extract the radiation data from the HDF5 datasets, PIConGPU provides
 
     vec_n = radData.get_vector_n()
     gamma = 5.0
-    theta_norm = np.arctan(vec_n[:, 0]/vec_n[:, 1]) * gamma 
+    theta_norm = np.arctan(vec_n[:, 0]/vec_n[:, 1]) * gamma
 
     # get spectrum over observation angle
     spectrum = radData.get_Spectra()
@@ -499,7 +508,7 @@ Method                       Description
 
 .. note::
 
-   Modules for visualizing radiation data and a widget interface to explore the data interactively will be developed in the future. 
+   Modules for visualizing radiation data and a widget interface to explore the data interactively will be developed in the future.
 
 Analyzing tools
 ^^^^^^^^^^^^^^^
@@ -521,35 +530,33 @@ Tool                           Description
 Known Issues
 ^^^^^^^^^^^^
 
-The plugin supports multiple radiation species but spectra (frequencies and observation directions) are the same for all species. 
+The plugin supports multiple radiation species but spectra (frequencies and observation directions) are the same for all species.
 
 
 References
 ^^^^^^^^^^
 
 .. [Pausch2012]
-       Pausch, R.
-       *Electromagnetic Radiation from Relativistic Electrons as Characteristic Signature of their Dynamics*
-       Diploma Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Physiker" (2012)
+       Pausch, R.,
+       *Electromagnetic Radiation from Relativistic Electrons as Characteristic Signature of their Dynamics*,
+       Diploma Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Physiker" (2012),
        https://doi.org/10.5281/zenodo.843510
 
 .. [Pausch2014]
-       Pausch, R., Debus, A., Widera, R. et al.
-       *How to test and verify radiation diagnostics simulations within particle-in-cell frameworks*
-       Nuclear Instruments and Methods in Physics Research, Section A: Accelerators, Spectrometers, Detectors and Associated Equipment, 740, 250–256 (2014)
+       Pausch, R., Debus, A., Widera, R. et al.,
+       *How to test and verify radiation diagnostics simulations within particle-in-cell frameworks*,
+       Nuclear Instruments and Methods in Physics Research, Section A: Accelerators, Spectrometers, Detectors and Associated Equipment, 740, 250–256 (2014),
        https://doi.org/10.1016/j.nima.2013.10.073
 
 .. [Pausch2018]
-       Pausch, R., Debus, A., Huebl, A. at al.
-       *Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes — A general form factor formalism for macro-particles*
-       Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment, 909, 419–422 (2018)
+       Pausch, R., Debus, A., Huebl, A. at al.,
+       *Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes — A general form factor formalism for macro-particles*,
+       Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment, 909, 419–422 (2018),
        https://doi.org/10.1016/j.nima.2018.02.020
 
 .. [Pausch2019]
-       Pausch, R.
-       *Synthetic radiation diagnostics as a pathway for studying plasma dynamics from advanced accelerators to astrophysical observations*
-       PhD Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2019)
+       Pausch, R.,
+       *Synthetic radiation diagnostics as a pathway for studying plasma dynamics from advanced accelerators to astrophysical observations*,
+       PhD Thesis at Technische Universität Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2019),
        https://doi.org/10.5281/zenodo.3616045
-
-
-
+   

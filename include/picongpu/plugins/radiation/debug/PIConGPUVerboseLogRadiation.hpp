@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Richard Pausch
+/* Copyright 2013-2021 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -18,34 +18,29 @@
  */
 
 
-
 #pragma once
 
-#include <stdint.h>
 #include <pmacc/debug/VerboseLog.hpp>
+
+#include <cstdint>
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace radiation
-{
+    namespace plugins
+    {
+        namespace radiation
+        {
+            /*create verbose class*/
+            DEFINE_VERBOSE_CLASS(PIConGPUVerboseRadiation)
+            (
+                /* define log levels for later use
+                 * e.g. log<pmaccLogLvl::NOTHING>("TEXT");*/
+                DEFINE_LOGLVL(0, NOTHING); DEFINE_LOGLVL(1, PHYSICS); DEFINE_LOGLVL(2, SIMULATION_STATE);
+                DEFINE_LOGLVL(4, MEMORY);
+                DEFINE_LOGLVL(8, CRITICAL);)
+                /*set default verbose levels (integer number)*/
+                (NOTHING::lvl | PIC_VERBOSE_RADIATION);
 
-/*create verbose class*/
-DEFINE_VERBOSE_CLASS(PIConGPUVerboseRadiation)
-(
-    /* define log levels for later use
-     * e.g. log<pmaccLogLvl::NOTHING>("TEXT");*/
-    DEFINE_LOGLVL(0,NOTHING);
-    DEFINE_LOGLVL(1,PHYSICS);
-    DEFINE_LOGLVL(2,SIMULATION_STATE);
-    DEFINE_LOGLVL(4,MEMORY);
-    DEFINE_LOGLVL(8,CRITICAL);
-)
-/*set default verbose levels (integer number)*/
-(NOTHING::lvl|PIC_VERBOSE_RADIATION);
-
-} // namespace radiation
-} // namespace plugins
+        } // namespace radiation
+    } // namespace plugins
 } // namespace picongpu
-

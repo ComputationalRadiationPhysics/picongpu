@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -34,81 +34,71 @@
 
 namespace picongpu
 {
-namespace SI
-{
-    /** Base density in particles per m^3 in the density profiles.
-     *
-     * This is often taken as reference maximum density in normalized profiles.
-     * Individual particle species can define a `densityRatio` flag relative
-     * to this value.
-     *
-     * unit: ELEMENTS/m^3
-     *
-     * We take n_e ("fully ionized") as reference density.
-     * Our target material (see speciesDefinition) is a liquid crystal called
-     * 8CB (4'-octyl-4-cyanobiphenyl).
-     */
-     constexpr float_64 nc = 1.11485e21 * 1.e6 / 0.8 / 0.8;
-     constexpr float_64 BASE_DENSITY_SI = 192. * nc;
-
-} // namespace SI
-
-namespace densityProfiles
-{
-    struct FlatFoilWithRampFunctor
+    namespace SI
     {
-        /** This formula uses SI quantities only.
-         *  The profile will be multiplied by BASE_DENSITY_SI.
+        /** Base density in particles per m^3 in the density profiles.
          *
-         * @param position_SI total offset including all slides [meter]
-         * @param cellSize_SI cell sizes [meter]
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
          *
-         * @return float_X density [normalized to 1.0]
+         * unit: ELEMENTS/m^3
+         *
+         * We take n_e ("fully ionized") as reference density.
+         * Our target material (see speciesDefinition) is a liquid crystal called
+         * 8CB (4'-octyl-4-cyanobiphenyl).
          */
-        HDINLINE float_X
-        operator()(
-            const floatD_64& position_SI,
-            const float3_64& cellSize_SI
-        )
+        constexpr float_64 nc = 1.11485e21 * 1.e6 / 0.8 / 0.8;
+        constexpr float_64 BASE_DENSITY_SI = 192. * nc;
+
+    } // namespace SI
+
+    namespace densityProfiles
+    {
+        struct FlatFoilWithRampFunctor
         {
-            // m -> mu
-            const float_64 y( position_SI.y() * 1.e6 );
+            /** This formula uses SI quantities only.
+             *  The profile will be multiplied by BASE_DENSITY_SI.
+             *
+             * @param position_SI total offset including all slides [meter]
+             * @param cellSize_SI cell sizes [meter]
+             *
+             * @return float_X density [normalized to 1.0]
+             */
+            HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
+            {
+                // m -> mu
+                const float_64 y(position_SI.y() * 1.e6);
 
-            // target begin & end (plateau)
-            constexpr float_64 y0( 0.5 );
-            constexpr float_64 y1( y0 + 1.0 );
-            // exponential pre-expanded density
-            constexpr float_64 L( 10.e-3 );
-            constexpr float_64 L_cutoff( 4. * L );
+                // target begin & end (plateau)
+                constexpr float_64 y0(0.5);
+                constexpr float_64 y1(y0 + 1.0);
+                // exponential pre-expanded density
+                constexpr float_64 L(10.e-3);
+                constexpr float_64 L_cutoff(4. * L);
 
-            float_64 dens = 0.0;
+                float_64 dens = 0.0;
 
-            // upramp
-            if( y < y0 && (y0 - y) < L_cutoff )
-                dens = math::exp( ( y - y0 ) / L );
-            // downramp
-            if( y > y1 && (y - y1) < L_cutoff )
-                dens = math::exp( ( y1 - y ) / L );
-            // plateau
-            if( y >= y0 && y <= y1 )
-                dens = 1.0;
+                // upramp
+                if(y < y0 && (y0 - y) < L_cutoff)
+                    dens = math::exp((y - y0) / L);
+                // downramp
+                if(y > y1 && (y - y1) < L_cutoff)
+                    dens = math::exp((y1 - y) / L);
+                // plateau
+                if(y >= y0 && y <= y1)
+                    dens = 1.0;
 
-            // safety check: all parts of the function MUST be > 0
-            dens *= float_64( dens >= 0.0 );
-            return dens;
-        }
-    };
+                // safety check: all parts of the function MUST be > 0
+                dens *= float_64(dens >= 0.0);
+                return dens;
+            }
+        };
 
-    // definition of free formula profile
-    using FlatFoilWithRamp = FreeFormulaImpl< FlatFoilWithRampFunctor >;
+        // definition of free formula profile
+        using FlatFoilWithRamp = FreeFormulaImpl<FlatFoilWithRampFunctor>;
 
-    // put probe particles every 4th cell in X, Y(, Z)
-    using ProbeEveryFourthCell = EveryNthCellImpl<
-        mCT::UInt32<
-            4,
-            4,
-            4
-        >
-    >;
-} // namespace densityProfiles
+        // put probe particles every 4th cell in X, Y(, Z)
+        using ProbeEveryFourthCell = EveryNthCellImpl<mCT::UInt32<4, 4, 4>>;
+    } // namespace densityProfiles
 } // namespace picongpu

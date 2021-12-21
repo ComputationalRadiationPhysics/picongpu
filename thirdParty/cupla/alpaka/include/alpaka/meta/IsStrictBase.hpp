@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,13 +17,9 @@ namespace alpaka
     {
         //#############################################################################
         //! The trait is true if TDerived is derived from TBase but is not TBase itself.
-        template<
-            typename TBase,
-            typename TDerived>
-        using IsStrictBase =
-            std::integral_constant<
-                bool,
-                std::is_base_of<TBase, TDerived>::value
-                && !std::is_same<TBase, typename std::decay<TDerived>::type>::value>;
-    }
-}
+        template<typename TBase, typename TDerived>
+        using IsStrictBase = std::integral_constant<
+            bool,
+            std::is_base_of<TBase, TDerived>::value && !std::is_same<TBase, std::decay_t<TDerived>>::value>;
+    } // namespace meta
+} // namespace alpaka

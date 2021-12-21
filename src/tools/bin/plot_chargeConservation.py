@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
-# Copyright 2015-2020 Richard Pausch
+# Copyright 2015-2021 Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -20,14 +20,13 @@
 #
 
 import argparse
-import os
 import numpy as np
-import h5py
 import matplotlib.pyplot as plt
+import openpmd_api as io
 
 __doc__ = '''
 This program reads electric field and charge density data
-from hdf5 files created by PIConGPU and checks charge conservation
+from openPMD files created by PIConGPU and checks charge conservation
 for the Yee scheme.
 
 Three slice plots show the error in $div(E) - rho/epsilon_0$
@@ -52,55 +51,64 @@ def set_colorbar(cb):
         t.set_fontsize(16)
 
 
-def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
+def plotError(file_pattern, slice_pos=[0.5, 0.5, 0.5], timestep=-1):
     """
-    read field data from hdf5 files
+    read field data from an openPMD file
     compute div(E) - rho/epsilon_0
     plot slices through simulation volume
 
     Parameters:
-    h5file: file name
-        file name to hdf5 data set from PIConGPU
+    file_pattern: file name
+         openPMD file series pattern e.g. simData_%%T.bp
 
     slice_pos: list of floats
         list of 3 floats to define slice position [0, 1]
         Default=[0.5, 0.5, 0.5]
-    """
-    # load hdf5 file
-    f = h5py.File(h5file, "r")
 
-    # read time step (python 2 and 3 save)
-    timestep = -1
-    for i in f['/data'].keys():
-        timestep = i
+    timestep: selected timestep
+        simulation step used if file is an
+        openPMD file series pattern e.g. simData_%%T.bp
+    """
+    # load file
+    series = io.Series(file_pattern, io.Access.read_only)
+
+    # read time step
+    if timestep == -1:
+        *_, timestep = series.iterations
+
+    f = series.iterations[timestep]
 
     # load physics constants and simulation parameters
-    EPS0 = f["/data/{}".format(timestep)].attrs["eps0"]
-    CELL_WIDTH = f["/data/{}".format(timestep)].attrs["cell_width"]
-    CELL_HEIGHT = f["/data/{}".format(timestep)].attrs["cell_height"]
-    CELL_DEPTH = f["/data/{}".format(timestep)].attrs["cell_depth"]
+    EPS0 = f.get_attribute("eps0")
+    CELL_WIDTH = f.get_attribute("cell_width")
+    CELL_HEIGHT = f.get_attribute("cell_height")
+    CELL_DEPTH = f.get_attribute("cell_depth")
 
     # load electric field
-    Ex = np.array(f["/data/{}/fields/E/x".format(timestep)])
-    Ey = np.array(f["/data/{}/fields/E/y".format(timestep)])
-    Ez = np.array(f["/data/{}/fields/E/z".format(timestep)])
+    Ex = f.meshes["E"]["x"][:]
+    Ey = f.meshes["E"]["y"][:]
+    Ez = f.meshes["E"]["z"][:]
+
+    series.flush()
 
     # load and add charge density
     charge = np.zeros_like(Ex)
     norm = 0.0
-    for field_name in f["/data/{}/fields/".format(timestep)].keys():
-        if field_name[-14:] == "_chargeDensity":
+
+    for fieldName in f.meshes:
+        search_pattern = "_chargeDensity"
+        if fieldName[-len(search_pattern):] == search_pattern:
             # load species density
-            species_Density = np.array(
-                f["/data/{}/fields/".format(timestep) + field_name]
-            )
+            species_Density = \
+                f.meshes[fieldName][io.Mesh_Record_Component.SCALAR][:]
+            series.flush()
             # choose norm to be the maximal charge density of all species
             norm = np.max([norm, np.amax(np.abs(species_Density))])
             # add charge density to total charge density
             charge += species_Density
 
-    # close hdf5 file
-    f.close()
+    # close file
+    del series
 
     # compute divergence of electric field according to Yee scheme
     div = ((Ex[1:, 1:, 1:] - Ex[1:, 1:, :-1]) / CELL_WIDTH +
@@ -116,7 +124,7 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     plt.figure(figsize=(14, 5))
 
     plt.subplot(131)
-    slice_cell_z = np.int(np.floor((diff.shape[0]-1) * slice_pos[0]))
+    slice_cell_z = np.int(np.floor((diff.shape[0] - 1) * slice_pos[0]))
     plt.title("slice in z at {}".format(slice_cell_z), fontsize=20)
     plt.imshow(diff[slice_cell_z, :, :],
                vmin=-limit, vmax=+limit,
@@ -132,7 +140,7 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
                  )
 
     plt.subplot(132)
-    slice_cell_y = np.int(np.floor((diff.shape[1]-1) * slice_pos[1]))
+    slice_cell_y = np.int(np.floor((diff.shape[1] - 1) * slice_pos[1]))
     plt.title("slice in y at {}".format(slice_cell_y), fontsize=20)
     plt.imshow(diff[:, slice_cell_y, :],
                vmin=-limit, vmax=+limit,
@@ -148,7 +156,7 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
                  )
 
     plt.subplot(133)
-    slice_cell_x = np.int(np.floor((diff.shape[2]-1) * slice_pos[2]))
+    slice_cell_x = np.int(np.floor((diff.shape[2] - 1) * slice_pos[2]))
     plt.title("slice in x at {}".format(slice_cell_x), fontsize=20)
     plt.imshow(diff[:, :, slice_cell_x],
                vmin=-limit, vmax=+limit,
@@ -176,15 +184,24 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description=__doc__,
         epilog='For further questions please contact Richard Pausch.'
-        )
+    )
 
-    parser.add_argument(metavar="hdf5 file",
-                        dest="h5file_name",
-                        help='hdf5 file with PIConGPU data',
+    parser.add_argument(metavar="openPMD file name",
+                        dest="filename",
+                        help='openPMD file or series pattern '
+                             'with PIConGPU data',
                         action='store',
                         type=str)
 
-    parser.add_argument("--x",
+    parser.add_argument("-t",
+                        dest="selected_timestep",
+                        help='simulation step used if file is an '
+                             'openPMD file series pattern e.g. simData_%%T.bp',
+                        action='store',
+                        default=-1,
+                        type=int)
+
+    parser.add_argument("-x",
                         dest="x_split",
                         action='store',
                         default=0.5,
@@ -192,7 +209,7 @@ if __name__ == "__main__":
                         help='float value between [0,1] to set slice ' +
                              'position in x (default = 0.5)')
 
-    parser.add_argument("--y",
+    parser.add_argument("-y",
                         dest="y_split",
                         action='store',
                         default=0.5,
@@ -200,7 +217,7 @@ if __name__ == "__main__":
                         help='float value between [0,1] to set slice ' +
                              'position in y (default = 0.5)')
 
-    parser.add_argument("--z",
+    parser.add_argument("-z",
                         dest="z_split",
                         action='store',
                         default=0.5,
@@ -222,7 +239,5 @@ if __name__ == "__main__":
                          args.x_split],
                         0, 1)
 
-    if os.path.isfile(args.h5file_name):
-        plotError(args.h5file_name, slice_pos=slice_pos)
-    else:
-        print("ERROR: {} is not a file".format(args.h5file_name))
+    plotError(args.filename, slice_pos=slice_pos,
+              timestep=args.selected_timestep)

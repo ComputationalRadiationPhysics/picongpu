@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,32 +21,31 @@
 
 #pragma once
 
-#include <boost/type_traits/add_const.hpp>
 #include "pmacc/types.hpp"
 
 namespace pmacc
 {
-namespace cursor
-{
-
-template<typename _Functor, typename ArgType>
-struct FunctorAccessor
-{
-    _Functor functor;
-
-    typedef typename ::pmacc::result_of::Functor<_Functor, ArgType>::type type;
-
-    HDINLINE FunctorAccessor(const _Functor& functor) : functor(functor) {}
-
-    template<typename TCursor>
-    HDINLINE type operator()(TCursor& cursor)
+    namespace cursor
     {
-        return this->functor(*cursor);
-    }
+        template<typename _Functor, typename ArgType>
+        struct FunctorAccessor
+        {
+            _Functor functor;
 
-    ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
-};
+            using Reference = typename ::pmacc::result_of::Functor<_Functor, ArgType>::type;
 
-} // cursor
-} // pmacc
+            HDINLINE FunctorAccessor(const _Functor& functor) : functor(functor)
+            {
+            }
 
+            template<typename TCursor>
+            HDINLINE Reference operator()(TCursor& cursor)
+            {
+                return this->functor(*cursor);
+            }
+
+            ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
+        };
+
+    } // namespace cursor
+} // namespace pmacc

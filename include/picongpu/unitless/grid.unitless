@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -19,7 +19,6 @@
  */
 
 
-
 #pragma once
 
 #include <pmacc/math/Vector.hpp>
@@ -27,28 +26,23 @@
 namespace picongpu
 {
     // normed grid parameter
-    constexpr float_X DELTA_T = float_X( SI::DELTA_T_SI / UNIT_TIME );
-    constexpr float_X CELL_WIDTH = float_X( SI::CELL_WIDTH_SI / UNIT_LENGTH );
-    constexpr float_X CELL_HEIGHT = float_X( SI::CELL_HEIGHT_SI / UNIT_LENGTH );
-    constexpr float_X CELL_DEPTH = float_X( SI::CELL_DEPTH_SI / UNIT_LENGTH );
-    CONST_VECTOR( float_X, DIM3, cellSize, CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH );
+    constexpr float_X DELTA_T = float_X(SI::DELTA_T_SI / UNIT_TIME);
+    constexpr float_X CELL_WIDTH = float_X(SI::CELL_WIDTH_SI / UNIT_LENGTH);
+    constexpr float_X CELL_HEIGHT = float_X(SI::CELL_HEIGHT_SI / UNIT_LENGTH);
+    constexpr float_X CELL_DEPTH = float_X(SI::CELL_DEPTH_SI / UNIT_LENGTH);
+    CONST_VECTOR(float_X, DIM3, cellSize, CELL_WIDTH, CELL_HEIGHT, CELL_DEPTH);
 
     // always a 3D cell, even in 1D3V or 2D3V
     constexpr float_X CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH;
 
     // only used for CFL checks
-#if (SIMDIM==DIM3)
-    constexpr float_X INV_CELL2_SUM =
-        1.0 / ( CELL_WIDTH  * CELL_WIDTH  ) +
-        1.0 / ( CELL_HEIGHT * CELL_HEIGHT ) +
-        1.0 / ( CELL_DEPTH  * CELL_DEPTH  );
-#elif(SIMDIM==DIM2)
-    constexpr float_X INV_CELL2_SUM =
-        1.0 / ( CELL_WIDTH  * CELL_WIDTH  ) +
-        1.0 / ( CELL_HEIGHT * CELL_HEIGHT );
+#if(SIMDIM == DIM3)
+    constexpr float_X INV_CELL2_SUM
+        = 1.0 / (CELL_WIDTH * CELL_WIDTH) + 1.0 / (CELL_HEIGHT * CELL_HEIGHT) + 1.0 / (CELL_DEPTH * CELL_DEPTH);
+#elif(SIMDIM == DIM2)
+    constexpr float_X INV_CELL2_SUM = 1.0 / (CELL_WIDTH * CELL_WIDTH) + 1.0 / (CELL_HEIGHT * CELL_HEIGHT);
 #else
-    constexpr float_X INV_CELL2_SUM =
-        1.0 / ( CELL_WIDTH  * CELL_WIDTH );
+    constexpr float_X INV_CELL2_SUM = 1.0 / (CELL_WIDTH * CELL_WIDTH);
 #endif
 
-}
+} // namespace picongpu

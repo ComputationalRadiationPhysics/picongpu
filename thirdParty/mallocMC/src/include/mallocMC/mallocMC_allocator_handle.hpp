@@ -28,51 +28,38 @@
 
 #pragma once
 
-#include "mallocMC_prefixes.hpp"
+#include <alpaka/core/Common.hpp>
 
-namespace mallocMC{
-
-    template <typename T_HostAllocator>
+namespace mallocMC
+{
+    template<typename T_HostAllocator>
     struct AllocatorHandleImpl
     {
-        typedef typename T_HostAllocator::DevAllocator DevAllocator;
+        using DevAllocator = typename T_HostAllocator::DevAllocator;
 
         DevAllocator* devAllocator;
 
-        AllocatorHandleImpl(
-            DevAllocator* p
-        ) :
-            devAllocator( p )
+        explicit AllocatorHandleImpl(DevAllocator* p) : devAllocator(p)
         {
         }
 
-        MAMC_ACCELERATOR
-        void*
-        malloc(
-            size_t size
-        )
+        template<typename AlpakaAcc>
+        ALPAKA_FN_ACC auto malloc(const AlpakaAcc& acc, size_t size) -> void*
         {
-            return devAllocator->malloc( size );
+            return devAllocator->malloc(acc, size);
         }
 
-        MAMC_ACCELERATOR
-        void
-        free(
-            void* p
-        )
+        template<typename AlpakaAcc>
+        ALPAKA_FN_ACC void free(const AlpakaAcc& acc, void* p)
         {
-            devAllocator->free( p );
+            devAllocator->free(acc, p);
         }
 
-        MAMC_ACCELERATOR
-        unsigned
-        getAvailableSlots(
-            size_t slotSize
-        )
+        template<typename AlpakaAcc>
+        ALPAKA_FN_ACC auto getAvailableSlots(const AlpakaAcc& acc, size_t slotSize) -> unsigned
         {
-            return devAllocator->getAvailableSlots( slotSize );
+            return devAllocator->getAvailableSlots(acc, slotSize);
         }
-
     };
 
 } // namespace mallocMC

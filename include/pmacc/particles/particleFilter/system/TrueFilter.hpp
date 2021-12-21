@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -21,21 +21,16 @@
 
 #pragma once
 
-#include "pmacc/particles/memory/frames/NullFrame.hpp"
 #include "pmacc/particles/frame_types.hpp"
+#include "pmacc/particles/memory/frames/NullFrame.hpp"
 #include "pmacc/types.hpp"
 
 namespace pmacc
 {
-
     class TrueFilter
     {
-
     public:
-
-        HDINLINE TrueFilter()
-        {
-        }
+        HDINLINE TrueFilter() = default;
 
         template<class FRAME>
         HDINLINE bool operator()(FRAME&, lcellId_t)
@@ -44,4 +39,4 @@ namespace pmacc
         }
     };
 
-} //namespace Frame
+} // namespace pmacc

@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Heiko Burau
+/* Copyright 2015-2021 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -25,42 +25,41 @@
 
 namespace pmacc
 {
-namespace math
-{
-namespace CT
-{
+    namespace math
+    {
+        namespace CT
+        {
+            /**
+             * @class TwistComponents
+             * @brief Twists axes of a compile-time vector.
+             * @tparam Vec compile-time vector to be twisted
+             * @tparam Axes compile-time vector containing new axes
+             *
+             * Example:
+             *
+             * using Orientation_Y = pmacc::math::CT::Int<1,2,0>;
+             * using TwistedBlockDim = typename pmacc::math::CT::TwistComponents<BlockDim, Orientation_Y>::type;
+             */
+            template<typename Vec, typename Axes, int dim = Vec::dim>
+            struct TwistComponents;
 
-/**
- * @class TwistComponents
- * @brief Twists axes of a compile-time vector.
- * @tparam Vec compile-time vector to be twisted
- * @tparam Axes compile-time vector containing new axes
- *
- * Example:
- *
- * using Orientation_Y = pmacc::math::CT::Int<1,2,0>;
- * using TwistedBlockDim = typename pmacc::math::CT::TwistComponents<BlockDim, Orientation_Y>::type;
- */
-template<typename Vec, typename Axes, int dim=Vec::dim>
-struct TwistComponents;
+            template<typename Vec, typename Axes>
+            struct TwistComponents<Vec, Axes, DIM2>
+            {
+                using type = math::CT::Vector<
+                    typename Vec::template at<Axes::x::value>::type,
+                    typename Vec::template at<Axes::y::value>::type>;
+            };
 
-template<typename Vec, typename Axes>
-struct TwistComponents<Vec, Axes, DIM2>
-{
-    using type = math::CT::Vector<
-        typename Vec::template at<Axes::x::value>::type,
-        typename Vec::template at<Axes::y::value>::type>;
-};
+            template<typename Vec, typename Axes>
+            struct TwistComponents<Vec, Axes, DIM3>
+            {
+                using type = math::CT::Vector<
+                    typename Vec::template at<Axes::x::value>::type,
+                    typename Vec::template at<Axes::y::value>::type,
+                    typename Vec::template at<Axes::z::value>::type>;
+            };
 
-template<typename Vec, typename Axes>
-struct TwistComponents<Vec, Axes, DIM3>
-{
-    using type = math::CT::Vector<
-        typename Vec::template at<Axes::x::value>::type,
-        typename Vec::template at<Axes::y::value>::type,
-        typename Vec::template at<Axes::z::value>::type>;
-};
-
-} // namespace CT
-} // namespace math
+        } // namespace CT
+    } // namespace math
 } // namespace pmacc

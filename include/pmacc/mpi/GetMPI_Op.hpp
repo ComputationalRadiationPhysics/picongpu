@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -22,14 +22,14 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
 #include <mpi.h>
 
 namespace pmacc
 {
     namespace mpi
     {
-
         template<class Functor>
         MPI_Op getMPI_Op();
     }
-}
+} // namespace pmacc

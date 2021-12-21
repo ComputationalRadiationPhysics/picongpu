@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -21,6 +21,7 @@
 #pragma once
 
 #include "picongpu/plugins/SliceFieldPrinter.hpp"
+
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
 #include <pmacc/math/vector/Float.hpp>
 
@@ -29,37 +30,39 @@
 
 namespace picongpu
 {
+    using namespace pmacc;
+    namespace po = boost::program_options;
 
-using namespace pmacc;
-namespace po = boost::program_options;
+    template<typename Field>
+    class SliceFieldPrinterMulti : public ILightweightPlugin
+    {
+    private:
+        std::string name;
+        std::string prefix;
+        std::vector<std::string> notifyPeriod;
+        std::vector<std::string> fileName;
+        std::vector<int> plane;
+        std::vector<float_X> slicePoint;
+        MappingDesc* cellDescription;
+        std::vector<SliceFieldPrinter<Field>> childs;
 
-template<typename Field>
-class SliceFieldPrinterMulti : public ILightweightPlugin
-{
-private:
-    std::string name;
-    std::string prefix;
-    std::vector<std::string> notifyPeriod;
-    std::vector<std::string> fileName;
-    std::vector<int> plane;
-    std::vector<float_X> slicePoint;
-    MappingDesc *cellDescription;
-    std::vector<SliceFieldPrinter<Field> > childs;
+        void pluginLoad() override;
+        void pluginUnload() override;
 
-    void pluginLoad();
-    void pluginUnload();
+    public:
+        SliceFieldPrinterMulti();
+        virtual ~SliceFieldPrinterMulti()
+        {
+        }
 
-public:
-    SliceFieldPrinterMulti();
-    virtual ~SliceFieldPrinterMulti() {}
+        void notify(uint32_t) override
+        {
+        }
+        void setMappingDescription(MappingDesc* desc) override;
+        void pluginRegisterHelp(po::options_description& desc) override;
+        std::string pluginGetName() const override;
+    };
 
-    void notify(uint32_t) {}
-    void setMappingDescription(MappingDesc* desc);
-    void pluginRegisterHelp(po::options_description& desc);
-    std::string pluginGetName() const;
-};
-
-}
+} // namespace picongpu
 
 #include "SliceFieldPrinterMulti.tpp"
-

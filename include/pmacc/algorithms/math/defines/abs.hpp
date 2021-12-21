@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,33 +21,23 @@
 
 #pragma once
 
+#include "pmacc/types.hpp"
+
 namespace pmacc
 {
-namespace algorithms
-{
+    namespace math
+    {
+        template<typename Type>
+        struct Abs2;
 
-namespace math
-{
+        template<typename T1>
+        HDINLINE typename Abs2<T1>::result abs2(const T1& value)
+        {
+            return Abs2<T1>()(value);
+        }
 
-template<typename Type>
-struct Abs;
+    } // namespace math
+} // namespace pmacc
 
-template<typename Type>
-struct Abs2;
-
-
-template<typename T1>
-HDINLINE typename Abs< T1>::result abs(T1 value)
-{
-    return Abs< T1 > ()(value);
-}
-
-template<typename T1>
-HDINLINE typename Abs2< T1 >::result abs2(const T1& value)
-{
-    return Abs2< T1 > ()(value);
-}
-
-} //namespace math
-} //namespace algorithms
-}//namespace pmacc
+#include "pmacc/algorithms/math/doubleMath/abs.tpp"
+#include "pmacc/algorithms/math/floatMath/abs.tpp"

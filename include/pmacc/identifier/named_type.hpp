@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera
+/* Copyright 2014-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,8 +21,9 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/identifier/identifier.hpp"
+#include "pmacc/types.hpp"
+
 #include <string>
 
 /* No namespace is needed because we only have defines*/
@@ -43,12 +44,6 @@
  *      length();   or length_
  *
  */
-#define named_type(in_type,name,...)                                           \
-        identifier(name,                                                       \
-        typedef in_type type;                                                  \
-        static std::string getName()                                           \
-        {                                                                      \
-                return std::string(#name);                                     \
-        }                                                                      \
-        __VA_ARGS__                                                            \
-    )
+#define named_type(in_type, name, ...)                                                                                \
+    identifier(                                                                                                       \
+        name, typedef in_type type; static std::string getName() { return std::string(#name); } __VA_ARGS__)

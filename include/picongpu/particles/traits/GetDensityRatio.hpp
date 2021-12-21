@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera, Richard Pausch
+/* Copyright 2015-2021 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -20,47 +20,40 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include <pmacc/traits/GetFlagType.hpp>
-#include <pmacc/traits/Resolve.hpp>
 #include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/Resolve.hpp>
 
 #include <boost/mpl/if.hpp>
 
 
 namespace picongpu
 {
-namespace traits
-{
+    namespace traits
+    {
+        namespace detail
+        {
+            value_identifier(float_X, DefaultDensityRatio, 1.0);
+        } // namespace detail
 
-namespace detail
-{
-    value_identifier(float_X, DefaultDensityRatio, 1.0);
-} // namespace detail
 
+        /** get density ratio of a species
+         *
+         * ratio is set to 1.0 if no alias `densityRatio<>` is defined
+         *
+         * @treturn ::type `value_identifier` with the default density
+         */
+        template<typename T_Species>
+        struct GetDensityRatio
+        {
+            using FrameType = typename T_Species::FrameType;
+            using hasDensityRatio = typename HasFlag<FrameType, densityRatio<>>::type;
+            using DensityRatioOfSpecies =
+                typename pmacc::traits::Resolve<typename GetFlagType<FrameType, densityRatio<>>::type>::type;
 
-/** get density ratio of a species
- *
- * ratio is set to 1.0 if no alias `densityRatio<>` is defined
- *
- * @treturn ::type `value_identifier` with the default density
- */
-template<typename T_Species>
-struct GetDensityRatio
-{
-    using FrameType = typename T_Species::FrameType;
-    typedef typename HasFlag<FrameType, densityRatio<> >::type hasDensityRatio;
-    typedef typename pmacc::traits::Resolve<
-        typename GetFlagType<
-            FrameType, densityRatio<>
-        >::type
-    >::type DensityRatioOfSpecies;
+            using type = typename bmpl::if_<hasDensityRatio, DensityRatioOfSpecies, detail::DefaultDensityRatio>::type;
+        };
 
-    typedef typename bmpl::if_<
-        hasDensityRatio,
-        DensityRatioOfSpecies,
-        detail::DefaultDensityRatio
-    >::type type;
-};
-
-} // namespace traits
+    } // namespace traits
 } // namespace picongpu

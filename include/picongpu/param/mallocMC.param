@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Carlchristian Eckert
  *
  * This file is part of PIConGPU.
@@ -27,32 +27,32 @@
 
 #pragma once
 
-#include <boost/mpl/int.hpp>
 #include <boost/mpl/bool.hpp>
+#include <boost/mpl/int.hpp>
+
 #include <mallocMC/mallocMC.hpp>
 
 
 namespace picongpu
 {
-
     //! configure the CreationPolicy "Scatter"
     struct DeviceHeapConfig
     {
         //! 2MiB page can hold around 256 particle frames
-        using pagesize = boost::mpl::int_< 2 * 1024 * 1024 >;
+        static constexpr uint32_t pagesize = 2u * 1024u * 1024u;
 
-        /** accessblocks, regionsize and wastefactor are not conclusively
+        /** accessblocksize, regionsize and wastefactor are not conclusively
          * investigated and might be performance sensitive for multiple
          * particle species with heavily varying attributes (frame sizes)
          */
-        using accessblocks = boost::mpl::int_< 4 >;
-        using regionsize = boost::mpl::int_< 8 >;
-        using wastefactor = boost::mpl::int_< 2 >;
+        static constexpr uint32_t accessblocksize = 2u * 1024u * 1024u * 1024u;
+        static constexpr uint32_t regionsize = 16u;
+        static constexpr uint32_t wastefactor = 2u;
 
         /** resetfreedpages is used to minimize memory fragmentation with
          * varying frame sizes
          */
-        using resetfreedpages = boost::mpl::bool_< true >;
+        static constexpr bool resetfreedpages = true;
     };
 
     /** Define a new allocator
@@ -61,11 +61,11 @@ namespace picongpu
      * algorithm.
      */
     using DeviceHeap = mallocMC::Allocator<
-        mallocMC::CreationPolicies::Scatter< DeviceHeapConfig >,
+        cupla::Acc,
+        mallocMC::CreationPolicies::Scatter<DeviceHeapConfig>,
         mallocMC::DistributionPolicies::Noop,
         mallocMC::OOMPolicies::ReturnNull,
-        mallocMC::ReservePoolPolicies::SimpleCudaMalloc,
-        mallocMC::AlignmentPolicies::Shrink<>
-    >;
+        mallocMC::ReservePoolPolicies::AlpakaBuf<cupla::Acc>,
+        mallocMC::AlignmentPolicies::Shrink<>>;
 
 } // namespace picongpu

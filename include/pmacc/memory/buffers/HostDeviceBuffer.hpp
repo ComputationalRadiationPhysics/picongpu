@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Alexander Grund
+/* Copyright 2016-2021 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -21,28 +21,33 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/memory/buffers/HostBuffer.hpp"
 #include "pmacc/memory/buffers/DeviceBuffer.hpp"
-#include "pmacc/memory/buffers/HostBufferIntern.hpp"
 #include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
-#include <boost/type_traits.hpp>
+#include "pmacc/memory/buffers/HostBuffer.hpp"
+#include "pmacc/memory/buffers/HostBufferIntern.hpp"
+#include "pmacc/types.hpp"
+
+#include <memory>
+#include <type_traits>
 
 
-namespace pmacc{
-
+namespace pmacc
+{
     /** Buffer that contains a host and device buffer and allows synchronizing those 2 */
     template<typename T_Type, unsigned T_dim>
     class HostDeviceBuffer
     {
-        typedef HostBufferIntern<T_Type, T_dim> HostBufferType;
-        typedef DeviceBufferIntern<T_Type, T_dim> DeviceBufferType;
+        using HostBufferType = HostBufferIntern<T_Type, T_dim>;
+        using DeviceBufferType = DeviceBufferIntern<T_Type, T_dim>;
+
     public:
         using ValueType = T_Type;
-        typedef HostBuffer<T_Type, T_dim> HBuffer;
-        typedef DeviceBuffer<T_Type, T_dim> DBuffer;
-        typedef typename HostBufferType::DataBoxType DataBoxType;
-        PMACC_CASSERT_MSG(DataBoxTypes_must_match, boost::is_same<DataBoxType, typename DeviceBufferType::DataBoxType>::value);
+        using HBuffer = HostBuffer<T_Type, T_dim>;
+        using DBuffer = DeviceBuffer<T_Type, T_dim>;
+        using DataBoxType = typename HostBufferType::DataBoxType;
+        PMACC_CASSERT_MSG(
+            DataBoxTypes_must_match,
+            std::is_same<DataBoxType, typename DeviceBufferType::DataBoxType>::value);
 
         /**
          * Constructor that creates the buffers with the given size
@@ -69,14 +74,12 @@ namespace pmacc{
          * Passing a size bigger than the buffer (minus the offset) is undefined.
          */
         HostDeviceBuffer(
-                   HBuffer& otherHostBuffer,
-                   const DataSpace<T_dim>& offsetHost,
-                   DBuffer& otherDeviceBuffer,
-                   const DataSpace<T_dim>& offsetDevice,
-                   const GridLayout<T_dim> size,
-                   bool sizeOnDevice = false);
-
-        HINLINE virtual ~HostDeviceBuffer();
+            HBuffer& otherHostBuffer,
+            const DataSpace<T_dim>& offsetHost,
+            DBuffer& otherDeviceBuffer,
+            const DataSpace<T_dim>& offsetDevice,
+            const GridLayout<T_dim> size,
+            bool sizeOnDevice = false);
 
         /**
          * Returns the internal data buffer on host side
@@ -111,12 +114,12 @@ namespace pmacc{
          * Asynchronously copies data from internal device to internal host buffer.
          */
         HINLINE void deviceToHost();
-    private:
-        HBuffer* hostBuffer;
-        DBuffer* deviceBuffer;
 
+    private:
+        std::unique_ptr<HBuffer> hostBuffer;
+        std::unique_ptr<DBuffer> deviceBuffer;
     };
 
-}  // namespace pmacc
+} // namespace pmacc
 
 #include "pmacc/memory/buffers/HostDeviceBuffer.tpp"

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz,
  *                     Alexander Grund
  *
@@ -26,22 +26,21 @@
 
 namespace pmacc
 {
-namespace type
-{
-
-    /*! area which is calculated
-     *
-     * CORE is the inner area of a grid
-     * BORDER is the border of a grid (my own border, not the neighbor part)
-     */
-    enum AreaType
+    namespace type
     {
-        CORE = 1u,
-        BORDER = 2u,
-        GUARD = 4u
-    };
+        /*! area which is calculated
+         *
+         * CORE is the inner area of a grid
+         * BORDER is the border of a grid (my own border, not the neighbor part)
+         */
+        enum AreaType
+        {
+            CORE = 1u,
+            BORDER = 2u,
+            GUARD = 4u
+        };
 
-} // namespace type
+    } // namespace type
 
     // for backward compatibility pull all definitions into the pmacc namespace
     using namespace type;

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -23,28 +23,23 @@
 
 #pragma once
 
+#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 
 namespace pmacc
 {
-
     /**
      * TaskLogicalAnd AND-connects tasks to a new single task
      */
     class TaskLogicalAnd : public StreamTask
     {
     public:
-
         /**
          * s1 and s1 must be a valid IStreamTask
          * constructor
          */
-        TaskLogicalAnd(ITask* s1, ITask* s2) :
-        StreamTask(),
-        task1(s1->getId()),
-        task2(s2->getId())
+        TaskLogicalAnd(ITask* s1, ITask* s2) : StreamTask(), task1(s1->getId()), task2(s2->getId())
         {
             combine(s1, s2);
         }
@@ -52,18 +47,16 @@ namespace pmacc
         /*
          * destructor
          */
-        virtual ~TaskLogicalAnd()
+        ~TaskLogicalAnd() override
         {
-
             notify(this->myId, LOGICALAND, nullptr);
         }
 
-        void init()
+        void init() override
         {
-
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             /*  TaskLogicalAnd is finished if all subtasks are
              *  finished (removed) and there is no current work
@@ -71,7 +64,7 @@ namespace pmacc
             return (task1 == 0) && (task2 == 0);
         }
 
-        void event(id_t eventId, EventType, IEventData*)
+        void event(id_t eventId, EventType, IEventData*) override
         {
             if(task1 == eventId)
             {
@@ -81,16 +74,16 @@ namespace pmacc
                 if(task != nullptr)
                 {
                     ITask::TaskType type = task->getTaskType();
-                    if (type == ITask::TASK_CUDA )
+                    if(type == ITask::TASK_DEVICE)
                     {
                         this->stream = static_cast<StreamTask*>(task)->getEventStream();
-                        this->setTaskType(ITask::TASK_CUDA);
-                        this->cudaEvent = static_cast<StreamTask*>(task)->getCudaEventHandle();
+                        this->setTaskType(ITask::TASK_DEVICE);
+                        this->cuplaEvent = static_cast<StreamTask*>(task)->getCudaEventHandle();
                         this->hasCudaEventHandle = true;
                     }
                 }
             }
-            else if (task2 == eventId)
+            else if(task2 == eventId)
             {
                 task2 = 0;
 
@@ -98,11 +91,11 @@ namespace pmacc
                 if(task != nullptr)
                 {
                     ITask::TaskType type = task->getTaskType();
-                    if (type == ITask::TASK_CUDA )
+                    if(type == ITask::TASK_DEVICE)
                     {
                         this->stream = static_cast<StreamTask*>(task)->getEventStream();
-                        this->setTaskType(ITask::TASK_CUDA);
-                        this->cudaEvent = static_cast<StreamTask*>(task)->getCudaEventHandle();
+                        this->setTaskType(ITask::TASK_DEVICE);
+                        this->cuplaEvent = static_cast<StreamTask*>(task)->getCudaEventHandle();
                         this->hasCudaEventHandle = true;
                     }
                 }
@@ -116,34 +109,30 @@ namespace pmacc
             }
         }
 
-        std::string toString()
+        std::string toString() override
         {
-            return std::string("TaskLogicalAnd (") +
-                EventTask(task1).toString() +
-                std::string(" - ") +
-                EventTask(task2).toString() +
-                std::string(" )");
+            return std::string("TaskLogicalAnd (") + EventTask(task1).toString() + std::string(" - ")
+                + EventTask(task2).toString() + std::string(" )");
         }
 
     private:
-
         inline void combine(ITask* s1, ITask* s2)
         {
             s1->addObserver(this);
             s2->addObserver(this);
-            if(s1->getTaskType() == ITask::TASK_CUDA && s2->getTaskType() == ITask::TASK_CUDA)
+            if(s1->getTaskType() == ITask::TASK_DEVICE && s2->getTaskType() == ITask::TASK_DEVICE)
             {
-                this->setTaskType(ITask::TASK_CUDA);
-                this->setEventStream(static_cast<StreamTask*> (s2)->getEventStream());
-                if(static_cast<StreamTask*> (s1)->getEventStream() != static_cast<StreamTask*> (s2)->getEventStream())
-                    this->getEventStream()->waitOn(static_cast<StreamTask*> (s1)->getCudaEventHandle());
+                this->setTaskType(ITask::TASK_DEVICE);
+                this->setEventStream(static_cast<StreamTask*>(s2)->getEventStream());
+                if(static_cast<StreamTask*>(s1)->getEventStream() != static_cast<StreamTask*>(s2)->getEventStream())
+                    this->getEventStream()->waitOn(static_cast<StreamTask*>(s1)->getCudaEventHandle());
                 this->activate();
             }
-            else if(s1->getTaskType() == ITask::TASK_MPI && s2->getTaskType() == ITask::TASK_CUDA)
+            else if(s1->getTaskType() == ITask::TASK_MPI && s2->getTaskType() == ITask::TASK_DEVICE)
             {
                 this->setTaskType(ITask::TASK_MPI);
             }
-            else if(s2->getTaskType() == ITask::TASK_MPI && s1->getTaskType() == ITask::TASK_CUDA)
+            else if(s2->getTaskType() == ITask::TASK_MPI && s1->getTaskType() == ITask::TASK_DEVICE)
             {
                 this->setTaskType(ITask::TASK_MPI);
             }
@@ -157,5 +146,4 @@ namespace pmacc
         id_t task2;
     };
 
-} //namespace pmacc
-
+} // namespace pmacc

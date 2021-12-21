@@ -3,12 +3,23 @@
 Python
 ======
 
-.. sectionauthor:: Axel Huebl
+.. sectionauthor:: Axel Huebl, Klaus Steiniger
 
 If you are new to python, get your hands on the tutorials of the following important libraries to get started.
 
 - https://www.python.org/about/gettingstarted/
 - https://docs.python.org/3/tutorial/index.html
+
+An easy way to get a Python environment for analysis of PIConGPU data up and running is to download and install
+Miniconda 
+
+https://docs.conda.io/en/latest/miniconda.html
+
+and set up a conda environment with the help of this conda environment file
+
+https://gist.github.com/steindev/d19263d41b0964bcecdfb1f47e18a86e
+
+(see documentation within the file).
 
 
 Numpy
@@ -50,7 +61,7 @@ Also provides an interactive GUI for fast exploration via Jupyter notebooks.
 openPMD-api
 -----------
 
-A data library that reads (and writes) data in our openPMD files (HDF5 and ADIOS) to and from Numpy data structures.
+A data library that reads (and writes) data in our openPMD files (ADIOS2 and HDF5) to and from Numpy data structures.
 Provides an API to correctly convert units to SI, interprets iteration steps correctly, etc.
 
 * `Manual <https://openpmd-api.readthedocs.io/>`_
@@ -65,11 +76,3 @@ With yt 3.4 or newer, our HDF5 output, which uses the :ref:`openPMD markup <pp-o
 * `Project Homepage <http://yt-project.org>`_
 * `Data Loading <http://yt-project.org/doc/examining/loading_data.html#openpmd-data>`_
 * `Data Tutorial <https://gist.github.com/C0nsultant/5808d5f61b271b8f969d5c09f5ca91dc>`_
-
-pyDive (experimental)
----------------------
-
-pyDive provides numpy-style array and file processing on distributed memory systems ("numpy on MPI" for data sets that are much larger than your local RAM).
-pyDive is currently not ready to interpret :ref:`openPMD <pp-openPMD>` directly, but can work on generated raw ADIOS and HDF5 files.
-
-https://github.com/ComputationalRadiationPhysics/pyDive

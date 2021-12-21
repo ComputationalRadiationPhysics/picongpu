@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Alexander Grund, Rene Widera
+/* Copyright 2015-2021 Alexander Grund, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -25,72 +25,46 @@
 
 namespace pmacc
 {
-namespace random
-{
-namespace methods
-{
-
-    template< typename T_Acc = cupla::Acc>
-    class AlpakaRand
+    namespace random
     {
-    public:
-        using StateType =
-            decltype(
-                ::alpaka::rand::generator::createDefault(
-                    alpaka::core::declval<T_Acc const &>(),
-                    alpaka::core::declval<uint32_t &>(),
-                    alpaka::core::declval<uint32_t &>()
-                )
-            );
-
-        DINLINE void
-        init(
-            T_Acc const & acc,
-            StateType& state,
-            uint32_t seed,
-            uint32_t subsequence = 0
-        ) const
+        namespace methods
         {
-            state = ::alpaka::rand::generator::createDefault(
-                acc,
-                seed,
-                subsequence
-            );
-        }
+            template<typename T_Acc = cupla::Acc>
+            class AlpakaRand
+            {
+            public:
+                using StateType = decltype(::alpaka::rand::generator::createDefault(
+                    alpaka::core::declval<T_Acc const&>(),
+                    alpaka::core::declval<uint32_t&>(),
+                    alpaka::core::declval<uint32_t&>()));
 
-        DINLINE uint32_t
-        get32Bits(
-            T_Acc const & acc,
-            StateType& state
-        ) const
-        {
-            return ::alpaka::rand::distribution::createUniformUint< uint32_t >(
-                acc
-            )( state );
-        }
+                DINLINE void init(T_Acc const& acc, StateType& state, uint32_t seed, uint32_t subsequence = 0) const
+                {
+                    state = ::alpaka::rand::generator::createDefault(acc, seed, subsequence);
+                }
 
-        DINLINE uint64_t
-        get64Bits(
-            T_Acc const & acc,
-            StateType& state
-        ) const
-        {
-            /* Two 32bit values are packed into a 64bit value because alpaka is not
-             * supporting 64bit integer random numbers
-             */
-            uint64_t result = get32Bits( acc, state);
-            result <<= 32;
-            result ^= get32Bits( acc, state);
-            return result;
-        }
+                DINLINE uint32_t get32Bits(T_Acc const& acc, StateType& state) const
+                {
+                    return ::alpaka::rand::distribution::createUniformUint<uint32_t>(acc)(state);
+                }
 
-        static std::string
-        getName()
-        {
-            return "AlpakaRand";
-        }
-    };
+                DINLINE uint64_t get64Bits(T_Acc const& acc, StateType& state) const
+                {
+                    /* Two 32bit values are packed into a 64bit value because alpaka is not
+                     * supporting 64bit integer random numbers
+                     */
+                    uint64_t result = get32Bits(acc, state);
+                    result <<= 32;
+                    result ^= get32Bits(acc, state);
+                    return result;
+                }
 
-}  // namespace methods
-}  // namespace random
-}  // namespace pmacc
+                static std::string getName()
+                {
+                    return "AlpakaRand";
+                }
+            };
+
+        } // namespace methods
+    } // namespace random
+} // namespace pmacc

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,38 +21,34 @@
 
 #pragma once
 
+#include "pmacc/meta/conversion/TypeToPair.hpp"
 #include "pmacc/types.hpp"
 
 #include <boost/mpl/pair.hpp>
-#include "pmacc/meta/conversion/TypeToPair.hpp"
 
 namespace pmacc
 {
+    /** create boost mpl pair
+     *
+     * If T_Type is a pmacc alias than first is set to anonym alias name
+     * and second is set to T_Type.
+     * If T_Type is no alias than TypeToPair is used.
+     *
+     * @tparam T_Type any type
+     * @resturn ::type
+     */
+    template<typename T_Type>
+    struct TypeToAliasPair
+    {
+        using type = typename TypeToPair<T_Type>::type;
+    };
 
-/** create boost mpl pair
- *
- * If T_Type is a pmacc alias than first is set to anonym alias name
- * and second is set to T_Type.
- * If T_Type is no alias than TypeToPair is used.
- *
- * @tparam T_Type any type
- * @resturn ::type
- */
-template<typename T_Type>
-struct TypeToAliasPair
-{
-    typedef typename TypeToPair<T_Type>::type type;
-};
-
-/** specialisation if T_Type is a pmacc alias*/
-template<template<typename,typename> class T_Alias,typename T_Type>
-struct TypeToAliasPair< T_Alias<T_Type,pmacc::pmacc_isAlias> >
-{
-    typedef
-    bmpl::pair< T_Alias<pmacc_void,pmacc::pmacc_isAlias> ,
-            T_Alias<T_Type,pmacc::pmacc_isAlias> >
-            type;
-};
+    /** specialisation if T_Type is a pmacc alias*/
+    template<template<typename, typename> class T_Alias, typename T_Type>
+    struct TypeToAliasPair<T_Alias<T_Type, pmacc::pmacc_isAlias>>
+    {
+        using type = bmpl::pair<T_Alias<pmacc_void, pmacc::pmacc_isAlias>, T_Alias<T_Type, pmacc::pmacc_isAlias>>;
+    };
 
 
-}//namespace pmacc
+} // namespace pmacc

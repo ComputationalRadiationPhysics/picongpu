@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -26,16 +26,14 @@
 
 namespace pmacc
 {
-
-
     class NullFrame
     {
     public:
-
         enum
         {
-            tileSize = 0, dim = DIM3
+            tileSize = 0,
+            dim = DIM3
         };
     };
 
-}//namespace
+} // namespace pmacc

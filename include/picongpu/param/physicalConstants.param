@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Marco Garten
  *
  * This file is part of PIConGPU.
@@ -19,7 +19,6 @@
  */
 
 
-
 #pragma once
 
 namespace picongpu
@@ -34,8 +33,7 @@ namespace picongpu
         /** unit: N / A^2 */
         constexpr float_64 MUE0_SI = PI * 4.e-7;
         /** unit: C / (V m) */
-        constexpr float_64 EPS0_SI = 1.0 / MUE0_SI / SPEED_OF_LIGHT_SI
-            / SPEED_OF_LIGHT_SI;
+        constexpr float_64 EPS0_SI = 1.0 / MUE0_SI / SPEED_OF_LIGHT_SI / SPEED_OF_LIGHT_SI;
 
         /** impedance of free space
          * unit: ohm */
@@ -75,11 +73,15 @@ namespace picongpu
          * doi:10.1088/0026-1394/52/2/360
          */
         constexpr float_64 N_AVOGADRO = 6.02214076e23;
-    }
+
+        //! Classical electron radius in SI units
+        constexpr float_64 ELECTRON_RADIUS_SI = ELECTRON_CHARGE_SI * ELECTRON_CHARGE_SI
+            / (4.0 * PI * EPS0_SI * ELECTRON_MASS_SI * SPEED_OF_LIGHT_SI * SPEED_OF_LIGHT_SI);
+    } // namespace SI
 
     /** Unit of speed */
     constexpr float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
-    constexpr float_X SPEED_OF_LIGHT = float_X( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
+    constexpr float_X SPEED_OF_LIGHT = float_X(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
 
     // converts
     //
@@ -96,14 +98,17 @@ namespace picongpu
     //   constexpr float_64 An_Arbitrary_Energy_Input_keV = 30.0; // unit: keV
     //
     //   // first convert to SI (because SI stays our standard Unit System!)
-    //   constexpr float_64 An_Arbitrary_Energy_Input_SI = An_Arbitrary_Energy_Input_keV * UNITCONV_keV_to_Joule // unit: Joule
+    //   constexpr float_64 An_Arbitrary_Energy_Input_SI = An_Arbitrary_Energy_Input_keV * UNITCONV_keV_to_Joule //
+    //   unit: Joule
     //
     //   // now the "real" convert to our internal unitless system
-    //   constexpr float_X An_Arbitrary_Energy_Input = float_X(An_Arbitrary_Energy_Input_SI / UNIT_ENERGY) // unit: none
+    //   constexpr float_X An_Arbitrary_Energy_Input = float_X(An_Arbitrary_Energy_Input_SI / UNIT_ENERGY) // unit:
+    //   none
     //
     // As a convention, we DO NOT use the short track:
     //   constexpr float_64 An_Arbitrary_Energy_Input_keV = 30.0; // unit: keV
-    //   constexpr float_X An_Arbitrary_Energy_Input = float_X(An_Arbitrary_Energy_Input_SI * UNITCONV_keV_to_Joule / UNIT_ENERGY) // unit: none
+    //   constexpr float_X An_Arbitrary_Energy_Input = float_X(An_Arbitrary_Energy_Input_SI * UNITCONV_keV_to_Joule /
+    //   UNIT_ENERGY) // unit: none
     //
     constexpr float_64 UNITCONV_keV_to_Joule = 1.60217646e-16;
     constexpr float_64 UNITCONV_Joule_to_keV = (1.0 / UNITCONV_keV_to_Joule);
@@ -113,4 +118,4 @@ namespace picongpu
     constexpr float_64 UNITCONV_AU_to_eV = 27.21139;
     constexpr float_64 UNITCONV_eV_to_AU = (1.0 / UNITCONV_AU_to_eV);
 
-}
+} // namespace picongpu

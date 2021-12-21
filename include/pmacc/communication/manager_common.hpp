@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Wolfgang Hoenig, Axel Huebl
+/* Copyright 2013-2021 Rene Widera, Wolfgang Hoenig, Axel Huebl
  *
  * This file is part of PMacc.
  *
@@ -27,14 +27,30 @@
 
 const int GridManagerRank = 0;
 
-enum {
-  gridInitTag = 1,
-  gridHostnameTag = 2,
-  gridHostRankTag = 3,
-  gridExitTag = 4,
-  gridExchangeTag = 5
+enum
+{
+    gridInitTag = 1,
+    gridHostnameTag = 2,
+    gridHostRankTag = 3,
+    gridExitTag = 4,
+    gridExchangeTag = 5
 };
 
-#define MPI_CHECK(cmd) {int error = cmd; if(error!=MPI_SUCCESS){std::cerr << "<" << __FILE__ << ">:" << __LINE__; throw std::runtime_error(std::string("[MPI] Error"));}}
+#define MPI_CHECK(cmd)                                                                                                \
+    {                                                                                                                 \
+        int error = cmd;                                                                                              \
+        if(error != MPI_SUCCESS)                                                                                      \
+        {                                                                                                             \
+            std::cerr << "<" << __FILE__ << ">:" << __LINE__;                                                         \
+            throw std::runtime_error(std::string("[MPI] Error"));                                                     \
+        }                                                                                                             \
+    }
 
-#define MPI_CHECK_NO_EXCEPT(cmd) {int error = cmd; if(error!=MPI_SUCCESS){std::cerr << "[MPI] Error code " << error << " in <" << __FILE__ << ">:" << __LINE__;}}
+#define MPI_CHECK_NO_EXCEPT(cmd)                                                                                      \
+    {                                                                                                                 \
+        int error = cmd;                                                                                              \
+        if(error != MPI_SUCCESS)                                                                                      \
+        {                                                                                                             \
+            std::cerr << "[MPI] Error code " << error << " in <" << __FILE__ << ">:" << __LINE__;                     \
+        }                                                                                                             \
+    }

@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera
+/* Copyright 2015-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,15 +22,15 @@
 
 namespace picongpu
 {
-namespace traits
-{
-/** Get data box type of a buffer
- *
- * \tparam T_Type type from which you need the DataBoxType
- * \treturn ::type
- */
-template<typename T_Type>
-struct GetDataBoxType;
+    namespace traits
+    {
+        /** Get data box type of a buffer
+         *
+         * @tparam T_Type type from which you need the DataBoxType
+         * @treturn ::type
+         */
+        template<typename T_Type>
+        struct GetDataBoxType;
 
-} //namespace traits
-}// namespace picongpu
+    } // namespace traits
+} // namespace picongpu

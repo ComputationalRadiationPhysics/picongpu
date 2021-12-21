@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Marco Garten
+/* Copyright 2015-2021 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -28,17 +28,14 @@
 
 namespace picongpu
 {
+    namespace particles
+    {
+        namespace ionization
+        {
+            struct AlgorithmThomasFermi;
 
-namespace particles
-{
+        } // namespace ionization
 
-namespace ionization
-{
-
-    struct AlgorithmThomasFermi;
-
-} // namespace ionization
-
-} // namespace particles
+    } // namespace particles
 
 } // namespace picongpu

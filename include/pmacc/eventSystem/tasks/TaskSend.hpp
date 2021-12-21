@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -22,116 +22,124 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/tasks/Factory.hpp"
-#include "pmacc/eventSystem/tasks/ITask.hpp"
-#include "pmacc/eventSystem/tasks/TaskReceive.hpp"
-#include "pmacc/eventSystem/tasks/TaskCopyDeviceToHost.hpp"
+#include "pmacc/Environment.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
-#include "pmacc/mappings/simulation/EnvironmentController.hpp"
-#include "pmacc/memory/buffers/Exchange.hpp"
+#include "pmacc/eventSystem/tasks/MPITask.hpp"
 
 namespace pmacc
 {
+    template<class TYPE, unsigned DIM>
+    class Exchange;
 
-
-
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class TaskSend : public MPITask
     {
     public:
-
-        TaskSend(Exchange<TYPE, DIM> &ex) :
-        exchange(&ex),
-        state(Constructor)
+        TaskSend(Exchange<TYPE, DIM>& ex) : exchange(&ex), state(Constructor)
         {
         }
 
-        virtual void init()
+        void init() override
         {
             state = InitDone;
-            if (exchange->hasDeviceDoubleBuffer())
+            if(exchange->hasDeviceDoubleBuffer())
             {
-                Environment<>::get().Factory().createTaskCopyDeviceToDevice(exchange->getDeviceBuffer(),
-                                                                            exchange->getDeviceDoubleBuffer()
-                                                                            );
-                Environment<>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceDoubleBuffer(),
-                                                                          exchange->getHostBuffer(),
-                                                                          this);
+                if(Environment<>::get().isMpiDirectEnabled())
+                    Environment<>::get().Factory().createTaskCopyDeviceToDevice(
+                        exchange->getDeviceBuffer(),
+                        exchange->getDeviceDoubleBuffer(),
+                        this);
+                else
+                {
+                    Environment<>::get().Factory().createTaskCopyDeviceToDevice(
+                        exchange->getDeviceBuffer(),
+                        exchange->getDeviceDoubleBuffer());
+
+                    Environment<>::get().Factory().createTaskCopyDeviceToHost(
+                        exchange->getDeviceDoubleBuffer(),
+                        exchange->getHostBuffer(),
+                        this);
+                }
             }
             else
             {
-                Environment<>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceBuffer(),
-                                                                          exchange->getHostBuffer(),
-                                                                          this);
+                if(Environment<>::get().isMpiDirectEnabled())
+                {
+                    /* Wait to be sure that all device work is finished before MPI is triggered.
+                     * MPI will not wait for work in our device streams
+                     */
+                    __getTransactionEvent().waitForFinished();
+                    state = ReadyForMPISend;
+                }
+                else
+                    Environment<>::get().Factory().createTaskCopyDeviceToHost(
+                        exchange->getDeviceBuffer(),
+                        exchange->getHostBuffer(),
+                        this);
             }
-
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
-            switch (state)
+            switch(state)
             {
-                case InitDone:
-                    break;
-                case DeviceToHostFinished:
-                    state = SendDone;
-                    __startTransaction();
-                    Environment<>::get().Factory().createTaskSendMPI(exchange, this);
-                    __endTransaction();
-                    break;
-                case SendDone:
-                    break;
-                case Finish:
-                    return true;
-                default:
-                    return false;
+            case InitDone:
+                break;
+            case ReadyForMPISend:
+                state = SendDone;
+                __startTransaction();
+                Environment<>::get().Factory().createTaskSendMPI(exchange, this);
+                __endTransaction();
+                break;
+            case SendDone:
+                break;
+            case Finish:
+                return true;
+            default:
+                return false;
             }
 
             return false;
         }
 
-        virtual ~TaskSend()
+        ~TaskSend() override
         {
             notify(this->myId, SENDFINISHED, nullptr);
         }
 
-        void event(id_t, EventType type, IEventData*)
+        void event(id_t, EventType type, IEventData*) override
         {
-            if (type == COPYDEVICE2HOST)
+            if(type == COPYDEVICE2HOST || type == COPYDEVICE2DEVICE)
             {
-                state = DeviceToHostFinished;
+                state = ReadyForMPISend;
                 executeIntern();
-
             }
 
-            if (type == SENDFINISHED)
+            if(type == SENDFINISHED)
             {
                 state = Finish;
             }
-
         }
 
-        std::string toString()
+        std::string toString() override
         {
             std::stringstream ss;
-            ss<<state;
-            return std::string("TaskSend ")+ ss.str();
+            ss << state;
+            return std::string("TaskSend ") + ss.str();
         }
 
     private:
-
         enum state_t
         {
             Constructor,
             InitDone,
-            DeviceToHostFinished,
+            ReadyForMPISend,
             SendDone,
             Finish
         };
 
-        Exchange<TYPE, DIM> *exchange;
+        Exchange<TYPE, DIM>* exchange;
         state_t state;
     };
 
-} //namespace pmacc
-
+} // namespace pmacc

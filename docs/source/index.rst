@@ -80,10 +80,13 @@ Models
    :hidden:
 
    models/pic
+   models/AOFDTD
+   models/shapes
    models/LL_RR
    models/field_ionization
    models/collisional_ionization
    models/photons
+   models/binary_collisions
 
 ***************
 Post-Processing
@@ -96,6 +99,17 @@ Post-Processing
    postprocessing/python
    postprocessing/openPMD
    postprocessing/paraview
+
+*****************
+Usage for Experts
+*****************
+.. toctree::
+   :caption: EXPERTs
+   :maxdepth: 1
+   :hidden:
+
+   expert/deviceOversubscription
+   expert/signals
 
 ***********
 Development
@@ -112,9 +126,11 @@ Development
    dev/sphinx
    dev/doxygen
    dev/clangtools
+   dev/extending
    dev/picongpu
    dev/pmacc
    dev/py_postprocessing
+   dev/debugging
    dev/doxyindex
 
 ********************

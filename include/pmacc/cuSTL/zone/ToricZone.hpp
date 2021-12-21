@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,28 +21,30 @@
 
 #pragma once
 
-#include <stdint.h>
 #include "../vector/Size_t.hpp"
+
+#include <cstdint>
 
 namespace pmacc
 {
-namespace zone
-{
-namespace tag
-{
-struct ToricZone {};
-}
+    namespace zone
+    {
+        namespace tag
+        {
+            struct ToricZone
+            {
+            };
+        } // namespace tag
 
-template<int T_dim>
-struct ToricZone
-{
-    typedef tag::ToricZone tag;
-    static constexpr int dim = T_dim;
-    math::Size_t<dim> offset;
-    math::Size_t<dim> size;
-    uint32_t thickness;
-};
+        template<int T_dim>
+        struct ToricZone
+        {
+            typedef tag::ToricZone tag;
+            static constexpr int dim = T_dim;
+            math::Size_t<dim> offset;
+            math::Size_t<dim> size;
+            uint32_t thickness;
+        };
 
-} // zone
-} // pmacc
-
+    } // namespace zone
+} // namespace pmacc

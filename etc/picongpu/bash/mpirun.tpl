@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2020 Axel Huebl, Anton Helm, Rene Widera
+# Copyright 2013-2021 Axel Huebl, Anton Helm, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -53,7 +53,7 @@ export OMPI_MCA_io=^ompio
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
   mpirun -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
 else
-  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+  echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available. This does not affect PIConGPU, starting it now" >&2
 fi
 
 if [ $? -eq 0 ] ; then

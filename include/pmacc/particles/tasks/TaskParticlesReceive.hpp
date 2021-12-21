@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -28,16 +28,14 @@
 
 namespace pmacc
 {
-
     template<class T_Particles>
     class TaskParticlesReceive : public MPITask
     {
     public:
-
-        typedef T_Particles Particles;
-        typedef typename Particles::HandleGuardRegion HandleGuardRegion;
-        typedef typename HandleGuardRegion::HandleExchanged HandleExchanged;
-        typedef typename HandleGuardRegion::HandleNotExchanged HandleNotExchanged;
+        using Particles = T_Particles;
+        using HandleGuardRegion = typename Particles::HandleGuardRegion;
+        using HandleExchanged = typename HandleGuardRegion::HandleExchanged;
+        using HandleNotExchanged = typename HandleGuardRegion::HandleNotExchanged;
 
         enum
         {
@@ -45,24 +43,24 @@ namespace pmacc
             Exchanges = traits::NumberOfExchanges<Dim>::value
         };
 
-        TaskParticlesReceive(Particles &parBase) :
-        parBase(parBase),
-        state(Constructor){ }
+        TaskParticlesReceive(Particles& parBase) : parBase(parBase), state(Constructor)
+        {
+        }
 
-        virtual void init()
+        void init() override
         {
             state = Init;
             EventTask serialEvent = __getTransactionEvent();
             HandleExchanged handleExchanged;
             HandleNotExchanged handleNotExchanged;
 
-            for (int i = 1; i < Exchanges; ++i)
+            for(int i = 1; i < Exchanges; ++i)
             {
                 /* Start new transaction */
                 __startTransaction(serialEvent);
 
                 /* Handle particles */
-                if (parBase.getParticlesBuffer().hasReceiveExchange(i))
+                if(parBase.getParticlesBuffer().hasReceiveExchange(i))
                     handleExchanged.handleIncoming(parBase, i);
                 else
                     handleNotExchanged.handleIncoming(parBase, i);
@@ -74,48 +72,49 @@ namespace pmacc
             state = WaitForReceived;
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
-            switch (state)
+            switch(state)
             {
-                case Init:
-                    break;
-                case WaitForReceived:
-                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
-                        state = CallFillGaps;
-                    break;
-                case CallFillGaps:
-                    state = WaitForFillGaps;
-                    __startTransaction();
-                    parBase.fillBorderGaps();
-                    tmpEvent = __endTransaction();
-                    state = Finish;
-                    break;
-                case WaitForFillGaps:
-                    break;
-                case Finish:
-                    return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
-                default:
-                    return false;
+            case Init:
+                break;
+            case WaitForReceived:
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    state = CallFillGaps;
+                break;
+            case CallFillGaps:
+                state = WaitForFillGaps;
+                __startTransaction();
+                parBase.fillBorderGaps();
+                tmpEvent = __endTransaction();
+                state = Finish;
+                break;
+            case WaitForFillGaps:
+                break;
+            case Finish:
+                return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
+            default:
+                return false;
             }
 
             return false;
         }
 
-        virtual ~TaskParticlesReceive()
+        ~TaskParticlesReceive() override
         {
             notify(this->myId, RECVFINISHED, nullptr);
         }
 
-        void event(id_t, EventType, IEventData*) { }
+        void event(id_t, EventType, IEventData*) override
+        {
+        }
 
-        std::string toString()
+        std::string toString() override
         {
             return "TaskParticlesReceive";
         }
 
     private:
-
         enum state_t
         {
             Constructor,
@@ -131,7 +130,6 @@ namespace pmacc
         Particles& parBase;
         state_t state;
         EventTask tmpEvent;
-
     };
 
-} //namespace pmacc
+} // namespace pmacc

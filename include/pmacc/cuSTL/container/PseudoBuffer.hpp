@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,26 +21,24 @@
 
 #pragma once
 
+#include "pmacc/cuSTL/container/CartBuffer.hpp"
 #include "pmacc/memory/buffers/DeviceBuffer.hpp"
 #include "pmacc/memory/buffers/HostBuffer.hpp"
-#include "pmacc/cuSTL/container/CartBuffer.hpp"
 
 namespace pmacc
 {
-namespace container
-{
+    namespace container
+    {
+        template<typename Type, int dim>
+        struct PseudoBuffer : public container::CartBuffer<Type, dim>
+        {
+            template<typename _Type>
+            PseudoBuffer(pmacc::DeviceBuffer<_Type, dim>& devBuffer);
+            template<typename _Type>
+            PseudoBuffer(pmacc::HostBuffer<_Type, dim>& hostBuffer);
+        };
 
-template<typename Type, int dim>
-struct PseudoBuffer : public container::CartBuffer<Type, dim>
-{
-    template<typename _Type>
-    PseudoBuffer(pmacc::DeviceBuffer<_Type, dim>& devBuffer);
-    template<typename _Type>
-    PseudoBuffer(pmacc::HostBuffer<_Type, dim>& hostBuffer);
-};
-
-} // container
-} // pmacc
+    } // namespace container
+} // namespace pmacc
 
 #include "PseudoBuffer.tpp"
-

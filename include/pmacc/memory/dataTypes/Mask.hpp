@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig,
  *                     Alexander Grund
  *
  * This file is part of PMacc.
@@ -22,14 +22,12 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/traits/NumberOfExchanges.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {
-
     /**
      * Mask is used to describe in which directions data must be
      * sent/received or where a grid node has neighbors.
@@ -37,14 +35,21 @@ namespace pmacc
     class Mask
     {
     public:
-
         /**
          * Constructor.
          *
          * Sets this mask to 0 (nothing).
          */
-        Mask() :
-        bitMask(0u)
+        Mask() = default;
+
+        /**
+         * Constructor.
+         *
+         * Sets this mask to directions described by ex
+         *
+         * @param ex directions for this mask
+         */
+        Mask(ExchangeType ex) : bitMask(1u << ex)
         {
         }
 
@@ -55,29 +60,14 @@ namespace pmacc
          *
          * @param ex directions for this mask
          */
-        Mask(ExchangeType ex) :
-        bitMask(1u << ex)
-        {
-        }
-
-        /**
-         * Constructor.
-         *
-         * Sets this mask to directions described by ex
-         *
-         * @param ex directions for this mask
-         */
-        Mask(uint32_t ex) :
-        bitMask(1u << ex)
+        Mask(uint32_t ex) : bitMask(1u << ex)
         {
         }
 
         /**
          * Destructor.
          */
-        virtual ~Mask()
-        {
-        }
+        virtual ~Mask() = default;
 
         /**
          * Gives uint32_t value of this mask.
@@ -90,7 +80,7 @@ namespace pmacc
         /**
          * Gives uint32_t value of this mask.
          */
-        Mask & operator=(uint32_t other)
+        Mask& operator=(uint32_t other)
         {
             bitMask = other;
             return *this;
@@ -104,7 +94,7 @@ namespace pmacc
          * @param other Mask with directions to join
          * @return the newly created mask
          */
-        Mask operator+(const Mask &other) const
+        Mask operator+(const Mask& other) const
         {
             Mask result;
             result.bitMask = bitMask | other.bitMask;
@@ -119,7 +109,7 @@ namespace pmacc
          * @param other Mask with directions to intersect with
          * @return the newly created mask
          */
-        Mask operator&(const Mask &other) const
+        Mask operator&(const Mask& other) const
         {
             Mask result;
             result.bitMask = bitMask & other.bitMask;
@@ -139,18 +129,18 @@ namespace pmacc
          */
         HDINLINE bool containsExchangeType(uint32_t ex) const
         {
-            for (uint32_t i = 1; i < 27; i++) //first bit in mask is 1u<<RIGHT
+            for(uint32_t i = 1; i < 27; i++) // first bit in mask is 1u<<RIGHT
             {
-                if (isSet(i))
+                if(isSet(i))
                 {
                     uint32_t tmp = i;
                     uint32_t tmp_ex = ex;
-                    while (tmp_ex >= 3)
+                    while(tmp_ex >= 3)
                     {
                         tmp_ex /= 3;
                         tmp /= 3;
                     }
-                    if (tmp % 3 == tmp_ex)
+                    if(tmp % 3 == tmp_ex)
                         return true;
                 }
             }
@@ -182,9 +172,9 @@ namespace pmacc
         Mask getMirroredMask() const
         {
             uint32_t tmp = 0;
-            for (uint32_t i = 1; i < 27; i++) //first bit in mask is 1u<<RIGHT
+            for(uint32_t i = 1; i < 27; i++) // first bit in mask is 1u<<RIGHT
             {
-                if (isSet((ExchangeType) i))
+                if(isSet((ExchangeType) i))
                 {
                     tmp |= (1u << getMirroredExchangeType((ExchangeType) i));
                 }
@@ -203,22 +193,22 @@ namespace pmacc
          */
         static ExchangeType getMirroredExchangeType(uint32_t ex)
         {
-            if (ex >= traits::NumberOfExchanges<DIM3>::value)
+            if(ex >= traits::NumberOfExchanges<DIM3>::value)
                 throw std::runtime_error("parameter exceeds allowed maximum");
 
             Mask mask(ex);
             uint32_t tmp = 0;
-            if (mask.containsExchangeType(RIGHT))
+            if(mask.containsExchangeType(RIGHT))
                 tmp += LEFT;
-            if (mask.containsExchangeType(LEFT))
+            if(mask.containsExchangeType(LEFT))
                 tmp += RIGHT;
-            if (mask.containsExchangeType(BOTTOM))
+            if(mask.containsExchangeType(BOTTOM))
                 tmp += TOP;
-            if (mask.containsExchangeType(TOP))
+            if(mask.containsExchangeType(TOP))
                 tmp += BOTTOM;
-            if (mask.containsExchangeType(FRONT))
+            if(mask.containsExchangeType(FRONT))
                 tmp += BACK;
-            if (mask.containsExchangeType(BACK))
+            if(mask.containsExchangeType(BACK))
                 tmp += FRONT;
 
             return (ExchangeType) tmp;
@@ -237,11 +227,11 @@ namespace pmacc
          * @return DataSpace with relative offsets
          */
         template<unsigned DIM>
-        static HDINLINE DataSpace<DIM> getRelativeDirections( uint32_t direction)
+        static HDINLINE DataSpace<DIM> getRelativeDirections(uint32_t direction)
         {
             DataSpace<DIM> tmp;
 
-            for( uint32_t d = 0; d < DIM; ++d )
+            for(uint32_t d = 0; d < DIM; ++d)
             {
                 const int dim_direction(direction % 3);
                 tmp[d] = (dim_direction == 2 ? -1 : dim_direction);
@@ -251,12 +241,10 @@ namespace pmacc
         }
 
     protected:
-
         /**
-         * mask which is a combination of the type \see ExchangeType
+         * mask which is a combination of the type @see ExchangeType
          */
-        uint32_t bitMask;
-
+        uint32_t bitMask{0u};
     };
 
     /** special implementation for `DIM1`
@@ -264,9 +252,9 @@ namespace pmacc
      * optimization: no modulo is used
      */
     template<>
-    HDINLINE DataSpace<DIM1> Mask::getRelativeDirections( uint32_t direction)
+    HDINLINE DataSpace<DIM1> Mask::getRelativeDirections(uint32_t direction)
     {
-        return (direction == 2 ? DataSpace<DIM1 > (-1) : DataSpace<DIM1 > (direction));
+        return (direction == 2 ? DataSpace<DIM1>(-1) : DataSpace<DIM1>(direction));
     }
 
-}
+} // namespace pmacc

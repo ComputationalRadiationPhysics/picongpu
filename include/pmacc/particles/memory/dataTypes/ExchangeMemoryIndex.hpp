@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -26,49 +26,47 @@
 
 namespace pmacc
 {
-
-template<class TYPE, unsigned DIM>
-class ExchangeMemoryIndex
-{
-public:
-
-    HDINLINE ExchangeMemoryIndex() : startIdx(0), count(0)
+    template<class TYPE, unsigned DIM>
+    class ExchangeMemoryIndex
     {
-    }
+    public:
+        HDINLINE ExchangeMemoryIndex() : startIdx(0), count(0)
+        {
+        }
 
-    HDINLINE void setStartIndex(TYPE startIdx)
-    {
-        this->startIdx = startIdx;
-    }
+        HDINLINE void setStartIndex(TYPE startIdx)
+        {
+            this->startIdx = startIdx;
+        }
 
-    HDINLINE void setCount(TYPE count)
-    {
-        this->count = count;
-    }
+        HDINLINE void setCount(TYPE count)
+        {
+            this->count = count;
+        }
 
-    HDINLINE void setSuperCell(DataSpace<DIM> superCell)
-    {
-        this->superCell = superCell;
-    }
+        HDINLINE void setSuperCell(DataSpace<DIM> superCell)
+        {
+            this->superCell = superCell;
+        }
 
-    HDINLINE TYPE getStartIndex()
-    {
-        return startIdx;
-    }
+        HDINLINE TYPE getStartIndex()
+        {
+            return startIdx;
+        }
 
-    HDINLINE TYPE getCount()
-    {
-        return count;
-    }
+        HDINLINE TYPE getCount()
+        {
+            return count;
+        }
 
-    HDINLINE DataSpace<DIM> getSuperCell()
-    {
-        return superCell;
-    }
-private:
+        HDINLINE DataSpace<DIM> getSuperCell()
+        {
+            return superCell;
+        }
 
-    PMACC_ALIGN(superCell, DataSpace<DIM>);
-    PMACC_ALIGN(startIdx, TYPE);
-    PMACC_ALIGN(count, TYPE);
-};
-}
+    private:
+        PMACC_ALIGN(superCell, DataSpace<DIM>);
+        PMACC_ALIGN(startIdx, TYPE);
+        PMACC_ALIGN(count, TYPE);
+    };
+} // namespace pmacc

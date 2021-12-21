@@ -18,31 +18,28 @@ export proj=<yourProject>
 #export EDITOR="nano"
 
 # basic environment ###########################################################
-module load gcc/6.4.0
+module load gcc/6.4.0  e4s/21.02  spectrum-mpi/10.3.1.2-20200121
 
 export CC=$(which gcc)
 export CXX=$(which g++)
 
 # required tools and libs
-module load git
-module load cmake/3.14.2
-module load cuda/10.1.168
+module load git/2.29.0
+module load cmake/3.20.2
+module load cuda/10.2.89
 module load boost/1.66.0
 
 # plugins (optional) ##########################################################
-module load hdf5/1.10.3
-module load adios/1.13.1-py2 c-blosc zfp sz lz4
-
-# optionally download libSplash and compile it yourself from
-#   https://github.com/ComputationalRadiationPhysics/libSplash/
-# export Splash_ROOT=<your libSplash install directory>  # e.g., ${HOME}/sw/libSplash-1.7.0
-# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$Splash_ROOT/lib
+module load hdf5/1.10.7
+module load c-blosc/1.21.0 zfp/0.5.5 sz/2.1.11.1 lz4/1.9.3
+module load adios2/2.7.1
+module load openpmd-api/0.13.2
 
 #export T3PIO_ROOT=$PROJWORK/$proj/lib/t3pio
 #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$T3PIO_ROOT/lib
 
 module load zlib/1.2.11
-module load libpng/1.6.34 freetype/2.9.1
+module load libpng/1.6.37 freetype/2.9.1
 # optionally install pngwriter yourself:
 #   https://github.com/pngwriter/pngwriter#install
 # export PNGwriter_ROOT=<your pngwriter install directory>  # e.g., ${HOME}/sw/pngwriter
@@ -58,6 +55,10 @@ export PATH=$PATH:$PICSRC/bin
 export PATH=$PATH:$PICSRC/src/tools/bin
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+# fix MPI collectives by disabling IBM's optimized barriers
+# https://github.com/ComputationalRadiationPhysics/picongpu/issues/3814
+export OMPI_MCA_coll_ibm_skip_barrier=true
 
 alias getNode="bsub -P $proj -W 2:00 -nnodes 1 -Is /bin/bash"
 

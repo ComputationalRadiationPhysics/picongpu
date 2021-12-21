@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch, Finn-Ole Carstens
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Richard Pausch, Finn-Ole Carstens
  *
  * This file is part of PIConGPU.
  *
@@ -24,58 +24,56 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace transitionRadiation
-{
-namespace linearFrequencies
-{
-    class FreqFunctor
+    namespace plugins
     {
-    public:
-        FreqFunctor( void )
-        { }
-
-        HDINLINE float_X operator( )( const int ID )
+        namespace transitionRadiation
         {
-            return omegaMin + float_X( ID ) * deltaOmega;
-        }
+            namespace linearFrequencies
+            {
+                class FreqFunctor
+                {
+                public:
+                    FreqFunctor(void) = default;
 
-        HINLINE float_X get( const int ID )
-        {
-            return operator( )( ID );
-        }
-    }; // FreqFunctor
+                    HDINLINE float_X operator()(const int ID)
+                    {
+                        return omegaMin + float_X(ID) * deltaOmega;
+                    }
 
-    class InitFreqFunctor
-    {
-        public:
-            InitFreqFunctor( void )
-            { }
+                    HINLINE float_X get(const int ID)
+                    {
+                        return operator()(ID);
+                    }
+                }; // FreqFunctor
 
-            HINLINE void Init( const std::string path )
-            { }
+                class InitFreqFunctor
+                {
+                public:
+                    InitFreqFunctor(void) = default;
+
+                    HINLINE void Init(const std::string path)
+                    {
+                    }
 
 
-        HINLINE FreqFunctor getFunctor( void )
-        {
-            return FreqFunctor( );
-        }
-    }; // InitFreqFunctor
+                    HINLINE FreqFunctor getFunctor(void)
+                    {
+                        return {};
+                    }
+                }; // InitFreqFunctor
 
-    //! @return frequency params as string
-    HINLINE
-    std::string
-    getParameters( void )
-    {
-        std::string params = std::string( "lin\t" );
-        params += std::to_string( nOmega ) + "\t";
-        params += std::to_string( SI::omegaMin ) + "\t";
-        params += std::to_string( SI::omegaMax ) + "\t";
-        return params;
-    }
+                //! @return frequency params as string
+                HINLINE
+                std::string getParameters(void)
+                {
+                    std::string params = std::string("lin\t");
+                    params += std::to_string(nOmega) + "\t";
+                    params += std::to_string(SI::omegaMin) + "\t";
+                    params += std::to_string(SI::omegaMax) + "\t";
+                    return params;
+                }
 
-} // namespace linearFrequencies
-} // namespace transitionRadiation
-} // namespace plugins
+            } // namespace linearFrequencies
+        } // namespace transitionRadiation
+    } // namespace plugins
 } // namespace picongpu

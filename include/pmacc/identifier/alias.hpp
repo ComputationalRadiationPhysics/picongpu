@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Felix Schmitt, Benjamin Worpitz,
+/* Copyright 2013-2021 Rene Widera, Felix Schmitt, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of PMacc.
@@ -22,57 +22,21 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/identifier/identifier.hpp"
 #include "pmacc/ppFunctions.hpp"
-#include <string>
 #include "pmacc/traits/Resolve.hpp"
+#include "pmacc/types.hpp"
+
 #include <boost/mpl/if.hpp>
-#include <boost/type_traits/is_same.hpp>
+
+#include <string>
+#include <type_traits>
 
 namespace pmacc
 {
-identifier(pmacc_void);
-identifier(pmacc_isAlias);
-} //namespace pmacc
-
-#ifdef __CUDACC__
-#   define PMACC_alias_CUDA(name,id)                                          \
-        namespace PMACC_JOIN(device_placeholder,id){                          \
-            /* This variable exists only for template parameter deduction, its
-             * value is never used. So in this case it is fine to have a
-             * separate version in each translation unit due to static.
-             */                                                               \
-            static __constant__ PMACC_JOIN(placeholder_definition,id)::name<> \
-                PMACC_JOIN(name,_);                                           \
-        }
-#else
-#   define PMACC_alias_CUDA(name,id)
-#endif
-
-/*define special makros for creating classes which are only used as identifer*/
-#define PMACC_alias(name,id)                                                   \
-    namespace PMACC_JOIN(placeholder_definition,id) {                          \
-        template<typename T_Type=pmacc::pmacc_void,typename T_IsAlias=pmacc::pmacc_isAlias> \
-        struct name                                                            \
-        {                                                                      \
-            static std::string getName()                                       \
-            {                                                                  \
-                return std::string(#name);                                     \
-            }                                                                  \
-        };                                                                     \
-    }                                                                          \
-    using namespace PMACC_JOIN(placeholder_definition,id);                     \
-    namespace PMACC_JOIN(host_placeholder,id){                                 \
-        /* This variable exists only for template parameter deduction, its value
-         * is never used. So in this case it is fine to have a separate version
-         * in each translation unit due to static.
-         */                                                                    \
-        static PMACC_JOIN(placeholder_definition,id)::name<>                   \
-            PMACC_JOIN(name,_);                                                \
-    }                                                                          \
-    PMACC_alias_CUDA(name,id);                                                 \
-    PMACC_PLACEHOLDER(id);
+    identifier(pmacc_void, );
+    identifier(pmacc_isAlias, );
+} // namespace pmacc
 
 
 /** create an alias
@@ -90,23 +54,30 @@ identifier(pmacc_isAlias);
  * get type which is represented by the alias
  *      typedef typename traits::Resolve<name>::type resolved_type;
  */
-#define alias(name) PMACC_alias(name,__COUNTER__)
+#define alias(name)                                                                                                   \
+    template<typename T_Type = pmacc::pmacc_void, typename T_IsAlias = pmacc::pmacc_isAlias>                          \
+    struct name                                                                                                       \
+    {                                                                                                                 \
+        static std::string getName()                                                                                  \
+        {                                                                                                             \
+            return std::string(#name);                                                                                \
+        }                                                                                                             \
+    };                                                                                                                \
+    constexpr name<> PMACC_JOIN(name, _)
 
 namespace pmacc
 {
-namespace traits
-{
+    namespace traits
+    {
+        template<template<typename, typename> class T_Object, typename T_AnyType>
+        struct Resolve<T_Object<T_AnyType, pmacc::pmacc_isAlias>>
+        {
+            /*solve recursive if alias is nested*/
+            using type = typename bmpl::if_<
+                std::is_same<T_AnyType, typename Resolve<T_AnyType>::type>,
+                T_AnyType,
+                typename Resolve<T_AnyType>::type>::type;
+        };
 
-template<template<typename,typename> class T_Object, typename T_AnyType>
-struct Resolve<T_Object<T_AnyType,pmacc::pmacc_isAlias> >
-{
-    /*solve recursive if alias is nested*/
-    typedef typename  bmpl::if_<
-        boost::is_same<T_AnyType,typename Resolve<T_AnyType>::type >,
-        T_AnyType,
-        typename Resolve<T_AnyType>::type
-    >::type type;
-};
-
-} //namespace traits
-} //namespace pmacc
+    } // namespace traits
+} // namespace pmacc

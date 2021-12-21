@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Heiko Burau
+/* Copyright 2015-2021 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -21,25 +21,25 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "pmacc/math/vector/compile-time/Size_t.hpp"
-#include <stdint.h>
 
 namespace pmacc
 {
-namespace cudaSpecs
-{
+    namespace cudaSpecs
+    {
+        /* Various hardware specific numerical limits taken from the
+         * *CUDA C Programming Guide* Section: G.1. Features and Technical Specifications.
+         *
+         * Valid for sm_2.x - sm_5.3
+         */
 
-/* Various hardware specific numerical limits taken from the
- * *CUDA C Programming Guide* Section: G.1. Features and Technical Specifications.
- *
- * Valid for sm_2.x - sm_5.3
- */
+        /** maximum number of threads per block */
+        constexpr uint32_t maxNumThreadsPerBlock = 1024;
 
-/** maximum number of threads per block */
-constexpr uint32_t maxNumThreadsPerBlock = 1024;
+        /** maximum number of threads per axis of a block */
+        using MaxNumThreadsPerBlockDim = math::CT::Size_t<1024, 1024, 64>;
 
-/** maximum number of threads per axis of a block */
-typedef math::CT::Size_t<1024, 1024, 64> MaxNumThreadsPerBlockDim;
-
-} // namespace cudaSpecs
+    } // namespace cudaSpecs
 } // namespace pmacc

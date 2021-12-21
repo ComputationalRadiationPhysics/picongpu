@@ -1,4 +1,4 @@
-/* Copyright 2018-2020 Rene Widera
+/* Copyright 2018-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -26,24 +26,23 @@
 
 namespace pmacc
 {
-namespace traits
-{
-
-    /** Return the compile time name
-     *
-     * @tparam T_Type type of the object where the name is queried
-     * @return ::type name of the object as pmacc::meta::String,
-     *         empty string is returned if the trait is not specified for
-     *         T_Type
-     */
-    template< typename T_Type >
-    struct GetCTName
+    namespace traits
     {
-        using type = pmacc::meta::String< >;
-    };
+        /** Return the compile time name
+         *
+         * @tparam T_Type type of the object where the name is queried
+         * @return ::type name of the object as pmacc::meta::String,
+         *         empty string is returned if the trait is not specified for
+         *         T_Type
+         */
+        template<typename T_Type>
+        struct GetCTName
+        {
+            using type = pmacc::meta::String<>;
+        };
 
-    template< typename T_Type >
-    using GetCTName_t = typename GetCTName< T_Type >::type;
+        template<typename T_Type>
+        using GetCTName_t = typename GetCTName<T_Type>::type;
 
-} // namespace traits
+    } // namespace traits
 } // namespace pmacc

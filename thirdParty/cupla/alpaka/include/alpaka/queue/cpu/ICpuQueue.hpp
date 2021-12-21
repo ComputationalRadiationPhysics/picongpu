@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,48 +9,15 @@
 
 #pragma once
 
-#include <alpaka/core/BoostPredef.hpp>
+#include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/queue/cpu/IGenericThreadsQueue.hpp>
 
 namespace alpaka
 {
-    namespace event
+    namespace cpu
     {
-        class EventCpu;
-    }
-}
-
-namespace alpaka
-{
-    namespace queue
-    {
-        namespace cpu
-        {
-
-
-#if BOOST_COMP_CLANG
-    // avoid diagnostic warning: "has no out-of-line virtual method definitions; its vtable will be emitted in every translation unit [-Werror,-Wweak-vtables]"
-    // https://stackoverflow.com/a/29288300
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wweak-vtables"
-#endif
-
-            //#############################################################################
-            //! The CPU queue interface
-            class ICpuQueue
-            {
-            public:
-                //-----------------------------------------------------------------------------
-                //! enqueue the event
-                virtual void enqueue(event::EventCpu &) = 0;
-                //-----------------------------------------------------------------------------
-                //! waiting for the event
-                virtual void wait(event::EventCpu const &) = 0;
-                //-----------------------------------------------------------------------------
-                virtual ~ICpuQueue() = default;
-            };
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic pop
-#endif
-        }
-    }
-}
+        //#############################################################################
+        //! The CPU queue interface
+        using ICpuQueue = IGenericThreadsQueue<DevCpu>;
+    } // namespace cpu
+} // namespace alpaka

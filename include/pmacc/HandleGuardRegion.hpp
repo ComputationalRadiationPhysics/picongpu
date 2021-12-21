@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Alexander Grund
+/* Copyright 2015-2021 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -21,8 +21,8 @@
 
 #pragma once
 
-namespace pmacc{
-
+namespace pmacc
+{
     /**
      * Property struct that exposes policies for handling data in the guard region
      * Each police must handle both sides of the (possible) exchange:
@@ -38,14 +38,11 @@ namespace pmacc{
      *         to/from any other rank, which is the case for the boundary of the total
      *         volume when non-periodic conditions are used
      */
-    template<
-    class T_HandleExchanged,
-    class T_HandleNotExchanged
-    >
+    template<class T_HandleExchanged, class T_HandleNotExchanged>
     struct HandleGuardRegion
     {
-        typedef T_HandleExchanged    HandleExchanged;
-        typedef T_HandleNotExchanged HandleNotExchanged;
+        using HandleExchanged = T_HandleExchanged;
+        using HandleNotExchanged = T_HandleNotExchanged;
     };
 
-}  // namespace pmacc
+} // namespace pmacc

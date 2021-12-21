@@ -1,6 +1,33 @@
 Changelog
 =========
 
+0.3.0 "L'Rell"
+------------
+**Date:** 2021-08-03
+
+### Compatibility Changes:
+
+- switch to alpaka 0.6.X (heavy alpaka namespace refactoring) #184 #186 #192 #194 #199 #201
+- usage of cupla without cuda renaming macros #161 #179
+- move `cupla/math` to `cupla/device/math` #166
+- refactor math functions #162 #168
+
+### Bug Fixes:
+- fix KernelWithElementLevel documentation #159
+- fix atomic function return type #163
+- fix ambiguous namespace `device` #167
+- fix ; warnings #172
+- fix multi GPU streams handling and default stream #183
+
+### New Features:
+- math functions: erf and pow #169
+- add support for Alpaka's OpenMP 5 and OpenACC backends #196
+
+### Misc
+- CI tests for AMD GPUs #187
+- check for supported alpaka version #197
+- CI: remove travis tests #202
+
 0.2.0 "Khan"
 ------------
 **Date:** 2019-02-18

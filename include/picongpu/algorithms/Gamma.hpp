@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,35 +20,24 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/algorithms/Gamma.def"
 
 
 namespace picongpu
 {
-
-    template< typename T_PrecisionType >
-    template<
-        typename T_MomType,
-        typename T_MassType
-    >
-    HDINLINE
-    T_PrecisionType
-    Gamma< T_PrecisionType >::operator()(
-        T_MomType const & mom,
-        T_MassType const mass
-    ) const
+    template<typename T_PrecisionType>
+    template<typename T_MomType, typename T_MassType>
+    HDINLINE T_PrecisionType Gamma<T_PrecisionType>::operator()(T_MomType const& mom, T_MassType const mass) const
     {
         using namespace pmacc;
 
-        valueType const fMom2 = math::abs2( precisionCast< valueType >( mom ) );
+        valueType const fMom2 = pmacc::math::abs2(precisionCast<valueType>(mom));
         constexpr valueType c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
-        valueType const m2_c2_reci = valueType( 1.0 ) /
-            precisionCast<valueType >( mass * mass * c2 );
+        valueType const m2_c2_reci = valueType(1.0) / precisionCast<valueType>(mass * mass * c2);
 
-        return math::sqrt(
-            precisionCast<valueType >( valueType( 1.0 ) + fMom2 * m2_c2_reci )
-        );
+        return math::sqrt(precisionCast<valueType>(valueType(1.0) + fMom2 * m2_c2_reci));
     }
 
 } // namespace picongpu

@@ -1,7 +1,7 @@
 """Field ionization models implemented in PIConGPU.
 
 This file is part of the PIConGPU.
-Copyright 2019-2020 PIConGPU contributors
+Copyright 2019-2021 PIConGPU contributors
 Authors: Marco Garten
 License: GPLv3+
 """

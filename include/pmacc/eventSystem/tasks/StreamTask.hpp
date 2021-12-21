@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,20 +21,19 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/events/CudaEventHandle.hpp"
+#include "pmacc/eventSystem/tasks/ITask.hpp"
 
 namespace pmacc
 {
     class EventStream;
 
     /**
-     * Abstract base class for all tasks which depend on cuda streams.
+     * Abstract base class for all tasks which depend on cupla streams.
      */
     class StreamTask : public ITask
     {
     public:
-
         /**
          * Constructor
          *
@@ -45,24 +44,22 @@ namespace pmacc
         /**
          * Destructor.
          */
-        virtual ~StreamTask()
-        {
-        }
+        ~StreamTask() override = default;
 
         /**
-         * Returns the cuda event associated with this task.
+         * Returns the cupla event associated with this task.
          * An event has to be recorded or set before calling this.
          *
-         * @return the task's cuda event
+         * @return the task's cupla event
          */
         CudaEventHandle getCudaEventHandle() const;
 
         /**
          * Sets the
          *
-         * @param cudaEvent
+         * @param cuplaEvent
          */
-        void setCudaEventHandle(const CudaEventHandle& cudaEvent);
+        void setCudaEventHandle(const CudaEventHandle& cuplaEvent);
 
         /**
          * Returns if this task is finished.
@@ -86,25 +83,24 @@ namespace pmacc
         void setEventStream(EventStream* newStream);
 
         /**
-         * Returns the cuda stream of the underlying EventStream.
+         * Returns the cupla stream of the underlying EventStream.
          *
-         * @return the associated cuda stream
+         * @return the associated cupla stream
          */
-        cudaStream_t getCudaStream();
+        cuplaStream_t getCudaStream();
 
 
     protected:
-
         /**
          * Activates this task by recording an event on its stream.
          */
         inline void activate();
 
 
-        EventStream *stream;
-        CudaEventHandle cudaEvent;
-        bool hasCudaEventHandle;
-        bool alwaysFinished;
+        EventStream* stream{nullptr};
+        CudaEventHandle cuplaEvent;
+        bool hasCudaEventHandle{false};
+        bool alwaysFinished{false};
     };
 
-} //namespace pmacc
+} // namespace pmacc

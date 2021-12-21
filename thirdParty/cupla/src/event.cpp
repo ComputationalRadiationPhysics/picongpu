@@ -43,7 +43,7 @@ cuplaEventCreateWithFlags(
     >::get().create( flags );
 
     return cuplaSuccess;
-};
+}
 
 
 CUPLA_HEADER_ONLY_FUNC_SPEC
@@ -58,7 +58,7 @@ cuplaEventCreate(
     >::get().create( 0 );
 
     return cuplaSuccess;
-};
+}
 
 CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
@@ -73,7 +73,7 @@ cuplaEventDestroy( cuplaEvent_t event )
         return cuplaSuccess;
     else
         return cuplaErrorInitializationError;
-};
+}
 
 CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
@@ -125,7 +125,7 @@ cuplaEventSynchronize(
         cupla::AccDev,
         cupla::AccStream
     >::get().event( event );
-    ::alpaka::wait::wait( *eventObject );
+    ::alpaka::wait( *eventObject );
     return cuplaSuccess;
 }
 
@@ -138,7 +138,7 @@ cuplaEventQuery( cuplaEvent_t event )
         cupla::AccStream
     >::get().event( event );
 
-    if( ::alpaka::event::test( *eventObject ) )
+    if( ::alpaka::isComplete( *eventObject ) )
     {
         return cuplaSuccess;
     }

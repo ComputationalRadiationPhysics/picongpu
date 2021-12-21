@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera, Axel Huebl
+/* Copyright 2015-2021 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -33,13 +33,14 @@
 
 namespace picongpu
 {
-namespace particles
-{
-    /** InitPipeline defines in which order species are initialized
-     *
-     * the functors are called in order (from first to last functor)
-     */
-    using InitPipeline = bmpl::vector<>;
+    namespace particles
+    {
+        /** InitPipeline defines in which order species are initialized
+         *
+         * the functors are called in order (from first to last functor).
+         * The functors must be default-constructible and take the current time iteration as the only parameter.
+         */
+        using InitPipeline = bmpl::vector<>;
 
-} // namespace particles
+    } // namespace particles
 } // namespace picongpu

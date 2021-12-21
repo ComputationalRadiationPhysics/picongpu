@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera
+/* Copyright 2014-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -24,26 +24,25 @@
 
 namespace pmacc
 {
-namespace traits
-{
+    namespace traits
+    {
+        /** Checks if a Objects has an flag
+         *
+         * @tparam T_Object any object (class or typename)
+         * @tparam T_Key a class which is used as identifier
+         *
+         * This struct must define
+         * ::type (boost::mpl::bool_<>)
+         */
+        template<typename T_Object, typename T_Key>
+        struct HasFlag;
 
-/** Checks if a Objects has an flag
- *
- * @tparam T_Object any object (class or typename)
- * @tparam T_Key a class which is used as identifier
- *
- * This struct must define
- * ::type (boost::mpl::bool_<>)
- */
-template<typename T_Object, typename T_Key>
-struct HasFlag;
+        template<typename T_Object, typename T_Key>
+        bool hasFlag(const T_Object& obj, const T_Key& key)
+        {
+            return HasFlag<T_Object, T_Key>::type::value;
+        }
 
-template<typename T_Object, typename T_Key>
-bool hasFlag(const T_Object& obj,const T_Key& key)
-{
-    return HasFlag<T_Object,T_Key>::type::value;
-}
+    } // namespace traits
 
-}//namespace traits
-
-}//namespace pmacc
+} // namespace pmacc

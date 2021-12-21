@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -24,25 +24,24 @@
 
 #include "pmacc/dimensions/DataSpace.hpp"
 
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace pmacc
 {
-
     /**
      * Helper class for debugging DataSpaces
      *
      * @tparam DIM dimension of the DataSpace to debug.
      */
-    template <unsigned DIM>
+    template<unsigned DIM>
     class DebugDataSpace
     {
     public:
         static std::string dspToStr(DataSpace<DIM>& dsp);
     };
 
-    template <>
+    template<>
     class DebugDataSpace<DIM2>
     {
     public:
@@ -56,7 +55,7 @@ namespace pmacc
         }
     };
 
-    template <>
+    template<>
     class DebugDataSpace<DIM3>
     {
     public:
@@ -70,4 +69,4 @@ namespace pmacc
         }
     };
 
-}
+} // namespace pmacc

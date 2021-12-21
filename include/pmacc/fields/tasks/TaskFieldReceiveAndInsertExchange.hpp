@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,95 +22,87 @@
 #pragma once
 
 #include "pmacc/eventSystem/EventSystem.hpp"
-#include "pmacc/fields/tasks/FieldFactory.hpp"
+#include "pmacc/eventSystem/events/EventDataReceive.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
-#include "pmacc/eventSystem/events/EventDataReceive.hpp"
-
+#include "pmacc/fields/tasks/FieldFactory.hpp"
 
 
 namespace pmacc
 {
-
-template<class Field>
-class TaskFieldReceiveAndInsertExchange : public MPITask
-{
-public:
-
-    TaskFieldReceiveAndInsertExchange(Field &buffer, uint32_t exchange) :
-    m_buffer(buffer),
-    m_exchange(exchange),
-    m_state(Constructor),
-    initDependency(__getTransactionEvent())
+    template<class Field>
+    class TaskFieldReceiveAndInsertExchange : public MPITask
     {
-    }
-
-    virtual void init()
-    {
-        m_state = Init;
-        initDependency = m_buffer.getGridBuffer().asyncReceive(initDependency, m_exchange);
-        m_state = WaitForReceive;
-    }
-
-    bool executeIntern()
-    {
-        switch (m_state)
+    public:
+        TaskFieldReceiveAndInsertExchange(Field& buffer, uint32_t exchange)
+            : m_buffer(buffer)
+            , m_exchange(exchange)
+            , m_state(Constructor)
+            , initDependency(__getTransactionEvent())
         {
-        case Init:
-            break;
-        case WaitForReceive:
-            if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(initDependency.getTaskId()))
+        }
+
+        void init() override
+        {
+            m_state = Init;
+            initDependency = m_buffer.getGridBuffer().asyncReceive(initDependency, m_exchange);
+            m_state = WaitForReceive;
+        }
+
+        bool executeIntern() override
+        {
+            switch(m_state)
             {
-                m_state = Finished;
+            case Init:
+                break;
+            case WaitForReceive:
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(initDependency.getTaskId()))
+                {
+                    m_state = Finished;
+                    return true;
+                }
+                break;
+            case Finished:
                 return true;
+            default:
+                return false;
             }
-            break;
-        case Finished:
-            return true;
-        default:
+
             return false;
         }
 
-        return false;
-    }
+        ~TaskFieldReceiveAndInsertExchange() override
+        {
+            notify(this->myId, RECVFINISHED, nullptr);
+        }
 
-    virtual ~TaskFieldReceiveAndInsertExchange()
-    {
-        notify(this->myId, RECVFINISHED, nullptr);
-    }
+        void event(id_t, EventType, IEventData*) override
+        {
+        }
 
-    void event(id_t, EventType, IEventData*)
-    {
-    }
+        std::string toString() override
+        {
+            std::ostringstream stateNumber;
+            stateNumber << m_state;
+            return std::string("TaskFieldReceiveAndInsertExchange/") + stateNumber.str();
+        }
 
-    std::string toString()
-    {
-        std::ostringstream stateNumber;
-        stateNumber << m_state;
-        return std::string("TaskFieldReceiveAndInsertExchange/") + stateNumber.str();
-    }
+    private:
+        enum state_t
+        {
+            Constructor,
+            Init,
+            WaitForReceive,
+            Finished
 
-private:
+        };
 
-    enum state_t
-    {
-        Constructor,
-        Init,
-        WaitForReceive,
-        Finished
 
+        Field& m_buffer;
+        state_t m_state;
+        EventTask insertEvent;
+        EventTask initDependency;
+        uint32_t m_exchange;
     };
 
-
-
-
-    Field& m_buffer;
-    state_t m_state;
-    EventTask insertEvent;
-    EventTask initDependency;
-    uint32_t m_exchange;
-};
-
-} //namespace pmacc
-
-
+} // namespace pmacc

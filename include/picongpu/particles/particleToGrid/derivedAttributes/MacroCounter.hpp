@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Axel Huebl
+/* Copyright 2017-2021 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -19,34 +19,31 @@
 
 #pragma once
 
-#include "picongpu/particles/particleToGrid/derivedAttributes/MacroCounter.def"
-
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/particleToGrid/derivedAttributes/MacroCounter.def"
 
 
 namespace picongpu
 {
-namespace particles
-{
-namespace particleToGrid
-{
-namespace derivedAttributes
-{
-
-    HDINLINE float1_64
-    MacroCounter::getUnit() const
+    namespace particles
     {
-        return 1.0;
-    }
+        namespace particleToGrid
+        {
+            namespace derivedAttributes
+            {
+                HDINLINE float1_64 MacroCounter::getUnit() const
+                {
+                    return 1.0;
+                }
 
-    template< class T_Particle >
-    DINLINE float_X
-    MacroCounter::operator()( T_Particle& particle ) const
-    {
-        /* return attribute */
-        return 1.0;
-    }
-} // namespace derivedAttributes
-} // namespace particleToGrid
-} // namespace particles
+                template<class T_Particle>
+                DINLINE float_X MacroCounter::operator()(T_Particle& particle) const
+                {
+                    /* return attribute */
+                    return 1.0;
+                }
+            } // namespace derivedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
 } // namespace picongpu

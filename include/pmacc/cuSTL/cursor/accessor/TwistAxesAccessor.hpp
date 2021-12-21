@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,32 +21,30 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/math/vector/TwistComponents.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {
-namespace cursor
-{
-
-template<typename TCursor, typename Axes>
-struct TwistAxesAccessor
-{
-    typedef typename math::result_of::TwistComponents<
-        Axes, typename TCursor::ValueType>::type type;
-
-    /** Returns a reference to the result of '*cursor' (with twisted axes).
-     *
-     * Be aware that the underlying cursor must not be a temporary object if '*cursor'
-     * refers to something inside the cursor.
-     */
-    HDINLINE type operator()(TCursor& cursor)
+    namespace cursor
     {
-        return math::twistComponents<Axes>(*cursor);
-    }
+        template<typename TCursor, typename Axes>
+        struct TwistAxesAccessor
+        {
+            using Reference = typename math::result_of::TwistComponents<Axes, typename TCursor::ValueType>::type;
 
-    ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
-};
+            /** Returns a reference to the result of '*cursor' (with twisted axes).
+             *
+             * Be aware that the underlying cursor must not be a temporary object if '*cursor'
+             * refers to something inside the cursor.
+             */
+            HDINLINE Reference operator()(TCursor& cursor)
+            {
+                return math::twistComponents<Axes>(*cursor);
+            }
 
-} // cursor
-} // pmacc
+            ///\todo: implement const method here with a const TCursor& argument and 'Reference' as return type.
+        };
+
+    } // namespace cursor
+} // namespace pmacc

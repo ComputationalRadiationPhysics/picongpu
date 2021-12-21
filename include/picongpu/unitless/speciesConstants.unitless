@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera
+/* Copyright 2015-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,10 +22,9 @@
 
 namespace picongpu
 {
-
     //! Charge of base particle
-    constexpr float_X BASE_CHARGE = (float_X) (SI::BASE_CHARGE_SI / UNIT_CHARGE);
+    constexpr float_X BASE_CHARGE = (float_X)(SI::BASE_CHARGE_SI / UNIT_CHARGE);
     //! Mass of base particle
-    constexpr float_X BASE_MASS = (float_X) (SI::BASE_MASS_SI / UNIT_MASS);
+    constexpr float_X BASE_MASS = (float_X)(SI::BASE_MASS_SI / UNIT_MASS);
 
-} //namespace picongpu
+} // namespace picongpu

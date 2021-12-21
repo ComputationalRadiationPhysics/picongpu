@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -26,56 +26,51 @@
 #include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 
-
-
 #include <iomanip>
 
 namespace pmacc
 {
-
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class HostBuffer;
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class DeviceBuffer;
 
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class TaskCopyDeviceToHostBase : public StreamTask
     {
     public:
-
-        TaskCopyDeviceToHostBase( DeviceBuffer<TYPE, DIM>& src, HostBuffer<TYPE, DIM>& dst) :
-        StreamTask()
+        TaskCopyDeviceToHostBase(DeviceBuffer<TYPE, DIM>& src, HostBuffer<TYPE, DIM>& dst) : StreamTask()
         {
-            this->host =  & dst;
-            this->device =  & src;
+            this->host = &dst;
+            this->device = &src;
         }
 
-        virtual ~TaskCopyDeviceToHostBase()
+        ~TaskCopyDeviceToHostBase() override
         {
             notify(this->myId, COPYDEVICE2HOST, nullptr);
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
             return isFinished();
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        std::string toString()
+        std::string toString() override
         {
             return "TaskCopyDeviceToHost";
         }
 
-        virtual void init()
+        void init() override
         {
             size_t current_size = device->getCurrentSize();
             host->setCurrentSize(current_size);
             DataSpace<DIM> devCurrentSize = device->getCurrentDataSpace(current_size);
-            if (host->is1D() && device->is1D())
-                fastCopy(device->getPointer(),host->getPointer(),  devCurrentSize.productOfComponents());
+            if(host->is1D() && device->is1D())
+                fastCopy(device->getPointer(), host->getPointer(), devCurrentSize.productOfComponents());
             else
                 copy(devCurrentSize);
 
@@ -83,118 +78,101 @@ namespace pmacc
         }
 
     protected:
+        virtual void copy(DataSpace<DIM>& devCurrentSize) = 0;
 
-        virtual void copy(DataSpace<DIM> &devCurrentSize) = 0;
-
-        void fastCopy(TYPE* src,TYPE* dst,  size_t size)
+        void fastCopy(TYPE* src, TYPE* dst, size_t size)
         {
-            CUDA_CHECK(cudaMemcpyAsync(dst,
-                                       src,
-                                       size * sizeof (TYPE),
-                                       cudaMemcpyDeviceToHost,
-                                       this->getCudaStream()));
+            CUDA_CHECK(
+                cuplaMemcpyAsync(dst, src, size * sizeof(TYPE), cuplaMemcpyDeviceToHost, this->getCudaStream()));
         }
 
-        HostBuffer<TYPE, DIM> *host;
-        DeviceBuffer<TYPE, DIM> *device;
+        HostBuffer<TYPE, DIM>* host;
+        DeviceBuffer<TYPE, DIM>* device;
     };
 
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class TaskCopyDeviceToHost;
 
-    template <class TYPE>
+    template<class TYPE>
     class TaskCopyDeviceToHost<TYPE, DIM1> : public TaskCopyDeviceToHostBase<TYPE, DIM1>
     {
     public:
-
-        TaskCopyDeviceToHost( DeviceBuffer<TYPE, DIM1>& src, HostBuffer<TYPE, DIM1>& dst) :
-        TaskCopyDeviceToHostBase<TYPE, DIM1>(src, dst)
+        TaskCopyDeviceToHost(DeviceBuffer<TYPE, DIM1>& src, HostBuffer<TYPE, DIM1>& dst)
+            : TaskCopyDeviceToHostBase<TYPE, DIM1>(src, dst)
         {
         }
 
     private:
-
-        virtual void copy(DataSpace<DIM1> &devCurrentSize)
+        void copy(DataSpace<DIM1>& devCurrentSize) override
         {
-
-            CUDA_CHECK(cudaMemcpyAsync(this->host->getBasePointer(),
-                                       this->device->getPointer(),
-                                       devCurrentSize[0] * sizeof (TYPE),
-                                       cudaMemcpyDeviceToHost,
-                                       this->getCudaStream()));
-
+            CUDA_CHECK(cuplaMemcpyAsync(
+                this->host->getBasePointer(),
+                this->device->getPointer(),
+                devCurrentSize[0] * sizeof(TYPE),
+                cuplaMemcpyDeviceToHost,
+                this->getCudaStream()));
         }
-
     };
 
-    template <class TYPE>
+    template<class TYPE>
     class TaskCopyDeviceToHost<TYPE, DIM2> : public TaskCopyDeviceToHostBase<TYPE, DIM2>
     {
     public:
-
-        TaskCopyDeviceToHost(DeviceBuffer<TYPE, DIM2>& src, HostBuffer<TYPE, DIM2>& dst) :
-        TaskCopyDeviceToHostBase<TYPE, DIM2>(src, dst)
+        TaskCopyDeviceToHost(DeviceBuffer<TYPE, DIM2>& src, HostBuffer<TYPE, DIM2>& dst)
+            : TaskCopyDeviceToHostBase<TYPE, DIM2>(src, dst)
         {
         }
 
     private:
-
-        virtual void copy(DataSpace<DIM2> &devCurrentSize)
+        void copy(DataSpace<DIM2>& devCurrentSize) override
         {
-            CUDA_CHECK(cudaMemcpy2DAsync(this->host->getBasePointer(),
-                                         this->host->getDataSpace()[0] * sizeof (TYPE), /*this is pitch*/
-                                         this->device->getPointer(),
-                                         this->device->getPitch(), /*this is pitch*/
-                                         devCurrentSize[0] * sizeof (TYPE),
-                                         devCurrentSize[1],
-                                         cudaMemcpyDeviceToHost,
-                                         this->getCudaStream()));
-
+            CUDA_CHECK(cuplaMemcpy2DAsync(
+                this->host->getBasePointer(),
+                this->host->getDataSpace()[0] * sizeof(TYPE), /*this is pitch*/
+                this->device->getPointer(),
+                this->device->getPitch(), /*this is pitch*/
+                devCurrentSize[0] * sizeof(TYPE),
+                devCurrentSize[1],
+                cuplaMemcpyDeviceToHost,
+                this->getCudaStream()));
         }
-
     };
 
-    template <class TYPE>
+    template<class TYPE>
     class TaskCopyDeviceToHost<TYPE, DIM3> : public TaskCopyDeviceToHostBase<TYPE, DIM3>
     {
     public:
-
-        TaskCopyDeviceToHost( DeviceBuffer<TYPE, DIM3>& src, HostBuffer<TYPE, DIM3>& dst) :
-        TaskCopyDeviceToHostBase<TYPE, DIM3>(src, dst)
+        TaskCopyDeviceToHost(DeviceBuffer<TYPE, DIM3>& src, HostBuffer<TYPE, DIM3>& dst)
+            : TaskCopyDeviceToHostBase<TYPE, DIM3>(src, dst)
         {
         }
 
     private:
-
-        virtual void copy(DataSpace<DIM3> &devCurrentSize)
+        void copy(DataSpace<DIM3>& devCurrentSize) override
         {
-            cudaPitchedPtr hostPtr;
-            hostPtr.pitch = this->host->getDataSpace()[0] * sizeof (TYPE);
+            cuplaPitchedPtr hostPtr;
+            hostPtr.pitch = this->host->getDataSpace()[0] * sizeof(TYPE);
             hostPtr.ptr = this->host->getBasePointer();
-            hostPtr.xsize = this->host->getDataSpace()[0] * sizeof (TYPE);
+            hostPtr.xsize = this->host->getDataSpace()[0] * sizeof(TYPE);
             hostPtr.ysize = this->host->getDataSpace()[1];
 
-            cudaMemcpy3DParms params;
+            cuplaMemcpy3DParms params;
             params.srcArray = nullptr;
-            params.srcPos = make_cudaPos(this->device->getOffset()[0] * sizeof (TYPE),
-                                         this->device->getOffset()[1],
-                                         this->device->getOffset()[2]);
+            params.srcPos = make_cuplaPos(
+                this->device->getOffset()[0] * sizeof(TYPE),
+                this->device->getOffset()[1],
+                this->device->getOffset()[2]);
             params.srcPtr = this->device->getCudaPitched();
 
             params.dstArray = nullptr;
-            params.dstPos = make_cudaPos(0, 0, 0);
+            params.dstPos = make_cuplaPos(0, 0, 0);
             params.dstPtr = hostPtr;
 
-            params.extent = make_cudaExtent(
-                                            devCurrentSize[0] * sizeof (TYPE),
-                                            devCurrentSize[1],
-                                            devCurrentSize[2]);
-            params.kind = cudaMemcpyDeviceToHost;
+            params.extent = make_cuplaExtent(devCurrentSize[0] * sizeof(TYPE), devCurrentSize[1], devCurrentSize[2]);
+            params.kind = cuplaMemcpyDeviceToHost;
 
-            CUDA_CHECK(cudaMemcpy3DAsync(&params, this->getCudaStream()));
-
+            CUDA_CHECK(cuplaMemcpy3DAsync(&params, this->getCudaStream()));
         }
-
     };
 
-} //namespace pmacc
+} // namespace pmacc

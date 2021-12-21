@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera, Axel Huebl
+/* Copyright 2014-2021 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -22,20 +22,18 @@
 //#include "picongpu/particles/manipulators/IManipulator.def"
 //#include "picongpu/particles/manipulators/NoneImpl.def"
 
-#include "picongpu/particles/manipulators/IUnary.def"
 #include "picongpu/particles/manipulators/IBinary.def"
-
+#include "picongpu/particles/manipulators/IUnary.def"
+#include "picongpu/particles/manipulators/binary/Assign.def"
+#include "picongpu/particles/manipulators/binary/DensityWeighting.def"
+#include "picongpu/particles/manipulators/binary/ProtonTimesWeighting.def"
+#include "picongpu/particles/manipulators/binary/UnboundElectronsTimesWeighting.def"
 #include "picongpu/particles/manipulators/generic/Free.def"
 #include "picongpu/particles/manipulators/generic/FreeRng.def"
 #include "picongpu/particles/manipulators/generic/None.def"
-
-#include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.def"
-#include "picongpu/particles/manipulators/unary/Temperature.def"
-#include "picongpu/particles/manipulators/unary/Drift.def"
 #include "picongpu/particles/manipulators/unary/CopyAttribute.def"
+#include "picongpu/particles/manipulators/unary/Drift.def"
+#include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.def"
+#include "picongpu/particles/manipulators/unary/FreeTotalCellOffsetRng.def"
 #include "picongpu/particles/manipulators/unary/RandomPosition.def"
-
-#include "picongpu/particles/manipulators/binary/DensityWeighting.def"
-#include "picongpu/particles/manipulators/binary/Assign.def"
-#include "picongpu/particles/manipulators/binary/ProtonTimesWeighting.def"
-#include "picongpu/particles/manipulators/binary/UnboundElectronsTimesWeighting.def"
+#include "picongpu/particles/manipulators/unary/Temperature.def"

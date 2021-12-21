@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera, Axel Huebl
+/* Copyright 2015-2021 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -33,48 +33,25 @@
 
 namespace picongpu
 {
-namespace particles
-{
-
-    /** InitPipeline defines in which order species are initialized
-     *
-     * the functors are called in order (from first to last functor)
-     */
-    using InitPipeline = bmpl::vector<
-        // Generate Densities
-        CreateDensity<
-            densityProfiles::Homogenous,
-            startPosition::Quiet2ppc,
-            CopperIons
-        >,
-        ManipulateDerive<
-            manipulators::binary::DensityWeighting,
-            CopperIons,
-            BulkElectrons
-        >,
-        ManipulateDerive<
-            manipulators::binary::DensityWeighting,
-            CopperIons,
-            PromptElectrons
-        >,
-        // Set the Cu ions to Cu_1+
-        Manipulate<
-            manipulators::OnceIonized,
-            CopperIons
-        >,
-        // Set initial temperature of bulk electrons
-        Manipulate<
-            manipulators::AddTemperature,
-            BulkElectrons
-        >,
-        /* Set initial drift (directed in this case) of delta-distributed 200 keV
-         * prompt electrons
+    namespace particles
+    {
+        /** InitPipeline defines in which order species are initialized
+         *
+         * the functors are called in order (from first to last functor)
          */
-        Manipulate<
-            manipulators::Assign200keVDrift,
-            PromptElectrons
-        >
-    >;
+        using InitPipeline = bmpl::vector<
+            // Generate Densities
+            CreateDensity<densityProfiles::Homogenous, startPosition::Quiet2ppc, CopperIons>,
+            ManipulateDerive<manipulators::binary::DensityWeighting, CopperIons, BulkElectrons>,
+            ManipulateDerive<manipulators::binary::DensityWeighting, CopperIons, PromptElectrons>,
+            // Set the Cu ions to Cu_1+
+            Manipulate<manipulators::OnceIonized, CopperIons>,
+            // Set initial temperature of bulk electrons
+            Manipulate<manipulators::AddTemperature, BulkElectrons>,
+            /* Set initial drift (directed in this case) of delta-distributed 200 keV
+             * prompt electrons
+             */
+            Manipulate<manipulators::Assign200keVDrift, PromptElectrons>>;
 
-} // namespace particles
+    } // namespace particles
 } // namespace picongpu

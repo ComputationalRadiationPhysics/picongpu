@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2014-2021 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -25,22 +25,21 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-/* Sticks two navigators together resulting in a new navigator.
- *
- * \tparam NaviA first navigator to be called
- * \tparam NaviB second navigator to be called
- */
-template<typename NaviA, typename NaviB>
-struct StackedNavigator
-{
-    HDINLINE int operator()(int component) const
+    namespace math
     {
-        return NaviB()(NaviA()(component));
-    }
-};
+        /* Sticks two navigators together resulting in a new navigator.
+         *
+         * @tparam NaviA first navigator to be called
+         * @tparam NaviB second navigator to be called
+         */
+        template<typename NaviA, typename NaviB>
+        struct StackedNavigator
+        {
+            HDINLINE int operator()(int component) const
+            {
+                return NaviB()(NaviA()(component));
+            }
+        };
 
-} // math
-} // PMacc
+    } // namespace math
+} // namespace pmacc

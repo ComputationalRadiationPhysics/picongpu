@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Alexander Grund
+/* Copyright 2016-2021 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -23,18 +23,23 @@
 
 #include "IdProvider.def"
 #include "pmacc/Environment.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/algorithms/reverseBits.hpp"
-#include "pmacc/nvidia/atomic.hpp"
-#include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 #include "pmacc/debug/PMaccVerbose.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/kernel/atomic.hpp"
+#include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 
 namespace pmacc
 {
-
-     namespace idDetail {
-
+    namespace idDetail
+    {
         DEVICEONLY uint64_cu nextId;
+#ifdef ALPAKA_ACC_ANY_BT_OACC_ENABLED
+#    pragma acc declare device_resident(::pmacc::idDetail::nextId)
+#endif
+#ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
+#    pragma omp declare target(::pmacc::idDetail::nextId)
+#endif
 
         struct KernelSetNextId
         {
@@ -63,7 +68,7 @@ namespace pmacc
             }
         };
 
-    }  // namespace idDetail
+    } // namespace idDetail
 
     template<unsigned T_dim>
     uint64_t IdProvider<T_dim>::m_maxNumProc;
@@ -94,9 +99,8 @@ namespace pmacc
         m_startId = state.startId;
         if(m_maxNumProc < state.maxNumProc)
             m_maxNumProc = state.maxNumProc;
-        log<ggLog::INFO>("(Re-)Initialized IdProvider with id=%1%/%2% and maxNumProc=%3%/%4%")
-                % state.nextId % state.startId
-                % state.maxNumProc % m_maxNumProc;
+        log<ggLog::INFO>("(Re-)Initialized IdProvider with id=%1%/%2% and maxNumProc=%3%/%4%") % state.nextId
+            % state.startId % state.maxNumProc % m_maxNumProc;
     }
 
     template<unsigned T_dim>
@@ -115,7 +119,7 @@ namespace pmacc
     template<unsigned T_dim>
     HDINLINE uint64_t IdProvider<T_dim>::getNewId()
     {
-        return static_cast<uint64_t>(nvidia::atomicAllInc(&idDetail::nextId));
+        return static_cast<uint64_t>(kernel::atomicAllInc(&idDetail::nextId));
     }
 
     template<unsigned T_dim>
@@ -127,7 +131,8 @@ namespace pmacc
          * when counting the bits from 1 = right most bit
          * So first we calculate n, then remove the lowest bits of the next id so we have only the n upper bits
          * If any of them is non-zero, it is an overflow and we can have duplicate ids.
-         * If not, then all ids are probably unique (still a chance, the id is overflown so much, that detection is impossible)
+         * If not, then all ids are probably unique (still a chance, the id is overflown so much, that detection is
+         * impossible)
          */
         uint64_t tmp = curState.maxNumProc - 1;
         int32_t bitsToCheck = 0;
@@ -182,4 +187,4 @@ namespace pmacc
         return static_cast<uint64_t>(newIdBuf.getHostBuffer().getDataBox()(0));
     }
 
-}  // namespace pmacc
+} // namespace pmacc

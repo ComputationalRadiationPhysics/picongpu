@@ -36,9 +36,7 @@ then
         # Plugins (optional)
         module load hdf5/1.8.11-gcc-p
         export CMAKE_PREFIX_PATH=$HOME/lib/pngwriter:$CMAKE_PREFIX_PATH
-        export CMAKE_PREFIX_PATH=$HOME/lib/libSplash:$CMAKE_PREFIX_PATH
         export LD_LIBRARY_PATH=$HOME/lib/pngwriter/lib:$LD_LIBRARY_PATH
-        export LD_LIBRARY_PATH=$HOME/lib/libSplash/lib:$LD_LIBRARY_PATH
 
         # Debug Tools
         #module load valgrind/3.10.1
@@ -62,7 +60,6 @@ export PATH=$HOME/bin:$PATH
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/bin
-export PATH=$PATH:$PICSRC/src/splash2txt/build
 export PATH=$PATH:$PICSRC/src/tools/bin
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH

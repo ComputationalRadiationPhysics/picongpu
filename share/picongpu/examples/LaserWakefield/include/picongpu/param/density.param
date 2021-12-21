@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Felix Schmitt,
  *                     Richard Pausch, Marco Garten
  *
  * This file is part of PIConGPU.
@@ -26,59 +26,57 @@
 
 namespace picongpu
 {
-namespace SI
-{
-    /** Base density in particles per m^3 in the density profiles.
-     *
-     * This is often taken as reference maximum density in normalized profiles.
-     * Individual particle species can define a `densityRatio` flag relative
-     * to this value.
-     *
-     * unit: ELEMENTS/m^3
-     */
+    namespace SI
+    {
+        /** Base density in particles per m^3 in the density profiles.
+         *
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
+         *
+         * unit: ELEMENTS/m^3
+         */
 #ifndef PARAM_BASE_DENSITY_SI
-#   define PARAM_BASE_DENSITY_SI 1.e25
+#    define PARAM_BASE_DENSITY_SI 1.e25
 #endif
-     constexpr float_64 BASE_DENSITY_SI = PARAM_BASE_DENSITY_SI;
-}
+        constexpr float_64 BASE_DENSITY_SI = PARAM_BASE_DENSITY_SI;
+    } // namespace SI
 
-namespace densityProfiles
-{
-    PMACC_STRUCT(GaussianParameter,
-        /** Profile Formula:
-         *   constexpr float_X exponent = abs((y - gasCenter_SI) / gasSigma_SI);
-         *   constexpr float_X density = exp(gasFactor * pow(exponent, gasPower));
-         *
-         *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
-         *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
-         *   and exponent = 0.0  for gasCenterLeft_SI < y < gasCenterRight_SI
-         */
-        (PMACC_C_VALUE(float_X, gasFactor, -1.0))
-        (PMACC_C_VALUE(float_X, gasPower, 4.0))
+    namespace densityProfiles
+    {
+        PMACC_STRUCT(
+            GaussianParameter,
+            /** Profile Formula:
+             *   constexpr float_X exponent = abs((y - gasCenter_SI) / gasSigma_SI);
+             *   constexpr float_X density = exp(gasFactor * pow(exponent, gasPower));
+             *
+             *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
+             *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
+             *   and exponent = 0.0  for gasCenterLeft_SI < y < gasCenterRight_SI
+             */
+            (PMACC_C_VALUE(float_X, gasFactor, -1.0))(PMACC_C_VALUE(float_X, gasPower, 4.0))
 
-        /** height of vacuum area on top border
-         *
-         *  this vacuum is important because of the laser initialization,
-         *  which is done in the first cells of the simulation and
-         *  assumes a charge-free volume
-         *  unit: cells
-         */
-        (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
+            /** height of vacuum area on top border
+             *
+             *  this vacuum is important because of the laser initialization,
+             *  which is done in the first cells of the simulation and
+             *  assumes a charge-free volume
+             *  unit: cells
+             */
+            (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
 
-        /** The central position of the gas distribution
-          *  unit: meter
-          */
-        (PMACC_C_VALUE(float_64, gasCenterLeft_SI, 8.0e-5))
-        (PMACC_C_VALUE(float_64, gasCenterRight_SI, 10.0e-5))
+            /** The central position of the gas distribution
+             *  unit: meter
+             */
+            (PMACC_C_VALUE(float_64, gasCenterLeft_SI, 8.0e-5))(PMACC_C_VALUE(float_64, gasCenterRight_SI, 10.0e-5))
 
-        /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
-          *  unit: meter
-          */
-        (PMACC_C_VALUE(float_64, gasSigmaLeft_SI, 8.0e-5))
-        (PMACC_C_VALUE(float_64, gasSigmaRight_SI, 8.0e-5))
-    ); /* struct GaussianParam */
+            /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
+             *  unit: meter
+             */
+            (PMACC_C_VALUE(float_64, gasSigmaLeft_SI, 8.0e-5))(
+                PMACC_C_VALUE(float_64, gasSigmaRight_SI, 8.0e-5))); /* struct GaussianParam */
 
-    /* definition of density with Gaussian profile */
-    using Gaussian = GaussianImpl< GaussianParameter >;
-}
-}
+        /* definition of density with Gaussian profile */
+        using Gaussian = GaussianImpl<GaussianParameter>;
+    } // namespace densityProfiles
+} // namespace picongpu

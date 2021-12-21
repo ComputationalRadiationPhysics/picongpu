@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2020 Axel Huebl, Rene Widera, Richard Pausch
+# Copyright 2013-2021 Axel Huebl, Rene Widera, Richard Pausch, Jakob Trojok
 #
 # This file is part of PIConGPU.
 #
@@ -30,7 +30,7 @@
 #   - increase by 1, no gaps
 
 flags[0]=""
-flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_LASERPROFILE=ExpRampWithPrepulse'"
+flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_LASERPROFILE=ExpRampWithPrepulse;-DPARAM_IONIZATIONCURRENT=EnergyConservation'"
 
 ################################################################################
 # execution

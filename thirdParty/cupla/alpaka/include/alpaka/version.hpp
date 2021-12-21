@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, Erik Zenker
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,8 +12,8 @@
 #include <boost/predef/version_number.h>
 
 #define ALPAKA_VERSION_MAJOR 0
-#define ALPAKA_VERSION_MINOR 4
-#define ALPAKA_VERSION_PATCH 0
+#define ALPAKA_VERSION_MINOR 6
+#define ALPAKA_VERSION_PATCH 1
 
 //! The alpaka library version number
 #define ALPAKA_VERSION BOOST_VERSION_NUMBER(ALPAKA_VERSION_MAJOR, ALPAKA_VERSION_MINOR, ALPAKA_VERSION_PATCH)

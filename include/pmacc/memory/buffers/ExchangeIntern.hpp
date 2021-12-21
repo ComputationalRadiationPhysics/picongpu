@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -21,17 +21,15 @@
 
 #pragma once
 
+#include "pmacc/assert.hpp"
 #include "pmacc/dimensions/GridLayout.hpp"
-#include "pmacc/mappings/simulation/GridController.hpp"
-#include "pmacc/memory/buffers/Exchange.hpp"
-#include "pmacc/memory/dataTypes/Mask.hpp"
-#include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
-#include "pmacc/memory/buffers/HostBufferIntern.hpp"
-#include "pmacc/memory/MakeUnique.hpp"
-
 #include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/eventSystem/tasks/TaskReceive.hpp"
-#include "pmacc/assert.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
+#include "pmacc/memory/buffers/Exchange.hpp"
+#include "pmacc/memory/buffers/HostBufferIntern.hpp"
+#include "pmacc/memory/dataTypes/Mask.hpp"
 #include "pmacc/types.hpp"
 
 #include <memory>
@@ -39,20 +37,26 @@
 
 namespace pmacc
 {
-
-    /**
-     * Internal Exchange implementation.
+    /** Internal Exchange implementation.
+     *
+     * There will be no host double buffer available if MPI direct for PMacc is enabled.
      */
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class ExchangeIntern : public Exchange<TYPE, DIM>
     {
     public:
-
-        ExchangeIntern(DeviceBuffer<TYPE, DIM>& source, GridLayout<DIM> memoryLayout, DataSpace<DIM> guardingCells, uint32_t exchange,
-                       uint32_t communicationTag, uint32_t area = BORDER, bool sizeOnDevice = false) :
-        Exchange<TYPE, DIM>(exchange, communicationTag)
+        ExchangeIntern(
+            DeviceBuffer<TYPE, DIM>& source,
+            GridLayout<DIM> memoryLayout,
+            DataSpace<DIM> guardingCells,
+            uint32_t exchange,
+            uint32_t communicationTag,
+            uint32_t area = BORDER,
+            bool sizeOnDevice = false)
+            : Exchange<TYPE, DIM>(exchange, communicationTag)
+            , deviceDoubleBuffer(nullptr)
+            , hostBuffer(nullptr)
         {
-
             PMACC_ASSERT(!guardingCells.isOneDimensionGreaterThan(memoryLayout.getGuard()));
 
             DataSpace<DIM> tmp_size = memoryLayout.getDataSpaceWithoutGuarding();
@@ -62,62 +66,56 @@ namespace pmacc
 
             DataSpace<DIM> exchangeDimensions = exchangeTypeToDim(exchange);
 
-            for (uint32_t dim = 0; dim < DIM; dim++)
+            for(uint32_t dim = 0; dim < DIM; dim++)
             {
-                if (DIM > dim && exchangeDimensions[dim] == 1)
+                if(DIM > dim && exchangeDimensions[dim] == 1)
                     tmp_size[dim] = guardingCells[dim];
             }
 
             /*This is only a pointer to other device data
              */
             using DeviceBuffer = DeviceBufferIntern<TYPE, DIM>;
-            deviceBuffer = memory::makeUnique<DeviceBuffer>(
+            deviceBuffer = std::make_unique<DeviceBuffer>(
                 source,
                 tmp_size,
-                exchangeTypeToOffset(
-                    exchange,
-                    memoryLayout,
-                    guardingCells,
-                    area
-                ),
-                sizeOnDevice
-            );
-            if (DIM > DIM1)
+                exchangeTypeToOffset(exchange, memoryLayout, guardingCells, area),
+                sizeOnDevice);
+            if(DIM > DIM1)
             {
                 /*create double buffer on gpu for faster memory transfers*/
-                deviceDoubleBuffer = memory::makeUnique<DeviceBuffer>(
-                    tmp_size,
-                    false,
-                    true
-                );
+                deviceDoubleBuffer = std::make_unique<DeviceBuffer>(tmp_size, false, true);
             }
 
-            using HostBuffer = HostBufferIntern<TYPE, DIM>;
-            hostBuffer = memory::makeUnique<HostBuffer>(tmp_size);
+            if(!Environment<>::get().isMpiDirectEnabled())
+            {
+                using HostBuffer = HostBufferIntern<TYPE, DIM>;
+                hostBuffer = std::make_unique<HostBuffer>(tmp_size);
+            }
         }
 
-        ExchangeIntern(DataSpace<DIM> exchangeDataSpace, uint32_t exchange,
-                       uint32_t communicationTag, bool sizeOnDevice = false) :
-        Exchange<TYPE, DIM>(exchange, communicationTag)
+        ExchangeIntern(
+            DataSpace<DIM> exchangeDataSpace,
+            uint32_t exchange,
+            uint32_t communicationTag,
+            bool sizeOnDevice = false)
+            : Exchange<TYPE, DIM>(exchange, communicationTag)
+            , deviceDoubleBuffer(nullptr)
+            , hostBuffer(nullptr)
         {
-            using DeviceBuffer = DeviceBufferIntern<TYPE, DIM >;
-            deviceBuffer = memory::makeUnique<DeviceBuffer>(
-                exchangeDataSpace,
-                sizeOnDevice
-            );
+            using DeviceBuffer = DeviceBufferIntern<TYPE, DIM>;
+            deviceBuffer = std::make_unique<DeviceBuffer>(exchangeDataSpace, sizeOnDevice);
             //  this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, sizeOnDevice,true);
-            if (DIM > DIM1)
+            if(DIM > DIM1)
             {
                 /*create double buffer on gpu for faster memory transfers*/
-                deviceDoubleBuffer = memory::makeUnique<DeviceBuffer>(
-                    exchangeDataSpace,
-                    false,
-                    true
-                );
+                deviceDoubleBuffer = std::make_unique<DeviceBuffer>(exchangeDataSpace, false, true);
             }
 
-            using HostBuffer = HostBufferIntern<TYPE, DIM >;
-            hostBuffer = memory::makeUnique<HostBuffer>(exchangeDataSpace);
+            if(!Environment<>::get().isMpiDirectEnabled())
+            {
+                using HostBuffer = HostBufferIntern<TYPE, DIM>;
+                hostBuffer = std::make_unique<HostBuffer>(exchangeDataSpace);
+            }
         }
 
         /**
@@ -131,13 +129,13 @@ namespace pmacc
 
             Mask exchangeMask(exchange);
 
-            if (exchangeMask.containsExchangeType(LEFT) || exchangeMask.containsExchangeType(RIGHT))
+            if(exchangeMask.containsExchangeType(LEFT) || exchangeMask.containsExchangeType(RIGHT))
                 result[0] = 1;
 
-            if (DIM > DIM1 && (exchangeMask.containsExchangeType(TOP) || exchangeMask.containsExchangeType(BOTTOM)))
+            if(DIM > DIM1 && (exchangeMask.containsExchangeType(TOP) || exchangeMask.containsExchangeType(BOTTOM)))
                 result[1] = 1;
 
-            if (DIM > DIM2 && (exchangeMask.containsExchangeType(FRONT) || exchangeMask.containsExchangeType(BACK)))
+            if(DIM > DIM2 && (exchangeMask.containsExchangeType(FRONT) || exchangeMask.containsExchangeType(BACK)))
                 result[2] = 1;
 
             return result;
@@ -145,19 +143,22 @@ namespace pmacc
 
         virtual ~ExchangeIntern() = default;
 
-        DataSpace<DIM> exchangeTypeToOffset(uint32_t exchange, GridLayout<DIM> &memoryLayout,
-                                            DataSpace<DIM> guardingCells, uint32_t area) const
+        DataSpace<DIM> exchangeTypeToOffset(
+            uint32_t exchange,
+            GridLayout<DIM>& memoryLayout,
+            DataSpace<DIM> guardingCells,
+            uint32_t area) const
         {
             DataSpace<DIM> size = memoryLayout.getDataSpace();
             DataSpace<DIM> border = memoryLayout.getGuard();
             Mask mask(exchange);
             DataSpace<DIM> tmp_offset;
-            if (DIM >= DIM1)
+            if(DIM >= DIM1)
             {
-                if (mask.containsExchangeType(RIGHT))
+                if(mask.containsExchangeType(RIGHT))
                 {
                     tmp_offset[0] = size[0] - border[0] - guardingCells[0];
-                    if (area == GUARD)
+                    if(area == GUARD)
                     {
                         tmp_offset[0] += guardingCells[0];
                     }
@@ -166,18 +167,18 @@ namespace pmacc
                 else
                 {
                     tmp_offset[0] = border[0];
-                    if (area == GUARD && mask.containsExchangeType(LEFT))
+                    if(area == GUARD && mask.containsExchangeType(LEFT))
                     {
                         tmp_offset[0] -= guardingCells[0];
                     }
                 }
             }
-            if (DIM >= DIM2)
+            if(DIM >= DIM2)
             {
-                if (mask.containsExchangeType(BOTTOM))
+                if(mask.containsExchangeType(BOTTOM))
                 {
                     tmp_offset[1] = size[1] - border[1] - guardingCells[1];
-                    if (area == GUARD)
+                    if(area == GUARD)
                     {
                         tmp_offset[1] += guardingCells[1];
                     }
@@ -185,18 +186,18 @@ namespace pmacc
                 else
                 {
                     tmp_offset[1] = border[1];
-                    if (area == GUARD && mask.containsExchangeType(TOP))
+                    if(area == GUARD && mask.containsExchangeType(TOP))
                     {
                         tmp_offset[1] -= guardingCells[1];
                     }
                 }
             }
-            if (DIM == DIM3)
+            if(DIM == DIM3)
             {
-                if (mask.containsExchangeType(BACK))
+                if(mask.containsExchangeType(BACK))
                 {
                     tmp_offset[2] = size[2] - border[2] - guardingCells[2];
-                    if (area == GUARD)
+                    if(area == GUARD)
                     {
                         tmp_offset[2] += guardingCells[2];
                     }
@@ -204,7 +205,7 @@ namespace pmacc
                 else /*all other begin from front*/
                 {
                     tmp_offset[2] = border[2];
-                    if (area == GUARD && mask.containsExchangeType(FRONT))
+                    if(area == GUARD && mask.containsExchangeType(FRONT))
                     {
                         tmp_offset[2] -= guardingCells[2];
                     }
@@ -212,26 +213,28 @@ namespace pmacc
             }
 
             return tmp_offset;
-
         }
 
-        virtual HostBuffer<TYPE, DIM>& getHostBuffer()
+        HostBuffer<TYPE, DIM>& getHostBuffer() override
         {
+            PMACC_ASSERT(hostBuffer != nullptr);
             return *hostBuffer;
         }
 
-        virtual DeviceBuffer<TYPE, DIM>& getDeviceBuffer()
+        DeviceBuffer<TYPE, DIM>& getDeviceBuffer() override
         {
+            PMACC_ASSERT(deviceBuffer != nullptr);
             return *deviceBuffer;
         }
 
-        virtual bool hasDeviceDoubleBuffer()
+        bool hasDeviceDoubleBuffer() override
         {
             return deviceDoubleBuffer != nullptr;
         }
 
-        virtual DeviceBuffer<TYPE, DIM>& getDeviceDoubleBuffer()
+        DeviceBuffer<TYPE, DIM>& getDeviceDoubleBuffer() override
         {
+            PMACC_ASSERT(deviceDoubleBuffer != nullptr);
             return *deviceDoubleBuffer;
         }
 
@@ -245,13 +248,29 @@ namespace pmacc
             return Environment<>::get().Factory().createTaskReceive(*this);
         }
 
+        Buffer<TYPE, DIM>* getCommunicationBuffer() override
+        {
+            if(Environment<>::get().isMpiDirectEnabled())
+            {
+                if(hasDeviceDoubleBuffer())
+                    return &(getDeviceDoubleBuffer());
+                else
+                    return &(getDeviceBuffer());
+            }
+
+            return &(getHostBuffer());
+        }
+
     protected:
-        std::unique_ptr< HostBufferIntern<TYPE, DIM> > hostBuffer;
+        /** host double buffer of the exchange data
+         *
+         * Is always a nullptr if MPI direct is used
+         */
+        std::unique_ptr<HostBufferIntern<TYPE, DIM>> hostBuffer;
 
         //! This buffer is a vector which is used as message buffer for faster memcopy
-        std::unique_ptr< DeviceBufferIntern<TYPE, DIM> > deviceDoubleBuffer;
-        std::unique_ptr< DeviceBufferIntern<TYPE, DIM> > deviceBuffer;
-
+        std::unique_ptr<DeviceBufferIntern<TYPE, DIM>> deviceDoubleBuffer;
+        std::unique_ptr<DeviceBufferIntern<TYPE, DIM>> deviceBuffer;
     };
 
-}
+} // namespace pmacc

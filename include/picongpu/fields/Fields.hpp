@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera
+/* Copyright 2014-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -16,7 +16,6 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 #pragma once

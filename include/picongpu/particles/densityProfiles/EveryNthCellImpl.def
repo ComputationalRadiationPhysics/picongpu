@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Axel Huebl
+/* Copyright 2017-2021 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -24,32 +24,29 @@
 
 namespace picongpu
 {
-namespace densityProfiles
-{
-    /** A density profile which only initializes each nth cell
-     *
-     * Useful to initialize probe particles or material dopings. The result is
-     * either 0 (no particle) or the full density. The result of this particular
-     * functor can be larger 1.0 with T_SkipCells::toRT().productOfComponents()
-     * in order to properly fulfill the density of a species via increased
-     * weighting.
-     *
-     * @tparam T_SkipCells The period for the number of cells to skip for each
-     *                     direction before initializing a particle. Signature
-     *                     of a pmacc::math::CT::UInt32
-     */
-    template<
-        typename T_SkipCells
-    >
-    struct EveryNthCellImpl
+    namespace densityProfiles
     {
-        // note: `sizeof(ANY_TYPE) != 0` defers the evaluation
-        PMACC_CASSERT_MSG_TYPE(
-            __Density_Profile_EveryNthCellImpl_expects_a_PMacc_math_CT_UInt32,
-            T_SkipCells,
-            false && sizeof( T_SkipCells ) != 0
-        );
-    };
+        /** A density profile which only initializes each nth cell
+         *
+         * Useful to initialize probe particles or material dopings. The result is
+         * either 0 (no particle) or the full density. The result of this particular
+         * functor can be larger 1.0 with T_SkipCells::toRT().productOfComponents()
+         * in order to properly fulfill the density of a species via increased
+         * weighting.
+         *
+         * @tparam T_SkipCells The period for the number of cells to skip for each
+         *                     direction before initializing a particle. Signature
+         *                     of a pmacc::math::CT::UInt32
+         */
+        template<typename T_SkipCells>
+        struct EveryNthCellImpl
+        {
+            // note: `sizeof(ANY_TYPE) != 0` defers the evaluation
+            PMACC_CASSERT_MSG_TYPE(
+                __Density_Profile_EveryNthCellImpl_expects_a_PMacc_math_CT_UInt32,
+                T_SkipCells,
+                false && sizeof(T_SkipCells) != 0);
+        };
 
-} // namespace densityProfiles
+    } // namespace densityProfiles
 } // namespace picongpu

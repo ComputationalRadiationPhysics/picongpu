@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera, Marco Garten, Heiko Burau
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Marco Garten, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -32,22 +32,23 @@ namespace picongpu
     /** Unit of time */
     constexpr float_64 UNIT_TIME = SI::DELTA_T_SI;
     /** Unit of length */
-    constexpr float_64 UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+    constexpr float_64 UNIT_LENGTH = UNIT_TIME * UNIT_SPEED;
 
     namespace particles
     {
         /** Number of particles per makro particle (= macro particle weighting)
          *  unit: none */
-        constexpr float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE =
-            float_64( SI::BASE_DENSITY_SI * SI::CELL_WIDTH_SI * SI::CELL_HEIGHT_SI * SI::CELL_DEPTH_SI ) /
-            float_64( particles::TYPICAL_PARTICLES_PER_CELL );
-    }
+        constexpr float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+            = float_64(SI::BASE_DENSITY_SI * SI::CELL_WIDTH_SI * SI::CELL_HEIGHT_SI * SI::CELL_DEPTH_SI)
+            / float_64(particles::TYPICAL_PARTICLES_PER_CELL);
+    } // namespace particles
 
 
     /** Unit of mass */
     constexpr float_64 UNIT_MASS = SI::BASE_MASS_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of charge */
-    constexpr float_64 UNIT_CHARGE = -1.0 * SI::BASE_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+    constexpr float_64 UNIT_CHARGE
+        = -1.0 * SI::BASE_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of energy */
     constexpr float_64 UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
     /** Unit of EField: V/m */
@@ -55,4 +56,4 @@ namespace picongpu
     //** Unit of BField: Tesla [T] = Vs/m^2 */
     constexpr float_64 UNIT_BFIELD = (UNIT_MASS / (UNIT_TIME * UNIT_CHARGE));
 
-}
+} // namespace picongpu

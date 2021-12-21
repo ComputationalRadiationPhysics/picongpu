@@ -10,44 +10,49 @@ export MY_MAIL="someone@example.com"
 export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Project Information ######################################## (edit this line)
-#   - project account for computing time
-export proj=$(groups | awk '{print $4}')
-
+#   - project and account for allocation
+#
+#   `jutil user projects` will return a table of project associations.
+#   Each row contains: project,unixgroup,PI-uid,project-type,budget-accounts
+#   We need the first and last entry.
+#   Here: select the last available project.
+#   Alternative: Set proj, account manually
+export proj=$( jutil user projects --noheader | awk '{print $1}' | tail -n 1 )
+export account=$(jutil user projects -n | awk '{print $NF}' | tail -n 1)
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="nano"
-
 # Set up environment, including $SCRATCH and $PROJECT
-jutil env activate -p $proj
+# Handle a case where the budgeting account is not set.
+if [ $accountt = "-" ]; then
+    jutil env activate --project $proj;
+else
+    jutil env activate --project $proj --budget $account
+fi
+
 
 # General modules #############################################################
 #
 module purge
-module load Intel/2019.0.117-GCC-7.3.0
-module load CMake/3.13.0
-module load IntelMPI/2018.4.274
-module load Python/3.6.6
-module load Boost/1.68.0-Python-3.6.6
+module load Intel/2020.2.254-GCC-9.3.0
+module load CMake/3.18.0
+module load IntelMPI/2019.8.254
+module load Python/3.8.5
+
+module load Boost/1.73.0
 
 # Other Software ##############################################################
 #
-module load zlib/.1.2.11
-module load HDF5/1.10.1
-module load libpng/.1.6.35
-export CMAKE_PREFIX_PATH=$EBROOTZLIB:$EBROOTLIBPNG:$CMAKE_PREFIX_PATH
+module load HDF5/1.10.6
+#export CMAKE_PREFIX_PATH=$EBROOTZLIB:$EBROOTLIBPNG:$CMAKE_PREFIX_PATH
 
 PARTITION_LIB=$PROJECT/lib_batch
-LIBSPLASH_ROOT=$PARTITION_LIB/libSplash
 PNGWRITER_ROOT=$PARTITION_LIB/pngwriter
-export CMAKE_PREFIX_PATH=$LIBSPLASH_ROOT:$PNGWRITER_ROOT:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$PNGWRITER_ROOT:$CMAKE_PREFIX_PATH
 
 BLOSC_ROOT=$PARTITION_LIB/c-blosc
 export CMAKE_PREFIX_PATH=$BLOSC_ROOT:$CMAKE_PREFIX_PATH
 export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
-
-ADIOS_ROOT=$PARTITION_LIB/adios
-export PATH=$ADIOS_ROOT/bin:$PATH
-export CMAKE_PREFIX_PATH=$ADIOS_ROOT:$CMAKE_PREFIX_PATH
 
 # Environment #################################################################
 #
@@ -86,7 +91,7 @@ function getNode() {
     fi
     echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
     export OMP_NUM_THREADS=48
-    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=2 --mem=94000 -A $proj -p batch bash
+    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=2 --mem=94000 -A $account -p batch bash
 }
 
 # allocate an interactive shell for one hour
@@ -104,7 +109,7 @@ function getDevice() {
     fi
     echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
     export OMP_NUM_THREADS=48
-    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --mem=94000 -A $proj -p batch bash
+    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --mem=94000 -A $account -p batch bash
 }
 
 # Load autocompletion for PIConGPU commands

@@ -1,4 +1,4 @@
-# Copyright 2015-2020 Erik Zenker, Rene Widera, Axel Huebl
+# Copyright 2015-2021 Erik Zenker, Rene Widera, Axel Huebl
 #
 # This file is part of PMacc.
 #
@@ -29,7 +29,7 @@
 ###############################################################################
 # PMacc
 ###############################################################################
-cmake_minimum_required(VERSION 3.11.4)
+cmake_minimum_required(VERSION 3.15.0)
 
 # set helper pathes to find libraries and packages
 # Add specific hints
@@ -72,10 +72,10 @@ endif()
 # Language Flags
 ###############################################################################
 
-# enforce C++11
+# enforce C++14
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 
 ###############################################################################
@@ -108,7 +108,7 @@ set_property(CACHE PMACC_ALPAKA_PROVIDER PROPERTY STRINGS "intern;extern")
 mark_as_advanced(PMACC_ALPAKA_PROVIDER)
 
 if(${PMACC_ALPAKA_PROVIDER} STREQUAL "intern")
-    list(INSERT CMAKE_MODULE_PATH 0 "${PMacc_DIR}/../../thirdParty/alpaka")
+    list(INSERT CMAKE_MODULE_PATH 0 "${PMacc_DIR}/../../thirdParty/cupla/alpaka")
 endif()
 
 
@@ -137,12 +137,6 @@ if(
         "Only back-ends using CUDA can be enabled in this mode \
         (This allows to mix alpaka code with native CUDA code)."
         ON)
-endif()
-
-if(NOT cupla_ALPAKA_PROVIDER)
-    # force cupla to use third party alpaka version
-    set(cupla_ALPAKA_PROVIDER "extern" CACHE STRING "Select which alpaka is used")
-    set(alpaka_DIR "${PMacc_DIR}/../../thirdParty/alpaka" CACHE PATH "path to alpaka")
 endif()
 
 if(${PMACC_CUPLA_PROVIDER} STREQUAL "intern")
@@ -349,8 +343,8 @@ if(ALPAKA_ACC_GPU_CUDA_ENABLE)
                             "(Found ${CUDA_VERSION})")
     endif()
     # Newer CUDA releases: probably troublesome, warn at least
-    if(CUDA_VERSION VERSION_GREATER 10.2)
-        message(WARNING "Untested CUDA release >10.2 (Found ${CUDA_VERSION})! "
+    if(CUDA_VERSION VERSION_GREATER 11.2)
+        message(WARNING "Untested CUDA release >11.2 (Found ${CUDA_VERSION})! "
                         "Maybe use a newer PIConGPU?")
     endif()
 endif()
@@ -360,9 +354,13 @@ endif()
 # Find OpenMP
 ################################################################################
 
-find_package(OpenMP)
-if(OPENMP_FOUND)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND ALPAKA_ACC_GPU_CUDA_ENABLE AND ALPAKA_CUDA_COMPILER MATCHES "clang")
+    message(WARNING "OpenMP host side acceleration is disabled: CUDA compilation with clang is not supporting OpenMP.")
+else()
+    find_package(OpenMP)
+    if(OPENMP_FOUND)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    endif()
 endif()
 
 
@@ -370,13 +368,14 @@ endif()
 # Find mallocMC
 ################################################################################
 
-if(ALPAKA_ACC_GPU_CUDA_ENABLE)
-    find_package(mallocMC 2.3.0 QUIET)
+if(ALPAKA_ACC_GPU_CUDA_ENABLE OR ALPAKA_ACC_GPU_HIP_ENABLE)
+    set(mallocMC_ALPAKA_PROVIDER "extern" CACHE STRING "Select which alpaka is used for mallocMC")
+    find_package(mallocMC 2.5.0 QUIET)
 
     if(NOT mallocMC_FOUND)
         message(STATUS "Using mallocMC from thirdParty/ directory")
         set(MALLOCMC_ROOT "${PMacc_DIR}/../../thirdParty/mallocMC")
-        find_package(mallocMC 2.3.0 REQUIRED)
+        find_package(mallocMC 2.5.0 REQUIRED)
     endif(NOT mallocMC_FOUND)
 
     set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${mallocMC_INCLUDE_DIRS})

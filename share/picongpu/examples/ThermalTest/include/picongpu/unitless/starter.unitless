@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "picongpu/plugins/PluginController.hpp"
-#include "picongpu/initialization/InitialiserController.hpp"
 #include "picongpu/ThermalTestSimulation.hpp"
+#include "picongpu/initialization/InitialiserController.hpp"
+#include "picongpu/plugins/PluginController.hpp"
 #include "picongpu/simulation/control/SimulationStarter.hpp"
 
 
@@ -34,7 +34,6 @@ namespace picongpu
         using SimStarter = ::picongpu::SimulationStarter<
             ::picongpu::InitialiserController,
             ::picongpu::PluginController,
-            ::picongpu::ThermalTestSimulation
-        >;
+            ::picongpu::ThermalTestSimulation>;
     }
-}
+} // namespace picongpu

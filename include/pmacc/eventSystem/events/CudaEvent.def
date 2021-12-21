@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Rene Widera
+/* Copyright 2016-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,88 +21,83 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/assert.hpp"
-
+#include "pmacc/types.hpp"
 
 
 namespace pmacc
 {
-
-/** Wrapper for cudaEvent_t
- *
- * This class follows the RAII rules
- */
-class CudaEvent
-{
-private:
-
-    /** native cuda event */
-    cudaEvent_t event;
-    /** native cuda stream where the event is recorded
+    /** Wrapper for cuplaEvent_t
      *
-     *  only valid if isRecorded is true
+     * This class follows the RAII rules
      */
-    cudaStream_t stream;
-    /** state if event is recorded */
-    bool isRecorded;
-    /** state if a recorded event is finished
-     *
-     * avoid cuda driver calls after `isFinished()` returns the first time true
-     */
-    bool finished;
-
-    /** number of CudaEventHandle's to the instance */
-    uint32_t refCounter;
-
-
-public:
-
-    /** Constructor
-     *
-     * if called before the cuda device is initialized the behavior is undefined
-     */
-    HINLINE CudaEvent( );
-
-    /** Destructor */
-    HINLINE ~CudaEvent( );
-
-    /** register a existing handle to a event instance */
-    HINLINE void registerHandle( );
-
-    /** free a registered handle */
-    HINLINE void releaseHandle( );
-
-    /** get native cudaEvent_t object
-     *
-     * @return native cuda event
-     */
-    cudaEvent_t operator*( ) const
+    class CudaEvent
     {
-        return event;
-    }
+    private:
+        /** native cupla event */
+        cuplaEvent_t event;
+        /** native cupla stream where the event is recorded
+         *
+         *  only valid if isRecorded is true
+         */
+        cuplaStream_t stream;
+        /** state if event is recorded */
+        bool isRecorded{false};
+        /** state if a recorded event is finished
+         *
+         * avoid cupla driver calls after `isFinished()` returns the first time true
+         */
+        bool finished{true};
 
-    /** get stream in which this event is recorded
-     *
-     * @return native cuda stream
-     */
-    cudaStream_t getStream( ) const
-    {
-        assert( isRecorded );
-        return stream;
-    }
+        /** number of CudaEventHandle's to the instance */
+        uint32_t refCounter{0u};
 
-    /** check whether the event is finished
-     *
-     * @return true if event is finished else false
-     */
-    HINLINE bool isFinished( );
 
-    /** record event in a device stream
-     *
-     * @param stream native cuda stream
-     */
-    HINLINE void recordEvent( cudaStream_t stream );
+    public:
+        /** Constructor
+         *
+         * if called before the cupla device is initialized the behavior is undefined
+         */
+        HINLINE CudaEvent();
 
-};
-}
+        /** Destructor */
+        HINLINE ~CudaEvent();
+
+        /** register a existing handle to a event instance */
+        HINLINE void registerHandle();
+
+        /** free a registered handle */
+        HINLINE void releaseHandle();
+
+        /** get native cuplaEvent_t object
+         *
+         * @return native cupla event
+         */
+        cuplaEvent_t operator*() const
+        {
+            return event;
+        }
+
+        /** get stream in which this event is recorded
+         *
+         * @return native cupla stream
+         */
+        cuplaStream_t getStream() const
+        {
+            assert(isRecorded);
+            return stream;
+        }
+
+        /** check whether the event is finished
+         *
+         * @return true if event is finished else false
+         */
+        HINLINE bool isFinished();
+
+        /** record event in a device stream
+         *
+         * @param stream native cupla stream
+         */
+        HINLINE void recordEvent(cuplaStream_t stream);
+    };
+} // namespace pmacc

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -23,14 +23,12 @@
 
 #pragma once
 
+#include "pmacc/Environment.def"
 #include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/types.hpp"
-#include "pmacc/Environment.def"
 
-
-
-#include <string>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace pmacc
@@ -42,7 +40,6 @@ namespace pmacc
     class StreamController
     {
     public:
-
         /**
          * Returns a pointer to the next EventStream in the controller's queue.
          * @return pointer to next EventStream
@@ -50,13 +47,14 @@ namespace pmacc
         EventStream* getNextStream()
         {
             if(!isActivated)
-                throw std::runtime_error(std::string("StreamController is not activated but getNextStream() was called"));
+                throw std::runtime_error(
+                    std::string("StreamController is not activated but getNextStream() was called"));
             size_t oldIndex = currentStreamIndex;
             currentStreamIndex++;
-            if (currentStreamIndex == streams.size())
+            if(currentStreamIndex == streams.size())
                 currentStreamIndex = 0;
 
-            return streams[oldIndex];
+            return streams[oldIndex].get();
         }
 
         /**
@@ -65,17 +63,13 @@ namespace pmacc
          */
         virtual ~StreamController()
         {
-
-            for (size_t i = 0; i < streams.size(); i++)
-            {
-                __delete(streams[i]);
-            }
+            // First delete the streams
             streams.clear();
 
             /* This is the single point in PIC where ALL CUDA work must be finished. */
             /* Accessing CUDA objects after this point may fail! */
-            CUDA_CHECK_NO_EXCEPT(cudaDeviceSynchronize());
-            CUDA_CHECK_NO_EXCEPT(cudaDeviceReset());
+            CUDA_CHECK_NO_EXCEPT(cuplaDeviceSynchronize());
+            CUDA_CHECK_NO_EXCEPT(cuplaDeviceReset());
         }
 
         /**
@@ -84,9 +78,9 @@ namespace pmacc
          */
         void addStreams(size_t count)
         {
-            for (size_t i = 0; i < count; i++)
+            for(size_t i = 0; i < count; i++)
             {
-                streams.push_back(new EventStream());
+                streams.push_back(std::make_shared<EventStream>());
             }
         }
 
@@ -97,7 +91,7 @@ namespace pmacc
         void activate()
         {
             addStreams(1);
-            isActivated=true;
+            isActivated = true;
         }
 
         /**
@@ -110,15 +104,12 @@ namespace pmacc
         }
 
     private:
-
         friend struct detail::Environment;
 
         /**
          * Constructor.
          */
-        StreamController() : isActivated(false),currentStreamIndex(0)
-        {
-        }
+        StreamController() = default;
 
         /**
          * Get instance of this class.
@@ -131,10 +122,9 @@ namespace pmacc
             return instance;
         }
 
-        std::vector<EventStream*> streams;
-        size_t currentStreamIndex;
-        bool isActivated;
-
+        std::vector<std::shared_ptr<EventStream>> streams;
+        size_t currentStreamIndex{0};
+        bool isActivated{false};
     };
 
-} //namespace pmacc
+} // namespace pmacc

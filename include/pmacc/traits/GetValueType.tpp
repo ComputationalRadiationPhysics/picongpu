@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -28,10 +28,7 @@ namespace pmacc
         template<typename Type>
         struct GetValueType<Type*>
         {
-            typedef Type ValueType;
+            using ValueType = Type;
         };
-    }
-}
-
-
-
+    } // namespace traits
+} // namespace pmacc

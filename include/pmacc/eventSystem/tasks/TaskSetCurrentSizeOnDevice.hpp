@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of PMacc.
@@ -22,86 +22,71 @@
 
 #pragma once
 
+#include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/events/kernelEvents.hpp"
 #include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
-#include "pmacc/eventSystem/events/kernelEvents.hpp"
-#include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/nvidia/gpuEntryFunction.hpp"
 
 
 namespace pmacc
 {
-
-struct KernelSetValueOnDeviceMemory
-{
-    template< typename T_Acc >
-    DINLINE void operator()(const T_Acc&, size_t* pointer, const size_t size) const
+    struct KernelSetValueOnDeviceMemory
     {
-        *pointer = size;
-    }
-};
+        template<typename T_Acc>
+        DINLINE void operator()(const T_Acc&, size_t* pointer, const size_t size) const
+        {
+            *pointer = size;
+        }
+    };
 
-template <class TYPE, unsigned DIM>
-class DeviceBuffer;
+    template<class TYPE, unsigned DIM>
+    class DeviceBuffer;
 
-template <class TYPE, unsigned DIM>
-class TaskSetCurrentSizeOnDevice : public StreamTask
-{
-public:
-
-    TaskSetCurrentSizeOnDevice(DeviceBuffer<TYPE, DIM>& dst, size_t size) :
-    StreamTask(),
-    size(size)
+    template<class TYPE, unsigned DIM>
+    class TaskSetCurrentSizeOnDevice : public StreamTask
     {
-        this->destination = & dst;
-    }
+    public:
+        TaskSetCurrentSizeOnDevice(DeviceBuffer<TYPE, DIM>& dst, size_t size) : StreamTask(), size(size)
+        {
+            this->destination = &dst;
+        }
 
-    virtual ~TaskSetCurrentSizeOnDevice()
-    {
-        notify(this->myId, SETVALUE, nullptr);
-    }
+        ~TaskSetCurrentSizeOnDevice() override
+        {
+            notify(this->myId, SETVALUE, nullptr);
+        }
 
-    virtual void init()
-    {
-        setSize();
-    }
+        void init() override
+        {
+            setSize();
+        }
 
-    bool executeIntern()
-    {
-        return isFinished();
-    }
+        bool executeIntern() override
+        {
+            return isFinished();
+        }
 
-    void event(id_t, EventType, IEventData*)
-    {
-    }
+        void event(id_t, EventType, IEventData*) override
+        {
+        }
 
-    std::string toString()
-    {
-        return "TaskSetCurrentSizeOnDevice";
-    }
+        std::string toString() override
+        {
+            return "TaskSetCurrentSizeOnDevice";
+        }
 
-private:
+    private:
+        void setSize()
+        {
+            auto sizePtr = destination->getCurrentSizeOnDevicePointer();
+            CUPLA_KERNEL(KernelSetValueOnDeviceMemory)(1, 1, 0, this->getCudaStream())(sizePtr, size);
 
-    void setSize()
-    {
-        auto sizePtr = destination->getCurrentSizeOnDevicePointer();
-        CUPLA_KERNEL( KernelSetValueOnDeviceMemory )(
-            1,
-            1,
-            0,
-            this->getCudaStream()
-        )(
-            sizePtr,
-            size
-        );
+            activate();
+        }
 
-        activate();
-    }
+        DeviceBuffer<TYPE, DIM>* destination;
+        const size_t size;
+    };
 
-    DeviceBuffer<TYPE, DIM> *destination;
-    const size_t size;
-};
-
-} //namespace pmacc
-
+} // namespace pmacc

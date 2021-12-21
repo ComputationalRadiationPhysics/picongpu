@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,16 +24,16 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace misc
-{
-    /** removes all spaces within a string
-     *
-     * @param value input string
-     * @return string without any spaces
-     */
-    std::string removeSpaces( std::string value );
-} // namespace misc
-} // namespace plugins
+    namespace plugins
+    {
+        namespace misc
+        {
+            /** removes all spaces within a string
+             *
+             * @param value input string
+             * @return string without any spaces
+             */
+            std::string removeSpaces(std::string value);
+        } // namespace misc
+    } // namespace plugins
 } // namespace picongpu

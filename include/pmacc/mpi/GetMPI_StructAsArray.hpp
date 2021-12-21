@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,31 +21,28 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/mpi/MPI_StructAsArray.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {
-namespace mpi
-{
-namespace def
-{
+    namespace mpi
+    {
+        namespace def
+        {
+            template<typename Type>
+            struct GetMPI_StructAsArray;
 
-template<typename Type>
-struct GetMPI_StructAsArray;
+        } // namespace def
 
-}//namespace intern
+        template<typename Type>
+        pmacc::mpi::MPI_StructAsArray getMPI_StructAsArray()
+        {
+            return def::GetMPI_StructAsArray<Type>()();
+        }
 
-template<typename Type>
-pmacc::mpi::MPI_StructAsArray getMPI_StructAsArray()
-{
-    return def::GetMPI_StructAsArray<Type > ()();
-}
+    } // namespace mpi
 
-} //namespace mpi
-
-}//namespace pmacc
+} // namespace pmacc
 
 #include "pmacc/mpi/GetMPI_StructAsArray.tpp"
-
-

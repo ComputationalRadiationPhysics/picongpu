@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Axel Huebl
+/* Copyright 2017-2021 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -24,99 +24,71 @@
 // pmacc
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/Array.hpp>
+#include <pmacc/memory/buffers/GridBuffer.hpp>
 
+#include <memory>
 #include <string>
 
 
 namespace picongpu
 {
-namespace particles
-{
-namespace flylite
-{
-namespace helperFields
-{
-    using namespace pmacc;
-
-    class LocalEnergyHistogram :
-        public ISimulationData
+    namespace particles
     {
-    private:
-        using EnergyHistogram =
-            memory::Array<
-                float_X,
-                picongpu::flylite::energies
-            >;
-        GridBuffer<
-            EnergyHistogram,
-            simDim
-        > * m_energyHistogram;
-        std::string m_speciesGroup;
-
-    public:
-        /** Allocate and Initialize local Energy Histogram
-         *
-         * @param speciesGroup unique naming for the species inside this histogram,
-         *                     e.g. a collection of electron species or photon species
-         * @param histSizeLocal spatial size of the local energy histogram
-         */
-        LocalEnergyHistogram(
-            std::string const & speciesGroup,
-            DataSpace< simDim > const & histSizeLocal
-        ) :
-            m_energyHistogram( nullptr ),
-            m_speciesGroup( speciesGroup )
+        namespace flylite
         {
-            m_energyHistogram =
-                new GridBuffer<
-                    EnergyHistogram,
-                    simDim
-                >( histSizeLocal );
-        }
+            namespace helperFields
+            {
+                using namespace pmacc;
 
-        ~LocalEnergyHistogram()
-        {
-            __delete( m_energyHistogram );
-        }
+                class LocalEnergyHistogram : public ISimulationData
+                {
+                private:
+                    using EnergyHistogram = memory::Array<float_X, picongpu::flylite::energies>;
+                    std::unique_ptr<GridBuffer<EnergyHistogram, simDim>> m_energyHistogram;
+                    std::string m_speciesGroup;
 
-        static std::string
-        getName( std::string const & speciesGroup )
-        {
-            return speciesGroup + "_LocalEnergyHistogram";
-        }
+                public:
+                    /** Allocate and Initialize local Energy Histogram
+                     *
+                     * @param speciesGroup unique naming for the species inside this histogram,
+                     *                     e.g. a collection of electron species or photon species
+                     * @param histSizeLocal spatial size of the local energy histogram
+                     */
+                    LocalEnergyHistogram(std::string const& speciesGroup, DataSpace<simDim> const& histSizeLocal)
+                        : m_speciesGroup(speciesGroup)
+                    {
+                        m_energyHistogram = std::make_unique<GridBuffer<EnergyHistogram, simDim>>(histSizeLocal);
+                    }
 
-        std::string
-        getName( )
-        {
-            return getName( m_speciesGroup );
-        }
+                    static std::string getName(std::string const& speciesGroup)
+                    {
+                        return speciesGroup + "_LocalEnergyHistogram";
+                    }
 
-        GridBuffer<
-            EnergyHistogram,
-            simDim
-        > &
-        getGridBuffer( )
-        {
-            return *m_energyHistogram;
-        }
+                    std::string getName()
+                    {
+                        return getName(m_speciesGroup);
+                    }
 
-        /* implement ISimulationData members */
-        void
-        synchronize() override
-        {
-            m_energyHistogram->deviceToHost( );
-        }
+                    GridBuffer<EnergyHistogram, simDim>& getGridBuffer()
+                    {
+                        return *m_energyHistogram;
+                    }
 
-        SimulationDataId
-        getUniqueId() override
-        {
-            return getName();
-        }
-    };
+                    /* implement ISimulationData members */
+                    void synchronize() override
+                    {
+                        m_energyHistogram->deviceToHost();
+                    }
 
-} // namespace helperFields
-} // namespace flylite
-} // namespace particles
+                    SimulationDataId getUniqueId() override
+                    {
+                        return getName();
+                    }
+                };
+
+            } // namespace helperFields
+        } // namespace flylite
+    } // namespace particles
 } // namespace picongpu

@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,12 +9,11 @@
 
 #pragma once
 
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/math/acos/Traits.hpp>
 
-#include <alpaka/core/Unused.hpp>
-
-#include <type_traits>
 #include <cmath>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -30,23 +29,15 @@ namespace alpaka
         {
             //#############################################################################
             //! The standard library acos trait specialization.
-            template<
-                typename TArg>
-            struct Acos<
-                AcosStdLib,
-                TArg,
-                typename std::enable_if<
-                    std::is_arithmetic<TArg>::value>::type>
+            template<typename TArg>
+            struct Acos<AcosStdLib, TArg, std::enable_if_t<std::is_arithmetic<TArg>::value>>
             {
-                ALPAKA_FN_HOST static auto acos(
-                    AcosStdLib const & acos_ctx,
-                    TArg const & arg)
-                -> decltype(std::acos(arg))
+                ALPAKA_FN_HOST static auto acos(AcosStdLib const& acos_ctx, TArg const& arg)
                 {
                     alpaka::ignore_unused(acos_ctx);
                     return std::acos(arg);
                 }
             };
-        }
-    }
-}
+        } // namespace traits
+    } // namespace math
+} // namespace alpaka

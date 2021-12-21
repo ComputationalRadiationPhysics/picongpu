@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,44 +22,43 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace filter
-{
-namespace generic
-{
+    namespace particles
+    {
+        namespace filter
+        {
+            namespace generic
+            {
+                /** call simple free user defined filter
+                 *
+                 * @tparam T_Functor user defined filter
+                 *                   **optional**: can implement **one** host side constructor
+                 *                   `T_Functor()` or `T_Functor(uint32_t currentTimeStep)`
+                 *
+                 * example for `particleFilters.param`: each particle with in-cell position greater than 0.5
+                 *   @code{.cpp}
+                 *
+                 *   struct FunctorEachParticleAboveMiddleOfTheCell
+                 *   {
+                 *       template< typename T_Particle >
+                 *       HDINLINE bool operator()( T_Particle const & particle )
+                 *       {
+                 *           bool result = false;
+                 *           if( particle[ position_ ].y() >= float_X( 0.5 ) )
+                 *               result = true;
+                 *           return result;
+                 *       }
+                 *       static constexpr char const * name = "eachParticleAboveMiddleOfTheCell";
+                 *   };
+                 *
+                 *   using EachParticleAboveMiddleOfTheCell = generic::Free<
+                 *      FunctorEachParticleAboveMiddleOfTheCell
+                 *   >;
+                 *   @endcode
+                 */
+                template<typename T_Functor>
+                struct Free;
 
-    /** call simple free user defined filter
-     *
-     * @tparam T_Functor user defined filter
-     *                   **optional**: can implement **one** host side constructor
-     *                   `T_Functor()` or `T_Functor(uint32_t currentTimeStep)`
-     *
-     * example for `particleFilters.param`: each particle with in-cell position greater than 0.5
-     *   @code{.cpp}
-     *
-     *   struct FunctorEachParticleAboveMiddleOfTheCell
-     *   {
-     *       template< typename T_Particle >
-     *       HDINLINE bool operator()( T_Particle const & particle )
-     *       {
-     *           bool result = false;
-     *           if( particle[ position_ ].y() >= float_X( 0.5 ) )
-     *               result = true;
-     *           return result;
-     *       }
-     *       static constexpr char const * name = "eachParticleAboveMiddleOfTheCell";
-     *   };
-     *
-     *   using EachParticleAboveMiddleOfTheCell = generic::Free<
-     *      FunctorEachParticleAboveMiddleOfTheCell
-     *   >;
-     *   @endcode
-     */
-    template< typename T_Functor >
-    struct Free;
-
-} // namespace generic
-} // namespace filter
-} // namespace particles
+            } // namespace generic
+        } // namespace filter
+    } // namespace particles
 } // namespace picongpu

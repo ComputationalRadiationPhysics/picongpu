@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -24,37 +24,30 @@
 #include "Cursor.hpp"
 #include "accessor/FunctorAccessor.hpp"
 #include "navigator/CursorNavigator.hpp"
-#include <boost/type_traits/remove_reference.hpp>
+
+#include <type_traits>
 
 namespace pmacc
 {
-namespace cursor
-{
+    namespace cursor
+    {
+        /** wraps a cursor into a new cursor
+         *
+         * On each access of the new cursor the result of the nested cursor access
+         * is filtered through a user-defined functor.
+         *
+         * @param cursor Cursor to be wrapped
+         * @param functor User functor acting as a filter.
+         */
+        template<typename TCursor, typename Functor>
+        HDINLINE Cursor<FunctorAccessor<Functor, typename TCursor::ValueType>, CursorNavigator, TCursor>
+        make_FunctorCursor(const TCursor& cursor, const Functor& functor)
+        {
+            return make_Cursor(
+                FunctorAccessor<Functor, typename TCursor::ValueType>(functor),
+                CursorNavigator(),
+                cursor);
+        }
 
-/** wraps a cursor into a new cursor
- *
- * On each access of the new cursor the result of the nested cursor access
- * is filtered through a user-defined functor.
- *
- * \param cursor Cursor to be wrapped
- * \param functor User functor acting as a filter.
- */
-template<typename TCursor, typename Functor>
-HDINLINE
-Cursor<FunctorAccessor<Functor,
-    typename boost::remove_reference<typename TCursor::type>::type>,
-    CursorNavigator, TCursor> make_FunctorCursor(const TCursor& cursor, const Functor& functor)
-{
-    return make_Cursor(
-        FunctorAccessor<
-            Functor,
-            typename TCursor::ValueType
-        >(functor),
-        CursorNavigator(),
-        cursor
-    );
-}
-
-} // cursor
-} // pmacc
-
+    } // namespace cursor
+} // namespace pmacc

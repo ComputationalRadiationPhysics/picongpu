@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
  *
@@ -29,38 +29,31 @@
 
 namespace picongpu
 {
-namespace simulation
-{
-namespace stage
-{
-
-    /** Functor for the stage of the PIC loop performing FLYlite population
-     *  kinetics for atomic physics
-     *
-     *  Only affects particle species with the populationKinetics attribute.
-     */
-    struct PopulationKinetics
+    namespace simulation
     {
-        /** Perform FLYlite population kinetics for atomic physics
-         *
-         * @param step index of time iteration
-         */
-        void operator( )( uint32_t const step ) const
+        namespace stage
         {
-            using pmacc::particles::traits::FilterByFlag;
-            using FlyLiteIons = typename FilterByFlag<
-                VectorAllSpecies,
-                populationKinetics< >
-            >::type;
-            pmacc::meta::ForEach<
-                FlyLiteIons,
-                particles::CallPopulationKinetics< bmpl::_1 >,
-                bmpl::_1
-            > populationKinetics;
-            populationKinetics( step );
-        }
-    };
+            /** Functor for the stage of the PIC loop performing FLYlite population
+             *  kinetics for atomic physics
+             *
+             *  Only affects particle species with the populationKinetics attribute.
+             */
+            struct PopulationKinetics
+            {
+                /** Perform FLYlite population kinetics for atomic physics
+                 *
+                 * @param step index of time iteration
+                 */
+                void operator()(uint32_t const step) const
+                {
+                    using pmacc::particles::traits::FilterByFlag;
+                    using FlyLiteIons = typename FilterByFlag<VectorAllSpecies, populationKinetics<>>::type;
+                    pmacc::meta::ForEach<FlyLiteIons, particles::CallPopulationKinetics<bmpl::_1>, bmpl::_1>
+                        populationKinetics;
+                    populationKinetics(step);
+                }
+            };
 
-} // namespace stage
-} // namespace simulation
+        } // namespace stage
+    } // namespace simulation
 } // namespace picongpu

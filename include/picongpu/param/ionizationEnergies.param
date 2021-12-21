@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Marco Garten, Axel Huebl
+/* Copyright 2014-2021 Marco Garten, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -32,246 +32,253 @@
 
 namespace picongpu
 {
-namespace ionization
-{
-/** Ionization potentials
- *
- * Please follow these rules for defining ionization energies of atomic species,
- * unless your chosen ionization model requires a different unit system than `AU::`
- *     - input of values in either atomic units or converting eV or Joule to them
- *     -> use either UNITCONV_eV_to_AU or SI::ATOMIC_UNIT_ENERGY for that purpose
- *     - use `float_X` as the preferred data type
- *
- * example:
- *     ionization energy for ground state hydrogen: 13.6 eV
- *     1 Joule       = 1 kg * m^2 / s^2
- *     1 eV          = 1.602e-19 J
- *
- *     1 AU (energy) = 27.2 eV
- *                   = 1 Hartree
- *                   = 4.36e-18 J
- *                   = 2 Rydberg
- *                   = 2 x Hydrogen ground state binding energy
- *
- * Atomic units are useful for ionization models because they simplify the
- * formulae greatly and provide intuitively understandable relations to a
- * well-known system, i.e. the Hydrogen atom.
- *
- * for PMACC_CONST_VECTOR usage,
- * @see include/pmacc/math/ConstVector.hpp
- * for finding ionization energies,
- * @url http://physics.nist.gov/PhysRefData/ASD/ionEnergy.html
- *
- * Reference: Kramida, A., Ralchenko, Yu., Reader, J., and NIST ASD Team (2014)
- *            NIST Atomic Spectra Database (ver. 5.2), [Online]
- *            Available: http://physics.nist.gov/asd [2017, February 8]
- *            National Institute of Standards and Technology, Gaithersburg, MD
- */
-namespace energies
-{
-namespace AU
-{
-    /* ionization energy for ground state hydrogen in atomic units */
-    PMACC_CONST_VECTOR(float_X, 1, Hydrogen,
-        13.59843 * UNITCONV_eV_to_AU
-    );
+    namespace ionization
+    {
+        /** Ionization potentials
+         *
+         * Please follow these rules for defining ionization energies of atomic species,
+         * unless your chosen ionization model requires a different unit system than `AU::`
+         *     - input of values in either atomic units or converting eV or Joule to them
+         *     -> use either UNITCONV_eV_to_AU or SI::ATOMIC_UNIT_ENERGY for that purpose
+         *     - use `float_X` as the preferred data type
+         *
+         * example:
+         *     ionization energy for ground state hydrogen: 13.6 eV
+         *     1 Joule       = 1 kg * m^2 / s^2
+         *     1 eV          = 1.602e-19 J
+         *
+         *     1 AU (energy) = 27.2 eV
+         *                   = 1 Hartree
+         *                   = 4.36e-18 J
+         *                   = 2 Rydberg
+         *                   = 2 x Hydrogen ground state binding energy
+         *
+         * Atomic units are useful for ionization models because they simplify the
+         * formulae greatly and provide intuitively understandable relations to a
+         * well-known system, i.e. the Hydrogen atom.
+         *
+         * for PMACC_CONST_VECTOR usage,
+         * @see include/pmacc/math/ConstVector.hpp
+         * for finding ionization energies,
+         * @url http://physics.nist.gov/PhysRefData/ASD/ionEnergy.html
+         *
+         * Reference: Kramida, A., Ralchenko, Yu., Reader, J., and NIST ASD Team (2014)
+         *            NIST Atomic Spectra Database (ver. 5.2), [Online]
+         *            Available: http://physics.nist.gov/asd [2017, February 8]
+         *            National Institute of Standards and Technology, Gaithersburg, MD
+         */
+        namespace energies
+        {
+            namespace AU
+            {
+                /* ionization energy for ground state hydrogen in atomic units */
+                PMACC_CONST_VECTOR(float_X, 1, Hydrogen, 13.59843 * UNITCONV_eV_to_AU);
 
-    /* ionization energy for ground state deuterium in atomic units */
-    PMACC_CONST_VECTOR(float_X, 1, Deuterium,
-        13.60213 * UNITCONV_eV_to_AU
-    );
+                /* ionization energy for ground state deuterium in atomic units */
+                PMACC_CONST_VECTOR(float_X, 1, Deuterium, 13.60213 * UNITCONV_eV_to_AU);
 
-    /* ionization energy for ground state helium in atomic units */
-    PMACC_CONST_VECTOR(float_X, 2, Helium,
-        24.58739 * UNITCONV_eV_to_AU,
-        54.41776 * UNITCONV_eV_to_AU
-    );
+                /* ionization energy for ground state helium in atomic units */
+                PMACC_CONST_VECTOR(float_X, 2, Helium, 24.58739 * UNITCONV_eV_to_AU, 54.41776 * UNITCONV_eV_to_AU);
 
-    /* ionization energy for carbon in atomic units */
-    PMACC_CONST_VECTOR(float_X, 6, Carbon,
-        11.2603 * UNITCONV_eV_to_AU,
-        24.3845 * UNITCONV_eV_to_AU,
-        47.88778 * UNITCONV_eV_to_AU,
-        64.49351 * UNITCONV_eV_to_AU,
-        392.0905 * UNITCONV_eV_to_AU,
-        489.993177 * UNITCONV_eV_to_AU
-    );
+                /* ionization energy for carbon in atomic units */
+                PMACC_CONST_VECTOR(
+                    float_X,
+                    6,
+                    Carbon,
+                    11.2603 * UNITCONV_eV_to_AU,
+                    24.3845 * UNITCONV_eV_to_AU,
+                    47.88778 * UNITCONV_eV_to_AU,
+                    64.49351 * UNITCONV_eV_to_AU,
+                    392.0905 * UNITCONV_eV_to_AU,
+                    489.993177 * UNITCONV_eV_to_AU);
 
-    /* ionization energy for nitrogen in atomic units */
-    PMACC_CONST_VECTOR(float_X, 7, Nitrogen,
-        14.53413 * UNITCONV_eV_to_AU,
-        29.60125 * UNITCONV_eV_to_AU,
-        47.4453 * UNITCONV_eV_to_AU,
-        77.4735 * UNITCONV_eV_to_AU,
-        97.89013 * UNITCONV_eV_to_AU,
-        552.06731 * UNITCONV_eV_to_AU,
-        667.04609 * UNITCONV_eV_to_AU
-    );
+                /* ionization energy for nitrogen in atomic units */
+                PMACC_CONST_VECTOR(
+                    float_X,
+                    7,
+                    Nitrogen,
+                    14.53413 * UNITCONV_eV_to_AU,
+                    29.60125 * UNITCONV_eV_to_AU,
+                    47.4453 * UNITCONV_eV_to_AU,
+                    77.4735 * UNITCONV_eV_to_AU,
+                    97.89013 * UNITCONV_eV_to_AU,
+                    552.06731 * UNITCONV_eV_to_AU,
+                    667.04609 * UNITCONV_eV_to_AU);
 
-    /* ionization energy for oxygen in atomic units */
-    PMACC_CONST_VECTOR(float_X, 8, Oxygen,
-        13.61805 * UNITCONV_eV_to_AU,
-        35.12112 * UNITCONV_eV_to_AU,
-        54.93554 * UNITCONV_eV_to_AU,
-        77.41350 * UNITCONV_eV_to_AU,
-        113.8989 * UNITCONV_eV_to_AU,
-        138.1189 * UNITCONV_eV_to_AU,
-        739.3268 * UNITCONV_eV_to_AU,
-        871.4098 * UNITCONV_eV_to_AU
-    );
+                /* ionization energy for oxygen in atomic units */
+                PMACC_CONST_VECTOR(
+                    float_X,
+                    8,
+                    Oxygen,
+                    13.61805 * UNITCONV_eV_to_AU,
+                    35.12112 * UNITCONV_eV_to_AU,
+                    54.93554 * UNITCONV_eV_to_AU,
+                    77.41350 * UNITCONV_eV_to_AU,
+                    113.8989 * UNITCONV_eV_to_AU,
+                    138.1189 * UNITCONV_eV_to_AU,
+                    739.3268 * UNITCONV_eV_to_AU,
+                    871.4098 * UNITCONV_eV_to_AU);
 
-    /* ionization energy for aluminium in atomic units */
-    PMACC_CONST_VECTOR(float_X, 13, Aluminium,
-        5.98577 * UNITCONV_eV_to_AU,
-        18.8285 * UNITCONV_eV_to_AU,
-        28.4476 * UNITCONV_eV_to_AU,
-        119.992 * UNITCONV_eV_to_AU,
-        153.825 * UNITCONV_eV_to_AU,
-        190.495 * UNITCONV_eV_to_AU,
-        241.769 * UNITCONV_eV_to_AU,
-        284.647 * UNITCONV_eV_to_AU,
-        330.214 * UNITCONV_eV_to_AU,
-        398.656 * UNITCONV_eV_to_AU,
-        442.006 * UNITCONV_eV_to_AU,
-        2085.97 * UNITCONV_eV_to_AU,
-        2304.14 * UNITCONV_eV_to_AU
-    );
+                /* ionization energy for aluminium in atomic units */
+                PMACC_CONST_VECTOR(
+                    float_X,
+                    13,
+                    Aluminium,
+                    5.98577 * UNITCONV_eV_to_AU,
+                    18.8285 * UNITCONV_eV_to_AU,
+                    28.4476 * UNITCONV_eV_to_AU,
+                    119.992 * UNITCONV_eV_to_AU,
+                    153.825 * UNITCONV_eV_to_AU,
+                    190.495 * UNITCONV_eV_to_AU,
+                    241.769 * UNITCONV_eV_to_AU,
+                    284.647 * UNITCONV_eV_to_AU,
+                    330.214 * UNITCONV_eV_to_AU,
+                    398.656 * UNITCONV_eV_to_AU,
+                    442.006 * UNITCONV_eV_to_AU,
+                    2085.97 * UNITCONV_eV_to_AU,
+                    2304.14 * UNITCONV_eV_to_AU);
 
-    /* ionization energy for silicon in atomic units */
-    PMACC_CONST_VECTOR(float_X, 14, Silicon,
-        8.151683 * UNITCONV_eV_to_AU,
-        16.345845 * UNITCONV_eV_to_AU,
-        33.493 * UNITCONV_eV_to_AU,
-        45.14179 * UNITCONV_eV_to_AU,
-        166.767 * UNITCONV_eV_to_AU,
-        205.267 * UNITCONV_eV_to_AU,
-        246.32 * UNITCONV_eV_to_AU,
-        303.66 * UNITCONV_eV_to_AU,
-        351.1 * UNITCONV_eV_to_AU,
-        401.38 * UNITCONV_eV_to_AU,
-        476.18 * UNITCONV_eV_to_AU,
-        523.415 * UNITCONV_eV_to_AU,
-        2437.65804 * UNITCONV_eV_to_AU,
-        2673.1774 * UNITCONV_eV_to_AU
-    );
+                /* ionization energy for silicon in atomic units */
+                PMACC_CONST_VECTOR(
+                    float_X,
+                    14,
+                    Silicon,
+                    8.151683 * UNITCONV_eV_to_AU,
+                    16.345845 * UNITCONV_eV_to_AU,
+                    33.493 * UNITCONV_eV_to_AU,
+                    45.14179 * UNITCONV_eV_to_AU,
+                    166.767 * UNITCONV_eV_to_AU,
+                    205.267 * UNITCONV_eV_to_AU,
+                    246.32 * UNITCONV_eV_to_AU,
+                    303.66 * UNITCONV_eV_to_AU,
+                    351.1 * UNITCONV_eV_to_AU,
+                    401.38 * UNITCONV_eV_to_AU,
+                    476.18 * UNITCONV_eV_to_AU,
+                    523.415 * UNITCONV_eV_to_AU,
+                    2437.65804 * UNITCONV_eV_to_AU,
+                    2673.1774 * UNITCONV_eV_to_AU);
 
-    /* ionization energy for copper in atomic units */
-    PMACC_CONST_VECTOR(float_X, 29, Copper,
-        7.72638 * UNITCONV_eV_to_AU,
-        20.2924 * UNITCONV_eV_to_AU,
-        36.8411 * UNITCONV_eV_to_AU,
-        57.385  * UNITCONV_eV_to_AU,
-        79.87   * UNITCONV_eV_to_AU,
-        103.010 * UNITCONV_eV_to_AU,
-        139.012 * UNITCONV_eV_to_AU,
-        166.021 * UNITCONV_eV_to_AU,
-        198.022 * UNITCONV_eV_to_AU,
-        232.25  * UNITCONV_eV_to_AU,
-        265.332 * UNITCONV_eV_to_AU,
-        367.09  * UNITCONV_eV_to_AU,
-        401.03  * UNITCONV_eV_to_AU,
-        436.06  * UNITCONV_eV_to_AU,
-        483.19  * UNITCONV_eV_to_AU,
-        518.712 * UNITCONV_eV_to_AU,
-        552.821 * UNITCONV_eV_to_AU,
-        632.56  * UNITCONV_eV_to_AU,
-        670.608 * UNITCONV_eV_to_AU,
-        1690.59 * UNITCONV_eV_to_AU,
-        1800.3  * UNITCONV_eV_to_AU,
-        1918.4  * UNITCONV_eV_to_AU,
-        2044.6  * UNITCONV_eV_to_AU,
-        2179.4  * UNITCONV_eV_to_AU,
-        2307.32 * UNITCONV_eV_to_AU,
-        2479.12 * UNITCONV_eV_to_AU,
-        2586.95 * UNITCONV_eV_to_AU,
-        11062.4 * UNITCONV_eV_to_AU,
-        11567.6 * UNITCONV_eV_to_AU
-    );
+                /* ionization energy for copper in atomic units */
+                PMACC_CONST_VECTOR(
+                    float_X,
+                    29,
+                    Copper,
+                    7.72638 * UNITCONV_eV_to_AU,
+                    20.2924 * UNITCONV_eV_to_AU,
+                    36.8411 * UNITCONV_eV_to_AU,
+                    57.385 * UNITCONV_eV_to_AU,
+                    79.87 * UNITCONV_eV_to_AU,
+                    103.010 * UNITCONV_eV_to_AU,
+                    139.012 * UNITCONV_eV_to_AU,
+                    166.021 * UNITCONV_eV_to_AU,
+                    198.022 * UNITCONV_eV_to_AU,
+                    232.25 * UNITCONV_eV_to_AU,
+                    265.332 * UNITCONV_eV_to_AU,
+                    367.09 * UNITCONV_eV_to_AU,
+                    401.03 * UNITCONV_eV_to_AU,
+                    436.06 * UNITCONV_eV_to_AU,
+                    483.19 * UNITCONV_eV_to_AU,
+                    518.712 * UNITCONV_eV_to_AU,
+                    552.821 * UNITCONV_eV_to_AU,
+                    632.56 * UNITCONV_eV_to_AU,
+                    670.608 * UNITCONV_eV_to_AU,
+                    1690.59 * UNITCONV_eV_to_AU,
+                    1800.3 * UNITCONV_eV_to_AU,
+                    1918.4 * UNITCONV_eV_to_AU,
+                    2044.6 * UNITCONV_eV_to_AU,
+                    2179.4 * UNITCONV_eV_to_AU,
+                    2307.32 * UNITCONV_eV_to_AU,
+                    2479.12 * UNITCONV_eV_to_AU,
+                    2586.95 * UNITCONV_eV_to_AU,
+                    11062.4 * UNITCONV_eV_to_AU,
+                    11567.6 * UNITCONV_eV_to_AU);
 
-    /* ionization energy for gold in atomic units */
-    PMACC_CONST_VECTOR(float_X, 79, Gold,
-        9.2256 * UNITCONV_eV_to_AU,
-        20.203 * UNITCONV_eV_to_AU,
-        30.016 * UNITCONV_eV_to_AU,
-        45.017 * UNITCONV_eV_to_AU,
-        60.019 * UNITCONV_eV_to_AU,
-        74.020 * UNITCONV_eV_to_AU,
-        94.020 * UNITCONV_eV_to_AU,
-        112.02 * UNITCONV_eV_to_AU,
-        130.12 * UNITCONV_eV_to_AU,
-        149.02 * UNITCONV_eV_to_AU,
-        168.21 * UNITCONV_eV_to_AU,
-        248.01 * UNITCONV_eV_to_AU,
-        275.14 * UNITCONV_eV_to_AU,
-        299.15 * UNITCONV_eV_to_AU,
-        324.16 * UNITCONV_eV_to_AU,
-        365.19 * UNITCONV_eV_to_AU,
-        392.20 * UNITCONV_eV_to_AU,
-        433.21 * UNITCONV_eV_to_AU,
-        487.25 * UNITCONV_eV_to_AU,
-        517.30 * UNITCONV_eV_to_AU,
-        546.30 * UNITCONV_eV_to_AU,
-        600.30 * UNITCONV_eV_to_AU,
-        650.40 * UNITCONV_eV_to_AU,
-        710.40 * UNITCONV_eV_to_AU,
-        760.40 * UNITCONV_eV_to_AU,
-        820.40 * UNITCONV_eV_to_AU,
-        870.40 * UNITCONV_eV_to_AU,
-        930.50 * UNITCONV_eV_to_AU,
-        990.50 * UNITCONV_eV_to_AU,
-        1040.5 * UNITCONV_eV_to_AU,
-        1100.5 * UNITCONV_eV_to_AU,
-        1150.6 * UNITCONV_eV_to_AU,
-        1210.6 * UNITCONV_eV_to_AU,
-        1475.5 * UNITCONV_eV_to_AU,
-        1527.5 * UNITCONV_eV_to_AU,
-        1584.5 * UNITCONV_eV_to_AU,
-        1644.5 * UNITCONV_eV_to_AU,
-        1702.4 * UNITCONV_eV_to_AU,
-        1758.4 * UNITCONV_eV_to_AU,
-        1845.4 * UNITCONV_eV_to_AU,
-        1904.4 * UNITCONV_eV_to_AU,
-        1967.4 * UNITCONV_eV_to_AU,
-        2026.4 * UNITCONV_eV_to_AU,
-        2261.4 * UNITCONV_eV_to_AU,
-        2320.4 * UNITCONV_eV_to_AU,
-        2383.4 * UNITCONV_eV_to_AU,
-        2443.4 * UNITCONV_eV_to_AU,
-        2640.4 * UNITCONV_eV_to_AU,
-        2708.4 * UNITCONV_eV_to_AU,
-        2870.4 * UNITCONV_eV_to_AU,
-        2941.0 * UNITCONV_eV_to_AU,
-        4888.4 * UNITCONV_eV_to_AU,
-        5013.4 * UNITCONV_eV_to_AU,
-        5156.5 * UNITCONV_eV_to_AU,
-        5307.5 * UNITCONV_eV_to_AU,
-        5452.5 * UNITCONV_eV_to_AU,
-        5594.5 * UNITCONV_eV_to_AU,
-        5846.6 * UNITCONV_eV_to_AU,
-        5994.6 * UNITCONV_eV_to_AU,
-        6156.7 * UNITCONV_eV_to_AU,
-        6305.1 * UNITCONV_eV_to_AU,
-        6724.1 * UNITCONV_eV_to_AU,
-        6854.1 * UNITCONV_eV_to_AU,
-        6997.2 * UNITCONV_eV_to_AU,
-        7130.2 * UNITCONV_eV_to_AU,
-        7756.3 * UNITCONV_eV_to_AU,
-        7910.4 * UNITCONV_eV_to_AU,
-        8210.4 * UNITCONV_eV_to_AU,
-        8360.5 * UNITCONV_eV_to_AU,
-        18040. * UNITCONV_eV_to_AU,
-        18401. * UNITCONV_eV_to_AU,
-        18791. * UNITCONV_eV_to_AU,
-        19151. * UNITCONV_eV_to_AU,
-        21471. * UNITCONV_eV_to_AU,
-        21921. * UNITCONV_eV_to_AU,
-        22500. * UNITCONV_eV_to_AU,
-        22868. * UNITCONV_eV_to_AU,
-        91516. * UNITCONV_eV_to_AU,
-        93254. * UNITCONV_eV_to_AU
-    );
+                /* ionization energy for gold in atomic units */
+                PMACC_CONST_VECTOR(
+                    float_X,
+                    79,
+                    Gold,
+                    9.2256 * UNITCONV_eV_to_AU,
+                    20.203 * UNITCONV_eV_to_AU,
+                    30.016 * UNITCONV_eV_to_AU,
+                    45.017 * UNITCONV_eV_to_AU,
+                    60.019 * UNITCONV_eV_to_AU,
+                    74.020 * UNITCONV_eV_to_AU,
+                    94.020 * UNITCONV_eV_to_AU,
+                    112.02 * UNITCONV_eV_to_AU,
+                    130.12 * UNITCONV_eV_to_AU,
+                    149.02 * UNITCONV_eV_to_AU,
+                    168.21 * UNITCONV_eV_to_AU,
+                    248.01 * UNITCONV_eV_to_AU,
+                    275.14 * UNITCONV_eV_to_AU,
+                    299.15 * UNITCONV_eV_to_AU,
+                    324.16 * UNITCONV_eV_to_AU,
+                    365.19 * UNITCONV_eV_to_AU,
+                    392.20 * UNITCONV_eV_to_AU,
+                    433.21 * UNITCONV_eV_to_AU,
+                    487.25 * UNITCONV_eV_to_AU,
+                    517.30 * UNITCONV_eV_to_AU,
+                    546.30 * UNITCONV_eV_to_AU,
+                    600.30 * UNITCONV_eV_to_AU,
+                    650.40 * UNITCONV_eV_to_AU,
+                    710.40 * UNITCONV_eV_to_AU,
+                    760.40 * UNITCONV_eV_to_AU,
+                    820.40 * UNITCONV_eV_to_AU,
+                    870.40 * UNITCONV_eV_to_AU,
+                    930.50 * UNITCONV_eV_to_AU,
+                    990.50 * UNITCONV_eV_to_AU,
+                    1040.5 * UNITCONV_eV_to_AU,
+                    1100.5 * UNITCONV_eV_to_AU,
+                    1150.6 * UNITCONV_eV_to_AU,
+                    1210.6 * UNITCONV_eV_to_AU,
+                    1475.5 * UNITCONV_eV_to_AU,
+                    1527.5 * UNITCONV_eV_to_AU,
+                    1584.5 * UNITCONV_eV_to_AU,
+                    1644.5 * UNITCONV_eV_to_AU,
+                    1702.4 * UNITCONV_eV_to_AU,
+                    1758.4 * UNITCONV_eV_to_AU,
+                    1845.4 * UNITCONV_eV_to_AU,
+                    1904.4 * UNITCONV_eV_to_AU,
+                    1967.4 * UNITCONV_eV_to_AU,
+                    2026.4 * UNITCONV_eV_to_AU,
+                    2261.4 * UNITCONV_eV_to_AU,
+                    2320.4 * UNITCONV_eV_to_AU,
+                    2383.4 * UNITCONV_eV_to_AU,
+                    2443.4 * UNITCONV_eV_to_AU,
+                    2640.4 * UNITCONV_eV_to_AU,
+                    2708.4 * UNITCONV_eV_to_AU,
+                    2870.4 * UNITCONV_eV_to_AU,
+                    2941.0 * UNITCONV_eV_to_AU,
+                    4888.4 * UNITCONV_eV_to_AU,
+                    5013.4 * UNITCONV_eV_to_AU,
+                    5156.5 * UNITCONV_eV_to_AU,
+                    5307.5 * UNITCONV_eV_to_AU,
+                    5452.5 * UNITCONV_eV_to_AU,
+                    5594.5 * UNITCONV_eV_to_AU,
+                    5846.6 * UNITCONV_eV_to_AU,
+                    5994.6 * UNITCONV_eV_to_AU,
+                    6156.7 * UNITCONV_eV_to_AU,
+                    6305.1 * UNITCONV_eV_to_AU,
+                    6724.1 * UNITCONV_eV_to_AU,
+                    6854.1 * UNITCONV_eV_to_AU,
+                    6997.2 * UNITCONV_eV_to_AU,
+                    7130.2 * UNITCONV_eV_to_AU,
+                    7756.3 * UNITCONV_eV_to_AU,
+                    7910.4 * UNITCONV_eV_to_AU,
+                    8210.4 * UNITCONV_eV_to_AU,
+                    8360.5 * UNITCONV_eV_to_AU,
+                    18040. * UNITCONV_eV_to_AU,
+                    18401. * UNITCONV_eV_to_AU,
+                    18791. * UNITCONV_eV_to_AU,
+                    19151. * UNITCONV_eV_to_AU,
+                    21471. * UNITCONV_eV_to_AU,
+                    21921. * UNITCONV_eV_to_AU,
+                    22500. * UNITCONV_eV_to_AU,
+                    22868. * UNITCONV_eV_to_AU,
+                    91516. * UNITCONV_eV_to_AU,
+                    93254. * UNITCONV_eV_to_AU);
 
-} // namespace AU
-} // namespace energies
-} // namespace ionization
+            } // namespace AU
+        } // namespace energies
+    } // namespace ionization
 } // namespace picongpu

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -23,15 +23,13 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-namespace traits
-{
+    namespace cursor
+    {
+        namespace traits
+        {
+            template<typename type>
+            struct dim;
 
-template<typename type>
-struct dim;
-
-} // traits
-} // cursor
-} // pmacc
-
+        } // namespace traits
+    } // namespace cursor
+} // namespace pmacc

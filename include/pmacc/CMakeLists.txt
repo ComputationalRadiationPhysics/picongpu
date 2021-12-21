@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2020 Erik Zenker, Alexander Grund
+# Copyright 2015-2021 Erik Zenker, Alexander Grund
 #
 # This file is part of PMacc.
 #
@@ -24,7 +24,7 @@
 # PMacc tests
 ################################################################################
 
-cmake_minimum_required(VERSION 3.11.4)
+cmake_minimum_required(VERSION 3.15.0)
 project(PMaccTest)
 
 # set helper pathes to find libraries and packages
@@ -53,10 +53,19 @@ endif()
 # Language Flags
 ###############################################################################
 
-# enforce C++11
+# enforce C++14
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
+
+
+################################################################################
+# Directory of this file.
+################################################################################
+set(PMACC_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
+
+# Normalize the path (e.g. remove ../)
+get_filename_component(PMACC_ROOT_DIR "${PMACC_ROOT_DIR}" ABSOLUTE)
 
 ################################################################################
 # PMacc
@@ -69,16 +78,10 @@ add_definitions(${PMacc_DEFINITIONS})
 
 
 ###############################################################################
-# Boost.Test
+# Catch2
 ###############################################################################
 
-find_package(Boost 1.65.1 COMPONENTS unit_test_framework REQUIRED)
-if(TARGET Boost::unit_test_framework)
-    set(LIBS ${LIBS} Boost::boost Boost::unit_test_framework)
-else()
-    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-    set(LIBS ${LIBS} ${Boost_LIBRARIES})
-endif()
+add_subdirectory(${PMACC_ROOT_DIR}/../../thirdParty/catch2/catch_main ${CMAKE_BINARY_DIR}/catch2)
 
 
 ################################################################################
@@ -89,13 +92,17 @@ find_package(MPI REQUIRED)
 include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
 set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
 
+option(USE_MPI_AS_ROOT_USER "add --allow-run-as-root mpiexec used by ctest" OFF)
+
+if(USE_MPI_AS_ROOT_USER)
+    set(MPI_RUNTIME_FLAGS "--allow-run-as-root")
+endif()
 
 ###############################################################################
 # Targets
 ###############################################################################
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/test)
-add_definitions(-DBOOST_TEST_DYN_LINK)
 
 # CTest
 enable_testing()
@@ -108,10 +115,11 @@ foreach(dim 2 3)
         get_filename_component(testCaseFilename ${testCaseFilepath} NAME)
         string(REPLACE "UT.cpp" "" testCase ${testCaseFilename})
         set(testExe "${PROJECT_NAME}-${testCase}-${dim}D")
-        cupla_add_executable(${testExe} ${testCaseFilepath} ${CMAKE_CURRENT_SOURCE_DIR}/test/main.cpp)
+        cupla_add_executable(${testExe} ${testCaseFilepath})
         target_compile_definitions(${testExe} PRIVATE TEST_DIM=${dim})
         target_link_libraries(${testExe} PUBLIC ${LIBS})
-        add_test(NAME "${testCase}-${dim}D" COMMAND mpiexec -n 1 ./${testExe})
+        target_link_libraries(${testExe} PUBLIC CatchMain)
+        add_test(NAME "${testCase}-${dim}D" COMMAND mpiexec ${MPI_RUNTIME_FLAGS} -n 1 ./${testExe})
     endforeach()
     string(REPLACE "-DTEST_DIM=${dim}" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endforeach()

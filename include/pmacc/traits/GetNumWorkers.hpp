@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,68 +22,66 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
 #include <type_traits>
 
 
 namespace pmacc
 {
-namespace traits
-{
-    /** Get number of workers
-     *
-     * the number of workers for a kernel depending on the used accelerator
-     *
-     * @tparam T_maxWorkers the maximum number of workers
-     * @tparam T_Acc the accelerator type
-     * @return @p ::value number of workers
-     */
-    template<
-        uint32_t T_maxWorkers,
-        typename T_Acc = cupla::AccThreadSeq
-    >
-    struct GetNumWorkers
+    namespace traits
     {
-        static constexpr uint32_t value = T_maxWorkers;
-    };
+        /** Get number of workers
+         *
+         * the number of workers for a kernel depending on the used accelerator
+         *
+         * @tparam T_maxWorkers the maximum number of workers
+         * @tparam T_Acc the accelerator type
+         * @return @p ::value number of workers
+         */
+        template<uint32_t T_maxWorkers, typename T_Acc = cupla::AccThreadSeq>
+        struct GetNumWorkers
+        {
+            static constexpr uint32_t value = T_maxWorkers;
+        };
 
-#if( ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED == 1 )
-    template<
-        uint32_t T_maxWorkers,
-        typename ... T_Args
-    >
-    struct GetNumWorkers<
-        T_maxWorkers,
-        alpaka::acc::AccCpuOmp2Blocks< T_Args... >
-    >
-    {
-        static constexpr uint32_t value = 1u;
-    };
+#if(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED == 1)
+        template<uint32_t T_maxWorkers, typename... T_Args>
+        struct GetNumWorkers<T_maxWorkers, alpaka::AccCpuOmp2Blocks<T_Args...>>
+        {
+            static constexpr uint32_t value = 1u;
+        };
 #endif
-#if( ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED == 1 )
-    template<
-        uint32_t T_maxWorkers,
-        typename ... T_Args
-    >
-    struct GetNumWorkers<
-        T_maxWorkers,
-        alpaka::acc::AccCpuSerial< T_Args... >
-    >
-    {
-        static constexpr uint32_t value = 1u;
-    };
+#if(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED == 1)
+        template<uint32_t T_maxWorkers, typename... T_Args>
+        struct GetNumWorkers<T_maxWorkers, alpaka::AccCpuSerial<T_Args...>>
+        {
+            static constexpr uint32_t value = 1u;
+        };
 #endif
-#if( ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED == 1 )
-    template<
-        uint32_t T_maxWorkers,
-        typename ... T_Args
-    >
-    struct GetNumWorkers<
-        T_maxWorkers,
-        alpaka::acc::AccCpuTbbBlocks< T_Args... >
-    >
-    {
-        static constexpr uint32_t value = 1u;
-    };
+#if(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED == 1)
+        template<uint32_t T_maxWorkers, typename... T_Args>
+        struct GetNumWorkers<T_maxWorkers, alpaka::AccCpuTbbBlocks<T_Args...>>
+        {
+            static constexpr uint32_t value = 1u;
+        };
 #endif
-} // namespace traits
+#if(ALPAKA_ACC_ANY_BT_OMP5_ENABLED == 1) && defined ALPAKA_OFFLOAD_MAX_BLOCK_SIZE && ALPAKA_OFFLOAD_MAX_BLOCK_SIZE > 0
+        template<uint32_t T_maxWorkers, typename... T_Args>
+        struct GetNumWorkers<T_maxWorkers, alpaka::AccOmp5<T_Args...>>
+        {
+            static constexpr uint32_t value = ALPAKA_OFFLOAD_MAX_BLOCK_SIZE;
+        };
+#endif
+#if(ALPAKA_ACC_ANY_BT_OACC_ENABLED == 1)
+        template<uint32_t T_maxWorkers, typename... T_Args>
+        struct GetNumWorkers<T_maxWorkers, alpaka::AccOacc<T_Args...>>
+        {
+#    ifdef ALPAKA_OFFLOAD_MAX_BLOCK_SIZE
+            static constexpr uint32_t value = ALPAKA_OFFLOAD_MAX_BLOCK_SIZE;
+#    else
+            static constexpr uint32_t value = 1;
+#    endif
+        };
+#endif
+    } // namespace traits
 } // namespace pmacc

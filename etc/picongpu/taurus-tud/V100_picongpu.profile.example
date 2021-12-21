@@ -19,7 +19,7 @@ module switch modenv/ml
 
 # load CUDA/9.2.88-GCC-7.3.0-2.30, also loads GCC/7.3.0-2.30, zlib, OpenMPI and others
 module load fosscuda/2018b
-module load CMake/3.11.4-GCCcore-7.3.0
+module load CMake/3.15.0-GCCcore-7.3.0
 module load libpng/1.6.34-GCCcore-7.3.0
 
 printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
@@ -38,22 +38,14 @@ printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
 export PIC_LIBS=$HOME/lib/power9
 export BOOST_ROOT=$PIC_LIBS/boost-1.68.0-Power9
 export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0-Power9
-export ADIOS_ROOT=$PIC_LIBS/adios-1.13.1-Power9
 export HDF5_ROOT=$PIC_LIBS/hdf5-1.8.20-Power9
-export Splash_DIR=$PIC_LIBS/splash-Power9
 export BLOSC_ROOT=$PIC_LIBS/blosc-1.16.2-Power9
 
 export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$PNGwriter_DIR/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$ADIOS_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$HDF5_ROOT/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$Splash_DIR/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
-
-export PATH=$ADIOS_ROOT/bin:$PATH
-
 export CMAKE_PREFIX_PATH=$HDF5_ROOT:$CMAKE_PREFIX_PATH
-export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
 
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples

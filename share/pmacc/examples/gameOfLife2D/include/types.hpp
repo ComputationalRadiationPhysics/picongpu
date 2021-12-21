@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
+#include <pmacc/types.hpp>
 
 namespace gol
 {
@@ -30,12 +30,11 @@ namespace gol
 
     typedef DataSpace<DIM2> Space;
     typedef GridController<DIM2> GC;
-    typedef GridBuffer<uint8_t, DIM2 > Buffer;
+    typedef GridBuffer<uint8_t, DIM2> Buffer;
 
     enum CommunicationTags
     {
-        BUFF1 = 0u, BUFF2 = 1u
+        BUFF1 = 0u,
+        BUFF2 = 1u
     };
-}
-
-
+} // namespace gol

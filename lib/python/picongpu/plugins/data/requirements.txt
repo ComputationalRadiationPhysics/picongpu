@@ -2,4 +2,5 @@ numpy
 pandas>=0.21.0
 h5py
 pillow
-scipy
+imageio
+openPMD-api>=0.10.3gt

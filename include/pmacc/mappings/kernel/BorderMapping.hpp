@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Alexander Grund
+/* Copyright 2013-2021 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -22,15 +22,19 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/assert.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/mappings/kernel/MapperConcept.hpp"
+#include "pmacc/types.hpp"
+
 #include <stdexcept>
 
 namespace pmacc
 {
-
-    /**
+    /** Mapping from block indices to supercells in the given border for alpaka kernels
+     *
+     * Adheres to the MapperConcept.
+     *
      * This maps onto the border to 1 exchange direction (e.g. TOP, BOTTOM, TOP + LEFT, ...)
      * Choosing multiple directions defines an intersection [1] in mathematical set theory.
      * The area is basically the same as the surrounding guard region but on the border.
@@ -47,12 +51,8 @@ namespace pmacc
     template<class T_BaseClass>
     class BorderMapping;
 
-    template<
-        template<unsigned, class> class T_BaseClass,
-        unsigned T_dim,
-        class T_SuperCellSize
-    >
-    class BorderMapping<T_BaseClass<T_dim, T_SuperCellSize> >: public T_BaseClass<T_dim, T_SuperCellSize>
+    template<template<unsigned, class> class T_BaseClass, unsigned T_dim, class T_SuperCellSize>
+    class BorderMapping<T_BaseClass<T_dim, T_SuperCellSize>> : public T_BaseClass<T_dim, T_SuperCellSize>
     {
     public:
         typedef T_BaseClass<T_dim, T_SuperCellSize> BaseClass;
@@ -72,7 +72,9 @@ namespace pmacc
          * @param base object of base class baseClass (see template parameters)
          * @param direction exchange direction to map to
          */
-        HINLINE BorderMapping(const BaseClass& base, pmacc::ExchangeType direction): BaseClass(base), m_direction(direction)
+        HINLINE BorderMapping(const BaseClass& base, pmacc::ExchangeType direction)
+            : BaseClass(base)
+            , m_direction(direction)
         {
             PMACC_ASSERT(direction != 0);
         }
@@ -80,16 +82,16 @@ namespace pmacc
         /**
          * Returns the exchange direction used by this mapper
          */
-        HDINLINE pmacc::ExchangeType
-        getDirection() const
+        HDINLINE pmacc::ExchangeType getDirection() const
         {
             return m_direction;
         }
 
-        /**
-         * Generate grid dimension information for kernel calls
+        /** Generate grid dimension information for alpaka kernel calls
          *
-         * @return size of the grid
+         * A kernel using this mapping must use exacly the returned number of blocks
+         *
+         * @return number of blocks in a grid
          */
         HINLINE DimDataSpace getGridDim() const
         {
@@ -99,28 +101,27 @@ namespace pmacc
 
             for(int i = 0; i < Dim; i++)
             {
-                if (directions[i] != 0)
+                if(directions[i] != 0)
                     result[i] = this->getGuardingSuperCells()[i];
             }
 
             return result;
         }
 
-        /**
-         * Returns index of current logical block
+        /** Return index of a supercell to be processed by the given alpaka block
          *
-         * @param realSuperCellIdx current SuperCell index (block index)
-         * @return mapped SuperCell index
+         * @param blockIdx alpaka block index
+         * @return mapped SuperCell index including guards
          */
-        HDINLINE DimDataSpace getSuperCellIndex(const DimDataSpace& realSuperCellIdx) const
+        HDINLINE DimDataSpace getSuperCellIndex(const DimDataSpace& blockIdx) const
         {
-            DimDataSpace result = realSuperCellIdx;
+            DimDataSpace result = blockIdx;
 
             const DimDataSpace directions = Mask::getRelativeDirections<Dim>(m_direction);
 
             for(int i = 0; i < Dim; i++)
             {
-                if (directions[i] == 1)
+                if(directions[i] == 1)
                     result[i] += this->getGridSuperCells()[i] - 2 * this->getGuardingSuperCells()[i];
                 else
                     result[i] += this->getGuardingSuperCells()[i];
@@ -128,6 +129,7 @@ namespace pmacc
 
             return result;
         }
+
     private:
         PMACC_ALIGN(m_direction, const pmacc::ExchangeType);
     };

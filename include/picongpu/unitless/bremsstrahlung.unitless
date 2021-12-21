@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Heiko Burau
+/* Copyright 2016-2021 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -21,32 +21,29 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace bremsstrahlung
-{
+    namespace particles
+    {
+        namespace bremsstrahlung
+        {
+            namespace electron
+            {
+                constexpr float_64 MIN_ENERGY_SI = MIN_ENERGY_MeV * 1.0e3 * UNITCONV_keV_to_Joule;
+                constexpr float_X MIN_ENERGY = MIN_ENERGY_SI / UNIT_ENERGY;
 
-namespace electron
-{
+                constexpr float_64 MAX_ENERGY_SI = MAX_ENERGY_MeV * 1.0e3 * UNITCONV_keV_to_Joule;
+                constexpr float_X MAX_ENERGY = MAX_ENERGY_SI / UNIT_ENERGY;
 
-constexpr float_64 MIN_ENERGY_SI = MIN_ENERGY_MeV * 1.0e3 * UNITCONV_keV_to_Joule;
-constexpr float_X MIN_ENERGY = MIN_ENERGY_SI / UNIT_ENERGY;
+                constexpr float_X NUM_STEPS_STOPPING_POWER_INTERGRAL = 1.0e3;
 
-constexpr float_64 MAX_ENERGY_SI = MAX_ENERGY_MeV * 1.0e3 * UNITCONV_keV_to_Joule;
-constexpr float_X MAX_ENERGY = MAX_ENERGY_SI / UNIT_ENERGY;
+            } // namespace electron
 
-constexpr float_X NUM_STEPS_STOPPING_POWER_INTERGRAL = 1.0e3;
+            namespace photon
+            {
+                constexpr float_64 SOFT_PHOTONS_CUTOFF_SI = SOFT_PHOTONS_CUTOFF_keV * UNITCONV_keV_to_Joule;
+                constexpr float_X SOFT_PHOTONS_CUTOFF = SOFT_PHOTONS_CUTOFF_SI / UNIT_ENERGY;
 
-} // namespace electron
+            } // namespace photon
 
-namespace photon
-{
-
-constexpr float_64 SOFT_PHOTONS_CUTOFF_SI = SOFT_PHOTONS_CUTOFF_keV * UNITCONV_keV_to_Joule;
-constexpr float_X SOFT_PHOTONS_CUTOFF = SOFT_PHOTONS_CUTOFF_SI / UNIT_ENERGY;
-
-} // namespace photon
-
-} // namespace bremsstrahlung
-} // namespace particles
+        } // namespace bremsstrahlung
+    } // namespace particles
 } // namespace picongpu

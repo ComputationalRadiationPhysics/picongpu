@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera, Sergei Bastrakov
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Sergei Bastrakov, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -21,218 +21,247 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include <pmacc/Environment.hpp>
 #include <pmacc/traits/GetStringProperties.hpp>
 
 #include <cstdint>
-#include <sstream>
+#include <memory>
 #include <string>
 
 
 namespace picongpu
 {
-namespace fields
-{
-namespace maxwellSolver
-{
-
-    /** Forward declaration to avoid mutual including with YeePML.hpp
-     *
-     * @tparam T_CurrentInterpolation current interpolation functor
-     * @tparam T_CurlE functor to compute curl of E
-     * @tparam T_CurlB functor to compute curl of B
-     */
-    template<
-        typename T_CurrentInterpolation,
-        typename T_CurlE,
-        typename T_CurlB
-    >
-    class YeePML;
-
-} // namespace maxwellSolver
-
-namespace absorber
-{
-
-    //! Forward declaration to avoid mutual including with ExponentialDamping.hpp
-    class ExponentialDamping;
-
-namespace detail
-{
-
-    /** Get string properties of the absorber
-     *
-     * @param name absorber name
-     */
-    HINLINE pmacc::traits::StringProperty getStringProperties(
-        std::string const & name
-    );
-
-    /** Absorber wrapper
-     *
-     * Provides unified interface for the absorber information:
-     * size along the 6 boundaries and getStringProperties() implementation.
-     * Currently does not provide the computational part, only description.
-     *
-     * The general version uses exponential absorber settings since this is the
-     * default absorber.
-     *
-     * @tparam T_FieldSolver field solver
-     */
-    template< typename T_FieldSolver >
-    struct Absorber
+    namespace fields
     {
-        //! Number of absorber cells along the min x boundary
-        static constexpr uint32_t xNegativeNumCells = ABSORBER_CELLS[ 0 ][ 0 ];
-
-        //! Number of absorber cells along the max x boundary
-        static constexpr uint32_t xPositiveNumCells = ABSORBER_CELLS[ 0 ][ 1 ];
-
-        //! Number of absorber cells along the min y boundary
-        static constexpr uint32_t yNegativeNumCells = ABSORBER_CELLS[ 1 ][ 0 ];
-
-        //! Number of absorber cells along the max y boundary
-        static constexpr uint32_t yPositiveNumCells = ABSORBER_CELLS[ 1 ][ 1 ];
-
-        //! Number of absorber cells along the min z boundary
-        static constexpr uint32_t zNegativeNumCells = ABSORBER_CELLS[ 2 ][ 0 ];
-
-        //! Number of cells along the max z boundary
-        static constexpr uint32_t zPositiveNumCells = ABSORBER_CELLS[ 2 ][ 1 ];
-
-        //! Get string properties of the absorber
-        static pmacc::traits::StringProperty getStringProperties()
+        namespace absorber
         {
-            return detail::getStringProperties( "exponential damping" );
-        }
-    };
-
-    namespace pml = maxwellSolver::yeePML;
-
-    /** Absorber wrapper
-     *
-     * Specialization for PML
-     *
-     * @tparam T_CurrentInterpolation current interpolation for YeePML
-     * @tparam T_CurlE curl E for YeePML
-     * @tparam T_CurlB curl B for YeePML
-     */
-    template<
-        typename T_CurrentInterpolation,
-        typename T_CurlE,
-        typename T_CurlB
-    >
-    struct Absorber<
-        maxwellSolver::YeePML<
-            T_CurrentInterpolation,
-            T_CurlE,
-            T_CurlB
-        >
-    >
-    {
-        //! Number of absorber cells along the min x boundary
-        static constexpr uint32_t xNegativeNumCells = pml::NUM_CELLS[ 0 ][ 0 ];
-
-        //! Number of absorber cells along the max x boundary
-        static constexpr uint32_t xPositiveNumCells = pml::NUM_CELLS[ 0 ][ 1 ];
-
-        //! Number of absorber cells along the min y boundary
-        static constexpr uint32_t yNegativeNumCells = pml::NUM_CELLS[ 1 ][ 0 ];
-
-        //! Number of absorber cells along the max y boundary
-        static constexpr uint32_t yPositiveNumCells = pml::NUM_CELLS[ 1 ][ 1 ];
-
-        //! Number of absorber cells along the min z boundary
-        static constexpr uint32_t zNegativeNumCells = pml::NUM_CELLS[ 2 ][ 0 ];
-
-        //! Number of absorber cells along the max z boundary
-        static constexpr uint32_t zPositiveNumCells = pml::NUM_CELLS[ 2 ][ 1 ];
-
-        //! Get string properties of the absorber
-        static pmacc::traits::StringProperty getStringProperties()
-        {
-            return detail::getStringProperties( "convolutional PML" );
-        }
-
-    };
-
-} // namespace detail
-
-    /** Absorber description implementing getStringProperties()
-     *
-     * To be used for writing absorber meta information, does not provide
-     * interface for running the absorber
-     */
-    using Absorber = detail::Absorber< Solver >;
-
-    /** Number of absorber cells along each boundary
-     *
-     * Is uniform for both PML and exponential damping absorbers.
-     * First index: 0 = x, 1 = y, 2 = z.
-     * Second index: 0 = negative (min coordinate), 1 = positive (max coordinate).
-     * Not for ODR-use.
-     */
-    constexpr uint32_t numCells[ 3 ][ 2 ] = {
-        { Absorber::xNegativeNumCells, Absorber::xPositiveNumCells },
-        { Absorber::yNegativeNumCells, Absorber::yPositiveNumCells },
-        { Absorber::zNegativeNumCells, Absorber::zPositiveNumCells }
-    };
-
-namespace detail
-{
-
-    // Implementation has to be after numCells is defined
-    pmacc::traits::StringProperty getStringProperties( std::string const & name )
-    {
-        pmacc::traits::StringProperty propList;
-        const DataSpace<DIM3> periodic =
-            Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
-
-        for( uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i )
-        {
-            // for each planar direction: left right top bottom back front
-            if( FRONT % i == 0 )
+            //! Thickness of the absorbing layer
+            class Thickness
             {
-                const std::string directionName = ExchangeTypeNames()[i];
-                const DataSpace<DIM3> relDir = Mask::getRelativeDirections<DIM3>(i);
-
-                bool isPeriodic = false;
-                uint32_t axis = 0;    // x(0) y(1) z(2)
-                uint32_t axisDir = 0; // negative (0), positive (1)
-                for( uint32_t d = 0; d < simDim; d++ )
+            public:
+                //! Create a zero thickness
+                Thickness()
                 {
-                    if( relDir[d] * periodic[d] != 0 )
-                        isPeriodic = true;
-                    if( relDir[d] != 0 )
-                        axis = d;
-                }
-                if( relDir[axis] > 0 )
-                    axisDir = 1;
-
-                std::string boundaryName = "open"; // absorbing boundary
-                if( isPeriodic )
-                    boundaryName = "periodic";
-
-                if( boundaryName == "open" )
-                {
-                    std::ostringstream boundaryParam;
-                    boundaryParam << name + " over "
-                        << numCells[axis][axisDir] << " cells";
-                    propList[directionName]["param"] = boundaryParam.str();
-                }
-                else
-                {
-                    propList[directionName]["param"] = "none";
+                    for(uint32_t axis = 0u; axis < 3u; axis++)
+                        for(uint32_t direction = 0u; direction < 2u; direction++)
+                            (*this)(axis, direction) = 0u;
                 }
 
-                propList[directionName]["name"] = boundaryName;
+                /** Get thickness for the given boundary
+                 *
+                 * @param axis axis, 0 = x, 1 = y, 2 = z
+                 * @param direction direction, 0 = negative (min coordinate),
+                 *                  1 = positive (max coordinate)
+                 */
+                uint32_t operator()(uint32_t const axis, uint32_t const direction) const
+                {
+                    return numCells[axis][direction];
+                }
+
+                /** Get reference to thickness for the given boundary
+                 *
+                 * @param axis axis, 0 = x, 1 = y, 2 = z
+                 * @param direction direction, 0 = negative (min coordinate),
+                 *                  1 = positive (max coordinate)
+                 */
+                uint32_t& operator()(uint32_t const axis, uint32_t const direction)
+                {
+                    return numCells[axis][direction];
+                }
+
+                //! Get thickness for the negative border, at the local domain sides minimum in coordinates
+                pmacc::DataSpace<simDim> getNegativeBorder() const
+                {
+                    pmacc::DataSpace<simDim> result;
+                    for(uint32_t axis = 0u; axis < simDim; axis++)
+                        result[axis] = (*this)(axis, 0);
+                    return result;
+                }
+
+                //! Get thickness for the positive border, at the local domain sides maximum in coordinates
+                pmacc::DataSpace<simDim> getPositiveBorder() const
+                {
+                    pmacc::DataSpace<simDim> result;
+                    for(uint32_t axis = 0u; axis < simDim; axis++)
+                        result[axis] = (*this)(axis, 1);
+                    return result;
+                }
+
+            private:
+                /** Number of absorber cells along each boundary
+                 *
+                 * First index: 0 = x, 1 = y, 2 = z.
+                 * Second index: 0 = negative (min coordinate), 1 = positive (max coordinate).
+                 */
+                uint32_t numCells[3][2];
+            };
+
+            /** Singleton for field absorber
+             *
+             * Provides run-time utilities to get thickness and string properties.
+             * Does not provide absorption implmenetation itself, that is done by AbsorberImpl.
+             */
+            class Absorber
+            {
+            public:
+                /** Supported absorber kinds, same for all absorbing boundaries
+                 *
+                 * Exponential - exponential damping absorber.
+                 * None - all boundaries are periodic, no absorber.
+                 * Pml - perfectly matched layer absorber.
+                 */
+                enum class Kind
+                {
+                    Exponential,
+                    None,
+                    Pml
+                };
+
+                //! Destructor needs to be public due to internal use of std::unique_ptr
+                virtual ~Absorber() = default;
+
+                //! Get absorber instance
+                static Absorber& get();
+
+                //! Absorber kind used in the simulation
+                inline Kind getKind() const;
+
+                /** Get absorber thickness in number of cells for the global domain
+                 *
+                 * This function takes into account which boundaries are periodic and absorbing.
+                 */
+                inline Thickness getGlobalThickness() const;
+
+                /** Get absorber thickness in number of cells for the current local domain
+                 *
+                 * This function takes into account the current domain decomposition and
+                 * which boundaries are periodic and absorbing.
+                 *
+                 * Note that unlike getGlobalThickness() result which does not change
+                 * throughout the simulation, the local thickness can change.
+                 * Thus, the result of this function should not be reused on another time step,
+                 * but rather the function called again.
+                 */
+                inline Thickness getLocalThickness() const;
+
+                //! Get string properties
+                static inline pmacc::traits::StringProperty getStringProperties();
+
+            protected:
+                /** Number of absorber cells along each boundary
+                 *
+                 * Stores the global absorber thickness along each boundary.
+                 * Note that in case of periodic
+                 * boundaries the corresponding values will be ignored.
+                 *
+                 * Is uniform for both PML and exponential damping absorbers.
+                 * First index: 0 = x, 1 = y, 2 = z.
+                 * Second index: 0 = negative (min coordinate), 1 = positive (max coordinate).
+                 */
+                uint32_t numCells[3][2];
+
+                //! Absorber kind
+                Kind kind;
+
+                //! Text name for string properties
+                std::string name;
+
+                //! Create absorber with the given kind
+                Absorber(Kind kind);
+
+                friend class AbsorberFactory;
+            };
+
+            // Forward declaration for AbsorberImpl::asExponentialImpl()
+            namespace exponential
+            {
+                class ExponentialImpl;
             }
-        }
-        return propList;
-    }
 
-} // namespace detail
+            // Forward declaration for AbsorberImpl::asPmlImpl()
+            namespace pml
+            {
+                class PmlImpl;
+            }
 
-} // namespace absorber
-} // namespace fields
+            /** Base class for implementation of absorbers
+             *
+             * It is currently in an intermediate state due to transition to run-time absorber selection and
+             * unification of field solvers.
+             * So the base class interface does not offer any common interface but type casts.
+             *
+             * The reason it is separated from the Absorber class is to better manage lifetime.
+             */
+            class AbsorberImpl : public Absorber
+            {
+            public:
+                /** Create absorber implementation instance
+                 *
+                 * @param cellDescription mapping for kernels
+                 */
+                AbsorberImpl(Kind kind, MappingDesc cellDescription);
+
+                //! Destructor
+                ~AbsorberImpl() override = default;
+
+                /** Interpret this as ExponentialImpl instance
+                 *
+                 * @return reference to this object if conversion is valid,
+                 *         throws otherwise
+                 */
+                inline exponential::ExponentialImpl& asExponentialImpl();
+
+                /** Interpret this as PmlImpl instance
+                 *
+                 * @return reference to this object if conversion is valid,
+                 *         throws otherwise
+                 */
+                inline pml::PmlImpl& asPmlImpl();
+
+            protected:
+                //! Mapping description for kernels
+                MappingDesc cellDescription;
+            };
+
+            /** Singletone factory class to construct absorber instances according to the preset kind
+             *
+             * This class is intended to be used only during initialization of the simulation and by Absorber itself.
+             */
+            class AbsorberFactory
+            {
+            public:
+                //! Get instance of the factory
+                static AbsorberFactory& get()
+                {
+                    static AbsorberFactory instance;
+                    return instance;
+                }
+
+                //! Make an absorber instance
+                inline std::unique_ptr<Absorber> make() const;
+
+                /** Make an absorber implementation instance
+                 *
+                 * @param cellDescription mapping for kernels
+                 */
+                inline std::unique_ptr<AbsorberImpl> makeImpl(MappingDesc cellDescription) const;
+
+                /** Set absorber kind to be made
+                 *
+                 * @param newKind new absorber kind
+                 */
+                void setKind(Absorber::Kind newKind)
+                {
+                    kind = newKind;
+                    isInitialized = true;
+                }
+
+            private:
+                Absorber::Kind kind;
+                bool isInitialized = false;
+            };
+
+        } // namespace absorber
+    } // namespace fields
 } // namespace picongpu
+
+#include "picongpu/fields/absorber/Absorber.tpp"

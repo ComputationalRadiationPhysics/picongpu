@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera, Felix Schmitt, Benjamin Worpitz,
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Felix Schmitt, Benjamin Worpitz,
  *                     Sergei Bastrakov
  *
  * This file is part of PIConGPU.
@@ -28,50 +28,17 @@
 
 namespace picongpu
 {
-namespace detail
-{
-
-        /** Additional fields for checkpointing
-         *
-         * @tparam T_FieldSolver field solver type
-         */
-        template< typename T_FieldSolver >
-        struct AdditionalCheckpointFields
-        {
-            using type = MakeSeq_t< >;
-        };
-
-        //! Only the YeePML solver needs additional fields for checkpointing
-        template< typename ... T_Args >
-        struct AdditionalCheckpointFields<
-            fields::maxwellSolver::YeePML< T_Args ... >
-        >
-        {
-            using type = MakeSeq_t<
-                fields::maxwellSolver::yeePML::FieldE,
-                fields::maxwellSolver::yeePML::FieldB
-            >;
-        };
-
-} // namespace detail
-
     /** Note: we need at least FieldE and FieldB for restart
      *        capabilities!
      */
-    using NativeFileCheckpointFields = MakeSeq_t<
-        FieldE,
-        FieldB
-    >;
+    using NativeFileCheckpointFields = MakeSeq_t<FieldE, FieldB>;
 
-    using AdditionalFileCheckpointFields =
-        typename picongpu::detail::AdditionalCheckpointFields< fields::Solver >::type;
+    // These fields have to be always part of the list, the no-PML case is handled internally
+    using AdditionalFileCheckpointFields = MakeSeq_t<fields::absorber::pml::FieldE, fields::absorber::pml::FieldB>;
 
     /* List of particle species for checkpoint/restart */
     using FileCheckpointParticles = VectorAllSpecies;
 
     /**  List of fields for checkpoint/restart */
-    using FileCheckpointFields = MakeSeq_t<
-        NativeFileCheckpointFields,
-        AdditionalFileCheckpointFields
-    >;
-}
+    using FileCheckpointFields = MakeSeq_t<NativeFileCheckpointFields, AdditionalFileCheckpointFields>;
+} // namespace picongpu

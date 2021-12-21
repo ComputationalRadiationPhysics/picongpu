@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -24,16 +24,15 @@
 
 namespace pmacc
 {
-namespace container
-{
+    namespace container
+    {
+        namespace tag
+        {
+            struct HostBuffer;
+            struct DeviceBuffer;
+        } // namespace tag
 
-namespace tag
-{
-struct HostBuffer;
-struct DeviceBuffer;
-}
-
-} // container
-} // pmacc
+    } // namespace container
+} // namespace pmacc
 
 #endif // CONTAINER_TAG_H

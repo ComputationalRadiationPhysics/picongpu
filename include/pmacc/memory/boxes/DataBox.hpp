@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -22,143 +22,56 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 
 namespace pmacc
 {
-    namespace private_Box
+    namespace detail
     {
-        template<unsigned DIM, class Base>
-        class Box;
-
-        template<class Base>
-        class Box< DIM1, Base> : public Base
+        template<typename DataBox>
+        HDINLINE decltype(auto) access(const DataBox& db, DataSpace<1> const& idx = {})
         {
-        public:
+            return db[idx.x()];
+        }
 
-            enum
-            {
-                Dim = DIM1
-            };
-            typedef typename Base::ValueType ValueType;
-            typedef typename Base::RefValueType RefValueType;
-
-            HDINLINE RefValueType operator()(const DataSpace<DIM1> &idx = DataSpace<DIM1>()) const
-            {
-                return Base::operator[](idx.x());
-            }
-
-            HDINLINE RefValueType operator()(const DataSpace<DIM1> &idx = DataSpace<DIM1>())
-            {
-                return Base::operator[](idx.x());
-            }
-
-            HDINLINE Box(Base base) : Base(base)
-            {
-            }
-
-            HDINLINE Box() : Base()
-            {
-            }
-        };
-
-        template< class Base>
-        class Box< DIM2, Base> : public Base
+        template<typename DataBox>
+        HDINLINE decltype(auto) access(const DataBox& db, DataSpace<2> const& idx = {})
         {
-        public:
+            return db[idx.y()][idx.x()];
+        }
 
-            enum
-            {
-                Dim = DIM2
-            };
-            typedef typename Base::ValueType ValueType;
-             typedef typename Base::RefValueType RefValueType;
-
-            HDINLINE RefValueType operator()(const DataSpace<DIM2> &idx = DataSpace<DIM2>()) const
-            {
-                return (Base::operator[](idx.y()))[idx.x()];
-            }
-
-            HDINLINE RefValueType operator()(const DataSpace<DIM2> &idx = DataSpace<DIM2>())
-            {
-                return (Base::operator[](idx.y()))[idx.x()];
-            }
-
-            HDINLINE Box(Base base) : Base(base)
-            {
-            }
-
-            HDINLINE Box() : Base()
-            {
-            }
-
-        };
-
-        template<class Base>
-        class Box<DIM3, Base> : public Base
+        template<typename DataBox>
+        HDINLINE decltype(auto) access(const DataBox& db, DataSpace<3> const& idx = {})
         {
-        public:
+            return db[idx.z()][idx.y()][idx.x()];
+        }
+    } // namespace detail
 
-            enum
-            {
-                Dim = DIM3
-            };
-            typedef typename Base::ValueType ValueType;
-            typedef typename Base::RefValueType RefValueType;
-
-            HDINLINE RefValueType operator()(const DataSpace<DIM3> &idx = DataSpace<DIM3>()) const
-            {
-                return (Base::operator[](idx.z()))[idx.y()][idx.x()];
-            }
-
-            HDINLINE RefValueType operator()(const DataSpace<DIM3> &idx = DataSpace<DIM3>())
-            {
-                return (Base::operator[](idx.z()))[idx.y()][idx.x()];
-            }
-
-            HDINLINE Box(Base base) : Base(base)
-            {
-            }
-
-            HDINLINE Box() : Base()
-            {
-            }
-
-        };
-
-
-
-    }
-
-    template<class Base>
-    class DataBox : public private_Box::Box<Base::Dim, Base>
+    template<typename Base>
+    struct DataBox : Base
     {
-    public:
+        HDINLINE DataBox() = default;
 
-        typedef typename Base::ValueType ValueType;
-        typedef DataBox<Base> Type;
-        typedef typename Base::RefValueType RefValueType;
-
-        HDINLINE DataBox(Base base) : private_Box::Box<Base::Dim, Base>(base)
+        HDINLINE DataBox(Base base) : Base{std::move(base)}
         {
         }
 
-        HDINLINE DataBox() : private_Box::Box<Base::Dim, Base>()
+        HDINLINE decltype(auto) operator()(DataSpace<Base::Dim> const& idx = {}) const
         {
+            ///@todo(bgruber): inline and replace this by if constexpr in C++17
+            return detail::access(*this, idx);
         }
 
-        HDINLINE Type shift(const DataSpace<Base::Dim>& offset) const
+        HDINLINE DataBox shift(DataSpace<Base::Dim> const& offset) const
         {
-            Type result(*this);
+            DataBox result(*this);
             result.fixedPointer = &((*this)(offset));
             return result;
         }
 
         HDINLINE DataBox<typename Base::ReducedType> reduceZ(const int zOffset) const
         {
-            return DataBox<typename Base::ReducedType > (Base::reduceZ(zOffset));
+            return Base::reduceZ(zOffset);
         }
     };
-
-}
+} // namespace pmacc

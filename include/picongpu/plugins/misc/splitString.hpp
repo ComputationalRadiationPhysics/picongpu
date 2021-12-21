@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -25,24 +25,21 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace misc
-{
-    /** split a string in a vector of strings
-     *
-     * Based on Stack Overflow post:
-     *   source: https://stackoverflow.com/a/28142357
-     *   author: Marcin
-     *   date: Jan 25 '15
-     *
-     * @param input string to split
-     * @param regex separator between two elements
-     */
-    std::vector< std::string > splitString(
-        std::string const & input,
-        std::string const & regex = ","
-    );
-} // namespace misc
-} // namespace plugins
+    namespace plugins
+    {
+        namespace misc
+        {
+            /** split a string in a vector of strings
+             *
+             * Based on Stack Overflow post:
+             *   source: https://stackoverflow.com/a/28142357
+             *   author: Marcin
+             *   date: Jan 25 '15
+             *
+             * @param input string to split
+             * @param regex separator between two elements
+             */
+            std::vector<std::string> splitString(std::string const& input, std::string const& regex = ",");
+        } // namespace misc
+    } // namespace plugins
 } // namespace picongpu

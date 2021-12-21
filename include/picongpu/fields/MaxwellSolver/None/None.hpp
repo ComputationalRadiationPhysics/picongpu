@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,74 +20,64 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/fields/MaxwellSolver/LaserChecker.hpp"
 #include "picongpu/fields/MaxwellSolver/None/None.def"
 #include "picongpu/fields/cellType/Yee.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 
 #include <pmacc/types.hpp>
 
 
 namespace picongpu
 {
-namespace fields
-{
-namespace maxwellSolver
-{
-namespace none
-{
-    /** Check Yee grid and time conditions
-     *
-     * This is a workaround that the condition check is only
-     * triggered if the current used solver is `NoSolver`
-     */
-    template<typename T_UsedSolver, typename T_Dummy = void>
-    struct ConditionCheck
+    namespace fields
     {
-    };
+        namespace maxwellSolver
+        {
+            class None
+            {
+            private:
+                using SuperCellSize = MappingDesc::SuperCellSize;
 
-    template<typename T_CurrentInterpolation, typename T_Dummy>
-    struct ConditionCheck<
-        None< T_CurrentInterpolation > ,
-        T_Dummy
-    >
+            public:
+                using CellType = cellType::Yee;
+
+                None(MappingDesc)
+                {
+                    LaserChecker<None>{}();
+                }
+
+                void update_beforeCurrent(uint32_t)
+                {
+                }
+
+                void update_afterCurrent(uint32_t)
+                {
+                }
+
+                static pmacc::traits::StringProperty getStringProperties()
+                {
+                    pmacc::traits::StringProperty propList("name", "none");
+                    return propList;
+                }
+            };
+
+        } // namespace maxwellSolver
+    } // namespace fields
+
+    namespace traits
     {
-        /* Courant-Friedrichs-Levy-Condition for Yee Field Solver: */
-        PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_grid_param_file,
-            (SPEED_OF_LIGHT*SPEED_OF_LIGHT*DELTA_T*DELTA_T*INV_CELL2_SUM)<=1.0);
-    };
-} // namespace none
-
-    template< typename T_CurrentInterpolation >
-    class None : private none::ConditionCheck< None< T_CurrentInterpolation> >
-    {
-    private:
-        typedef MappingDesc::SuperCellSize SuperCellSize;
-
-    public:
-        using CellType = cellType::Yee;
-        using CurrentInterpolation = T_CurrentInterpolation;
-
-        None(MappingDesc)
+        /** Get margin for any field access in the None solver
+         *
+         * @tparam T_Field field type
+         */
+        template<typename T_Field>
+        struct GetMargin<picongpu::fields::maxwellSolver::None, T_Field>
         {
+            using LowerMargin = typename pmacc::math::CT::make_Int<simDim, 0>::type;
+            using UpperMargin = LowerMargin;
+        };
+    } // namespace traits
 
-        }
-
-        void update_beforeCurrent(uint32_t)
-        {
-
-        }
-
-        void update_afterCurrent(uint32_t)
-        {
-
-        }
-
-        static pmacc::traits::StringProperty getStringProperties()
-        {
-            pmacc::traits::StringProperty propList( "name", "none" );
-            return propList;
-        }
-    };
-
-} // namespace maxwellSolver
-} // namespace fields
 } // namespace picongpu

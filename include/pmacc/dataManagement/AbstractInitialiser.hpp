@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Felix Schmitt, Benjamin Worpitz
+/* Copyright 2013-2021 Rene Widera, Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -26,7 +26,6 @@
 
 namespace pmacc
 {
-
     /**
      * Abstract base class for initialising simulation data (ISimulationData).
      */
@@ -39,13 +38,16 @@ namespace pmacc
          *
          * @return the next timestep
          */
-        virtual uint32_t setup() { return 0;};
+        virtual uint32_t setup()
+        {
+            return 0;
+        };
 
         /**
          * Tears down this initialiser.
          * Called after any init.
          */
-        virtual void teardown() {};
+        virtual void teardown(){};
 
         /**
          * Initialises simulation data (concrete type of data is described by id).
@@ -56,4 +58,4 @@ namespace pmacc
         virtual void init(ISimulationData& data, uint32_t currentStep) = 0;
     };
 
-}
+} // namespace pmacc

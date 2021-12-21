@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -25,17 +25,16 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-/** \todo rename this class to NavigatorIdentity*/
-struct StandardNavigator
-{
-    HDINLINE int operator()(int component) const
+    namespace math
     {
-        return component;
-    }
-};
+        /** \todo rename this class to NavigatorIdentity*/
+        struct StandardNavigator
+        {
+            HDINLINE int operator()(int component) const
+            {
+                return component;
+            }
+        };
 
-} // math
-} // PMacc
+    } // namespace math
+} // namespace pmacc

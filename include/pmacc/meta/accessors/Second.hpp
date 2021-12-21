@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -26,26 +26,24 @@
 
 namespace pmacc
 {
-namespace meta
-{
+    namespace meta
+    {
+        namespace accessors
+        {
+            /** Get second type of the given type
+             *
+             * @tparam T type from which we return the second held type
+             *
+             * T must have defined ::second
+             */
+            template<typename T>
+            struct Second
+            {
+                using type = typename T::second;
+            };
 
-namespace accessors
-{
+        } // namespace accessors
 
-/** Get second type of the given type
- *
- * \tparam T type from which we return the second held type
- *
- * T must have defined ::second
- */
-template<typename T>
-struct Second
-{
-    typedef typename T::second type;
-};
+    } // namespace meta
 
-}//namespace accessors
-
-}//namespace meta
-
-}//namespace  pmacc
+} // namespace  pmacc

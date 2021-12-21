@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Alexander Grund
+/* Copyright 2015-2021 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/tasks/TaskKernel.hpp"
 #include "pmacc/Environment.hpp"
+#include "pmacc/eventSystem/tasks/TaskKernel.hpp"
 
-namespace pmacc{
-
+namespace pmacc
+{
     void TaskKernel::activateChecks()
     {
         canBeChecked = true;
@@ -35,4 +35,4 @@ namespace pmacc{
         Environment<>::get().Manager().addTask(this);
         __setTransactionEvent(EventTask(this->getId()));
     }
-} //namespace pmacc
+} // namespace pmacc

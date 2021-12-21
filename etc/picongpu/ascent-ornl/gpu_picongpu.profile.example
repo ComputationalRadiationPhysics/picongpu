@@ -1,0 +1,76 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ################################# (edit the following lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on job (-B)egin, Fi(-N)ish
+export MY_MAILNOTIFY=""
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Project Information ######################################## (edit this line)
+#   - project account for computing time
+# export proj=[TODO: fill with: `groups | awk '{print $2}'`]
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#module load nano
+#export EDITOR="emacs -nw"
+
+# basic environment ###########################################################
+module load gcc/8.1.1
+module load spectrum-mpi/10.3.1.2-20200121
+
+export CC=$(which gcc)
+export CXX=$(which g++)
+
+# required tools and libs
+module load git/2.20.1
+module load cmake/3.18.2
+module load cuda/11.2.0
+module load boost/1.66.0
+
+# plugins (optional) ##########################################################
+module load hdf5/1.10.4
+module load c-blosc/1.12.1 zfp/0.5.2 sz/2.0.2.0 lz4/1.8.1.2
+module load adios2/2.7.0
+module load zlib/1.2.11
+module load libpng/1.6.34 freetype/2.9.1
+module load nsight-compute/2021.1.0
+
+# shared libs
+#export PIC_LIBS=$PROJWORK/$proj/picongpu/lib/
+
+# openPMD-api
+#export OPENPMD_ROOT=$PIC_LIBS/openPMD-api/
+#export LD_LIBRARY_PATH=$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH
+
+# pngWriter
+#export CMAKE_PREFIX_PATH=$PIC_LIBS/pngwriter:$CMAKE_PREFIX_PATH
+#export LD_LIBRARY_PATH=$PIC_LIBS/pngwriter/lib:$LD_LIBRARY_PATH
+
+
+# helper variables and tools ##################################################
+export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="cuda:70"
+
+export PATH=$PATH:$PICSRC
+export PATH=$PATH:$PICSRC/bin
+export PATH=$PATH:$PICSRC/src/tools/bin
+
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+alias getNode="bsub -P $proj -W 2:00 -nnodes 1 -Is /bin/bash"
+
+# "tbg" default options #######################################################
+export TBG_SUBMIT="bsub"
+export TBG_TPLFILE="etc/picongpu/ascent-ornl/gpu_batch.tpl"
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi

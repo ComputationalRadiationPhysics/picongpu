@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,55 +21,55 @@
 
 #pragma once
 
-#include "tag.hpp"
-#include "pmacc/math/vector/Int.hpp"
-
 #include "pmacc/cuSTL/cursor/traits.hpp"
+#include "pmacc/math/vector/Int.hpp"
+#include "tag.hpp"
 
 
 namespace pmacc
 {
-namespace cursor
-{
-
-template<int T_dim>
-class CartNavigator
-{
-public:
-    typedef tag::CartNavigator tag;
-    static constexpr int dim = T_dim;
-private:
-    math::Int<dim> factor;
-public:
-    HDINLINE
-    CartNavigator(math::Int<dim> factor) : factor(factor) {}
-
-    template<typename Data>
-    HDINLINE
-    Data operator()(const Data& data, const math::Int<dim>& jump) const
+    namespace cursor
     {
-        char* result = (char*)data;
-        result += algorithms::math::dot(
-            static_cast<typename math::Int<dim>::BaseType>(jump),
-            static_cast<typename math::Int<dim>::BaseType>(this->factor));
-        return (Data)result;
-    }
+        template<int T_dim>
+        class CartNavigator
+        {
+        public:
+            using tag = tag::CartNavigator;
+            static constexpr int dim = T_dim;
 
-    HDINLINE
-    const math::Int<dim>& getFactor() const {return factor;}
-};
+        private:
+            math::Int<dim> factor;
 
-namespace traits
-{
+        public:
+            HDINLINE
+            CartNavigator(math::Int<dim> factor) : factor(factor)
+            {
+            }
 
-template<int T_dim>
-struct dim<CartNavigator<T_dim> >
-{
-    static constexpr int value = T_dim;
-};
+            template<typename Data>
+            HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
+            {
+                auto* result = (char*) data;
+                result += pmacc::math::dot(jump, this->factor);
+                return (Data) result;
+            }
 
-} // traits
+            HDINLINE
+            const math::Int<dim>& getFactor() const
+            {
+                return factor;
+            }
+        };
 
-} // cursor
-} // pmacc
+        namespace traits
+        {
+            template<int T_dim>
+            struct dim<CartNavigator<T_dim>>
+            {
+                static constexpr int value = T_dim;
+            };
 
+        } // namespace traits
+
+    } // namespace cursor
+} // namespace pmacc

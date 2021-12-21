@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,90 +21,75 @@
 
 #pragma once
 
-#include "pmacc/cuSTL/cursor/compile-time/BufferCursor.hpp"
-#include "pmacc/memory/shared/Allocate.hpp"
-#include "pmacc/memory/Array.hpp"
 #include "pmacc/math/Vector.hpp"
+#include "pmacc/memory/Array.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
 #include "pmacc/types.hpp"
+
+#include "pmacc/cuSTL/cursor/compile-time/BufferCursor.hpp"
 
 
 namespace pmacc
 {
-namespace allocator
-{
-namespace CT
-{
-template<typename Type, typename Size, int dim = Size::dim, int uid = 0>
-struct SharedMemAllocator;
-
-template<typename Type, typename Size, int uid>
-struct SharedMemAllocator<Type, Size, 1, uid>
-{
-    typedef Type type;
-    typedef math::CT::UInt32<> Pitch;
-    static constexpr int dim = 1;
-    typedef cursor::CT::BufferCursor<type, math::CT::UInt32<> > Cursor;
-
-    template< typename T_Acc >
-    DEVICEONLY static Cursor allocate( T_Acc const & acc )
+    namespace allocator
     {
-        auto& shMem = pmacc::memory::shared::allocate<
-            uid,
-            memory::Array<
-                Type,
-                math::CT::volume< Size >::type::value
-            >
-        >( acc );
-        return Cursor(shMem.data());
-    }
-};
+        namespace CT
+        {
+            template<typename Type, typename Size, int dim = Size::dim, int uid = 0>
+            struct SharedMemAllocator;
 
-template<typename Type, typename Size, int uid>
-struct SharedMemAllocator<Type, Size, 2, uid>
-{
-    typedef Type type;
-    typedef math::CT::UInt32<sizeof(Type) * Size::x::value> Pitch;
-    static constexpr int dim = 2;
-    typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
+            template<typename Type, typename Size, int uid>
+            struct SharedMemAllocator<Type, Size, 1, uid>
+            {
+                typedef Type type;
+                typedef math::CT::UInt32<> Pitch;
+                static constexpr int dim = 1;
+                typedef cursor::CT::BufferCursor<type, math::CT::UInt32<>> Cursor;
 
-    template< typename T_Acc >
-    DEVICEONLY static Cursor allocate( T_Acc const & acc )
-    {
-        auto& shMem = pmacc::memory::shared::allocate<
-            uid,
-            memory::Array<
-                Type,
-                math::CT::volume< Size >::type::value
-            >
-        >( acc );
-        return Cursor(shMem.data());
-    }
-};
+                template<typename T_Acc>
+                DINLINE static Cursor allocate(T_Acc const& acc)
+                {
+                    auto& shMem = pmacc::memory::shared::
+                        allocate<uid, memory::Array<Type, math::CT::volume<Size>::type::value>>(acc);
+                    return Cursor(shMem.data());
+                }
+            };
 
-template<typename Type, typename Size, int uid>
-struct SharedMemAllocator<Type, Size, 3, uid>
-{
-    typedef Type type;
-    typedef math::CT::UInt32<sizeof(Type) * Size::x::value,
-                             sizeof(Type) * Size::x::value * Size::y::value> Pitch;
-    static constexpr int dim = 3;
-    typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
+            template<typename Type, typename Size, int uid>
+            struct SharedMemAllocator<Type, Size, 2, uid>
+            {
+                typedef Type type;
+                typedef math::CT::UInt32<sizeof(Type) * Size::x::value> Pitch;
+                static constexpr int dim = 2;
+                typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
-    template< typename T_Acc >
-    DEVICEONLY static Cursor allocate( T_Acc const & acc )
-    {
-        auto& shMem = pmacc::memory::shared::allocate<
-            uid,
-            memory::Array<
-                Type,
-                math::CT::volume< Size >::type::value
-            >
-        >( acc );
-        return Cursor(shMem.data());
-    }
-};
+                template<typename T_Acc>
+                DINLINE static Cursor allocate(T_Acc const& acc)
+                {
+                    auto& shMem = pmacc::memory::shared::
+                        allocate<uid, memory::Array<Type, math::CT::volume<Size>::type::value>>(acc);
+                    return Cursor(shMem.data());
+                }
+            };
 
-} // CT
-} // allocator
-} // pmacc
+            template<typename Type, typename Size, int uid>
+            struct SharedMemAllocator<Type, Size, 3, uid>
+            {
+                typedef Type type;
+                typedef math::CT::UInt32<sizeof(Type) * Size::x::value, sizeof(Type) * Size::x::value * Size::y::value>
+                    Pitch;
+                static constexpr int dim = 3;
+                typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
+                template<typename T_Acc>
+                DINLINE static Cursor allocate(T_Acc const& acc)
+                {
+                    auto& shMem = pmacc::memory::shared::
+                        allocate<uid, memory::Array<Type, math::CT::volume<Size>::type::value>>(acc);
+                    return Cursor(shMem.data());
+                }
+            };
+
+        } // namespace CT
+    } // namespace allocator
+} // namespace pmacc

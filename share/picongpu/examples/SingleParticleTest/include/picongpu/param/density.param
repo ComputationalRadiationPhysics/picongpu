@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -27,65 +27,58 @@
 
 namespace picongpu
 {
-namespace SI
-{
-    /** Base density in particles per m^3 in the density profiles.
-     *
-     * This is often taken as reference maximum density in normalized profiles.
-     * Individual particle species can define a `densityRatio` flag relative
-     * to this value.
-     *
-     * unit: ELEMENTS/m^3
-     *
-     * One particle per cell with weighting 1.0:
-     */
-    constexpr float_64 BASE_DENSITY_SI =
-        1.0 /
-        ( CELL_WIDTH_SI * CELL_HEIGHT_SI * CELL_DEPTH_SI );
-
-}
-
-namespace densityProfiles
-{
-
-    struct FreeFormulaFunctor
+    namespace SI
     {
-
-        /**
-         * This formula uses SI quantities only
-         * The profile will be multiplied by BASE_DENSITY_SI.
+        /** Base density in particles per m^3 in the density profiles.
          *
-         * @param position_SI total offset including all slides [in meter]
-         * @param cellSize_SI cell sizes [in meter]
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
          *
-         * @return float_X density [normalized to 1.0]
+         * unit: ELEMENTS/m^3
+         *
+         * One particle per cell with weighting 1.0:
          */
-        HDINLINE float_X operator()(
-            const floatD_64& position_SI,
-            const float3_64& cellSize_SI
-        )
+        constexpr float_64 BASE_DENSITY_SI = 1.0 / (CELL_WIDTH_SI * CELL_HEIGHT_SI * CELL_DEPTH_SI);
+
+    } // namespace SI
+
+    namespace densityProfiles
+    {
+        struct FreeFormulaFunctor
         {
-            const pmacc::math::UInt64< simDim > cell_id( position_SI / cellSize_SI.shrink< simDim >() );
+            /**
+             * This formula uses SI quantities only
+             * The profile will be multiplied by BASE_DENSITY_SI.
+             *
+             * @param position_SI total offset including all slides [in meter]
+             * @param cellSize_SI cell sizes [in meter]
+             *
+             * @return float_X density [normalized to 1.0]
+             */
+            HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
+            {
+                const pmacc::math::UInt64<simDim> cell_id(position_SI / cellSize_SI.shrink<simDim>());
 
-            // add particle in cell in at [ 32 5 16 ]
-            // X=32: middle of X plane (gyro-motion in X-Y)
-            // Y=5:  do not start fully at border, e.g., if someone wants to increase E, and so mass over time
-            // Z=16: middle of box in Z, move slowly in positive Z as E-field drift
-            const pmacc::math::UInt64< DIM3 > cell_start( 32u, 5u, 16u );
+                // add particle in cell in at [ 32 5 16 ]
+                // X=32: middle of X plane (gyro-motion in X-Y)
+                // Y=5:  do not start fully at border, e.g., if someone wants to increase E, and so mass over time
+                // Z=16: middle of box in Z, move slowly in positive Z as E-field drift
+                const pmacc::math::UInt64<DIM3> cell_start(32u, 5u, 16u);
 
-            bool isStartCell = true;
-            for( uint64_t d = 0; d < simDim; ++d )
-                if( cell_id[d] != cell_start[d] )
-                    isStartCell = false;
+                bool isStartCell = true;
+                for(uint64_t d = 0; d < simDim; ++d)
+                    if(cell_id[d] != cell_start[d])
+                        isStartCell = false;
 
-            if( isStartCell )
-                return 1.0;
+                if(isStartCell)
+                    return 1.0;
 
-            return 0.0;
-        }
-    };
+                return 0.0;
+            }
+        };
 
-    /* definition of free formula profile */
-    using FreeFormula = FreeFormulaImpl< FreeFormulaFunctor >;
-}
-}
+        /* definition of free formula profile */
+        using FreeFormula = FreeFormulaImpl<FreeFormulaFunctor>;
+    } // namespace densityProfiles
+} // namespace picongpu

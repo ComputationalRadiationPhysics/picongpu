@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera, Axel Huebl
+/* Copyright 2014-2021 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -21,7 +21,7 @@
 
 #include "picongpu/particles/manipulators/generic/Free.hpp"
 #include "picongpu/particles/manipulators/generic/FreeRng.hpp"
-
-#include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.hpp"
-#include "picongpu/particles/manipulators/unary/Temperature.hpp"
 #include "picongpu/particles/manipulators/unary/Drift.hpp"
+#include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.hpp"
+#include "picongpu/particles/manipulators/unary/FreeTotalCellOffsetRng.hpp"
+#include "picongpu/particles/manipulators/unary/Temperature.hpp"

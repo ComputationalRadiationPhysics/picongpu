@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch, Axel Huebl
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Richard Pausch, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -24,96 +24,98 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace laserProfiles
-{
-namespace polynom
-{
-namespace defaults
-{
-    struct PolynomParam
+    namespace fields
     {
-        /** unit: meter */
-        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-
-        /** Convert the normalized laser strength parameter a0 to Volt per meter */
-        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
-
-        /** unit: W / m^2 */
-        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
-
-        /** unit: none */
-        //static constexpr float_64 _A0  = 1.5;
-
-        /** unit: Volt / meter */
-        //static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
-
-        /** unit: Volt / meter */
-        static constexpr float_64 AMPLITUDE_SI = 1.738e13;
-
-        /** Pulse length: sigma of std. gauss for intensity (E^2)
-         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
-         *                                          [    2.354820045     ]
-         *  Info:             FWHM_of_Intensity = FWHM_Illumination
-         *                      = what a experimentalist calls "pulse duration"
-         *  unit: seconds (1 sigma) */
-        static constexpr float_64 PULSE_LENGTH_SI = 4.0e-15;
-
-        /** beam waist: distance from the axis where the pulse intensity (E^2)
-         *              decreases to its 1/e^2-th part,
-         *              at the focus position of the laser
-         *  unit: meter
-         */
-        static constexpr float_64 W0_X_SI = 4.246e-6; // waist in x-direction
-        static constexpr float_64 W0_Z_SI = W0_X_SI; // waist in z-direction
-
-        /** cell from top where the laser is initialized
-         *
-         * if `initPlaneY == 0` than the absorber are disabled.
-         * if `initPlaneY > absorbercells negative Y` the negative absorber in y
-         * direction is enabled
-         *
-         * valid ranges:
-         *   - initPlaneY == 0
-         *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
-         */
-        static constexpr uint32_t initPlaneY = 0;
-
-        /** laser phase shift (no shift: 0.0)
-         *
-         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
-         *
-         * unit: rad, periodic in 2*pi
-         */
-        static constexpr float_X LASER_PHASE = 0.0;
-
-        /** Available polarization types
-         */
-        enum PolarisationType
+        namespace laserProfiles
         {
-            LINEAR_X = 1u,
-            LINEAR_Z = 2u,
-            CIRCULAR = 4u,
-        };
-        /** Polarization selection
-         */
-        static constexpr PolarisationType Polarisation = LINEAR_X;
-    };
-} // namespace defaults
-} // namespace gaussianBeam
+            namespace polynom
+            {
+                namespace defaults
+                {
+                    struct PolynomParam
+                    {
+                        /** unit: meter */
+                        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
-    /** Wavepacket with a polynomial temporal intensity shape.
-     *
-     * Based on a wavepacket with Gaussian spatial envelope.
-     *
-     * @tparam T_Params class parameter to configure the polynomial laser profile,
-     *                  see members of polynom::defaults::PolynomParam for
-     *                  required members
-     */
-    template< typename T_Params = polynom::defaults::PolynomParam >
-    struct Polynom;
+                        /** Convert the normalized laser strength parameter a0 to Volt per meter */
+                        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                            * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
+                            * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
 
-} // namespace laserProfiles
-} // namespace fields
+                        /** unit: W / m^2 */
+                        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
+
+                        /** unit: none */
+                        // static constexpr float_64 _A0  = 1.5;
+
+                        /** unit: Volt / meter */
+                        // static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                        /** unit: Volt / meter */
+                        static constexpr float_64 AMPLITUDE_SI = 1.738e13;
+
+                        /** Pulse length: sigma of std. gauss for intensity (E^2)
+                         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                         *                                          [    2.354820045     ]
+                         *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                         *                      = what a experimentalist calls "pulse duration"
+                         *  unit: seconds (1 sigma) */
+                        static constexpr float_64 PULSE_LENGTH_SI = 4.0e-15;
+
+                        /** beam waist: distance from the axis where the pulse intensity (E^2)
+                         *              decreases to its 1/e^2-th part,
+                         *              at the focus position of the laser
+                         *  unit: meter
+                         */
+                        static constexpr float_64 W0_X_SI = 4.246e-6; // waist in x-direction
+                        static constexpr float_64 W0_Z_SI = W0_X_SI; // waist in z-direction
+
+                        /** cell from top where the laser is initialized
+                         *
+                         * if `initPlaneY == 0` than the absorber are disabled.
+                         * if `initPlaneY > absorbercells negative Y` the negative absorber in y
+                         * direction is enabled
+                         *
+                         * valid ranges:
+                         *   - initPlaneY == 0
+                         *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
+                         */
+                        static constexpr uint32_t initPlaneY = 0;
+
+                        /** laser phase shift (no shift: 0.0)
+                         *
+                         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
+                         *
+                         * unit: rad, periodic in 2*pi
+                         */
+                        static constexpr float_X LASER_PHASE = 0.0;
+
+                        /** Available polarization types
+                         */
+                        enum PolarisationType
+                        {
+                            LINEAR_X = 1u,
+                            LINEAR_Z = 2u,
+                            CIRCULAR = 4u,
+                        };
+                        /** Polarization selection
+                         */
+                        static constexpr PolarisationType Polarisation = LINEAR_X;
+                    };
+                } // namespace defaults
+            } // namespace polynom
+
+            /** Wavepacket with a polynomial temporal intensity shape.
+             *
+             * Based on a wavepacket with Gaussian spatial envelope.
+             *
+             * @tparam T_Params class parameter to configure the polynomial laser profile,
+             *                  see members of polynom::defaults::PolynomParam for
+             *                  required members
+             */
+            template<typename T_Params = polynom::defaults::PolynomParam>
+            struct Polynom;
+
+        } // namespace laserProfiles
+    } // namespace fields
 } // namespace picongpu

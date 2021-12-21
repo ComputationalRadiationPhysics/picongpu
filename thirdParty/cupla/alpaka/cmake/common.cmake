@@ -1,7 +1,7 @@
 #
 # Copyright 2014-2019 Benjamin Worpitz
 #
-# This file is part of Alpaka.
+# This file is part of alpaka.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -194,9 +194,6 @@ FUNCTION(list_add_prefix In_Prefix In_ListVariableName)
     FOREACH(
         item
         IN LISTS ${In_ListVariableName})
-        IF(POLICY CMP0054)
-            CMAKE_POLICY(SET CMP0054 NEW)   # Only interpret if() arguments as variables or keywords when unquoted.
-        ENDIF()
         IF(NOT "${item}" STREQUAL "")
             LIST(
                 APPEND

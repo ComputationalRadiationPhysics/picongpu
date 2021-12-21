@@ -27,19 +27,18 @@ The **main simulation** is licensed under the **GPLv3+**. See
  - `include/picongpu`
  - `lib/python/picongpu`
  - `share/picongpu`
- - `src/tools` (without `splash2txt`)
+ - `src/tools`
  - `src/mpiInfo`
  - `test`
 
 
-### PMacc & splash2txt
+### PMacc
  
 All **libraries** are licensed under the **LGPLv3+**. See
 [COPYING.LESSER](COPYING.LESSER).
 If not stated otherwise explicitly, that affects:
  - `include/pmacc`
  - `share/pmacc`
- - `src/tools/splash2txt`
 
 
 ### Documentation
@@ -58,14 +57,6 @@ We include a list of (GPL-) compatible third party software for the sake
 of an easier install of `PIConGPU`. Contributions to these parts of the
 repository should *not* be made in the `thirdParty/` directory but in
 *their according repositories* (that we import).
-
- - `thirdParty/alpaka`:
-   alpaka is a header-only C++11 abstraction library for parallel
-   kernel development on accelerator hardware. It provides a single-source,
-   performance portable programming model for PIConGPU and PMacc.
-   Please visit
-     https://github.com/ComputationalRadiationPhysics/alpaka
-   for further details and contributions.
 
  - `thirdParty/mallocMC`:
    mallocMC is a fast memory allocator for many core accelerators and was
@@ -100,3 +91,11 @@ repository should *not* be made in the `thirdParty/` directory but in
    Please visit
      https://github.com/ComputationalRadiationPhysics/cupla
    for further details and contributions.
+
+- `thirdParty/nlohmann_json`:
+   nlohmann_json is a modern C++ library for working with JSON data, developed
+   by Niels Lohmann, published under the MIT License.
+   Please refer to the file `thirdParty/nlohmann_json/LICENSE.MIT` for license
+   information.
+   Please visit https://github.com/nlohmann/json for further details
+   and contributions.

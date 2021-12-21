@@ -68,7 +68,7 @@ pngColorScales.param
    :no-link:
 
 transitionRadiation.param
-^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfile:: transitionRadiation.param
    :project: PIConGPU

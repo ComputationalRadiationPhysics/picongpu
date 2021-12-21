@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz, René Widera
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,15 +12,21 @@
 namespace alpaka
 {
     //#############################################################################
-    //! Defines the parallelism hierarchy levels of Alpaka
+    //! Defines the parallelism hierarchy levels of alpaka
     namespace hierarchy
     {
-        struct Grids{};
+        struct Grids
+        {
+        };
 
-        struct Blocks{};
+        struct Blocks
+        {
+        };
 
-        struct Threads{};
-    }
+        struct Threads
+        {
+        };
+    } // namespace hierarchy
     //-----------------------------------------------------------------------------
     //! Defines the origins available for getting extent and indices of kernel executions.
     namespace origin
@@ -34,7 +40,7 @@ namespace alpaka
         //#############################################################################
         //! This type is used to get the extents relative to the thread.
         struct Thread;
-    }
+    } // namespace origin
     //-----------------------------------------------------------------------------
     //! Defines the units available for getting extent and indices of kernel executions.
     namespace unit
@@ -48,8 +54,8 @@ namespace alpaka
         //#############################################################################
         //! This type is used to get the extents/indices in units of elements.
         struct Elems;
-    }
+    } // namespace unit
 
     using namespace origin;
     using namespace unit;
-}
+} // namespace alpaka

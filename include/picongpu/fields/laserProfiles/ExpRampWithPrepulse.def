@@ -1,4 +1,4 @@
-/* Copyright 2018-2020 Ilja Goethel, Axel Huebl
+/* Copyright 2018-2021 Ilja Goethel, Axel Huebl
  *
  *
  * This file is part of PIConGPU.
@@ -25,153 +25,157 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace laserProfiles
-{
-namespace expRampWithPrepulse
-{
-namespace defaults
-{
-    struct ExpRampWithPrepulseParam
+    namespace fields
     {
-        // Intensities of prepulse and exponential preramp
-        static constexpr float_X INT_RATIO_PREPULSE = 0.;
-        static constexpr float_X INT_RATIO_POINT_1 = 1.e-8;
-        static constexpr float_X INT_RATIO_POINT_2 = 1.e-4;
-        static constexpr float_X INT_RATIO_POINT_3 = 1.e-4;
-
-        // time-positions of prepulse and preramps points
-        static constexpr float_64 TIME_PREPULSE_SI = -950.0e-15;
-        static constexpr float_64 TIME_PEAKPULSE_SI = 0.0e-15;
-        static constexpr float_64 TIME_POINT_1_SI = -1000.0e-15;
-        static constexpr float_64 TIME_POINT_2_SI = -300.0e-15;
-        static constexpr float_64 TIME_POINT_3_SI = -100.0e-15;
-
-        /** unit: meter */
-        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
-
-        /** UNITCONV */
-        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
-
-        /** unit: W / m^2 */
-        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
-
-        /** unit: none */
-        static constexpr float_64 _A0  = 20.;
-
-        /** unit: Volt /meter */
-        static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
-
-        /** unit: Volt /meter */
-        //constexpr float_64 AMPLITUDE_SI = 1.738e13;
-
-        /** Stretch temporal profile by a constant plateau between the up and downramp
-         *  unit: seconds */
-        static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI = 0.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
-
-        /** Pulse length: sigma of std. gauss for intensity (E^2)
-         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
-         *                                          [    2.354820045     ]
-         *  Info:             FWHM_of_Intensity = FWHM_Illumination
-         *                      = what a experimentalist calls "pulse duration"
-         *  unit: seconds (1 sigma) */
-        static constexpr float_64 PULSE_LENGTH_SI = 3.0e-14 / 2.35482; // half of the time in which E falls to half its initial value (then I falls to half its value in 15fs, approx 6 wavelengths). Those are 4.8 wavelenghts.
-
-        /** beam waist: distance from the axis where the pulse intensity (E^2)
-         *              decreases to its 1/e^2-th part,
-         *              WO_X_SI is this distance in x-direction
-         *              W0_Z_SI is this distance in z-direction
-         *              if both values are equal, the laser has a circular shape in x-z
-         * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
-         *                             [   1.17741    ]
-         *  unit: meter */
-        static constexpr float_64 W0_X_SI = 2.5 * WAVE_LENGTH_SI;
-        static constexpr float_64 W0_Z_SI = W0_X_SI;
-
-        /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before plateau
-         *  and half at the end of the plateau
-         *  unit: none */
-        static constexpr float_64 RAMP_INIT = 16.0;
-
-        /** cell from top where the laser is initialized
-         *
-         * if `initPlaneY == 0` than the absorber are disabled.
-         * if `initPlaneY > absorbercells negative Y` the negative absorber in y
-         * direction is enabled
-         *
-         * valid ranges:
-         *   - initPlaneY == 0
-         *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
-         */
-        static constexpr uint32_t initPlaneY = 0;
-
-        /** laser phase shift (no shift: 0.0)
-         *
-         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
-         *
-         * unit: rad, periodic in 2*pi
-         */
-        static constexpr float_X LASER_PHASE = 0.0;
-
-        /** Available polarisation types
-         */
-        enum PolarisationType
+        namespace laserProfiles
         {
-            LINEAR_X = 1u,
-            LINEAR_Z = 2u,
-            CIRCULAR = 4u,
-        };
+            namespace expRampWithPrepulse
+            {
+                namespace defaults
+                {
+                    struct ExpRampWithPrepulseParam
+                    {
+                        // Intensities of prepulse and exponential preramp
+                        static constexpr float_X INT_RATIO_PREPULSE = 0.;
+                        static constexpr float_X INT_RATIO_POINT_1 = 1.e-8;
+                        static constexpr float_X INT_RATIO_POINT_2 = 1.e-4;
+                        static constexpr float_X INT_RATIO_POINT_3 = 1.e-4;
 
-        /** Polarization selection
-         */
-        static constexpr PolarisationType Polarisation = LINEAR_X;
-    };
-} // namespace defaults
-} // namespace expRampWithPrepulse
+                        // time-positions of prepulse and preramps points
+                        static constexpr float_64 TIME_PREPULSE_SI = -950.0e-15;
+                        static constexpr float_64 TIME_PEAKPULSE_SI = 0.0e-15;
+                        static constexpr float_64 TIME_POINT_1_SI = -1000.0e-15;
+                        static constexpr float_64 TIME_POINT_2_SI = -300.0e-15;
+                        static constexpr float_64 TIME_POINT_3_SI = -100.0e-15;
 
-    /** Wavepacket with spatial Gaussian envelope and adjustable temporal shape.
-     *
-     * Allows defining a prepulse and two regions of exponential preramp with
-     * independent slopes. The definition works by specifying three (t, intensity)-
-     * points, where time is counted from the very beginning in SI and the
-     * intensity (yes, intensity, not amplitude) is given in multiples of the main
-     * peak.
-     *
-     * Be careful - problematic for few cycle pulses. Thought the rest is cloned
-     * from laserWavepacket, the correctionFactor is not included (this made a
-     * correction to the laser phase, which is necessary for very short pulses,
-     * since otherwise a test particle is, after the laser pulse has passed, not
-     * returned to immobility, as it should). Since the analytical solution is
-     * only implemented for the Gaussian regime, and we have mostly exponential
-     * regimes here, it was not retained here.
-     *
-     * A Gaussian peak (optionally lengthened by a plateau) is preceded by
-     * two pieces of exponential preramps, defined by 3 (time, intensity)-
-     * -points.
-     *
-     * The first two points get connected by an exponential, the 2nd and
-     * 3rd point are connected by another exponential, which is then
-     * extrapolated to the peak. The Gaussian is added everywhere, but
-     * typically contributes significantly only near the peak.
-     * It is advisable to set the third point far enough from the plateau
-     * (approx 3*FWHM), then the contribution from the Gaussian is
-     * negligible there, and the intensity can be set as measured from the
-     * laser profile.
-     *
-     * Optionally a Gaussian prepulse can be added, given by the parameters
-     * of the relative intensity and time point.
-     * The time of the prepulse and the three preramp points are given in
-     * SI, the intensities are given as multiples of the peak intensity.
-     *
-     * @tparam T_Params class parameter to configure the Gaussian Beam profile,
-     *                  see members of
-     *                  expRampWithPrepulse::defaults::ExpRampWithPrepulseParam
-     *                  for required members
-     */
-    template< typename T_Params = expRampWithPrepulse::defaults::ExpRampWithPrepulseParam >
-    struct ExpRampWithPrepulse;
+                        /** unit: meter */
+                        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
-} // namespace laserProfiles
-} // namespace fields
+                        /** UNITCONV */
+                        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                            * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
+                            * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+
+                        /** unit: W / m^2 */
+                        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
+
+                        /** unit: none */
+                        static constexpr float_64 _A0 = 20.;
+
+                        /** unit: Volt /meter */
+                        static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                        /** unit: Volt /meter */
+                        // constexpr float_64 AMPLITUDE_SI = 1.738e13;
+
+                        /** Stretch temporal profile by a constant plateau between the up and downramp
+                         *  unit: seconds */
+                        static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI
+                            = 0.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
+
+                        /** Pulse length: sigma of std. gauss for intensity (E^2)
+                         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                         *                                          [    2.354820045     ]
+                         *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                         *                      = what a experimentalist calls "pulse duration"
+                         *  unit: seconds (1 sigma) */
+                        static constexpr float_64 PULSE_LENGTH_SI = 3.0e-14
+                            / 2.35482; // half of the time in which E falls to half its initial value (then I falls to
+                                       // half its value in 15fs, approx 6 wavelengths). Those are 4.8 wavelenghts.
+
+                        /** beam waist: distance from the axis where the pulse intensity (E^2)
+                         *              decreases to its 1/e^2-th part,
+                         *              WO_X_SI is this distance in x-direction
+                         *              W0_Z_SI is this distance in z-direction
+                         *              if both values are equal, the laser has a circular shape in x-z
+                         * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+                         *                             [   1.17741    ]
+                         *  unit: meter */
+                        static constexpr float_64 W0_X_SI = 2.5 * WAVE_LENGTH_SI;
+                        static constexpr float_64 W0_Z_SI = W0_X_SI;
+
+                        /** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before
+                         * plateau and half at the end of the plateau unit: none */
+                        static constexpr float_64 RAMP_INIT = 16.0;
+
+                        /** cell from top where the laser is initialized
+                         *
+                         * if `initPlaneY == 0` than the absorber are disabled.
+                         * if `initPlaneY > absorbercells negative Y` the negative absorber in y
+                         * direction is enabled
+                         *
+                         * valid ranges:
+                         *   - initPlaneY == 0
+                         *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
+                         */
+                        static constexpr uint32_t initPlaneY = 0;
+
+                        /** laser phase shift (no shift: 0.0)
+                         *
+                         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
+                         *
+                         * unit: rad, periodic in 2*pi
+                         */
+                        static constexpr float_X LASER_PHASE = 0.0;
+
+                        /** Available polarisation types
+                         */
+                        enum PolarisationType
+                        {
+                            LINEAR_X = 1u,
+                            LINEAR_Z = 2u,
+                            CIRCULAR = 4u,
+                        };
+
+                        /** Polarization selection
+                         */
+                        static constexpr PolarisationType Polarisation = LINEAR_X;
+                    };
+                } // namespace defaults
+            } // namespace expRampWithPrepulse
+
+            /** Wavepacket with spatial Gaussian envelope and adjustable temporal shape.
+             *
+             * Allows defining a prepulse and two regions of exponential preramp with
+             * independent slopes. The definition works by specifying three (t, intensity)-
+             * points, where time is counted from the very beginning in SI and the
+             * intensity (yes, intensity, not amplitude) is given in multiples of the main
+             * peak.
+             *
+             * Be careful - problematic for few cycle pulses. Thought the rest is cloned
+             * from laserWavepacket, the correctionFactor is not included (this made a
+             * correction to the laser phase, which is necessary for very short pulses,
+             * since otherwise a test particle is, after the laser pulse has passed, not
+             * returned to immobility, as it should). Since the analytical solution is
+             * only implemented for the Gaussian regime, and we have mostly exponential
+             * regimes here, it was not retained here.
+             *
+             * A Gaussian peak (optionally lengthened by a plateau) is preceded by
+             * two pieces of exponential preramps, defined by 3 (time, intensity)-
+             * -points.
+             *
+             * The first two points get connected by an exponential, the 2nd and
+             * 3rd point are connected by another exponential, which is then
+             * extrapolated to the peak. The Gaussian is added everywhere, but
+             * typically contributes significantly only near the peak.
+             * It is advisable to set the third point far enough from the plateau
+             * (approx 3*FWHM), then the contribution from the Gaussian is
+             * negligible there, and the intensity can be set as measured from the
+             * laser profile.
+             *
+             * Optionally a Gaussian prepulse can be added, given by the parameters
+             * of the relative intensity and time point.
+             * The time of the prepulse and the three preramp points are given in
+             * SI, the intensities are given as multiples of the peak intensity.
+             *
+             * @tparam T_Params class parameter to configure the Gaussian Beam profile,
+             *                  see members of
+             *                  expRampWithPrepulse::defaults::ExpRampWithPrepulseParam
+             *                  for required members
+             */
+            template<typename T_Params = expRampWithPrepulse::defaults::ExpRampWithPrepulseParam>
+            struct ExpRampWithPrepulse;
+
+        } // namespace laserProfiles
+    } // namespace fields
 } // namespace picongpu

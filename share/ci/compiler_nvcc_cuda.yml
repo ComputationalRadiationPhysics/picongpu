@@ -1,0 +1,29 @@
+################################################################################
+#   [g++-X] : X = {5, 6, 7, 8, 9, 10}
+
+.base_nvcc:
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda${CUDA_CONTAINER_VERSION}-gccpic:${CONTAINER_TAG}
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+  before_script:
+    - nvidia-smi
+    - nvcc --version
+  script:
+    - apt update
+    - apt install -y curl libjpeg-dev
+    - $CI_PROJECT_DIR/share/ci/git_merge.sh
+    - source $CI_PROJECT_DIR/share/ci/bash.profile
+    - $CI_PROJECT_DIR/share/ci/run_tests.sh $PIC_TEST_CASE_FOLDER
+  interruptible: true
+
+.base_nvcc_cuda_compile:
+  extends: .base_nvcc
+  tags:
+    - cpuonly
+    - x86_64
+
+.base_nvcc_cuda_run:
+  extends: .base_nvcc
+  tags:
+    - cuda
+    - x86_64

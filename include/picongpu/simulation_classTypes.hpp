@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,22 +19,22 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
-#include <pmacc/Environment.hpp>
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/debug/PIConGPUVerbose.hpp"
+
+#include <pmacc/Environment.hpp>
+#include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
-#include <pmacc/eventSystem/EventSystem.hpp>
-
-#include "picongpu/debug/PIConGPUVerbose.hpp"
+#include <pmacc/types.hpp>
 
 
 namespace picongpu
 {
     using namespace pmacc;
 
-    //short name for access verbose types of picongpu
-    typedef PIConGPUVerbose picLog;
+    // short name for access verbose types of picongpu
+    using picLog = PIConGPUVerbose;
 
-} //namespace picongpu
+} // namespace picongpu

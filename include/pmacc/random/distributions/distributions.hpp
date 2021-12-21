@@ -1,4 +1,4 @@
-/* Copyright 2018-2020 Rene Widera
+/* Copyright 2018-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,5 +21,5 @@
 
 #pragma once
 
-#include "pmacc/random/distributions/Uniform.hpp"
 #include "pmacc/random/distributions/Normal.hpp"
+#include "pmacc/random/distributions/Uniform.hpp"

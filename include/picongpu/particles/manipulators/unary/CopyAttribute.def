@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,68 +24,50 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
-namespace unary
-{
-namespace acc
-{
-
-    /** helper functor to copy a particle source attribute to a destination attribute
-     *
-     * @tparam T_DestAttribute type of the destination attribute e.g. `momentumPrev1`
-     * @tparam T_SrcAttribute type of the source attribute e.g. `momentum`
-     */
-    template<
-        typename T_DestAttribute,
-        typename T_SrcAttribute
-    >
-    struct CopyAttribute
+    namespace particles
     {
-        /** copy attribute
-         *
-         * @tparam T_Particle pmacc::Particle, particle type
-         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
-         *
-         * @param particle particle to be manipulated
-         * @param ... unused particles
-         */
-        template<
-            typename T_Particle,
-            typename ... T_Args
-        >
-        HDINLINE void operator( )(
-            T_Particle & particle,
-            T_Args && ...
-        )
+        namespace manipulators
         {
-            particle[ T_DestAttribute{ } ] = particle[ T_SrcAttribute{ } ];
-        }
-    };
+            namespace unary
+            {
+                namespace acc
+                {
+                    /** helper functor to copy a particle source attribute to a destination attribute
+                     *
+                     * @tparam T_DestAttribute type of the destination attribute e.g. `momentumPrev1`
+                     * @tparam T_SrcAttribute type of the source attribute e.g. `momentum`
+                     */
+                    template<typename T_DestAttribute, typename T_SrcAttribute>
+                    struct CopyAttribute
+                    {
+                        /** copy attribute
+                         *
+                         * @tparam T_Particle pmacc::Particle, particle type
+                         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
+                         *
+                         * @param particle particle to be manipulated
+                         * @param ... unused particles
+                         */
+                        template<typename T_Particle, typename... T_Args>
+                        HDINLINE void operator()(T_Particle& particle, T_Args&&...)
+                        {
+                            particle[T_DestAttribute{}] = particle[T_SrcAttribute{}];
+                        }
+                    };
 
-} // namespace acc
+                } // namespace acc
 
-    /** copy a particle source attribute to a destination attribute
-     *
-     * This is an unary functor and operates on one particle.
-     *
-     * @tparam T_DestAttribute type of the destination attribute e.g. `momentumPrev1`
-     * @tparam T_SrcAttribute type of the source attribute e.g. `momentum`
-     */
-    template<
-        typename T_DestAttribute,
-        typename T_SrcAttribute
-    >
-    using CopyAttribute = generic::Free<
-        acc::CopyAttribute<
-            T_DestAttribute,
-            T_SrcAttribute
-        >
-    >;
+                /** copy a particle source attribute to a destination attribute
+                 *
+                 * This is an unary functor and operates on one particle.
+                 *
+                 * @tparam T_DestAttribute type of the destination attribute e.g. `momentumPrev1`
+                 * @tparam T_SrcAttribute type of the source attribute e.g. `momentum`
+                 */
+                template<typename T_DestAttribute, typename T_SrcAttribute>
+                using CopyAttribute = generic::Free<acc::CopyAttribute<T_DestAttribute, T_SrcAttribute>>;
 
-} // namespace unary
-} // namespace manipulators
-} // namespace particles
+            } // namespace unary
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
  *
@@ -30,40 +30,31 @@
 
 namespace picongpu
 {
-namespace simulation
-{
-namespace stage
-{
-
-    /** Functor for the stage of the PIC loop copying particles' momentums
-     *  to momentumPrev1
-     *
-     * Only affects particle species with the momentumPrev1 attribute.
-     */
-    struct MomentumBackup
+    namespace simulation
     {
-        /** Copy the momentums
-         *
-         * @param step index of time iteration
-         */
-        void operator( )( uint32_t const step ) const
+        namespace stage
         {
-            using pmacc::particles::traits::FilterByIdentifier;
-            using SpeciesWithMomentumPrev1 = typename FilterByIdentifier<
-                VectorAllSpecies,
-                momentumPrev1
-            >::type;
-            using CopyMomentum = particles::manipulators::unary::CopyAttribute<
-                momentumPrev1,
-                momentum
-            >;
-            particles::manipulate<
-                CopyMomentum,
-                SpeciesWithMomentumPrev1
-            >( step );
-        }
-    };
+            /** Functor for the stage of the PIC loop copying particles' momentums
+             *  to momentumPrev1
+             *
+             * Only affects particle species with the momentumPrev1 attribute.
+             */
+            struct MomentumBackup
+            {
+                /** Copy the momentums
+                 *
+                 * @param step index of time iteration
+                 */
+                void operator()(uint32_t const step) const
+                {
+                    using pmacc::particles::traits::FilterByIdentifier;
+                    using SpeciesWithMomentumPrev1 =
+                        typename FilterByIdentifier<VectorAllSpecies, momentumPrev1>::type;
+                    using CopyMomentum = particles::manipulators::unary::CopyAttribute<momentumPrev1, momentum>;
+                    particles::manipulate<CopyMomentum, SpeciesWithMomentumPrev1>(step);
+                }
+            };
 
-} // namespace stage
-} // namespace simulation
+        } // namespace stage
+    } // namespace simulation
 } // namespace picongpu

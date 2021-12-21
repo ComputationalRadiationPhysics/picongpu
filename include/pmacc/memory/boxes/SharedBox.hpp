@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -21,264 +21,114 @@
 
 #pragma once
 
-#include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/math/Vector.hpp"
 #include "pmacc/memory/Array.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
 #include "pmacc/types.hpp"
 
 #include "pmacc/cuSTL/cursor/compile-time/BufferCursor.hpp"
-#include "pmacc/math/vector/Float.hpp"
-#include "pmacc/math/Vector.hpp"
-
 
 namespace pmacc
 {
-
-/** create shared memory on gpu
- *
- * @tparam T_TYPE type of memory objects
- * @tparam T_Vector CT::Vector with size description (per dimension)
- * @tparam T_id unique id for this object
- *              (is needed if more than one instance of shared memory in one kernel is used)
- * @tparam T_dim dimension of the memory (supports DIM1,DIM2 and DIM3)
- */
-template<typename T_TYPE, class T_Vector, uint32_t T_id=0, uint32_t T_dim=T_Vector::dim>
-class SharedBox;
-
-template<typename T_TYPE, class T_Vector, uint32_t T_id>
-class SharedBox<T_TYPE, T_Vector, T_id, DIM1>
-{
-public:
-
-    enum
+    namespace detail
     {
-        Dim = DIM1
-    };
-    typedef T_TYPE ValueType;
-    typedef ValueType& RefValueType;
-    typedef T_Vector Size;
-    typedef SharedBox<ValueType, math::CT::Int<Size::x::value>, T_id> ReducedType;
-    typedef SharedBox<ValueType, T_Vector, T_id, DIM1> This;
+        template<typename T_Vector, typename T_TYPE>
+        HDINLINE auto& subscript(T_TYPE* p, int const idx, std::integral_constant<uint32_t, 1>)
+        {
+            return p[idx];
+        }
 
-    HDINLINE RefValueType operator[](const int idx)
-    {
-        return fixedPointer[idx];
-    }
+        template<typename T_Vector, typename T_TYPE>
+        HDINLINE auto* subscript(T_TYPE* p, int const idx, std::integral_constant<uint32_t, 2>)
+        {
+            return p + idx * T_Vector::x::value;
+        }
 
-    HDINLINE RefValueType operator[](const int idx) const
-    {
-        return fixedPointer[idx];
-    }
+        template<typename T_Vector, typename T_TYPE>
+        HDINLINE auto* subscript(T_TYPE* p, int const idx, std::integral_constant<uint32_t, 3>)
+        {
+            return p + idx * (T_Vector::x::value * T_Vector::y::value);
+        }
+    } // namespace detail
 
-    HDINLINE SharedBox(ValueType* pointer) :
-    fixedPointer(pointer)
-    {
-    }
-
-    DINLINE SharedBox() :
-    fixedPointer(nullptr)
-    {
-    }
-
-    /*!return the first value in the box (list)
-     * @return first value
-     */
-    HDINLINE RefValueType operator*()
-    {
-        return *(fixedPointer);
-    }
-
-    HDINLINE ValueType const * getPointer() const
-    {
-        return fixedPointer;
-    }
-    HDINLINE ValueType* getPointer()
-    {
-        return fixedPointer;
-    }
-
-    /** create a shared memory box
+    /** create shared memory on gpu
      *
-     * This call synchronizes a block and must be called from all threads and
-     * not inside a if clauses
+     * @tparam T_TYPE type of memory objects
+     * @tparam T_Vector CT::Vector with size description (per dimension)
+     * @tparam T_id unique id for this object
+     *              (is needed if more than one instance of shared memory in one kernel is used)
+     * @tparam T_dim dimension of the memory (supports DIM1,DIM2 and DIM3)
      */
-    template< typename T_Acc >
-    static DINLINE SharedBox
-    init( T_Acc const & acc )
+    template<typename T_TYPE, typename T_Vector, uint32_t T_id = 0, uint32_t T_dim = T_Vector::dim>
+    struct SharedBox
     {
-        auto& mem_sh = pmacc::memory::shared::allocate<
-            T_id,
-            memory::Array<
-                ValueType,
-                math::CT::volume< Size >::type::value
-            >
-        >( acc );
-        return SharedBox( mem_sh.data() );
-    }
+        static constexpr std::uint32_t Dim = T_dim;
 
-protected:
+        using ValueType = T_TYPE;
+        using RefValueType = ValueType&;
+        using Size = T_Vector;
 
-    PMACC_ALIGN(fixedPointer, ValueType*);
-};
+        HDINLINE
+        SharedBox(ValueType* pointer = nullptr) : fixedPointer(pointer)
+        {
+        }
 
-template<typename T_TYPE, class T_Vector, uint32_t T_id>
-class SharedBox<T_TYPE, T_Vector,T_id, DIM2 >
-{
-public:
+        using ReducedType1D = T_TYPE&;
+        using ReducedType2D = SharedBox<T_TYPE, math::CT::Int<T_Vector::x::value>, T_id>;
+        using ReducedType3D = SharedBox<T_TYPE, math::CT::Int<T_Vector::x::value, T_Vector::y::value>, T_id>;
+        using ReducedType
+            = std::conditional_t<Dim == 1, ReducedType1D, std::conditional_t<Dim == 2, ReducedType2D, ReducedType3D>>;
 
-    enum
-    {
-        Dim = DIM2
+        HDINLINE ReducedType operator[](const int idx) const
+        {
+            ///@todo(bgruber): inline and replace this by if constexpr in C++17
+            return {detail::subscript<T_Vector>(fixedPointer, idx, std::integral_constant<uint32_t, T_dim>{})};
+        }
+
+        /*!return the first value in the box (list)
+         * @return first value
+         */
+        HDINLINE RefValueType operator*()
+        {
+            return *fixedPointer;
+        }
+
+        HDINLINE ValueType const* getPointer() const
+        {
+            return fixedPointer;
+        }
+        HDINLINE ValueType* getPointer()
+        {
+            return fixedPointer;
+        }
+
+        using CursorPitch1d = math::CT::Int<>;
+        using CursorPitch2d = math::CT::Int<sizeof(T_TYPE) * T_Vector::x::value>;
+        using CursorPitch3d = math::CT::
+            Int<sizeof(T_TYPE) * T_Vector::x::value, sizeof(T_TYPE) * T_Vector::x::value * T_Vector::y::value>;
+        using CursorPitch
+            = std::conditional_t<Dim == 1, CursorPitch1d, std::conditional_t<Dim == 2, CursorPitch2d, CursorPitch3d>>;
+
+        HDINLINE
+        cursor::CT::BufferCursor<T_TYPE, CursorPitch> toCursor() const
+        {
+            return {const_cast<T_TYPE*>(this->fixedPointer)};
+        }
+
+        /** create a shared memory box
+         *
+         * This call synchronizes a block and must be called from all threads and
+         * not inside a if clauses
+         */
+        template<typename T_Acc>
+        static DINLINE SharedBox init(T_Acc const& acc)
+        {
+            auto& mem_sh
+                = memory::shared::allocate<T_id, memory::Array<ValueType, math::CT::volume<Size>::type::value>>(acc);
+            return {mem_sh.data()};
+        }
+
+    protected:
+        PMACC_ALIGN(fixedPointer, ValueType*);
     };
-    typedef T_TYPE ValueType;
-    typedef ValueType& RefValueType;
-    typedef T_Vector Size;
-    typedef SharedBox<ValueType, math::CT::Int<Size::x::value>, T_id > ReducedType;
-    typedef SharedBox<ValueType, T_Vector, T_id, DIM2 > This;
-
-    HDINLINE SharedBox(ValueType* pointer = nullptr) :
-    fixedPointer(pointer)
-    {
-    }
-
-    HDINLINE ReducedType operator[](const int idx)
-    {
-        return ReducedType(this->fixedPointer + idx * Size::x::value);
-    }
-
-    HDINLINE ReducedType operator[](const int idx) const
-    {
-        return ReducedType(this->fixedPointer + idx * Size::x::value);
-    }
-
-    /*!return the first value in the box (list)
-     * @return first value
-     */
-    HDINLINE RefValueType operator*()
-    {
-        return *((ValueType*) fixedPointer);
-    }
-
-    HDINLINE ValueType const * getPointer() const
-    {
-        return fixedPointer;
-    }
-    HDINLINE ValueType* getPointer()
-    {
-        return fixedPointer;
-    }
-
-    /** create a shared memory box
-     *
-     * This call synchronizes a block and must be called from all threads and
-     * not inside a if clauses
-     */
-    template< typename T_Acc >
-    static DINLINE SharedBox
-    init( T_Acc const & acc )
-    {
-        auto& mem_sh = pmacc::memory::shared::allocate<
-            T_id,
-            memory::Array<
-                ValueType,
-                math::CT::volume< Size >::type::value
-            >
-        >( acc );
-        return SharedBox( mem_sh.data() );
-    }
-
-    HDINLINE pmacc::cursor::CT::BufferCursor<ValueType, ::pmacc::math::CT::Int<sizeof (ValueType) * Size::x::value> >
-    toCursor() const
-    {
-        return pmacc::cursor::CT::BufferCursor<ValueType, ::pmacc::math::CT::Int<sizeof (ValueType) * Size::x::value> >
-            ((ValueType*) fixedPointer);
-    }
-
-protected:
-
-    PMACC_ALIGN(fixedPointer, ValueType*);
-};
-
-template<typename T_TYPE, class T_Vector, uint32_t T_id>
-class SharedBox<T_TYPE, T_Vector, T_id, DIM3>
-{
-public:
-
-    enum
-    {
-        Dim = DIM3
-    };
-    typedef T_TYPE ValueType;
-    typedef ValueType& RefValueType;
-    typedef T_Vector Size;
-    typedef SharedBox<ValueType, math::CT::Int<Size::x::value, Size::y::value>, T_id > ReducedType;
-    typedef SharedBox<ValueType, T_Vector, T_id, DIM3 > This;
-
-    HDINLINE ReducedType operator[](const int idx)
-    {
-        return ReducedType(this->fixedPointer + idx *  (Size::x::value * Size::y::value));
-    }
-
-    HDINLINE ReducedType operator[](const int idx) const
-    {
-        return ReducedType(this->fixedPointer + idx *  (Size::x::value *Size::y::value));
-    }
-
-    HDINLINE SharedBox(ValueType* pointer = nullptr) :
-    fixedPointer(pointer)
-    {
-    }
-
-    /*!return the first value in the box (list)
-     * @return first value
-     */
-    HDINLINE RefValueType operator*()
-    {
-        return *(fixedPointer);
-    }
-
-    HDINLINE ValueType const * getPointer() const
-    {
-        return fixedPointer;
-    }
-    HDINLINE ValueType* getPointer()
-    {
-        return fixedPointer;
-    }
-
-    HDINLINE pmacc::cursor::CT::BufferCursor<ValueType, ::pmacc::math::CT::Int<sizeof (ValueType) * Size::x::value,
-    sizeof (ValueType) * Size::x::value * Size::y::value> >
-    toCursor() const
-    {
-        return pmacc::cursor::CT::BufferCursor<ValueType, ::pmacc::math::CT::Int<sizeof (ValueType) * Size::x::value,
-            sizeof (ValueType) * Size::x::value * Size::y::value> >
-            ((ValueType*)fixedPointer);
-    }
-
-    /** create a shared memory box
-     *
-     * This call synchronizes a block and must be called from all threads and
-     * not inside a if clauses
-     */
-    template< typename T_Acc >
-    static DINLINE SharedBox
-    init( T_Acc const & acc )
-    {
-        auto& mem_sh = pmacc::memory::shared::allocate<
-            T_id,
-            memory::Array<
-                ValueType,
-                math::CT::volume< Size >::type::value
-            >
-        >( acc );
-        return SharedBox( mem_sh.data() );
-    }
-
-protected:
-
-    PMACC_ALIGN(fixedPointer, ValueType*);
-
-};
-
-
-}
-
+} // namespace pmacc

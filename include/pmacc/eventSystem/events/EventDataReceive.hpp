@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -26,14 +26,12 @@
 
 namespace pmacc
 {
-
     class EventDataReceive : public IEventData
     {
     public:
-        EventDataReceive(EventNotify *task, size_t recv_count) :
-        IEventData(task),
-        recv_count(recv_count)
-        {}
+        EventDataReceive(EventNotify* task, size_t recv_count) : IEventData(task), recv_count(recv_count)
+        {
+        }
 
         size_t getReceivedCount() const
         {
@@ -42,7 +40,6 @@ namespace pmacc
 
     private:
         size_t recv_count;
-
     };
 
-} //namespace pmacc
+} // namespace pmacc

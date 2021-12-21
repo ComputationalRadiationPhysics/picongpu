@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz,
  *                     Alexander Grund
  *
@@ -36,9 +36,9 @@
  * 0 for host compilation
  */
 #ifndef __CUDA_ARCH__
-#   define PMACC_CUDA_ARCH 0
+#    define PMACC_CUDA_ARCH 0
 #else
-#   define PMACC_CUDA_ARCH __CUDA_ARCH__
+#    define PMACC_CUDA_ARCH __CUDA_ARCH__
 #endif
 
 /** PMacc global identifier for CUDA kernel */
@@ -59,7 +59,7 @@
  * Most cases can solved by #ifdef __CUDA_ARCH__ or #ifdef __CUDACC__.
  */
 #if defined(__CUDACC__)
-#   define PMACC_NO_NVCC_HDWARNING _Pragma("hd_warning_disable")
+#    define PMACC_NO_NVCC_HDWARNING _Pragma("hd_warning_disable")
 #else
-#   define PMACC_NO_NVCC_HDWARNING
+#    define PMACC_NO_NVCC_HDWARNING
 #endif

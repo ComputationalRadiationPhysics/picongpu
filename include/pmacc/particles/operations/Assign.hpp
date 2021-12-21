@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -26,24 +26,23 @@
 
 namespace pmacc
 {
-namespace particles
-{
-namespace operations
-{
+    namespace particles
+    {
+        namespace operations
+        {
+            namespace detail
+            {
+                template<typename T_Dest, typename T_Src>
+                struct Assign;
 
-namespace detail
-{
-template<typename T_Dest,typename T_Src>
-struct Assign;
+            } // namespace detail
 
-}//namespace detail
+            template<typename T_Dest, typename T_Src>
+            HDINLINE void assign(T_Dest& dest, const T_Src& src)
+            {
+                detail::Assign<T_Dest, T_Src>()(dest, src);
+            }
 
-template<typename T_Dest,typename T_Src>
-HDINLINE void assign(T_Dest& dest,const T_Src& src)
-{
-    detail::Assign<T_Dest,T_Src>()(dest,src);
-}
-
-}//operators
-}//namespace particles
-} //namespace pmacc
+        } // namespace operations
+    } // namespace particles
+} // namespace pmacc

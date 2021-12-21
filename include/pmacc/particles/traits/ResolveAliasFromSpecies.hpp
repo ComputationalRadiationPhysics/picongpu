@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Heiko Burau
+/* Copyright 2016-2021 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -21,67 +21,66 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
+#include "pmacc/identifier/alias.hpp"
 #include "pmacc/particles/memory/frames/Frame.hpp"
 #include "pmacc/traits/GetFlagType.hpp"
 #include "pmacc/traits/Resolve.hpp"
-#include "pmacc/identifier/alias.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {
-namespace particles
-{
-namespace traits
-{
+    namespace particles
+    {
+        namespace traits
+        {
+            /** Resolves a custom alias in the flag list of a particle species.
+             *
+             * Example:
+             *
+             * \code{.cpp}
+             * typedef bmpl::vector<
+             *   particlePusher<UsedParticlePusher>,
+             *   shape<UsedParticleShape>,
+             *   interpolation<UsedField2Particle>,
+             *   current<UsedParticleCurrentSolver>,
+             *   massRatio<MassRatioElectrons>,
+             *   chargeRatio<ChargeRatioElectrons>,
+             *   synchrotronPhotons<PIC_Photons>
+             * > ParticleFlagsElectrons;
+             *
+             * typedef picongpu::Particles<
+             *     PMACC_CSTRING( "e" ),
+             *     ParticleFlagsElectrons,
+             *     DefaultAttributesSeq
+             * > PIC_Electrons;
+             *
+             * typedef typename ResolveAliasFromSpecies<
+             *      PIC_Electrons,
+             *      synchrotronPhotons<>
+             * >::type PhotonSpecies;
+             * boost::static_assert(boost::is_same<PhotonsSpecies, PIC_Photons>::value);
+             * \endcode
+             *
+             * @tparam T_SpeciesType particle species
+             * @tparam T_Alias alias
+             */
+            template<typename T_SpeciesType, typename T_Alias>
+            struct ResolveAliasFromSpecies;
 
-/** Resolves a custom alias in the flag list of a particle species.
- *
- * Example:
- *
- * \code{.cpp}
- * typedef bmpl::vector<
- *   particlePusher<UsedParticlePusher>,
- *   shape<UsedParticleShape>,
- *   interpolation<UsedField2Particle>,
- *   current<UsedParticleCurrentSolver>,
- *   massRatio<MassRatioElectrons>,
- *   chargeRatio<ChargeRatioElectrons>,
- *   synchrotronPhotons<PIC_Photons>
- * > ParticleFlagsElectrons;
- *
- * typedef picongpu::Particles<
- *     PMACC_CSTRING( "e" ),
- *     ParticleFlagsElectrons,
- *     DefaultAttributesSeq
- * > PIC_Electrons;
- *
- * typedef typename ResolveAliasFromSpecies<
- *      PIC_Electrons,
- *      synchrotronPhotons<>
- * >::type PhotonSpecies;
- * boost::static_assert(boost::is_same<PhotonsSpecies, PIC_Photons>::value);
- * \endcode
- *
- * \tparam T_SpeciesType particle species
- * \tparam T_Alias alias
- */
-template<typename T_SpeciesType, typename T_Alias>
-struct ResolveAliasFromSpecies;
+            template<typename T_SpeciesType, template<typename, typename> class T_Object, typename T_AnyType>
+            struct ResolveAliasFromSpecies<T_SpeciesType, T_Object<T_AnyType, pmacc::pmacc_isAlias>>
+            {
+                using SpeciesType = T_SpeciesType;
+                using Alias = T_Object<T_AnyType, pmacc::pmacc_isAlias>;
+                using FrameType = typename SpeciesType::FrameType;
 
-template<typename T_SpeciesType, template<typename,typename> class T_Object, typename T_AnyType>
-struct ResolveAliasFromSpecies<T_SpeciesType, T_Object<T_AnyType,pmacc::pmacc_isAlias> >
-{
-    typedef T_SpeciesType SpeciesType;
-    typedef T_Object<T_AnyType,pmacc::pmacc_isAlias> Alias;
-    typedef typename SpeciesType::FrameType FrameType;
+                /* The following line only fetches the alias */
+                using FoundAlias = typename pmacc::traits::GetFlagType<FrameType, Alias>::type;
 
-    /* The following line only fetches the alias */
-    typedef typename pmacc::traits::GetFlagType<FrameType, Alias >::type FoundAlias;
+                /* This now resolves the alias into the actual object type */
+                using type = typename pmacc::traits::Resolve<FoundAlias>::type;
+            }; // struct ResolveAliasFromSpecies
 
-    /* This now resolves the alias into the actual object type */
-    typedef typename pmacc::traits::Resolve<FoundAlias>::type type;
-}; // struct ResolveAliasFromSpecies
-
-} // namespace traits
-} // namespace particles
+        } // namespace traits
+    } // namespace particles
 } // namespace pmacc

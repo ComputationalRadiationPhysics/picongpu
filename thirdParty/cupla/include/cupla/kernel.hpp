@@ -118,7 +118,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
         template< typename... T_Args >
         void operator()( T_Args && ... args ) const
         {
-            ::alpaka::workdiv::WorkDivMembers<
+            ::alpaka::WorkDivMembers<
               KernelDim,
               IdxType
             > workDiv(
@@ -127,7 +127,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
                 m_elemSize
             );
             auto const exec(
-                ::alpaka::kernel::createTaskKernel< T_Acc >(
+                ::alpaka::createTaskKernel< T_Acc >(
                     workDiv,
                     CuplaKernel< T_KernelType >{ m_dynSharedMemSize },
                     std::forward< T_Args >( args )...
@@ -138,7 +138,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
                 cupla::AccStream
             >::get().stream( m_stream );
 
-            ::alpaka::queue::enqueue(stream, exec);
+            ::alpaka::enqueue(stream, exec);
         }
     };
 
@@ -172,6 +172,10 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
     /* Kernel configuration interface with element support
      *
      * The kernel must support the alpaka element layer.
+     *
+     * Swap the blockSize and the elemSize depending on the activated accelerator.
+     * This mean that in some devices the blockSize is set to one ( dim3(1,1,1) )
+     * and the elemSize is set to the user defined blockSize
      */
     template<
         typename T_KernelType
@@ -201,11 +205,8 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
     };
 
     /** Kernel configuration interface with element support
-     * The kernel must support the alpaka element level
      *
-     * Swap the blockSize and the elemSize depending on the activated accelerator.
-     * This mean that in some devices the blockSize is set to one ( dim3(1,1,1) )
-     * and the elemSize is set to the user defined blockSize
+     * The kernel must support the alpaka element level
      */
     template<
         typename T_KernelType
@@ -237,8 +238,6 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
 
 namespace alpaka
 {
-namespace kernel
-{
 namespace traits
 {
     //! CuplaKernel has defined the extern shared memory as member
@@ -259,13 +258,12 @@ namespace traits
         getBlockSharedMemDynSizeBytes(
             ::cupla::CuplaKernel< T_UserKernel > const & userKernel,
             TArgs const & ...)
-        -> ::alpaka::idx::Idx<T_Acc>
+        -> ::alpaka::Idx<T_Acc>
         {
             return userKernel.m_dynSharedMemBytes;
         }
     };
 } // namespace traits
-} // namespace kernel
 } // namespace alpaka
 
 

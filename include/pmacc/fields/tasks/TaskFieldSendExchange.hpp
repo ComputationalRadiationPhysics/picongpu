@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,30 +22,27 @@
 #pragma once
 
 #include "pmacc/eventSystem/EventSystem.hpp"
-#include "pmacc/fields/tasks/FieldFactory.hpp"
+#include "pmacc/eventSystem/events/EventDataReceive.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
-#include "pmacc/eventSystem/events/EventDataReceive.hpp"
-
+#include "pmacc/fields/tasks/FieldFactory.hpp"
 
 
 namespace pmacc
 {
-
     template<class Field>
     class TaskFieldSendExchange : public MPITask
     {
     public:
-
-        TaskFieldSendExchange(Field &buffer, uint32_t exchange) :
-        m_buffer(buffer),
-        m_exchange(exchange),
-        m_state(Constructor),
-        m_initDependency(__getTransactionEvent())
+        TaskFieldSendExchange(Field& buffer, uint32_t exchange)
+            : m_buffer(buffer)
+            , m_exchange(exchange)
+            , m_state(Constructor)
+            , m_initDependency(__getTransactionEvent())
         {
         }
 
-        virtual void init()
+        void init() override
         {
             m_state = Init;
             __startTransaction(m_initDependency);
@@ -54,15 +51,15 @@ namespace pmacc
             m_state = WaitForBash;
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
-            switch (m_state)
+            switch(m_state)
             {
             case Init:
                 break;
             case WaitForBash:
 
-                if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_initDependency.getTaskId()) )
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_initDependency.getTaskId()))
                 {
                     m_state = InitSend;
                     m_sendEvent = m_buffer.getGridBuffer().asyncSend(EventTask(), m_exchange);
@@ -74,7 +71,7 @@ namespace pmacc
             case InitSend:
                 break;
             case WaitForSendEnd:
-                if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_sendEvent.getTaskId()))
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_sendEvent.getTaskId()))
                 {
                     m_state = Finished;
                     return true;
@@ -89,22 +86,21 @@ namespace pmacc
             return false;
         }
 
-        virtual ~TaskFieldSendExchange()
+        ~TaskFieldSendExchange() override
         {
             notify(this->myId, SENDFINISHED, nullptr);
         }
 
-        void event(id_t, EventType, IEventData*)
+        void event(id_t, EventType, IEventData*) override
         {
         }
 
-        std::string toString()
+        std::string toString() override
         {
             return "TaskFieldSendExchange";
         }
 
     private:
-
         enum state_t
         {
             Constructor,
@@ -124,5 +120,4 @@ namespace pmacc
         uint32_t m_exchange;
     };
 
-} //namespace pmacc
-
+} // namespace pmacc

@@ -1,0 +1,113 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ################################# (edit the following lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
+#     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="NONE"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Project Information ######################################## (edit this line)
+#   - project account for computing time
+export proj="<yourProject>"
+# Project reservation (can be empty if no reservation exists)
+export RESERVATION=""
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="nano"
+
+# General modules #############################################################
+#
+module purge
+module load dgx
+module swap PrgEnv-intel PrgEnv-gnu
+module load cuda openmpi
+module load cmake/3.18.2
+module load boost/1.70.0
+
+# Other Software ##############################################################
+#
+module load png/1.6.34
+module load zlib/1.2.11
+
+export ADIOS2_ROOT=/global/cfs/cdirs/ntrain/dgx/openmpi/adios-2.7.1
+export HDF5_ROOT=/global/cfs/cdirs/ntrain/dgx/openmpi/hdf5-1.10.7
+export openPMD_ROOT=/global/cfs/cdirs/ntrain/dgx/openmpi/openPMD-api-0.13.4
+export PNGwriter_ROOT=/global/cfs/cdirs/ntrain/dgx/pngwriter-0.7.0-25-g0c30be5
+
+# Environment #################################################################
+#
+export CC="$(which gcc)"
+export CXX="$(which g++)"
+export CUDACXX=$(which nvcc)
+export CUDAHOSTCXX=$(which g++)
+
+export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="cuda:80"
+
+export PATH=$PATH:$PICSRC
+export PATH=$PATH:$PICSRC/bin
+export PATH=$PATH:$PICSRC/src/tools/bin
+
+export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib64:$HDF5_ROOT/lib:$openPMD_ROOT/lib64:$PNGwriter_ROOT/lib64:$LD_LIBRARY_PATH
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+# "tbg" default options #######################################################
+#   - SLURM (sbatch)
+#   - "defq" queue
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="etc/picongpu/cori-nersc/a100.tpl"
+
+if [ -z "$RESERVATION" ] ; then
+  SLURM_RESERVATION=""
+else
+  SLURM_RESERVATION="--reservation=$RESERVATION"
+fi
+
+# allocate an interactive node for one hour to execute a mpi parallel application
+#   getNode 2  # allocates two interactive A100 GPUs (default: 1)
+function getNode() {
+    if [ -z "$1" ] ; then
+        numNodes=1
+    else
+        numNodes=$1
+    fi
+    echo "Hint: please use 'srun --cpu_bind=cores <COMMAND>' for launching multiple processes in the interactive mode."
+    echo "             use 'srun -n 1 --pty bash' for launching a interactive shell for compiling."
+    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node 8 --gpus 8 --cpus-per-task=16 -A $proj -C dgx -q shared $SLURM_RESERVATION
+}
+
+# allocate an interactive device for one hour to execute a mpi parallel application
+#   getDevice 2  # allocates two interactive devices (default: 1)
+function getDevice() {
+    if [ -z "$1" ] ; then
+        numGPUs=1
+    else
+        if [ "$1" -gt 8 ] ; then
+            echo "The maximal number of devices per node is 8." 1>&2
+            return 1
+        else
+            numGPUs=$1
+        fi
+    fi
+    echo "Hint: please use 'srun --cpu_bind=cores <COMMAND>' for launching multiple processes in the interactive mode."
+    echo "             use 'srun -n 1 --pty bash' for launching a interactive shell for compiling."
+    salloc --time=1:00:00 --ntasks-per-node=$numGPUs --cpus-per-task=16 --gpus=$numGPUs --mem=$((1010000 / 8) * $numGPUs) -A $proj -C dgx -q shared $SLURM_RESERVATION
+}
+
+# allocate an interactive shell for compilation (without gpus)
+function getShell() {
+    srun --time=1:00:00 --nodes=1 --ntasks 1 --cpus-per-task=16 -A $proj -C dgx -q shared $SLURM_RESERVATION --pty bash
+}
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi

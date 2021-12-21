@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -25,46 +25,9 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<int dim>
-struct Size_t : public Vector<size_t, dim>
-{
-    using BaseType = Vector<size_t, dim>;
-
-    HDINLINE Size_t()
+    namespace math
     {
-    }
-
-    HDINLINE Size_t(size_t x) : BaseType(x)
-    {
-    }
-
-    HDINLINE Size_t(size_t x, size_t y) : BaseType(x, y)
-    {
-    }
-
-    HDINLINE Size_t(size_t x, size_t y, size_t z) : BaseType(x, y, z)
-    {
-    }
-
-    /*! only allow explicit cast*/
-    template<
-    typename T_OtherType,
-    typename T_OtherAccessor,
-    typename T_OtherNavigator,
-    template <typename, int> class T_OtherStorage>
-    HDINLINE explicit Size_t(const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec) :
-    BaseType(vec)
-    {
-    }
-
-    HDINLINE Size_t(const BaseType& vec) :
-    BaseType(vec)
-    {
-    }
-};
-
-} // math
-} // PMacc
+        template<int dim>
+        using Size_t = Vector<size_t, dim>;
+    } // namespace math
+} // namespace pmacc

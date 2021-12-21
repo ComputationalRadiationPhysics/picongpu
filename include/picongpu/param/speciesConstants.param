@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -65,5 +65,5 @@ namespace picongpu
          * unit: C
          */
         constexpr float_64 BASE_CHARGE_SI = ELECTRON_CHARGE_SI;
-    }
-}
+    } // namespace SI
+} // namespace picongpu

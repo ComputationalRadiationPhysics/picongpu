@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Heiko Burau, Rene Widera
+/* Copyright 2015-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,50 +21,42 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/traits/HasIdentifier.hpp"
+#include "pmacc/types.hpp"
+
 #include <boost/mpl/copy_if.hpp>
 #include <boost/mpl/placeholders.hpp>
 
 
 namespace pmacc
 {
-namespace particles
-{
-namespace traits
-{
-
-    /** Return a new sequence of species which carry the identifier.
-     *
-     * @tparam T_MPLSeq sequence of particle species
-     * @tparam T_Identifier identifier to be filtered
-     *
-     * @typedef type boost mpl forward sequence
-     */
-    template<
-        typename T_MPLSeq,
-        typename T_Identifier
-    >
-    struct FilterByIdentifier
+    namespace particles
     {
-        using MPLSeq = T_MPLSeq;
-        using Identifier = T_Identifier;
-
-        template< typename T_Species >
-        struct HasIdentifier
+        namespace traits
         {
-            using type = typename ::pmacc::traits::HasIdentifier<
-                typename T_Species::FrameType,
-                Identifier
-            >::type;
-        };
+            /** Return a new sequence of species which carry the identifier.
+             *
+             * @tparam T_MPLSeq sequence of particle species
+             * @tparam T_Identifier identifier to be filtered
+             *
+             * @typedef type boost mpl forward sequence
+             */
+            template<typename T_MPLSeq, typename T_Identifier>
+            struct FilterByIdentifier
+            {
+                using MPLSeq = T_MPLSeq;
+                using Identifier = T_Identifier;
 
-        using type = typename bmpl::copy_if<
-            MPLSeq,
-            HasIdentifier< bmpl::_ >
-        >::type;
-    };
+                template<typename T_Species>
+                struct HasIdentifier
+                {
+                    using type =
+                        typename ::pmacc::traits::HasIdentifier<typename T_Species::FrameType, Identifier>::type;
+                };
 
-}//namespace traits
-}//namespace particles
-}//namespace pmacc
+                using type = typename bmpl::copy_if<MPLSeq, HasIdentifier<bmpl::_>>::type;
+            };
+
+        } // namespace traits
+    } // namespace particles
+} // namespace pmacc

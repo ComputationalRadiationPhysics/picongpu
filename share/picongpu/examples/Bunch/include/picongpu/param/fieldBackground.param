@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Axel Huebl, Alexander Debus, Richard Pausch
+/* Copyright 2014-2021 Axel Huebl, Alexander Debus, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -20,200 +20,204 @@
 #pragma once
 
 /** Load pre-defined templates */
-#include "picongpu/fields/background/templates/TWTS/TWTS.hpp"
-
-#ifndef PARAM_INCLUDE_FIELDBACKGROUND
-#define PARAM_INCLUDE_FIELDBACKGROUND false
+#if PARAM_TWTSFAST == 1
+#    include "picongpu/fields/background/templates/twtsfast/twtsfast.hpp"
+#else
+#    include "picongpu/fields/background/templates/TWTS/TWTS.hpp"
 #endif
 
-/** Load external background fields
- *
- */
+#ifndef PARAM_INCLUDE_FIELDBACKGROUND
+#    define PARAM_INCLUDE_FIELDBACKGROUND false
+#endif
+
+/* Load external background fields */
 namespace picongpu
 {
     class FieldBackgroundE
     {
     public:
-
-        /* Add this additional field for pushing particles */
+        /** Add this additional field for pushing particles */
         static constexpr bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
 
-        /* We use this to calculate your SI input back to our unit system */
+        /** We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);
 
-        /* TWTS E-fields need to be initialized on host,
-         * so they can look up global grid dimensions.
+        /** TWTS E-fields need to be initialized on host,
+         *  so they can look up global grid dimensions.
          *
-         * Note: No PMACC_ALIGN(...) used, since this *additional* memory alignment would require
-         *       roughly float_64 the number of registers in the corresponding kernel on the device.
+         *  Note: No PMACC_ALIGN(...) used, since this *additional* memory alignment would require
+         *        roughly float_64 the number of registers in the corresponding kernel on the device.
          */
+#if PARAM_TWTSFAST == 1
+        const templates::twtsfast::EField twtsFieldE;
+#else
         const templates::twts::EField twtsFieldE;
+#endif
 
-        /* Constructor is host-only, because of subGrid and halfSimSize initialization */
-        HINLINE FieldBackgroundE( const float3_64 unitField ) :
-            m_unitField(unitField),
-            twtsFieldE(
-                /* focus_y [m], the distance to the laser focus in y-direction */
-                30.0e-6,
-                /* wavelength [m] */
-                0.8e-6,
-                /* pulselength [s], sigma of std. gauss for intensity (E^2) */
-                10.0e-15 / 2.3548200450309493820231386529194,
-                /* w_x [m], cylindrically focused spot size */
-                5.0e-6,
-                /* w_y [m] */
-                0.01,
-                /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-                60. * (PI/180.),
-                /* propagation speed of overlap [speed of light]. */
-                1.0,
-                /* manual time delay [s] if auto_tdelay is false */
-                39.3e-6 / SI::SPEED_OF_LIGHT_SI,
-                /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
-                false )
-        {}
+        /** Constructor is host-only, because of subGrid and halfSimSize initialization */
+        HINLINE FieldBackgroundE(const float3_64 unitField)
+            : m_unitField(unitField)
+            , twtsFieldE(
+                  /* focus_y [m], the distance to the laser focus in y-direction */
+                  30.0e-6,
+                  /* wavelength [m] */
+                  0.8e-6,
+                  /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                  10.0e-15 / 2.3548200450309493820231386529194,
+#if PARAM_TWTSFAST == 0
+                  /* w_x [m], cylindrically focused spot size */
+                  5.0e-6,
+#endif
+                  /* w_y [m] */
+                  0.01,
+                  /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
+                  60. * (PI / 180.),
+                  /* propagation speed of overlap [speed of light]. */
+                  1.0,
+                  /* manual time delay [s] if auto_tdelay is false */
+                  39.3e-6 / SI::SPEED_OF_LIGHT_SI,
+                  /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
+                  false)
+        {
+        }
 
         /** Specify your background field E(r,t) here
          *
-         * \param cellIdx The total cell id counted from the start at t=0
-         * \param currentStep The current time step */
-        HDINLINE float3_X
-        operator()( const DataSpace<simDim>& cellIdx,
-                    const uint32_t currentStep ) const
+         * @param cellIdx The total cell id counted from the start at t=0
+         * @param currentStep The current time step */
+        HDINLINE float3_X operator()(const DataSpace<simDim>& cellIdx, const uint32_t currentStep) const
         {
             /* unit: meter */
             constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
-            /** UNITCONV */
-            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
-                * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
-                * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+            /* UNITCONV */
+            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
 
-            /** unit: W / m^2 */
+            /* unit: W / m^2 */
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
             /* unit: none */
-            constexpr float_64 _A0  = 1.0;
+            constexpr float_64 _A0 = 1.0;
 
             /* unit: Volt /meter
              *\todo #738 implement math::vector, native type operations
              */
-            const float3_64 invUnitField = float3_64( 1.0 / m_unitField[0],
-                                                      1.0 / m_unitField[1],
-                                                      1.0 / m_unitField[2] );
+            const float3_64 invUnitField = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
 
             /* laser amplitude in picongpu units [ unit: (Volt /meter) / unitField-factor ]
              * Note: the laser amplitude is included in all field components
              * polarization and other properties are established by the peak amplitude
              * normalized twtsFieldE(...)
              */
-            const float3_X amplitude = precisionCast<float_X>(
-                                float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField );
+            const float3_X amplitude
+                = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
 
             /* Note: twtsFieldE(...) is normalized, such that peak amplitude equals unity. */
-            return amplitude * twtsFieldE( cellIdx, currentStep );
+            return amplitude * twtsFieldE(cellIdx, currentStep);
         }
     };
 
     class FieldBackgroundB
     {
     public:
-        /* Add this additional field for pushing particles */
+        /** Add this additional field for pushing particles */
         static constexpr bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
 
-        /* TWTS B-fields need to be initialized on host,
-         * so they can look up global grid dimensions.
+        /** TWTS B-fields need to be initialized on host,
+         *  so they can look up global grid dimensions.
          *
-         * Note: No PMACC_ALIGN(...) used, since this *additional* memory alignment would require
-         *       roughly float_64 the number of registers in the corresponding kernel on the device.
+         *  Note: No PMACC_ALIGN(...) used, since this *additional* memory alignment would require
+         *        roughly float_64 the number of registers in the corresponding kernel on the device.
          */
+#if PARAM_TWTSFAST == 1
+        const templates::twtsfast::BField twtsFieldB;
+#else
         const templates::twts::BField twtsFieldB;
+#endif
 
-        /* We use this to calculate your SI input back to our unit system */
+        /** We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);
 
-        HINLINE FieldBackgroundB( const float3_64 unitField ) :
-            m_unitField(unitField),
-            twtsFieldB(
-                /* focus_y [m], the distance to the laser focus in y-direction */
-                30.0e-6,
-                /* wavelength [m] */
-                0.8e-6,
-                /* pulselength [s], sigma of std. gauss for intensity (E^2) */
-                10.0e-15 / 2.3548200450309493820231386529194,
-                /* w_x [m], cylindrically focused spot size */
-                5.0e-6,
-                /* w_y [m] */
-                0.01,
-                /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
-                60. * (PI / 180.),
-                /* propagation speed of overlap [speed of light]. */
-                1.0,
-                /* manual time delay [s] if auto_tdelay is false */
-                39.3e-6 / SI::SPEED_OF_LIGHT_SI,
-                /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
-                false )
-        {}
+        HINLINE FieldBackgroundB(const float3_64 unitField)
+            : m_unitField(unitField)
+            , twtsFieldB(
+                  /* focus_y [m], the distance to the laser focus in y-direction */
+                  30.0e-6,
+                  /* wavelength [m] */
+                  0.8e-6,
+                  /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                  10.0e-15 / 2.3548200450309493820231386529194,
+#if PARAM_TWTSFAST == 0
+                  /* w_x [m], cylindrically focused spot size */
+                  5.0e-6,
+#endif
+                  /* w_y [m] */
+                  0.01,
+                  /* interaction angle between TWTS laser propagation vector and the y-axis [rad] */
+                  60. * (PI / 180.),
+                  /* propagation speed of overlap [speed of light]. */
+                  1.0,
+                  /* manual time delay [s] if auto_tdelay is false */
+                  39.3e-6 / SI::SPEED_OF_LIGHT_SI,
+                  /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
+                  false)
+        {
+        }
 
         /** Specify your background field B(r,t) here
          *
-         * \param cellIdx The total cell id counted from the start at t=0
-         * \param currentStep The current time step */
-        HDINLINE float3_X
-        operator()( const DataSpace<simDim>& cellIdx,
-                    const uint32_t currentStep ) const
+         * @param cellIdx The total cell id counted from the start at t=0
+         * @param currentStep The current time step */
+        HDINLINE float3_X operator()(const DataSpace<simDim>& cellIdx, const uint32_t currentStep) const
         {
             /* unit: meter */
             constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
-            /** UNITCONV */
-            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
-                * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
-                * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+            /* UNITCONV */
+            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
 
-            /** unit: W / m^2 */
+            /* unit: W / m^2 */
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
             /** unit: none */
-            constexpr float_64 _A0  = 1.0;
+            constexpr float_64 _A0 = 1.0;
 
             /** unit: Volt /meter */
-            const float3_64 invUnitField = float3_64( 1.0 / m_unitField[0],
-                                                      1.0 / m_unitField[1],
-                                                      1.0 / m_unitField[2] );
+            const float3_64 invUnitField = float3_64(1.0 / m_unitField[0], 1.0 / m_unitField[1], 1.0 / m_unitField[2]);
 
             /* laser amplitude in picongpu units [ unit: (Volt/meter) / unitField-factor ]
              * Note: the laser amplitude is included in all field components
              * polarization and other properties are established by the peak amplitude
              * normalized twtsFieldB(...)
              */
-            const float3_X amplitude = precisionCast<float_X>(
-                    float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField );
+            const float3_X amplitude
+                = precisionCast<float_X>(float_64(_A0 * UNITCONV_A0_to_Amplitude_SI) * invUnitField);
 
             /* Note: twtsFieldB(...) is normalized, such that peak amplitude equals unity. */
-            return amplitude * twtsFieldB( cellIdx, currentStep );
+            return amplitude * twtsFieldB(cellIdx, currentStep);
         }
     };
 
     class FieldBackgroundJ
     {
     public:
-        /* Add this additional field? */
+        /** Add this additional field? */
         static constexpr bool activated = false;
 
-        /* We use this to calculate your SI input back to our unit system */
+        /** We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(m_unitField, const float3_64);
 
-        HDINLINE FieldBackgroundJ( const float3_64 unitField ) : m_unitField(unitField)
-        {}
+        HDINLINE FieldBackgroundJ(const float3_64 unitField) : m_unitField(unitField)
+        {
+        }
 
         /** Specify your background field J(r,t) here
          *
-         * \param cellIdx The total cell id counted from the start at t=0
-         * \param currentStep The current time step */
-        HDINLINE float3_X
-        operator()( const DataSpace<simDim>& cellIdx,
-                    const uint32_t currentStep ) const
+         * @param cellIdx The total cell id counted from the start at t=0
+         * @param currentStep The current time step */
+        HDINLINE float3_X operator()(const DataSpace<simDim>& cellIdx, const uint32_t currentStep) const
         {
             return float3_X(0.0, 0.0, 0.0);
         }

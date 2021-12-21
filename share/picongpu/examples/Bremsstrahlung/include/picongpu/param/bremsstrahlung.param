@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Heiko Burau
+/* Copyright 2016-2021 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -21,112 +21,110 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace bremsstrahlung
-{
+    namespace particles
+    {
+        namespace bremsstrahlung
+        {
+            /** params related to the energy loss and deflection of the incident electron */
+            namespace electron
+            {
+                /** Minimal kinetic electron energy in MeV for the lookup table.
+                 *
+                 * For electrons below this value Bremsstrahlung is not taken into account.
+                 */
+                constexpr float_64 MIN_ENERGY_MeV = 0.5;
 
+                /** Maximal kinetic electron energy in MeV for the lookup table.
+                 *
+                 * Electrons above this value cause a out-of-bounds access at the
+                 * lookup table. Bounds checking is enabled for "CRITICAL" log level.
+                 */
+                constexpr float_64 MAX_ENERGY_MeV = 100.0;
 
-/** params related to the energy loss and deflection of the incident electron */
-namespace electron
-{
-    /** Minimal kinetic electron energy in MeV for the lookup table.
-     *
-     * For electrons below this value Bremsstrahlung is not taken into account.
-     */
-    constexpr float_64 MIN_ENERGY_MeV = 0.5;
+                /** Minimal polar deflection angle due to screening. */
+                constexpr float_64 MIN_THETA = 0.001;
 
-    /** Maximal kinetic electron energy in MeV for the lookup table.
-     *
-     * Electrons above this value cause a out-of-bounds access at the
-     * lookup table. Bounds checking is enabled for "CRITICAL" log level.
-     */
-    constexpr float_64 MAX_ENERGY_MeV = 100.0;
+                /** number of lookup table divisions for the kappa axis.
+                 *
+                 * Kappa is the energy loss normalized to the initial kinetic energy.
+                 * The axis is scaled linearly.
+                 */
+                constexpr uint32_t NUM_SAMPLES_KAPPA = 64;
 
-    /** Minimal polar deflection angle due to screening. */
-    constexpr float_64 MIN_THETA = 0.001;
+                /** number of lookup table divisions for the initial kinetic energy axis.
+                 *
+                 * The axis is scaled logarithmically.
+                 */
+                constexpr uint32_t NUM_SAMPLES_EKIN = 128;
 
-    /** number of lookup table divisions for the kappa axis.
-     *
-     * Kappa is the energy loss normalized to the initial kinetic energy.
-     * The axis is scaled linearly.
-     */
-    constexpr uint32_t NUM_SAMPLES_KAPPA = 64;
+                /** Kappa is the energy loss normalized to the initial kinetic energy.
+                 *
+                 * This minimal value is needed by the numerics to avoid a division by zero.
+                 */
+                constexpr float_64 MIN_KAPPA = 1.0e-10;
 
-    /** number of lookup table divisions for the initial kinetic energy axis.
-     *
-     * The axis is scaled logarithmically.
-     */
-    constexpr uint32_t NUM_SAMPLES_EKIN = 128;
+            } // namespace electron
 
-    /** Kappa is the energy loss normalized to the initial kinetic energy.
-     *
-     * This minimal value is needed by the numerics to avoid a division by zero.
-     */
-    constexpr float_64 MIN_KAPPA = 1.0e-10;
+            /** params related to the creation and the emission angle of the photon */
+            namespace photon
+            {
+                /** Low-energy threshold in keV of the incident electron for the creation of photons.
+                 *
+                 * Below this value photon emission is neglected.
+                 */
+                constexpr float_64 SOFT_PHOTONS_CUTOFF_keV = 5.0;
 
-} // namespace electron
+                /** number of lookup table divisions for the delta axis.
+                 *
+                 * Delta is the angular emission probability (normalized to one) integrated from zero to theta,
+                 * where theta is the angle between the photon momentum and the final electron momentum.
+                 *
+                 * The axis is scaled linearly.
+                 */
+                constexpr uint32_t NUM_SAMPLES_DELTA = 256;
 
-/** params related to the creation and the emission angle of the photon */
-namespace photon
-{
-    /** Low-energy threshold in keV of the incident electron for the creation of photons.
-     *
-     * Below this value photon emission is neglected.
-     */
-    constexpr float_64 SOFT_PHOTONS_CUTOFF_keV = 5.0;
+                /** number of lookup table divisions for the gamma axis.
+                 *
+                 * Gamma is the relativistic factor of the incident electron.
+                 *
+                 * The axis is scaled logarithmically.
+                 */
+                constexpr uint32_t NUM_SAMPLES_GAMMA = 64;
 
-    /** number of lookup table divisions for the delta axis.
-     *
-     * Delta is the angular emission probability (normalized to one) integrated from zero to theta,
-     * where theta is the angle between the photon momentum and the final electron momentum.
-     *
-     * The axis is scaled linearly.
-     */
-    constexpr uint32_t NUM_SAMPLES_DELTA = 256;
+                /** Maximal value of delta for the lookup table.
+                 *
+                 * Delta is the angular emission probability (normalized to one) integrated from zero to theta,
+                 * where theta is the angle between the photon momentum and the final electron momentum.
+                 *
+                 * A value close to one is reasonable. Though exactly one was actually correct,
+                 * because it would map to theta = pi (maximum polar angle), the sampling then would be bad
+                 * in the ultrarelativistic case. In this regime the emission primarily takes place at small thetas.
+                 * So a maximum delta close to one maps to a reasonable maximum theta.
+                 */
+                constexpr float_64 MAX_DELTA = 0.95;
 
-    /** number of lookup table divisions for the gamma axis.
-     *
-     * Gamma is the relativistic factor of the incident electron.
-     *
-     * The axis is scaled logarithmically.
-     */
-    constexpr uint32_t NUM_SAMPLES_GAMMA = 64;
+                /** minimal gamma for the lookup table. */
+                constexpr float_64 MIN_GAMMA = 1.0;
 
-    /** Maximal value of delta for the lookup table.
-     *
-     * Delta is the angular emission probability (normalized to one) integrated from zero to theta,
-     * where theta is the angle between the photon momentum and the final electron momentum.
-     *
-     * A value close to one is reasonable. Though exactly one was actually correct,
-     * because it would map to theta = pi (maximum polar angle), the sampling then would be bad
-     * in the ultrarelativistic case. In this regime the emission primarily takes place at small thetas.
-     * So a maximum delta close to one maps to a reasonable maximum theta.
-     */
-    constexpr float_64 MAX_DELTA = 0.95;
+                /** maximal gamma for the lookup table.
+                 *
+                 * Bounds checking is enabled for "CRITICAL" log level.
+                 */
+                constexpr float_64 MAX_GAMMA = 200;
 
-    /** minimal gamma for the lookup table. */
-    constexpr float_64 MIN_GAMMA = 1.0;
+                /** if the emission probability per timestep is higher than this value and the log level is set to
+                 *  "CRITICAL" a warning will be raised.
+                 */
+                constexpr float_64 SINGLE_EMISSION_PROB_LIMIT = 0.4;
 
-    /** maximal gamma for the lookup table.
-     *
-     * Bounds checking is enabled for "CRITICAL" log level.
-     */
-    constexpr float_64 MAX_GAMMA = 200;
+                /** ratio between macro electron weighting (numerator) and macro photon weighting (denominator)
+                 *  at the time of creation.
+                 *
+                 * The emission probability is proportional to this parameter.
+                 */
+                constexpr float_64 WEIGHTING_RATIO = 5;
+            } // namespace photon
 
-    /** if the emission probability per timestep is higher than this value and the log level is set to
-     *  "CRITICAL" a warning will be raised.
-     */
-    constexpr float_64 SINGLE_EMISSION_PROB_LIMIT = 0.4;
-
-    /** ratio between macro electron weighting (numerator) and macro photon weighting (denominator)
-     *  at the time of creation.
-     *
-     * The emission probability is proportional to this parameter.
-     */
-    constexpr float_64 WEIGHTING_RATIO = 5;
-} // namespace photon
-
-} // namespace bremsstrahlung
-} // namespace particles
+        } // namespace bremsstrahlung
+    } // namespace particles
 } // namespace picongpu

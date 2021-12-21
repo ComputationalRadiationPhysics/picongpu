@@ -1,0 +1,251 @@
+/* Copyright 2020-2021 Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/traits/frame/GetMass.hpp"
+
+#include <pmacc/lockstep.hpp>
+
+#include <cstdint>
+
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace debyeLength
+        {
+            //! Debye length estimate
+            struct Estimate
+            {
+                //! Number of supercells used for the estimate
+                uint32_t numUsedSupercells = 0u;
+
+                //! Number of supercells failing the check
+                uint32_t numFailingSupercells = 0u;
+
+                //! Total macroparticle weighting
+                float_64 sumWeighting = 0.0;
+
+                //! Total weighted sum of estimated temperatures in keV, the sum of weights is sumWeighting
+                float_64 sumTemperatureKeV = 0.0;
+
+                //! Total weighted sum of estimated Debye length in PIC units, the sum of weights is sumWeighting
+                float_64 sumDebyeLength = 0.0;
+            };
+
+            /** Kernel to estimate Debye length for electrons
+             *
+             * @tparam T_numWorkers number of threads per block
+             */
+            template<uint32_t T_numWorkers>
+            struct DebyeLengthEstimateKernel
+            {
+                /** Kernel to estimate Debye length for electrons
+                 *
+                 * @tparam T_Acc alpaka accelerator type
+                 * @tparam T_ElectronBox electron storage type
+                 * @tparam T_Mapping mapping type
+                 * @tparam T_EstimateBox result storage type, device box for Estimate
+                 *
+                 * @param acc alpaka accelerator
+                 * @param electronBox electron storage
+                 * @param mapper mapping
+                 * @param minMacroparticlesPerSupercell only use supercells with at least this many macroparticles
+                 * @param estimateBox device box with a single element to write kernel result to
+                 */
+                template<typename T_Acc, typename T_ElectronBox, typename T_Mapping, typename T_EstimateBox>
+                DINLINE void operator()(
+                    T_Acc const& acc,
+                    T_ElectronBox const electronBox,
+                    T_Mapping mapper,
+                    uint32_t const minMacroparticlesPerSupercell,
+                    T_EstimateBox estimateBox) const
+                {
+                    auto const supercellIdx = mapper.getSuperCellIndex(DataSpace<simDim>(cupla::blockIdx(acc)));
+                    auto const& supercell = electronBox.getSuperCell(supercellIdx);
+                    if(supercell.getNumParticles() >= minMacroparticlesPerSupercell)
+                        process(acc, electronBox, supercellIdx, estimateBox);
+                }
+
+            private:
+                /** Check Debye length for electrons in the given supercell
+                 *
+                 * The supercell is required to have macroparticles
+                 *
+                 * @tparam T_Acc alpaka accelerator type
+                 * @tparam T_ElectronBox electron storage type
+                 * @tparam T_EstimateBox result storage type, device box for Estimate
+                 *
+                 * @param acc alpaka accelerator
+                 * @param electronBox electron storage
+                 * @param supercellIdx supercell index, including guards
+                 * @param estimate device box with a single element to write kernel result to
+                 */
+                template<typename T_Acc, typename T_ElectronBox, typename T_EstimateBox>
+                DINLINE void process(
+                    T_Acc const& acc,
+                    T_ElectronBox const electronBox,
+                    pmacc::DataSpace<simDim> const supercellIdx,
+                    T_EstimateBox estimateBox) const
+                {
+                    constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                    constexpr uint32_t numWorkers = T_numWorkers;
+                    /* Estimate variance in momentum of macroparticles in the supercell.
+                     * Each thread processes its particles, then the master thread performs reduction.
+                     * Sums are weighted and operate with single- (not macro-) particle momenta.
+                     * Use double-precision for better accuracy, this kernel is not performance-critical.
+                     */
+                    auto sumWeighting = float_64{0.0};
+                    auto sumMomentum = float3_64::create(0.0);
+                    auto sumMomentumSquared = float3_64::create(0.0);
+                    auto frame = electronBox.getLastFrame(supercellIdx);
+                    auto particlesInFrame = electronBox.getSuperCell(supercellIdx).getSizeLastFrame();
+                    uint32_t const workerIdx = cupla::threadIdx(acc).x;
+                    while(frame.isValid())
+                    {
+                        lockstep::makeForEach<frameSize, numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
+                            if(linearIdx < particlesInFrame)
+                            {
+                                auto const particle = frame[linearIdx];
+                                auto const weighting = float_64{particle[weighting_]};
+                                sumWeighting += weighting;
+                                auto const singleParticleMomentum
+                                    = precisionCast<float_64>(particle[momentum_]) / weighting;
+                                sumMomentum += weighting * singleParticleMomentum;
+                                sumMomentumSquared += weighting * singleParticleMomentum * singleParticleMomentum;
+                            }
+                        });
+                        frame = electronBox.getPreviousFrame(frame);
+                        particlesInFrame = frameSize;
+                    }
+
+                    // Reduce for supercell in shared memory
+                    PMACC_SMEM(acc, supercellSumWeighting, float_64);
+                    PMACC_SMEM(acc, supercellSumMomentum, float3_64);
+                    PMACC_SMEM(acc, supercellSumMomentumSquared, float3_64);
+                    auto onlyMaster = lockstep::makeMaster(workerIdx);
+                    onlyMaster([&]() {
+                        supercellSumWeighting = float_64(0.0);
+                        supercellSumMomentum = float3_64::create(0.0);
+                        supercellSumMomentumSquared = float3_64::create(0.0);
+                    });
+                    cupla::__syncthreads(acc);
+                    cupla::atomicAdd(acc, &supercellSumWeighting, sumWeighting, ::alpaka::hierarchy::Threads{});
+                    for(uint32_t d = 0; d < 3; d++)
+                    {
+                        cupla::atomicAdd(
+                            acc,
+                            &(supercellSumMomentum[d]),
+                            sumMomentum[d],
+                            ::alpaka::hierarchy::Threads{});
+                        cupla::atomicAdd(
+                            acc,
+                            &(supercellSumMomentumSquared[d]),
+                            sumMomentumSquared[d],
+                            ::alpaka::hierarchy::Threads{});
+                    }
+                    cupla::__syncthreads(acc);
+                    onlyMaster([&]() {
+                        auto const mean = supercellSumMomentum / supercellSumWeighting;
+                        // Use a simple variance estimator, the fact it is biased should not matter here
+                        auto const variance = pmacc::math::max(
+                            float3_64::create(0.0),
+                            supercellSumMomentumSquared / supercellSumWeighting - mean * mean);
+                        check(acc, electronBox, supercellIdx, supercellSumWeighting, variance, estimateBox);
+                    });
+                }
+
+                /** Check Debye length and write back results
+                 *
+                 * This function makes an estimate for the whole provided electron box,
+                 * and so must be called once per supercell.
+                 * It marks a supercell as failing the check if the locally estimated Debye length is not resolved
+                 * with a single cell.
+                 * This is according to page 32 of R.W. Hockney, J.W. Eastwood. Computer Simulation Using Particles,
+                 * CRC Press (1988).
+                 *
+                 * @tparam T_Acc alpaka accelerator type
+                 * @tparam T_ElectronBox electron storage type
+                 * @tparam T_ResultBox result storage type, device box for Result
+                 *
+                 * @param acc alpaka accelerator
+                 * @param electronBox electron storage
+                 * @param supercellIdx supercell index, including guards
+                 * @param momentumVariance estimated variance in physical momenta
+                 * @param result device box of type Result with a single element
+                 *        to write kernel result to
+                 */
+                template<typename T_Acc, typename T_ElectronBox, typename T_EstimateBox>
+                DINLINE void check(
+                    T_Acc const& acc,
+                    T_ElectronBox const electronBox,
+                    pmacc::DataSpace<simDim> const supercellIdx,
+                    float_64 const sumWeighting,
+                    float3_64 const momentumVariance,
+                    T_EstimateBox estimateBox) const
+                {
+                    auto const supercellVolume
+                        = CELL_VOLUME * precisionCast<float_64>(SuperCellSize::toRT().productOfComponents());
+                    auto const electronDensity = sumWeighting / supercellVolume;
+
+                    /* For the Maxwell-Boltzmann distribution,
+                     * variance = mass * k * T, both for physical and macroparticle.
+                     * We assume this distribution and estimate k * T out of variance.
+                     * Applying the ideal gas law would result in the same estimate.
+                     */
+                    using Frame = typename T_ElectronBox::FrameType;
+                    auto const mass = static_cast<double>(picongpu::traits::frame::getMass<Frame>());
+                    auto const kT = (momentumVariance[0] + momentumVariance[1] + momentumVariance[2]) / (3.0 * mass);
+                    auto const temperatureKeV = kT * UNIT_ENERGY / UNITCONV_keV_to_Joule;
+                    auto const electronCharge = picongpu::traits::frame::getCharge<Frame>();
+                    auto const debyeLength = sqrt(EPS0 * kT / (electronDensity * electronCharge * electronCharge));
+                    auto maxCellSize = cellSize[0];
+                    // For 2D do not use grid size along z, as it is always resolved
+                    for(uint32_t d = 1; d < simDim; d++)
+                        maxCellSize = math::max(maxCellSize, cellSize[d]);
+                    bool const isDebyeLengthUnderOneCell = (debyeLength < maxCellSize);
+
+                    cupla::atomicAdd(acc, &(estimateBox(0).numUsedSupercells), 1u, ::alpaka::hierarchy::Blocks{});
+                    if(isDebyeLengthUnderOneCell)
+                        cupla::atomicAdd(
+                            acc,
+                            &(estimateBox(0).numFailingSupercells),
+                            1u,
+                            ::alpaka::hierarchy::Blocks{});
+                    cupla::atomicAdd(acc, &(estimateBox(0).sumWeighting), sumWeighting, ::alpaka::hierarchy::Blocks{});
+                    cupla::atomicAdd(
+                        acc,
+                        &(estimateBox(0).sumTemperatureKeV),
+                        sumWeighting * temperatureKeV,
+                        ::alpaka::hierarchy::Blocks{});
+                    cupla::atomicAdd(
+                        acc,
+                        &(estimateBox(0).sumDebyeLength),
+                        sumWeighting * debyeLength,
+                        ::alpaka::hierarchy::Blocks{});
+                }
+            };
+
+        } // namespace debyeLength
+    } // namespace particles
+} // namespace picongpu

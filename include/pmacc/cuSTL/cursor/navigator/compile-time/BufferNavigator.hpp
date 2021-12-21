@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,68 +21,62 @@
 
 #pragma once
 
-#include <boost/type_traits/remove_pointer.hpp>
 #include "pmacc/math/vector/Int.hpp"
+
+#include <type_traits>
 
 namespace pmacc
 {
-namespace cursor
-{
-namespace CT
-{
-
-template<typename Pitch, int dim = Pitch::dim + 1>
-struct BufferNavigator;
-
-template<typename Pitch>
-struct BufferNavigator<Pitch, 1>
-{
-    static constexpr int dim = 1;
-
-    template<typename Data>
-    HDINLINE
-    Data operator()(const Data& data, const math::Int<dim>& jump) const
+    namespace cursor
     {
-        char* result = (char*)data;
-        result += jump.x() * sizeof(typename boost::remove_pointer<Data>::type);
-        return (Data)result;
-    }
-};
+        namespace CT
+        {
+            template<typename Pitch, int dim = Pitch::dim + 1>
+            struct BufferNavigator;
 
-template<typename Pitch>
-struct BufferNavigator<Pitch, 2>
-{
-    static constexpr int dim = 2;
+            template<typename Pitch>
+            struct BufferNavigator<Pitch, 1>
+            {
+                static constexpr int dim = 1;
 
-    template<typename Data>
-    HDINLINE
-    Data operator()(const Data& data, const math::Int<dim>& jump) const
-    {
-        char* result = (char*)data;
-        result += jump.x() * sizeof(typename boost::remove_pointer<Data>::type)
-               + jump.y() * Pitch::x::value;
-        return (Data)result;
-    }
-};
+                template<typename Data>
+                HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
+                {
+                    auto* result = (char*) data;
+                    result += jump.x() * sizeof(typename std::remove_pointer_t<Data>);
+                    return (Data) result;
+                }
+            };
 
-template<typename Pitch>
-struct BufferNavigator<Pitch, 3>
-{
-    static constexpr int dim = 3;
+            template<typename Pitch>
+            struct BufferNavigator<Pitch, 2>
+            {
+                static constexpr int dim = 2;
 
-    template<typename Data>
-    HDINLINE
-    Data operator()(const Data& data, const math::Int<dim>& jump) const
-    {
-        char* result = (char*)data;
-        result += jump.x() * sizeof(typename boost::remove_pointer<Data>::type)
-               + jump.y() * Pitch::x::value
-               + jump.z() * Pitch::y::value;
-        return (Data)result;
-    }
-};
+                template<typename Data>
+                HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
+                {
+                    auto* result = (char*) data;
+                    result += jump.x() * sizeof(typename std::remove_pointer_t<Data>) + jump.y() * Pitch::x::value;
+                    return (Data) result;
+                }
+            };
 
-} // CT
-} // cursor
-} // pmacc
+            template<typename Pitch>
+            struct BufferNavigator<Pitch, 3>
+            {
+                static constexpr int dim = 3;
 
+                template<typename Data>
+                HDINLINE Data operator()(const Data& data, const math::Int<dim>& jump) const
+                {
+                    auto* result = (char*) data;
+                    result += jump.x() * sizeof(typename std::remove_pointer_t<Data>) + jump.y() * Pitch::x::value
+                        + jump.z() * Pitch::y::value;
+                    return (Data) result;
+                }
+            };
+
+        } // namespace CT
+    } // namespace cursor
+} // namespace pmacc

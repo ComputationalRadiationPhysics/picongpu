@@ -22,7 +22,7 @@ export proj=$(groups | awk '{print $1}')
 module load modenv/scs5
 module load foss/2018a
 module load GCC/6.4.0-2.28
-module load CMake/3.11.4-GCCcore-6.4.0
+module load CMake/3.15.0-GCCcore-6.4.0
 module load CUDA/9.2.88  # gcc <= 7, intel 15-17
 module load OpenMPI/2.1.2-GCC-6.4.0-2.28
 
@@ -52,12 +52,6 @@ export CMAKE_PREFIX_PATH=$HDF5_ROOT:$CMAKE_PREFIX_PATH
 export PNGwriter_DIR=$ownLibs/lib/pngwriter
 export CMAKE_PREFIX_PATH=$PNGwriter_DIR:$CMAKE_PREFIX_PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGwriter_DIR/lib/
-
-# splash needs to be built by the user:
-export Splash_DIR=$ownLibs/lib/splashModule2
-export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$Splash_DIR/lib/
-
 
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples

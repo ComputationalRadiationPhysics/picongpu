@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz,
  *                     Alexander Grund
  *
@@ -28,58 +28,70 @@
 
 namespace pmacc
 {
-namespace type
-{
-
-    /**
-     * Bitmask which describes the direction of communication.
-     *
-     * Bitmasks may be combined logically, e.g. LEFT+TOP = TOPLEFT.
-     * It is not possible to combine complementary masks (e.g. FRONT and BACK),
-     * as a bitmask always defines one direction of communication (send or receive).
-     *
-     * Axis index relation:
-     *   right & left are in X
-     *   bottom & top are in Y
-     *   back & front are in Z
-     */
-    enum ExchangeType
+    namespace type
     {
-        RIGHT = 1u,
-        LEFT = 2u,
-        BOTTOM = 3u,
-        TOP = 6u,
-        BACK = 9u,
-        FRONT = 18u // 3er-System
-    };
-
-    struct ExchangeTypeNames
-    {
-        std::string operator[]( const uint32_t exchange ) const
+        /**
+         * Bitmask which describes the direction of communication.
+         *
+         * Bitmasks may be combined logically, e.g. LEFT+TOP = TOPLEFT.
+         * It is not possible to combine complementary masks (e.g. FRONT and BACK),
+         * as a bitmask always defines one direction of communication (send or receive).
+         *
+         * Axis index relation:
+         *   right & left are in X
+         *   bottom & top are in Y
+         *   back & front are in Z
+         */
+        enum ExchangeType
         {
-            if( exchange >= 27 )
-                return std::string("unknown exchange type: ") + std::to_string(exchange);
+            RIGHT = 1u,
+            LEFT = 2u,
+            BOTTOM = 3u,
+            TOP = 6u,
+            BACK = 9u,
+            FRONT = 18u // 3er-System
+        };
 
-            const char* names[27] = {
-                "none",
-                "right", "left", "bottom",
-                "right-bottom", "left-bottom",
-                "top",
-                "right-top", "left-top",
-                "back",
-                "right-back", "left-back",
-                "bottom-back", "right-bottom-back", "left-bottom-back",
-                "top-back", "right-top-back", "left-top-back",
-                "front",
-                "right-front", "left-front",
-                "bottom-front", "right-bottom-front", "left-bottom-front",
-                "top-front", "right-top-front", "left-top-front"
-            };
-            return names[exchange];
-        }
-    };
+        struct ExchangeTypeNames
+        {
+            std::string operator[](const uint32_t exchange) const
+            {
+                if(exchange >= 27)
+                    return std::string("unknown exchange type: ") + std::to_string(exchange);
 
-} // namespace type
+                const char* names[27]
+                    = {"none",
+                       "right",
+                       "left",
+                       "bottom",
+                       "right-bottom",
+                       "left-bottom",
+                       "top",
+                       "right-top",
+                       "left-top",
+                       "back",
+                       "right-back",
+                       "left-back",
+                       "bottom-back",
+                       "right-bottom-back",
+                       "left-bottom-back",
+                       "top-back",
+                       "right-top-back",
+                       "left-top-back",
+                       "front",
+                       "right-front",
+                       "left-front",
+                       "bottom-front",
+                       "right-bottom-front",
+                       "left-bottom-front",
+                       "top-front",
+                       "right-top-front",
+                       "left-top-front"};
+                return names[exchange];
+            }
+        };
+
+    } // namespace type
 
     // for backward compatibility pull all definitions into the pmacc namespace
     using namespace type;

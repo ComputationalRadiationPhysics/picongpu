@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -23,31 +23,22 @@
 
 namespace picongpu
 {
-using namespace pmacc;
+    using namespace pmacc;
 
-template<typename Type_>
-struct Set
-{
-
-    HDINLINE Set(Type_ defaultValue) : value(defaultValue)
+    template<typename Type_>
+    struct Set
     {
+        HDINLINE Set(Type_ defaultValue) : value(defaultValue)
+        {
+        }
 
-    }
+        template<typename Dst, typename T_Acc>
+        HDINLINE void operator()(T_Acc const&, Dst& dst) const
+        {
+            dst = value;
+        }
 
-    template<
-        typename Dst,
-        typename T_Acc
-    >
-    HDINLINE void operator()(
-        T_Acc const &,
-        Dst & dst
-    ) const
-    {
-        dst = value;
-    }
-
-private:
-    PMACC_ALIGN(value, const Type_);
-};
-}
-
+    private:
+        PMACC_ALIGN(value, const Type_);
+    };
+} // namespace picongpu

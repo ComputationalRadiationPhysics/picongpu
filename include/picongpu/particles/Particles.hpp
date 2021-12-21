@@ -1,5 +1,5 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                     Marco Garten, Alexander Grund
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Marco Garten, Alexander Grund, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -20,254 +20,246 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
-
 #include "picongpu/fields/Fields.def"
 #include "picongpu/fields/Fields.hpp"
-#include "picongpu/particles/boundary/CallPluginsAndDeleteParticles.hpp"
+#include "picongpu/particles/boundary/Description.hpp"
+#include "picongpu/particles/boundary/Utility.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
 
-#include <pmacc/memory/dataTypes/Mask.hpp>
-#include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/HandleGuardRegion.hpp>
+#include <pmacc/boundary/Utility.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>
+#include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/memory/dataTypes/Mask.hpp>
+#include <pmacc/meta/GetKeyFromAlias.hpp>
 #include <pmacc/particles/ParticleDescription.hpp>
 #include <pmacc/particles/ParticlesBase.hpp>
 #include <pmacc/particles/memory/buffers/ParticlesBuffer.hpp>
-#include <pmacc/meta/GetKeyFromAlias.hpp>
-#include <pmacc/HandleGuardRegion.hpp>
-#include <pmacc/traits/Resolve.hpp>
+#include <pmacc/particles/policies/DoNothing.hpp>
+#include <pmacc/particles/policies/ExchangeParticles.hpp>
 #include <pmacc/traits/GetCTName.hpp>
+#include <pmacc/traits/Resolve.hpp>
+#include <pmacc/types.hpp>
 
-#include <boost/mpl/if.hpp>
 #include <boost/mpl/contains.hpp>
+#include <boost/mpl/if.hpp>
 
-#include <string>
-#include <sstream>
+#include <array>
 #include <memory>
+#include <sstream>
+#include <string>
 
 namespace picongpu
 {
-using namespace pmacc;
+    using namespace pmacc;
 
-#if( PMACC_CUDA_ENABLED != 1 )
-/* dummy because we are not using mallocMC with cupla
- * DeviceHeap is defined in `mallocMC.param`
- */
-struct DeviceHeap
-{
-    using AllocatorHandle = int;
-
-    int getAllocatorHandle()
+#if(!BOOST_LANG_CUDA && !BOOST_COMP_HIP)
+    /* dummy because we are not using mallocMC with cupla
+     * DeviceHeap is defined in `mallocMC.param`
+     */
+    struct DeviceHeap
     {
-        return 0;
-    }
-};
+        using AllocatorHandle = int;
+
+        int getAllocatorHandle()
+        {
+            return 0;
+        }
+    };
 #endif
 
-/** particle species
- *
- * @tparam T_Name name of the species [type boost::mpl::string]
- * @tparam T_Attributes sequence with attributes [type boost::mpl forward sequence]
- * @tparam T_Flags sequence with flags e.g. solver [type boost::mpl forward sequence]
- */
-template<
-    typename T_Name,
-    typename T_Flags,
-    typename T_Attributes
->
-class Particles : public ParticlesBase<
-    ParticleDescription<
-        T_Name,
-        SuperCellSize,
-        T_Attributes,
-        T_Flags,
-        typename bmpl::if_<
-            // check if alias boundaryCondition is defined for the species
-            bmpl::contains<
-                T_Flags,
-                typename GetKeyFromAlias<
-                    T_Flags,
-                    boundaryCondition< >
-                >::type
-            >,
-            // resolve the alias
-            typename pmacc::traits::Resolve<
-                typename GetKeyFromAlias<
-                    T_Flags,
-                    boundaryCondition< >
-                >::type
-            >::type,
-            // fallback if the species has not defined the alias boundaryCondition
-            pmacc::HandleGuardRegion<
-                pmacc::particles::policies::ExchangeParticles,
-                particles::boundary::CallPluginsAndDeleteParticles
-            >
-        >::type
-    >,
-    MappingDesc,
-    DeviceHeap
->, public ISimulationData
-{
-public:
-
-    using SpeciesParticleDescription = pmacc::ParticleDescription<
-        T_Name,
-        SuperCellSize,
-        T_Attributes,
-        T_Flags,
-        typename bmpl::if_<
-            // check if alias boundaryCondition is defined for the species
-            bmpl::contains<
-                T_Flags,
-                typename GetKeyFromAlias<
-                    T_Flags,
-                    boundaryCondition< >
-                >::type
-            >,
-            // resolve the alias
-            typename pmacc::traits::Resolve<
-                typename GetKeyFromAlias<
-                    T_Flags,
-                    boundaryCondition< >
-                >::type
-            >::type,
-            // fallback if the species has not defined the alias boundaryCondition
-            pmacc::HandleGuardRegion<
-                pmacc::particles::policies::ExchangeParticles,
-                particles::boundary::CallPluginsAndDeleteParticles
-            >
-        >::type
-    >;
-    using ParticlesBaseType = ParticlesBase<SpeciesParticleDescription, picongpu::MappingDesc, DeviceHeap>;
-    using FrameType = typename ParticlesBaseType::FrameType;
-    using FrameTypeBorder = typename ParticlesBaseType::FrameTypeBorder;
-    using ParticlesBoxType = typename ParticlesBaseType::ParticlesBoxType;
-
-
-    Particles(const std::shared_ptr<DeviceHeap>& heap, picongpu::MappingDesc cellDescription, SimulationDataId datasetID);
-
-    void createParticleBuffer();
-
-    void update( uint32_t const currentStep );
-
-    template<typename T_DensityFunctor, typename T_PositionFunctor>
-    void initDensityProfile(T_DensityFunctor& densityFunctor, T_PositionFunctor& positionFunctor, const uint32_t currentStep);
-
-    template<
-        typename T_SrcName,
-        typename T_SrcAttributes,
-        typename T_SrcFlags,
-        typename T_ManipulateFunctor,
-        typename T_SrcFilterFunctor
-    >
-    void deviceDeriveFrom(
-        Particles<
-            T_SrcName,
-            T_SrcAttributes,
-            T_SrcFlags
-        >& src,
-        T_ManipulateFunctor& manipulateFunctor,
-        T_SrcFilterFunctor& srcFilterFunctor
-    );
-
-    SimulationDataId getUniqueId() override;
-
-    /* sync device data to host
+    /** particle species
      *
-     * ATTENTION: - in the current implementation only supercell meta data are copied!
-     *            - the shared (between all species) mallocMC buffer must be copied once
-     *              by the user
+     * @tparam T_Name name of the species [type boost::mpl::string]
+     * @tparam T_Attributes sequence with attributes [type boost::mpl forward sequence]
+     * @tparam T_Flags sequence with flags e.g. solver [type boost::mpl forward sequence]
      */
-    void synchronize() override;
-
-    void syncToDevice() override;
-
-    static pmacc::traits::StringProperty getStringProperties()
+    template<typename T_Name, typename T_Flags, typename T_Attributes>
+    class Particles
+        : public ParticlesBase<
+              ParticleDescription<
+                  T_Name,
+                  SuperCellSize,
+                  T_Attributes,
+                  T_Flags,
+                  typename bmpl::if_<
+                      // check if alias boundaryCondition is defined for the species
+                      bmpl::contains<T_Flags, typename GetKeyFromAlias<T_Flags, boundaryCondition<>>::type>,
+                      // resolve the alias
+                      typename pmacc::traits::Resolve<
+                          typename GetKeyFromAlias<T_Flags, boundaryCondition<>>::type>::type,
+                      // fallback if the species has not defined the alias boundaryCondition
+                      pmacc::HandleGuardRegion<
+                          pmacc::particles::policies::ExchangeParticles,
+                          pmacc::particles::policies::DoNothing>>::type>,
+              MappingDesc,
+              DeviceHeap>
+        , public ISimulationData
     {
-        pmacc::traits::StringProperty propList;
-        const DataSpace<DIM3> periodic =
-            Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
+    public:
+        using SpeciesParticleDescription = pmacc::ParticleDescription<
+            T_Name,
+            SuperCellSize,
+            T_Attributes,
+            T_Flags,
+            typename bmpl::if_<
+                // check if alias boundaryCondition is defined for the species
+                bmpl::contains<T_Flags, typename GetKeyFromAlias<T_Flags, boundaryCondition<>>::type>,
+                // resolve the alias
+                typename pmacc::traits::Resolve<typename GetKeyFromAlias<T_Flags, boundaryCondition<>>::type>::type,
+                // fallback if the species has not defined the alias boundaryCondition
+                pmacc::HandleGuardRegion<
+                    pmacc::particles::policies::ExchangeParticles,
+                    pmacc::particles::policies::DoNothing>>::type>;
+        using ParticlesBaseType = ParticlesBase<SpeciesParticleDescription, picongpu::MappingDesc, DeviceHeap>;
+        using FrameType = typename ParticlesBaseType::FrameType;
+        using FrameTypeBorder = typename ParticlesBaseType::FrameTypeBorder;
+        using ParticlesBoxType = typename ParticlesBaseType::ParticlesBoxType;
 
-        for( uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i )
+
+        Particles(
+            const std::shared_ptr<DeviceHeap>& heap,
+            picongpu::MappingDesc cellDescription,
+            SimulationDataId datasetID);
+
+        void createParticleBuffer();
+
+        //! Push all particles
+        void update(uint32_t const currentStep);
+
+        /** Update the supercell storage for particles in the area according to particle attributes
+         *
+         * @tparam T_MapperFactory factory type to construct a mapper that defines the area to process
+         *
+         * @param mapperFactory factory instance
+         * @param onlyProcessMustShiftSupercells whether to process only supercells with mustShift set to true
+         * (optimization to be used with particle pusher) or process all supercells
+         */
+        template<typename T_MapperFactory>
+        inline void shiftBetweenSupercells(T_MapperFactory const& mapperFactory, bool onlyProcessMustShiftSupercells);
+
+        //! Apply all boundary conditions
+        void applyBoundary(uint32_t const currentStep);
+
+        template<typename T_DensityFunctor, typename T_PositionFunctor>
+        void initDensityProfile(
+            T_DensityFunctor& densityFunctor,
+            T_PositionFunctor& positionFunctor,
+            const uint32_t currentStep);
+
+        template<
+            typename T_SrcName,
+            typename T_SrcAttributes,
+            typename T_SrcFlags,
+            typename T_ManipulateFunctor,
+            typename T_SrcFilterFunctor>
+        void deviceDeriveFrom(
+            Particles<T_SrcName, T_SrcAttributes, T_SrcFlags>& src,
+            T_ManipulateFunctor& manipulateFunctor,
+            T_SrcFilterFunctor& srcFilterFunctor);
+
+        SimulationDataId getUniqueId() override;
+
+        /* sync device data to host
+         *
+         * ATTENTION: - in the current implementation only supercell meta data are copied!
+         *            - the shared (between all species) mallocMC buffer must be copied once
+         *              by the user
+         */
+        void synchronize() override;
+
+        void syncToDevice() override;
+
+        /** Get boundary descriptions for the species.
+         *
+         * For both sides along the same axis, both boundaries have the same description.
+         * Must not be modified outside of the ParticleBoundaries simulation stage.
+         *
+         * This method is static as it is used by static getStringProperties().
+         */
+        static std::array<particles::boundary::Description, simDim>& boundaryDescription()
         {
-            // for each planar direction: left right top bottom back front
-            if( FRONT % i == 0 )
-            {
-                const std::string directionName = ExchangeTypeNames()[i];
-                const DataSpace<DIM3> relDir = Mask::getRelativeDirections<DIM3>(i);
-
-                const bool isPeriodic =
-                    (relDir * periodic) != DataSpace<DIM3>::create(0);
-
-                std::string boundaryName = "absorbing";
-                if( isPeriodic )
-                    boundaryName = "periodic";
-
-                if( boundaryName == "absorbing" )
-                {
-                    propList[directionName]["param"] = std::string("without field correction");
-                }
-                else
-                {
-                    propList[directionName]["param"] = std::string("none");
-                }
-
-                propList[directionName]["name"] = boundaryName;
-            }
+            static std::array<particles::boundary::Description, simDim> kinds = getDefaultBoundaryDescription();
+            return kinds;
         }
-        return propList;
-    }
 
-private:
-    SimulationDataId m_datasetID;
+        static pmacc::traits::StringProperty getStringProperties()
+        {
+            pmacc::traits::StringProperty propList;
 
-    FieldE *fieldE;
-    FieldB *fieldB;
-};
+            for(auto exchange : particles::boundary::getAllAxisAlignedExchanges())
+            {
+                auto const axis = pmacc::boundary::getAxis(exchange);
 
-namespace traits
-{
-    template<
-        typename T_Name,
-        typename T_Attributes,
-        typename T_Flags
-    >
-    struct GetDataBoxType<
-        picongpu::Particles<
-            T_Name,
-            T_Attributes,
-            T_Flags
-       >
-    >
-    {
-        using type = typename picongpu::Particles<
-            T_Name,
-            T_Attributes,
-            T_Flags
-        >::ParticlesBoxType;
+                const std::string directionName = ExchangeTypeNames()[exchange];
+                propList[directionName]["param"] = std::string("none");
+                switch(boundaryDescription()[axis].kind)
+                {
+                case particles::boundary::Kind::Periodic:
+                    propList[directionName]["name"] = "periodic";
+                    break;
+                case particles::boundary::Kind::Absorbing:
+                    propList[directionName]["name"] = "absorbing";
+                    propList[directionName]["param"] = std::string("without field correction");
+                    break;
+                default:
+                    propList[directionName]["name"] = "unknown";
+                }
+            }
+            return propList;
+        }
+
+        template<typename T_Pusher>
+        void push(uint32_t const currentStep);
+
+    private:
+        SimulationDataId m_datasetID;
+
+        /** Get exchange memory size.
+         *
+         * @param ex exchange index calculated from pmacc::typ::ExchangeType, valid range: [0;27)
+         * @return exchange size in bytes
+         */
+        size_t exchangeMemorySize(uint32_t ex) const;
+
+        FieldE* fieldE;
+        FieldB* fieldB;
+
+        //! Get default boundary description for the species matching the communicator topology.
+        static std::array<particles::boundary::Description, simDim> getDefaultBoundaryDescription()
+        {
+            using namespace particles::boundary;
+            std::array<Description, simDim> result;
+            const DataSpace<DIM3> periodic
+                = Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
+            for(uint32_t d = 0; d < simDim; d++)
+            {
+                result[d].kind = (periodic[d] ? Kind::Periodic : Kind::Absorbing);
+                result[d].offset = 0u;
+            }
+            return result;
+        }
     };
-} //namespace traits
-} //namespace picongpu
+
+    namespace traits
+    {
+        template<typename T_Name, typename T_Attributes, typename T_Flags>
+        struct GetDataBoxType<picongpu::Particles<T_Name, T_Attributes, T_Flags>>
+        {
+            using type = typename picongpu::Particles<T_Name, T_Attributes, T_Flags>::ParticlesBoxType;
+        };
+    } // namespace traits
+} // namespace picongpu
 
 namespace pmacc
 {
-namespace traits
-{
-    template<
-        typename T_Name,
-        typename T_Flags,
-        typename T_Attributes
-    >
-    struct GetCTName<
-        ::picongpu::Particles<
-            T_Name,
-            T_Flags,
-            T_Attributes
-        >
-    >
+    namespace traits
     {
-        using type = T_Name;
-    };
+        template<typename T_Name, typename T_Flags, typename T_Attributes>
+        struct GetCTName<::picongpu::Particles<T_Name, T_Flags, T_Attributes>>
+        {
+            using type = T_Name;
+        };
 
-} // namepsace traits
+    } // namespace traits
 } // namespace pmacc

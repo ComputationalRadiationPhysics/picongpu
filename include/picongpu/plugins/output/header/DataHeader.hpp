@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,21 +22,16 @@
 
 namespace picongpu
 {
-
-struct DataHeader
-{
-
-    uint32_t byte;
-
-    DataHeader() : byte(0)
+    struct DataHeader
     {
-    }
+        uint32_t byte{0};
 
-    void writeToConsole(std::ostream& ocons) const
-    {
-        ocons << "DataHeader.byte " << byte << std::endl;
-    }
+        DataHeader() = default;
 
-};
+        void writeToConsole(std::ostream& ocons) const
+        {
+            ocons << "DataHeader.byte " << byte << std::endl;
+        }
+    };
 
 } // namespace picongpu

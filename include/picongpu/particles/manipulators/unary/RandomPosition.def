@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -28,71 +28,60 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
-namespace unary
-{
-namespace acc
-{
-
-    /** set the particle attribute position
-     *
-     * The particle attribute position is overwritten with a random
-     * in-cell position.
-     */
-    struct RandomPosition
+    namespace particles
     {
-        /** set in-cell position
-         *
-         * @tparam T_Rng pmacc::nvidia::rng::RNG, type of the random number generator
-         * @tparam T_Particle pmacc::Particle, particle type
-         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
-         *
-         * @param rng random number generator
-         * @param particle particle to be manipulated
-         * @param ... unused particles
-         */
-        template<
-            typename T_Rng,
-            typename T_Particle,
-            typename ... T_Args
-        >
-        HDINLINE void operator()(
-            T_Rng & rng,
-            T_Particle & particle,
-            T_Args && ...
-        )
+        namespace manipulators
         {
-            floatD_X tmpPos;
+            namespace unary
+            {
+                namespace acc
+                {
+                    /** set the particle attribute position
+                     *
+                     * The particle attribute position is overwritten with a random
+                     * in-cell position.
+                     */
+                    struct RandomPosition
+                    {
+                        /** set in-cell position
+                         *
+                         * @tparam T_Rng functor::misc::RngWrapper, type of the random number generator
+                         * @tparam T_Particle pmacc::Particle, particle type
+                         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
+                         *
+                         * @param rng random number generator
+                         * @param particle particle to be manipulated
+                         * @param ... unused particles
+                         */
+                        template<typename T_Rng, typename T_Particle, typename... T_Args>
+                        HDINLINE void operator()(T_Rng& rng, T_Particle& particle, T_Args&&...)
+                        {
+                            floatD_X tmpPos;
 
-            for( uint32_t d = 0; d < simDim; ++d )
-                tmpPos[ d ] = rng( );
+                            for(uint32_t d = 0; d < simDim; ++d)
+                                tmpPos[d] = rng();
 
-            particle[ position_ ] = tmpPos;
-        }
-    };
+                            particle[position_] = tmpPos;
+                        }
+                    };
 
-} // namespace acc
+                } // namespace acc
 
 
-    /** Change the in cell position
-     *
-     * This functor changes the in-cell position of a particle.
-     * The new in-cell position is uniformly distributed position between [0.0;1.0).
-     *
-     * example: add
-     *   ```
-     *     particles::Manipulate<RandomPosition,SPECIES_NAME>
-     *   ```
-     *   to `InitPipeline` in `speciesInitialization.param`
-     */
-    using RandomPosition = generic::FreeRng<
-        acc::RandomPosition,
-        pmacc::random::distributions::Uniform< float_X >
-    >;
-} // namespace unary
-} // namespace manipulators
-} // namespace particles
+                /** Change the in cell position
+                 *
+                 * This functor changes the in-cell position of a particle.
+                 * The new in-cell position is uniformly distributed position between [0.0;1.0).
+                 *
+                 * example: add
+                 *   ```
+                 *     particles::Manipulate<RandomPosition,SPECIES_NAME>
+                 *   ```
+                 *   to `InitPipeline` in `speciesInitialization.param`
+                 */
+                using RandomPosition
+                    = generic::FreeRng<acc::RandomPosition, pmacc::random::distributions::Uniform<float_X>>;
+            } // namespace unary
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

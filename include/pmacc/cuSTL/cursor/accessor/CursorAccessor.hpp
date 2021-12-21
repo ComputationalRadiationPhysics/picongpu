@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -25,22 +25,20 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-
-template<typename TCursor>
-struct CursorAccessor
-{
-    typedef typename TCursor::type type;
-
-    HDINLINE type operator()(TCursor& cursor)
+    namespace cursor
     {
-        return *cursor;
-    }
+        template<typename TCursor>
+        struct CursorAccessor
+        {
+            using Reference = typename TCursor::Reference;
 
-    ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
-};
+            HDINLINE Reference operator()(TCursor& cursor)
+            {
+                return *cursor;
+            }
 
-} // cursor
-} // pmacc
+            ///\todo: implement const method here with a const TCursor& argument and 'type' as return type.
+        };
 
+    } // namespace cursor
+} // namespace pmacc

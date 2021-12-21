@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Alexander Debus
+/* Copyright 2015-2021 Alexander Debus
  *
  * This file is part of PMacc.
  *
@@ -21,8 +21,9 @@
 
 #pragma once
 
+// clang-format off
+
 #include "pmacc/math/complex/Complex.hpp"
 #include "pmacc/math/complex/Bessel.hpp"
 
-#include "pmacc/math/complex/Complex.tpp"
-#include "pmacc/math/complex/Bessel.tpp"
+// clang-format on

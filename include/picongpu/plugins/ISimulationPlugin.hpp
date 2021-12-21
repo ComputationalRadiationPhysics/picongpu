@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera, Felix Schmitt
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -18,10 +18,10 @@
  */
 
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include <pmacc/pluginSystem/IPlugin.hpp>
 
 
@@ -35,11 +35,8 @@ namespace picongpu
     class ISimulationPlugin : public IPlugin
     {
     public:
-        virtual void setMappingDescription(MappingDesc *cellDescription) = 0;
+        virtual void setMappingDescription(MappingDesc* cellDescription) = 0;
 
-        virtual ~ISimulationPlugin()
-        {
-        }
+        ~ISimulationPlugin() override = default;
     };
-}
-
+} // namespace picongpu

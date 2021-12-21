@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Felix Schmitt, Alexander Grund
+/* Copyright 2013-2021 Rene Widera, Felix Schmitt, Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -21,48 +21,43 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/meta/GetKeyFromAlias.hpp"
 #include "pmacc/meta/errorHandlerPolicies/ThrowValueNotFound.hpp"
+#include "pmacc/types.hpp"
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/insert.hpp>
+#include <boost/mpl/placeholders.hpp>
+#include <boost/mpl/transform.hpp>
+#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {
-
-/** Translate all pmacc alias types to full specialized types
- *
- * Use lookup sequence to translate types
- * The policy is used if the type from T_MPLSeq is not in T_MPLSeqLookup a compile time error is triggered
- *
- * @tparam T_MPLSeq source sequence with types to translate
- * @tparam T_MPLSeqLookup lookup sequence to translate aliases
- */
-template<
-    typename T_MPLSeq,
-    typename T_MPLSeqLookup,
-    typename T_AliasNotFoundPolicy = errorHandlerPolicies::ThrowValueNotFound
->
-struct ResolveAliases
-{
-    typedef T_MPLSeq MPLSeq;
-    typedef T_MPLSeqLookup MPLSeqLookup;
-    typedef T_AliasNotFoundPolicy AliasNotFoundPolicy;
-    typedef bmpl::back_inserter< bmpl::vector<> > Inserter;
-
-    template<typename T_Identifier>
-    struct GetKeyFromAliasAccessor
+    /** Translate all pmacc alias types to full specialized types
+     *
+     * Use lookup sequence to translate types
+     * The policy is used if the type from T_MPLSeq is not in T_MPLSeqLookup a compile time error is triggered
+     *
+     * @tparam T_MPLSeq source sequence with types to translate
+     * @tparam T_MPLSeqLookup lookup sequence to translate aliases
+     */
+    template<
+        typename T_MPLSeq,
+        typename T_MPLSeqLookup,
+        typename T_AliasNotFoundPolicy = errorHandlerPolicies::ThrowValueNotFound>
+    struct ResolveAliases
     {
-        typedef typename GetKeyFromAlias<MPLSeqLookup, T_Identifier, AliasNotFoundPolicy>::type type;
+        using MPLSeq = T_MPLSeq;
+        using MPLSeqLookup = T_MPLSeqLookup;
+        using AliasNotFoundPolicy = T_AliasNotFoundPolicy;
+        using Inserter = bmpl::back_inserter<bmpl::vector<>>;
+
+        template<typename T_Identifier>
+        struct GetKeyFromAliasAccessor
+        {
+            using type = typename GetKeyFromAlias<MPLSeqLookup, T_Identifier, AliasNotFoundPolicy>::type;
+        };
+
+        using type = typename bmpl::transform<MPLSeq, GetKeyFromAliasAccessor<bmpl::_1>>::type;
     };
 
-    typedef typename bmpl::transform<
-        MPLSeq,
-        GetKeyFromAliasAccessor<bmpl::_1>
-    >::type type;
-};
-
-}//namespace pmacc
+} // namespace pmacc

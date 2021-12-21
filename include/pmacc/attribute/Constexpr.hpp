@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz,
  *                     Alexander Grund
  *
@@ -43,10 +43,10 @@
  * constexpr is captured, but also it has to remain constexpr inside a lambda.
  */
 #ifdef _MSC_VER
-#   define PMACC_CONSTEXPR_CAPTURE static constexpr
-#elif ( defined __GNUC__ ) && ( __GNUC__ > 7 )
+#    define PMACC_CONSTEXPR_CAPTURE static constexpr
+#elif(defined __GNUC__) && (__GNUC__ > 7)
 // workaround for GCC bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91377
-#   define PMACC_CONSTEXPR_CAPTURE static constexpr
+#    define PMACC_CONSTEXPR_CAPTURE static constexpr
 #else
-#   define PMACC_CONSTEXPR_CAPTURE constexpr
+#    define PMACC_CONSTEXPR_CAPTURE constexpr
 #endif

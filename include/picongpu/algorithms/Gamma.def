@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,12 +24,11 @@
 
 namespace picongpu
 {
-
     /** calculate the gamma of a particle
      *
      * @tparam T_PrecisionType precision in which the calculation is performed
      */
-    template< typename T_PrecisionType = float_X >
+    template<typename T_PrecisionType = float_X>
     struct Gamma
     {
         using valueType = T_PrecisionType;
@@ -43,17 +42,8 @@ namespace picongpu
          * @param mass particle mass
          * @return particle gamma
          */
-        template<
-            typename T_MomType,
-             typename T_MassType
-        >
-        HDINLINE
-        valueType
-        operator()(
-            T_MomType const & mom,
-            T_MassType const mass
-        ) const;
-
+        template<typename T_MomType, typename T_MassType>
+        HDINLINE valueType operator()(T_MomType const& mom, T_MassType const mass) const;
     };
 
     /** calculate the gamma of a particle
@@ -66,19 +56,10 @@ namespace picongpu
      * @param mass particle mass
      * @return particle gamma
      */
-    template<
-        typename T_PrecisionType,
-        typename T_MomType,
-        typename T_MassType
-    >
-    HDINLINE
-    T_PrecisionType
-    gamma( T_MomType const & mom, T_MassType const mass )
+    template<typename T_PrecisionType, typename T_MomType, typename T_MassType>
+    HDINLINE T_PrecisionType gamma(T_MomType const& mom, T_MassType const mass)
     {
-        return Gamma< T_PrecisionType >{}(
-            mom,
-            mass
-        );
-    };
+        return Gamma<T_PrecisionType>{}(mom, mass);
+    }
 
 } // namespace picongpu

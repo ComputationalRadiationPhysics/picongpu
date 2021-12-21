@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,16 +17,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
+#include "picongpu/fields/MaxwellSolver/ArbitraryOrderFDTD/ArbitraryOrderFDTD.def"
+#include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
+#include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
 #include "picongpu/fields/MaxwellSolver/None/None.def"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
-#include "picongpu/fields/MaxwellSolver/YeePML/YeePML.def"
-#if (SIMDIM==3)
-#include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
-#if( PMACC_CUDA_ENABLED == 1 )
-#   include "picongpu/fields/MaxwellSolver/DirSplitting/DirSplitting.def"
-#endif
-#endif

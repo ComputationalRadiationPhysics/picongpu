@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Rene Widera
+/* Copyright 2016-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,42 +22,22 @@
 #pragma once
 
 
-#include "pmacc/types.hpp"
 #include "pmacc/eventSystem/events/kernelEvents.hpp"
+#include "pmacc/types.hpp"
 
 
 namespace pmacc
 {
-namespace exec
-{
-    template< typename T_KernelFunctor >
-    template<
-        typename T_VectorGrid,
-        typename T_VectorBlock
-    >
-    HINLINE
-    auto
-    Kernel< T_KernelFunctor >::operator()(
-        T_VectorGrid const & gridExtent,
-        T_VectorBlock const & blockExtent,
-        size_t const sharedMemByte
-    ) const
-    -> KernelStarter<
-        Kernel,
-        T_VectorGrid,
-        T_VectorBlock
-    >
+    namespace exec
     {
-        return KernelStarter<
-            Kernel,
-            T_VectorGrid,
-            T_VectorBlock
-        >(
-            *this,
-            gridExtent,
-            blockExtent,
-            sharedMemByte
-        );
-    }
-} // namespace exec
+        template<typename T_KernelFunctor>
+        template<typename T_VectorGrid, typename T_VectorBlock>
+        HINLINE auto Kernel<T_KernelFunctor>::operator()(
+            T_VectorGrid const& gridExtent,
+            T_VectorBlock const& blockExtent,
+            size_t const sharedMemByte) const -> KernelStarter<Kernel, T_VectorGrid, T_VectorBlock>
+        {
+            return KernelStarter<Kernel, T_VectorGrid, T_VectorBlock>(*this, gridExtent, blockExtent, sharedMemByte);
+        }
+    } // namespace exec
 } // namespace pmacc

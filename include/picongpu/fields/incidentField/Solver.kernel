@@ -1,0 +1,146 @@
+/* Copyright 2020-2021 Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include <cstdint>
+
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace incidentField
+        {
+            namespace detail
+            {
+                /** Helper functor for in-kernel update of the given field using the given incident field functor
+                 *
+                 * Performs update by adding two terms with the incident field.
+                 * The positions, indices and coefficients for these terms are determined by members.
+                 *
+                 * @tparam T_UpdatedFieldBox updated field box type
+                 * @tparam T_FunctorIncidentField incident field source functor type
+                 */
+                template<typename T_UpdatedFieldBox, typename T_FunctorIncidentField>
+                struct UpdateFunctor
+                {
+                    /** Create an update functor instance
+                     *
+                     * @param unitField conversion factor from SI to internal units,
+                     *                  field_internal = field_SI / unitField
+                     */
+                    HDINLINE UpdateFunctor(float3_64 const unitField)
+                        : functorIncidentField(unitField)
+                        , coeff1(float3_X::create(0.0_X))
+                        , coeff2(float3_X::create(0.0_X))
+                    {
+                    }
+
+                    /** Update field at the given grid index
+                     *
+                     * @param gridIdx grid index in the local domain, including guards
+                     */
+                    HDINLINE void operator()(pmacc::DataSpace<simDim> const& gridIdx)
+                    {
+                        // fractional since the later shift is fractional
+                        auto const cellIdx
+                            = pmacc::algorithms::precisionCast::precisionCast<float_X>(gridIdx + gridIdxShift);
+                        auto const incidentField
+                            = coeff1 * functorIncidentField(cellIdx + inCellShift1, currentStep)[incidentComponent1]
+                            + coeff2 * functorIncidentField(cellIdx + inCellShift2, currentStep)[incidentComponent2];
+                        updatedField(gridIdx) += incidentField;
+                    }
+
+                    //! Updated field box
+                    T_UpdatedFieldBox updatedField;
+
+                    //! Incident field functor
+                    T_FunctorIncidentField functorIncidentField;
+
+                    //! Indices of the incident field components for the two terms
+                    uint32_t incidentComponent1, incidentComponent2;
+
+                    //! Coefficients for two functorIncidentField invocations
+                    float3_X coeff1, coeff2;
+
+                    //! Shifts inside the cell for two functorIncidentField invocations, in cells
+                    floatD_X inCellShift1, inCellShift2;
+
+                    //! Index shift: totalCellIdx (that a user functor gets) = gridIdx + gridIdxShirt
+                    pmacc::DataSpace<simDim> gridIdxShift;
+
+                    //! Current time step, in iterations; can be fractional
+                    float_X currentStep;
+                };
+
+
+                /** Kernel to apply incident field
+                 *
+                 * @tparam T_numWorkers number of workers
+                 * @tparam T_BlockDescription domain description
+                 */
+                template<uint32_t T_numWorkers, typename T_BlockDescription>
+                struct ApplyIncidentFieldKernel
+                {
+                    /** Run the incident field kernel
+                     *
+                     * @tparam T_Acc alpaka accelerator type
+                     * @tparam T_UpdateFunctor update functor type
+                     *
+                     * @param acc alpaka accelerator
+                     * @param functor update functor
+                     * @param beginGridIdx begin active grid index, in the local domain with guards
+                     * @param endGridIdx end active grid index, in the local domain with guards
+                     */
+                    template<typename T_Acc, typename T_UpdateFunctor>
+                    HDINLINE void operator()(
+                        T_Acc& acc,
+                        T_UpdateFunctor functor,
+                        DataSpace<simDim> beginGridIdx,
+                        DataSpace<simDim> endGridIdx) const
+                    {
+                        constexpr uint32_t planeSize = pmacc::math::CT::volume<T_BlockDescription>::type::value;
+                        const uint32_t workerIdx = cupla::threadIdx(acc).x;
+
+                        // Offset of the superCell (in cells, without any guards) to the origin of the local domain
+                        DataSpace<simDim> supercellOffsetCells
+                            = DataSpace<simDim>(cupla::blockIdx(acc)) * SuperCellSize::toRT();
+
+                        lockstep::makeForEach<planeSize, T_numWorkers>(workerIdx)([&](uint32_t const linearIdx) {
+                            auto cellIdxInSuperCell
+                                = DataSpaceOperations<simDim>::template map<T_BlockDescription>(linearIdx);
+                            auto const gridIdx = beginGridIdx + supercellOffsetCells + cellIdxInSuperCell;
+
+                            // The index may be outside since the active area is not generally a multiple of block size
+                            bool isInside = true;
+                            for(uint32_t d = 0; d < simDim; d++)
+                                isInside = isInside && (gridIdx[d] < endGridIdx[d]);
+                            if(isInside)
+                                functor(gridIdx);
+                        });
+                    }
+                };
+
+            } // namespace detail
+        } // namespace incidentField
+    } // namespace fields
+} // namespace picongpu

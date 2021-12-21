@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,45 +19,43 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/types.hpp>
 
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 
 
 namespace picongpu
 {
-
-struct NodeHeader
-{
-    typedef pmacc::DataSpace<DIM2> Size2D;
-
-    Size2D maxSize;
-    Size2D size;
-    Size2D offset;
-    Size2D localOffset; //not valid data
-    Size2D offsetToWindow;
-
-    Size2D getLocalOffsetToWindow()
+    struct NodeHeader
     {
-        Size2D tmp(offsetToWindow);
-        if (tmp.x() < 0)
-            tmp.x() = 0;
-        if (tmp.y() < 0)
-            tmp.y() = 0;
-        return tmp;
-    }
+        using Size2D = pmacc::DataSpace<2U>;
 
-    void writeToConsole(std::ostream& ocons) const
-    {
-        ocons << "NodeHeader.maxSize " << maxSize.x() << " " << maxSize.y() << std::endl;
-        ocons << "NodeHeader.size " << size.x() << " " << size.y() << std::endl;
-        ocons << "NodeHeader.localOffset " << localOffset.x() << " " << localOffset.y() << std::endl;
-        ocons << "NodeHeader.offset " << offset.x() << " " << offset.y() << std::endl;
-        ocons << "NodeHeader.offsetToWindow " << offsetToWindow.x() << " " << offsetToWindow.y() << std::endl;
-    }
+        Size2D maxSize;
+        Size2D size;
+        Size2D offset;
+        Size2D localOffset; // not valid data
+        Size2D offsetToWindow;
 
-};
+        Size2D getLocalOffsetToWindow()
+        {
+            Size2D tmp(offsetToWindow);
+            if(tmp.x() < 0)
+                tmp.x() = 0;
+            if(tmp.y() < 0)
+                tmp.y() = 0;
+            return tmp;
+        }
+
+        void writeToConsole(std::ostream& ocons) const
+        {
+            ocons << "NodeHeader.maxSize " << maxSize.x() << " " << maxSize.y() << std::endl;
+            ocons << "NodeHeader.size " << size.x() << " " << size.y() << std::endl;
+            ocons << "NodeHeader.localOffset " << localOffset.x() << " " << localOffset.y() << std::endl;
+            ocons << "NodeHeader.offset " << offset.x() << " " << offset.y() << std::endl;
+            ocons << "NodeHeader.offsetToWindow " << offsetToWindow.x() << " " << offsetToWindow.y() << std::endl;
+        }
+    };
 
 } // namespace picongpu

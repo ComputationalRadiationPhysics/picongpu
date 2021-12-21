@@ -46,7 +46,7 @@ namespace manager
         using DeviceType = T_DeviceType;
         static constexpr uint32_t dim = T_Dim::value;
 
-        using BufType = ::alpaka::mem::buf::Buf<
+        using BufType = ::alpaka::Buf<
             DeviceType,
             uint8_t,
             T_Dim,
@@ -86,15 +86,15 @@ namespace manager
                 BufType
             > bufPtr(
                 new BufType(
-                    ::alpaka::mem::buf::alloc<uint8_t, MemSizeType>(
-                     device.current(),
-                     extent
+                    ::alpaka::allocBuf<uint8_t, MemSizeType>(
+                         device.current(),
+                         extent
                     )
                 )
             );
 
 
-            uint8_t *nativePtr = ::alpaka::mem::view::getPtrNative(*bufPtr);
+            uint8_t *nativePtr = ::alpaka::getPtrNative(*bufPtr);
             m_mapVector[ device.id() ].insert(
                 std::make_pair( nativePtr, std::move( bufPtr ) )
             );

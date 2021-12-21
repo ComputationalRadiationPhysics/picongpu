@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Benjamin Worpitz,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -28,109 +28,100 @@
 
 #pragma once
 
-#include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/functors/Assign.hpp>
-#include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
+#include <pmacc/math/operation.hpp>
 
 
 namespace picongpu
 {
-namespace particles
-{
-
-    /** a particle with a weighting below MIN_WEIGHTING will not
-     *      be created / will be deleted
-     *
-     *  unit: none
-     *
-     * here we essentially allow any weighting since it has no real meaning in 2D3V
-     */
-    constexpr float_X MIN_WEIGHTING = 0.0000001;
-
-namespace manipulators
-{
-    // ionize ions once by removing one bound electron
-    struct OnceIonizedImpl
+    namespace particles
     {
-        template< typename T_Particle >
-        DINLINE void operator()(
-            T_Particle& particle
-        )
-        {
-            constexpr float_X protonNumber = GetAtomicNumbers< T_Particle >::type::numberOfProtons;
-            particle[ boundElectrons_ ] = protonNumber - 1.0_X;
-        }
-    };
-    using OnceIonized = generic::Free< OnceIonizedImpl >;
-
-    //! ionize ions twice
-    struct TwiceIonizedImpl
-    {
-        template< typename T_Particle >
-        DINLINE void operator()(
-            T_Particle& particle
-        )
-        {
-            constexpr float_X protonNumber = GetAtomicNumbers< T_Particle >::type::numberOfProtons;
-            particle[ boundElectrons_ ] = protonNumber - 2._X;
-        }
-    };
-
-    //! definition of TwiceIonizedImpl manipulator
-    using TwiceIonized = generic::Free< TwiceIonizedImpl >;
-
-    //! changes the in-cell position of each particle of a species
-    using RandomPosition = unary::RandomPosition;
-
-} // namespace manipulators
-
-
-namespace startPosition
-{
-    struct RandomParameter6ppc
-    {
-        /** Count of particles per cell at initial state
+        /** a particle with a weighting below MIN_WEIGHTING will not
+         *      be created / will be deleted
          *
          *  unit: none
-         */
-        static constexpr uint32_t numParticlesPerCell = 6u;
-    };
-    using Random6ppc = RandomImpl< RandomParameter6ppc >;
-
-    // probe particles sit directly in lower corner of the cell
-    CONST_VECTOR(
-        float_X,
-        3,
-        InCellOffset,
-        // each x, y, z in-cell position component in range [0.0, 1.0)
-        0.0,
-        0.0,
-        0.0
-    );
-    struct OnePositionParameter
-    {
-        /** Count of particles per cell at initial state
          *
-         *  unit: none
+         * here we essentially allow any weighting since it has no real meaning in 2D3V
          */
-        static constexpr uint32_t numParticlesPerCell = 1u;
+        constexpr float_X MIN_WEIGHTING = 0.0000001;
 
-        const InCellOffset_t inCellOffset;
-    };
-    using OnePosition = OnePositionImpl< OnePositionParameter >;
+        namespace manipulators
+        {
+            // ionize ions once by removing one bound electron
+            struct OnceIonizedImpl
+            {
+                template<typename T_Particle>
+                DINLINE void operator()(T_Particle& particle)
+                {
+                    constexpr float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
+                    particle[boundElectrons_] = protonNumber - 1.0_X;
+                }
+            };
+            using OnceIonized = generic::Free<OnceIonizedImpl>;
 
-} // namespace startPosition
+            //! ionize ions twice
+            struct TwiceIonizedImpl
+            {
+                template<typename T_Particle>
+                DINLINE void operator()(T_Particle& particle)
+                {
+                    constexpr float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
+                    particle[boundElectrons_] = protonNumber - 2._X;
+                }
+            };
 
-    /** During unit normalization, we assume this is a typical
-     *  number of particles per cell for normalization of weighted
-     *  particle attributes.
-     */
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL =
-        startPosition::RandomParameter6ppc::numParticlesPerCell;
+            //! definition of TwiceIonizedImpl manipulator
+            using TwiceIonized = generic::Free<TwiceIonizedImpl>;
 
-} // namespace particles
+            //! changes the in-cell position of each particle of a species
+            using RandomPosition = unary::RandomPosition;
+
+        } // namespace manipulators
+
+
+        namespace startPosition
+        {
+            struct RandomParameter6ppc
+            {
+                /** Count of particles per cell at initial state
+                 *
+                 *  unit: none
+                 */
+                static constexpr uint32_t numParticlesPerCell = 6u;
+            };
+            using Random6ppc = RandomImpl<RandomParameter6ppc>;
+
+            // probe particles sit directly in lower corner of the cell
+            CONST_VECTOR(
+                float_X,
+                3,
+                InCellOffset,
+                // each x, y, z in-cell position component in range [0.0, 1.0)
+                0.0,
+                0.0,
+                0.0);
+            struct OnePositionParameter
+            {
+                /** Count of particles per cell at initial state
+                 *
+                 *  unit: none
+                 */
+                static constexpr uint32_t numParticlesPerCell = 1u;
+
+                const InCellOffset_t inCellOffset;
+            };
+            using OnePosition = OnePositionImpl<OnePositionParameter>;
+
+        } // namespace startPosition
+
+        /** During unit normalization, we assume this is a typical
+         *  number of particles per cell for normalization of weighted
+         *  particle attributes.
+         */
+        constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = startPosition::RandomParameter6ppc::numParticlesPerCell;
+
+    } // namespace particles
 } // namespace picongpu

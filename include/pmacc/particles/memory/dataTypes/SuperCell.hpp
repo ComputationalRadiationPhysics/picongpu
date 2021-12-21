@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,41 +22,36 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
 #include "pmacc/math/vector/compile-time/Vector.hpp"
 
 
 namespace pmacc
 {
-
-    template< class T_FrameType >
+    template<class T_FrameType>
     class SuperCell
     {
     public:
-
-        HDINLINE SuperCell() :
-            firstFramePtr( nullptr ),
-            lastFramePtr( nullptr ),
-            numParticles( 0 ),
-            mustShiftVal( false )
+        HDINLINE SuperCell() : firstFramePtr(nullptr), lastFramePtr(nullptr)
         {
         }
 
-        HDINLINE T_FrameType * FirstFramePtr()
+        HDINLINE T_FrameType* FirstFramePtr()
         {
             return firstFramePtr;
         }
 
-        HDINLINE T_FrameType * LastFramePtr()
+        HDINLINE T_FrameType* LastFramePtr()
         {
             return lastFramePtr;
         }
 
-        HDINLINE T_FrameType const * FirstFramePtr() const
+        HDINLINE T_FrameType const* FirstFramePtr() const
         {
             return firstFramePtr;
         }
 
-        HDINLINE T_FrameType const *  LastFramePtr() const
+        HDINLINE T_FrameType const* LastFramePtr() const
         {
             return lastFramePtr;
         }
@@ -66,17 +61,15 @@ namespace pmacc
             return mustShiftVal;
         }
 
-        HDINLINE void setMustShift( bool const value )
+        HDINLINE void setMustShift(bool const value)
         {
             mustShiftVal = value;
         }
 
         HDINLINE uint32_t getSizeLastFrame() const
         {
-            constexpr uint32_t frameSize = math::CT::volume<
-                typename T_FrameType::SuperCellSize
-            >::type::value;
-            return numParticles ? ( ( numParticles - 1u ) % frameSize + 1u ) : 0u;
+            constexpr uint32_t frameSize = math::CT::volume<typename T_FrameType::SuperCellSize>::type::value;
+            return numParticles ? ((numParticles - 1u) % frameSize + 1u) : 0u;
         }
 
         HDINLINE uint32_t getNumParticles() const
@@ -84,29 +77,18 @@ namespace pmacc
             return numParticles;
         }
 
-        HDINLINE void setNumParticles( uint32_t const size )
+        HDINLINE void setNumParticles(uint32_t const size)
         {
             numParticles = size;
         }
 
     public:
-        PMACC_ALIGN(
-            firstFramePtr,
-            T_FrameType*
-        );
-        PMACC_ALIGN(
-            lastFramePtr,
-            T_FrameType*
-        );
+        PMACC_ALIGN(firstFramePtr, T_FrameType*);
+        PMACC_ALIGN(lastFramePtr, T_FrameType*);
+
     private:
-        PMACC_ALIGN(
-            numParticles,
-            uint32_t
-        );
-        PMACC_ALIGN(
-            mustShiftVal,
-            bool
-        );
+        PMACC_ALIGN(numParticles, uint32_t){0};
+        PMACC_ALIGN(mustShiftVal, bool){false};
     };
 
-} //namespace pmacc
+} // namespace pmacc

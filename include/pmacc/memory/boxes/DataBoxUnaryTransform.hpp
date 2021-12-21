@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera
+/* Copyright 2014-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,66 +21,43 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/dimensions/DataSpace.hpp"
-
+#include <cstdint>
 
 namespace pmacc
 {
-
-/** DataBox which apply a unary functor on every operator () and [] access
- *
- * @tparam T_Base base class to inherit from
- * @tparam T_UnaryFunctor unary functor which is applied on every access
- *         - template parameter of functor is the input type for the functor
- *         - functor must have defined the result type as ::result
- */
-template<class T_Base, template<typename> class T_UnaryFunctor>
-class DataBoxUnaryTransform : public T_Base
-{
-public:
-
-    typedef T_Base Base;
-    typedef typename Base::ValueType BaseValueType;
-
-    typedef T_UnaryFunctor<BaseValueType> UnaryFunctor;
-
-    typedef typename UnaryFunctor::result ValueType;
-    typedef ValueType RefValueType;
-    static constexpr uint32_t Dim = Base::Dim;
-
-    HDINLINE DataBoxUnaryTransform(const Base& base) : Base(base)
+    /** DataBox which apply a unary functor on every operator () and [] access
+     *
+     * @tparam T_Base base class to inherit from
+     * @tparam T_UnaryFunctor unary functor which is applied on every access
+     *         - template parameter of functor is the input type for the functor
+     *         - functor must have defined the result type as ::result
+     */
+    template<typename T_Base, template<typename> class T_UnaryFunctor>
+    class DataBoxUnaryTransform : public T_Base
     {
-    }
+    public:
+        using Base = T_Base;
+        using UnaryFunctor = T_UnaryFunctor<typename Base::ValueType>;
+        using ValueType = typename UnaryFunctor::result;
+        using RefValueType = ValueType;
+        static constexpr std::uint32_t Dim = Base::Dim;
 
-    HDINLINE DataBoxUnaryTransform() : Base()
-    {
-    }
+        HDINLINE DataBoxUnaryTransform() = default;
 
-    template<typename T_Index>
-    HDINLINE ValueType operator()(const T_Index &idx) const
-    {
-        return UnaryFunctor()(Base::operator()(idx));
-    }
+        HDINLINE DataBoxUnaryTransform(Base base) : Base(std::move(base))
+        {
+        }
 
-    template<typename T_Index>
-    HDINLINE ValueType operator()(const T_Index &idx)
-    {
-        return UnaryFunctor()(Base::operator()(idx));
-    }
+        template<typename T_Index>
+        HDINLINE ValueType operator()(const T_Index& idx) const
+        {
+            return UnaryFunctor()(Base::operator()(idx));
+        }
 
-    template<typename T_Index>
-    HDINLINE ValueType operator[](const T_Index idx)
-    {
-        return UnaryFunctor()(Base::operator[](idx));
-    }
-
-    template<typename T_Index>
-    HDINLINE ValueType operator[](const T_Index idx) const
-    {
-        return UnaryFunctor()(Base::operator[](idx));
-    }
-
-};
-
-} //namespace pmacc
+        template<typename T_Index>
+        HDINLINE ValueType operator[](const T_Index idx) const
+        {
+            return UnaryFunctor()(Base::operator[](idx));
+        }
+    };
+} // namespace pmacc

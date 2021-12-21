@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,33 +22,29 @@
 
 #pragma once
 
-#include <boost/mpl/vector.hpp>
-#include "pmacc/meta/conversion/ToSeq.hpp"
 #include "pmacc/meta/conversion/JoinToSeq.hpp"
+#include "pmacc/meta/conversion/ToSeq.hpp"
+
 #include <boost/mpl/fold.hpp>
+#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {
+    /** combine all elements of the input type to a single vector
+     *
+     * If elements of the input sequence are a sequence themself, all of their
+     * elements will be added to the resulting sequence
+     *
+     * @tparam T_In a boost mpl sequence or single type
+     */
+    template<typename T_In>
+    struct MakeSeqFromNestedSeq
+    {
+    private:
+        using Seq = typename ToSeq<T_In>::type;
 
-/** combine all elements of the input type to a single vector
- *
- * If elements of the input sequence are a sequence themself, all of their
- * elements will be added to the resulting sequence
- *
- * @tparam T_In a boost mpl sequence or single type
- */
-template<typename T_In>
-struct MakeSeqFromNestedSeq
-{
-private:
-    typedef typename ToSeq<T_In >::type Seq;
+    public:
+        using type = typename bmpl::fold<Seq, bmpl::vector0<>, JoinToSeq<bmpl::_1, bmpl::_2>>::type;
+    };
 
-public:
-    typedef typename bmpl::fold<
-      Seq,
-      bmpl::vector0<>,
-      JoinToSeq<bmpl::_1,bmpl::_2>
-    >::type type;
-};
-
-} //namespace pmacc
+} // namespace pmacc

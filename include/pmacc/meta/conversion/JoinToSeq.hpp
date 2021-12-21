@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,32 +22,30 @@
 
 #pragma once
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/copy.hpp>
-#include <boost/mpl/back_inserter.hpp>
-#include <boost/mpl/front_inserter.hpp>
 #include "pmacc/meta/conversion/ToSeq.hpp"
+
+#include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/copy.hpp>
+#include <boost/mpl/front_inserter.hpp>
+#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {
+    /** Join both input types to one boost mpl sequence
+     *
+     * @tparam T_1 a boost mpl sequence or single type
+     * @tparam T_2 a boost mpl sequence or single type
+     */
 
-/** Join both input types to one boost mpl sequence
- *
- * @tparam T_1 a boost mpl sequence or single type
- * @tparam T_2 a boost mpl sequence or single type
- */
+    template<typename T_1, typename T_2 = bmpl::vector0<>>
+    struct JoinToSeq
+    {
+    private:
+        using Seq1 = typename ToSeq<T_1>::type;
+        using Seq2 = typename ToSeq<T_2>::type;
 
-template<typename T_1, typename T_2 = bmpl::vector0<> >
-struct JoinToSeq
-{
-private:
-    typedef typename ToSeq<T_1 >::type Seq1;
-    typedef typename ToSeq<T_2 >::type Seq2;
-public:
-    typedef typename bmpl::copy<
-    Seq2,
-    bmpl::back_inserter< Seq1>
-    >::type type;
-};
+    public:
+        using type = typename bmpl::copy<Seq2, bmpl::back_inserter<Seq1>>::type;
+    };
 
-} //namespace pmacc
+} // namespace pmacc

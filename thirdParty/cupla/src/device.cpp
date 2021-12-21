@@ -105,7 +105,7 @@ CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaDeviceSynchronize( )
 {
-    ::alpaka::wait::wait(
+    ::alpaka::wait(
         cupla::manager::Device< cupla::AccDev >::get( ).current( )
     );
     return cuplaSuccess;
@@ -123,8 +123,8 @@ cuplaMemGetInfo(
             cupla::AccDev
         >::get().current()
     );
-    *total = ::alpaka::dev::getMemBytes( device );
-    *free = ::alpaka::dev::getFreeMemBytes( device );
+    *total = ::alpaka::getMemBytes( device );
+    *free = ::alpaka::getFreeMemBytes( device );
     return cuplaSuccess;
 }
 

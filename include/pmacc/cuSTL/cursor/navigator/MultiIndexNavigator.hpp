@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,41 +21,37 @@
 
 #pragma once
 
-#include "tag.hpp"
-#include "pmacc/math/vector/Int.hpp"
 #include "pmacc/cuSTL/cursor/traits.hpp"
+#include "pmacc/math/vector/Int.hpp"
+#include "tag.hpp"
 
 
 namespace pmacc
 {
-namespace cursor
-{
-
-template<int T_dim>
-struct MultiIndexNavigator
-{
-    typedef tag::MultiIndexNavigator tag;
-    static constexpr int dim = T_dim;
-
-    template<typename MultiIndex>
-    HDINLINE
-    MultiIndex operator()(const MultiIndex& index, const math::Int<dim>& jump) const
+    namespace cursor
     {
-        return index + jump;
-    }
-};
+        template<int T_dim>
+        struct MultiIndexNavigator
+        {
+            using tag = tag::MultiIndexNavigator;
+            static constexpr int dim = T_dim;
 
-namespace traits
-{
+            template<typename MultiIndex>
+            HDINLINE MultiIndex operator()(const MultiIndex& index, const math::Int<dim>& jump) const
+            {
+                return index + jump;
+            }
+        };
 
-template<int T_dim>
-struct dim<MultiIndexNavigator<T_dim> >
-{
-    static constexpr int value = T_dim;
-};
+        namespace traits
+        {
+            template<int T_dim>
+            struct dim<MultiIndexNavigator<T_dim>>
+            {
+                static constexpr int value = T_dim;
+            };
 
-}
+        } // namespace traits
 
-} // cursor
-} // pmacc
-
+    } // namespace cursor
+} // namespace pmacc

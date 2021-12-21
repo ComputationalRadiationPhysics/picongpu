@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,50 +21,50 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <boost/mpl/void.hpp>
+
+#include <cstdint>
 
 namespace mpl = boost::mpl;
 
 namespace pmacc
 {
-namespace math
-{
-namespace CT
-{
+    namespace math
+    {
+        namespace CT
+        {
+            template<typename X = mpl::void_, typename Y = mpl::void_, typename Z = mpl::void_>
+            struct Float
+            {
+                using x = X;
+                using y = Y;
+                using z = Z;
 
-template<typename X = mpl::void_,
-         typename Y = mpl::void_,
-         typename Z = mpl::void_>
-struct Float
-{
-    using x = X;
-    using y = Y;
-    using z = Z;
+                static constexpr int dim = 3;
+            };
 
-    static constexpr int dim = 3;
-};
+            template<>
+            struct Float<>
+            {
+            };
 
-template<>
-struct Float<> {};
+            template<typename X>
+            struct Float<X>
+            {
+                using x = X;
 
-template<typename X>
-struct Float<X>
-{
-    using x = X;
+                static constexpr int dim = 1;
+            };
 
-    static constexpr int dim = 1;
-};
+            template<typename X, typename Y>
+            struct Float<X, Y>
+            {
+                using x = X;
+                using y = Y;
 
-template<typename X, typename Y>
-struct Float<X, Y>
-{
-    using x = X;
-    using y = Y;
+                static constexpr int dim = 2u;
+            };
 
-    static constexpr int dim = 2u;
-};
-
-} // CT
-} // math
-} // pmacc
+        } // namespace CT
+    } // namespace math
+} // namespace pmacc

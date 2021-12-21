@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Heiko Burau
+/* Copyright 2015-2021 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -21,152 +21,161 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/cuSTL/cursor/traits.hpp"
-#include "pmacc/traits/GetInitializedInstance.hpp"
 #include "pmacc/algorithms/math/defines/modf.hpp"
+#include "pmacc/cuSTL/cursor/traits.hpp"
 #include "pmacc/math/vector/Int.hpp"
+#include "pmacc/traits/GetInitializedInstance.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {
-namespace cursor
-{
-
-/** Performs a 1D, 2D or 3D, linear interpolation on access.
- *
- * \tparam T_Cursor input data
- */
-template<typename T_Cursor, int dim = cursor::traits::dim<T_Cursor>::value>
-struct LinearInterpAccessor;
-
-template<typename T_Cursor>
-struct LinearInterpAccessor<T_Cursor, DIM1>
-{
-    typedef T_Cursor Cursor;
-    typedef typename Cursor::ValueType type;
-
-    Cursor cursor;
-
-    /**
-     * @param cursor input data
-     */
-    HDINLINE LinearInterpAccessor(const Cursor& cursor) : cursor(cursor) {}
-
-    template<typename T_Position>
-    HDINLINE type operator()(const T_Position pos) const
+    namespace cursor
     {
-        BOOST_STATIC_ASSERT(T_Position::dim == DIM1);
+        /** Performs a 1D, 2D or 3D, linear interpolation on access.
+         *
+         * @tparam T_Cursor input data
+         */
+        template<typename T_Cursor, int dim = cursor::traits::dim<T_Cursor>::value>
+        struct LinearInterpAccessor;
 
-        T_Position intPart;
-        T_Position fracPart;
-
-        fracPart[0] = pmacc::algorithms::math::modf(pos[0], &(intPart[0]));
-
-        const math::Int<DIM1> idx1D(static_cast<int>(intPart[0]));
-
-        type result = pmacc::traits::GetInitializedInstance<type>()(0.0);
-        typedef typename T_Position::type PositionComp;
-        for(int i = 0; i < 2; i++)
+        template<typename T_Cursor>
+        struct LinearInterpAccessor<T_Cursor, DIM1>
         {
-            const PositionComp weighting1D = (i == 0 ? (PositionComp(1.0) - fracPart[0]) : fracPart[0]);
-            result += static_cast<type>(weighting1D * this->cursor[idx1D + math::Int<DIM1>(i)]);
-        }
+            using Cursor = T_Cursor;
+            using Reference = typename Cursor::ValueType;
 
-        return result;
-    }
-};
+            Cursor cursor;
 
-template<typename T_Cursor>
-struct LinearInterpAccessor<T_Cursor, DIM2>
-{
-    typedef T_Cursor Cursor;
-    typedef typename T_Cursor::ValueType type;
-
-    Cursor cursor;
-
-    /**
-     * @param cursor input data
-     */
-    HDINLINE LinearInterpAccessor(const Cursor& cursor) : cursor(cursor) {}
-
-    template<typename T_Position>
-    HDINLINE type operator()(const T_Position pos) const
-    {
-        BOOST_STATIC_ASSERT(T_Position::dim == DIM2);
-
-        T_Position intPart;
-        T_Position fracPart;
-
-        fracPart[0] = pmacc::algorithms::math::modf(pos[0], &(intPart[0]));
-        fracPart[1] = pmacc::algorithms::math::modf(pos[1], &(intPart[1]));
-
-        const math::Int<DIM2> idx2D(static_cast<int>(intPart[0]),
-                                    static_cast<int>(intPart[1]));
-
-        type result = pmacc::traits::GetInitializedInstance<type>()(0.0);
-        typedef typename T_Position::type PositionComp;
-        for(int i = 0; i < 2; i++)
-        {
-            const PositionComp weighting1D = (i == 0 ? (PositionComp(1.0) - fracPart[0]) : fracPart[0]);
-            for(int j = 0; j < 2; j++)
+            /**
+             * @param cursor input data
+             */
+            HDINLINE LinearInterpAccessor(const Cursor& cursor) : cursor(cursor)
             {
-                const PositionComp weighting2D = weighting1D * (j == 0 ? (PositionComp(1.0) - fracPart[1]) : fracPart[1]);
-                result += static_cast<type>(weighting2D * this->cursor[idx2D + math::Int<DIM2>(i, j)]);
             }
-        }
 
-        return result;
-    }
-};
-
-template<typename T_Cursor>
-struct LinearInterpAccessor<T_Cursor, DIM3>
-{
-    typedef T_Cursor Cursor;
-    typedef typename T_Cursor::ValueType type;
-
-    Cursor cursor;
-
-    /**
-     * @param cursor input data
-     */
-    HDINLINE LinearInterpAccessor(const Cursor& cursor) : cursor(cursor) {}
-
-    template<typename T_Position>
-    HDINLINE type operator()(const T_Position pos) const
-    {
-        BOOST_STATIC_ASSERT(T_Position::dim == DIM3);
-
-        T_Position intPart;
-        T_Position fracPart;
-
-        fracPart[0] = pmacc::algorithms::math::modf(pos[0], &(intPart[0]));
-        fracPart[1] = pmacc::algorithms::math::modf(pos[1], &(intPart[1]));
-        fracPart[2] = pmacc::algorithms::math::modf(pos[2], &(intPart[2]));
-
-        const math::Int<DIM3> idx3D(static_cast<int>(intPart[0]),
-                                    static_cast<int>(intPart[1]),
-                                    static_cast<int>(intPart[2]));
-
-        type result = pmacc::traits::GetInitializedInstance<type>()(0.0);
-        typedef typename T_Position::type PositionComp;
-        for(int i = 0; i < 2; i++)
-        {
-            const PositionComp weighting1D = (i == 0 ? (PositionComp(1.0) - fracPart[0]) : fracPart[0]);
-            for(int j = 0; j < 2; j++)
+            template<typename T_Position>
+            HDINLINE Reference operator()(const T_Position pos) const
             {
-                const PositionComp weighting2D = weighting1D * (j == 0 ? (PositionComp(1.0) - fracPart[1]) : fracPart[1]);
-                for(int k = 0; k < 2; k++)
+                BOOST_STATIC_ASSERT(T_Position::dim == DIM1);
+
+                T_Position intPart;
+                T_Position fracPart;
+
+                fracPart[0] = pmacc::math::modf(pos[0], &(intPart[0]));
+
+                const math::Int<DIM1> idx1D(static_cast<int>(intPart[0]));
+
+                Reference result = pmacc::traits::GetInitializedInstance<Reference>()(0.0);
+                using PositionComp = typename T_Position::type;
+                for(int i = 0; i < 2; i++)
                 {
-                    const PositionComp weighting3D = weighting2D * (k == 0 ? (PositionComp(1.0) - fracPart[2]) : fracPart[2]);
-                    result += static_cast<type>(weighting3D * this->cursor[idx3D + math::Int<DIM3>(i, j, k)]);
+                    const PositionComp weighting1D = (i == 0 ? (PositionComp(1.0) - fracPart[0]) : fracPart[0]);
+                    result += static_cast<Reference>(weighting1D * this->cursor[idx1D + math::Int<DIM1>(i)]);
                 }
+
+                return result;
             }
-        }
+        };
 
-        return result;
-    }
-};
+        template<typename T_Cursor>
+        struct LinearInterpAccessor<T_Cursor, DIM2>
+        {
+            using Cursor = T_Cursor;
+            using Reference = typename T_Cursor::ValueType;
 
-} // namespace cursor
+            Cursor cursor;
+
+            /**
+             * @param cursor input data
+             */
+            HDINLINE LinearInterpAccessor(const Cursor& cursor) : cursor(cursor)
+            {
+            }
+
+            template<typename T_Position>
+            HDINLINE Reference operator()(const T_Position pos) const
+            {
+                BOOST_STATIC_ASSERT(T_Position::dim == DIM2);
+
+                T_Position intPart;
+                T_Position fracPart;
+
+                fracPart[0] = pmacc::math::modf(pos[0], &(intPart[0]));
+                fracPart[1] = pmacc::math::modf(pos[1], &(intPart[1]));
+
+                const math::Int<DIM2> idx2D(static_cast<int>(intPart[0]), static_cast<int>(intPart[1]));
+
+                Reference result = pmacc::traits::GetInitializedInstance<Reference>()(0.0);
+                using PositionComp = typename T_Position::type;
+                for(int i = 0; i < 2; i++)
+                {
+                    const PositionComp weighting1D = (i == 0 ? (PositionComp(1.0) - fracPart[0]) : fracPart[0]);
+                    for(int j = 0; j < 2; j++)
+                    {
+                        const PositionComp weighting2D
+                            = weighting1D * (j == 0 ? (PositionComp(1.0) - fracPart[1]) : fracPart[1]);
+                        result += static_cast<Reference>(weighting2D * this->cursor[idx2D + math::Int<DIM2>(i, j)]);
+                    }
+                }
+
+                return result;
+            }
+        };
+
+        template<typename T_Cursor>
+        struct LinearInterpAccessor<T_Cursor, DIM3>
+        {
+            using Cursor = T_Cursor;
+            using Reference = typename T_Cursor::ValueType;
+
+            Cursor cursor;
+
+            /**
+             * @param cursor input data
+             */
+            HDINLINE LinearInterpAccessor(const Cursor& cursor) : cursor(cursor)
+            {
+            }
+
+            template<typename T_Position>
+            HDINLINE Reference operator()(const T_Position pos) const
+            {
+                BOOST_STATIC_ASSERT(T_Position::dim == DIM3);
+
+                T_Position intPart;
+                T_Position fracPart;
+
+                fracPart[0] = pmacc::math::modf(pos[0], &(intPart[0]));
+                fracPart[1] = pmacc::math::modf(pos[1], &(intPart[1]));
+                fracPart[2] = pmacc::math::modf(pos[2], &(intPart[2]));
+
+                const math::Int<DIM3> idx3D(
+                    static_cast<int>(intPart[0]),
+                    static_cast<int>(intPart[1]),
+                    static_cast<int>(intPart[2]));
+
+                Reference result = pmacc::traits::GetInitializedInstance<Reference>()(0.0);
+                using PositionComp = typename T_Position::type;
+                for(int i = 0; i < 2; i++)
+                {
+                    const PositionComp weighting1D = (i == 0 ? (PositionComp(1.0) - fracPart[0]) : fracPart[0]);
+                    for(int j = 0; j < 2; j++)
+                    {
+                        const PositionComp weighting2D
+                            = weighting1D * (j == 0 ? (PositionComp(1.0) - fracPart[1]) : fracPart[1]);
+                        for(int k = 0; k < 2; k++)
+                        {
+                            const PositionComp weighting3D
+                                = weighting2D * (k == 0 ? (PositionComp(1.0) - fracPart[2]) : fracPart[2]);
+                            result += static_cast<Reference>(
+                                weighting3D * this->cursor[idx3D + math::Int<DIM3>(i, j, k)]);
+                        }
+                    }
+                }
+
+                return result;
+            }
+        };
+
+    } // namespace cursor
 } // namespace pmacc

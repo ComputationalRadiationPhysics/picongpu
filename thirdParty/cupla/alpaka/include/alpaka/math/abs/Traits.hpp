@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,15 +12,15 @@
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Concepts.hpp>
 
-#include <boost/config.hpp>
-
 #include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathAbs;
+        struct ConceptMathAbs
+        {
+        };
 
         //-----------------------------------------------------------------------------
         //! The math traits.
@@ -28,12 +28,9 @@ namespace alpaka
         {
             //#############################################################################
             //! The abs trait.
-            template<
-                typename T,
-                typename TArg,
-                typename TSfinae = void>
+            template<typename T, typename TArg, typename TSfinae = void>
             struct Abs;
-        }
+        } // namespace traits
 
         //-----------------------------------------------------------------------------
         //! Computes the absolute value.
@@ -43,30 +40,11 @@ namespace alpaka
         //! \param abs_ctx The object specializing Abs.
         //! \param arg The arg.
         ALPAKA_NO_HOST_ACC_WARNING
-        template<
-            typename T,
-            typename TArg>
-        ALPAKA_FN_HOST_ACC auto abs(
-            T const & abs_ctx,
-            TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> decltype(
-            traits::Abs<
-                concepts::ImplementationBase<ConceptMathAbs, T>,
-                TArg>
-            ::abs(
-                abs_ctx,
-                arg))
-#endif
+        template<typename T, typename TArg>
+        ALPAKA_FN_HOST_ACC auto abs(T const& abs_ctx, TArg const& arg)
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathAbs, T>;
-            return
-                traits::Abs<
-                    ImplementationBase,
-                    TArg>
-                ::abs(
-                    abs_ctx,
-                    arg);
+            return traits::Abs<ImplementationBase, TArg>::abs(abs_ctx, arg);
         }
-    }
-}
+    } // namespace math
+} // namespace alpaka

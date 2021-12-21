@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,14 +24,10 @@
 
 namespace picongpu
 {
-namespace traits
-{
-    template<
-        typename T_CellType,
-        typename T_Field,
-        uint32_t T_simDim = simDim
-    >
-    struct FieldPosition;
+    namespace traits
+    {
+        template<typename T_CellType, typename T_Field, uint32_t T_simDim = simDim>
+        struct FieldPosition;
 
-} // namespace traits
+    } // namespace traits
 } // namespace picongpu

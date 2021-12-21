@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2017-2020 PIConGPU contributors
+Copyright 2017-2021 PIConGPU contributors
 Authors: Axel Huebl
 License: GPLv3+
 """
@@ -10,9 +10,7 @@ from .base_reader import DataReader
 import collections
 import numpy as np
 import os
-import glob
-import re
-import h5py as h5
+import openpmd_api as io
 
 
 class PhaseSpaceMeta(object):
@@ -71,10 +69,9 @@ class PhaseSpaceData(DataReader):
         super().__init__(run_directory)
 
         self.data_file_prefix = "PhaseSpace_{0}_{1}_{2}_{3}"
-        self.data_file_suffix = ".h5"
         self.data_hdf5_path = "/data/{0}/{1}"
 
-    def get_data_path(self, ps, species, species_filter="all", iteration=None):
+    def get_data_path(self, ps, species, species_filter="all", file_ext="h5"):
         """
         Return the path to the underlying data file.
 
@@ -89,19 +86,16 @@ class PhaseSpaceData(DataReader):
         species_filter: string
             name of the particle species filter, default is 'all'
             (defined in ``particleFilters.param``)
-        iteration : (unsigned) int or list of int [unitless]
-            The iteration at which to read the data.
-            If 'None', a regular expression string matching
-            all iterations will be returned.
+        file_ext: string
+            filename extension for openPMD backend
+            default is 'h5' for the HDF5 backend
 
         Returns
         -------
-        A string with a file path and a string with a in-file HDF5 path if
-        iteration is a single value or a list of length one.
-        If iteration is a list of length > 1, a list of paths is returned.
-        If iteration is None, only the first string is returned and contains a
-        regex-* for the position iteration.
+        A string with a the full openPMD file path pattern for loading from
+        a file-based iteration layout.
         """
+        # @todo different file extensions?
         if species is None:
             raise ValueError('The species parameter can not be None!')
         if species_filter is None:
@@ -123,45 +117,17 @@ class PhaseSpaceData(DataReader):
                           'Did the simulation already run?'
                           .format(self.run_directory))
 
-        if iteration is not None:
-            if not isinstance(iteration, collections.Iterable):
-                iteration = [iteration]
+        iteration_str = "%T"
+        data_file_name = self.data_file_prefix.format(
+            species,
+            species_filter,
+            ps,
+            iteration_str
+        ) + '.' + file_ext
+        return os.path.join(output_dir, data_file_name)
 
-            ret = []
-            for it in iteration:
-                data_file_name = self.data_file_prefix.format(
-                    species,
-                    species_filter,
-                    ps,
-                    str(it)) + self.data_file_suffix
-                data_file_path = os.path.join(output_dir, data_file_name)
-
-                if not os.path.isfile(data_file_path):
-                    raise IOError('The file {} does not exist.\n'
-                                  'Did the simulation already run?'
-                                  .format(data_file_path))
-
-                data_hdf5_name = self.data_hdf5_path.format(
-                    it,
-                    ps)
-
-                ret.append((data_file_path, data_hdf5_name))
-            if len(iteration) == 1:
-                return ret[0]
-            else:
-                return ret
-        else:
-            iteration_str = "*"
-
-            data_file_name = self.data_file_prefix.format(
-                species,
-                species_filter,
-                ps,
-                iteration_str
-            ) + self.data_file_suffix
-            return os.path.join(output_dir, data_file_name)
-
-    def get_iterations(self, ps, species, species_filter='all'):
+    def get_iterations(self, ps, species, species_filter='all',
+                       file_ext="h5"):
         """
         Return an array of iterations with available data.
 
@@ -176,32 +142,25 @@ class PhaseSpaceData(DataReader):
         species_filter: string
             name of the particle species filter, default is 'all'
             (defined in ``particleFilters.param``)
+        file_ext: string
+            filename extension for openPMD backend
+            default is 'h5' for the HDF5 backend
 
         Returns
         -------
         An array with unsigned integers.
         """
         # get the regular expression matching all available files
-        data_file_path = self.get_data_path(ps, species, species_filter)
+        data_file_path = self.get_data_path(ps, species, species_filter,
+                                            file_ext=file_ext)
 
-        matching_files = glob.glob(data_file_path)
-        re_it = re.compile(data_file_path.replace("*", "([0-9]+)"))
-
-        iterations = np.array(
-            sorted(
-                map(
-                    lambda file_path:
-                    np.uint64(re_it.match(file_path).group(1)),
-                    matching_files
-                )
-            ),
-            dtype=np.uint64
-        )
+        series = io.Series(data_file_path, io.Access.read_only)
+        iterations = [key for key, _ in series.iterations.items()]
 
         return iterations
 
     def _get_for_iteration(self, iteration, ps, species, species_filter='all',
-                           **kwargs):
+                           file_ext="h5", **kwargs):
         """
         Get a phase space histogram.
 
@@ -219,6 +178,9 @@ class PhaseSpaceData(DataReader):
         species_filter: string
             name of the particle species filter, default is 'all'
             (defined in ``particleFilters.param``)
+        file_ext: string
+            filename extension for openPMD backend
+            default is 'h5' for the HDF5 backend
 
         Returns
         -------
@@ -231,8 +193,11 @@ class PhaseSpaceData(DataReader):
         containing ps and ps_meta for each requested iteration.
         If a single iteration is requested, return the tuple (ps, ps_meta).
         """
-        available_iterations = self.get_iterations(
-            ps, species, species_filter)
+
+        data_file_path = self.get_data_path(ps, species, species_filter,
+                                            file_ext=file_ext)
+        series = io.Series(data_file_path, io.Access.read_only)
+        available_iterations = [key for key, _ in series.iterations.items()]
 
         if iteration is not None:
             if not isinstance(iteration, collections.Iterable):
@@ -247,28 +212,25 @@ class PhaseSpaceData(DataReader):
             iteration = available_iterations
 
         ret = []
-        for it in iteration:
-            data_file_path, data_hdf5_name = self.get_data_path(
-                ps,
-                species,
-                species_filter,
-                it)
-
-            f = h5.File(data_file_path, 'r')
-            ps_data = f[data_hdf5_name]
+        for index in iteration:
+            it = series.iterations[index]
+            dataset_name = "{}_{}_{}".format(species, species_filter, ps)
+            mesh = it.meshes[dataset_name]
+            ps_data = mesh[io.Mesh_Record_Component.SCALAR]
 
             # all in SI
-            dV = ps_data.attrs['dV'] * ps_data.attrs['dr_unit']**3
-            unitSI = ps_data.attrs['sim_unit']
-            p_range = ps_data.attrs['p_unit'] * \
-                np.array([ps_data.attrs['p_min'], ps_data.attrs['p_max']])
+            dV = mesh.get_attribute('dV') * mesh.get_attribute('dr')**3
+            unitSI = mesh.get_attribute('sim_unit')
+            p_range = mesh.get_attribute('p_unit') * \
+                np.array(
+                    [mesh.get_attribute('p_min'), mesh.get_attribute('p_max')])
 
-            mv_start = ps_data.attrs['movingWindowOffset']
-            mv_end = mv_start + ps_data.attrs['movingWindowSize']
+            mv_start = mesh.get_attribute('movingWindowOffset')
+            mv_end = mv_start + mesh.get_attribute('movingWindowSize')
             #                2D histogram:         0 (r_i); 1 (p_i)
-            spatial_offset = ps_data.attrs['_global_start'][1]
+            spatial_offset = mesh.get_attribute('_global_start')[0]
 
-            dr = ps_data.attrs['dr'] * ps_data.attrs['dr_unit']
+            dr = mesh.get_attribute('dr') * mesh.get_attribute('dr_unit')
 
             r_range_cells = np.array([mv_start, mv_end]) + spatial_offset
             r_range = r_range_cells * dr
@@ -278,7 +240,7 @@ class PhaseSpaceData(DataReader):
             # cut out the current window & scale by unitSI
             ps_cut = ps_data[mv_start:mv_end, :] * unitSI
 
-            f.close()
+            it.close()
 
             ps_meta = PhaseSpaceMeta(
                 species, species_filter, ps, ps_cut.shape, extent, dV)

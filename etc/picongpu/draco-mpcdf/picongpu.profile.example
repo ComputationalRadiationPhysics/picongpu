@@ -19,7 +19,7 @@ module purge
 
 module load git/2.14
 module load gcc/6.3
-module load cmake/3.11.4
+module load cmake/3.15.0
 module load boost/gcc/1.64
 module load impi/2017.3
 module load hdf5-mpi/gcc/1.8.18
@@ -28,10 +28,8 @@ module load hdf5-mpi/gcc/1.8.18
 #
 # needs to be compiled by the user
 export PNGWRITER_ROOT=$HOME/lib/pngwriter-0.7.0
-export SPLASH_ROOT=$HOME/lib/splash-1.7.0
 
 export LD_LIBRARY_PATH=$PNGWRITER_ROOT/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$SPLASH_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$BOOST_HOME/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$HDF5_HOME/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$I_MPI_ROOT/lib64:$LD_LIBRARY_PATH

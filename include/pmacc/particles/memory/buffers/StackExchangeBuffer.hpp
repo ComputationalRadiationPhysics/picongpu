@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -21,16 +21,13 @@
 
 #pragma once
 
+#include "pmacc/assert.hpp"
+#include "pmacc/memory/buffers/Exchange.hpp"
 #include "pmacc/particles/memory/boxes/ExchangePopDataBox.hpp"
 #include "pmacc/particles/memory/boxes/ExchangePushDataBox.hpp"
-#include "pmacc/memory/buffers/Exchange.hpp"
-#include "pmacc/assert.hpp"
 
 namespace pmacc
 {
-
-
-
     /**
      * Can be used for creating several DataBox types from an Exchange.
      *
@@ -40,7 +37,6 @@ namespace pmacc
     class StackExchangeBuffer
     {
     public:
-
         /**
          * Create a stack from any ExchangeBuffer<FRAME,DIM>.
          *
@@ -48,10 +44,10 @@ namespace pmacc
          *
          * @param stack Exchange
          */
-        StackExchangeBuffer(Exchange<FRAME, DIM1> &stack, Exchange<FRAMEINDEX, DIM1> &stackIndexer) :
-        stack(stack), stackIndexer(stackIndexer)
+        StackExchangeBuffer(Exchange<FRAME, DIM1>& stack, Exchange<FRAMEINDEX, DIM1>& stackIndexer)
+            : stack(stack)
+            , stackIndexer(stackIndexer)
         {
-
         }
 
         /**
@@ -61,13 +57,13 @@ namespace pmacc
          */
         ExchangePushDataBox<vint_t, FRAME, DIM> getHostExchangePushDataBox()
         {
-            return ExchangePushDataBox<vint_t, FRAME, DIM > (
-                                                             stack.getHostBuffer().getBasePointer(),
-                                                             stack.getHostBuffer().getCurrentSizePointer(),
-                                                             stack.getHostBuffer().getDataSpace().productOfComponents(),
-                                                             PushDataBox<vint_t, FRAMEINDEX > (
-                                                                                               stackIndexer.getHostBuffer().getBasePointer(),
-                                                                                               stackIndexer.getHostBuffer().getCurrentSizePointer()));
+            return ExchangePushDataBox<vint_t, FRAME, DIM>(
+                stack.getHostBuffer().getBasePointer(),
+                stack.getHostBuffer().getCurrentSizePointer(),
+                stack.getHostBuffer().getDataSpace().productOfComponents(),
+                PushDataBox<vint_t, FRAMEINDEX>(
+                    stackIndexer.getHostBuffer().getBasePointer(),
+                    stackIndexer.getHostBuffer().getCurrentSizePointer()));
         }
 
         /**
@@ -77,10 +73,9 @@ namespace pmacc
          */
         ExchangePopDataBox<vint_t, FRAME, DIM> getHostExchangePopDataBox()
         {
-            return ExchangePopDataBox<vint_t, FRAME, DIM > (
-                                                            stack.getHostBuffer().getDataBox(),
-                                                            stackIndexer.getHostBuffer().getDataBox()
-                                                           );
+            return ExchangePopDataBox<vint_t, FRAME, DIM>(
+                stack.getHostBuffer().getDataBox(),
+                stackIndexer.getHostBuffer().getDataBox());
         }
 
         /**
@@ -92,13 +87,13 @@ namespace pmacc
         {
             PMACC_ASSERT(stack.getDeviceBuffer().hasCurrentSizeOnDevice() == true);
             PMACC_ASSERT(stackIndexer.getDeviceBuffer().hasCurrentSizeOnDevice() == true);
-            return ExchangePushDataBox<vint_t, FRAME, DIM > (
-                                                             stack.getDeviceBuffer().getBasePointer(),
-                                                             (vint_t*) stack.getDeviceBuffer().getCurrentSizeOnDevicePointer(),
-                                                             stack.getDeviceBuffer().getDataSpace().productOfComponents(),
-                                                             PushDataBox<vint_t, FRAMEINDEX > (
-                                                                                               stackIndexer.getDeviceBuffer().getBasePointer(),
-                                                                                               (vint_t*) stackIndexer.getDeviceBuffer().getCurrentSizeOnDevicePointer()));
+            return ExchangePushDataBox<vint_t, FRAME, DIM>(
+                stack.getDeviceBuffer().getBasePointer(),
+                (vint_t*) stack.getDeviceBuffer().getCurrentSizeOnDevicePointer(),
+                stack.getDeviceBuffer().getDataSpace().productOfComponents(),
+                PushDataBox<vint_t, FRAMEINDEX>(
+                    stackIndexer.getDeviceBuffer().getBasePointer(),
+                    (vint_t*) stackIndexer.getDeviceBuffer().getCurrentSizeOnDevicePointer()));
         }
 
         /**
@@ -108,20 +103,24 @@ namespace pmacc
          */
         ExchangePopDataBox<vint_t, FRAME, DIM> getDeviceExchangePopDataBox()
         {
-            return ExchangePopDataBox<vint_t, FRAME, DIM > (
-                                                            stack.getDeviceBuffer().getDataBox(),
-                                                            stackIndexer.getDeviceBuffer().getDataBox()
-                                                           );
+            return ExchangePopDataBox<vint_t, FRAME, DIM>(
+                stack.getDeviceBuffer().getDataBox(),
+                stackIndexer.getDeviceBuffer().getDataBox());
         }
 
         void setCurrentSize(const size_t size)
         {
             // do host and device setCurrentSize parallel
             EventTask split = __getTransactionEvent();
-            __startTransaction(split);
-            stackIndexer.getHostBuffer().setCurrentSize(size);
-            stack.getHostBuffer().setCurrentSize(size);
-            EventTask e1 = __endTransaction();
+            EventTask e1;
+
+            if(!Environment<>::get().isMpiDirectEnabled())
+            {
+                __startTransaction(split);
+                stackIndexer.getHostBuffer().setCurrentSize(size);
+                stack.getHostBuffer().setCurrentSize(size);
+                e1 = __endTransaction();
+            }
 
             __startTransaction(split);
             stackIndexer.getDeviceBuffer().setCurrentSize(size);
@@ -135,7 +134,13 @@ namespace pmacc
 
         size_t getHostCurrentSize()
         {
-            return stackIndexer.getHostBuffer().getCurrentSize();
+            size_t result = 0u;
+            if(Environment<>::get().isMpiDirectEnabled())
+                result = stackIndexer.getDeviceBuffer().getCurrentSize();
+            else
+                result = stackIndexer.getHostBuffer().getCurrentSize();
+
+            return result;
         }
 
         size_t getDeviceCurrentSize()
@@ -150,17 +155,25 @@ namespace pmacc
 
         size_t getHostParticlesCurrentSize()
         {
+            if(Environment<>::get().isMpiDirectEnabled())
+                return stack.getDeviceBuffer().getCurrentSize();
+
             return stack.getHostBuffer().getCurrentSize();
         }
 
         size_t getMaxParticlesCount()
         {
-            return stack.getHostBuffer().getDataSpace().productOfComponents();
+            size_t result = 0u;
+            if(Environment<>::get().isMpiDirectEnabled())
+                result = stack.getDeviceBuffer().getDataSpace().productOfComponents();
+            else
+                result = stack.getHostBuffer().getDataSpace().productOfComponents();
+
+            return result;
         }
 
     private:
-
-        Exchange<FRAME, DIM1> &getExchangeBuffer()
+        Exchange<FRAME, DIM1>& getExchangeBuffer()
         {
             return stack;
         }
@@ -168,4 +181,4 @@ namespace pmacc
         Exchange<FRAME, DIM1>& stack;
         Exchange<FRAMEINDEX, DIM1>& stackIndexer;
     };
-}
+} // namespace pmacc

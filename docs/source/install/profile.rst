@@ -59,37 +59,6 @@ Queue: k80 (8x NVIDIA K80 12GB)
 .. literalinclude:: profiles/hemera-hzdr/k80_picongpu.profile.example
    :language: bash
 
-Hypnos (HZDR)
--------------
-
-**System overview:** `link (internal) <https://www.hzdr.de/db/Cms?pOid=29813>`_
-
-**User guide:** `link (internal) <http://hypnos3/wiki>`_
-
-**Production directory:** ``/bigdata/hplsim/`` with ``external/``, ``scratch/``, ``development/`` and ``production/``
-
-For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
-
-Queue: laser (AMD Opteron 6276 CPUs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/hypnos-hzdr/laser_picongpu.profile.example
-   :language: bash
-
-Hydra (HZDR)
--------------
-
-**System overview:** `link (internal) <https://www.hzdr.de/db/Cms?pOid=29813>`_
-
-**User guide:** `link (internal) <http://hypnos3/wiki>`_
-
-**Production directory:** ``/bigdata/hplsim/`` with ``external/``, ``scratch/``, ``development/`` and ``production/``
-
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
-
-.. literalinclude:: profiles/hydra-hzdr/default_picongpu.profile.example
-   :language: bash
-
 Summit (ORNL)
 -------------
 
@@ -100,7 +69,7 @@ Summit (ORNL)
 **Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#file-systems>`_).
 Note that ``$HOME`` is mounted on compute nodes as read-only.
 
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`libSplash and PNGwriter <install-dependencies>` manually.
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
 
 V100 GPUs (recommended)
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -117,7 +86,7 @@ Piz Daint (CSCS)
 
 **Production directory:** ``$SCRATCH`` (`link <https://user.cscs.ch/storage/file_systems/>`_).
 
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, zlib, libpng, c-blosc, PNGwriter, libSplash and ADIOS <install-dependencies>` manually.
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, zlib, libpng, c-blosc, PNGwriter and ADIOS <install-dependencies>` manually.
 
 .. note::
 
@@ -140,7 +109,7 @@ Taurus (TU Dresden)
 
 **Production directory:** ``/scratch/$USER/`` and ``/scratch/$proj/``
 
-For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and libSplash <install-dependencies>` manually.
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
 
 Queue: gpu1 (Nvidia K20x GPUs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -188,7 +157,7 @@ Lawrencium (LBNL)
 
 **Production directory:** ``/global/scratch/$USER/``
 
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, PNGwriter and libSplash <install-dependencies>` manually.
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost and PNGwriter <install-dependencies>` manually.
 Additionally, you need to make the ``rsync`` command available as written below.
 
 .. literalinclude:: profiles/lawrencium-lbnl/picongpu.profile.example
@@ -203,12 +172,18 @@ Cori (NERSC)
 
 **Production directory:** ``$SCRATCH`` (`link <https://www.nersc.gov/users/storage-and-file-systems/>`_).
 
-For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and libSplash <install-dependencies>` manually.
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter <install-dependencies>` manually.
 
 Queue: regular (Intel Xeon Phi - Knights Landing)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. literalinclude:: profiles/cori-nersc/knl_picongpu.profile.example
+   :language: bash
+
+Queue: dgx (DGX - A100)
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/cori-nersc/a100_picongpu.profile.example
    :language: bash
 
 Draco (MPCDF)
@@ -220,7 +195,7 @@ Draco (MPCDF)
 
 **Production directory:** ``/ptmp/$USER/``
 
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`libpng, PNGwriter and libSplash <install-dependencies>` manually.
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`libpng and PNGwriter <install-dependencies>` manually.
 
 .. literalinclude:: profiles/draco-mpcdf/picongpu.profile.example
    :language: bash
@@ -251,7 +226,7 @@ JURECA (JSC)
 
 **Production directory:** ``$SCRATCH`` (`link <http://www.fz-juelich.de/SharedDocs/FAQs/IAS/JSC/EN/JUST/FAQ_00_File_systems.html?nn=1297148>`_)
 
-For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter, c-blosc, adios and libSplash <install-dependencies>`, for the gpus partition also :ref:`Boost and HDF5 <install-dependencies>`, manually.
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and openPMD <install-dependencies>`, for the gpus partition also :ref:`Boost and HDF5 <install-dependencies>`, manually.
 
 Queue: batch (2 x Intel Xeon E5-2680 v3 CPUs, 12 Cores + 12 Hyperthreads/CPU)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -280,7 +255,7 @@ JUWELS (JSC)
 
 **Production directory:** ``$SCRATCH`` (`link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/FAQ/juwels_FAQ_node.html#faq1495160>`_)
 
-For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter, c-blosc, adios and libSplash <install-dependencies>`, for the gpus partition also :ref:`Boost and HDF5 <install-dependencies>`, manually.
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and openPMD <install-dependencies>`, for the gpus partition also :ref:`Boost and HDF5 <install-dependencies>`, manually.
 
 Queue: batch (2 x Intel Xeon Platinum 8168 CPUs, 24 Cores + 24 Hyperthreads/CPU)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -309,4 +284,19 @@ Queue: gpu (2 x NVIDIA Tesla k40m GPUs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. literalinclude:: profiles/aris-grnet/gpu_picongpu.profile.example
+   :language: bash
+
+Ascent (ORNL)
+-------------
+
+**System overview and user guide:** `link <https://docs.olcf.ornl.gov/systems/ascent_user_guide.html#system-overview/>`_
+
+**Production directory:** usually ``$PROJWORK/$proj/`` (as on summit `link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#file-systems>`_).
+
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`openPMD-api and PNGwriter <install-dependencies>` manually or use pre-installed libraries in the shared project directory.
+
+V100 GPUs (recommended)
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/ascent-ornl/gpu_picongpu.profile.example
    :language: bash

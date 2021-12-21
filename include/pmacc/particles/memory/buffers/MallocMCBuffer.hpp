@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera
+/* Copyright 2015-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,24 +21,26 @@
 
 #pragma once
 
-
 #include "pmacc/dataManagement/ISimulationData.hpp"
 
-#include <mallocMC/mallocMC.hpp>
-
+#include <cstdint>
 #include <string>
-#include <memory>
+
+#if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+
+#    include <memory>
+
+#    include <mallocMC/mallocMC.hpp>
 
 namespace pmacc
 {
-
-    template< typename T_DeviceHeap >
+    template<typename T_DeviceHeap>
     class MallocMCBuffer : public ISimulationData
     {
     public:
         using DeviceHeap = T_DeviceHeap;
 
-        MallocMCBuffer( const std::shared_ptr<DeviceHeap>& deviceHeap );
+        MallocMCBuffer(const std::shared_ptr<DeviceHeap>& deviceHeap);
 
         virtual ~MallocMCBuffer();
 
@@ -60,7 +62,6 @@ namespace pmacc
         void synchronize() override;
 
     private:
-
         char* hostPtr;
         int64_t hostBufferOffset;
         mallocMC::HeapInfo deviceHeapInfo;
@@ -69,4 +70,39 @@ namespace pmacc
 
 } // namespace pmacc
 
-#include "pmacc/particles/memory/buffers/MallocMCBuffer.tpp"
+#    include "pmacc/particles/memory/buffers/MallocMCBuffer.tpp"
+
+#else
+
+namespace pmacc
+{
+    template<typename T_DeviceHeap>
+    class MallocMCBuffer : public ISimulationData
+    {
+    public:
+        MallocMCBuffer(const std::shared_ptr<T_DeviceHeap>&);
+
+        ~MallocMCBuffer() override = default;
+
+        SimulationDataId getUniqueId() override
+        {
+            return getName();
+        }
+
+        static std::string getName()
+        {
+            return std::string("MallocMCBuffer");
+        }
+
+        int64_t getOffset()
+        {
+            return 0u;
+        }
+
+        void synchronize() override
+        {
+        }
+    };
+
+} // namespace pmacc
+#endif

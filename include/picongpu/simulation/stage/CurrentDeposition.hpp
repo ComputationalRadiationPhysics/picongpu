@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
  *
@@ -22,11 +22,12 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/fields/FieldJ.hpp"
 
-#include <pmacc/meta/ForEach.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/Environment.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/type/Area.hpp>
 
@@ -35,65 +36,50 @@
 
 namespace picongpu
 {
-namespace simulation
-{
-namespace stage
-{
-namespace detail
-{
-
-    template<
-        typename T_SpeciesType,
-        typename T_Area
-    >
-    struct CurrentDeposition
+    namespace simulation
     {
-        using SpeciesType = T_SpeciesType;
-        using FrameType = typename SpeciesType::FrameType;
-
-        HINLINE void operator( )(
-            const uint32_t currentStep,
-            FieldJ & fieldJ,
-            pmacc::DataConnector & dc
-        ) const
+        namespace stage
         {
-            auto species = dc.get< SpeciesType >( FrameType::getName(), true );
-            fieldJ.computeCurrent< T_Area::value, SpeciesType >( *species, currentStep );
-            dc.releaseData( FrameType::getName() );
-        }
-    };
+            namespace detail
+            {
+                template<typename T_SpeciesType, typename T_Area>
+                struct CurrentDeposition
+                {
+                    using SpeciesType = T_SpeciesType;
+                    using FrameType = typename SpeciesType::FrameType;
 
-} // namespace detail
+                    HINLINE void operator()(const uint32_t currentStep, FieldJ& fieldJ, pmacc::DataConnector& dc) const
+                    {
+                        auto species = dc.get<SpeciesType>(FrameType::getName(), true);
+                        fieldJ.computeCurrent<T_Area::value, SpeciesType>(*species, currentStep);
+                    }
+                };
 
-    //! Functor for the stage of the PIC loop performing current deposition
-    struct CurrentDeposition
-    {
-        /** Compute the current created by particles and add it to the current
-         *  density
-         *
-         * @param step index of time iteration
-         */
-        void operator( )( uint32_t const step ) const
-        {
-            using namespace pmacc;
-            DataConnector & dc = Environment< >::get( ).DataConnector( );
-            auto & fieldJ = *dc.get< FieldJ >( FieldJ::getName( ), true );
-            using SpeciesWithCurrentSolver = typename pmacc::particles::traits::FilterByFlag<
-                VectorAllSpecies,
-                current< >
-            >::type;
-            meta::ForEach<
-                SpeciesWithCurrentSolver,
-                detail::CurrentDeposition<
-                    bmpl::_1,
-                    bmpl::int_< type::CORE + type::BORDER >
-                >
-            > depositCurrent;
-            depositCurrent( step, fieldJ, dc );
-            dc.releaseData( FieldJ::getName( ) );
-        }
-    };
+            } // namespace detail
 
-} // namespace stage
-} // namespace simulation
+            //! Functor for the stage of the PIC loop performing current deposition
+            struct CurrentDeposition
+            {
+                /** Compute the current created by particles and add it to the current
+                 *  density
+                 *
+                 * @param step index of time iteration
+                 */
+                void operator()(uint32_t const step) const
+                {
+                    using namespace pmacc;
+                    DataConnector& dc = Environment<>::get().DataConnector();
+                    auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                    using SpeciesWithCurrentSolver =
+                        typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies, current<>>::type;
+                    meta::ForEach<
+                        SpeciesWithCurrentSolver,
+                        detail::CurrentDeposition<bmpl::_1, bmpl::int_<type::CORE + type::BORDER>>>
+                        depositCurrent;
+                    depositCurrent(step, fieldJ, dc);
+                }
+            };
+
+        } // namespace stage
+    } // namespace simulation
 } // namespace picongpu

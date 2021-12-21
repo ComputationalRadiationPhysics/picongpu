@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -25,17 +25,16 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<typename Permutation>
-struct PermutedNavigator
-{
-    HDINLINE int operator()(int component) const
+    namespace math
     {
-        return Permutation().toRT()[component];
-    }
-};
+        template<typename Permutation>
+        struct PermutedNavigator
+        {
+            HDINLINE int operator()(int component) const
+            {
+                return Permutation().toRT()[component];
+            }
+        };
 
-} // math
-} // PMacc
+    } // namespace math
+} // namespace pmacc

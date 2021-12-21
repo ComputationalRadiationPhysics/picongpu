@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Axel Huebl
+/* Copyright 2015-2021 Axel Huebl, Franz Poeschel
  *
  * This file is part of PIConGPU.
  *
@@ -19,24 +19,23 @@
 
 #include "picongpu/versionFormat.hpp"
 
+#include <pmacc/boost_workaround.hpp>
+
 #include <boost/version.hpp>
 // work-around: mallocMC PR #142
 #include <boost/config.hpp>
 #include <boost/preprocessor/stringize.hpp>
 
 #ifdef __CUDACC_VER_MAJOR__
-#include <cuda.h>
-#include <mallocMC/mallocMC.hpp>
+#    include <cuda.h>
+#    include <mallocMC/mallocMC.hpp>
 #endif
 #include <mpi.h>
-#if( ENABLE_HDF5 == 1 )
-#   include <splash/splash.h>
+#if(PIC_ENABLE_PNG == 1)
+#    include <pngwriter.h>
 #endif
-#if( ENABLE_ADIOS == 1 )
-#   include <adios.h>
-#endif
-#if( PIC_ENABLE_PNG == 1 )
-#   include <pngwriter.h>
+#if(ENABLE_OPENPMD == 1)
+#    include <openPMD/openPMD.hpp>
 #endif
 
 #include <sstream>
@@ -44,16 +43,13 @@
 
 namespace picongpu
 {
-    std::list< std::string >
-    getSoftwareVersions( std::ostream & cliText )
+    std::list<std::string> getSoftwareVersions(std::ostream& cliText)
     {
-        std::string const versionNotFound( "NOTFOUND" );
+        std::string const versionNotFound("NOTFOUND");
 
         std::stringstream picongpu;
-        picongpu << PICONGPU_VERSION_MAJOR << "."
-                 << PICONGPU_VERSION_MINOR << "."
-                 << PICONGPU_VERSION_PATCH;
-        if( std::string( PICONGPU_VERSION_LABEL ).size() > 0 )
+        picongpu << PICONGPU_VERSION_MAJOR << "." << PICONGPU_VERSION_MINOR << "." << PICONGPU_VERSION_PATCH;
+        if(std::string(PICONGPU_VERSION_LABEL).size() > 0)
             picongpu << "-" << PICONGPU_VERSION_LABEL;
 
         std::stringstream buildType;
@@ -74,32 +70,25 @@ namespace picongpu
 
 #ifdef __CUDACC_VER_MAJOR__
         std::stringstream cuda;
-        cuda << __CUDACC_VER_MAJOR__ << "."
-             << __CUDACC_VER_MINOR__ << "."
-             << __CUDACC_VER_BUILD__;
+        cuda << __CUDACC_VER_MAJOR__ << "." << __CUDACC_VER_MINOR__ << "." << __CUDACC_VER_BUILD__;
 
         std::stringstream mallocMC;
-        mallocMC << MALLOCMC_VERSION_MAJOR << "."
-                 << MALLOCMC_VERSION_MINOR << "."
-                 << MALLOCMC_VERSION_PATCH;
+        mallocMC << MALLOCMC_VERSION_MAJOR << "." << MALLOCMC_VERSION_MINOR << "." << MALLOCMC_VERSION_PATCH;
 #endif
 
         std::stringstream boost;
-        boost << int(BOOST_VERSION / 100000) << "."
-              << int(BOOST_VERSION / 100 % 1000) << "."
+        boost << int(BOOST_VERSION / 100000) << "." << int(BOOST_VERSION / 100 % 1000) << "."
               << int(BOOST_VERSION % 100);
 
         std::stringstream mpiStandard;
         std::stringstream mpiFlavor;
         std::stringstream mpiFlavorVersion;
         mpiStandard << MPI_VERSION << "." << MPI_SUBVERSION;
-#if defined( OMPI_MAJOR_VERSION )
+#if defined(OMPI_MAJOR_VERSION)
         // includes derivates such as Bullx MPI, Sun, ...
         mpiFlavor << "OpenMPI";
-        mpiFlavorVersion << OMPI_MAJOR_VERSION << "."
-                         << OMPI_MINOR_VERSION << "."
-                         << OMPI_RELEASE_VERSION;
-#elif defined( MPICH_VERSION )
+        mpiFlavorVersion << OMPI_MAJOR_VERSION << "." << OMPI_MINOR_VERSION << "." << OMPI_RELEASE_VERSION;
+#elif defined(MPICH_VERSION)
         /* includes MPICH2 and MPICH3 and
          * derivates such as IBM, Cray, MS, Intel, MVAPICH(2), ... */
         mpiFlavor << "MPICH";
@@ -110,43 +99,25 @@ namespace picongpu
 #endif
 
         std::stringstream pngwriter;
-#if( PIC_ENABLE_PNG == 1 )
-        pngwriter << PNGWRITER_VERSION_MAJOR << "."
-                  << PNGWRITER_VERSION_MINOR << "."
-                  << PNGWRITER_VERSION_PATCH;
+#if(PIC_ENABLE_PNG == 1)
+        pngwriter << PNGWRITER_VERSION_MAJOR << "." << PNGWRITER_VERSION_MINOR << "." << PNGWRITER_VERSION_PATCH;
 #else
         pngwriter << versionNotFound;
 #endif
 
-        std::stringstream splash;
-        std::stringstream splashFormat;
-#if( ENABLE_HDF5 == 1 )
-        splash << SPLASH_VERSION_MAJOR << "."
-               << SPLASH_VERSION_MINOR << "."
-               << SPLASH_VERSION_PATCH;
-        splashFormat << SPLASH_FILE_FORMAT_MAJOR << "."
-                     << SPLASH_FILE_FORMAT_MINOR;
+#if(ENABLE_OPENPMD == 1)
+        std::string openPMD = openPMD::getVersion();
 #else
-        splash << versionNotFound;
-        splashFormat << versionNotFound;
-#endif
-
-        std::stringstream adios;
-#if( ENABLE_ADIOS == 1 )
-        adios << ADIOS_VERSION;
-#else
-        adios << versionNotFound;
+        std::string openPMD = versionNotFound;
 #endif
 
         // CLI Formatting
         cliText << "PIConGPU: " << picongpu.str() << std::endl;
-        cliText << "  Build-Type: " << buildType.str() << std::endl
-                << std::endl;
+        cliText << "  Build-Type: " << buildType.str() << std::endl << std::endl;
         cliText << "Third party:" << std::endl;
         cliText << "  OS:         " << os.str() << std::endl;
         cliText << "  arch:       " << arch.str() << std::endl;
-        cliText << "  CXX:        " << cxx.str()
-                << " (" << cxxVersion.str() << ")" << std::endl;
+        cliText << "  CXX:        " << cxx.str() << " (" << cxxVersion.str() << ")" << std::endl;
         cliText << "  CMake:      " << cmake.str() << std::endl;
 #ifdef __CUDACC_VER_MAJOR__
         cliText << "  CUDA:       " << cuda.str() << std::endl;
@@ -155,32 +126,27 @@ namespace picongpu
         cliText << "  Boost:      " << boost.str() << std::endl;
         cliText << "  MPI:        " << std::endl
                 << "    standard: " << mpiStandard.str() << std::endl
-                << "    flavor:   " << mpiFlavor.str()
-                << " (" << mpiFlavorVersion.str() << ")" << std::endl;
+                << "    flavor:   " << mpiFlavor.str() << " (" << mpiFlavorVersion.str() << ")" << std::endl;
         cliText << "  PNGwriter:  " << pngwriter.str() << std::endl;
-        cliText << "  libSplash:  " << splash.str()
-                << " (Format " << splashFormat.str() << ")" << std::endl;
-        cliText << "  ADIOS:      " << adios.str() << std::endl;
+        cliText << "  openPMD:    " << openPMD << std::endl;
 
         // Module-like formatting of software only
-        std::list< std::string > software;
-        software.push_back( std::string( "PIConGPU/" ) + picongpu.str() );
-        software.push_back( cxx.str() + std::string( "/" ) + cxxVersion.str() );
-        software.push_back( std::string( "CMake/" ) + cmake.str() );
+        std::list<std::string> software;
+        software.push_back(std::string("PIConGPU/") + picongpu.str());
+        software.push_back(cxx.str() + std::string("/") + cxxVersion.str());
+        software.push_back(std::string("CMake/") + cmake.str());
 #ifdef __CUDACC_VER_MAJOR__
-        software.push_back( std::string( "CUDA/" ) + cuda.str() );
+        software.push_back(std::string("CUDA/") + cuda.str());
 #endif
-        software.push_back( std::string( "Boost/" ) + boost.str() );
-        software.push_back( mpiFlavor.str() + std::string( "/" ) + mpiFlavorVersion.str() );
+        software.push_back(std::string("Boost/") + boost.str());
+        software.push_back(mpiFlavor.str() + std::string("/") + mpiFlavorVersion.str());
 #ifdef __CUDACC_VER_MAJOR__
-        software.push_back( std::string( "mallocMC/" ) + mallocMC.str() );
+        software.push_back(std::string("mallocMC/") + mallocMC.str());
 #endif
-        if( pngwriter.str().compare( versionNotFound ) != 0 )
-            software.push_back( std::string( "PNGwriter/" ) + pngwriter.str() );
-        if( splash.str().compare( versionNotFound ) != 0 )
-            software.push_back( std::string( "libSplash/" ) + splash.str() );
-        if( adios.str().compare( versionNotFound ) != 0 )
-            software.push_back( std::string( "ADIOS/" ) + adios.str() );
+        if(pngwriter.str().compare(versionNotFound) != 0)
+            software.push_back(std::string("PNGwriter/") + pngwriter.str());
+        if(openPMD.compare(versionNotFound) != 0)
+            software.push_back(std::string("openPMD/") + openPMD);
 
         return software;
     }

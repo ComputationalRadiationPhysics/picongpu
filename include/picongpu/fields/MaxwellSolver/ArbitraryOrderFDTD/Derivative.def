@@ -1,0 +1,56 @@
+/* Copyright 2020-2021 Klaus Steiniger, Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <cstdint>
+
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace maxwellSolver
+        {
+            namespace aoFDTD
+            {
+                /** Tag for forward derivative used in CurlE
+                 *  of the ArbitraryOrderFDTD solver
+                 *
+                 * @tparam T_neighbors Number of neighbors used to calculate
+                 *                     the spatial derivatives with finite differences.
+                 *                     Order of approximation is 2 * T_neighbors.
+                 */
+                template<uint32_t T_neighbors>
+                struct Forward;
+
+                /** Tag for forward derivative used in CurlE
+                 *  of the ArbitraryOrderFDTD solver
+                 *
+                 * @tparam T_neighbors Number of neighbors used to calculate
+                 *                     the spatial derivatives with finite differences.
+                 *                     Order of approximation is 2 * T_neighbors.
+                 */
+                template<uint32_t T_neighbors>
+                struct Backward;
+
+            } // namespace aoFDTD
+        } // namespace maxwellSolver
+    } // namespace fields
+} // namespace picongpu

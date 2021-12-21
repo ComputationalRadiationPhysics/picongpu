@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch, Finn-Ole Carstens
  *
  * This file is part of PIConGPU.
@@ -40,18 +40,17 @@ namespace picongpu
          */
         constexpr float_64 BASE_DENSITY_SI = 1.0e22;
 
-    }
+    } // namespace SI
 
     namespace densityProfiles
     {
-
-        PMACC_STRUCT(GaussianCloudParam,
+        PMACC_STRUCT(
+            GaussianCloudParam,
             /** Profile Formula:
              *     exponent = |globalCellPos - center| / sigma
              *     density = e^[ gasFactor * exponent^gasPower ]
              */
-            (PMACC_C_VALUE(float_X, gasFactor, -0.5))
-            (PMACC_C_VALUE(float_X, gasPower, 2.0))
+            (PMACC_C_VALUE(float_X, gasFactor, -0.5))(PMACC_C_VALUE(float_X, gasPower, 2.0))
 
             /** height of vacuum area on top border
              *
@@ -64,14 +63,13 @@ namespace picongpu
             /** The central position of the density distribution
              *  unit: meter
              */
-            (PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 128 * 0.16e-6 / 2.0, 0.912e-5 , 128 * 0.16e-6 / 2.0))
+            (PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 128 * 0.16e-6 / 2.0, 0.912e-5, 128 * 0.16e-6 / 2.0))
 
             /** the distance from gasCenter_SI until the density decreases to its 1/e-th part
              *  unit: meter */
-            (PMACC_C_VECTOR_DIM(float_64, simDim, sigma_SI, 3.5e-6, 3.0e-6, 3.5e-6))
-        ); /* struct GaussianCloudParam */
+            (PMACC_C_VECTOR_DIM(float_64, simDim, sigma_SI, 3.5e-6, 3.0e-6, 3.5e-6))); /* struct GaussianCloudParam */
 
         /* definition of cloud profile */
-        using GaussianCloud = GaussianCloudImpl< GaussianCloudParam >;
-    }
-}
+        using GaussianCloud = GaussianCloudImpl<GaussianCloudParam>;
+    } // namespace densityProfiles
+} // namespace picongpu

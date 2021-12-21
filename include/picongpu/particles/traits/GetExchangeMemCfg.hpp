@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,49 +22,39 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include <pmacc/traits/GetFlagType.hpp>
-#include <pmacc/traits/Resolve.hpp>
 #include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/Resolve.hpp>
 
 #include <boost/mpl/if.hpp>
 
 
 namespace picongpu
 {
-namespace traits
-{
-
-    /** get a memory configuration for species exchange buffer
-     *
-     * If exchangeMemCfg is not defined for a species than the default memory
-     * exchange size from the file memory.param are used.
-     *
-     * @tparam T_Species picongpu::Particles, type of the species
-     * @return class with buffer sizes for each direction
-     */
-    template< typename T_Species >
-    struct GetExchangeMemCfg
+    namespace traits
     {
-        using FrameType = typename T_Species::FrameType;
-        using hasMemCfg = typename HasFlag<
-            FrameType,
-            exchangeMemCfg< >
-        >::type;
+        /** get a memory configuration for species exchange buffer
+         *
+         * If exchangeMemCfg is not defined for a species than the default memory
+         * exchange size from the file memory.param are used.
+         *
+         * @tparam T_Species picongpu::Particles, type of the species
+         * @return class with buffer sizes for each direction
+         */
+        template<typename T_Species>
+        struct GetExchangeMemCfg
+        {
+            using FrameType = typename T_Species::FrameType;
+            using hasMemCfg = typename HasFlag<FrameType, exchangeMemCfg<>>::type;
 
-        using type = typename bmpl::if_<
-            hasMemCfg,
-            typename pmacc::traits::Resolve<
-                typename GetFlagType<
-                    FrameType,
-                    exchangeMemCfg< >
-                >::type
-            >::type,
-            ::picongpu::DefaultExchangeMemCfg
-        >::type;
-    };
+            using type = typename bmpl::if_<
+                hasMemCfg,
+                typename pmacc::traits::Resolve<typename GetFlagType<FrameType, exchangeMemCfg<>>::type>::type,
+                ::picongpu::DefaultExchangeMemCfg>::type;
+        };
 
-    //! short hand traits for GetExchangeMemCfg
-    template< typename T_Species >
-    using GetExchangeMemCfg_t = typename traits::GetExchangeMemCfg< T_Species >::type;
+        //! short hand traits for GetExchangeMemCfg
+        template<typename T_Species>
+        using GetExchangeMemCfg_t = typename traits::GetExchangeMemCfg<T_Species>::type;
 
-} // namespace traits
+    } // namespace traits
 } // namespace picongpu

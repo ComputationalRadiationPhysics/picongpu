@@ -1,4 +1,5 @@
-/* Copyright 2013-2020 Axel Huebl, Remi Lehe
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe,
+ *                     Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -19,39 +20,62 @@
 
 #pragma once
 
-#include "picongpu/fields/MaxwellSolver/Lehe/Curl.def"
+#include "picongpu/fields/MaxwellSolver/FDTD/FDTD.def"
+#include "picongpu/fields/MaxwellSolver/Lehe/Derivative.def"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
-#include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
+#include "picongpu/fields/differentiation/Curl.def"
+
+#include <cstdint>
 
 
 namespace picongpu
 {
-namespace fields
-{
-namespace maxwellSolver
-{
+    namespace fields
+    {
+        namespace maxwellSolver
+        {
+            namespace lehe
+            {
+                /* Note: Directions are kept as global names for compatibility with the
+                 * previously used solver interface
+                 */
 
-    /** modified Yee solver
-     *
-     * Reference: R. Lehe et al
-     *            Phys. Rev. ST Accel. Beams 16, 021301 (2013)
-     *
-     * @tparam T_CherenkovFreeDir the direction (axis) which should be free of cherenkov radiation
-     *                            valid types: lehe::CherenkovFreeDirection_Y, lehe::CherenkovFreeDirection_Y
-     */
-    template<
-        typename T_CurrentInterpolation = currentInterpolation::None,
-        typename T_CherenkovFreeDir = lehe::CherenkovFreeDirection_Y
-    >
-    using Lehe = ::picongpu::fields::maxwellSolver::Yee<
-        T_CurrentInterpolation,
-        lehe::CurlE< T_CherenkovFreeDir >
-    >;
+                //! Remove numerical Cherenkov radiation along x
+                constexpr uint32_t CherenkovFreeDirection_X = 0;
 
-    /* we need no definition of margins, because the YeeSolver uses its curl
-     * classes to define margins
-     */
+                //! Remove numerical Cherenkov radiation along y
+                constexpr uint32_t CherenkovFreeDirection_Y = 1;
 
-} // namespace maxwellSolver
-} // namespace fields
+                //! Remove numerical Cherenkov radiation along z
+                constexpr uint32_t CherenkovFreeDirection_Z = 2;
+
+                /** Curl to be applied for the E field
+                 *
+                 * @tparam T_cherenkovFreeDirection direction to remove numerical Cherenkov
+                 *                                  radiation in, 0 = x, 1 = y, 2 = z
+                 */
+                template<uint32_t T_cherenkovFreeDirection>
+                using CurlE = differentiation::Curl<Derivative<T_cherenkovFreeDirection>>;
+
+            } // namespace lehe
+
+            /** Lehe's modification of the FDTD solver, aims to be Cherenkov-free along one direction
+             *
+             * Reference: R. Lehe et al
+             *            Phys. Rev. ST Accel. Beams 16, 021301 (2013)
+             *
+             * It only differs from the classic Yee solver by the curl of E, curl of B is the same.
+             *
+             * @tparam T_CherenkovFreeDir the direction (axis) which should be free of cherenkov radiation
+             *                            0 = x, 1 = y, 2 = z
+             */
+            template<uint32_t T_cherenkovFreeDir = lehe::CherenkovFreeDirection_Y>
+            using Lehe = ::picongpu::fields::maxwellSolver::FDTD<lehe::CurlE<T_cherenkovFreeDir>, yee::CurlB>;
+
+            /* We need no definition of margins, because the FDTD solver uses its curl classes to define margins.
+             * The default CFL checker is sufficient, thus it is not specialized for Lehe
+             */
+
+        } // namespace maxwellSolver
+    } // namespace fields
 } // namespace picongpu

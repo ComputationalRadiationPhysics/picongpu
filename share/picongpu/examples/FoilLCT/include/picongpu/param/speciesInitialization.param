@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera, Axel Huebl
+/* Copyright 2015-2021 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -33,73 +33,32 @@
 
 namespace picongpu
 {
-namespace particles
-{
+    namespace particles
+    {
+        /** InitPipeline defines in which order species are initialized
+         *
+         * the functors are called in order (from first to last functor)
+         */
+        using InitPipeline = bmpl::vector<
+            CreateDensity<densityProfiles::FlatFoilWithRamp, startPosition::Random6ppc, Hydrogen>,
+            /* derive the other two ion species and adjust their weighting to have always all
+             * three of macro ions present in a cell, even in cut-off regions of the density profile */
+            ManipulateDerive<manipulators::binary::DensityWeighting, Hydrogen, Carbon>,
+            ManipulateDerive<manipulators::binary::DensityWeighting, Hydrogen, Nitrogen>,
+            // randomize C & N in-cell
+            Manipulate<manipulators::unary::RandomPosition, Carbon>,
+            Manipulate<manipulators::unary::RandomPosition, Nitrogen>,
+            // partial pre-ionization: set bound electrons for C2+ & N2+
+            Manipulate<manipulators::TwiceIonized, Carbon>,
+            // note: boundElectrons default is 0, so Hydrogen's default is H+
+            Manipulate<manipulators::TwiceIonized, Nitrogen>,
+            // partial pre-ionization: create free electrons
+            Derive<Hydrogen, Electrons>,
+            ManipulateDerive<manipulators::binary::UnboundElectronsTimesWeighting, Carbon, Electrons>,
+            ManipulateDerive<manipulators::binary::UnboundElectronsTimesWeighting, Nitrogen, Electrons>,
+            /* create non-physical "probe" particles that sit in every 4x4x4th cell
+             * and monitor the electro-magnetic fields */
+            CreateDensity<densityProfiles::ProbeEveryFourthCell, startPosition::OnePosition, Probes>>;
 
-    /** InitPipeline defines in which order species are initialized
-     *
-     * the functors are called in order (from first to last functor)
-     */
-    using InitPipeline = bmpl::vector<
-        CreateDensity<
-            densityProfiles::FlatFoilWithRamp,
-            startPosition::Random6ppc,
-            Hydrogen
-        >,
-        /* derive the other two ion species and adjust their weighting to have always all
-         * three of macro ions present in a cell, even in cut-off regions of the density profile */
-        ManipulateDerive<
-            manipulators::binary::DensityWeighting,
-            Hydrogen,
-            Carbon
-        >,
-        ManipulateDerive<
-            manipulators::binary::DensityWeighting,
-            Hydrogen,
-            Nitrogen
-        >,
-        // randomize C & N in-cell
-        Manipulate<
-            manipulators::unary::RandomPosition,
-            Carbon
-        >,
-        Manipulate<
-            manipulators::unary::RandomPosition,
-            Nitrogen
-        >,
-        // partial pre-ionization: set bound electrons for C2+ & N2+
-        Manipulate<
-            manipulators::TwiceIonized,
-            Carbon
-        >,
-        // note: boundElectrons default is 0, so Hydrogen's default is H+
-        Manipulate<
-            manipulators::TwiceIonized,
-            Nitrogen
-        >,
-        // partial pre-ionization: create free electrons
-        Derive<
-            Hydrogen,
-            Electrons
-        >,
-        ManipulateDerive<
-            manipulators::binary::UnboundElectronsTimesWeighting,
-            Carbon,
-            Electrons
-        >,
-        ManipulateDerive<
-            manipulators::binary::UnboundElectronsTimesWeighting,
-            Nitrogen,
-            Electrons
-        >,
-        /* create non-physical "probe" particles that sit in every 4x4x4th cell
-         * and monitor the electro-magnetic fields */
-        CreateDensity<
-            densityProfiles::ProbeEveryFourthCell,
-            startPosition::OnePosition,
-            Probes
-        >
-    >;
-
-} // namespace particles
+    } // namespace particles
 } // namespace picongpu

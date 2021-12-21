@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -27,23 +27,16 @@
 
 namespace pmacc
 {
+    /** create boost mpl pair
+     *
+     * @tparam T_Type any type
+     * @resturn ::type boost mpl pair where first and second is set to T_Type
+     */
+    template<typename T_Type>
+    struct TypeToPair
+    {
+        using type = bmpl::pair<T_Type, T_Type>;
+    };
 
 
-
-/** create boost mpl pair
- *
- * @tparam T_Type any type
- * @resturn ::type boost mpl pair where first and second is set to T_Type
- */
-template<typename T_Type>
-struct TypeToPair
-{
-    typedef
-    bmpl::pair< T_Type,
-            T_Type >
-            type;
-};
-
-
-
-}//namespace pmacc
+} // namespace pmacc

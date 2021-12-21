@@ -1,4 +1,5 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe,
+ *                     Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -17,40 +18,63 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
-#include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
-#include "picongpu/fields/MaxwellSolver/Lehe/Curl.hpp"
 #include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/fields/LaserPhysics.hpp"
+#include "picongpu/fields/MaxwellSolver/LaserChecker.hpp"
+#include "picongpu/fields/MaxwellSolver/Lehe/Derivative.hpp"
+#include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
+
+#include <pmacc/traits/GetStringProperties.hpp>
+
+#include <cstdint>
+
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace maxwellSolver
+        {
+            /** Specialization of the laser compatibility checker for for the Lehe solver
+             *
+             * @tparam T_CherenkovFreeDir the direction (axis) which should be free of cherenkov radiation
+             */
+            template<uint32_t T_cherenkovFreeDir>
+            struct LaserChecker<Lehe<T_cherenkovFreeDir>>
+            {
+                //! This solver is not compatible to any enabled laser
+                void operator()() const
+                {
+                    if(LaserPhysics::isEnabled())
+                        log<picLog::PHYSICS>(
+                            "Warning: chosen field solver is not fully compatible to chosen laser field generation\n"
+                            "   The generated laser will be less accurate.\n"
+                            "   Evaluate differences between the generated laser field and your expectation.\n"
+                            "   For a fully accurate generation, either use field background or switch to Yee solver");
+                }
+            };
+        } // namespace maxwellSolver
+    } // namespace fields
+} // namespace picongpu
 
 namespace pmacc
 {
-namespace traits
-{
-    template<
-        typename T_CurrentInterpolation,
-        typename T_CherenkovFreeDir
-    >
-    struct StringProperties<
-        ::picongpu::fields::maxwellSolver::Lehe<
-            T_CurrentInterpolation,
-            T_CherenkovFreeDir
-        >
-    >
+    namespace traits
     {
-        static StringProperty get()
+        template<uint32_t T_cherenkovFreeDir>
+        struct StringProperties<::picongpu::fields::maxwellSolver::Lehe<T_cherenkovFreeDir>>
         {
-            auto propList =
-                ::picongpu::fields::maxwellSolver::Lehe<
-                    T_CurrentInterpolation,
-                    T_CherenkovFreeDir
-                >::getStringProperties();
-            // overwrite the name of the yee solver (inherit all other properties)
-            propList["name"].value = "Lehe";
-            return propList;
-        }
-    };
-} // namespace traits
+            static StringProperty get()
+            {
+                auto propList = ::picongpu::fields::maxwellSolver::Lehe<T_cherenkovFreeDir>::getStringProperties();
+                // overwrite the name of the solver (inherit all other properties)
+                propList["name"].value = "Lehe";
+                return propList;
+            }
+        };
+
+    } // namespace traits
 } // namespace pmacc

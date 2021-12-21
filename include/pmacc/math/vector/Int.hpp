@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -25,46 +25,9 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<int dim>
-struct Int : public Vector<int, dim>
-{
-    using BaseType = Vector<int, dim>;
-
-    HDINLINE Int()
+    namespace math
     {
-    }
-
-    HDINLINE Int(int x) : BaseType(x)
-    {
-    }
-
-    HDINLINE Int(int x, int y) : BaseType(x, y)
-    {
-    }
-
-    HDINLINE Int(int x, int y, int z) : BaseType(x, y, z)
-    {
-    }
-
-    /*! only allow explicit cast*/
-    template<
-    typename T_OtherType,
-    typename T_OtherAccessor,
-    typename T_OtherNavigator,
-    template <typename, int> class T_OtherStorage>
-    HDINLINE explicit Int(const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec) :
-    BaseType(vec)
-    {
-    }
-
-    HDINLINE Int(const BaseType& vec) :
-    BaseType(vec)
-    {
-    }
-};
-
-} // math
-} // PMacc
+        template<int dim>
+        using Int = Vector<int, dim>;
+    } // namespace math
+} // namespace pmacc

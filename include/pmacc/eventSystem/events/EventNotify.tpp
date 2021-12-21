@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -22,35 +22,33 @@
 #pragma once
 
 #include "pmacc/eventSystem/events/EventNotify.hpp"
-#include "pmacc/eventSystem/events/IEventData.hpp"
 #include "pmacc/eventSystem/events/IEvent.hpp"
+#include "pmacc/eventSystem/events/IEventData.hpp"
 #include "pmacc/types.hpp"
 
 #include <set>
 
 namespace pmacc
 {
-
-        inline void EventNotify::notify( id_t eventId, EventType type, IEventData *data )
+    inline void EventNotify::notify(id_t eventId, EventType type, IEventData* data)
+    {
+        auto iter = observers.begin();
+        for(; iter != observers.end(); iter++)
         {
-            std::set<IEvent*>::iterator iter = observers.begin( );
-            for (; iter != observers.end( ); iter++ )
-            {
-                if ( *iter != nullptr )
-                    ( *iter )->event( eventId, type, data );
-            }
-            /* if notify is not called from destructor
-             * other tasks can register after this call.
-             * But any ITask must call this function in destrctor again"
-             */
-            observers.clear( );
-
-            /**
-             * \TODO are we sure that data won't be deleted anywhere else?
-             * if (data != nullptr)
-             *  delete data;
-             **/
-
+            if(*iter != nullptr)
+                (*iter)->event(eventId, type, data);
         }
+        /* if notify is not called from destructor
+         * other tasks can register after this call.
+         * But any ITask must call this function in destrctor again"
+         */
+        observers.clear();
 
-} //namespace pmacc
+        /**
+         * \TODO are we sure that data won't be deleted anywhere else?
+         * if (data != nullptr)
+         *  delete data;
+         **/
+    }
+
+} // namespace pmacc

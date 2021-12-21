@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Alexander Grund
+/* Copyright 2016-2021 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -19,17 +19,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pmacc/test/PMaccFixture.hpp"
+#include <pmacc/boost_workaround.hpp>
 
-#include <boost/test/unit_test.hpp>
+#include <pmacc/test/PMaccFixture.hpp>
+
+#include <catch2/catch.hpp>
 
 
 #if TEST_DIM == 2
-    using pmacc::test::PMaccFixture2D;
-    BOOST_GLOBAL_FIXTURE( PMaccFixture2D );
+using pmacc::test::PMaccFixture2D;
+static PMaccFixture2D fixture;
 #else
-    using pmacc::test::PMaccFixture3D;
-    BOOST_GLOBAL_FIXTURE( PMaccFixture3D );
+using pmacc::test::PMaccFixture3D;
+static PMaccFixture3D fixture;
 #endif
 
 #include "IdProvider.hpp"

@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Axel Huebl
+/* Copyright 2017-2021 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -24,94 +24,74 @@
 // pmacc
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
-#include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/Array.hpp>
+#include <pmacc/memory/buffers/GridBuffer.hpp>
 
+#include <memory>
 #include <string>
 
 
 namespace picongpu
 {
-namespace particles
-{
-namespace flylite
-{
-namespace helperFields
-{
-    using namespace pmacc;
-
-    class LocalRateMatrix :
-        public ISimulationData
+    namespace particles
     {
-    private:
-        /** A[iz, numpop, numpop] */
-        using RateMatrix = memory::Array<
-                memory::Array<
-                    memory::Array<
-                        float_X,
-                        picongpu::flylite::populations
-                    >,
-                    picongpu::flylite::populations
-                >,
-                picongpu::flylite::ionizationStates
-        >;
-         GridBuffer< RateMatrix, simDim >* m_rateMatrix;
-        std::string m_speciesName;
-
-    public:
-        /** Allocate and initialize local rate matrix for ion state transitions
-         *
-         * @param histSizeLocal spatial size of the local energy histogram
-         */
-        LocalRateMatrix(
-            std::string const & ionSpeciesName,
-            DataSpace< simDim > const & histSizeLocal
-        ) :
-            m_rateMatrix( nullptr ),
-            m_speciesName( ionSpeciesName )
+        namespace flylite
         {
-            m_rateMatrix =
-                new GridBuffer< RateMatrix, simDim >( histSizeLocal );
-        }
+            namespace helperFields
+            {
+                using namespace pmacc;
 
-        ~LocalRateMatrix()
-        {
-            __delete( m_rateMatrix );
-        }
+                class LocalRateMatrix : public ISimulationData
+                {
+                private:
+                    /** A[iz, numpop, numpop] */
+                    using RateMatrix = memory::Array<
+                        memory::Array<
+                            memory::Array<float_X, picongpu::flylite::populations>,
+                            picongpu::flylite::populations>,
+                        picongpu::flylite::ionizationStates>;
+                    std::unique_ptr<GridBuffer<RateMatrix, simDim>> m_rateMatrix;
+                    std::string m_speciesName;
 
-        static std::string
-        getName( std::string const & speciesGroup )
-        {
-            return speciesGroup + "_RateMatrix";
-        }
+                public:
+                    /** Allocate and initialize local rate matrix for ion state transitions
+                     *
+                     * @param histSizeLocal spatial size of the local energy histogram
+                     */
+                    LocalRateMatrix(std::string const& ionSpeciesName, DataSpace<simDim> const& histSizeLocal)
+                        : m_speciesName(ionSpeciesName)
+                    {
+                        m_rateMatrix = std::make_unique<GridBuffer<RateMatrix, simDim>>(histSizeLocal);
+                    }
 
-        std::string
-        getName( )
-        {
-            return getName( m_speciesName );
-        }
+                    static std::string getName(std::string const& speciesGroup)
+                    {
+                        return speciesGroup + "_RateMatrix";
+                    }
 
-        GridBuffer< RateMatrix, simDim >&
-        getGridBuffer( )
-        {
-            return *m_rateMatrix;
-        }
+                    std::string getName()
+                    {
+                        return getName(m_speciesName);
+                    }
 
-        /* implement ISimulationData members */
-        void
-        synchronize() override
-        {
-            m_rateMatrix->deviceToHost( );
-        }
+                    GridBuffer<RateMatrix, simDim>& getGridBuffer()
+                    {
+                        return *m_rateMatrix;
+                    }
 
-        SimulationDataId
-        getUniqueId() override
-        {
-            return getName();
-        }
-    };
+                    /* implement ISimulationData members */
+                    void synchronize() override
+                    {
+                        m_rateMatrix->deviceToHost();
+                    }
 
-} // namespace helperFields
-} // namespace flylite
-} // namespace particles
+                    SimulationDataId getUniqueId() override
+                    {
+                        return getName();
+                    }
+                };
+
+            } // namespace helperFields
+        } // namespace flylite
+    } // namespace particles
 } // namespace picongpu

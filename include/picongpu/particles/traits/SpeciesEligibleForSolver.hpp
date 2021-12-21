@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Axel Huebl
+/* Copyright 2017-2021 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -24,27 +24,24 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace traits
-{
-    /** Check if species fulfills requirements of a solver
-     *
-     * Defines a boost::mpl::bool_ true type is the particle species as all
-     * requirements fulfilled for a solver.
-     *
-     * @tparam T_Species Species to check
-     * @tparam T_Solver Solver with requirements
-     */
-    template<
-        typename T_Species,
-        typename T_Solver
-    >
-    struct SpeciesEligibleForSolver
+    namespace particles
     {
-        using type = boost::mpl::bool_< true >;
-    };
+        namespace traits
+        {
+            /** Check if species fulfills requirements of a solver
+             *
+             * Defines a boost::mpl::bool_ true type is the particle species as all
+             * requirements fulfilled for a solver.
+             *
+             * @tparam T_Species Species to check
+             * @tparam T_Solver Solver with requirements
+             */
+            template<typename T_Species, typename T_Solver>
+            struct SpeciesEligibleForSolver
+            {
+                using type = boost::mpl::bool_<true>;
+            };
 
-} // namespace traits
-} // namespace particles
+        } // namespace traits
+    } // namespace particles
 } // namespace picongpu

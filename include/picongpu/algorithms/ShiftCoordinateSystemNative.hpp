@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -18,32 +18,29 @@
  */
 
 
-
 #pragma once
 
-#include <pmacc/types.hpp>
 #include <pmacc/math/vector/Int.hpp>
+#include <pmacc/types.hpp>
 
 namespace picongpu
 {
-
-template<uint32_t T_support>
-struct ShiftCoordinateSystemNative
-{
-
-    /**shift to new coordinat system
-     *
-     * shift cursor and vector to new coordinate system
-     * @param curser curser to memory
-     * @param vector short vector with coordinates in old system
-     * @param fieldPos vector with relative coordinates for shift ( value range [0.0;0.5] )
-     */
-    template<typename Cursor, typename Vector >
-    HDINLINE void operator()(Cursor& cursor, Vector& vector, const floatD_X & fieldPos)
+    template<uint32_t T_support>
+    struct ShiftCoordinateSystemNative
     {
-        for (uint32_t i = 0; i < simDim; ++i)
-            vector[i] -= fieldPos[i];
-    }
-};
+        /**shift to new coordinat system
+         *
+         * shift cursor and vector to new coordinate system
+         * @param curser curser to memory
+         * @param vector short vector with coordinates in old system
+         * @param fieldPos vector with relative coordinates for shift ( value range [0.0;0.5] )
+         */
+        template<typename Cursor, typename Vector>
+        HDINLINE void operator()(Cursor& cursor, Vector& vector, const floatD_X& fieldPos)
+        {
+            for(uint32_t i = 0; i < simDim; ++i)
+                vector[i] -= fieldPos[i];
+        }
+    };
 
 } // namespace picongpu

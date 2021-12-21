@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Alexander Grund, Rene Widera
+/* Copyright 2015-2021 Alexander Grund, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -26,17 +26,16 @@
 
 namespace pmacc
 {
-namespace random
-{
-namespace methods
-{
-
-    //! placeholder for the rng method
-    struct RngPlaceholder
+    namespace random
     {
-        using StateType = int;
-    };
+        namespace methods
+        {
+            //! placeholder for the rng method
+            struct RngPlaceholder
+            {
+                using StateType = int;
+            };
 
-}  // namespace methods
-}  // namespace random
-}  // namespace pmacc
+        } // namespace methods
+    } // namespace random
+} // namespace pmacc

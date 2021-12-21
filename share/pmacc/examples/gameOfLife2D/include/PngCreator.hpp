@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,16 +21,15 @@
 #pragma once
 
 #include <pmacc/types.hpp>
+
 #include <pngwriter.h>
 
 namespace gol
 {
-
     struct PngCreator
     {
-
         template<class DBox>
-        void operator() (uint32_t currentStep, DBox data, Space dataSize)
+        void operator()(uint32_t currentStep, DBox data, Space dataSize)
         {
             std::stringstream step;
             step << std::setw(6) << std::setfill('0') << currentStep;
@@ -38,11 +37,11 @@ namespace gol
             pngwriter png(dataSize.x(), dataSize.y(), 0, filename.c_str());
             png.setcompressionlevel(9);
 
-            for (int y = 0; y < dataSize.y(); ++y)
+            for(int y = 0; y < dataSize.y(); ++y)
             {
-                for (int x = 0; x < dataSize.x(); ++x)
+                for(int x = 0; x < dataSize.x(); ++x)
                 {
-                    float p = data[y ][x ];
+                    float p = data[y][x];
                     png.plot(x + 1, dataSize.y() - y, p, p, p);
                 }
             }
@@ -50,5 +49,4 @@ namespace gol
         }
     };
 
-}
-
+} // namespace gol

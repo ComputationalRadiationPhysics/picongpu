@@ -1,12 +1,12 @@
 PIConGPU - Particle-in-Cell Simulations for the Exascale Era
 ============================================================
 
-[![Code Status master](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/master.svg?label=master)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
-[![Code Status dev](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/dev.svg?label=dev)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
+[![Code Status master](https://gitlab.com/hzdr/crp/picongpu/badges/master/pipeline.svg?key_text=master)](https://gitlab.com/hzdr/crp/picongpu/pipelines/master/latest)
+[![Code Status dev](https://gitlab.com/hzdr/crp/picongpu/badges/dev/pipeline.svg?key_text=dev)](https://gitlab.com/hzdr/crp/picongpu/pipelines/dev/latest)
 [![Documentation Status](https://readthedocs.org/projects/picongpu/badge/?version=latest)](http://picongpu.readthedocs.io)
 [![Doxygen](https://img.shields.io/badge/API-Doxygen-blue.svg)](http://computationalradiationphysics.github.io/picongpu)
 [![GitHub commits since last release](https://img.shields.io/github/commits-since/ComputationalRadiationPhysics/picongpu/latest/dev.svg)](https://github.com/ComputationalRadiationPhysics/picongpu/compare/master...dev)
-[![Language](https://img.shields.io/badge/language-C%2B%2B11-orange.svg)](https://isocpp.org/)
+[![Language](https://img.shields.io/badge/language-C%2B%2B14-orange.svg)](https://isocpp.org/)
 [![License PIConGPU](https://img.shields.io/badge/license-GPLv3-blue.svg?label=PIConGPU)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![License PMacc](https://img.shields.io/badge/license-LGPLv3-blue.svg?label=PMacc)](https://www.gnu.org/licenses/lgpl-3.0.html)
 
@@ -38,7 +38,7 @@ Its features for the electro-magnetic PIC algorithm include:
   [*Esirkepov*](http://dx.doi.org/10.1016/S0010-4655%2800%2900228-9)
   and *ZigZag*
 - macro-particle form factors ranging from NGP (0th order), CIC (1st),
-  TSC (2nd), PSQ (3rd) to P4S (4th)
+  TSC (2nd), PQS (3rd) to PCS (4th)
 
 and the electro-magnetic PIC algorithm is further self-consistently coupled to:
 - classical radiation reaction
@@ -54,10 +54,7 @@ a wide range of tools and diagnostics, e.g.:
 - online, far-field radiation diagnostics for coherent and incoherent radiation
   emitted by charged particles
 - full restart and output capabilities via [openPMD](http://openPMD.org),
-  including [parallel HDF5](http://hdfgroup.org/) (via
-  [libSplash](https://github.com/ComputationalRadiationPhysics/libSplash)) and
-  [ADIOS](https://csmd.ornl.gov/adios/), allowing for
-  extreme I/O scalability and massively parallel online-analysis
+  including [parallel HDF5](http://hdfgroup.org/)
 - 2D and 3D live view and diagnostics tools
 - a large selection of extensible
   [online-plugins](http://picongpu.readthedocs.io/en/latest/usage/plugins.html)
@@ -204,7 +201,6 @@ Active Team
 ### Scientific Supervision
 
 - Dr. Michael Bussmann
-- Dr. Axel Huebl
 
 ### Maintainers* and core developers
 
@@ -212,11 +208,10 @@ Active Team
 - Dr. Alexander Debus
 - Marco Garten*
 - Dr. Axel Huebl*
-- Alexander Matthes
+- Pawel Ordyna 
 - Dr. Richard Pausch*
-- Sophie Rudat
-- Sebastian Starke
-- Dr. Klaus Steiniger
+- Franz Poeschel
+- Dr. Klaus Steiniger*
 - Rene Widera*
 
 ### Former Members, Contributions and Thanks
@@ -226,8 +221,12 @@ The PIConGPU Team expresses its gratitude to:
 Florian Berninger, Heiko Burau, Robert Dietrich, Carlchristian Eckert,
 Wen Fu, Ph.D., Alexander Grund, Sebastian Hahn, Anton Helm, Wolfgang Hoehnig,
 Dr.-Ing. Guido Juckeland, Jeffrey Kelling, Maximilian Knespel, Dr. Remi Lehe,
-Felix Schmitt, Benjamin Schneider, Joseph Schuchart, Conrad Schumann,
-Stefan Tietze, Marija Vranic, Ph.D., Benjamin Worpitz, and Erik Zenker.
+Felix Schmitt, Frank Winkler, Benjamin Schneider, Joseph Schuchart, Conrad Schumann,
+Stefan Tietze, Marija Vranic, Ph.D., Benjamin Worpitz, Erik Zenker,
+Sophie Rudat, Sebastian Starke, Alexander Matthes, Kseniia Bastrakova, 
+Brian Edward Marre, Bernhard Manfred Gruber, Jakob Trojok, Anton Lebedev, 
+Felix Meyer, Lennert Sprenger, Manhui Wang, Maxence Thevenet, Ilja Goethel
+and Finn-Ole Carstens.
 
 Kudos to everyone, mentioned or unmentioned, who contributed further in any
 way!

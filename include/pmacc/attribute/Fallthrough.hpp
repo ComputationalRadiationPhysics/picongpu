@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz,
  *                     Alexander Grund
  *
@@ -36,10 +36,10 @@
  *
  * Use [[fallthrough]] in C++17
  */
-#if (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(7,0,0))
-#   define PMACC_FALLTHROUGH [[gnu::fallthrough]]
+#if(BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(7, 0, 0))
+#    define PMACC_FALLTHROUGH [[gnu::fallthrough]]
 #elif BOOST_COMP_CLANG
-#   define PMACC_FALLTHROUGH [[clang::fallthrough]]
+#    define PMACC_FALLTHROUGH [[clang::fallthrough]]
 #else
-#   define PMACC_FALLTHROUGH ( (void)0 )
+#    define PMACC_FALLTHROUGH ((void) 0)
 #endif

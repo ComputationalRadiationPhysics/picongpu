@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -20,48 +20,52 @@
 
 #pragma once
 
-#include <pmacc/cuSTL/container/DeviceBuffer.hpp>
-#include <pmacc/math/vector/Float.hpp>
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 
+#include <pmacc/cuSTL/container/DeviceBuffer.hpp>
+#include <pmacc/math/vector/Float.hpp>
+
+#include <memory>
 #include <string>
 
 namespace picongpu
 {
+    using namespace pmacc;
 
-using namespace pmacc;
+    namespace po = boost::program_options;
 
-namespace po = boost::program_options;
+    template<typename Field>
+    class SliceFieldPrinterMulti;
 
-template<typename Field>
-class SliceFieldPrinterMulti;
+    template<typename Field>
+    class SliceFieldPrinter : public ILightweightPlugin
+    {
+    private:
+        std::string notifyPeriod;
+        bool sliceIsOK;
+        std::string fileName;
+        int plane;
+        float_X slicePoint;
+        MappingDesc* cellDescription;
+        std::unique_ptr<container::DeviceBuffer<float3_64, simDim - 1>> dBuffer_SI;
 
-template<typename Field>
-class SliceFieldPrinter : public ILightweightPlugin
-{
-private:
-    std::string notifyPeriod;
-    bool sliceIsOK;
-    std::string fileName;
-    int plane;
-    float_X slicePoint;
-    MappingDesc *cellDescription;
-    container::DeviceBuffer<float3_64, simDim-1>* dBuffer_SI;
+        void pluginLoad() override;
 
-    void pluginLoad();
-    void pluginUnload();
+        template<typename TField>
+        void printSlice(const TField& field, int nAxis, float slicePoint, std::string filename);
 
-    template<typename TField>
-    void printSlice(const TField& field, int nAxis, float slicePoint, std::string filename);
+        friend class SliceFieldPrinterMulti<Field>;
 
-    friend class SliceFieldPrinterMulti<Field>;
-public:
-    void notify(uint32_t currentStep);
-    std::string pluginGetName() const;
-    void pluginRegisterHelp(po::options_description& desc);
-    void setMappingDescription(MappingDesc* desc) {this->cellDescription = desc;}
-};
+    public:
+        void notify(uint32_t currentStep) override;
+        std::string pluginGetName() const override;
+        void pluginRegisterHelp(po::options_description& desc) override;
+        void setMappingDescription(MappingDesc* desc) override
+        {
+            this->cellDescription = desc;
+        }
+    };
 
-}
+} // namespace picongpu
 
 #include "SliceFieldPrinter.tpp"

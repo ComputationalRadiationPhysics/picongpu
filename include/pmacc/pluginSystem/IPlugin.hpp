@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Felix Schmitt, Richard Pausch
+/* Copyright 2013-2021 Rene Widera, Felix Schmitt, Richard Pausch
  *
  * This file is part of PMacc.
  *
@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include <stdexcept>
-#include <string>
+#include "pmacc/pluginSystem/INotify.hpp"
 
 #include <boost/program_options/options_description.hpp>
 
-#include "pmacc/pluginSystem/INotify.hpp"
+#include <stdexcept>
+#include <string>
 
 namespace pmacc
 {
@@ -39,7 +39,6 @@ namespace pmacc
     class PluginException : public std::runtime_error
     {
     public:
-
         PluginException(const char* message) : std::runtime_error(message)
         {
         }
@@ -55,16 +54,9 @@ namespace pmacc
     class IPlugin : public INotify
     {
     public:
+        IPlugin() = default;
 
-        IPlugin() :
-        loaded(false), lastCheckpoint(0)
-        {
-
-        }
-
-        virtual ~IPlugin()
-        {
-        }
+        ~IPlugin() override = default;
 
         virtual void load()
         {
@@ -124,11 +116,12 @@ namespace pmacc
          * The order in which the plugins are called is undefined, so this means
          * read-only access to the particles.
          *
-         * \param speciesName name of the particle species
-         * \param direction the direction the particles are leaving the simulation
+         * @param speciesName name of the particle species
+         * @param direction the direction the particles are leaving the simulation
          */
         virtual void onParticleLeave(const std::string& /*speciesName*/, const int32_t /*direction*/)
-        {}
+        {
+        }
 
         /** When was the plugin checkpointed last?
          *
@@ -143,7 +136,7 @@ namespace pmacc
          *
          * @param currentStep current simulation iteration step
          */
-        void setLastCheckpoint( uint32_t currentStep )
+        void setLastCheckpoint(uint32_t currentStep)
         {
             lastCheckpoint = currentStep;
         }
@@ -159,7 +152,7 @@ namespace pmacc
             /* override this function if necessary */
         }
 
-        bool loaded;
-        uint32_t lastCheckpoint;
+        bool loaded{false};
+        uint32_t lastCheckpoint{0};
     };
-}
+} // namespace pmacc

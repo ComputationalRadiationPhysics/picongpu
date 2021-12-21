@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera
+/* Copyright 2015-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -24,45 +24,35 @@
 #include "pmacc/meta/accessors/Identity.hpp"
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/vector.hpp>
+#include <boost/mpl/back_inserter.hpp>
 #include <boost/mpl/copy.hpp>
+#include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/transform.hpp>
-#include <boost/mpl/placeholders.hpp>
-#include <boost/mpl/back_inserter.hpp>
-#include <boost/type_traits.hpp>
+#include <boost/mpl/vector.hpp>
 
 namespace pmacc
 {
-
-/** run an unary operator on each element of a sequence
- *
- * @tparam T_MPLSeq any boost mpl sequence
- * @tparam T_UnaryOperator unary operator to translate type from the sequence
- * to a mpl pair
- * @tparam T_Accessor an unary lambda operator that is used before the type
- * from the sequence is passed to T_UnaryOperator
- * @return ::type bmpl::vector
- */
-template<typename T_MPLSeq,
-typename T_UnaryOperator,
-typename T_Accessor = meta::accessors::Identity<>
->
-struct OperateOnSeq
-{
-
-    template<typename X>
-    struct Op :bmpl::apply1<T_UnaryOperator, typename bmpl::apply1<T_Accessor,X>::type >
+    /** run an unary operator on each element of a sequence
+     *
+     * @tparam T_MPLSeq any boost mpl sequence
+     * @tparam T_UnaryOperator unary operator to translate type from the sequence
+     * to a mpl pair
+     * @tparam T_Accessor an unary lambda operator that is used before the type
+     * from the sequence is passed to T_UnaryOperator
+     * @return ::type bmpl::vector
+     */
+    template<typename T_MPLSeq, typename T_UnaryOperator, typename T_Accessor = meta::accessors::Identity<>>
+    struct OperateOnSeq
     {
+        template<typename X>
+        struct Op : bmpl::apply1<T_UnaryOperator, typename bmpl::apply1<T_Accessor, X>::type>
+        {
+        };
+
+        using MPLSeq = T_MPLSeq;
+        using Inserter = bmpl::back_inserter<bmpl::vector<>>;
+        using type = typename bmpl::transform<MPLSeq, Op<bmpl::_1>, Inserter>::type;
     };
 
-    typedef T_MPLSeq MPLSeq;
-    typedef bmpl::back_inserter< bmpl::vector<> > Inserter;
-    typedef typename bmpl::transform<
-            MPLSeq,
-            Op<bmpl::_1>,
-            Inserter
-            >::type type;
-};
-
-}//namespace pmacc
+} // namespace pmacc

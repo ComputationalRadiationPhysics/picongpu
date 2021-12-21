@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -26,7 +26,6 @@
 
 namespace pmacc
 {
-
     class IEventData;
 
     /**
@@ -35,13 +34,10 @@ namespace pmacc
     class IEvent
     {
     public:
-
         /**
          * Destructor.
          */
-        virtual ~IEvent()
-        {
-        }
+        virtual ~IEvent() = default;
 
         // IEventData *should* be small; using a pointer here will result in memory leaks...
         /**
@@ -53,4 +49,4 @@ namespace pmacc
         virtual void event(id_t eventId, EventType type, IEventData* data) = 0;
     };
 
-} //namespace pmacc
+} // namespace pmacc

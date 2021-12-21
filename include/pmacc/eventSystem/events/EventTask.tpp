@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -27,19 +27,16 @@
 
 namespace pmacc
 {
+    inline EventTask::EventTask(id_t taskId) : taskId(taskId)
+    {
+    }
 
-    inline EventTask::EventTask(id_t taskId) :
-        taskId(taskId)
-    {}
-
-    inline EventTask::EventTask() :
-        taskId(0)
-    {}
+    inline EventTask::EventTask() = default;
 
     inline std::string EventTask::toString()
     {
-        ITask* task=Environment<>::get().Manager().getITaskIfNotFinished(taskId);
-        if(task!=nullptr)
+        ITask* task = Environment<>::get().Manager().getITaskIfNotFinished(taskId);
+        if(task != nullptr)
             return task->toString();
 
         return std::string();
@@ -60,48 +57,41 @@ namespace pmacc
         Environment<>::get().Manager().waitForFinished(taskId);
     }
 
-    inline EventTask EventTask::operator+(const EventTask & other)
+    inline EventTask EventTask::operator+(const EventTask& other)
     {
-        EventTask tmp=*this;
-        return tmp+=other;
+        EventTask tmp = *this;
+        return tmp += other;
     }
 
-    inline EventTask& EventTask::operator+=(const EventTask & other)
+    inline EventTask& EventTask::operator+=(const EventTask& other)
     {
         // If one of the two tasks is already finished, the other task is returned.
         // Otherwise, a TaskLogicalAnd is created and added to the Manager's queue.
         Manager& manager = Environment<>::get().Manager();
 
-        if(this->taskId==other.taskId)
+        if(this->taskId == other.taskId)
             return *this;
 
         ITask* myTask = manager.getITaskIfNotFinished(this->taskId);
-        if(myTask==nullptr)
+        if(myTask == nullptr)
         {
-            this->taskId=other.taskId;
+            this->taskId = other.taskId;
             return *this;
         }
 
         ITask* otherTask = manager.getITaskIfNotFinished(other.taskId);
-        if(otherTask==nullptr)
+        if(otherTask == nullptr)
         {
             return *this;
         }
 
-        TaskLogicalAnd *taskAnd = new TaskLogicalAnd(myTask,
-                                                     otherTask);
-        this->taskId=taskAnd->getId();
+        auto* taskAnd = new TaskLogicalAnd(myTask, otherTask);
+        this->taskId = taskAnd->getId();
         manager.addPassiveTask(taskAnd);
 
         return *this;
     }
 
-    inline EventTask& EventTask::operator=(const EventTask & other)
-    {
-        //this is faster than a copy constructor
-        taskId = other.taskId;
-        return *this;
-    }
+    inline EventTask& EventTask::operator=(const EventTask& other) = default;
 
-}
-
+} // namespace pmacc

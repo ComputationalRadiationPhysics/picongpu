@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2017-2020 PIConGPU contributors
+Copyright 2017-2021 PIConGPU contributors
 Authors: Sebastian Starke
 License: GPLv3+
 """
@@ -166,6 +166,14 @@ class BaseWidget(widgets.VBox):
             self._handle_run_dir_selection_callback, names='value')
         # set the UI
         self.sim_drop.options = sim_options
+        # don't select a value yet but leave it to the user.
+        # this needs to be handled differently
+        # for single and multi selection
+        if isinstance(self.sim_drop, widgets.Dropdown):
+            self.sim_drop.value = None
+        else:
+            # we assume widgets.SelectMultiple instance here
+            self.sim_drop.value = ()
         # re-enable the callback functions
         self.sim_drop.observe(
             self._handle_run_dir_selection_callback, names='value')
@@ -186,6 +194,20 @@ class BaseWidget(widgets.VBox):
         self._create_label_path_lookup(run_dir_options)
         # set the options in the dropdown
         self._show_run_dir_options_in_dropdown()
+
+        # clear the ax (this is done by the current plot_mpl instance)
+        self._clean_ax()
+
+        # create a fresh plot_mpl object since the old
+        # one had some run directories which are outdated now
+        plot_mpl_class = type(self.plot_mpl)
+        self.plot_mpl = plot_mpl_class(
+            run_directories=None,
+            ax=self.ax)
+
+        # the user has not yet chosen any simulation
+        # so we have no option about which times are available
+        self.sim_time_slider.options = ('',)
 
     def _init_fig_and_ax(self, fig, **kwargs):
         """
@@ -381,10 +403,6 @@ class BaseWidget(widgets.VBox):
         if time is None or time == "":
             return
 
-        # print("{} called visualize for time {} and run_dirs {}".format(
-        #     type(self), time,
-        #     [reader.run_directory for reader in self.plot_mpl.data_reader]))
-
         vis_params = self._get_widget_args()
         try:
             self.plot_mpl.visualize(time=time,
@@ -396,12 +414,15 @@ class BaseWidget(widgets.VBox):
         # since interactive mode should be turned off, we have
         # to update the figure explicitely
         try:
-            self.fig.canvas.draw()
-            self.fig.canvas.flush_events()
+            self.update_plot()
         except ValueError as e:
             warn("{}: drawing the plot failed! Reason: {}".format(
                 type(self), e))
             # raise e
+
+    def update_plot(self):
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
 
     def _make_drop_val_compatible(self, val):
         """
@@ -482,3 +503,5 @@ class BaseWidget(widgets.VBox):
     @capture_output
     def _clean_ax(self):
         self.plot_mpl._clean_ax()
+        # refresh the figure since we are not in interactive mode
+        self.update_plot()

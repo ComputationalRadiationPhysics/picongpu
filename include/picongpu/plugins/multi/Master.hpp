@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,152 +20,133 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/plugins/multi/ISlave.hpp"
-#include "picongpu/plugins/multi/IHelp.hpp"
-#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
-#include <vector>
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/multi/IHelp.hpp"
+#include "picongpu/plugins/multi/IInstance.hpp"
+
 #include <list>
 #include <stdexcept>
+#include <vector>
 
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace multi
-{
-    /** Master class to create multi plugins
-     *
-     * Create and handle a plugin as multi plugin. Parameter of a multi plugin
-     * can be used multiple times on the command line.
-     *
-     * @tparam T_Slave type of the plugin (must inherit from ISlave)
-     */
-    template< typename T_Slave >
-    class Master : public ISimulationPlugin
+    namespace plugins
     {
-    public:
-
-        using Slave = T_Slave;
-        using SlaveList =  std::list< std::shared_ptr< ISlave > >;
-        SlaveList slaveList;
-
-        std::shared_ptr< IHelp > slaveHelp;
-
-        MappingDesc* m_cellDescription = nullptr;
-
-        Master( ) : slaveHelp( Slave::getHelp() )
+        namespace multi
         {
-            Environment<>::get( ).PluginConnector( ).registerPlugin(this);
-        }
-
-        virtual ~Master( )
-        {
-
-        }
-
-        std::string pluginGetName( ) const
-        {
-            // the PMacc plugin system needs a short description instead of the plugin name
-            return slaveHelp->getName( ) + ": " + slaveHelp->getDescription( );
-        }
-
-        void pluginRegisterHelp( boost::program_options::options_description& desc )
-        {
-            slaveHelp->registerHelp( desc );
-        }
-
-        void setMappingDescription( MappingDesc* cellDescription )
-        {
-            m_cellDescription = cellDescription;
-        }
-
-        /** restart a checkpoint
-         *
-         * Trigger the method restart() for all slave instances.
-         */
-        void restart(
-            uint32_t restartStep,
-            std::string const restartDirectory
-        )
-        {
-            for( auto & slave : slaveList )
-                slave->restart(
-                    restartStep,
-                    restartDirectory
-                );
-        }
-
-        /** create a checkpoint
-         *
-         * Trigger the method checkpoint() for all slave instances.
-         */
-        void checkpoint(
-            uint32_t currentStep,
-            std::string const checkpointDirectory
-        )
-        {
-            for( auto & slave : slaveList )
-                slave->checkpoint(
-                    currentStep,
-                    checkpointDirectory
-                );
-        }
-
-    private:
-
-        void pluginLoad( )
-        {
-            size_t const numSlaves = slaveHelp->getNumPlugins( );
-            if( numSlaves > 0u )
-                slaveHelp->validateOptions( );
-            for( size_t i = 0; i < numSlaves; ++i )
+            /** Master class to create multi plugins
+             *
+             * Create and handle a plugin as multi plugin. Parameter of a multi plugin
+             * can be used multiple times on the command line.
+             *
+             * @tparam T_Instance (single) instance type of the plugin, a child class of IInstance
+             */
+            template<typename T_Instance>
+            class Master : public ISimulationPlugin
             {
-                slaveList.emplace_back(
-                    slaveHelp->create(
-                        slaveHelp,
-                        i,
-                        m_cellDescription
-                    )
-                );
-            }
-        }
+            public:
+                using Instance = T_Instance;
+                using InstanceList = std::list<std::shared_ptr<IInstance>>;
+                InstanceList instanceList;
 
-        void pluginUnload( )
-        {
-            slaveList.clear( );
-        }
+                std::shared_ptr<IHelp> instanceHelp;
 
-        void notify(uint32_t currentStep)
-        {
-            // nothing to do here
-        }
+                MappingDesc* m_cellDescription = nullptr;
 
-    };
+                Master() : instanceHelp(Instance::getHelp())
+                {
+                    Environment<>::get().PluginConnector().registerPlugin(this);
+                }
 
-} // namespace multi
-} // namespace plugins
+                ~Master() override = default;
 
-namespace particles
-{
-namespace traits
-{
-    template<
-        typename T_Species,
-        typename T_Slave
-    >
-    struct SpeciesEligibleForSolver<
-        T_Species,
-        plugins::multi::Master< T_Slave >
-    >
+                std::string pluginGetName() const override
+                {
+                    // the PMacc plugin system needs a short description instead of the plugin name
+                    return instanceHelp->getName() + ": " + instanceHelp->getDescription();
+                }
+
+                void pluginRegisterHelp(boost::program_options::options_description& desc) override
+                {
+                    instanceHelp->registerHelp(desc);
+                }
+
+                void setMappingDescription(MappingDesc* cellDescription) override
+                {
+                    m_cellDescription = cellDescription;
+                }
+
+                /** restart a checkpoint
+                 *
+                 * Trigger the method restart() for all instances.
+                 */
+                void restart(uint32_t restartStep, std::string const restartDirectory) override
+                {
+                    for(auto& instance : instanceList)
+                        instance->restart(restartStep, restartDirectory);
+                }
+
+                /** Call the onParticleLeave() method for all instances.
+                 *
+                 * Called each timestep if particles are leaving the global simulation volume.
+                 *
+                 * @param speciesName name of the particle species
+                 * @param direction the direction the particles are leaving the simulation
+                 */
+                void onParticleLeave(const std::string& speciesName, const int32_t direction) override
+                {
+                    for(auto& instance : instanceList)
+                        instance->onParticleLeave(speciesName, direction);
+                }
+
+                /** create a checkpoint
+                 *
+                 * Trigger the method checkpoint() for all instances.
+                 */
+                void checkpoint(uint32_t currentStep, std::string const checkpointDirectory) override
+                {
+                    for(auto& instance : instanceList)
+                        instance->checkpoint(currentStep, checkpointDirectory);
+                }
+
+            private:
+                void pluginLoad() override
+                {
+                    size_t const numInstances = instanceHelp->getNumPlugins();
+                    if(numInstances > 0u)
+                        instanceHelp->validateOptions();
+                    for(size_t i = 0; i < numInstances; ++i)
+                    {
+                        instanceList.emplace_back(instanceHelp->create(instanceHelp, i, m_cellDescription));
+                    }
+                }
+
+                void pluginUnload() override
+                {
+                    instanceList.clear();
+                }
+
+                void notify(uint32_t currentStep) override
+                {
+                    // nothing to do here
+                }
+            };
+
+        } // namespace multi
+    } // namespace plugins
+
+    namespace particles
     {
-        using type = typename SpeciesEligibleForSolver<
-            T_Species,
-            T_Slave
-        >::type;
-    };
-} // namespace traits
-} // namespace particles
+        namespace traits
+        {
+            template<typename T_Species, typename T_Instance>
+            struct SpeciesEligibleForSolver<T_Species, plugins::multi::Master<T_Instance>>
+            {
+                using type = typename SpeciesEligibleForSolver<T_Species, T_Instance>::type;
+            };
+        } // namespace traits
+    } // namespace particles
 } // namespace picongpu

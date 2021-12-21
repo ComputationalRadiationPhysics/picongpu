@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera
+/* Copyright 2014-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,9 +22,9 @@
 
 namespace picongpu
 {
-namespace densityProfiles
-{
-    template<typename T_ParamClass>
-    struct FreeFormulaImpl;
-}
-}
+    namespace densityProfiles
+    {
+        template<typename T_ParamClass>
+        struct FreeFormulaImpl;
+    }
+} // namespace picongpu

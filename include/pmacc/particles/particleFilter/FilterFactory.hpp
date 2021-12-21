@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,42 +22,26 @@
 
 #pragma once
 
-#include "pmacc/particles/boostExtension/InheritGenerators.hpp"
 #include "pmacc/meta/conversion/MakeSeq.hpp"
-#include "pmacc/particles/particleFilter/system/TrueFilter.hpp"
-#include "pmacc/particles/particleFilter/system/DefaultFilter.hpp"
-
+#include "pmacc/particles/boostExtension/InheritGenerators.hpp"
 #include "pmacc/particles/memory/frames/NullFrame.hpp"
+#include "pmacc/particles/particleFilter/system/DefaultFilter.hpp"
+#include "pmacc/particles/particleFilter/system/TrueFilter.hpp"
 
+#include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/copy.hpp>
+#include <boost/mpl/front_inserter.hpp>
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/mpl/copy.hpp>
-#include <boost/mpl/back_inserter.hpp>
-#include <boost/mpl/front_inserter.hpp>
 
 namespace pmacc
 {
-
-
-
-template<typename UserTypeList = bmpl::vector<NullFrame> >
+    template<typename UserTypeList = bmpl::vector<NullFrame>>
     class FilterFactory
-{
-public:
+    {
+    public:
+        using FilterType =
+            typename LinearInherit<typename MakeSeq<DefaultFilter<>, UserTypeList, TrueFilter>::type>::type;
+    };
 
-    typedef
-    typename LinearInherit
-    <
-        typename MakeSeq<
-           DefaultFilter<> ,
-           UserTypeList,
-           TrueFilter
-        >::type
-    >::type FilterType;
-
-};
-
-}//namespace pmacc
-
-
-
+} // namespace pmacc

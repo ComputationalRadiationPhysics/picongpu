@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Felix Schmitt
+/* Copyright 2013-2021 Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -18,29 +18,25 @@
  */
 
 
-
 #pragma once
 
-#include <pmacc/types.hpp>
-#include <pmacc/pluginSystem/PluginConnector.hpp>
 #include "picongpu/plugins/ILightweightPlugin.hpp"
+
+#include <pmacc/pluginSystem/PluginConnector.hpp>
+#include <pmacc/types.hpp>
 
 
 namespace picongpu
 {
     using namespace pmacc;
 
-    class IInitPlugin :  public ILightweightPlugin
+    class IInitPlugin : public ILightweightPlugin
     {
     public:
         virtual void slide(uint32_t currentStep) = 0;
         virtual void init() = 0;
         virtual void printInformation() = 0;
 
-        virtual ~IInitPlugin()
-        {
-        }
-
+        ~IInitPlugin() override = default;
     };
-}
-
+} // namespace picongpu

@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -25,22 +25,22 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace misc
-{
-    /** append the name of an filter to a vector
-     *
-     * @tparam T_Filter filter class (required interface: `getName( )`)
-     */
-    template< typename T_Filter >
-    struct AppendName
+    namespace plugins
     {
-        void operator( )( std::vector< std::string > & vector ) const
+        namespace misc
         {
-            vector.emplace_back( T_Filter::getName() );
-        }
-    };
-} // namespace misc
-} // namespace plugins
+            /** append the name of an filter to a vector
+             *
+             * @tparam T_Filter filter class (required interface: `getName( )`)
+             */
+            template<typename T_Filter>
+            struct AppendName
+            {
+                void operator()(std::vector<std::string>& vector) const
+                {
+                    vector.emplace_back(T_Filter::getName());
+                }
+            };
+        } // namespace misc
+    } // namespace plugins
 } // namespace picongpu

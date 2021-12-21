@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -22,63 +22,101 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/mappings/kernel/AreaMappingMethods.hpp"
+#include "pmacc/mappings/kernel/MapperConcept.hpp"
+#include "pmacc/types.hpp"
+
+#include <cstdint>
 
 namespace pmacc
 {
-
-    template<uint32_t areaType, class baseClass>
+    /** Mapping from block indices to supercells in the given area for alpaka kernels
+     *
+     * Adheres to the MapperConcept.
+     *
+     * @tparam T_area area, a value from type::AreaType or a sum of such values
+     * @tparam T_MappingDescription mapping description type
+     */
+    template<uint32_t T_area, typename T_MappingDescription>
     class AreaMapping;
 
-    template<
-    uint32_t areaType,
-    template<unsigned, class> class baseClass,
-    unsigned DIM,
-    class SuperCellSize_
-    >
-    class AreaMapping<areaType, baseClass<DIM, SuperCellSize_> > : public baseClass<DIM, SuperCellSize_>
+    template<uint32_t areaType, template<unsigned, class> class baseClass, unsigned DIM, class SuperCellSize_>
+    class AreaMapping<areaType, baseClass<DIM, SuperCellSize_>> : public baseClass<DIM, SuperCellSize_>
     {
     public:
-        typedef baseClass<DIM, SuperCellSize_> BaseClass;
+        using BaseClass = baseClass<DIM, SuperCellSize_>;
 
         enum
         {
-            AreaType = areaType, Dim = BaseClass::Dim
+            AreaType = areaType,
+            Dim = BaseClass::Dim
         };
 
 
-        typedef typename BaseClass::SuperCellSize SuperCellSize;
+        using SuperCellSize = typename BaseClass::SuperCellSize;
 
         HINLINE AreaMapping(BaseClass base) : BaseClass(base)
         {
         }
 
-        /**
-         * Generate grid dimension information for kernel calls
+        /** Generate grid dimension information for alpaka kernel calls
          *
-         * @return size of the grid
+         * A kernel using this mapping must use exacly the returned number of blocks
+         *
+         * @return number of blocks in a grid
          */
         HINLINE DataSpace<DIM> getGridDim() const
         {
-            return AreaMappingMethods<areaType, DIM>::getGridDim(*this,
-                                                                 this->getGridSuperCells());
+            return AreaMappingMethods<areaType, DIM>::getGridDim(*this, this->getGridSuperCells());
         }
 
-        /**
-         * Returns index of current logical block
+        /** Return index of a supercell to be processed by the given alpaka block
          *
-         * @param realSuperCellIdx current SuperCell index (block index)
-         * @return mapped SuperCell index
+         * @param blockIdx alpaka block index
+         * @return mapped SuperCell index including guards
          */
-        HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx) const
+        HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& blockIdx) const
         {
-            return AreaMappingMethods<areaType, DIM>::getBlockIndex(*this,
-                                                                    this->getGridSuperCells(),
-                                                                    realSuperCellIdx);
+            return AreaMappingMethods<areaType, DIM>::getSuperCellIndex(*this, this->getGridSuperCells(), blockIdx);
         }
-
     };
+
+    /** Construct an area mapper instance for the given standard area and description
+     *
+     * Adheres to the MapperFactoryConcept.
+     *
+     * @tparam T_area area, a value from type::AreaType or a sum of such values
+     */
+    template<uint32_t T_area>
+    struct AreaMapperFactory
+    {
+        /** Construct an area mapper object
+         *
+         * @tparam T_MappingDescription mapping description type
+         *
+         * @param mappingDescription mapping description
+         *
+         * @return an object adhering to the AreaMapping concept
+         */
+        template<typename T_MappingDescription>
+        HINLINE auto operator()(T_MappingDescription mappingDescription) const
+        {
+            return AreaMapping<T_area, T_MappingDescription>{mappingDescription};
+        }
+    };
+
+    /** Construct an area mapper instance for the given area and description
+     *
+     * @tparam T_area area, a value from type::AreaType or a sum of such values
+     * @tparam T_MappingDescription mapping description type
+     *
+     * @param mappingDescription mapping description
+     */
+    template<uint32_t T_area, typename T_MappingDescription>
+    HINLINE auto makeAreaMapper(T_MappingDescription mappingDescription)
+    {
+        return AreaMapperFactory<T_area>{}(mappingDescription);
+    }
 
 } // namespace pmacc

@@ -1,0 +1,28 @@
+packages:
+  cuda:
+    buildable: false
+    externals:
+      - prefix: /usr/local/cuda
+        spec: cuda@11.2%gcc@9.3.0 arch=linux-ubuntu20.04-x86_64
+  pkg-config:
+    buildable: false
+    externals:
+      - prefix: /usr
+        spec: pkg-config@0.29.1%gcc@9.3.0 arch=linux-ubuntu20.04-x86_64
+  python:
+    buildable: false
+    externals:
+      - prefix: /usr
+        spec: python@2.7.18%gcc@9.3.0 arch=linux-ubuntu20.04-x86_64
+  openmpi:
+    version: [4.1.0]
+    variants: +cuda fabrics=auto
+  hwloc:
+    variants: +cuda
+  # install issue with gettext
+  # https://github.com/spack/spack/issues/11551
+  flex:
+    version: [2.6.3]
+  all:
+    providers:
+      mpi: [openmpi]

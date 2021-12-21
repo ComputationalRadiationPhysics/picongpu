@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,124 +22,117 @@
 #pragma once
 
 #include "pmacc/eventSystem/EventSystem.hpp"
-#include "pmacc/fields/tasks/FieldFactory.hpp"
+#include "pmacc/eventSystem/events/EventDataReceive.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
-#include "pmacc/eventSystem/events/EventDataReceive.hpp"
-#include "pmacc/eventSystem/EventSystem.hpp"
-#include <iostream>
+#include "pmacc/fields/tasks/FieldFactory.hpp"
 #include "pmacc/traits/NumberOfExchanges.hpp"
+
+#include <iostream>
 
 namespace pmacc
 {
-
-template<class Field>
-class TaskFieldReceiveAndInsert : public MPITask
-{
-public:
-
-
-    static constexpr uint32_t Dim = picongpu::simDim;
-
-    TaskFieldReceiveAndInsert(Field &buffer) :
-    m_buffer(buffer),
-    m_state(Constructor)
+    template<class Field>
+    class TaskFieldReceiveAndInsert : public MPITask
     {
-    }
+    public:
+        static constexpr uint32_t Dim = picongpu::simDim;
 
-    virtual void init()
-    {
-        m_state = Init;
-        EventTask serialEvent = __getTransactionEvent();
-
-        for (uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
+        TaskFieldReceiveAndInsert(Field& buffer) : m_buffer(buffer), m_state(Constructor)
         {
-            if (m_buffer.getGridBuffer().hasReceiveExchange(i))
-            {
-                __startTransaction(serialEvent);
-                FieldFactory::getInstance().createTaskFieldReceiveAndInsertExchange(m_buffer, i);
-                m_tmpEvent += __endTransaction();
-            }
         }
-        m_state = WaitForReceived;
-    }
 
-    bool executeIntern()
-    {
-        switch (m_state)
+        void init() override
         {
-        case Init:
-            break;
-        case WaitForReceived:
-            if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
+            m_state = Init;
+            EventTask serialEvent = __getTransactionEvent();
+
+            for(uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
             {
-                m_state = Insert;
-            }
-            break;
-        case Insert:
-            m_state = Wait;
-            __startTransaction();
-            for (uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
-            {
-                if (m_buffer.getGridBuffer().hasReceiveExchange(i))
+                if(m_buffer.getGridBuffer().hasReceiveExchange(i))
                 {
-                    m_buffer.insertField(i);
+                    __startTransaction(serialEvent);
+                    FieldFactory::getInstance().createTaskFieldReceiveAndInsertExchange(m_buffer, i);
+                    m_tmpEvent += __endTransaction();
                 }
             }
-            m_tmpEvent = __endTransaction();
-            m_state = WaitInsertFinished;
-            break;
-        case Wait:
-            break;
-        case WaitInsertFinished:
-            if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
+            m_state = WaitForReceived;
+        }
+
+        bool executeIntern() override
+        {
+            switch(m_state)
             {
-                m_state = Finish;
+            case Init:
+                break;
+            case WaitForReceived:
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
+                {
+                    m_state = Insert;
+                }
+                break;
+            case Insert:
+                m_state = Wait;
+                __startTransaction();
+                for(uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
+                {
+                    if(m_buffer.getGridBuffer().hasReceiveExchange(i))
+                    {
+                        m_buffer.insertField(i);
+                    }
+                }
+                m_tmpEvent = __endTransaction();
+                m_state = WaitInsertFinished;
+                break;
+            case Wait:
+                break;
+            case WaitInsertFinished:
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
+                {
+                    m_state = Finish;
+                    return true;
+                }
+                break;
+            case Finish:
                 return true;
+            default:
+                return false;
             }
-            break;
-        case Finish:
-            return true;
-        default:
+
             return false;
         }
 
-        return false;
-    }
+        ~TaskFieldReceiveAndInsert() override
+        {
+            notify(this->myId, RECVFINISHED, nullptr);
+        }
 
-    virtual ~TaskFieldReceiveAndInsert()
-    {
-        notify(this->myId, RECVFINISHED, nullptr);
-    }
+        void event(id_t, EventType, IEventData*) override
+        {
+        }
 
-    void event(id_t, EventType, IEventData*)
-    {
-    }
+        std::string toString() override
+        {
+            return "TaskFieldReceiveAndInsert";
+        }
 
-    std::string toString()
-    {
-        return "TaskFieldReceiveAndInsert";
-    }
+    private:
+        enum state_t
+        {
+            Constructor,
+            Init,
+            Wait,
+            Insert,
+            WaitInsertFinished,
+            WaitForReceived,
+            Finish
 
-private:
+        };
 
-    enum state_t
-    {
-        Constructor,
-        Init,
-        Wait,
-        Insert,
-        WaitInsertFinished,
-        WaitForReceived,
-        Finish
 
+        Field& m_buffer;
+        state_t m_state;
+        EventTask m_tmpEvent;
     };
 
-
-    Field& m_buffer;
-    state_t m_state;
-    EventTask m_tmpEvent;
-
-};
-
-} //namespace pmacc
+} // namespace pmacc

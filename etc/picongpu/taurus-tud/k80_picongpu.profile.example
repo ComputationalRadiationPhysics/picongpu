@@ -19,46 +19,43 @@ export proj=$(groups | awk '{print $1}')
 
 # Modules #####################################################################
 #
+module purge
 module load modenv/scs5
-module load foss/2018a
-module load GCC/6.4.0-2.28
-module load CMake/3.11.4-GCCcore-6.4.0
-module load CUDA/9.2.88  # gcc <= 7, intel 15-17
-module load OpenMPI/2.1.2-GCC-6.4.0-2.28
+module load gompic/2019b # loads GCC/8.3.0 CUDA/10.1.243 zlib/1.2.11 OpenMPI/3.1.4
+# gompic/2020b does not have a corresponding boost module
+module load CMake/3.15.3-GCCcore-8.3.0
+module load Boost/1.71.0-gompic-2019b
+module load git/2.23.0-GCCcore-8.3.0-nodocs
+module load libpng/1.6.37-GCCcore-8.3.0
+module load HDF5/1.10.5-gompic-2019b
+module load Python/3.7.4-GCCcore-8.3.0
 
-module load git/2.18.0-GCCcore-6.4.0
-module load gnuplot/5.2.4-foss-2018a
+# Self-Build Software ##########################################################
+#
+# needs to be compiled by the user
+# Check the install script at
+# https://gist.github.com/steindev/86df43bef49586e2b33d2fb0a372f09c
+#
+# path to own libraries:
+export PIC_LIBS=$HOME/lib
 
-module load Boost/1.66.0-foss-2018a
-# currently not linking correctly:
-#module load HDF5/1.10.1-foss-2018a
-module load zlib/1.2.11-GCCcore-6.4.0
+export BLOSC_ROOT=$PIC_LIBS/blosc-1.21.0
+export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
 
-# module system does not export cmake prefix path:
-export CMAKE_PREFIX_PATH=$EBROOTLIBPNG:$CMAKE_PREFIX_PATH
-export CMAKE_PREFIX_PATH=$EBROOTZLIB:$CMAKE_PREFIX_PATH
+export PNGwriter_ROOT=$PIC_LIBS/pngwriter-0.7.0
+export CMAKE_PREFIX_PATH=$PNGwriter_ROOT:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$PNGwriter_ROOT/lib:$LD_LIBRARY_PATH
+
+export ADIOS2_ROOT=$PIC_LIBS/adios2-2.7.1
+export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib64:$LD_LIBRARY_PATH
+
+export OPENPMD_ROOT=$PIC_LIBS/openpmd-0.14.1
+export LD_LIBRARY_PATH=$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH
+
 
 # Environment #################################################################
 #
-
-# path to own libraries:
-export ownLibs=$HOME
-
-# workaround HDF5:
-export HDF5_ROOT=$ownLibs/lib/hdf5
-export LD_LIBRARY_PATH=$HDF5_ROOT/lib:$LD_LIBRARY_PATH
-export CMAKE_PREFIX_PATH=$HDF5_ROOT:$CMAKE_PREFIX_PATH
-
-# pngwriter needs to be built by the user:
-export PNGwriter_DIR=$ownLibs/lib/pngwriter
-export CMAKE_PREFIX_PATH=$PNGwriter_DIR:$CMAKE_PREFIX_PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGwriter_DIR/lib/
-
-# splash needs to be built by the user:
-export Splash_DIR=$ownLibs/lib/splashModule2
-export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$Splash_DIR/lib/
-
+export PROJECT=/projects/$proj
 
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples

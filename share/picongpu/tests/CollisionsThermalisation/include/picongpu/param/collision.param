@@ -1,0 +1,58 @@
+/* Copyright 2019-2021 Rene Widera, Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/particles/collision/collision.def"
+
+#ifndef PARAM_COLLISION_PRECISION
+#    define PARAM_COLLISION_PRECISION float_64
+#endif
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace collision
+        {
+            namespace precision
+            {
+                using float_COLL = PARAM_COLLISION_PRECISION;
+            } // namespace precision
+            /** CollisionPipeline defines in which order species interact with each other
+             *
+             * the functors are called in order (from first to last functor)
+             */
+
+            struct Params1
+            {
+                static constexpr float_X coulombLog = 5.0_X;
+            };
+            struct Params2
+            {
+                static constexpr float_X coulombLog = 1000.0_X;
+            };
+            using Pairs1 = MakeSeq_t<Pair<Electrons, Ions>>;
+            using Pairs2 = MakeSeq_t<Pair<Electrons, Electrons>, Pair<Ions, Ions>>;
+            using CollisionPipeline = bmpl::vector<
+                Collider<binary::RelativisticBinaryCollision, Pairs1, Params1>,
+                Collider<binary::RelativisticBinaryCollision, Pairs2, Params2>>;
+        } // namespace collision
+    } // namespace particles
+} // namespace picongpu

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -25,55 +25,50 @@
 #include "pmacc/Environment.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/particles/tasks/ParticleFactory.hpp"
-
-#include "pmacc/particles/tasks/TaskSendParticlesExchange.hpp"
-#include "pmacc/particles/tasks/TaskReceiveParticlesExchange.hpp"
 #include "pmacc/particles/tasks/TaskParticlesReceive.hpp"
 #include "pmacc/particles/tasks/TaskParticlesSend.hpp"
+#include "pmacc/particles/tasks/TaskReceiveParticlesExchange.hpp"
+#include "pmacc/particles/tasks/TaskSendParticlesExchange.hpp"
 
 namespace pmacc
 {
-
     template<class ParBase>
-    inline EventTask ParticleFactory::createTaskParticlesReceive(ParBase &parBase,
-    ITask *registeringTask)
+    inline EventTask ParticleFactory::createTaskParticlesReceive(ParBase& parBase, ITask* registeringTask)
     {
-        TaskParticlesReceive<ParBase>* task = new TaskParticlesReceive<ParBase > (parBase);
+        auto* task = new TaskParticlesReceive<ParBase>(parBase);
 
         return Environment<>::get().Factory().startTask(*task, registeringTask);
     }
 
     template<class ParBase>
-    inline EventTask ParticleFactory::createTaskReceiveParticlesExchange(ParBase &parBase, uint32_t exchange,
-    ITask *registeringTask)
+    inline EventTask ParticleFactory::createTaskReceiveParticlesExchange(
+        ParBase& parBase,
+        uint32_t exchange,
+        ITask* registeringTask)
     {
-        TaskReceiveParticlesExchange<ParBase>* task = new TaskReceiveParticlesExchange<ParBase > (parBase, exchange);
+        auto* task = new TaskReceiveParticlesExchange<ParBase>(parBase, exchange);
 
         return Environment<>::get().Factory().startTask(*task, registeringTask);
     }
 
     template<class ParBase>
-    inline EventTask ParticleFactory::createTaskParticlesSend(ParBase &parBase,
-    ITask *registeringTask)
+    inline EventTask ParticleFactory::createTaskParticlesSend(ParBase& parBase, ITask* registeringTask)
     {
-        TaskParticlesSend<ParBase>* task = new TaskParticlesSend<ParBase > (parBase);
+        auto* task = new TaskParticlesSend<ParBase>(parBase);
 
         return Environment<>::get().Factory().startTask(*task, registeringTask);
     }
 
     template<class ParBase>
-    inline EventTask ParticleFactory::createTaskSendParticlesExchange(ParBase &parBase, uint32_t exchange,
-    ITask *registeringTask)
+    inline EventTask ParticleFactory::createTaskSendParticlesExchange(
+        ParBase& parBase,
+        uint32_t exchange,
+        ITask* registeringTask)
     {
-        TaskSendParticlesExchange<ParBase>* task = new TaskSendParticlesExchange<ParBase > (parBase, exchange);
+        auto* task = new TaskSendParticlesExchange<ParBase>(parBase, exchange);
 
         return Environment<>::get().Factory().startTask(*task, registeringTask);
     }
 
 
-
-} //namespace pmacc
-
-
-
-
+} // namespace pmacc

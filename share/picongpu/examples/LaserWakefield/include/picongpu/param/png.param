@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -24,17 +24,17 @@
 
 namespace picongpu
 {
-/*scale image before write to file, only scale if value is not 1.0
- */
-constexpr float_64 scale_image = 1.0;
+    /*scale image before write to file, only scale if value is not 1.0
+     */
+    constexpr float_64 scale_image = 1.0;
 
-/*if true image is scaled if cellsize is not quadratic, else no scale*/
-constexpr bool scale_to_cellsize = true;
+    /*if true image is scaled if cellsize is not quadratic, else no scale*/
+    constexpr bool scale_to_cellsize = true;
 
-constexpr bool white_box_per_GPU = false;
+    constexpr bool white_box_per_GPU = false;
 
-namespace visPreview
-{
+    namespace visPreview
+    {
 // normalize EM fields to typical laser or plasma quantities
 //-1: Auto:    enable adaptive scaling for each output
 // 1: Laser:   typical fields calculated out of the laser amplitude
@@ -49,33 +49,32 @@ namespace visPreview
 #define EM_FIELD_SCALE_CHANNEL2 -1
 #define EM_FIELD_SCALE_CHANNEL3 -1
 
-// multiply highest undisturbed particle density with factor
-constexpr float_X preParticleDens_opacity = 0.25;
-constexpr float_X preChannel1_opacity = 1.0;
-constexpr float_X preChannel2_opacity = 1.0;
-constexpr float_X preChannel3_opacity = 1.0;
+        // multiply highest undisturbed particle density with factor
+        constexpr float_X preParticleDens_opacity = 0.25;
+        constexpr float_X preChannel1_opacity = 1.0;
+        constexpr float_X preChannel2_opacity = 1.0;
+        constexpr float_X preChannel3_opacity = 1.0;
 
-// specify color scales for each channel
-namespace preParticleDensCol = colorScales::grayInv;
-namespace preChannel1Col = colorScales::green;
-namespace preChannel2Col = colorScales::none;
-namespace preChannel3Col = colorScales::none;
+        // specify color scales for each channel
+        namespace preParticleDensCol = colorScales::grayInv;
+        namespace preChannel1Col = colorScales::green;
+        namespace preChannel2Col = colorScales::none;
+        namespace preChannel3Col = colorScales::none;
 
-/* png preview settings for each channel */
-DINLINE float_X preChannel1(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
-{
-    return field_E.x() * field_E.x();
-}
+        /* png preview settings for each channel */
+        DINLINE float_X preChannel1(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
+        {
+            return field_E.x() * field_E.x();
+        }
 
-DINLINE float_X preChannel2(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
-{
-    return field_E.y();
-}
+        DINLINE float_X preChannel2(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
+        {
+            return field_E.y();
+        }
 
-DINLINE float_X preChannel3(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
-{
-    return -1.0_X * field_E.y();
-}
-}
-}
-
+        DINLINE float_X preChannel3(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
+        {
+            return -1.0_X * field_E.y();
+        }
+    } // namespace visPreview
+} // namespace picongpu

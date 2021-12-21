@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,5 +10,5 @@
 #pragma once
 
 #ifndef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
-    #define ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
+#    define ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
 #endif

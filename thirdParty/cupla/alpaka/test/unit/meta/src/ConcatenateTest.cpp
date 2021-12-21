@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,35 +18,13 @@
 //-----------------------------------------------------------------------------
 TEST_CASE("concatenate", "[meta]")
 {
-    using TestTuple1 =
-        std::tuple<
-            float,
-            int,
-            std::tuple<double, unsigned long>>;
+    using TestTuple1 = std::tuple<float, int, std::tuple<double, unsigned long>>;
 
-    using TestTuple2 =
-        std::tuple<
-            bool,
-            std::string>;
+    using TestTuple2 = std::tuple<bool, std::string>;
 
-    using ConcatenateResult =
-        alpaka::meta::Concatenate<
-            TestTuple1,
-            TestTuple2
-        >;
+    using ConcatenateResult = alpaka::meta::Concatenate<TestTuple1, TestTuple2>;
 
-    using ConcatenateReference =
-        std::tuple<
-            float,
-            int,
-            std::tuple<double, unsigned long>,
-            bool,
-            std::string>;
+    using ConcatenateReference = std::tuple<float, int, std::tuple<double, unsigned long>, bool, std::string>;
 
-    static_assert(
-        std::is_same<
-            ConcatenateReference,
-            ConcatenateResult
-        >::value,
-        "alpaka::meta::Concatenate failed!");
+    static_assert(std::is_same<ConcatenateReference, ConcatenateResult>::value, "alpaka::meta::Concatenate failed!");
 }

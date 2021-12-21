@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Rene Widera,
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Rene Widera,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -23,11 +23,12 @@
 
 #include <boost/program_options/options_description.hpp>
 
-#include <string>
-#include <stdexcept>
-#include <vector>
-#include <stdint.h>
+#include <cstdint>
 #include <list>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 
 namespace picongpu
 {
@@ -41,7 +42,6 @@ namespace picongpu
     class ArgsParser
     {
     public:
-
         //! Parsing status
         enum Status
         {
@@ -69,7 +69,7 @@ namespace picongpu
          * @param argv command line arguments
          * @return parsing status
          */
-        Status parse(int argc, char **argv);
+        Status parse(int argc, char** argv);
 
     private:
         /**
@@ -82,4 +82,4 @@ namespace picongpu
         std::list<po::options_description> options;
     };
 
-}
+} // namespace picongpu

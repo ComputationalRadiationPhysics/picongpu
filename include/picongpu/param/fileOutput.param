@@ -1,5 +1,5 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera, Felix Schmitt,
- *                     Benjamin Worpitz, Richard Pausch
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Felix Schmitt,
+ *                     Benjamin Worpitz, Richard Pausch, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -24,6 +24,7 @@
 
 /* some forward declarations we need */
 #include "picongpu/fields/Fields.def"
+#include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 
 #include <boost/mpl/vector.hpp>
@@ -59,53 +60,51 @@ namespace picongpu
      *       density * charge * velocity_component
      *   - Counter: counts point like particles per cell
      *   - MacroCounter: counts point like macro particles per cell
+     *
+     * Filtering:
+     *   You can create derived fields from filtered particles. Only particles passing
+     *   the filter will contribute to the field quantity.
+     *   For that you need to define your filters in `particleFilters.param` and pass a
+     *   filter as the 3rd (optional) template argument in `CreateEligible_t`.
+     *
+     *   Example: This will create charge density field for all species that are
+     *   eligible for the this attribute and the chosen filter.
+     *   @code{.cpp}
+     *   using ChargeDensity_Seq
+         = deriveField::CreateEligible_t< VectorAllSpecies,
+         deriveField::derivedAttributes::ChargeDensity, filter::FilterOfYourChoice>;
+     *   @endcode
      */
     namespace deriveField = particles::particleToGrid;
 
     /* ChargeDensity section */
-    using ChargeDensity_Seq = deriveField::CreateEligible_t<
-        VectorAllSpecies,
-        deriveField::derivedAttributes::ChargeDensity
-    >;
+    using ChargeDensity_Seq
+        = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::ChargeDensity>;
 
     /* EnergyDensity section */
-    using EnergyDensity_Seq = deriveField::CreateEligible_t<
-        VectorAllSpecies,
-        deriveField::derivedAttributes::EnergyDensity
-    >;
+    using EnergyDensity_Seq
+        = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::EnergyDensity>;
 
     /* MomentumComponentsection: define "component" as
        0=X (default), 1=Y or 2=Z (results: [-1.:1.])
      */
-    using MomentumComponent_Seq = deriveField::CreateEligible_t<
-        VectorAllSpecies,
-        deriveField::derivedAttributes::MomentumComponent< 0 >
-    >;
+    using MomentumComponent_Seq
+        = deriveField::CreateEligible_t<VectorAllSpecies, deriveField::derivedAttributes::MomentumComponent<0>>;
 
     /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
      *
      * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
      */
-    using FieldTmpSolvers = MakeSeq_t<
-        ChargeDensity_Seq,
-        EnergyDensity_Seq,
-        MomentumComponent_Seq
-    >;
+    using FieldTmpSolvers = MakeSeq_t<ChargeDensity_Seq, EnergyDensity_Seq, MomentumComponent_Seq>;
 
 
     /** FileOutputFields: Groups all Fields that shall be dumped *************/
 
     /** Possible native fields: FieldE, FieldB, FieldJ
      */
-    using NativeFileOutputFields = MakeSeq_t<
-        FieldE,
-        FieldB
-    >;
+    using NativeFileOutputFields = MakeSeq_t<FieldE, FieldB>;
 
-    using FileOutputFields = MakeSeq_t<
-        NativeFileOutputFields,
-        FieldTmpSolvers
-    >;
+    using FileOutputFields = MakeSeq_t<NativeFileOutputFields, FieldTmpSolvers>;
 
 
     /** FileOutputParticles: Groups all Species that shall be dumped **********
@@ -115,4 +114,4 @@ namespace picongpu
      */
     using FileOutputParticles = VectorAllSpecies;
 
-}
+} // namespace picongpu

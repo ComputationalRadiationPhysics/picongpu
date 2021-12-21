@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Heiko Burau
+/* Copyright 2015-2021 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -22,30 +22,27 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
 #include <cmath>
 
 namespace pmacc
 {
-namespace algorithms
-{
-namespace math
-{
-
-template<>
-struct Modf<float>
-{
-    typedef float result;
-
-    HDINLINE float operator()(float value, float* intpart)
+    namespace math
     {
-#if __CUDA_ARCH__
-        return ::modff(value, intpart);
-#else
-        return std::modf(value, intpart);
-#endif
-    }
-};
+        template<>
+        struct Modf<float>
+        {
+            using result = float;
 
-} //namespace math
-} //namespace algorithms
+            HDINLINE float operator()(float value, float* intpart)
+            {
+#if(CUPLA_DEVICE_COMPILE == 1) // we are on gpu
+                return ::modff(value, intpart);
+#else
+                return std::modf(value, intpart);
+#endif
+            }
+        };
+
+    } // namespace math
 } // namespace pmacc

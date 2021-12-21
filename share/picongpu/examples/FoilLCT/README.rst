@@ -7,7 +7,7 @@ FoilLCT: Ion Acceleration from a Liquid-Crystal Target
 .. moduleauthor:: Axel Huebl, T. Kluge
 
 The following example models a laser-ion accelerator in the [TNSA]_ regime.
-An optically over-dense target (:math:`n_\text{max} = 192 n_\text{c}`) consisting of a liquid-crystal material *8CB* (4-octyl-4'-cyanobiphenyl) :math:`C_{21}H_{25}N` is used.
+An optically over-dense target (:math:`n_\text{max} = 192 n_\text{c}`) consisting of a liquid-crystal material *8CB* (4-octyl-4'-cyanobiphenyl) :math:`C_{21}H_{25}N` is used [LCT]_.
 
 Irradiated with a high-power laser pulse with :math:`a_0 = 5` the target is assumed to be partly pre-ionized due to realistic laser contrast and pre-pulses to :math:`C^{2+}`, :math:`H^+` and :math:`N^{2+}` while being slightly expanded on its surfaces (modeled as exponential density slope).
 The overall target is assumed to be initially quasi-neutral and the *8CB* ion components are are not demixed in the surface regions.
@@ -32,3 +32,9 @@ References
        *Energetic proton generation in ultra-intense laser-solid interactions*,
        Physics of Plasmas **8**, 542 (2001),
        https://dx.doi.org/10.1063/1.1333697
+       
+.. [LCT]
+       P.L. Poole, L. Obst, G.E. Cochran, J. Metzkes, H.-P. Schlenvoigt, I. Prencipe, T. Kluge, T.E. Cowan, U. Schramm, and D.W. Schumacher.
+       *Laser-driven ion acceleration via target normal sheath acceleration in the relativistic transparency regime*,
+       New Journal of Physics **20**, 013019 (2018),
+       https://dx.doi.org/10.1088/1367-2630/aa9d47

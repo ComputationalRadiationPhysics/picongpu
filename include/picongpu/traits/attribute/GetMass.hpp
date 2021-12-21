@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera
+/* Copyright 2014-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,29 +20,29 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include "picongpu/traits/frame/GetMass.hpp"
 
 
 namespace picongpu
 {
-namespace traits
-{
-namespace attribute
-{
+    namespace traits
+    {
+        namespace attribute
+        {
+            /** get the mass of a makro particle
+             *
+             * @param weighting weighting of the particle
+             * @param particle a reference to a particle
+             * @return mass of the makro particle
+             */
+            template<typename T_Particle>
+            HDINLINE float_X getMass(const float_X weighting, const T_Particle& particle)
+            {
+                using ParticleType = T_Particle;
+                return frame::getMass<typename ParticleType::FrameType>() * weighting;
+            }
 
-/** get the mass of a makro particle
- *
- * @param weighting weighting of the particle
- * @param particle a reference to a particle
- * @return mass of the makro particle
- */
-template<typename T_Particle>
-HDINLINE float_X getMass(const float_X weighting, const T_Particle& particle)
-{
-    using ParticleType = T_Particle;
-    return frame::getMass<typename ParticleType::FrameType > () * weighting;
-}
-
-}// namespace attribute
-}// namespace traits
-}// namespace picongpu
+        } // namespace attribute
+    } // namespace traits
+} // namespace picongpu

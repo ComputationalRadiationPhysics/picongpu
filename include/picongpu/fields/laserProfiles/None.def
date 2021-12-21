@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl
+/* Copyright 2013-2021 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -24,43 +24,43 @@
 
 namespace picongpu
 {
-namespace fields
-{
-namespace laserProfiles
-{
-namespace none
-{
-namespace defaults
-{
-    struct NoneParam
+    namespace fields
     {
-        /** unit: meter */
-        static constexpr float_64 WAVE_LENGTH_SI = 0.0;
+        namespace laserProfiles
+        {
+            namespace none
+            {
+                namespace defaults
+                {
+                    struct NoneParam
+                    {
+                        /** unit: meter */
+                        static constexpr float_64 WAVE_LENGTH_SI = 0.0;
 
-        /** unit: Volt / meter */
-        static constexpr float_64 AMPLITUDE_SI = 0.0;
+                        /** unit: Volt / meter */
+                        static constexpr float_64 AMPLITUDE_SI = 0.0;
 
-        /** unit: s */
-        static constexpr float_64 PULSE_LENGTH_SI = 0.0;
+                        /** unit: s */
+                        static constexpr float_64 PULSE_LENGTH_SI = 0.0;
 
-        /** unit: cells */
-        static constexpr uint32_t initPlaneY = 0u;
-    };
-} // namespace defaults
-} // namespace none
+                        /** unit: cells */
+                        static constexpr uint32_t initPlaneY = 0u;
+                    };
+                } // namespace defaults
+            } // namespace none
 
-    /** Empty laser profile
-     *
-     * Does not define a laser profile but provides some hard-coded constants
-     * that are accessed directly in some places.
-     *
-     * @tparam T_Params class parameter to configure the "no laser" profile,
-     *                  see members of none::defaults::NoneParam for required
-     *                  members
-     */
-    template< typename T_Params = none::defaults::NoneParam >
-    struct None;
+            /** Empty laser profile
+             *
+             * Does not define a laser profile but provides some hard-coded constants
+             * that are accessed directly in some places.
+             *
+             * @tparam T_Params class parameter to configure the "no laser" profile,
+             *                  see members of none::defaults::NoneParam for required
+             *                  members
+             */
+            template<typename T_Params = none::defaults::NoneParam>
+            struct None;
 
-} // namespace laserProfiles
-} // namespace fields
+        } // namespace laserProfiles
+    } // namespace fields
 } // namespace picongpu

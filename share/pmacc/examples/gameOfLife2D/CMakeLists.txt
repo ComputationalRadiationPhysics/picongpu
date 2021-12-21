@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Rene Widera, Axel Huebl
+# Copyright 2013-2021 Rene Widera, Axel Huebl
 #
 # This file is part of PMacc.
 #
@@ -23,7 +23,7 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 3.11.4)
+cmake_minimum_required(VERSION 3.15.0)
 
 
 ################################################################################
@@ -60,10 +60,10 @@ endif()
 # Language Flags
 ###############################################################################
 
-# enforce C++11
+# enforce C++14
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 
 ################################################################################

@@ -40,7 +40,7 @@ export CXX=$(which CC)
 export CRAY_CPU_TARGET=x86-64
 
 # Libraries ###################################################################
-module load CMake/3.11.4
+module load CMake/3.15.0
 
 module load cray-mpich/7.6.0
 module load cray-hdf5-parallel/1.10.0.3
@@ -54,19 +54,14 @@ export ZLIB_ROOT=$PIC_LIBS/zlib-1.2.11
 export PNG_ROOT=$PIC_LIBS/libpng-1.6.34
 export BLOSC_ROOT=$PIC_LIBS/blosc-1.12.1
 export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0
-export ADIOS_ROOT=$PIC_LIBS/adios-1.13.1
-export Splash_DIR=$PIC_LIBS/splash-1.7.0
 
 export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$ZLIB_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$PNG_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$PNGwriter_DIR/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$ADIOS_ROOT/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$Splash_DIR/lib:$LD_LIBRARY_PATH
 
 export PATH=$PNG_ROOT/bin:$PATH
-export PATH=$ADIOS_ROOT/bin:$PATH
 
 export CMAKE_PREFIX_PATH=$ZLIB_ROOT:$CMAKE_PREFIX_PATH
 export CMAKE_PREFIX_PATH=$PNG_ROOT:$CMAKE_PREFIX_PATH

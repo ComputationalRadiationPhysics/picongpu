@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -21,25 +21,19 @@
 
 #include "picongpu/initialization/InitialiserController.hpp"
 #include "picongpu/plugins/PluginController.hpp"
-#include "picongpu/simulation/control/MySimulation.hpp"
+#include "picongpu/simulation/control/Simulation.hpp"
 #include "picongpu/simulation/control/SimulationStarter.hpp"
 
 
 namespace picongpu
 {
-
     namespace defaultPIConGPU
     {
         /* Define a starter for the simulation with the name "SimStarter"
          *
          * etc.: using SimStarter = MyOwnStarterClass;
          */
-        using SimStarter = ::picongpu::SimulationStarter<
-            ::picongpu::InitialiserController,
-            ::picongpu::PluginController,
-            ::picongpu::MySimulation
-        >;
-    }
-}
-
-
+        using SimStarter = ::picongpu::
+            SimulationStarter<::picongpu::InitialiserController, ::picongpu::PluginController, ::picongpu::Simulation>;
+    } // namespace defaultPIConGPU
+} // namespace picongpu

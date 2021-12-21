@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Richard Pausch,
  *                     Axel Huebl, Alexander Debus
  *
  * This file is part of PMacc.
@@ -22,125 +22,45 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
 #include <cfloat>
 #include <cmath>
 
 
 namespace pmacc
 {
-namespace algorithms
-{
-namespace math
-{
-
-template<>
-struct Sin<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value )
+    namespace math
     {
-        return ::sin( value );
-    }
-};
+        template<>
+        struct SinCos<double, double, double>
+        {
+            using result = void;
 
-template<>
-struct ASin<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value)
-    {
-        return ::asin( value );
-    }
-};
-
-template<>
-struct Cos<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value )
-    {
-        return ::cos( value );
-    }
-};
-
-template<>
-struct ACos<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value)
-    {
-        return ::acos( value );
-    }
-};
-
-template<>
-struct Tan<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value )
-    {
-        return ::tan( value );
-    }
-};
-
-template<>
-struct ATan<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value)
-    {
-        return ::atan( value );
-    }
-};
-
-template<>
-struct SinCos<double, double, double>
-{
-    typedef void result;
-
-    HDINLINE void operator( )(double arg, double& sinValue, double& cosValue )
-    {
+            HDINLINE void operator()(double arg, double& sinValue, double& cosValue)
+            {
 #if defined(_MSC_VER) && !defined(__CUDA_ARCH__)
-        sinValue = ::sin(arg);
-        cosValue = ::cos(arg);
+                sinValue = cupla::math::sin(arg);
+                cosValue = cupla::math::cos(arg);
 #else
-        ::sincos(arg, &sinValue, &cosValue);
+                ::sincos(arg, &sinValue, &cosValue);
 #endif
-    }
-};
+            }
+        };
 
 
-template<>
-struct Sinc<double>
-{
-    typedef double result;
+        template<>
+        struct Sinc<double>
+        {
+            using result = double;
 
-    HDINLINE double operator( )(const double& value )
-    {
-        if(pmacc::algorithms::math::abs(value) < DBL_EPSILON)
-            return 1.0;
-        else
-            return pmacc::algorithms::math::sin( value )/value;
-    }
-};
+            HDINLINE double operator()(const double& value)
+            {
+                if(cupla::math::abs(value) < DBL_EPSILON)
+                    return 1.0;
+                else
+                    return cupla::math::sin(value) / value;
+            }
+        };
 
-template<>
-struct Atan2<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& val1, const double& val2 )
-    {
-        return ::atan2( val1, val2 );
-    }
-};
-
-} //namespace math
-} //namespace algorithms
+    } // namespace math
 } // namespace pmacc

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -23,24 +23,25 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
-namespace promoteType
-{
+    namespace algorithms
+    {
+        namespace promoteType
+        {
+            // general: use first type
+            template<class T1, class T2>
+            struct promoteType
+            {
+                using type = T1;
+            };
 
-    // general: use first type
-    template<class T1, class T2>
-    struct promoteType {
-        typedef T1 type;
-    };
-
-    // special: promote float to double
-    template< >
-    struct promoteType<float, double> {
-        typedef double type;
-    };
+            // special: promote float to double
+            template<>
+            struct promoteType<float, double>
+            {
+                using type = double;
+            };
 
 
-} //namespace promoteType
-} //namespace algorithms
-} //namespace pmacc
+        } // namespace promoteType
+    } // namespace algorithms
+} // namespace pmacc

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Anton Helm,
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Anton Helm,
  *                     Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -30,12 +30,12 @@
 
 namespace picongpu
 {
-/** @namespace simulation_starter
- *
- * Simulation Starter Selection:
- * This value does usually not need to be changed. Change only if you want to
- * implement your own `SimulationHelper` (e.g. `MySimulation`) class.
- *  - defaultPIConGPU         : default PIConGPU configuration
- */
-namespace simulation_starter = defaultPIConGPU;
+    /** @namespace simulation_starter
+     *
+     * Simulation Starter Selection:
+     * This value does usually not need to be changed. Change only if you want to
+     * implement your own `SimulationHelper` (e.g. `Simulation`) class.
+     *  - defaultPIConGPU         : default PIConGPU configuration
+     */
+    namespace simulation_starter = defaultPIConGPU;
 } // namespace picongpu

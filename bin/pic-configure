@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2020 Axel Huebl, Rene Widera
+# Copyright 2013-2021 Axel Huebl, Rene Widera, Pawel Ordyna
 #
 # This file is part of PIConGPU.
 #
@@ -39,8 +39,8 @@ help()
     echo "                       (default is <inputDirectory>)"
     echo "-b | --backend       - set compute backend and optionally the architecture"
     echo "                       syntax: backend[:architecture]"
-    echo "                       supported backends: cuda, omp2b, serial, tbb, threads"
-    echo "                       (e.g.: \"cuda:20;35;37;52;60\" or \"omp2b:native\" or \"omp2b\")"
+    echo "                       supported backends: cuda, hip, omp2b, serial, tbb, threads"
+    echo "                       (e.g.: \"cuda:35;37;52;60\" or \"omp2b:native\" or \"omp2b\")"
     echo "                       default: \"cuda\" if not set via environment variable PIC_BACKEND"
     echo "                       note: architecture names are compiler dependent"
     echo "-c | --cmake         - overwrite options for cmake"
@@ -64,24 +64,29 @@ get_backend_flags()
             result+=" -DALPAKA_CUDA_ARCH=\"${backend_cfg[1]}\""
         fi
     elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
-        result+=" -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
+        result+=" -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON -DCUPLA_STREAM_ASYNC_ENABLE=OFF"
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
     elif [ "${backend_cfg[0]}" == "serial" ] ; then
-        result+=" -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE=ON"
+        result+=" -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE=ON -DCUPLA_STREAM_ASYNC_ENABLE=OFF"
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
     elif [ "${backend_cfg[0]}" == "tbb" ] ; then
-        result+=" -DALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE=ON"
+        result+=" -DALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE=ON -DCUPLA_STREAM_ASYNC_ENABLE=OFF"
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
     elif [ "${backend_cfg[0]}" == "threads" ] ; then
-        result+=" -DALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE=ON"
+        result+=" -DALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE=ON -DCUPLA_STREAM_ASYNC_ENABLE=OFF"
         if [ $num_options -eq 2 ] ; then
             result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
+        fi
+    elif [ "${backend_cfg[0]}" == "hip" ] ; then
+        result+=" -DALPAKA_ACC_GPU_HIP_ENABLE=ON -DALPAKA_ACC_GPU_HIP_ONLY_MODE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DALPAKA_HIP_ARCH=\"${backend_cfg[1]}\""
         fi
     else
         echo "unsupported backend given '$1'" >&2
@@ -160,6 +165,14 @@ if [ -f "$extension_param/cmakeFlags" ] ; then
         echo "       Is the file executable? (chmod u+x cmakeFlags)" >&2
         exit 2
     fi
+    # save the cmakeFlags setup number for future reference
+    if [ -f "$extension_param/cmakeFlagsSetup" ] ; then
+      rm $extension_param/cmakeFlagsSetup
+    fi
+    touch $extension_param/cmakeFlagsSetup
+    echo "Last configured cmakeFlags setup was the setup No.: $cmakeFlagsNr" > $extension_param/cmakeFlagsSetup
+    echo $cmake_flags >> $extension_param/cmakeFlagsSetup
+
 fi
 
 # legacy check: we removed simulation_defines/ after PIConGPU 0.3.X

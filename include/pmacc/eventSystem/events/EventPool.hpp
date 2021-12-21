@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -22,37 +22,35 @@
 
 #pragma once
 
+#include "pmacc/debug/VerboseLog.hpp"
 #include "pmacc/eventSystem/events/CudaEvent.def"
 #include "pmacc/eventSystem/events/CudaEventHandle.hpp"
-#include "pmacc/debug/VerboseLog.hpp"
 #include "pmacc/types.hpp"
 
-#include <vector>
 #include <list>
 #include <stdexcept>
+#include <vector>
 
 namespace pmacc
 {
-
-    /** Manages a pool of cudaEvent_t objects and gives access to them. */
+    /** Manages a pool of cuplaEvent_t objects and gives access to them. */
     class EventPool
     {
     public:
-
-        /** Returns a free cuda event
+        /** Returns a free cupla event
          *
-         * @return free cuda event
+         * @return free cupla event
          */
-        CudaEventHandle pop( )
+        CudaEventHandle pop()
         {
-            if( freeEvents.size( ) != 0 )
+            if(freeEvents.size() != 0)
             {
-                CudaEventHandle result = freeEvents.front( );
-                freeEvents.pop_front( );
+                CudaEventHandle result = freeEvents.front();
+                freeEvents.pop_front();
                 return result;
             }
-            createEvents( );
-            return pop( );
+            createEvents();
+            return pop();
         }
 
 
@@ -62,67 +60,64 @@ namespace pmacc
          *
          * @param ev pointer to CudaEvent
          */
-        void push( CudaEvent* const ev )
+        void push(CudaEvent* const ev)
         {
             /* Guard that no event is added during the pool is closed (shutdown phase).
              * This method is also called during the evaluation of the destructor.
              */
-            if( !isClosed )
-                freeEvents.push_back( CudaEventHandle(ev) );
+            if(!isClosed)
+                freeEvents.push_back(CudaEventHandle(ev));
         }
 
-        /** create and add cuda events to the pool
+        /** create and add cupla events to the pool
          *
-         * @param count number of cuda events to add
+         * @param count number of cupla events to add
          */
-        void createEvents( size_t count = 1u )
+        void createEvents(size_t count = 1u)
         {
-            for( size_t i = 0u; i < count; i++ )
+            for(size_t i = 0u; i < count; i++)
             {
-                CudaEvent* nativeEvent = new CudaEvent( );
-                events.push_back( nativeEvent );
-                push( nativeEvent );
+                auto* nativeEvent = new CudaEvent();
+                events.push_back(nativeEvent);
+                push(nativeEvent);
             }
         }
 
-        /** Returns the number of cuda events in the pool.
+        /** Returns the number of cupla events in the pool.
          *
-         * @return number of cuda events
+         * @return number of cupla events
          */
-        size_t getEventsCount( )
+        size_t getEventsCount()
         {
-            return events.size( );
+            return events.size();
         }
 
     private:
-
         friend struct detail::Environment;
 
-        static EventPool& getInstance( )
+        static EventPool& getInstance()
         {
             static EventPool instance;
             return instance;
         }
 
         /** Constructor */
-        EventPool( ) : isClosed( false )
-        {
-        }
+        EventPool() = default;
 
         /** Destructor
          *
-         * destroys all cuda events in the pool
+         * destroys all cupla events in the pool
          */
         ~EventPool()
         {
-            log( ggLog::CUDA_RT( )+ggLog::EVENT( ), "shutdown EventPool with %1% events" ) % getEventsCount( );
+            log(ggLog::CUDA_RT() + ggLog::EVENT(), "shutdown EventPool with %1% events") % getEventsCount();
             isClosed = true;
-            freeEvents.clear( );
-            for( std::vector<CudaEvent*>::const_iterator iter = events.begin(); iter != events.end(); ++iter )
+            freeEvents.clear();
+            for(std::vector<CudaEvent*>::const_iterator iter = events.begin(); iter != events.end(); ++iter)
             {
                 delete *iter;
             }
-            events.clear( );
+            events.clear();
         }
 
         //! hold all CudaEvents
@@ -135,6 +130,6 @@ namespace pmacc
          *
          * if true no events can be added to the pool
          */
-        bool isClosed;
+        bool isClosed{false};
     };
-}
+} // namespace pmacc

@@ -1,0 +1,216 @@
+/* Copyright 2020-2021 Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <pmacc/kernel/operation/Atomic.hpp>
+#include <pmacc/math/operation.hpp>
+#include <pmacc/types.hpp>
+
+
+namespace picongpu
+{
+    namespace currentSolver
+    {
+        namespace strategy
+        {
+            namespace detail
+            {
+                /** Validate and adjust worker multiplier
+                 *
+                 * @param multiplicator Number used as multiplier to oversubscribe the number of threads for the
+                 * compute current task/kernel.
+                 * @return valid multiplier
+                 */
+                constexpr int validateAndAdjustWorkerMultiplier(int const multiplicator)
+                {
+#if BOOST_COMP_HIP && PIC_COMPUTE_CURRENT_THREAD_LIMITER
+                    // HIP-clang creates wrong results if more threads than particles in a frame will be used
+                    return 1;
+#else
+                    return multiplicator >= 1 ? multiplicator : 1;
+#endif
+                }
+            } // namespace detail
+
+            /** Work on strided supercell domains with local caching strategy
+             *
+             * The current for each particle will be reduced with atomic operations into a supercell
+             * local cache. The cache will be flushed to the global memory without atomics.
+             * The device local domain of fieldJ will be decomposed with a checker board.
+             *
+             * Suggestion: Use this strategy if atomic operations to global memory are slow.
+             * To utilize the device fully you should have enough supercells
+             *   - 2D: minimum multiprocessor count * 9 * 4
+             *   - 3D: minimum multiprocessor count * 27 * 4
+             *
+             * @{
+             */
+            struct StridedCachedSupercells
+            {
+                static constexpr bool useBlockCache = true;
+                static constexpr bool stridedMapping = true;
+                using BlockReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
+                using GridReductionOp = pmacc::math::operation::Add;
+                static constexpr int workerMultiplier = 1;
+            };
+
+            /** @tparam T_workerMultiplier Oversubscribe the number of workers used to compute the current by the given
+             * multiplier. Can be used to optimize the device occupancy.
+             */
+            template<int T_workerMultiplier>
+            struct StridedCachedSupercellsScaled
+            {
+                static constexpr bool useBlockCache = true;
+                static constexpr bool stridedMapping = true;
+                using BlockReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
+                using GridReductionOp = pmacc::math::operation::Add;
+                static constexpr int workerMultiplier = detail::validateAndAdjustWorkerMultiplier(T_workerMultiplier);
+            };
+
+            /** @} */
+
+            /** Local caching strategy
+             *
+             * The current for each particle will be reduced with atomic operations into a supercell
+             * local cache. The cache will be flushed with atomic operations to the global memory.
+             *
+             * Suggestion: Use this strategy if block local and global atomics are fast.
+             *
+             * @{
+             */
+            struct CachedSupercells
+            {
+                static constexpr bool useBlockCache = true;
+                static constexpr bool stridedMapping = false;
+                using BlockReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
+                using GridReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
+                static constexpr int workerMultiplier = 1;
+            };
+
+            /** @tparam T_workerMultiplier Oversubscribe the number of workers used to compute the current by the given
+             * multiplier. Can be used to optimize the device occupancy.
+             */
+            template<int T_workerMultiplier>
+            struct CachedSupercellsScaled
+            {
+                static constexpr bool useBlockCache = true;
+                static constexpr bool stridedMapping = false;
+                using BlockReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Threads>;
+                using GridReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
+                static constexpr int workerMultiplier = detail::validateAndAdjustWorkerMultiplier(T_workerMultiplier);
+            };
+
+            /** @} */
+
+            /** Non cached strategy
+             *
+             * The current for each particle will be reduced with atomic operations directly
+             * to the global memory.
+             *
+             * Suggestion: Use this strategy if global atomics are fast and random memory access
+             * to a large range in memory is not a bottle neck.
+             *
+             * @{
+             */
+            struct NonCachedSupercells
+            {
+                static constexpr bool useBlockCache = false;
+                static constexpr bool stridedMapping = false;
+                using BlockReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
+                // dummy which produces a compile time error if used
+                using GridReductionOp = void;
+                static constexpr int workerMultiplier = 1;
+            };
+
+            /** @tparam T_workerMultiplier Oversubscribe the number of workers used to compute the current by the given
+             * multiplier. Can be used to optimize the device occupancy.
+             */
+            template<int T_workerMultiplier>
+            struct NonCachedSupercellsScaled
+            {
+                static constexpr bool useBlockCache = false;
+                static constexpr bool stridedMapping = false;
+                using BlockReductionOp = kernel::operation::Atomic<::alpaka::AtomicAdd, ::alpaka::hierarchy::Blocks>;
+                // dummy which produces a compile time error if used
+                using GridReductionOp = void;
+                static constexpr int workerMultiplier = detail::validateAndAdjustWorkerMultiplier(T_workerMultiplier);
+            };
+
+            /** @} */
+
+        } // namespace strategy
+
+        namespace traits
+        {
+            /** Get current deposition strategy from a solver
+             *
+             * @tparam T_Solver type to derive the strategy
+             * @treturn ::type strategy description
+             */
+            template<typename T_Solver>
+            struct GetStrategy;
+
+            /** Get current deposition strategy from a solver
+             *
+             * @see GetStrategy
+             */
+            template<typename T_Solver>
+            using GetStrategy_t = typename GetStrategy<T_Solver>::type;
+
+            /** Default strategy for the current deposition
+             *
+             * Default will be selected based on the cupla accelerator.
+             *
+             * @tparam T_Acc the accelerator type
+             */
+            template<typename T_Acc = cupla::AccThreadSeq>
+            struct GetDefaultStrategy
+            {
+                using type = strategy::StridedCachedSupercells;
+            };
+
+            /** Default strategy for the current deposition
+             *
+             * @see GetDefaultStrategy
+             */
+            template<typename T_Acc = cupla::AccThreadSeq>
+            using GetDefaultStrategy_t = typename GetDefaultStrategy<T_Acc>::type;
+
+#if(ALPAKA_ACC_GPU_CUDA_ENABLED == 1)
+            template<typename... T_Args>
+            struct GetDefaultStrategy<alpaka::AccGpuCudaRt<T_Args...>>
+            {
+                // GPU Utilization is higher compared to `StridedCachedSupercells`
+                using type = strategy::CachedSupercells;
+            };
+#endif
+
+#if(ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+            template<typename... T_Args>
+            struct GetDefaultStrategy<alpaka::AccGpuHipRt<T_Args...>>
+            {
+                // GPU Utilization is higher compared to `StridedCachedSupercells`
+                using type = strategy::CachedSupercells;
+            };
+#endif
+
+        } // namespace traits
+    } // namespace currentSolver
+} // namespace picongpu

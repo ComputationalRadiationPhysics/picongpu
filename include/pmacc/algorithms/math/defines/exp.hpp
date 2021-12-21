@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PMacc.
  *
@@ -22,41 +22,23 @@
 
 #pragma once
 
+#include "pmacc/types.hpp"
+
 namespace pmacc
 {
-namespace algorithms
-{
-namespace math
-{
+    namespace math
+    {
+        template<typename Type>
+        struct Log10;
 
+        template<typename T1>
+        HDINLINE typename Log10<T1>::result log10(const T1& value)
+        {
+            return Log10<T1>()(value);
+        }
 
-template<typename Type>
-struct Exp;
+    } // namespace math
+} // namespace pmacc
 
-template<typename Type>
-struct Log;
-
-template<typename Type>
-struct Log10;
-
-template<typename T1>
-HDINLINE typename Exp< T1 >::result exp(const T1& value)
-{
-    return Exp< T1 > ()(value);
-}
-
-template<typename T1>
-HDINLINE typename Log< T1 >::result log(const T1& value)
-{
-    return Log< T1 > ()(value);
-}
-
-template<typename T1>
-HDINLINE typename Log10< T1 >::result log10(const T1& value)
-{
-    return Log10< T1 > ()(value);
-}
-
-} //namespace math
-} //namespace algorithms
-}//namespace pmacc
+#include "pmacc/algorithms/math/doubleMath/exp.tpp"
+#include "pmacc/algorithms/math/floatMath/exp.tpp"

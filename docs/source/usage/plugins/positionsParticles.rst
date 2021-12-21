@@ -73,6 +73,11 @@ In order to extract e.g. the position from this line the following can be used:
 
    cat trajectory.dat | awk '{print $7}' | sed -e "s/{//g" | sed -e 's/}//g' | sed -e 's/,/\t/g' > position.dat
 
+Known Limitations
+^^^^^^^^^^^^^^^^^
+
+- this plugin is only available with the CUDA backend
+
 Known Issues
 ^^^^^^^^^^^^
 
@@ -80,7 +85,7 @@ Known Issues
 
    This plugin only works correctly if a single particle is simulated.
    If more than one particle is simulated, the output becomes random, because only the information of one particle is printed.
-   This plugin might be upgraded to work with multiple particles, but better use our HDF5 or ADIOS plugin instead and assign ``particleId``\ s to individual particles.
+   This plugin might be upgraded to work with multiple particles, but better use our openPMD plugin instead and assign ``particleId``\ s to individual particles.
 
 .. attention::
 

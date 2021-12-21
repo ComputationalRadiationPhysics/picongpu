@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Wolfgang Hoenig, Benjamin Worpitz
+/* Copyright 2013-2021 Rene Widera, Wolfgang Hoenig, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -21,65 +21,59 @@
 
 #pragma once
 
-#include "pmacc/memory/dataTypes/Mask.hpp"
 #include "pmacc/Environment.def"
 #include "pmacc/communication/ICommunicator.hpp"
+#include "pmacc/memory/dataTypes/Mask.hpp"
 
 
 namespace pmacc
 {
-
-class EnvironmentController
-{
-public:
-
-    /*! Get communicator
-     * @return Communicator for MPI
-     */
-    ICommunicator& getCommunicator() const
+    class EnvironmentController
     {
-        return *comm;
-    }
+    public:
+        /*! Get communicator
+         * @return Communicator for MPI
+         */
+        ICommunicator& getCommunicator() const
+        {
+            return *comm;
+        }
 
 
+        /*! Get Mask with all GPU neighbar
+         * @return Mask with neighbar
+         */
+        const Mask& getCommunicationMask() const
+        {
+            return comm->getCommunicationMask();
+        }
 
-    /*! Get Mask with all GPU neighbar
-     * @return Mask with neighbar
-     */
-    const Mask& getCommunicationMask() const
-    {
-        return comm->getCommunicationMask();
-    }
 
+        /*! Set MPI communicator
+         * @param comm A instance of ICommunicator
+         */
+        void setCommunicator(ICommunicator& comm)
+        {
+            this->comm = &comm;
+        }
 
-    /*! Set MPI communicator
-     * @param comm A instance of ICommunicator
-     */
-    void setCommunicator(ICommunicator& comm)
-    {
-        this->comm = &comm;
-    }
+    private:
+        friend struct detail::Environment;
 
-private:
+        /*! Default constructor.
+         */
+        EnvironmentController() = default;
 
-    friend struct detail::Environment;
+        static EnvironmentController& getInstance()
+        {
+            static EnvironmentController instance;
+            return instance;
+        }
 
-    /*! Default constructor.
-     */
-    EnvironmentController() {}
+    private:
+        /*! Pointer to MPI communicator.
+         */
+        ICommunicator* comm;
+    };
 
-    static EnvironmentController& getInstance()
-    {
-        static EnvironmentController instance;
-        return instance;
-    }
-
-private:
-
-    /*! Pointer to MPI communicator.
-     */
-    ICommunicator* comm;
-
-};
-
-} //namespace pmacc
+} // namespace pmacc

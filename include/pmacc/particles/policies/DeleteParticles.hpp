@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Alexander Grund
+/* Copyright 2015-2021 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -21,28 +21,29 @@
 
 #pragma once
 
-namespace pmacc{
-namespace particles {
-namespace policies {
-
-    /**
-     * Policy for HandleGuardParticles that removes all particles from guard cells
-     */
-    struct DeleteParticles
+namespace pmacc
+{
+    namespace particles
     {
-        template< class T_Particles >
-        void
-        handleOutgoing(T_Particles& par, int32_t direction) const
+        namespace policies
         {
-            par.deleteGuardParticles(direction);
-        }
+            /**
+             * Policy for HandleGuardParticles that removes all particles from guard cells
+             */
+            struct DeleteParticles
+            {
+                template<class T_Particles>
+                void handleOutgoing(T_Particles& par, int32_t direction) const
+                {
+                    par.deleteGuardParticles(direction);
+                }
 
-        template< class T_Particles >
-        void
-        handleIncoming(T_Particles& par, int32_t direction) const
-        {}
-    };
+                template<class T_Particles>
+                void handleIncoming(T_Particles& par, int32_t direction) const
+                {
+                }
+            };
 
-}  // namespace policies
-}  // namespace particles
-}  // namespace pmacc
+        } // namespace policies
+    } // namespace particles
+} // namespace pmacc

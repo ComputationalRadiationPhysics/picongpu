@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,51 +19,49 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/types.hpp>
 
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 
 
 namespace picongpu
 {
-
-struct SimHeader
-{
-    typedef pmacc::DataSpace<DIM2> Size2D;
-
-    Size2D size;
-    Size2D nodes;
-    Size2D simOffsetToNull;
-    uint32_t step;
-    picongpu::float_32 scale[2];
-    picongpu::float_32 cellSizeArr[2];
-
-
-    SimHeader() : step(0)
+    struct SimHeader
     {
-        scale[0] = 1.f;
-        scale[1] = 1.f;
-        cellSizeArr[0] = 0.f;
-        cellSizeArr[1] = 0.f;
-    }
+        using Size2D = pmacc::DataSpace<2U>;
 
-    void setScale(picongpu::float_32 x, picongpu::float_32 y)
-    {
-        scale[0] = x;
-        scale[1] = y;
-    }
+        Size2D size;
+        Size2D nodes;
+        Size2D simOffsetToNull;
+        uint32_t step{0};
+        picongpu::float_32 scale[2];
+        picongpu::float_32 cellSizeArr[2];
 
-    void writeToConsole(std::ostream& ocons) const
-    {
-        ocons << "SimHeader.size " << size.x() << " " << size.y() << std::endl;
-        ocons << "SimHeader.nodes " << nodes.x() << " " << nodes.y() << std::endl;
-        ocons << "SimHeader.step " << step << std::endl;
-        ocons << "SimHeader.scale " << scale[0] << " " << scale[1] << std::endl;
-        ocons << "SimHeader.cellSize " << cellSizeArr[0] << " " << cellSizeArr[1] << std::endl;
-    }
 
-};
+        SimHeader()
+        {
+            scale[0] = 1.f;
+            scale[1] = 1.f;
+            cellSizeArr[0] = 0.f;
+            cellSizeArr[1] = 0.f;
+        }
+
+        void setScale(picongpu::float_32 x, picongpu::float_32 y)
+        {
+            scale[0] = x;
+            scale[1] = y;
+        }
+
+        void writeToConsole(std::ostream& ocons) const
+        {
+            ocons << "SimHeader.size " << size.x() << " " << size.y() << std::endl;
+            ocons << "SimHeader.nodes " << nodes.x() << " " << nodes.y() << std::endl;
+            ocons << "SimHeader.step " << step << std::endl;
+            ocons << "SimHeader.scale " << scale[0] << " " << scale[1] << std::endl;
+            ocons << "SimHeader.cellSize " << cellSizeArr[0] << " " << cellSizeArr[1] << std::endl;
+        }
+    };
 
 } // namespace picongpu

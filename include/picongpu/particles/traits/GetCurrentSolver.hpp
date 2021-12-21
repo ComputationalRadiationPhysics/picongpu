@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera
+/* Copyright 2014-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,20 +20,20 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+
 #include <pmacc/traits/GetFlagType.hpp>
 #include <pmacc/traits/Resolve.hpp>
 
 namespace picongpu
 {
-namespace traits
-{
-template<typename T_Species>
-struct GetCurrentSolver
-{
-    using type = typename pmacc::traits::Resolve<
-        typename GetFlagType<typename T_Species::FrameType, current<> >::type
-    >::type;
-};
-} //namespace traits
+    namespace traits
+    {
+        template<typename T_Species>
+        struct GetCurrentSolver
+        {
+            using type = typename pmacc::traits::Resolve<
+                typename GetFlagType<typename T_Species::FrameType, current<>>::type>::type;
+        };
+    } // namespace traits
 
-}// namespace picongpu
+} // namespace picongpu

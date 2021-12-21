@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -23,37 +23,35 @@
 
 
 #include "pmacc/eventSystem/EventSystem.hpp"
-#include "pmacc/fields/tasks/FieldFactory.hpp"
+#include "pmacc/eventSystem/events/EventDataReceive.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
-#include "pmacc/eventSystem/events/EventDataReceive.hpp"
+#include "pmacc/fields/tasks/FieldFactory.hpp"
 #include "pmacc/traits/NumberOfExchanges.hpp"
 
 namespace pmacc
 {
-
     template<class Field>
     class TaskFieldSend : public MPITask
     {
     public:
-
         enum
         {
             Dim = picongpu::simDim
         };
 
-        TaskFieldSend(Field &buffer) :
-        m_buffer(buffer),
-        m_state(Constructor) { }
+        TaskFieldSend(Field& buffer) : m_buffer(buffer), m_state(Constructor)
+        {
+        }
 
-        virtual void init()
+        void init() override
         {
             m_state = Init;
             EventTask serialEvent = __getTransactionEvent();
 
-            for (uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
+            for(uint32_t i = 1; i < traits::NumberOfExchanges<Dim>::value; ++i)
             {
-                if (m_buffer.getGridBuffer().hasSendExchange(i))
+                if(m_buffer.getGridBuffer().hasSendExchange(i))
                 {
                     __startTransaction(serialEvent);
                     FieldFactory::getInstance().createTaskFieldSendExchange(m_buffer, i);
@@ -63,35 +61,36 @@ namespace pmacc
             m_state = WaitForSend;
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
-            switch (m_state)
+            switch(m_state)
             {
-                case Init:
-                    break;
-                case WaitForSend:
-                    return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
-                default:
-                    return false;
+            case Init:
+                break;
+            case WaitForSend:
+                return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
+            default:
+                return false;
             }
 
             return false;
         }
 
-        virtual ~TaskFieldSend()
+        ~TaskFieldSend() override
         {
             notify(this->myId, SENDFINISHED, nullptr);
         }
 
-        void event(id_t, EventType, IEventData*) { }
+        void event(id_t, EventType, IEventData*) override
+        {
+        }
 
-        std::string toString()
+        std::string toString() override
         {
             return "TaskFieldSend";
         }
 
     private:
-
         enum state_t
         {
             Constructor,
@@ -106,4 +105,4 @@ namespace pmacc
         EventTask tmpEvent;
     };
 
-} //namespace pmacc
+} // namespace pmacc

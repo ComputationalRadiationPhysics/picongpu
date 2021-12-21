@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,22 +22,22 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
+#include <boost/mpl/if.hpp>
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/mpl/if.hpp>
 
 
 namespace pmacc
 {
+    /** cast type to boost mpl vector
+     * @return ::type if T_Type is sequence then identity of T_Type
+     *                else boost::mpl::vector<T_Type>
+     */
+    template<typename T_Type>
+    struct ToSeq
+    {
+        using type = typename bmpl::if_<bmpl::is_sequence<T_Type>, T_Type, bmpl::vector1<T_Type>>::type;
+    };
 
-/** cast type to boost mpl vector
- * @return ::type if T_Type is sequence then identity of T_Type
- *                else boost::mpl::vector<T_Type>
- */
-template<typename T_Type>
-struct ToSeq
-{
-    typedef typename bmpl::if_<bmpl::is_sequence< T_Type >,T_Type,bmpl::vector1<T_Type> >::type type;
-};
-
-}//namespace pmacc
+} // namespace pmacc

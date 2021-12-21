@@ -1,4 +1,4 @@
-/* Copyright 2020 Sergei Bastrakov
+/* Copyright 2020-2021 Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -25,22 +25,19 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace misc
-{
+    namespace plugins
+    {
+        namespace misc
+        {
+            /** Get text names of vector components
+             *
+             * For 1-4 and 6 components use predefined names,
+             * for other amounts use generic different names
+             *
+             * @param numComponents number of components
+             */
+            std::vector<std::string> getComponentNames(uint32_t numComponents);
 
-    /** Get text names of vector components
-     *
-     * For 1-4 and 6 components use predefined names,
-     * for other amounts use generic different names
-     *
-     * @param numComponents number of components
-     */
-    std::vector< std::string > getComponentNames(
-        uint32_t numComponents
-    );
-
-} // namespace misc
-} // namespace plugins
+        } // namespace misc
+    } // namespace plugins
 } // namespace picongpu

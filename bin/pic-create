@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2020 Axel Huebl, Rene Widera
+# Copyright 2013-2021 Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -36,7 +36,7 @@ help()
     echo ""
     echo "usage: pic-create [OPTION] [src_dir] dest_dir"
     echo "If no src_dir is set picongpu a default case is cloned"
-    echo "If src_dir is not in the currrent directory, pic-create will"
+    echo "If src_dir is not in the current directory, pic-create will"
     echo 'look for it in $PIC_EXAMPLES'
     echo ""
     echo "-f | --force         - merge data if destination already exists"
@@ -73,7 +73,7 @@ done
 cmake_path="$*"
 
 if [ $# -eq 0 ] || [ $# -gt 2 ] ; then
-    echo "Missing destination directory or to many directories were given." >&2
+    echo "Missing destination directory or too many directories were given." >&2
     exit
 fi
 

@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,54 +20,36 @@
 
 #pragma once
 
-#include "version.hpp"
-#include <pmacc/algorithms/TypeCast.hpp>
-#include <pmacc/algorithms/PromoteType.hpp>
-#include <pmacc/meta/ForEach.hpp>
-#include <pmacc/algorithms/math.hpp>
-#include <pmacc/traits/GetStringProperties.hpp>
-#include "picongpu/traits/GetMargin.hpp"
-#include <pmacc/traits/GetComponentsType.hpp>
-#include <pmacc/traits/NumberOfExchanges.hpp>
 #include "picongpu/traits/GetDataBoxType.hpp"
+#include "picongpu/traits/GetMargin.hpp"
+#include "version.hpp"
+
+#include <pmacc/algorithms/PromoteType.hpp>
+#include <pmacc/algorithms/TypeCast.hpp>
+#include <pmacc/algorithms/math.hpp>
+#include <pmacc/meta/ForEach.hpp>
+#include <pmacc/traits/GetComponentsType.hpp>
+#include <pmacc/traits/GetStringProperties.hpp>
+#include <pmacc/traits/NumberOfExchanges.hpp>
+
+#include <cupla/device/math.hpp>
 
 namespace picongpu
 {
+    namespace precision32Bit
+    {
+        using precisionType = float;
+    }
 
-//! define all elements which can send and resive
+    namespace precision64Bit
+    {
+        using precisionType = double;
+    }
 
-enum CommunicationTag
-{
-    NO_COMMUNICATION = 0u,
-    FIELD_B = 1u,
-    FIELD_E = 2u,
-    FIELD_J = 3u,
-    FIELD_JRECV = 4u,
-    SPECIES_FIRSTTAG = 42u
-};
+    namespace math = cupla::device::math;
+    using namespace pmacc::algorithms::precisionCast;
+    using namespace pmacc::algorithms::promoteType;
+    using namespace pmacc::traits;
+    using namespace picongpu::traits;
 
-
-//! defines field types some various methods (e.g. Laser::manipulate)
-
-enum FieldType
-{
-    FIELD_TYPE_E, FIELD_TYPE_B, FIELD_TYPE_TMP
-};
-
-namespace precision32Bit
-{
-using precisionType = float;
-}
-
-namespace precision64Bit
-{
-using precisionType = double;
-}
-
-namespace math = pmacc::algorithms::math;
-using namespace pmacc::algorithms::precisionCast;
-using namespace pmacc::algorithms::promoteType;
-using namespace pmacc::traits;
-using namespace picongpu::traits;
-
-}
+} // namespace picongpu

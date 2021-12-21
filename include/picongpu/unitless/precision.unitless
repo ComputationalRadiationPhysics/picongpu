@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,37 +24,36 @@
 
 namespace picongpu
 {
-
     using float_X = precisionPIConGPU::precisionType;
 
     namespace precision32Bit
     {
         using float_X = precisionType;
         /* 32 Bit defines */
-        using float1_X = ::pmacc::math::Vector< float_X, 1 >;
-        using float2_X = ::pmacc::math::Vector< float_X, 2 >;
-        using float3_X = ::pmacc::math::Vector< float_X, 3 >;
-        using floatD_X = ::pmacc::math::Vector< float_X, simDim >;
-    }
+        using float1_X = ::pmacc::math::Vector<float_X, 1>;
+        using float2_X = ::pmacc::math::Vector<float_X, 2>;
+        using float3_X = ::pmacc::math::Vector<float_X, 3>;
+        using floatD_X = ::pmacc::math::Vector<float_X, simDim>;
+    } // namespace precision32Bit
 
     namespace precision64Bit
     {
         using float_X = precisionType;
         /* 64 Bit defines */
-        using float1_X = ::pmacc::math::Vector< float_X, 1 >;
-        using float2_X = ::pmacc::math::Vector< float_X, 2 >;
-        using float3_X = ::pmacc::math::Vector< float_X, 3 >;
-        using floatD_X = ::pmacc::math::Vector< float_X, simDim >;
-    }
+        using float1_X = ::pmacc::math::Vector<float_X, 1>;
+        using float2_X = ::pmacc::math::Vector<float_X, 2>;
+        using float3_X = ::pmacc::math::Vector<float_X, 3>;
+        using floatD_X = ::pmacc::math::Vector<float_X, simDim>;
+    } // namespace precision64Bit
 
     using float_32 = precision32Bit::float_X;
     using float_64 = precision64Bit::float_X;
 
     /* variable precision defines */
-    using float1_X = ::pmacc::math::Vector< float_X, 1 >;
-    using float2_X = ::pmacc::math::Vector< float_X, 2 >;
-    using float3_X = ::pmacc::math::Vector< float_X, 3 >;
-    using floatD_X = ::pmacc::math::Vector< float_X, simDim >;
+    using float1_X = ::pmacc::math::Vector<float_X, 1>;
+    using float2_X = ::pmacc::math::Vector<float_X, 2>;
+    using float3_X = ::pmacc::math::Vector<float_X, 3>;
+    using floatD_X = ::pmacc::math::Vector<float_X, simDim>;
     /* 32 Bit defines */
     using float1_32 = precision32Bit::float1_X;
     using float2_32 = precision32Bit::float2_X;
@@ -67,10 +66,9 @@ namespace picongpu
     using floatD_64 = precision64Bit::floatD_X;
 
     // literals for short-hand notations
-    constexpr float_X
-    operator""_X( long double x )
+    constexpr float_X operator""_X(long double x)
     {
-        return float_X( x );
+        return float_X(x);
     }
 
     // special functions

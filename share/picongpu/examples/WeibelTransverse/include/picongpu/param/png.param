@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -57,25 +57,24 @@ namespace picongpu
 
         // specify color scales for each channel
         namespace preParticleDensCol = colorScales::red;
-        namespace preChannel1Col     = colorScales::blue;
-        namespace preChannel2Col     = colorScales::green;
-        namespace preChannel3Col     = colorScales::none;
+        namespace preChannel1Col = colorScales::blue;
+        namespace preChannel2Col = colorScales::green;
+        namespace preChannel3Col = colorScales::none;
 
         /* png preview settings for each channel */
-        DINLINE float_X preChannel1 ( const float3_X& field_B, const float3_X& field_E, const float3_X& field_J )
+        DINLINE float_X preChannel1(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
         {
-            return field_B.x()*field_B.x() + field_B.y()*field_B.y();
+            return field_B.x() * field_B.x() + field_B.y() * field_B.y();
         }
 
-        DINLINE float_X preChannel2 ( const float3_X& field_B, const float3_X& field_E, const float3_X& field_J )
+        DINLINE float_X preChannel2(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
         {
-            return field_E.x()*field_E.x() + field_E.y()*field_E.y();
+            return field_E.x() * field_E.x() + field_E.y() * field_E.y();
         }
 
-        DINLINE float_X preChannel3 ( const float3_X& field_B, const float3_X& field_E, const float3_X& field_J )
+        DINLINE float_X preChannel3(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
         {
             return 1.0_X;
         }
-    }
-}
-
+    } // namespace visPreview
+} // namespace picongpu

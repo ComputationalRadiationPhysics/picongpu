@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -27,108 +27,95 @@
 
 namespace picongpu
 {
-namespace SI
-{
-    /** Base density in particles per m^3 in the density profiles.
-     *
-     * This is often taken as reference maximum density in normalized profiles.
-     * Individual particle species can define a `densityRatio` flag relative
-     * to this value.
-     *
-     * unit: ELEMENTS/m^3
-     *
-     */
+    namespace SI
+    {
+        /** Base density in particles per m^3 in the density profiles.
+         *
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
+         *
+         * unit: ELEMENTS/m^3
+         *
+         */
 #ifdef PARAM_SINGLE_PARTICLE
-    /* one particle per cell with weighting 1.0 */
-    constexpr float_64 BASE_DENSITY_SI =
-        1.0 /
-        ( CELL_WIDTH_SI * CELL_HEIGHT_SI * CELL_DEPTH_SI );
+        /* one particle per cell with weighting 1.0 */
+        constexpr float_64 BASE_DENSITY_SI = 1.0 / (CELL_WIDTH_SI * CELL_HEIGHT_SI * CELL_DEPTH_SI);
 #else
-    constexpr float_64 BASE_DENSITY_SI = 1.e25;
+        constexpr float_64 BASE_DENSITY_SI = 1.e25;
 #endif
 
-}
+    } // namespace SI
 
-namespace densityProfiles
-{
-
-    PMACC_STRUCT(GaussianCloudParam,
-        /** Profile Formula:
-         *     exponent = |globalCellPos - center| / sigma
-         *     density = e^[ gasFactor * exponent^gasPower ]
-         */
-        (PMACC_C_VALUE(float_X, gasFactor, -0.5))
-        (PMACC_C_VALUE(float_X, gasPower, 2.0))
-
-        /** height of vacuum area on top border
-         *
-         * this vacuum is important because of the laser initialization,
-         * which is done in the first cell of the simulation
-         * unit: cells
-         */
-        (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
-
-        /** The central position of the density distribution
-         *  unit: meter
-         */
-        (PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 1.024e-5, 9.072e-5, 1.024e-5))
-
-        /** the distance from gasCenter_SI until the density decreases to its 1/e-th part
-          *  unit: meter */
-        (PMACC_C_VECTOR_DIM(float_64, simDim, sigma_SI, 6.0e-6, 6.0e-6, 6.0e-6))
-    ); /* struct GaussianCloudParam */
-
-    /* definition of cloud profile */
-    using GaussianCloud = GaussianCloudImpl< GaussianCloudParam >;
-
-
-    struct FreeFormulaFunctor
+    namespace densityProfiles
     {
-        /** This formula uses SI quantities only
-         *
-         * The profile will be multiplied by BASE_DENSITY.
-         *
-         * @param position_SI total offset including all slides [in meter]
-         * @param cellSize_SI cell sizes [in meter]
-         *
-         * @return float_X density [normalized to 1.0]
-         */
-        HDINLINE float_X operator()(
-            const floatD_64& position_SI,
-            const float3_64& cellSize_SI
-        )
+        PMACC_STRUCT(
+            GaussianCloudParam,
+            /** Profile Formula:
+             *     exponent = |globalCellPos - center| / sigma
+             *     density = e^[ gasFactor * exponent^gasPower ]
+             */
+            (PMACC_C_VALUE(float_X, gasFactor, -0.5))(PMACC_C_VALUE(float_X, gasPower, 2.0))
+
+            /** height of vacuum area on top border
+             *
+             * this vacuum is important because of the laser initialization,
+             * which is done in the first cell of the simulation
+             * unit: cells
+             */
+            (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
+
+            /** The central position of the density distribution
+             *  unit: meter
+             */
+            (PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 1.024e-5, 9.072e-5, 1.024e-5))
+
+            /** the distance from gasCenter_SI until the density decreases to its 1/e-th part
+             *  unit: meter */
+            (PMACC_C_VECTOR_DIM(float_64, simDim, sigma_SI, 6.0e-6, 6.0e-6, 6.0e-6))); /* struct GaussianCloudParam */
+
+        /* definition of cloud profile */
+        using GaussianCloud = GaussianCloudImpl<GaussianCloudParam>;
+
+
+        struct FreeFormulaFunctor
         {
-            /* add particle in cell at center of Gaussian Cloud profile */
-            const float3_64 position_start_SI( 1.024e-5, 9.072e-5, 1.024e-5 );
+            /** This formula uses SI quantities only
+             *
+             * The profile will be multiplied by BASE_DENSITY.
+             *
+             * @param position_SI total offset including all slides [in meter]
+             * @param cellSize_SI cell sizes [in meter]
+             *
+             * @return float_X density [normalized to 1.0]
+             */
+            HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
+            {
+                /* add particle in cell at center of Gaussian Cloud profile */
+                const float3_64 position_start_SI(1.024e-5, 9.072e-5, 1.024e-5);
 
-            /* from all cells ... */
-            const pmacc::math::UInt64< simDim > cell_id( position_SI / cellSize_SI.shrink< simDim >() );
+                /* from all cells ... */
+                const pmacc::math::UInt64<simDim> cell_id(position_SI / cellSize_SI.shrink<simDim>());
 
-            /* ... we calculate the corresponding "center" cell to init the particle in ... */
-            const pmacc::math::UInt64< simDim > cell_start(
-                precisionCast< uint64_t >(
-                    math::floor(
-                        position_start_SI.shrink< simDim >() /
-                        cellSize_SI.shrink< simDim >()
-                    )
-                )
-            );
+                /* ... we calculate the corresponding "center" cell to init the particle in ... */
+                const pmacc::math::UInt64<simDim> cell_start(precisionCast<uint64_t>(
+                    math::floor(position_start_SI.shrink<simDim>() / cellSize_SI.shrink<simDim>())));
 
-            /* ... and only in that center cell the density is 1.0, outside zero */
-            bool isStartCell = true;
-            for( uint64_t d = 0; d < simDim; ++d )
-                if( cell_id[d] != cell_start[d] )
-                    isStartCell = false;
+                /* ... and only in that center cell the density is 1.0, outside zero */
+                bool isStartCell = true;
+                for(uint64_t d = 0; d < simDim; ++d)
+                    if(cell_id[d] != cell_start[d])
+                        isStartCell = false;
 
-            if( isStartCell )
-                return 1.0;
+                if(isStartCell)
+                    return 1.0;
 
-            return 0.0;
-        }
-    };
+                return 0.0;
+            }
+        };
 
-    /* definition of free formula profile */
-    using FreeFormula = FreeFormulaImpl< FreeFormulaFunctor >;
+        /* definition of free formula profile */
+        using FreeFormula = FreeFormulaImpl<FreeFormulaFunctor>;
 
-}
-}
+    } // namespace densityProfiles
+} // namespace picongpu

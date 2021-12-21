@@ -1,6 +1,6 @@
 /* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,43 +17,23 @@
 //-----------------------------------------------------------------------------
 TEST_CASE("isSetTrue", "[meta]")
 {
-    using IsSetInput =
-        std::tuple<
-            int,
-            float,
-            long>;
+    using IsSetInput = std::tuple<int, float, long>;
 
-    constexpr bool IsSetResult =
-        alpaka::meta::IsSet<
-            IsSetInput
-        >::value;
+    constexpr bool IsSetResult = alpaka::meta::IsSet<IsSetInput>::value;
 
-    constexpr bool IsSetReference =
-        true;
+    constexpr bool IsSetReference = true;
 
-    static_assert(
-        IsSetReference == IsSetResult,
-        "alpaka::meta::IsSet failed!");
+    static_assert(IsSetReference == IsSetResult, "alpaka::meta::IsSet failed!");
 }
 
 //-----------------------------------------------------------------------------
 TEST_CASE("isSetFalse", "[meta]")
 {
-    using IsSetInput =
-        std::tuple<
-            int,
-            float,
-            int>;
+    using IsSetInput = std::tuple<int, float, int>;
 
-    constexpr bool IsSetResult =
-        alpaka::meta::IsSet<
-            IsSetInput
-        >::value;
+    constexpr bool IsSetResult = alpaka::meta::IsSet<IsSetInput>::value;
 
-    constexpr bool IsSetReference =
-        false;
+    constexpr bool IsSetReference = false;
 
-    static_assert(
-        IsSetReference == IsSetResult,
-        "alpaka::meta::IsSet failed!");
+    static_assert(IsSetReference == IsSetResult, "alpaka::meta::IsSet failed!");
 }

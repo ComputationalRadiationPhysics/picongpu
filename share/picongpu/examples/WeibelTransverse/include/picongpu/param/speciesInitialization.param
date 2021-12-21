@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera, Axel Huebl
+/* Copyright 2015-2021 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -33,41 +33,26 @@
 
 namespace picongpu
 {
-namespace particles
-{
-    /** InitPipeline define in which order species are initialized
-     *
-     * the functors are called in order (from first to last functor)
-     */
-    using InitPipeline = bmpl::vector<
-        CreateDensity<
-            densityProfiles::Homogenous,
-            startPosition::Quiet4ppc,
-            PIC_Ions
-        >,
-        ManipulateDerive<
-            /* make sure in speciesDefinition.param that
-             *   densityRatio * chargeRatio
-             * of electrons and ions is quasi neutral!
-             * alternatively, use manipulators::ProtonTimesWeighting
-             */
-            manipulators::binary::DensityWeighting,
-            PIC_Ions,
-            PIC_Electrons
-        >,
-        Manipulate<
-            manipulators::AssignZDriftIons,
-            PIC_Ions
-        >,
-        Manipulate<
-            manipulators::AssignZDriftElectrons,
-            PIC_Electrons
-        >,
-        Manipulate<
-            manipulators::AddTemperature,
-            PIC_Electrons
-        >
-    >;
+    namespace particles
+    {
+        /** InitPipeline define in which order species are initialized
+         *
+         * the functors are called in order (from first to last functor)
+         */
+        using InitPipeline = bmpl::vector<
+            CreateDensity<densityProfiles::Homogenous, startPosition::Quiet4ppc, PIC_Ions>,
+            ManipulateDerive<
+                /* make sure in speciesDefinition.param that
+                 *   densityRatio * chargeRatio
+                 * of electrons and ions is quasi neutral!
+                 * alternatively, use manipulators::ProtonTimesWeighting
+                 */
+                manipulators::binary::DensityWeighting,
+                PIC_Ions,
+                PIC_Electrons>,
+            Manipulate<manipulators::AssignZDriftIons, PIC_Ions>,
+            Manipulate<manipulators::AssignZDriftElectrons, PIC_Electrons>,
+            Manipulate<manipulators::AddTemperature, PIC_Electrons>>;
 
-} // namespace particles
+    } // namespace particles
 } // namespace picongpu

@@ -40,4 +40,4 @@
 #   include "cupla/../../src/stream.cpp"
 #endif
 
-#include "cuda_to_cupla.hpp"
+#include "cupla.hpp"

@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Erik Zenker
+/* Copyright 2016-2021 Erik Zenker
  *
  * This file is part of PMacc.
  *
@@ -20,22 +20,20 @@
  */
 
 #pragma once
-#include <vector>  /* std::vector */
 #include <cstdlib> /* std::size_t */
+#include <vector> /* std::vector */
 
 namespace pmacc
 {
-
     /**
      * Provides ressource information of the current subgrid
      *
      * @tparam T_DIM number of dimensions of the simulation
      */
-    template <unsigned T_DIM>
+    template<unsigned T_DIM>
     class ResourceMonitor
     {
     public:
-
         /**
          * Constructor
          */
@@ -49,10 +47,8 @@ namespace pmacc
         /**
          * Returns the number of particles per species on the device
          */
-        template <typename T_Species, typename T_MappingDesc, typename T_ParticleFilter>
-        std::vector<std::size_t> getParticleCounts(T_MappingDesc &cellDescription, T_ParticleFilter & parFilter);
-
+        template<typename T_Species, typename T_MappingDesc, typename T_ParticleFilter>
+        std::vector<std::size_t> getParticleCounts(T_MappingDesc& cellDescription, T_ParticleFilter& parFilter);
     };
 
-} //namespace pmacc
-
+} // namespace pmacc

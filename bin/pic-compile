@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2020 Axel Huebl, Rene Widera
+# Copyright 2013-2021 Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -131,7 +131,7 @@ do
             $picongpu_prefix/buildsystem/CompileSuite/compileSet.sh \
                 "$example_name" "$testFlagNr" "$globalCMakeOptions" \
                 "$tmpRun_path" "$buildDir" "$examples_path" \
-                "$quiet_run" | tee $buildDir"/compile.log" || exit $?
+                "$quiet_run"  &> $buildDir"/compile.log"
         fi
 
         testFlagNr=$(( testFlagNr + 1 ))

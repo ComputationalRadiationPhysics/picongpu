@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera
+/* Copyright 2015-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -27,51 +27,47 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
-namespace generic
-{
+    namespace particles
+    {
+        namespace manipulators
+        {
+            namespace generic
+            {
+                /** call simple free user defined functor and provide a random number generator
+                 *
+                 *
+                 * @tparam T_Functor user defined unary functor
+                 * @tparam T_Distribution pmacc::random::distributions, random number distribution
+                 *
+                 * example for `particle.param`: add
+                 *   @code{.cpp}
+                 *   #include <pmacc/random/distributions/Uniform.hpp>
+                 *
+                 *   struct FunctorRandomX
+                 *   {
+                 *       template< typename T_Rng, typename T_Particle >
+                 *       HDINLINE void operator()( T_Rng& rng, T_Particle& particle )
+                 *       {
+                 *           particle[ position_ ].x() = rng();
+                 *       }
+                 *       static constexpr char const * name = "randomXPos";
+                 *   };
+                 *
+                 *   using RandomXPos = generic::FreeRng<
+                 *      FunctorRandomX,
+                 *      pmacc::random::distributions::Uniform< float_X >
+                 *   >;
+                 *   @endcode
+                 *
+                 * and to `InitPipeline` in `speciesInitialization.param`:
+                 *   @code{.cpp}
+                 *   Manipulate< manipulators::RandomXPos, SPECIES_NAME >
+                 *   @endcode
+                 */
+                template<typename T_Functor, typename T_Distribution>
+                struct FreeRng;
 
-    /** call simple free user defined functor and provide a random number generator
-     *
-     *
-     * @tparam T_Functor user defined unary functor
-     * @tparam T_Distribution pmacc::random::distributions, random number distribution
-     *
-     * example for `particle.param`: add
-     *   @code{.cpp}
-     *   #include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
-     *
-     *   struct FunctorRandomX
-     *   {
-     *       template< typename T_Rng, typename T_Particle >
-     *       HDINLINE void operator()( T_Rng& rng, T_Particle& particle )
-     *       {
-     *           particle[ position_ ].x() = rng();
-     *       }
-     *       static constexpr char const * name = "randomXPos";
-     *   };
-     *
-     *   using RandomXPos = generic::FreeRng<
-     *      FunctorRandomX,
-     *      pmacc::random::distributions::Uniform< float_X >
-     *   >;
-     *   @endcode
-     *
-     * and to `InitPipeline` in `speciesInitialization.param`:
-     *   @code{.cpp}
-     *   Manipulate< manipulators::RandomXPos, SPECIES_NAME >
-     *   @endcode
-     */
-    template<
-        typename T_Functor,
-        typename T_Distribution
-    >
-    struct FreeRng;
-
-} // namespace generic
-} // namespace manipulators
-} // namespace particles
+            } // namespace generic
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera
+/* Copyright 2014-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -24,20 +24,19 @@
 
 namespace pmacc
 {
-namespace traits
-{
+    namespace traits
+    {
+        /** Get Flag of an Object
+         *
+         * @tparam T_Object any object (class or typename)
+         * @tparam T_Key a class which is used as identifier
+         *
+         * @treturn ::type
+         */
+        template<typename T_Object, typename T_Key>
+        struct GetFlagType;
 
-/** Get Flag of an Object
- *
- * @tparam T_Object any object (class or typename)
- * @tparam T_Key a class which is used as identifier
- *
- * @treturn ::type
- */
-template<typename T_Object, typename T_Key>
-struct GetFlagType;
 
+    } // namespace traits
 
-}//namespace traits
-
-}//namespace pmacc
+} // namespace pmacc

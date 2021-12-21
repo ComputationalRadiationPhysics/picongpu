@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Erik Zenker
+/* Copyright 2015-2021 Erik Zenker
  *
  * This file is part of PMacc.
  *
@@ -26,70 +26,73 @@
 
 namespace pmacc
 {
-namespace test
-{
-namespace memory
-{
-namespace HostBufferIntern
-{
-
-/**
- * Checks if data is copied correctly from device to
- * host.
- */
-struct CopyFromTest {
-
-    template<typename T_Dim>
-    void exec(T_Dim)
+    namespace test
     {
-        using Data = uint8_t ;
-        using Extents = size_t;
+        namespace memory
+        {
+            namespace HostBufferIntern
+            {
+                /**
+                 * Checks if data is copied correctly from device to
+                 * host.
+                 */
+                struct CopyFromTest
+                {
+                    template<typename T_Dim>
+                    void exec(T_Dim)
+                    {
+                        using Data = uint8_t;
+                        using Extents = size_t;
 
-        using ::pmacc::test::memory::getElementsPerDim;
+                        using ::pmacc::test::memory::getElementsPerDim;
 
-        std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
+                        std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
 
-        for(unsigned i = 0; i < nElementsPerDim.size(); ++i){
-            ::pmacc::DataSpace<T_Dim::value> const dataSpace = ::pmacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
-            ::pmacc::HostBuffer<Data, T_Dim::value>* hostBufferIntern = new ::pmacc::HostBufferIntern<Data, T_Dim::value>(dataSpace);
-            ::pmacc::DeviceBuffer<Data, T_Dim::value>* deviceBufferIntern = new ::pmacc::DeviceBufferIntern<Data, T_Dim::value>(dataSpace);
+                        for(unsigned i = 0; i < nElementsPerDim.size(); ++i)
+                        {
+                            ::pmacc::DataSpace<T_Dim::value> const dataSpace
+                                = ::pmacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
+                            ::pmacc::HostBuffer<Data, T_Dim::value>* hostBufferIntern
+                                = new ::pmacc::HostBufferIntern<Data, T_Dim::value>(dataSpace);
+                            ::pmacc::DeviceBuffer<Data, T_Dim::value>* deviceBufferIntern
+                                = new ::pmacc::DeviceBufferIntern<Data, T_Dim::value>(dataSpace);
 
-            hostBufferIntern->reset();
+                            hostBufferIntern->reset();
 
-            for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i){
-                hostBufferIntern->getPointer()[i] = static_cast<Data>(i);
-            }
+                            for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i)
+                            {
+                                hostBufferIntern->getPointer()[i] = static_cast<Data>(i);
+                            }
 
-            deviceBufferIntern->copyFrom(*hostBufferIntern);
-            hostBufferIntern->reset();
-            hostBufferIntern->copyFrom(*deviceBufferIntern);
+                            deviceBufferIntern->copyFrom(*hostBufferIntern);
+                            hostBufferIntern->reset();
+                            hostBufferIntern->copyFrom(*deviceBufferIntern);
 
-            for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i){
-                BOOST_CHECK_EQUAL(hostBufferIntern->getPointer()[i], static_cast<Data>(i));
-            }
+                            for(size_t i = 0; i < static_cast<size_t>(dataSpace.productOfComponents()); ++i)
+                            {
+                                REQUIRE(hostBufferIntern->getPointer()[i] == static_cast<Data>(i));
+                            }
 
-            delete hostBufferIntern;
-            delete deviceBufferIntern;
+                            delete hostBufferIntern;
+                            delete deviceBufferIntern;
+                        }
+                    }
 
-        }
+                    PMACC_NO_NVCC_HDWARNING
+                    template<typename T_Dim>
+                    HDINLINE void operator()(T_Dim dim)
+                    {
+                        exec(dim);
+                    }
+                };
 
-    }
-
-    PMACC_NO_NVCC_HDWARNING
-    template<typename T_Dim>
-    HDINLINE void operator()(T_Dim dim)
-    {
-        exec(dim);
-    }
-};
-
-} // namespace HostBufferIntern
-} // namespace memory
-} // namespace test
+            } // namespace HostBufferIntern
+        } // namespace memory
+    } // namespace test
 } // namespace pmacc
 
-BOOST_AUTO_TEST_CASE( copyFrom )
+TEST_CASE("HostBufferIntern::copyFrom", "[copyFrom]")
 {
     using namespace pmacc::test::memory::HostBufferIntern;
-    ::boost::mpl::for_each< Dims >( CopyFromTest() );
+    ::boost::mpl::for_each<Dims>(CopyFromTest());
 }

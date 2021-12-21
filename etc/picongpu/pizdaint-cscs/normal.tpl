@@ -1,5 +1,5 @@
 #!/bin/bash -l
-# Copyright 2013-2020 Axel Huebl, Richard Pausch, Rene Widera
+# Copyright 2013-2021 Axel Huebl, Richard Pausch, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -87,7 +87,7 @@ export PMI_NO_PREINITIALIZE=1
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
   srun  -n !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
 else
-  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+  echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available. This does not affect PIConGPU, starting it now" >&2
 fi
 
 if [ $? -eq 0 ] ; then

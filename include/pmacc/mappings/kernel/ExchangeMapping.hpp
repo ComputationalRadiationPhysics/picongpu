@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,35 +22,34 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/mappings/kernel/ExchangeMappingMethods.hpp"
+#include "pmacc/mappings/kernel/MapperConcept.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {
-
-    template<uint32_t areaType, class baseClass>
-    class ExchangeMapping;
-
-    /**
+    /** Mapping from block indices to supercells in the given exchange area for alpaka kernels
+     *
+     * Adheres to the MapperConcept.
+     *
      * Allows mapping thread/block indices to a specific region in a DataSpace
      * defined by a valid ExchangeType combination.
      *
      * @tparam areaType are to map to
      * @tparam baseClass base class for mapping, should be MappingDescription
      */
-    template<
-    uint32_t areaType,
-    template<unsigned, class> class baseClass,
-    unsigned DIM,
-    class SuperCellSize_
-    >
-    class ExchangeMapping<areaType, baseClass<DIM, SuperCellSize_> > : public baseClass<DIM, SuperCellSize_>
+    template<uint32_t areaType, class baseClass>
+    class ExchangeMapping;
+
+    template<uint32_t areaType, template<unsigned, class> class baseClass, unsigned DIM, class SuperCellSize_>
+    class ExchangeMapping<areaType, baseClass<DIM, SuperCellSize_>> : public baseClass<DIM, SuperCellSize_>
     {
     private:
         uint32_t exchangeType;
+
     public:
-        typedef baseClass<DIM, SuperCellSize_> BaseClass;
+        using BaseClass = baseClass<DIM, SuperCellSize_>;
 
         enum
         {
@@ -58,7 +57,7 @@ namespace pmacc
         };
 
 
-        typedef typename BaseClass::SuperCellSize SuperCellSize;
+        using SuperCellSize = typename BaseClass::SuperCellSize;
 
         /**
          * Constructor.
@@ -66,9 +65,7 @@ namespace pmacc
          * @param base object of base class baseClass (see template parameters)
          * @param exchangeType exchange type for mapping
          */
-        HINLINE ExchangeMapping(BaseClass base, uint32_t exchangeType) :
-        BaseClass(base),
-        exchangeType(exchangeType)
+        HINLINE ExchangeMapping(BaseClass base, uint32_t exchangeType) : BaseClass(base), exchangeType(exchangeType)
         {
         }
 
@@ -80,30 +77,26 @@ namespace pmacc
             return exchangeType;
         }
 
-        /**
-         * Generate grid dimension information for kernel calls
+        /** Generate grid dimension information for alpaka kernel calls
          *
-         * @return size of the grid
+         * A kernel using this mapping must use exacly the returned number of blocks
+         *
+         * @return number of blocks in a grid
          */
         HINLINE DataSpace<DIM> getGridDim() const
         {
             return ExchangeMappingMethods<areaType, DIM>::getGridDim(*this, exchangeType);
         }
 
-        /**
-         * Returns index of current logical block
+        /** Return index of a supercell to be processed by the given alpaka block
          *
-         * @param realSuperCellIdx current SuperCell index (block index)
-         * @return mapped SuperCell index
+         * @param blockIdx alpaka block index
+         * @return mapped SuperCell index including guards
          */
-        HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& realSuperCellIdx) const
+        HDINLINE DataSpace<DIM> getSuperCellIndex(const DataSpace<DIM>& blockIdx) const
         {
-            return ExchangeMappingMethods<areaType, DIM>::getBlockIndex(
-                                                                        *this,
-                                                                        realSuperCellIdx,
-                                                                        exchangeType);
+            return ExchangeMappingMethods<areaType, DIM>::getSuperCellIndex(*this, blockIdx, exchangeType);
         }
-
     };
 
 } // namespace pmacc

@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Axel Huebl, Richard Pausch
+/* Copyright 2015-2021 Axel Huebl, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -19,65 +19,65 @@
 
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <sstream>
-
 #include <boost/filesystem.hpp>
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 namespace picongpu
 {
-using namespace boost::filesystem;
+    using namespace boost::filesystem;
 
     /** Restore a txt file from the checkpoint dir
      *
      * Restores a txt file from the checkpoint dir and starts appending to it.
-     * Opened files in \see outFile are closed and a valid handle is opened again
+     * Opened files in @see outFile are closed and a valid handle is opened again
      * if a restart file is found. Otherwise new output file stays untouched.
      *
-     * \param outFile std::ofstream file handle to regular file that shall be restored
-     * \param filename the file's name
-     * \param restartStep the file's version in time to restore
-     * \param restartDirectory path to the checkpoint directory
+     * @param outFile std::ofstream file handle to regular file that shall be restored
+     * @param filename the file's name
+     * @param restartStep the file's version in time to restore
+     * @param restartDirectory path to the checkpoint directory
      *
-     * \return operation was successful or not
+     * @return operation was successful or not
      */
-    HINLINE bool restoreTxtFile( std::ofstream& outFile, std::string filename,
-                         uint32_t restartStep, const std::string restartDirectory )
+    HINLINE bool restoreTxtFile(
+        std::ofstream& outFile,
+        std::string filename,
+        uint32_t restartStep,
+        const std::string restartDirectory)
     {
         /* get restart time step as string */
         std::stringstream sStep;
         sStep << restartStep;
 
         /* set location of restart file and output file */
-        path src( restartDirectory + std::string("/") + filename +
-                  std::string(".") + sStep.str() );
-        path dst( filename );
+        path src(restartDirectory + std::string("/") + filename + std::string(".") + sStep.str());
+        path dst(filename);
 
         /* check whether restart file exists */
-        if( !boost::filesystem::exists( src ) )
+        if(!boost::filesystem::exists(src))
         {
             /* restart file does not exists */
-            log<picLog::INPUT_OUTPUT> ("Plugin restart file: %1% was not found. \
-                                       --> Starting plugin from current time step.") % src;
+            log<picLog::INPUT_OUTPUT>("Plugin restart file: %1% was not found. \
+                                       --> Starting plugin from current time step.")
+                % src;
             return true;
         }
         else
         {
             /* restart file found - fix output file created at restart */
-            if( outFile.is_open() )
+            if(outFile.is_open())
                 outFile.close();
 
-            copy_file( src,
-                       dst,
-                       copy_option::overwrite_if_exists );
+            copy_file(src, dst, copy_option::overwrite_if_exists);
 
-            outFile.open( filename.c_str(), std::ofstream::out | std::ostream::app );
-            if( !outFile )
+            outFile.open(filename.c_str(), std::ofstream::out | std::ostream::app);
+            if(!outFile)
             {
-                std::cerr << "[Plugin] Can't open file '" << filename
-                          << "', output disabled" << std::endl;
+                std::cerr << "[Plugin] Can't open file '" << filename << "', output disabled" << std::endl;
                 return false;
             }
             return true;
@@ -88,26 +88,26 @@ using namespace boost::filesystem;
      *
      * The file is flushed, copied to the checkpoint dir with extension fileName.step
      *
-     * \param outFile std::ofstream file handle to regular file that shall be checkpointed
-     * \param filename the file's name
-     * \param currentStep the current time step
-     * \param checkpointDirectory path to the checkpoint directory
+     * @param outFile std::ofstream file handle to regular file that shall be checkpointed
+     * @param filename the file's name
+     * @param currentStep the current time step
+     * @param checkpointDirectory path to the checkpoint directory
      */
-    HINLINE void checkpointTxtFile( std::ofstream& outFile, std::string filename,
-                            uint32_t currentStep, const std::string checkpointDirectory )
+    HINLINE void checkpointTxtFile(
+        std::ofstream& outFile,
+        std::string filename,
+        uint32_t currentStep,
+        const std::string checkpointDirectory)
     {
         outFile.flush();
 
         std::stringstream sStep;
         sStep << currentStep;
 
-        path src( filename );
-        path dst( checkpointDirectory + std::string("/") + filename +
-        std::string(".") + sStep.str() );
+        path src(filename);
+        path dst(checkpointDirectory + std::string("/") + filename + std::string(".") + sStep.str());
 
-        copy_file( src,
-                   dst,
-                   copy_option::overwrite_if_exists );
+        copy_file(src, dst, copy_option::overwrite_if_exists);
     }
 
 } /* namespace picongpu */

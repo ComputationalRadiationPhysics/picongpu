@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera
+/* Copyright 2015-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,41 +22,40 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
-namespace generic
-{
+    namespace particles
+    {
+        namespace manipulators
+        {
+            namespace generic
+            {
+                /** call simple free user defined manipulators
+                 *
+                 * @tparam T_Functor user defined manipulators
+                 *                   **optional**: can implement **one** host side constructor
+                 *                   `T_Functor()` or `T_Functor(uint32_t currentTimeStep)`
+                 *
+                 * example for `particle.param`: set in cell position to zero
+                 *   @code{.cpp}
+                 *
+                 *   struct FunctorInCellPositionZero
+                 *   {
+                 *       template< typename T_Particle >
+                 *       HDINLINE void operator()( T_Particle & particle )
+                 *       {
+                 *           particle[ position_ ] = floatD_X::create( 0.0 );
+                 *       }
+                 *       static constexpr char const * name = "inCellPositionZero";
+                 *   };
+                 *
+                 *   using InCellPositionZero = generic::Free<
+                 *      FunctorInCellPositionZero
+                 *   >;
+                 *   @endcode
+                 */
+                template<typename T_Functor>
+                struct Free;
 
-    /** call simple free user defined manipulators
-     *
-     * @tparam T_Functor user defined manipulators
-     *                   **optional**: can implement **one** host side constructor
-     *                   `T_Functor()` or `T_Functor(uint32_t currentTimeStep)`
-     *
-     * example for `particle.param`: set in cell position to zero
-     *   @code{.cpp}
-     *
-     *   struct FunctorInCellPositionZero
-     *   {
-     *       template< typename T_Particle >
-     *       HDINLINE void operator()( T_Particle & particle )
-     *       {
-     *           particle[ position_ ] = floatD_X::create( 0.0 );
-     *       }
-     *       static constexpr char const * name = "inCellPositionZero";
-     *   };
-     *
-     *   using InCellPositionZero = generic::Free<
-     *      FunctorInCellPositionZero
-     *   >;
-     *   @endcode
-     */
-    template< typename T_Functor >
-    struct Free;
-
-} // namespace generic
-} // namespace manipulators
-} // namespace particles
+            } // namespace generic
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

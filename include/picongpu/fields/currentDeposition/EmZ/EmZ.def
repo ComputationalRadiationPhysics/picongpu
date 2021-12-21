@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,76 +17,76 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
 
+#include "picongpu/fields/currentDeposition/Strategy.def"
+
 
 namespace picongpu
 {
-namespace currentSolver
-{
+    namespace currentSolver
+    {
+        namespace emz
+        {
+            template<typename T_AtomicAddOp, typename ParticleAssign, int T_begin, int T_end, uint32_t T_dim = simDim>
+            struct DepositCurrent;
+        } // namespace emz
 
-namespace emz
-{
-    template<
-        typename ParticleAssign,
-        int T_begin,
-        int T_end,
-        uint32_t T_dim = simDim
-    >
-    struct DepositCurrent;
-} //namespace emz
+        /** EmZ (Esirkepov meets ZigZag) current deposition
+         *
+         * Deposit the particle current with a mixed algorithm based on Esirkepov and
+         * the ZigZag way splitting.
+         * EmZ supports arbitrary symmetric shapes and 2D/3D cartesian grids.
+         *
+         * ZigZag publications:
+         * 1. order paper: "A new charge conservation method in electromagnetic
+         *                  particle-in-cell simulations", Comput. Phys. Commun. (2003)
+         *                  T. Umeda, Y. Omura, T. Tominaga, H. Matsumoto
+         *                  DOI: 10.1016/S0010-4655(03)00437-5
+         * 2. order paper: "Charge conservation methods for computing current densities
+         *                  in electromagnetic particle-in-cell simulations",
+         *                  Proceedings of ISSS. Vol. 7. 2005
+         *                  T. Umeda, Y. Omura, H. Matsumoto
+         * 3. order paper: "High-Order Interpolation Algorithms for Charge Conservation
+         *                  in Particle-in-Cell Simulation", Commun. Comput. Phys 13 (2013)
+         *                  Jinqing Yu, Xiaolin Jin, Weimin Zhou, Bin Li, Yuqiu Gu
+         *                  DOI:10.1109/ICCIS.2012.159
+         *
+         * @tparam T_ParticleShape the particle shape for the species [picongpu::particles::shapes]
+         * @tparam T_Strategy Used strategy to reduce the scattered data [currentSolver::strategy]
+         *
+         */
+        template<typename T_ParticleShape, typename T_Strategy = traits::GetDefaultStrategy_t<>>
+        struct EmZ;
 
-/** EmZ (Esirkepov meets ZigZag) current deposition
- *
- * Deposit the particle current with a mixed algorithm based on Esirkepov and
- * the ZigZag way splitting.
- * EmZ supports arbitrary symmetric shapes and 2D/3D cartesian grids.
- *
- * ZigZag publications:
- * 1. order paper: "A new charge conservation method in electromagnetic
- *                  particle-in-cell simulations", Comput. Phys. Commun. (2003)
- *                  T. Umeda, Y. Omura, T. Tominaga, H. Matsumoto
- *                  DOI: 10.1016/S0010-4655(03)00437-5
- * 2. order paper: "Charge conservation methods for computing current densities
- *                  in electromagnetic particle-in-cell simulations",
- *                  Proceedings of ISSS. Vol. 7. 2005
- *                  T. Umeda, Y. Omura, H. Matsumoto
- * 3. order paper: "High-Order Interpolation Algorithms for Charge Conservation
- *                  in Particle-in-Cell Simulation", Commun. Comput. Phys 13 (2013)
- *                  Jinqing Yu, Xiaolin Jin, Weimin Zhou, Bin Li, Yuqiu Gu
- *                  DOI:10.1109/ICCIS.2012.159
- *
- * \tparam T_ParticleShape the particle shape for the species, \see picongpu::particles::shapes
- *
- */
-template< typename ParticleShape >
-struct EmZ;
+        namespace traits
+        {
+            template<typename T_ParticleShape, typename T_Strategy>
+            struct GetStrategy<EmZ<T_ParticleShape, T_Strategy>>
+            {
+                using type = T_Strategy;
+            };
+        } // namespace traits
 
-} //namespace currentSolver
+    } // namespace currentSolver
 
-namespace traits
-{
+    namespace traits
+    {
+        /*Get margin of a solver
+         * class must define a LowerMargin and UpperMargin
+         */
+        template<typename T_ParticleShape, typename T_Strategy>
+        struct GetMargin<picongpu::currentSolver::EmZ<T_ParticleShape, T_Strategy>>
+        {
+        private:
+            using Solver = picongpu::currentSolver::EmZ<T_ParticleShape, T_Strategy>;
 
-/*Get margin of a solver
- * class must define a LowerMargin and UpperMargin
- */
-template< typename ParticleShape >
-struct GetMargin<
-    picongpu::currentSolver::EmZ<
-        ParticleShape
-    >
->
-{
-private:
-    typedef picongpu::currentSolver::EmZ< ParticleShape > Solver;
-public:
-    typedef typename Solver::LowerMargin LowerMargin;
-    typedef typename Solver::UpperMargin UpperMargin;
-};
+        public:
+            using LowerMargin = typename Solver::LowerMargin;
+            using UpperMargin = typename Solver::UpperMargin;
+        };
 
-} //namespace traits
-
-} //namespace picongpu
+    } // namespace traits
+} // namespace picongpu

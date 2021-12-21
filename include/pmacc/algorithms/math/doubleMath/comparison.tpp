@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Benjamin Worpitz, Richard Pausch
+/* Copyright 2015-2021 Benjamin Worpitz, Richard Pausch
  *
  * This file is part of PMacc.
  *
@@ -22,38 +22,35 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
 #include <cmath>
 
 
 namespace pmacc
 {
-namespace algorithms
-{
-namespace math
-{
-
-template<>
-struct Min<double, double>
-{
-    typedef double result;
-
-    HDINLINE double operator()(double value1, double value2)
+    namespace math
     {
-        return ::fmin(value1, value2);
-    }
-};
+        template<>
+        struct Min<double, double>
+        {
+            using result = double;
 
-template<>
-struct Max<double, double>
-{
-    typedef double result;
+            HDINLINE double operator()(double value1, double value2)
+            {
+                return ::fmin(value1, value2);
+            }
+        };
 
-    HDINLINE double operator()(double value1, double value2)
-    {
-        return ::fmax(value1, value2);
-    }
-};
+        template<>
+        struct Max<double, double>
+        {
+            using result = double;
 
-} //namespace math
-} //namespace algorithms
-} //namespace pmacc
+            HDINLINE double operator()(double value1, double value2)
+            {
+                return ::fmax(value1, value2);
+            }
+        };
+
+    } // namespace math
+} // namespace pmacc

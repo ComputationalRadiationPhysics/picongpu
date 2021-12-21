@@ -1,14 +1,15 @@
-**cupla** - C++ User interface for the Platform independent Library Alpaka
+**cupla** - C++ User interface for the Platform Independent Library alpaka
 ==========================================================================
 
-[![Build Status dev](https://img.shields.io/travis/ComputationalRadiationPhysics/cupla/dev.svg?label=dev)](https://travis-ci.org/ComputationalRadiationPhysics/cupla/branches)
+[![Code Status master](https://gitlab.com/hzdr/crp/cupla/badges/master/pipeline.svg?key_text=master)](https://gitlab.com/hzdr/crp/cupla/pipelines/master/latest)
+[![Code Status dev](https://gitlab.com/hzdr/crp/cupla/badges/dev/pipeline.svg?key_text=dev)](https://gitlab.com/hzdr/crp/cupla/pipelines/dev/latest)
 
 ![cupla Release](doc/logo/cupla_logo_320x210.png)
 
 **cupla** [[qχɑpˈlɑʔ]](https://en.wiktionary.org/wiki/Qapla%27) is a simple user
 interface for the platform independent parallel kernel
 acceleration library
-[**alpaka**](https://github.com/ComputationalRadiationPhysics/alpaka).
+[**alpaka**](https://github.com/alpaka-group/alpaka).
 It follows a similar concept as the
 [NVIDIA® CUDA® API](https://developer.nvidia.com/cuda-zone) by
 providing a software layer to manage accelerator devices.
@@ -38,8 +39,8 @@ For more information see [LICENSE.md](LICENSE.md).
 Dependencies
 ------------
 
-- **cmake 3.11.4**
-- **[alpaka 0.4.0](https://github.com/ComputationalRadiationPhysics/alpaka/)**
+- **cmake 3.15.0**
+- **[alpaka 0.6.X](https://github.com/alpaka-group/alpaka/)**
   - alpaka is loaded as `git subtree` within **cupla**, see [INSTALL.md](INSTALL.md)
 
 Usage

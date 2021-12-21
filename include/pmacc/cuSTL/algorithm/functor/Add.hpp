@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Heiko Burau
+/* Copyright 2017-2021 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -26,38 +26,25 @@
 
 namespace pmacc
 {
-namespace algorithm
-{
-namespace functor
-{
-
-    struct Add
+    namespace algorithm
     {
-        template< typename T_Type >
-        HDINLINE T_Type
-        operator()(
-            T_Type const & first,
-            T_Type const & second
-        ) const
+        namespace functor
         {
-            return first + second;
-        }
+            struct Add
+            {
+                template<typename T_Type>
+                HDINLINE T_Type operator()(T_Type const& first, T_Type const& second) const
+                {
+                    return first + second;
+                }
 
-        template<
-            typename T_Type,
-            typename T_Acc
-        >
-        HDINLINE T_Type
-        operator()(
-            T_Acc const &,
-            T_Type const & first,
-            T_Type const & second
-        ) const
-        {
-            return first + second;
-        }
-    };
+                template<typename T_Type, typename T_Acc>
+                HDINLINE T_Type operator()(T_Acc const&, T_Type const& first, T_Type const& second) const
+                {
+                    return first + second;
+                }
+            };
 
-} // functor
-} // algorithm
-} // pmacc
+        } // namespace functor
+    } // namespace algorithm
+} // namespace pmacc

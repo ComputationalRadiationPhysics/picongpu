@@ -1,0 +1,164 @@
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch, Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Configure existing or define new normalized density profiles here.
+ * During particle species creation in speciesInitialization.param,
+ * those profiles can be translated to spatial particle distributions.
+ */
+
+#pragma once
+
+#include "picongpu/particles/densityProfiles/profiles.def"
+/* preprocessor struct generator */
+#include <pmacc/preprocessor/struct.hpp>
+
+
+namespace picongpu
+{
+    namespace SI
+    {
+        /** Base density in particles per m^3 in the density profiles.
+         *
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
+         *
+         * unit: ELEMENTS/m^3
+         */
+        constexpr float_64 BASE_DENSITY_SI = 1e25;
+    } // namespace SI
+
+    namespace densityProfiles
+    {
+        struct DoubleSlitFunctor
+        {
+            /** This formula uses SI quantities only.
+             *  The profile will be multiplied by BASE_DENSITY_SI.
+             *
+             *  Two stripes, in x,y plane, with density 0, everywhere else density
+             *  is 1. Translation invariant in z.
+             *
+             * @param position_SI total offset including all slides [meter]
+             * @param cellSize_SI cell sizes [meter]
+             *
+             * @return float_X density [normalized to 1.0]
+             */
+            HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
+            {
+                const float_64 x(position_SI.x());
+                const float_64 y(position_SI.y());
+                const uint64_t xCellId(uint64_t(position_SI.x() / cellSize_SI[0]));
+                const uint64_t yCellId(uint64_t(position_SI.y() / cellSize_SI[1]));
+                constexpr uint32_t cellsY = 128;
+                constexpr uint32_t cellsX = 128;
+                constexpr uint32_t w = 8;
+                constexpr uint32_t d = 30;
+                constexpr uint32_t total = 2 * w + d;
+                constexpr uint32_t start = (cellsX - total) / 2;
+                constexpr uint32_t slitHalfHeight = 45;
+                float_X s = 1.0_X;
+                if(yCellId > cellsY / 2 - slitHalfHeight && yCellId <= cellsY / 2 + slitHalfHeight)
+                {
+                    if((xCellId > start - 1 && xCellId < start + w)
+                       || (xCellId >= start + w + d && xCellId < start + w + d + w))
+                    {
+                        s = 0.0;
+                    }
+                }
+                s *= float_X(s >= 0.0);
+                return s;
+            }
+        };
+
+        template<unsigned T>
+        struct PeriodicGrid2DFunctor
+        {
+            /** This formula uses SI quantities only.
+             *  The profile will be multiplied by BASE_DENSITY_SI.
+             *  density(x) = max{sgn(sin(2 * pi/ T * (x- T/4))), 0}
+             *
+             *  identical for y
+             *
+             * @param position_SI total offset including all slides [meter]
+             * @param cellSize_SI cell sizes [meter]
+             *
+             * @tparam T  period
+             * @return float_X density [normalized to 1.0]
+             */
+            HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
+            {
+                // get cell number
+                const uint64_t xCellId = static_cast<uint64_t>(position_SI.x() / cellSize_SI.x());
+                const uint64_t yCellId = static_cast<uint64_t>(position_SI.y() / cellSize_SI.y());
+
+                float_64 dens = 1.0;
+                if(((xCellId + T / 4) / (T / 2)) % 2 && ((yCellId + T / 4) / (T / 2)) % 2)
+                {
+                    dens = 0.0;
+                }
+
+                // safety check: all parts of the function MUST be > 0
+                dens *= float_64(dens >= 0.0);
+                return dens;
+            }
+        };
+
+        template<unsigned T>
+        struct PeriodicStripesFunctor
+        {
+            /** This formula uses SI quantities only.
+             * The profile will be multiplied by BASE_DENSITY_SI.
+             * density(y) = max{sgn(sin(2 * pi/ T * (x- T/4))), 0}
+             *
+             *
+             *
+             * @param position_SI total offset including all slides [meter]
+             * @param cellSize_SI cell sizes [meter]
+             *
+             * @tparam T  period
+             * @return float_X density [normalized to 1.0]
+             */
+            HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
+            {
+                // get cell number
+                const uint64_t yCellId = static_cast<uint64_t>(position_SI.y() / cellSize_SI.y());
+
+                float_64 dens = 1.0;
+                if(((yCellId + T / 4) / (T / 2)) % 2)
+                {
+                    dens = 0.0;
+                }
+
+                // safety check: all parts of the function MUST be > 0
+                dens *= float_64(dens >= 0.0);
+                return dens;
+            }
+        };
+        // definition of free formula profiles
+        using PeriodicGrid2D = FreeFormulaImpl<PeriodicGrid2DFunctor<12>>;
+        using PeriodicStripes = FreeFormulaImpl<PeriodicStripesFunctor<12>>;
+        using DoubleSlit = FreeFormulaImpl<DoubleSlitFunctor>;
+        // definition of homogeneous profile
+        using Homogenous = HomogenousImpl;
+        using UsedDensity = DoubleSlit;
+    } // namespace densityProfiles
+} // namespace picongpu

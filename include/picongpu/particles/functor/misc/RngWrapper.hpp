@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -26,49 +26,45 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace functor
-{
-namespace misc
-{
-
-    /** wraps an random number generator together with an alpaka accelerator
-     *
-     * This class allows to generate random numbers without passing the accelerator
-     * to each functor call.
-     *
-     * @tparam T_Acc type of the alpaka accelerator
-     * @tparam T_Rng type of the random number generator
-     */
-    template<
-        typename T_Acc,
-        typename T_Rng
-    >
-    struct RngWrapper
+    namespace particles
     {
-        DINLINE RngWrapper(
-            T_Acc const & acc,
-            T_Rng const & rng
-
-        ) :
-            m_acc( &acc ),
-            m_rng( rng )
-        { }
-
-        //! generate a random number
-        DINLINE
-        typename T_Rng::result_type
-        operator()()
+        namespace functor
         {
-            return m_rng( *m_acc );
-        }
+            namespace misc
+            {
+                /** wraps an random number generator together with an alpaka accelerator
+                 *
+                 * This class allows to generate random numbers without passing the accelerator
+                 * to each functor call.
+                 *
+                 * @tparam T_Acc type of the alpaka accelerator
+                 * @tparam T_Rng type of the random number generator
+                 */
+                template<typename T_Acc, typename T_Rng>
+                struct RngWrapper
+                {
+                    DINLINE RngWrapper(
+                        T_Acc const& acc,
+                        T_Rng const& rng
 
-        T_Acc const * m_acc;
-        mutable T_Rng m_rng;
-    };
+                        )
+                        : m_acc(&acc)
+                        , m_rng(rng)
+                    {
+                    }
 
-} // namepsace misc
-} // namespace functor
-} // namespace particles
+                    //! generate a random number
+                    DINLINE
+                    typename T_Rng::result_type operator()()
+                    {
+                        return m_rng(*m_acc);
+                    }
+
+                    T_Acc const* m_acc;
+                    mutable T_Rng m_rng;
+                };
+
+            } // namespace misc
+        } // namespace functor
+    } // namespace particles
 } // namespace picongpu

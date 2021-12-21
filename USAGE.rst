@@ -2,7 +2,14 @@
 
 .. seealso::
 
-   You need to have an :ref:`environment loaded <install-profile>` (``source $HOME/picongpu.profile``) that provides all :ref:`PIConGPU dependencies <install-dependencies>` to complete this chapter.
+   You need to have an :ref:`environment loaded <install-profile>` (``source $HOME/picongpu.profile`` when installing from source or ``spack load picongpu`` when using spack) that provides all :ref:`PIConGPU dependencies <install-dependencies>` to complete this chapter.
+
+.. warning::
+
+   PIConGPU source code is portable and can be compiled on all major operating systems.
+   However, helper tools like ``pic-create`` and ``pic-build`` described in this section rely on Linux utilities and thus are not expected to work on other platforms out-of-the-box.
+   Note that building and using PIConGPU on other operating systems is still possible but has to be done manually or with custom tools.
+   This case is not covered in the documentation, but we can assist users with it when needed.
 
 Basics
 ======
@@ -90,6 +97,19 @@ This will create the directory ``$SCRATCH/runs/lwfa_001`` where all simulation o
 Subfolder ``simOutput/`` has all the simulation results.
 Particularly, the simulation progress log is in ``simOutput/output``.
 
+4. Creating Own Simulation
+""""""""""""""""""""""""""
+
+For creating an own simulation, we recommend starting with the most fitting example and modifying the :ref:`compile-time options in .param files <usage-params>` and :ref:`run-time options in .cfg files <usage-plugins>`.
+Changing contents of ``.param`` files requires recompilation of the code, modifying ``.cfg`` files does not.
+Note that available run-time options generally depend on the environment used for the build, the chosen compute backend, and the contents of ``.param`` files.
+To get the list of all available options for the current configuration, after a successful ``pic-build`` run
+
+.. code-block:: bash
+   :emphasize-lines: 1
+
+   .build/picongpu --help
+
 Details on the Commands Above
 -----------------------------
 
@@ -101,16 +121,16 @@ tbg
 The ``tbg`` tool is explained in detail :ref:`in its own section <usage-tbg>`.
 Its primary purpose is to abstract the options in runtime ``.cfg`` files from the technical details on how to run on various supercomputers.
 
-For example, if you want to run on the HPC System `"Hypnos" at HZDR <https://www.hzdr.de/db/Cms?pOid=12231>`_, your ``tbg`` submit command would just change to:
+For example, if you want to run on the HPC System `"Hemera" at HZDR <https://www.hzdr.de/db/Cms?pOid=12231>`_, your ``tbg`` submit command would just change to:
 
 .. code-block:: bash
    :emphasize-lines: 2
 
    # request 1 GPU from the PBS batch system and run on the queue "k20"
-   tbg -s qsub -c etc/picongpu/1.cfg -t etc/picongpu/hypnos-hzdr/k20.tpl $SCRATCH/runs/lwfa_002
+   tbg -s sbatch -c etc/picongpu/1.cfg -t etc/picongpu/hemera-hzdr/k20.tpl $SCRATCH/runs/lwfa_002
 
    # run again, this time on 16 GPUs
-   tbg -s qsub -c etc/picongpu/16.cfg -t etc/picongpu/hypnos-hzdr/k20.tpl $SCRATCH/runs/lwfa_003
+   tbg -s sbatch -c etc/picongpu/16.cfg -t etc/picongpu/hemera-hzdr/k20.tpl $SCRATCH/runs/lwfa_003
 
 Note that we can use the same ``1.cfg`` file, your input set is *portable*.
 

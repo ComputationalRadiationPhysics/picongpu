@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -60,11 +60,19 @@ namespace picongpu
          *  - precision64Bit
          */
         namespace sqrt_Vay = precision64Bit;
-    }
+    } // namespace particlePusherVay
+
+    namespace particlePusherHigueraCary
+    {
+        /** Precision of the square roots during the push step
+         *  - precision32Bit
+         *  - precision64Bit
+         */
+        namespace sqrt_HigueraCary = precision64Bit;
+    } // namespace particlePusherHigueraCary
 
     namespace particlePusherAxel
     {
-
         enum TrajectoryInterpolationType
         {
             LINEAR = 1u,
@@ -72,23 +80,28 @@ namespace picongpu
         };
         constexpr TrajectoryInterpolationType TrajectoryInterpolation = LINEAR;
 
-    }
+    } // namespace particlePusherAxel
 
     namespace particles
     {
-    namespace pusher
-    {
-        struct Vay;
-        struct Boris;
-        struct Photon;
-        struct Acceleration;
-        struct Free;
-        struct Probe;
-        struct ReducedLandauLifshitz;
-#if(SIMDIM==DIM3)
-        struct Axel;
+        namespace pusher
+        {
+            struct HigueraCary;
+            struct Vay;
+            struct Boris;
+            struct Photon;
+            struct Acceleration;
+            struct Free;
+            struct Probe;
+            struct ReducedLandauLifshitz;
+#if(SIMDIM == DIM3)
+            struct Axel;
 #endif
-    } // namespace pusher
+            template<typename T_FirstPusher, typename T_SecondPusher, typename T_ActivationFunctor>
+            struct Composite;
+            template<uint32_t T_switchTimeStep>
+            struct CompositeBinarySwitchActivationFunctor;
+        } // namespace pusher
     } // namespace particles
 
     namespace particlePusherProbe
@@ -105,6 +118,6 @@ namespace picongpu
          * - void (no push)
          */
         using ActualPusher = void;
-    }
+    } // namespace particlePusherProbe
 
 } // namespace picongpu

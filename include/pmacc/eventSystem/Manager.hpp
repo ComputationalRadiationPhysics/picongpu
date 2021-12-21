@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz, Alexander Grund
  *
  * This file is part of PMacc.
@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/tasks/ITask.hpp"
 #include "pmacc/Environment.def"
+#include "pmacc/eventSystem/tasks/ITask.hpp"
 
 #include <map>
 #include <set>
@@ -39,12 +39,12 @@ namespace pmacc
     class Manager : public IEvent
     {
     public:
-        typedef std::map<id_t, ITask*> TaskMap;
-        typedef std::set<id_t> TaskSet;
+        using TaskMap = std::map<id_t, ITask*>;
+        using TaskSet = std::set<id_t>;
 
         bool execute(id_t taskToWait = 0);
 
-        void event(id_t eventId, EventType type, IEventData* data);
+        void event(id_t eventId, EventType type, IEventData* data) override;
 
 
         /*! Return a ITask pointer if ITask is not finished
@@ -58,6 +58,17 @@ namespace pmacc
          */
         void waitForFinished(id_t taskId);
 
+        /** Blocks until func is ready.
+         *
+         * The functor is executed until it returns true. After each functor executing PMaccs event system is executed.
+         *
+         * @tparam T_Functor Type of the functor.
+         * @param func Functor to execute. signature: `bool func()`
+         *             The functor is not allowed to execute MPI collectives or any other blocking function.
+         */
+        template<typename T_Functor>
+        void waitFor(T_Functor&& func);
+
         /**
          * blocks until all tasks in the manager are finished
          */
@@ -67,15 +78,14 @@ namespace pmacc
          * adds an ITask to the manager and returns an EventTask for it
          * @param task task to add to the manager
          */
-        void addTask(ITask *task);
+        void addTask(ITask* task);
 
-        void addPassiveTask(ITask *task);
+        void addPassiveTask(ITask* task);
 
 
         std::size_t getCount();
 
     private:
-
         friend struct detail::Environment;
 
         inline ITask* getPassiveITaskIfNotFinished(id_t taskId) const;
@@ -86,7 +96,7 @@ namespace pmacc
 
         Manager(const Manager& cc);
 
-        virtual ~Manager();
+        ~Manager() override;
 
         static Manager& getInstance()
         {
@@ -98,4 +108,4 @@ namespace pmacc
         TaskMap passiveTasks;
     };
 
-} //namespace pmacc
+} // namespace pmacc

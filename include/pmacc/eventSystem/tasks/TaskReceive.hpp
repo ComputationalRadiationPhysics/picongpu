@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -22,126 +22,165 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/tasks/ITask.hpp"
-#include "pmacc/eventSystem/tasks/MPITask.hpp"
-#include "pmacc/eventSystem/tasks/TaskCopyHostToDevice.hpp"
+#include "pmacc/Environment.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/eventSystem/events/EventDataReceive.hpp"
-#include "pmacc/eventSystem/tasks/Factory.hpp"
-#include "pmacc/mappings/simulation/EnvironmentController.hpp"
-#include "pmacc/memory/buffers/Exchange.hpp"
+#include "pmacc/eventSystem/tasks/MPITask.hpp"
 
 namespace pmacc
 {
+    template<class TYPE, unsigned DIM>
+    class Exchange;
 
-
-    template <class TYPE, unsigned DIM>
+    template<class TYPE, unsigned DIM>
     class TaskReceive : public MPITask
     {
     public:
-
-        TaskReceive(Exchange<TYPE, DIM> &ex) :
-        exchange(&ex),
-        state(Constructor)
+        TaskReceive(Exchange<TYPE, DIM>& ex) : exchange(&ex), state(Constructor)
         {
         }
 
-        virtual void init()
+        void init() override
         {
             state = WaitForReceived;
+            if(Environment<>::get().isMpiDirectEnabled())
+            {
+                /* Wait to be sure that all device work is finished before MPI is triggered.
+                 * MPI will not wait for work in our device streams
+                 */
+                __getTransactionEvent().waitForFinished();
+            }
             Environment<>::get().Factory().createTaskReceiveMPI(exchange, this);
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
-            switch (state)
+            switch(state)
             {
-                case WaitForReceived:
-                    break;
-                case RunCopy:
-                    state = WaitForFinish;
-                   __startTransaction();
-                    exchange->getHostBuffer().setCurrentSize(newBufferSize);
-                    if (exchange->hasDeviceDoubleBuffer())
-                    {
+            case WaitForReceived:
+                break;
+            case RunCopy:
+                state = WaitForFinish;
+                __startTransaction();
 
-                        Environment<>::get().Factory().createTaskCopyHostToDevice(exchange->getHostBuffer(),
-                                                                                     exchange->getDeviceDoubleBuffer());
-                        Environment<>::get().Factory().createTaskCopyDeviceToDevice(exchange->getDeviceDoubleBuffer(),
-                                                                                       exchange->getDeviceBuffer(),
-                                                                                       this);
+                /* If MPI direct is enabled
+                 *   - we do not have any host representation of an exchange
+                 *   - MPI will write directly into the device buffer
+                 *     or double buffer when available.
+                 */
+                if(exchange->hasDeviceDoubleBuffer())
+                {
+                    if(Environment<>::get().isMpiDirectEnabled())
+                    {
+                        exchange->getDeviceDoubleBuffer().setCurrentSize(newBufferSize);
                     }
                     else
                     {
-
-                        Environment<>::get().Factory().createTaskCopyHostToDevice(exchange->getHostBuffer(),
-                                                                                     exchange->getDeviceBuffer(),
-                                                                                     this);
+                        exchange->getHostBuffer().setCurrentSize(newBufferSize);
+                        Environment<>::get().Factory().createTaskCopyHostToDevice(
+                            exchange->getHostBuffer(),
+                            exchange->getDeviceDoubleBuffer());
                     }
-                    __endTransaction();
-                    break;
-                case WaitForFinish:
-                    break;
-                case Finish:
+
+                    Environment<>::get().Factory().createTaskCopyDeviceToDevice(
+                        exchange->getDeviceDoubleBuffer(),
+                        exchange->getDeviceBuffer(),
+                        this);
+                }
+                else
+                {
+                    if(Environment<>::get().isMpiDirectEnabled())
+                    {
+                        exchange->getDeviceBuffer().setCurrentSize(newBufferSize);
+                        /* We can not be notified from setCurrentSize() therefore
+                         * we need to wait that the current event is finished.
+                         */
+                        setSizeEvent = __getTransactionEvent();
+                        state = WaitForSetSize;
+                    }
+                    else
+                    {
+                        exchange->getHostBuffer().setCurrentSize(newBufferSize);
+                        Environment<>::get().Factory().createTaskCopyHostToDevice(
+                            exchange->getHostBuffer(),
+                            exchange->getDeviceBuffer(),
+                            this);
+                    }
+                }
+
+                __endTransaction();
+                break;
+            case WaitForSetSize:
+                // this code is only passed if gpu direct is enabled
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(setSizeEvent.getTaskId()))
+                {
+                    state = Finish;
                     return true;
-                default:
-                    return false;
+                }
+                break;
+            case WaitForFinish:
+                break;
+            case Finish:
+                return true;
+            default:
+                return false;
             }
 
             return false;
         }
 
-        virtual ~TaskReceive()
+        ~TaskReceive() override
         {
             notify(this->myId, RECVFINISHED, nullptr);
         }
 
-        void event(id_t, EventType type, IEventData* data)
+        void event(id_t, EventType type, IEventData* data) override
         {
-            switch (type)
+            switch(type)
             {
-                case RECVFINISHED:
-                    if (data != nullptr)
-                    {
-                        EventDataReceive *rdata = static_cast<EventDataReceive*> (data);
-                        // std::cout<<" data rec "<<rdata->getReceivedCount()/sizeof(TYPE)<<std::endl;
-                        newBufferSize = rdata->getReceivedCount() / sizeof (TYPE);
-                        state = RunCopy;
-                        executeIntern();
-                    }
-                    break;
-                case COPYHOST2DEVICE:
-                case COPYDEVICE2DEVICE:
-                    state = Finish;
-                    break;
-                default:
-                    return;
+            case RECVFINISHED:
+                if(data != nullptr)
+                {
+                    auto* rdata = static_cast<EventDataReceive*>(data);
+                    // std::cout<<" data rec "<<rdata->getReceivedCount()/sizeof(TYPE)<<std::endl;
+                    newBufferSize = rdata->getReceivedCount() / sizeof(TYPE);
+                    state = RunCopy;
+                    executeIntern();
+                }
+                break;
+            case COPYHOST2DEVICE:
+            case COPYDEVICE2DEVICE:
+                state = Finish;
+                break;
+            default:
+                return;
             }
         }
 
-        std::string toString()
+        std::string toString() override
         {
             std::stringstream ss;
-            ss<<state;
-            return std::string("TaskReceive ")+ ss.str();
+            ss << state;
+            return std::string("TaskReceive ") + ss.str();
         }
 
     private:
-
         enum state_t
         {
             Constructor,
             WaitForReceived,
             RunCopy,
+            WaitForSetSize,
             WaitForFinish,
             Finish
 
         };
 
 
-        Exchange<TYPE, DIM> *exchange;
+        Exchange<TYPE, DIM>* exchange;
         state_t state;
         size_t newBufferSize;
+        EventTask setSizeEvent;
     };
 
-} //namespace pmacc
-
+} // namespace pmacc

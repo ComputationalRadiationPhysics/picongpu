@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera, Marco Garten, Heiko Burau
+/* Copyright 2013-2021 Axel Huebl, Rene Widera, Marco Garten, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -23,18 +23,18 @@
 namespace picongpu
 {
     //! reduced Planck constant
-    constexpr float_X HBAR = (float_X) (SI::HBAR_SI / UNIT_ENERGY / UNIT_TIME);
+    constexpr float_X HBAR = (float_X)(SI::HBAR_SI / UNIT_ENERGY / UNIT_TIME);
 
     //! Charge of electron
-    constexpr float_X ELECTRON_CHARGE = (float_X) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
+    constexpr float_X ELECTRON_CHARGE = (float_X)(SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
     //! Mass of electron
-    constexpr float_X ELECTRON_MASS = (float_X) (SI::ELECTRON_MASS_SI / UNIT_MASS);
+    constexpr float_X ELECTRON_MASS = (float_X)(SI::ELECTRON_MASS_SI / UNIT_MASS);
 
     //! magnetic constexprant must be double 3.92907e-39
-    constexpr float_X MUE0 = (float_X) (SI::MUE0_SI / UNIT_LENGTH / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);
+    constexpr float_X MUE0 = (float_X)(SI::MUE0_SI / UNIT_LENGTH / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);
 
     //! electric constexprant must be double 2.54513e+38
-    constexpr float_X EPS0 = (float_X) (1. / MUE0 / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+    constexpr float_X EPS0 = (float_X)(1. / MUE0 / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
 
     // = 1/c^2
     constexpr float_X MUE0_EPS0 = float_X(1. / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
@@ -48,4 +48,4 @@ namespace picongpu
     /* Atomic unit of time in PIC units */
     constexpr float_X ATOMIC_UNIT_TIME = float_X(SI::ATOMIC_UNIT_TIME / UNIT_TIME);
 
-} //namespace picongpu
+} // namespace picongpu

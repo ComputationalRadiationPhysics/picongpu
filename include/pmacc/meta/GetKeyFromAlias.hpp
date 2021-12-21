@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz, Alexander Grund
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -21,56 +21,51 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/meta/conversion/SeqToMap.hpp"
 #include "pmacc/meta/conversion/TypeToAliasPair.hpp"
 #include "pmacc/meta/conversion/TypeToPair.hpp"
 #include "pmacc/meta/errorHandlerPolicies/ReturnType.hpp"
+#include "pmacc/types.hpp"
 
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/copy.hpp>
-#include <boost/type_traits/is_same.hpp>
+
+#include <type_traits>
 
 namespace pmacc
 {
-
-/**
- * Returns the key type from an alias
- *
- * \tparam T_MPLSeq Sequence of keys to search
- * \tparam T_Key Key or alias of a key in the sequence
- * \tparam T_KeyNotFoundPolicy Binary meta-function that is called like (T_MPLSeq, T_Key)
- *         when T_Key is not found in the sequence. Default is to return bmpl::void_
- */
-template<typename T_MPLSeq,
-         typename T_Key,
-         typename T_KeyNotFoundPolicy = errorHandlerPolicies::ReturnType<>
->
-struct GetKeyFromAlias
-{
-private:
-    typedef T_KeyNotFoundPolicy KeyNotFoundPolicy;
-    /*create a map where Key is a undeclared alias and value is real type*/
-    typedef typename SeqToMap<T_MPLSeq, TypeToAliasPair<bmpl::_1> >::type AliasMap;
-    /*create a map where Key and value is real type*/
-    typedef typename SeqToMap<T_MPLSeq, TypeToPair<bmpl::_1> >::type KeyMap;
-    /*combine both maps*/
-    typedef bmpl::inserter< KeyMap, bmpl::insert<bmpl::_1, bmpl::_2> > Map_inserter;
-    typedef typename bmpl::copy<
-        AliasMap,
-        Map_inserter
-        >::type FullMap;
-    /* search for given key,
-     * - we get the real type if key found
-     * - else we get boost::mpl::void_
+    /**
+     * Returns the key type from an alias
+     *
+     * @tparam T_MPLSeq Sequence of keys to search
+     * @tparam T_Key Key or alias of a key in the sequence
+     * @tparam T_KeyNotFoundPolicy Binary meta-function that is called like (T_MPLSeq, T_Key)
+     *         when T_Key is not found in the sequence. Default is to return bmpl::void_
      */
-    typedef typename bmpl::at<FullMap, T_Key>::type MapType;
-public:
-    /* Check for KeyNotFound and calculate final type. (Uses lazy evaluation) */
-    typedef typename bmpl::if_<
-        boost::is_same<MapType, bmpl::void_>,
-        bmpl::apply<KeyNotFoundPolicy, T_MPLSeq, T_Key>,
-        bmpl::identity<MapType> >::type::type type;
-};
+    template<typename T_MPLSeq, typename T_Key, typename T_KeyNotFoundPolicy = errorHandlerPolicies::ReturnType<>>
+    struct GetKeyFromAlias
+    {
+    private:
+        using KeyNotFoundPolicy = T_KeyNotFoundPolicy;
+        /*create a map where Key is a undeclared alias and value is real type*/
+        using AliasMap = typename SeqToMap<T_MPLSeq, TypeToAliasPair<bmpl::_1>>::type;
+        /*create a map where Key and value is real type*/
+        using KeyMap = typename SeqToMap<T_MPLSeq, TypeToPair<bmpl::_1>>::type;
+        /*combine both maps*/
+        using Map_inserter = bmpl::inserter<KeyMap, bmpl::insert<bmpl::_1, bmpl::_2>>;
+        using FullMap = typename bmpl::copy<AliasMap, Map_inserter>::type;
+        /* search for given key,
+         * - we get the real type if key found
+         * - else we get boost::mpl::void_
+         */
+        using MapType = typename bmpl::at<FullMap, T_Key>::type;
 
-}//namespace pmacc
+    public:
+        /* Check for KeyNotFound and calculate final type. (Uses lazy evaluation) */
+        using type = typename bmpl::if_<
+            std::is_same<MapType, bmpl::void_>,
+            bmpl::apply<KeyNotFoundPolicy, T_MPLSeq, T_Key>,
+            bmpl::identity<MapType>>::type::type;
+    };
+
+} // namespace pmacc

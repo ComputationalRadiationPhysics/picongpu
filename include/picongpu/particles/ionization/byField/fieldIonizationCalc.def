@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Marco Garten
+/* Copyright 2015-2021 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -28,28 +28,25 @@
 
 namespace picongpu
 {
+    namespace particles
+    {
+        namespace ionization
+        {
+            struct AlgorithmNone;
 
-namespace particles
-{
+            template<bool T_polarizationType>
+            struct AlgorithmADK;
 
-namespace ionization
-{
+            struct AlgorithmBSI;
 
-    struct AlgorithmNone;
+            struct AlgorithmBSIEffectiveZ;
 
-    template<bool T_polarizationType>
-    struct AlgorithmADK;
+            struct AlgorithmBSIStarkShifted;
 
-    struct AlgorithmBSI;
+            struct AlgorithmKeldysh;
 
-    struct AlgorithmBSIEffectiveZ;
+        } // namespace ionization
 
-    struct AlgorithmBSIStarkShifted;
-
-    struct AlgorithmKeldysh;
-
-} // namespace ionization
-
-} // namespace particles
+    } // namespace particles
 
 } // namespace picongpu

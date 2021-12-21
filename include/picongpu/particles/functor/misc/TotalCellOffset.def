@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,15 +22,15 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace functor
-{
-namespace misc
-{
-    //! Provide the cell offset of a supercell to the total domain origin
-    struct TotalCellOffset;
-} // namespace misc
-} // namespace functor
-} // namespace particles
+    namespace particles
+    {
+        namespace functor
+        {
+            namespace misc
+            {
+                //! Provide the cell offset of a supercell to the total domain origin
+                struct TotalCellOffset;
+            } // namespace misc
+        } // namespace functor
+    } // namespace particles
 } // namespace picongpu

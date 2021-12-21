@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Richard Pausch
+/* Copyright 2016-2021 Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -18,39 +18,35 @@
  */
 
 
-
 namespace picongpu
 {
-namespace particles
-{
-
-namespace interpolationMemoryPolicy
-{
-/** Shift position to valid range [0,1)
- *  and repositions memory accordingly.
- *  This is necessary if a particle moves
- *  outside of its cell during a sub-stepping cycle
- *  Returns: shifted position and shifted memory. */
-struct ShiftToValidRange
-{
-    template< typename T_MemoryType, typename T_PosType >
-    HDINLINE
-    T_MemoryType memory( const T_MemoryType& mem, const T_PosType& pos ) const
+    namespace particles
     {
-        const T_PosType pos_floor = math::floor(pos);
-        return mem( precisionCast<int>(pos_floor) );
-    }
+        namespace interpolationMemoryPolicy
+        {
+            /** Shift position to valid range [0,1)
+             *  and repositions memory accordingly.
+             *  This is necessary if a particle moves
+             *  outside of its cell during a sub-stepping cycle
+             *  Returns: shifted position and shifted memory. */
+            struct ShiftToValidRange
+            {
+                template<typename T_MemoryType, typename T_PosType>
+                HDINLINE T_MemoryType memory(const T_MemoryType& mem, const T_PosType& pos) const
+                {
+                    const T_PosType pos_floor = math::floor(pos);
+                    return mem(precisionCast<int>(pos_floor));
+                }
 
-    template< typename T_PosType >
-    HDINLINE
-    T_PosType position( const T_PosType& pos ) const
-    {
-        const T_PosType pos_floor = math::floor(pos);
-        return pos - pos_floor;
-    }
-};
+                template<typename T_PosType>
+                HDINLINE T_PosType position(const T_PosType& pos) const
+                {
+                    const T_PosType pos_floor = math::floor(pos);
+                    return pos - pos_floor;
+                }
+            };
 
-} // namespace interpolationMemoryShift
+        } // namespace interpolationMemoryPolicy
 
-} // namespace particles
+    } // namespace particles
 } // namespace picongpu

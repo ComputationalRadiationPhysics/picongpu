@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera
+/* Copyright 2015-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -28,14 +28,14 @@
 #define PMACC_PP_DEFER_ECHO() PMACC_PP_ECHO
 
 /** get the first element of a preprocessor pair */
-#define PMACC_PP_FIRST(first,second) first
+#define PMACC_PP_FIRST(first, second) first
 
 /** get the first element of a preprocessor pair with delay */
 #define PMACC_PP_DEFER_FIRST() PMACC_PP_FIRST
 
 
 /** get the second element of a preprocessor pair */
-#define PMACC_PP_SECOND(first,second) second
+#define PMACC_PP_SECOND(first, second) second
 
 /** get the second element of a preprocessor pair with delay */
 #define PMACC_PP_DEFER_SECOND() PMACC_PP_SECOND
@@ -52,4 +52,4 @@
 /** call the given macro with the given argument.
  * can be used as a helper for expanding arguments that are lists
  */
-#define PMACC_PP_CALL(macro,argument) macro argument
+#define PMACC_PP_CALL(macro, argument) macro argument

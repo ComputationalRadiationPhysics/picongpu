@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -22,89 +22,86 @@
 
 #pragma once
 
-#include "pmacc/communication/manager_common.hpp"
+#include "pmacc/Environment.hpp"
 #include "pmacc/communication/ICommunicator.hpp"
+#include "pmacc/eventSystem/events/EventDataReceive.hpp"
 #include "pmacc/eventSystem/tasks/MPITask.hpp"
-#include "pmacc/memory/buffers/Exchange.hpp"
+#include "pmacc/memory/buffers/Buffer.hpp"
+
+#include <memory>
 
 #include <mpi.h>
 
 namespace pmacc
 {
+    template<class TYPE, unsigned DIM>
+    class Exchange;
 
-template <class TYPE, unsigned DIM>
-class TaskReceiveMPI : public MPITask
-{
-public:
-
-    TaskReceiveMPI(Exchange<TYPE, DIM> *exchange) :
-    MPITask(),
-    exchange(exchange)
+    template<class TYPE, unsigned DIM>
+    class TaskReceiveMPI : public MPITask
     {
-
-    }
-
-    virtual void init()
-    {
-        this->request = Environment<DIM>::get().EnvironmentController()
-                .getCommunicator().startReceive(
-                                                exchange->getExchangeType(),
-                                                (char*) exchange->getHostBuffer().getBasePointer(),
-                                                exchange->getHostBuffer().getDataSpace().productOfComponents() * sizeof (TYPE),
-                                                exchange->getCommunicationTag());
-    }
-
-    bool executeIntern()
-    {
-        if (this->isFinished())
-            return true;
-
-        if (this->request == nullptr)
-            throw std::runtime_error("request was nullptr (call executeIntern after freed");
-
-        int flag=0;
-        MPI_CHECK(MPI_Test(this->request, &flag, &(this->status)));
-
-        if (flag) //finished
+    public:
+        TaskReceiveMPI(Exchange<TYPE, DIM>* exchange) : MPITask(), exchange(exchange)
         {
-            delete this->request;
-            this->request = nullptr;
-            setFinished();
-            return true;
         }
-        return false;
-    }
 
-    virtual ~TaskReceiveMPI()
-    {
-        //! \todo this make problems because we send bytes and not combined types
-        int recv_data_count;
-        MPI_CHECK_NO_EXCEPT(MPI_Get_count(&(this->status), MPI_CHAR, &recv_data_count));
+        void init() override
+        {
+            Buffer<TYPE, DIM>* dst = exchange->getCommunicationBuffer();
+
+            this->request = Environment<DIM>::get().EnvironmentController().getCommunicator().startReceive(
+                exchange->getExchangeType(),
+                reinterpret_cast<char*>(dst->getPointer()),
+                dst->getDataSpace().productOfComponents() * sizeof(TYPE),
+                exchange->getCommunicationTag());
+        }
+
+        bool executeIntern() override
+        {
+            if(this->isFinished())
+                return true;
+
+            if(this->request == nullptr)
+                throw std::runtime_error("request was nullptr (call executeIntern after freed");
+
+            int flag = 0;
+            MPI_CHECK(MPI_Test(this->request, &flag, &(this->status)));
+
+            if(flag) // finished
+            {
+                delete this->request;
+                this->request = nullptr;
+                setFinished();
+                return true;
+            }
+            return false;
+        }
+
+        ~TaskReceiveMPI() override
+        {
+            //! \todo this make problems because we send bytes and not combined types
+            int recv_data_count;
+            MPI_CHECK_NO_EXCEPT(MPI_Get_count(&(this->status), MPI_CHAR, &recv_data_count));
 
 
-        IEventData *edata = new EventDataReceive(nullptr, recv_data_count);
+            std::unique_ptr<IEventData> edata = std::make_unique<EventDataReceive>(nullptr, recv_data_count);
 
-        notify(this->myId, RECVFINISHED, edata); /*add notify her*/
-        __delete(edata);
+            notify(this->myId, RECVFINISHED, edata.get()); /*add notify her*/
+        }
 
-    }
+        void event(id_t, EventType, IEventData*) override
+        {
+        }
 
-    void event(id_t, EventType, IEventData*)
-    {
+        std::string toString() override
+        {
+            return std::string("TaskReceiveMPI exchange type=") + std::to_string(exchange->getExchangeType());
+        }
 
+    private:
+        Exchange<TYPE, DIM>* exchange;
+        MPI_Request* request;
+        MPI_Status status;
+    };
 
-    }
-
-    std::string toString()
-    {
-        return "TaskReceiveMPI";
-    }
-
-private:
-    Exchange<TYPE, DIM> *exchange;
-    MPI_Request *request;
-    MPI_Status status;
-};
-
-} //namespace pmacc
-
+} // namespace pmacc

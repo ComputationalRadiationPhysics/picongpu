@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Heiko Burau
+/* Copyright 2017-2021 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -26,39 +26,33 @@
 
 namespace pmacc
 {
-namespace algorithm
-{
-namespace functor
-{
-
-    template< typename T_Type>
-    struct AssignValue
+    namespace algorithm
     {
-        using Type = T_Type;
-        Type m_value;
-
-        HDINLINE
-        AssignValue( Type const & value ) :
-            m_value( value )
-        { }
-
-        HDINLINE void
-        operator()( Type & arg ) const
+        namespace functor
         {
-            arg = m_value;
-        }
+            template<typename T_Type>
+            struct AssignValue
+            {
+                using Type = T_Type;
+                Type m_value;
 
-        template< typename T_Acc >
-        HDINLINE void
-        operator()(
-            T_Acc const &,
-            Type & arg
-        ) const
-        {
-            arg = m_value;
-        }
-    };
+                HDINLINE
+                AssignValue(Type const& value) : m_value(value)
+                {
+                }
 
-} // functor
-} // algorithm
-} // pmacc
+                HDINLINE void operator()(Type& arg) const
+                {
+                    arg = m_value;
+                }
+
+                template<typename T_Acc>
+                HDINLINE void operator()(T_Acc const&, Type& arg) const
+                {
+                    arg = m_value;
+                }
+            };
+
+        } // namespace functor
+    } // namespace algorithm
+} // namespace pmacc

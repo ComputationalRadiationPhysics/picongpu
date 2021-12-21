@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,22 +15,16 @@
 
 namespace alpaka
 {
-    namespace dim
+    //-----------------------------------------------------------------------------
+    // Trait specializations for unsigned integral types.
+    namespace traits
     {
-        //-----------------------------------------------------------------------------
-        // Trait specializations for unsigned integral types.
-        namespace traits
+        //#############################################################################
+        //! The arithmetic type dimension getter trait specialization.
+        template<typename T>
+        struct DimType<T, std::enable_if_t<std::is_arithmetic<T>::value>>
         {
-            //#############################################################################
-            //! The arithmetic type dimension getter trait specialization.
-            template<
-                typename T>
-            struct DimType<
-                T,
-                typename std::enable_if<std::is_arithmetic<T>::value>::type>
-            {
-                using type = dim::DimInt<1u>;
-            };
-        }
-    }
-}
+            using type = DimInt<1u>;
+        };
+    } // namespace traits
+} // namespace alpaka

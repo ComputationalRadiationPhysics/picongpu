@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Heiko Burau
+/* Copyright 2015-2021 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -23,21 +23,18 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-
-/** Navigator which combines jump and marker of any type by using the +operator.
- */
-struct PlusNavigator
-{
-    template<typename Marker, typename Jump>
-    HDINLINE Marker
-    operator()(const Marker& marker, const Jump& jump) const
+    namespace cursor
     {
-        return marker + jump;
-    }
-};
+        /** Navigator which combines jump and marker of any type by using the +operator.
+         */
+        struct PlusNavigator
+        {
+            template<typename Marker, typename Jump>
+            HDINLINE Marker operator()(const Marker& marker, const Jump& jump) const
+            {
+                return marker + jump;
+            }
+        };
 
-} // namespace cursor
+    } // namespace cursor
 } // namespace pmacc
-

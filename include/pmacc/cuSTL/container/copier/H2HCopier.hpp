@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of PMacc.
@@ -27,24 +27,31 @@
 
 namespace pmacc
 {
-namespace copier
-{
-
-template<int T_dim>
-struct H2HCopier
-{
-    static constexpr int dim = T_dim;
-
-    PMACC_NO_NVCC_HDWARNING /* Should never be called from device functions */
-    template<typename Type>
-    HDINLINE static void copy(Type* dest, const math::Size_t<dim-1>& pitchDest,
-         Type* source, const math::Size_t<dim-1>& pitchSource,
-         const math::Size_t<dim>& size)
+    namespace copier
     {
-        cudaWrapper::Memcopy<dim>()(dest, pitchDest, source, pitchSource,
-                                    size, cudaWrapper::flags::Memcopy::hostToHost);
-    }
-};
+        template<int T_dim>
+        struct H2HCopier
+        {
+            static constexpr int dim = T_dim;
 
-} // copier
-} // pmacc
+            PMACC_NO_NVCC_HDWARNING /* Should never be called from device functions */
+                template<typename Type>
+                HDINLINE static void copy(
+                    Type* dest,
+                    const math::Size_t<dim - 1>& pitchDest,
+                    Type* source,
+                    const math::Size_t<dim - 1>& pitchSource,
+                    const math::Size_t<dim>& size)
+            {
+                cuplaWrapper::Memcopy<dim>()(
+                    dest,
+                    pitchDest,
+                    source,
+                    pitchSource,
+                    size,
+                    cuplaWrapper::flags::Memcopy::hostToHost);
+            }
+        };
+
+    } // namespace copier
+} // namespace pmacc

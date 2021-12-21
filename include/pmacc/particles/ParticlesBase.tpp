@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -23,13 +23,12 @@
 
 #include "pmacc/Environment.hpp"
 #include "pmacc/eventSystem/EventSystem.hpp"
-#include "pmacc/traits/GetNumWorkers.hpp"
-
 #include "pmacc/fields/SimulationFieldHelper.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
 #include "pmacc/mappings/kernel/ExchangeMapping.hpp"
-
 #include "pmacc/particles/memory/boxes/ParticlesBox.hpp"
 #include "pmacc/particles/memory/buffers/ParticlesBuffer.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
 
 
 namespace pmacc
@@ -37,111 +36,82 @@ namespace pmacc
     template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
     void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::deleteGuardParticles(uint32_t exchangeType)
     {
-
         ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
 
-        constexpr uint32_t numWorkers = traits::GetNumWorkers<
-            math::CT::volume< typename FrameType::SuperCellSize >::type::value
-        >::value;
+        constexpr uint32_t numWorkers
+            = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;
 
-        PMACC_KERNEL( KernelDeleteParticles< numWorkers >{ } )(
-            mapper.getGridDim( ),
-            numWorkers
-        )(
-            particlesBuffer->getDeviceParticleBox( ),
-            mapper
-        );
+        PMACC_KERNEL(KernelDeleteParticles<numWorkers>{})
+        (mapper.getGridDim(), numWorkers)(particlesBuffer->getDeviceParticleBox(), mapper);
     }
 
     template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
     template<uint32_t T_area>
     void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::deleteParticlesInArea()
     {
+        auto const mapper = makeAreaMapper<T_area>(this->cellDescription);
 
-        AreaMapping<T_area, MappingDesc> mapper(this->cellDescription);
+        constexpr uint32_t numWorkers
+            = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;
 
-        constexpr uint32_t numWorkers = traits::GetNumWorkers<
-            math::CT::volume< typename FrameType::SuperCellSize >::type::value
-        >::value;
-
-        PMACC_KERNEL( KernelDeleteParticles< numWorkers >{ } )(
-            mapper.getGridDim( ),
-            numWorkers
-        )(
-            particlesBuffer->getDeviceParticleBox( ),
-            mapper
-        );
+        PMACC_KERNEL(KernelDeleteParticles<numWorkers>{})
+        (mapper.getGridDim(), numWorkers)(particlesBuffer->getDeviceParticleBox(), mapper);
     }
 
     template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
-    void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::reset(uint32_t )
+    void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::reset(uint32_t)
     {
-        deleteParticlesInArea<CORE+BORDER+GUARD>();
-        particlesBuffer->reset( );
+        deleteParticlesInArea<CORE + BORDER + GUARD>();
+        particlesBuffer->reset();
     }
 
     template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
-    void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::copyGuardToExchange( uint32_t exchangeType )
+    void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::copyGuardToExchange(uint32_t exchangeType)
     {
-        if( particlesBuffer->hasSendExchange( exchangeType ) )
+        if(particlesBuffer->hasSendExchange(exchangeType))
         {
-            ExchangeMapping<
-                GUARD,
-                MappingDesc
-            > mapper(
-                this->cellDescription,
-                exchangeType
-            );
+            ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
 
-            particlesBuffer->getSendExchangeStack( exchangeType ).setCurrentSize( 0 );
+            particlesBuffer->getSendExchangeStack(exchangeType).setCurrentSize(0);
 
-            constexpr uint32_t numWorkers = traits::GetNumWorkers<
-                math::CT::volume< typename FrameType::SuperCellSize >::type::value
-            >::value;
+            constexpr uint32_t numWorkers
+                = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;
 
-            PMACC_KERNEL( KernelCopyGuardToExchange< numWorkers >{ } )(
-                mapper.getGridDim( ),
-                numWorkers
-            )(
-                particlesBuffer->getDeviceParticleBox( ),
-                particlesBuffer->getSendExchangeStack( exchangeType ).getDeviceExchangePushDataBox( ),
-                mapper
-            );
+            PMACC_KERNEL(KernelCopyGuardToExchange<numWorkers>{})
+            (mapper.getGridDim(), numWorkers)(
+                particlesBuffer->getDeviceParticleBox(),
+                particlesBuffer->getSendExchangeStack(exchangeType).getDeviceExchangePushDataBox(),
+                mapper);
         }
     }
 
     template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
     void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::insertParticles(uint32_t exchangeType)
     {
-        if( particlesBuffer->hasReceiveExchange( exchangeType ) )
+        if(particlesBuffer->hasReceiveExchange(exchangeType))
         {
-            size_t grid( particlesBuffer->getReceiveExchangeStack( exchangeType ).getHostCurrentSize( ) );
-            if( grid != 0u )
+            size_t numParticles = 0u;
+            if(Environment<>::get().isMpiDirectEnabled())
+                numParticles = particlesBuffer->getReceiveExchangeStack(exchangeType).getDeviceCurrentSize();
+            else
+                numParticles = particlesBuffer->getReceiveExchangeStack(exchangeType).getHostCurrentSize();
+
+            if(numParticles != 0u)
             {
-                ExchangeMapping<
-                    GUARD,
-                    MappingDesc
-                > mapper(
-                    this->cellDescription,
-                    exchangeType
-                );
+                ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
 
-                constexpr uint32_t numWorkers = traits::GetNumWorkers<
-                    math::CT::volume< typename FrameType::SuperCellSize >::type::value
-                >::value;
+                constexpr uint32_t numWorkers
+                    = traits::GetNumWorkers<math::CT::volume<typename FrameType::SuperCellSize>::type::value>::value;
 
-                PMACC_KERNEL( KernelInsertParticles< numWorkers >{ } )(
-                    grid,
-                    numWorkers
-                )(
-                    particlesBuffer->getDeviceParticleBox( ),
-                    particlesBuffer->getReceiveExchangeStack( exchangeType ).getDeviceExchangePopDataBox( ),
-                    mapper
-                );
+                PMACC_KERNEL(KernelInsertParticles<numWorkers>{})
+                (numParticles, numWorkers)(
+                    particlesBuffer->getDeviceParticleBox(),
+                    particlesBuffer->getReceiveExchangeStack(exchangeType).getDeviceExchangePopDataBox(),
+                    mapper);
             }
         }
     }
 
-} //namespace pmacc
+} // namespace pmacc
 
 #include "pmacc/particles/AsyncCommunicationImpl.hpp"

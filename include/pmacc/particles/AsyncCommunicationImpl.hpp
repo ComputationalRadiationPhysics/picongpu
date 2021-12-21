@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Alexander Grund
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -21,31 +21,34 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/communication/AsyncCommunication.hpp"
 #include "pmacc/Environment.hpp"
+#include "pmacc/communication/AsyncCommunication.hpp"
 #include "pmacc/particles/ParticlesBase.hpp"
-#include <boost/type_traits.hpp>
+#include "pmacc/types.hpp"
 
-namespace pmacc{
+#include <type_traits>
 
+namespace pmacc
+{
     /**
      * Trait that should return true if T is a particle species
      */
     template<typename T>
     struct IsParticleSpecies
     {
-        enum{ value = boost::is_same<typename T::SimulationDataTag, ParticlesTag>::value };
+        enum
+        {
+            value = std::is_same<typename T::SimulationDataTag, ParticlesTag>::value
+        };
     };
 
-    namespace communication {
-
+    namespace communication
+    {
         template<typename T_Data>
-        struct AsyncCommunicationImpl<T_Data, Bool2Type<IsParticleSpecies<T_Data>::value> >
+        struct AsyncCommunicationImpl<T_Data, Bool2Type<IsParticleSpecies<T_Data>::value>>
         {
             template<class T_Particles>
-            EventTask
-            operator()(T_Particles& par, EventTask event) const
+            EventTask operator()(T_Particles& par, EventTask event) const
             {
                 EventTask ret;
                 __startTransaction(event);
@@ -59,5 +62,5 @@ namespace pmacc{
             }
         };
 
-    }  // namespace communication
-}  // namespace pmacc
+    } // namespace communication
+} // namespace pmacc

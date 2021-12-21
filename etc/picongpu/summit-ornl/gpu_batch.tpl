@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2019-2020 Axel Huebl, Rene Widera
+# Copyright 2019-2021 Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -82,10 +82,14 @@ fi
 mkdir simOutput 2> /dev/null
 cd simOutput
 
+# fix MPI collectives by disabling IBM's optimized barriers
+# https://github.com/ComputationalRadiationPhysics/picongpu/issues/3814
+export OMPI_MCA_coll_ibm_skip_barrier=true
+
 #jsrun  -N 1 -n !TBG_nodes !TBG_dstPath/input/bin/cuda_memtest.sh
 
 #if [ $? -eq 0 ] ; then
 export OMP_NUM_THREADS=!TBG_coresPerGPU
-jsrun --nrs !TBG_tasks --tasks_per_rs 1 --cpu_per_rs !TBG_coresPerGPU --gpu_per_rs 1 --latency_priority GPU-CPU --bind rs --smpiargs="-gpu" !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+jsrun --nrs !TBG_tasks --tasks_per_rs 1 --cpu_per_rs !TBG_coresPerGPU --gpu_per_rs 1 --latency_priority GPU-CPU --bind rs --smpiargs="-gpu" !TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams | tee output
 # note: instead of the PIConGPU binary, one can also debug starting "js_task_info | sort"
 #fi

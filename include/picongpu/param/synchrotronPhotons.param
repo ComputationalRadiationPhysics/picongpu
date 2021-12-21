@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Heiko Burau
+/* Copyright 2015-2021 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -21,36 +21,36 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace synchrotronPhotons
-{
-
+    namespace particles
+    {
+        namespace synchrotronPhotons
+        {
 /** enable synchrotron photon emission */
 #ifndef ENABLE_SYNCHROTRON_PHOTONS
-#define ENABLE_SYNCHROTRON_PHOTONS 0
+#    define ENABLE_SYNCHROTRON_PHOTONS 0
 #endif
 
-/** enable (disable) QED (classical) photon emission spectrum */
-constexpr bool enableQEDTerm = false;
+            /** enable (disable) QED (classical) photon emission spectrum */
+            constexpr bool enableQEDTerm = false;
 
-/** Above this value (to the power of three, see comments on mapping) the synchrotron functions are nearly zero. */
-constexpr float_64 SYNC_FUNCS_CUTOFF = 5.0;
+            /** Above this value (to the power of three, see comments on mapping) the synchrotron functions are nearly
+             * zero. */
+            constexpr float_64 SYNC_FUNCS_CUTOFF = 5.0;
 
-/** stepwidth for the numerical integration of the bessel function for the first synchrotron function */
-constexpr float_64 SYNC_FUNCS_BESSEL_INTEGRAL_STEPWIDTH = 1.0e-3;
+            /** stepwidth for the numerical integration of the bessel function for the first synchrotron function */
+            constexpr float_64 SYNC_FUNCS_BESSEL_INTEGRAL_STEPWIDTH = 1.0e-3;
 
-/** Number of sampling points of the lookup table */
-constexpr uint32_t SYNC_FUNCS_NUM_SAMPLES = 8192;
+            /** Number of sampling points of the lookup table */
+            constexpr uint32_t SYNC_FUNCS_NUM_SAMPLES = 8192;
 
-/** Photons of oscillation periods greater than a timestep are not created since the grid already accounts for them.
- * This cutoff ratio is defined as: photon-oscillation-period / timestep */
-constexpr float_64 SOFT_PHOTONS_CUTOFF_RATIO = 1.0;
+            /** Photons of oscillation periods greater than a timestep are not created since the grid already accounts
+             * for them. This cutoff ratio is defined as: photon-oscillation-period / timestep */
+            constexpr float_64 SOFT_PHOTONS_CUTOFF_RATIO = 1.0;
 
-/** if the emission probability per timestep is higher than this value and the log level is set to
- *  "CRITICAL" a warning will be raised. */
-constexpr float_64 SINGLE_EMISSION_PROB_LIMIT = 0.4;
+            /** if the emission probability per timestep is higher than this value and the log level is set to
+             *  "CRITICAL" a warning will be raised. */
+            constexpr float_64 SINGLE_EMISSION_PROB_LIMIT = 0.4;
 
-} // namespace synchrotronPhotons
-} // namespace particles
+        } // namespace synchrotronPhotons
+    } // namespace particles
 } // namespace picongpu

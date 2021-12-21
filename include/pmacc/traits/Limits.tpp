@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera
+/* Copyright 2014-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -28,29 +28,28 @@
 
 namespace pmacc
 {
-namespace traits
-{
-namespace limits
-{
+    namespace traits
+    {
+        namespace limits
+        {
+            template<>
+            struct Max<int>
+            {
+                static constexpr int value = INT_MAX;
+            };
 
-template<>
-struct Max<int>
-{
-    static constexpr int value=INT_MAX;
-};
+            template<>
+            struct Max<uint32_t>
+            {
+                static constexpr uint32_t value = static_cast<uint32_t>(-1);
+            };
 
-template<>
-struct Max<uint32_t>
-{
-    static constexpr uint32_t value=static_cast<uint32_t>(-1);
-};
+            template<>
+            struct Max<uint64_t>
+            {
+                static constexpr uint64_t value = static_cast<uint64_t>(-1);
+            };
 
-template<>
-struct Max<uint64_t>
-{
-    static constexpr uint64_t value=static_cast<uint64_t>(-1);
-};
-
-} //namespace limits
-} //namespace traits
-} //namespace pmacc
+        } // namespace limits
+    } // namespace traits
+} // namespace pmacc

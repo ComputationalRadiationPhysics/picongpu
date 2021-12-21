@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
  *
@@ -31,67 +31,54 @@
 
 namespace picongpu
 {
-namespace simulation
-{
-namespace stage
-{
-
-    /** Functor for the stage of the PIC loop computing synchrotron radiation
-     *
-     * Only affects particle species with the synchrotronPhotons attribute.
-     */
-    class SynchrotronRadiation
+    namespace simulation
     {
-    public:
-
-        /** Create a synchrotron radiation functor
-         *
-         * Having this in constructor is a temporary solution.
-         *
-         * @param cellDescription mapping for kernels
-         * @param functions initialized synchrotron functions
-         */
-        SynchrotronRadiation(
-            MappingDesc const cellDescription,
-            particles::synchrotronPhotons::SynchrotronFunctions & functions
-        ):
-            cellDescription( cellDescription ),
-            functions( functions )
+        namespace stage
         {
-        }
+            /** Functor for the stage of the PIC loop computing synchrotron radiation
+             *
+             * Only affects particle species with the synchrotronPhotons attribute.
+             */
+            class SynchrotronRadiation
+            {
+            public:
+                /** Create a synchrotron radiation functor
+                 *
+                 * Having this in constructor is a temporary solution.
+                 *
+                 * @param cellDescription mapping for kernels
+                 * @param functions initialized synchrotron functions
+                 */
+                SynchrotronRadiation(
+                    MappingDesc const cellDescription,
+                    particles::synchrotronPhotons::SynchrotronFunctions& functions)
+                    : cellDescription(cellDescription)
+                    , functions(functions)
+                {
+                }
 
-        /** Ionize particles
-         *
-         * @param step index of time iteration
-         */
-        void operator( )( uint32_t const step ) const
-        {
-            using pmacc::particles::traits::FilterByFlag;
-            using SynchrotronPhotonsSpecies = typename FilterByFlag<
-                VectorAllSpecies,
-                synchrotronPhotons< >
-            >::type;
-            pmacc::meta::ForEach<
-                SynchrotronPhotonsSpecies,
-                particles::CallSynchrotronPhotons< bmpl::_1 >
-            > synchrotronRadiation;
-            synchrotronRadiation(
-                cellDescription,
-                step,
-                functions
-            );
-        }
+                /** Ionize particles
+                 *
+                 * @param step index of time iteration
+                 */
+                void operator()(uint32_t const step) const
+                {
+                    using pmacc::particles::traits::FilterByFlag;
+                    using SynchrotronPhotonsSpecies =
+                        typename FilterByFlag<VectorAllSpecies, synchrotronPhotons<>>::type;
+                    pmacc::meta::ForEach<SynchrotronPhotonsSpecies, particles::CallSynchrotronPhotons<bmpl::_1>>
+                        synchrotronRadiation;
+                    synchrotronRadiation(cellDescription, step, functions);
+                }
 
-    private:
+            private:
+                //! Mapping for kernels
+                MappingDesc cellDescription;
 
-        //! Mapping for kernels
-        MappingDesc cellDescription;
+                //! Initialized synchrotron functions
+                particles::synchrotronPhotons::SynchrotronFunctions& functions;
+            };
 
-        //! Initialized synchrotron functions
-        particles::synchrotronPhotons::SynchrotronFunctions & functions;
-
-    };
-
-} // namespace stage
-} // namespace simulation
+        } // namespace stage
+    } // namespace simulation
 } // namespace picongpu

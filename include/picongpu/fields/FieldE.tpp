@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch, Benjamin Worpitz, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
@@ -20,47 +20,41 @@
 
 #pragma once
 
-#include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/EMFieldBase.hpp"
+#include "picongpu/fields/FieldE.hpp"
 #include "picongpu/simulation_types.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
 
 #include <string>
-#include <vector>
 #include <type_traits>
+#include <vector>
 
 
 namespace picongpu
 {
-
-    FieldE::FieldE( MappingDesc const & cellDescription ) :
-        fields::EMFieldBase(
-            cellDescription,
-            getName( ),
-            std::integral_constant< CommunicationTag, FIELD_E >{ }
-        )
+    FieldE::FieldE(MappingDesc const& cellDescription) : fields::EMFieldBase<FieldE>(cellDescription, getName())
     {
     }
 
-    HDINLINE FieldE::UnitValueType FieldE::getUnit( )
+    HDINLINE FieldE::UnitValueType FieldE::getUnit()
     {
-        return UnitValueType{ UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD };
+        return UnitValueType{UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD};
     }
 
-    std::vector< float_64 > FieldE::getUnitDimension( )
+    std::vector<float_64> FieldE::getUnitDimension()
     {
         /* E is in volts per meters: V / m = kg * m / (A * s^3)
          *   -> L * M * T^-3 * I^-1
          */
-        std::vector< float_64 > unitDimension( 7, 0.0 );
-        unitDimension.at( SIBaseUnits::length ) =  1.0;
-        unitDimension.at( SIBaseUnits::mass )   =  1.0;
-        unitDimension.at( SIBaseUnits::time )   = -3.0;
-        unitDimension.at( SIBaseUnits::electricCurrent ) = -1.0;
+        std::vector<float_64> unitDimension(7, 0.0);
+        unitDimension.at(SIBaseUnits::length) = 1.0;
+        unitDimension.at(SIBaseUnits::mass) = 1.0;
+        unitDimension.at(SIBaseUnits::time) = -3.0;
+        unitDimension.at(SIBaseUnits::electricCurrent) = -1.0;
         return unitDimension;
     }
 
-    std::string FieldE::getName( )
+    std::string FieldE::getName()
     {
         return "E";
     }

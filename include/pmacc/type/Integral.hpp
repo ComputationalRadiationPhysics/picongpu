@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz,
  *                     Alexander Grund
  *
@@ -28,14 +28,13 @@
 
 namespace pmacc
 {
-namespace type
-{
+    namespace type
+    {
+        using id_t = uint64_t;
+        using uint64_cu = unsigned long long int;
+        using int64_cu = long long int;
 
-    using id_t = uint64_t;
-    using uint64_cu = unsigned long long int;
-    using int64_cu = long long int;
-
-} // namespace type
+    } // namespace type
 
     // for backward compatibility pull all definitions into the pmacc namespace
     using namespace type;

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2020 Axel Huebl
+# Copyright 2017-2021 Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -131,16 +131,16 @@ sed -i 's/'\
 sed -i 's/'\
 'picongpu@[0-9]\+\.[0-9]\+\.[0-9]\+\(-.\+\)*/'\
 'picongpu@'$VERSION_STR'/g' \
-    $REPO_DIR/share/picongpu/dockerfiles/ubuntu-1604/Dockerfile
+    $REPO_DIR/share/picongpu/dockerfiles/ubuntu-2004/Dockerfile
 
 sed -i 's/'\
 '\/picongpu:[0-9]\+\.[0-9]\+\.[0-9]\+\(-.\+\)*/'\
 '\/picongpu:'$VERSION_STR'/g' \
-    $REPO_DIR/share/picongpu/dockerfiles/ubuntu-1604/Singularity
+    $REPO_DIR/share/picongpu/dockerfiles/ubuntu-2004/Singularity
 sed -i 's/'\
 'Version [0-9]\+\.[0-9]\+\.[0-9]\+\(-.\+\)*/'\
 'Version '$VERSION_STR'/g' \
-    $REPO_DIR/share/picongpu/dockerfiles/ubuntu-1604/Singularity
+    $REPO_DIR/share/picongpu/dockerfiles/ubuntu-2004/Singularity
 
 # @todo `project(...)` version in CMakeLists.txt (future)
 

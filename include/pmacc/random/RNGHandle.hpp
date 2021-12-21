@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Alexander Grund
+/* Copyright 2015-2021 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -21,82 +21,77 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/random/Random.hpp"
 #include "pmacc/Environment.hpp"
+#include "pmacc/random/Random.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {
-namespace random
-{
-
-    /**
-     * A reference to a state of a RNG provider
-     */
-    template<class T_RNGProvider>
-    struct RNGHandle
+    namespace random
     {
-        typedef T_RNGProvider RNGProvider;
-        static constexpr uint32_t rngDim = RNGProvider::dim;
-        typedef typename RNGProvider::DataBoxType RNGBox;
-        typedef typename RNGProvider::RNGMethod RNGMethod;
-        typedef typename RNGMethod::StateType RNGState;
-        typedef pmacc::DataSpace<rngDim> RNGSpace;
-
-        template<class T_Distribution>
-        struct GetRandomType
+        /**
+         * A reference to a state of a RNG provider
+         */
+        template<class T_RNGProvider>
+        struct RNGHandle
         {
-            typedef typename T_Distribution::template applyMethod<RNGMethod>::type Distribution;
-            typedef Random<Distribution, RNGMethod, RNGState*> type;
+            using RNGProvider = T_RNGProvider;
+            static constexpr uint32_t rngDim = RNGProvider::dim;
+            using RNGBox = typename RNGProvider::DataBoxType;
+            using RNGMethod = typename RNGProvider::RNGMethod;
+            using RNGState = typename RNGMethod::StateType;
+            using RNGSpace = pmacc::DataSpace<rngDim>;
+
+            template<class T_Distribution>
+            struct GetRandomType
+            {
+                using Distribution = typename T_Distribution::template applyMethod<RNGMethod>::type;
+                using type = Random<Distribution, RNGMethod, RNGState*>;
+            };
+
+            /**
+             * Creates an instance of the functor
+             *
+             * @param rngBox Databox of the RNG provider
+             */
+            RNGHandle(const RNGBox& rngBox) : m_rngBox(rngBox)
+            {
+            }
+
+            /**
+             * Initializes this instance
+             *
+             * @param cellIdx index into the underlying RNG provider
+             */
+            HDINLINE void init(const RNGSpace& cellIdx)
+            {
+                m_rngBox = m_rngBox.shift(cellIdx);
+            }
+
+            HDINLINE RNGState& getState()
+            {
+                return m_rngBox(RNGSpace::create(0));
+            }
+
+            HDINLINE RNGState& operator*()
+            {
+                return m_rngBox(RNGSpace::create(0));
+            }
+
+            HDINLINE RNGState& operator->()
+            {
+                return m_rngBox(RNGSpace::create(0));
+            }
+
+            template<class T_Distribution>
+            HDINLINE typename GetRandomType<T_Distribution>::type applyDistribution()
+            {
+                return typename GetRandomType<T_Distribution>::type(&getState());
+            }
+
+        protected:
+            PMACC_ALIGN8(m_rngBox, RNGBox);
         };
 
-        /**
-         * Creates an instance of the functor
-         *
-         * @param rngBox Databox of the RNG provider
-         */
-        RNGHandle(const RNGBox& rngBox): m_rngBox(rngBox)
-        {}
-
-        /**
-         * Initializes this instance
-         *
-         * \param cellIdx index into the underlying RNG provider
-         */
-        HDINLINE void
-        init(const RNGSpace& cellIdx)
-        {
-            m_rngBox = m_rngBox.shift(cellIdx);
-        }
-
-        HDINLINE RNGState&
-        getState()
-        {
-            return m_rngBox(RNGSpace::create(0));
-        }
-
-        HDINLINE RNGState&
-        operator*()
-        {
-            return m_rngBox(RNGSpace::create(0));
-        }
-
-        HDINLINE RNGState&
-        operator->()
-        {
-            return m_rngBox(RNGSpace::create(0));
-        }
-
-        template<class T_Distribution>
-        HDINLINE typename GetRandomType<T_Distribution>::type
-        applyDistribution()
-        {
-            return typename GetRandomType<T_Distribution>::type(&getState());
-        }
-
-    protected:
-        PMACC_ALIGN8(m_rngBox, RNGBox);
-    };
-
-}  // namespace random
-}  // namespace pmacc
+    } // namespace random
+} // namespace pmacc

@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Alexander Grund, Rene Widera
+/* Copyright 2015-2021 Alexander Grund, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -21,58 +21,43 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
 #include "pmacc/random/distributions/Uniform.hpp"
+#include "pmacc/types.hpp"
 
-#include <boost/type_traits.hpp>
+#include <type_traits>
 
 
 namespace pmacc
 {
-namespace random
-{
-namespace distributions
-{
-namespace detail
-{
-
-    /**
-     * Returns a random, uniformly distributed (up to) 64 bit integral value
-     */
-    template<
-        typename T_Type,
-        class T_RNGMethod
-    >
-    class Uniform<
-        T_Type,
-        T_RNGMethod,
-        typename bmpl::if_c<
-            boost::is_integral< T_Type >::value && sizeof( T_Type ) == 8,
-            void,
-            T_Type
-        >::type
-    >
+    namespace random
     {
-        typedef T_RNGMethod RNGMethod;
-        typedef typename RNGMethod::StateType StateType;
-    public:
-        typedef T_Type result_type;
-
-        template< typename T_Acc >
-        DINLINE result_type
-        operator()(
-            T_Acc const & acc,
-            StateType& state
-        )
+        namespace distributions
         {
-            return static_cast< result_type >( RNGMethod().get64Bits(
-                acc,
-                state
-            ) );
-        }
-    };
+            namespace detail
+            {
+                /**
+                 * Returns a random, uniformly distributed (up to) 64 bit integral value
+                 */
+                template<typename T_Type, class T_RNGMethod>
+                class Uniform<
+                    T_Type,
+                    T_RNGMethod,
+                    typename bmpl::if_c<std::is_integral<T_Type>::value && sizeof(T_Type) == 8, void, T_Type>::type>
+                {
+                    using RNGMethod = T_RNGMethod;
+                    using StateType = typename RNGMethod::StateType;
 
-}  // namespace detail
-}  // namespace distributions
-}  // namespace random
-}  // namespace pmacc
+                public:
+                    using result_type = T_Type;
+
+                    template<typename T_Acc>
+                    DINLINE result_type operator()(T_Acc const& acc, StateType& state)
+                    {
+                        return static_cast<result_type>(RNGMethod().get64Bits(acc, state));
+                    }
+                };
+
+            } // namespace detail
+        } // namespace distributions
+    } // namespace random
+} // namespace pmacc

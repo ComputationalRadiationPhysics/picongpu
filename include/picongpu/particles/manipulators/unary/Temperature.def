@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera
+/* Copyright 2014-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -21,62 +21,53 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include <pmacc/math/operation.hpp>
 #include <pmacc/random/distributions/Normal.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
-
-#include <boost/mpl/integral_c.hpp>
 
 
 namespace picongpu
 {
-namespace particles
-{
-namespace manipulators
-{
-namespace unary
-{
-namespace acc
-{
-    template<
-        typename T_ParamClass,
-        typename T_ValueFunctor
-    >
-    struct Temperature;
-} // namespace acc
-
-namespace param
-{
-    //! configuration for the unary manipulator functor Temperature
-    struct TemperatureCfg
+    namespace particles
     {
-        /** Initial temperature
-         *  unit: keV
-         */
-        static constexpr float_64 temperature = 0.0;
-    };
-} // namespace param
+        namespace manipulators
+        {
+            namespace unary
+            {
+                namespace acc
+                {
+                    template<typename T_ParamClass, typename T_ValueFunctor>
+                    struct Temperature;
+                } // namespace acc
 
-    /** change particle's momentum based on a temperature
-     *
-     * allow to change the temperature (randomly normal distributed)
-     * of a particle.
-     *
-     * @tparam T_ParamClass param::TemperatureCfg, configuration parameter
-     * @tparam T_ValueFunctor pmacc::nvidia::functors::*,  binary functor type to manipulate the momentum attribute
-     */
-    template<
-        typename T_ParamClass = param::TemperatureCfg,
-        typename T_ValueFunctor = pmacc::nvidia::functors::Add
-    >
-    using Temperature = generic::FreeRng<
-        acc::Temperature<
-            T_ParamClass,
-            T_ValueFunctor
-        >,
-        pmacc::random::distributions::Normal< float_X >
-    >;
+                namespace param
+                {
+                    //! configuration for the unary manipulator functor Temperature
+                    struct TemperatureCfg
+                    {
+                        /** Initial temperature
+                         *  unit: keV
+                         */
+                        static constexpr float_64 temperature = 0.0;
+                    };
+                } // namespace param
 
-} // namespace unary
-} // namespace manipulators
-} // namespace particles
+                /** Modify particle momentum based on temperature
+                 *
+                 * note: initial electron temperature should generally be chosen so that the resulting Debye length is
+                 *       resolved by the grid.
+                 *
+                 * @tparam T_ParamClass param::TemperatureCfg, configuration parameter
+                 * @tparam T_ValueFunctor pmacc::math::operation::*, binary functor type to
+                 *                        add a new momentum to an old one
+                 */
+                template<
+                    typename T_ParamClass = param::TemperatureCfg,
+                    typename T_ValueFunctor = pmacc::math::operation::Add>
+                using Temperature = generic::FreeRng<
+                    acc::Temperature<T_ParamClass, T_ValueFunctor>,
+                    pmacc::random::distributions::Normal<float_X>>;
+
+            } // namespace unary
+        } // namespace manipulators
+    } // namespace particles
 } // namespace picongpu

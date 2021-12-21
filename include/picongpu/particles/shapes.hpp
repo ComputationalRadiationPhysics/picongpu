@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -18,14 +18,12 @@
  */
 
 
-
 #pragma once
 #include "picongpu/simulation_defines.hpp"
 
-
+#include "picongpu/particles/shapes/CIC.hpp"
 #include "picongpu/particles/shapes/Counter.hpp"
 #include "picongpu/particles/shapes/NGP.hpp"
-#include "picongpu/particles/shapes/CIC.hpp"
-#include "picongpu/particles/shapes/TSC.hpp"
 #include "picongpu/particles/shapes/PCS.hpp"
-#include "picongpu/particles/shapes/P4S.hpp"
+#include "picongpu/particles/shapes/PQS.hpp"
+#include "picongpu/particles/shapes/TSC.hpp"

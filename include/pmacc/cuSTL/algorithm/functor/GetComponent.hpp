@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Heiko Burau
+/* Copyright 2017-2021 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -26,43 +26,34 @@
 
 namespace pmacc
 {
-namespace algorithm
-{
-namespace functor
-{
-
-    template< typename T_Type >
-    struct GetComponent
+    namespace algorithm
     {
-        using Type = T_Type;
-        using result_type = Type;
-        uint32_t m_component;
-
-        HDINLINE GetComponent( uint32_t const component ) :
-            m_component( component )
-        { }
-
-        template<
-            typename Array,
-            typename T_Acc
-        >
-        HDINLINE Type &
-        operator()(
-            T_Acc const &,
-            Array & array
-        ) const
+        namespace functor
         {
-            return array[ m_component ];
-        }
+            template<typename T_Type>
+            struct GetComponent
+            {
+                using Type = T_Type;
+                using result_type = Type;
+                uint32_t m_component;
 
-        template< typename Array >
-        HDINLINE Type &
-        operator()( Array & array ) const
-        {
-            return array[ m_component ];
-        }
-    };
+                HDINLINE GetComponent(uint32_t const component) : m_component(component)
+                {
+                }
 
-} // functor
-} // algorithm
-} // pmacc
+                template<typename Array, typename T_Acc>
+                HDINLINE Type& operator()(T_Acc const&, Array& array) const
+                {
+                    return array[m_component];
+                }
+
+                template<typename Array>
+                HDINLINE Type& operator()(Array& array) const
+                {
+                    return array[m_component];
+                }
+            };
+
+        } // namespace functor
+    } // namespace algorithm
+} // namespace pmacc

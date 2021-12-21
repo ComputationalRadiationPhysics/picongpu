@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -31,12 +31,11 @@ namespace pmacc
     {
         struct MPI_StructAsArray
         {
-
             MPI_StructAsArray(MPI_Datatype type, uint32_t factor) : dataType(type), sizeMultiplier(factor)
             {
             }
             MPI_Datatype dataType;
             uint32_t sizeMultiplier;
         };
-    }
-}
+    } // namespace mpi
+} // namespace pmacc

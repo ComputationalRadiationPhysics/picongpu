@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera
+/* Copyright 2015-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -27,26 +27,22 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace startPosition
-{
-namespace generic
-{
+    namespace particles
+    {
+        namespace startPosition
+        {
+            namespace generic
+            {
+                /** call simple free user defined functor and provide a random number generator
+                 *
+                 *
+                 * @tparam T_Functor user defined unary functor
+                 * @tparam T_Distribution pmacc::random::distributions, random number distribution
+                 */
+                template<typename T_Functor, typename T_Distribution>
+                struct FreeRng;
 
-    /** call simple free user defined functor and provide a random number generator
-     *
-     *
-     * @tparam T_Functor user defined unary functor
-     * @tparam T_Distribution pmacc::random::distributions, random number distribution
-     */
-    template<
-        typename T_Functor,
-        typename T_Distribution
-    >
-    struct FreeRng;
-
-} // namespace generic
-} // namespace startPosition
-} // namespace particles
+            } // namespace generic
+        } // namespace startPosition
+    } // namespace particles
 } // namespace picongpu

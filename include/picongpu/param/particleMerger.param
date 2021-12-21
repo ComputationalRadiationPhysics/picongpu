@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Heiko Burau
+/* Copyright 2017-2021 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -27,16 +27,15 @@
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace particleMerging
-{
+    namespace plugins
+    {
+        namespace particleMerging
+        {
+            /** maximum number of active Voronoi cells per supercell. If the number
+             * of active Voronoi cells reaches this limit merging events are dropped.
+             */
+            constexpr size_t MAX_VORONOI_CELLS = 128;
 
-    /** maximum number of active Voronoi cells per supercell. If the number
-      * of active Voronoi cells reaches this limit merging events are dropped.
-      */
-    constexpr size_t MAX_VORONOI_CELLS = 128;
-
-} // namespace particleMerging
-} // namespace plugins
+        } // namespace particleMerging
+    } // namespace plugins
 } // namespace picongpu

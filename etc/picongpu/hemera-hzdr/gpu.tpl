@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2020 Axel Huebl, Richard Pausch, Rene Widera, Marco Garten
+# Copyright 2013-2021 Axel Huebl, Richard Pausch, Rene Widera, Marco Garten
 #
 # This file is part of PIConGPU.
 #
@@ -22,12 +22,13 @@
 # PIConGPU batch script for hemera's SLURM batch system
 
 #SBATCH --partition=!TBG_queue
+#SBATCH --account=!TBG_account
 #SBATCH --time=!TBG_wallTime
 # Sets batch job's name
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --ntasks=!TBG_tasks
-#SBATCH --ntasks-per-node=!TBG_gpusPerNode
+#SBATCH --ntasks-per-node=!TBG_mpiTasksPerNode
 #SBATCH --mincpus=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
 #SBATCH --mem=!TBG_memPerNode
@@ -35,13 +36,19 @@
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
 #SBATCH --chdir=!TBG_dstPath
+# notify the job 240 sec before the wall time ends
+#SBATCH --signal=B:SIGALRM@240
+#!TBG_keepOutputFileOpen
 
 #SBATCH -o stdout
 #SBATCH -e stderr
 
 
 ## calculations will be performed by tbg ##
-.TBG_queue="gpu"
+.TBG_queue=${TBG_partition:-"gpu"}
+.TBG_account=`if [ $TBG_partition == "gpu_low" ] ; then echo "low"; else echo "default"; fi`
+# configure if the output file should be appended or overwritten
+.TBG_keepOutputFileOpen=`if [ $TBG_partition == "gpu_low" ] ; then echo "SBATCH --open-mode=append"; fi`
 
 # settings that can be controlled by environment variables before submit
 .TBG_mailSettings=${MY_MAILNOTIFY:-"NONE"}
@@ -99,12 +106,12 @@ export OMPI_MCA_io=^ompio
 # test if cuda_memtest binary is available and we have the node exclusive
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
   # Run CUDA memtest to check GPU's health
-  mpiexec !TBG_dstPath/input/bin/cuda_memtest.sh
+  mpiexec -np !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
 else
-  echo "no binary 'cuda_memtest' available or compute node is not exclusively allocated, skip GPU memory test" >&2
+  echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available or compute node is not exclusively allocated. This does not affect PIConGPU, starting it now" >&2
 fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  mpiexec !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
+  source !TBG_dstPath/tbg/handleSlurmSignals.sh mpiexec -np !TBG_tasks !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 fi

@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Axel Huebl
+/* Copyright 2017-2021 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -41,54 +41,51 @@
 
 namespace picongpu
 {
-namespace flylite
-{
-    /** number of populations (numpop)
-     *
-     * this number defines how many configurations make up a superconfiguration
-     *
-     * range: [0, 255]
-     */
-    constexpr uint8_t populations = 3u; // example Cu data set: 32u
+    namespace flylite
+    {
+        /** number of populations (numpop)
+         *
+         * this number defines how many configurations make up a superconfiguration
+         *
+         * range: [0, 255]
+         */
+        constexpr uint8_t populations = 3u; // example Cu data set: 32u
 
-    using Superconfig = types::Superconfig<
-        float_64,
-        populations
-    >;
+        using Superconfig = types::Superconfig<float_64, populations>;
 
-    /** ionization states of the atom (iz)
-     *
-     * range: [0, 255]
-     */
-    constexpr uint8_t ionizationStates = 29u;
+        /** ionization states of the atom (iz)
+         *
+         * range: [0, 255]
+         */
+        constexpr uint8_t ionizationStates = 29u;
 
-    /** number of energy bins
-     *
-     * energy steps used for local energy histograms
-     * @note: no overflow- or underflow-bins are used, particles with energies
-     *        outside the range (see below) are ignored
-     */
-    constexpr uint16_t energies = 512u;
+        /** number of energy bins
+         *
+         * energy steps used for local energy histograms
+         * @note: no overflow- or underflow-bins are used, particles with energies
+         *        outside the range (see below) are ignored
+         */
+        constexpr uint16_t energies = 512u;
 
-    /** energy range for electron and photon histograms
-     *
-     * electron and photon histograms f(e) f(ph) are currently
-     * calculated in a linearly binned histogram while particles with
-     * energies outside the ranges below are ignored
-     *
-     * unit: eV
-     */
-    constexpr float_X electronMinEnergy = 0.0;
-    constexpr float_X electronMaxEnergy = 100.e3;
-    constexpr float_X photonMinEnergy = 0.0;
-    constexpr float_X photonMaxEnergy = 100.e3;
+        /** energy range for electron and photon histograms
+         *
+         * electron and photon histograms f(e) f(ph) are currently
+         * calculated in a linearly binned histogram while particles with
+         * energies outside the ranges below are ignored
+         *
+         * unit: eV
+         */
+        constexpr float_X electronMinEnergy = 0.0;
+        constexpr float_X electronMaxEnergy = 100.e3;
+        constexpr float_X photonMinEnergy = 0.0;
+        constexpr float_X photonMaxEnergy = 100.e3;
 
-    /** you better not change this line, the wooooorld depends on it!
-     *
-     * no seriously, per-supercell is the quickest way to average particle
-     * quantities such as density, energy histogram, etc. and I won't implement
-     * another size until needed
-     */
-    using spatialAverageBox = SuperCellSize;
-} // namespace flylite
+        /** you better not change this line, the wooooorld depends on it!
+         *
+         * no seriously, per-supercell is the quickest way to average particle
+         * quantities such as density, energy histogram, etc. and I won't implement
+         * another size until needed
+         */
+        using spatialAverageBox = SuperCellSize;
+    } // namespace flylite
 } // namespace picongpu

@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Alexander Grund
+/* Copyright 2015-2021 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -25,13 +25,12 @@
 
 namespace pmacc
 {
-
-    template< uint32_t T_dim = DIM1 >
+    template<uint32_t T_dim = DIM1>
     class Environment;
 
-namespace detail
-{
-    struct Environment;
+    namespace detail
+    {
+        struct Environment;
 
-} // namespace detail
+    } // namespace detail
 } // namespace pmacc

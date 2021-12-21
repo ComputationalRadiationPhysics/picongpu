@@ -1,4 +1,4 @@
-/* Copyright 2020 Sergei Bastrakov
+/* Copyright 2020-2021 Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -26,20 +26,19 @@
 
 namespace picongpu
 {
-namespace traits
-{
-
-    /** Whether a field is geometrically bound to the domain decomposition
-     *  with respect to size, guard size, and offset
-     *
-     * Inherits std::true_type, std::false_type or a compatible type.
-     *
-     * @tparam T_Field field type
-     */
-    template< typename T_Field >
-    struct IsFieldDomainBound : std::true_type
+    namespace traits
     {
-    };
+        /** Whether a field is geometrically bound to the domain decomposition
+         *  with respect to size, guard size, and offset
+         *
+         * Inherits std::true_type, std::false_type or a compatible type.
+         *
+         * @tparam T_Field field type
+         */
+        template<typename T_Field>
+        struct IsFieldDomainBound : std::true_type
+        {
+        };
 
-} // namespace traits
+    } // namespace traits
 } // namespace picongpu

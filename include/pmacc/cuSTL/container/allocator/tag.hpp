@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -24,15 +24,15 @@
 
 namespace pmacc
 {
-namespace allocator
-{
-namespace tag
-{
-struct host;
-struct device;
-struct unspecified;
-} // tag
-} // allocator
-} // pmacc
+    namespace allocator
+    {
+        namespace tag
+        {
+            struct host;
+            struct device;
+            struct unspecified;
+        } // namespace tag
+    } // namespace allocator
+} // namespace pmacc
 
 #endif // ALLOCATOR_TAG_H

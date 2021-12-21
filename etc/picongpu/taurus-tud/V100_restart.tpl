@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2020 Axel Huebl, Richard Pausch, Alexander Debus, Klaus Steiniger
+# Copyright 2013-2021 Axel Huebl, Richard Pausch, Alexander Debus, Klaus Steiniger
 #
 # This file is part of PIConGPU.
 #
@@ -119,7 +119,7 @@ echo "----- automated restart routine -----" | tee -a output
 
 #check whether last checkpoint is valid
 file=""
-# ADIOS restart files take precedence over HDF5 files
+# ADIOS2 restart files take precedence over HDF5 files
 fileEnding="h5"
 hasADIOS=$(ls ./checkpoints/checkpoint_*.bp 2>/dev/null | wc -w)
 if [ $hasADIOS -gt 0 ]
@@ -175,7 +175,7 @@ if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
   # Run CUDA memtest to check GPU's health
   mpiexec -hostfile ../machinefile.txt !TBG_dstPath/input/bin/cuda_memtest.sh
 else
-  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+  echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available. This does not affect PIConGPU, starting it now" >&2
 fi
 
 if [ $? -eq 0 ] ; then

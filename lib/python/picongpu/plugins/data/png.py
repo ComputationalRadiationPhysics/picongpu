@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2017-2020 PIConGPU contributors
+Copyright 2017-2021 PIConGPU contributors
 Authors: Sebastian Starke
 License: GPLv3+
 """
@@ -9,8 +9,9 @@ from .base_reader import DataReader
 
 import numpy as np
 import os
-from scipy import misc
 import collections
+from imageio import imread
+
 
 SPECIES_LONG_NAMES = {
     'e': 'Electrons'
@@ -196,7 +197,7 @@ class PNGData(DataReader):
             # iteration is None, so we use all available data
             iteration = available_iterations
 
-        imgs = [misc.imread(
+        imgs = [imread(
             self.get_data_path(species, species_filter, axis,
                                slice_point, it)) for it in iteration]
 

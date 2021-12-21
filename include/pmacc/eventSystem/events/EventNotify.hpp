@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.
@@ -22,13 +22,12 @@
 
 #pragma once
 
-#include <set>
-
 #include "pmacc/types.hpp"
+
+#include <set>
 
 namespace pmacc
 {
-
     class IEventData;
     class IEvent;
 
@@ -38,10 +37,7 @@ namespace pmacc
     class EventNotify
     {
     public:
-
-        virtual ~EventNotify()
-        {
-        }
+        virtual ~EventNotify() = default;
 
         /**
          * Registers an observer at this observable.
@@ -67,12 +63,10 @@ namespace pmacc
          * @param type the type of this notification
          * @param data data passed to observers
          */
-        void notify(id_t eventId, EventType type, IEventData *data);
+        void notify(id_t eventId, EventType type, IEventData* data);
 
     private:
         std::set<IEvent*> observers;
-
     };
 
-} //namespace pmacc
-
+} // namespace pmacc

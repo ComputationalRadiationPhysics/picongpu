@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Felix Schmitt, Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2021 Felix Schmitt, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of PMacc.
@@ -28,37 +28,35 @@
 
 namespace pmacc
 {
-
-template<class CellDescription>
-class SimulationFieldHelper
-{
-public:
-
-    typedef CellDescription MappingDesc;
-
-    SimulationFieldHelper(CellDescription description) :
-    cellDescription(description)
-    {}
-
-    virtual ~SimulationFieldHelper(){}
-
-    /**
-     * Reset is as well used for init.
-     */
-    virtual void reset(uint32_t currentStep) = 0;
-
-    /**
-     * Synchronize data from host to device.
-     */
-    virtual void syncToDevice() = 0;
-
-    CellDescription getCellDescription() const
+    template<class CellDescription>
+    class SimulationFieldHelper
     {
-        return cellDescription;
-    }
+    public:
+        using MappingDesc = CellDescription;
 
-protected:
-    CellDescription cellDescription;
-};
+        SimulationFieldHelper(CellDescription description) : cellDescription(description)
+        {
+        }
 
-} //namespace pmacc
+        virtual ~SimulationFieldHelper() = default;
+
+        /**
+         * Reset is as well used for init.
+         */
+        virtual void reset(uint32_t currentStep) = 0;
+
+        /**
+         * Synchronize data from host to device.
+         */
+        virtual void syncToDevice() = 0;
+
+        CellDescription getCellDescription() const
+        {
+            return cellDescription;
+        }
+
+    protected:
+        CellDescription cellDescription;
+    };
+
+} // namespace pmacc

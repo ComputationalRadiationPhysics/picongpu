@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Axel Huebl, Rene Widera
+/* Copyright 2017-2021 Axel Huebl, Rene Widera, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -22,175 +22,155 @@
 #pragma once
 
 #include "pmacc/Environment.hpp"
-#include "pmacc/particles/frame_types.hpp"
+#include "pmacc/lockstep.hpp"
 #include "pmacc/mappings/kernel/AreaMapping.hpp"
-#include "pmacc/mappings/threads/ForEachIdx.hpp"
-#include "pmacc/mappings/threads/IdxConfig.hpp"
-#include "pmacc/mappings/threads/WorkerCfg.hpp"
+#include "pmacc/particles/frame_types.hpp"
 
+#include <cstdint>
 #include <utility>
 
 
 namespace pmacc
 {
-namespace particles
-{
-namespace algorithm
-{
-namespace acc
-{
-namespace detail
-{
-
-    /** operate on particles of a species
-     *
-     * @tparam T_numWorkers number of workers
-     */
-    template< uint32_t T_numWorkers >
-    struct ForEachParticle
+    namespace particles
     {
-        /** operate on particles
-         *
-         * @tparam T_Acc alpaka accelerator type
-         * @tparam T_Functor type of the functor to operate on a particle
-         * @tparam T_Mapping mapping functor type
-         * @tparam T_ParBox pmacc::ParticlesBox, type of the species box
-         *
-         * @param acc alpaka accelerator
-         * @param functor functor to operate on a particle
-         *                must fulfill the interface pmacc::functor::Interface<F, 1u, void>
-         * @param mapper functor to map a block to a supercell
-         * @param pb particles species box
-         */
-        template<
-            typename T_Acc,
-            typename T_Functor,
-            typename T_Mapping,
-            typename T_ParBox
-        >
-        DINLINE void operator()(
-            T_Acc const & acc,
-            T_Functor functor,
-            T_Mapping const mapper,
-            T_ParBox pb
-        ) const
+        namespace algorithm
         {
-            using namespace mappings::threads;
-
-            using SuperCellSize = typename T_ParBox::FrameType::SuperCellSize;
-            constexpr uint32_t dim = SuperCellSize::dim;
-            constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
-            constexpr uint32_t numWorkers = T_numWorkers;
-
-            uint32_t const workerIdx = threadIdx.x;
-
-            DataSpace< dim > const superCellIdx(
-                mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) )
-            );
-
-            auto const & superCell = pb.getSuperCell( superCellIdx );
-            uint32_t const numPartcilesInSupercell = superCell.getNumParticles();
-
-
-            // end kernel if we have no particles
-            if( numPartcilesInSupercell == 0 )
-                return;
-
-            using FramePtr = typename T_ParBox::FramePtr;
-            FramePtr frame = pb.getFirstFrame( superCellIdx );
-
-            // offset of the superCell (in cells, without any guards) to the origin of the local domain
-            DataSpace< dim > const localSuperCellOffset =
-                superCellIdx - mapper.getGuardingSuperCells( );
-
-            auto accFunctor = functor(
-                acc,
-                localSuperCellOffset,
-                WorkerCfg< T_numWorkers >{ workerIdx }
-            );
-
-            for( uint32_t parOffset = 0; parOffset < numPartcilesInSupercell; parOffset += frameSize)
+            namespace acc
             {
-                using ParticleDomCfg = IdxConfig<
-                    frameSize,
-                    numWorkers
-                >;
-
-                // loop over all particles in the frame
-                ForEachIdx< ParticleDomCfg >{ workerIdx }(
-                    [&](
-                        uint32_t const linearIdx,
-                        uint32_t const
-                    )
+                namespace detail
+                {
+                    /** operate on particles of a species
+                     *
+                     * @tparam T_numWorkers number of workers
+                     */
+                    template<uint32_t T_numWorkers>
+                    struct ForEachParticle
                     {
-                        // particle index within the supercell
-                        uint32_t parIdx = parOffset + linearIdx;
-                        auto particle = frame[ linearIdx ];
+                        /** operate on particles
+                         *
+                         * @tparam T_Acc alpaka accelerator type
+                         * @tparam T_Functor type of the functor to operate on a particle
+                         * @tparam T_Mapping mapping functor type
+                         * @tparam T_ParBox pmacc::ParticlesBox, type of the species box
+                         *
+                         * @param acc alpaka accelerator
+                         * @param functor functor to operate on a particle
+                         *                must fulfill the interface pmacc::functor::Interface<F, 1u, void>
+                         * @param mapper functor to map a block to a supercell
+                         * @param pb particles species box
+                         */
+                        template<typename T_Acc, typename T_Functor, typename T_Mapping, typename T_ParBox>
+                        DINLINE void operator()(
+                            T_Acc const& acc,
+                            T_Functor functor,
+                            T_Mapping const mapper,
+                            T_ParBox pb) const
+                        {
+                            using SuperCellSize = typename T_ParBox::FrameType::SuperCellSize;
+                            constexpr uint32_t dim = SuperCellSize::dim;
+                            constexpr uint32_t frameSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+                            constexpr uint32_t numWorkers = T_numWorkers;
 
-                        bool const isPar = parIdx < numPartcilesInSupercell;
-                        if( isPar )
-                            accFunctor(
-                                acc,
-                                particle
-                            );
-                    }
-                );
+                            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-                frame = pb.getNextFrame( frame );
+                            DataSpace<dim> const superCellIdx(
+                                mapper.getSuperCellIndex(DataSpace<dim>(cupla::blockIdx(acc))));
+
+                            auto const& superCell = pb.getSuperCell(superCellIdx);
+                            uint32_t const numPartcilesInSupercell = superCell.getNumParticles();
+
+
+                            // end kernel if we have no particles
+                            if(numPartcilesInSupercell == 0)
+                                return;
+
+                            using FramePtr = typename T_ParBox::FramePtr;
+                            FramePtr frame = pb.getFirstFrame(superCellIdx);
+
+                            // offset of the superCell (in cells, without any guards) to the origin of the local domain
+                            DataSpace<dim> const localSuperCellOffset = superCellIdx - mapper.getGuardingSuperCells();
+
+                            auto accFunctor
+                                = functor(acc, localSuperCellOffset, lockstep::Worker<T_numWorkers>{workerIdx});
+
+                            for(uint32_t parOffset = 0; parOffset < numPartcilesInSupercell; parOffset += frameSize)
+                            {
+                                auto forEachParticle = lockstep::makeForEach<frameSize, numWorkers>(workerIdx);
+
+                                // loop over all particles in the frame
+                                forEachParticle([&](uint32_t const linearIdx) {
+                                    // particle index within the supercell
+                                    uint32_t parIdx = parOffset + linearIdx;
+                                    auto particle = frame[linearIdx];
+
+                                    bool const isPar = parIdx < numPartcilesInSupercell;
+                                    if(isPar)
+                                        accFunctor(acc, particle);
+                                });
+
+                                frame = pb.getNextFrame(frame);
+                            }
+                        }
+                    };
+
+                } // namespace detail
+            } // namespace acc
+
+            /** Run a unary functor for each particle of a species in the given area
+             *
+             * Has a version for a fixed area, and for a user-provided mapper factory.
+             * They differ only in how the area is defined.
+             *
+             * @warning Does NOT fill gaps automatically! If the
+             *          operation deactivates particles or creates "gaps" in any
+             *          other way, CallFillAllGaps needs to be called for the
+             *          species manually afterwards!
+             *
+             * @tparam T_Species type of the species
+             * @tparam T_Functor unary particle functor type which follows the interface of
+             *                   pmacc::functor::Interface<F, 1u, void>
+             *
+             * @param species species to operate on
+             * @param functor operation which is applied to each particle of the species
+             *
+             * @{
+             */
+
+            /** Version for a custom area mapper factory
+             *
+             * @tparam T_AreaMapperFactory factory type to construct an area mapper that defines the area to process,
+             *                             adheres to the AreaMapperFactory concept
+             *
+             * @param areaMapperFactory factory to construct an area mapper,
+             *                          the area is defined by the constructed mapper object
+             */
+            template<typename T_Species, typename T_Functor, typename T_AreaMapperFactory>
+            HINLINE void forEach(T_Species&& species, T_Functor functor, T_AreaMapperFactory const& areaMapperFactory)
+            {
+                using MappingDesc = decltype(species.getCellDescription());
+                using SuperCellSize = typename MappingDesc::SuperCellSize;
+                constexpr uint32_t numWorkers
+                    = pmacc::traits::GetNumWorkers<pmacc::math::CT::volume<SuperCellSize>::type::value>::value;
+
+                auto const mapper = areaMapperFactory(species.getCellDescription());
+                PMACC_KERNEL(acc::detail::ForEachParticle<numWorkers>{})
+                (mapper.getGridDim(), numWorkers)(std::move(functor), mapper, species.getDeviceParticlesBox());
             }
-        }
-    };
 
-} //namespace detail
-} //namespace acc
+            /** Version for a fixed area
+             *
+             * @tparam T_area area to process particles in
+             */
+            template<uint32_t T_area, typename T_Species, typename T_Functor>
+            HINLINE void forEach(T_Species&& species, T_Functor functor)
+            {
+                auto const areaMapperFactory = AreaMapperFactory<T_area>{};
+                forEach(species, functor, areaMapperFactory);
+            }
 
-    /** Run a unary functor for each particle of a species
-     *
-     * @warning Does NOT fill gaps automatically! If the
-     *          operation deactivates particles or creates "gaps" in any
-     *          other way, CallFillAllGaps needs to be called for the
-     *          species manually afterwards!
-     *
-     * Operates on the domain CORE and BORDER
-     *
-     * @tparam T_Species type of the species
-     * @tparam T_Functor unary particle functor type which follows the interface of
-     *                   pmacc::functor::Interface<F, 1u, void>
-     *
-     * @param species species to operate on
-     * @param functor operation which is applied to each particle of the species
-     */
-    template<
-        typename T_Species,
-        typename T_Functor
-    >
-    void forEach(
-        T_Species && species,
-        T_Functor functor
-    )
-    {
-        using MappingDesc = decltype(species.getCellDescription());
-        AreaMapping<
-            CORE + BORDER,
-            MappingDesc
-        > mapper( species.getCellDescription() );
+            /** @} */
 
-        using SuperCellSize = typename MappingDesc::SuperCellSize;
-
-        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-            pmacc::math::CT::volume< SuperCellSize >::type::value
-        >::value;
-
-        PMACC_KERNEL( acc::detail::ForEachParticle< numWorkers >{ } )(
-            mapper.getGridDim(),
-            numWorkers
-        )(
-            std::move(functor),
-            mapper,
-            species.getDeviceParticlesBox( )
-        );
-    }
-
-} // namespace algorithm
-} // namespace particles
+        } // namespace algorithm
+    } // namespace particles
 } // namespace pmacc

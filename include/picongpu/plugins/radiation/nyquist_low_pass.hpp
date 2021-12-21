@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Richard Pausch, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -19,52 +19,51 @@
 
 #pragma once
 
-#include "calc_amplitude.hpp"
-#include "VectorTypes.hpp"
-#include "particle.hpp"
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/plugins/radiation/VectorTypes.hpp"
+#include "picongpu/plugins/radiation/calc_amplitude.hpp"
+#include "picongpu/plugins/radiation/particle.hpp"
 
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace radiation
-{
-
-class NyquistLowPass : public One_minus_beta_times_n
-{
-
-public:
-    /**
-     * calculates \f$omega_{Nyquist}\f$ for particle in a direction \f$n\f$
-     * \f$omega_{Nyquist} = (\pi - \epsilon )/(\delta t * (1 - \vec(\beta) * \vec(n)))\f$
-     * so that all Amplitudes for higher frequencies can be ignored
-    **/
-    HDINLINE NyquistLowPass(const vector_64& n, const Particle& particle)
-      : omegaNyquist((PI - 0.01)/
-           (DELTA_T *
-            One_minus_beta_times_n()(n, particle)))
-    { }
-
-    /**
-     * default constructor - needed for allocating shared memory on GPU (Radiation.hpp kernel)
-    **/
-    HDINLINE NyquistLowPass(void)
-    { }
-
-
-    /**
-     * checks if frequency omega is below Nyquist frequency
-    **/
-    HDINLINE bool check(const float_32 omega)
+    namespace plugins
     {
-        return omega < omegaNyquist * radiationNyquist::NyquistFactor;
-    }
+        namespace radiation
+        {
+            //! Low pass filter on frequencies, the threshold depends on the Nyquist frequency
+            class NyquistLowPass : public One_minus_beta_times_n
+            {
+            public:
+                /** Calculates the filter threshold, only frequencies below it pass
+                 *
+                 * The threshold is equal to \f$omega_{Nyquist} * NyquistFactor\f$ for particle in a direction \f$n\f$
+                 * \f$omega_{Nyquist} = (\pi - \epsilon )/(\delta t * (1 - \vec(\beta) * \vec(n)))\f$
+                 * so that all Amplitudes for higher frequencies can be ignored.
+                 * The Nyquist factor value is set in radiation.param.
+                 **/
+                HDINLINE NyquistLowPass(const vector_64& n, const Particle& particle)
+                {
+                    auto const omegaNyquist = (PI - 0.01) / (DELTA_T * One_minus_beta_times_n()(n, particle));
+                    threshold = static_cast<float_X>(omegaNyquist * radiationNyquist::NyquistFactor);
+                }
 
-private:
-    float_32 omegaNyquist; // Nyquist frequency for a particle (at a certain time step) for one direction
-};
+                //! Default constructor - needed for allocating shared memory on GPU (Radiation.kernel)
+                HDINLINE NyquistLowPass() = default;
 
-} // namespace radiation
-} // namespace plugins
+                //! Checks if frequency omega is below the threshold
+                HDINLINE bool check(const float_X omega) const
+                {
+                    return omega < threshold;
+                }
+
+            private:
+                // Nyquist frequency for a particle (at a certain time step) for one direction multiplied by the
+                // Nyquist factor
+                float_X threshold;
+            };
+
+        } // namespace radiation
+    } // namespace plugins
 } // namespace picongpu

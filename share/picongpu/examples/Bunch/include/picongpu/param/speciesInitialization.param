@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera, Axel Huebl
+/* Copyright 2015-2021 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -33,31 +33,19 @@
 
 namespace picongpu
 {
-namespace particles
-{
-    /** InitPipeline define in which order species are initialized
-     *
-     * the functors are called in order (from first to last functor)
-     */
-    using InitPipeline = bmpl::vector<
+    namespace particles
+    {
+        /** InitPipeline define in which order species are initialized
+         *
+         * the functors are called in order (from first to last functor)
+         */
+        using InitPipeline = bmpl::vector<
 #ifdef PARAM_SINGLE_PARTICLE
-        CreateDensity<
-            densityProfiles::FreeFormula,
-            startPosition::OnePosition,
-            PIC_Electrons
-        >,
+            CreateDensity<densityProfiles::FreeFormula, startPosition::OnePosition, PIC_Electrons>,
 #else
-        CreateDensity<
-            densityProfiles::GaussianCloud,
-            startPosition::Random,
-            PIC_Electrons
-        >,
+            CreateDensity<densityProfiles::GaussianCloud, startPosition::Random, PIC_Electrons>,
 #endif
-        Manipulate<
-            manipulators::AssignYDriftNegative,
-            PIC_Electrons
-        >
-    >;
+            Manipulate<manipulators::AssignYDriftNegative, PIC_Electrons>>;
 
-} // namespace particles
+    } // namespace particles
 } // namespace picongpu

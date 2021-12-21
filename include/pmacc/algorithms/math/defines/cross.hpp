@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,23 +22,20 @@
 
 #pragma once
 
+#include "pmacc/types.hpp"
+
 namespace pmacc
 {
-namespace algorithms
-{
-
-namespace math
-{
-
-template<typename Type1, typename Type2>
-struct Cross;
+    namespace math
+    {
+        template<typename Type1, typename Type2>
+        struct Cross;
 
 
-template<typename T1, typename T2>
-HDINLINE typename Cross< T1, T2 >::result cross(const T1& value, const T2& value2)
-{
-    return Cross< T1, T2 > ()(value, value2);
-}
-} //namespace math
-} //namespace algorithms
-}//namespace pmacc
+        template<typename T1, typename T2>
+        HDINLINE typename Cross<T1, T2>::result cross(const T1& value, const T2& value2)
+        {
+            return Cross<T1, T2>()(value, value2);
+        }
+    } // namespace math
+} // namespace pmacc

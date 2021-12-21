@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,37 +19,26 @@
 
 #include "picongpu/plugins/misc/splitString.hpp"
 
-#include <string>
 #include <regex>
+#include <string>
 #include <vector>
 
 
 namespace picongpu
 {
-namespace plugins
-{
-namespace misc
-{
-    std::vector< std::string > splitString(
-        std::string const & input,
-        std::string const & regex
-    )
+    namespace plugins
     {
-        std::regex re( regex );
-        // passing -1 as the submatch index parameter performs splitting
-        std::sregex_token_iterator first{
-            input.begin(),
-            input.end(),
-            re,
-            -1
-        };
-        std::sregex_token_iterator last;
+        namespace misc
+        {
+            std::vector<std::string> splitString(std::string const& input, std::string const& regex)
+            {
+                std::regex re(regex);
+                // passing -1 as the submatch index parameter performs splitting
+                std::sregex_token_iterator first{input.begin(), input.end(), re, -1};
+                std::sregex_token_iterator last;
 
-        return {
-            first,
-            last
-        };
-    }
-} // namespace misc
-} // namespace plugins
+                return {first, last};
+            }
+        } // namespace misc
+    } // namespace plugins
 } // namespace picongpu

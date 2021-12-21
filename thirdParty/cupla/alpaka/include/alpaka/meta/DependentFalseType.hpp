@@ -1,6 +1,6 @@
 /* Copyright 2019 Benjamin Worpitz
  *
- * This file is part of Alpaka.
+ * This file is part of alpaka.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,10 +18,9 @@ namespace alpaka
         //#############################################################################
         //! A false_type being dependent on a ignored template parameter.
         //! This allows to use static_assert in uninstantiated template specializations without triggering.
-        template<
-            typename T>
-        struct DependentFalseType :
-            std::false_type
-        {};
-    }
-}
+        template<typename T>
+        struct DependentFalseType : std::false_type
+        {
+        };
+    } // namespace meta
+} // namespace alpaka

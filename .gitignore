@@ -11,6 +11,10 @@
 # Visual Studio Code configuration files
 .vscode
 
+# JetBrains project files and tmp's
+.idea/
+/venv/
+
 # python byte code
 *.pyc
 
@@ -23,3 +27,9 @@ docs/doxygen_sqlite3.db
 docs/html/
 # sphinx & breathe output
 docs/build/
+
+### macOS ###
+# General
+.DS_Store
+.AppleDouble
+.LSOverride

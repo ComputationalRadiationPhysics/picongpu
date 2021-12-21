@@ -50,7 +50,7 @@ Two of the artifacts can be seen in this plot:
     - electron-ion interaction cross sections are small due to small ion density
 
     It is strongly suggested to do approximations for **every** setup or material first.
-    To that end, a parameter scan with [FLYCHK]_ can help in choosing a reasonable value.
+    To that end, a parameter scan with [FLYCHK2005]_ can help in choosing a reasonable value.
 
 3. Lower electron-temperature cutoff
 
@@ -74,7 +74,7 @@ in development
         Advances in Atomic, Molecular and Optical Physics Vol. 21 C, 305-356 (1985),
         https://dx.doi.org/10.1016/S0065-2199(08)60145-1
 
-.. [FLYCHK]
+.. [FLYCHK2005]
         *FLYCHK: Generalized population kinetics and spectral model for rapid spectroscopic analysis for all elements*,
         H.-K. Chung, M.H. Chen, W.L. Morgan, Yu. Ralchenko, and R.W. Lee,
         *High Energy Density Physics* v.1, p.3 (2005)

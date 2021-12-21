@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2020 Axel Huebl, Rene Widera, Richard Pausch
+# Copyright 2013-2021 Axel Huebl, Rene Widera, Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -58,7 +58,7 @@ echo -n "present working directory:"
 pwd
 
 # create hostfile with uniq histnames for makeParallelPictures
-export LD_LIBRARY_PATH="TBG_outDir/build_libsplash:TBG_outDir/build_simlib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="TBG_outDir/build_simlib:$LD_LIBRARY_PATH"
 
 export MODULES_NO_OUTPUT=1
 
@@ -81,7 +81,7 @@ export OMPI_MCA_io=^ompio
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
   mpirun -n TBG_tasks --display-map -am tbg/openib.conf --mca mpi_leave_pinned 0 !TBG_dstPath/input/bin/cuda_memtest.sh
 else
-  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+  echo "Note: GPU memory test was skipped as no binary 'cuda_memtest' available. This does not affect PIConGPU, starting it now" >&2
 fi
 
 if [ $? -eq 0 ] ; then

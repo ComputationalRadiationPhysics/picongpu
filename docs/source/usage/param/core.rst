@@ -27,12 +27,28 @@ components.param
    :path: include/picongpu/param/components.param
    :no-link:
 
+iterationStart.param
+^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfile:: iterationStart.param
+   :project: PIConGPU
+   :path: include/picongpu/param/iterationStart.param
+   :no-link:
+
 fieldSolver.param
 ^^^^^^^^^^^^^^^^^
 
 .. doxygenfile:: fieldSolver.param
    :project: PIConGPU
    :path: include/picongpu/param/fieldSolver.param
+   :no-link:
+
+fieldAbsorber.param
+^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfile:: fieldAbsorber.param
+   :project: PIConGPU
+   :path: include/picongpu/param/fieldAbsorber.param
    :no-link:
 
 laser.param
@@ -51,12 +67,12 @@ laser.param
 
    laser/profiles.rst
 
-pml.param
-^^^^^^^^^
+incidentField.param
+^^^^^^^^^^^^^^^^^^^
 
-.. doxygenfile:: pml.param
+.. doxygenfile:: incidentField.param
    :project: PIConGPU
-   :path: include/picongpu/param/pml.param
+   :path: include/picongpu/param/incidentField.param
    :no-link:
 
 pusher.param
@@ -105,6 +121,8 @@ species.param
    :project: PIConGPU
    :path: include/picongpu/param/species.param
    :no-link:
+
+:ref:`Current solver details <usage-params-core-currentdeposition>`.
 
 speciesDefinition.param
 ^^^^^^^^^^^^^^^^^^^^^^^

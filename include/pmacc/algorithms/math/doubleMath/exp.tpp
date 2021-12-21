@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2021 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PMacc.
  *
@@ -23,50 +23,25 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
 #include <cmath>
 
 
 namespace pmacc
 {
-namespace algorithms
-{
-namespace math
-{
-
-template<>
-struct Exp<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value )
+    namespace math
     {
-        return ::exp( value );
-    }
-};
+        template<>
+        struct Log10<double>
+        {
+            using result = double;
 
-template<>
-struct Log<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value )
-    {
-        return ::log( value );
-    }
-};
-
-template<>
-struct Log10<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value)
-    {
-        return ::log10( value );
-    }
-};
+            HDINLINE double operator()(const double& value)
+            {
+                return ::log10(value);
+            }
+        };
 
 
-} //namespace math
-} //namespace algorithms
+    } // namespace math
 } // namespace pmacc

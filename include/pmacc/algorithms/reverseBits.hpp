@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Alexander Grund
+/* Copyright 2015-2021 Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -23,40 +23,42 @@
 #pragma once
 
 #include "pmacc/static_assert.hpp"
-#include <boost/type_traits.hpp>
+
 #include <climits>
+#include <type_traits>
 
-namespace pmacc{
 
-/**
- * Reverses the bit in an unsigned integral value
- *
- * Based on "Bit Twiddling Hacks" by Sean Eron Anderson
- * published in public domain. Retrieved on 13th of August, 2015 from
- * http://www.graphics.stanford.edu/~seander/bithacks.html
- *
- * @param value Value which should be reversed
- * @return Reversed value
- */
-template<typename T>
-T
-reverseBits(T value)
+namespace pmacc
 {
-    PMACC_STATIC_ASSERT_MSG( boost::is_integral<T>::value && boost::is_unsigned<T>::value,
-                             Only_allowed_for_unsigned_integral_types );
-    /* init with value (to get LSB) */
-    T result = value;
-    /* extra shift needed at end */
-    int s = sizeof(T) * CHAR_BIT - 1;
-    for (value >>= 1; value; value >>= 1)
+    /**
+     * Reverses the bit in an unsigned integral value
+     *
+     * Based on "Bit Twiddling Hacks" by Sean Eron Anderson
+     * published in public domain. Retrieved on 13th of August, 2015 from
+     * http://www.graphics.stanford.edu/~seander/bithacks.html
+     *
+     * @param value Value which should be reversed
+     * @return Reversed value
+     */
+    template<typename T>
+    T reverseBits(T value)
     {
-        result <<= 1;
-        result |= value & 1;
-        s--;
+        PMACC_STATIC_ASSERT_MSG(
+            std::is_integral<T>::value && std::is_unsigned<T>::value,
+            Only_allowed_for_unsigned_integral_types, );
+        /* init with value (to get LSB) */
+        T result = value;
+        /* extra shift needed at end */
+        int s = sizeof(T) * CHAR_BIT - 1;
+        for(value >>= 1; value; value >>= 1)
+        {
+            result <<= 1;
+            result |= value & 1;
+            s--;
+        }
+        /* shift when values highest bits are zero */
+        result <<= s;
+        return result;
     }
-    /* shift when values highest bits are zero */
-    result <<= s;
-    return result;
-}
 
-}  // namespace pmacc
+} // namespace pmacc

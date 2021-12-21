@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Anton Helm, Richard Pausch
+/* Copyright 2013-2021 Axel Huebl, Anton Helm, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -29,9 +29,9 @@
 
 namespace picongpu
 {
-/*! Simulation Starter ---------------------------------------------------
- *  - defaultPIConGPU         : default PIConGPU configuration
- */
-namespace simulation_starter = defaultPIConGPU;
+    /*! Simulation Starter ---------------------------------------------------
+     *  - defaultPIConGPU         : default PIConGPU configuration
+     */
+    namespace simulation_starter = defaultPIConGPU;
 
-}
+} // namespace picongpu

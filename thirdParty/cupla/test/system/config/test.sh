@@ -18,8 +18,8 @@ function compile {
     if [ $# -eq 4 ] ; then
         compiler_flags="$4"
     fi
-    echo "execute: "${compiler_name} ${test_code_dir}/main.cpp ${test_code_dir}/kernel.cpp  -I${test_code_dir}/../../../include -I${test_code_dir}/../../../alpaka/include -std=c++11 -DCUPLA_ACC_${acc_name} -DCUPLA_HEADER_ONLY -o ${acc_name} ${compiler_flags}
-    ret=$(${compiler_name} ${test_code_dir}/main.cpp ${test_code_dir}/kernel.cpp  -I${test_code_dir}/../../../include -I${test_code_dir}/../../../alpaka/include -std=c++11 -DCUPLA_ACC_${acc_name} -DCUPLA_HEADER_ONLY -o ${acc_name} ${compiler_flags} && \
+    echo "execute: "${compiler_name} ${test_code_dir}/main.cpp ${test_code_dir}/kernel.cpp  -I${test_code_dir}/../../../include -I${test_code_dir}/../../../alpaka/include -std=c++14 -DCUPLA_ACC_${acc_name} -DCUPLA_HEADER_ONLY -o ${acc_name} ${compiler_flags}
+    ret=$(${compiler_name} ${test_code_dir}/main.cpp ${test_code_dir}/kernel.cpp  -I${test_code_dir}/../../../include -I${test_code_dir}/../../../alpaka/include -std=c++14 -DCUPLA_ACC_${acc_name} -DCUPLA_HEADER_ONLY -o ${acc_name} ${compiler_flags} && \
         { echo 0; } || { echo 1; })
     if [ $ret -eq 0 ] && [ $execute_bin -eq 1 ] ; then
         ret=$(./$acc_name && { echo 0; } || { echo 1; })
@@ -44,8 +44,8 @@ compile 0 "$1" CpuThreads "-pthread -lpthread -DCUPLA_STREAM_ASYNC_ENABLE=1 $boo
 
 nvcc_found=$(which nvcc >/dev/null && { echo 0; } || { echo 1; })
 if [ $nvcc_found -eq 0 ] ; then
-    compile 0 "nvcc -x cu" GpuCudaRt "-DALPAKA_ACC_GPU_CUDA_ENABLE=ON -DALPAKA_ACC_GPU_CUDA_ONLY_MODE=ON $boost_include"
-    compile 0 "nvcc -x cu" GpuCudaRt "-DALPAKA_ACC_GPU_CUDA_ENABLE=ON -DALPAKA_ACC_GPU_CUDA_ONLY_MODE=ON -DCUPLA_STREAM_ASYNC_ENABLE=1 $boost_include"
+    compile 0 "nvcc -x cu" GpuCudaRt "-DALPAKA_ACC_GPU_CUDA_ENABLE=ON -DALPAKA_ACC_GPU_CUDA_ONLY_MODE=ON $boost_include --expt-relaxed-constexpr"
+    compile 0 "nvcc -x cu" GpuCudaRt "-DALPAKA_ACC_GPU_CUDA_ENABLE=ON -DALPAKA_ACC_GPU_CUDA_ONLY_MODE=ON -DCUPLA_STREAM_ASYNC_ENABLE=1 $boost_include --expt-relaxed-constexpr"
 else 
     echo "skip GpuCudaRt: nvcc not found" >&2
 fi

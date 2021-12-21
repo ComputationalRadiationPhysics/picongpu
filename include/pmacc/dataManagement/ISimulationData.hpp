@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera, Felix Schmitt, Benjamin Worpitz,
+/* Copyright 2013-2021 Rene Widera, Felix Schmitt, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of PMacc.
@@ -26,7 +26,7 @@
 
 namespace pmacc
 {
-    typedef std::string SimulationDataId;
+    using SimulationDataId = std::string;
 
     /**
      * Interface for simulation data which should be registered at DataConnector
@@ -35,7 +35,7 @@ namespace pmacc
     class ISimulationData
     {
     public:
-        virtual ~ISimulationData(){}
+        virtual ~ISimulationData() = default;
         /**
          * Synchronizes simulation data, meaning accessing (host side) data
          * will return up-to-date values.
@@ -48,6 +48,5 @@ namespace pmacc
          * @return globally unique identifier
          */
         virtual SimulationDataId getUniqueId() = 0;
-
     };
-}
+} // namespace pmacc

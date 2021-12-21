@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -25,46 +25,9 @@
 
 namespace pmacc
 {
-namespace math
-{
-
-template<int dim>
-struct UInt32 : public Vector<uint32_t, dim>
-{
-    using BaseType = Vector<uint32_t, dim>;
-
-    HDINLINE UInt32()
+    namespace math
     {
-    }
-
-    HDINLINE UInt32(uint32_t x) : BaseType(x)
-    {
-    }
-
-    HDINLINE UInt32(uint32_t x, uint32_t y) : BaseType(x, y)
-    {
-    }
-
-    HDINLINE UInt32(uint32_t x, uint32_t y, uint32_t z) : BaseType(x, y, z)
-    {
-    }
-
-    /*! only allow explicit cast*/
-    template<
-    typename T_OtherType,
-    typename T_OtherAccessor,
-    typename T_OtherNavigator,
-    template <typename, int> class T_OtherStorage>
-    HDINLINE explicit UInt32(const Vector<T_OtherType, dim, T_OtherAccessor, T_OtherNavigator, T_OtherStorage>& vec) :
-    BaseType(vec)
-    {
-    }
-
-    HDINLINE UInt32(const BaseType& vec) :
-    BaseType(vec)
-    {
-    }
-};
-
-} // math
-} // PMacc
+        template<int dim>
+        using UInt32 = Vector<uint32_t, dim>;
+    } // namespace math
+} // namespace pmacc

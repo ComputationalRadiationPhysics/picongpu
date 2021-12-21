@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Alexander Debus
+/* Copyright 2014-2021 Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -20,5 +20,5 @@
 
 #pragma once
 
-#include "picongpu/fields/background/templates/TWTS/EField.tpp"
 #include "picongpu/fields/background/templates/TWTS/BField.tpp"
+#include "picongpu/fields/background/templates/TWTS/EField.tpp"

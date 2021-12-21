@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Rene Widera
+/* Copyright 2015-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -27,23 +27,20 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace functor
-{
-namespace misc
-{
+    namespace particles
+    {
+        namespace functor
+        {
+            namespace misc
+            {
+                /** provide a random number generator
+                 *
+                 * @tparam T_Distribution pmacc::random::distributions, random number distribution
+                 */
+                template<typename T_Distribution>
+                struct Rng;
 
-    /** provide a random number generator
-     *
-     * @tparam T_Distribution pmacc::random::distributions, random number distribution
-     */
-    template<
-        typename T_Distribution
-    >
-    struct Rng;
-
-} // namespace misc
-} // namespace functor
-} // namespace particles
+            } // namespace misc
+        } // namespace functor
+    } // namespace particles
 } // namespace picongpu

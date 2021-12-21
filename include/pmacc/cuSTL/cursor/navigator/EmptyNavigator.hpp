@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -23,19 +23,16 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-
-struct EmptyNavigator
-{
-    template<typename Marker, typename Jump>
-    HDINLINE
-    Marker operator()(const Marker& marker, Jump) const
+    namespace cursor
     {
-        return marker;
-    }
-};
+        struct EmptyNavigator
+        {
+            template<typename Marker, typename Jump>
+            HDINLINE Marker operator()(const Marker& marker, Jump) const
+            {
+                return marker;
+            }
+        };
 
-} // cursor
-} // pmacc
-
+    } // namespace cursor
+} // namespace pmacc

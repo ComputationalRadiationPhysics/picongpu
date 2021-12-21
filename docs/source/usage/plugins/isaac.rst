@@ -13,24 +13,28 @@ The plugin is available as soon as the :ref:`ISAAC library <install-dependencies
 .cfg file
 ^^^^^^^^^
 
-=========================== =========================================================================
-Command line option          Description
-=========================== =========================================================================
-``--isaac.period N``        Sets up, that every *N* th timestep an image will be rendered.
-                            This parameter can be changed later with the controlling client.
-``--isaac.name NAME``       Sets the *NAME* of the simulation, which is shown at the client.
-``--isaac.url URL``         *URL* of the required and running isaac server.
-                            Host names and IPs are supported.
-``--isaac.port PORT``       *PORT* of the isaac server.
-                            The default value is ``2458`` (for the in-situ plugins), but may be needed to be changed for tunneling reasons or if more than one server shall run on the very same hardware.
-``--isaac.width WIDTH``     Setups the *WIDTH* and *HEIGHT* of the created image(s).
-``--isaac.height HEIGHT``   Default is ``1024x768``.
-``--isaac.direct_pause``    If activated ISAAC will pause directly after the simulation started.
-                            Useful for presentations or if you don't want to miss the beginning of the simulation.
-``--isaac.quality QUALITY`` Sets the *QUALITY* of the images, which are compressed right after creation.
-                            Values between ``1`` and ``100`` are possible.
-                            The default is ``90``, but ``70`` does also still produce decent results.
-=========================== =========================================================================
+================================= ============================================================================
+Command line option               Description
+================================= ============================================================================
+``--isaac.period N``              Sets up, that every *N* th timestep an image will be rendered.
+                                  This parameter can be changed later with the controlling client.
+``--isaac.name NAME``             Sets the *NAME* of the simulation, which is shown at the client.
+``--isaac.url URL``               *URL* of the required and running isaac server.
+                                  Host names and IPs are supported.
+``--isaac.port PORT``             *PORT* of the isaac server.
+                                  The default value is ``2458`` (for the in-situ plugins), but needs to
+                                  be changed for tunneling reasons or if more than one server shall run on
+                                  the very same hardware.
+``--isaac.width WIDTH``           Setups the *WIDTH* and *HEIGHT* of the created image(s).
+``--isaac.height HEIGHT``         Default is ``1024x768``.
+``--isaac.direct_pause``          If activated ISAAC will pause directly after the simulation started.
+                                  Useful for presentations or if you don't want to miss the beginning of
+                                  the simulation.
+``--isaac.quality QUALITY``       Sets the *QUALITY* of the images, which are compressed right after creation.
+                                  Values between ``1`` and ``100`` are possible.
+                                  The default is ``90``, but ``70`` does also still produce decent results.
+``--isaac.timingsFilename NAME``  Enable and write benchmark results into the given file.
+================================= ============================================================================
 
 The most important settings for ISAAC are ``--isaac.period``, ``--isaac.name`` and ``--isaac.url``.
 A possible addition for your submission ``tbg`` file could be ``--isaac.period 1 --isaac.name !TBG_jobName --isaac.url YOUR_SERVER``, where the tbg variables ``!TBG_jobName`` is used as name and ``YOUR_SERVER`` needs to be set up by yourself.

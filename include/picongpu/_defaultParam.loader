@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten, Finn-Ole Carstens
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten, Finn-Ole Carstens, Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -25,13 +25,15 @@
  */
 #pragma once
 
+// clang-format off
+
 #include "picongpu/param/dimension.param"
-#if( PMACC_CUDA_ENABLED == 1 )
-#   include "picongpu/param/mallocMC.param"
+#include "picongpu/param/precision.param"
+#if(BOOST_LANG_CUDA || BOOST_COMP_HIP)
+#    include "picongpu/param/mallocMC.param"
 #endif
 #include "picongpu/param/memory.param"
 #include "picongpu/param/random.param"
-#include "picongpu/param/precision.param"
 #include "picongpu/param/physicalConstants.param"
 #include "picongpu/param/flylite.param"
 #include "picongpu/param/speciesConstants.param"
@@ -39,21 +41,24 @@
 #include "picongpu/param/synchrotronPhotons.param"
 #include "picongpu/param/grid.param"
 #include "picongpu/param/pusher.param"
+#include "picongpu/param/fieldAbsorber.param"
+#include "picongpu/param/incidentField.param"
 #include "picongpu/param/ionizer.param"
 #include "picongpu/param/ionizationEnergies.param"
 #include "picongpu/param/density.param"
 #include "picongpu/param/particle.param"
-#include "picongpu/param/pml.param"
 #include "picongpu/param/unit.param"
 #include "picongpu/param/particleFilters.param"
-#if( PMACC_CUDA_ENABLED == 1 )
-#   include "picongpu/param/bremsstrahlung.param"
+#if(PMACC_CUDA_ENABLED == 1)
+#    include "picongpu/param/bremsstrahlung.param"
 #endif
 #include "picongpu/param/radiation.param"
 #include "picongpu/param/transitionRadiation.param"
 #include "picongpu/param/species.param"
 #include "picongpu/param/speciesDefinition.param"
 #include "picongpu/param/speciesInitialization.param"
+#include "picongpu/param/iterationStart.param"
+#include "picongpu/param/collision.param"
 #include "picongpu/param/laser.param"
 #include "picongpu/param/fieldSolver.param"
 #include "picongpu/param/fieldBackground.param"
@@ -65,3 +70,8 @@
 #include "picongpu/param/isaac.param"
 #include "picongpu/param/radiationObserver.param"
 #include "picongpu/param/particleMerger.param"
+#if(ENABLE_OPENPMD == 1)
+#    include "picongpu/param/xrayScattering.param"
+#endif
+
+// clang-format on

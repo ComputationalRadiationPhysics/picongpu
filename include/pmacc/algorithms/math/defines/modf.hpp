@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Heiko Burau
+/* Copyright 2015-2021 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -21,23 +21,23 @@
 
 #pragma once
 
+#include "pmacc/types.hpp"
+
 namespace pmacc
 {
-namespace algorithms
-{
+    namespace math
+    {
+        template<typename Type>
+        struct Modf;
 
-namespace math
-{
+        template<typename T>
+        HDINLINE typename Modf<T>::result modf(T value, T* intpart)
+        {
+            return Modf<T>()(value, intpart);
+        }
 
-template<typename Type>
-struct Modf;
+    } // namespace math
+} // namespace pmacc
 
-template<typename T>
-HDINLINE typename Modf<T>::result modf(T value, T* intpart)
-{
-    return Modf<T>()(value, intpart);
-}
-
-} //namespace math
-} //namespace algorithms
-}//namespace pmacc
+#include "pmacc/algorithms/math/doubleMath/modf.tpp"
+#include "pmacc/algorithms/math/floatMath/modf.tpp"

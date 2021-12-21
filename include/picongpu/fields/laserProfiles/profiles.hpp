@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Ilja Goethel
  *
  * This file is part of PIConGPU.
@@ -22,8 +22,8 @@
 
 #include "picongpu/fields/laserProfiles/ExpRampWithPrepulse.hpp"
 #include "picongpu/fields/laserProfiles/GaussianBeam.hpp"
+#include "picongpu/fields/laserProfiles/None.hpp"
 #include "picongpu/fields/laserProfiles/PlaneWave.hpp"
 #include "picongpu/fields/laserProfiles/Polynom.hpp"
 #include "picongpu/fields/laserProfiles/PulseFrontTilt.hpp"
 #include "picongpu/fields/laserProfiles/Wavepacket.hpp"
-#include "picongpu/fields/laserProfiles/None.hpp"

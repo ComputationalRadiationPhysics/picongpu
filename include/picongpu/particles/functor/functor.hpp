@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera, Axel Huebl
+/* Copyright 2014-2021 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -20,5 +20,6 @@
 #pragma once
 
 #include "picongpu/particles/functor/User.hpp"
-#include "picongpu/particles/functor/misc/TotalCellOffset.hpp"
+#include "picongpu/particles/functor/misc/Parametrized.hpp"
 #include "picongpu/particles/functor/misc/Rng.hpp"
+#include "picongpu/particles/functor/misc/TotalCellOffset.hpp"

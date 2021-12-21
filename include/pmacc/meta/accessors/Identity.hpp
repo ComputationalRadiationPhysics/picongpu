@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera
+/* Copyright 2014-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -23,29 +23,27 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+
 #include <boost/mpl/identity.hpp>
 
 namespace pmacc
 {
-namespace meta
-{
+    namespace meta
+    {
+        namespace accessors
+        {
+            /** Get the type of a given type without changes
+             *
+             * @tparam T in type
+             *
+             */
+            template<typename T = bmpl::_1>
+            struct Identity : bmpl::identity<T>
+            {
+            };
 
-namespace accessors
-{
+        } // namespace accessors
 
-/** Get the type of a given type without changes
- *
- * \tparam T in type
- *
- */
-template<typename T=bmpl::_1>
-struct Identity : bmpl::identity<T>
-{
+    } // namespace meta
 
-};
-
-}//namespace accessors
-
-}//namespace meta
-
-}//namespace  pmacc
+} // namespace  pmacc

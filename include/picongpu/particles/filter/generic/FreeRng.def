@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -27,52 +27,48 @@
 
 namespace picongpu
 {
-namespace particles
-{
-namespace filter
-{
-namespace generic
-{
+    namespace particles
+    {
+        namespace filter
+        {
+            namespace generic
+            {
+                /** call simple free user defined functor and provide a random number generator
+                 *
+                 *
+                 * @tparam T_Functor user defined unary functor
+                 * @tparam T_Distribution pmacc::random::distributions, random number distribution
+                 *
+                 * example for `particleFilters.param`: get every second particle
+                 *                                      (random sample of 50%)
+                 *   @code{.cpp}
+                 *
+                 *   struct FunctorEachSecondParticle
+                 *   {
+                 *       template< typename T_Rng, typename T_Particle >
+                 *       HDINLINE bool operator()(
+                 *           T_Rng & rng,
+                 *           T_Particle const & particle
+                 *       )
+                 *       {
+                 *           bool result = false;
+                 *           if( rng() >= float_X( 0.5 ) )
+                 *               result = true;
+                 *           return result;
+                 *       }
+                 *       static constexpr char const * name = "eachSecondParticle";
+                 *   };
+                 *
+                 *   using EachSecondParticle = generic::FreeRng<
+                 *      FunctorEachSecondParticle,
+                 *      pmacc::random::distributions::Uniform< float_X >
+                 *   >;
+                 *   @endcode
+                 */
+                template<typename T_Functor, typename T_Distribution>
+                struct FreeRng;
 
-    /** call simple free user defined functor and provide a random number generator
-     *
-     *
-     * @tparam T_Functor user defined unary functor
-     * @tparam T_Distribution pmacc::random::distributions, random number distribution
-     *
-     * example for `particleFilters.param`: get every second particle
-     *                                      (random sample of 50%)
-     *   @code{.cpp}
-     *
-     *   struct FunctorEachSecondParticle
-     *   {
-     *       template< typename T_Rng, typename T_Particle >
-     *       HDINLINE bool operator()(
-     *           T_Rng & rng,
-     *           T_Particle const & particle
-     *       )
-     *       {
-     *           bool result = false;
-     *           if( rng() >= float_X( 0.5 ) )
-     *               result = true;
-     *           return result;
-     *       }
-     *       static constexpr char const * name = "eachSecondParticle";
-     *   };
-     *
-     *   using EachSecondParticle = generic::FreeRng<
-     *      FunctorEachSecondParticle,
-     *      pmacc::random::distributions::Uniform< float_X >
-     *   >;
-     *   @endcode
-     */
-    template<
-        typename T_Functor,
-        typename T_Distribution
-    >
-    struct FreeRng;
-
-} // namespace generic
-} // namespace filter
-} // namespace particles
+            } // namespace generic
+        } // namespace filter
+    } // namespace particles
 } // namespace picongpu

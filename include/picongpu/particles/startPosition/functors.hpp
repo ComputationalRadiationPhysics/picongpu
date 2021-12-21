@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "picongpu/particles/startPosition/generic/FreeRng.hpp"
-#include "picongpu/particles/startPosition/generic/Free.hpp"
 #include "picongpu/particles/startPosition/OnePositionImpl.hpp"
 #include "picongpu/particles/startPosition/QuietImpl.hpp"
 #include "picongpu/particles/startPosition/RandomImpl.hpp"
+#include "picongpu/particles/startPosition/generic/Free.hpp"
+#include "picongpu/particles/startPosition/generic/FreeRng.hpp"

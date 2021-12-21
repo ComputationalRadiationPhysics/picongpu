@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -28,79 +28,79 @@
 
 namespace pmacc
 {
-namespace cursor
-{
-namespace tools
-{
-namespace detail
-{
-template<typename TCursor, typename Tag>
-struct SliceResult;
-
-template<typename TCursor>
-struct SliceResult<TCursor, tag::BufferNavigator>
-{
-    typedef Cursor<
-        typename TCursor::Accessor,
-        BufferNavigator<TCursor::Navigator::dim-1>,
-        typename TCursor::Marker> type;
-};
-
-template<typename TCursor>
-struct SliceResult<TCursor, tag::CartNavigator>
-{
-    typedef Cursor<
-        typename TCursor::Accessor,
-        CartNavigator<TCursor::Navigator::dim-1>,
-        typename TCursor::Marker> type;
-};
-
-template<typename Navi, typename NaviTag>
-struct Slice_helper;
-
-template<typename Navi>
-struct Slice_helper<Navi, tag::BufferNavigator>
-{
-    HDINLINE
-    BufferNavigator<Navi::dim-1> operator()(const Navi& navi)
+    namespace cursor
     {
-        math::Size_t<Navi::dim-2> pitch;
-        for(int i = 0; i < Navi::dim-2; i++)
-            pitch[i] = navi.getPitch()[i];
-        return BufferNavigator<Navi::dim-1>(pitch);
-    }
-};
+        namespace tools
+        {
+            namespace detail
+            {
+                template<typename TCursor, typename Tag>
+                struct SliceResult;
 
-template<typename Navi>
-struct Slice_helper<Navi, tag::CartNavigator>
-{
-    HDINLINE
-    CartNavigator<Navi::dim-1> operator()(const Navi& navi)
-    {
-        math::Int<Navi::dim-1> factor;
-        for(uint32_t i = 0; i < Navi::dim-1; i++)
-            factor[i] = navi.getFactor()[i];
-        return CartNavigator<Navi::dim-1>(factor);
-    }
-};
+                template<typename TCursor>
+                struct SliceResult<TCursor, tag::BufferNavigator>
+                {
+                    typedef Cursor<
+                        typename TCursor::Accessor,
+                        BufferNavigator<TCursor::Navigator::dim - 1>,
+                        typename TCursor::Marker>
+                        type;
+                };
 
-} // detail
+                template<typename TCursor>
+                struct SliceResult<TCursor, tag::CartNavigator>
+                {
+                    typedef Cursor<
+                        typename TCursor::Accessor,
+                        CartNavigator<TCursor::Navigator::dim - 1>,
+                        typename TCursor::Marker>
+                        type;
+                };
 
-/** makes a 2D cursor of a 3D vector by dropping the z-component
- */
-template<typename TCursor>
-HDINLINE
-typename detail::SliceResult<TCursor, typename TCursor::Navigator::tag>::type
-slice(const TCursor& cur)
-{
-    detail::Slice_helper<typename TCursor::Navigator, typename TCursor::Navigator::tag> slice_helper;
-    return typename detail::SliceResult<TCursor, typename TCursor::Navigator::tag>::type
-            (cur.getAccessor(),
-             slice_helper(cur.getNavigator()),
-             cur.getMarker());
-}
+                template<typename Navi, typename NaviTag>
+                struct Slice_helper;
 
-} // tools
-} // cursor
-} // pmacc
+                template<typename Navi>
+                struct Slice_helper<Navi, tag::BufferNavigator>
+                {
+                    HDINLINE
+                    BufferNavigator<Navi::dim - 1> operator()(const Navi& navi)
+                    {
+                        math::Size_t<Navi::dim - 2> pitch;
+                        for(int i = 0; i < Navi::dim - 2; i++)
+                            pitch[i] = navi.getPitch()[i];
+                        return BufferNavigator<Navi::dim - 1>(pitch);
+                    }
+                };
 
+                template<typename Navi>
+                struct Slice_helper<Navi, tag::CartNavigator>
+                {
+                    HDINLINE
+                    CartNavigator<Navi::dim - 1> operator()(const Navi& navi)
+                    {
+                        math::Int<Navi::dim - 1> factor;
+                        for(uint32_t i = 0; i < Navi::dim - 1; i++)
+                            factor[i] = navi.getFactor()[i];
+                        return CartNavigator<Navi::dim - 1>(factor);
+                    }
+                };
+
+            } // namespace detail
+
+            /** makes a 2D cursor of a 3D vector by dropping the z-component
+             */
+            template<typename TCursor>
+            HDINLINE typename detail::SliceResult<TCursor, typename TCursor::Navigator::tag>::type slice(
+                const TCursor& cur)
+            {
+                detail::Slice_helper<typename TCursor::Navigator, typename TCursor::Navigator::tag> slice_helper;
+                return typename detail::SliceResult<TCursor, typename TCursor::Navigator::tag>::type(
+                    cur.getAccessor(),
+                    slice_helper(cur.getNavigator()),
+                    cur.getMarker());
+            }
+
+        } // namespace tools
+    } // namespace cursor
+} // namespace pmacc

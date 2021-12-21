@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Rene Widera
+/* Copyright 2013-2021 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -22,32 +22,34 @@
 
 #pragma once
 
-#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/assert.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/type/Exchange.hpp"
 
 namespace pmacc
 {
-
     template<class ParBase>
     class TaskSendParticlesExchange : public MPITask
     {
     public:
-
         enum
         {
             Dim = ParBase::Dim,
         };
 
-        TaskSendParticlesExchange(ParBase &parBase, uint32_t exchange) :
-        parBase(parBase),
-        exchange(exchange),
-        state(Constructor),
-        maxSize(parBase.getParticlesBuffer().getSendExchangeStack(exchange).getMaxParticlesCount()),
-        initDependency(__getTransactionEvent()),
-        lastSize(0),lastSendEvent(EventTask()),retryCounter(0){ }
+        TaskSendParticlesExchange(ParBase& parBase, uint32_t exchange)
+            : parBase(parBase)
+            , exchange(exchange)
+            , state(Constructor)
+            , maxSize(parBase.getParticlesBuffer().getSendExchangeStack(exchange).getMaxParticlesCount())
+            , initDependency(__getTransactionEvent())
+            , lastSize(0)
+            , lastSendEvent(EventTask())
+            , retryCounter(0)
+        {
+        }
 
-        virtual void init()
+        void init() override
         {
             state = Init;
             __startTransaction(initDependency);
@@ -56,84 +58,83 @@ namespace pmacc
             state = WaitForBash;
         }
 
-        bool executeIntern()
+        bool executeIntern() override
         {
-            switch (state)
+            switch(state)
             {
-                case Init:
-                    break;
-                case WaitForBash:
+            case Init:
+                break;
+            case WaitForBash:
 
-                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()) &&
-                        nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
-                    {
-                        state = InitSend;
-                        //bash is finished
-                        __startTransaction();
-                        lastSize = parBase.getParticlesBuffer().getSendExchangeStack(exchange).getDeviceParticlesCurrentSize();
-                        lastSendEvent = parBase.getParticlesBuffer().asyncSendParticles(__getTransactionEvent(), exchange);
-                        initDependency = lastSendEvent;
-                        __endTransaction();
-                        state = WaitForSend;
-                    }
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId())
+                   && nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
+                {
+                    state = InitSend;
+                    // bash is finished
+                    __startTransaction();
+                    lastSize
+                        = parBase.getParticlesBuffer().getSendExchangeStack(exchange).getDeviceParticlesCurrentSize();
+                    lastSendEvent = parBase.getParticlesBuffer().asyncSendParticles(__getTransactionEvent(), exchange);
+                    initDependency = lastSendEvent;
+                    __endTransaction();
+                    state = WaitForSend;
+                }
 
-                    break;
-                case InitSend:
-                    break;
-                case WaitForSend:
-                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                break;
+            case InitSend:
+                break;
+            case WaitForSend:
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                {
+                    PMACC_ASSERT(lastSize <= maxSize);
+                    // check for next bash round
+                    if(lastSize == maxSize)
                     {
-                        PMACC_ASSERT(lastSize <= maxSize);
-                        //check for next bash round
-                        if (lastSize == maxSize)
-                        {
-                            ++retryCounter;
-                            init(); //call init and run a full send cycle
-
-                        }
-                        else
-                            state = WaitForSendEnd;
+                        ++retryCounter;
+                        init(); // call init and run a full send cycle
                     }
-                    break;
-                case WaitForSendEnd:
-                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
-                    {
-                        state = Finished;
-                        return true;
-                    }
-                    break;
-                case Finished:
+                    else
+                        state = WaitForSendEnd;
+                }
+                break;
+            case WaitForSendEnd:
+                if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
+                {
+                    state = Finished;
                     return true;
-                default:
-                    return false;
+                }
+                break;
+            case Finished:
+                return true;
+            default:
+                return false;
             }
 
             return false;
         }
 
-        virtual ~TaskSendParticlesExchange()
+        ~TaskSendParticlesExchange() override
         {
             notify(this->myId, RECVFINISHED, nullptr);
             if(retryCounter != 0)
             {
-                std::cerr << "Send/receive buffer for species " <<
-                    ParBase::FrameType::getName() <<
-                    " is too small (max: " << maxSize <<
-                    ", direction: " << exchange << " '" << ExchangeTypeNames{}[exchange] << "'" <<
-                    ", retries: " << retryCounter <<
-                    ")" << std::endl;
+                std::cerr << "Send/receive buffer for species " << ParBase::FrameType::getName()
+                          << " is too small (max: " << maxSize << ", direction: " << exchange << " '"
+                          << ExchangeTypeNames{}[exchange] << "'"
+                          << ", retries: " << retryCounter << ")" << std::endl;
             }
         }
 
-        void event(id_t, EventType, IEventData*) { }
+        void event(id_t, EventType, IEventData*) override
+        {
+        }
 
-        std::string toString()
+        std::string toString() override
         {
             return "TaskSendParticlesExchange";
         }
 
     private:
-
         enum state_t
         {
             Constructor,
@@ -158,4 +159,4 @@ namespace pmacc
         size_t retryCounter;
     };
 
-} //namespace pmacc
+} // namespace pmacc

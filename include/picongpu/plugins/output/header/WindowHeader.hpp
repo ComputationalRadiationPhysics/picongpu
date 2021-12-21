@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2021 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,29 +19,27 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/types.hpp>
 
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 
 
 namespace picongpu
 {
-
-struct WindowHeader
-{
-    using Size2D = pmacc::DataSpace< DIM2 >;
-
-    Size2D size;
-    Size2D offset;
-
-    void writeToConsole(std::ostream& ocons) const
+    struct WindowHeader
     {
-        ocons << "WindowHeader.size " << size.x() << " " << size.y() << std::endl;
-        ocons << "WindowHeader.offset " << offset.x() << " " << offset.y() << std::endl;
-    }
+        using Size2D = pmacc::DataSpace<DIM2>;
 
-};
+        Size2D size;
+        Size2D offset;
+
+        void writeToConsole(std::ostream& ocons) const
+        {
+            ocons << "WindowHeader.size " << size.x() << " " << size.y() << std::endl;
+            ocons << "WindowHeader.offset " << offset.x() << " " << offset.y() << std::endl;
+        }
+    };
 
 } // namespace picongpu

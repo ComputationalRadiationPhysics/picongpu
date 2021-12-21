@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera
+/* Copyright 2014-2021 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,4 +22,4 @@
 
 #include <pmacc/math/ConstVector.hpp>
 
-#define CONST_VECTOR(type,dim,name,...) PMACC_CONST_VECTOR(type,dim,name,__VA_ARGS__)
+#define CONST_VECTOR(type, dim, name, ...) PMACC_CONST_VECTOR(type, dim, name, __VA_ARGS__)

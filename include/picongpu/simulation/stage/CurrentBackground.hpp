@@ -1,4 +1,4 @@
-/* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2021 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
  *
@@ -21,12 +21,12 @@
 
 #pragma once
 
-#include "picongpu/fields/background/cellwiseOperation.hpp"
 #include "picongpu/fields/FieldJ.hpp"
+#include "picongpu/fields/background/cellwiseOperation.hpp"
 
-#include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/Environment.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/math/operation.hpp>
 #include <pmacc/type/Area.hpp>
 
 #include <cstdint>
@@ -34,57 +34,50 @@
 
 namespace picongpu
 {
-namespace simulation
-{
-namespace stage
-{
-
-    //! Functor for the stage of the PIC loop applying current background
-    class CurrentBackground
+    namespace simulation
     {
-    public:
-
-        /** Create a current background functor
-         *
-         * Having this in constructor is a temporary solution.
-         *
-         * @param cellDescription mapping for kernels
-         */
-        CurrentBackground( MappingDesc const cellDescription ):
-            cellDescription( cellDescription )
+        namespace stage
         {
-        }
+            //! Functor for the stage of the PIC loop applying current background
+            class CurrentBackground
+            {
+            public:
+                /** Create a current background functor
+                 *
+                 * Having this in constructor is a temporary solution.
+                 *
+                 * @param cellDescription mapping for kernels
+                 */
+                CurrentBackground(MappingDesc const cellDescription) : cellDescription(cellDescription)
+                {
+                }
 
-        /** Add the current background to the current density
-         *
-         * @param step index of time iteration
-         */
-        void operator( )( uint32_t const step ) const
-        {
-            using namespace pmacc;
-            DataConnector & dc = Environment< >::get( ).DataConnector( );
-            auto & fieldJ = *dc.get< FieldJ >( FieldJ::getName( ), true );
-            using CurrentBackground = cellwiseOperation::CellwiseOperation<
-                type::CORE + type::BORDER
-            >;
-            CurrentBackground currentBackground( cellDescription );
-            currentBackground(
-                &fieldJ,
-                nvidia::functors::Add( ),
-                FieldBackgroundJ( fieldJ.getUnit() ),
-                step,
-                FieldBackgroundJ::activated
-            );
-            dc.releaseData( FieldJ::getName( ) );
-        }
+                /** Add the current background to the current density
+                 *
+                 * @param step index of time iteration
+                 */
+                void operator()(uint32_t const step) const
+                {
+                    if(FieldBackgroundJ::activated)
+                    {
+                        using namespace pmacc;
+                        DataConnector& dc = Environment<>::get().DataConnector();
+                        auto& fieldJ = *dc.get<FieldJ>(FieldJ::getName(), true);
+                        using CurrentBackground = cellwiseOperation::CellwiseOperation<type::CORE + type::BORDER>;
+                        CurrentBackground currentBackground(cellDescription);
+                        currentBackground(
+                            &fieldJ,
+                            pmacc::math::operation::Add(),
+                            FieldBackgroundJ(fieldJ.getUnit()),
+                            step);
+                    }
+                }
 
-    private:
+            private:
+                //! Mapping for kernels
+                MappingDesc cellDescription;
+            };
 
-        //! Mapping for kernels
-        MappingDesc cellDescription;
-
-    };
-
-} // namespace stage
-} // namespace simulation
+        } // namespace stage
+    } // namespace simulation
 } // namespace picongpu

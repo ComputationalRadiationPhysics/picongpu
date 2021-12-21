@@ -39,11 +39,11 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
     template<
         uint32_t T_dim
     >
-    using AlpakaDim = ::alpaka::dim::DimInt< T_dim >;
+    using AlpakaDim = ::alpaka::DimInt< T_dim >;
 
     using KernelDim = AlpakaDim< Dimensions >;
 
-    using IdxVec3 = ::alpaka::vec::Vec<
+    using IdxVec3 = ::alpaka::Vec<
         KernelDim,
         IdxType
     >;
@@ -51,30 +51,29 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
     template<
         uint32_t T_dim
     >
-    using MemVec = ::alpaka::vec::Vec<
+    using MemVec = ::alpaka::Vec<
         AlpakaDim< T_dim >,
         MemSizeType
     >;
 
-    using AccHost = ::alpaka::dev::DevCpu;
-    using AccHostStream = ::alpaka::queue::QueueCpuBlocking;
+    using AccHost = ::alpaka::DevCpu;
+    using AccHostStream = ::alpaka::QueueCpuBlocking;
 
 #if defined(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED) ||                            \
     defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED) ||                         \
     defined(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED) ||                            \
     defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED) ||                             \
-    defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED) ||                             \
-    defined(ALPAKA_ACC_CPU_BT_OMP4_ENABLED)
+    defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
 
-    using AccDev = ::alpaka::dev::DevCpu;
+    using AccDev = ::alpaka::DevCpu;
 #   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
-        using AccStream = ::alpaka::queue::QueueCpuNonBlocking;
+        using AccStream = ::alpaka::QueueCpuNonBlocking;
 #   else
-        using AccStream = ::alpaka::queue::QueueCpuBlocking;
+        using AccStream = ::alpaka::QueueCpuBlocking;
 #   endif
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
-    using Acc = ::alpaka::acc::AccCpuOmp2Threads<
+    using Acc = ::alpaka::AccCpuOmp2Threads<
         KernelDim,
         IdxType
     >;
@@ -82,12 +81,12 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
 
 #if (ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED == 1)
     #if (CUPLA_NUM_SELECTED_DEVICES == 1)
-        using Acc = ::alpaka::acc::AccCpuOmp2Blocks<
+        using Acc = ::alpaka::AccCpuOmp2Blocks<
             KernelDim,
             IdxType
         >;
     #else
-        using AccThreadSeq = ::alpaka::acc::AccCpuOmp2Blocks<
+        using AccThreadSeq = ::alpaka::AccCpuOmp2Blocks<
             KernelDim,
             IdxType
         >;
@@ -95,7 +94,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
 #endif
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
-    using Acc = ::alpaka::acc::AccCpuThreads<
+    using Acc = ::alpaka::AccCpuThreads<
         KernelDim,
         IdxType
     >;
@@ -103,12 +102,12 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
     #if (CUPLA_NUM_SELECTED_DEVICES == 1)
-        using Acc = ::alpaka::acc::AccCpuSerial<
+        using Acc = ::alpaka::AccCpuSerial<
             KernelDim,
             IdxType
         >;
     #else
-        using AccThreadSeq = ::alpaka::acc::AccCpuSerial<
+        using AccThreadSeq = ::alpaka::AccCpuSerial<
             KernelDim,
             IdxType
         >;
@@ -117,49 +116,67 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
 
 #if (ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED == 1)
     #if (CUPLA_NUM_SELECTED_DEVICES == 1)
-        using Acc = ::alpaka::acc::AccCpuTbbBlocks<
+        using Acc = ::alpaka::AccCpuTbbBlocks<
             KernelDim,
             IdxType
         >;
     #else
-        using AccThreadSeq = ::alpaka::acc::AccCpuTbbBlocks<
+        using AccThreadSeq = ::alpaka::AccCpuTbbBlocks<
             KernelDim,
             IdxType
         >;
     #endif
 #endif
 
-#ifdef ALPAKA_ACC_CPU_BT_OMP4_ENABLED
-    using Acc = ::alpaka::acc::AccCpuOmp4<
+#endif
+
+#ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
+    using AccDev = ::alpaka::DevOmp5;
+#   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
+        using AccStream = ::alpaka::QueueOmp5NonBlocking;
+#   else
+        using AccStream = ::alpaka::QueueOmp5Blocking;
+#   endif
+    using Acc = ::alpaka::AccOmp5<
         KernelDim,
         IdxType
     >;
 #endif
 
+#ifdef ALPAKA_ACC_ANY_BT_OACC_ENABLED
+    using AccDev = ::alpaka::DevOacc;
+#   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
+        using AccStream = ::alpaka::QueueOaccNonBlocking;
+#   else
+        using AccStream = ::alpaka::QueueOaccBlocking;
+#   endif
+    using Acc = ::alpaka::AccOacc<
+        KernelDim,
+        IdxType
+    >;
 #endif
 
-
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-    using AccDev = ::alpaka::dev::DevCudaRt;
+    using AccDev = ::alpaka::DevCudaRt;
 #   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
-        using AccStream = ::alpaka::queue::QueueCudaRtNonBlocking;
+        using AccStream = ::alpaka::QueueCudaRtNonBlocking;
 #   else
-        using AccStream = ::alpaka::queue::QueueCudaRtBlocking;
+        using AccStream = ::alpaka::QueueCudaRtBlocking;
 #   endif
-    using Acc = ::alpaka::acc::AccGpuCudaRt<
+    using Acc = ::alpaka::AccGpuCudaRt<
         KernelDim,
         IdxType
     >;
 #endif
 
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
-    using AccDev = ::alpaka::dev::DevHipRt;
+    using AccDev = ::alpaka::DevHipRt;
 #   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
-        using AccStream = ::alpaka::queue::QueueHipRtNonBlocking;
+        using AccStream = ::alpaka::QueueHipRtNonBlocking;
 #   else
-        using AccStream = ::alpaka::queue::QueueHipRtBlocking;
+        using AccStream = ::alpaka::QueueHipRtBlocking;
 #   endif
-    using Acc = ::alpaka::acc::AccGpuHipRt<
+    using Acc = ::alpaka::AccGpuHipRt<
         KernelDim,
         IdxType
     >;
@@ -177,7 +194,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
     template<
         uint32_t T_dim
     >
-    using AccBuf = ::alpaka::mem::buf::Buf<
+    using AccBuf = ::alpaka::Buf<
         AccDev,
         uint8_t,
         AlpakaDim< T_dim >,
@@ -187,7 +204,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
     template<
         uint32_t T_dim
     >
-    using HostBuf = ::alpaka::mem::buf::Buf<
+    using HostBuf = ::alpaka::Buf<
         AccHost,
         uint8_t,
         AlpakaDim< T_dim >,
@@ -198,7 +215,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
         unsigned T_dim
     >
     using HostBufWrapper =
-        ::alpaka::mem::view::ViewPlainPtr<
+        ::alpaka::ViewPlainPtr<
             AccHost,
             uint8_t,
             AlpakaDim< T_dim >,
@@ -209,7 +226,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
         unsigned T_dim
     >
     using HostViewWrapper =
-        ::alpaka::mem::view::ViewSubView<
+        ::alpaka::ViewSubView<
             AccHost,
             uint8_t,
             AlpakaDim< T_dim >,
@@ -220,7 +237,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
         unsigned T_dim
     >
     using DeviceBufWrapper =
-        ::alpaka::mem::view::ViewPlainPtr<
+        ::alpaka::ViewPlainPtr<
             AccDev,
             uint8_t,
             AlpakaDim< T_dim >,
@@ -231,7 +248,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
         unsigned T_dim
     >
     using DeviceViewWrapper =
-        ::alpaka::mem::view::ViewSubView<
+        ::alpaka::ViewSubView<
             AccDev,
             uint8_t,
             AlpakaDim< T_dim >,
