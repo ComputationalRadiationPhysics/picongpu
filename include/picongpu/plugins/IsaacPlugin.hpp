@@ -134,7 +134,7 @@ namespace picongpu
                     constexpr uint32_t requiredExtraSlots
                         = particles::particleToGrid::RequiredExtraSlots<FrameSolver>::type::value;
                     PMACC_CASSERT_MSG(
-                        _please_allocate_at_least_one_or_two_when_using_combined_attributes_FieldTmp_in_memory_param,
+                        _please_allocate_at_least_one_FieldTmp_slot_in_memory_param_or_two_when_using_combined_attributes,
                         fieldTmpNumSlots >= 1u + requiredExtraSlots);
 
                     auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0), true);
