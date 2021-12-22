@@ -39,7 +39,8 @@ namespace picongpu
                     const
                 {
                     // avoid dividing by zero. Return zero if density is close to zero.
-                    if(dens[0] <= std::numeric_limits<float_X>::min())
+                    if(dens[0] * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * CELL_VOLUME
+                       <= std::numeric_limits<float_X>::min())
                     {
                         dst = float1_X{0.0};
                     }
