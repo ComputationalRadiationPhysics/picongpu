@@ -1,4 +1,4 @@
-# Copyright 2015-2021 Erik Zenker, Rene Widera, Axel Huebl
+# Copyright 2015-2022 Erik Zenker, Rene Widera, Axel Huebl
 #
 # This file is part of PMacc.
 #

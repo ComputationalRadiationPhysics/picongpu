@@ -1,4 +1,4 @@
-/* Copyright 2016-2021 Erik Zenker, Axel Huebl
+/* Copyright 2016-2022 Erik Zenker, Axel Huebl
  *
  * This file is part of PMacc.
  *

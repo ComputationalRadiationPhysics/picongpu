@@ -1,4 +1,4 @@
-/* Copyright 2019-2021 Sergei Bastrakov
+/* Copyright 2019-2022 Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *

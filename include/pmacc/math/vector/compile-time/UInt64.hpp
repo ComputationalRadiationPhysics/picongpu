@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Heiko Burau, Rene Widera, Axel Huebl
+/* Copyright 2013-2022 Heiko Burau, Rene Widera, Axel Huebl
  *
  * This file is part of PMacc.
  *

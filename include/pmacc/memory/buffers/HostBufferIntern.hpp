@@ -1,4 +1,4 @@
-/* Copyright 2013-2021 Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2022 Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of PMacc.
