@@ -1,4 +1,4 @@
-/* Copyright 2015-2021 Richard Pausch
+/* Copyright 2015-2022 Richard Pausch
  *
  * This file is part of PMacc.
  *
