@@ -33,14 +33,15 @@ namespace picongpu
     {
         namespace incidentField
         {
+            // This base class is merely to keep all laser-related things together
             class FunctorBase
             {
             public:
                 // Constants for pulse generation
                 static constexpr float_64 TIME_PERIOD_SI = 20 * SI::DELTA_T_SI;
-                static constexpr float_64 WAVE_LENGTH_SI = 2.0 * PI * TIME_PERIOD_SI * SI::SPEED_OF_LIGHT_SI;
-                static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
-                    * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+                static constexpr float_64 WAVE_LENGTH_SI = TIME_PERIOD_SI * SI::SPEED_OF_LIGHT_SI;
+                static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -1.0 / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
+                    * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
                 static constexpr float_64 A0 = 8.0;
                 static constexpr float_64 AMPLITUDE_SI = A0 * UNITCONV_A0_to_Amplitude_SI;
                 static constexpr uint32_t DURATION_STEPS = 300;
@@ -50,25 +51,36 @@ namespace picongpu
                 static constexpr uint32_t CENTER_Y_CELLS = 40;
                 static constexpr uint32_t WIDTH_Y_CELLS = 20;
 
-                HDINLINE float_X getTimeComponentSI(const float_X currentStep) const
+                // Get value to calculate Ey / Bz for the XMin source
+                HDINLINE float_X getXMinSourceValueSI(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
                     auto const durationStepsMiddle = DURATION_STEPS / 2;
                     auto const normalizedDuration = (currentStep - durationStepsMiddle) / durationStepsMiddle;
-                    auto const timeSI = currentStep * SI::DELTA_T_SI;
-                    const float_X sinArg = precisionCast<float_X>(timeSI / TIME_PERIOD_SI * 2.0 * PI);
-                    return AMPLITUDE_SI * math::exp(-normalizedDuration * normalizedDuration) * math::sin(sinArg);
+                    auto const k = 2.0_X * M_PI / WAVE_LENGTH_SI;
+                    auto const x = totalCellIdx.x() * SI::CELL_HEIGHT_SI;
+                    auto const t = currentStep * SI::DELTA_T_SI;
+                    // note: one could also add x influence to normalizedDuration under exp
+                    auto const longitudinal = math::exp(-normalizedDuration * normalizedDuration)
+                        * sin(k * (x - SI::SPEED_OF_LIGHT_SI * t));
+                    auto const normalizedY = (totalCellIdx.y() - CENTER_Y_CELLS) / WIDTH_Y_CELLS;
+                    auto const transversal = math::exp(-normalizedY * normalizedY);
+                    return AMPLITUDE_SI * longitudinal * transversal;
                 }
 
-                HDINLINE float_X getTransversalXComponentSI(const floatD_X& totalCellIdx) const
+                // Get value to calculate Ex / Bz for the XMax source
+                HDINLINE float_X getYMaxSourceValueSI(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
-                    auto const normalizedX = (totalCellIdx[0] - CENTER_X_CELLS) / WIDTH_X_CELLS;
-                    return math::exp(-normalizedX * normalizedX);
-                }
-
-                HDINLINE float_X getTransversalYComponentSI(const floatD_X& totalCellIdx) const
-                {
-                    auto const normalizedY = (totalCellIdx[1] - CENTER_Y_CELLS) / WIDTH_Y_CELLS;
-                    return math::exp(-normalizedY * normalizedY);
+                    auto const durationStepsMiddle = DURATION_STEPS / 2;
+                    auto const normalizedDuration = (currentStep - durationStepsMiddle) / durationStepsMiddle;
+                    auto const k = 2.0_X * M_PI / WAVE_LENGTH_SI;
+                    auto const y = totalCellIdx.y() * SI::CELL_HEIGHT_SI;
+                    auto const t = currentStep * SI::DELTA_T_SI;
+                    // note: one could also add y influence to normalizedDuration under exp
+                    auto const longitudinal = math::exp(-normalizedDuration * normalizedDuration)
+                        * sin(k * (y + SI::SPEED_OF_LIGHT_SI * t));
+                    auto const normalizedX = (totalCellIdx.x() - CENTER_Y_CELLS) / WIDTH_X_CELLS;
+                    auto const transversal = math::exp(-normalizedX * normalizedX);
+                    return AMPLITUDE_SI * longitudinal * transversal;
                 }
             };
 
@@ -97,7 +109,7 @@ namespace picongpu
                  */
                 HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
-                    auto const valueSI = getTimeComponentSI(currentStep) * getTransversalYComponentSI(totalCellIdx);
+                    auto const valueSI = getXMinSourceValueSI(totalCellIdx, currentStep);
                     auto const fieldSI = float3_X(0.0_X, valueSI, 0.0_X);
                     return fieldSI / precisionCast<float_X>(m_unitField);
                 }
@@ -128,7 +140,7 @@ namespace picongpu
                  */
                 HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
-                    auto const valueSI = getTimeComponentSI(currentStep) * getTransversalYComponentSI(totalCellIdx);
+                    auto const valueSI = getXMinSourceValueSI(totalCellIdx, currentStep);
                     auto const fieldSI = float3_X(0.0_X, 0.0_X, valueSI) / SI::SPEED_OF_LIGHT_SI;
                     return fieldSI / precisionCast<float_X>(m_unitField);
                 }
@@ -159,7 +171,7 @@ namespace picongpu
                  */
                 HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
-                    auto const valueSI = getTimeComponentSI(currentStep) * getTransversalXComponentSI(totalCellIdx);
+                    auto const valueSI = getYMaxSourceValueSI(totalCellIdx, currentStep);
                     auto const fieldSI = float3_X(valueSI, 0.0_X, 0.0_X);
                     return fieldSI / precisionCast<float_X>(m_unitField);
                 }
@@ -190,7 +202,7 @@ namespace picongpu
                  */
                 HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
-                    auto const valueSI = getTimeComponentSI(currentStep) * getTransversalXComponentSI(totalCellIdx);
+                    auto const valueSI = getYMaxSourceValueSI(totalCellIdx, currentStep);
                     auto const fieldSI = float3_X(0.0_X, 0.0_X, valueSI) / SI::SPEED_OF_LIGHT_SI;
                     return fieldSI / precisionCast<float_X>(m_unitField);
                 }
