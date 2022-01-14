@@ -875,7 +875,7 @@ namespace picongpu
                 {
                     std::ostringstream filename;
                     /* add to standard file ending */
-                    filename << name << timeStep << ".h5";
+                    filename << name << timeStep << "_0_0_0.h5";
 
                     /* check if restart file exists */
                     if(!boost::filesystem::exists(filename.str()))
