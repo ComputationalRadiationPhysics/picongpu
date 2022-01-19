@@ -259,7 +259,7 @@ c-blosc
 
 openPMD API
 """""""""""
-- 0.12.0+ (bare minimum) / 0.13.0+ (for streaming IO)
+- 0.14.3+
 - *Spack*: ``spack install openpmd-api``
 - For usage in PIConGPU, the openPMD API must have been built either with support for ADIOS2 or HDF5 (or both).
   When building the openPMD API from source (described below), these dependencies must be built and installed first.
@@ -281,7 +281,7 @@ openPMD API
 - environment:* (assumes install from source in ``$HOME/lib/openPMD-api``)
 
   - ``export CMAKE_PREFIX_PATH="$HOME/lib/openPMD-api:$CMAKE_PREFIX_PATH"``
-  - ``export LD_LIBRARY_PATH="$HOME/lib/openPMD-api/lib:$LD_LIBRARY_PATH"``
+  - ``export LD_LIBRARY_PATH="$HOME/lib/openPMD-api/lib64:$HOME/lib/openPMD-api/lib:$LD_LIBRARY_PATH"``
 - If PIConGPU is built with openPMD output enabled, the JSON library
   nlohmann_json will automatically be used, found in the ``thirdParty/``
   directory.
