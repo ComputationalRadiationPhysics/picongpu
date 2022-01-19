@@ -24,21 +24,28 @@ export PROJID=<yourProject>
 # such as mpi, libfabric and others.
 # The following modules just add to these.
 module load craype-accel-amd-gfx908
-module load rocm/4.3.0 # Note setting of environment variables further below
+module load PrgEnv-cray/8.2.0
+module load rocm/4.5.0
+export CXX=hipcc
 
+export MPICH_GPU_SUPPORT_ENABLED=1
+module load cray-mpich/8.1.10
+
+## These must be set before running
+export MPIR_CVAR_GPU_EAGER_DEVICE_MEM=0
+export MPICH_GPU_SUPPORT_ENABLED=1
+export MPICH_SMP_SINGLE_COPY_MODE=CMA
+
+module load cmake/3.21.3
+module load zlib/1.2.11
+module load boost/1.77.0-cxx17
 module load git/2.31.1
-module load cmake/3.20.2
-module load boost/1.73.0
 
 # Other Software ##############################################################
 #
-module load c-blosc/1.21.0
-module load cray-python/3.8.5.1
-module load hdf5/1.10.7 # dependency of openpmd-api module (no other possible)
-module load adios2/2.7.1 # dependency of openpmd-api module
-module load openpmd-api/0.13.4
+module load c-blosc/1.21.0 hdf5/1.12.0 adios2/2.7.1
 
-module load libpng/1.6.37
+module load libpng/1.6.37 freetype/2.11.0
 
 # Self-Build Software #########################################################
 # Optional, not required.
@@ -47,22 +54,27 @@ module load libpng/1.6.37
 # Check the install script at
 # https://gist.github.com/steindev/a063a0a0ab61c5bed3352ef1f5e07962
 #
-export PROJECT=/ccs/proj/$PROJID/PIConGPU
+export PIC_LIBS=$HOME/lib/spock
 
-export PIC_LIBS=$PROJECT/lib
-export ZLIB_ROOT=$PIC_LIBS/zlib-1.2.11
+# install openPMD-api 0.14.3+ yourself
+# required when using picongpu > 0.6.0
+#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html#openpmd-api
+export OPENPMD_API_ROOT=$PIC_LIBS/openPMD-api
+export CMAKE_PREFIX_PATH="$OPENPMD_API_ROOT:$CMAKE_PREFIX_PATH"
+export LD_LIBRARY_PATH="$OPENPMD_API_ROOT/lib64:$LD_LIBRARY_PATH"
+
+# optionally install pngwriter yourself:
+#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html#pngwriter
+####### Really?: But add option `-DCMAKE_CXX_COMPILER=$(which CC)` to `cmake` invocation
 export PNGwriter_ROOT=$PIC_LIBS/pngwriter-0.7.0
-
-export LD_LIBRARY_PATH=$ZLIB_ROOT/lib:$LD_LIBRARY_PATH
+export CMAKE_PREFIX_PATH=$PIC_LIBS:$CMAKE_PREFIX_PATH
 export LD_LIBRARY_PATH=$PNGwriter_ROOT/lib:$LD_LIBRARY_PATH
-
-export CMAKE_PREFIX_PATH=$ZLIB_ROOT:$CMAKE_PREFIX_PATH
 
 # Environment #################################################################
 #
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
-export PIC_BACKEND="hip:908"
+export PIC_BACKEND="hip:gfx908"
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/bin
@@ -73,10 +85,7 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 export HIP_PATH=$ROCM_PATH/hip # has to be set in order to be able to compile
 export CMAKE_MODULE_PATH=$HIP_PATH/cmake:$CMAKE_MODULE_PATH
 export HIPCC_COMPILE_FLAGS_APPEND="$HIPCC_COMPILE_FLAGS_APPEND -I${MPICH_DIR}/include"
-export HIPCC_LINK_FLAGS_APPEND="$HIPCC_LINK_FLAGS_APPEND -L${MPICH_DIR}/lib -lmpi -L/opt/cray/pe/mpich/8.1.7/gtl/lib -lmpi_gtl_hsa"
-
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_ROOT/lib
-export CMAKE_PREFIX_PATH=$BOOST_ROOT:$CMAKE_PREFIX_PATH
+export HIPCC_LINK_FLAGS_APPEND="$HIPCC_LINK_FLAGS_APPEND -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/lib -lmpi_gtl_hsa"
 
 # "tbg" default options #######################################################
 #   - SLURM (sbatch)
@@ -92,7 +101,7 @@ function getNode() {
     else
         numNodes=$1
     fi
-    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=16 --gres=gpu:4 --mem-per-gpu=64000 -p caar -A $PROJID --pty bash
+    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=16 --gpus-per-task=1 --gpu-bind=closest --mem-per-gpu=64000 -p caar -A $PROJID --pty bash
 }
 
 # allocate an interactive shell for one hour
@@ -108,7 +117,7 @@ function getDevice() {
             numGPUs=$1
         fi
     fi
-    srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=16 --gres=gpu:$numGPUs --mem-per-gpu=64000 -p caar -A $PROJID --pty bash
+    srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=16 --gpus-per-task=1 --gpu-bind=closest --mem-per-gpu=64000 -p caar -A $PROJID --pty bash
 }
 
 # Load autocompletion for PIConGPU commands
