@@ -1,3 +1,14 @@
+printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
+printf "@ Do not forget to increase the GCD's reserved memory in  @\n"
+printf "@ memory.param by setting                                 @\n"
+printf "@   constexpr size_t reservedGpuMemorySize =              @\n"
+printf "@       uint64_t(2147483648); // 2 GiB                    @\n"
+printf "@ Further, set the initial buffer size in your ADIOS2     @\n"
+printf "@ configuration of your job's *.cfg file to 28GiB,        @\n"
+printf "@ and do not use more than this amount of memory per GCD  @\n"
+printf "@ in your setup, or you will see out-of-memory errors.    @\n"
+printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
+
 # Name and Path of this Script ############################### (DO NOT change!)
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
@@ -23,27 +34,25 @@ export PROJID=<yourProject>
 # There are a lot of required modules already loaded when connecting
 # such as mpi, libfabric and others.
 # The following modules just add to these.
-module load craype-accel-amd-gfx908
-module load PrgEnv-cray/8.2.0
-module load rocm/4.5.0
-export CXX=hipcc
+module load PrgEnv-cray/8.2.0 # Compiling with cray compiler wrapper CC
+
+module load craype-accel-amd-gfx90a
+module load rocm/4.5.2
 
 export MPICH_GPU_SUPPORT_ENABLED=1
-module load cray-mpich/8.1.10
-
-## These must be set before running
-export MPIR_CVAR_GPU_EAGER_DEVICE_MEM=0
-export MPICH_GPU_SUPPORT_ENABLED=1
-export MPICH_SMP_SINGLE_COPY_MODE=CMA
+module load cray-mpich/8.1.12
 
 module load cmake/3.21.3
 module load zlib/1.2.11
+
 module load boost/1.77.0-cxx17
+
 module load git/2.31.1
 
 # Other Software ##############################################################
 #
-module load c-blosc/1.21.0 hdf5/1.12.0 adios2/2.7.1
+module load c-blosc/1.21.0 adios2/2.7.1 hdf5/1.12.0
+export CMAKE_PREFIX_PATH="$OLCF_C_BLOSC_ROOT:$OLCF_ADIOS2_ROOT:$HDF5_ROOT:$CMAKE_PREFIX_PATH"
 
 module load libpng/1.6.37 freetype/2.11.0
 
@@ -51,30 +60,27 @@ module load libpng/1.6.37 freetype/2.11.0
 # Optional, not required.
 #
 # needs to be compiled by the user
-# Check the install script at
-# https://gist.github.com/steindev/a063a0a0ab61c5bed3352ef1f5e07962
-#
-export PIC_LIBS=$HOME/lib/spock
+export PIC_LIBS=$HOME/lib/crusher
 
-# install openPMD-api 0.14.3+ yourself
+# (not really) optionally install openPMD-api yourself
 # required when using picongpu > 0.6.0
-#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html#openpmd-api
+#   https://picongpu.readthedocs.io/en/0.6.0/install/dependencies.html#openpmd-api
 export OPENPMD_API_ROOT=$PIC_LIBS/openPMD-api
 export CMAKE_PREFIX_PATH="$OPENPMD_API_ROOT:$CMAKE_PREFIX_PATH"
 export LD_LIBRARY_PATH="$OPENPMD_API_ROOT/lib64:$LD_LIBRARY_PATH"
 
 # optionally install pngwriter yourself:
-#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html#pngwriter
-####### Really?: But add option `-DCMAKE_CXX_COMPILER=$(which CC)` to `cmake` invocation
+#   https://picongpu.readthedocs.io/en/0.6.0/install/dependencies.html#pngwriter
+# But add option `-DCMAKE_CXX_COMPILER=$(which CC)` to `cmake` invocation
 export PNGwriter_ROOT=$PIC_LIBS/pngwriter-0.7.0
-export CMAKE_PREFIX_PATH=$PIC_LIBS:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$PNGwriter_ROOT:$CMAKE_PREFIX_PATH
 export LD_LIBRARY_PATH=$PNGwriter_ROOT/lib:$LD_LIBRARY_PATH
 
 # Environment #################################################################
 #
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
-export PIC_BACKEND="hip:gfx908"
+export PIC_BACKEND="hip:gfx90a"
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/bin
@@ -82,16 +88,11 @@ export PATH=$PATH:$PICSRC/src/tools/bin
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
-export HIP_PATH=$ROCM_PATH/hip # has to be set in order to be able to compile
-export CMAKE_MODULE_PATH=$HIP_PATH/cmake:$CMAKE_MODULE_PATH
-export HIPCC_COMPILE_FLAGS_APPEND="$HIPCC_COMPILE_FLAGS_APPEND -I${MPICH_DIR}/include"
-export HIPCC_LINK_FLAGS_APPEND="$HIPCC_LINK_FLAGS_APPEND -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/lib -lmpi_gtl_hsa"
-
 # "tbg" default options #######################################################
 #   - SLURM (sbatch)
 #   - "caar" queue
 export TBG_SUBMIT="sbatch"
-export TBG_TPLFILE="etc/picongpu/spock-ornl/caar.tpl"
+export TBG_TPLFILE="etc/picongpu/crusher-ornl/batch.tpl"
 
 # allocate an interactive shell for one hour
 #   getNode 2  # allocates two interactive nodes (default: 1)
@@ -101,7 +102,7 @@ function getNode() {
     else
         numNodes=$1
     fi
-    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=16 --gpus-per-task=1 --gpu-bind=closest --mem-per-gpu=64000 -p caar -A $PROJID --pty bash
+    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=8 --cpus-per-task=8 --gpus-per-task=1 --gpu-bind=closest --mem-per-gpu=64000 -p batch -A $PROJID --pty bash
 }
 
 # allocate an interactive shell for one hour
@@ -110,14 +111,14 @@ function getDevice() {
     if [ -z "$1" ] ; then
         numGPUs=1
     else
-        if [ "$1" -gt 4 ] ; then
-            echo "The maximal number of devices per node is 4." 1>&2
+        if [ "$1" -gt 8 ] ; then
+            echo "The maximal number of devices per node is 8." 1>&2
             return 1
         else
             numGPUs=$1
         fi
     fi
-    srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=16 --gpus-per-task=1 --gpu-bind=closest --mem-per-gpu=64000 -p caar -A $PROJID --pty bash
+    srun  --time=1:00:00 --nodes=1 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=8 --gpus-per-task=1 --gpu-bind=closest --mem-per-gpu=64000 -p batch -A $PROJID --pty bash
 }
 
 # Load autocompletion for PIConGPU commands
