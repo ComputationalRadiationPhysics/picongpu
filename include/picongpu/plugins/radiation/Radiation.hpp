@@ -875,12 +875,12 @@ namespace picongpu
                 {
                     std::ostringstream filename;
                     /* add to standard file ending */
-                    filename << name << timeStep << ".h5";
+                    filename << name << timeStep << "_0_0_0.h5";
 
                     /* check if restart file exists */
                     if(!boost::filesystem::exists(filename.str()))
                     {
-                        log<picLog::INPUT_OUTPUT>(
+                        log<radLog::SIMULATION_STATE>(
                             "Radiation (%1%): restart file not found (%2%) - start with zero values")
                             % speciesName % filename.str();
                     }
@@ -915,7 +915,8 @@ namespace picongpu
                         delete[] tmpBuffer;
                         openPMDdataFile.iterations[timeStep].close();
 
-                        log<picLog::INPUT_OUTPUT>("Radiation (%1%): read radiation data from openPMD") % speciesName;
+                        log<radLog::SIMULATION_STATE>("Radiation (%1%): read radiation data from openPMD")
+                            % speciesName;
                     }
                 }
 
