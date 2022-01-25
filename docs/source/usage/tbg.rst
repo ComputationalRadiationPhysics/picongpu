@@ -3,7 +3,7 @@
 TBG
 ===
 
-.. sectionauthor:: Axel Huebl
+.. sectionauthor:: Axel Huebl, Klaus Steiniger
 .. moduleauthor:: René Widera
 
 Our tool *template batch generator* (``tbg``) abstracts program runtime options from technical details of supercomputers.
@@ -48,7 +48,17 @@ Feel free to copy & paste sections of the files below into your ``.cfg``, e.g. t
 Batch System Examples
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. sectionauthor:: Axel Huebl, Richard Pausch
+.. sectionauthor:: Axel Huebl, Richard Pausch, Klaus Steiniger
+
+
+Linux workstation
+"""""""""""""""""
+
+PIConGPU can run on your laptop or workstation, even if there is no dedicated GPU available.
+In this case it will run on the CPU.
+
+In order to run PIConGPU on your machine, use ``bash`` as the submit command, i.e.
+``tbg -s bash -t etc/picongpu/bash/mpirun.tpl -c etc/picongpu/1.cfg $SCRATCH/picRuns/001``
 
 Slurm
 """""

@@ -1,0 +1,49 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# Self-Build Software #########################################################
+# Optional, not required.
+# Needs to be compiled by the user.
+# Set environment variables required for compiling and linking PIConGPU here.
+#export PIC_LIBS=$HOME/lib
+
+# For example install openPMD-api yourself
+#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html#openpmd-api
+#export OPENPMD_ROOT=$PIC_LIBS/openPMD-api
+#export CMAKE_PREFIX_PATH="$OPENPMD_ROOT:$CMAKE_PREFIX_PATH"
+#export LD_LIBRARY_PATH="$OPENPMD_ROOT/lib:$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH"
+
+# For example install pngwriter yourself:
+#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html#pngwriter
+#export PNGwriter_ROOT=$PIC_LIBS/pngwriter-0.7.0
+#export CMAKE_PREFIX_PATH=$PNGwriter_ROOT:$CMAKE_PREFIX_PATH
+#export LD_LIBRARY_PATH=$PNGwriter_ROOT/lib:$LD_LIBRARY_PATH
+
+# Environment #################################################################
+#
+export PIC_BACKEND="omp2b:native" # running on cpu
+# For more examples on possible backends, depending on your hardware, see
+# https://picongpu.readthedocs.io/en/latest/usage/basics.html#pic-configure
+# or the provided profiles of other systems.
+
+export PICSRC=$HOME/WORK/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+
+export PATH=$PATH:$PICSRC
+export PATH=$PATH:$PICSRC/bin
+export PATH=$PATH:$PICSRC/src/tools/bin
+
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+# "tbg" default options #######################################################
+export TBG_SUBMIT="bash"
+export TBG_TPLFILE="etc/picongpu/bash/mpirun.tpl"
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi
+
