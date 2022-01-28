@@ -1,0 +1,30 @@
+# The following parameters need not be specified
+# If a parameter is left unspecified, it falls back to its default value
+file = "simData"   # replaces --openPMD.file,
+                   # given value is the default
+infix = ""         # replaces --openPMD.infix,
+                   # default is "%06T"
+ext = "bp"         # replaces --openPMD.ext,
+                   # given value is the default
+backend_config = "@./adios_config.json"    # replaces --openPMD.json,
+                                           # default is "{}"
+data_preparation_strategy = "mappedMemory" # replaces --openPMD.dataPreparationStrategy,
+                                           # default is "doubleBuffer"
+
+
+# Periods and data sources are specified independently per reading application
+# The application names can be arbitrary and are not interpreted, except
+# potentially for logging and other messages.
+[sink.saxs_scattering.period]
+# Each entry here denotes a periodicity combined with data sources requested
+# by the reading code from PIConGPU at the specified periodicity
+500 = "species_all"
+
+# A second data sink needs other output data
+# All reading requests are merged into one single instance of the openPMD plugin
+# Overlapping requests are no problem
+[sink.some_other_name.period]
+# Data sources can be specified as a list if needed
+"400:400" = ["E", "B"]
+# Time slice syntax is equivalent to that used by --openPMD.period
+"100:300:200,444:444" = "fields_all"

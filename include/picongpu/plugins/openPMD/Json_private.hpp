@@ -19,13 +19,13 @@
 
 #pragma once
 
+#include "picongpu/plugins/common/MPIHelpers.hpp"
 #include "picongpu/plugins/openPMD/Json.hpp"
 
 #include <regex>
 #include <string>
 #include <vector>
 
-#include <mpi.h>
 #include <nlohmann/json.hpp>
 
 /*
@@ -207,45 +207,6 @@ namespace
      *       to be non-empty.
      */
     std::string extractFilename(std::string const& unparsed);
-
-    /**
-     * @brief Helper class to help figure out a platform-independent
-     *        MPI_Datatype for size_t.
-     */
-    template<typename>
-    struct MPI_Types;
-
-    template<>
-    struct MPI_Types<unsigned long>
-    {
-        // can't make this constexpr due to MPI
-        // so, make this non-static for simplicity
-        MPI_Datatype value = MPI_UNSIGNED_LONG;
-    };
-
-    template<>
-    struct MPI_Types<unsigned long long>
-    {
-        MPI_Datatype value = MPI_UNSIGNED_LONG_LONG;
-    };
-
-    template<>
-    struct MPI_Types<unsigned>
-    {
-        MPI_Datatype value = MPI_UNSIGNED;
-    };
-
-    /**
-     * @brief Read a file in MPI-collective manner.
-     *
-     * The file is read on rank 0 and its contents subsequently distributed
-     * to all other ranks.
-     *
-     * @param path Path for the file to read.
-     * @param comm MPI communicator.
-     * @return std::string Full file content.
-     */
-    std::string collective_file_read(std::string const& path, MPI_Comm comm);
 
     enum class KindOfConfig : char
     {

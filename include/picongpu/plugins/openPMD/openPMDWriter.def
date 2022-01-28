@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/openPMD/Json.hpp"
+#include "picongpu/plugins/openPMD/toml.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/math/Vector.hpp>
@@ -71,6 +72,12 @@ namespace picongpu
         class openPMDWriter;
         class Help;
 
+        enum class ConfigurationVia : bool
+        {
+            CommandLine,
+            Toml
+        };
+
         struct ThreadParams
         {
             uint32_t currentStep; /** current simulation step */
@@ -87,6 +94,8 @@ namespace picongpu
             std::string fileInfix;
 
             std::unique_ptr<AbstractJsonMatcher> jsonMatcher;
+
+            std::unique_ptr<toml::DataSources> tomlDataSources;
 
             WriteSpeciesStrategy strategy = WriteSpeciesStrategy::ADIOS;
 
@@ -106,11 +115,16 @@ namespace picongpu
 
             std::vector<double> times;
 
+            ConfigurationVia m_configurationSource = ConfigurationVia::CommandLine;
+
             ::openPMD::Series& openSeries(::openPMD::Access at);
 
             void closeSeries();
 
-            void initFromConfig(Help&, size_t id, std::string const& file, std::string const& dir);
+            /*
+             * If file is empty, read from command line parameters.
+             */
+            void initFromConfig(Help&, size_t id, std::string const& dir, std::string const& file = "");
 
             /**
              * Wrapper for ::openPMD::resetDataset, set dataset parameters
