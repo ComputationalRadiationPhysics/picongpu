@@ -1,0 +1,149 @@
+/* Copyright 2021 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/particleToGrid/CombinedDerivedAttribute.hpp"
+#include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
+#include "picongpu/particles/particleToGrid/combinedAttributes/CombinedAttributes.def"
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace particleToGrid
+        {
+            /** Solver type for a CombinedDeriveAttribute
+             *
+             * @tparam T_BaseAttributeSolver solver for the 1st attribute(specialized ComputeGridValuePerFrame)
+             * @tparam T_ModifierAttributeSolver solver for the 2nd attribute(specialized ComputeGridValuePerFrame)
+             * @tparam T_ModifyingOperation functor defining the function of the two attributes (specified for a
+             * species type)
+             * @tparam T_AttributeDescription  class providing unit and name for the resulting attribute
+             */
+            template<
+                typename T_BaseAttributeSolver,
+                typename T_ModifierAttributeSolver,
+                typename T_ModifyingOperation,
+                typename T_AttributeDescription>
+            struct CombinedDeriveSolver
+            {
+                using BaseAttributeSolver = T_BaseAttributeSolver;
+                using ModifierAttributeSolver = T_ModifierAttributeSolver;
+                using ModifyingOperation = T_ModifyingOperation;
+
+                using LowerMargin = typename pmacc::math::CT::max<
+                    typename BaseAttributeSolver::LowerMargin,
+                    typename ModifierAttributeSolver::LowerMargin>::type;
+                using UpperMargin = typename pmacc::math::CT::max<
+                    typename BaseAttributeSolver::UpperMargin,
+                    typename ModifierAttributeSolver::UpperMargin>::type;
+
+                HDINLINE float1_64 getUnit() const;
+
+                HINLINE std::vector<float_64> getUnitDimension() const;
+
+                HINLINE static std::string getName();
+            };
+
+            /** Returns a solver type for a given CombinedAttribute and Species
+             *
+             * @tparam CombinedDeriveAttribute combined attribute type
+             * @tparam T_Species species type
+             */
+            template<typename CombinedDeriveAttribute, typename T_Species>
+            struct GetCombinedSolver;
+
+            template<
+                typename T_BaseDerivedAttribute,
+                typename T_ModifyingDerivedAttribute,
+                typename T_ModifyingOperation,
+                typename T_AttributeDescription,
+                typename T_Species>
+            struct GetCombinedSolver<
+                CombinedDeriveAttribute<
+                    T_BaseDerivedAttribute,
+                    T_ModifyingDerivedAttribute,
+                    T_ModifyingOperation,
+                    T_AttributeDescription>,
+                T_Species>
+            {
+                using ModifyingDerivedAttribute = T_ModifyingDerivedAttribute;
+                using BaseShapeType = detail::GetAttributeShape_t<T_Species, T_BaseDerivedAttribute>;
+                using ModifierShapeType = detail::GetAttributeShape_t<T_Species, T_ModifyingDerivedAttribute>;
+
+                using BaseAttributeSolver = ComputeGridValuePerFrame<BaseShapeType, T_BaseDerivedAttribute>;
+                using ModifierAttributeSolver = ComputeGridValuePerFrame<ModifierShapeType, ModifyingDerivedAttribute>;
+                using type = CombinedDeriveSolver<
+                    BaseAttributeSolver,
+                    ModifierAttributeSolver,
+                    typename T_ModifyingOperation::template apply<T_Species>::type,
+                    T_AttributeDescription>;
+            };
+
+            template<typename T_Species, typename T_Filter, typename... T>
+            struct CreateFieldTmpOperation<T_Species, CombinedDeriveAttribute<T...>, T_Filter>
+            {
+                using DerivedAttribute = CombinedDeriveAttribute<T...>;
+
+                using Solver = typename GetCombinedSolver<DerivedAttribute, T_Species>::type;
+                using type = FieldTmpOperation<Solver, T_Species, T_Filter>;
+            };
+
+
+            // Returns number of extra fieldTmp slots required for deriving an attribute
+            template<typename T_Solver>
+            struct RequiredExtraSlots;
+
+            template<typename... T_SolverArgs>
+            struct RequiredExtraSlots<ComputeGridValuePerFrame<T_SolverArgs...>>
+            {
+                using type = std::integral_constant<uint32_t, 0u>;
+            };
+
+            template<typename... T_SolverArgs>
+            struct RequiredExtraSlots<CombinedDeriveSolver<T_SolverArgs...>>
+            {
+                using type = std::integral_constant<uint32_t, 1u>;
+            };
+
+
+        } // namespace particleToGrid
+        namespace traits
+        {
+            template<
+                typename T_Species,
+                typename T_BaseDerivedAttribute,
+                typename T_ModifyingDerivedAttribute,
+                typename... T>
+            struct SpeciesEligibleForSolver<
+                T_Species,
+                particleToGrid::CombinedDeriveAttribute<T_BaseDerivedAttribute, T_ModifyingDerivedAttribute, T...>>
+            {
+                using EligibleForBaseAttribute =
+                    typename particles::traits::SpeciesEligibleForSolver<T_Species, T_BaseDerivedAttribute>::type;
+                using EligibleForModifierAttribute =
+                    typename particles::traits::SpeciesEligibleForSolver<T_Species, T_ModifyingDerivedAttribute>::type;
+                using type = typename bmpl::and_<EligibleForBaseAttribute, EligibleForModifierAttribute>;
+            };
+        } // namespace traits
+    } // namespace particles
+} // namespace picongpu

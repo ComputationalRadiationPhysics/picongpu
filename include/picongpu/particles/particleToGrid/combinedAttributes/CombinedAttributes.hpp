@@ -1,4 +1,4 @@
-/* Copyright 2013-2022 Axel Huebl, Rene Widera, Felix Schmitt
+/* Copyright 2021 Pawel Ordyna
  *
  * This file is part of PIConGPU.
  *
@@ -9,7 +9,7 @@
  *
  * PIConGPU is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -19,5 +19,5 @@
 
 #pragma once
 
-#include "picongpu/particles/particleToGrid/CombinedDerive.hpp"
-#include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.hpp"
+#include "picongpu/particles/particleToGrid/combinedAttributes/AverageAttribute.hpp"
+#include "picongpu/particles/particleToGrid/combinedAttributes/RelativisticDensity.hpp"

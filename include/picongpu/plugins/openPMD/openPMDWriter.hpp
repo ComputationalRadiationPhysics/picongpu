@@ -28,6 +28,8 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/particles/particleToGrid/CombinedDerive.def"
+#include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/common/openPMDVersion.def"
 #include "picongpu/plugins/common/openPMDWriteMeta.hpp"
@@ -562,17 +564,21 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     /*## update field ##*/
 
                     /*load FieldTmp without copy data to host*/
-                    PMACC_CASSERT_MSG(_please_allocate_at_least_one_FieldTmp_in_memory_param, fieldTmpNumSlots > 0);
+                    constexpr uint32_t requiredExtraSlots
+                        = particles::particleToGrid::RequiredExtraSlots<Solver>::type::value;
+                    PMACC_CASSERT_MSG(
+                        _please_allocate_at_least_one_or_two_when_using_combined_attributes_FieldTmp_in_memory_param,
+                        fieldTmpNumSlots >= 1u + requiredExtraSlots);
                     auto fieldTmp = dc.get<FieldTmp>(FieldTmp::getUniqueId(0), true);
-                    /*load particle without copy particle data to host*/
-                    auto speciesTmp = dc.get<Species>(Species::FrameType::getName(), true);
-
-                    fieldTmp->getGridBuffer().getDeviceBuffer().setValue(ValueType::create(0.0));
-                    /*run algorithm*/
-                    fieldTmp->template computeValue<CORE + BORDER, Solver, Filter>(*speciesTmp, params->currentStep);
-
-                    EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
-                    __setTransactionEvent(fieldTmpEvent);
+                    // compute field values
+                    auto eventPtr
+                        = particles::particleToGrid::ComputeFieldValue<CORE + BORDER, Solver, Species, Filter>()(
+                            *fieldTmp,
+                            params->currentStep,
+                            1u);
+                    // wait for unfinished asynchronous communication
+                    if(eventPtr != nullptr)
+                        __setTransactionEvent(*eventPtr);
                     /* copy data to host that we can write same to disk*/
                     fieldTmp->getGridBuffer().deviceToHost();
                     /*## finish update field ##*/

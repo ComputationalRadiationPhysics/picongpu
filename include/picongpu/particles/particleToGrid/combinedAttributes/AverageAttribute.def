@@ -1,0 +1,74 @@
+/* Copyright 2021 Pawel Ordyna
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/particles/particleToGrid/CombinedDerivedAttribute.hpp"
+#include "picongpu/particles/particleToGrid/derivedAttributes/Density.def"
+
+namespace picongpu
+{
+    namespace particles
+    {
+        namespace particleToGrid
+        {
+            namespace combinedAttributes
+            {
+                //! Compute an average value using a total per cell value and number density
+                struct AverageDivideOperation
+                {
+                    template<typename T_Species>
+                    struct apply
+                    {
+                        using type = AverageDivideOperation;
+                    };
+
+                    /** Functor implementation
+                     *
+                     * Result overwrites the dst value.
+                     *
+                     * @tparam T_Acc alpaka accelerator type
+                     * @param acc alpaka accelerator
+                     * @param dst total per cell value and result destination
+                     * @param dens number density
+                     */
+                    template<typename T_Acc>
+                    HDINLINE void operator()(T_Acc const& acc, float1_X& dst, const float1_X& dens) const;
+                };
+
+                //! Provides description for an averaged attribute
+                template<typename T_DerivedAttribute>
+                struct AverageAttributeDescription;
+
+                /** Average (per particle) value of a derived attribute
+                 *
+                 * @tparam T_DerivedAttribute derived attribute class that should be averaged
+                 */
+                template<typename T_DerivedAttribute>
+                using AverageAttribute = CombinedDeriveAttribute<
+                    T_DerivedAttribute,
+                    particleToGrid::derivedAttributes::Density,
+                    AverageDivideOperation,
+                    AverageAttributeDescription<T_DerivedAttribute>>;
+            } // namespace combinedAttributes
+        } // namespace particleToGrid
+    } // namespace particles
+} // namespace picongpu
