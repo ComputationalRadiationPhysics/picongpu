@@ -53,7 +53,7 @@ class Visualizer(BaseVisualizer):
             return
 
         self.plt_obj[idx] = self.ax.semilogy(
-            bins, counts, nonposy='clip', label=label,
+            bins, counts, nonpositive='clip', label=label,
             color=self.colors[idx])[0]
 
     def _update_plt_obj(self, idx):

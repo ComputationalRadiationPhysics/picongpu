@@ -95,7 +95,7 @@ You can quickly load and interact with the data in Python with:
 
    from picongpu.plugins.data import EnergyHistogramData
 
-   eh_data = EnergyHistogramData('/home/axel/runs/lwfa_001')
+   eh_data = EnergyHistogramData('path/to/run_dir') # the directory in which simOutput is located
 
    # show available iterations
    eh_data.get_iterations(species='e')
@@ -127,8 +127,10 @@ You can quickly plot the data in Python with:
    # create a figure and axes
    fig, ax = plt.subplots(1, 1)
 
-   # create the visualizer
-   eh_vis = EnergyHistogramMPL('path/to/run_dir', ax)
+   ## create the visualizer
+   # pass a list of ('identifier', 'run_dir') tuples to
+   # visualize several simulations at once
+   eh_vis = EnergyHistogramMPL(('short identifier for plot label', 'path/to/run_dir'), ax)
 
    eh_vis.visualize(iteration=200, species='e')
 
