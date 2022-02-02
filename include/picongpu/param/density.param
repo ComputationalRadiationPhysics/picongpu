@@ -237,6 +237,10 @@ namespace picongpu
             FromOpenPMDParam,
             /** Path to the openPMD input file
              *
+             * This value can alternatively be controlled at runtime by setting it to "" here and providing
+             * command-line option <species>_runtimeDensityFile. Refer to description of this command-line option for
+             * details. Note that runtime option only exists for this parameter, and not others in this struct.
+             *
              * File-based iteration format is also supported, with the usual openPMD API naming scheme.
              *
              * It is recommended to use a full path to make it independent of how PIConGPU is launched.
