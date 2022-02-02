@@ -7,16 +7,39 @@
 picongpu.profile
 ================
 
-.. sectionauthor:: Axel Huebl
+.. sectionauthor:: Axel Huebl, Klaus Steiniger
 
-Use a ``picongpu.profile`` file to set up your software environment without colliding with other software.
-Ideally, store that file directly in your ``$HOME/`` and source it after connecting to the machine:
+We recommend to use a ``picongpu.profile`` file, located directly in your ``$HOME/`` directory,
+to set up the environment within which PIConGPU will run by conviently performing
 
 .. code-block:: bash
 
    source $HOME/picongpu.profile
 
-We listed some example ``picongpu.profile`` files below which can be used to set up PIConGPU's dependencies on various HPC systems.
+on the command line after logging in to a system.
+PIConGPU is shipped with a number of ready-to-use profiles for different systems which are located in
+``etc/picongpu/<cluster>-<institute>/`` within PIConGPU's main folder.
+Have a look into this directory in order to see for which HPC systems profiles are already available.
+If you are working on one of these systems, just copy the respective ``*_picongpu.profile.example``
+from within this directory into your ``$HOME`` and make the necessary changes, such as e-mail address
+or PIConGPU source code location defined by ``$PICSRC``.
+If you are working on an HPC system for which no profile is available, feel free to create one and
+contribute it to PIConGPU by opening a pull request.
+
+A selection of available profiles is presented below.
+Beware, these may not be up-to-date with the latest available software on the respective system,
+as we do not have continuous access to all of these.
+
+
+Your Workstation
+----------------
+
+This is a very basic ``picongpu.profile`` enabling compilation on CPUs by setting the OpenMP backend, declaring commonly required directories,
+and providing default parameters for :ref:`TBG <usage-tbg>`.
+
+.. literalinclude:: profiles/bash/bash_picongpu.profile.example
+   :language: bash
+
 
 Hemera (HZDR)
 -------------
@@ -26,6 +49,13 @@ Hemera (HZDR)
 **User guide:** *None*
 
 **Production directory:** ``/bigdata/hplsim/`` with ``external/``, ``scratch/``, ``development/`` and ``production/``
+
+Profile for HZDR's home cluster hemera.
+Sets up software environment, i.e. providing libraries to satisfy PIConGPU's dependencies, by loading modules,
+setting common paths and options, as well as defining the ``getDevice()`` and ``getNode()`` aliases.
+The latter are shorthands to request resources for an interactive session from the batch system.
+Together with the `-s bash` option of :ref:`TBG <usage-tbg>`, these allow to run PIConGPU interactively on an HPC system.
+
 
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
 
