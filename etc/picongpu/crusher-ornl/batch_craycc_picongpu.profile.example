@@ -1,13 +1,16 @@
-printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
-printf "@ Do not forget to increase the GCD's reserved memory in  @\n"
-printf "@ memory.param by setting                                 @\n"
-printf "@   constexpr size_t reservedGpuMemorySize =              @\n"
-printf "@       uint64_t(2147483648); // 2 GiB                    @\n"
-printf "@ Further, set the initial buffer size in your ADIOS2     @\n"
-printf "@ configuration of your job's *.cfg file to 28GiB,        @\n"
-printf "@ and do not use more than this amount of memory per GCD  @\n"
-printf "@ in your setup, or you will see out-of-memory errors.    @\n"
-printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
+printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" >&2
+printf "@ Do not forget to increase the GCD's reserved memory in  @\n" >&2
+printf "@ memory.param by setting                                 @\n" >&2
+printf "@   constexpr size_t reservedGpuMemorySize =              @\n" >&2
+printf "@       uint64_t(2147483648); // 2 GiB                    @\n" >&2
+printf "@ Further, set the initial buffer size in your ADIOS2     @\n" >&2
+printf "@ configuration of your job's *.cfg file to 28GiB,        @\n" >&2
+printf "@ and do not use more than this amount of memory per GCD  @\n" >&2
+printf "@ in your setup, or you will see out-of-memory errors.    @\n" >&2
+printf "@                                                         @\n" >&2
+printf "@ WARNING: Using CRAY CC is not recommended!              @\n" >&2
+printf "@          Tests showed hipcc is two times faster.        @\n" >&2
+printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n" >&2
 
 # Name and Path of this Script ############################### (DO NOT change!)
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)

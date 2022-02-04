@@ -40,6 +40,27 @@ and providing default parameters for :ref:`TBG <usage-tbg>`.
 .. literalinclude:: profiles/bash/bash_picongpu.profile.example
    :language: bash
 
+Crusher (ORNL)
+--------------
+
+**System overview:** `link <https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#system-overview>`_
+
+**Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#data-and-storage>`_).
+Note that ``$HOME`` is mounted on compute nodes as read-only.
+
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and openPMD <install-dependencies>` manually.
+
+MI250X GPUs using hipcc (recommended)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/crusher-ornl/batch_hipcc_picongpu.profile.example
+   :language: bash
+
+MI250X GPUs using craycc
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/crusher-ornl/batch_craycc_picongpu.profile.example
+  :language: bash
 
 Hemera (HZDR)
 -------------
