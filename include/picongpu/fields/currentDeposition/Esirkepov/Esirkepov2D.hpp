@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/algorithms/Velocity.hpp"
+#include "picongpu/fields/currentDeposition/Esirkepov/Base.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 
@@ -44,7 +45,7 @@ namespace picongpu
          *  with an arbitrary form-factor"
          */
         template<typename T_ParticleShape, typename T_Strategy>
-        struct Esirkepov<T_ParticleShape, T_Strategy, DIM2>
+        struct Esirkepov<T_ParticleShape, T_Strategy, DIM2> : public Base<typename T_ParticleShape::ChargeAssignment>
         {
             using ParticleAssign = typename T_ParticleShape::ChargeAssignment;
             static constexpr int supp = ParticleAssign::support;
@@ -152,17 +153,17 @@ namespace picongpu
                  * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1)
                  */
                 const float_X currentSurfaceDensity
-                    = this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * cellEdgeLength;
+                    = this->charge * (1.0_X / float_X(CELL_VOLUME * DELTA_T)) * cellEdgeLength;
 
                 for(int j = begin; j < end + 1; ++j)
                     if(j < end + leaveCell[1])
                     {
-                        const float_X s0j = S0(line, j, 1);
-                        const float_X dsj = S1(line, j, 1) - s0j;
+                        const float_X s0j = this->S0(line, j, 1);
+                        const float_X dsj = this->S1(line, j, 1) - s0j;
 
-                        float_X tmp = -currentSurfaceDensity * (s0j + float_X(0.5) * dsj);
+                        float_X tmp = -currentSurfaceDensity * (s0j + 0.5_X * dsj);
 
-                        auto accumulated_J = float_X(0.0);
+                        auto accumulated_J = 0.0_X;
                         /* attention: inner loop has no upper bound `end + 1` because
                          * the current for the point `end` is always zero,
                          * therefore we skip the calculation
@@ -174,7 +175,7 @@ namespace picongpu
                                  * from Esirkepov paper. All coordinates are rotated before thus we can always use C
                                  * style W(i,j,k,0).
                                  */
-                                const float_X W = DS(line, i, 0) * tmp;
+                                const float_X W = this->DS(line, i, 0) * tmp;
                                 accumulated_J += W;
                                 auto const atomicOp = typename T_Strategy::BlockReductionOp{};
                                 atomicOp(acc, (*cursorJ(i, j)).x(), accumulated_J);
@@ -190,67 +191,30 @@ namespace picongpu
                 const Line<float2_X>& line,
                 const float_X v_z)
             {
-                if(v_z == float_X(0.0))
+                if(v_z == 0.0_X)
                     return;
 
-                const float_X currentSurfaceDensityZ = this->charge * (float_X(1.0) / float_X(CELL_VOLUME)) * v_z;
+                const float_X currentSurfaceDensityZ = this->charge * (1.0_X / float_X(CELL_VOLUME)) * v_z;
 
                 for(int j = begin; j < end + 1; ++j)
                     if(j < end + leaveCell[1])
                     {
-                        const float_X s0j = S0(line, j, 1);
-                        const float_X dsj = S1(line, j, 1) - s0j;
+                        const float_X s0j = this->S0(line, j, 1);
+                        const float_X dsj = this->S1(line, j, 1) - s0j;
 
                         for(int i = begin; i < end + 1; ++i)
                             if(i < end + leaveCell[0])
                             {
-                                const float_X s0i = S0(line, i, 0);
-                                const float_X dsi = S1(line, i, 0) - s0i;
-                                float_X W = s0i * S0(line, j, 1) + float_X(0.5) * (dsi * s0j + s0i * dsj)
-                                    + (float_X(1.0) / float_X(3.0)) * dsi * dsj;
+                                const float_X s0i = this->S0(line, i, 0);
+                                const float_X dsi = this->S1(line, i, 0) - s0i;
+                                float_X W = s0i * this->S0(line, j, 1) + 0.5_X * (dsi * s0j + s0i * dsj)
+                                    + (1.0_X / 3.0_X) * dsi * dsj;
 
                                 const float_X j_z = W * currentSurfaceDensityZ;
                                 auto const atomicOp = typename T_Strategy::BlockReductionOp{};
                                 atomicOp(acc, (*cursorJ(i, j)).z(), j_z);
                             }
                     }
-            }
-
-            /**
-             * @}
-             */
-
-            /** calculate S0 (see paper)
-             * @param line element with previous and current position of the particle
-             * @param gridPoint used grid point to evaluate assignment shape
-             * @param d dimension range {0,1} means {x,y}
-             *          different to Esirkepov paper, here we use C style
-             */
-            DINLINE float_X S0(const Line<float2_X>& line, const float_X gridPoint, const uint32_t d)
-            {
-                return ParticleAssign()(gridPoint - line.m_pos0[d]);
-            }
-
-            /** calculate S1 (see paper)
-             * @param line element with previous and current position of the particle
-             * @param gridPoint used grid point to evaluate assignment shape
-             * @param d dimension range {0,1,2} means {x,y,z}
-             *          different to Esirkepov paper, here we use C style
-             */
-            DINLINE float_X S1(const Line<float2_X>& line, const float_X gridPoint, const uint32_t d)
-            {
-                return ParticleAssign()(gridPoint - line.m_pos1[d]);
-            }
-
-            /** calculate DS (see paper)
-             * @param line element with previous and current position of the particle
-             * @param gridPoint used grid point to evaluate assignment shape
-             * @param d dimension range {0,1} means {x,y}
-             *          different to Esirkepov paper, here we use C style
-             */
-            DINLINE float_X DS(const Line<float2_X>& line, const float_X gridPoint, const uint32_t d)
-            {
-                return ParticleAssign()(gridPoint - line.m_pos1[d]) - ParticleAssign()(gridPoint - line.m_pos0[d]);
             }
 
             static pmacc::traits::StringProperty getStringProperties()
