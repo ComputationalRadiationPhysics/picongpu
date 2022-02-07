@@ -54,6 +54,7 @@
 #include "picongpu/simulation/stage/ParticleIonization.hpp"
 #include "picongpu/simulation/stage/ParticlePush.hpp"
 #include "picongpu/simulation/stage/PopulationKinetics.hpp"
+#include "picongpu/simulation/stage/RuntimeDensityFile.hpp"
 #include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
 #include "picongpu/versionFormat.hpp"
 
@@ -131,6 +132,7 @@ namespace picongpu
             fieldAbsorber.registerHelp(desc);
             fieldBackground.registerHelp(desc);
             particleBoundaries.registerHelp(desc);
+            runtimeDensityFile.registerHelp(desc);
             // clang-format off
             desc.add_options()(
                 "versionOnce", po::value<bool>(&showVersionOnce)->zero_tokens(),
@@ -320,6 +322,9 @@ namespace picongpu
 
             // initialize particle boundaries
             particleBoundaries.init();
+
+            // initialize runtime density file paths
+            runtimeDensityFile.init();
 
             // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung
             // Photons
@@ -632,6 +637,10 @@ namespace picongpu
         // Particle boundaries stage, has to live always as it is used for registering options like a plugin.
         // Because of it, has a special init() method that has to be called during initialization of the simulation
         simulation::stage::ParticleBoundaries particleBoundaries;
+
+        // Runtime density file stage, has to live always as it is used for registering options like a plugin.
+        // Because of it, has a special init() method that has to be called during initialization of the simulation
+        simulation::stage::RuntimeDensityFile runtimeDensityFile;
 
 #if(PMACC_CUDA_ENABLED == 1)
         // creates lookup tables for the bremsstrahlung effect
