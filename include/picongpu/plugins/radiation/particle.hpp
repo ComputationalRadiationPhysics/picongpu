@@ -73,9 +73,9 @@ namespace picongpu
                     const vector_X& momentumOld_set,
                     const vector_X& momentumNow_set,
                     const picongpu::float_X mass_set)
-                    : location_now(locationNow_set)
+                    : momentum_now(momentumNow_set)
                     , momentum_old(momentumOld_set)
-                    , momentum_now(momentumNow_set)
+                    , location_now(locationNow_set)
                     , mass(mass_set)
                 {
                 }

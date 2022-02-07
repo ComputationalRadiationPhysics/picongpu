@@ -40,10 +40,10 @@ namespace pmacc
 
         TaskReceiveParticlesExchange(ParBase& parBase, uint32_t exchange)
             : parBase(parBase)
-            , exchange(exchange)
             , state(Constructor)
-            , maxSize(parBase.getParticlesBuffer().getReceiveExchangeStack(exchange).getMaxParticlesCount())
             , initDependency(__getTransactionEvent())
+            , exchange(exchange)
+            , maxSize(parBase.getParticlesBuffer().getReceiveExchangeStack(exchange).getMaxParticlesCount())
             , lastSize(0)
         {
         }

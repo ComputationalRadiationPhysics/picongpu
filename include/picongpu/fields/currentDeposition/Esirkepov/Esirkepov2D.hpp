@@ -93,7 +93,7 @@ namespace picongpu
                 DataSpace<DIM2> leaveCell;
 
                 /* calculate the offset for the virtual coordinate system */
-                for(int d = 0; d < simDim; ++d)
+                for(uint32_t d = 0; d < simDim; ++d)
                 {
                     int iStart;
                     int iEnd;

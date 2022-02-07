@@ -244,8 +244,8 @@ namespace picongpu
                      * @param parameters PML parameters for a local domain
                      */
                     UpdateEFunctor(FieldBox fieldPsiE, LocalParameters const parameters)
-                        : parameters(parameters)
-                        , fieldPsiE(fieldPsiE)
+                        : fieldPsiE(fieldPsiE)
+                        , parameters(parameters)
                     {
                     }
 
@@ -339,8 +339,8 @@ namespace picongpu
                      * up-to-date
                      */
                     UpdateBHalfFunctor(FieldBox fieldPsiB, LocalParameters const parameters, bool updatePsiB)
-                        : parameters(parameters)
-                        , fieldPsiB(fieldPsiB)
+                        : fieldPsiB(fieldPsiB)
+                        , parameters(parameters)
                         , updatePsiB(updatePsiB)
                     {
                     }

@@ -69,6 +69,7 @@ namespace picongpu
             using type = typename ::pmacc::result_of::Functor<AssignedTrilinearInterpolation, T_Cursor>::type;
 
             constexpr auto iterations = T_end - T_begin + 1;
+            alpaka::ignore_unused(iterations);
             auto result_z = type(0.0);
             PMACC_UNROLL(iterations)
             for(int z = T_begin; z <= T_end; ++z)

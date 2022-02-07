@@ -86,7 +86,7 @@ namespace pmacc
             PMACC_SMEM(acc, lastFrame, FramePtr);
             PMACC_SMEM(acc, gapIndices_sh, memory::Array<int, frameSize>);
             PMACC_SMEM(acc, numGaps, int);
-            PMACC_SMEM(acc, numParticles, int);
+            PMACC_SMEM(acc, numParticles, uint32_t);
             PMACC_SMEM(acc, srcGap, int);
 
             uint32_t const workerIdx = cupla::threadIdx(acc).x;
@@ -96,7 +96,7 @@ namespace pmacc
                 {
                     lastFrame = pb.getLastFrame(superCellIdx);
                     numGaps = 0;
-                    numParticles = 0;
+                    numParticles = 0u;
                     srcGap = 0;
                 });
 
@@ -407,7 +407,7 @@ namespace pmacc
              */
             PMACC_SMEM(acc, destFrames, memory::Array<FramePtr, numExchanges * 2>);
             // count particles per frame
-            PMACC_SMEM(acc, destFramesCounter, memory::Array<int, numExchanges>);
+            PMACC_SMEM(acc, destFramesCounter, memory::Array<uint32_t, numExchanges>);
 
             PMACC_SMEM(acc, frame, FramePtr);
             PMACC_SMEM(acc, isProcessedSupercell, bool);
@@ -442,7 +442,7 @@ namespace pmacc
                 [&](lockstep::Idx const idx)
                 {
                     uint32_t const linearIdx = idx;
-                    destFramesCounter[linearIdx] = 0;
+                    destFramesCounter[linearIdx] = 0u;
                     destFrames[linearIdx] = FramePtr();
                     destFrames[linearIdx + numExchanges] = FramePtr();
                     /* neighborSuperCellIdx should not be stored in a context variable.
@@ -456,7 +456,7 @@ namespace pmacc
 
                         if(tmpFrame.isValid())
                         {
-                            int32_t const particlesInFrame = pb.getSuperCell(neighborSuperCellIdx).getSizeLastFrame();
+                            uint32_t const particlesInFrame = pb.getSuperCell(neighborSuperCellIdx).getSizeLastFrame();
                             // do not use the neighbor's last frame if it is full
                             if(particlesInFrame < frameSize)
                             {
@@ -493,7 +493,7 @@ namespace pmacc
                             destParticleIdxCtx[idx] = cupla::atomicAdd(
                                 acc,
                                 &(destFramesCounter[direction]),
-                                1,
+                                1u,
                                 ::alpaka::hierarchy::Threads{});
                         }
                         return direction;
@@ -512,7 +512,7 @@ namespace pmacc
                          * supercell fit into the `low frame`, a second frame is created to
                          * contain further particles, the `high frame` (default: invalid).
                          */
-                        if(destFramesCounter[linearIdx] > 0)
+                        if(destFramesCounter[linearIdx] > 0u)
                         {
                             /* neighborSuperCellIdx should not be stored in a context variable.
                              * Using a context variable results into 16bit reads.
@@ -887,7 +887,7 @@ namespace pmacc
             using FramePtr = typename T_ParBox::FramePtr;
 
             PMACC_SMEM(acc, frame, FramePtr);
-            PMACC_SMEM(acc, elementCount, int);
+            PMACC_SMEM(acc, elementCount, uint32_t);
             PMACC_SMEM(acc, exchangeChunk, TileDataBox<T_ExchangeValueType>);
 
 
@@ -903,7 +903,7 @@ namespace pmacc
                 {
                     exchangeChunk = exchangeBox.get(cupla::blockIdx(acc).x, compressedSuperCellIdxCtx[idx]);
                     elementCount = exchangeChunk.getSize();
-                    if(elementCount > 0)
+                    if(elementCount > 0u)
                     {
                         frame = pb.getEmptyFrame(acc);
                     }
@@ -936,7 +936,7 @@ namespace pmacc
             onlyMaster(
                 [&](lockstep::Idx const idx)
                 {
-                    if(elementCount > 0)
+                    if(elementCount > 0u)
                     {
                         // compute the super cell position in target frame to insert into
                         //! @todo: offset == simulation border should be passed to this func instead of being created

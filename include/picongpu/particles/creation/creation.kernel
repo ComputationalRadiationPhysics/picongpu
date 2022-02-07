@@ -186,9 +186,6 @@ namespace picongpu
                      */
                     while(sourceFrame.isValid())
                     {
-                        auto isParticleCtx = forEachParticle(
-                            [&](uint32_t const linearIdx) -> bool
-                            { return static_cast<bool>(sourceFrame[linearIdx][multiMask_]); });
                         forEachParticle(
                             [&](lockstep::Idx const idx)
                             {

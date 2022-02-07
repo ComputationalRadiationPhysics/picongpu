@@ -46,9 +46,9 @@ namespace pmacc
             TYPE maxSize,
             PushDataBox<TYPE, PushType> virtualMemory)
             : DataBox<PitchedBox<VALUE, DIM1>>(PitchedBox<VALUE, DIM1>(data))
+            , virtualMemory(virtualMemory)
             , currentSizePointer(currentSizePointer)
             , maxSize(maxSize)
-            , virtualMemory(virtualMemory)
         {
         }
 
@@ -97,8 +97,8 @@ namespace pmacc
 
     protected:
         PMACC_ALIGN8(virtualMemory, PushDataBox<TYPE, PushType>);
-        PMACC_ALIGN(maxSize, TYPE);
         PMACC_ALIGN(currentSizePointer, TYPE*);
+        PMACC_ALIGN(maxSize, TYPE);
     };
 
 } // namespace pmacc

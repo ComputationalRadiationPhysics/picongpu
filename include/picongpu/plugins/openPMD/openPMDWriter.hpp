@@ -1191,7 +1191,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     field_no_guard = field_layout.getDataSpaceWithoutGuarding();
                     field_guard = field_layout.getGuard();
 
-                    DataConnector& dc = Environment<>::get().DataConnector();
                     fieldsSizeDims = precisionCast<uint64_t>(params->gridLayout.getDataSpaceWithoutGuarding());
 
                     /* Scan the PML buffer local size along all local domains

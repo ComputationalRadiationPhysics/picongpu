@@ -271,7 +271,7 @@ namespace picongpu
                                                 // set z component to zero in case of simDim==DIM2
                                                 particle_locationNow[2] = 0.0;
                                                 // run over all components and compute gobal position
-                                                for(int i = 0; i < simDim; ++i)
+                                                for(uint32_t i = 0; i < simDim; ++i)
                                                     particle_locationNow[i]
                                                         = (float_X(globalPos[i]) + pos[i]) * cellSize[i];
 
@@ -354,7 +354,7 @@ namespace picongpu
 
 
                             // run over all  valid omegas for this thread
-                            for(int o = workerIdx; o < radiation_frequencies::N_omega; o += T_numWorkers)
+                            for(uint32_t o = workerIdx; o < radiation_frequencies::N_omega; o += T_numWorkers)
                             {
                                 /* storage for amplitude (complex 3D vector)
                                  * it  is initialized with zeros (  0 +  i 0 )

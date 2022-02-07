@@ -124,12 +124,12 @@ namespace picongpu
                     float_64 const unit,
                     uint32_t const totalSimulationCells)
                     : fileName(fileName)
-                    , dir(dir)
                     , fileExtension(fileExtension)
+                    , dir(dir)
                     , outputMemoryLayout(outputMemoryLayout)
                     , globalExtent(globalExtent)
-                    , gridSpacing(gridSpacing)
                     , unit(unit)
+                    , gridSpacing(gridSpacing)
                 {
                     if(outputMemoryLayout == OutputMemoryLayout::Distribute)
                     {

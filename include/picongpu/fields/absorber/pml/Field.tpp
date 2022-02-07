@@ -109,8 +109,9 @@ namespace picongpu
                     GridLayout<simDim> const& gridLayout,
                     Thickness const& globalThickness,
                     DataBox box)
-                    : guardSize(gridLayout.getGuard())
-                    , box(box)
+                    : box(box)
+                    , guardSize(gridLayout.getGuard())
+
                 {
                     auto const negativeSize = globalThickness.getNegativeBorder();
                     auto const positiveSize = globalThickness.getPositiveBorder();

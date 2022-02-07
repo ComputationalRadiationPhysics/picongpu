@@ -104,11 +104,11 @@ namespace picongpu
                 std::string notifyPeriod;
                 uint32_t timeStep;
 
-                std::string speciesName;
                 std::string pluginName;
+                std::string speciesName;
                 std::string pluginPrefix;
-                std::string filenamePrefix;
                 std::string folderTransRad;
+                std::string filenamePrefix;
 
                 float3_X* detectorPositions = nullptr;
                 float_X* detectorFrequencies = nullptr;

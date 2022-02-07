@@ -34,19 +34,19 @@ namespace picongpu
             class Particle
             {
             private:
-                float3_X const momentum;
                 float3_X location;
                 float3_X beta;
                 float_X const mass;
                 float_X gamma;
                 float_X betaAbs;
+                float3_X const momentum;
 
             public:
                 HDINLINE
                 Particle(float3_X const& locationSet, float3_X const& momentumSet, float_X const massSet)
-                    : momentum(momentumSet)
-                    , location(locationSet)
+                    : location(locationSet)
                     , mass(massSet)
+                    , momentum(momentumSet)
                 {
                     gamma = calcGamma();
                     beta = calcBeta();

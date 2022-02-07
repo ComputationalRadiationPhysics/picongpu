@@ -59,13 +59,14 @@ namespace picongpu
                 , pulselength_SI(pulselength_SI)
                 , w_x_SI(w_x_SI)
                 , phi(phi)
+                , phiPositive(float_X(1.0))
                 , beta_0(beta_0)
                 , tdelay_user_SI(tdelay_user_SI)
                 , dt(SI::DELTA_T_SI)
                 , unit_length(UNIT_LENGTH)
                 , auto_tdelay(auto_tdelay)
                 , pol(pol)
-                , phiPositive(float_X(1.0))
+
             {
                 /* Note: Enviroment-objects cannot be instantiated on CUDA GPU device. Since this is done
                  * on host (see fieldBackground.param), this is no problem.

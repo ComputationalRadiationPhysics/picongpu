@@ -53,9 +53,9 @@ namespace pmacc
          */
         Buffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize)
             : data_space(size)
-            , data1D(true)
-            , current_size(nullptr)
             , m_physicalMemorySize(physicalMemorySize)
+            , current_size(nullptr)
+            , data1D(true)
         {
             CUDA_CHECK(cuplaMallocHost((void**) &current_size, sizeof(size_t)));
             *current_size = size.productOfComponents();

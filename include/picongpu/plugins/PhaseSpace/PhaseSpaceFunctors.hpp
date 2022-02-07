@@ -105,7 +105,7 @@ namespace picongpu
             /* out-of-range bins back to min/max */
             if(p_bin < 0)
                 p_bin = 0;
-            if(p_bin >= num_pbins)
+            if(p_bin >= static_cast<int32_t>(num_pbins))
                 p_bin = num_pbins - 1;
 
             /** \todo take particle shape into account */
