@@ -38,7 +38,6 @@ module load PrgEnv-cray/8.2.0 # Compiling with cray compiler wrapper CC
 
 module load craype-accel-amd-gfx90a
 module load rocm/4.5.2
-export CXX=hipcc
 
 export MPICH_GPU_SUPPORT_ENABLED=1
 module load cray-mpich/8.1.12
@@ -49,6 +48,13 @@ module load zlib/1.2.11
 module load boost/1.77.0-cxx17
 
 module load git/2.31.1
+
+## set environment variables required for compiling and linking w/ hipcc
+##   see (https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html#compiling-with-hipcc)
+export CXX=hipcc
+export HIPCC_COMPILE_FLAGS_APPEND="$HIPCC_COMPILE_FLAGS_APPEND -I${MPICH_DIR}/include"
+export HIPCC_LINK_FLAGS_APPEND="$HIPCC_LINK_FLAGS_APPEND -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/lib -lmpi_gtl_hsa"
+export HIPFLAGS="--amdgpu-target=gfx90a $HIPFLAGS"
 
 # Other Software ##############################################################
 #
