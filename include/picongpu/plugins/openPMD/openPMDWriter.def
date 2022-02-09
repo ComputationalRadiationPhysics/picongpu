@@ -33,6 +33,7 @@
 #include <limits>
 #include <list>
 #include <memory> // std::unique_ptr
+#include <optional>
 #include <sstream>
 #include <stdexcept> // throw std::runtime_error
 #include <string>
@@ -124,7 +125,7 @@ namespace picongpu
             /*
              * If file is empty, read from command line parameters.
              */
-            void initFromConfig(Help&, size_t id, std::string const& dir, std::string const& file = "");
+            void initFromConfig(Help&, size_t id, std::string const& dir, std::optional<std::string> file = {});
 
             /**
              * Wrapper for ::openPMD::resetDataset, set dataset parameters

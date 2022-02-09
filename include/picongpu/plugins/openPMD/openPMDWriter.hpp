@@ -358,7 +358,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             std::string const prefix = "openPMD";
         };
 
-        void ThreadParams::initFromConfig(Help& help, size_t id, std::string const& dir, std::string const& file)
+        void ThreadParams::initFromConfig(
+            Help& help,
+            size_t id,
+            std::string const& dir,
+            std::optional<std::string> file)
         {
             std::string strategyString;
             std::string jsonString;
@@ -373,11 +377,28 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
             case ConfigurationVia::CommandLine:
                 {
+                    if(!file.has_value())
+                    {
+                        /*
+                         * If file is empty, then the openPMD plugin is running as a normal IO plugin.
+                         * In this case, read the file from command line parameters.
+                         * If there is a filename, it is running as a checkpoint and the filename
+                         * has been supplied from outside.
+                         * We must not read it from the command line since it's not there.
+                         * Reason: A checkpoint is triggered by writing something like:
+                         * > --checkpoint.file asdf --checkpoint.period 100
+                         * ... and NOT by something like:
+                         * > --checkpoint.openPMD.file asdf --checkpoint.period 100
+                         */
+                        /* if file name is relative, prepend with common directory */
+                        fileName = help.fileName.get(id);
+                    }
+
+                    /*
+                     * These two however should always be read because they have default values.
+                     */
                     fileExtension = help.fileNameExtension.get(id);
                     fileInfix = help.fileNameInfix.get(id);
-                    /* if file name is relative, prepend with common directory */
-                    fileName = help.fileName.get(id);
-
 
                     strategyString = help.dataPreparationStrategy.get(id);
                     jsonString = help.jsonConfig.get(id);
@@ -385,11 +406,11 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 }
             }
 
-            if(not file.empty())
+            if(file.has_value())
             {
                 // If file was specified as function parameter (i.e. when checkpointing), ignore command line
                 // parameters for it
-                fileName = file;
+                fileName = file.value();
             }
 
             fileName = boost::filesystem::path(fileName).has_root_path() ? fileName : dir + "/" + fileName;
