@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 Alexander Matthes, Pawel Ordyna
+ * Copyright 2013-2022 Alexander Matthes, Pawel Ordyna, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -20,7 +20,7 @@
 
 #pragma once
 
-// Needs to be the very first
+#include "picongpu/particles/particleToGrid/ComputeFieldValue.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
