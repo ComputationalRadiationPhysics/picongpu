@@ -16,7 +16,7 @@ Job Control
 
   * ``bsub -P $proj -W 2:00 -nnodes 1 -Is /bin/bash``
 
-* `details for my jobs <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#monitoring-jobs>`_:
+* `details for my jobs <https://docs.olcf.ornl.gov/systems/summit_user_guide.html#monitoring-jobs>`_:
 
   * ``bjobs 12345`` all details for job with <job id> ``12345``
   * ``bjobs [-l]`` all jobs under my user name
@@ -41,5 +41,5 @@ Job Control
 References
 ''''''''''
 
-* https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#running-jobs
-* https://www.ibm.com/support/knowledgecenter/en/SSETD4/product_welcome_platform_lsf.html
+* https://docs.olcf.ornl.gov/systems/summit_user_guide.html#running-jobs
+* https://www.ibm.com/docs/en/spectrum-lsf
