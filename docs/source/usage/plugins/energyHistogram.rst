@@ -26,7 +26,7 @@ PIConGPU command line option                description
                                             A value of ``100`` would mean an output at simulation time step *0, 100, 200, ...*.
                                             If set to a non-zero value, the energy histogram of all **electrons** is computed.
                                             By default, the value is ``0`` and no histogram for the electrons is computed.
-``--e_energy.filter``                       Use filtered particles. Available filters are set up in
+``--e_energyHistogram.filter``              Use filtered particles. Available filters are set up in
                                             :ref:`particleFilters.param <usage-params-core>`.
 ``--e_energyHistogram.binCount``            Specifies the number of bins used for the **electron** histogram.
                                             Default is ``1024``.
