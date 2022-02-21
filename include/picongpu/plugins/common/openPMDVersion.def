@@ -97,7 +97,11 @@ namespace picongpu
             ::openPMD::Extent extent,
             Functor&& createBaseBuffer) -> detail::openPMDSpan<ValueType>
         {
-            bool useSpanAPI = false;
+            /*
+             * openPMD-api >= 0.14.4 automatically disables the
+             * span-based Put() API in ADIOS2 if compression is used.
+             */
+            bool useSpanAPI = OPENPMDAPI_VERSION_GE(0, 14, 4);
             {
                 auto value = std::getenv("openPMD_USE_STORECHUNK_SPAN");
                 unsigned long long valueAsLong{};
