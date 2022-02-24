@@ -1,0 +1,114 @@
+#Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ################################# (edit the following lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
+#     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="NONE"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="vim"
+
+# Modules #####################################################################
+#
+module switch modenv/hiera
+
+# load CUDA/11.1.1, also loads GCC/10.2.0, zlib, OpenMPI/4.0.5 and others
+module load fosscuda/2020b
+module load HDF5/1.10.7
+module load CMake/3.18.4
+module load libpng/1.6.37
+module load freetype/2.10.3
+
+printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
+printf "@ Note: You need to compile picongpu on a node. @\n"
+printf "@       Likewise for building the libraries.    @\n"
+printf "@       Get a node with the getNode command.    @\n"
+printf "@       Then source %s again.@\n" "$(basename $PIC_PROFILE)"
+printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
+
+# Self-Build Software #########################################################
+#
+# needs to be compiled by the user
+# Check the install script at
+# https://gist.github.com/BeyondEspresso/c8f9e07224e2844db299b664a32ceab7#file-taurus-a100-build-picongpu-dependencies-sh
+#
+export PIC_LIBS=$HOME/lib/alpha
+export BOOST_ROOT=$PIC_LIBS/boost-1.68.0
+export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0
+export BLOSC_ROOT=$PIC_LIBS/blosc-1.21.0
+export ADIOS2_ROOT=$PIC_LIBS/adios2-2.7.1
+export OPENPMD_ROOT=$PIC_LIBS/openpmd-0.14.3
+
+export CMAKE_PREFIX_PATH=$OPENPMD_ROOT:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PNGwriter_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib64:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$OPENPMD_ROOT/lib64:$LD_LIBRARY_PATH
+
+export PATH=$ADIOS2_ROOT/bin:$PATH
+
+
+export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="cuda:80"
+
+export PATH=$PATH:$PICSRC
+export PATH=$PATH:$PICSRC/bin
+export PATH=$PATH:$PICSRC/src/tools/bin
+
+# python not included yet
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+# This is necessary in order to make alpaka compile.
+# The workaround is from Axel Huebl according to alpaka PR #702.
+export CXXFLAGS="-Dlinux"
+
+# "tbg" default options #######################################################
+#   - SLURM (sbatch)
+#   - "alpha" queue
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="etc/picongpu/taurus-tud/A100.tpl"
+
+# allocate an interactive shell for two hours
+#   getNode 2  # allocates 2 interactive nodes (default: 1)
+function getNode() {
+    if [ -z "$1" ] ; then
+        numNodes=1
+    else
+        numNodes=$1
+    fi
+    export OMP_NUM_THREADS=6
+    srun --time=2:00:00 --nodes=$numNodes --ntasks=$((8 * $numNodes)) --ntasks-per-node=8 --cpus-per-task=6 --mem=0 --exclusive --gres=gpu:8 -p alpha-interactive --pty bash
+}
+
+# allocate an interactive shell for two hours
+#   getDevice 2  # allocates 2 interactive devices on one node (default: 1)
+function getDevice() {
+    if [ -z "$1" ] ; then
+        numDevices=1
+    else
+        if [ "$1" -gt 6 ] ; then
+            echo "The maximal number of devices per node is 8." 1>&2
+            return 1
+        else
+            numDevices=$1
+        fi
+    fi
+    export OMP_NUM_THREADS=6
+    srun --time=2:00:00 --nodes=1 --ntasks=$numDevices --ntasks-per-node=$(($numDevices)) --cpus-per-task=6 --mem=$((990000 / $numDevices)) --gres=gpu:$numDevices -p alpha-interactive --pty bash
+}
+
+# Load autocompletion for PIConGPU commands
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $BASH_COMP_FILE
+else
+    echo "bash completion file '$BASH_COMP_FILE' not found." >&2
+fi
+
