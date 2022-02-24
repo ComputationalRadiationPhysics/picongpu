@@ -26,7 +26,7 @@ export PIC_BACKEND="omp2b:native" # running on cpu
 # https://picongpu.readthedocs.io/en/latest/usage/basics.html#pic-configure
 # or the provided profiles of other systems.
 
-export PICSRC=$HOME/WORK/src/picongpu
+export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 
 export PATH=$PATH:$PICSRC
