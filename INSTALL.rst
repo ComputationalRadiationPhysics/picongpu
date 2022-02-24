@@ -142,11 +142,11 @@ PIConGPU Source Code
   - *optional:* change to a different branch with ``git branch`` (show) and ``git checkout <BranchName>`` (switch)
 - *environment*:
 
-  - ``export PICSRC=$PICHOME/src/picongpu``
+  - ``export PICSRC=$HOME/src/picongpu``
   - ``export PIC_EXAMPLES=$PICSRC/share/picongpu/examples``
-  - ``export PATH=$PICSRC:$PATH``
-  - ``export PATH=$PICSRC/bin:$PATH``
-  - ``export PATH=$PICSRC/src/tools/bin:$PATH``
+  - ``export PATH=$PATH:$PICSRC``
+  - ``export PATH=$PATH:$PICSRC/bin``
+  - ``export PATH=$PATH:$PICSRC/src/tools/bin``
   - ``export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH``
 
 Optional Libraries
