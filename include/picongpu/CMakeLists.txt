@@ -360,7 +360,14 @@ if(PIC_SEARCH_openPMD)
             if(${PIC_toml11_PROVIDER} STREQUAL "intern")
                 add_subdirectory(
                     "${PIConGPUapp_SOURCE_DIR}/../../thirdParty/toml11"
-                    "${CMAKE_CURRENT_BINARY_DIR}/build_toml11")
+                    "${CMAKE_CURRENT_BINARY_DIR}/build_toml11"
+                    # EXCLUDE_FROM_ALL ensures that toml11 is not part of
+                    # make install.
+                    # The library is header-only and linking it against
+                    # PIConGPU targets is sufficient.
+                    # It needs not be part of any build or install targets
+                    # explicitly.
+                    EXCLUDE_FROM_ALL)
             else()
                 find_package(toml11 3.7.0 CONFIG REQUIRED)
                 message(STATUS "toml11: Found version '${toml11_VERSION}'")
