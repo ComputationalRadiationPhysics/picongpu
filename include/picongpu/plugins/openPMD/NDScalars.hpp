@@ -115,7 +115,7 @@ namespace picongpu
                     std::make_shared<T_Scalar>(value),
                     std::move(std::get<1>(tuple)),
                     std::move(std::get<2>(tuple)));
-                params.openPMDSeries->flush();
+                flushCollectively(*params.openPMDSeries);
             }
 
         private:

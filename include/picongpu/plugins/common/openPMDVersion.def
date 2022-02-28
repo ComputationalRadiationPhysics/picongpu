@@ -157,5 +157,15 @@ namespace picongpu
                 useSpanAPI,
                 std::forward<Functor>(createBaseBuffer));
         }
+
+        inline void flushCollectively(::openPMD::Series& series)
+        {
+            series.flush(
+#if OPENPMDAPI_VERSION_GE(0, 15, 0)
+                ::openPMD::FlushMode::Collective
+#endif
+            );
+        }
+
     } // namespace openPMD
 } // namespace picongpu

@@ -103,9 +103,7 @@ namespace picongpu
 
                     if(elements == 0)
                     {
-                        // technically not necessary if we write no dataset,
-                        // but let's keep things uniform
-                        params->openPMDSeries->flush();
+                        flushCollectively(*params->openPMDSeries);
                         continue;
                     }
 
@@ -137,7 +135,7 @@ namespace picongpu
                         span[i] = reinterpret_cast<ComponentType*>(dataPtr)[d + i * components];
                     }
 
-                    params->openPMDSeries->flush();
+                    flushCollectively(*params->openPMDSeries);
                 }
 
                 auto unitMap = convertToUnitDimension(unitDimension);
