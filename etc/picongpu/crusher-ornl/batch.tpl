@@ -98,6 +98,6 @@ ln -s ../stdout output
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  srun -K1 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
+  srun -K1 !TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams
 fi
 
