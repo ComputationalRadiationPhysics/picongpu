@@ -3,7 +3,7 @@
 # clang compiler is located under /opt/rocm/llvm/bin
 
 .base_hipcc:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-rocm${HIP_CONTAINER_VERSION}-pic:${CONTAINER_TAG}
+  image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-rocm${HIP_CONTAINER_VERSION}-pic:${CONTAINER_TAG}
   variables:
     GIT_SUBMODULE_STRATEGY: normal
     # -DMPI_CXX_WORKS=ON -DMPI_CXX_VERSION=0 workaround for CMake issue
