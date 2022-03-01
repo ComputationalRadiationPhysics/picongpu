@@ -100,8 +100,6 @@ ln -s ../stdout output
 
 # cuda_memtest is available only on CUDA hardware
 
-if [ $? -eq 0 ] ; then
-  # Run PIConGPU
-  srun -K1 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
-fi
+# Run PIConGPU
+srun -K1 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 
