@@ -38,12 +38,11 @@ export MPICH_SMP_SINGLE_COPY_MODE=CMA
 
 module load cmake/3.21.3
 module load zlib/1.2.11
-module load boost/1.77.0-cxx17
 module load git/2.31.1
 
 # Other Software ##############################################################
 #
-module load c-blosc/1.21.0 hdf5/1.12.0 adios2/2.7.1
+module load hdf5/1.12.0 adios2/2.7.1
 
 module load libpng/1.6.37 freetype/2.11.0
 
@@ -52,21 +51,29 @@ module load libpng/1.6.37 freetype/2.11.0
 #
 # needs to be compiled by the user
 # Check the install script at
-# https://gist.github.com/steindev/a063a0a0ab61c5bed3352ef1f5e07962
-#
+#   https://gist.github.com/steindev/4cfd0e43ac4c4d6da1a5b474b317d458
+# and additional information on PIConGPU dependencies in the manual
+#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html
 export PIC_LIBS=$HOME/lib/spock
 
+# install boost 1.74.0
+export BOOST_ROOT="$PIC_LIBS/boost"
+export CMAKE_PREFIX_PATH="$BOOST_ROOT:$CMAKE_PREFIX_PATH"
+export LD_LIBRARY_PATH="$BOOST_ROOT/lib:$LD_LIBRARY_PATH"
+
+# install c-blosc 1.21.1
+export BLOSC_ROOT="$PIC_LIBS/c-blosc"
+export CMAKE_PREFIX_PATH="$BLOSC_ROOT:$CMAKE_PREFIX_PATH"
+export LD_LIBRARY_PATH="$BLOSC_ROOT/lib:$LD_LIBRARY_PATH"
+
 # install openPMD-api 0.14.3+ yourself
-# required when using picongpu > 0.6.0
-#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html#openpmd-api
+# required when using picongpu 0.7.0-dev+
 export OPENPMD_API_ROOT=$PIC_LIBS/openPMD-api
 export CMAKE_PREFIX_PATH="$OPENPMD_API_ROOT:$CMAKE_PREFIX_PATH"
 export LD_LIBRARY_PATH="$OPENPMD_API_ROOT/lib64:$LD_LIBRARY_PATH"
 
 # optionally install pngwriter yourself:
-#   https://picongpu.readthedocs.io/en/latest/install/dependencies.html#pngwriter
-####### Really?: But add option `-DCMAKE_CXX_COMPILER=$(which CC)` to `cmake` invocation
-export PNGwriter_ROOT=$PIC_LIBS/pngwriter-0.7.0
+export PNGwriter_ROOT=$PIC_LIBS/pngwriter
 export CMAKE_PREFIX_PATH=$PIC_LIBS:$CMAKE_PREFIX_PATH
 export LD_LIBRARY_PATH=$PNGwriter_ROOT/lib:$LD_LIBRARY_PATH
 

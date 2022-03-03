@@ -2,7 +2,7 @@
 #   [g++-X] : X = {7, 8, 9 ,10}
 
 .base_gcc:
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-gcc-pic:${CONTAINER_TAG}
+  image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-gcc-pic:${CONTAINER_TAG}
   variables:
     GIT_SUBMODULE_STRATEGY: normal
   script:
