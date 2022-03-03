@@ -17,12 +17,13 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 #
 module switch modenv/hiera
 
-# load CUDA/11.1.1, also loads GCC/10.2.0, zlib, OpenMPI/4.0.5 and others
-module load fosscuda/2020b
+# load GCC/10.3.0, zlib 1.2.11, OpenMPI/4.1.1 and others
+module load foss/2021a
+module load CUDA/11.6.0
 module load HDF5/1.10.7
-module load CMake/3.18.4
+module load CMake/3.20.1
 module load libpng/1.6.37
-module load freetype/2.10.3
+module load freetype/2.10.4
 
 printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
 printf "@ Note: You need to compile picongpu on a node. @\n"
