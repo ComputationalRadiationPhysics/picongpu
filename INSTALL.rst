@@ -99,7 +99,7 @@ boost
   - ``tar -xzf boost_1_66_0.tar.gz``
   - ``cd boost_1_66_0``
   - ``./bootstrap.sh --with-libraries=atomic,chrono,context,date_time,fiber,filesystem,math,program_options,serialization,system,thread --prefix=$HOME/lib/boost``
-  - ``./b2 cxxflags="-std=c++11" -j4 && ./b2 install``
+  - ``./b2 cxxflags="-std=c++14" -j4 && ./b2 install``
 - *environment:* (assumes install from source in ``$HOME/lib/boost``)
 
   - ``export BOOST_ROOT=$HOME/lib/boost``
