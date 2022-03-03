@@ -98,5 +98,5 @@ ln -s ../stdout output
 
 
 # Run PIConGPU
-srun -K1 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
+srun -K1 !TBG_dstPath/input/bin/picongpu --mpiDirect !TBG_author !TBG_programParams
 
