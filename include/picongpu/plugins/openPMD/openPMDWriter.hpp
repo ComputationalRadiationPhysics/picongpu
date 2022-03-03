@@ -561,7 +561,14 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
             private:
                 using UnitType = typename FieldTmp::UnitValueType;
                 using ValueType = typename FieldTmp::ValueType;
-                using ComponentType = typename GetComponentsType<ValueType>::type;
+                /*
+                 * Do not change the following lines.
+                 * NVCC 11.6 seems to have a parser bug and it does not understand the short form:
+                 * `using ComponentType = typename GetComponentsType<ValueType>`
+                 * more info: https://github.com/ComputationalRadiationPhysics/picongpu/pull/4006
+                 */
+                using GetComponentsTypeValueType = GetComponentsType<ValueType>;
+                using ComponentType = typename GetComponentsTypeValueType::type;
 
                 /** Get the unit for the result from the solver*/
                 static std::vector<float_64> getUnit()
