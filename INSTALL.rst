@@ -12,7 +12,7 @@
 Dependencies
 ============
 
-.. sectionauthor:: Axel Huebl
+.. sectionauthor:: Axel Huebl, Klaus Steiniger
 
 Overview
 --------
@@ -29,26 +29,23 @@ Requirements
 Mandatory
 ^^^^^^^^^
 
-gcc
-"""
-- 5.5 - 10.0 (if you want to build for Nvidia GPUs, supported compilers depend on your current `CUDA version <https://gist.github.com/ax3l/9489132>`_)
-
-  - CUDA 10.0: Use gcc 5.5 - 7
-  - CUDA 10.1/10.2: Use gcc 5.5 - 8
-  - CUDA 11.x: Used gcc 5.5 - 10.0
-- *note:* be sure to build all libraries/dependencies with the *same* gcc version; GCC 5 or newer is recommended
+Compiler
+""""""""
+- C++17 supporting compiler, e.g. GCC 7+ or Clang 6+
+- if you want to build for Nvidia GPUs, check the `CUDA supported compilers <https://gist.github.com/ax3l/9489132>`_ page
+- *note:* be sure to build all libraries/dependencies with the *same* compiler version
 - *Debian/Ubuntu:*
-  
-  - ``sudo apt-get install gcc-5 g++-5 build-essential``
-  - ``sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5``
+
+  - ``sudo apt-get install gcc-8 g++-8 build-essential``
+  - ``sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8``
 - *Arch Linux:*
-  
+
   - ``sudo pacman --sync base-devel``
   - if the installed version of **gcc** is too new, `compile an older gcc <https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53>`_
 - *Spack:*
-  
-  - ``spack install gcc@5.5.0``
-  - make it the default in your `packages.yaml <http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration>`_ or *suffix* `all following <http://spack.readthedocs.io/en/latest/features.html#simple-package-installation>`_ ``spack install`` commands with a *space* and ``%gcc@5.5.0``
+
+  - ``spack install gcc@8.5.0``
+  - make it the default in your `packages.yaml <http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration>`_ or *suffix* `all following <http://spack.readthedocs.io/en/latest/features.html#simple-package-installation>`_ ``spack install`` commands with a *space* and ``%gcc@8.5.0``
 
 CMake
 """""
@@ -89,17 +86,19 @@ zlib
 
 boost
 """""
-- 1.66.0 - 1.74.0 (``program_options``, ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
+- 1.66.0+ (``program_options``, ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
 - *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-chrono-dev libboost-atomic-dev libboost-date-time-dev libboost-math-dev libboost-serialization-dev libboost-fiber-dev libboost-context-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
 - *Spack:* ``spack install boost``
 - *from source:*
 
-  - ``curl -Lo boost_1_66_0.tar.gz https://boostorg.jfrog.io/ui/native/main/release/1.66.0/source/boost_1_66_0.tar.gz``
-  - ``tar -xzf boost_1_66_0.tar.gz``
-  - ``cd boost_1_66_0``
+  - ``mkdir -p ~/src ~/lib``
+  - ``cd ~/src``
+  - ``curl -Lo boost_1_74_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz``
+  - ``tar -xzf boost_1_74_0.tar.gz``
+  - ``cd boost_1_74_0``
   - ``./bootstrap.sh --with-libraries=atomic,chrono,context,date_time,fiber,filesystem,math,program_options,serialization,system,thread --prefix=$HOME/lib/boost``
-  - ``./b2 cxxflags="-std=c++11" -j4 && ./b2 install``
+  - ``./b2 cxxflags="-std=c++17" -j4 && ./b2 install``
 - *environment:* (assumes install from source in ``$HOME/lib/boost``)
 
   - ``export BOOST_ROOT=$HOME/lib/boost``
@@ -154,15 +153,15 @@ Optional Libraries
 
 CUDA
 """"
-- `10.0+ <https://developer.nvidia.com/cuda-downloads>`_
+- `11.0.0+ <https://developer.nvidia.com/cuda-downloads>`_
 - required if you want to run on Nvidia GPUs
 - *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
 - *Arch Linux:* ``sudo pacman --sync cuda``
 - *Spack:* ``spack install cuda``
 - at least one **CUDA** capable **GPU**
-- *compute capability*: ``sm_30`` or higher
+- *compute capability*: ``sm_60`` or higher
 - `full list <https://developer.nvidia.com/cuda-gpus>`_ of CUDA GPUs and their *compute capability*
-- `More <http://www.olcf.ornl.gov/summit/>`_ is always `better <http://www.cscs.ch/computers/piz_daint/index.html>`_. Especially, if we are talking GPUs :-)
+- `More <http://www.olcf.ornl.gov/summit/>`_ is always `better <https://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/JUWELS_node.html>`_. Especially, if we are talking GPUs :-)
 - *environment:*
 
   - ``export CUDA_ROOT=<CUDA_INSTALL>``
@@ -198,10 +197,11 @@ pngwriter
 - *Spack:* ``spack install pngwriter``
 - *from source:*
 
-  - ``mkdir -p ~/src ~/build ~/lib``
-  - ``git clone https://github.com/pngwriter/pngwriter.git ~/src/pngwriter/``
-  - ``cd ~/build``
-  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/pngwriter ~/src/pngwriter``
+  - ``mkdir -p ~/src ~/lib``
+  - ``git clone -b 0.7.0 https://github.com/pngwriter/pngwriter.git ~/src/pngwriter/``
+  - ``cd ~/src/pngwriter``
+  - ``mkdir build && cd build``
+  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/pngwriter ..``
   - ``make install``
 
 - *environment:* (assumes install from source in ``$HOME/lib/pngwriter``)
@@ -243,19 +243,36 @@ c-blosc
 - *Spack:* ``spack install c-blosc``
 - *from source:*
 
-  - ``mkdir -p ~/src ~/build ~/lib``
-  - ``cd ~/src``
-  - ``curl -Lo c-blosc-1.15.0.tar.gz https://github.com/Blosc/c-blosc/archive/v1.15.0.tar.gz``
-  - ``tar -xzf c-blosc-1.15.0.tar.gz``
-  - ``cd ~/build && rm -rf ../build/*``
-  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/c-blosc -DPREFER_EXTERNAL_ZLIB=ON ~/src/c-blosc-1.15.0/``
-  - ``make``
+  - ``mkdir -p ~/src ~/lib``
+  - ``git clone -b v1.21.1 https://github.com/Blosc/c-blosc.git ~/src/c-blosc/``
+  - ``cd ~/src/c-blosc``
+  - ``mkdir build && cd build``
+  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/c-blosc -DPREFER_EXTERNAL_ZLIB=ON ..``
   - ``make install``
 - *environment:* (assumes install from source in ``$HOME/lib/c-blosc``)
 
   - ``export BLOSC_ROOT=$HOME/lib/c-blosc``
   - ``export CMAKE_PREFIX_PATH=$BLOSC_ROOT:$CMAKE_PREFIX_PATH``
   - ``export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH``
+
+ADIOS2
+""""""
+- 2.7.1+
+- Input/Output library for simulation data output via openPMD-api
+- *Spack:* ``spack install adios2@2.7.1``
+- *from source*
+
+  - ``mkdir -p ~/src ~/lib``
+  - ``git clone -b v2.7.1 https://github.com/ornladios/ADIOS2.git ~/src/ADIOS2``
+  - ``cd ~/src/ADIOS2``
+  - ``mkdir build && cd build``
+  - ``cmake -DCMAKE_INSTALL_PREFIX="$HOME/lib/ADIOS2" -DADIOS2_USE_Fortran=OFF -DADIOS2_USE_PNG=OFF -DADIOS2_USE_BZip2=OFF ..``
+  - ``make install``
+- *environment:* (assumes install from source in ``$HOME/lib/ADIOS2``)
+
+  - ``export ADIOS2_ROOT=$HOME/lib/ADIOS2``
+  - ``export CMAKE_PREFIX_PATH=$ADIOS2_ROOT:$CMAKE_PREFIX_PATH``
+  - ``export LD_LIBRARY_PATH=$ADIOS2_ROOT/lib:$LD_LIBRARY_PATH``
 
 openPMD API
 """""""""""
@@ -271,9 +288,8 @@ openPMD API
 - *from source:*
 
   - ``mkdir -p ~/src ~/lib``
-  - ``cd ~/src``
-  - ``git clone https://github.com/openPMD/openPMD-api.git``
-  - ``cd openPMD-api``
+  - ``git clone -b 0.14.4 https://github.com/openPMD/openPMD-api.git ~/src/openPMD-api``
+  - ``cd ~/src/openPMD-api``
   - ``mkdir build && cd build``
   - ``cmake .. -DopenPMD_USE_MPI=ON -DCMAKE_INSTALL_PREFIX=~/lib/openPMD-api``
     Optionally, specify the parameters ``-DopenPMD_USE_ADIOS2=ON -DopenPMD_USE_HDF5=ON``. Otherwise, these parameters are set to ``ON`` automatically if CMake detects the dependencies on your system.
