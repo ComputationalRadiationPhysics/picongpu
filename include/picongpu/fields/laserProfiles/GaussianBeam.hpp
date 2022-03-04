@@ -125,6 +125,35 @@ namespace picongpu
                      * @tparam T_Args type of the arguments passed to the user manipulator functor
                      *
                      * @param cellIndexInSuperCell ND cell index in current supercell
+                     *
+                     * The transverse spatial laser modes are given as a decomposition of Gauss-Laguerre modes
+                     * GLM(m,r,z) : Sum_{m=0}^{m_max} := Snorm * a_m * GLM(m,r,z)
+                     * with a_m being complex-valued coefficients: a_m := |a_m| * exp(I Arg(a_m) )
+                     * |a_m| are equivalent to the LAGUERREMODES vector entries.
+                     * Arg(a_m) are equivalent to the LAGUERREPHASES vector entries.
+                     * The implicit beam properties w0, lambda0, etc... equally apply to all GLM-modes.
+                     * The on-axis, in-focus field value of the mode decomposition is normalized to unity:
+                     * Snorm := 1 / ( Sum_{m=0}^{m_max}GLM(m,0,0) )
+                     *
+                     * Spatial mode: Arg(a_m) * GLM(m,r,z) := w0/w(zeta) * L_m( 2*r^2/(w(zeta))^2 ) \
+                     *     * exp( I*k*z - I*(2*m+1)*ArcTan(zeta) - r^2 / ( w0^2*(1+I*zeta) ) + I*Arg(a_m) ) )
+                     * with w(zeta) = w0*sqrt(1+zeta^2)
+                     * with zeta = z / zR
+                     * with zR = PI * w0^2 / lambda0
+                     *
+                     * Uses only radial modes (m) of Laguerre-Polynomials: L_m(x)=L_m^n=0(x)
+                     * z is the direction of laser propagation. In PIConGPU, the direction of propagation is y.
+                     *
+                     * References:
+                     * F. Pampaloni et al. (2004), Gaussian, Hermite-Gaussian, and Laguerre-Gaussian beams: A primer
+                     * https://arxiv.org/pdf/physics/0410021
+                     *
+                     * Allen, L. (June 1, 1992). "Orbital angular momentum of light
+                     *      and the transformation of Laguerre-Gaussian laser modes"
+                     * https://doi.org/10.1103/physreva.45.8185
+                     *
+                     * Wikipedia on Gaussian laser beams
+                     * https://en.wikipedia.org/wiki/Gaussian_beam
                      */
                     template<typename T_Acc>
                     HDINLINE void operator()(T_Acc const&, DataSpace<simDim> const& cellIndexInSuperCell)
@@ -161,6 +190,9 @@ namespace picongpu
                         PMACC_CASSERT_MSG(
                             MODENUMBER_must_be_smaller_than_number_of_entries_in_LAGUERREMODES_vector,
                             Unitless::MODENUMBER < Unitless::LAGUERREMODES_t::dim);
+                        PMACC_CASSERT_MSG(
+                            MODENUMBER_must_be_smaller_than_number_of_entries_in_LAGUERREPHASES_vector,
+                            Unitless::MODENUMBER < Unitless::LAGUERREPHASES_t::dim);
                         for(uint32_t m = 0; m <= Unitless::MODENUMBER; ++m)
                             etrans_norm += typename Unitless::LAGUERREMODES_t{}[m];
 
@@ -179,7 +211,8 @@ namespace picongpu
                                     * math::cos(
                                               2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * focusPos
                                               - 2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv
-                                              + (2._X * float_X(m) + 1._X) * xi_y + m_phase)
+                                              + (2._X * float_X(m) + 1._X) * xi_y + m_phase +
+                                              typename Unitless::LAGUERREPHASES_t{}[m])
                                     * math::exp(
                                               -(r2 / 2.0_X * R_y_inv - focusPos
                                                 - m_phase / 2.0_X / float_X(PI) * Unitless::WAVE_LENGTH)
@@ -199,7 +232,8 @@ namespace picongpu
                                     * math::cos(
                                               2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * focusPos
                                               - 2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv
-                                              + (2._X * float_X(m) + 1._X) * xi_y + m_phase)
+                                              + (2._X * float_X(m) + 1._X) * xi_y + m_phase +
+                                              typename Unitless::LAGUERREPHASES_t{}[m])
                                     * math::exp(
                                               -(r2 / 2.0_X * R_y_inv - focusPos
                                                 - m_phase / 2.0_X / float_X(PI) * Unitless::WAVE_LENGTH)
@@ -218,7 +252,8 @@ namespace picongpu
                                     * math::cos(
                                               2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * focusPos
                                               - 2.0_X * float_X(PI) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv
-                                              + (2._X * float_X(m) + 1._X) * xi_y + m_phase)
+                                              + (2._X * float_X(m) + 1._X) * xi_y + m_phase +
+                                              typename Unitless::LAGUERREPHASES_t{}[m])
                                     * math::exp(
                                               -(r2 / 2.0_X * R_y_inv - focusPos
                                                 - m_phase / 2.0_X / float_X(PI) * Unitless::WAVE_LENGTH)
