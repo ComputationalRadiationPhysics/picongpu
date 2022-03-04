@@ -510,7 +510,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 HDINLINE void operator()(ThreadParams* params)
                 {
-#    ifndef __CUDA_ARCH__
+#ifndef __CUDA_ARCH__
                     DataConnector& dc = Environment<simDim>::get().DataConnector();
 
                     // Skip optional fields
@@ -545,7 +545,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         std::move(inCellPosition),
                         timeOffset,
                         isDomainBound);
-#    endif
+#endif
                 }
             };
 
@@ -1071,7 +1071,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     }
                 }
 
-#    if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
+#if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
                 /* copy species only one time per timestep to the host */
                 if(mThreadParams.strategy == WriteSpeciesStrategy::ADIOS && lastSpeciesSyncStep != currentStep)
                 {
@@ -1089,7 +1089,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     copySpeciesToHost();
                     lastSpeciesSyncStep = currentStep;
                 }
-#    endif
+#endif
 
                 TimeIntervall timer;
                 timer.toggleStart();
