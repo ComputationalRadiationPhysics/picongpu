@@ -197,7 +197,24 @@ namespace picongpu
                         po::value<std::string>(&fileName)->default_value(pluginName + "Output"),
                         "output file name")(
                         (pluginPrefix + ".ext").c_str(),
-                        po::value<std::string>(&fileExtension)->default_value("bp"),
+                        po::value<std::string>(&fileExtension)
+                            ->default_value(
+#if openPMD_HAVE_ADIOS2
+                                "bp"
+#elif openPMD_HAVE_HDF5
+                                "h5"
+#else
+                                /*
+                                 * This branch should never be activated because CMake will
+                                 * not enable the openPMD plugin in that case anyway.
+                                 */
+                                static_assert(
+                                    false,
+                                    "openPMD-api has neither ADIOS2 or HDF5 backend available. Use CMake to "
+                                    "deactivate the "
+                                    "openPMD plugin.")
+#endif
+                                ),
                         "openPMD filename extension (this controls the backend "
                         "picked by the openPMD API)")(
                         (pluginPrefix + ".memoryLayout").c_str(),
