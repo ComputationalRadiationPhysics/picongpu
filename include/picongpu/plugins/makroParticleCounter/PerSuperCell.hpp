@@ -116,7 +116,20 @@ namespace picongpu
 
         MappingDesc* cellDescription;
         std::string notifyPeriod;
+#if openPMD_HAVE_HDF5
         std::string m_filenameExtension = "h5";
+#elif openPMD_HAVE_ADIOS2
+        std::string m_filenameExtension = "bp";
+#else
+        /*
+         * This branch should never be activated because CMake will
+         * not enable the openPMD plugin in that case anyway.
+         */
+        static_assert(
+            false,
+            "openPMD-api has neither ADIOS2 or HDF5 backend available. Use CMake to deactivate the "
+            "openPMD plugin.");
+#endif
         std::string m_filenameInfix = "_%06T";
 
         std::string pluginName;
@@ -161,7 +174,21 @@ namespace picongpu
             desc.add_options()(
                 (pluginPrefix + ".ext").c_str(),
                 po::value<std::string>(&m_filenameExtension),
-                "openPMD filename extension (default: 'h5')");
+#if openPMD_HAVE_HDF5
+                "openPMD filename extension (default: 'h5')"
+#elif openPMD_HAVE_ADIOS2
+                "openPMD filename extension (default: 'bp')"
+#else
+                /*
+                 * This branch should never be activated because CMake will
+                 * not enable the openPMD plugin in that case anyway.
+                 */
+                static_assert(
+                    false,
+                    "openPMD-api has neither ADIOS2 or HDF5 backend available. Use CMake to deactivate the "
+                    "openPMD plugin.")
+#endif
+            );
             desc.add_options()(
                 (pluginPrefix + ".infix").c_str(),
                 po::value<std::string>(&m_filenameInfix),
