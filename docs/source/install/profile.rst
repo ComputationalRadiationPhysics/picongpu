@@ -351,3 +351,20 @@ V100 GPUs (recommended)
 
 .. literalinclude:: profiles/ascent-ornl/gpu_picongpu.profile.example
    :language: bash
+   
+DICC (UM)
+------------
+
+**System overview:** `link <https://www.dicc.um.edu.my/>`_
+
+**User guide:** `link <https://confluence.dicc.um.edu.my/display/HPCDOCS/HPC+Documentation>`_
+
+**Production directory:** usually ``/lustre/user/<username>`` (`link <https://confluence.dicc.um.edu.my/display/HPCDOCS/Managing+Storage`_)
+
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>`.
+
+Queue: gpu (8 x NVIDIA Tesla k10 GPUs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/dicc-um/gpu_picongpu.profile.example
+   :language: bash
