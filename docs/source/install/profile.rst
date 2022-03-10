@@ -359,7 +359,7 @@ DICC (UM)
 
 **User guide:** `link <https://confluence.dicc.um.edu.my/display/HPCDOCS/HPC+Documentation>`_
 
-**Production directory:** usually ``/lustre/user/<username>`` (`link <https://confluence.dicc.um.edu.my/display/HPCDOCS/Managing+Storage`_)
+**Production directory:** usually ``/lustre/user/<username>`` (`link <https://confluence.dicc.um.edu.my/display/HPCDOCS/Managing+Storage>`_)
 
 For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>`.
 
