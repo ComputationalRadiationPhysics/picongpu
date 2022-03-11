@@ -19,7 +19,7 @@ module purge
 module load git
 module load gcc/7.3.0
 module load cmake/3.20.2
-module load cuda/11.2
+module load cuda/11.2-kepler
 module load openmpi/4.0.4-cuda112
 module load boost/1.68.0
 
