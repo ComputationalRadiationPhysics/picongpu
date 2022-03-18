@@ -35,23 +35,23 @@
 #SBATCH -e stderr
 
 ## calculations will be performed by tbg ##
-.TBG_queue="gpu-k10"   
+.TBG_queue="gpu-k10"
 
 # settings that can be controlled by environment variables before submit
-.TBG_mailSettings=${MY_MAILNOTIFY:-"END"}
+.TBG_mailSettings=${MY_MAILNOTIFY:-"NONE"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 .TBG_nameProject='free'
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 # number of available/hosted GPUs per node in the system
-.TBG_numHostedGPUPerNode=8  
+.TBG_numHostedGPUPerNode=8
 
 # required GPUs per node for the current job
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi`
 
 # host memory per node
-.TBG_memPerNode=38000  
+.TBG_memPerNode=38000
 
 # host memory per gpu
 .TBG_memPerGPU=$(( TBG_memPerNode / TBG_numHostedGPUPerNode ))
