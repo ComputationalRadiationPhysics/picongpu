@@ -353,7 +353,7 @@ V100 GPUs (recommended)
    :language: bash
    
 DICC (UM)
-------------
+---------
 
 **System overview:** `link <https://www.dicc.um.edu.my/>`_
 
@@ -364,7 +364,7 @@ DICC (UM)
 For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>`.
 
 Queue: gpu (8 x NVIDIA Tesla k10 GPUs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. literalinclude:: profiles/dicc-um/gpu_picongpu.profile.example
    :language: bash
