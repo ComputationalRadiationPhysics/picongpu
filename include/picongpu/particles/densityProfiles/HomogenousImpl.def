@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Rene Widera
+/* Copyright 2014-2022 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -24,6 +24,7 @@ namespace picongpu
 {
     namespace densityProfiles
     {
+        //! Homogeneous density in whole simulation volume
         struct HomogenousImpl;
-    }
+    } // namespace densityProfiles
 } // namespace picongpu

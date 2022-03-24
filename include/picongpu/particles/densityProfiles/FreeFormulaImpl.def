@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Rene Widera
+/* Copyright 2014-2022 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -24,7 +24,11 @@ namespace picongpu
 {
     namespace densityProfiles
     {
-        template<typename T_ParamClass>
+        /** Apply user-defined functor for calculating density profile
+         *
+         * @tparam T_UserFunctor functor to calculate density, adheres to IProfile concept
+         */
+        template<typename T_UserFunctor>
         struct FreeFormulaImpl;
-    }
+    } // namespace densityProfiles
 } // namespace picongpu

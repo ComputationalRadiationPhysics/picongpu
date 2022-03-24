@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Rene Widera
+/* Copyright 2014-2022 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -24,7 +24,16 @@ namespace picongpu
 {
     namespace densityProfiles
     {
+        /** Gaussian density profile in all axes, optionally with preceeding vacuum in 'y'
+         *
+         * Profile Formula:
+         *     exponent = |globalCellPos - center| / sigma
+         *     density = e^[ gasFactor * exponent^gasPower ]
+         *
+         * @tparam T_ParamClass structure with parameters,
+         *                      requirements are documented by GaussianCloudParam in density.param
+         */
         template<typename T_ParamClass>
         struct GaussianCloudImpl;
-    }
+    } // namespace densityProfiles
 } // namespace picongpu

@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Rene Widera
+/* Copyright 2014-2022 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -26,9 +26,22 @@ namespace picongpu
 {
     namespace densityProfiles
     {
+        /** Density values taken from an openPMD file
+         *
+         * The density values must be a scalar dataset of type float_X, type mismatch would cause errors.
+         * This implementation would ignore all openPMD metadata but axisLabels.
+         * Each value in the dataset defines density in the cell with the corresponding total coordinate minus the
+         * given offset. When the functor is instantiated, it will load the part matching the current domain position.
+         * Density in points not present in the file would be set to the given default density.
+         * Dimensionality of the file indexing must match the simulation dimensionality.
+         * Density values are in BASE_DENSITY_SI units.
+         *
+         * @tparam T_ParamClass structure with parameters,
+         *                      requirements are documented by FromOpenPMDParam in density.param
+         */
         template<typename T_ParamClass>
         struct FromOpenPMDImpl;
-    }
+    } // namespace densityProfiles
 } // namespace picongpu
 
 #endif
