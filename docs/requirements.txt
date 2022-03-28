@@ -5,6 +5,8 @@ breathe>=4.12.0,<4.15.0
 sphinxcontrib.programoutput
 sphinxcontrib-napoleon>=0.7
 pygments
+Jinja2<3.0
+markupsafe<2.0.0
 # docutils 0.17 breaks HTML tags & RTD theme
 # https://github.com/sphinx-doc/sphinx/issues/9001
 docutils==0.16
