@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Rene Widera
+/* Copyright 2014-2022 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -24,7 +24,20 @@ namespace picongpu
 {
     namespace densityProfiles
     {
+        /** Gaussian density profile in 'y', optionally with preceeding vacuum
+         *
+         * Profile formula (parameters defined via the template parameter type):
+         *   `const float_X exponent = abs((y - gasCenter_SI) / gasSigma_SI);`
+         *   `const float_X density = exp(gasFactor * pow(exponent, gasPower));`
+         *
+         *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
+         *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
+         *   and `exponent = 0.0 for gasCenterLeft_SI < y < gasCenterRight_SI`
+         *
+         * @tparam T_ParamClass structure with parameters,
+         *                      requirements are documented by GaussianParam in density.param
+         */
         template<typename T_ParamClass>
         struct GaussianImpl;
-    }
+    } // namespace densityProfiles
 } // namespace picongpu

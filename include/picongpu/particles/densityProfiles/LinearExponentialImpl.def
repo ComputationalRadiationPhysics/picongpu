@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Rene Widera
+/* Copyright 2014-2022 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -24,7 +24,12 @@ namespace picongpu
 {
     namespace densityProfiles
     {
+        /** Linear ramping of density in 'y' into exponential slope after
+         *
+         * @tparam T_ParamClass structure with parameters,
+         *                      requirements are documented by LinearExponentialParam in density.param
+         */
         template<typename T_ParamClass>
         struct LinearExponentialImpl;
-    }
+    } // namespace densityProfiles
 } // namespace picongpu

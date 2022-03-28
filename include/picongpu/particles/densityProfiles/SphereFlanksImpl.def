@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Rene Widera
+/* Copyright 2014-2022 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -24,7 +24,13 @@ namespace picongpu
 {
     namespace densityProfiles
     {
+        /** Density profile that is a composition of 1D profiles, each in form of exponential increasing flank,
+         * constant sphere, exponential decreasing flank
+         *
+         * @tparam T_ParamClass structure with parameters,
+         *                      requirements are documented by SphereFlanksParam in density.param
+         */
         template<typename T_ParamClass>
         struct SphereFlanksImpl;
-    }
+    } // namespace densityProfiles
 } // namespace picongpu
