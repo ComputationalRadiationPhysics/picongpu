@@ -344,7 +344,27 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     // If using periods in some instances and TOML sources in others, then the other parameter
                     // must be specified as empty.
                     // Not this method's task to check this though.
-                    return tomlSources.size() > notifyPeriod.size() ? tomlSources.size() : notifyPeriod.size();
+                    auto res = tomlSources.size() > notifyPeriod.size() ? tomlSources.size() : notifyPeriod.size();
+                    if(res == 0)
+                    {
+                        std::vector<plugins::multi::Option<std::string>> theseMustBeEmpty{
+                            source,
+                            fileName,
+                            fileNameExtension,
+                            fileNameInfix,
+                            jsonConfig,
+                            dataPreparationStrategy};
+                        for(auto const& option : theseMustBeEmpty)
+                        {
+                            if(option.size() > 0)
+                            {
+                                throw std::runtime_error(
+                                    "[openPMD plugin] Parameter '" + option.getName()
+                                    + "' was defined, But neither 'period' nor 'toml' was.");
+                            }
+                        }
+                    }
+                    return res;
                 }
                 else
                     return 1;
