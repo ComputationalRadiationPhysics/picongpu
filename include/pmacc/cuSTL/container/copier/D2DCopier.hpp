@@ -37,27 +37,21 @@ namespace pmacc
         {
             static constexpr int dim = T_dim;
 
-            PMACC_NO_NVCC_HDWARNING /* Handled via CUDA_ARCH */
-                template<typename Type>
-                HINLINE static void copy(
-                    Type* dest,
-                    const math::Size_t<dim - 1>& pitchDest,
-                    Type* source,
-                    const math::Size_t<dim - 1>& pitchSource,
-                    const math::Size_t<dim>& size)
+            template<typename Type>
+            HINLINE static void copy(
+                Type* dest,
+                const math::Size_t<dim - 1>& pitchDest,
+                Type* source,
+                const math::Size_t<dim - 1>& pitchSource,
+                const math::Size_t<dim>& size)
             {
-                typedef cursor::BufferCursor<Type, dim> Cursor;
-                Cursor bufCursorDest(dest, pitchDest);
-                Cursor bufCursorSrc(source, pitchSource);
-                cursor::MapTo1DNavigator<dim> myNavi(size);
-
-                auto srcCursor = cursor::make_Cursor(cursor::CursorAccessor<Cursor>(), myNavi, bufCursorSrc);
-                auto destCursor = cursor::make_Cursor(cursor::CursorAccessor<Cursor>(), myNavi, bufCursorDest);
-                size_t sizeProd = size.productOfComponents();
-                for(size_t i = 0; i < sizeProd; i++)
-                {
-                    destCursor[i] = srcCursor[i];
-                }
+                cuplaWrapper::Memcopy<dim>()(
+                    dest,
+                    pitchDest,
+                    source,
+                    pitchSource,
+                    size,
+                    cuplaWrapper::flags::Memcopy::deviceToDevice);
             }
         };
 
