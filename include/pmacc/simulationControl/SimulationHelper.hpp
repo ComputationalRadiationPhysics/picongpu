@@ -235,6 +235,10 @@ namespace pmacc
 
             for(uint32_t nthSoftRestart = 0; nthSoftRestart <= softRestarts; ++nthSoftRestart)
             {
+                /* Global offset is updated during the simulation. In case we perform a soft restart we need to reset
+                 * the offset here to be valid for the next simulation run.
+                 */
+                Environment<DIM>::get().SubGrid().setGlobalDomainOffset(DataSpace<DIM>::create(0));
                 resetAll(0);
                 uint32_t currentStep = fillSimulation();
                 Environment<>::get().SimulationDescription().setCurrentStep(currentStep);
