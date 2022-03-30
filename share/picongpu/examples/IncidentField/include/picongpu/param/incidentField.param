@@ -38,26 +38,35 @@ namespace picongpu
             {
             public:
                 // Constants for pulse generation
-                static constexpr float_64 TIME_PERIOD_SI = 20 * SI::DELTA_T_SI;
+                static constexpr float_64 TIME_PERIOD_SI = 0.038e-9; // 0.038 ns
                 static constexpr float_64 WAVE_LENGTH_SI = TIME_PERIOD_SI * SI::SPEED_OF_LIGHT_SI;
                 static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -1.0 / WAVE_LENGTH_SI * SI::ELECTRON_MASS_SI
                     * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
                 static constexpr float_64 A0 = 8.0;
                 static constexpr float_64 AMPLITUDE_SI = A0 * UNITCONV_A0_to_Amplitude_SI;
-                static constexpr uint32_t DURATION_STEPS = 300;
+                static constexpr float_64 DURATION_SI = 0.6e-9; // 0.6 ns
+
                 /// These need to be changed together with grid size
-                static constexpr uint32_t CENTER_X_CELLS = 80;
-                static constexpr uint32_t WIDTH_X_CELLS = 40;
-                static constexpr uint32_t CENTER_Y_CELLS = 40;
-                static constexpr uint32_t WIDTH_Y_CELLS = 20;
+                static constexpr float_64 CENTER_X_SI = 80.0e-3; // 80 mm
+                static constexpr float_64 WIDTH_X_SI = 40.0e-3; // 40 mm
+                static constexpr float_64 CENTER_Y_SI = 40.0e-3; // 40 mm
+                static constexpr float_64 WIDTH_Y_SI = 20.0e-3; // 20 mm
+
+                // Convert to grid units
+                static constexpr uint32_t DURATION_STEPS = DURATION_SI / SI::DELTA_T_SI;
+                static constexpr uint32_t CENTER_X_CELLS = CENTER_X_SI / SI::CELL_WIDTH_SI;
+                static constexpr uint32_t WIDTH_X_CELLS = WIDTH_X_SI / SI::CELL_WIDTH_SI;
+                static constexpr uint32_t CENTER_Y_CELLS = CENTER_Y_SI / SI::CELL_HEIGHT_SI;
+                static constexpr uint32_t WIDTH_Y_CELLS = WIDTH_Y_SI / SI::CELL_HEIGHT_SI;
 
                 // Get value to calculate Ey / Bz for the XMin source
                 HDINLINE float_X getXMinSourceValueSI(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
-                    auto const durationStepsMiddle = DURATION_STEPS / 2;
-                    auto const normalizedDuration = (currentStep - durationStepsMiddle) / durationStepsMiddle;
+                    auto const initializationDurationSI = 16.0 * DURATION_SI;
+                    auto const normalizedDuration
+                        = (currentStep * SI::DELTA_T_SI - 0.5 * initializationDurationSI) / DURATION_SI;
                     auto const k = 2.0_X * M_PI / WAVE_LENGTH_SI;
-                    auto const x = totalCellIdx.x() * SI::CELL_HEIGHT_SI;
+                    auto const x = totalCellIdx.x() * SI::CELL_WIDTH_SI;
                     auto const t = currentStep * SI::DELTA_T_SI;
                     // note: one could also add x influence to normalizedDuration under exp
                     auto const longitudinal = math::exp(-normalizedDuration * normalizedDuration)
@@ -70,8 +79,9 @@ namespace picongpu
                 // Get value to calculate Ex / Bz for the XMax source
                 HDINLINE float_X getYMaxSourceValueSI(const floatD_X& totalCellIdx, const float_X currentStep) const
                 {
-                    auto const durationStepsMiddle = DURATION_STEPS / 2;
-                    auto const normalizedDuration = (currentStep - durationStepsMiddle) / durationStepsMiddle;
+                    auto const initializationDurationSI = 16.0 * DURATION_SI;
+                    auto const normalizedDuration
+                        = (currentStep * SI::DELTA_T_SI - 0.5 * initializationDurationSI) / DURATION_SI;
                     auto const k = 2.0_X * M_PI / WAVE_LENGTH_SI;
                     auto const y = totalCellIdx.y() * SI::CELL_HEIGHT_SI;
                     auto const t = currentStep * SI::DELTA_T_SI;
