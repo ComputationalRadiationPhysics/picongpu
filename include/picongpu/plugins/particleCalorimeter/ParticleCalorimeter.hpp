@@ -504,7 +504,7 @@ namespace picongpu
             {
                 if(notifyPeriod.size() != fileName.size())
                     throw std::runtime_error(
-                        name + ": parameter fileName and period are not used the same number of times");
+                        name + ": parameter file and period are not used the same number of times");
 
                 if(notifyPeriod.size() != filter.size())
                     throw std::runtime_error(
