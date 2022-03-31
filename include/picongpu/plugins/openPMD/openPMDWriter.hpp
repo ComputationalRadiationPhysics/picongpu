@@ -296,6 +296,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 notifyPeriod.registerHelp(desc, masterPrefix + prefix);
                 source.registerHelp(desc, masterPrefix + prefix, std::string("[") + concatenatedSourceNames + "]");
                 tomlSources.registerHelp(desc, masterPrefix + prefix);
+                fileName.registerHelp(desc, masterPrefix + prefix);
 
                 expandHelp(desc, "");
                 selfRegister = true;
@@ -305,7 +306,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 boost::program_options::options_description& desc,
                 std::string const& masterPrefix = std::string{}) override
             {
-                fileName.registerHelp(desc, masterPrefix + prefix);
                 fileNameExtension.registerHelp(desc, masterPrefix + prefix);
                 fileNameInfix.registerHelp(desc, masterPrefix + prefix);
                 jsonConfig.registerHelp(desc, masterPrefix + prefix);
