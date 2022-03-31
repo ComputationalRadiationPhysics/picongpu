@@ -1,4 +1,4 @@
-# Copyright 2015-2022 Erik Zenker, Rene Widera, Axel Huebl
+# Copyright 2015-2022 Erik Zenker, Rene Widera, Axel Huebl, Jan Stephan
 #
 # This file is part of PMacc.
 #
@@ -209,6 +209,8 @@ set(PMACC_CPU_ARCH $ENV{PMACC_CPU_ARCH} CACHE STRING
 if(CMAKE_COMPILER_IS_GNUCXX)
     if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "ppc64le")
         set(PMACC_CPU_ARCH_TEMPLATE "-mcpu={} -mtune={}")
+    elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
+        set(PMACC_CPU_ARCH_TEMPLATE "-mcpu={}")
     else()
         set(PMACC_CPU_ARCH_TEMPLATE "-march={} -mtune={}")
     endif()
@@ -221,7 +223,11 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     endif()
 # Clang
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set(PMACC_CPU_ARCH_TEMPLATE "-march={} -mtune={}")
+    if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
+        set(PMACC_CPU_ARCH_TEMPLATE "-mcpu={}")
+    else()
+        set(PMACC_CPU_ARCH_TEMPLATE "-march={} -mtune={}")
+    endif()
 # XL
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "XL")
     set(PMACC_CPU_ARCH_TEMPLATE "-qarch={}")
