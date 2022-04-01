@@ -61,6 +61,14 @@ namespace picongpu
         template<typename T_ParticleShape, typename T_Strategy = traits::GetDefaultStrategy_t<>>
         struct EmZ;
 
+        /** Alias for EmZ to match the currently used naming
+         *
+         * @tparam T_ParticleShape the particle shape for the species [picongpu::particles::shapes]
+         * @tparam T_Strategy Used strategy to reduce the scattered data [currentSolver::strategy]
+         */
+        template<typename T_ParticleShape, typename T_Strategy = traits::GetDefaultStrategy_t<>>
+        using EZ = EmZ<T_ParticleShape, T_Strategy>;
+
         namespace traits
         {
             template<typename T_ParticleShape, typename T_Strategy>
