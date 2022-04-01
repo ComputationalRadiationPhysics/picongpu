@@ -21,8 +21,9 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/incidentField/Profiles.hpp"
+#include "picongpu/fields/incidentField/profiles/profiles.hpp"
 
+#include <cstdint>
 
 namespace picongpu
 {
@@ -30,11 +31,45 @@ namespace picongpu
     {
         namespace incidentField
         {
+            // Default implementation of the trait declared in profiles/Free.def
+            template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+            struct GetFunctorIncidentE
+            {
+                using type = typename T_Profile::FunctorIncidentE;
+            };
+
+            // Default implementation of the trait declared in profiles/Free.def
+            template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+            struct GetFunctorIncidentB
+            {
+                using type = typename T_Profile::FunctorIncidentB;
+            };
+
+            /** Type of incident E functor for the given profile type
+             *
+             * @tparam T_Profile profile type
+             * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
+             * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the max
+             * boundary inwards)
+             */
+            template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+            using FunctorIncidentE = typename GetFunctorIncidentE<T_Profile, T_axis, T_direction>::type;
+
+            /** Type of incident B functor for the given profile type
+             *
+             * @tparam T_Profile profile type
+             * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
+             * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the max
+             * boundary inwards)
+             */
+            template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+            using FunctorIncidentB = typename GetFunctorIncidentB<T_Profile, T_axis, T_direction>::type;
+
             namespace detail
             {
-                /** Get ZMin incident field source type
+                /** Get ZMin incident field profile
                  *
-                 * The resulting field source is set as ::type.
+                 * The resulting field profile is set as ::type.
                  * Implementation for 3d returns ZMin from incidentField.param.
                  *
                  * @tparam T_is3d if the simulation is 3d or not
@@ -45,16 +80,16 @@ namespace picongpu
                     using type = ZMin;
                 };
 
-                //! Get None incident field source type as ZMin in the non-3d case
+                //! Get None incident field profile type as ZMin in the non-3d case
                 template<>
                 struct GetZMin<false>
                 {
-                    using type = None;
+                    using type = profiles::None;
                 };
 
-                /** Get ZMax incident field source type
+                /** Get ZMax incident field profile type
                  *
-                 * The resulting field source is set as ::type.
+                 * The resulting field profile is set as ::type.
                  * Implementation for 3d returns ZMax from incidentField.param.
                  *
                  * @tparam T_is3d is the simulation 3d
@@ -65,17 +100,17 @@ namespace picongpu
                     using type = ZMax;
                 };
 
-                //! Get None incident field source type as ZMax in the non-3d case
+                //! Get None incident field profile type as ZMax in the non-3d case
                 template<>
                 struct GetZMax<false>
                 {
-                    using type = None;
+                    using type = profiles::None;
                 };
 
-                //! ZMin incident field type alias adjusted for dimensionality
+                //! ZMin incident field profile type alias adjusted for dimensionality
                 using ZMin = GetZMin<simDim == 3>::type;
 
-                //! ZMax incident field type alias adjusted for dimensionality
+                //! ZMax incident field profile type alias adjusted for dimensionality
                 using ZMax = GetZMax<simDim == 3>::type;
 
             } // namespace detail

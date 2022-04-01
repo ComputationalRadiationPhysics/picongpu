@@ -21,8 +21,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/incidentField/Profiles.def"
-
 
 namespace picongpu
 {
@@ -53,15 +51,31 @@ namespace picongpu
                 HDINLINE float3_X operator()(floatD_X const& totalCellIdx, float_X currentStep) const;
             };
 
-            template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
-            struct Source
+            //! Helper incident field functor always returning 0
+            struct ZeroFunctor
             {
-                //! Incident E field functor
-                using FunctorIncidentE = T_FunctorIncidentE;
+                /** Create a functor
+                 *
+                 * @param unitField conversion factor from SI to internal units,
+                 *                  field_internal = field_SI / unitField
+                 */
+                HDINLINE ZeroFunctor(float3_64 unitField)
+                {
+                }
 
-                //! Incident B field functor
-                using FunctorIncidentB = T_FunctorIncidentB;
+                /** Return zero incident field for any given position and time.
+                 *
+                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
+                 *        note that it is fractional
+                 * @param currentStep current time step index, note that it is fractional
+                 * @return incident field value in internal units
+                 */
+                HDINLINE float3_X operator()(floatD_X const& totalCellIdx, float_X currentStep) const
+                {
+                    return float3_X::create(0.0_X);
+                }
             };
+
 
         } // namespace incidentField
     } // namespace fields
