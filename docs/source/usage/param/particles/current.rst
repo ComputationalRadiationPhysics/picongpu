@@ -22,6 +22,12 @@ EmZ
 .. doxygenstruct:: picongpu::currentSolver::EmZ
    :project: PIConGPU
 
+EZ (alias for EmZ)
+~~~~~~~~~~~~~~~~~~
+
+.. doxygenstruct:: picongpu::currentSolver::EZ
+   :project: PIConGPU
+
 VillaBune
 ~~~~~~~~~
 

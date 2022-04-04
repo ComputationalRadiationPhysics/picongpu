@@ -166,7 +166,7 @@ namespace picongpu
 
             static pmacc::traits::StringProperty getStringProperties()
             {
-                pmacc::traits::StringProperty propList("name", "EmZ");
+                pmacc::traits::StringProperty propList("name", "EmZ (Esirkepov-Zigzag, EZ)");
                 return propList;
             }
         };
