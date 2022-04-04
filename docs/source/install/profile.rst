@@ -7,7 +7,7 @@
 picongpu.profile
 ================
 
-.. sectionauthor:: Axel Huebl, Klaus Steiniger
+.. sectionauthor:: Axel Huebl, Klaus Steiniger, Sergei Bastrakov
 
 We recommend to use a ``picongpu.profile`` file, located directly in your ``$HOME/`` directory,
 to set up the environment within which PIConGPU will run by conviently performing
@@ -26,10 +26,29 @@ or PIConGPU source code location defined by ``$PICSRC``.
 If you are working on an HPC system for which no profile is available, feel free to create one and
 contribute it to PIConGPU by opening a pull request.
 
-A selection of available profiles is presented below.
+A selection of available profiles is presented below, after some general notes on using CPUs.
 Beware, these may not be up-to-date with the latest available software on the respective system,
 as we do not have continuous access to all of these.
 
+General Notes on Using CPUs
+---------------------------
+
+On CPU systems we strongly recommend using MPI + OpenMP parallelization.
+It requires building PIConGPU with the OpenMP 2 backend.
+Additionally it is recommended to add an option for target architecture, for example, ``pic-build -b omp2b:znver3`` for AMD Zen3 CPUs.
+When building on a compute node or a same-architecture node, one could use ``-b omp2b:native`` instead.
+The default value for option ``-b`` can be set with environment variable ``$PIC_BACKEND`` in the profile.
+
+With respect to selecting an optimal MPI + OpenMP configuration please refer to documentation of your system.
+As a reasonable default strategy, we recommend running an MPI rank per NUMA node, using 1 or 2 OpenMP threads per core depending on simultaneous multithreading being enabled, and binding threads to cores through affinity settings.
+This approach is used, for example, in the ``defq`` partition of Hemera as shown below.
+
+The properties of OpenMP parallelization, such as number of threads used, are controlled via OpenMP environment variables.
+In particular, the number of OpenMP threads to be used (per MPI rank) can be set via ``$OMP_NUM_THREADS``.
+Beware that task launch wrappers used on your system may effectively override this setting.
+Particularly, a few systems require running PIConGPU with ``mpirun --bind-to none`` in order to properly use all CPU cores.
+
+For setting thread affinity, we provide a helper wrapper ``cpuNumaStarter.sh`` that should be applicable to most systems.
 
 Your Workstation
 ----------------
