@@ -36,11 +36,14 @@
 
 #include <boost/filesystem.hpp>
 
+#include <chrono>
+#include <condition_variable>
 #include <csignal>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
 
 
@@ -77,6 +80,12 @@ namespace pmacc
 
         ~SimulationHelper() override
         {
+            // notify all concurrent threads to exit
+            exitConcurrentThreads.notify_all();
+            // wait for time triggered checkpoint thread
+            if(checkpointTimeThread.joinable())
+                checkpointTimeThread.join();
+
             tSimulation.toggleEnd();
             if(output)
             {
@@ -149,7 +158,7 @@ namespace pmacc
         virtual void dumpOneStep(uint32_t currentStep)
         {
             /* trigger checkpoint notification */
-            if(!checkpointPeriod.empty() && pluginSystem::containsStep(seqCheckpointPeriod, currentStep))
+            if(pluginSystem::containsStep(seqCheckpointPeriod, currentStep))
             {
                 /* first synchronize: if something failed, we can spare the time
                  * for the checkpoint writing */
@@ -227,6 +236,22 @@ namespace pmacc
 
             // Install a signal handler
             signal::activate();
+
+            // register concurrent thread to perform checkpointing periodically after a user defined time
+            if(checkpointPeriodMinutes != 0)
+                checkpointTimeThread = std::thread(
+                    [&]()
+                    {
+                        std::mutex mutex;
+                        std::unique_lock<std::mutex> lk(mutex);
+                        while(exitConcurrentThreads.wait_until(
+                                  lk,
+                                  std::chrono::system_clock::now() + std::chrono::minutes(checkpointPeriodMinutes))
+                              == std::cv_status::timeout)
+                        {
+                            signal::detail::setCreateCheckpoint(1);
+                        }
+                    });
 
             init();
 
@@ -331,7 +356,9 @@ namespace pmacc
                 ("checkpoint.restart.step", po::value<int32_t>(&restartStep),
                  "Checkpoint step to restart from")
                 ("checkpoint.period", po::value<std::string>(&checkpointPeriod),
-                 "Period for checkpoint creation")
+                 "Period for checkpoint creation [interval(s) based on steps]")
+                ("checkpoint.timePeriod", po::value<std::uint64_t>(&checkpointPeriodMinutes),
+                 "Time periodic checkpoint creation [period in minutes]")
                 ("checkpoint.directory", po::value<std::string>(&checkpointDirectory)->default_value(checkpointDirectory),
                  "Directory for checkpoints")
                 ("author", po::value<std::string>(&author)->default_value(std::string("")),
@@ -379,11 +406,20 @@ namespace pmacc
          *                 initial step to runSteps */
         uint32_t softRestarts;
 
-        /* period for checkpoint creation */
+        /* period for checkpoint creation [interval(s) based on steps]*/
         std::string checkpointPeriod;
 
         /* checkpoint intervals */
         SeqOfTimeSlices seqCheckpointPeriod;
+
+        /* period for checkpoint creation [period in minutes]
+         * Zero is disabling time depended checkpointing.
+         */
+        std::uint64_t checkpointPeriodMinutes = 0u;
+        std::thread checkpointTimeThread;
+
+        // conditional variable to notify all concurrent threads and signal exit of the simulation
+        std::condition_variable exitConcurrentThreads;
 
         /* common directory for checkpoints */
         std::string checkpointDirectory;
