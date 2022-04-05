@@ -50,6 +50,8 @@
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/vector.hpp>
 
+#include <algorithm>
+
 
 namespace picongpu
 {
@@ -493,7 +495,10 @@ namespace picongpu
                         ds.options = params->jsonMatcher->get(basename + "/particlePatches/extent/" + name_lookup[d]);
                         extent_x.resetDataset(ds);
 
-                        offset_x.store<index_t>(mpiRank, particleOffset[d]);
+                        // particleOffset[d] is allowed to be negative for the first GPU
+                        using OffsetType = decltype(particleOffset[d]);
+                        auto const patchParticleOffset = std::max(static_cast<OffsetType>(0), particleOffset[d]);
+                        offset_x.store<index_t>(mpiRank, patchParticleOffset);
                         extent_x.store<index_t>(mpiRank, patchExtent[d]);
                     }
 
