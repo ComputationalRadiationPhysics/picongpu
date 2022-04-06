@@ -479,10 +479,10 @@ namespace picongpu
                         offsetMinBorder[axis] = absorberThickness(axis, 0) + GAP_FROM_ABSORBER[axis][0];
                         offsetMaxBorder[axis] = absorberThickness(axis, 1) + GAP_FROM_ABSORBER[axis][1];
                     }
-                    hasMinProfile[0] = !std::is_same_v<XMin, profiles::None>;
-                    hasMinProfile[1] = !std::is_same_v<YMin, profiles::None>;
-                    if(simDim == 3)
-                        hasMinProfile[2] = !std::is_same_v<ZMin, profiles::None>;
+                    hasMinProfile[0] = !std::is_same_v<XMinProfile, profiles::None>;
+                    hasMinProfile[1] = !std::is_same_v<YMinProfile, profiles::None>;
+                    if constexpr(simDim == 3)
+                        hasMinProfile[2] = !std::is_same_v<ZMinProfile, profiles::None>;
                 }
 
                 /** Apply contribution of the incident B field to the E field update by one time step
@@ -494,9 +494,9 @@ namespace picongpu
                  */
                 void updateE(float_X const sourceTimeIteration)
                 {
-                    updateE<0, XMin, XMax>(sourceTimeIteration);
-                    updateE<1, YMin, YMax>(sourceTimeIteration);
-                    updateE<2, ZMin, ZMax>(sourceTimeIteration);
+                    updateE<0, XMinProfile, XMaxProfile>(sourceTimeIteration);
+                    updateE<1, YMinProfile, YMaxProfile>(sourceTimeIteration);
+                    updateE<2, ZMinProfile, ZMaxProfile>(sourceTimeIteration);
                 }
 
                 /** Apply contribution of the incident E field to the B field update by half a time step
@@ -511,9 +511,9 @@ namespace picongpu
                  */
                 void updateBHalf(float_X const sourceTimeIteration)
                 {
-                    updateBHalf<0, XMin, XMax>(sourceTimeIteration);
-                    updateBHalf<1, YMin, YMax>(sourceTimeIteration);
-                    updateBHalf<2, ZMin, ZMax>(sourceTimeIteration);
+                    updateBHalf<0, XMinProfile, XMaxProfile>(sourceTimeIteration);
+                    updateBHalf<1, YMinProfile, YMaxProfile>(sourceTimeIteration);
+                    updateBHalf<2, ZMinProfile, ZMaxProfile>(sourceTimeIteration);
                 }
 
             private:
@@ -536,11 +536,11 @@ namespace picongpu
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrementIteration = 1.0_X;
-                    using FunctorIncidentBMin = FunctorIncidentB<T_MinProfile, T_axis, 1>;
+                    using FunctorIncidentBMin = detail::FunctorIncidentB<T_MinProfile, T_axis, 1>;
                     using UpdateMin = typename detail::UpdateE<FunctorIncidentBMin>;
                     UpdateMin{}(parameters);
                     parameters.direction = -1.0_X;
-                    using FunctorIncidentBMax = FunctorIncidentB<T_MaxProfile, T_axis, -1>;
+                    using FunctorIncidentBMax = detail::FunctorIncidentB<T_MaxProfile, T_axis, -1>;
                     using UpdateMax = typename detail::UpdateE<FunctorIncidentBMax>;
                     UpdateMax{}(parameters);
                 }
@@ -564,20 +564,30 @@ namespace picongpu
                     parameters.direction = 1.0_X;
                     parameters.sourceTimeIteration = sourceTimeIteration;
                     parameters.timeIncrementIteration = 0.5_X;
-                    using FunctorIncidentEMin = FunctorIncidentE<T_MinProfile, T_axis, 1>;
+                    using FunctorIncidentEMin = detail::FunctorIncidentE<T_MinProfile, T_axis, 1>;
                     using UpdateMin = typename detail::UpdateB<FunctorIncidentEMin>;
                     UpdateMin{}(parameters);
                     parameters.direction = -1.0_X;
-                    using FunctorIncidentEMax = FunctorIncidentE<T_MaxProfile, T_axis, -1>;
+                    using FunctorIncidentEMax = detail::FunctorIncidentE<T_MaxProfile, T_axis, -1>;
                     using UpdateMax = typename detail::UpdateB<FunctorIncidentEMax>;
                     UpdateMax{}(parameters);
                 }
 
-                //! ZMin profile to be used, shadows ZMin from .param on purpose to handle 2d and 3d uniformly
-                using ZMin = detail::ZMin;
+                /** Profiles to be used by implementation
+                 *
+                 * Make aliases to user-provided types for decoupling and uniformity of 2d and 3d cases
+                 *
+                 * @{
+                 */
 
-                //! ZMax profile to be used, shadows ZMax from .param on purpose to handle 2d and 3d uniformly
-                using ZMax = detail::ZMax;
+                using XMinProfile = XMin;
+                using XMaxProfile = XMax;
+                using YMinProfile = YMin;
+                using YMaxProfile = YMax;
+                using ZMinProfile = std::conditional_t<simDim == 3, ZMin, profiles::None>;
+                using ZMaxProfile = std::conditional_t<simDim == 3, ZMax, profiles::None>;
+
+                /** @} */
 
                 /** Offset of the Huygens surface from min border of the global domain
                  *

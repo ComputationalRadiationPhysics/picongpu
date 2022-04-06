@@ -117,21 +117,9 @@ namespace picongpu
             /** Make a profile with the user-provided functors defined above.
              *
              * The functors for incident field E and B must be consistent to each other.
-             * The profile can be used for XMin, XMax, etc.
+             * They also have to take into consideration which boundary the profile is applied to.
              */
             using MyProfile = profiles::Free<UserFunctorIncidentE, UserFunctorIncidentB>;
-
-            /* We can optionally define how to get the functors for MyProfile and given axis and direction.
-             * If we do not make a partial specialization, the template parameters of Free<> would be used.
-             * Note that it assumes the functors are already specialized for a particular direction, and the
-             * profile is used for this direction. This trait allows a more generic implementation when necessary.
-             */
-            template<uint32_t T_axis, int32_t T_direction>
-            struct GetFunctorIncidentE<MyProfile, T_axis, T_direction>
-            {
-                //! Use UserFunctorIncidentE to calculate incident E for any axis and direction
-                using type = UserFunctorIncidentE;
-            };
 
             /**@{*/
             //! Incident field profile types along each boundary, these 6 types (or aliases) are required.

@@ -45,34 +45,6 @@ namespace picongpu
                 struct Free;
 
             } // namespace profiles
-
-            /** Get type of incident field functor for the given profile type, axis and direction
-             *
-             * The resulting functor is set as ::type.
-             * By default forwards internal type FunctorIncidentE/FunctorIncidentB.
-             *
-             * These traits have to be specialized by a user for profiles::Free<> and particular template arguments
-             * when the same profile is used for multiple boundaries.
-             * Otherwise and for other incident field profiles no specialization is needed.
-             *
-             * @tparam T_Profile profile type
-             * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
-             * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the max
-             * boundary inwards)
-             *
-             * @{
-             */
-
-            /** Get functor for incident E values */
-            template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
-            struct GetFunctorIncidentE;
-
-            /** Get functor for incident B values */
-            template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
-            struct GetFunctorIncidentB;
-
-            /** @} */
-
         } // namespace incidentField
     } // namespace fields
 } // namespace picongpu
