@@ -250,7 +250,13 @@ namespace picongpu
 
                 if(validLocalSize != m_localDomainSize[dim])
                 {
-                    showMessage(dim, "Local grid size must fit the absorber.", m_localDomainSize[dim], validLocalSize);
+                    showMessage(
+                        dim,
+                        "Local grid size must fit the absorber.",
+                        m_localDomainSize[dim],
+                        validLocalSize,
+                        "\nWarning: the adjustment probably lead to domain fully or almost fully covered by absorber. "
+                        "Please check if this is an intended effect for your setup");
 
                     m_localDomainSize[dim] = validLocalSize;
                 }
@@ -351,8 +357,14 @@ namespace picongpu
          * @param msg problem description
          * @param currentSize current domain size in the given direction
          * @param updatedSize updated/corrected domain size for the given dimension
+         * @param postMsg optional postfix message
          */
-        void showMessage(size_t const dim, std::string const& msg, int const currentSize, int const updatedSize) const
+        void showMessage(
+            size_t const dim,
+            std::string const& msg,
+            int const currentSize,
+            int const updatedSize,
+            std::string postMsg = "") const
         {
             /**! lookup table to translate a dimension index into a name
              *
@@ -364,10 +376,10 @@ namespace picongpu
             if(m_validateOnly)
                 throw std::runtime_error(
                     std::string("Dimension ") + dimNames[dim] + ": " + msg + " Suggestion: set "
-                    + std::to_string(currentSize) + " to " + std::to_string(updatedSize));
+                    + std::to_string(currentSize) + " to " + std::to_string(updatedSize) + postMsg);
             else
                 std::cout << "Dimension " << dimNames[dim] << ": " << msg << " Auto adjust from " << currentSize
-                          << " to " << updatedSize << std::endl;
+                          << " to " << updatedSize << postMsg << std::endl;
         }
 
         DataSpace<simDim> m_globalDomainSize;
