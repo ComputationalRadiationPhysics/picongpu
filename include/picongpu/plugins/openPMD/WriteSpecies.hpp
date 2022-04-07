@@ -51,6 +51,7 @@
 #include <boost/mpl/vector.hpp>
 
 #include <algorithm>
+#include <type_traits> // std::remove_reference_t
 
 
 namespace picongpu
@@ -496,7 +497,7 @@ namespace picongpu
                         extent_x.resetDataset(ds);
 
                         // particleOffset[d] is allowed to be negative for the first GPU
-                        using OffsetType = decltype(particleOffset[d]);
+                        using OffsetType = std::remove_reference_t<decltype(particleOffset[d])>;
                         auto const patchParticleOffset = std::max(static_cast<OffsetType>(0), particleOffset[d]);
                         offset_x.store<index_t>(mpiRank, patchParticleOffset);
                         extent_x.store<index_t>(mpiRank, patchExtent[d]);
