@@ -24,15 +24,7 @@ namespace picongpu
 {
     namespace SI
     {
-        /** This setup is based on section 7.11.1 of
-         *  A. Taflove, S.C. Hagness. Computational Electrodynamics
-         *  The Finite-Difference Time-Domain Method. 3rd Edition.
-         *  The difference is we consider both 2D and 3D cases,
-         *  and grid size is increased due to our absorber being part of
-         *  the simulation area, not located outside of it as in the book.
-         */
-
-        constexpr float_64 CELL_SIZE_SI = 1.0e-3; // 1 mm
+        constexpr float_64 CELL_SIZE_SI = 0.5e-3; // 0.5 mm
 
         /** equals X
          *  unit: meter */
