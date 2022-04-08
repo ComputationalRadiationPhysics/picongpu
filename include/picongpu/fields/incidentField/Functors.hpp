@@ -83,6 +83,66 @@ namespace picongpu
                     return float3_X::create(0.0_X);
                 }
             };
+            namespace detail
+            {
+                /** Helper functor to calculate values of B from values of E using slowly varying envelope
+                 * approximation (SVEA) for the given axis and direction
+                 *
+                 * The functor follows FunctorIncidentFieldConcept and thus can be used as FunctorIncidentB.
+                 *
+                 * @tparam T_FunctorIncidentE functor for the incident E field, follows the interface of
+                 *                            FunctorIncidentFieldConcept (defined in Functors.hpp),
+                 *                            must have been applied for the same axis and direction
+                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
+                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
+                 * max boundary inwards)
+                 */
+                template<typename T_FunctorIncidentE, uint32_t T_axis, int32_t T_direction>
+                class ApproximateIncidentB : public T_FunctorIncidentE
+                {
+                public:
+                    //! Base class
+                    using Base = T_FunctorIncidentE;
+
+                    //! Relation between unitField for E and B: E = B * unitConversionBtoE
+                    static constexpr float_64 unitConversionBtoE = UNIT_EFIELD / UNIT_BFIELD;
+
+                    /** Create a functor on the host side
+                     *
+                     * @param unitField conversion factor from SI to internal units,
+                     *                  fieldB_internal = fieldB_SI / unitField
+                     */
+                    HINLINE ApproximateIncidentB(const float3_64 unitField) : Base(unitField * unitConversionBtoE)
+                    {
+                    }
+
+                    /** Calculate B value using SVEA
+                     *
+                     * The resulting value is calculated as B = cross(k, E) / c, where
+                     * k is pulse propagation direction vector defined by T_axis, T_direction
+                     * E is value returned by a base functor at the target location and time of resulting B
+                     *
+                     * @param totalCellIdx cell index in the total domain (including all moving window slides)
+                     * @param currentStep current time step index, note that it is fractional
+                     * @return incident field B value in internal units
+                     */
+                    HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
+                    {
+                        // Get corresponding E value, it is already in internal units
+                        auto const eValue = Base::operator()(totalCellIdx, currentStep);
+                        // To avoid making awkward type casts and calling cross product, we express it manually as
+                        // rotation and sign change
+                        constexpr float_X signAndNormalization = static_cast<float_X>(T_direction) / SPEED_OF_LIGHT;
+                        constexpr uint32_t dir0 = T_axis;
+                        constexpr uint32_t dir1 = (dir0 + 1) % 3;
+                        constexpr uint32_t dir2 = (dir0 + 2) % 3;
+                        auto bValue = float3_X::create(0.0_X);
+                        bValue[dir1] = -eValue[dir2] * signAndNormalization;
+                        bValue[dir2] = eValue[dir1] * signAndNormalization;
+                        return bValue;
+                    }
+                };
+            } // namespace detail
         } // namespace incidentField
     } // namespace fields
 } // namespace picongpu
