@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+#include <cstdint>
 
 namespace picongpu
 {
@@ -82,7 +83,6 @@ namespace picongpu
                     return float3_X::create(0.0_X);
                 }
             };
-
         } // namespace incidentField
     } // namespace fields
 } // namespace picongpu

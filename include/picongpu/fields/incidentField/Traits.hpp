@@ -21,8 +21,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/incidentField/profiles/profiles.hpp"
-
 #include <cstdint>
 
 namespace picongpu
@@ -36,9 +34,8 @@ namespace picongpu
                 /** Get type of incident field functor for the given profile type, axis and direction
                  *
                  * The resulting functor is set as ::type.
-                 * By default forwards internal type FunctorIncidentE/FunctorIncidentB.
-                 *
-                 * These traits have to be specialized by all non-trivial profiles.
+                 * These traits have to be specialized by all profiles.
+                 * The traits essentially constitute applying of profile to a particular boundary.
                  *
                  * @tparam T_Profile profile type
                  * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
@@ -50,17 +47,11 @@ namespace picongpu
 
                 //! Get functor for incident E values
                 template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
-                struct GetFunctorIncidentE
-                {
-                    using type = typename T_Profile::FunctorIncidentE;
-                };
+                struct GetFunctorIncidentE;
 
                 //! Get functor for incident B values
                 template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
-                struct GetFunctorIncidentB
-                {
-                    using type = typename T_Profile::FunctorIncidentB;
-                };
+                struct GetFunctorIncidentB;
 
                 /** @} */
 
