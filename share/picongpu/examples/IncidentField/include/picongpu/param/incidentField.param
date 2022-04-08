@@ -132,12 +132,12 @@ namespace picongpu
                 /* We use this to calculate your SI input back to our unit system */
                 PMACC_ALIGN(m_unitField, const float3_64);
 
-                /** Create a functor
+                /** Create a functor on the host side
                  *
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE FunctorXMinIncidentE(const float3_64 unitField) : m_unitField(unitField)
+                HINLINE FunctorXMinIncidentE(const float3_64 unitField) : m_unitField(unitField)
                 {
                 }
 
@@ -163,12 +163,12 @@ namespace picongpu
                 /* We use this to calculate your SI input back to our unit system */
                 PMACC_ALIGN(m_unitField, const float3_64);
 
-                /** Create a functor
+                /** Create a functor on the host side
                  *
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE FunctorXMinIncidentB(const float3_64 unitField) : m_unitField(unitField)
+                HINLINE FunctorXMinIncidentB(const float3_64 unitField) : m_unitField(unitField)
                 {
                 }
 
@@ -194,12 +194,12 @@ namespace picongpu
                 /* We use this to calculate your SI input back to our unit system */
                 PMACC_ALIGN(m_unitField, const float3_64);
 
-                /** Create a functor
+                /** Create a functor on the host side
                  *
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE FunctorYMaxIncidentE(const float3_64 unitField) : m_unitField(unitField)
+                HINLINE FunctorYMaxIncidentE(const float3_64 unitField) : m_unitField(unitField)
                 {
                 }
 
@@ -225,12 +225,12 @@ namespace picongpu
                 /* We use this to calculate your SI input back to our unit system */
                 PMACC_ALIGN(m_unitField, const float3_64);
 
-                /** Create a functor
+                /** Create a functor on the host side
                  *
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE FunctorYMaxIncidentB(const float3_64 unitField) : m_unitField(unitField)
+                HINLINE FunctorYMaxIncidentB(const float3_64 unitField) : m_unitField(unitField)
                 {
                 }
 

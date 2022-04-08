@@ -31,12 +31,19 @@ namespace picongpu
             //! Concept defining interface of incident field functors for E and B
             struct FunctorIncidentFieldConcept
             {
-                /** Create a functor
+                /** Create a functor on the host side
+                 *
+                 * Since it is host-only, one could access global simulation data like Environment<simDim> and objects
+                 * controlled by DataConnector. Note that it is not possible in operator(), but relevant data can be
+                 * saved in members on this class.
                  *
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE FunctorIncidentFieldConcept(float3_64 unitField);
+                HINLINE FunctorIncidentFieldConcept(float3_64 unitField);
+
+                //! Functor must be copiable to device by value
+                // HDINLINE FunctorIncidentFieldConcept(const FunctorIncidentFieldConcept& other) = default;
 
                 /** Return incident field for the given position and time.
                  *
@@ -54,12 +61,12 @@ namespace picongpu
             //! Helper incident field functor always returning 0
             struct ZeroFunctor
             {
-                /** Create a functor
+                /** Create a functor on the host side
                  *
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE ZeroFunctor(float3_64 unitField)
+                HINLINE ZeroFunctor(float3_64 unitField)
                 {
                 }
 
@@ -75,7 +82,6 @@ namespace picongpu
                     return float3_X::create(0.0_X);
                 }
             };
-
 
         } // namespace incidentField
     } // namespace fields
