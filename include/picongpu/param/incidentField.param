@@ -19,12 +19,31 @@
 
 /** @file incidentField.param
  *
- * Load incident field parameters
+ * Configure incident field profile and gap between Huygence surface and absorber for each boundary.
+ *
+ * Available profiles:
+ *  - profiles::None   : no incident field
+ *  - profiles::Free<> : custom profile with user-provided functors to calculate incident E and B
+ *
+ * In the end, this file needs to define `XMin`, `XMax`, `YMax`, `YMax`, `ZMin`, `ZMax` (the latter two can be skipped
+ * in 2d) type aliases in namespace `picongpu::fields::incidentField`. It also has to define constexpr array
+ * `GAP_FROM_ABSORBER` that controls position of the generating surface relative to field absorber. For example:
+ *
+ * @code{.cpp}
+ * using XMin = profiles::Free< UserFunctorIncidentE, UserFunctorIncidentB >;
+ * using XMax = profiles::None;
+ * using YMin = profiles::None;
+ * using YMax = profiles::Free< AnotherUserFunctorIncidentE, AnotherUserFunctorIncidentB >;
+ * using ZMin = profiles::None;
+ * using ZMax = profiles::None;
+ *
+ * constexpr uint32_t GAP_FROM_ABSORBER[3][2] = { {0, 0}, {0, 0}, {0, 0} };
+ * @endcode
  */
 
 #pragma once
 
-#include "picongpu/fields/incidentField/Profiles.def"
+#include "picongpu/fields/incidentField/profiles/profiles.def"
 
 
 namespace picongpu
@@ -33,9 +52,9 @@ namespace picongpu
     {
         namespace incidentField
         {
-            /** Functor to set values of incident E field
+            /** User-defined functor to set values of incident E field
              */
-            class FunctorIncidentE
+            class UserFunctorIncidentE
             {
             public:
                 /* We use this to calculate your SI input back to our unit system */
@@ -46,7 +65,7 @@ namespace picongpu
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE FunctorIncidentE(const float3_64 unitField) : m_unitField(unitField)
+                HDINLINE UserFunctorIncidentE(const float3_64 unitField) : m_unitField(unitField)
                 {
                 }
 
@@ -64,9 +83,9 @@ namespace picongpu
                 }
             };
 
-            /** Functor to set values of incident B field
+            /** User-defined functor to set values of incident B field
              */
-            class FunctorIncidentB
+            class UserFunctorIncidentB
             {
             public:
                 /* We use this to calculate your SI input back to our unit system */
@@ -77,7 +96,7 @@ namespace picongpu
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE FunctorIncidentB(const float3_64 unitField) : m_unitField(unitField)
+                HDINLINE UserFunctorIncidentB(const float3_64 unitField) : m_unitField(unitField)
                 {
                 }
 
@@ -95,23 +114,21 @@ namespace picongpu
                 }
             };
 
-            /** Source of incident E and B fields.
+            /** Make a profile with the user-provided functors defined above.
              *
-             * Each source type combines functors for incident field E and B, which must be consistent to each other.
+             * The functors for incident field E and B must be consistent to each other.
+             * They also have to take into consideration which boundary the profile is applied to.
              */
-            using MySource = Source<FunctorIncidentE, FunctorIncidentB>;
+            using MyProfile = profiles::Free<UserFunctorIncidentE, UserFunctorIncidentB>;
 
             /**@{*/
-            /** Incident field source types along each boundary, these 6 types (or aliases) are required.
-             *
-             * Each type has to be either Source<> or None.
-             */
-            using XMin = None;
-            using XMax = None;
-            using YMin = None;
-            using YMax = None;
-            using ZMin = None;
-            using ZMax = None;
+            //! Incident field profile types along each boundary, these 6 types (or aliases) are required.
+            using XMin = profiles::None;
+            using XMax = profiles::None;
+            using YMin = profiles::None;
+            using YMax = profiles::None;
+            using ZMin = profiles::None;
+            using ZMax = profiles::None;
             /**@}*/
 
             /** Gap of the Huygence surface from absorber

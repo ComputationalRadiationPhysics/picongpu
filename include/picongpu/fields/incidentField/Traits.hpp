@@ -21,8 +21,9 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "picongpu/fields/incidentField/Profiles.hpp"
+#include "picongpu/fields/incidentField/profiles/profiles.hpp"
 
+#include <cstdint>
 
 namespace picongpu
 {
@@ -32,51 +33,59 @@ namespace picongpu
         {
             namespace detail
             {
-                /** Get ZMin incident field source type
+                /** Get type of incident field functor for the given profile type, axis and direction
                  *
-                 * The resulting field source is set as ::type.
-                 * Implementation for 3d returns ZMin from incidentField.param.
+                 * The resulting functor is set as ::type.
+                 * By default forwards internal type FunctorIncidentE/FunctorIncidentB.
                  *
-                 * @tparam T_is3d if the simulation is 3d or not
+                 * These traits have to be specialized by all non-trivial profiles.
+                 *
+                 * @tparam T_Profile profile type
+                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
+                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
+                 * max boundary inwards)
+                 *
+                 * @{
                  */
-                template<bool T_is3d = true>
-                struct GetZMin
+
+                //! Get functor for incident E values
+                template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+                struct GetFunctorIncidentE
                 {
-                    using type = ZMin;
+                    using type = typename T_Profile::FunctorIncidentE;
                 };
 
-                //! Get None incident field source type as ZMin in the non-3d case
-                template<>
-                struct GetZMin<false>
+                //! Get functor for incident B values
+                template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+                struct GetFunctorIncidentB
                 {
-                    using type = None;
+                    using type = typename T_Profile::FunctorIncidentB;
                 };
 
-                /** Get ZMax incident field source type
+                /** @} */
+
+                /** Type of incident E/B functor for the given profile type
                  *
-                 * The resulting field source is set as ::type.
-                 * Implementation for 3d returns ZMax from incidentField.param.
+                 * These are helper aliases to wrap GetFunctorIncidentE/B.
+                 * The latter present customization points.
                  *
-                 * @tparam T_is3d is the simulation 3d
+                 * @tparam T_Profile profile type
+                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
+                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
+                 * max boundary inwards)
+                 *
+                 * @{
                  */
-                template<bool T_is3d = true>
-                struct GetZMax
-                {
-                    using type = ZMax;
-                };
 
-                //! Get None incident field source type as ZMax in the non-3d case
-                template<>
-                struct GetZMax<false>
-                {
-                    using type = None;
-                };
+                //! Functor for incident E values
+                template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+                using FunctorIncidentE = typename GetFunctorIncidentE<T_Profile, T_axis, T_direction>::type;
 
-                //! ZMin incident field type alias adjusted for dimensionality
-                using ZMin = GetZMin<simDim == 3>::type;
+                //! Functor for incident B values
+                template<typename T_Profile, uint32_t T_axis, int32_t T_direction>
+                using FunctorIncidentB = typename GetFunctorIncidentB<T_Profile, T_axis, T_direction>::type;
 
-                //! ZMax incident field type alias adjusted for dimensionality
-                using ZMax = GetZMax<simDim == 3>::type;
+                /** @} */
 
             } // namespace detail
         } // namespace incidentField

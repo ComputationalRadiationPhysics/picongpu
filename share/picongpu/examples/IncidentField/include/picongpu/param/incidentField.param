@@ -19,12 +19,31 @@
 
 /** @file incidentField.param
  *
- * Load incident field parameters
+ * Configure incident field profile and gap between Huygence surface and absorber for each boundary.
+ *
+ * Available profiles:
+ *  - profiles::None   : no incident field
+ *  - profiles::Free<> : custom profile with user-provided functors to calculate incident E and B
+ *
+ * In the end, this file needs to define `XMin`, `XMax`, `YMax`, `YMax`, `ZMin`, `ZMax` (the latter two can be skipped
+ * in 2d) type aliases in namespace `picongpu::fields::incidentField`. It also has to define constexpr array
+ * `GAP_FROM_ABSORBER` that controls position of the generating surface relative to field absorber. For example:
+ *
+ * @code{.cpp}
+ * using XMin = profiles::Free< UserFunctorIncidentE, UserFunctorIncidentB >;
+ * using XMax = profiles::None;
+ * using YMin = profiles::None;
+ * using YMax = profiles::Free< AnotherUserFunctorIncidentE, AnotherUserFunctorIncidentB >;
+ * using ZMin = profiles::None;
+ * using ZMax = profiles::None;
+ *
+ * constexpr uint32_t GAP_FROM_ABSORBER[3][2] = { {0, 0}, {0, 0}, {0, 0} };
+ * @endcode
  */
 
 #pragma once
 
-#include "picongpu/fields/incidentField/Profiles.def"
+#include "picongpu/fields/incidentField/profiles/profiles.def"
 
 
 namespace picongpu
@@ -198,29 +217,27 @@ namespace picongpu
 
             /** Source of incident E and B fields.
              *
-             * Each source type combines functors for incident field E and B, which must be consistent to each other.
+             * Used functors must be consistent to each other.
              */
-            using MyXMinSource = Source<FunctorXMinIncidentE, FunctorXMinIncidentB>;
+            using MyXMinProfile = profiles::Free<FunctorXMinIncidentE, FunctorXMinIncidentB>;
 
             /** Another source of incident E and B fields.
              *
-             * Each source type combines functors for incident field E and B, which must be consistent to each other.
+             * Used functors must be consistent to each other.
              */
-            using MyYMaxSource = Source<FunctorYMaxIncidentE, FunctorYMaxIncidentB>;
+            using MyYMaxProfile = profiles::Free<FunctorYMaxIncidentE, FunctorYMaxIncidentB>;
 
             /**@{*/
-            /** Incident field source types along each boundary, these 6 types (or aliases) are required.
-             *
-             * Each type has to be either Source<> or None.
+            /** Incident field profile types along each boundary, these 6 types (or aliases) are required.
              *
              * Here we generate a plane wave from the X min border.
              */
-            using XMin = MyXMinSource;
-            using XMax = None;
-            using YMin = None;
-            using YMax = MyYMaxSource;
-            using ZMin = None;
-            using ZMax = None;
+            using XMin = MyXMinProfile;
+            using XMax = profiles::None;
+            using YMin = profiles::None;
+            using YMax = MyYMaxProfile;
+            using ZMin = profiles::None;
+            using ZMax = profiles::None;
             /**@}*/
 
             /** Gap of the Huygence surface from absorber

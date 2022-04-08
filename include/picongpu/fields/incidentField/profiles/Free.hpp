@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Sergei Bastrakov
+/* Copyright 2022 Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -19,6 +19,10 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/fields/incidentField/profiles/Free.def"
+
 
 namespace picongpu
 {
@@ -26,19 +30,18 @@ namespace picongpu
     {
         namespace incidentField
         {
-            //! No incident field at a boundary
-            struct None;
+            namespace profiles
+            {
+                template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
+                struct Free
+                {
+                    // Incident E functor type, hook for FunctorIncidentE trait
+                    using FunctorIncidentE = T_FunctorIncidentE;
 
-            /** Incident field source at a boundary
-             *
-             * @tparam T_FunctorIncidentE functor for the incident E field, follows the interface of
-             *                            FunctorIncidentFieldConcept (defined in .hpp file)
-             * @tparam T_FunctorIncidentB functor for the incident B field, follows the interface of
-             *                            FunctorIncidentFieldConcept (defined in .hpp file)
-             */
-            template<typename T_FunctorIncidentE, typename T_FunctorIncidentB>
-            struct Source;
-
+                    // Incident B functor type, hook for FunctorIncidentE trait
+                    using FunctorIncidentB = T_FunctorIncidentB;
+                };
+            } // namespace profiles
         } // namespace incidentField
     } // namespace fields
 } // namespace picongpu
