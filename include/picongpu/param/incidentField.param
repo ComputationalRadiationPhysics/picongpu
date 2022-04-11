@@ -30,7 +30,7 @@
  * `GAP_FROM_ABSORBER` that controls position of the generating surface relative to field absorber. For example:
  *
  * @code{.cpp}
- * using XMin = profiles::Free< UserFunctorIncidentE, UserFunctorIncidentB >;
+ * using XMin = profiles::Free< UserFunctorIncidentE >;
  * using XMax = profiles::None;
  * using YMin = profiles::None;
  * using YMax = profiles::Free< AnotherUserFunctorIncidentE, AnotherUserFunctorIncidentB >;
@@ -118,6 +118,8 @@ namespace picongpu
              *
              * The functors for incident field E and B must be consistent to each other.
              * They also have to take into consideration which boundary the profile is applied to.
+             * The second template parameter may be left with the default value, then B field will be calculated
+             * from E using the slowly varying envelope approximation (SVEA).
              */
             using MyProfile = profiles::Free<UserFunctorIncidentE, UserFunctorIncidentB>;
 
