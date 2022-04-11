@@ -31,12 +31,13 @@ The plugin is available as soon as the :ref:`openPMD API library <install-depend
 .cfg file
 ^^^^^^^^^
 
-You can use ``--checkpoint.period`` to specify the output period of the created checkpoints.
+You can use ``--checkpoint.period`` or `--checkpoint.timePeriod` to enable checkpointing.
 
 ============================================= ======================================================================================
 PIConGPU command line option                  Description
 ============================================= ======================================================================================
 ``--checkpoint.period <N>``                   Create checkpoints every N steps.
+``--checkpoint.timePeriod <M>``               Create checkpoints every M minutes.
 ``--checkpoint.backend <IO-backend>``         IO-backend used to create the checkpoint.
 ``--checkpoint.directory <string>``           Directory inside ``simOutput`` for writing checkpoints.
                                               Default is ``checkpoints``.
