@@ -483,6 +483,7 @@ namespace picongpu
                     hasMinProfile[1] = !std::is_same_v<YMinProfile, profiles::None>;
                     if constexpr(simDim == 3)
                         hasMinProfile[2] = !std::is_same_v<ZMinProfile, profiles::None>;
+                    checkVolume();
                 }
 
                 /** Apply contribution of the incident B field to the E field update by one time step
@@ -517,6 +518,30 @@ namespace picongpu
                 }
 
             private:
+                //! Check if volume bounded by the Huygens surface is positive, print a warning otherwise
+                void checkVolume() const
+                {
+                    // Do the check once as its result is always same
+                    static bool checkDone = false;
+                    if(checkDone)
+                        return;
+                    checkDone = true;
+                    bool isPrinting = (Environment<simDim>::get().GridController().getGlobalRank() == 0);
+                    if(isPrinting)
+                    {
+                        auto const& subGrid = Environment<simDim>::get().SubGrid();
+                        auto const totalDomainSize = subGrid.getTotalDomain().size;
+                        for(uint32_t axis = 0; axis < simDim; axis++)
+                            if(offsetMinBorder[axis] + offsetMaxBorder[axis] + 2 > totalDomainSize[axis])
+                            {
+                                log<picLog::PHYSICS>(
+                                    "Warning: volume bounded by the Huygens surface is zero, no incident "
+                                    "field will be generated\n");
+                                break;
+                            }
+                    }
+                }
+
                 /** Apply contribution of the incident B field to the E field update by one time step
                  *
                  * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
