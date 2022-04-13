@@ -27,7 +27,7 @@
  *
  * In the end, this file needs to define `XMin`, `XMax`, `YMax`, `YMax`, `ZMin`, `ZMax` (the latter two can be skipped
  * in 2d) type aliases in namespace `picongpu::fields::incidentField`. It also has to define constexpr array
- * `GAP_FROM_ABSORBER` that controls position of the generating surface relative to field absorber. For example:
+ * `OFFSET` that controls inward offset of the generating surface relative to global domain. For example:
  *
  * @code{.cpp}
  * using XMin = profiles::Free< UserFunctorIncidentE >;
@@ -37,7 +37,7 @@
  * using ZMin = profiles::None;
  * using ZMax = profiles::None;
  *
- * constexpr uint32_t GAP_FROM_ABSORBER[3][2] = { {0, 0}, {0, 0}, {0, 0} };
+ * constexpr uint32_t OFFSET[3][2] = { {16, 16}, {16, 16}, {16, 16} };
  * @endcode
  */
 
@@ -245,15 +245,19 @@ namespace picongpu
             using ZMax = profiles::None;
             /**@}*/
 
-            /** Gap of the Huygence surface from absorber
+            /** Inward offset of the Huygens surface from global domain boundaries
              *
-             * The gap is in cells, counted from the corrresponding boundary in the normal direction pointing inwards.
-             * It is similar to specifying absorber cells, just this layer is further inside.
+             * The offset is in cells, counted from the corrresponding boundary inwards in the normal direction.
+             * This array is logically similar to specifying absorber thickness.
+             * The offset for the boundary must be at least absorber_thickness + (FDTD_spatial_order / 2 - 1).
+             * However beware of setting offset = absorber_thickness + const, as then changing absorber parameters
+             * may also affect laser positioning.
+             * When all used profiles are None, the check for OFFSET validity is skipped.
              */
-            constexpr uint32_t GAP_FROM_ABSORBER[3][2] = {
-                {0, 0}, // x direction [negative, positive]
-                {0, 0}, // y direction [negative, positive]
-                {0, 0} // z direction [negative, positive]
+            constexpr uint32_t OFFSET[3][2] = {
+                {16, 16}, // x direction [negative, positive]
+                {16, 16}, // y direction [negative, positive]
+                {16, 16} // z direction [negative, positive]
             };
 
         } // namespace incidentField

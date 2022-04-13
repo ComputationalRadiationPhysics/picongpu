@@ -128,29 +128,29 @@ namespace picongpu
                         exPosition[0] == 0.5_X,
                         "incident field profile does not support the used Yee grid layout");
 
-                    // Ensure gap along the current axis is large enough that we don't touch the absorber area
+                    // Ensure offset along the current axis is large enough that we don't touch the absorber area
+                    auto const axis = updateFunctor.axis;
                     auto const margin = static_cast<int32_t>(updateFunctor.margin);
-                    if((updateFunctor.direction > 0) && (GAP_FROM_ABSORBER[updateFunctor.axis][0] + 1 < margin))
+                    // Index of the boundary in 2d arrays like absorber thickness
+                    auto const boundaryIdx = (updateFunctor.direction > 0) ? 0 : 1;
+                    auto const& absorber = fields::absorber::Absorber::get();
+                    auto const absorberThickness = absorber.getGlobalThickness()(axis, boundaryIdx);
+                    auto const minAllowedOffset = absorberThickness + margin - 1;
+                    if(OFFSET[axis][boundaryIdx] < minAllowedOffset)
                         throw std::runtime_error(
-                            "Incident field GAP_FROM_ABSORBER[" + std::to_string(updateFunctor.axis)
-                            + "][0] is too small for used field solver, must be at least "
-                            + std::to_string(margin - 1));
-                    if((updateFunctor.direction < 0) && (GAP_FROM_ABSORBER[updateFunctor.axis][1] + 1 < margin))
-                        throw std::runtime_error(
-                            "Incident field GAP_FROM_ABSORBER[" + std::to_string(updateFunctor.axis)
-                            + "][1] is too small for used field solver, must be at least "
-                            + std::to_string(margin - 1));
+                            "Incident field OFFSET[" + std::to_string(axis) + "][" + std::to_string(boundaryIdx)
+                            + "] is too small for used field solver and absorber, must be at least "
+                            + std::to_string(minAllowedOffset));
 
                     /* Current implementation requires all updated values (along the active axis) to be inside the same
                      * local domain
                      */
                     auto const& subGrid = Environment<simDim>::get().SubGrid();
-                    auto const localDomainSize = subGrid.getLocalDomain().size[updateFunctor.axis];
-                    if((beginLocalUserIdx[updateFunctor.axis] + 1 < margin)
-                       || (beginLocalUserIdx[updateFunctor.axis] + margin > localDomainSize))
+                    auto const localDomainSize = subGrid.getLocalDomain().size[axis];
+                    if((beginLocalUserIdx[axis] + 1 < margin) || (beginLocalUserIdx[axis] + margin > localDomainSize))
                         throw std::runtime_error(
                             "The Huygens surface for incident field generation is too close to a local domain border."
-                            "Adjust GAP_FROM_ABSORBER or grid distribution over gpus.");
+                            "Adjust OFFSET or grid distribution over gpus.");
                 }
 
                 /** Update a field with the given incidentField normally to the given axis
@@ -469,15 +469,13 @@ namespace picongpu
                  */
                 Solver(MappingDesc const cellDescription) : cellDescription(cellDescription)
                 {
-                    /* Compute offsets from global domain borders, without guards.
+                    /* Read offsets from global domain borders, without guards.
                      * These can end up being outside of the local domain, it is handled later.
                      */
-                    auto const& absorber = fields::absorber::Absorber::get();
-                    absorber::Thickness absorberThickness = absorber.getGlobalThickness();
                     for(uint32_t axis = 0u; axis < simDim; ++axis)
                     {
-                        offsetMinBorder[axis] = absorberThickness(axis, 0) + GAP_FROM_ABSORBER[axis][0];
-                        offsetMaxBorder[axis] = absorberThickness(axis, 1) + GAP_FROM_ABSORBER[axis][1];
+                        offsetMinBorder[axis] = OFFSET[axis][0];
+                        offsetMaxBorder[axis] = OFFSET[axis][1];
                     }
                     hasMinProfile[0] = !std::is_same_v<XMinProfile, profiles::None>;
                     hasMinProfile[1] = !std::is_same_v<YMinProfile, profiles::None>;
