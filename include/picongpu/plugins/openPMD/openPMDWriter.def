@@ -100,19 +100,16 @@ namespace picongpu
 
             WriteSpeciesStrategy strategy = WriteSpeciesStrategy::ADIOS;
 
-            pmacc::math::UInt64<simDim> fieldsSizeDims;
-            pmacc::math::UInt64<simDim> fieldsGlobalSizeDims;
-            pmacc::math::UInt64<simDim> fieldsOffsetDims;
-
-            GridLayout<simDim> gridLayout;
             MappingDesc* cellDescription;
 
             std::vector<char> fieldBuffer; /* temp. buffer for fields */
 
             Window window; /* window describing the volume to be dumped */
 
-            DataSpace<simDim> localWindowToDomainOffset; /** offset from local moving
-                                                            window to local domain */
+            /** Offset from local moving window to local domain.
+             *  Value for all components will always be >= 0.
+             */
+            DataSpace<simDim> localWindowToDomainOffset;
 
             std::vector<double> times;
 

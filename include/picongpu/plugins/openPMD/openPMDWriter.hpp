@@ -537,7 +537,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     if(traits::IsFieldOutputOptional<T_Field>::value && !dc.hasId(T_Field::getName()))
                         return;
                     auto field = dc.get<T_Field>(T_Field::getName());
-                    params->gridLayout = field->getGridLayout();
                     bool const isDomainBound = traits::IsFieldDomainBound<T_Field>::value;
 
                     const traits::FieldPosition<fields::CellType, T_Field> fieldPos;
@@ -559,7 +558,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         params,
                         GetNComponents<ValueType>::value,
                         T_Field::getName(),
-                        field->getHostDataBox().getPointer(),
+                        *field,
                         getUnit(),
                         T_Field::getUnitDimension(),
                         std::move(inCellPosition),
@@ -660,14 +659,13 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                      * solver implementation */
                     const float_X timeOffset = 0.0;
 
-                    params->gridLayout = fieldTmp->getGridLayout();
                     bool const isDomainBound = traits::IsFieldDomainBound<FieldTmp>::value;
                     /*write data to openPMD Series*/
                     openPMDWriter::template writeField<ComponentType>(
                         params,
                         components,
                         getName(),
-                        fieldTmp->getHostDataBox().getPointer(),
+                        *fieldTmp,
                         getUnit(),
                         FieldTmp::getUnitDimension<Solver>(),
                         std::move(inCellPosition),
@@ -703,25 +701,27 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 ::openPMD::MeshRecordComponent mrc = mesh[::openPMD::RecordComponent::SCALAR];
                 std::string datasetName = params->openPMDSeries->meshesPath() + name;
 
-                auto fieldsSizeDims = params->fieldsSizeDims;
-                auto fieldsGlobalSizeDims = params->fieldsGlobalSizeDims;
-                auto fieldsOffsetDims = params->fieldsOffsetDims;
+                // rng states are always of the domain size therefore query sizes from domain information
+                const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+                pmacc::math::UInt64<simDim> recordLocalSizeDims = subGrid.getLocalDomain().size;
+                pmacc::math::UInt64<simDim> recordOffsetDims = subGrid.getLocalDomain().offset;
+                pmacc::math::UInt64<simDim> recordGlobalSizeDims = subGrid.getGlobalDomain().size;
 
-                if(fieldsSizeDims != rngProvider->getSize())
+                if(recordLocalSizeDims != rngProvider->getSize())
                     throw std::runtime_error("openPMD: RNG state can't be written due to not matching size");
 
                 // Reinterpret state as chars, it must be bitwise-copyable for it
                 using ReinterpretedType = char;
                 // The fast-moving axis size (x in PIConGPU) had to be adjusted accordingly
                 using ValueType = RNGProvider::Buffer::ValueType;
-                fieldsSizeDims[0] *= sizeof(ValueType);
-                fieldsGlobalSizeDims[0] *= sizeof(ValueType);
-                fieldsOffsetDims[0] *= sizeof(ValueType);
+                recordLocalSizeDims[0] *= sizeof(ValueType);
+                recordGlobalSizeDims[0] *= sizeof(ValueType);
+                recordOffsetDims[0] *= sizeof(ValueType);
 
                 params->initDataset<simDim>(
                     mrc,
                     ::openPMD::determineDatatype<ReinterpretedType>(),
-                    fieldsGlobalSizeDims,
+                    recordGlobalSizeDims,
                     datasetName);
 
                 // define record component level attributes
@@ -736,8 +736,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 ReinterpretedType* rawPtr = reinterpret_cast<ReinterpretedType*>(nativePtr);
                 mrc.storeChunk(
                     ::openPMD::shareRaw(rawPtr),
-                    asStandardVector(fieldsOffsetDims),
-                    asStandardVector(fieldsSizeDims));
+                    asStandardVector(recordOffsetDims),
+                    asStandardVector(recordLocalSizeDims));
                 params->openPMDSeries->flush();
             }
 
@@ -761,19 +761,21 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 ::openPMD::Mesh mesh = iteration.meshes[name];
                 ::openPMD::MeshRecordComponent mrc = mesh[::openPMD::RecordComponent::SCALAR];
 
-                const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
-                auto fieldsSizeDims = params->window.localDimensions.size;
-                auto fieldsOffsetDims = localDomain.offset;
+                // rng states are always of the domain size therefore query sizes from pmacc
+                const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+                using VecUInt64 = pmacc::math::UInt64<simDim>;
+                VecUInt64 recordLocalSizeDims = subGrid.getLocalDomain().size;
+                VecUInt64 recordOffsetDims = subGrid.getLocalDomain().offset;
 
-                if(fieldsSizeDims != rngProvider->getSize())
+                if(recordLocalSizeDims != rngProvider->getSize())
                     throw std::runtime_error("openPMD: RNG state can't be loaded due to not matching size");
 
                 // Reinterpret state as chars, it must be bitwise-copyable for it
                 using ReinterpretedType = char;
                 // The fast-moving axis size (x in PIConGPU) had to be adjusted accordingly
                 using ValueType = RNGProvider::Buffer::ValueType;
-                fieldsSizeDims[0] *= sizeof(ValueType);
-                fieldsOffsetDims[0] *= sizeof(ValueType);
+                recordLocalSizeDims[0] *= sizeof(ValueType);
+                recordOffsetDims[0] *= sizeof(ValueType);
 
                 auto& buffer = rngProvider->getStateBuffer();
                 ValueType* nativePtr = buffer.getHostBuffer().getPointer();
@@ -783,8 +785,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                  */
                 mrc.loadChunk(
                     ::openPMD::shareRaw(rawPtr),
-                    asStandardVector<DataSpace<simDim>&, ::openPMD::Offset>(fieldsOffsetDims),
-                    asStandardVector<DataSpace<simDim>&, ::openPMD::Extent>(fieldsSizeDims));
+                    asStandardVector<VecUInt64, ::openPMD::Offset>(recordOffsetDims),
+                    asStandardVector<VecUInt64, ::openPMD::Extent>(recordLocalSizeDims));
                 params->openPMDSeries->flush();
                 // Copy data to device
                 rngProvider->syncToDevice();
@@ -1090,12 +1092,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
 
                 for(uint32_t i = 0; i < simDim; ++i)
                 {
-                    mThreadParams.localWindowToDomainOffset[i] = 0;
-                    if(mThreadParams.window.globalDimensions.offset[i] > localDomain.offset[i])
-                    {
-                        mThreadParams.localWindowToDomainOffset[i]
-                            = mThreadParams.window.globalDimensions.offset[i] - localDomain.offset[i];
-                    }
+                    mThreadParams.localWindowToDomainOffset[i]
+                        = std::max(0, mThreadParams.window.globalDimensions.offset[i] - localDomain.offset[i]);
                 }
 
 #if(PMACC_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1)
@@ -1197,12 +1195,12 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 mesh.setAttribute("fieldSmoothing", "none");
             }
 
-            template<typename ComponentType>
+            template<typename ComponentType, typename FieldBuffer>
             static void writeField(
                 ThreadParams* params,
                 const uint32_t nComponents,
                 const std::string name,
-                void* ptr,
+                FieldBuffer& buffer,
                 std::vector<float_64> unit,
                 std::vector<float_64> unitDimension,
                 std::vector<std::vector<float_X>> inCellPosition,
@@ -1225,7 +1223,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     PMACC_ASSERT(inCellPosition.at(n).size() == simDim);
                 PMACC_ASSERT(unitDimension.size() == 7); // seven openPMD base units
 
-                log<picLog::INPUT_OUTPUT>("openPMD: write field: %1% %2% %3%") % name % nComponents % ptr;
+                log<picLog::INPUT_OUTPUT>("openPMD: write field: %1% %2% %3%") % name % nComponents
+                    % buffer.getHostDataBox().getPointer();
 
                 ::openPMD::Iteration iteration = params->openPMDSeries->writeIterations()[params->currentStep];
                 ::openPMD::Mesh mesh = iteration.meshes[name];
@@ -1234,26 +1233,26 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 writeFieldAttributes(params, unitDimension, timeOffset, mesh);
 
                 /* data to describe source buffer */
-                GridLayout<simDim> field_layout = params->gridLayout;
-                DataSpace<simDim> field_full = field_layout.getDataSpace();
+                GridLayout<simDim> bufferGridLayout = buffer.getGridLayout();
+                DataSpace<simDim> bufferSize = bufferGridLayout.getDataSpace();
 
-                DataSpace<simDim> field_no_guard = params->window.localDimensions.size;
-                DataSpace<simDim> field_guard = field_layout.getGuard() + params->localWindowToDomainOffset;
+                DataSpace<simDim> localWindowSize = params->window.localDimensions.size;
+                DataSpace<simDim> bufferOffset = bufferGridLayout.getGuard() + params->localWindowToDomainOffset;
                 std::vector<char>& fieldBuffer = params->fieldBuffer;
 
-                auto fieldsSizeDims = params->fieldsSizeDims;
-                auto fieldsGlobalSizeDims = params->fieldsGlobalSizeDims;
-                auto fieldsOffsetDims = params->fieldsOffsetDims;
+                pmacc::math::UInt64<simDim> recordLocalSizeDims = localWindowSize;
+                pmacc::math::UInt64<simDim> recordOffsetDims = params->window.localDimensions.offset;
+                pmacc::math::UInt64<simDim> recordGlobalSizeDims = params->window.globalDimensions.size;
 
                 /* Patch for non-domain-bound fields
                  * Allow for the output of reduced 1d PML buffer
                  */
                 if(!isDomainBound)
                 {
-                    field_no_guard = field_layout.getDataSpaceWithoutGuarding();
-                    field_guard = field_layout.getGuard();
+                    localWindowSize = bufferGridLayout.getDataSpaceWithoutGuarding();
+                    bufferOffset = bufferGridLayout.getGuard();
 
-                    fieldsSizeDims = precisionCast<uint64_t>(params->gridLayout.getDataSpaceWithoutGuarding());
+                    recordLocalSizeDims = precisionCast<uint64_t>(localWindowSize);
 
                     /* Scan the PML buffer local size along all local domains
                      * This code is based on the same operation in hdf5::Field::writeField(),
@@ -1267,7 +1266,7 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                      */
                     auto const rank = uint64_t{gridController.getScalarPosition()};
                     std::vector<uint64_t> localSizes(2u * numRanks, 0u);
-                    uint64_t localSizeInfo[2] = {fieldsSizeDims[0], rank};
+                    uint64_t localSizeInfo[2] = {recordLocalSizeDims[0], rank};
                     __getTransactionEvent().waitForFinished();
                     MPI_CHECK(MPI_Allgather(
                         localSizeInfo,
@@ -1287,13 +1286,13 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     }
                     log<picLog::INPUT_OUTPUT>("openPMD:  (end) collect PML sizes for %1%") % name;
 
-                    fieldsGlobalSizeDims = pmacc::math::UInt64<simDim>::create(1);
-                    fieldsGlobalSizeDims[0] = globalSize;
-                    fieldsOffsetDims = pmacc::math::UInt64<simDim>::create(0);
-                    fieldsOffsetDims[0] = globalOffsetFile;
+                    recordGlobalSizeDims = pmacc::math::UInt64<simDim>::create(1);
+                    recordGlobalSizeDims[0] = globalSize;
+                    recordOffsetDims = pmacc::math::UInt64<simDim>::create(0);
+                    recordOffsetDims[0] = globalOffsetFile;
                 }
 
-                auto const componentSize = field_no_guard.productOfComponents();
+                auto const numDataPoints = localWindowSize.productOfComponents();
 
                 /* write the actual field data */
                 for(uint32_t d = 0; d < nComponents; d++)
@@ -1304,13 +1303,13 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         ? params->openPMDSeries->meshesPath() + name + "/" + name_lookup_tpl[d]
                         : params->openPMDSeries->meshesPath() + name;
 
-                    params->initDataset<simDim>(mrc, openPMDType, fieldsGlobalSizeDims, datasetName);
+                    params->initDataset<simDim>(mrc, openPMDType, recordGlobalSizeDims, datasetName);
 
                     // define record component level attributes
                     mrc.setPosition(inCellPosition.at(d));
                     mrc.setUnitSI(unit.at(d));
 
-                    if(componentSize == 0)
+                    if(numDataPoints == 0)
                     {
                         // technically not necessary if we write no dataset,
                         // but let's keep things uniform
@@ -1322,8 +1321,8 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                     // in some backends (ADIOS2), this allows avoiding memcopies
                     auto span = storeChunkSpan<ComponentType>(
                         mrc,
-                        asStandardVector(fieldsOffsetDims),
-                        asStandardVector(fieldsSizeDims),
+                        asStandardVector(recordOffsetDims),
+                        asStandardVector(recordLocalSizeDims),
                         [&fieldBuffer](size_t size)
                         {
                             // if there is no special backend support for creating buffers,
@@ -1335,28 +1334,29 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                         });
                     auto dstBuffer = span.currentBuffer();
 
-                    const size_t plane_full_size = field_full[1] * field_full[0] * nComponents;
-                    const size_t plane_no_guard_size = field_no_guard[1] * field_no_guard[0];
+                    const size_t bufferSizeXYPlane = bufferSize[1] * bufferSize[0] * nComponents;
+                    const size_t dateSizeXYPlane = localWindowSize[1] * localWindowSize[0];
 
                     /* copy strided data from source to temporary buffer
                      *
                      * \todo use d1Access as in
                      * `include/plugins/hdf5/writer/Field.hpp`
                      */
-                    const int maxZ = simDim == DIM3 ? field_no_guard[2] : 1;
-                    const int guardZ = simDim == DIM3 ? field_guard[2] : 0;
+                    const int maxZ = simDim == DIM3 ? localWindowSize[2] : 1;
+                    const int guardZ = simDim == DIM3 ? bufferOffset[2] : 0;
+                    void* ptr = buffer.getHostDataBox().getPointer();
                     for(int z = 0; z < maxZ; ++z)
                     {
-                        for(int y = 0; y < field_no_guard[1]; ++y)
+                        for(int y = 0; y < localWindowSize[1]; ++y)
                         {
-                            const size_t base_index_src
-                                = (z + guardZ) * plane_full_size + (y + field_guard[1]) * field_full[0] * nComponents;
+                            const size_t base_index_src = (z + guardZ) * bufferSizeXYPlane
+                                + (y + bufferOffset[1]) * bufferSize[0] * nComponents;
 
-                            const size_t base_index_dst = z * plane_no_guard_size + y * field_no_guard[0];
+                            const size_t base_index_dst = z * dateSizeXYPlane + y * localWindowSize[0];
 
-                            for(int x = 0; x < field_no_guard[0]; ++x)
+                            for(int x = 0; x < localWindowSize[0]; ++x)
                             {
-                                size_t index_src = base_index_src + (x + field_guard[0]) * nComponents + d;
+                                size_t index_src = base_index_src + (x + bufferOffset[0]) * nComponents + d;
                                 size_t index_dst = base_index_dst + x;
 
                                 dstBuffer[index_dst] = reinterpret_cast<ComponentType*>(ptr)[index_src];
@@ -1411,24 +1411,6 @@ make sure that environment variable OPENPMD_BP_BACKEND is not set to ADIOS1.
                 const pmacc::Selection<simDim> localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
                 DataSpace<simDim> particleOffset(localDomain.offset);
                 particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
-
-                threadParams->fieldsOffsetDims = precisionCast<uint64_t>(localDomain.offset);
-
-                /* write created variable values */
-                for(uint32_t d = 0; d < simDim; ++d)
-                {
-                    /* dimension 1 is y and is the direction of the moving window
-                     * (if any) */
-                    if(1 == d)
-                    {
-                        uint64_t offset
-                            = std::max(0, localDomain.offset.y() - threadParams->window.globalDimensions.offset.y());
-                        threadParams->fieldsOffsetDims[d] = offset;
-                    }
-
-                    threadParams->fieldsSizeDims[d] = threadParams->window.localDimensions.size[d];
-                    threadParams->fieldsGlobalSizeDims[d] = threadParams->window.globalDimensions.size[d];
-                }
 
                 std::vector<std::string> vectorOfDataSourceNames;
                 if(m_help->selfRegister)
