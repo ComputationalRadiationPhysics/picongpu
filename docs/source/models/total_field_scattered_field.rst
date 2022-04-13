@@ -398,8 +398,10 @@ Note that using field solvers other than Yee requires a positive gap along the b
 This is checked at run time.
 
 Consider a case when both :math:`E^{inc}(x, y, z, t)` and  :math:`\vec B^{inc}(x, y, z, t)` are theoretically present, but only one of them is known in explicit form.
+When slowly varying elvelope approximation is applicable, one may employ it to calculate the other field as :math:`\vec B^{inc}(x, y, z, t) = \vec k \cross \vec E^{inc}(x, y, z, t) / c`.
+PIConGPU implements this behavior as a default second parameter of the ``Free`` incident field profile.
 
-In this case one can try using TF/SF with only the modified known field set as incident and the other one set to 0.
+Otherwise a user can try using TF/SF with only the modified known field set as incident and the other one set to 0.
 The interpretation of the result is assisted by the equivalence theorem, and in particular Love and Schelkunoff equivalence principles [Harrington2001]_ [Balanis2012]_.
 Having :math:`\vec E^{inc}(x, y, z, t) = \vec 0` means only electric current :math:`\vec J` would be impressed on :math:`S`.
 Taking into account no incident fields in the SF region, the region is effectively a perfect magnetic conductor.
@@ -407,7 +409,8 @@ Likewise, having :math:`\vec B^{inc}(x, y, z, t) = \vec 0` corresponds to only m
 To generate the expected field amplitude inside the area, the only non-zero source field has to be adjusted.
 In the simple plane wave case, the adjustment is to set the amplitude of the present field twice as large, as demonstrated in [Rengarajan2000]_.
 In the general case, it appears unclear how to calculate such an adjustment.
-Also note, that within the plain wave approximation the unknown field could have alternatively been calculated from the known one.
+Note that using this approach in PIConGPU results in generating pulses going both inwards and outwards of the Huygens surface.
+Therefore, it is recommended to have no density outside the surface and use a strong field absorber to negate the effect of the artificial outwards-going pulse.
 
 References
 ----------

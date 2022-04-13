@@ -30,7 +30,7 @@
  * `GAP_FROM_ABSORBER` that controls position of the generating surface relative to field absorber. For example:
  *
  * @code{.cpp}
- * using XMin = profiles::Free< UserFunctorIncidentE, UserFunctorIncidentB >;
+ * using XMin = profiles::Free< UserFunctorIncidentE >;
  * using XMax = profiles::None;
  * using YMin = profiles::None;
  * using YMax = profiles::Free< AnotherUserFunctorIncidentE, AnotherUserFunctorIncidentB >;
@@ -132,12 +132,12 @@ namespace picongpu
                 /* We use this to calculate your SI input back to our unit system */
                 PMACC_ALIGN(m_unitField, const float3_64);
 
-                /** Create a functor
+                /** Create a functor on the host side
                  *
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE FunctorXMinIncidentE(const float3_64 unitField) : m_unitField(unitField)
+                HINLINE FunctorXMinIncidentE(const float3_64 unitField) : m_unitField(unitField)
                 {
                 }
 
@@ -155,37 +155,6 @@ namespace picongpu
                 }
             };
 
-            /** Functor to set values of incident B field
-             */
-            class FunctorXMinIncidentB : public FunctorBase
-            {
-            public:
-                /* We use this to calculate your SI input back to our unit system */
-                PMACC_ALIGN(m_unitField, const float3_64);
-
-                /** Create a functor
-                 *
-                 * @param unitField conversion factor from SI to internal units,
-                 *                  field_internal = field_SI / unitField
-                 */
-                HDINLINE FunctorXMinIncidentB(const float3_64 unitField) : m_unitField(unitField)
-                {
-                }
-
-                /** Calculate incident field B_inc(r, t) for a source
-                 *
-                 * @param totalCellIdx cell index in the total domain (including all moving window slides),
-                 *        note that it is fractional
-                 * @param currentStep current time step index, note that it is fractional
-                 */
-                HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
-                {
-                    auto const valueSI = getXMinSourceValueSI(totalCellIdx, currentStep);
-                    auto const fieldSI = float3_X(0.0_X, 0.0_X, valueSI) / SI::SPEED_OF_LIGHT_SI;
-                    return fieldSI / precisionCast<float_X>(m_unitField);
-                }
-            };
-
             /** Functor to set values of incident E field
              */
             class FunctorYMaxIncidentE : public FunctorBase
@@ -194,12 +163,12 @@ namespace picongpu
                 /* We use this to calculate your SI input back to our unit system */
                 PMACC_ALIGN(m_unitField, const float3_64);
 
-                /** Create a functor
+                /** Create a functor on the host side
                  *
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE FunctorYMaxIncidentE(const float3_64 unitField) : m_unitField(unitField)
+                HINLINE FunctorYMaxIncidentE(const float3_64 unitField) : m_unitField(unitField)
                 {
                 }
 
@@ -225,12 +194,12 @@ namespace picongpu
                 /* We use this to calculate your SI input back to our unit system */
                 PMACC_ALIGN(m_unitField, const float3_64);
 
-                /** Create a functor
+                /** Create a functor on the host side
                  *
                  * @param unitField conversion factor from SI to internal units,
                  *                  field_internal = field_SI / unitField
                  */
-                HDINLINE FunctorYMaxIncidentB(const float3_64 unitField) : m_unitField(unitField)
+                HINLINE FunctorYMaxIncidentB(const float3_64 unitField) : m_unitField(unitField)
                 {
                 }
 
@@ -248,15 +217,18 @@ namespace picongpu
                 }
             };
 
-            /** Source of incident E and B fields.
+            /** Source of incident E and B fields
              *
-             * Used functors must be consistent to each other.
+             * We use default type for functor B that will calculate it from E values using SVEA according to the
+             * boundary the profile is applied to.
              */
-            using MyXMinProfile = profiles::Free<FunctorXMinIncidentE, FunctorXMinIncidentB>;
+            using MyXMinProfile = profiles::Free<FunctorXMinIncidentE>;
 
-            /** Another source of incident E and B fields.
+            /** Another source of incident E and B fields, this time we provide both E and B functors
              *
-             * Used functors must be consistent to each other.
+             * In this case it is no different since our pulse is plane wave and FunctorYMaxIncidentB results in the
+             * same as what default SVEA would give.
+             * However, in principle a user could implement any behavior in FunctorYMaxIncidentB.
              */
             using MyYMaxProfile = profiles::Free<FunctorYMaxIncidentE, FunctorYMaxIncidentB>;
 

@@ -28,7 +28,7 @@ namespace picongpu
         {
             namespace profiles
             {
-                //! No incident field profile
+                //! No incident field profile tag
                 struct None;
             } // namespace profiles
         } // namespace incidentField

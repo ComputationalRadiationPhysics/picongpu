@@ -22,7 +22,10 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/incidentField/Functors.hpp"
+#include "picongpu/fields/incidentField/Traits.hpp"
 #include "picongpu/fields/incidentField/profiles/None.def"
+
+#include <cstdint>
 
 
 namespace picongpu
@@ -31,17 +34,32 @@ namespace picongpu
     {
         namespace incidentField
         {
-            namespace profiles
+            namespace detail
             {
-                struct None
+                /** Get type of incident field E functor for the none profile type
+                 *
+                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
+                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
+                 * max boundary inwards)
+                 */
+                template<uint32_t T_axis, int32_t T_direction>
+                struct GetFunctorIncidentE<profiles::None, T_axis, T_direction>
                 {
-                    // Incident E functor type, hook for FunctorIncidentE trait
-                    using FunctorIncidentE = ZeroFunctor;
-
-                    // Incident B functor type, hook for FunctorIncidentE trait
-                    using FunctorIncidentB = ZeroFunctor;
+                    using type = ZeroFunctor;
                 };
-            } // namespace profiles
+
+                /** Get type of incident field B functor for the none profile type
+                 *
+                 * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
+                 * @tparam T_direction direction, 1 = positive (from the min boundary inwards), -1 = negative (from the
+                 * max boundary inwards)
+                 */
+                template<uint32_t T_axis, int32_t T_direction>
+                struct GetFunctorIncidentB<profiles::None, T_axis, T_direction>
+                {
+                    using type = ZeroFunctor;
+                };
+            } // namespace detail
         } // namespace incidentField
     } // namespace fields
 } // namespace picongpu
