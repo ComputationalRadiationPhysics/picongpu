@@ -1,3 +1,1 @@
--r input/requirements.txt
--r plugins/requirements.txt
--r utils/requirements.txt
+-r extra/requirements.txt
