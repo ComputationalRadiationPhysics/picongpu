@@ -81,7 +81,7 @@ namespace picongpu
                  */
                 if(!isDomainBound)
                 {
-                    auto const field_layout = params->gridLayout;
+                    auto const field_layout = field.getGridLayout();
                     auto const field_no_guard = field_layout.getDataSpaceWithoutGuarding();
                     auto const elementCount = field_no_guard.productOfComponents();
 
@@ -214,7 +214,6 @@ namespace picongpu
 
                 /* load field without copying data to host */
                 auto field = dc.get<T_Field>(T_Field::getName(), true);
-                tp->gridLayout = field->getGridLayout();
 
                 /* load from openPMD */
                 bool const isDomainBound = traits::IsFieldDomainBound<T_Field>::value;
