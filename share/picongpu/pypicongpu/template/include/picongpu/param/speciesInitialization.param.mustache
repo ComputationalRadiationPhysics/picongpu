@@ -1,0 +1,72 @@
+#pragma once
+
+#include "picongpu/particles/InitFunctors.hpp"
+
+#include <picongpu/param/particle.param>
+#include <picongpu/pypicongpu/util.hpp>
+
+namespace picongpu
+{
+    namespace particles
+    {
+        /** InitPipeline define in which order species are initialized
+         *
+         * the functors are called in order (from first to last functor)
+         */
+        {{! note: this serves to enter the context -- it is NOT a loop }}
+        {{#species_initmanager}}
+        using InitPipeline = bmpl::vector<
+            // note to the editor of this file:
+            // For PIConGPU it is not always applicable to split the initialization into these two phases "creation" and "manipulation", because some init pipeline operations mix the two phases.
+            // However, in this particular case those phases are clearly separated due to the PyPIConGPU code generation.
+            // Hence, consider removing these explicit "phase 1/2" comments when editing the init pipeline by hand.
+
+            
+            /**********************************/
+            /* phase 1: create macroparticles */
+            /**********************************/
+
+            {{#operations.simple_density}}
+                // note: This functor assumes the ratio to be 1. The correct density ratio of the species is applied here (automatically by CreateDensity).
+
+                CreateDensity<
+                    densityProfiles::pypicongpu::init_{{{placed_species_initial.typename}}},
+                    startPosition::pypicongpu::init_{{{placed_species_initial.typename}}},
+                    {{{placed_species_initial.typename}}}>,
+
+                {{#placed_species_copied}}
+                    ManipulateDerive<
+                        manipulators::binary::DensityWeighting,
+                        {{{placed_species_initial.typename}}},
+                        {{{typename}}}>,
+                {{/placed_species_copied}}
+
+            {{/operations.simple_density}}
+
+            /*********************************************/
+            /* phase 2: adjust other attributes (if any) */
+            /*********************************************/
+
+            {{#operations.simple_momentum}}
+                {{! simple momentum adds a temperature & drift without inter-species dependencies }}
+                {{#drift}}
+                    // *sets* drift, i.e. overwrites momentum
+                    Manipulate<manipulators::pypicongpu::AssignDrift_{{{species.typename}}}, {{{species.typename}}}>,
+                {{/drift}}
+                {{#temperature}}
+                    // *adds* temperature, does *NOT* overwrite
+                    Manipulate<manipulators::pypicongpu::AddTemperature_{{{species.typename}}}, {{{species.typename}}}>,
+                {{/temperature}}
+            {{/operations.simple_momentum}}
+
+            {{#operations.set_bound_electrons}}
+                Manipulate<manipulators::pypicongpu::PreIonize_{{{species.typename}}}, {{{species.typename}}}>,
+            {{/operations.set_bound_electrons}}
+            
+
+            // does nothing -- exists to catch trailing comma left by code generation
+            pypicongpu::nop>;
+        {{/species_initmanager}}
+
+    } // namespace particles
+} // namespace picongpu

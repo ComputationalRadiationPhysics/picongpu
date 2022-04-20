@@ -1,0 +1,47 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.initmanager.InitManager",
+    "description": "collects all information (singleton) for species declaration and initialization",
+    "type": "object",
+    "unevaluatedProperties": false,
+    "required": [
+        "species"
+    ],
+    "properties": {
+        "species": {
+            "description": "all species to be defined",
+            "type": "array",
+            "items": {
+                "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species"
+            }
+        },
+        "operations": {
+            "description": "All operations, ordered by type of operation. Note that all keys are always defined, they may contain empty lists though.",
+            "type": "object",
+            "unevaluatedProperties": false,
+            "required": [
+                "simple_density",
+                "simple_momentum"
+            ],
+            "properties": {
+                "simple_density": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.simpledensity.SimpleDensity"
+                    }
+                },
+                "simple_momentum": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.simplemomentum.SimpleMomentum"
+                    }
+                },
+                "set_bound_electrons": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.setboundelectrons.SetBoundElectrons"
+                    }
+                }
+            }
+        }
+    }
+}

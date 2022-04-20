@@ -1,0 +1,13 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.elementproperties.ElementProperties",
+    "description": "species constants (flags) associated to a chemical element (matter constants), e.g. ionization levels",
+    "type": "object",
+    "unevaluatedProperties": false,
+    "required": ["element"],
+    "properties": {
+        "element": {
+            "description": "element to use matter constants for",
+            "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.util.element.Element"
+        }
+    }
+}

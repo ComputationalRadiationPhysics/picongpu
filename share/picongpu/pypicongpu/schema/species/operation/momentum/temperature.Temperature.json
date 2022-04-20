@@ -1,0 +1,14 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.momentum.temperature.Temperature",
+    "description": "(positive) temperature of a species",
+    "type": "object",
+    "required": ["temperature_kev"],
+    "unevaluatedProperties": false,
+    "properties": {
+        "temperature_kev": {
+            "description": "temperature in keV, zero forbidden: if at rest, do not use this object",
+            "type": "number",
+            "exclusiveMinimum": 0
+        }
+    }
+}

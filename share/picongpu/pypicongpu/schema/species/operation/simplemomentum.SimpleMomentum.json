@@ -1,0 +1,35 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.simplemomentum.SimpleMomentum",
+    "description": "set momentum of one species using temperature, drift, both, or none",
+    "type": "object",
+    "unevaluatedProperties": false,
+    "required": [],
+    "properties": {
+        "species": {
+            "description": "species for the momentum is given",
+            "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species"
+        },
+        "drift": {
+            "description": "initial velocity (optional)",
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.momentum.drift.Drift"
+                }
+            ]
+        },
+        "temperature": {
+            "description": "initial temperature (optional)",
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.operation.momentum.temperature.Temperature"
+                }
+            ]
+        }
+    }
+}

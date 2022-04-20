@@ -1,3 +1,5 @@
+.. _pypicongpu:
+
 Intro
 =====
 
@@ -5,10 +7,10 @@ This chapter describes the internals of the PICMI translation (and subsequently 
 
 .. warning::
 
-   This section is aimed at developers.
-   It describes how the `PICMI user interface <TODO>`__ is implemented.
+   This section is aimed at **developers**.
+   It describes how the :doc:`PICMI user interface <../usage/picmi/index>` is implemented.
 
-   For the PICMI in PIConGPU user documentation, see `here <TODO>`__.
+   For the PICMI in PIConGPU user documentation, see :doc:`here <../usage/picmi/index>`.
    For the PICMI standard (upstream) definition, see `here <https://picmi-standard.github.io/>`__.
 
 If you read this documentation like a book carry on in the order of the table of contents.

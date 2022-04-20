@@ -1,3 +1,5 @@
+.. _pypicongpu-translation:
+
 Translation Process
 ===================
 
@@ -99,8 +101,8 @@ simple it should work – and anything complicated won’t.
 The individual data formats and their transformations are outlined
 below.
 
-Practically this pipeline is invoked by the runner, see `the
-corresponding documentation chapter <running.md>`__.
+Practically this pipeline is invoked by the runner, see :doc:`the
+corresponding documentation chapter <./running>`.
 
 PICMI
 -----
@@ -208,8 +210,8 @@ In particular, please note:
 
 Some objects only exist for processing purposes and do not (exclusively)
 hold any simulation parameters, e.g. the ``Runner`` (see
-`running <running.md>`__) or the ``InitializationManager`` (see
-`species <species.md>`__).
+:doc:`./running`) or the ``InitializationManager`` (see
+:doc:`./species`).
 
 JSON representation (“rendering context”)
 -----------------------------------------
@@ -451,6 +453,8 @@ which makes both ``{..., "laser": null, ...}`` and
 Notably, from this process’ perspective “the rendering context” is the
 rendering context of the PyPIConGPU simulation object.
 
+.. _pypicongpu-translation-mustache:
+
 Mustache Syntax
 ~~~~~~~~~~~~~~~
 
@@ -485,6 +489,8 @@ Example Sequence
 ----------------
 
 These examples should demonstrate how the translation process works.
+
+.. _pypicongpu-translation-example-boundingbox:
 
 Bounding Box
 ~~~~~~~~~~~~
@@ -640,7 +646,7 @@ these parameters to the ``pypicongpu.json`` before continuing rendering:
    }
 
 These are now used by the template from ``share/pypicongpu/template``,
-e.g. in the ``1.cfg.mustache``:
+e.g. in the ``N.cfg.mustache``:
 
 .. code:: bash
 
