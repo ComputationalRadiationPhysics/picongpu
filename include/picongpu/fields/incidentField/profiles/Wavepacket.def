@@ -1,0 +1,122 @@
+/* Copyright 2013-2022 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Stefan Tietze, Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace incidentField
+        {
+            namespace profiles
+            {
+                namespace defaults
+                {
+                    struct WavepacketParam
+                    {
+                        /** unit: meter */
+                        static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+
+                        /** Convert the normalized laser strength parameter a0 to Volt per meter */
+                        static constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                            * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI
+                            * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+
+                        /** unit: W / m^2 */
+                        // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
+
+                        /** unit: none */
+                        // static constexpr float_64 _A0  = 1.5;
+
+                        /** unit: Volt / meter */
+                        // static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+                        /** unit: Volt / meter */
+                        static constexpr float_64 AMPLITUDE_SI = 1.738e13;
+
+                        /** Stretch temporal profile by a constant plateau between the up and downramp
+                         *  unit: seconds */
+                        static constexpr float_64 LASER_NOFOCUS_CONSTANT_SI
+                            = 7.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
+
+                        /** Pulse length: sigma of std. gauss for intensity (E^2)
+                         *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+                         *                                          [    2.354820045     ]
+                         *  Info:             FWHM_of_Intensity = FWHM_Illumination
+                         *                      = what a experimentalist calls "pulse duration"
+                         *  unit: seconds (1 sigma) */
+                        static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
+
+                        /** beam waist: distance from the axis where the pulse intensity (E^2)
+                         *              decreases to its 1/e^2-th part,
+                         *              at the focus position of the laser
+                         *
+                         * AXIS_1 is next axis after the propagation axis in order (x, y, z) with a periodic
+                         * wrap. LINEAR_AXIS_1 is next after LINEAR_AXIS_2. E.g. for y propagation axis, AXIS_1 = z,
+                         * AXIS_2 = x
+                         *
+                         *  unit: meter
+                         */
+                        static constexpr float_64 W0_AXIS_1_SI = 4.246e-6;
+                        static constexpr float_64 W0_AXIS_2_SI = W0_AXIS_1_SI;
+
+                        /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
+                         *
+                         *  unit: none */
+                        static constexpr float_64 PULSE_INIT = 20.0;
+
+                        /** laser phase shift (no shift: 0.0)
+                         *
+                         * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
+                         *
+                         * unit: rad, periodic in 2*pi
+                         */
+                        static constexpr float_X LASER_PHASE = 0.0;
+
+                        /** Available E polarisation types, B polarization will be calculated automatically
+                         *
+                         * AXIS_1 and AXIS_2 are defined same as for W0_AXIS_1_SI, W0_AXIS_2_SI.
+                         */
+                        enum PolarisationType
+                        {
+                            LINEAR_AXIS_1 = 1u,
+                            LINEAR_AXIS_2 = 2u,
+                            CIRCULAR = 4u
+                        };
+                        /** Polarization selection
+                         */
+                        static constexpr PolarisationType Polarisation = LINEAR_AXIS_2;
+                    };
+                } // namespace defaults
+
+                /** Wavepacket with Gaussian spatial and temporal envelope tag
+                 *
+                 * @tparam T_Params class parameter to configure the Wavepacket profile,
+                 *                  see members of wavepacket::defaults::WavepacketParam for
+                 *                  required members
+                 */
+                template<typename T_Params = defaults::WavepacketParam>
+                struct Wavepacket;
+            } // namespace profiles
+        } // namespace incidentField
+    } // namespace fields
+} // namespace picongpu
