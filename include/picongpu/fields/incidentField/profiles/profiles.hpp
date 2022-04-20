@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/fields/incidentField/profiles/Free.hpp"
+#include "picongpu/fields/incidentField/profiles/GaussianBeam.hpp"
 #include "picongpu/fields/incidentField/profiles/None.hpp"
 #include "picongpu/fields/incidentField/profiles/PlaneWave.hpp"
 #include "picongpu/fields/incidentField/profiles/Polynom.hpp"
