@@ -1,4 +1,0 @@
-PICMI
-=====
-
-Lorem Ipsum

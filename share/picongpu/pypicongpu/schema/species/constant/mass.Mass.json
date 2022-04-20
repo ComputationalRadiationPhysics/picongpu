@@ -1,0 +1,16 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.mass.Mass",
+    "description": "mass of a single particle",
+    "unevaluatedProperties": false,
+    "type": "object",
+    "required": [
+        "mass_si"
+    ],
+    "properties": {
+        "mass_si": {
+            "type": "number",
+            "description": "mass in kg",
+            "minimum": 0
+        }
+    }
+}

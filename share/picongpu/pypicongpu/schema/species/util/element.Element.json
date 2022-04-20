@@ -1,0 +1,22 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.util.element.Element",
+    "description": "a chemical element from the periodic table of elements",
+    "type": "object",
+    "unevaluatedProperties": false,
+    "required": [
+        "symbol",
+        "picongpu_name"
+    ],
+    "properties": {
+        "symbol": {
+            "description": "symbol from the periodic table of elements, case sensitive",
+            "type": "string",
+            "pattern": "^[A-Z][a-z]?$"
+        },
+        "picongpu_name": {
+            "description": "name as used in PIConGPU lookup tables",
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_]*$"
+        }
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.charge.Charge",
+    "description": "charge of a macroparticle",
+    "type": "object",
+    "unevaluatedProperties": false,
+    "required": [
+        "charge_si"
+    ],
+    "properties": {
+        "charge_si": {
+            "type": "number",
+            "description": "charge in C"
+        }
+    }
+}

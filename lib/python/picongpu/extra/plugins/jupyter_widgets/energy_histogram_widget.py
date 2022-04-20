@@ -16,13 +16,13 @@ class EnergyHistogramWidget(BaseWidget):
     """
     From within jupyter notebook this widget can be used in the following way:
 
-        %matplotlib widget
-        import matplotlib.pyplot as plt
-        plt.ioff() # deactivating instant plotting is necessary!
+      %matplotlib widget
+      import matplotlib.pyplot as plt
+      plt.ioff() # deactivating instant plotting is necessary!
 
-        from picongpu.extra.plugins.jupyter_widgets import EnergyHistogramWidget
+      from picongpu.extra.plugins.jupyter_widgets import EnergyHistogramWidget
 
-        display(EnergyHistogramWidget(run_dir_options="path/to/outputs"))
+      display(EnergyHistogramWidget(run_dir_options="path/to/outputs"))
     """
     def __init__(self, run_dir_options, fig=None,
                  output_widget=None, **kwargs):

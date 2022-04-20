@@ -1,3 +1,5 @@
+.. _pypicongpu-running:
+
 Running
 =======
 

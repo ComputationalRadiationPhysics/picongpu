@@ -23,6 +23,12 @@ rigid, so they might fail even if they are not supposed to. When
 encountering a failing test act with care and adjust the test case if
 that is plausible.
 
+.. note::
+
+   For an explanation on the python ``unittests`` module please refer to the `python manual <https://docs.python.org/3.8/library/unittest.html>`_.
+
+   For more notes on tools support (including test coverage) see :ref:`pypicongpu-misc-toolsupport`.
+
 Structure
 ---------
 
@@ -44,7 +50,6 @@ repository root:
 
 .. code:: bash
 
-   # TODO all test
    python -m quick
    python -m compiling
    python -m e2e
@@ -55,7 +60,14 @@ accessed with their class name, and optional method name:
 
 .. code:: bash
 
-   TODO
+   python -m quick TestElement
+   python -m quick TestElement.test_periodic_table_names
+
+.. note::
+
+   The tests are loaded by using ``from SOMEWHERE import *`` -- which is bad style.
+   For that reason all ``__init__.py`` files in the tests have the style checks disabled with ``# flake8: noqa``.
+   When changing the test runner (maybe in the future) these skipped checks should be abandoned.
 
 PICMI
 -----

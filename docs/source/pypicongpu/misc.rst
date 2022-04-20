@@ -14,7 +14,7 @@ patterns.
    engine/asking a python expert should also help you understand them.
 
 Type Checking with Typeguard
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use as defined in `PEP 484 “Type Hints” <https://peps.python.org/pep-0484/>`_.
 Briefly:
@@ -33,7 +33,7 @@ annotation ``@typechecked`` for classes.
 **This does not check attribute type annotations, see next section.**
 
 Typesafe Class Attributes
-~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Class attributes can use type annotations according to PEP 484, but this
 is not enforced by typeguard.
@@ -77,7 +77,7 @@ Internally the declaration above is expanded to the equivalent of:
        attr = property(getter, setter)
 
 Map-Filter-Reduce
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 ``map()``, ``filter()``, and ``reduce()`` are “higher-order functions”
 and a basis of the functional programming paradigm (as opposed to loops
@@ -111,3 +111,90 @@ cast to a set of key-value tuples:
    Note: Do not feel obliged to follow this pattern.
    It is commonly used, because it allows a concise notation,
    yet it is very much **not** mandatory.
+
+
+.. _pypicongpu-misc-toolsupport:
+
+Tool Support
+------------
+
+This is a short list of tools to aid you with development.
+
+Formatting
+^^^^^^^^^^
+
+`PEP 8 <https://peps.python.org/pep-0008/>`_ (formatting guidelines) compliance:
+
+run from repo root ``flake8 lib/python/ test/python/``
+
+Note: Please obey the line length from PEP 8 even if that is annoying at times,
+this makes viewing files side-by-side much simpler.
+
+Run Tests
+^^^^^^^^^
+
+go into ``test/python/picongpu``,
+execute ``python -m quick``
+(for tests with compilation ``python -m compiling``)
+
+Test Coverage
+^^^^^^^^^^^^^
+
+0. install `coverage.py <https://coverage.readthedocs.io/>`_: ``pip install coverage``
+1. go to tests: ``cd test/python/picongpu``
+2. execute tests, record coverage: ``coverage run --branch -m quick``
+3. view reports
+
+   - for PyPIConGPU: ``find ../../../lib/python/picongpu/pypicongpu/ -name '*.py' | xargs coverage report -m``
+   - for PICMI: ``find ../../../lib/python/picongpu/picmi/ -name '*.py' | xargs coverage report -m``
+   - Goal is 100% coverage (missing sections are printed)
+
+For further options see `the coverage.py doc <https://coverage.readthedocs.io/>`_.
+
+.. _pypicongpu-misc-apidoc:
+
+API Documentation
+-----------------
+
+Document the API using docstrings,
+which will be rendered by `Sphinx AutoAPI <https://sphinx-autoapi.readthedocs.io/>`_ automatically.
+The result is available from the TOC, although the name is generated to be the python module name: :doc:`autoapi/picongpu/pypicongpu/index`.
+
+The configuration is placed in Sphinx's ``conf.py``,
+all classes are traversed by using ``__all__`` defined in **every** ``__init__.py``.
+
+Additional checks (completeness etc.) are **NOT** employed (and not even possible).
+So pay attention that you document everything you need.
+
+As everything is passed to Sphinx, 
+**docstring should be valid** `reStructuredText <https://docutils.sourceforge.io/rst.html>`_.
+(`reStructuredText quick guide from Sphinx <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`_)
+
+You may use `Sphinx-exclusive directives <https://www.sphinx-doc.org/en/master/usage/restructuredtext/roles.html>`_ too,
+e.g. ``:ref:`MARK```.
+
+To document parameters, return values etc. make them compatible with Sphinx's autodoc.
+For details please refer to `the respective documentation section <https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html>`_.
+
+.. note::
+
+   If there is an reStructuredText syntax error during generation (printed as warning after sphinx invocation ``make html``) to debug:
+
+   1. visit the respective page
+   2. click *View page source* at the top of the page
+
+      (This might be only availble **locally**, the online version displays *Edit on GitHub* instead)
+
+An example can be found in `the official documentation <https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html>`_.
+The types are implictly given by the `type hints <https://www.python.org/dev/peps/pep-0484/>`_,
+so these can be omitted:
+
+.. literalinclude:: ./doc_example.py
+   :language: python
+
+Note that ``:raises TypeError:`` is omitted too,
+because all functions are checked for types anyways.
+
+This produces the following code section:
+
+.. autofunction:: doc_example.my_func

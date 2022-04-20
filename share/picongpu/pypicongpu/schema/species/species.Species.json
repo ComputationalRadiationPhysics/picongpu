@@ -1,0 +1,84 @@
+{
+    "$id": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.species.Species",
+    "description": "defines a species C++ type",
+    "type": "object",
+    "unevaluatedProperties": false,
+    "required": [
+        "name",
+        "typename",
+        "attributes",
+        "constants"
+    ],
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "name of the species (e.g. for output)",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_]+$"
+        },
+        "typename": {
+            "type": "string",
+            "description": "name of c++ species type",
+            "minLength": 1,
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "attributes": {
+            "type": "array",
+            "description": "names of attributes of each macroparticle",
+            "items": {
+                "type": "object",
+                "unevaluatedProperties": false,
+                "required": ["picongpu_name"],
+                "properties": {
+                    "picongpu_name": {
+                        "type": "string",
+                        "description": "c++ code to define this property",
+                        "minLength": 1
+                    }
+                }
+            }
+        },
+        "constants": {
+            "type": "object",
+            "description": "species constants (flags), accessible by a well defined name -- keys must always be defined, may be null if not present",
+            "unevaluatedProperties": false,
+            "required": [
+                "mass",
+                "charge",
+                "density_ratio"
+            ],
+            "properties": {
+                "mass": {
+                    "anyOf": [
+                        {"type": "null"},
+                        {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.mass.Mass"}
+                    ]
+                },
+                "charge": {
+                    "anyOf": [
+                        {"type": "null"},
+                        {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.charge.Charge"}
+                    ]
+                },
+                "density_ratio": {
+                    "anyOf": [
+                        {"type": "null"},
+                        {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.densityratio.DensityRatio"}
+                    ]
+                },
+                "ionizers": {
+                    "anyOf": [
+                        {"type": "null"},
+                        {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.ionizers.Ionizers"}
+                    ]
+                },
+                "element_properties": {
+                    "anyOf": [
+                        {"type": "null"},
+                        {"$ref": "https://registry.hzdr.de/crp/picongpu/schema/picongpu.pypicongpu.species.constant.elementproperties.ElementProperties"}
+                    ]
+                }
+            }
+        }
+    }
+}

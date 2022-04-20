@@ -1,1 +1,8 @@
+typeguard >= 2.12
+sympy >= 1.9
+chevron >= 0.13.1
+jsonschema >= 4.4.0
+scipy >= 1.7.1
+picmistandard >= 0.0.18
+
 -r extra/requirements.txt
