@@ -1,0 +1,32 @@
+@startuml
+class InitManager
+class Species
+class Operation
+class Constant
+
+
+InitManager "1" o-- "0..*" Species
+InitManager "1" o-- "0..*" Operation
+
+Species "1..*" o-- "0..*" Constant
+
+!ifndef SETUP
+class Attribute
+Operation "1" o-- "1..*" Attribute
+
+!ifdef PREBOOK
+Species .. Attribute
+!else
+Species "1" o-- "1..*" Attribute
+!endif
+
+!endif
+
+Operation - Species
+!ifdef DETAIL
+note top on link
+        operation-specific association
+end note
+!endif
+
+@enduml

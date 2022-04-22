@@ -7,7 +7,7 @@ License: GPLv3+
 """
 
 from .base_widget import BaseWidget
-from picongpu.plugins.plot_mpl import EnergyHistogramMPL
+from ..plot_mpl import EnergyHistogramMPL
 
 from ipywidgets import widgets
 
@@ -20,7 +20,7 @@ class EnergyHistogramWidget(BaseWidget):
         import matplotlib.pyplot as plt
         plt.ioff() # deactivating instant plotting is necessary!
 
-        from picongpu.plugins.jupyter_widgets import EnergyHistogramWidget
+        from picongpu.extra.plugins.jupyter_widgets import EnergyHistogramWidget
 
         display(EnergyHistogramWidget(run_dir_options="path/to/outputs"))
     """

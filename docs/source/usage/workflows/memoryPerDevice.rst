@@ -6,7 +6,7 @@ Calculating the Memory Requirement per Device
 .. sectionauthor:: Marco Garten
 
 The planning of simulations for realistically sized problems requires a careful estimation of memory usage and is often a trade-off between resolution of the plasma, overall box size and the available resources.
-The file :ref:`memory_calculator.py <usage-python-utils>` contains a class for this purpose.
+The file :ref:`memory_calculator.py <usage-python-utils-memory-calculator>` contains a class for this purpose.
 
 The following paragraph shows the use of the ``MemoryCalculator`` for the ``4.cfg`` setup of the :ref:`FoilLCT example <usage-examples-foilLCT>` example.
 

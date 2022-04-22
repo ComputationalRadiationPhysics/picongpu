@@ -1,4 +1,5 @@
 :orphan:
+
 .. only:: html
 
   .. image:: ../logo/pic_logo.svg
@@ -40,9 +41,6 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
 .. _wiki: https://github.com/ComputationalRadiationPhysics/picongpu/wiki
 .. _official homepage: http://picongpu.hzdr.de
 
-************
-Installation
-************
 .. toctree::
    :caption: INSTALLATION
    :maxdepth: 1
@@ -54,9 +52,6 @@ Installation
    install/profile
    install/changelog.md
 
-*********
-Tutorials
-*********
 .. toctree::
    :caption: TUTORIALS
    :maxdepth: 1
@@ -64,9 +59,6 @@ Tutorials
 
    tutorials/hemeraIn5min
 
-*****
-Usage
-*****
 .. toctree::
    :caption: USAGE
    :maxdepth: 1
@@ -77,13 +69,10 @@ Usage
    usage/param
    usage/plugins
    usage/tbg
-   usage/python
+   usage/python_utils
    usage/examples
    usage/workflows
 
-******
-Models
-******
 .. toctree::
    :caption: MODELS
    :maxdepth: 1
@@ -99,9 +88,6 @@ Models
    models/photons
    models/binary_collisions
 
-***************
-Post-Processing
-***************
 .. toctree::
    :caption: Post-Processing
    :maxdepth: 2
@@ -111,9 +97,6 @@ Post-Processing
    postprocessing/openPMD
    postprocessing/paraview
 
-*****************
-Usage for Experts
-*****************
 .. toctree::
    :caption: EXPERTs
    :maxdepth: 1
@@ -122,9 +105,6 @@ Usage for Experts
    expert/deviceOversubscription
    expert/signals
 
-***********
-Development
-***********
 .. toctree::
    :caption: DEVELOPMENT
    :maxdepth: 1
@@ -144,12 +124,23 @@ Development
    dev/debugging
    dev/doxyindex
 
-********************
-Programming Patterns
-********************
 .. toctree::
    :caption: PROGRAMMING PATTERNS
    :maxdepth: 1
    :hidden:
 
    prgpatterns/lockstep
+
+.. toctree::
+   :caption: PyPIConGPU
+   :maxdepth: 1
+   :hidden:
+
+   pypicongpu/intro
+   pypicongpu/translation
+   pypicongpu/testing
+   pypicongpu/running
+   pypicongpu/species
+   pypicongpu/misc
+   pypicongpu/faq
+   pypicongpu/howto/index

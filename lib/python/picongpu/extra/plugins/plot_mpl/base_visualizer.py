@@ -9,7 +9,7 @@ License: GPLv3+
 import matplotlib.pyplot as plt
 from warnings import warn
 
-from picongpu.plugins.plot_mpl.utils import get_different_colors
+from .utils import get_different_colors
 
 
 class Visualizer(object):
@@ -18,9 +18,10 @@ class Visualizer(object):
     the visualization logic.
     Classes that derive from this class need to write their own implementations
     for the following functions in order to work:
-        _create_data_reader(self, run_directory)
-        _create_plt_obj(self, ax)
-        _update_plt_obj(self)
+
+    _create_data_reader(self, run_directory)
+    _create_plt_obj(self, ax)
+    _update_plt_obj(self)
 
     Note: When using classes derived from this within jupyter notebooks, use
     %matplotlib notebook mode.
@@ -177,8 +178,8 @@ class Visualizer(object):
         1. gathers the data for the selected kwargs
         2. removes plot elements for sources which have no data
         3. plot the data
-        3.a Creates the 'plt_obj' if it does not exist
-        3.b Updates the 'plt_obj' with the new data.
+            1. Creates the 'plt_obj' if it does not exist
+            2. Updates the 'plt_obj' with the new data.
         4. adjusts the plot
         """
         if self.data_reader is None:

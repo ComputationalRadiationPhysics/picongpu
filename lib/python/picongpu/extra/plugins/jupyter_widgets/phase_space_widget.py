@@ -7,7 +7,7 @@ License: GPLv3+
 """
 
 from .base_widget import BaseWidget
-from picongpu.plugins.plot_mpl import PhaseSpaceMPL
+from ..plot_mpl import PhaseSpaceMPL
 
 from ipywidgets import widgets
 
@@ -20,7 +20,7 @@ class PhaseSpaceWidget(BaseWidget):
         import matplotlib.pyplot as plt
         plt.ioff() # deactivate instant plotting is necessary!
 
-        from picongpu.plugins.jupyter_widgets import PhaseSpaceWidget
+        from picongpu.extra.plugins.jupyter_widgets import PhaseSpaceWidget
 
         display(PhaseSpaceWidget(run_dir_options="path/to/outputs"))
     """

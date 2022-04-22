@@ -76,7 +76,11 @@ Python Postprocessing
 ---------------------
 
 In order to further work with the data produced by a plugin during a simulation run, PIConGPU provides python tools that can be used for reading data and visualization.
-They can be found under ``lib/python/picongpu/plugins``.
+They can be found under ``lib/python/picongpu/extra/plugins``.
+
+.. note::
+
+   The python plugin tools have been moved to the `picongpu.extra` submodule.
 
 It is our goal to provide at least three modules for each plugin to make postprocessing as convenient as possible:
 1. a data reader (inside the ``data`` subdirectory)
