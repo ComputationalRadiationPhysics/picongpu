@@ -7,7 +7,7 @@ License: GPLv3+
 """
 
 from .base_widget import BaseWidget
-from picongpu.plugins.plot_mpl import PNGMPL
+from ..plot_mpl import PNGMPL
 
 from ipywidgets import widgets
 
@@ -20,7 +20,7 @@ class PNGWidget(BaseWidget):
         import matplotlib.pyplot as plt
         plt.ioff() # deactivate instant plotting is necessary!
 
-        from picongpu.plugins.jupyter_widgets import PNGWidget
+        from picongpu.extra.plugins.jupyter_widgets import PNGWidget
 
         display(PNGWidget(run_dir_options="path/to/outputs"))
     """

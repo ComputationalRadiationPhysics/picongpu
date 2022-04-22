@@ -6,9 +6,8 @@ Authors: Sebastian Starke
 License: GPLv3+
 """
 
-from picongpu.plugins.data import PNGData
-from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
-    BaseVisualizer
+from ..data import PNGData
+from .base_visualizer import Visualizer as BaseVisualizer
 
 
 class Visualizer(BaseVisualizer):

@@ -1,11 +1,11 @@
-.. _usage-python:
+.. _usage-python-utils:
 
-Python
-======
+Python Utilities
+================
 
 This section contains python utilities for more comfortable working with PIConGPU.
 
 .. toctree::
    :maxdepth: 2
 
-   python/utils
+   python_utils/memory_calculator

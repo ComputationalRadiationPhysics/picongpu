@@ -12,10 +12,9 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import numpy as np
 
-from picongpu.plugins.data import PhaseSpaceData
-from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
-    BaseVisualizer
-from picongpu.plugins.plot_mpl.utils import get_different_colormaps
+from ..data import PhaseSpaceData
+from .base_visualizer import Visualizer as BaseVisualizer
+from .utils import get_different_colormaps
 
 
 class Visualizer(BaseVisualizer):

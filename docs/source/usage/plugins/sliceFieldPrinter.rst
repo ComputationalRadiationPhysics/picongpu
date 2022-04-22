@@ -71,7 +71,7 @@ Spaces separate rows and newlines separate lines.
 Each entry is of the format ``{1.1e-1,2.2e-2,3.3e.3}`` giving each value of the vector field separately e.g. ``{E_x,E_y,E_z}``.
 
 
-In order to read this data format, there is a python module in ``lib/python/picongpu/plugins/sliceFieldReader.py``.
+In order to read this data format, there is a python module in ``lib/python/picongpu/extra/plugins/sliceFieldReader.py``.
 The function ``readFieldSlices`` needs a data file (file or filename) with data from the plugin and returns the data as numpy-array of size ``(N_y, N_x, 3)``
 
 Known Limitations

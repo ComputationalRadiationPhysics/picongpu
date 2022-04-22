@@ -8,7 +8,7 @@ Authors: Marco Garten, Pawel Ordyna
 License: GPLv3+
 """
 
-from picongpu.utils import MemoryCalculator
+from picongpu.extra.utils import MemoryCalculator
 from math import ceil
 
 """

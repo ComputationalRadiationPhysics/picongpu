@@ -26,8 +26,20 @@ Directory Structure
     * pre-compiled libraries
     * ``python/``
 
-      * modules, e.g. for RT interfaces, pre* & post-processing
+      * python modules
       * set ``PYTHONPATH`` here
+      * ``extra/``
+
+        * modules, e.g. for RT interfaces, pre* & post-processing
+
+      * ``picmi/``
+
+        * user-facing python interface
+
+      * ``pypicongpu/``
+
+        * internal interface for ``.param`` & ``.cfg``-file generation
+        * used by PICMI implementation
 
 * ``etc/``
 
@@ -45,6 +57,10 @@ Directory Structure
 
     * ``completions/``: bash completions
     * ``examples/``: each with same structure as ``/``
+    * ``pypicongpu/``: required files for code generation
+
+      * ``schema/``: code generation JSON schemas
+      * ``template/``: base template for code generation
 
 * ``bin/``
 

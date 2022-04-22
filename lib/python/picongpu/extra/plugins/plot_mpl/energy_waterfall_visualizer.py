@@ -6,11 +6,10 @@ Authors: Sophie Rudat, Sebastian Starke
 License: GPLv3+
 """
 
-from picongpu.plugins.data import EnergyHistogramData
-from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
-    BaseVisualizer
+from ..data import EnergyHistogramData
+from .base_visualizer import Visualizer as BaseVisualizer
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from picongpu.plugins.plot_mpl.utils import get_different_colormaps
+from .utils import get_different_colormaps
 import numpy as np
 from matplotlib.colors import LogNorm
 import matplotlib.pyplot as plt

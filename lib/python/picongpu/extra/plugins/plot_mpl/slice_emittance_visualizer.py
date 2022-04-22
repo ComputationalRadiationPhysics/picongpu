@@ -6,9 +6,8 @@ Authors: Sophie Rudat, Sebastian Starke
 License: GPLv3+
 """
 
-from picongpu.plugins.data import EmittanceData
-from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
-    BaseVisualizer
+from ..data import EmittanceData
+from .base_visualizer import Visualizer as BaseVisualizer
 import matplotlib.pyplot as plt
 
 

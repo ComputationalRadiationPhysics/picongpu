@@ -4,9 +4,8 @@ This file is part of PIConGPU and based on energy_histogram_visualizer.py.
 Authors: Finn-Ole Carstens, Sebastian Starke
 """
 
-from picongpu.plugins.data import TransitionRadiationData
-from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as \
-    BaseVisualizer
+from ..data import TransitionRadiationData
+from .base_visualizer import Visualizer as BaseVisualizer
 from matplotlib.ticker import FixedLocator
 import numpy as np
 import scipy.constants as const

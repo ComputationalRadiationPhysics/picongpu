@@ -7,9 +7,8 @@ License: GPLv3+
 """
 import numpy as np
 
-from picongpu.plugins.data import EnergyHistogramData
-from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
-    BaseVisualizer
+from ..data import EnergyHistogramData
+from .base_visualizer import Visualizer as BaseVisualizer
 from warnings import warn
 
 
