@@ -124,8 +124,7 @@ namespace picongpu
                             float_64 const t_and_phase = w * timeOszi + Unitless::LASER_PHASE;
                             // to understand both components [sin(...) + t/tau^2 * cos(...)] see description above
                             auto const baseValue = static_cast<float_X>(
-                                envelope
-                                * (math::sin(t_and_phase) + math::cos(t_and_phase) * integrationCorrectionFactor));
+                                (math::sin(t_and_phase) + math::cos(t_and_phase) * integrationCorrectionFactor));
                             auto elong = float3_X::create(0.0_X);
                             if(Unitless::Polarisation == Unitless::LINEAR_AXIS_1)
                             {
@@ -137,10 +136,13 @@ namespace picongpu
                             }
                             else if(Unitless::Polarisation == Unitless::CIRCULAR)
                             {
-                                elong[Base::dir1] = baseValue / math::sqrt(2.0_X);
+                                elong[Base::dir1] = static_cast<float_X>(
+                                                        math::cos(t_and_phase)
+                                                        - math::sin(t_and_phase) * integrationCorrectionFactor)
+                                    / math::sqrt(2.0_X);
                                 elong[Base::dir2] = baseValue / math::sqrt(2.0_X);
                             }
-                            return elong;
+                            return elong * envelope;
                         }
                     };
                 } // namespace detail
@@ -161,7 +163,7 @@ namespace picongpu
                     using type = profiles::detail::PlaneWaveFunctorIncidentE<T_Params, T_axis, T_direction>;
                 };
 
-                /** Get type of incident field E functor for the plane wave profile type
+                /** Get type of incident field B functor for the plane wave profile type
                  *
                  * For plane wave there is no difference between directly- and SVEA-calculating B, so reuse SVEA for
                  * brevity.
