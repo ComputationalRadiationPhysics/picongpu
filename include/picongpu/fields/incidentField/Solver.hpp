@@ -519,6 +519,10 @@ namespace picongpu
                 //! Check if volume bounded by the Huygens surface is positive, print a warning otherwise
                 void checkVolume() const
                 {
+                    // Skip the check when no incident field sources enabled
+                    if(!isEnabled())
+                        return;
+
                     // Do the check once as its result is always same
                     static bool checkDone = false;
                     if(checkDone)
@@ -538,6 +542,16 @@ namespace picongpu
                                 break;
                             }
                     }
+                }
+
+                //! Return if incident field is enabled in the simulation i.e. there exists a non-None profile
+                static bool isEnabled()
+                {
+                    using profiles::None;
+                    auto const isEnabledX = !(std::is_same_v<XMinProfile, None> && std::is_same_v<XMaxProfile, None>);
+                    auto const isEnabledY = !(std::is_same_v<YMinProfile, None> && std::is_same_v<YMaxProfile, None>);
+                    auto const isEnabledZ = !(std::is_same_v<ZMinProfile, None> && std::is_same_v<ZMaxProfile, None>);
+                    return isEnabledX || isEnabledY || isEnabledZ;
                 }
 
                 /** Apply contribution of the incident B field to the E field update by one time step
