@@ -201,7 +201,6 @@ Active Team
 ### Scientific Supervision
 
 - Dr. Michael Bussmann
-- Dr. Axel Huebl
 
 ### Maintainers* and core developers
 
@@ -209,11 +208,10 @@ Active Team
 - Dr. Alexander Debus
 - Marco Garten*
 - Dr. Axel Huebl*
-- Alexander Matthes
+- Pawel Ordyna 
 - Dr. Richard Pausch*
-- Sophie Rudat
-- Sebastian Starke
-- Dr. Klaus Steiniger
+- Franz Poeschel
+- Dr. Klaus Steiniger*
 - Rene Widera*
 
 ### Former Members, Contributions and Thanks
@@ -223,8 +221,12 @@ The PIConGPU Team expresses its gratitude to:
 Florian Berninger, Heiko Burau, Robert Dietrich, Carlchristian Eckert,
 Wen Fu, Ph.D., Alexander Grund, Sebastian Hahn, Anton Helm, Wolfgang Hoehnig,
 Dr.-Ing. Guido Juckeland, Jeffrey Kelling, Maximilian Knespel, Dr. Remi Lehe,
-Felix Schmitt, Benjamin Schneider, Joseph Schuchart, Conrad Schumann,
-Stefan Tietze, Marija Vranic, Ph.D., Benjamin Worpitz, and Erik Zenker.
+Felix Schmitt, Frank Winkler, Benjamin Schneider, Joseph Schuchart, Conrad Schumann,
+Stefan Tietze, Marija Vranic, Ph.D., Benjamin Worpitz, Erik Zenker,
+Sophie Rudat, Sebastian Starke, Alexander Matthes, Kseniia Bastrakova, 
+Brian Edward Marre, Bernhard Manfred Gruber, Jakob Trojok, Anton Lebedev, 
+Felix Meyer, Lennert Sprenger, Manhui Wang, Maxence Thevenet, Ilja Goethel
+and Finn-Ole Carstens.
 
 Kudos to everyone, mentioned or unmentioned, who contributed further in any
 way!
