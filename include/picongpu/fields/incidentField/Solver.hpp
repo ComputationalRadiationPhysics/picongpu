@@ -267,9 +267,8 @@ namespace picongpu
                     auto endGridIdx = endLocalUserIdx + numGuardCells;
 
                     // Indexing is done, now prepare the update functor
-                    auto functor = Functor{incidentField.getUnit()};
+                    auto functor = Functor{parameters.sourceTimeIteration, incidentField.getUnit()};
                     functor.updatedField = dataBox;
-                    functor.currentStep = parameters.sourceTimeIteration;
                     functor.isUpdatedFieldTotal = isUpdatedFieldTotal;
                     functor.direction = parameters.direction;
                     /* Shift between local grid idx and fractional total cell idx that a user functor needs:

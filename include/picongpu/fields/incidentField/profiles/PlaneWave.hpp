@@ -68,34 +68,49 @@ namespace picongpu
                      * the max boundary inwards)
                      */
                     template<typename T_Params, uint32_t T_axis, int32_t T_direction>
-                    struct PlaneWaveFunctorIncidentE
+                    class PlaneWaveFunctorIncidentE
                         : public PlaneWaveUnitless<T_Params>
                         , public BaseFunctorE<T_axis, T_direction>
                     {
+                    public:
                         //! Unitless parameters type
                         using Unitless = PlaneWaveUnitless<T_Params>;
 
                         //! Base functor type
                         using Base = BaseFunctorE<T_axis, T_direction>;
 
-                        /** Create a functor on the host side
+                        /** Create a functor on the host side for the given time step
                          *
+                         * Since this profile is only time-dependent, calculate the whole value on host.
+                         *
+                         * @param currentStep current time step index, note that it is fractional
                          * @param unitField conversion factor from SI to internal units,
                          *                  fieldE_internal = fieldE_SI / unitField
                          */
-                        HINLINE PlaneWaveFunctorIncidentE(const float3_64 unitField) : Base(unitField)
+                        HINLINE PlaneWaveFunctorIncidentE(float_X const currentStep, float3_64 const unitField)
+                            : Base(unitField)
+                            , elong(getLongitudinal(currentStep))
                         {
                         }
 
-                        /** Calculate incident field E value for the given position and time.
+                        /** Calculate incident field E value for the given position
                          *
                          * Since it is a plane wave parallel to the generating surface, the value only depends on time.
                          *
                          * @param totalCellIdx cell index in the total domain (including all moving window slides)
-                         * @param currentStep current time step index, note that it is fractional
                          * @return incident field E value in internal units
                          */
-                        HDINLINE float3_X operator()(const floatD_X& /*totalCellIdx*/, const float_X currentStep) const
+                        HDINLINE float3_X operator()(floatD_X const& totalCellIdx) const
+                        {
+                            return elong;
+                        }
+
+                    private:
+                        //! Precalulated time-dependent longitudinal value, in this case it is also the final result
+                        float3_X const elong;
+
+                        //! Get time-dependent longitudinal vector factor
+                        HDINLINE float3_X getLongitudinal(float_X const currentStep) const
                         {
                             float_64 const runTime = DELTA_T * currentStep;
                             float_64 envelope = float_64(Unitless::AMPLITUDE);

@@ -79,36 +79,41 @@ namespace picongpu
                         //! Base functor type
                         using Base = BaseFunctorE<T_axis, T_direction>;
 
-                        /** Create a functor on the host side
+                        /** Create a functor on the host side for the given time step
                          *
+                         * @param currentStep current time step index, note that it is fractional
                          * @param unitField conversion factor from SI to internal units,
                          *                  fieldE_internal = fieldE_SI / unitField
                          */
-                        HINLINE PolynomFunctorIncidentE(const float3_64 unitField) : Base(unitField)
+                        HINLINE PolynomFunctorIncidentE(float_X const currentStep, float3_64 const unitField)
+                            : Base(unitField)
+                            , elong(getLongitudinal(currentStep))
                         {
                             auto const& subGrid = Environment<simDim>::get().SubGrid();
                             totalDomainCells = precisionCast<float_X>(subGrid.getTotalDomain().size);
                         }
 
-                        /** Calculate incident field E value for the given position and time.
+                        /** Calculate incident field E value for the given position
                          *
                          * @param totalCellIdx cell index in the total domain (including all moving window slides)
-                         * @param currentStep current time step index, note that it is fractional
                          * @return incident field E value in internal units
                          */
-                        HDINLINE float3_X operator()(const floatD_X& totalCellIdx, const float_X currentStep) const
+                        HDINLINE float3_X operator()(floatD_X const& totalCellIdx) const
                         {
-                            return getLongitudinal(currentStep) * getTransversal(totalCellIdx);
+                            return elong * getTransversal(totalCellIdx);
                         }
 
                     private:
                         //! Total domain size in cells
                         floatD_X totalDomainCells;
 
+                        //! Precalulated time-dependent longitudinal value
+                        float3_X const elong;
+
                         //! Get time-dependent longitudinal vector factor
-                        HDINLINE float3_X getLongitudinal(const float_X currentStep) const
+                        HDINLINE float3_X getLongitudinal(float_X const currentStep) const
                         {
-                            auto elong = float3_X::create(0.0_X);
+                            auto result = float3_X::create(0.0_X);
                             /* a symmetric pulse will be initialized at position z=0
                              * the laser amplitude rises  for riseTime and falls for riseTime
                              * making the laser pulse 2*riseTime long
@@ -119,16 +124,16 @@ namespace picongpu
                             const float_X omegaLaser = 2.0_X * PI * Unitless::f;
                             auto const arg = omegaLaser * (runTime - riseTime) + Unitless::LASER_PHASE;
                             if(Unitless::Polarisation == Unitless::LINEAR_AXIS_2)
-                                elong[Base::dir2] = math::sin(arg);
+                                result[Base::dir2] = math::sin(arg);
                             else if(Unitless::Polarisation == Unitless::LINEAR_AXIS_1)
-                                elong[Base::dir1] = math::sin(arg);
+                                result[Base::dir1] = math::sin(arg);
                             else if(Unitless::Polarisation == Unitless::CIRCULAR)
                             {
-                                elong[Base::dir2] = math::sin(arg) / math::sqrt(2.0_X);
-                                elong[Base::dir1] = math::cos(arg) / math::sqrt(2.0_X);
+                                result[Base::dir2] = math::sin(arg) / math::sqrt(2.0_X);
+                                result[Base::dir1] = math::cos(arg) / math::sqrt(2.0_X);
                             }
                             auto const amplitude = static_cast<float_X>(Unitless::AMPLITUDE * polynomial(tau));
-                            return elong * amplitude;
+                            return result * amplitude;
                         }
 
                         //! Get polynomial value for unitless time variable tau in [0.0, 2.0]

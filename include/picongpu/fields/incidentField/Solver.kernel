@@ -58,15 +58,16 @@ namespace picongpu
                     uint32_t T_axis>
                 struct UpdateFunctor
                 {
-                    /** Create an update functor instance on the host side
+                    /** Create an update functor instance on the host side for the given time step
                      *
                      * It should then be passed to the kernel by value
                      *
+                     * @param currentStep current time step index, note that it is fractional
                      * @param unitField conversion factor from SI to internal units,
                      *                  field_internal = field_SI / unitField
                      */
-                    UpdateFunctor(float3_64 const unitField)
-                        : functorIncidentField(unitField)
+                    HINLINE UpdateFunctor(float_X const currentStep, float3_64 const unitField)
+                        : functorIncidentField(currentStep, unitField)
                         , coeff1(float3_X::create(0.0_X))
                         , coeff2(float3_X::create(0.0_X))
                     {
@@ -158,9 +159,6 @@ namespace picongpu
                     //! Index shift: totalCellIdx (that a user functor gets) = gridIdx + gridIdxShirt
                     pmacc::DataSpace<simDim> gridIdxShift;
 
-                    //! Current time step, in iterations; can be fractional
-                    float_X currentStep;
-
                     /** Direction of the incidentField propagation
                      *
                      * +1._X is positive direction (from the min boundary inwards).
@@ -240,12 +238,12 @@ namespace picongpu
                                     result += derivativeCoeff
                                         * (coeff1
                                                * functorIncidentField(
-                                                   incidentFieldShift1 + incidentIdxShift.shrink<simDim>(),
-                                                   currentStep)[incidentComponent1]
+                                                   incidentFieldShift1
+                                                   + incidentIdxShift.shrink<simDim>())[incidentComponent1]
                                            + coeff2
                                                * functorIncidentField(
-                                                   incidentFieldShift2 + incidentIdxShift.shrink<simDim>(),
-                                                   currentStep)[incidentComponent2]);
+                                                   incidentFieldShift2
+                                                   + incidentIdxShift.shrink<simDim>())[incidentComponent2]);
                                     incidentIdxShift[dir2] += 1.0_X;
                                 }
                                 incidentIdxShift[dir1] += 1.0_X;
