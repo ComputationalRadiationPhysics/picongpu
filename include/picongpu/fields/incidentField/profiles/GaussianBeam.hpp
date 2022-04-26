@@ -28,6 +28,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <type_traits>
 
 namespace picongpu
 {
@@ -39,12 +40,49 @@ namespace picongpu
             {
                 namespace detail
                 {
-                    /** Unitless gaussian beam parameters
+                    /** Base class providing tilt value based on given parameters
+                     *
+                     * General implementation sets tilt to 0 and does not require T_Params having tilt as member.
+                     *
+                     * @tparam T_Params user (SI) parameters
+                     */
+                    template<typename T_Params, typename T_Sfinae = void>
+                    struct TiltParam
+                    {
+                        static constexpr float_X TILT_AXIS_2 = 0.0_X; // unit: radiant (in dimensions of pi)
+                    };
+
+                    /** Helper type to check if T_Params has member TILT_AXIS_2_SI
+                     *
+                     * Is void for those types, ill-formed otherwise.
                      *
                      * @tparam T_Params user (SI) parameters
                      */
                     template<typename T_Params>
-                    struct GaussianBeamUnitless : public T_Params
+                    using HasTilt = std::void_t<decltype(T_Params::TILT_AXIS_2_SI)>;
+
+                    /** Specialization for T_Params having tilt as member, then use it.
+                     *
+                     * @tparam T_Params user (SI) parameters
+                     */
+                    template<typename T_Params>
+                    struct TiltParam<T_Params, HasTilt<T_Params>>
+                    {
+                        static constexpr float_X TILT_AXIS_2 = static_cast<float_X>(
+                            T_Params::TILT_AXIS_2_SI * PI / 180.); // unit: radiant (in dimensions of pi)
+                    };
+
+                    /** Unitless gaussian beam parameters
+                     *
+                     * These parameters are shared for tilted and non-tilted Gaussian laser.
+                     * The branching in terms of if and how user sets a tilt is encapculated in TiltParam.
+                     *
+                     * @tparam T_Params user (SI) parameters
+                     */
+                    template<typename T_Params>
+                    struct GaussianBeamUnitless
+                        : public T_Params
+                        , public TiltParam<T_Params>
                     {
                         using Params = T_Params;
 
@@ -67,6 +105,9 @@ namespace picongpu
                     };
 
                     /** Gaussian beam incident E functor
+                     *
+                     * The implementation is shared between a normal Gaussian beam and one with tilted front.
+                     * We always take tilt value from the unitless params and apply the tile (which can be 0).
                      *
                      * @tparam T_Params parameters
                      * @tparam T_axis boundary axis, 0 = x, 1 = y, 2 = z
@@ -155,7 +196,6 @@ namespace picongpu
                                     = (totalDomainCells[Base::dir0] - totalCellIdx[Base::dir0]) * cellSize[Base::dir0];
                             floatD_X planeNoNormal = floatD_X::create(1.0_X);
                             planeNoNormal[Base::dir0] = 0.0_X;
-                            float_X const transversalDistanceSquared = pmacc::math::abs2(pos * planeNoNormal);
 
                             // calculate focus position relative to the current point in the propagation direction
                             float_X const focusPos = Unitless::FOCUS_POS - pos[Base::dir0];
@@ -172,6 +212,16 @@ namespace picongpu
                             auto const phase = 2.0_X * static_cast<float_X>(PI) * Unitless::f
                                     * (runTime - mue - focusPos / SPEED_OF_LIGHT)
                                 + Unitless::LASER_PHASE;
+
+                            // Apply tilt in Base::dir2
+                            auto const timeShift
+                                = phase / (2.0_X * float_X(PI) * float_X(Unitless::f)) + focusPos / SPEED_OF_LIGHT;
+                            auto const tilt = Unitless::TILT_AXIS_2;
+                            auto const shiftAxis2
+                                = SPEED_OF_LIGHT * math::tan(tilt) * timeShift / cellSize[Base::dir0];
+                            pos[Base::dir2] += shiftAxis2;
+                            float_X const transversalDistanceSquared = pmacc::math::abs2(pos * planeNoNormal);
+
                             if(Unitless::Polarisation == Unitless::LINEAR_AXIS_2
                                || Unitless::Polarisation == Unitless::LINEAR_AXIS_1)
                             {
