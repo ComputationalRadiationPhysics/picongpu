@@ -23,3 +23,4 @@
 #include "picongpu/fields/incidentField/profiles/None.hpp"
 #include "picongpu/fields/incidentField/profiles/PlaneWave.hpp"
 #include "picongpu/fields/incidentField/profiles/Polynom.hpp"
+#include "picongpu/fields/incidentField/profiles/Wavepacket.hpp"
