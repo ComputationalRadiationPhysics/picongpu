@@ -23,30 +23,40 @@
 
 #include "pmacc/meta/conversion/ToSeq.hpp"
 
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/insert.hpp>
+#include <boost/mpl/copy_if.hpp>
+#include <boost/mpl/count.hpp>
+#include <boost/mpl/equal.hpp>
+#include <boost/mpl/int.hpp>
 #include <boost/mpl/placeholders.hpp>
-#include <boost/mpl/set.hpp>
 #include <boost/mpl/size.hpp>
 
 
 namespace pmacc
 {
+    /** boost::mpl predicate to check if the given type is present exactly once in the given sequence
+     *
+     * Defines result as ::type.
+     *
+     * @tparam T_Seq type sequence
+     * @tparam T target type
+     */
+    template<typename T_Seq, typename T>
+    struct IsPresentOnce
+    {
+        using Count = typename bmpl::count<T_Seq, T>::type;
+        using type = typename bmpl::equal_to<Count, bmpl::int_<1>>::type;
+    };
+
     /** Make a sequence out of the input sequence with the duplicate elements removed
      *
-     * The new sequence may have the elements in different order.
+     * This operation turned out surprisingly tricky to implement with boost::mpl, see #4078 for details.
      *
      * @tparam T_Seq source sequence
      */
     template<typename T_Seq>
     struct Unique
     {
-        // Insert all sequence elements to a set, that will remove duplicates.
-        // Note that we cannot simply call bmpl::unique as it only removes duplicates located contiguously.
-        using Set = typename bmpl::fold<T_Seq, bmpl::set0<>, bmpl::insert<bmpl::_1, bmpl::_2>>::type;
-
-        // Convert back to sequence if necessary
-        using type = typename ToSeq<Set>::type;
+        using type = typename bmpl::copy_if<T_Seq, IsPresentOnce<T_Seq, bmpl::_>>::type;
     };
 
     //! Helper alias for @see Unique<>
