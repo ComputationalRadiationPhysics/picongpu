@@ -1,0 +1,61 @@
+/* Copyright 2013-2022 Anton Helm, Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Axel Huebl, Alexander Debus, Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/fields/incidentField/profiles/GaussianBeam.def"
+
+
+namespace picongpu
+{
+    namespace fields
+    {
+        namespace incidentField
+        {
+            namespace profiles
+            {
+                namespace defaults
+                {
+                    // All parameters are same as for GaussianBeam, plus one extra parameter
+                    struct PulseFrontTiltParam : public GaussianBeamParam
+                    {
+                        /** the tilt angle between laser propagation direction and laser axis 2
+                         *
+                         * AXIS_2 is previous axis before the propagation axis in order (x, y, z) with a periodic
+                         * wrap. E.g. for y propagation axis, LINEAR_AXIS_2 = x
+                         *
+                         *  unit: degree
+                         */
+                        static constexpr float_64 TILT_AXIS_2_SI = 0.0;
+                    };
+                } // namespace defaults
+
+                /** Gaussian Beam laser profile with titled pulse front tag
+                 *
+                 * @tparam T_Params class parameter to configure the Gaussian Beam with tilted front profile,
+                 *                  see members of defaults::PulseFrontTiltParam
+                 *                  for required members
+                 */
+                template<typename T_Params = defaults::PulseFrontTiltParam>
+                using PulseFrontTilt = GaussianBeam<T_Params>;
+            } // namespace profiles
+        } // namespace incidentField
+    } // namespace fields
+} // namespace picongpu
