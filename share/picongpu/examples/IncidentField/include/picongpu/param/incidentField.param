@@ -22,12 +22,15 @@
  * Configure incident field profile and gap between Huygence surface and absorber for each boundary.
  *
  * Available profiles:
- *  - profiles::None           : no incident field
- *  - profiles::Free<>         : custom profile with user-provided functors to calculate incident E and B
- *  - profiles::GaussianBeam<> : Gaussian beam with given parameters
- *  - profiles::PlaneWave<>    : plane wave profile with given parameters
- *  - profiles::Polynom<>      : wavepacket with a polynomial temporal intensity shape profile with given parameters
- *  - profiles::Wavepacket<>   : wavepacket with Gaussian spatial and temporal envelope profile with given parameters
+ *  - profiles::ExpRampWithPrepulse<> : exponential ramp with prepulse wavepacket with given parameters
+ *  - profiles::Free<>                : custom profile with user-provided functors to calculate incident E and B
+ *  - profiles::GaussianBeam<>        : Gaussian beam with given parameters
+ *  - profiles::None                  : no incident field
+ *  - profiles::PlaneWave<>           : plane wave profile with given parameters
+ *  - profiles::Polynom<>             : wavepacket with a polynomial temporal intensity shape profile with given
+ * parameters
+ *  - profiles::Wavepacket<>          : wavepacket with Gaussian spatial and temporal envelope profile with given
+ * parameters
  *
  * In the end, this file needs to define `XMin`, `XMax`, `YMax`, `YMax`, `ZMin`, `ZMax` (the latter two can be skipped
  * in 2d) type aliases in namespace `picongpu::fields::incidentField`. It also has to define constexpr array
