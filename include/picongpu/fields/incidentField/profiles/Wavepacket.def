@@ -70,9 +70,8 @@ namespace picongpu
                          *              decreases to its 1/e^2-th part,
                          *              at the focus position of the laser
                          *
-                         * AXIS_1 is next axis after the propagation axis in order (x, y, z) with a periodic
-                         * wrap. LINEAR_AXIS_1 is next after LINEAR_AXIS_2. E.g. for y propagation axis, AXIS_1 = z,
-                         * AXIS_2 = x
+                         * AXIS_1 is next axis after the propagation axis in order (x, y, z) with a periodic wrap.
+                         * AXIS_2 is next after AXIS_1. E.g. for y propagation axis, AXIS_1 = z, AXIS_2 = x.
                          *
                          *  unit: meter
                          */
