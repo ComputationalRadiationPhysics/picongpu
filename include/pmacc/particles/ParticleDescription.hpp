@@ -23,10 +23,12 @@
 
 #include "pmacc/HandleGuardRegion.hpp"
 #include "pmacc/meta/conversion/ToSeq.hpp"
+#include "pmacc/meta/conversion/Unique.hpp"
 #include "pmacc/particles/policies/DeleteParticles.hpp"
 #include "pmacc/particles/policies/ExchangeParticles.hpp"
 
 #include <boost/mpl/vector.hpp>
+
 
 namespace pmacc
 {
@@ -39,8 +41,8 @@ namespace pmacc
      * @tparam T_Name name of described particle (e.g. electron, ion)
      *                type must be a boost::mpl::string
      * @tparam T_SuperCellSize compile time size of a super cell
-     * @tparam T_ValueTypeSeq sequence or single type with value_identifier
-     * @tparam T_Flags sequence or single type with identifier to add flags on a frame
+     * @tparam T_ValueTypeSeq sequence or single type with value_identifier, must not have duplicates
+     * @tparam T_Flags sequence or single type with identifier to add flags on a frame, must not have duplicates
      * @tparam T_MethodsList sequence or single class with particle methods
      *                       (e.g. calculate mass, gamma, ...)
      *                       (e.g. useSolverXY, calcRadiation, ...)
@@ -77,6 +79,14 @@ namespace pmacc
             HandleGuardRegion,
             MethodsList,
             FrameExtensionList>;
+
+        // Compile-time check uniqueness of attributes and flags
+        PMACC_CASSERT_MSG(
+            _error_particles_must_not_have_duplicate_attributes____check_your_speciesDefinition_param_file,
+            isUnique<ValueTypeSeq>);
+        PMACC_CASSERT_MSG(
+            _error_particles_must_not_have_duplicate_flags____check_your_speciesDefinition_param_file,
+            isUnique<FlagsList>);
     };
 
 
