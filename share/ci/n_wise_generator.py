@@ -293,6 +293,11 @@ for stage in range(num_stages):
                 print("    - wget -q -O - "
                       "https://repo.radeon.com/rocm/rocm.gpg.key | "
                       "sudo apt-key add -")
+            if backend == "cuda":
+                print("    - apt-key adv --fetch-keys "
+                      "https://developer.download.nvidia.com/compute"
+                      "/cuda/repos/${CI_CONTAINER_NAME//.}"
+                      "/x86_64/3bf863cc.pub")
             print("    - apt-get update -qq")
             print("    - apt-get install -y -qq libopenmpi-dev "
                   "openmpi-bin openssh-server")

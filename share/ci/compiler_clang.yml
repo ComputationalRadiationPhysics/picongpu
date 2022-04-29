@@ -5,6 +5,8 @@
   image: registry.hzdr.de/crp/alpaka-group-container/alpaka-ci-${CI_CONTAINER_NAME}-clang-pic:${CONTAINER_TAG}
   variables:
     GIT_SUBMODULE_STRATEGY: normal
+    # ISAAC is not supporting CPU
+    DISABLE_ISAAC: "yes"
   script:
     - apt update
     - apt install -y curl libjpeg-dev
