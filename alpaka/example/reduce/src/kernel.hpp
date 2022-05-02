@@ -1,4 +1,4 @@
-/* Copyright 2019 Jonas Schenke
+/* Copyright 2020 Jonas Schenke, Bernhard Manfred Gruber
  *
  * This file exemplifies usage of alpaka.
  *
@@ -30,7 +30,7 @@ struct cheapArray
     //! \param index The index of the element to be accessed.
     //!
     //! Returns the requested element per reference.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE T& operator[](uint64_t index)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator[](uint64_t index) -> T&
     {
         return data[index];
     }
@@ -40,7 +40,7 @@ struct cheapArray
     //! \param index The index of the element to be accessed.
     //!
     //! Returns the requested element per constant reference.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE const T& operator[](uint64_t index) const
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator[](uint64_t index) const -> const T&
     {
         return data[index];
     }
@@ -77,12 +77,12 @@ struct ReduceKernel
     {
         auto& sdata(alpaka::declareSharedVar<cheapArray<T, TBlockSize>, __COUNTER__>(acc));
 
-        const uint32_t blockIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0]));
-        const uint32_t threadIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc)[0]));
-        const uint32_t gridDimension(static_cast<uint32_t>(alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc)[0]));
+        const auto blockIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0]));
+        const auto threadIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc)[0]));
+        const auto gridDimension(static_cast<uint32_t>(alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc)[0]));
 
         // equivalent to blockIndex * TBlockSize + threadIndex
-        const uint32_t linearizedIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0]));
+        const auto linearizedIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0]));
 
         typename GetIterator<T, TElem, TAcc>::Iterator it(acc, source, linearizedIndex, gridDimension * TBlockSize, n);
 

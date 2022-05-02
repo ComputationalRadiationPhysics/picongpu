@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -19,7 +19,7 @@ namespace alpaka
     };
 
     //! The wait traits.
-    namespace traits
+    namespace trait
     {
         //! The thread wait trait.
         template<typename TAwaited, typename TSfinae = void>
@@ -28,20 +28,20 @@ namespace alpaka
         //! The waiter wait trait.
         template<typename TWaiter, typename TAwaited, typename TSfinae = void>
         struct WaiterWaitFor;
-    } // namespace traits
+    } // namespace trait
 
     //! Waits the thread for the completion of the given awaited action to complete.
     template<typename TAwaited>
     ALPAKA_FN_HOST auto wait(TAwaited const& awaited) -> void
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptCurrentThreadWaitFor, TAwaited>;
-        traits::CurrentThreadWaitFor<ImplementationBase>::currentThreadWaitFor(awaited);
+        trait::CurrentThreadWaitFor<ImplementationBase>::currentThreadWaitFor(awaited);
     }
 
     //! The waiter waits for the given awaited action to complete.
     template<typename TWaiter, typename TAwaited>
     ALPAKA_FN_HOST auto wait(TWaiter& waiter, TAwaited const& awaited) -> void
     {
-        traits::WaiterWaitFor<TWaiter, TAwaited>::waiterWaitFor(waiter, awaited);
+        trait::WaiterWaitFor<TWaiter, TAwaited>::waiterWaitFor(waiter, awaited);
     }
 } // namespace alpaka

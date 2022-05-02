@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2020 Benjamin Worpitz, Jan Stephan
+# Copyright 2021 Benjamin Worpitz, Jan Stephan
 #
 # This file is part of alpaka.
 #
@@ -14,7 +14,7 @@
 
 cmake_minimum_required(VERSION 3.18)
 
-project("alpakaAnalysisTest")
+project("alpakaAnalysisTest" LANGUAGES CXX)
 
 ################################################################################
 # Add subdirectories.

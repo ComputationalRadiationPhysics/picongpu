@@ -1,4 +1,4 @@
-/* Copyright 2019 Alexander Matthes, Benjamin Worpitz
+/* Copyright 2022 Alexander Matthes, Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <string>
+#include <utility>
 
 //! The no debug level.
 #define ALPAKA_DEBUG_DISABLED 0
@@ -26,35 +27,29 @@
 #    define ALPAKA_DEBUG ALPAKA_DEBUG_DISABLED
 #endif
 
-namespace alpaka
+namespace alpaka::core::detail
 {
-    namespace core
+    //! Scope logger.
+    class ScopeLogStdOut final
     {
-        namespace detail
+    public:
+        explicit ScopeLogStdOut(std::string sScope) : m_sScope(std::move(sScope))
         {
-            //! Scope logger.
-            class ScopeLogStdOut final
-            {
-            public:
-                explicit ScopeLogStdOut(std::string const& sScope) : m_sScope(sScope)
-                {
-                    std::cout << "[+] " << m_sScope << std::endl;
-                }
-                ScopeLogStdOut(ScopeLogStdOut const&) = delete;
-                ScopeLogStdOut(ScopeLogStdOut&&) = delete;
-                auto operator=(ScopeLogStdOut const&) -> ScopeLogStdOut& = delete;
-                auto operator=(ScopeLogStdOut&&) -> ScopeLogStdOut& = delete;
-                ~ScopeLogStdOut()
-                {
-                    std::cout << "[-] " << m_sScope << std::endl;
-                }
+            std::cout << "[+] " << m_sScope << std::endl;
+        }
+        ScopeLogStdOut(ScopeLogStdOut const&) = delete;
+        ScopeLogStdOut(ScopeLogStdOut&&) = delete;
+        auto operator=(ScopeLogStdOut const&) -> ScopeLogStdOut& = delete;
+        auto operator=(ScopeLogStdOut&&) -> ScopeLogStdOut& = delete;
+        ~ScopeLogStdOut()
+        {
+            std::cout << "[-] " << m_sScope << std::endl;
+        }
 
-            private:
-                std::string const m_sScope;
-            };
-        } // namespace detail
-    } // namespace core
-} // namespace alpaka
+    private:
+        std::string const m_sScope;
+    };
+} // namespace alpaka::core::detail
 
 // Define ALPAKA_DEBUG_MINIMAL_LOG_SCOPE.
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL

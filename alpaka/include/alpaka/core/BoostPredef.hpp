@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Benjamin Worpitz, Matthias Werner, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -11,12 +11,6 @@
 
 #include <boost/predef.h>
 
-// In boost since 1.68.0
-// BOOST_PREDEF_MAKE_10_VVRRP(V)
-#if !defined(BOOST_PREDEF_MAKE_10_VVRRP)
-#    define BOOST_PREDEF_MAKE_10_VVRRP(V) BOOST_VERSION_NUMBER(((V) / 1000) % 100, ((V) / 10) % 100, (V) % 10)
-#endif
-
 //---------------------------------------HIP-----------------------------------
 // __HIPCC__ is defined by hipcc (if either __CUDACC__ is defined)
 // https://github.com/ROCm-Developer-Tools/HIP/blob/master/docs/markdown/hip_porting_guide.md#compiler-defines-summary
@@ -25,8 +19,7 @@
 #        include <hip/hip_runtime.h>
 // HIP defines "abort()" as "{asm("trap;");}", which breaks some kernels
 #        undef abort
-// there is no HIP_VERSION macro
-#        define BOOST_LANG_HIP BOOST_VERSION_NUMBER_AVAILABLE
+#        define BOOST_LANG_HIP BOOST_VERSION_NUMBER(HIP_VERSION_MAJOR, HIP_VERSION_MINOR, 0)
 #        if defined(BOOST_LANG_CUDA) && BOOST_LANG_CUDA
 #            undef BOOST_LANG_CUDA
 #            define BOOST_LANG_CUDA BOOST_VERSION_NUMBER_NOT_AVAILABLE
@@ -56,56 +49,6 @@
 #    endif
 #endif
 
-// In boost since 1.68.0
-// CUDA language detection
-// - clang defines __CUDA__ and __CUDACC__ when compiling CUDA code ('-x cuda')
-// - nvcc defines __CUDACC__ when compiling CUDA code
-#if !defined(BOOST_LANG_CUDA)
-#    if defined(__CUDA__) || defined(__CUDACC__)
-#        include <cuda.h>
-#        define BOOST_LANG_CUDA BOOST_PREDEF_MAKE_10_VVRRP(CUDA_VERSION)
-#    else
-#        define BOOST_LANG_CUDA BOOST_VERSION_NUMBER_NOT_AVAILABLE
-#    endif
-#endif
-
-// In boost since 1.68.0
-// CUDA device architecture detection
-#if !defined(BOOST_ARCH_PTX)
-#    if defined(__CUDA_ARCH__)
-#        define BOOST_ARCH_PTX BOOST_PREDEF_MAKE_10_VRP(__CUDA_ARCH__)
-#    else
-#        define BOOST_ARCH_PTX BOOST_VERSION_NUMBER_NOT_AVAILABLE
-#    endif
-#endif
-
-// In boost since 1.68.0
-// nvcc CUDA compiler detection
-
-#include <boost/version.hpp>
-#if BOOST_VERSION >= 106800
-// BOOST_COMP_NVCC_EMULATED is defined by boost instead of BOOST_COMP_NVCC
-#    if defined(BOOST_COMP_NVCC) && defined(BOOST_COMP_NVCC_EMULATED)
-#        undef BOOST_COMP_NVCC
-#        define BOOST_COMP_NVCC BOOST_COMP_NVCC_EMULATED
-#    endif
-#endif
-
-#if !defined(BOOST_COMP_NVCC)
-#    if defined(__NVCC__)
-// The __CUDACC_VER_MAJOR__, __CUDACC_VER_MINOR__ and __CUDACC_VER_BUILD__
-// have been added with nvcc 7.5 and have not been available before.
-#        if !defined(__CUDACC_VER_MAJOR__) || !defined(__CUDACC_VER_MINOR__) || !defined(__CUDACC_VER_BUILD__)
-#            define BOOST_COMP_NVCC BOOST_VERSION_NUMBER_AVAILABLE
-#        else
-#            define BOOST_COMP_NVCC                                                                                   \
-                BOOST_VERSION_NUMBER(__CUDACC_VER_MAJOR__, __CUDACC_VER_MINOR__, __CUDACC_VER_BUILD__)
-#        endif
-#    else
-#        define BOOST_COMP_NVCC BOOST_VERSION_NUMBER_NOT_AVAILABLE
-#    endif
-#endif
-
 // clang CUDA compiler detection
 // Currently __CUDA__ is only defined by clang when compiling CUDA code.
 #if defined(__clang__) && defined(__CUDA__)
@@ -115,14 +58,18 @@
 #endif
 
 // Intel compiler detection
-// BOOST_COMP_INTEL_EMULATED is defined by boost instead of BOOST_COMP_INTEL
+// As of Boost 1.74, Boost.Predef's compiler detection is a bit weird. Recent Intel compilers will be identified as
+// BOOST_COMP_INTEL_EMULATED. Boost.Predef has lackluster front-end support and mistakes the EDG front-end
+// for an actual compiler.
+// TODO: Whenever you look at this code please check whether https://github.com/boostorg/predef/issues/28 and
+// https://github.com/boostorg/predef/issues/51 have been resolved.
 #if defined(BOOST_COMP_INTEL) && defined(BOOST_COMP_INTEL_EMULATED)
 #    undef BOOST_COMP_INTEL
 #    define BOOST_COMP_INTEL BOOST_COMP_INTEL_EMULATED
 #endif
 
 // PGI and NV HPC SDK compiler detection
-// BOOST_COMP_PGI_EMULATED is defined by boost instead of BOOST_COMP_PGI
+// BOOST_COMP_PGI_EMULATED is defined by boost instead of BOOST_COMP_PGI (probably the same problem as for Intel)
 #if defined(BOOST_COMP_PGI) && defined(BOOST_COMP_PGI_EMULATED)
 #    undef BOOST_COMP_PGI
 #    define BOOST_COMP_PGI BOOST_COMP_PGI_EMULATED

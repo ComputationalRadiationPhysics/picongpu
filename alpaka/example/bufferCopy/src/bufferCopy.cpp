@@ -1,4 +1,4 @@
-/* Copyright 2019 Alexander Matthes, Benjamin Worpitz, Erik Zenker, Matthias Werner
+/* Copyright 2020 Alexander Matthes, Benjamin Worpitz, Erik Zenker, Matthias Werner, Bernhard Manfred Gruber
  *
  * This file exemplifies usage of alpaka.
  *
@@ -22,7 +22,7 @@
 #include <iostream>
 
 template<size_t width>
-ALPAKA_FN_ACC size_t linIdxToPitchedIdx(size_t const globalIdx, size_t const pitch)
+ALPAKA_FN_ACC auto linIdxToPitchedIdx(size_t const globalIdx, size_t const pitch) -> size_t
 {
     const size_t idx_x = globalIdx % width;
     const size_t idx_y = globalIdx / width;
@@ -250,8 +250,8 @@ auto main() -> int
     // not currently supported.
     // In this example both host buffers are copied
     // into device buffers.
-    alpaka::memcpy(devQueue, deviceBuffer1, hostViewPlainPtr, extents);
-    alpaka::memcpy(devQueue, deviceBuffer2, hostBuffer, extents);
+    alpaka::memcpy(devQueue, deviceBuffer1, hostViewPlainPtr);
+    alpaka::memcpy(devQueue, deviceBuffer2, hostBuffer);
 
     // Depending on the accelerator, the allocation function may introduce
     // padding between rows/planes of multidimensional memory allocations.

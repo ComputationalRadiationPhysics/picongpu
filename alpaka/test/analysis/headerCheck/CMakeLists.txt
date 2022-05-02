@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2020 Benjamin Worpitz, Axel Huebl, Jan Stephan
+# Copyright 2021 Benjamin Worpitz, Axel Huebl, Jan Stephan, Bernhard Manfred Gruber
 #
 # This file is part of alpaka.
 #
@@ -8,26 +8,26 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-if(NOT ALPAKA_CI OR (ALPAKA_CI AND ALPAKA_CI_ANALYSIS))
+if(alpaka_CHECK_HEADERS)
 
     set(_TARGET_NAME "headerCheckTest")
 
     #---------------------------------------------------------------------------
     # Create source files.
-    set(_ALPAKA_INCLUDE_DIRECTORY "${_ALPAKA_ROOT_DIR}/include")
-    set(_ALPAKA_SUFFIXED_INCLUDE_DIR "${_ALPAKA_INCLUDE_DIRECTORY}/alpaka")
-    append_recursive_files("${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "hpp" "_ALPAKA_FILES_HEADER")
+    set(_alpaka_INCLUDE_DIRECTORY "${_alpaka_ROOT_DIR}/include")
+    set(_alpaka_SUFFIXED_INCLUDE_DIR "${_alpaka_INCLUDE_DIRECTORY}/alpaka")
+    append_recursive_files("${_alpaka_SUFFIXED_INCLUDE_DIR}" "hpp" "_alpaka_FILES_HEADER")
 
     set(_GENERATED_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/src")
 
     file(REMOVE_RECURSE ${_GENERATED_SOURCE_DIR})
 
-    foreach(_HEADER_FILE ${_ALPAKA_FILES_HEADER})
+    foreach(_HEADER_FILE ${_alpaka_FILES_HEADER})
         # Remove the parent directory from the path.
         # NOTE: This is not correct because it does not only replace at the beginning of the string.
         #  "STRING(REGEX REPLACE" would be correct if there was an easy way to escape arbitrary strings.
         string(
-            REPLACE "${_ALPAKA_SUFFIXED_INCLUDE_DIR}/" ""
+            REPLACE "${_alpaka_SUFFIXED_INCLUDE_DIR}/" ""
             _HEADER_FILE
             "${_HEADER_FILE}")
         set(_SOURCE_FILE "${_GENERATED_SOURCE_DIR}/${_HEADER_FILE}.cpp")
@@ -50,6 +50,6 @@ if(NOT ALPAKA_CI OR (ALPAKA_CI AND ALPAKA_CI_ANALYSIS))
 
     set_target_properties(headerCheckTest PROPERTIES FOLDER "test/analysis")
 
-    add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_ALPAKA_TEST_OPTIONS})
+    add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_alpaka_TEST_OPTIONS})
 
 endif()

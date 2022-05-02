@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Erik Zenker
+/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber
  *
  * This file is part of Alpaka.
  *

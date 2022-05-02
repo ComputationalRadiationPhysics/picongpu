@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -25,7 +25,7 @@ namespace alpaka
         ALPAKA_FN_HOST PltfCpu() = delete;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The CPU device device type trait specialization.
         template<>
@@ -66,5 +66,5 @@ namespace alpaka
                 return {};
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

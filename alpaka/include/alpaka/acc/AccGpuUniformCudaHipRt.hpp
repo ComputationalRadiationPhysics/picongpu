@@ -1,4 +1,4 @@
-/* Copyright 2021 Benjamin Worpitz, René Widera, Jan Stephan
+/* Copyright 2022 Benjamin Worpitz, René Widera, Jan Stephan, Andrea Bocci, Bernhard Manfred Gruber, Antonio Di Pilato
  *
  * This file is part of alpaka.
  *
@@ -10,16 +10,6 @@
 #pragma once
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-
-#    include <alpaka/core/BoostPredef.hpp>
-
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
-#        error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-#    endif
-
-#    if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
-#        error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-#    endif
 
 // Base classes.
 #    include <alpaka/atomic/AtomicHierarchy.hpp>
@@ -46,6 +36,7 @@
 
 // Implementation details.
 #    include <alpaka/core/ClipCast.hpp>
+#    include <alpaka/core/Concepts.hpp>
 #    include <alpaka/core/Cuda.hpp>
 #    include <alpaka/dev/DevUniformCudaHipRt.hpp>
 
@@ -87,7 +78,7 @@ namespace alpaka
             "Index type is not supported, consider using int or a larger type.");
 
     public:
-        __device__ AccGpuUniformCudaHipRt(Vec<TDim, TIdx> const& threadElemExtent)
+        ALPAKA_FN_HOST_ACC AccGpuUniformCudaHipRt(Vec<TDim, TIdx> const& threadElemExtent)
             : WorkDivUniformCudaHipBuiltIn<TDim, TIdx>(threadElemExtent)
             , gb::IdxGbUniformCudaHipBuiltIn<TDim, TIdx>()
             , bt::IdxBtUniformCudaHipBuiltIn<TDim, TIdx>()
@@ -107,7 +98,7 @@ namespace alpaka
         }
     };
 
-    namespace traits
+    namespace trait
     {
         //! The GPU CUDA accelerator accelerator type trait specialization.
         template<typename TDim, typename TIdx>
@@ -125,44 +116,48 @@ namespace alpaka
                 // Reading only the necessary attributes with cudaDeviceGetAttribute is faster than reading all with
                 // cuda https://devblogs.nvidia.com/cuda-pro-tip-the-fast-way-to-query-device-properties/
                 int multiProcessorCount = {};
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&multiProcessorCount, cudaDevAttrMultiProcessorCount, dev.m_iDevice));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(cudaDeviceGetAttribute(
+                    &multiProcessorCount,
+                    cudaDevAttrMultiProcessorCount,
+                    dev.getNativeHandle()));
 
                 int maxGridSize[3] = {};
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxGridSize[0], cudaDevAttrMaxGridDimX, dev.m_iDevice));
+                    cudaDeviceGetAttribute(&maxGridSize[0], cudaDevAttrMaxGridDimX, dev.getNativeHandle()));
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxGridSize[1], cudaDevAttrMaxGridDimY, dev.m_iDevice));
+                    cudaDeviceGetAttribute(&maxGridSize[1], cudaDevAttrMaxGridDimY, dev.getNativeHandle()));
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxGridSize[2], cudaDevAttrMaxGridDimZ, dev.m_iDevice));
+                    cudaDeviceGetAttribute(&maxGridSize[2], cudaDevAttrMaxGridDimZ, dev.getNativeHandle()));
 
                 int maxBlockDim[3] = {};
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxBlockDim[0], cudaDevAttrMaxBlockDimX, dev.m_iDevice));
+                    cudaDeviceGetAttribute(&maxBlockDim[0], cudaDevAttrMaxBlockDimX, dev.getNativeHandle()));
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxBlockDim[1], cudaDevAttrMaxBlockDimY, dev.m_iDevice));
+                    cudaDeviceGetAttribute(&maxBlockDim[1], cudaDevAttrMaxBlockDimY, dev.getNativeHandle()));
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxBlockDim[2], cudaDevAttrMaxBlockDimZ, dev.m_iDevice));
+                    cudaDeviceGetAttribute(&maxBlockDim[2], cudaDevAttrMaxBlockDimZ, dev.getNativeHandle()));
 
                 int maxThreadsPerBlock = {};
                 ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&maxThreadsPerBlock, cudaDevAttrMaxThreadsPerBlock, dev.m_iDevice));
+                    cudaDeviceGetAttribute(&maxThreadsPerBlock, cudaDevAttrMaxThreadsPerBlock, dev.getNativeHandle()));
 
                 int sharedMemSizeBytes = {};
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
-                    cudaDeviceGetAttribute(&sharedMemSizeBytes, cudaDevAttrMaxSharedMemoryPerBlock, dev.m_iDevice));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(cudaDeviceGetAttribute(
+                    &sharedMemSizeBytes,
+                    cudaDevAttrMaxSharedMemoryPerBlock,
+                    dev.getNativeHandle()));
 
                 return {// m_multiProcessorCount
                         alpaka::core::clipCast<TIdx>(multiProcessorCount),
                         // m_gridBlockExtentMax
-                        extent::getExtentVecEnd<TDim>(Vec<DimInt<3u>, TIdx>(
+                        getExtentVecEnd<TDim>(Vec<DimInt<3u>, TIdx>(
                             alpaka::core::clipCast<TIdx>(maxGridSize[2u]),
                             alpaka::core::clipCast<TIdx>(maxGridSize[1u]),
                             alpaka::core::clipCast<TIdx>(maxGridSize[0u]))),
                         // m_gridBlockCountMax
                         std::numeric_limits<TIdx>::max(),
                         // m_blockThreadExtentMax
-                        extent::getExtentVecEnd<TDim>(Vec<DimInt<3u>, TIdx>(
+                        getExtentVecEnd<TDim>(Vec<DimInt<3u>, TIdx>(
                             alpaka::core::clipCast<TIdx>(maxBlockDim[2u]),
                             alpaka::core::clipCast<TIdx>(maxBlockDim[1u]),
                             alpaka::core::clipCast<TIdx>(maxBlockDim[0u]))),
@@ -177,19 +172,19 @@ namespace alpaka
 
 #    else
                 hipDeviceProp_t hipDevProp;
-                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(hipGetDeviceProperties(&hipDevProp, dev.m_iDevice));
+                ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(hipGetDeviceProperties(&hipDevProp, dev.getNativeHandle()));
 
                 return {// m_multiProcessorCount
                         alpaka::core::clipCast<TIdx>(hipDevProp.multiProcessorCount),
                         // m_gridBlockExtentMax
-                        extent::getExtentVecEnd<TDim>(Vec<DimInt<3u>, TIdx>(
+                        getExtentVecEnd<TDim>(Vec<DimInt<3u>, TIdx>(
                             alpaka::core::clipCast<TIdx>(hipDevProp.maxGridSize[2u]),
                             alpaka::core::clipCast<TIdx>(hipDevProp.maxGridSize[1u]),
                             alpaka::core::clipCast<TIdx>(hipDevProp.maxGridSize[0u]))),
                         // m_gridBlockCountMax
                         std::numeric_limits<TIdx>::max(),
                         // m_blockThreadExtentMax
-                        extent::getExtentVecEnd<TDim>(Vec<DimInt<3u>, TIdx>(
+                        getExtentVecEnd<TDim>(Vec<DimInt<3u>, TIdx>(
                             alpaka::core::clipCast<TIdx>(hipDevProp.maxThreadsDim[2u]),
                             alpaka::core::clipCast<TIdx>(hipDevProp.maxThreadsDim[1u]),
                             alpaka::core::clipCast<TIdx>(hipDevProp.maxThreadsDim[0u]))),
@@ -227,7 +222,7 @@ namespace alpaka
         {
             using type = TDim;
         };
-    } // namespace traits
+    } // namespace trait
     namespace detail
     {
         //! specialization of the TKernelFnObj return type evaluation
@@ -244,7 +239,7 @@ namespace alpaka
             }
         };
     } // namespace detail
-    namespace traits
+    namespace trait
     {
         //! The GPU CUDA accelerator execution task type trait specialization.
         template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
@@ -277,7 +272,7 @@ namespace alpaka
         {
             using type = TIdx;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -45,12 +45,12 @@ static auto testP2P(alpaka::Vec<alpaka::Dim<TAcc>, alpaka::Idx<TAcc>> const& ext
     auto buf1 = alpaka::allocBuf<Elem, Idx>(dev1, extent);
 
     // fill each byte with value 42
-    std::uint8_t const byte(static_cast<uint8_t>(42u));
-    alpaka::memset(queue1, buf1, byte, extent);
+    auto const byte(static_cast<uint8_t>(42u));
+    alpaka::memset(queue1, buf1, byte);
     alpaka::wait(queue1);
 
     // copy buffer from device 1 into device 0 buffer
-    alpaka::memcpy(queue0, buf0, buf1, extent);
+    alpaka::memcpy(queue0, buf0, buf1);
     alpaka::wait(queue0);
     // verify buffer on device 0
     alpaka::test::verifyBytesSet<TAcc>(buf0, byte);

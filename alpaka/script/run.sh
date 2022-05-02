@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2017-2019 Benjamin Worpitz
+# Copyright 2021 Benjamin Worpitz, Bernhard Manfred Gruber
 #
 # This file is part of alpaka.
 #
@@ -52,8 +52,7 @@ cmake --version
 #TBB
 if [ "$ALPAKA_CI_OS_NAME" = "Windows" ]
 then
-    ALPAKA_TBB_BIN_DIR="${TBB_ROOT}/bin/intel64/vc14"
-    export PATH=${PATH}:"${ALPAKA_TBB_BIN_DIR}"
+    export PATH=${PATH}:"${TBB_ROOT}/redist/intel64/vc14"
 fi
 
 # CUDA
@@ -126,14 +125,25 @@ then
     if [ "$ALPAKA_CI_CL_VER" = "2017" ]
     then
         export MSBUILD_EXECUTABLE="/C/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/MSBuild/15.0/Bin/MSBuild.exe"
-    elif [ "$ALPAKA_CI_CL_VER" = "2019" ]
+    elif [ "$ALPAKA_CI_CL_VER" = "2019" ] || [ "$ALPAKA_CI_CL_VER" = "2022" ]
     then
         export MSBUILD_EXECUTABLE=$(vswhere.exe -latest -requires Microsoft.Component.MSBuild -find "MSBuild\**\Bin\MSBuild.exe")
     fi
     "$MSBUILD_EXECUTABLE" -version
+
+    if [ "$ALPAKA_CI_CL_VER" = "2022" ]
+    then
+        VCVARS_BAT="/C/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+        "$VCVARS_BAT"
+    fi
 fi
 
 ./script/run_generate.sh
 ./script/run_build.sh
-if [ "${ALPAKA_CI_ANALYSIS}" == "OFF" ] ;then ./script/run_tests.sh ;fi
-if [ "${ALPAKA_CI_ANALYSIS}" == "ON" ] ;then ./script/run_analysis.sh ;fi
+
+if [ "${ALPAKA_CI_RUN_TESTS}" == "ON" ] ; then ./script/run_tests.sh; fi
+if [ "${ALPAKA_CI_ANALYSIS}" == "ON" ] ;
+then
+    ./script/run_analysis.sh
+    ./script/run_install.sh
+fi

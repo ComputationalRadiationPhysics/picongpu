@@ -1,4 +1,4 @@
-/* Copyright 2020 Jeffrey Kelling
+/* Copyright 2022 Jeffrey Kelling, Bernhard Manfred Gruber
  *
  * This file is part of Alpaka.
  *
@@ -40,7 +40,7 @@ namespace alpaka
             TExtent extent,
             TPitch pitch) const -> void
         {
-            using Idx = typename alpaka::traits::IdxType<TExtent>::type;
+            using Idx = typename alpaka::trait::IdxType<TExtent>::type;
             auto const gridThreadIdx(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc));
             auto const threadElemExtent(alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc));
             auto const idxThreadFirstElem = getIdxThreadFirstElem(acc, gridThreadIdx, threadElemExtent);

@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -14,7 +14,6 @@
 #    include <alpaka/core/Assert.hpp>
 #    include <alpaka/core/Concepts.hpp>
 #    include <alpaka/core/Positioning.hpp>
-#    include <alpaka/core/Unused.hpp>
 #    include <alpaka/idx/MapIdx.hpp>
 #    include <alpaka/idx/Traits.hpp>
 #    include <alpaka/vec/Vec.hpp>
@@ -33,7 +32,7 @@ namespace alpaka
         };
     } // namespace bt
 
-    namespace traits
+    namespace trait
     {
         //! The OpenMP accelerator index dimension get trait specialization.
         template<typename TDim, typename TIdx>
@@ -48,9 +47,8 @@ namespace alpaka
         {
             //! \return The index of the current thread in the block.
             template<typename TWorkDiv>
-            static auto getIdx(bt::IdxBtOmp<TDim, TIdx> const& idx, TWorkDiv const& workDiv) -> Vec<TDim, TIdx>
+            static auto getIdx(bt::IdxBtOmp<TDim, TIdx> const& /* idx */, TWorkDiv const& workDiv) -> Vec<TDim, TIdx>
             {
-                alpaka::ignore_unused(idx);
                 // We assume that the thread id is positive.
                 ALPAKA_ASSERT_OFFLOAD(::omp_get_thread_num() >= 0);
                 // \TODO: Would it be faster to precompute the index and cache it inside an array?
@@ -65,9 +63,9 @@ namespace alpaka
         {
             //! \return The index of the current thread in the block.
             template<typename TWorkDiv>
-            static auto getIdx(bt::IdxBtOmp<DimInt<1u>, TIdx> const& idx, TWorkDiv const&) -> Vec<DimInt<1u>, TIdx>
+            static auto getIdx(bt::IdxBtOmp<DimInt<1u>, TIdx> const& /* idx */, TWorkDiv const&)
+                -> Vec<DimInt<1u>, TIdx>
             {
-                alpaka::ignore_unused(idx);
                 return Vec<DimInt<1u>, TIdx>(static_cast<TIdx>(::omp_get_thread_num()));
             }
         };
@@ -78,7 +76,7 @@ namespace alpaka
         {
             using type = TIdx;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

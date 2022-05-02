@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -13,7 +13,6 @@
 
 #    include <alpaka/block/sync/Traits.hpp>
 #    include <alpaka/core/Common.hpp>
-#    include <alpaka/core/Unused.hpp>
 
 namespace alpaka
 {
@@ -25,15 +24,13 @@ namespace alpaka
         int mutable m_result[2];
     };
 
-    namespace traits
+    namespace trait
     {
         template<>
         struct SyncBlockThreads<BlockSyncBarrierOmp>
         {
-            ALPAKA_FN_HOST static auto syncBlockThreads(BlockSyncBarrierOmp const& blockSync) -> void
+            ALPAKA_FN_HOST static auto syncBlockThreads(BlockSyncBarrierOmp const& /* blockSync */) -> void
             {
-                alpaka::ignore_unused(blockSync);
-
 // NOTE: This waits for all threads in all blocks.
 // If multiple blocks are executed in parallel this is not optimal.
 #    pragma omp barrier
@@ -105,7 +102,7 @@ namespace alpaka
                 return blockSync.m_result[generationMod2];
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

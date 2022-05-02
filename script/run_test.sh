@@ -77,7 +77,7 @@ for CONFIG in $(seq 0 $((${#CMAKE_CONFIGS[*]} - 1))); do
     echo "###################################################"
     echo "can not run with CPU_B_SEQ_T_SEQ due to missing elements layer in original SDK example"
     echo "CPU_B_SEQ_T_OMP2/THREADS too many threads necessary (256)"
-    if [[ $CMAKE_ARGS =~ -*DALPAKA_ACC_GPU_CUDA_ENABLE=ON.* ]]; then
+    if [[ $CMAKE_ARGS =~ -*Dalpaka_ACC_GPU_CUDA_ENABLE=ON.* ]]; then
         time ./example/CUDASamples/matrixMul/matrixMul -wA=64 -wB=64 -hA=64 -hB=64
     fi
 
@@ -86,7 +86,7 @@ for CONFIG in $(seq 0 $((${#CMAKE_CONFIGS[*]} - 1))); do
     echo "###################################################"
     echo "can not run with CPU_B_SEQ_T_SEQ due to missing elements layer in original SDK example"
     echo "CPU_B_SEQ_T_OMP2/THREADS too many threads necessary (512)"
-    if [[ $CMAKE_ARGS =~ -*DALPAKA_ACC_GPU_CUDA_ENABLE=ON.* ]]; then
+    if [[ $CMAKE_ARGS =~ -*Dalpaka_ACC_GPU_CUDA_ENABLE=ON.* ]]; then
         time ./example/CUDASamples/asyncAPI/asyncAPI
     fi
 
@@ -109,7 +109,7 @@ for CONFIG in $(seq 0 $((${#CMAKE_CONFIGS[*]} - 1))); do
     echo "###################################################"
     echo "Example blackSchloles"
     echo "###################################################"
-    if [[ $CMAKE_ARGS =~ -*DALPAKA_ACC_GPU_CUDA_ENABLE=ON.* ]]; then
+    if [[ $CMAKE_ARGS =~ -*Dalpaka_ACC_GPU_CUDA_ENABLE=ON.* ]]; then
 	time ./example/CUDASamples/blackScholes/blackScholes
     fi
 

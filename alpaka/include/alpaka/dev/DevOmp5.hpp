@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber, Antonio Di Pilato
  *
  * This file is part of Alpaka.
  *
@@ -24,123 +24,124 @@
 #    include <alpaka/queue/QueueGenericThreadsNonBlocking.hpp>
 #    include <alpaka/queue/Traits.hpp>
 #    include <alpaka/queue/cpu/IGenericThreadsQueue.hpp>
+#    include <alpaka/traits/Traits.hpp>
 #    include <alpaka/wait/Traits.hpp>
 
+#    include <cstddef>
 #    include <map>
 #    include <sstream>
 #    include <stdexcept>
+#    include <string>
+#    include <vector>
 
 namespace alpaka
 {
     class DevOmp5;
-    namespace traits
+    namespace trait
     {
         template<typename TPltf, typename TSfinae>
         struct GetDevByIdx;
     }
     class PltfOmp5;
 
-    namespace omp5
+    namespace omp5::detail
     {
-        namespace detail
+        //! The Omp5 device implementation.
+        class DevOmp5Impl
         {
-            //! The Omp5 device implementation.
-            class DevOmp5Impl
+        public:
+            DevOmp5Impl(int iDevice) noexcept : m_iDevice(iDevice)
             {
-            public:
-                DevOmp5Impl(int iDevice) noexcept : m_iDevice(iDevice)
-                {
-                }
-                ~DevOmp5Impl()
-                {
-                    for(auto& a : m_staticMemMap)
-                        omp_target_free(a.second.first, iDevice());
-                }
+            }
+            ~DevOmp5Impl()
+            {
+                for(auto& a : m_staticMemMap)
+                    omp_target_free(a.second.first, getNativeHandle());
+            }
 
-                ALPAKA_FN_HOST auto getAllExistingQueues() const
-                    -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOmp5>>>
+            ALPAKA_FN_HOST auto getAllExistingQueues() const
+                -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOmp5>>>
+            {
+                std::vector<std::shared_ptr<IGenericThreadsQueue<DevOmp5>>> vspQueues;
+
+                std::lock_guard<std::mutex> lk(m_Mutex);
+                vspQueues.reserve(std::size(m_queues));
+
+                for(auto it = std::begin(m_queues); it != std::end(m_queues);)
                 {
-                    std::vector<std::shared_ptr<IGenericThreadsQueue<DevOmp5>>> vspQueues;
-
-                    std::lock_guard<std::mutex> lk(m_Mutex);
-                    vspQueues.reserve(m_queues.size());
-
-                    for(auto it = m_queues.begin(); it != m_queues.end();)
+                    auto spQueue(it->lock());
+                    if(spQueue)
                     {
-                        auto spQueue(it->lock());
-                        if(spQueue)
-                        {
-                            vspQueues.emplace_back(std::move(spQueue));
-                            ++it;
-                        }
-                        else
-                        {
-                            it = m_queues.erase(it);
-                        }
+                        vspQueues.emplace_back(std::move(spQueue));
+                        ++it;
                     }
-                    return vspQueues;
-                }
-
-                //! Registers the given queue on this device.
-                //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
-                ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<IGenericThreadsQueue<DevOmp5>> spQueue) -> void
-                {
-                    std::lock_guard<std::mutex> lk(m_Mutex);
-
-                    // Register this queue on the device.
-                    m_queues.push_back(spQueue);
-                }
-
-                int iDevice() const
-                {
-                    return m_iDevice;
-                }
-
-                //! Create and/or return staticlly mapped device pointer of host address.
-                template<typename TElem, typename TExtent>
-                ALPAKA_FN_HOST auto mapStatic(TElem* pHost, TExtent const& extent) -> TElem*
-                {
-                    const std::size_t sizeB = extent.prod() * sizeof(TElem);
-                    auto m = m_staticMemMap.find(pHost);
-                    if(m != m_staticMemMap.end())
+                    else
                     {
-                        if(sizeB != m->second.second)
-                        {
-                            std::ostringstream os;
-                            os << "Statically mapped size cannot change: Static size is " << m->second.second
-                               << " requested size is " << sizeB << '.';
-                            throw std::runtime_error(os.str());
-                        }
-                        return reinterpret_cast<TElem*>(m->second.first);
+                        it = m_queues.erase(it);
                     }
+                }
+                return vspQueues;
+            }
 
-                    void* pDev = omp_target_alloc(sizeB, iDevice());
-                    if(!pDev)
-                        return nullptr;
+            //! Registers the given queue on this device.
+            //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
+            ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<IGenericThreadsQueue<DevOmp5>> spQueue) -> void
+            {
+                std::lock_guard<std::mutex> lk(m_Mutex);
 
-                    /*! Associating pointers for good measure. Not actually
-                     * required as long a not `target enter data` is done */
-                    omp_target_associate_ptr(pHost, pDev, sizeB, 0u, iDevice());
+                // Register this queue on the device.
+                m_queues.push_back(spQueue);
+            }
 
-                    m_staticMemMap[pHost] = std::make_pair(pDev, sizeB);
-                    return reinterpret_cast<TElem*>(pDev);
+            [[nodiscard]] auto getNativeHandle() const noexcept -> int
+            {
+                return m_iDevice;
+            }
+
+            //! Create and/or return staticlly mapped device pointer of host address.
+            template<typename TElem, typename TExtent>
+            ALPAKA_FN_HOST auto mapStatic(TElem* pHost, TExtent const& extent) -> TElem*
+            {
+                const std::size_t sizeB = extent.prod() * sizeof(TElem);
+                auto m = m_staticMemMap.find(pHost);
+                if(m != m_staticMemMap.end())
+                {
+                    if(sizeB != m->second.second)
+                    {
+                        std::ostringstream os;
+                        os << "Statically mapped size cannot change: Static size is " << m->second.second
+                           << " requested size is " << sizeB << '.';
+                        throw std::runtime_error(os.str());
+                    }
+                    return reinterpret_cast<TElem*>(m->second.first);
                 }
 
-            private:
-                std::mutex mutable m_Mutex;
-                std::vector<std::weak_ptr<IGenericThreadsQueue<DevOmp5>>> mutable m_queues;
-                const int m_iDevice;
+                void* pDev = omp_target_alloc(sizeB, getNativeHandle());
+                if(!pDev)
+                    return nullptr;
 
-                std::map<void*, std::pair<void*, std::size_t>> m_staticMemMap;
-            };
-        } // namespace detail
-    } // namespace omp5
+                /*! Associating pointers for good measure. Not actually
+                 * required as long a not `target enter data` is done */
+                omp_target_associate_ptr(pHost, pDev, sizeB, 0u, getNativeHandle());
+
+                m_staticMemMap[pHost] = std::make_pair(pDev, sizeB);
+                return reinterpret_cast<TElem*>(pDev);
+            }
+
+        private:
+            std::mutex mutable m_Mutex;
+            std::vector<std::weak_ptr<IGenericThreadsQueue<DevOmp5>>> mutable m_queues;
+            const int m_iDevice;
+
+            std::map<void*, std::pair<void*, std::size_t>> m_staticMemMap;
+        };
+    } // namespace omp5::detail
     //! The Omp5 device handle.
     class DevOmp5
         : public concepts::Implements<ConceptCurrentThreadWaitFor, DevOmp5>
         , public concepts::Implements<ConceptDev, DevOmp5>
     {
-        friend struct traits::GetDevByIdx<PltfOmp5>;
+        friend struct trait::GetDevByIdx<PltfOmp5>;
 
         DevOmp5(int iDevice) : m_spDevOmp5Impl(std::make_shared<omp5::detail::DevOmp5Impl>(iDevice))
         {
@@ -149,15 +150,16 @@ namespace alpaka
     public:
         ALPAKA_FN_HOST auto operator==(DevOmp5 const& rhs) const -> bool
         {
-            return m_spDevOmp5Impl->iDevice() == rhs.m_spDevOmp5Impl->iDevice();
+            return getNativeHandle() == rhs.getNativeHandle();
         }
         ALPAKA_FN_HOST auto operator!=(DevOmp5 const& rhs) const -> bool
         {
             return !((*this) == rhs);
         }
-        int iDevice() const
+
+        [[nodiscard]] auto getNativeHandle() const noexcept -> int
         {
-            return m_spDevOmp5Impl->iDevice();
+            return m_spDevOmp5Impl->getNativeHandle();
         }
 
         //! Create and/or return staticlly mapped device pointer of host address.
@@ -167,7 +169,8 @@ namespace alpaka
             return m_spDevOmp5Impl->mapStatic(pHost, extent);
         }
 
-        ALPAKA_FN_HOST auto getAllQueues() const -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOmp5>>>
+        [[nodiscard]] ALPAKA_FN_HOST auto getAllQueues() const
+            -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOmp5>>>
         {
             return m_spDevOmp5Impl->getAllExistingQueues();
         }
@@ -183,7 +186,7 @@ namespace alpaka
         std::shared_ptr<omp5::detail::DevOmp5Impl> m_spDevOmp5Impl;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The OpenMP 5.0 device name get trait specialization.
         template<>
@@ -201,10 +204,9 @@ namespace alpaka
         template<>
         struct GetMemBytes<DevOmp5>
         {
-            ALPAKA_FN_HOST static auto getMemBytes(DevOmp5 const& dev) -> std::size_t
+            ALPAKA_FN_HOST static auto getMemBytes(DevOmp5 const& /* dev */) -> std::size_t
             {
-                alpaka::ignore_unused(dev); //! \todo query device .. somehow
-
+                //! \todo query device .. somehow
                 return 0u;
             }
         };
@@ -215,23 +217,19 @@ namespace alpaka
         template<>
         struct GetFreeMemBytes<DevOmp5>
         {
-            ALPAKA_FN_HOST static auto getFreeMemBytes(DevOmp5 const& dev) -> std::size_t
+            ALPAKA_FN_HOST static auto getFreeMemBytes(DevOmp5 const& /* dev */) -> std::size_t
             {
-                alpaka::ignore_unused(dev);
-
                 return 0u;
             }
         };
 
         //! The OpenMP 5.0 device warp size get trait specialization.
         template<>
-        struct GetWarpSize<DevOmp5>
+        struct GetWarpSizes<DevOmp5>
         {
-            ALPAKA_FN_HOST static auto getWarpSize(DevOmp5 const& dev) -> std::size_t
+            ALPAKA_FN_HOST static auto getWarpSizes(DevOmp5 const& /* dev */) -> std::vector<std::size_t>
             {
-                alpaka::ignore_unused(dev);
-
-                return 1u;
+                return {1u};
             }
         };
 
@@ -239,17 +237,27 @@ namespace alpaka
         template<>
         struct Reset<DevOmp5>
         {
-            ALPAKA_FN_HOST static auto reset(DevOmp5 const& dev) -> void
+            ALPAKA_FN_HOST static auto reset(DevOmp5 const& /* dev */) -> void
             {
-                alpaka::ignore_unused(dev); //! \TODO
+                //! \TODO
             }
         };
-    } // namespace traits
+
+        //! The OpenMP 5.0 device native handle trait specialization.
+        template<>
+        struct NativeHandle<DevOmp5>
+        {
+            [[nodiscard]] static auto getNativeHandle(DevOmp5 const& dev)
+            {
+                return dev.getNativeHandle();
+            }
+        };
+    } // namespace trait
 
     template<typename TElem, typename TDim, typename TIdx>
     class BufOmp5;
 
-    namespace traits
+    namespace trait
     {
         //! The OpenMP 5.0 device memory buffer type trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
@@ -264,11 +272,11 @@ namespace alpaka
         {
             using type = PltfOmp5;
         };
-    } // namespace traits
+    } // namespace trait
     using QueueOmp5NonBlocking = QueueGenericThreadsNonBlocking<DevOmp5>;
     using QueueOmp5Blocking = QueueGenericThreadsBlocking<DevOmp5>;
 
-    namespace traits
+    namespace trait
     {
         template<>
         struct QueueType<DevOmp5, Blocking>
@@ -296,7 +304,7 @@ namespace alpaka
                 generic::currentThreadWaitForDevice(dev);
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

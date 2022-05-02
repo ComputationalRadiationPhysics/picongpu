@@ -1,4 +1,4 @@
-/* Copyright 2019 René Widera
+/* Copyright 2022 René Widera, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -13,6 +13,7 @@
 
 #    include <alpaka/atomic/Op.hpp>
 #    include <alpaka/atomic/Traits.hpp>
+#    include <alpaka/core/BoostPredef.hpp>
 
 namespace alpaka
 {
@@ -24,7 +25,7 @@ namespace alpaka
     {
     };
 
-    namespace traits
+    namespace trait
     {
 // check for OpenMP 3.1+
 // "omp atomic capture" is not supported before OpenMP 3.1
@@ -39,11 +40,18 @@ namespace alpaka
                 T old;
                 auto& ref(*addr);
 // atomically update ref, but capture the original value in old
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic push
+#            pragma GCC diagnostic ignored "-Wconversion"
+#        endif
 #        pragma omp atomic capture
                 {
                     old = ref;
                     ref += value;
                 }
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic pop
+#        endif
                 return old;
             }
         };
@@ -57,11 +65,18 @@ namespace alpaka
                 T old;
                 auto& ref(*addr);
 // atomically update ref, but capture the original value in old
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic push
+#            pragma GCC diagnostic ignored "-Wconversion"
+#        endif
 #        pragma omp atomic capture
                 {
                     old = ref;
                     ref -= value;
                 }
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic pop
+#        endif
                 return old;
             }
         };
@@ -93,11 +108,18 @@ namespace alpaka
                 T old;
                 auto& ref(*addr);
 // atomically update ref, but capture the original value in old
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic push
+#            pragma GCC diagnostic ignored "-Wconversion"
+#        endif
 #        pragma omp atomic capture
                 {
                     old = ref;
                     ref &= value;
                 }
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic pop
+#        endif
                 return old;
             }
         };
@@ -111,11 +133,18 @@ namespace alpaka
                 T old;
                 auto& ref(*addr);
 // atomically update ref, but capture the original value in old
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic push
+#            pragma GCC diagnostic ignored "-Wconversion"
+#        endif
 #        pragma omp atomic capture
                 {
                     old = ref;
                     ref |= value;
                 }
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic pop
+#        endif
                 return old;
             }
         };
@@ -129,11 +158,18 @@ namespace alpaka
                 T old;
                 auto& ref(*addr);
 // atomically update ref, but capture the original value in old
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic push
+#            pragma GCC diagnostic ignored "-Wconversion"
+#        endif
 #        pragma omp atomic capture
                 {
                     old = ref;
                     ref ^= value;
                 }
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic pop
+#        endif
                 return old;
             }
         };
@@ -189,11 +225,18 @@ namespace alpaka
                 T old;
                 auto& ref(*addr);
 // atomically update ref, but capture the original value in old
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic push
+#            pragma GCC diagnostic ignored "-Wconversion"
+#        endif
 #        pragma omp atomic capture compare
                 {
                     old = ref;
                     ref = ((ref >= value) ? 0 : (ref + 1));
                 }
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic pop
+#        endif
                 return old;
             }
         };
@@ -207,11 +250,18 @@ namespace alpaka
                 T old;
                 auto& ref(*addr);
 // atomically update ref, but capture the original value in old
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic push
+#            pragma GCC diagnostic ignored "-Wconversion"
+#        endif
 #        pragma omp atomic capture compare
                 {
                     old = ref;
                     ref = ((ref == 0) || (ref > value)) ? value : (ref - 1);
                 }
+#        if BOOST_COMP_GNUC
+#            pragma GCC diagnostic pop
+#        endif
                 return old;
             }
         };
@@ -275,7 +325,7 @@ namespace alpaka
 
 #    endif // _OPENMP >= 202011
 
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

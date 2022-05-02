@@ -1,4 +1,4 @@
-/** Copyright 2019 Jakob Krude, Benjamin Worpitz
+/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -37,8 +37,8 @@ namespace alpaka
                 {
                     using value_type = TData;
                     static constexpr size_t capacity = Tcapacity;
-                    using Dim = typename alpaka::traits::DimType<TAcc>::type;
-                    using Idx = typename alpaka::traits::IdxType<TAcc>::type;
+                    using Dim = typename alpaka::trait::DimType<TAcc>::type;
+                    using Idx = typename alpaka::trait::IdxType<TAcc>::type;
 
                     // Defines using's for alpaka-buffer.
                     using DevAcc = alpaka::Dev<TAcc>;
@@ -76,20 +76,19 @@ namespace alpaka
                     template<typename Queue>
                     auto copyToDevice(Queue queue) -> void
                     {
-                        alpaka::memcpy(queue, devBuffer, hostBuffer, Tcapacity);
+                        alpaka::memcpy(queue, devBuffer, hostBuffer);
                     }
 
                     // Copy Acc -> Host.
                     template<typename Queue>
                     auto copyFromDevice(Queue queue) -> void
                     {
-                        alpaka::memcpy(queue, hostBuffer, devBuffer, Tcapacity);
+                        alpaka::memcpy(queue, hostBuffer, devBuffer);
                     }
 
                     ALPAKA_FN_ACC
-                    auto operator()(size_t idx, TAcc const& acc) const -> TData&
+                    auto operator()(size_t idx, TAcc const& /* acc */) const -> TData&
                     {
-                        alpaka::ignore_unused(acc);
                         return pDevBuffer[idx];
                     }
 
@@ -100,7 +99,7 @@ namespace alpaka
                     }
 
                     ALPAKA_FN_HOST
-                    friend std::ostream& operator<<(std::ostream& os, const Buffer& buffer)
+                    friend auto operator<<(std::ostream& os, const Buffer& buffer) -> std::ostream&
                     {
                         os << "capacity: " << capacity << "\n";
                         for(size_t i = 0; i < capacity; ++i)

@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Erik Zenker
+/* Copyright 2022 Benjamin Worpitz, Erik Zenker, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file exemplifies usage of alpaka.
  *
@@ -21,11 +21,9 @@
 #include <functional>
 
 //! This functions says hi to the world and
-//! can be encapsulated into a std::function
-//! and used as a kernel function. It is
-//! just another way to define alpaka kernels
-//! and might be useful when it is necessary
-//! to lift an existing function into a kernel
+//! can be called from within a kernel function.
+//! It might be useful when it is necessary
+//! to lift an existing function into a device
 //! function.
 template<typename TAcc>
 void ALPAKA_FN_ACC hiWorldFunction(TAcc const& acc, size_t const nExclamationMarks)

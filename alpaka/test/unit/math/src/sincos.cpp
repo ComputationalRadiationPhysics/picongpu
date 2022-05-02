@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred Gruber, Sergei Bastrakov
  *
  * This file is part of alpaka.
  *
@@ -7,7 +7,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <alpaka/math/sincos/Traits.hpp>
+#include <alpaka/math/Traits.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
@@ -18,11 +18,8 @@
 
 // https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
 template<typename TAcc, typename FP>
-ALPAKA_FN_ACC std::enable_if_t<!std::numeric_limits<FP>::is_integer, bool> almost_equal(
-    TAcc const& acc,
-    FP x,
-    FP y,
-    int ulp)
+ALPAKA_FN_ACC auto almost_equal(TAcc const& acc, FP x, FP y, int ulp)
+    -> std::enable_if_t<!std::numeric_limits<FP>::is_integer, bool>
 {
     // the machine epsilon has to be scaled to the magnitude of the values used
     // and multiplied by the desired precision in ULPs (units in the last place)
@@ -30,6 +27,13 @@ ALPAKA_FN_ACC std::enable_if_t<!std::numeric_limits<FP>::is_integer, bool> almos
         <= std::numeric_limits<FP>::epsilon() * alpaka::math::abs(acc, x + y) * static_cast<FP>(ulp)
         // unless the result is subnormal
         || alpaka::math::abs(acc, x - y) < std::numeric_limits<FP>::min();
+}
+
+//! Version for alpaka::Complex
+template<typename TAcc, typename FP>
+ALPAKA_FN_ACC bool almost_equal(TAcc const& acc, alpaka::Complex<FP> x, alpaka::Complex<FP> y, int ulp)
+{
+    return almost_equal(acc, x.real(), y.real(), ulp) && almost_equal(acc, x.imag(), y.imag(), ulp);
 }
 
 class SinCosTestKernel
@@ -66,4 +70,6 @@ TEMPLATE_LIST_TEST_CASE("sincos", "[sincos]", TestAccs)
 
     REQUIRE(fixture(kernel, 0.42f)); // float
     REQUIRE(fixture(kernel, 0.42)); // double
+    REQUIRE(fixture(kernel, alpaka::Complex<float>{0.35f, -0.24f})); // complex float
+    REQUIRE(fixture(kernel, alpaka::Complex<double>{0.35, -0.24})); // complex double
 }

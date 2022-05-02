@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, René Widera
+/* Copyright 2022 Benjamin Worpitz, René Widera, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -55,13 +55,13 @@ namespace alpaka
     template<typename THierarchy>
     using AtomicHierarchyConcept = typename detail::AtomicHierarchyConceptType<THierarchy>::type;
 
-    //! The atomic operation traits.
-    namespace traits
+    //! The atomic operation trait.
+    namespace trait
     {
         //! The atomic operation trait.
         template<typename TOp, typename TAtomic, typename T, typename THierarchy, typename TSfinae = void>
         struct AtomicOp;
-    } // namespace traits
+    } // namespace trait
 
     //! Executes the given operation atomically.
     //!
@@ -80,7 +80,7 @@ namespace alpaka
         THierarchy const& = THierarchy()) -> T
     {
         using ImplementationBase = typename concepts::ImplementationBase<AtomicHierarchyConcept<THierarchy>, TAtomic>;
-        return traits::AtomicOp<TOp, ImplementationBase, T, THierarchy>::atomicOp(atomic, addr, value);
+        return trait::AtomicOp<TOp, ImplementationBase, T, THierarchy>::atomicOp(atomic, addr, value);
     }
 
     //! Executes the given operation atomically.
@@ -102,7 +102,7 @@ namespace alpaka
         THierarchy const& = THierarchy()) -> T
     {
         using ImplementationBase = typename concepts::ImplementationBase<AtomicHierarchyConcept<THierarchy>, TAtomic>;
-        return traits::AtomicOp<TOp, ImplementationBase, T, THierarchy>::atomicOp(atomic, addr, compare, value);
+        return trait::AtomicOp<TOp, ImplementationBase, T, THierarchy>::atomicOp(atomic, addr, compare, value);
     }
 
     //! Executes an atomic add operation.

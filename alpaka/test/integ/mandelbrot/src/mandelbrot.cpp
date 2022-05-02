@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -31,8 +31,7 @@ public:
     {
     }
     ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_INLINE
-    ALPAKA_FN_HOST_ACC auto absSq() const -> T
+    [[nodiscard]] ALPAKA_FN_INLINE ALPAKA_FN_HOST_ACC auto absSq() const -> T
     {
         return r * r + i * i;
     }
@@ -182,7 +181,8 @@ public:
 #else
     //! This uses a simple mapping from iteration count to colors.
     //! This leads to banding but allows a all pixels to be colored.
-    ALPAKA_FN_ACC auto iterationCountToRepeatedColor(std::uint32_t const& iterationCount) const -> std::uint32_t
+    [[nodiscard]] ALPAKA_FN_ACC auto iterationCountToRepeatedColor(std::uint32_t const& iterationCount) const
+        -> std::uint32_t
     {
         return m_colors[iterationCount % 16];
     }
@@ -196,17 +196,17 @@ template<typename TBuf>
 auto writeTgaColorImage(std::string const& fileName, TBuf const& bufRgba) -> void
 {
     static_assert(alpaka::Dim<TBuf>::value == 2, "The buffer has to be 2 dimensional!");
-    static_assert(std::is_integral<alpaka::Elem<TBuf>>::value, "The buffer element type has to be integral!");
+    static_assert(std::is_integral_v<alpaka::Elem<TBuf>>, "The buffer element type has to be integral!");
 
     // The width of the input buffer is in input elements.
-    auto const bufWidthElems = alpaka::extent::getWidth(bufRgba);
+    auto const bufWidthElems = alpaka::getWidth(bufRgba);
     auto const bufWidthBytes = bufWidthElems * sizeof(alpaka::Elem<TBuf>);
     // The row width in bytes has to be dividable by 4 Bytes (RGBA).
     ALPAKA_ASSERT(bufWidthBytes % sizeof(std::uint32_t) == 0);
     // The number of colors in a row.
     auto const bufWidthColors = bufWidthBytes / sizeof(std::uint32_t);
     ALPAKA_ASSERT(bufWidthColors >= 1);
-    auto const bufHeightColors = alpaka::extent::getHeight(bufRgba);
+    auto const bufHeightColors = alpaka::getHeight(bufRgba);
     ALPAKA_ASSERT(bufHeightColors >= 1);
     auto const bufPitchBytes = alpaka::getPitchBytes<alpaka::Dim<TBuf>::value - 1u>(bufRgba);
     ALPAKA_ASSERT(bufPitchBytes >= bufWidthBytes);
@@ -315,7 +315,7 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
     auto bufColorAcc = alpaka::allocBuf<Val, Idx>(devAcc, extent);
 
     // Copy Host -> Acc.
-    alpaka::memcpy(queue, bufColorAcc, bufColorHost, extent);
+    alpaka::memcpy(queue, bufColorAcc, bufColorHost);
 
     // Create the kernel execution task.
     auto const taskKernel = alpaka::createTaskKernel<Acc>(
@@ -336,7 +336,7 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
               << std::endl;
 
     // Copy back the result.
-    alpaka::memcpy(queue, bufColorHost, bufColorAcc, extent);
+    alpaka::memcpy(queue, bufColorHost, bufColorAcc);
 
     // Wait for the queue to finish the memory operation.
     alpaka::wait(queue);

@@ -11,9 +11,9 @@ project = 'alpaka'
 copyright = 'Documentation under CC-BY 4.0, Benjamin Worpitz, René Widera, Axel Huebl, Michael Bussmann'
 author = 'Benjamin Worpitz, René Widera, Axel Huebl, Michael Bussmann'
 # The short X.Y version.
-version = u'0.8.0'
+version = u'0.9.0'
 # The full version, including alpha/beta/rc tags.
-release = u'0.8.0-develop'
+release = u'0.9.0'
 
 # The master toctree document.
 master_doc = 'index'
@@ -126,7 +126,7 @@ texinfo_documents = [
     (master_doc, 'alpaka', u'alpaka Documentation',
      author, 'alpaka', 'Abstraction Library for Parallel Kernel Acceleration',
      """
-     The alpaka library is a header-only C++14 abstraction library for
+     The alpaka library is a header-only C++17 abstraction library for
      accelerator development. Its aim is to provide performance portability
      across accelerators through the abstraction (not hiding!) of the underlying
      levels of parallelism.

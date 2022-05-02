@@ -72,7 +72,7 @@ then
             exit 1
         fi
 
-        if ( [ "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "ON" ] && [ "${CMAKE_CUDA_COMPILER}" == "clang++" ] )
+        if ( [ "${alpaka_ACC_GPU_CUDA_ENABLE}" == "ON" ] && [ "${CMAKE_CUDA_COMPILER}" == "clang++" ] )
         then
             # fatal error: error in backend: Module has a nontrivial global ctor, which NVPTX does not support.
             # clang-3.9: error: clang frontend command failed with exit code 70 (use -v to see invocation)

@@ -1,6 +1,8 @@
 /docs/doxygen/*
+/docs/source/_build
+/docs/cheatsheet/cheatsheet.pdf
 
-**/build
+**/build*
 
 # tmp files
 *~
@@ -17,9 +19,8 @@
 
 # Vim project files
 .vimrc
-
-# Neovim project files
 .exrc
+tags
 
 # IDE & tmp build
 .idea/
@@ -35,4 +36,12 @@ build/
 /.settings/
 
 # Visual Studio Code project files
+.vscode/
+
+# Visual Studio project files
+.vs/
+out
+
+# clangd files
 .cache/
+compile_commands.json

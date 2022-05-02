@@ -1,52 +1,70 @@
 # Building configuring for the OMP5 backend
 
-To make the build system enable the OpenMP5 backend, one has to tell CMake
-explicitly about the OpenMP version supported by the compiler. CMake does not
-determine it automatically for some compilers.
 ```
-cmake -DOpenMP_CXX_VERSION=5 \
-  -DALPAKA_ACC_ANY_BT_OMP5_ENABLE=on \
+cmake \
+  -Dalpaka_ACC_ANY_BT_OMP5_ENABLE=on \
   -DBUILD_TESTING=on \
   -Dalpaka_BUILD_EXAMPLES=on \
 ```
-All other backends are disable for faster compilation/testing and reduced
-environment requirements. Add flags to set the required compiler and linker flags, e.g:
-- clang/AOMP, target x86:
-  ```
-    -DCMAKE_CXX_FLAGS="-fopenmp -fopenmp=libomp -fopenmp-targets=x86_64-pc-linux-gnu" \
-    -DCMAKE_EXE_LINKER_FLAGS="-fopenmp"
-  ```
-- clang/AOMP, target ppc64le:
-  ```
-    -DCMAKE_CXX_FLAGS="-fopenmp -fopenmp=libomp -fopenmp-targets=ppc64le-pc-linux-gnu" \
-    -DCMAKE_EXE_LINKER_FLAGS="-fopenmp"
-  ```
-- clang, target nvptx:
-  ```
-    -DCMAKE_CXX_FLAGS="-fopenmp -fopenmp-targets=nvptx64-nvidia-cuda -O2" \
-    -DCMAKE_EXE_LINKER_FLAGS="-fopenmp"
-  ```
-- AOMP, target amdhsa:
-  ```
-    -DCMAKE_CXX_FLAGS="-fopenmp=libomp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900 --save-temps" \
-    -DCMAKE_EXE_LINKER_FLAGS="-fopenmp"
-  ```
-- GCC, target nvptx:
-  ```
-    -DCMAKE_CXX_FLAGS="-foffload=nvptx-none -foffload=-lm -fno-lto"
-  ```
-- GCC, target host:
-  ```
-    -DCMAKE_CXX_FLAGS="-foffload=disable -fno-lto"
-  ```
-- XL, offload:
-  ```
-    -DCMAKE_CXX_FLAGS="-qoffload -qsmp"
-  ```
-- XL, no offload:
-  ```
-    -DCMAKE_CXX_FLAGS=""
-  ```
+Also set `-DCMAKE_CXX_FLAGS` in accordance with compiler and target. Information
+about this is maintained
+[on readthedocs](https://alpaka.readthedocs.io/en/latest/advanced/cmake.html).
+
+## Block-shared Memory
+
+Shared memory is implemented using a small object allocator in
+`BlockSharedMemStOmp5` using a fixed-size buffer allocated by
+`BlockSharedMemDynMember`, making these two elements linked.
+
+OpenMP 5 offers the directive `omp allocate allocator(omp_pteam_mem_alloc)`
+(used by `BlockSharedMemStOmp5BuiltIn`) which can in theory be used for *static*
+shared memory variables. There is no useful built-in support for dynamic
+block-shared memory to go with that. Usage of the built-in can be configured
+using the `alpaka_OFFLOAD_USE_BUILTIN_SHARED_MEM` flag:
+* `alpaka_OFFLOAD_USE_BUILTIN_SHARED_MEM=OFF`: Do not use `omp allocate` (default,
+  only available behavior with OpenMP < 5).
+* `alpaka_OFFLOAD_USE_BUILTIN_SHARED_MEM=DYN_FIXED`: Use `omp allocate`, use a
+  fixed size team-shared array for dynamic shared mem (fixed size is
+  `alpaka_BLOCK_SHARED_DYN_MEMBER_KIB`).
+* `alpaka_OFFLOAD_USE_BUILTIN_SHARED_MEM=DYN_ALLOC`: Use `omp allocate`, use a
+  `omp_alloc()` API call in the target region to allocate dynamic shared memory. The
+  standard appears to allow this, but is not useful for some reasons:
+  * In the best case, this would lead to an on-device `malloc` on GPU, which has
+    bad performance and does not use on-chip memory.
+  * At least in clang GPU targets (nvptx64, hsa), the symbols `omp_alloc` and `omp_free`
+    are undefined (linker error, code compiles).
+
+### Compiler support
+
+[blockSharedSharingTest](test/unit/block/sharedSharing/src/BlockSharedMemSharing.cpp) tests correct sharing.
+
+| compiler | target | `OFF` | `DYN_FIXED` | `DYN_ALLOC` |
+| --- | --- | --- | --- | --- |
+| clang 14 (1.) | x86 | :white_check_mark: | :white_check_mark: (2.) | :white_check_mark: (2.) |
+| clang 14 (1.) | nvptx | :white_check_mark: | :white_check_mark: | E (3.) |
+| clang 14 (1.) | hsa | C | C | E (3.) |
+| gcc 11 | x86 | :white_check_mark: | N | N |
+| gcc 11 | nvptx | :white_check_mark:/:x: (4.) | N | N |
+| nvhpc 22.1 | x86 | :white_check_mark: | N (5.) | N (5.) |
+| nvhpc 22.3 | nvptx | :white_check_mark: | N (5.) | N (5.) |
+
+Keys:
+* :white_check_mark:: Test Passes.
+* :x:l: Test fails, shared mem not shared.
+* :x:g: Test fails, shared mem gloal/shared too widely.
+* :x:: Test fails for other reason.
+* C: Test compiles, not run.
+* E: Test does not build.
+* N: Not supported.
+
+Footnotes:
+1. git main `95a436f8cca6991dc0f30588d9b1af3223818168`
+2. `omp allocate` does not actually work, the variable being `static` makes it
+   work, which in itself is non-conforming behavior.
+3. Linker error: no symbols `omp_alloc`, `omp_free` for target code.
+4. Apparently gcc's OpenMP runtime will not run more than 8 threads per block on
+   GPU: Pass for `blockThreadCount <= 8`, fail for more.
+5. NVHPC 22.1 claims to support OpenMP 5.1 (`_OPENMP = 202011`).
 
 ## Limitations
 

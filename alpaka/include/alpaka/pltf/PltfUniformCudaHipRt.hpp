@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, René Widera
+/* Copyright 2022 Benjamin Worpitz, René Widera, Andrea Bocci, Bernhard Manfred Gruber, Antonio Di Pilato
  *
  * This file is part of alpaka.
  *
@@ -11,16 +11,7 @@
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-#    include <alpaka/core/BoostPredef.hpp>
-
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
-#        error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-#    endif
-
-#    if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
-#        error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-#    endif
-
+#    include <alpaka/core/Concepts.hpp>
 #    include <alpaka/dev/DevUniformCudaHipRt.hpp>
 #    include <alpaka/dev/Traits.hpp>
 
@@ -34,6 +25,7 @@
 #    include <iostream>
 #    include <sstream>
 #    include <stdexcept>
+#    include <tuple>
 
 namespace alpaka
 {
@@ -44,7 +36,13 @@ namespace alpaka
         ALPAKA_FN_HOST PltfUniformCudaHipRt() = delete;
     };
 
-    namespace traits
+#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+    using PltfCudaRt = PltfUniformCudaHipRt;
+#    else
+    using PltfHipRt = PltfUniformCudaHipRt;
+#    endif
+
+    namespace trait
     {
         //! The CUDA/HIP RT platform device type trait specialization.
         template<>
@@ -78,8 +76,6 @@ namespace alpaka
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
-                DevUniformCudaHipRt dev;
-
                 std::size_t const devCount(getDevCount<PltfUniformCudaHipRt>());
                 if(devIdx >= devCount)
                 {
@@ -91,7 +87,7 @@ namespace alpaka
 
                 if(isDevUsable(devIdx))
                 {
-                    dev.m_iDevice = static_cast<int>(devIdx);
+                    DevUniformCudaHipRt dev(static_cast<int>(devIdx));
 
                     // Log this device.
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
@@ -100,13 +96,15 @@ namespace alpaka
 #        else
                     hipDeviceProp_t devProp;
 #        endif
-                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(ALPAKA_API_PREFIX(GetDeviceProperties)(&devProp, dev.m_iDevice));
+                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
+                        ALPAKA_API_PREFIX(GetDeviceProperties)(&devProp, dev.getNativeHandle()));
 #    endif
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     printDeviceProperties(devProp);
 #    elif ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
                     std::cout << __func__ << devProp.name << std::endl;
 #    endif
+                    return dev;
                 }
                 else
                 {
@@ -114,8 +112,6 @@ namespace alpaka
                     ssErr << "Unable to return device handle for device " << devIdx << ". It is not accessible!";
                     throw std::runtime_error(ssErr.str());
                 }
-
-                return dev;
             }
 
         private:
@@ -148,7 +144,7 @@ namespace alpaka
                     // Return the previous error from cudaStreamCreate.
                     ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(rc);
                     // Reset the Error state.
-                    ALPAKA_API_PREFIX(GetLastError)();
+                    std::ignore = ALPAKA_API_PREFIX(GetLastError)();
                     return false;
                 }
             }
@@ -278,7 +274,7 @@ namespace alpaka
             }
 #    endif
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

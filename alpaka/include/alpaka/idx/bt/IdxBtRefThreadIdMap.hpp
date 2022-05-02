@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -14,7 +14,6 @@
 #    include <alpaka/core/Assert.hpp>
 #    include <alpaka/core/Concepts.hpp>
 #    include <alpaka/core/Positioning.hpp>
-#    include <alpaka/core/Unused.hpp>
 #    include <alpaka/idx/Traits.hpp>
 #    include <alpaka/vec/Vec.hpp>
 
@@ -44,7 +43,7 @@ namespace alpaka
         };
     } // namespace bt
 
-    namespace traits
+    namespace trait
     {
         //! The CPU threads accelerator index dimension get trait specialization.
         template<typename TDim, typename TIdx>
@@ -59,13 +58,13 @@ namespace alpaka
         {
             //! \return The index of the current thread in the block.
             template<typename TWorkDiv>
-            ALPAKA_FN_HOST static auto getIdx(bt::IdxBtRefThreadIdMap<TDim, TIdx> const& idx, TWorkDiv const& workDiv)
-                -> Vec<TDim, TIdx>
+            ALPAKA_FN_HOST static auto getIdx(
+                bt::IdxBtRefThreadIdMap<TDim, TIdx> const& idx,
+                TWorkDiv const& /* workDiv */) -> Vec<TDim, TIdx>
             {
-                alpaka::ignore_unused(workDiv);
                 auto const threadId = std::this_thread::get_id();
                 auto const threadEntry = idx.m_threadToIndexMap.find(threadId);
-                ALPAKA_ASSERT(threadEntry != idx.m_threadToIndexMap.end());
+                ALPAKA_ASSERT(threadEntry != std::end(idx.m_threadToIndexMap));
                 return threadEntry->second;
             }
         };
@@ -76,7 +75,7 @@ namespace alpaka
         {
             using type = TIdx;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -9,21 +9,18 @@
 
 #pragma once
 
-namespace alpaka
+namespace alpaka::meta
 {
-    namespace meta
+    namespace detail
     {
-        namespace detail
-        {
-            template<typename Ts, template<typename...> class TOp>
-            struct TransformImpl;
-            template<template<typename...> class TList, typename... Ts, template<typename...> class TOp>
-            struct TransformImpl<TList<Ts...>, TOp>
-            {
-                using type = TList<TOp<Ts>...>;
-            };
-        } // namespace detail
         template<typename Ts, template<typename...> class TOp>
-        using Transform = typename detail::TransformImpl<Ts, TOp>::type;
-    } // namespace meta
-} // namespace alpaka
+        struct TransformImpl;
+        template<template<typename...> class TList, typename... Ts, template<typename...> class TOp>
+        struct TransformImpl<TList<Ts...>, TOp>
+        {
+            using type = TList<TOp<Ts>...>;
+        };
+    } // namespace detail
+    template<typename Ts, template<typename...> class TOp>
+    using Transform = typename detail::TransformImpl<Ts, TOp>::type;
+} // namespace alpaka::meta

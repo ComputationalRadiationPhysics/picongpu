@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Bert Wesarg, René Widera
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Bert Wesarg, René Widera, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -25,10 +25,8 @@
 // Implementation details.
 #    include <alpaka/acc/AccCpuOmp2Threads.hpp>
 #    include <alpaka/core/Decay.hpp>
-#    include <alpaka/core/Unused.hpp>
 #    include <alpaka/dev/DevCpu.hpp>
 #    include <alpaka/kernel/Traits.hpp>
-#    include <alpaka/meta/ApplyTuple.hpp>
 #    include <alpaka/meta/NdLoop.hpp>
 #    include <alpaka/workdiv/WorkDivMembers.hpp>
 
@@ -70,7 +68,7 @@ namespace alpaka
             auto const threadElemExtent = getWorkDiv<Thread, Elems>(*this);
 
             // Get the size of the block shared dynamic memory.
-            auto const blockSharedMemDynSizeBytes = meta::apply(
+            auto const blockSharedMemDynSizeBytes = std::apply(
                 [&](ALPAKA_DECAY_T(TArgs) const&... args)
                 {
                     return getBlockSharedMemDynSizeBytes<AccCpuOmp2Threads<TDim, TIdx>>(
@@ -85,12 +83,6 @@ namespace alpaka
             std::cout << __func__ << " blockSharedMemDynSizeBytes: " << blockSharedMemDynSizeBytes << " B"
                       << std::endl;
 #    endif
-            // Bind all arguments except the accelerator.
-            // TODO: With C++14 we could create a perfectly argument forwarding function object within the constructor.
-            auto const boundKernelFnObj = meta::apply(
-                [this](ALPAKA_DECAY_T(TArgs) const&... args)
-                { return std::bind(std::ref(m_kernelFnObj), std::placeholders::_1, std::ref(args)...); },
-                m_args);
 
             AccCpuOmp2Threads<TDim, TIdx> acc(
                 *static_cast<WorkDivMembers<TDim, TIdx> const*>(this),
@@ -98,8 +90,7 @@ namespace alpaka
 
             // The number of threads in this block.
             TIdx const blockThreadCount(blockThreadExtent.prod());
-            int const iBlockThreadCount(static_cast<int>(blockThreadCount));
-            alpaka::ignore_unused(iBlockThreadCount);
+            [[maybe_unused]] int const iBlockThreadCount(static_cast<int>(blockThreadCount));
 
             if(::omp_in_parallel() != 0)
             {
@@ -126,26 +117,31 @@ namespace alpaka
 // mapping is required. Therefore we use 'omp parallel' with the specified number of threads in a block.
 #    pragma omp parallel num_threads(iBlockThreadCount)
                     {
-                    // The guard is for gcc internal compiler error, as discussed in #735
-#    if(!BOOST_COMP_GNUC) || (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(8, 1, 0))
-#        pragma omp single nowait
+                        // The guard is for gcc internal compiler error, as discussed in #735
+                        if constexpr((!BOOST_COMP_GNUC) || (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(8, 1, 0)))
                         {
-                            // The OpenMP runtime does not create a parallel region when only one thread is required in
-                            // the num_threads clause. In all other cases we expect to be in a parallel region now.
-                            if((iBlockThreadCount > 1) && (::omp_in_parallel() == 0))
+#    pragma omp single nowait
                             {
-                                throw std::runtime_error("The OpenMP 2.0 runtime did not create a parallel region!");
-                            }
+                                // The OpenMP runtime does not create a parallel region when only one thread is
+                                // required in the num_threads clause. In all other cases we expect to be in a parallel
+                                // region now.
+                                if((iBlockThreadCount > 1) && (::omp_in_parallel() == 0))
+                                {
+                                    throw std::runtime_error(
+                                        "The OpenMP 2.0 runtime did not create a parallel region!");
+                                }
 
-                            int const numThreads(::omp_get_num_threads());
-                            if(numThreads != iBlockThreadCount)
-                            {
-                                throw std::runtime_error("The OpenMP 2.0 runtime did not use the number of threads "
-                                                         "that had been required!");
+                                int const numThreads = ::omp_get_num_threads();
+                                if(numThreads != iBlockThreadCount)
+                                {
+                                    throw std::runtime_error(
+                                        "The OpenMP 2.0 runtime did not use the number of threads "
+                                        "that had been required!");
+                                }
                             }
                         }
-#    endif
-                        boundKernelFnObj(acc);
+
+                        std::apply(m_kernelFnObj, std::tuple_cat(std::tie(acc), m_args));
 
                         // Wait for all threads to finish before deleting the shared memory.
                         // This is done by default if the omp 'nowait' clause is missing on the omp parallel directive
@@ -165,7 +161,7 @@ namespace alpaka
         std::tuple<std::decay_t<TArgs>...> m_args;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The CPU OpenMP 2.0 block thread execution task accelerator type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
@@ -201,7 +197,7 @@ namespace alpaka
         {
             using type = TIdx;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

@@ -1,4 +1,4 @@
-/* Copyright 2020 Sergei Bastrakov
+/* Copyright 2022 Sergei Bastrakov, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -16,15 +16,13 @@
 
 #include <cstdint>
 
-class GetSizeTestKernel
+struct GetSizeTestKernel
 {
-public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, std::int32_t expectedWarpSize) const -> void
     {
-        std::int32_t const actualWarpSize = alpaka::warp::getSize(acc);
-        ALPAKA_CHECK(*success, actualWarpSize == expectedWarpSize);
+        ALPAKA_CHECK(*success, alpaka::warp::getSize(acc) == expectedWarpSize);
     }
 };
 
@@ -37,9 +35,13 @@ TEMPLATE_LIST_TEST_CASE("getSize", "[warp]", alpaka::test::TestAccs)
     using Idx = alpaka::Idx<Acc>;
 
     Dev const dev(alpaka::getDevByIdx<Pltf>(0u));
-    auto const expectedWarpSize = static_cast<int>(alpaka::getWarpSize(dev));
-    Idx const gridThreadExtentPerDim = 8;
-    alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(gridThreadExtentPerDim));
-    GetSizeTestKernel kernel;
-    REQUIRE(fixture(kernel, expectedWarpSize));
+    auto const warpSizes = alpaka::getWarpSizes(dev);
+    REQUIRE(std::any_of(
+        begin(warpSizes),
+        end(warpSizes),
+        [](std::size_t ws)
+        {
+            alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::all(8));
+            return fixture(GetSizeTestKernel{}, static_cast<std::int32_t>(ws));
+        }));
 }

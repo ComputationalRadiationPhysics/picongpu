@@ -1,8 +1,8 @@
 ################################################################################
 # CUPLA_CXX                             : {g++, clang++}
-#   [g++]                               : {5, 6, 7, 8, 9} <list>
-#   [clang++]                           : {4.0, 5.0, 6.0, 7, 8, 9, 10} <list>
-# CUPLA_BOOST_VERSIONS                  : {1.65.1, 1.66.0, 1.67.0, 1.68.0, 1.69.0, 1.70.0, 1.71.0, 1.72.0, 1.73.0} <list>
+#   [g++]                               : {7, 8, 9, 10} <list>
+#   [clang++]                           : {10, 11} <list>
+# CUPLA_BOOST_VERSIONS                  : {1.74.0, 1.75.0} <list>
 # CUPLA_BUILD_TYPE                      : {Debug, Release}
 # CUPLA_CMAKE_ARGS                      : <string>
 include:
@@ -32,98 +32,78 @@ pull-request-validation:
   tags:
     - x86_64
 
-cuda92:
+cuda110:
   stage: compile-and-run
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda92-gcc:1.4
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-cuda110-gcc:2.0
   variables:
-    CUPLA_CXX: "g++-6"
-    # Workaround requires to enable debug build:
-    # GCC-5.5 has broken avx512vlintrin.h in Release mode with NVCC 9.X
-    #   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=76731
-    #   https://github.com/tensorflow/tensorflow/issues/10220
-    CUPLA_BUILD_TYPE: "Debug"
-    CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
+    CUPLA_BOOST_VERSIONS: "1.74.0 1.75.0"
   extends: .base_cuda
 
-cuda100:
+cuda114:
   stage: compile-and-run
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda100-gcc:1.4
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-cuda114-gcc:2.0
   variables:
-    CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
-  extends: .base_cuda
-
-cuda101:
-  stage: compile-and-run
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda101-gcc:1.4
-  variables:
-    CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
-  extends: .base_cuda
-
-cuda102:
-  stage: compile-and-run
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda102-gcc:1.4
-  variables:
-    CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
+    CUPLA_BOOST_VERSIONS: "1.74.0 1.75.0"
   extends: .base_cuda
 
 gcc1:
   stage: compile-and-run
   variables:
-    CUPLA_CXX: "g++-5 g++-6 g++-7 g++-8 g++-9"
-    CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0"
+    CUPLA_CXX: "g++-7 g++-8 g++-9 g++-10"
+    CUPLA_BOOST_VERSIONS: "1.74.0 1.75.0"
   extends: .base_gcc
 
 gcc2:
   stage: compile-and-run
   variables:
-    CUPLA_CXX: "g++-5 g++-6 g++-7 g++-8 g++-9"
-    CUPLA_BOOST_VERSIONS: "1.68.0 1.69.0 1.70.0"
+    CUPLA_CXX: "g++-7 g++-8 g++-9 g++-10"
+    CUPLA_BOOST_VERSIONS: "1.74.0 1.75.0"
   extends: .base_gcc
 
 gcc3:
   stage: compile-and-run
   variables:
-    CUPLA_CXX: "g++-5 g++-6 g++-7 g++-8 g++-9"
-    CUPLA_BOOST_VERSIONS: "1.71.0 1.72.0 1.73.0"
+    CUPLA_CXX: "g++-7 g++-8 g++-9 g++-10"
+    CUPLA_BOOST_VERSIONS: "1.74.0 1.75.0"
   extends: .base_gcc
 
 clang:
   stage: compile-and-run
   variables:
-    CUPLA_CXX: "clang++-5.0 clang++-6.0 clang++-7 clang++-8 clang++-9 clang++-10 clang++-11"
-    CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
+    CUPLA_CXX: "clang++-10 clang++-11"
+    CUPLA_BOOST_VERSIONS: "1.74.0 1.75.0"
   extends: .base_clang
 
-cudaClang92:
+cudaClang110:
   stage: compile-and-run
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda92-clang:1.4
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-cuda110-clang:2.0
   variables:
-    CUPLA_CXX: "clang++-10 clang++-11"
-    CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
+    CUPLA_CXX: "clang++-11"
+    CUPLA_BOOST_VERSIONS: "1.74.0 1.75.0"
   extends: .base_cuda_clang
 
-cudaClang100:
+cudaClang114:
   stage: compile-and-run
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda100-clang:1.4
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-cuda114-clang:2.0
   variables:
-    CUPLA_CXX: "clang++-9 clang++-10 clang++-11"
-    CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
+    CUPLA_CXX: "clang++-11"
+    CUPLA_BOOST_VERSIONS: "1.74.0 1.75.0"
   extends: .base_cuda_clang
 
-cudaClang101:
+hip43:
   stage: compile-and-run
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-cuda101-clang:1.4
-  variables:
-    CUPLA_CXX: "clang++-9 clang++-10 clang++-11"
-    CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
-  extends: .base_cuda_clang
-
-hip42:
-  stage: compile-and-run
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-rocm4.2:1.4
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-rocm4.3:2.0
   variables:
     CMAKE_MODULE_PATH: "/opt/rocm-4.2.0/hip/cmake"
-    CUPLA_BOOST_VERSIONS: "1.65.1 1.66.0 1.67.0 1.68.0 1.69.0 1.70.0 1.71.0 1.72.0 1.73.0"
+    CUPLA_BOOST_VERSIONS: "1.74.0 1.75.0"
+  extends: .base_hip
+
+hip45:
+  stage: compile-and-run
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-rocm4.5:2.0
+  variables:
+    CMAKE_MODULE_PATH: "/opt/rocm-4.5.0/hip/cmake"
+    CUPLA_BOOST_VERSIONS: "1.74.0 1.75.0"
   extends: .base_hip
 
 ################################################################################
@@ -134,10 +114,10 @@ hip42:
 # use internal alpaka
 addSubdirectoryInternal:
   stage: compile-and-run
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-gcc:1.4
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-gcc:2.0
   variables:
     GIT_SUBMODULE_STRATEGY: normal
-    CUPLA_BOOST_VERSION: 1.73.0
+    CUPLA_BOOST_VERSION: 1.74.0
     CUPLA_ALPAKA_PROVIDER: "internal"
   script:
     - source script/integration/build_add_subdirectory.sh
@@ -148,10 +128,10 @@ addSubdirectoryInternal:
 # use installed alpaka
 addSubdirectoryExternal:
   stage: compile-and-run
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-gcc:1.4
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-gcc:2.0
   variables:
     GIT_SUBMODULE_STRATEGY: normal
-    CUPLA_BOOST_VERSION: 1.73.0
+    CUPLA_BOOST_VERSION: 1.74.0
     CUPLA_ALPAKA_PROVIDER: "external"
   script:
     - source script/integration/install_alpaka.sh
@@ -163,10 +143,10 @@ addSubdirectoryExternal:
 # alpaka was included in the project cmake before cupla
 addSubdirectoryThirdPartyAlpaka:
   stage: compile-and-run
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-gcc:1.4
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-gcc:2.0
   variables:
     GIT_SUBMODULE_STRATEGY: normal
-    CUPLA_BOOST_VERSION: 1.73.0
+    CUPLA_BOOST_VERSION: 1.74.0
   script:
     - source script/integration/build_add_subdirectory_third_party_alpaka.sh
   tags:
@@ -176,10 +156,10 @@ addSubdirectoryThirdPartyAlpaka:
 # cupla was installed with disabled examples
 findPackageWithoutExample:
   stage: compile-and-run
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-gcc:1.4
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-gcc:2.0
   variables:
     GIT_SUBMODULE_STRATEGY: normal
-    CUPLA_BOOST_VERSION: 1.73.0
+    CUPLA_BOOST_VERSION: 1.74.0
     CUPLA_BUILD_EXAMPLE: "OFF"
   script:
     - source script/integration/install_alpaka.sh
@@ -192,10 +172,10 @@ findPackageWithoutExample:
 # cupla was installed with enabled examples
 findPackageWithExample:
   stage: compile-and-run
-  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-gcc:1.4
+  image: registry.gitlab.com/hzdr/crp/alpaka-group-container/alpaka-ci-ubuntu20.04-gcc:2.0
   variables:
     GIT_SUBMODULE_STRATEGY: normal
-    CUPLA_BOOST_VERSION: 1.73.0
+    CUPLA_BOOST_VERSION: 1.74.0
     CUPLA_BUILD_EXAMPLE: "ON"
   script:
     - source script/integration/install_alpaka.sh

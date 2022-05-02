@@ -4,7 +4,7 @@ Library Interface
 As described in the chapter about the :doc:`Abstraction </basic/abstraction>`, the general design of the library is very similar to *CUDA* and *OpenCL* but extends both by some points, while not requiring any language extensions.
 General interface design as well as interface implementation decisions differentiating *alpaka* from those libraries are described in the Rationale section.
 It uses C++ because it is one of the most performant languages available on nearly all systems.
-Furthermore, C++14 allows to describe the concepts in a very abstract way that is not possible with many other languages.
+Furthermore, C++17 allows to describe the concepts in a very abstract way that is not possible with many other languages.
 The *alpaka* library extensively makes use of advanced functional C++ template meta-programming techniques.
 The Implementation Details section discusses the C++ library and the way it provides extensibility and optimizability.
 
@@ -161,9 +161,10 @@ guarantees the following **for the local thread**  and regardless of global or s
 **Note**: ``alpaka::mem_fence`` does not guarantee that there will be no *LoadStore* reordering. Depending on the
 back-end, loads occurring before the fence may still be reordered with stores occurring after the fence.
 
-Memory fences can be issued on the block level (``alpaka::memory_scope::Block``) and the device level
-(``alpaka::memory_scope::Device``). Depending on the memory scope, the *StoreStore* order will be visible to other
-threads in the same block or the whole device.
+Memory fences can be issued on the block level (``alpaka::memory_scope::Block``), grid level
+(``alpaka::memory_scope::Grid``) and the device level (``alpaka::memory_scope::Device``).
+Depending on the memory scope, the *StoreStore* order will be visible to other threads in the same block, in the same grid
+(_i.e._ within the same kernel launch), or on the whole device (_i.e._ across concurrent kernel launches).
 
 Some accelerators (like GPUs) follow weaker cache coherency rules than x86 CPUs. In order to avoid storing to (or loading
 from) a cache or register it is necessary to prefix all observed buffers with `ALPAKA_DEVICE_VOLATILE`. This enforces
@@ -211,6 +212,39 @@ The memory allocation function of the *alpaka* library (``alpaka::allocBuf<TElem
 It does not return raw pointers but reference counted memory buffer objects that remove the necessity for manual freeing and the possibility of memory leaks.
 Additionally the memory buffer objects know their extents, their pitches as well as the device they reside on.
 This allows buffers that possibly reside on different devices with different pitches to be copied only by providing the buffer objects as well as the extents of the region to copy (``alpaka::memcpy(bufDevA, bufDevB, copyExtents``).
+
+Accessors
+`````````
+
+An accessor is an interface to access the data stored by a buffer or, more generally, a view.
+Accessors take care of the multidimensionality of their underlying buffers when indexed, including pitched allocations.
+It is created via one of the following calls:
+
+.. code-block:: cpp
+
+   auto accessor = alpaka::experimental::access(buffer);      // read/write
+   auto accessor = alpaka::experimental::readAccess(buffer);  // read
+   auto accessor = alpaka::experimental::writeAccess(buffer); // write
+
+Accessors have many template parameters and users are advised to use the ``BufferAccessor`` convenience alias to get the type of an accessor for a buffer of a given accelerator.
+Example kernel with 3D accessor:
+
+.. code-block:: c++
+
+   struct Kernel {
+      template<typename Acc>
+      ALPAKA_FN_ACC void operator()(Acc const & acc,
+         alpaka::experimental::BufferAccessor<Acc, float, 3, alpaka::experimental::WriteAccess> data) const {
+         ...
+         for(Idx z = 0; z < data.extents[0];  ++z)
+             for(Idx y = 0; y < data.extents[1]; ++y)
+                 for(Idx x = 0; x < data.extents[2];  ++x)
+                     data(z, y, x) = 42.0f;
+      }
+   };
+   ...
+   alpaka::exec<Acc>(queue, workDiv, kernel, alpaka::experimental::writeAccess(buffer));
+
 
 Kernel Execution
 ````````````````

@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, René Widera
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -44,12 +44,8 @@ TEMPLATE_LIST_TEST_CASE("variadicGenericLambdaKernelIsWorking", "[kernel]", alpa
 
     std::uint32_t const arg1 = 42u;
     std::uint32_t const arg2 = 43u;
-    auto kernel = [] ALPAKA_FN_ACC(Acc const& acc, bool* success, auto... args) -> void
-    {
-        alpaka::ignore_unused(acc);
-
-        ALPAKA_CHECK(*success, alpaka::meta::foldr([](auto a, auto b) { return a + b; }, args...) == (42u + 43u));
-    };
+    auto kernel = [] ALPAKA_FN_ACC(Acc const& /* acc */, bool* success, auto... args) -> void
+    { ALPAKA_CHECK(*success, alpaka::meta::foldr([](auto a, auto b) { return a + b; }, args...) == (42u + 43u)); };
 
     REQUIRE(fixture(kernel, arg1, arg2));
 }

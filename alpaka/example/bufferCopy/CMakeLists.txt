@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2020 Erik Zenker, Benjamin Worpitz, Jan Stephan
+# Copyright 2021 Erik Zenker, Benjamin Worpitz, Jan Stephan
 #
 # This file exemplifies usage of alpaka.
 #
@@ -28,15 +28,15 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(_TARGET_NAME bufferCopy)
 
-project(${_TARGET_NAME})
+project(${_TARGET_NAME} LANGUAGES CXX)
 
 #-------------------------------------------------------------------------------
 # Find alpaka.
 
 if(NOT TARGET alpaka::alpaka)
-    option(USE_ALPAKA_SOURCE_TREE "Use alpaka's source tree instead of an alpaka installation" OFF)
+    option(alpaka_USE_SOURCE_TREE "Use alpaka's source tree instead of an alpaka installation" OFF)
 
-    if(USE_ALPAKA_SOURCE_TREE)
+    if(alpaka_USE_SOURCE_TREE)
         # Don't build the examples recursively
         set(alpaka_BUILD_EXAMPLES OFF)
         add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../.." "${CMAKE_BINARY_DIR}/alpaka")

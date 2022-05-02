@@ -37,6 +37,30 @@
 #    define ALPAKA_FN_HOST
 #endif
 
+//! All functions marked with ALPAKA_FN_ACC or ALPAKA_FN_HOST_ACC that are exported to / imported from different
+//! translation units have to be attributed with ALPAKA_FN_EXTERN. Note that this needs to be applied to both the
+//! declaration and the definition.
+//!
+//! Usage:
+//! ALPAKA_FN_ACC ALPAKA_FN_EXTERN auto add(std::int32_t a, std::int32_t b) -> std::int32_t;
+//!
+//! Warning: If this is used together with the SYCL back-end make sure that your SYCL runtime supports generic
+//! address spaces. Otherwise it is forbidden to use pointers as parameter or return type for functions marked
+//! with ALPAKA_FN_EXTERN.
+#ifdef ALPAKA_ACC_SYCL_ENABLED
+/*
+   This is required by the SYCL standard, section 5.10.1 "SYCL functions and member functions linkage":
+
+   The default behavior in SYCL applications is that all the definitions and declarations of the functions and member
+   functions are available to the SYCL compiler, in the same translation unit. When this is not the case, all the
+   symbols that need to be exported to a SYCL library or from a C++ library to a SYCL application need to be defined
+   using the macro: SYCL_EXTERNAL.
+*/
+#    define ALPAKA_FN_EXTERN SYCL_EXTERNAL
+#else
+#    define ALPAKA_FN_EXTERN
+#endif
+
 //! Disable nvcc warning:
 //! 'calling a __host__ function from __host__ __device__ function.'
 //! Usage:

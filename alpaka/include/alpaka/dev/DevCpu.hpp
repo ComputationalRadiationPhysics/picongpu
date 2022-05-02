@@ -1,4 +1,5 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber,
+ * Antonio Di Pilato
  *
  * This file is part of alpaka.
  *
@@ -9,7 +10,6 @@
 
 #pragma once
 
-#include <alpaka/core/Unused.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dev/cpu/SysInfo.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
@@ -19,12 +19,15 @@
 #include <alpaka/queue/QueueGenericThreadsNonBlocking.hpp>
 #include <alpaka/queue/Traits.hpp>
 #include <alpaka/queue/cpu/IGenericThreadsQueue.hpp>
+#include <alpaka/traits/Traits.hpp>
 #include <alpaka/wait/Traits.hpp>
 
 #include <algorithm>
+#include <cstddef>
 #include <map>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <vector>
 
 namespace alpaka
@@ -34,7 +37,7 @@ namespace alpaka
     {
         using ICpuQueue = IGenericThreadsQueue<DevCpu>;
     }
-    namespace traits
+    namespace trait
     {
         template<typename TPltf, typename TSfinae>
         struct GetDevByIdx;
@@ -42,60 +45,57 @@ namespace alpaka
     class PltfCpu;
 
     //! The CPU device.
-    namespace cpu
+    namespace cpu::detail
     {
-        namespace detail
+        //! The CPU device implementation.
+        class DevCpuImpl
         {
-            //! The CPU device implementation.
-            class DevCpuImpl
+        public:
+            ALPAKA_FN_HOST auto getAllExistingQueues() const -> std::vector<std::shared_ptr<cpu::ICpuQueue>>
             {
-            public:
-                ALPAKA_FN_HOST auto getAllExistingQueues() const -> std::vector<std::shared_ptr<cpu::ICpuQueue>>
+                std::vector<std::shared_ptr<cpu::ICpuQueue>> vspQueues;
+
+                std::lock_guard<std::mutex> lk(m_Mutex);
+                vspQueues.reserve(std::size(m_queues));
+
+                for(auto it = std::begin(m_queues); it != std::end(m_queues);)
                 {
-                    std::vector<std::shared_ptr<cpu::ICpuQueue>> vspQueues;
-
-                    std::lock_guard<std::mutex> lk(m_Mutex);
-                    vspQueues.reserve(m_queues.size());
-
-                    for(auto it = m_queues.begin(); it != m_queues.end();)
+                    auto spQueue(it->lock());
+                    if(spQueue)
                     {
-                        auto spQueue(it->lock());
-                        if(spQueue)
-                        {
-                            vspQueues.emplace_back(std::move(spQueue));
-                            ++it;
-                        }
-                        else
-                        {
-                            it = m_queues.erase(it);
-                        }
+                        vspQueues.emplace_back(std::move(spQueue));
+                        ++it;
                     }
-                    return vspQueues;
+                    else
+                    {
+                        it = m_queues.erase(it);
+                    }
                 }
+                return vspQueues;
+            }
 
-                //! Registers the given queue on this device.
-                //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
-                ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<cpu::ICpuQueue> spQueue) const -> void
-                {
-                    std::lock_guard<std::mutex> lk(m_Mutex);
+            //! Registers the given queue on this device.
+            //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
+            ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<cpu::ICpuQueue> spQueue) const -> void
+            {
+                std::lock_guard<std::mutex> lk(m_Mutex);
 
-                    // Register this queue on the device.
-                    m_queues.push_back(spQueue);
-                }
+                // Register this queue on the device.
+                m_queues.push_back(spQueue);
+            }
 
-            private:
-                std::mutex mutable m_Mutex;
-                std::vector<std::weak_ptr<cpu::ICpuQueue>> mutable m_queues;
-            };
-        } // namespace detail
-    } // namespace cpu
+        private:
+            std::mutex mutable m_Mutex;
+            std::vector<std::weak_ptr<cpu::ICpuQueue>> mutable m_queues;
+        };
+    } // namespace cpu::detail
 
     //! The CPU device handle.
     class DevCpu
         : public concepts::Implements<ConceptCurrentThreadWaitFor, DevCpu>
         , public concepts::Implements<ConceptDev, DevCpu>
     {
-        friend struct traits::GetDevByIdx<PltfCpu>;
+        friend struct trait::GetDevByIdx<PltfCpu>;
 
     protected:
         DevCpu() : m_spDevCpuImpl(std::make_shared<cpu::detail::DevCpuImpl>())
@@ -112,7 +112,7 @@ namespace alpaka
             return !((*this) == rhs);
         }
 
-        ALPAKA_FN_HOST auto getAllQueues() const -> std::vector<std::shared_ptr<cpu::ICpuQueue>>
+        [[nodiscard]] ALPAKA_FN_HOST auto getAllQueues() const -> std::vector<std::shared_ptr<cpu::ICpuQueue>>
         {
             return m_spDevCpuImpl->getAllExistingQueues();
         }
@@ -124,20 +124,23 @@ namespace alpaka
             m_spDevCpuImpl->registerQueue(spQueue);
         }
 
-    public:
+        [[nodiscard]] auto getNativeHandle() const noexcept
+        {
+            return 0;
+        }
+
+    private:
         std::shared_ptr<cpu::detail::DevCpuImpl> m_spDevCpuImpl;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The CPU device name get trait specialization.
         template<>
         struct GetName<DevCpu>
         {
-            ALPAKA_FN_HOST static auto getName(DevCpu const& dev) -> std::string
+            ALPAKA_FN_HOST static auto getName(DevCpu const& /* dev */) -> std::string
             {
-                alpaka::ignore_unused(dev);
-
                 return cpu::detail::getCpuName();
             }
         };
@@ -146,10 +149,8 @@ namespace alpaka
         template<>
         struct GetMemBytes<DevCpu>
         {
-            ALPAKA_FN_HOST static auto getMemBytes(DevCpu const& dev) -> std::size_t
+            ALPAKA_FN_HOST static auto getMemBytes(DevCpu const& /* dev */) -> std::size_t
             {
-                alpaka::ignore_unused(dev);
-
                 return cpu::detail::getTotalGlobalMemSizeBytes();
             }
         };
@@ -158,23 +159,19 @@ namespace alpaka
         template<>
         struct GetFreeMemBytes<DevCpu>
         {
-            ALPAKA_FN_HOST static auto getFreeMemBytes(DevCpu const& dev) -> std::size_t
+            ALPAKA_FN_HOST static auto getFreeMemBytes(DevCpu const& /* dev */) -> std::size_t
             {
-                alpaka::ignore_unused(dev);
-
                 return cpu::detail::getFreeGlobalMemSizeBytes();
             }
         };
 
         //! The CPU device warp size get trait specialization.
         template<>
-        struct GetWarpSize<DevCpu>
+        struct GetWarpSizes<DevCpu>
         {
-            ALPAKA_FN_HOST static auto getWarpSize(DevCpu const& dev) -> std::size_t
+            ALPAKA_FN_HOST static auto getWarpSizes(DevCpu const& /* dev */) -> std::vector<std::size_t>
             {
-                alpaka::ignore_unused(dev);
-
-                return 1u;
+                return {1u};
             }
         };
 
@@ -182,21 +179,28 @@ namespace alpaka
         template<>
         struct Reset<DevCpu>
         {
-            ALPAKA_FN_HOST static auto reset(DevCpu const& dev) -> void
+            ALPAKA_FN_HOST static auto reset(DevCpu const& /* dev */) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
-
-                alpaka::ignore_unused(dev);
-
                 // The CPU does nothing on reset.
             }
         };
-    } // namespace traits
+
+        //! The CPU device native handle type trait specialization.
+        template<>
+        struct NativeHandle<DevCpu>
+        {
+            [[nodiscard]] static auto getNativeHandle(DevCpu const& dev)
+            {
+                return dev.getNativeHandle();
+            }
+        };
+    } // namespace trait
 
     template<typename TElem, typename TDim, typename TIdx>
     class BufCpu;
 
-    namespace traits
+    namespace trait
     {
         //! The CPU device memory buffer type trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
@@ -211,11 +215,11 @@ namespace alpaka
         {
             using type = PltfCpu;
         };
-    } // namespace traits
+    } // namespace trait
     using QueueCpuNonBlocking = QueueGenericThreadsNonBlocking<DevCpu>;
     using QueueCpuBlocking = QueueGenericThreadsBlocking<DevCpu>;
 
-    namespace traits
+    namespace trait
     {
         template<>
         struct QueueType<DevCpu, Blocking>
@@ -228,5 +232,5 @@ namespace alpaka
         {
             using type = QueueCpuNonBlocking;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

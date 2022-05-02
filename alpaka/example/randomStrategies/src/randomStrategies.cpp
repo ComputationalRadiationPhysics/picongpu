@@ -1,4 +1,4 @@
-/* Copyright 2021 Jiri Vyskocil
+/* Copyright 2022 Jiří Vyskočil, René Widera, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -112,8 +112,11 @@ struct InitRandomKernel<Strategy::seed>
     ) const -> void
     {
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0]; ///< index of the current thread
-        TRandEngine engine(idx, 0, 0); // Initialize the engine
-        states[idx] = engine; // Save the initial state
+        if(idx < extent[0])
+        {
+            TRandEngine engine(idx, 0, 0); // Initialize the engine
+            states[idx] = engine; // Save the initial state
+        }
     }
 };
 
@@ -125,13 +128,15 @@ struct InitRandomKernel<Strategy::subsequence>
         TAcc const& acc, ///< current accelerator
         TExtent const extent, ///< size of the PRNG states buffer
         TRandEngine* const states, ///< PRNG states buffer
-        unsigned const skipLength = 0 ///< number of PRNG elements to skip (offset strategy only)
+        unsigned const /* skipLength */ = 0 ///< number of PRNG elements to skip (offset strategy only)
     ) const -> void
     {
-        alpaka::ignore_unused(skipLength);
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0]; ///< index of the current thread
-        TRandEngine engine(0, idx, 0); // Initialize the engine
-        states[idx] = engine; // Save the initial state
+        if(idx < extent[0])
+        {
+            TRandEngine engine(0, idx, 0); // Initialize the engine
+            states[idx] = engine; // Save the initial state
+        }
     }
 };
 
@@ -146,10 +151,12 @@ struct InitRandomKernel<Strategy::offset>
         unsigned const skipLength = 0 ///< number of PRNG elements to skip (offset strategy only)
     ) const -> void
     {
-        alpaka::ignore_unused(skipLength);
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0]; ///< index of the current thread
-        TRandEngine engine(0, 0, idx * skipLength); // Initialize the engine
-        states[idx] = engine; // Save the initial state
+        if(idx < extent[0])
+        {
+            TRandEngine engine(0, 0, idx * skipLength); // Initialize the engine
+            states[idx] = engine; // Save the initial state
+        }
     }
 };
 
@@ -167,16 +174,21 @@ struct FillKernel
     {
         /// Index of the current thread. Each thread performs multiple "dice rolls".
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0];
-        /// Number of "dice rolls" to be performed by each thread.
-        auto const length = extent[0] / alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)[0];
-
-        RandomEngine<TAcc> engine(states[idx]); // Setup the PRNG using the saved state for this thread.
-        alpaka::rand::UniformReal<float> dist; // Setup the random number distribution
-        for(unsigned i = 0; i < length; ++i)
+        auto const numGridThreads = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)[0];
+        if(idx < NUM_POINTS)
         {
-            cells[length * idx + i] = dist(engine); // Roll the dice!
+            // each worker is handling one random state
+            auto const numWorkers
+                = alpaka::math::min(acc, numGridThreads, static_cast<decltype(numGridThreads)>(NUM_POINTS));
+
+            RandomEngine<TAcc> engine(states[idx]); // Setup the PRNG using the saved state for this thread.
+            alpaka::rand::UniformReal<float> dist; // Setup the random number distribution
+            for(uint32_t i = idx; i < extent[0]; i += numWorkers)
+            {
+                cells[i] = dist(engine); // Roll the dice!
+            }
+            states[idx] = engine; // Save the final PRNG state
         }
-        states[idx] = engine; // Save the final PRNG state
     }
 };
 
@@ -248,13 +260,14 @@ void runStrategy(Box& box)
         initRandomKernel,
         box.extentRand,
         ptrBufAccRand,
-        box.extentResult[0] / box.extentRand[0]); // == NUM_ROLLS; amount of work to be performed by each thread
+        static_cast<unsigned>(
+            box.extentResult[0] / box.extentRand[0])); // == NUM_ROLLS; amount of work to be performed by each thread
 
     alpaka::wait(box.queue);
 
     // OPTIONAL: copy the the initial states to host if you want to check them yourself
     // alpaka_rand::Philox4x32x10<Box::Acc>* const ptrBufHostRand{alpaka::getPtrNative(box.bufHostRand)};
-    // alpaka::memcpy(box.queue, box.bufHostRand, box.bufAccRand, box.extentRand);
+    // alpaka::memcpy(box.queue, box.bufHostRand, box.bufAccRand);
     // alpaka::wait(box.queue);
 
     // Set up the pointers to the results buffers
@@ -266,10 +279,10 @@ void runStrategy(Box& box)
         ptrBufHostResult[i] = 0;
 
     // Run the "computation" kernel filling the results buffer with random numbers in parallel
-    alpaka::memcpy(box.queue, box.bufAccResult, box.bufHostResult, box.extentResult);
+    alpaka::memcpy(box.queue, box.bufAccResult, box.bufHostResult);
     FillKernel fillKernel;
     alpaka::exec<Box::Acc>(box.queue, box.workdivResult, fillKernel, box.extentResult, ptrBufAccRand, ptrBufAccResult);
-    alpaka::memcpy(box.queue, box.bufHostResult, box.bufAccResult, box.extentResult);
+    alpaka::memcpy(box.queue, box.bufHostResult, box.bufAccResult);
     alpaka::wait(box.queue);
 
     // save the results to a CSV file

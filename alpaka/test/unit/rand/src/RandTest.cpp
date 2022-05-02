@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -21,22 +21,16 @@ class RandTestKernel
     {
         {
             auto dist = alpaka::rand::distribution::createNormalReal<float>(acc);
-            auto const r = dist(gen);
-#if !BOOST_ARCH_PTX
-            ALPAKA_CHECK(*success, std::isfinite(r));
-#else
-            alpaka::ignore_unused(r);
-#endif
+            [[maybe_unused]] auto const r = dist(gen);
+            if constexpr(!BOOST_ARCH_PTX)
+                ALPAKA_CHECK(*success, std::isfinite(r));
         }
 
         {
             auto dist = alpaka::rand::distribution::createNormalReal<double>(acc);
-            auto const r = dist(gen);
-#if !BOOST_ARCH_PTX
-            ALPAKA_CHECK(*success, std::isfinite(r));
-#else
-            alpaka::ignore_unused(r);
-#endif
+            [[maybe_unused]] auto const r = dist(gen);
+            if constexpr(!BOOST_ARCH_PTX)
+                ALPAKA_CHECK(*success, std::isfinite(r));
         }
         {
             auto dist = alpaka::rand::distribution::createUniformReal<float>(acc);
@@ -54,8 +48,7 @@ class RandTestKernel
 
         {
             auto dist = alpaka::rand::distribution::createUniformUint<std::uint32_t>(acc);
-            auto const r = dist(gen);
-            alpaka::ignore_unused(r);
+            [[maybe_unused]] auto const r = dist(gen);
         }
     }
 

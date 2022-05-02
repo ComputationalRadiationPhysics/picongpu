@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, René Widera
+/* Copyright 2022 Benjamin Worpitz, René Widera, Andrea Bocci, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -10,12 +10,6 @@
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-
-#    include <alpaka/core/BoostPredef.hpp>
-
-#    if !BOOST_LANG_CUDA
-#        error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-#    endif
 
 // Base classes.
 #    include <alpaka/acc/AccGpuUniformCudaHipRt.hpp>
@@ -49,13 +43,13 @@ namespace alpaka
             "Index type is not supported, consider using int or a larger type.");
 
     public:
-        __device__ AccGpuCudaRt(Vec<TDim, TIdx> const& threadElemExtent)
+        ALPAKA_FN_HOST_ACC AccGpuCudaRt(Vec<TDim, TIdx> const& threadElemExtent)
             : AccGpuUniformCudaHipRt<TDim, TIdx>(threadElemExtent)
         {
         }
     };
 
-    namespace traits
+    namespace trait
     {
         //! The GPU CUDA accelerator accelerator type trait specialization.
         template<typename TDim, typename TIdx>
@@ -89,7 +83,7 @@ namespace alpaka
                     std::forward<TArgs>(args)...);
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

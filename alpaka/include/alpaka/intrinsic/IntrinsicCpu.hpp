@@ -1,4 +1,4 @@
-/* Copyright 2020 Sergei Bastrakov
+/* Copyright 2022 Sergei Bastrakov, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -26,7 +26,7 @@ namespace alpaka
     {
     };
 
-    namespace traits
+    namespace trait
     {
         template<>
         struct Popcount<IntrinsicCpu>
@@ -93,5 +93,5 @@ namespace alpaka
 #endif
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

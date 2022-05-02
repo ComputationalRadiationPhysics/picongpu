@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Rene Widera
+/* Copyright 2022 Benjamin Worpitz, Rene Widera, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -15,7 +15,7 @@
 
 namespace alpaka
 {
-    namespace traits
+    namespace trait
     {
         //! The CPU device thread wait specialization.
         //!
@@ -31,5 +31,5 @@ namespace alpaka
                 generic::currentThreadWaitForDevice(dev);
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

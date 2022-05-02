@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Jakob Krude
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Jakob Krude, Bernhard Manfred Gruber
  *
  * This file is part of Alpaka.
  *
@@ -101,7 +101,7 @@ struct TestContainer
         {
             INFO("Dim: " << TDim::value)
             INFO("Idx: " << typeid(TIdx).name())
-            INFO("Acc: " << alpaka::traits::GetAccName<TAcc>::getAccName())
+            INFO("Acc: " << alpaka::trait::GetAccName<TAcc>::getAccName())
             INFO("i: " << i)
             REQUIRE(ptrA[i] == Approx(ptrB[i]));
         }

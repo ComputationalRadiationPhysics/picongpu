@@ -1,4 +1,4 @@
-/* Copyright 2019 Jonas Schenke
+/* Copyright 2020 Jonas Schenke, Bernhard Manfred Gruber
  *
  * This file exemplifies usage of alpaka.
  *
@@ -33,7 +33,7 @@ using WorkDiv = alpaka::WorkDivMembers<Dim, Extent>;
 //! \tparam TAcc The accelerator object.
 //! \tparam TSize The desired size.
 template<typename TAcc, uint64_t TSize>
-static constexpr uint64_t getMaxBlockSize()
+static constexpr auto getMaxBlockSize() -> uint64_t
 {
     return (TAcc::MaxBlockSize::value > TSize) ? TSize : TAcc::MaxBlockSize::value;
 }

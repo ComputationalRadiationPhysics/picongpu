@@ -65,6 +65,11 @@ then
     source ./script/install_tbb.sh
 fi
 
+if [ "${ALPAKA_CI_INSTALL_OMP}" = "ON" ]
+then
+    source ./script/install_omp.sh
+fi
+
 # HIP
 if [ "${ALPAKA_CI_INSTALL_HIP}" = "ON" ]
 then

@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2020 Benjamin Worpitz, Axel Huebl, Jan Stephan
+# Copyright 2022 Benjamin Worpitz, Axel Huebl, Jan Stephan
 #
 # This file is part of alpaka.
 #
@@ -20,5 +20,12 @@ target_link_libraries(
     PRIVATE common)
 
 set_target_properties(${_TARGET_NAME} PROPERTIES FOLDER "test/unit")
+target_compile_definitions(${_TARGET_NAME} PRIVATE "-DTEST_UNIT_TIME")
+target_compile_options(${_TARGET_NAME} PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CUDA_COMPILER_ID:Clang,NVIDIA>>:-Wno-deprecated-declarations>
+                                               $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wno-deprecated-declarations>
+                                               $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:Intel>,$<PLATFORM_ID:Linux>>:-diag-disable=1786>
+                                               $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:Intel>,$<PLATFORM_ID:Windows>>:/Qdiag-disable:1786>
+                                               $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:MSVC>>:/wd4996>
+                                               $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:PGI>>:--diag_suppress 1361>)
 
-add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_ALPAKA_TEST_OPTIONS})
+add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_alpaka_TEST_OPTIONS})

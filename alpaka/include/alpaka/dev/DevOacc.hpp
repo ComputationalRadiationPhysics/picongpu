@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber, Antonio Di Pilato
  *
  * This file is part of Alpaka.
  *
@@ -17,190 +17,216 @@
 
 #    include <alpaka/dev/Traits.hpp>
 #    include <alpaka/mem/buf/Traits.hpp>
+#    include <alpaka/pltf/PltfOacc.hpp>
 #    include <alpaka/pltf/Traits.hpp>
 #    include <alpaka/queue/Properties.hpp>
 #    include <alpaka/queue/QueueGenericThreadsBlocking.hpp>
 #    include <alpaka/queue/QueueGenericThreadsNonBlocking.hpp>
 #    include <alpaka/queue/Traits.hpp>
 #    include <alpaka/queue/cpu/IGenericThreadsQueue.hpp>
+#    include <alpaka/traits/Traits.hpp>
 #    include <alpaka/wait/Traits.hpp>
 
 #    include <openacc.h>
+
+#    include <cstddef>
+#    include <memory>
+#    include <mutex>
+#    include <sstream>
+#    include <string>
+#    include <vector>
 
 namespace alpaka
 {
     class DevOacc;
 
-    namespace traits
+    namespace oacc::detail
     {
-        template<typename TPltf, typename TSfinae>
-        struct GetDevByIdx;
-    }
-    class PltfOacc;
-
-    namespace oacc
-    {
-        namespace detail
+        //! The OpenACC device implementation.
+        class DevOaccImpl
         {
-            //! The OpenACC device implementation.
-            class DevOaccImpl
+        public:
+            DevOaccImpl(int iDevice) noexcept : m_deviceType(::acc_get_device_type()), m_iDevice(iDevice)
             {
-            public:
-                DevOaccImpl(int iDevice) noexcept
-                    : m_deviceType(::acc_get_device_type())
-                    , m_iDevice(iDevice)
-                    , m_gridsLock(reinterpret_cast<std::uint32_t*>(acc_malloc(2 * sizeof(std::uint32_t))))
-                {
-                    makeCurrent();
-                    const auto gridsLock = m_gridsLock;
+                makeCurrent();
+                m_gridsLock = reinterpret_cast<std::uint32_t*>(acc_malloc(2 * sizeof(std::uint32_t)));
+                const auto gridsLock = m_gridsLock;
 #    pragma acc parallel loop vector default(present) deviceptr(gridsLock)
-                    for(std::size_t a = 0; a < 2; ++a)
-                        gridsLock[a] = 0u;
-                }
+                for(std::size_t a = 0; a < 2; ++a)
+                    gridsLock[a] = 0u;
+            }
 
-                ALPAKA_FN_HOST auto getAllExistingQueues() const
-                    -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOacc>>>
+            ALPAKA_FN_HOST auto getAllExistingQueues() const
+                -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOacc>>>
+            {
+                std::vector<std::shared_ptr<IGenericThreadsQueue<DevOacc>>> vspQueues;
+
+                std::lock_guard<std::mutex> lk(m_Mutex);
+                vspQueues.reserve(std::size(m_queues));
+
+                for(auto it = std::begin(m_queues); it != std::end(m_queues);)
                 {
-                    std::vector<std::shared_ptr<IGenericThreadsQueue<DevOacc>>> vspQueues;
-
-                    std::lock_guard<std::mutex> lk(m_Mutex);
-                    vspQueues.reserve(m_queues.size());
-
-                    for(auto it = m_queues.begin(); it != m_queues.end();)
+                    auto spQueue(it->lock());
+                    if(spQueue)
                     {
-                        auto spQueue(it->lock());
-                        if(spQueue)
-                        {
-                            vspQueues.emplace_back(std::move(spQueue));
-                            ++it;
-                        }
-                        else
-                        {
-                            it = m_queues.erase(it);
-                        }
+                        vspQueues.emplace_back(std::move(spQueue));
+                        ++it;
                     }
-                    return vspQueues;
+                    else
+                    {
+                        it = m_queues.erase(it);
+                    }
                 }
+                return vspQueues;
+            }
 
-                //! Registers the given queue on this device.
-                //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
-                ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<IGenericThreadsQueue<DevOacc>> spQueue) -> void
-                {
-                    std::lock_guard<std::mutex> lk(m_Mutex);
+            //! Registers the given queue on this device.
+            //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
+            ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<IGenericThreadsQueue<DevOacc>> spQueue) -> void
+            {
+                std::lock_guard<std::mutex> lk(m_Mutex);
 
-                    // Register this queue on the device.
-                    m_queues.push_back(std::move(spQueue));
-                }
+                // Register this queue on the device.
+                m_queues.push_back(std::move(spQueue));
+            }
 
-                int iDevice() const
-                {
-                    return m_iDevice;
-                }
-                acc_device_t deviceType() const
-                {
-                    return m_deviceType;
-                }
+            [[nodiscard]] auto getNativeHandle() const noexcept -> int
+            {
+                return m_iDevice;
+            }
+            acc_device_t deviceType() const
+            {
+                return m_deviceType;
+            }
 
-                void makeCurrent() const
-                {
+            void makeCurrent() const
+            {
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                    std::cout << "acc_set_device_num( " << iDevice() << ", [type] )" << std::endl;
+                std::cout << "acc_set_device_num( " << getNativeHandle() << ", [type] )" << std::endl;
 #    endif
-                    acc_set_device_num(iDevice(), deviceType());
-                }
+                acc_set_device_num(getNativeHandle(), deviceType());
+            }
 
-                std::uint32_t* gridsLock() const
-                {
-                    return m_gridsLock;
-                }
+            std::uint32_t* gridsLock() const
+            {
+                return m_gridsLock;
+            }
 
-                //! Create and/or return staticlly mapped device pointer of host address.
-                template<typename TElem, typename TExtent>
-                ALPAKA_FN_HOST auto mapStatic(TElem* pHost, TExtent const& extent) -> TElem*
+            //! Create and/or return staticlly mapped device pointer of host address.
+            template<typename TElem, typename TExtent>
+            ALPAKA_FN_HOST auto mapStatic(TElem* pHost, TExtent const& extent) -> TElem*
+            {
+                makeCurrent();
+                void* pDev = acc_deviceptr(pHost);
+                if(!pDev)
                 {
-                    makeCurrent();
-                    void* pDev = acc_deviceptr(pHost);
-                    if(!pDev)
-                    {
 #    pragma acc enter data create(pHost [0:extent.prod()])
-                        pDev = acc_deviceptr(pHost);
-                        assert(pDev != nullptr);
-                    }
-                    return reinterpret_cast<TElem*>(pDev);
+                    pDev = acc_deviceptr(pHost);
+                    assert(pDev != nullptr);
                 }
+                return reinterpret_cast<TElem*>(pDev);
+            }
 
-            private:
-                std::mutex mutable m_Mutex;
-                std::vector<std::weak_ptr<IGenericThreadsQueue<DevOacc>>> mutable m_queues;
-                acc_device_t m_deviceType;
-                int m_iDevice;
-                std::uint32_t* m_gridsLock = nullptr;
-            };
-        } // namespace detail
-    } // namespace oacc
+        private:
+            std::mutex mutable m_Mutex;
+            std::vector<std::weak_ptr<IGenericThreadsQueue<DevOacc>>> mutable m_queues;
+            acc_device_t m_deviceType;
+            int m_iDevice;
+            std::uint32_t* m_gridsLock = nullptr;
+        };
+    } // namespace oacc::detail
+
     //! The OpenACC device handle.
     class DevOacc
         : public concepts::Implements<ConceptCurrentThreadWaitFor, DevOacc>
         , public concepts::Implements<ConceptDev, DevOacc>
     {
-        friend struct traits::GetDevByIdx<PltfOacc>;
+        friend struct trait::GetDevByIdx<PltfOacc>;
+
+        template<typename T>
+        class OnceInitialized
+        {
+        public:
+            template<typename... TArgs>
+            T& operator()(TArgs&&... args)
+            {
+                std::call_once(
+                    m_once,
+                    [&]() { m_data = std::make_unique<oacc::detail::DevOaccImpl>(std::forward<TArgs>(args)...); });
+
+                return *m_data;
+            }
+
+        private:
+            std::once_flag m_once;
+            std::unique_ptr<T> m_data = nullptr;
+        };
+
+        static auto device(int iDevice)
+        {
+            static std::vector<OnceInitialized<oacc::detail::DevOaccImpl>> devices(getDevCount<PltfOacc>());
+
+            return &devices.at(static_cast<unsigned>(iDevice))(iDevice);
+        }
 
     protected:
-        DevOacc(int iDevice) : m_spDevOaccImpl(std::make_shared<oacc::detail::DevOaccImpl>(iDevice))
+        DevOacc(int iDevice) : m_devOaccImpl(device(iDevice))
         {
         }
 
     public:
         ALPAKA_FN_HOST auto operator==(DevOacc const& rhs) const -> bool
         {
-            return m_spDevOaccImpl->iDevice() == rhs.m_spDevOaccImpl->iDevice();
+            return getNativeHandle() == rhs.getNativeHandle();
         }
+
         ALPAKA_FN_HOST auto operator!=(DevOacc const& rhs) const -> bool
         {
             return !((*this) == rhs);
         }
-        int iDevice() const
+
+        [[nodiscard]] auto getNativeHandle() const noexcept -> int
         {
-            return m_spDevOaccImpl->iDevice();
+            return m_devOaccImpl->getNativeHandle();
         }
         acc_device_t deviceType() const
         {
-            return m_spDevOaccImpl->deviceType();
+            return m_devOaccImpl->deviceType();
         }
         void makeCurrent() const
         {
-            m_spDevOaccImpl->makeCurrent();
+            m_devOaccImpl->makeCurrent();
         }
 
         std::uint32_t* gridsLock() const
         {
-            return m_spDevOaccImpl->gridsLock();
+            return m_devOaccImpl->gridsLock();
         }
 
         ALPAKA_FN_HOST auto getAllQueues() const -> std::vector<std::shared_ptr<IGenericThreadsQueue<DevOacc>>>
         {
-            return m_spDevOaccImpl->getAllExistingQueues();
+            return m_devOaccImpl->getAllExistingQueues();
         }
 
         //! Create and/or return staticlly mapped device pointer of host address.
         template<typename TElem, typename TExtent>
         ALPAKA_FN_HOST auto mapStatic(TElem* pHost, TExtent const& extent) const -> TElem*
         {
-            return m_spDevOaccImpl->mapStatic(pHost, extent);
+            return m_devOaccImpl->mapStatic(pHost, extent);
         }
 
         //! Registers the given queue on this device.
         //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
         ALPAKA_FN_HOST auto registerQueue(std::shared_ptr<IGenericThreadsQueue<DevOacc>> spQueue) const -> void
         {
-            m_spDevOaccImpl->registerQueue(spQueue);
+            m_devOaccImpl->registerQueue(spQueue);
         }
 
-    public:
-        std::shared_ptr<oacc::detail::DevOaccImpl> m_spDevOaccImpl;
+    private:
+        oacc::detail::DevOaccImpl* m_devOaccImpl;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The OpenACC device name get trait specialization.
         template<>
@@ -218,7 +244,7 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto getMemBytes(DevOacc const& dev) -> std::size_t
             {
-                return acc_get_property(dev.iDevice(), dev.deviceType(), acc_property_memory);
+                return acc_get_property(dev.getNativeHandle(), dev.deviceType(), acc_property_memory);
             }
         };
 
@@ -228,19 +254,17 @@ namespace alpaka
         {
             ALPAKA_FN_HOST static auto getFreeMemBytes(DevOacc const& dev) -> std::size_t
             {
-                return acc_get_property(dev.iDevice(), dev.deviceType(), acc_property_free_memory);
+                return acc_get_property(dev.getNativeHandle(), dev.deviceType(), acc_property_free_memory);
             }
         };
 
         //! The OpenACC device warp size get trait specialization.
         template<>
-        struct GetWarpSize<DevOacc>
+        struct GetWarpSizes<DevOacc>
         {
-            ALPAKA_FN_HOST static auto getWarpSize(DevOacc const& dev) -> std::size_t
+            ALPAKA_FN_HOST static auto getWarpSizes(DevOacc const& /* dev */) -> std::vector<std::size_t>
             {
-                alpaka::ignore_unused(dev);
-
-                return 1u;
+                return {1u};
             }
         };
 
@@ -248,17 +272,27 @@ namespace alpaka
         template<>
         struct Reset<DevOacc>
         {
-            ALPAKA_FN_HOST static auto reset(DevOacc const& dev) -> void
+            ALPAKA_FN_HOST static auto reset(DevOacc const& /* dev */) -> void
             {
-                alpaka::ignore_unused(dev); //! \TODO
+                //! \TODO
             }
         };
-    } // namespace traits
+
+        //! The OpenACC device native handle trait specialization.
+        template<>
+        struct NativeHandle<DevOacc>
+        {
+            [[nodiscard]] static auto getNativeHandle(DevOacc const& dev)
+            {
+                return dev.getNativeHandle();
+            }
+        };
+    } // namespace trait
 
     template<typename TElem, typename TDim, typename TIdx>
     class BufOacc;
 
-    namespace traits
+    namespace trait
     {
         //! The OpenACC device memory buffer type trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
@@ -273,12 +307,12 @@ namespace alpaka
         {
             using type = PltfOacc;
         };
-    } // namespace traits
+    } // namespace trait
 
     using QueueOaccNonBlocking = QueueGenericThreadsNonBlocking<DevOacc>;
     using QueueOaccBlocking = QueueGenericThreadsBlocking<DevOacc>;
 
-    namespace traits
+    namespace trait
     {
         template<>
         struct QueueType<DevOacc, Blocking>
@@ -306,7 +340,36 @@ namespace alpaka
                 generic::currentThreadWaitForDevice(dev);
             }
         };
-    } // namespace traits
+
+        //! The OpenACC platform device type trait specialization.
+        template<>
+        struct DevType<PltfOacc>
+        {
+            using type = DevOacc;
+        };
+
+        //! The OpenACC platform device get trait specialization.
+        template<>
+        struct GetDevByIdx<PltfOacc>
+        {
+            //! \param devIdx device id, less than GetDevCount
+            ALPAKA_FN_HOST static auto getDevByIdx(std::size_t devIdx) -> DevOacc
+            {
+                ALPAKA_DEBUG_FULL_LOG_SCOPE;
+
+                std::size_t const devCount(getDevCount<PltfOacc>());
+                if(devIdx >= devCount)
+                {
+                    std::stringstream ssErr;
+                    ssErr << "Unable to return device handle for OpenACC device with index " << devIdx
+                          << " because there are only " << devCount << " devices!";
+                    throw std::runtime_error(ssErr.str());
+                }
+
+                return {static_cast<int>(devIdx)};
+            }
+        };
+    } // namespace trait
 } // namespace alpaka
 
 #endif

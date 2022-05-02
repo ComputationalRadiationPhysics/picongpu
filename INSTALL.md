@@ -7,7 +7,7 @@
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
   - *Arch Linux:* `sudo pacman --sync cmake`
 
-- **boost** 1.65.1 or higher
+- **boost** 1.74.0 or higher
   - is required by alpaka
   - *Install Instructions:* https://github.com/alpaka-group/alpaka#dependencies
 
@@ -24,13 +24,13 @@ example/CUDASamples/matrixMul/matrixMul -wA=320 -wB=320 -hA=320 -hB=320
 ```
 
 - list of supported `ACC_TYPE`s
-  - `ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE`
-  - `ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE`
-  - `ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE`
-  - `ALPAKA_ACC_GPU_CUDA_ENABLE`
-  - `ALPAKA_ACC_GPU_HIP_ENABLE`
-  - `ALPAKA_ACC_CPU_BT_OMP4_ENABLE`
-  - `ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE` (only allowed in combination with
+  - `alpaka_ACC_CPU_B_SEQ_T_OMP2_ENABLE`
+  - `alpaka_ACC_CPU_B_SEQ_T_THREADS_ENABLE`
+  - `alpaka_ACC_CPU_B_TBB_T_SEQ_ENABLE`
+  - `alpaka_ACC_GPU_CUDA_ENABLE`
+  - `alpaka_ACC_GPU_HIP_ENABLE`
+  - `alpaka_ACC_CPU_BT_OMP4_ENABLE`
+  - `alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE` (only allowed in combination with
   `CUPLA_KERNEL_OPTI` and `CUPLA_KERNEL_ELEM`, because the `blockSize` must be `dim3(1,1,1)`)
   see [TuningGuide.md](doc/TuningGuide.md)
 

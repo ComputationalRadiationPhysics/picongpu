@@ -1,4 +1,4 @@
-/* Copyright 2019 Alexander Matthes, Axel Huebl, Benjamin Worpitz
+/* Copyright 2022 Alexander Matthes, Axel Huebl, Benjamin Worpitz, Andrea Bocci, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -9,11 +9,11 @@
 
 #pragma once
 
-#include <alpaka/core/Unused.hpp>
 #include <alpaka/core/Vectorize.hpp>
 #include <alpaka/dev/DevCpu.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
+#include <alpaka/mem/view/ViewAccessOps.hpp>
 #include <alpaka/vec/Vec.hpp>
 
 // Backend specific includes.
@@ -26,8 +26,10 @@
 #include <alpaka/mem/alloc/AllocCpuAligned.hpp>
 #include <alpaka/meta/DependentFalseType.hpp>
 
+#include <functional>
 #include <memory>
 #include <type_traits>
+#include <utility>
 
 namespace alpaka
 {
@@ -36,25 +38,25 @@ namespace alpaka
         //! The CPU memory buffer.
         template<typename TElem, typename TDim, typename TIdx>
         class BufCpuImpl final
-            : public AllocCpuAligned<std::integral_constant<std::size_t, core::vectorization::defaultAlignment>>
         {
             static_assert(
-                !std::is_const<TElem>::value,
+                !std::is_const_v<TElem>,
                 "The elem type of the buffer can not be const because the C++ Standard forbids containers of const "
                 "elements!");
-            static_assert(!std::is_const<TIdx>::value, "The idx type of the buffer can not be const!");
+            static_assert(!std::is_const_v<TIdx>, "The idx type of the buffer can not be const!");
 
         public:
             template<typename TExtent>
-            ALPAKA_FN_HOST BufCpuImpl(DevCpu const& dev, TExtent const& extent)
-                : AllocCpuAligned<std::integral_constant<std::size_t, core::vectorization::defaultAlignment>>()
-                , m_dev(dev)
-                , m_extentElements(extent::getExtentVecEnd<TDim>(extent))
-                , m_pMem(alpaka::malloc<TElem>(*this, static_cast<std::size_t>(computeElementCount(extent))))
-                , m_pitchBytes(static_cast<TIdx>(extent::getWidth(extent) * static_cast<TIdx>(sizeof(TElem))))
-#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
+            ALPAKA_FN_HOST BufCpuImpl(
+                DevCpu dev,
+                TElem* pMem,
+                std::function<void(TElem*)> deleter,
+                TExtent const& extent)
+                : m_dev(std::move(dev))
+                , m_extentElements(getExtentVecEnd<TDim>(extent))
+                , m_pMem(pMem)
+                , m_deleter(std::move(deleter))
                 , m_bPinned(false)
-#endif
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -63,57 +65,57 @@ namespace alpaka
                     "The dimensionality of TExtent and the dimensionality of the TDim template parameter have to be "
                     "identical!");
                 static_assert(
-                    std::is_same<TIdx, Idx<TExtent>>::value,
+                    std::is_same_v<TIdx, Idx<TExtent>>,
                     "The idx type of TExtent and the TIdx template parameter have to be identical!");
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 std::cout << __func__ << " e: " << m_extentElements << " ptr: " << static_cast<void*>(m_pMem)
-                          << " pitch: " << m_pitchBytes << std::endl;
+                          << std::endl;
 #endif
             }
-            BufCpuImpl(BufCpuImpl&&) = default;
-            auto operator=(BufCpuImpl&&) -> BufCpuImpl& = default;
+            BufCpuImpl(BufCpuImpl&&) = delete;
+            auto operator=(BufCpuImpl&&) -> BufCpuImpl& = delete;
             ALPAKA_FN_HOST ~BufCpuImpl()
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
                 // Unpin this memory if it is currently pinned.
-                unpin(*this);
+                if(m_bPinned)
+                {
+                    try
+                    {
+                        unpin(*this); // May throw std::runtime_error
+                    }
+                    catch(std::runtime_error const& err)
+                    {
+                        std::cerr << "Caught runtime error while unpinning in ~BufCpuImpl(): " << err.what()
+                                  << std::endl;
+                    }
+                }
 #endif
                 // NOTE: m_pMem is allowed to be a nullptr here.
-                alpaka::free(*this, m_pMem);
-            }
-
-        private:
-            //! \return The number of elements to allocate.
-            template<typename TExtent>
-            ALPAKA_FN_HOST static auto computeElementCount(TExtent const& extent) -> TIdx
-            {
-                auto const extentElementCount = extent::getExtentProduct(extent);
-
-                return extentElementCount;
+                m_deleter(m_pMem);
             }
 
         public:
             DevCpu const m_dev;
             Vec<TDim, TIdx> const m_extentElements;
             TElem* const m_pMem;
-            TIdx const m_pitchBytes;
-#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
+            std::function<void(TElem*)> m_deleter;
             bool m_bPinned;
-#endif
         };
     } // namespace detail
 
     //! The CPU memory buffer.
     template<typename TElem, typename TDim, typename TIdx>
-    class BufCpu
+    class BufCpu : public internal::ViewAccessOps<BufCpu<TElem, TDim, TIdx>>
     {
     public:
-        template<typename TExtent>
-        ALPAKA_FN_HOST BufCpu(DevCpu const& dev, TExtent const& extent)
-            : m_spBufCpuImpl(std::make_shared<detail::BufCpuImpl<TElem, TDim, TIdx>>(dev, extent))
+        template<typename TExtent, typename Deleter>
+        ALPAKA_FN_HOST BufCpu(DevCpu const& dev, TElem* pMem, Deleter deleter, TExtent const& extent)
+            : m_spBufCpuImpl{
+                std::make_shared<detail::BufCpuImpl<TElem, TDim, TIdx>>(dev, pMem, std::move(deleter), extent)}
         {
         }
 
@@ -121,7 +123,7 @@ namespace alpaka
         std::shared_ptr<detail::BufCpuImpl<TElem, TDim, TIdx>> m_spBufCpuImpl;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The BufCpu device type trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
@@ -152,27 +154,20 @@ namespace alpaka
         {
             using type = TElem;
         };
-    } // namespace traits
-    namespace extent
-    {
-        namespace traits
+
+        //! The BufCpu width get trait specialization.
+        template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
+        struct GetExtent<
+            TIdxIntegralConst,
+            BufCpu<TElem, TDim, TIdx>,
+            std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
         {
-            //! The BufCpu width get trait specialization.
-            template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
-            struct GetExtent<
-                TIdxIntegralConst,
-                BufCpu<TElem, TDim, TIdx>,
-                std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
+            ALPAKA_FN_HOST static auto getExtent(BufCpu<TElem, TDim, TIdx> const& extent) -> TIdx
             {
-                ALPAKA_FN_HOST static auto getExtent(BufCpu<TElem, TDim, TIdx> const& extent) -> TIdx
-                {
-                    return extent.m_spBufCpuImpl->m_extentElements[TIdxIntegralConst::value];
-                }
-            };
-        } // namespace traits
-    } // namespace extent
-    namespace traits
-    {
+                return extent.m_spBufCpuImpl->m_extentElements[TIdxIntegralConst::value];
+            }
+        };
+
         //! The BufCpu native pointer get trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct GetPtrNative<BufCpu<TElem, TDim, TIdx>>
@@ -214,15 +209,6 @@ namespace alpaka
                 }
             }
         };
-        //! The BufCpu pitch get trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct GetPitchBytes<DimInt<TDim::value - 1u>, BufCpu<TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto getPitchBytes(BufCpu<TElem, TDim, TIdx> const& pitch) -> TIdx
-            {
-                return pitch.m_spBufCpuImpl->m_pitchBytes;
-            }
-        };
 
         //! The BufCpu memory allocation trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
@@ -233,9 +219,57 @@ namespace alpaka
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                return BufCpu<TElem, TDim, TIdx>(dev, extent);
+                // alpaka::AllocCpuAligned is stateless
+                using Allocator
+                    = AllocCpuAligned<std::integral_constant<std::size_t, core::vectorization::defaultAlignment>>;
+                static_assert(std::is_empty_v<Allocator>, "AllocCpuAligned is expected to be stateless");
+                auto* memPtr = alpaka::malloc<TElem>(Allocator{}, static_cast<std::size_t>(getExtentProduct(extent)));
+                auto deleter = [](TElem* ptr) { alpaka::free(Allocator{}, ptr); };
+
+                return BufCpu<TElem, TDim, TIdx>(dev, memPtr, std::move(deleter), extent);
             }
         };
+        //! The BufCpu stream-ordered memory allocation trait specialization.
+        template<typename TElem, typename TDim, typename TIdx>
+        struct AsyncBufAlloc<TElem, TDim, TIdx, DevCpu>
+        {
+            template<typename TQueue, typename TExtent>
+            ALPAKA_FN_HOST static auto allocAsyncBuf(TQueue queue, TExtent const& extent) -> BufCpu<TElem, TDim, TIdx>
+            {
+                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+                static_assert(
+                    std::is_same_v<Dev<TQueue>, DevCpu>,
+                    "The BufCpu buffer can only be used with a queue on a DevCpu device!");
+                DevCpu const& dev = getDev(queue);
+
+                // alpaka::AllocCpuAligned is stateless
+                using Allocator
+                    = AllocCpuAligned<std::integral_constant<std::size_t, core::vectorization::defaultAlignment>>;
+                static_assert(std::is_empty_v<Allocator>, "AllocCpuAligned is expected to be stateless");
+                auto* memPtr = alpaka::malloc<TElem>(Allocator{}, static_cast<std::size_t>(getExtentProduct(extent)));
+                auto deleter = [queue = std::move(queue)](TElem* ptr) mutable
+                {
+                    alpaka::enqueue(
+                        queue,
+                        [ptr, queue]()
+                        {
+                            // free the memory
+                            alpaka::free(Allocator{}, ptr);
+                            // keep the queue alive until all memory operations are complete
+                            [&queue = std::as_const(queue)]() {}();
+                        });
+                };
+
+                return BufCpu<TElem, TDim, TIdx>(dev, memPtr, std::move(deleter), extent);
+            }
+        };
+        //! The BufCpu stream-ordered memory allocation capability trait specialization.
+        template<typename TDim>
+        struct HasAsyncBufSupport<TDim, DevCpu> : public std::true_type
+        {
+        };
+
         //! The BufCpu memory mapping trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct Map<BufCpu<TElem, TDim, TIdx>, DevCpu>
@@ -276,7 +310,7 @@ namespace alpaka
 
                 if(!isPinned(buf))
                 {
-#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
                     if(buf.m_spBufCpuImpl->m_extentElements.prod() != 0)
                     {
                         // - cudaHostRegisterDefault:
@@ -287,7 +321,7 @@ namespace alpaka
                         ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_IGNORE(
                             ALPAKA_API_PREFIX(HostRegister)(
                                 const_cast<void*>(reinterpret_cast<void const*>(getPtrNative(buf))),
-                                extent::getExtentProduct(buf) * sizeof(Elem<BufCpu<TElem, TDim, TIdx>>),
+                                getExtentProduct(buf) * sizeof(Elem<BufCpu<TElem, TDim, TIdx>>),
                                 ALPAKA_API_PREFIX(HostRegisterDefault)),
                             ALPAKA_API_PREFIX(ErrorHostMemoryAlreadyRegistered));
 
@@ -320,7 +354,7 @@ namespace alpaka
 
                 if(isPinned(bufImpl))
                 {
-#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
                     ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK_IGNORE(
                         ALPAKA_API_PREFIX(HostUnregister)(
                             const_cast<void*>(reinterpret_cast<void const*>(bufImpl.m_pMem))),
@@ -348,31 +382,24 @@ namespace alpaka
         template<typename TElem, typename TDim, typename TIdx>
         struct IsPinned<alpaka::detail::BufCpuImpl<TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto isPinned(alpaka::detail::BufCpuImpl<TElem, TDim, TIdx> const& bufImpl) -> bool
+            ALPAKA_FN_HOST static auto isPinned(
+                [[maybe_unused]] alpaka::detail::BufCpuImpl<TElem, TDim, TIdx> const& bufImpl) -> bool
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
                 return bufImpl.m_bPinned;
-#else
-                alpaka::ignore_unused(bufImpl);
-                return false;
-#endif
             }
         };
         //! The BufCpu memory prepareForAsyncCopy trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct PrepareForAsyncCopy<BufCpu<TElem, TDim, TIdx>>
         {
-            ALPAKA_FN_HOST static auto prepareForAsyncCopy(BufCpu<TElem, TDim, TIdx>& buf) -> void
+            ALPAKA_FN_HOST static auto prepareForAsyncCopy([[maybe_unused]] BufCpu<TElem, TDim, TIdx>& buf) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
                 // to optimize the data transfer performance between a cuda/hip device the cpu buffer has to be pinned,
                 // for exclusive cpu use, no preparing is needed
-#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
                 pin(buf);
-#else
-                alpaka::ignore_unused(buf);
 #endif
             }
         };
@@ -393,7 +420,7 @@ namespace alpaka
         {
             using type = TIdx;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #include <alpaka/mem/buf/cpu/Copy.hpp>

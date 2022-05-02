@@ -31,6 +31,24 @@ using RandomEngineSingle = alpaka::rand::Philox4x32x10<TAcc>;
 template<typename TAcc>
 using RandomEngineVector = alpaka::rand::Philox4x32x10Vector<TAcc>;
 
+/** Get a  pointer to the correct location of `TElement array` taking pitch into account.
+ *
+ *  The pitch might not be a multiple of `sizeof(TElement)`, especially in the case of random generator state which can
+ *  be any size. Therefore we cast the array to `std::byte*`, do the pointer offset calculation with byte precision,
+ *  and cast the resulting location back to TElement*.
+ */
+template<typename TElement, typename TIndex>
+ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto pitchedPointer2D(TElement* const array, std::size_t pitch, TIndex idx)
+    -> TElement* const
+{
+    // `idx[0]` is the index of the row - consecutive rows are `pitch` bytes away from each other. `idx[1]` is the
+    // index of the element in the given row - consecutive elements are `sizeof(TElement)` away from each other.
+    // Potential inner alignment should be already included in `sizeof(TElement)`.
+    auto const memoryLocationIdx = idx[0] * pitch + idx[1] * sizeof(TElement);
+    std::byte* bytePointer = reinterpret_cast<std::byte*>(array) + memoryLocationIdx;
+    return reinterpret_cast<TElement*>(bytePointer);
+}
+
 struct InitRandomKernel
 {
     template<typename TAcc, typename TExtent, typename TRandEngine>
@@ -41,10 +59,14 @@ struct InitRandomKernel
         std::size_t pitchRand) const -> void
     {
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-        auto const linearIdx = alpaka::mapIdx<1u>(idx, extent)[0];
-        auto const memoryLocationIdx = idx[0] * pitchRand + idx[1];
-        TRandEngine engine(42, static_cast<std::uint32_t>(linearIdx));
-        states[memoryLocationIdx] = engine;
+
+        if(idx[0] < NUM_Y && idx[1] < NUM_X)
+        {
+            auto const linearIdx = alpaka::mapIdx<1u>(idx, extent)[0];
+            auto statesOut = pitchedPointer2D(states, pitchRand, idx);
+            TRandEngine engine(42, static_cast<std::uint32_t>(linearIdx));
+            *statesOut = engine;
+        }
     }
 };
 
@@ -60,20 +82,24 @@ struct RunTimestepKernelSingle
         std::size_t pitchOut) const -> void
     {
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-        auto const memoryLocationRandIdx = idx[0] * pitchRand + idx[1];
-        auto const memoryLocationOutIdx = idx[0] * pitchOut + idx[1];
 
-        // Setup generator and distribution.
-        RandomEngineSingle<TAcc> engine(states[memoryLocationRandIdx]);
-        alpaka::rand::UniformReal<float> dist;
-
-        float sum = 0;
-        for(unsigned numCalculations = 0; numCalculations < NUM_CALCULATIONS; ++numCalculations)
+        if(idx[0] < NUM_Y && idx[1] < NUM_X)
         {
-            sum += dist(engine);
+            auto statesOut = pitchedPointer2D(states, pitchRand, idx);
+            auto cellsOut = pitchedPointer2D(cells, pitchOut, idx);
+
+            // Setup generator and distribution.
+            RandomEngineSingle<TAcc> engine(*statesOut);
+            alpaka::rand::UniformReal<float> dist;
+
+            float sum = 0;
+            for(unsigned numCalculations = 0; numCalculations < NUM_CALCULATIONS; ++numCalculations)
+            {
+                sum += dist(engine);
+            }
+            *cellsOut = sum / NUM_CALCULATIONS;
+            *statesOut = engine;
         }
-        cells[memoryLocationOutIdx] = sum / NUM_CALCULATIONS;
-        states[memoryLocationRandIdx] = engine;
     }
 };
 
@@ -89,32 +115,36 @@ struct RunTimestepKernelVector
         std::size_t pitchOut) const -> void
     {
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-        auto const memoryLocationRandIdx = idx[0] * pitchRand + idx[1];
-        auto const memoryLocationOutIdx = idx[0] * pitchOut + idx[1];
 
-        // Setup generator and distribution.
-        RandomEngineVector<TAcc> engine(states[memoryLocationRandIdx]); // Load the state of the random engine
-        using DistributionResult =
-            typename RandomEngineVector<TAcc>::template ResultContainer<float>; // Container type which will store the
-                                                                                // distribution results
-        unsigned constexpr resultVectorSize = std::tuple_size<DistributionResult>::value; // Size of the result vector
-        alpaka::rand::UniformReal<DistributionResult> dist; // Vector-aware distribution function
-
-
-        float sum = 0;
-        static_assert(
-            NUM_CALCULATIONS % resultVectorSize == 0,
-            "Number of calculations must be a multiple of result vector size.");
-        for(unsigned numCalculations = 0; numCalculations < NUM_CALCULATIONS / resultVectorSize; ++numCalculations)
+        if(idx[0] < NUM_Y && idx[1] < NUM_X)
         {
-            auto result = dist(engine);
-            for(unsigned i = 0; i < resultVectorSize; ++i)
+            auto statesOut = pitchedPointer2D(states, pitchRand, idx);
+            auto cellsOut = pitchedPointer2D(cells, pitchOut, idx);
+
+            // Setup generator and distribution.
+            RandomEngineVector<TAcc> engine(*statesOut); // Load the state of the random engine
+            using DistributionResult =
+                typename RandomEngineVector<TAcc>::template ResultContainer<float>; // Container type which will store
+                                                                                    // the distribution results
+            unsigned constexpr resultVectorSize = std::tuple_size_v<DistributionResult>; // Size of the result vector
+            alpaka::rand::UniformReal<DistributionResult> dist; // Vector-aware distribution function
+
+
+            float sum = 0;
+            static_assert(
+                NUM_CALCULATIONS % resultVectorSize == 0,
+                "Number of calculations must be a multiple of result vector size.");
+            for(unsigned numCalculations = 0; numCalculations < NUM_CALCULATIONS / resultVectorSize; ++numCalculations)
             {
-                sum += result[i];
+                auto result = dist(engine);
+                for(unsigned i = 0; i < resultVectorSize; ++i)
+                {
+                    sum += result[i];
+                }
             }
+            *cellsOut = sum / NUM_CALCULATIONS;
+            *statesOut = engine;
         }
-        cells[memoryLocationOutIdx] = sum / NUM_CALCULATIONS;
-        states[memoryLocationRandIdx] = engine;
     }
 };
 
@@ -174,29 +204,28 @@ auto main() -> int
     RandomEngineVector<Acc>* const ptrBufAccRandV{alpaka::getPtrNative(bufAccRandV)};
 
     InitRandomKernel initRandomKernel;
-    auto pitchBufAccRandS = alpaka::getPitchBytes<1u>(bufAccRandS) / sizeof(RandomEngineSingle<Acc>);
+    auto pitchBufAccRandS = alpaka::getPitchBytes<1u>(bufAccRandS);
     alpaka::exec<Acc>(queue, workdiv, initRandomKernel, extent, ptrBufAccRandS, pitchBufAccRandS);
     alpaka::wait(queue);
 
-    auto pitchBufAccRandV = alpaka::getPitchBytes<1u>(bufAccRandV) / sizeof(RandomEngineVector<Acc>);
+    auto pitchBufAccRandV = alpaka::getPitchBytes<1u>(bufAccRandV);
     alpaka::exec<Acc>(queue, workdiv, initRandomKernel, extent, ptrBufAccRandV, pitchBufAccRandV);
     alpaka::wait(queue);
 
-    auto pitchHostS = alpaka::getPitchBytes<1u>(bufHostS) / sizeof(float); /// \todo: get the type from bufHostS
-    auto pitchHostV = alpaka::getPitchBytes<1u>(bufHostV) / sizeof(float); /// \todo: get the type from bufHostV
+    auto pitchHostS = alpaka::getPitchBytes<1u>(bufHostS);
+    auto pitchHostV = alpaka::getPitchBytes<1u>(bufHostV);
 
     for(Idx y = 0; y < numY; ++y)
     {
         for(Idx x = 0; x < numX; ++x)
         {
-            ptrBufHostS[y * pitchHostS + x] = 0;
-            ptrBufHostV[y * pitchHostV + x] = 0;
+            *pitchedPointer2D(ptrBufHostS, pitchHostS, Vec(y, x)) = 0;
+            *pitchedPointer2D(ptrBufHostV, pitchHostV, Vec(y, x)) = 0;
         }
     }
 
-    /// \todo get the types from respective function parameters
-    auto pitchBufAccS = alpaka::getPitchBytes<1u>(bufAccS) / sizeof(float);
-    alpaka::memcpy(queue, bufAccS, bufHostS, extent);
+    auto pitchBufAccS = alpaka::getPitchBytes<1u>(bufAccS);
+    alpaka::memcpy(queue, bufAccS, bufHostS);
     RunTimestepKernelSingle runTimestepKernelSingle;
     alpaka::exec<Acc>(
         queue,
@@ -207,10 +236,10 @@ auto main() -> int
         ptrBufAccS,
         pitchBufAccRandS,
         pitchBufAccS);
-    alpaka::memcpy(queue, bufHostS, bufAccS, extent);
+    alpaka::memcpy(queue, bufHostS, bufAccS);
 
-    auto pitchBufAccV = alpaka::getPitchBytes<1u>(bufAccV) / sizeof(float);
-    alpaka::memcpy(queue, bufAccV, bufHostV, extent);
+    auto pitchBufAccV = alpaka::getPitchBytes<1u>(bufAccV);
+    alpaka::memcpy(queue, bufAccV, bufHostV);
     RunTimestepKernelVector runTimestepKernelVector;
     alpaka::exec<Acc>(
         queue,
@@ -221,7 +250,7 @@ auto main() -> int
         ptrBufAccV,
         pitchBufAccRandV,
         pitchBufAccV);
-    alpaka::memcpy(queue, bufHostV, bufAccV, extent);
+    alpaka::memcpy(queue, bufHostV, bufAccV);
     alpaka::wait(queue);
 
     float avgS = 0;
@@ -230,17 +259,34 @@ auto main() -> int
     {
         for(Idx x = 0; x < numX; ++x)
         {
-            avgS += ptrBufHostS[y * pitchHostS + x];
-            avgV += ptrBufHostV[y * pitchHostV + x];
+            avgS += *pitchedPointer2D(ptrBufHostS, pitchHostS, Vec(y, x));
+            avgV += *pitchedPointer2D(ptrBufHostV, pitchHostV, Vec(y, x));
         }
     }
     avgS /= numX * numY;
     avgV /= numX * numY;
 
+    auto totalCalculations = numX * numY * NUM_CALCULATIONS;
+    float expectedValue = 0.5f;
     std::cout << "Number of cells: " << numX * numY << "\n";
-    std::cout << "Number of calculations: " << NUM_CALCULATIONS << "\n";
-    std::cout << "Mean value A: " << avgS << " (should converge to 0.5)\n";
-    std::cout << "Mean value B: " << avgV << " (should converge to 0.5)\n";
+    std::cout << "Number of calculations per cell: " << NUM_CALCULATIONS << "\n";
+    std::cout << "Total number of calculations: " << totalCalculations << "\n";
+    std::cout << "Mean value A: " << avgS << " (should converge to " << expectedValue << ")\n";
+    std::cout << "Mean value B: " << avgV << " (should converge to " << expectedValue << ")\n";
 
-    return 0;
+    float convergenceFactor = expectedValue / std::sqrt(totalCalculations);
+    std::cout << "Maximum error expected at " << totalCalculations << " calculations should be around "
+              << convergenceFactor << std::endl;
+    // 10 is a magic number to allow a reasonable margin statistical errors
+    if(std::abs(avgS - expectedValue) < 10 * convergenceFactor
+       || std::abs(avgV - expectedValue) < 10 * convergenceFactor)
+    {
+        std::cout << "Convergence test passed" << std::endl;
+        return 0;
+    }
+    else
+    {
+        std::cout << "Convergence test failed!" << std::endl;
+        return 1;
+    }
 }

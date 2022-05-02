@@ -1,0 +1,115 @@
+# nvcc + g++
+linux_nvcc-11.6_gcc-7_debug:
+  extends: .base_cuda_gcc
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_CUDA_VERSION: "11.6"
+    ALPAKA_CI_GCC_VER: 7
+    CMAKE_BUILD_TYPE: Debug
+    ALPAKA_BOOST_VERSION: 1.75.0
+    ALPAKA_CI_CMAKE_VER: 3.20.6
+    CMAKE_CUDA_ARCHITECTURES: "61;86"
+  stage: stageRun0
+
+linux_nvcc-11.6_gcc-8_release:
+  extends: .base_cuda_gcc
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_CUDA_VERSION: "11.6"
+    ALPAKA_CI_GCC_VER: 8
+    ALPAKA_BOOST_VERSION: 1.77.0
+    ALPAKA_CI_CMAKE_VER: 3.18.6
+  stage: stageRun1
+
+linux_nvcc-11.6_gcc-9_release:
+  extends: .base_cuda_gcc
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_CUDA_VERSION: "11.6"
+    CMAKE_CUDA_ARCHITECTURES: "35;61"
+    ALPAKA_CI_GCC_VER: 9
+    ALPAKA_BOOST_VERSION: 1.76.0
+    ALPAKA_CI_CMAKE_VER: 3.19.8
+  stage: stageRun0
+
+linux_nvcc-11.6_gcc-10_debug:
+  extends: .base_cuda_gcc
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_CUDA_VERSION: "11.6"
+    ALPAKA_CI_GCC_VER: 10
+    CMAKE_BUILD_TYPE: Debug
+    ALPAKA_BOOST_VERSION: 1.76.0
+    ALPAKA_CI_CMAKE_VER: 3.19.8
+  stage: stageRun1
+
+# nvcc + clang
+linux_nvcc-11.6_clang-8_release:
+  extends: .base_cuda_clang
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_CUDA_VERSION: "11.6"
+    ALPAKA_CI_CLANG_VER: 8
+    ALPAKA_BOOST_VERSION: 1.74.0
+    ALPAKA_CI_CMAKE_VER: 3.20.6
+    CMAKE_CUDA_COMPILER: nvcc
+  stage: stageRun0
+
+linux_nvcc-11.6_clang-9_debug:
+  extends: .base_cuda_clang
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_CUDA_VERSION: "11.6"
+    ALPAKA_CI_CLANG_VER: 9
+    CMAKE_BUILD_TYPE: Debug
+    ALPAKA_BOOST_VERSION: 1.77.0
+    ALPAKA_CI_CMAKE_VER: 3.20.6
+    CMAKE_CUDA_COMPILER: nvcc
+  stage: stageRun1
+
+linux_nvcc-11.6_clang-10_release:
+  extends: .base_cuda_clang
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_CUDA_VERSION: "11.6"
+    ALPAKA_CI_CLANG_VER: 10
+    ALPAKA_BOOST_VERSION: 1.75.0
+    ALPAKA_CI_CMAKE_VER: 3.19.8
+    CMAKE_CUDA_COMPILER: nvcc
+  stage: stageRun0
+
+linux_nvcc-11.6_clang-11_release:
+  extends: .base_cuda_clang
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_CUDA_VERSION: "11.6"
+    ALPAKA_CI_CLANG_VER: 11
+    ALPAKA_BOOST_VERSION: 1.77.0
+    ALPAKA_CI_CMAKE_VER: 3.19.8
+    CMAKE_CUDA_COMPILER: nvcc
+  stage: stageRun0
+
+linux_nvcc-11.6_clang-12_release:
+  extends: .base_cuda_clang
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_CUDA_VERSION: "11.6"
+    CMAKE_CUDA_ARCHITECTURES: "35;61"
+    ALPAKA_CI_CLANG_VER: 12
+    ALPAKA_BOOST_VERSION: 1.75.0
+    ALPAKA_CI_CMAKE_VER: 3.19.8
+    CMAKE_CUDA_COMPILER: nvcc
+  stage: stageRun1
+
+linux_nvcc-11.6_clang-13_release:
+  extends: .base_cuda_clang
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "20.04"
+    ALPAKA_CI_CUDA_VERSION: "11.6"
+    CMAKE_CUDA_ARCHITECTURES: "35;61"
+    ALPAKA_CI_CLANG_VER: 13
+    ALPAKA_BOOST_VERSION: 1.75.0
+    ALPAKA_CI_CMAKE_VER: 3.19.8
+    CMAKE_CUDA_COMPILER: nvcc
+    alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "OFF" # bug, see: https://github.com/NVIDIA/cuda-samples/issues/102
+  stage: stageRun1

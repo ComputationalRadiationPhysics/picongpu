@@ -148,6 +148,11 @@ Get a raw pointer to a buffer or view initialization, etc.
      DataType* raw = view::getPtrNative(bufHost);
      DataType* rawViewPtr = view::getPtrNative(hostView);
 
+Get an accessor to a buffer and the accessor's type (experimental)
+  .. code-block:: c++
+
+     experimental::BufferAccessor<Acc, Elem, N, AccessTag> a = experimental::access(buffer);
+
 Allocate a buffer in device memory
   .. code-block:: c++
 
@@ -258,7 +263,7 @@ Allocate static shared memory variable
 Get dynamic shared memory pool, requires the kernel to specialize
   .. code-block:: c++
 
-     traits::BlockSharedMemDynSizeBytes
+     trait::BlockSharedMemDynSizeBytes
        Type * dynamicSharedMemoryPool = getDynSharedMem<Type>(acc);
 
 Synchronize threads of the same block
@@ -277,10 +282,11 @@ Atomic operations
          AtomicAdd, AtomicSub, AtomicMin, AtomicMax, AtomicExch,
          AtomicInc, AtomicDec, AtomicAnd, AtomicOr, AtomicXor, AtomicCas
 
-Memory fences on block- or device level (guarantees LoadLoad and StoreStore ordering)
+Memory fences on block-, grid- or device level (guarantees LoadLoad and StoreStore ordering)
   .. code-block:: c++
 
      mem_fence(acc, memory_scope::Block{});
+     mem_fence(acc, memory_scope::Grid{});
      mem_fence(acc, memory_scope::Device{});
 
 Warp-level operations
@@ -302,5 +308,5 @@ Generate random numbers
   .. code-block:: c++
 
      auto distribution = rand::distribution::createNormalReal<double>(acc);
-     auto generator = rand::generator::createDefault(acc, seed, subsequence);
+     auto generator = rand::engine::createDefault(acc, seed, subsequence);
      auto number = distribution(generator);

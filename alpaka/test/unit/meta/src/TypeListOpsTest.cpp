@@ -16,10 +16,10 @@
 
 TEST_CASE("front", "[meta]")
 {
-    STATIC_REQUIRE(std::is_same<alpaka::meta::Front<std::tuple<int>>, int>::value);
-    STATIC_REQUIRE(std::is_same<alpaka::meta::Front<std::tuple<int, int>>, int>::value);
-    STATIC_REQUIRE(std::is_same<alpaka::meta::Front<std::tuple<float, int>>, float>::value);
-    STATIC_REQUIRE(std::is_same<alpaka::meta::Front<std::tuple<short, int, double, float, float>>, short>::value);
+    STATIC_REQUIRE(std::is_same_v<alpaka::meta::Front<std::tuple<int>>, int>);
+    STATIC_REQUIRE(std::is_same_v<alpaka::meta::Front<std::tuple<int, int>>, int>);
+    STATIC_REQUIRE(std::is_same_v<alpaka::meta::Front<std::tuple<float, int>>, float>);
+    STATIC_REQUIRE(std::is_same_v<alpaka::meta::Front<std::tuple<short, int, double, float, float>>, short>);
 }
 
 TEST_CASE("contains", "[meta]")
