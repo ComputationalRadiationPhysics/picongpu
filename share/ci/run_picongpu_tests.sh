@@ -31,8 +31,11 @@ CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_openPMD=ON -DPIC_USE_PNGwriter=ON"
 if [[ "$PIC_TEST_CASE_FOLDER" =~ .*FoilLCT.* ]] ; then
     CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=OFF"
     export CI_CPUS=1
-elif [ -z "$DISABLE_ISAAC" ] ; then
-    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=ON"
+#elif [ -z "$DISABLE_ISAAC" ] ; then
+#    CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=ON"
+else
+  # enforce disabling ISACC, there are unsolved CI issues.
+  CMAKE_ARGS="$CMAKE_ARGS -DPIC_USE_ISAAC=OFF"
 fi
 
 # workaround for clang cuda
