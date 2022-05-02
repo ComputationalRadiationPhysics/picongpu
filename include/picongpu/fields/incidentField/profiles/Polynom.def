@@ -65,8 +65,7 @@ namespace picongpu
                          *              at the focus position of the laser
                          *
                          * AXIS_1 is next axis after the propagation axis in order (x, y, z) with a periodic
-                         * wrap. LINEAR_AXIS_1 is next after LINEAR_AXIS_2. E.g. for y propagation axis, AXIS_1 = z,
-                         * AXIS_2 = x
+                         * wrap. AXIS_2 is next after AXIS_1. E.g. for y propagation axis, AXIS_1 = z, AXIS_2 = x.
                          *
                          *  unit: meter
                          */
@@ -83,7 +82,8 @@ namespace picongpu
 
                         /** Available E polarisation types, B polarization will be calculated automatically
                          *
-                         * AXIS_1 and AXIS_2 are defined same as for W0_AXIS_1_SI, W0_AXIS_2_SI.
+                         * For linear polarization, AXIS_1 and AXIS_2 are defined same as for W0_AXIS_1_SI,
+                         * W0_AXIS_2_SI.
                          */
                         enum PolarisationType
                         {
