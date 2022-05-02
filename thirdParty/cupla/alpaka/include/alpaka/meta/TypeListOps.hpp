@@ -1,4 +1,4 @@
-/* Copyright 2021 Bernhard Manfred Gruber
+/* Copyright 2022 Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -11,36 +11,33 @@
 
 #include <type_traits>
 
-namespace alpaka
+namespace alpaka::meta
 {
-    namespace meta
+    namespace detail
     {
-        namespace detail
-        {
-            template<typename List>
-            struct Front
-            {
-            };
-
-            template<template<typename...> class List, typename Head, typename... Tail>
-            struct Front<List<Head, Tail...>>
-            {
-                using type = Head;
-            };
-        } // namespace detail
-
         template<typename List>
-        using Front = typename detail::Front<List>::type;
-
-        template<typename List, typename Value>
-        struct Contains : std::false_type
+        struct Front
         {
         };
 
-        template<template<typename...> class List, typename Head, typename... Tail, typename Value>
-        struct Contains<List<Head, Tail...>, Value>
+        template<template<typename...> class List, typename Head, typename... Tail>
+        struct Front<List<Head, Tail...>>
         {
-            static constexpr bool value = std::is_same<Head, Value>::value || Contains<List<Tail...>, Value>::value;
+            using type = Head;
         };
-    } // namespace meta
-} // namespace alpaka
+    } // namespace detail
+
+    template<typename List>
+    using Front = typename detail::Front<List>::type;
+
+    template<typename List, typename Value>
+    struct Contains : std::false_type
+    {
+    };
+
+    template<template<typename...> class List, typename Head, typename... Tail, typename Value>
+    struct Contains<List<Head, Tail...>, Value>
+    {
+        static constexpr bool value = std::is_same_v<Head, Value> || Contains<List<Tail...>, Value>::value;
+    };
+} // namespace alpaka::meta

@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -10,15 +10,13 @@
 #pragma once
 
 #include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
 
 #include <cassert>
 #include <type_traits>
 
+#define ALPAKA_ASSERT(...) assert(__VA_ARGS__)
 
-#define ALPAKA_ASSERT(EXPRESSION) assert(EXPRESSION)
-
-#ifdef ALPAKA_DEBUG_OFFLOAD_ASSUME_HOST
+#if defined(ALPAKA_DEBUG_OFFLOAD_ASSUME_HOST) || defined(SYCL_EXT_ONEAPI_ASSERT)
 #    define ALPAKA_ASSERT_OFFLOAD(EXPRESSION) ALPAKA_ASSERT(EXPRESSION)
 #elif defined __AMDGCN__ && (!defined NDEBUG)
 #    define ALPAKA_ASSERT_OFFLOAD(EXPRESSION)                                                                         \
@@ -28,84 +26,60 @@
                 __builtin_trap();                                                                                     \
         } while(false)
 #else
-#    define ALPAKA_ASSERT_OFFLOAD(EXPRESSION)
+#    define ALPAKA_ASSERT_OFFLOAD(EXPRESSION)                                                                         \
+        do                                                                                                            \
+        {                                                                                                             \
+        } while(false)
 #endif
 
-namespace alpaka
+namespace alpaka::core
 {
-    namespace core
+    namespace detail
     {
-        namespace detail
-        {
-            template<typename TArg, typename TSfinae = void>
-            struct AssertValueUnsigned;
-            template<typename TArg>
-            struct AssertValueUnsigned<TArg, std::enable_if_t<!std::is_unsigned<TArg>::value>>
-            {
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto assertValueUnsigned(TArg const& arg) -> void
-                {
-                    alpaka::ignore_unused(arg);
-                    ALPAKA_ASSERT_OFFLOAD(arg >= 0);
-                }
-            };
-            template<typename TArg>
-            struct AssertValueUnsigned<TArg, std::enable_if_t<std::is_unsigned<TArg>::value>>
-            {
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto assertValueUnsigned(TArg const& arg) -> void
-                {
-                    alpaka::ignore_unused(arg);
-                    // Nothing to do for unsigned types.
-                }
-            };
-        } // namespace detail
-        //! This method checks integral values if they are greater or equal zero.
-        //! The implementation prevents warnings for checking this for unsigned types.
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TArg>
-        ALPAKA_FN_HOST_ACC auto assertValueUnsigned(TArg const& arg) -> void
+        struct AssertValueUnsigned
         {
-            detail::AssertValueUnsigned<TArg>::assertValueUnsigned(arg);
-        }
+            ALPAKA_NO_HOST_ACC_WARNING ALPAKA_FN_HOST_ACC static constexpr auto assertValueUnsigned(
+                [[maybe_unused]] TArg const& arg)
+            {
+                if constexpr(std::is_signed_v<TArg>)
+                    ALPAKA_ASSERT_OFFLOAD(arg >= 0);
 
-        namespace detail
-        {
-            template<typename TLhs, typename TRhs, typename TSfinae = void>
-            struct AssertGreaterThan;
-            template<typename TLhs, typename TRhs>
-            struct AssertGreaterThan<
-                TLhs,
-                TRhs,
-                std::enable_if_t<!std::is_unsigned<TRhs>::value || (TLhs::value != 0u)>>
-            {
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto assertGreaterThan(TRhs const& lhs) -> void
-                {
-                    alpaka::ignore_unused(lhs);
-                    ALPAKA_ASSERT_OFFLOAD(TLhs::value > lhs);
-                }
-            };
-            template<typename TLhs, typename TRhs>
-            struct AssertGreaterThan<
-                TLhs,
-                TRhs,
-                std::enable_if_t<std::is_unsigned<TRhs>::value && (TLhs::value == 0u)>>
-            {
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto assertGreaterThan(TRhs const& lhs) -> void
-                {
-                    alpaka::ignore_unused(lhs);
-                    // Nothing to do for unsigned types camparing to zero.
-                }
-            };
-        } // namespace detail
-        //! This method asserts that the integral value TArg is less than Tidx.
-        ALPAKA_NO_HOST_ACC_WARNING
+                // Nothing to do for unsigned types.
+            }
+        };
+    } // namespace detail
+
+    //! This method checks integral values if they are greater or equal zero.
+    //! The implementation prevents warnings for checking this for unsigned types.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename TArg>
+    ALPAKA_FN_HOST_ACC constexpr auto assertValueUnsigned(TArg const& arg) -> void
+    {
+        detail::AssertValueUnsigned<TArg>::assertValueUnsigned(arg);
+    }
+
+    namespace detail
+    {
         template<typename TLhs, typename TRhs>
-        ALPAKA_FN_HOST_ACC auto assertGreaterThan(TRhs const& lhs) -> void
+        struct AssertGreaterThan
         {
-            detail::AssertGreaterThan<TLhs, TRhs>::assertGreaterThan(lhs);
-        }
-    } // namespace core
-} // namespace alpaka
+            ALPAKA_NO_HOST_ACC_WARNING ALPAKA_FN_HOST_ACC static constexpr auto assertGreaterThan(
+                [[maybe_unused]] TRhs const& rhs)
+            {
+                if constexpr(std::is_signed_v<TRhs> || (TLhs::value != 0u))
+                    ALPAKA_ASSERT_OFFLOAD(TLhs::value > rhs);
+
+                // Nothing to do for unsigned types comparing to zero.
+            }
+        };
+    } // namespace detail
+
+    //! This function asserts that the integral value TLhs is greater than TRhs.
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename TLhs, typename TRhs>
+    ALPAKA_FN_HOST_ACC constexpr auto assertGreaterThan(TRhs const& rhs) -> void
+    {
+        detail::AssertGreaterThan<TLhs, TRhs>::assertGreaterThan(rhs);
+    }
+} // namespace alpaka::core

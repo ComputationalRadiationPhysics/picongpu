@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -20,23 +20,23 @@ namespace alpaka
     {
     };
 
-    //! The time traits.
-    namespace traits
+    //! The time trait.
+    namespace trait
     {
         //! The clock trait.
         template<typename TTime, typename TSfinae = void>
         struct Clock;
-    } // namespace traits
+    } // namespace trait
 
     //! \return A counter that is increasing every clock cycle.
     //!
     //! \tparam TTime The time implementation type.
     //! \param time The time implementation.
-    ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TTime>
-    ALPAKA_FN_HOST_ACC auto clock(TTime const& time) -> std::uint64_t
+    ALPAKA_NO_HOST_ACC_WARNING template<typename TTime>
+    [[deprecated("clock() is deprecated and will be removed in the next release")]] ALPAKA_FN_HOST_ACC auto clock(
+        TTime const& time) -> std::uint64_t
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptTime, TTime>;
-        return traits::Clock<ImplementationBase>::clock(time);
+        return trait::Clock<ImplementationBase>::clock(time);
     }
 } // namespace alpaka

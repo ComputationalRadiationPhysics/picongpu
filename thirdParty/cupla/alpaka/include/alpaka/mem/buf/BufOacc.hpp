@@ -1,4 +1,5 @@
-/* Copyright 2020 Jeffrey Kelling, Alexander Matthes, Benjamin Worpitz, Matthias Werner, René Widera
+/* Copyright 2022 Jeffrey Kelling, Alexander Matthes, Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred
+ * Gruber, Antonio Di Pilato
  *
  * This file is part of Alpaka.
  *
@@ -20,6 +21,7 @@
 #    include <alpaka/dev/Traits.hpp>
 #    include <alpaka/dim/DimIntegralConst.hpp>
 #    include <alpaka/mem/buf/Traits.hpp>
+#    include <alpaka/mem/view/ViewAccessOps.hpp>
 #    include <alpaka/queue/QueueOaccBlocking.hpp>
 #    include <alpaka/vec/Vec.hpp>
 
@@ -34,75 +36,54 @@ namespace alpaka
     template<typename TElem, typename TDim, typename TIdx>
     class BufCpu;
 
-    namespace oacc
+    namespace oacc::detail
     {
-        namespace detail
+        //! The OpenACC memory buffer detail.
+        template<typename TElem, typename TDim, typename TIdx>
+        class BufOaccImpl
         {
-            //! The OpenACC memory buffer detail.
-            template<typename TElem, typename TDim, typename TIdx>
-            class BufOaccImpl
+            static_assert(
+                !std::is_const_v<TElem>,
+                "The elem type of the buffer can not be const because the C++ Standard forbids containers of "
+                "const elements!");
+            static_assert(!std::is_const_v<TIdx>, "The idx type of the buffer can not be const!");
+
+        public:
+            //! Constructor
+            template<typename TExtent>
+            ALPAKA_FN_HOST BufOaccImpl(DevOacc const& dev, TElem* const pMem, TExtent const& extent)
+                : m_dev(dev)
+                , m_extentElements(getExtentVecEnd<TDim>(extent))
+                , m_pMem(pMem)
             {
+                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
                 static_assert(
-                    !std::is_const<TElem>::value,
-                    "The elem type of the buffer can not be const because the C++ Standard forbids containers of "
-                    "const elements!");
-                static_assert(!std::is_const<TIdx>::value, "The idx type of the buffer can not be const!");
+                    TDim::value == alpaka::Dim<TExtent>::value,
+                    "The dimensionality of TExtent and the dimensionality of the TDim template parameter have to "
+                    "be identical!");
+                static_assert(
+                    std::is_same<TIdx, Idx<TExtent>>::value,
+                    "The idx type of TExtent and the TIdx template parameter have to be identical!");
+            }
 
-            private:
-                using Elem = TElem;
-                using Dim = TDim;
-                //! Calculate the pitches purely from the extents.
-                template<typename TExtent>
-                ALPAKA_FN_HOST static auto calculatePitchesFromExtents(TExtent const& extent) -> Vec<TDim, TIdx>
-                {
-                    Vec<TDim, TIdx> pitchBytes(Vec<TDim, TIdx>::all(0));
-                    pitchBytes[TDim::value - 1u] = extent[TDim::value - 1u] * static_cast<TIdx>(sizeof(TElem));
-                    for(TIdx i = TDim::value - 1u; i > static_cast<TIdx>(0u); --i)
-                    {
-                        pitchBytes[i - 1] = extent[i - 1] * pitchBytes[i];
-                    }
-                    return pitchBytes;
-                }
+        public:
+            DevOacc m_dev;
+            Vec<TDim, TIdx> m_extentElements;
+            TElem* m_pMem;
 
-            public:
-                //! Constructor
-                template<typename TExtent>
-                ALPAKA_FN_HOST BufOaccImpl(DevOacc const& dev, TElem* const pMem, TExtent const& extent)
-                    : m_dev(dev)
-                    , m_extentElements(extent::getExtentVecEnd<TDim>(extent))
-                    , m_pitchBytes(calculatePitchesFromExtents(m_extentElements))
-                    , m_pMem(pMem)
-                {
-                    ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                    static_assert(
-                        TDim::value == alpaka::Dim<TExtent>::value,
-                        "The dimensionality of TExtent and the dimensionality of the TDim template parameter have to "
-                        "be identical!");
-                    static_assert(
-                        std::is_same<TIdx, Idx<TExtent>>::value,
-                        "The idx type of TExtent and the TIdx template parameter have to be identical!");
-                }
-
-            public:
-                DevOacc m_dev;
-                Vec<TDim, TIdx> m_extentElements;
-                Vec<TDim, TIdx> m_pitchBytes;
-                TElem* m_pMem;
-
-                BufOaccImpl(BufOaccImpl&&) = default;
-                BufOaccImpl& operator=(BufOaccImpl&&) = default;
-                ~BufOaccImpl()
-                {
-                    m_dev.makeCurrent();
-                    acc_free(m_pMem);
-                }
-            };
-        } // namespace detail
-    } // namespace oacc
+            BufOaccImpl(BufOaccImpl&&) = delete;
+            BufOaccImpl& operator=(BufOaccImpl&&) = delete;
+            ~BufOaccImpl()
+            {
+                m_dev.makeCurrent();
+                acc_free(m_pMem);
+            }
+        };
+    } // namespace oacc::detail
 
     template<typename TElem, typename TDim, typename TIdx>
-    class BufOacc
+    class BufOacc : public internal::ViewAccessOps<BufOacc<TElem, TDim, TIdx>>
     {
     public:
         //! Constructor
@@ -130,7 +111,7 @@ namespace alpaka
         std::shared_ptr<oacc::detail::BufOaccImpl<TElem, TDim, TIdx>> m_spBufImpl;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The BufOacc device type trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
@@ -161,29 +142,20 @@ namespace alpaka
         {
             using type = TElem;
         };
-    } // namespace traits
 
-    namespace extent
-    {
-        namespace traits
+        //! The BufOacc extent get trait specialization.
+        template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
+        struct GetExtent<
+            TIdxIntegralConst,
+            BufOacc<TElem, TDim, TIdx>,
+            typename std::enable_if<(TDim::value > TIdxIntegralConst::value)>::type>
         {
-            //! The BufOacc extent get trait specialization.
-            template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
-            struct GetExtent<
-                TIdxIntegralConst,
-                BufOacc<TElem, TDim, TIdx>,
-                typename std::enable_if<(TDim::value > TIdxIntegralConst::value)>::type>
+            ALPAKA_FN_HOST static auto getExtent(BufOacc<TElem, TDim, TIdx> const& extent) -> TIdx
             {
-                ALPAKA_FN_HOST static auto getExtent(BufOacc<TElem, TDim, TIdx> const& extent) -> TIdx
-                {
-                    return extent.extentElements()[TIdxIntegralConst::value];
-                }
-            };
-        } // namespace traits
-    } // namespace extent
+                return extent.extentElements()[TIdxIntegralConst::value];
+            }
+        };
 
-    namespace traits
-    {
         //! The BufOacc native pointer get trait specialization.
         template<typename TElem, typename TDim, typename TIdx>
         struct GetPtrNative<BufOacc<TElem, TDim, TIdx>>
@@ -225,15 +197,6 @@ namespace alpaka
                 }
             }
         };
-        //! The BufOacc pitch get trait specialization.
-        template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx>
-        struct GetPitchBytes<TIdxIntegralConst, BufOacc<TElem, TDim, TIdx>>
-        {
-            ALPAKA_FN_HOST static auto getPitchBytes(BufOacc<TElem, TDim, TIdx> const& pitch) -> TIdx
-            {
-                return (*pitch).m_pitchBytes[TIdxIntegralConst::value];
-            }
-        };
 
         //! The BufOacc 1D memory allocation trait specialization.
         template<typename TElem, typename TIdx>
@@ -245,7 +208,7 @@ namespace alpaka
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                auto const width(extent::getWidth(extent));
+                auto const width(getWidth(extent));
                 auto const widthBytes(width * static_cast<TIdx>(sizeof(TElem)));
 
                 dev.makeCurrent();
@@ -253,7 +216,7 @@ namespace alpaka
 
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 std::cout << __func__ << " ew: " << width << " ewb: " << widthBytes << " ptr: " << memPtr
-                          << " device: " << dev.m_spDevOaccImpl->iDevice() << std::endl;
+                          << " device: " << dev.getNativeHandle() << std::endl;
 #    endif
                 return BufOacc<TElem, DimInt<1u>, TIdx>(dev, reinterpret_cast<TElem*>(memPtr), extent);
             }
@@ -269,13 +232,13 @@ namespace alpaka
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                const std::size_t size = static_cast<std::size_t>(extent::getExtentVec(extent).prod()) * sizeof(TElem);
+                const std::size_t size = static_cast<std::size_t>(getExtentVec(extent).prod()) * sizeof(TElem);
 
                 dev.makeCurrent();
                 void* memPtr = acc_malloc(size);
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 std::cout << __func__ << "alloc'd " << TDim::value << "D device ptr: " << memPtr << " on device "
-                          << dev.m_spDevOaccImpl->iDevice() << " size: " << size << std::endl;
+                          << dev.getNativeHandle() << " size: " << size << std::endl;
 #    endif
                 return BufOacc<TElem, TDim, TIdx>(dev, reinterpret_cast<TElem*>(memPtr), extent);
             }
@@ -422,7 +385,7 @@ namespace alpaka
                 throw std::runtime_error("Mapping host memory to OpenACC device not implemented!");
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #    include <alpaka/mem/buf/oacc/Copy.hpp>

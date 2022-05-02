@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -12,11 +12,8 @@
 #include <alpaka/dev/DevCpu.hpp>
 #include <alpaka/queue/cpu/IGenericThreadsQueue.hpp>
 
-namespace alpaka
+namespace alpaka::cpu
 {
-    namespace cpu
-    {
-        //! The CPU queue interface
-        using ICpuQueue = IGenericThreadsQueue<DevCpu>;
-    } // namespace cpu
-} // namespace alpaka
+    //! The CPU queue interface
+    using ICpuQueue = IGenericThreadsQueue<DevCpu>;
+} // namespace alpaka::cpu

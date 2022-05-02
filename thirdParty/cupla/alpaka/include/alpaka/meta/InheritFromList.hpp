@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -9,16 +9,13 @@
 
 #pragma once
 
-namespace alpaka
+namespace alpaka::meta
 {
-    namespace meta
-    {
-        template<typename TBaseList>
-        class InheritFromList;
+    template<typename TBaseList>
+    class InheritFromList;
 
-        template<template<typename...> class TList, typename... TBases>
-        class InheritFromList<TList<TBases...>> : public TBases...
-        {
-        };
-    } // namespace meta
-} // namespace alpaka
+    template<template<typename...> class TList, typename... TBases>
+    class InheritFromList<TList<TBases...>> : public TBases...
+    {
+    };
+} // namespace alpaka::meta

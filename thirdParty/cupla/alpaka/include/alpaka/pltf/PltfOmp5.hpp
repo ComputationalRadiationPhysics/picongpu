@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of Alpaka.
  *
@@ -32,7 +32,7 @@ namespace alpaka
         ALPAKA_FN_HOST PltfOmp5() = delete;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The OpenMP 5 device device type trait specialization.
         template<>
@@ -83,7 +83,7 @@ namespace alpaka
                 return {devIdxOmp5};
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

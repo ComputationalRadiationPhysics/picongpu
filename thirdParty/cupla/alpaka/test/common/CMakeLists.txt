@@ -16,20 +16,20 @@ set(_COMMON_COMPILE_OPTIONS_FILE "devCompileOptions.cmake")
 add_library(${_COMMON_TARGET_NAME} INTERFACE)
 
 include(${_COMMON_COMPILE_OPTIONS_FILE})
-message(STATUS "ALPAKA_DEV_COMPILE_OPTIONS: ${ALPAKA_DEV_COMPILE_OPTIONS}")
-target_compile_options(${_COMMON_TARGET_NAME} INTERFACE ${ALPAKA_DEV_COMPILE_OPTIONS})
+message(STATUS "alpaka_DEV_COMPILE_OPTIONS: ${alpaka_DEV_COMPILE_OPTIONS}")
+target_compile_options(${_COMMON_TARGET_NAME} INTERFACE ${alpaka_DEV_COMPILE_OPTIONS})
 
 if(MSVC)
     target_compile_options(${_COMMON_TARGET_NAME} INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/wd4996> $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4996>) # This function or variable may be unsafe. Consider using <safe_version> instead.
     target_compile_options(${_COMMON_TARGET_NAME} INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/bigobj> $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/bigobj>)
 endif()
 
-if(ALPAKA_ACC_GPU_CUDA_ENABLE OR (ALPAKA_ACC_GPU_HIP_ENABLE AND HIP_PLATFORM MATCHES "nvcc"))
+if(alpaka_ACC_GPU_CUDA_ENABLE OR (alpaka_ACC_GPU_HIP_ENABLE AND HIP_PLATFORM MATCHES "nvcc"))
     # CUDA driver API is used by EventHostManualTrigger
     target_link_libraries(${_COMMON_TARGET_NAME} INTERFACE CUDA::cuda_driver)
     target_compile_definitions(${_COMMON_TARGET_NAME} INTERFACE "CUDA_API_PER_THREAD_DEFAULT_STREAM")
 endif()
-if(ALPAKA_ACC_GPU_CUDA_ENABLE AND CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
+if(alpaka_ACC_GPU_CUDA_ENABLE AND CMAKE_CUDA_COMPILER_ID STREQUAL "Clang")
     # nvcc supports werror starting with 10.2
     if(CUDA_VERSION GREATER_EQUAL 10.2)
         message(STATUS "adding -Werror=all-warnings")

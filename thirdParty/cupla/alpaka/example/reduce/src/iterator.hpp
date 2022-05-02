@@ -147,7 +147,7 @@ public:
     }
 
     //! Returns the iterator for the last item.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto end() const -> IteratorCpu
+    [[nodiscard]] ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto end() const -> IteratorCpu
     {
         auto ret = *this;
         ret.mIndex = this->mMaximum;

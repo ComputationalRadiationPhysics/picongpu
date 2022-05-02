@@ -8,7 +8,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-if(NOT ALPAKA_ACC_ANY_BT_OACC_ENABLE) # Fences are not supported for OpenACC
+if(NOT alpaka_ACC_ANY_BT_OACC_ENABLE) # Fences are not supported for OpenACC
         set(_TARGET_NAME "FenceTest")
 
         append_recursive_files_add_to_src_group("src/" "src/" "cpp" _FILES_SOURCE)
@@ -23,5 +23,5 @@ if(NOT ALPAKA_ACC_ANY_BT_OACC_ENABLE) # Fences are not supported for OpenACC
 
         set_target_properties(${_TARGET_NAME} PROPERTIES FOLDER "test/unit")
 
-        add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_ALPAKA_TEST_OPTIONS})
+        add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_alpaka_TEST_OPTIONS})
 endif()

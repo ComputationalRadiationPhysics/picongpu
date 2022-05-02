@@ -1,4 +1,5 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber,
+ * Antonio Di Pilato
  *
  * This file is part of alpaka.
  *
@@ -8,7 +9,7 @@
  */
 
 #include <alpaka/atomic/Traits.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/math/FloatEqualExact.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 
@@ -16,6 +17,22 @@
 
 #include <climits>
 #include <type_traits>
+
+template<typename T1, typename T2>
+ALPAKA_FN_INLINE ALPAKA_FN_HOST_ACC auto equals(T1 a, T2 b) -> bool
+{
+    return a == b;
+}
+
+ALPAKA_FN_INLINE ALPAKA_FN_HOST_ACC auto equals(float a, float b) -> bool
+{
+    return alpaka::math::floatEqualExactNoWarning(a, b);
+}
+
+ALPAKA_FN_INLINE ALPAKA_FN_HOST_ACC auto equals(double a, double b) -> bool
+{
+    return alpaka::math::floatEqualExactNoWarning(a, b);
+}
 
 ALPAKA_NO_HOST_ACC_WARNING
 template<typename TAcc, typename T>
@@ -27,14 +44,14 @@ ALPAKA_FN_ACC auto testAtomicAdd(TAcc const& acc, bool* success, T operandOrig) 
     {
         operand = operandOrig;
         T const ret = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
     {
         operand = operandOrig;
         T const ret = alpaka::atomicAdd(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
 }
 
@@ -48,14 +65,14 @@ ALPAKA_FN_ACC auto testAtomicSub(TAcc const& acc, bool* success, T operandOrig) 
     {
         operand = operandOrig;
         T const ret = alpaka::atomicOp<alpaka::AtomicSub>(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
     {
         operand = operandOrig;
         T const ret = alpaka::atomicSub(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
 }
 
@@ -69,14 +86,14 @@ ALPAKA_FN_ACC auto testAtomicMin(TAcc const& acc, bool* success, T operandOrig) 
     {
         operand = operandOrig;
         T const ret = alpaka::atomicOp<alpaka::AtomicMin>(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
     {
         operand = operandOrig;
         T const ret = alpaka::atomicMin(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
 }
 
@@ -90,14 +107,14 @@ ALPAKA_FN_ACC auto testAtomicMax(TAcc const& acc, bool* success, T operandOrig) 
     {
         operand = operandOrig;
         T const ret = alpaka::atomicOp<alpaka::AtomicMax>(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
     {
         operand = operandOrig;
         T const ret = alpaka::atomicMax(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
 }
 
@@ -111,14 +128,14 @@ ALPAKA_FN_ACC auto testAtomicExch(TAcc const& acc, bool* success, T operandOrig)
     {
         operand = operandOrig;
         T const ret = alpaka::atomicOp<alpaka::AtomicExch>(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
     {
         operand = operandOrig;
         T const ret = alpaka::atomicExch(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
 }
 
@@ -133,14 +150,14 @@ ALPAKA_FN_ACC auto testAtomicInc(TAcc const& acc, bool* success, T operandOrig) 
     {
         operand = operandOrig;
         T const ret = alpaka::atomicOp<alpaka::AtomicInc>(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
     {
         operand = operandOrig;
         T const ret = alpaka::atomicInc(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
 }
 
@@ -155,14 +172,14 @@ ALPAKA_FN_ACC auto testAtomicDec(TAcc const& acc, bool* success, T operandOrig) 
     {
         operand = operandOrig;
         T const ret = alpaka::atomicOp<alpaka::AtomicDec>(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
     {
         operand = operandOrig;
         T const ret = alpaka::atomicDec(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
 }
 
@@ -176,14 +193,14 @@ ALPAKA_FN_ACC auto testAtomicAnd(TAcc const& acc, bool* success, T operandOrig) 
     {
         operand = operandOrig;
         T const ret = alpaka::atomicOp<alpaka::AtomicAnd>(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
     {
         operand = operandOrig;
         T const ret = alpaka::atomicAnd(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
 }
 
@@ -197,14 +214,14 @@ ALPAKA_FN_ACC auto testAtomicOr(TAcc const& acc, bool* success, T operandOrig) -
     {
         operand = operandOrig;
         T const ret = alpaka::atomicOp<alpaka::AtomicOr>(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
     {
         operand = operandOrig;
         T const ret = alpaka::atomicOr(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
 }
 
@@ -218,14 +235,14 @@ ALPAKA_FN_ACC auto testAtomicXor(TAcc const& acc, bool* success, T operandOrig) 
     {
         operand = operandOrig;
         T const ret = alpaka::atomicOp<alpaka::AtomicXor>(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
     {
         operand = operandOrig;
         T const ret = alpaka::atomicXor(acc, &operand, value);
-        ALPAKA_CHECK(*success, operandOrig == ret);
-        ALPAKA_CHECK(*success, operand == reference);
+        ALPAKA_CHECK(*success, equals(operandOrig, ret));
+        ALPAKA_CHECK(*success, equals(operand, reference));
     }
 }
 
@@ -243,14 +260,14 @@ ALPAKA_FN_ACC auto testAtomicCas(TAcc const& acc, bool* success, T operandOrig) 
         {
             operand = operandOrig;
             T const ret = alpaka::atomicOp<alpaka::AtomicCas>(acc, &operand, compare, value);
-            ALPAKA_CHECK(*success, operandOrig == ret);
-            ALPAKA_CHECK(*success, operand == reference);
+            ALPAKA_CHECK(*success, equals(operandOrig, ret));
+            ALPAKA_CHECK(*success, equals(operand, reference));
         }
         {
             operand = operandOrig;
             T const ret = alpaka::atomicCas(acc, &operand, compare, value);
-            ALPAKA_CHECK(*success, operandOrig == ret);
-            ALPAKA_CHECK(*success, operand == reference);
+            ALPAKA_CHECK(*success, equals(operandOrig, ret));
+            ALPAKA_CHECK(*success, equals(operand, reference));
         }
     }
 
@@ -261,14 +278,14 @@ ALPAKA_FN_ACC auto testAtomicCas(TAcc const& acc, bool* success, T operandOrig) 
         {
             operand = operandOrig;
             T const ret = alpaka::atomicOp<alpaka::AtomicCas>(acc, &operand, compare, value);
-            ALPAKA_CHECK(*success, operandOrig == ret);
-            ALPAKA_CHECK(*success, operand == reference);
+            ALPAKA_CHECK(*success, equals(operandOrig, ret));
+            ALPAKA_CHECK(*success, equals(operand, reference));
         }
         {
             operand = operandOrig;
             T const ret = alpaka::atomicCas(acc, &operand, compare, value);
-            ALPAKA_CHECK(*success, operandOrig == ret);
-            ALPAKA_CHECK(*success, operand == reference);
+            ALPAKA_CHECK(*success, equals(operandOrig, ret));
+            ALPAKA_CHECK(*success, equals(operand, reference));
         }
     }
 }
@@ -299,20 +316,59 @@ public:
     }
 };
 
+template<typename TAcc, typename T>
+class AtomicTestKernel<TAcc, T, std::enable_if_t<std::is_floating_point_v<T>>>
+{
+public:
+    ALPAKA_NO_HOST_ACC_WARNING
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, T operandOrig) const -> void
+    {
+        testAtomicAdd(acc, success, operandOrig);
+        testAtomicSub(acc, success, operandOrig);
+
+        testAtomicMin(acc, success, operandOrig);
+        testAtomicMax(acc, success, operandOrig);
+
+        testAtomicExch(acc, success, operandOrig);
+
+        // These are not supported on float/double types
+        // testAtomicInc(acc, success, operandOrig);
+        // testAtomicDec(acc, success, operandOrig);
+        // testAtomicAnd(acc, success, operandOrig);
+        // testAtomicOr(acc, success, operandOrig);
+        // testAtomicXor(acc, success, operandOrig);
+        // testAtomicCas(acc, success, operandOrig);
+    }
+};
+
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 // Skip all atomic tests for the unified CUDA/HIP backend.
 // CUDA and HIP atomics will be tested separate.
 template<typename T, typename TDim, typename TIdx>
-class AtomicTestKernel<alpaka::AccGpuUniformCudaHipRt<TDim, TIdx>, T>
+class AtomicTestKernel<alpaka::AccGpuUniformCudaHipRt<TDim, TIdx>, T, std::enable_if_t<!std::is_floating_point_v<T>>>
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuUniformCudaHipRt<TDim, TIdx> const& acc, bool* success, T operandOrig)
-        const -> void
+    ALPAKA_FN_ACC auto operator()(
+        alpaka::AccGpuUniformCudaHipRt<TDim, TIdx> const& /* acc */,
+        bool* /* success */,
+        T /* operandOrig */) const -> void
     {
-        alpaka::ignore_unused(acc);
-        alpaka::ignore_unused(success);
-        alpaka::ignore_unused(operandOrig);
+    }
+};
+
+// We need this partial specialization because of partial ordering of the
+// template specializations
+template<typename T, typename TDim, typename TIdx>
+class AtomicTestKernel<alpaka::AccGpuUniformCudaHipRt<TDim, TIdx>, T, std::enable_if_t<std::is_floating_point_v<T>>>
+{
+public:
+    ALPAKA_NO_HOST_ACC_WARNING
+    ALPAKA_FN_ACC auto operator()(
+        alpaka::AccGpuUniformCudaHipRt<TDim, TIdx> const& /* acc */,
+        bool* /* success */,
+        T /* operandOrig */) const -> void
+    {
     }
 };
 #endif
@@ -334,9 +390,8 @@ public:
 
         testAtomicExch(acc, success, operandOrig);
 
-        // Not supported
-        // testAtomicInc(acc, success, operandOrig);
-        // testAtomicDec(acc, success, operandOrig);
+        testAtomicInc(acc, success, operandOrig);
+        testAtomicDec(acc, success, operandOrig);
 
         testAtomicAnd(acc, success, operandOrig);
         testAtomicOr(acc, success, operandOrig);
@@ -385,9 +440,7 @@ public:
         unsigned long int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
-#    if UINT_MAX == ULONG_MAX // LLP64
         testAtomicSub(acc, success, operandOrig);
-#    endif
 
 #    if ULONG_MAX == ULLONG_MAX // LP64
 #        if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
@@ -398,10 +451,8 @@ public:
 
         testAtomicExch(acc, success, operandOrig);
 
-#    if UINT_MAX == ULONG_MAX // LLP64
         testAtomicInc(acc, success, operandOrig);
         testAtomicDec(acc, success, operandOrig);
-#    endif
 
 #    if ULONG_MAX == ULLONG_MAX // LP64
 #        if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
@@ -426,8 +477,7 @@ public:
         unsigned long long int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
-        // Not supported
-        // testAtomicSub(acc, success, operandOrig);
+        testAtomicSub(acc, success, operandOrig);
 
 #    if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
         testAtomicMin(acc, success, operandOrig);
@@ -436,9 +486,8 @@ public:
 
         testAtomicExch(acc, success, operandOrig);
 
-        // Not supported
-        // testAtomicInc(acc, success, operandOrig);
-        // testAtomicDec(acc, success, operandOrig);
+        testAtomicInc(acc, success, operandOrig);
+        testAtomicDec(acc, success, operandOrig);
 
 #    if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
         testAtomicAnd(acc, success, operandOrig);
@@ -459,12 +508,10 @@ public:
         -> void
     {
         testAtomicAdd(acc, success, operandOrig);
-        // Not supported
-        // testAtomicSub(acc, success, operandOrig);
+        testAtomicSub(acc, success, operandOrig);
 
-        // Not supported
-        // testAtomicMin(acc, success, operandOrig);
-        // testAtomicMax(acc, success, operandOrig);
+        testAtomicMin(acc, success, operandOrig);
+        testAtomicMax(acc, success, operandOrig);
 
         testAtomicExch(acc, success, operandOrig);
 
@@ -491,15 +538,12 @@ public:
         -> void
     {
         testAtomicAdd(acc, success, operandOrig);
-        // Not supported
-        // testAtomicSub(acc, success, operandOrig);
+        testAtomicSub(acc, success, operandOrig);
 
-        // Not supported
-        // testAtomicMin(acc, success, operandOrig);
-        // testAtomicMax(acc, success, operandOrig);
+        testAtomicMin(acc, success, operandOrig);
+        testAtomicMax(acc, success, operandOrig);
 
-        // Not supported
-        // testAtomicExch(acc, success, operandOrig);
+        testAtomicExch(acc, success, operandOrig);
 
         // Not supported
         // testAtomicInc(acc, success, operandOrig);
@@ -519,19 +563,17 @@ template<typename TDim, typename TIdx, typename T>
 class AtomicTestKernel<
     alpaka::AccGpuCudaRt<TDim, TIdx>,
     T,
-    std::enable_if_t<
-        !std::is_same<int, T>::value && !std::is_same<unsigned int, T>::value
-        && !std::is_same<unsigned long int, T>::value && !std::is_same<unsigned long long int, T>::value
-        && !std::is_same<float, T>::value && !std::is_same<double, T>::value>>
+    std::enable_if_t<!alpaka::meta::Contains<
+        std::tuple<int, unsigned, unsigned long, unsigned long long, float, double>,
+        T>::value>>
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuCudaRt<TDim, TIdx> const& acc, bool* success, T operandOrig) const
-        -> void
+    ALPAKA_FN_ACC auto operator()(
+        alpaka::AccGpuCudaRt<TDim, TIdx> const& /* acc */,
+        bool* success,
+        T /* operandOrig */) const -> void
     {
-        alpaka::ignore_unused(acc);
-        alpaka::ignore_unused(operandOrig);
-
         // All other types are not supported by CUDA atomic operations.
         ALPAKA_CHECK(*success, true);
     }
@@ -555,9 +597,8 @@ public:
 
         testAtomicExch(acc, success, operandOrig);
 
-        // Not supported
-        // testAtomicInc(acc, success, operandOrig);
-        // testAtomicDec(acc, success, operandOrig);
+        testAtomicInc(acc, success, operandOrig);
+        testAtomicDec(acc, success, operandOrig);
 
         testAtomicAnd(acc, success, operandOrig);
         testAtomicOr(acc, success, operandOrig);
@@ -606,9 +647,7 @@ public:
         unsigned long int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
-#    if UINT_MAX == ULONG_MAX // LLP64
         testAtomicSub(acc, success, operandOrig);
-#    endif
 
 #    if ULONG_MAX == ULLONG_MAX // LP64
 #        if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
@@ -619,10 +658,8 @@ public:
 
         testAtomicExch(acc, success, operandOrig);
 
-#    if UINT_MAX == ULONG_MAX // LLP64
         testAtomicInc(acc, success, operandOrig);
         testAtomicDec(acc, success, operandOrig);
-#    endif
 
 #    if ULONG_MAX == ULLONG_MAX // LP64
 #        if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
@@ -647,8 +684,7 @@ public:
         unsigned long long int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
-        // Not supported
-        // testAtomicSub(acc, success, operandOrig);
+        testAtomicSub(acc, success, operandOrig);
 
 #    if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
         testAtomicMin(acc, success, operandOrig);
@@ -657,9 +693,8 @@ public:
 
         testAtomicExch(acc, success, operandOrig);
 
-        // Not supported
-        // testAtomicInc(acc, success, operandOrig);
-        // testAtomicDec(acc, success, operandOrig);
+        testAtomicInc(acc, success, operandOrig);
+        testAtomicDec(acc, success, operandOrig);
 
 #    if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
         testAtomicAnd(acc, success, operandOrig);
@@ -680,12 +715,10 @@ public:
         -> void
     {
         testAtomicAdd(acc, success, operandOrig);
-        // Not supported
-        // testAtomicSub(acc, success, operandOrig);
+        testAtomicSub(acc, success, operandOrig);
 
-        // Not supported
-        // testAtomicMin(acc, success, operandOrig);
-        // testAtomicMax(acc, success, operandOrig);
+        testAtomicMin(acc, success, operandOrig);
+        testAtomicMax(acc, success, operandOrig);
 
         testAtomicExch(acc, success, operandOrig);
 
@@ -712,15 +745,12 @@ public:
         -> void
     {
         testAtomicAdd(acc, success, operandOrig);
-        // Not supported
-        // testAtomicSub(acc, success, operandOrig);
+        testAtomicSub(acc, success, operandOrig);
 
-        // Not supported
-        // testAtomicMin(acc, success, operandOrig);
-        // testAtomicMax(acc, success, operandOrig);
+        testAtomicMin(acc, success, operandOrig);
+        testAtomicMax(acc, success, operandOrig);
 
-        // Not supported
-        // testAtomicExch(acc, success, operandOrig);
+        testAtomicExch(acc, success, operandOrig);
 
         // Not supported
         // testAtomicInc(acc, success, operandOrig);
@@ -740,25 +770,38 @@ template<typename TDim, typename TIdx, typename T>
 class AtomicTestKernel<
     alpaka::AccGpuHipRt<TDim, TIdx>,
     T,
-    std::enable_if_t<
-        !std::is_same<int, T>::value && !std::is_same<unsigned int, T>::value
-        && !std::is_same<unsigned long int, T>::value && !std::is_same<unsigned long long int, T>::value
-        && !std::is_same<float, T>::value && !std::is_same<double, T>::value>>
+    std::enable_if_t<!alpaka::meta::Contains<
+        std::tuple<int, unsigned, unsigned long, unsigned long long, float, double>,
+        T>::value>>
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuHipRt<TDim, TIdx> const& acc, bool* success, T operandOrig) const
-        -> void
+    ALPAKA_FN_ACC auto operator()(alpaka::AccGpuHipRt<TDim, TIdx> const& /* acc */, bool* success, T /* operandOrig */)
+        const -> void
     {
-        alpaka::ignore_unused(acc);
-        alpaka::ignore_unused(operandOrig);
-
         // All other types are not supported by HIP atomic operations.
         ALPAKA_CHECK(*success, true);
     }
 };
 #endif
 
+#ifdef ALPAKA_ACC_ANY_BT_OACC_ENABLED
+template<typename TDim, typename TIdx, typename T>
+class AtomicTestKernel<
+    alpaka::AccOacc<TDim, TIdx>,
+    T,
+    std::enable_if_t<sizeof(T) <= 2>> // disable 8-bit and 16-bit tests
+{
+public:
+    ALPAKA_NO_HOST_ACC_WARNING
+    ALPAKA_FN_ACC auto operator()(alpaka::AccOacc<TDim, TIdx> const& /* acc */, bool* success, T /* operandOrig */)
+        const -> void
+    {
+        // All other types are not supported by Oacc atomic operations.
+        ALPAKA_CHECK(*success, true);
+    }
+};
+#endif
 
 template<typename TAcc, typename T>
 struct TestAtomicOperations
@@ -782,6 +825,7 @@ using TestAccs = alpaka::test::EnabledAccs<alpaka::DimInt<1u>, std::size_t>;
 TEMPLATE_LIST_TEST_CASE("atomicOperationsWorking", "[atomic]", TestAccs)
 {
     using Acc = TestType;
+
     TestAtomicOperations<Acc, unsigned char>::testAtomicOperations();
     TestAtomicOperations<Acc, char>::testAtomicOperations();
     TestAtomicOperations<Acc, unsigned short>::testAtomicOperations();
@@ -795,7 +839,6 @@ TEMPLATE_LIST_TEST_CASE("atomicOperationsWorking", "[atomic]", TestAccs)
     TestAtomicOperations<Acc, unsigned long long>::testAtomicOperations();
     TestAtomicOperations<Acc, long long>::testAtomicOperations();
 
-    // Not all atomic operations are possible with floating point values.
-    // TestAtomicOperations<Acc, float>::testAtomicOperations();
-    // TestAtomicOperations<Acc, double>::testAtomicOperations();
+    TestAtomicOperations<Acc, float>::testAtomicOperations();
+    TestAtomicOperations<Acc, double>::testAtomicOperations();
 }

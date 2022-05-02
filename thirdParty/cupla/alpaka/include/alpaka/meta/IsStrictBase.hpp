@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -11,14 +11,10 @@
 
 #include <type_traits>
 
-namespace alpaka
+namespace alpaka::meta
 {
-    namespace meta
-    {
-        //! The trait is true if TDerived is derived from TBase but is not TBase itself.
-        template<typename TBase, typename TDerived>
-        using IsStrictBase = std::integral_constant<
-            bool,
-            std::is_base_of<TBase, TDerived>::value && !std::is_same<TBase, std::decay_t<TDerived>>::value>;
-    } // namespace meta
-} // namespace alpaka
+    //! The trait is true if TDerived is derived from TBase but is not TBase itself.
+    template<typename TBase, typename TDerived>
+    using IsStrictBase = std::
+        integral_constant<bool, std::is_base_of_v<TBase, TDerived> && !std::is_same_v<TBase, std::decay_t<TDerived>>>;
+} // namespace alpaka::meta

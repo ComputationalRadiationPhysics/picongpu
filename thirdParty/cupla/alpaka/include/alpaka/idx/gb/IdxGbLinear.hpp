@@ -1,4 +1,4 @@
-/* Copyright 2020 Jeffrey Kelling
+/* Copyright 2022 Jeffrey Kelling, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of Alpaka.
  *
@@ -11,7 +11,6 @@
 
 #include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Positioning.hpp>
-#include <alpaka/core/Unused.hpp>
 #include <alpaka/idx/MapIdx.hpp>
 #include <alpaka/idx/Traits.hpp>
 #include <alpaka/vec/Vec.hpp>
@@ -34,7 +33,7 @@ namespace alpaka
         };
     } // namespace gb
 
-    namespace traits
+    namespace trait
     {
         //! The IdxGbLinear index dimension get trait specialization.
         template<typename TDim, typename TIdx>
@@ -75,5 +74,5 @@ namespace alpaka
         {
             using type = TIdx;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

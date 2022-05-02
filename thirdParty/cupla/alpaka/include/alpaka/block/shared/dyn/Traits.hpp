@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -21,12 +21,12 @@ namespace alpaka
     };
 
     //! The block shared dynamic memory operation traits.
-    namespace traits
+    namespace trait
     {
         //! The block shared dynamic memory get trait.
         template<typename T, typename TBlockSharedMemDyn, typename TSfinae = void>
         struct GetDynSharedMem;
-    } // namespace traits
+    } // namespace trait
 
     //! Get block shared dynamic memory.
     //!
@@ -44,6 +44,6 @@ namespace alpaka
     ALPAKA_FN_ACC auto getDynSharedMem(TBlockSharedMemDyn const& blockSharedMemDyn) -> T*
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptBlockSharedDyn, TBlockSharedMemDyn>;
-        return traits::GetDynSharedMem<T, ImplementationBase>::getMem(blockSharedMemDyn);
+        return trait::GetDynSharedMem<T, ImplementationBase>::getMem(blockSharedMemDyn);
     }
 } // namespace alpaka

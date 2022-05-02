@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2020 Axel Huebl, Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -148,8 +148,8 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
     auto memBufAccY = alpaka::allocBuf<Val, Idx>(devAcc, extent);
 
     // Copy Host -> Acc.
-    alpaka::memcpy(queue, memBufAccX, memBufHostX, extent);
-    alpaka::memcpy(queue, memBufAccY, memBufHostOrigY, extent);
+    alpaka::memcpy(queue, memBufAccX, memBufHostX);
+    alpaka::memcpy(queue, memBufAccY, memBufHostOrigY);
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
     alpaka::wait(queue);
@@ -176,7 +176,7 @@ TEMPLATE_LIST_TEST_CASE("axpy", "[axpy]", TestAccs)
               << std::endl;
 
     // Copy back the result.
-    alpaka::memcpy(queue, memBufHostY, memBufAccY, extent);
+    alpaka::memcpy(queue, memBufHostY, memBufAccY);
 
     // Wait for the queue to finish the memory operation.
     alpaka::wait(queue);

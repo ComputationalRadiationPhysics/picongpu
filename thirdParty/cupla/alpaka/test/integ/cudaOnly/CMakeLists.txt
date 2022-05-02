@@ -21,6 +21,6 @@ target_link_libraries(
 
 set_target_properties(${_TARGET_NAME} PROPERTIES FOLDER "test/integ")
 
-if(ALPAKA_ACC_GPU_CUDA_ONLY_MODE AND ALPAKA_ACC_GPU_CUDA_ENABLE)
-    add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_ALPAKA_TEST_OPTIONS})
+if(alpaka_ACC_GPU_CUDA_ONLY_MODE AND alpaka_ACC_GPU_CUDA_ENABLE)
+    add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_alpaka_TEST_OPTIONS})
 endif()

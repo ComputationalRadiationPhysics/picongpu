@@ -22,4 +22,4 @@ target_link_libraries(
 set_target_properties(${_TARGET_NAME} PROPERTIES FOLDER "test/unit")
 target_compile_definitions(${_TARGET_NAME} PRIVATE "-DTEST_UNIT_KERNEL")
 
-add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_ALPAKA_TEST_OPTIONS})
+add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_alpaka_TEST_OPTIONS})

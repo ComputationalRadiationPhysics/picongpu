@@ -1,4 +1,4 @@
-/* Copyright 2020 Sergei Bastrakov
+/* Copyright 2022 Sergei Bastrakov, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -29,3 +29,19 @@
 #else
 #    define ALPAKA_DECAY_T(Type) std::decay_t<Type>
 #endif
+
+namespace alpaka
+{
+    //! Provides a decaying wrapper around std::is_same. Example: is_decayed_v<volatile float, float> returns true.
+    /* TODO: Remove the following pragmas once support for clang 5 and 6 is removed. They are necessary because these
+    /  clang versions incorrectly warn about a missing 'extern'. */
+#if BOOST_COMP_CLANG
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wmissing-variable-declarations"
+#endif
+    template<typename T, typename U>
+    inline constexpr auto is_decayed_v = std::is_same_v<ALPAKA_DECAY_T(T), ALPAKA_DECAY_T(U)>;
+#if BOOST_COMP_CLANG
+#    pragma clang diagnostic pop
+#endif
+} // namespace alpaka

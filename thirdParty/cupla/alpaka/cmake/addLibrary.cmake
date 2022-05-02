@@ -12,7 +12,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 
 #------------------------------------------------------------------------------
 #
-# ALPAKA_ADD_LIBRARY( cuda_target file0 file1 ... [STATIC | SHARED | MODULE]
+# alpaka_ADD_LIBRARY( cuda_target file0 file1 ... [STATIC | SHARED | MODULE]
 #   [EXCLUDE_FROM_ALL] [OPTIONS <nvcc-flags> ... ] )
 #
 # The position of STATIC, SHARED, MODULE, EXCLUDE_FROM_ALL options don't matter.
@@ -23,7 +23,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 # code filenames!
 # OPTIONS and the arguments thereafter are ignored if not using CUDA, they
 # won't throw an error in that case.
-MACRO(ALPAKA_ADD_LIBRARY libraryName)
+MACRO(alpaka_ADD_LIBRARY libraryName)
     # add_library( <name> [STATIC | SHARED | MODULE]
     #              [EXCLUDE_FROM_ALL]
     #              source1 [source2 ...] )
@@ -38,7 +38,7 @@ MACRO(ALPAKA_ADD_LIBRARY libraryName)
         # 1.) check for OPTIONS
         IF( argument STREQUAL "OPTIONS" )
             IF ( optionsEncountered )
-                MESSAGE( FATAL_ERROR "[ALPAKA_ADD_LIBRARY] OPTIONS subcommand specified more than one time. This is not allowed!" )
+                MESSAGE( FATAL_ERROR "[alpaka_ADD_LIBRARY] OPTIONS subcommand specified more than one time. This is not allowed!" )
             ELSE()
                 SET( optionsEncountered ON )
             ENDIF()
@@ -76,7 +76,7 @@ MACRO(ALPAKA_ADD_LIBRARY libraryName)
     #message( "sourceFileNames = ${sourceFileNames}" )
 
     # call add_library or cuda_add_library now
-    IF( ALPAKA_ACC_GPU_CUDA_ENABLE )
+    IF( alpaka_ACC_GPU_CUDA_ENABLE )
         ENABLE_LANGUAGE(CUDA)
         FOREACH( _file ${ARGN} )
             IF( ( ${_file} MATCHES "\\.cpp$" ) OR

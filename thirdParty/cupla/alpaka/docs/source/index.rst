@@ -39,6 +39,7 @@ Individual chapters are based on the information of the chapters before.
 
    basic/intro.rst
    basic/install.rst
+   basic/example.rst
    basic/abstraction.rst
    basic/library.rst
    basic/cheatsheet.rst
@@ -64,6 +65,7 @@ Individual chapters are based on the information of the chapters before.
    dev/backends.rst
    dev/details.rst
    dev/style
+   dev/test.srt
    dev/sphinx
    dev/ci
    API Reference <https://alpaka-group.github.io/alpaka>

@@ -1,4 +1,4 @@
-/* Copyright 2020 Sergei Bastrakov
+/* Copyright 2020 Sergei Bastrakov, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *

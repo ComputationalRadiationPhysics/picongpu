@@ -1,4 +1,4 @@
-/* Copyright 2021 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -16,9 +16,9 @@
 #    endif
 
 // Base classes.
+#    include <alpaka/atomic/AtomicCpu.hpp>
 #    include <alpaka/atomic/AtomicHierarchy.hpp>
 #    include <alpaka/atomic/AtomicOmpBuiltIn.hpp>
-#    include <alpaka/atomic/AtomicStdLibLock.hpp>
 #    include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
 #    include <alpaka/block/shared/st/BlockSharedMemStMemberMasterSync.hpp>
 #    include <alpaka/block/sync/BlockSyncBarrierOmp.hpp>
@@ -42,7 +42,6 @@
 // Implementation details.
 #    include <alpaka/core/ClipCast.hpp>
 #    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/core/Unused.hpp>
 #    include <alpaka/dev/DevCpu.hpp>
 
 #    include <omp.h>
@@ -67,7 +66,7 @@ namespace alpaka
         public gb::IdxGbRef<TDim, TIdx>,
         public bt::IdxBtOmp<TDim, TIdx>,
         public AtomicHierarchy<
-            AtomicStdLibLock<16>,   // grid atomics
+            AtomicCpu,   // grid atomics
             AtomicOmpBuiltIn,    // block atomics
             AtomicOmpBuiltIn     // thread atomics
         >,
@@ -98,7 +97,7 @@ namespace alpaka
             , gb::IdxGbRef<TDim, TIdx>(m_gridBlockIdx)
             , bt::IdxBtOmp<TDim, TIdx>()
             , AtomicHierarchy<
-                  AtomicStdLibLock<16>, // atomics between grids
+                  AtomicCpu, // atomics between grids
                   AtomicOmpBuiltIn, // atomics between blocks
                   AtomicOmpBuiltIn // atomics between threads
                   >()
@@ -122,7 +121,7 @@ namespace alpaka
         Vec<TDim, TIdx> mutable m_gridBlockIdx; //!< The index of the currently executed block.
     };
 
-    namespace traits
+    namespace trait
     {
         //! The CPU OpenMP 2.0 thread accelerator accelerator type trait specialization.
         template<typename TDim, typename TIdx>
@@ -212,7 +211,7 @@ namespace alpaka
         {
             using type = TIdx;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

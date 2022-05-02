@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera
+/* Copyright 2022 Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera
  *
  * This file is part of alpaka.
  *
@@ -17,6 +17,7 @@
 
 #include <functional>
 #include <memory>
+#include <utility>
 #include <vector>
 
 
@@ -34,8 +35,8 @@ namespace alpaka
             std::function<void()> fnSync,
             std::function<bool()> fnIsMasterThread)
             : detail::BlockSharedMemStMemberImpl<TDataAlignBytes>(mem, capacity)
-            , m_syncFn(fnSync)
-            , m_isMasterThreadFn(fnIsMasterThread)
+            , m_syncFn(std::move(fnSync))
+            , m_isMasterThreadFn(std::move(fnIsMasterThread))
         {
         }
 
@@ -43,7 +44,7 @@ namespace alpaka
         std::function<bool()> m_isMasterThreadFn;
     };
 
-    namespace traits
+    namespace trait
     {
 #if BOOST_COMP_GNUC
 #    pragma GCC diagnostic push
@@ -87,5 +88,5 @@ namespace alpaka
                 // shared memory block data will be reused
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

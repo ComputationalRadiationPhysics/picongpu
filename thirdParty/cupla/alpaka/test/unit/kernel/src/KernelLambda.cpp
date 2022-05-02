@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -56,12 +56,8 @@ struct TestTemplateArg
         alpaka::test::KernelExecutionFixture<TAcc> fixture(alpaka::Vec<Dim, Idx>::ones());
 
         std::uint32_t const arg = 42u;
-        auto kernel = [] ALPAKA_FN_ACC(TAcc const& acc, bool* success, std::uint32_t const& arg1) -> void
-        {
-            alpaka::ignore_unused(acc);
-
-            ALPAKA_CHECK(*success, 42u == arg1);
-        };
+        auto kernel = [] ALPAKA_FN_ACC(TAcc const& /* acc */, bool* success, std::uint32_t const& arg1) -> void
+        { ALPAKA_CHECK(*success, 42u == arg1); };
 
         REQUIRE(fixture(kernel, arg));
     }
@@ -77,21 +73,10 @@ struct TestTemplateCapture
 
         alpaka::test::KernelExecutionFixture<TAcc> fixture(alpaka::Vec<Dim, Idx>::ones());
 
-        std::uint32_t const arg = 42u;
+        std::uint32_t arg = 42u;
 
-#    if BOOST_COMP_CLANG >= BOOST_VERSION_NUMBER(5, 0, 0)
-#        pragma clang diagnostic push
-#        pragma clang diagnostic ignored "-Wunused-lambda-capture"
-#    endif
-        auto kernel = [arg] ALPAKA_FN_ACC(TAcc const& acc, bool* success) -> void
-        {
-            alpaka::ignore_unused(acc);
-
-            ALPAKA_CHECK(*success, 42u == arg);
-        };
-#    if BOOST_COMP_CLANG >= BOOST_VERSION_NUMBER(5, 0, 0)
-#        pragma clang diagnostic pop
-#    endif
+        auto kernel = [arg] ALPAKA_FN_ACC(TAcc const& /* acc */, bool* success) -> void
+        { ALPAKA_CHECK(*success, 42u == arg); };
 
         REQUIRE(fixture(kernel));
     }

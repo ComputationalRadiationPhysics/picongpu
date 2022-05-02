@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Benjamin Worpitz, Matthias Werner, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -9,8 +9,8 @@
 
 #pragma once
 
+#include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/ConcurrentExecPool.hpp>
-#include <alpaka/core/Unused.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/event/Traits.hpp>
 #include <alpaka/queue/Traits.hpp>
@@ -57,7 +57,7 @@ namespace alpaka
                     false>; // If the threads should yield.
 
             public:
-                explicit QueueGenericThreadsNonBlockingImpl(TDev const& dev) : m_dev(dev), m_workerThread(1u)
+                explicit QueueGenericThreadsNonBlockingImpl(TDev dev) : m_dev(std::move(dev)), m_workerThread(1u)
                 {
                 }
                 QueueGenericThreadsNonBlockingImpl(QueueGenericThreadsNonBlockingImpl<TDev> const&) = delete;
@@ -110,7 +110,7 @@ namespace alpaka
         std::shared_ptr<generic::detail::QueueGenericThreadsNonBlockingImpl<TDev>> m_spQueueImpl;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The CPU non-blocking device queue device type trait specialization.
         template<typename TDev>
@@ -140,15 +140,15 @@ namespace alpaka
         template<typename TDev, typename TTask>
         struct Enqueue<QueueGenericThreadsNonBlocking<TDev>, TTask>
         {
-            ALPAKA_FN_HOST static auto enqueue(QueueGenericThreadsNonBlocking<TDev>& queue, TTask const& task) -> void
+            ALPAKA_FN_HOST static auto enqueue(
+                [[maybe_unused]] QueueGenericThreadsNonBlocking<TDev>& queue,
+                [[maybe_unused]] TTask const& task) -> void
             {
-// Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
-#if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
-                queue.m_spQueueImpl->m_workerThread.enqueueTask(task);
-#else
-                alpaka::ignore_unused(queue);
-                alpaka::ignore_unused(task);
-#endif
+                // Workaround: Clang can not support this when natively compiling device code. See
+                // ConcurrentExecPool.hpp.
+                if constexpr(!((BOOST_COMP_CLANG_CUDA != BOOST_VERSION_NUMBER_NOT_AVAILABLE)
+                               && (BOOST_ARCH_PTX != BOOST_VERSION_NUMBER_NOT_AVAILABLE)))
+                    queue.m_spQueueImpl->m_workerThread.enqueueTask(task);
             }
         };
         //! The CPU non-blocking device queue test trait specialization.
@@ -160,7 +160,7 @@ namespace alpaka
                 return queue.m_spQueueImpl->m_workerThread.isIdle();
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #include <alpaka/event/EventGenericThreads.hpp>

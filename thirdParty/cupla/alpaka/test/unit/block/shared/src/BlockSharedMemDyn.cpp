@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -35,30 +35,25 @@ public:
     }
 };
 
-namespace alpaka
+namespace alpaka::trait
 {
-    namespace traits
+    //! The trait for getting the size of the block shared dynamic memory for a kernel.
+    template<typename TAcc>
+    struct BlockSharedMemDynSizeBytes<BlockSharedMemDynTestKernel, TAcc>
     {
-        //! The trait for getting the size of the block shared dynamic memory for a kernel.
-        template<typename TAcc>
-        struct BlockSharedMemDynSizeBytes<BlockSharedMemDynTestKernel, TAcc>
+        //! \return The size of the shared memory allocated for a block.
+        template<typename TVec>
+        ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
+            BlockSharedMemDynTestKernel const& /* blockSharedMemDyn */,
+            TVec const& blockThreadExtent,
+            TVec const& threadElemExtent,
+            bool* /* success */) -> std::size_t
         {
-            //! \return The size of the shared memory allocated for a block.
-            template<typename TVec>
-            ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
-                BlockSharedMemDynTestKernel const& blockSharedMemDyn,
-                TVec const& blockThreadExtent,
-                TVec const& threadElemExtent,
-                bool* success) -> std::size_t
-            {
-                alpaka::ignore_unused(blockSharedMemDyn);
-                alpaka::ignore_unused(success);
-                auto const gridSize = blockThreadExtent.prod() * threadElemExtent.prod();
-                return static_cast<std::size_t>(gridSize) * sizeof(std::uint32_t);
-            }
-        };
-    } // namespace traits
-} // namespace alpaka
+            auto const gridSize = blockThreadExtent.prod() * threadElemExtent.prod();
+            return static_cast<std::size_t>(gridSize) * sizeof(std::uint32_t);
+        }
+    };
+} // namespace alpaka::trait
 
 TEMPLATE_LIST_TEST_CASE("sameNonNullAdress", "[blockSharedMemDyn]", alpaka::test::TestAccs)
 {

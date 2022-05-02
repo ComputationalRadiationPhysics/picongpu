@@ -12,8 +12,8 @@
 
 source ./script/set.sh
 
-: "${ALPAKA_ACC_GPU_CUDA_ENABLE?'ALPAKA_ACC_GPU_CUDA_ENABLE must be specified'}"
-: "${ALPAKA_ACC_GPU_HIP_ENABLE?'ALPAKA_ACC_GPU_HIP_ENABLE must be specified'}"
+: "${alpaka_ACC_GPU_CUDA_ENABLE?'alpaka_ACC_GPU_CUDA_ENABLE must be specified'}"
+: "${alpaka_ACC_GPU_HIP_ENABLE?'alpaka_ACC_GPU_HIP_ENABLE must be specified'}"
 
 if [ ! -z "${OMP_THREAD_LIMIT+x}" ]
 then
@@ -25,9 +25,17 @@ then
 fi
 
 # in the GitLab CI, all runtime tests are possible
-if [[ ! -z "${GITLAB_CI+x}" || ("${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "OFF" && "${ALPAKA_ACC_GPU_HIP_ENABLE}" == "OFF" ) ]];
+if [[ ! -z "${GITLAB_CI+x}" || ("${alpaka_ACC_GPU_CUDA_ENABLE}" == "OFF" && "${alpaka_ACC_GPU_HIP_ENABLE}" == "OFF" ) ]];
 then
     cd build/
+
+    if [ "${CMAKE_CXX_COMPILER:-}" = "nvc++" ] || [ "${alpaka_ACC_GPU_CUDA_ENABLE}" == "ON" ]
+    then
+        # show gpu info in gitlab CI
+        nvidia-smi || true
+        # # enbale CUDA API logs for offload
+        # export NVCOMPILER_ACC_NOTIFY=3 # exceeds mximum log length
+    fi
 
     if [ "$ALPAKA_CI_OS_NAME" = "Linux" ] || [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
     then

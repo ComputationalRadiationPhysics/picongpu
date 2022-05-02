@@ -1,4 +1,4 @@
-/* Copyright 2020 Jeffrey Kelling
+/* Copyright 2022 Jeffrey Kelling, Bernhard Manfred Gruber
  *
  * This file is part of Alpaka.
  *
@@ -28,7 +28,7 @@ namespace alpaka
     {
     };
 
-    namespace traits
+    namespace trait
     {
         // "omp atomic update capture" is not supported before OpenACC 2.5 and by PGI
         // "omp atomic capture {}" works for PGI and GCC, using this even though non-standart
@@ -146,7 +146,7 @@ namespace alpaka
             }
         };
 
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

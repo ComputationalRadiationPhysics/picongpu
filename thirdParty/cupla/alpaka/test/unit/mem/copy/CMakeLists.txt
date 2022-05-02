@@ -21,8 +21,11 @@ target_link_libraries(
 
 set_target_properties(${_TARGET_NAME} PROPERTIES FOLDER "test/unit")
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "PGI")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "PGI" OR CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC")
     target_compile_options(${_TARGET_NAME} PRIVATE "-Wc,--pending_instantiations=196")
+    # warning: #185-D: dynamic initialization in unreachable code
+    #     TestContainer<Dim, Idx, Acc, Data> slicingTest;
+    target_compile_options(${_TARGET_NAME} PRIVATE "--diag_suppress 185")
 endif()
 
-add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_ALPAKA_TEST_OPTIONS})
+add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_alpaka_TEST_OPTIONS})

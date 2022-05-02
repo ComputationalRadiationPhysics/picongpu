@@ -1,4 +1,4 @@
-/* Copyright 2020 René Widera
+/* Copyright 2022 René Widera, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -18,48 +18,45 @@
 #    include <cstdlib>
 #endif
 
-namespace alpaka
+namespace alpaka::core
 {
-    namespace core
+    //! Rounds to the next higher power of two (if not already power of two).
+    // Adapted from llvm/ADT/SmallPtrSet.h
+    ALPAKA_FN_INLINE ALPAKA_FN_HOST auto alignedAlloc(size_t alignment, size_t size) -> void*
     {
-        //! Rounds to the next higher power of two (if not already power of two).
-        // Adapted from llvm/ADT/SmallPtrSet.h
-        ALPAKA_FN_INLINE ALPAKA_FN_HOST void* alignedAlloc(size_t alignment, size_t size)
-        {
 #if BOOST_OS_WINDOWS
-            return _aligned_malloc(size, alignment);
+        return _aligned_malloc(size, alignment);
 #elif BOOST_OS_MACOS
-            void* ptr = nullptr;
-            posix_memalign(&ptr, alignment, size);
-            return ptr;
+        void* ptr = nullptr;
+        posix_memalign(&ptr, alignment, size);
+        return ptr;
 #else
-            // the amount of bytes to allocate must be a multiple of the alignment
-            size_t sizeToAllocate = ((size + alignment - 1u) / alignment) * alignment;
-            return ::aligned_alloc(alignment, sizeToAllocate);
+        // the amount of bytes to allocate must be a multiple of the alignment
+        size_t sizeToAllocate = ((size + alignment - 1u) / alignment) * alignment;
+        return ::aligned_alloc(alignment, sizeToAllocate);
 #endif
-        }
+    }
 
-        ALPAKA_FN_INLINE ALPAKA_FN_HOST void alignedFree(void* ptr)
-        {
+    ALPAKA_FN_INLINE ALPAKA_FN_HOST void alignedFree(void* ptr)
+    {
 #if BOOST_OS_WINDOWS
-            _aligned_free(ptr);
+        _aligned_free(ptr);
 #else
-            // linux and macos
-            ::free(ptr);
+        // linux and macos
+        ::free(ptr);
 #endif
-        }
+    }
 
-        //! destroy aligned object and free aligned memory
-        struct AlignedDelete
+    //! destroy aligned object and free aligned memory
+    struct AlignedDelete
+    {
+        //! Calls ~T() on ptr to destroy the object and then calls aligned_free to free the allocated memory.
+        template<typename T>
+        void operator()(T* ptr) const
         {
-            //! Calls ~T() on ptr to destroy the object and then calls aligned_free to free the allocated memory.
-            template<typename T>
-            void operator()(T* ptr) const
-            {
-                if(ptr)
-                    ptr->~T();
-                alignedFree(reinterpret_cast<void*>(ptr));
-            }
-        };
-    } // namespace core
-} // namespace alpaka
+            if(ptr)
+                ptr->~T();
+            alignedFree(reinterpret_cast<void*>(ptr));
+        }
+    };
+} // namespace alpaka::core

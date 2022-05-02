@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, René Widera
+/* Copyright 2022 Benjamin Worpitz, René Widera, Andrea Bocci, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -11,17 +11,9 @@
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-#    include <alpaka/core/BoostPredef.hpp>
-
-#    if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
-#        error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-#    endif
-
-#    if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
-#        error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-#    endif
-
 #    include <alpaka/block/shared/dyn/Traits.hpp>
+#    include <alpaka/core/BoostPredef.hpp>
+#    include <alpaka/core/Concepts.hpp>
 
 #    include <type_traits>
 
@@ -33,7 +25,17 @@ namespace alpaka
     {
     };
 
-    namespace traits
+#    if !defined(ALPAKA_HOST_ONLY)
+
+#        if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !BOOST_LANG_CUDA
+#            error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
+#        endif
+
+#        if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && !BOOST_LANG_HIP
+#            error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
+#        endif
+
+    namespace trait
     {
         template<typename T>
         struct GetDynSharedMem<T, BlockSharedMemDynUniformCudaHipBuiltIn>
@@ -48,7 +50,10 @@ namespace alpaka
                 return reinterpret_cast<T*>(shMem);
             }
         };
-    } // namespace traits
+    } // namespace trait
+
+#    endif
+
 } // namespace alpaka
 
 #endif

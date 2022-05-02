@@ -1,4 +1,4 @@
-/* Copyright 2021 Jan Stephan
+/* Copyright 2022 Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -25,7 +25,7 @@ namespace alpaka
     {
     };
 
-    namespace traits
+    namespace trait
     {
         template<typename TMemScope>
         struct MemFence<MemFenceOacc, TMemScope>
@@ -52,7 +52,7 @@ namespace alpaka
                 static_assert(!sizeof(TMemScope), "Memory fences are not available in the OpenACC back-end");
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

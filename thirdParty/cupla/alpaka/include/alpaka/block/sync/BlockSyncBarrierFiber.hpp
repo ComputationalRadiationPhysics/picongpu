@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -41,7 +41,7 @@ namespace alpaka
         int mutable m_result[2u];
     };
 
-    namespace traits
+    namespace trait
     {
         template<typename TIdx>
         struct SyncBlockThreads<BlockSyncBarrierFiber<TIdx>>
@@ -86,7 +86,7 @@ namespace alpaka
                 return blockSync.m_result[generationMod2];
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

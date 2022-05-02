@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Matthias Werner
+/* Copyright 2022 Benjamin Worpitz, Matthias Werner, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -30,9 +30,9 @@ namespace alpaka
             TGridBlockExtent const& gridBlockExtent = TGridBlockExtent(),
             TBlockThreadExtent const& blockThreadExtent = TBlockThreadExtent(),
             TThreadElemExtent const& threadElemExtent = TThreadElemExtent())
-            : m_gridBlockExtent(extent::getExtentVecEnd<TDim>(gridBlockExtent))
-            , m_blockThreadExtent(extent::getExtentVecEnd<TDim>(blockThreadExtent))
-            , m_threadElemExtent(extent::getExtentVecEnd<TDim>(threadElemExtent))
+            : m_gridBlockExtent(getExtentVecEnd<TDim>(gridBlockExtent))
+            , m_blockThreadExtent(getExtentVecEnd<TDim>(blockThreadExtent))
+            , m_threadElemExtent(getExtentVecEnd<TDim>(threadElemExtent))
         {
         }
         ALPAKA_NO_HOST_ACC_WARNING
@@ -78,7 +78,7 @@ namespace alpaka
                << workDiv.m_blockThreadExtent << ", threadElemExtent: " << workDiv.m_threadElemExtent << "}");
     }
 
-    namespace traits
+    namespace trait
     {
         //! The WorkDivMembers dimension get trait specialization.
         template<typename TDim, typename TIdx>
@@ -129,5 +129,5 @@ namespace alpaka
                 return workDiv.m_threadElemExtent;
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

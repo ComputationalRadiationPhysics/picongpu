@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2020 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -123,8 +123,8 @@ TEMPLATE_LIST_TEST_CASE("separableCompilation", "[separableCompilation]", TestAc
     auto memBufAccC(alpaka::allocBuf<Val, Idx>(devAcc, extent));
 
     // Copy Host -> Acc.
-    alpaka::memcpy(queueAcc, memBufAccA, memBufHostA, extent);
-    alpaka::memcpy(queueAcc, memBufAccB, memBufHostB, extent);
+    alpaka::memcpy(queueAcc, memBufAccA, memBufHostA);
+    alpaka::memcpy(queueAcc, memBufAccB, memBufHostB);
 
     // Create the executor task.
     auto const taskKernel = alpaka::createTaskKernel<Acc>(
@@ -140,7 +140,7 @@ TEMPLATE_LIST_TEST_CASE("separableCompilation", "[separableCompilation]", TestAc
               << std::endl;
 
     // Copy back the result.
-    alpaka::memcpy(queueAcc, memBufHostC, memBufAccC, extent);
+    alpaka::memcpy(queueAcc, memBufHostC, memBufAccC);
     alpaka::wait(queueAcc);
 
     bool resultCorrect(true);

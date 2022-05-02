@@ -59,7 +59,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
 
 namespace alpaka
 {
-    namespace traits
+    namespace trait
     {
         //! dimension get trait specialization
         template<>
@@ -68,10 +68,6 @@ namespace alpaka
             using type = ::alpaka::DimInt<3u>;
         };
 
-    } // namespace traits
-
-    namespace traits
-    {
         //! element type trait specialization
         template<>
         struct ElemType<cuplaPos>
@@ -79,38 +75,28 @@ namespace alpaka
             using type = cupla::MemSizeType;
         };
 
-    } // namespace traits
-
-    namespace extent
-    {
-        namespace traits
+        //! extent get trait specialization
+        template<typename T_Idx>
+        struct GetExtent<T_Idx, cuplaPos, typename std::enable_if<(3u > T_Idx::value)>::type>
         {
-            //! extent get trait specialization
-            template<typename T_Idx>
-            struct GetExtent<T_Idx, cuplaPos, typename std::enable_if<(3u > T_Idx::value)>::type>
+            ALPAKA_FN_HOST_ACC
+            static auto getExtent(cuplaPos const& extents) -> cupla::MemSizeType
             {
-                ALPAKA_FN_HOST_ACC
-                static auto getExtent(cuplaPos const& extents) -> cupla::MemSizeType
-                {
-                    return (&extents.x)[(3u - 1u) - T_Idx::value];
-                }
-            };
+                return (&extents.x)[(3u - 1u) - T_Idx::value];
+            }
+        };
 
-            //! extent set trait specialization
-            template<typename T_Idx, typename T_Pos>
-            struct SetExtent<T_Idx, cuplaPos, T_Pos, typename std::enable_if<(3u > T_Idx::value)>::type>
+        //! extent set trait specialization
+        template<typename T_Idx, typename T_Pos>
+        struct SetExtent<T_Idx, cuplaPos, T_Pos, typename std::enable_if<(3u > T_Idx::value)>::type>
+        {
+            ALPAKA_FN_HOST_ACC
+            static auto setExtent(cuplaPos& extents, T_Pos const& extent) -> void
             {
-                ALPAKA_FN_HOST_ACC
-                static auto setExtent(cuplaPos& extents, T_Pos const& extent) -> void
-                {
-                    (&extents.x)[(3u - 1u) - T_Idx::value] = extent;
-                }
-            };
-        } // namespace traits
-    } // namespace extent
+                (&extents.x)[(3u - 1u) - T_Idx::value] = extent;
+            }
+        };
 
-    namespace traits
-    {
         //! offset get trait specialization
         template<typename T_Idx>
         struct GetOffset<T_Idx, cuplaPos, typename std::enable_if<(3u > T_Idx::value)>::type>
@@ -133,10 +119,7 @@ namespace alpaka
                 offsets[(3u - 1u) - T_Idx::value] = offset;
             }
         };
-    } // namespace traits
 
-    namespace traits
-    {
         //! size type trait specialization.
         template<>
         struct IdxType<cuplaPos>
@@ -144,5 +127,5 @@ namespace alpaka
             using type = cupla::MemSizeType;
         };
 
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

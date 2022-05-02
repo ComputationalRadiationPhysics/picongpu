@@ -1,4 +1,4 @@
-/* Copyright 2020 Benjamin Worpitz, Sergei Bastrakov, Jakob Krude
+/* Copyright 2020 Benjamin Worpitz, Sergei Bastrakov, Jakob Krude, Bernhard Manfred Gruber
  *
  * This file exemplifies usage of alpaka.
  *
@@ -123,11 +123,11 @@ auto main() -> int
 
     // Initialize the global count to 0.
     ptrBufHost[0] = 0.0f;
-    alpaka::memcpy(queue, bufAcc, bufHost, extent);
+    alpaka::memcpy(queue, bufAcc, bufHost);
 
     Kernel kernel;
     alpaka::exec<Acc>(queue, workdiv, kernel, numPoints, ptrBufAcc, Function{});
-    alpaka::memcpy(queue, bufHost, bufAcc, extent);
+    alpaka::memcpy(queue, bufHost, bufAcc);
     alpaka::wait(queue);
 
     // Check the result.

@@ -1,4 +1,4 @@
-/* Copyright 2020 Jeffrey Kelling, Rene Widera
+/* Copyright 2022 Jeffrey Kelling, Rene Widera, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -33,7 +33,7 @@ namespace alpaka
         using detail::BlockSharedMemStMemberImpl<TDataAlignBytes>::BlockSharedMemStMemberImpl;
     };
 
-    namespace traits
+    namespace trait
     {
         template<typename T, std::size_t TDataAlignBytes, std::size_t TuniqueId>
         struct DeclareSharedVar<T, TuniqueId, BlockSharedMemStMember<TDataAlignBytes>>
@@ -59,5 +59,5 @@ namespace alpaka
                 // shared memory block data will be reused
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

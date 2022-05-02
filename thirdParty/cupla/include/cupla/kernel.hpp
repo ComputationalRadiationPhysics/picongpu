@@ -193,7 +193,7 @@ namespace cupla
 
 namespace alpaka
 {
-    namespace traits
+    namespace trait
     {
         //! CuplaKernel has defined the extern shared memory as member
         template<typename T_UserKernel, typename T_Acc>
@@ -207,7 +207,7 @@ namespace alpaka
                 return userKernel.m_dynSharedMemBytes;
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 

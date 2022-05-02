@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, René Widera
+/* Copyright 2022 Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -25,7 +25,6 @@
 #    include <alpaka/core/Decay.hpp>
 #    include <alpaka/dev/DevCpu.hpp>
 #    include <alpaka/kernel/Traits.hpp>
-#    include <alpaka/meta/ApplyTuple.hpp>
 #    include <alpaka/meta/NdLoop.hpp>
 #    include <alpaka/workdiv/WorkDivMembers.hpp>
 
@@ -87,7 +86,7 @@ namespace alpaka
             auto const threadElemExtent = getWorkDiv<Thread, Elems>(*this);
 
             // Get the size of the block shared dynamic memory.
-            auto const blockSharedMemDynSizeBytes = meta::apply(
+            auto const blockSharedMemDynSizeBytes = std::apply(
                 [&](ALPAKA_DECAY_T(TArgs) const&... args)
                 {
                     return getBlockSharedMemDynSizeBytes<AccCpuThreads<TDim, TIdx>>(
@@ -110,7 +109,7 @@ namespace alpaka
             ThreadPool threadPool(blockThreadCount);
 
             // Bind the kernel and its arguments to the grid block function.
-            auto const boundGridBlockExecHost = meta::apply(
+            auto const boundGridBlockExecHost = std::apply(
                 [this, &acc, &blockThreadExtent, &threadPool](ALPAKA_DECAY_T(TArgs) const&... args)
                 {
                     return std::bind(
@@ -158,7 +157,8 @@ namespace alpaka
 // Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
 #    if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
             // Wait for the completion of the block thread kernels.
-            std::for_each(futuresInBlock.begin(), futuresInBlock.end(), [](std::future<void>& t) { t.wait(); });
+            for(auto& t : futuresInBlock)
+                t.wait();
 #    endif
             // Clean up.
             futuresInBlock.clear();
@@ -236,7 +236,7 @@ namespace alpaka
         std::tuple<std::decay_t<TArgs>...> m_args;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The CPU threads execution task accelerator type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
@@ -272,7 +272,7 @@ namespace alpaka
         {
             using type = TIdx;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

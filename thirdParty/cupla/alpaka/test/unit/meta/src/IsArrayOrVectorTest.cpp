@@ -20,7 +20,7 @@ TEST_CASE("isArrayOrVector", "[meta]")
     STATIC_REQUIRE(alpaka::meta::IsArrayOrVector<std::array<int, 10>>::value);
     STATIC_REQUIRE(alpaka::meta::IsArrayOrVector<std::vector<float>>::value);
 
-    float arrayFloat[4] = {1.0f, 2.0f, 3.0f, 4.0f};
+    [[maybe_unused]] float arrayFloat[4] = {1.0f, 2.0f, 3.0f, 4.0f};
     STATIC_REQUIRE(alpaka::meta::IsArrayOrVector<decltype(arrayFloat)>::value);
 }
 
@@ -29,7 +29,7 @@ TEST_CASE("isActuallyNotArrayOrVector", "[meta]")
     float notAnArrayFloat = 15.0f;
     STATIC_REQUIRE_FALSE(alpaka::meta::IsArrayOrVector<decltype(notAnArrayFloat)>::value);
 
-    float* notAnArrayFloatPointer = &notAnArrayFloat;
+    [[maybe_unused]] float* notAnArrayFloatPointer = &notAnArrayFloat;
     STATIC_REQUIRE_FALSE(alpaka::meta::IsArrayOrVector<decltype(notAnArrayFloatPointer)>::value);
 
     std::string notAnArrayString{"alpaka"};

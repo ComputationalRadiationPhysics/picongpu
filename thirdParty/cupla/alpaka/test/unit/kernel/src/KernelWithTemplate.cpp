@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, René Widera
+/* Copyright 2020 Axel Huebl, Benjamin Worpitz, René Widera, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -28,7 +28,7 @@ public:
             *success,
             static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
-        static_assert(std::is_same<std::int32_t, T>::value, "Incorrect additional kernel template parameter type!");
+        static_assert(std::is_same_v<std::int32_t, T>, "Incorrect additional kernel template parameter type!");
     }
 };
 
@@ -56,7 +56,7 @@ public:
             *success,
             static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
-        static_assert(std::is_same<std::int32_t, T>::value, "Incorrect additional kernel template parameter type!");
+        static_assert(std::is_same_v<std::int32_t, T>, "Incorrect additional kernel template parameter type!");
     }
 };
 

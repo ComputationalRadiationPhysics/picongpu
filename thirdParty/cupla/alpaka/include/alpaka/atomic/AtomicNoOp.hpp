@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -10,7 +10,6 @@
 #pragma once
 
 #include <alpaka/atomic/Traits.hpp>
-#include <alpaka/core/Unused.hpp>
 
 namespace alpaka
 {
@@ -19,26 +18,25 @@ namespace alpaka
     {
     };
 
-    namespace traits
+    namespace trait
     {
         //! The CPU fibers accelerator atomic operation.
         template<typename TOp, typename T, typename THierarchy>
         struct AtomicOp<TOp, AtomicNoOp, T, THierarchy>
         {
-            ALPAKA_FN_HOST static auto atomicOp(AtomicNoOp const& atomic, T* const addr, T const& value) -> T
+            ALPAKA_FN_HOST static auto atomicOp(AtomicNoOp const& /* atomic */, T* const addr, T const& value) -> T
             {
-                alpaka::ignore_unused(atomic);
                 return TOp()(addr, value);
             }
+
             ALPAKA_FN_HOST static auto atomicOp(
-                AtomicNoOp const& atomic,
+                AtomicNoOp const& /* atomic */,
                 T* const addr,
                 T const& compare,
                 T const& value) -> T
             {
-                alpaka::ignore_unused(atomic);
                 return TOp()(addr, compare, value);
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

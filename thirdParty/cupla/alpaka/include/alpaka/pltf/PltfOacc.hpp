@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2022 Benjamin Worpitz, Bernhard Manfred Gruber
  *
  * This file is part of Alpaka.
  *
@@ -16,14 +16,14 @@
 #    endif
 
 #    include <alpaka/core/Concepts.hpp>
-#    include <alpaka/dev/DevOacc.hpp>
 #    include <alpaka/pltf/Traits.hpp>
 
-#    include <sstream>
-#    include <vector>
+#    include <openacc.h>
 
 namespace alpaka
 {
+    class DevOacc;
+
     //! The OpenACC device platform.
     class PltfOacc : public concepts::Implements<ConceptPltf, PltfOacc>
     {
@@ -31,15 +31,8 @@ namespace alpaka
         ALPAKA_FN_HOST PltfOacc() = delete;
     };
 
-    namespace traits
+    namespace trait
     {
-        //! The OpenACC device device type trait specialization.
-        template<>
-        struct DevType<PltfOacc>
-        {
-            using type = DevOacc;
-        };
-
         //! The OpenACC platform device count get trait specialization.
         template<>
         struct GetDevCount<PltfOacc>
@@ -51,29 +44,7 @@ namespace alpaka
                 return static_cast<std::size_t>(::acc_get_num_devices(::acc_get_device_type()));
             }
         };
-
-        //! The OpenACC platform device get trait specialization.
-        template<>
-        struct GetDevByIdx<PltfOacc>
-        {
-            //! \param devIdx device id, less than GetDevCount
-            ALPAKA_FN_HOST static auto getDevByIdx(std::size_t devIdx) -> DevOacc
-            {
-                ALPAKA_DEBUG_FULL_LOG_SCOPE;
-
-                std::size_t const devCount(getDevCount<PltfOacc>());
-                if(devIdx >= devCount)
-                {
-                    std::stringstream ssErr;
-                    ssErr << "Unable to return device handle for OpenACC device with index " << devIdx
-                          << " because there are only " << devCount << " devices!";
-                    throw std::runtime_error(ssErr.str());
-                }
-
-                return {static_cast<int>(devIdx)};
-            }
-        };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

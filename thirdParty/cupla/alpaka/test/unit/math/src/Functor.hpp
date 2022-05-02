@@ -1,4 +1,4 @@
-/** Copyright 2019 Jakob Krude, Benjamin Worpitz
+/** Copyright 2022 Jakob Krude, Benjamin Worpitz, Jan Stephan, Sergei Bastrakov
  *
  * This file is part of alpaka.
  *
@@ -13,6 +13,7 @@
 
 #include <alpaka/alpaka.hpp>
 
+#include <complex>
 #include <type_traits>
 
 namespace alpaka
@@ -23,6 +24,24 @@ namespace alpaka
         {
             namespace math
             {
+                //! Helper trait to define a type conversion before passing T to a std:: math function
+                //!
+                //! The default implementation does no conversion
+                //!
+                //! @tparam T input type
+                template<typename T>
+                struct StdLibType
+                {
+                    using type = T;
+                };
+
+                //! Specialization converting alpaka::Complex<T> to std::complex<T>
+                template<typename T>
+                struct StdLibType<alpaka::Complex<T>>
+                {
+                    using type = std::complex<T>;
+                };
+
 // Can be used with operator() that will use either the std. function or the
 // equivalent alpaka function (if an accelerator is passed additionally).
 //! @param NAME The Name used for the Functor, e.g. OpAbs
@@ -36,13 +55,13 @@ namespace alpaka
         /* ranges is not a constexpr, so that it's accessible via for loop*/                                          \
         static constexpr Arity arity = ARITY;                                                                         \
         static constexpr size_t arity_nr = static_cast<size_t>(ARITY);                                                \
-        const Range ranges[arity_nr] = {__VA_ARGS__};                                                                 \
+        Range ranges[arity_nr] = {__VA_ARGS__};                                                                       \
                                                                                                                       \
         ALPAKA_NO_HOST_ACC_WARNING                                                                                    \
         template<                                                                                                     \
             typename TAcc,                                                                                            \
             typename... TArgs, /* SFINAE: Enables if called from device. */                                           \
-            typename std::enable_if<!std::is_same<TAcc, std::nullptr_t>::value, int>::type = 0>                       \
+            typename std::enable_if_t<!std::is_same_v<TAcc, std::nullptr_t>, int> = 0>                                \
         ALPAKA_FN_ACC auto execute(TAcc const& acc, TArgs const&... args) const                                       \
         {                                                                                                             \
             return ALPAKA_OP(acc, args...);                                                                           \
@@ -51,12 +70,22 @@ namespace alpaka
         ALPAKA_NO_HOST_ACC_WARNING                                                                                    \
         template<                                                                                                     \
             typename TAcc = std::nullptr_t,                                                                           \
-            typename... TArgs, /* SFINAE: Enables if called from host. */                                             \
-            typename std::enable_if<std::is_same<TAcc, std::nullptr_t>::value, int>::type = 0>                        \
-        ALPAKA_FN_HOST auto execute(TAcc const& acc, TArgs const&... args) const                                      \
+            typename TArg1, /* SFINAE: Enables if called from host. */                                                \
+            typename std::enable_if_t<std::is_same_v<TAcc, std::nullptr_t>, int> = 0>                                 \
+        ALPAKA_FN_HOST auto execute(TAcc const& /* acc */, TArg1 const& arg1) const                                   \
         {                                                                                                             \
-            alpaka::ignore_unused(acc);                                                                               \
-            return STD_OP(args...);                                                                                   \
+            return STD_OP(typename StdLibType<TArg1>::type(arg1));                                                    \
+        }                                                                                                             \
+                                                                                                                      \
+        ALPAKA_NO_HOST_ACC_WARNING                                                                                    \
+        template<                                                                                                     \
+            typename TAcc = std::nullptr_t,                                                                           \
+            typename TArg1,                                                                                           \
+            typename TArg2, /* SFINAE: Enables if called from host. */                                                \
+            typename std::enable_if_t<std::is_same_v<TAcc, std::nullptr_t>, int> = 0>                                 \
+        ALPAKA_FN_HOST auto execute(TAcc const& /* acc */, TArg1 const& arg1, TArg2 const& arg2) const                \
+        {                                                                                                             \
+            return STD_OP(typename StdLibType<TArg1>::type(arg1), typename StdLibType<TArg2>::type(arg2));            \
         }                                                                                                             \
                                                                                                                       \
         /* assigns args by arity */                                                                                   \
@@ -75,10 +104,9 @@ namespace alpaka
             return execute(acc, args.arg[0], args.arg[1]);                                                            \
         }                                                                                                             \
                                                                                                                       \
-        friend std::ostream& operator<<(std::ostream& out, const NAME& op)                                            \
+        friend std::ostream& operator<<(std::ostream& out, const NAME& /* op */)                                      \
         {                                                                                                             \
             out << #NAME;                                                                                             \
-            alpaka::ignore_unused(op);                                                                                \
             return out;                                                                                               \
         }                                                                                                             \
     };
@@ -92,6 +120,8 @@ namespace alpaka
                     std::acos,
                     alpaka::math::acos,
                     Range::OneNeighbourhood)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(OpArg, Arity::Unary, std::arg, alpaka::math::arg, Range::Unrestricted)
 
                 ALPAKA_TEST_MATH_OP_FUNCTOR(
                     OpAsin,
@@ -128,7 +158,7 @@ namespace alpaka
                     alpaka::math::round,
                     Range::Unrestricted)
 
-                // There is no std implementation look in Defines.hpp.
+                // There is no std implementation, look in Defines.hpp.
                 ALPAKA_TEST_MATH_OP_FUNCTOR(
                     OpRsqrt,
                     Arity::Unary,
@@ -214,11 +244,14 @@ namespace alpaka
                     Range::Unrestricted,
                     Range::NotZero)
 
-                using BinaryFunctors = std::tuple<OpAtan2, OpFmod, OpMax, OpMin, OpPow, OpRemainder>;
+                // Binary functors to be used only for real types
+                using BinaryFunctorsReal = std::tuple<OpAtan2, OpFmod, OpMax, OpMin, OpPow, OpRemainder>;
 
-                using UnaryFunctors = std::tuple<
+                // Unary functors to be used only for real types
+                using UnaryFunctorsReal = std::tuple<
                     OpAbs,
                     OpAcos,
+                    OpArg,
                     OpAsin,
                     OpAtan,
                     OpCbrt,
@@ -237,6 +270,71 @@ namespace alpaka
                     OpIsnan,
                     OpIsinf,
                     OpIsfinite>;
+
+                // For complex numbers also test arithmetic operations
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpDivides,
+                    Arity::Binary,
+                    std::divides<>{},
+                    alpaka::test::unit::math::divides,
+                    Range::Unrestricted,
+                    Range::NotZero)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpMinus,
+                    Arity::Binary,
+                    std::minus<>{},
+                    alpaka::test::unit::math::minus,
+                    Range::Unrestricted,
+                    Range::Unrestricted)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpMultiplies,
+                    Arity::Binary,
+                    std::multiplies<>{},
+                    alpaka::test::unit::math::multiplies,
+                    Range::Unrestricted,
+                    Range::Unrestricted)
+
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpPlus,
+                    Arity::Binary,
+                    std::plus<>{},
+                    alpaka::test::unit::math::plus,
+                    Range::Unrestricted,
+                    Range::Unrestricted)
+
+                // conj() is only tested for complex as it returns a complex type for real arguments
+                // and it doesn't fit the existing tests' infrastructure
+                ALPAKA_TEST_MATH_OP_FUNCTOR(OpConj, Arity::Unary, std::conj, alpaka::math::conj, Range::Unrestricted)
+
+                // As a workaround for complex 0^0 unit tests issues, test complex pow for positive range only
+                ALPAKA_TEST_MATH_OP_FUNCTOR(
+                    OpPowComplex,
+                    Arity::Binary,
+                    std::pow,
+                    alpaka::math::pow,
+                    Range::PositiveOnly,
+                    Range::Unrestricted)
+
+                // Binary functors to be used for complex types
+                using BinaryFunctorsComplex = std::tuple<OpDivides, OpMinus, OpMultiplies, OpPlus, OpPowComplex>;
+
+                // Unary functors to be used for both real and complex types
+                using UnaryFunctorsComplex = std::tuple<
+                    OpAbs,
+                    OpAcos,
+                    OpArg,
+                    OpAsin,
+                    OpAtan,
+                    OpConj,
+                    OpCos,
+                    OpExp,
+                    OpLog,
+                    OpRsqrt,
+                    OpSin,
+                    OpSqrt,
+                    OpTan>;
 
             } // namespace math
         } // namespace unit

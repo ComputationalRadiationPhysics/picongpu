@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, René Widera
+/* Copyright 2022 Axel Huebl, Benjamin Worpitz, René Widera, Jan Stephan, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -21,16 +21,15 @@
 // Implementation details.
 #    include <alpaka/acc/AccCpuSerial.hpp>
 #    include <alpaka/core/Decay.hpp>
-#    include <alpaka/core/Unused.hpp>
 #    include <alpaka/dev/DevCpu.hpp>
 #    include <alpaka/kernel/Traits.hpp>
-#    include <alpaka/meta/ApplyTuple.hpp>
 #    include <alpaka/meta/NdLoop.hpp>
 #    include <alpaka/workdiv/WorkDivMembers.hpp>
 
 #    include <functional>
 #    include <tuple>
 #    include <type_traits>
+#    include <utility>
 #    if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
 #        include <iostream>
 #    endif
@@ -43,9 +42,9 @@ namespace alpaka
     {
     public:
         template<typename TWorkDiv>
-        ALPAKA_FN_HOST TaskKernelCpuSerial(TWorkDiv&& workDiv, TKernelFnObj const& kernelFnObj, TArgs&&... args)
+        ALPAKA_FN_HOST TaskKernelCpuSerial(TWorkDiv&& workDiv, TKernelFnObj kernelFnObj, TArgs&&... args)
             : WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv))
-            , m_kernelFnObj(kernelFnObj)
+            , m_kernelFnObj(std::move(kernelFnObj))
             , m_args(std::forward<TArgs>(args)...)
         {
             static_assert(
@@ -63,7 +62,7 @@ namespace alpaka
             auto const threadElemExtent = getWorkDiv<Thread, Elems>(*this);
 
             // Get the size of the block shared dynamic memory.
-            auto const blockSharedMemDynSizeBytes = meta::apply(
+            auto const blockSharedMemDynSizeBytes = std::apply(
                 [&](ALPAKA_DECAY_T(TArgs) const&... args)
                 {
                     return getBlockSharedMemDynSizeBytes<AccCpuSerial<TDim, TIdx>>(
@@ -78,12 +77,6 @@ namespace alpaka
             std::cout << __func__ << " blockSharedMemDynSizeBytes: " << blockSharedMemDynSizeBytes << " B"
                       << std::endl;
 #    endif
-            // Bind all arguments except the accelerator.
-            // TODO: With C++14 we could create a perfectly argument forwarding function object within the constructor.
-            auto const boundKernelFnObj = meta::apply(
-                [this](ALPAKA_DECAY_T(TArgs) const&... args)
-                { return std::bind(std::ref(m_kernelFnObj), std::placeholders::_1, std::ref(args)...); },
-                m_args);
 
             AccCpuSerial<TDim, TIdx> acc(
                 *static_cast<WorkDivMembers<TDim, TIdx> const*>(this),
@@ -101,7 +94,7 @@ namespace alpaka
                 {
                     acc.m_gridBlockIdx = blockThreadIdx;
 
-                    boundKernelFnObj(acc);
+                    std::apply(m_kernelFnObj, std::tuple_cat(std::tie(acc), m_args));
 
                     // After a block has been processed, the shared memory has to be deleted.
                     freeSharedVars(acc);
@@ -113,7 +106,7 @@ namespace alpaka
         std::tuple<std::decay_t<TArgs>...> m_args;
     };
 
-    namespace traits
+    namespace trait
     {
         //! The CPU serial execution task accelerator type trait specialization.
         template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
@@ -149,7 +142,7 @@ namespace alpaka
         {
             using type = TIdx;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

@@ -1,4 +1,4 @@
-/* Copyright 2021 Jan Stephan
+/* Copyright 2022 Jan Stephan, Andrea Bocci
  *
  * This file is part of alpaka.
  *
@@ -25,19 +25,24 @@ namespace alpaka
         {
         };
 
+        //! Memory fences are observed by all threads in the same grid.
+        struct Grid
+        {
+        };
+
         //! Memory fences are observed by all threads on the device.
         struct Device
         {
         };
     } // namespace memory_scope
 
-    //! The memory fence traits.
-    namespace traits
+    //! The memory fence trait.
+    namespace trait
     {
         //! The mem_fence trait.
         template<typename TMemFence, typename TMemScope, typename TSfinae = void>
         struct MemFence;
-    } // namespace traits
+    } // namespace trait
 
     //! Issues memory fence instructions.
     //
@@ -61,6 +66,6 @@ namespace alpaka
     ALPAKA_FN_ACC auto mem_fence(TMemFence const& fence, TMemScope const& scope) -> void
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptMemFence, TMemFence>;
-        traits::MemFence<ImplementationBase, TMemScope>::mem_fence(fence, scope);
+        trait::MemFence<ImplementationBase, TMemScope>::mem_fence(fence, scope);
     }
 } // namespace alpaka

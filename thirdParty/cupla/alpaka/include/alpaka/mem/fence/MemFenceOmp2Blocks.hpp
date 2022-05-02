@@ -1,4 +1,4 @@
-/* Copyright 2021 Jan Stephan
+/* Copyright 2022 Jan Stephan, Bernhard Manfred Gruber, Andrea Bocci
  *
  * This file is part of alpaka.
  *
@@ -25,7 +25,7 @@ namespace alpaka
     {
     };
 
-    namespace traits
+    namespace trait
     {
         template<>
         struct MemFence<MemFenceOmp2Blocks, memory_scope::Block>
@@ -37,6 +37,15 @@ namespace alpaka
         };
 
         template<>
+        struct MemFence<MemFenceOmp2Blocks, memory_scope::Grid>
+        {
+            static auto mem_fence(MemFenceOmp2Blocks const&, memory_scope::Grid const&)
+            {
+#    pragma omp flush
+            }
+        };
+
+        template<>
         struct MemFence<MemFenceOmp2Blocks, memory_scope::Device>
         {
             static auto mem_fence(MemFenceOmp2Blocks const&, memory_scope::Device const&)
@@ -44,7 +53,7 @@ namespace alpaka
 #    pragma omp flush
             }
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka
 
 #endif

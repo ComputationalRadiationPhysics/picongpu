@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, René Widera
+/* Copyright 2022 Benjamin Worpitz, René Widera, Bernhard Manfred Gruber, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -16,20 +16,17 @@
 #    include <utility>
 #endif
 
-namespace alpaka
+namespace alpaka::core
 {
-    namespace core
-    {
-        //! convert any type to a reverence type
-        //
-        // This function is equivalent to std::declval() but can be used
-        // within an alpaka accelerator kernel too.
-        // This function can be used only within std::decltype().
+    //! convert any type to a reference type
+    //
+    // This function is equivalent to std::declval() but can be used
+    // within an alpaka accelerator kernel too.
+    // This function can be used only within std::decltype().
 #if BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA || BOOST_COMP_HIP
-        template<class T>
-        ALPAKA_FN_HOST_ACC std::add_rvalue_reference_t<T> declval();
+    template<class T>
+    ALPAKA_FN_HOST_ACC std::add_rvalue_reference_t<T> declval();
 #else
-        using std::declval;
+    using std::declval;
 #endif
-    } // namespace core
-} // namespace alpaka
+} // namespace alpaka::core

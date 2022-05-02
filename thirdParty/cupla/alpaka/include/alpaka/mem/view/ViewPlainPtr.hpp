@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Matthias Werner, René Widera
+/* Copyright 2022 Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -14,26 +14,28 @@
 #include <alpaka/dev/DevOmp5.hpp>
 #include <alpaka/dev/DevUniformCudaHipRt.hpp>
 #include <alpaka/mem/view/Traits.hpp>
+#include <alpaka/mem/view/ViewAccessOps.hpp>
 #include <alpaka/vec/Vec.hpp>
 
 #include <type_traits>
+#include <utility>
 
 namespace alpaka
 {
     //! The memory view to wrap plain pointers.
     template<typename TDev, typename TElem, typename TDim, typename TIdx>
-    class ViewPlainPtr final
+    class ViewPlainPtr final : public internal::ViewAccessOps<ViewPlainPtr<TDev, TElem, TDim, TIdx>>
     {
-        static_assert(!std::is_const<TIdx>::value, "The idx type of the view can not be const!");
+        static_assert(!std::is_const_v<TIdx>, "The idx type of the view can not be const!");
 
         using Dev = alpaka::Dev<TDev>;
 
     public:
         template<typename TExtent>
-        ALPAKA_FN_HOST ViewPlainPtr(TElem* pMem, Dev const& dev, TExtent const& extent = TExtent())
+        ALPAKA_FN_HOST ViewPlainPtr(TElem* pMem, Dev dev, TExtent const& extent = TExtent())
             : m_pMem(pMem)
-            , m_dev(dev)
-            , m_extentElements(extent::getExtentVecEnd<TDim>(extent))
+            , m_dev(std::move(dev))
+            , m_extentElements(getExtentVecEnd<TDim>(extent))
             , m_pitchBytes(detail::calculatePitchesFromExtents<TElem>(m_extentElements))
         {
         }
@@ -42,7 +44,7 @@ namespace alpaka
         ALPAKA_FN_HOST ViewPlainPtr(TElem* pMem, Dev const dev, TExtent const& extent, TPitch const& pitchBytes)
             : m_pMem(pMem)
             , m_dev(dev)
-            , m_extentElements(extent::getExtentVecEnd<TDim>(extent))
+            , m_extentElements(getExtentVecEnd<TDim>(extent))
             , m_pitchBytes(subVecEnd<TDim>(static_cast<Vec<TDim, TIdx>>(pitchBytes)))
         {
         }
@@ -69,7 +71,7 @@ namespace alpaka
     };
 
     // Trait specializations for ViewPlainPtr.
-    namespace traits
+    namespace trait
     {
         //! The ViewPlainPtr device type trait specialization.
         template<typename TDev, typename TElem, typename TDim, typename TIdx>
@@ -101,29 +103,26 @@ namespace alpaka
         {
             using type = TElem;
         };
-    } // namespace traits
-    namespace extent
+    } // namespace trait
+    namespace trait
     {
-        namespace traits
+        //! The ViewPlainPtr width get trait specialization.
+        template<typename TIdxIntegralConst, typename TDev, typename TElem, typename TDim, typename TIdx>
+        struct GetExtent<
+            TIdxIntegralConst,
+            ViewPlainPtr<TDev, TElem, TDim, TIdx>,
+            std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
         {
-            //! The ViewPlainPtr width get trait specialization.
-            template<typename TIdxIntegralConst, typename TDev, typename TElem, typename TDim, typename TIdx>
-            struct GetExtent<
-                TIdxIntegralConst,
-                ViewPlainPtr<TDev, TElem, TDim, TIdx>,
-                std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
+            ALPAKA_NO_HOST_ACC_WARNING
+            ALPAKA_FN_HOST_ACC
+            static auto getExtent(ViewPlainPtr<TDev, TElem, TDim, TIdx> const& extent) -> TIdx
             {
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC
-                static auto getExtent(ViewPlainPtr<TDev, TElem, TDim, TIdx> const& extent) -> TIdx
-                {
-                    return extent.m_extentElements[TIdxIntegralConst::value];
-                }
-            };
-        } // namespace traits
-    } // namespace extent
+                return extent.m_extentElements[TIdxIntegralConst::value];
+            }
+        };
+    } // namespace trait
 
-    namespace traits
+    namespace trait
     {
         //! The ViewPlainPtr native pointer get trait specialization.
         template<typename TDev, typename TElem, typename TDim, typename TIdx>
@@ -305,5 +304,5 @@ namespace alpaka
         {
             using type = TIdx;
         };
-    } // namespace traits
+    } // namespace trait
 } // namespace alpaka

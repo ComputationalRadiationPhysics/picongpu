@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2020 Benjamin Worpitz, Jan Stephan
+# Copyright 2021 Benjamin Worpitz, Jan Stephan
 #
 # This file is part of alpaka.
 #
@@ -14,7 +14,7 @@
 
 cmake_minimum_required(VERSION 3.18)
 
-project("alpakaIntegTest")
+project("alpakaIntegTest" LANGUAGES CXX)
 
 ################################################################################
 # Add subdirectories.
@@ -22,7 +22,9 @@ project("alpakaIntegTest")
 
 add_subdirectory("axpy/")
 add_subdirectory("cudaOnly/")
+add_subdirectory("hostOnlyAPI/")
 add_subdirectory("mandelbrot/")
 add_subdirectory("matMul/")
 add_subdirectory("separableCompilation/")
 add_subdirectory("sharedMem/")
+add_subdirectory("zeroDimBuffer/")
