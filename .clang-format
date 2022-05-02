@@ -7,16 +7,18 @@ DisableFormat: false
 AccessModifierOffset: -4
 AlignAfterOpenBracket: AlwaysBreak
 AlignConsecutiveAssignments: false
+AlignConsecutiveBitFields: false
 AlignConsecutiveDeclarations: false
 AlignConsecutiveMacros: false
 AlignEscapedNewlines: Right
-AlignOperands: false
+AlignOperands: DontAlign
 AlignTrailingComments: false
 AllowAllArgumentsOnNextLine: false
 AllowAllConstructorInitializersOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: All
@@ -46,7 +48,9 @@ FixNamespaceComments: true
 IncludeBlocks: Regroup
 IncludeIsMainRegex: '(Test)?$'
 IncludeIsMainSourceRegex: ''
+IndentCaseBlocks: true
 IndentCaseLabels: false
+IndentExternBlock: AfterExternBlock
 IndentGotoLabels: true
 IndentPPDirectives: AfterHash
 IndentWidth: 4
@@ -91,42 +95,20 @@ TabWidth: 4
 UseCRLF: false
 UseTab: Never
 
-# Project specific options
-IncludeCategories:
-  # boost workaround must be always the first include
-  - Regex: 'pmacc/boost_workaround.hpp'
-    Priority: 1
-  # simulation_defines must be before other header except boost_workaround.hpp
-  - Regex: 'picongpu/simulation_defines.hpp'
-    Priority: 2
-  # Local headers (in "") above all else
-  - Regex: '"([A-Za-z0-9.\/-_])+"'
-    Priority: 3
-    # <pmacc/foo.hpp>
-  - Regex: '<pmacc/([A-Za-z0-9.\/-_])+>'
-    Priority: 4
-    # <cupla/foo.hpp>
-  - Regex: '<cupla/([A-Za-z0-9.\/-_])+>'
-    Priority: 5
-  # <alpaka/foo.hpp>
-  - Regex: '<alpaka/([A-Za-z0-9.\/-_])+>'
-    Priority: 6
-  # <boost/foo.hpp>
-  - Regex: '<boost/([A-Za-z0-9.\/-_])+>'
-    Priority: 7
-  # C++ standard library headers are the last group to be included
-  - Regex: '<([A-Za-z0-9\/-_])+>'
-    Priority: 8
-  # Includes that made it this far are third-party headers and will be placed
-  # below picongpu/pmacc includes
-  - Regex: '<([A-Za-z0-9.\/-_])+>'
-    Priority: 9
+# Project specific options -- uncomment and modify as needed
+#IncludeCategories:
+#  - Regex:           '^"(llvm|llvm-c|clang|clang-c)/'
+#    Priority:        2
+#    SortPriority:    0
+#  - Regex:           '^(<|"(gtest|gmock|isl|json)/)'
+#    Priority:        3
+#    SortPriority:    0
+#  - Regex:           '.*'
+#    Priority:        1
+#    SortPriority:    0
 
 # Future options - not supported in clang-format 11
-# AlignConsecutiveBitFields: false
-# AllowShortEnumsOnASingleLine: false
 # BitFieldColonSpacing: Both
-# IndentCaseBlocks: true
-# IndentExternBlock: AfterExternBlock
 # OperandAlignmentStyle: Align
+
 ...

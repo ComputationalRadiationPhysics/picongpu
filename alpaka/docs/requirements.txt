@@ -1,0 +1,14 @@
+sphinx_rtd_theme>=0.3.1
+#recommonmark
+sphinx==3.0.3
+breathe==4.16.0
+sphinxcontrib.programoutput
+#sphinxcontrib-napoleon>=0.7
+pygments
+Jinja2<3.0
+markupsafe<2.0.0
+# generate plots
+#matplotlib
+#scipy
+#numpy
+rst2pdf

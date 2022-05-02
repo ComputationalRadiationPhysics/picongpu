@@ -1,1 +1,0 @@
-../summit-ornl/gpu_batch.tpl

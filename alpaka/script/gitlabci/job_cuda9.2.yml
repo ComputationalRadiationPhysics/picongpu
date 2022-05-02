@@ -1,0 +1,37 @@
+# clang++
+linux_clang-9_cuda-9.2_release:
+  extends: .base_cuda_clang_compile_only
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "18.04"
+    ALPAKA_CI_CUDA_VERSION: "9.2"
+    CMAKE_CUDA_ARCHITECTURES: "61;72"
+    ALPAKA_CI_CLANG_VER: 9
+    ALPAKA_BOOST_VERSION: 1.77.0
+    ALPAKA_CI_CMAKE_VER: 3.19.8
+    alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "OFF"
+  stage: stageCompile0
+
+linux_clang-10_cuda-9.2_release:
+  extends: .base_cuda_clang_compile_only
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "18.04"
+    ALPAKA_CI_CUDA_VERSION: "9.2"
+    CMAKE_CUDA_ARCHITECTURES: "35;61"
+    ALPAKA_CI_CLANG_VER: 10
+    ALPAKA_BOOST_VERSION: 1.76.0
+    ALPAKA_CI_CMAKE_VER: 3.19.8
+    alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "OFF"
+  stage: stageCompile1
+
+linux_clang-11_cuda-9.2_release:
+  extends: .base_cuda_clang
+  variables:
+    ALPAKA_CI_UBUNTU_VER: "18.04"
+    ALPAKA_CI_CUDA_VERSION: "9.2"
+    ALPAKA_CI_CLANG_VER: 11
+    ALPAKA_BOOST_VERSION: 1.74.0
+    ALPAKA_CI_CMAKE_VER: 3.19.8
+    alpaka_ACC_GPU_CUDA_ENABLE: "ON"
+    CMAKE_CUDA_COMPILER: clang++
+    alpaka_ACC_CPU_B_OMP2_T_SEQ_ENABLE: "OFF"
+  stage: stageRun0

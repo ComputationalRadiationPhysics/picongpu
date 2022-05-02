@@ -1,3 +1,0 @@
-ipywidgets
-ipympl
--r ../plot_mpl/requirements.txt

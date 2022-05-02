@@ -1,1 +1,0 @@
--r lib/python/picongpu/requirements.txt

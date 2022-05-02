@@ -1,6 +1,21 @@
 # tmp files
 *~
 
+# Compiled Object files
+*.slo
+*.lo
+*.o
+/build
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
 # netbeans project files
 /nbproject/
 
@@ -10,26 +25,10 @@
 
 # Visual Studio Code configuration files
 .vscode
+.vs
 
-# JetBrains project files and tmp's
+# JetBrains project files
 .idea/
-/venv/
-
-# python byte code
-*.pyc
 
 # original backup files
 *.orig
-
-# doxygen output
-docs/xml/
-docs/doxygen_sqlite3.db
-docs/html/
-# sphinx & breathe output
-docs/build/
-
-### macOS ###
-# General
-.DS_Store
-.AppleDouble
-.LSOverride

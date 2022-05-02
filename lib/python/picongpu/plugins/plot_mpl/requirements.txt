@@ -1,4 +1,0 @@
-matplotlib
-numpy
-scipy
--r ../data/requirements.txt
