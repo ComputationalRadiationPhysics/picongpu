@@ -135,28 +135,30 @@ namespace pmacc
             {
                 // number of iterations each worker can safely execute without boundary checks
                 constexpr uint32_t peeledIterations = domainSize / (simdSize * numWorkers);
-                // peeledIterations != 0u avoid compiler warnings if peeledIterations == 0
-                for(uint32_t i = 0u; peeledIterations != 0u && i < peeledIterations; ++i)
+                if constexpr(peeledIterations != 0u)
                 {
-                    uint32_t const beginWorker = i * simdSize;
-                    uint32_t const beginIdx = beginWorker * numWorkers + simdSize * this->getWorkerIdx();
-                    for(uint32_t s = 0u; s < simdSize; ++s)
-                        functor(Idx(beginIdx + s, beginWorker + s));
+                    for(uint32_t i = 0u; i < peeledIterations; ++i)
+                    {
+                        uint32_t const beginWorker = i * simdSize;
+                        uint32_t const beginIdx = beginWorker * numWorkers + simdSize * this->getWorkerIdx();
+                        for(uint32_t s = 0u; s < simdSize; ++s)
+                            functor(Idx(beginIdx + s, beginWorker + s));
+                    }
                 }
 
                 // process left over indices if the domainSize is not a multiple of 'simdSize * numWorkers'
                 constexpr bool hasRemainder = (domainSize % (simdSize * numWorkers)) != 0u;
-                constexpr uint32_t leftOverIndices = domainSize - (peeledIterations * numWorkers * simdSize);
-                for(uint32_t s = 0u; hasRemainder && s < simdSize; ++s)
+                if constexpr(hasRemainder)
                 {
-                    /* hasRemainder avoid compiler warnings: warning: comparison of unsigned expression < 0
-                     * is always false
-                     */
-                    if(hasRemainder && this->getWorkerIdx() * simdSize + s < leftOverIndices)
+                    constexpr uint32_t leftOverIndices = domainSize - (peeledIterations * numWorkers * simdSize);
+                    for(uint32_t s = 0u; s < simdSize; ++s)
                     {
-                        constexpr uint32_t beginWorker = peeledIterations * simdSize;
-                        uint32_t const beginIdx = beginWorker * numWorkers + simdSize * this->getWorkerIdx();
-                        functor(Idx(beginIdx + s, beginWorker + s));
+                        if(this->getWorkerIdx() * simdSize + s < leftOverIndices)
+                        {
+                            constexpr uint32_t beginWorker = peeledIterations * simdSize;
+                            uint32_t const beginIdx = beginWorker * numWorkers + simdSize * this->getWorkerIdx();
+                            functor(Idx(beginIdx + s, beginWorker + s));
+                        }
                     }
                 }
             }
